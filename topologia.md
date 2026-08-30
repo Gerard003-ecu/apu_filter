@@ -154,7 +154,23 @@ El soberano `boundary_ring_sheaf_agent.py` y su reactor `boundary_ring_sheaf.py`
 
 ---
 
-## 7. El Espejo Parabólico Semántico (Operador de Householder) y Salto de Kraus
+## 7. Sonda de Ecolocación Topológica (SET) y Reflectometría TDR sobre Haces
+
+La Sonda de Ecolocación Topológica (`set_agent.py` & `set_engine.py`) instrumenta la reflectometría en el dominio del tiempo (TDR) y la dispersión cuántica sobre la frontera abierta $\partial K$:
+
+1. **Laplaciano de Haz Celular SPSD ($L_F$):**
+   $$\mathbf{L}_F = \delta^\top \mathbf{G}^{-1} \delta$$
+   Donde $\mathbf{G}$ se proyecta espectralmente al cono SPD ($\lambda_{\min}(\mathbf{G}_{\mathrm{reg}}) \ge 10^{-12}$).
+2. **Matriz de Dispersión $\mathbb{S}(\omega)$ y Teorema Óptico:**
+   $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
+   Verifica la fuga de unitariedad $\|\mathbf{\mathbb{S}}^\dagger(\omega) \mathbf{\mathbb{S}}(\omega) - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$.
+3. **Perfil de Eco TDR $\Gamma_k(t)$:**
+   $$\Gamma_k(\omega) = \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \quad \implies \quad \Gamma_k(t) = \mathcal{F}^{-1}\left\{ \Gamma_k(\omega) \right\}(t)$$
+   Localiza capacitancias parásitas o descalces financieros en el presupuesto.
+
+---
+
+## 8. El Espejo Parabólico Semántico (Operador de Householder) y Salto de Kraus
 
 Para blindar el Estrato Ω contra alucinaciones, el sistema activa `semantic_parabolic_mirror.py`. Cuando $\beta_1 > 0$ o $\beta_2 > 0$, construye un vector normal ortogonal $|n\rangle$ y aplica el **Operador de Householder** $\hat{M}$:
 $$\hat{M} = I - 2 \frac{|n\rangle \langle n|}{\langle n \mid n \rangle}$$
@@ -164,7 +180,7 @@ Síncronamente, el Agente de Bogoliubov construye **Operadores de Salto de Kraus
 
 ---
 
-## 8. La Rampa de Confianza Graduada y Actuación Ciber-Física en Silicio
+## 9. La Rampa de Confianza Graduada y Actuación Ciber-Física en Silicio
 
 Para conciliar la rigidez matemática con las exigencias del frente de obra civil (evitando detener el bombeo de concreto por fluctuaciones estocásticas menores y previniendo que la mezcla se seque dentro de las tuberías hidráulicas), la variedad topológica discrimina dos regímenes de censura:
 
@@ -192,7 +208,7 @@ Para conciliar la rigidez matemática con las exigencias del frente de obra civi
 
 ---
 
-## 9. Actuación Ciber-Física en Silicio (ESP32 Crowbar < 400 ns)
+## 10. Actuación Ciber-Física en Silicio (ESP32 Crowbar < 400 ns)
 
 Si el veredicto en Heyting colapsa al Supremo terminal VETOED ($\top$):
 1. Se aplica la reducción monoidal $\mu : \Omega_3 \to \mathbb{Z}_2$.

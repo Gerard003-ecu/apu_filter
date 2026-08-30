@@ -393,6 +393,22 @@ Asume la gobernanza de la frontera abierta $\partial \mathcal{M} \neq \varnothin
    $$\rho(t) = E_0 \rho_0 E_0^\dagger + E_1 \rho_0 E_1^\dagger = \begin{pmatrix} 1 - e^{-\Gamma t} & 0 \\ 0 & e^{-\Gamma t} \end{pmatrix}$$
    donde la tasa de decaimiento $\Gamma = \Gamma_0 / (1 + 10 \cdot \mathbf{1}_{\mathrm{torsion}} + 4 \frac{\mathrm{leak}}{1+\mathrm{leak}})$ se ajusta dinámicamente por la presencia de torsión homológica o fuga exergética.
 
+### III. Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
+Gobierna de forma activa y asíncrona la reflectometría de de Rham y la dispersión cuántica en la frontera abierta $\partial K$ para localizar anomalías de costo como desajustes de impedancia:
+
+1. **Ecuación de Onda Coexacta sobre Haces y Matriz de Dispersión de Mahaux-Weidenmüller:**
+   Inyecta impulsos coexactos $\eta(t) \in \Omega^1(\partial K)$ gobernados por la ecuación de onda amortiguada de Rayleigh:
+   $$\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$$
+   La signatura de contorno interactúa con el Espacio de Fock mediante el operador unitario de dispersión $\mathbf{\mathbb{S}}(\omega)$:
+   $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
+2. **Reflectometría TDR e Inversión de Fourier:**
+   La desadaptación métrica $\delta G_{\mu\nu}$ (provocada por alteración de insumos o alucinaciones de precios) genera un perfil de eco temporal evaluado vía la iFFT:
+   $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
+3. **Rampa de Confianza Graduada, Positrón de Autorización y Crowbar:**
+   Evalúa la rampa de pertenencia $\mu(\Gamma) \in [0, 1]$ sobre el intervalo semiabierto $\ell < \|\Gamma(t)\|_{\max} \le u$:
+   - *Veto Suave (Luz Ámbar):* Otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ ligado por HMAC ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ y manteniendo el estado en $\mathtt{DEGRADED}$.
+   - *Veto Duro (Crowbar ESP32):* Si $\|\Gamma\|_{\max} > u$ o expira la gracia, colapsa el retículo de Heyting $\Omega_3$ al Supremo VETOED ($\top$), disparando la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151.
+
 ---
 
 ## 🛠️ IX. El Tribunal de Silicio y la Reducción Monoidal de Actuación Crowbar (ESP32)

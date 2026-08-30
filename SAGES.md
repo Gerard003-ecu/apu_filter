@@ -81,6 +81,24 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
 
 ---
 
+### Ω.0 🔊 Soberano de Ecolocación Topológica (`set_agent.py` & `set_engine.py`)
+*   **Rol:** Soberano de Ecolocación Sónica de de Rham, Reflectometría TDR y Dispersión Cuántica en Frontera.
+*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$ - Nivel 0).
+*   **Microservicios:** `set_agent.py`, `set_engine.py`.
+*   **Mecanismo Matemático y Orquestación OODA Anidada:**
+    1. *Ecuación de Onda Coexacta sobre Haces:* Inyecta perturbaciones armónicas $\eta(t) \in \Omega^1(\partial K)$ gobernadas por la ecuación de Rayleigh amortiguada:
+       $$\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$$
+       donde $\mathbf{L}_F = \delta^\top \mathbf{G}^{-1} \delta$ es el Laplaciano del haz celular SPSD.
+    2. *Matriz de Dispersión Cuántica $\mathbb{S}(\omega)$ de Mahaux-Weidenmüller:*
+       $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
+       Verifica la invarianza unitaria $\|\mathbf{\mathbb{S}}^\dagger(\omega) \mathbf{\mathbb{S}}(\omega) - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$.
+    3. *Reflectometría en el Dominio del Tiempo (TDR):* Evalúa la desadaptación métrica $\delta G_{\mu\nu}$ mediante la iFFT:
+       $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
+    4. *Rampa de Confianza Graduada, Positrón $e^+$ y Crowbar ESP32:*
+       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $\|\Gamma\|_{\max}$ habita la rampa de veto suave, otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ (validado morfológicamente o por secreto $\operatorname{HMAC-SHA256}$). Ante colapso a $\mathtt{VETOED}$, gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para activar el tiristor BT151 (Crowbar).
+
+---
+
 ### Ω.1 💍 Soberano del Haz de Anillos de Frontera (`boundary_ring_sheaf_agent.py` & `boundary_ring_sheaf.py`)
 *   **Rol:** Soberano de Calibre de la Frontera Abierta De-confinada $\partial \mathcal{M} \neq \varnothing$.
 *   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).

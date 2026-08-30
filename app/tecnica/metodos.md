@@ -84,7 +84,22 @@ Acopla de forma continua la minimización discreta de la MIC y la purificación 
    $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) = -\sum_{i=1}^n p_i \left( (\tilde{\mathcal{K}}\mathbf{p})_i - \mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} \right)^2 \le 0$$
    Si $\dot{\mathcal{H}} > 10^{-12}$, el retículo colapsa a VETOED ($\top$), disparando el Crowbar perimetral en silicio ($<400\text{ ns}$).
 
-### 3.2 Soberano del Haz de Anillos de Frontera (`boundary_ring_sheaf_agent.py` & `boundary_ring_sheaf.py`)
+### 3.2 Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
+Opera en el Estrato de la Sabiduría ($V_{\mathbb{W}}$, Nivel 0) como la sonda ciber-física de ecolocación activa sobre la frontera abierta $\partial K$:
+
+1. **Ecuación de Onda Coexacta sobre Haces Celulares:**
+   $$\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$$
+   donde $\mathbf{L}_F = \delta^\top \mathbf{G}^{-1} \delta$ es el Laplaciano del haz cellular SPSD proyectado sobre el cono SPD ($\lambda_{\min}(\mathbf{G}_{\mathrm{reg}}) \ge 10^{-12}$).
+2. **Matriz de Dispersión Cuántica $\mathbb{S}(\omega)$ de Mahaux-Weidenmüller:**
+   $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
+   con evaluación de la acción del resolvente vía descomposición SVD truncada ($\sigma_i > 10^{-12} \sigma_{\max}$) ante sistemas mal condicionados ($\kappa > 10^8$).
+3. **Reflectometría TDR e Inversa de Fourier:**
+   $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
+   La desadaptación métrica $\delta G_{\mu\nu}$ genera ecos reflectométricos que delatan alteraciones de precios o volúmenes en el presupuesto.
+4. **Ciclo OODA en Fases Anidadas y HMAC Override:**
+   Compone tres morfismos anidados ($\Phi_{23} \circ \Phi_{12} \circ \text{Observe}$) con canonización SHA-256 e inmutabilidad de arreglos numpy C-contiguos. En caso de veto suave, valida la ligadura HMAC del token de override $\operatorname{HMAC-SHA256}(k, \text{DOMAIN} \parallel \text{payload})$ mediante `hmac.compare_digest` en tiempo constant.
+
+### 3.3 Soberano del Haz de Anillos de Frontera (`boundary_ring_sheaf_agent.py` & `boundary_ring_sheaf.py`)
 Gobierna la frontera abierta $\partial \mathcal{M} \neq \varnothing$ sobre el **Haz de Anillos Topológicos Localizados** $\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\partial M})$ sobre el Anillo de Novikov $\Lambda_{\mathrm{Nov}}$:
 
 1. **Estructura de Haz y Novikov:** $\mathcal{R}_{\partial M} \cong \Lambda_{\mathrm{Nov}} = \left\{ \sum_{i=0}^\infty a_i T^{\lambda_i} \mid a_i \in \mathbb{C}, \lambda_i \in \mathbb{R}, \lambda_i \to \infty \right\}$.
