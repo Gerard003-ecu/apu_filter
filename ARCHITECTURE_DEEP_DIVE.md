@@ -91,6 +91,14 @@ Gobernador de la frontera abierta $\partial \mathcal{M} \neq \varnothing$ sobre 
 * **Causalidad CPTP de Choi y Bell-CHSH:** $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$, $\|\operatorname{Tr}_2(C_{\mathcal{E}}) - \mathbf{I}\|_F \le 10^{-4}$ y $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$.
 * **Metabolismo de Alucinaciones en Fock por Lindblad-GKSL:** Amortiguación de amplitud con operadores de Kraus $E_0, E_1$ sobre el qubit semántico, cancelando alucinaciones a la tasa $\Gamma = \Gamma_0 / (1 + 10 \cdot \mathbf{1}_{\mathrm{torsion}} + 4 \frac{\mathrm{leak}}{1+\mathrm{leak}})$.
 
+### 3. Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
+Gobernador del lazo cerrado de ecolocación sobre el Estrato de la Sabiduría $V_{\mathbb{W}}$ (Nivel 0):
+
+* **Inyección Armónica de Rayleigh y Dispersión Cuántica:** Inyecta perturbaciones coexactas $\eta(t) \in \Omega^1(\partial K)$ gobernadas por la ecuación de onda amortiguada $\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$. La dispersión cuántica en Fock se comprime en la matriz S unitaria:
+  $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
+* **Reflectometría en el Dominio del Tiempo (TDR):** La desadaptación métrica $\delta G_{\mu\nu}$ genera el coeficiente de reflexión de de Rham y perfil de eco temporal $\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$.
+* **Orquestación OODA Anidada y Veto Ciber-Físico:** Opera en 3 fases anidadas (Observe $\to$ Orient/Decide $\to$ Act/Certify) con canonización tensorial SHA-256, auditoría espectral, evaluación de S-matrix/TDR y decisión en Álgebra de Heyting $\Omega_3$. Ante colapso a $\mathtt{VETOED}$, desciende al hardware e inyecta la ISR en IRAM del ESP32 ($< 400\text{ ns}$) conmutando GPIO14 para cebar el tiristor BT151 (Crowbar).
+
 ---
 
 ## 🏛️ Taxonomía Unificada: 55 Soberanos Agénticos vs 45 Motores Espectrales

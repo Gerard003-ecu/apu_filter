@@ -119,6 +119,8 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 | **$\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \neq \mathbf{0}$** ($d_i > 1$) | `boundary_ring_sheaf_agent.py` | **Torsión homológica en Smith Z:** Incompatibilidad de empaquetado discreto de insumos. | **Mermas contractuales y rechazo en SECOP II:** Desperdicio de materiales, multas de interventoría y reestructuración de pliegos. |
 | **$\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$** | `boundary_ring_sheaf.py` | **Violación de Causalidad CPTP:** Canal cuántico no completamente positivo. | **Inyección de facturación fantasma:** Cobro de actividades no ejecutadas y desfalco patrimonial. |
 | **$\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$** | `audit_satellites_agent.py` | **Violación Cota Tsirelson / Bell:** Correlación no local espuria entre proveedores. | **Cartelización de proveedores de acero/cemento:** Inflación artificial del WACC, sobrecostos y veto inmediato de licitaciones. |
+| **$\|\Gamma(t)\|_{\max} > u$** | `set_agent.py` / `set_engine.py` | **Desajuste Crítico de Impedancia en Frontera (TDR):** Reflexión sónica en la malla de de Rham. | **Sobreprecio u ocultamiento de ítems en pliegos SECOP II:** Alteración de precios unitarios que provoca sobrecostos y descalce financiero. |
+| **$\|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F > \varepsilon$** | `set_engine.py` | **Fractura de Unitaridad de Dispersión Cuántica:** Fuga de probabilidad en el Espacio de Fock. | **Alucinaciones presupuestales e inyección de datos fantasma:** Cobro de cantidades ficticias y desfalco del patrimonio del proyecto. |
 
 ---
 

@@ -105,6 +105,14 @@ Gobierna la frontera abierta $\partial \mathcal{M} \neq \varnothing$ sobre el **
 * **Causalidad CPTP de Choi y Cota Tsirelson de Bell-CHSH:** $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$, $\|\operatorname{Tr}_2(C_{\mathcal{E}}) - \mathbf{I}\|_F \le 10^{-4}$ y $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$.
 * **Metabolismo de Alucinaciones por Lindblad-GKSL en Fock:** Amortiguación de amplitud con operadores de Kraus $E_0, E_1$ sobre el qubit semántico, extirpando alucinaciones a la tasa $\Gamma = \Gamma_0 / (1 + 10 \cdot \mathbf{1}_{\mathrm{torsion}} + 4 \frac{\mathrm{leak}}{1+\mathrm{leak}})$.
 
+### 3. Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
+Gobierna el escaneo sónico y la reflectometría en la frontera abierta $\partial K$ del Reactor Port-Hamiltoniano:
+
+* **Ecuación de Onda Coexacta y Matriz S de Dispersión Cuántica:** Modela impulsos coexactos $\eta(t)$ con la ecuación amortiguada $\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$ y acopla el espacio de Fock mediante la Matriz S:
+  $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
+* **Reflectometría TDR e Impedancia Variable por Métrica:** Las desviaciones métricas $\delta G_{\mu\nu}$ actúan como cambios de impedancia local. El eco temporal TDR $\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$ incrementa la fricción dinámica $R(x)$ del reactor, desacelerando la logística contractual hasta disipar el costo anómalo.
+* **Rampa de Confianza Graduada y Veto de Silicio:** Clasifica los eco-perfiles en el retículo de Heyting $\Omega_3$. Si $\|\Gamma(t)\|_{\max}$ supera la cota blanda $\ell$, activa veto suave (Luz Ámbar, 1h de gracia para inyectar un Positrón de Autorización $e^+$). Si supera la cota dura $u$ o expira la gracia, gatilla veto duro con colapso a $\mathtt{VETOED}$ y disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
+
 ---
 
 ## 💊 Las Vitaminas TOON vs La Grasa del JSON: Purificación Booleana
