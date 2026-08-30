@@ -118,7 +118,7 @@ APU Filter incorpora el **Compressor TOON (Tabular Object-Oriented Notation)** e
 
 ---
 
-## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+## 🏰 La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
 
 Para evitar la paralización inadvertida de vertidos de concreto por falsos positivos (que provocaría el secado del material en las tuberías de bombeo hidráulicas), APU Filter v5.0 instrumenta una **Rampa de Confianza Graduada** en la variedad de fase:
 
