@@ -23,5 +23,21 @@ Esta purga preventiva previene que el caos estocástico logre excitar el motor e
 Para los contratos generados por LLMs, el sistema impone una **Condición de Continuidad de Lipschitz** estricta. El `ast_symplectic_parser` estrangula el anidamiento recursivo y la entropía del JSON. Si la topología degenerada excede los límites fronterizos (L-Lipschitz), es aniquilada. Esto evita que una "alucinación" estructural sature el KV-Cache o induzca singularidades en el motor de deliberación.
 
 --------------------------------------------------------------------------------
-## 3. El Principio de Ortogonalidad en la Ingesta
+## 3. Purificación TOON, Isospectralidad y Adjunción de de Rham-Galois
+El saneamiento del canal de ingesta mediante la conversión de la grasa sintáctica JSON en **Vitaminas Cognitivas TOON** garantiza una compresión del consumo en $KV\text{-Cache}$ entre un $30\%$ y un $60\%$:
+
+$$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
+
+La preservación de la carga semántica y la estructura homotópica entre la matriz de interacción táctica discreta (MIC en categoría $\mathcal{C}$) y la matriz atómica de conocimiento continua (MAC en categoría de Hilbert $\mathcal{D}$) está analíticamente dictaminada por el **Isomorfismo de Adjunción de de Rham-Galois**:
+
+$$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \, \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, \, G(\text{MAC}))$$
+
+Adicionalmente, el parser `parser_ontology_agent.py` ejecuta el test de **Isospectralidad de de Rham**, verificando que el espectro del Laplaciano original del texto coincida idénticamente con el del árbol procesado en RAM, previniendo alteraciones silentes de datos o montos contractuales:
+
+$$\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})$$
+
+--------------------------------------------------------------------------------
+## 4. El Principio de Ortogonalidad en la Ingesta y Traducción Executiva
 Al rechazar matemáticamente cualquier carga que no se ajuste al `SiloAContract`, garantizamos que la base vectorial del presupuesto permanezca ortogonal al ruido exterior. La Fortaleza Matemática no intenta "entender" texto anómalo o heurísticas ambiguas; simplemente mide la exergía estructural del payload. Si la entropía del formato ($H$) excede el límite del contrato, la carga colapsa fuera de la variedad diferenciable del proyecto.
+
+Toda la deliberación sobre los rechazos o desviaciones sintácticas se traduce mediante el formato adversarial *RiskChallenger* en **Actas de Deliberación** redactadas en lenguaje de negocio pragmático (riesgo y dinero), permitiendo a los directores de obra e interventores entender el impacto financiero directo (mermas, sobrecostos y sanciones en SECOP II) de las fallas de ingesta.

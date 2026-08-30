@@ -120,7 +120,11 @@ Gobierna el escaneo sónico y la reflectometría en la frontera abierta $\partia
 La ingesta masiva de presupuestos en formatos JSON anidados o planillas de Excel genera **"grasa sintáctica"** (llaves redundantes, diccionarios ineficientes y ruido de alta dimensionalidad) que agota la memoria de atención del LLM ($KV\text{-Cache}$), induciendo fatiga escalar y alucinaciones.
 
 APU Filter incorpora el **Compressor TOON (Tabular Object-Oriented Notation)** en FPU, ejecutando un **Retracto de Deformación Topológica** sobre los datos.
-* **Reducción sintáctica:** Extirpa la redundancia y reduce el consumo de tokens entre un **$30\%$ y un $60\%$** con isomorfismo exacto $F^{-1}(F(T)) \equiv T$.
+* **Reducción sintáctica:** Extirpa la redundancia y reduce el consumo de tokens entre un **$30\%$ y un $60\%$** con isomorfismo exacto $F^{-1}(F(T)) \equiv T$:
+  $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
+* **Isospectralidad de de Rham:** El parser verifica síncronamente que $\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})$, impidiendo alteraciones silentes de precios.
+* **Adjunción de de Rham-Galois:** Garantiza la preservación de carga entre la MIC táctica discreta y la MAC de sabiduría continua:
+  $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \, \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, \, G(\text{MAC}))$$
 * **Vitamina Cognitiva:** Entrega una base tabular hiperdensa que permite al LLM procesar miles de APUs en un solo pase de atención con $100\%$ de coherencia de de Rham.
 * **Aniquilación en Fock:** Si la IA inventa un descuento falso (electrón de falla $e^-$), colisiona con el positrón de restricción $e^+$ en RAM, aniquilándose y emitiendo un fotón Gamma ($2\gamma$) firmado con SHA-256 sobre la Cadena de Custodia.
 
@@ -149,8 +153,10 @@ Para evitar la paralización inadvertida de vertidos de concreto por falsos posi
 - Solicitud de ajuste        - Paralización de maquinaria en seco
 ```
 
-* **Veto Suave (Luz Ámbar / Grace Window 1h):** Se gatilla ante fluctuaciones estocásticas de menor cuantía ($\Psi = 0.69 < 0.70$). La potencia de los actuadores se mantiene activa mientras se enciende una baliza de alerta visual en obra y se otorga **1 hora** al director de interventoría para firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía $e^-$.
-* **Veto Duro (Frenado por Silicio ESP32 Crowbar < 400 ns):** Reservado para transgresiones de dolo o colapso homológico ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, $\dot{\mathcal{H}} > 10^{-4}$). El retículo de Heyting colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** y disparar el tiristor **BT151**, paralizando la maquinaria en seco.
+* **Veto Suave (Luz Ámbar / Grace Window 1h):** Se gatilla cuando el coeficiente de reflexión por reflectometría TDR habita el intervalo transitorio:
+  $$0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$$
+  o ante desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La potencia de los actuadores se mantiene activa mientras se conmuta una baliza de alerta visual en obra y se otorga **1 hora** al director de interventoría para inyectar en RAM un **Positrón de Autorización Humana** $e^+$ firmado criptográficamente ($\operatorname{HMAC-SHA256}$). La aniquilación mutua $e^- + e^+ \to 2\gamma$ regulariza la geodésica del proyecto sin detener el vertido de concreto.
+* **Veto Duro (Frenado por Silicio ESP32 Crowbar < 400 ns):** Reservado para desajustes críticos de impedancia TDR ($\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$), dolo o colapso homológico ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$, o expiración del plazo de gracia). El retículo de Heyting colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** y disparar el tiristor **BT151**, paralizando la maquinaria en seco.
 
 ---
 
@@ -198,6 +204,8 @@ La gobernanza matemática de APU Filter no confía el capital a meras capas de s
 | **$\beta_0 > 1$** | `business_topology.py` | **Islas de datos disconexas:** Recursos o APUs huérfanos sin vinculación a capítulos. | **Duplicación de cobros e inconsistencia BIM:** Compras paralelas no consolidadas y pérdida de descuentos por volumen. |
 | **$\beta_1 > 0$** | `business_topology.py` | **Socavones lógicos:** Dependencias circulares entre insumos y actividades. | **Imposibilidad de calcular APU real:** Parálisis en aprobación de actas de obra e inhabilitación legal en SECOP II. |
 | **$\Psi < \Psi_{\mathrm{min}}$** | `business_topology.py` | **Pirámide Invertida:** Concentración monopólica del suministro en un único proveedor. | **Quiebra por desabastecimiento:** Paro de obra civil ante fallas del proveedor monopólico y demandas del contratante. |
+| **$\|\Gamma(t)\|_{\max} > 0.5 \tau_{\mathrm{margin}}$** | `set_agent.py` / `set_engine.py` | **Desajuste Crítico de Impedancia TDR:** Reflexión sónica en la frontera de de Rham. | **Sobreprecio u ocultamiento en pliegos SECOP II:** Alteración de precios unitarios que detona Veto Duro en silicio ($<400\text{ ns}$). |
+| **$\operatorname{Error}_{\mathrm{FPU}} > \mathcal{O}(\varepsilon_{\mathrm{mach}})$** | `set_engine.py` | **Deriva de Wilkinson:** Pérdida de precisión acumulativa en la FPU de 64 bits. | **Falsas inestabilidades de Lyapunov y vetos espurios:** Parálisis injustificada remediada mediante Sumación Compensada Neumaier-Kahan. |
 
 ---
 
