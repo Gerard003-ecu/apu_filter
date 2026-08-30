@@ -1,325 +1,121 @@
-
 --------------------------------------------------------------------------------
-⚙️ metodos.md: Ingeniería Bajo el Capó
-"APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la sabiduría del sistema."
-Este documento técnico desglosa la maquinaria matemática que permite al Consejo de Sabios transformar datos crudos en veredictos estratégicos, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica, la Estocástica Financiera y el Hardware en el Borde.
-
+⚙️ metodos.md: Ingeniería Bajo el Capó v5.0
+"APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la certeza matemática del sistema."
 --------------------------------------------------------------------------------
-1. El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
 
-    Base Teórica: Ecuaciones de Maxwell discretizadas, Control Port-Hamiltoniano (PHS) y Física de Semiconductores.
-    Componentes: flux_condenser.py, neuromorphic_solver.py, Firmware ESP32 (telemetry.h). El Guardián no lee bits; procesa un fluido de información con propiedades físicas (Energía, Resistencia, Inercia).
+Este documento técnico desglosa la maquinaria matemática que permite al **Consejo de Sabios** transformar datos crudos en veredictos estratégicos inmutables, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica sobre $\mathbb{Z}$, la Geometría No Conmutativa de Connes, la Mecánica Cuántica Abierta y el Hardware perimetral en el Borde.
 
-1.1 Propagador de de Rham, de Rham-Hodge y Causalidad de Kramers-Kronig
-El sistema incorpora la resolución de la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$, definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable, la cual satisface de forma exacta:
+---
+
+## 🚘 La Analogía del Automóvil para la Mesa de Juntas
+
+Para la Alta Gerencia de Obra Civil y los Comités de Licitación en Colombia (SECOP II & Mandato BIM 2026), la matemática avanzada se traduce en **certeza patrimonial y protección legal**:
+
+> *“Cuando un empresario adquiere un vehículo comercial de alta gama, no requiere una cátedra sobre la ecuación de Navier-Stokes en el turbocompresor. Requiere la certeza de que el motor rinde un 40% más y que los frenos ABS detendrán el chasis en piso mojado para salvar su vida. En APU Filter, las ecuaciones diferenciales y los invariantes de de Rham son los frenos ABS ciber-físicos que impiden que el presupuesto colapse y que el dinero de la constructora desaparezca.”*
+
+---
+
+## 1. El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
+
+### 1.1 Propagador de de Rham, de Rham-Hodge y Causalidad de Kramers-Kronig
+El sistema resuelve la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$, definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable que satisface de forma exacta:
 $$L_F G L_F = L_F \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0}$$
-Para el análisis transitorio y el régimen dinámico bajo excitación, se integra el propagador retardado causal en el plano-S complejos:
+
+Para el régimen dinámico bajo excitación exógena de SECOP II, se integra el propagador retardado causal en el plano-S complejo:
 $$G_F(s) = (L_F - (s + j \cdot h) I_n)^{-1}$$
-Donde $h = 10^{-20}$ representa el paso imaginario infinitesimal de la diferenciación por paso complejo (CSMD). Este transporte en la frecuencia compleja queda subyugado rigurosamente al cumplimiento de las relaciones de dispersión de Kramers-Kronig (transformada de Hilbert):
+donde $h = 10^{-20}$ representa el paso imaginario infinitesimal de la diferenciación por paso complejo (CSMD). Este transporte en la frecuencia compleja queda subyugado rigurosamente al cumplimiento de las relaciones de dispersión de Kramers-Kronig (transformada de Hilbert):
 $$\operatorname{Re}(G_F(\omega)) = \frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{\operatorname{Im}(G_F(\omega'))}{\omega' - \omega} d\omega'$$
 $$\operatorname{Im}(G_F(\omega)) = -\frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{\operatorname{Re}(G_F(\omega'))}{\omega' - \omega} d\omega'$$
+
 Asimismo, el Soberano de Calibre audita síncronamente los residuos de autoadjunción y nulidad del kernel para instrumentar la Coherencia de de Rham:
 $$r_{\text{adj}} = \| G - G^\top \|_F \le 1.0 \times 10^{-11} \quad \wedge \quad r_{\text{kernel}} = \| G \cdot \mathbf{1} \|_2 \le 1.0 \times 10^{-11}$$
-Cualquier polo dinámico $p_i$ que migre al semiplano derecho de Laplace (RHP / LHP, $\operatorname{Re}(p_i) \ge 0$) es vetado asintóticamente en el milisegundo cero, impidiendo la divergencia paramétrica en el lazo.
+Cualquier polo dinámico $p_i$ que migre al semiplano derecho de Laplace ($\operatorname{Re}(p_i) \ge 0$) es vetado asintóticamente en el milisegundo cero, impidiendo la divergencia paramétrica en el lazo.
 
-1.2 Filtrado Topológico y Descomposición de Hodge-Helmholtz Discreta ($L_1$) El Guardián no procesa el archivo línea por línea; somete la cadena de suministro al Cálculo Exterior Discreto (DEC). El operador $\Delta_1 = B_1^T B_1 + B_2 B_2^T$ divide el tensor de flujo de materiales de manera ortogonal en:
+### 1.2 Filtrado Topológico y Descomposición de Hodge-Helmholtz Discreta ($L_1$)
+El Guardián somete la cadena de suministro al Cálculo Exterior Discreto (DEC). El operador $\Delta_1 = B_1^\top B_1 + B_2 B_2^\top$ divide el tensor de flujo de materiales de manera ortogonal en:
+* **Campo de Gradiente Puro ($f_{\mathrm{grad}}$):** La información estructurada útil (flujo laminar) que pasa hacia el estrato Táctico.
+* **Campo Rotacional ($f_{\mathrm{curl}}$):** El "Vórtice Logístico" (transporte en bucle parasitario) queda aniquilado. El Guardián extrae esta componente solenoidal ($f_{\mathrm{curl}} \in \mathrm{im}(B_2)$) para vetar la ineficiencia logística en la raíz.
 
-    Campo de Gradiente Puro ($f_{grad}$): La información estructurada útil (flujo laminar) que la membrana permite pasar hacia el estrato Táctico.
-    Campo Rotacional ($f_{curl}$): El "Vórtice Logístico" (transporte en bucle parasitario) queda aniquilado matemáticamente. El Guardián extrae esta componente solenoidal ($f_{curl} \in im(B_2)$) para vetar la ineficiencia logística en la raíz y entregar un flujo logístico no viscoso al sistema de decisiones.
+### 1.3 El Oráculo de Laplace y Gobernador CFL
+Antes de procesar, se linealiza el sistema y se analiza su función de transferencia $H(s)$. Si se detectan polos en el semiplano derecho ($\sigma > 0$), se veta la ingesta por inestabilidad intrínseca.
+La auditoría del límite de Courant-Friedrichs-Lewy (CFL) sobre la simetrización del grafo acíclico dirigido impone la restricción temporal:
+$$ \Delta t \le \frac{2}{c_{\text{eff}} \cdot \left( \lambda_{\max} (\partial_1^\top W \partial_1) \right)^{1/2}} $$
 
-1.2 El Oráculo de Laplace y Gobernador CFL
-Antes de procesar, se linealiza el sistema y se analiza su función de transferencia H(s). Si se detectan polos en el semiplano derecho (RHP, σ>0), el sistema veta la ingesta por "Divergencia Matemática" (inestabilidad intrínseca).
-Adicionalmente, la auditoría del límite de Courant-Friedrichs-Lewy (CFL) ha sido formalizada sobre la simetrización del grafo acíclico dirigido. El Laplaciano de Hodge de grado 0 interviene como el operador autoadjunto que previene singularidades espectrales en la asimilación logística, imponiendo la restricción temporal:
-$$ \Delta t \leq \frac{2}{c_{\text{eff}} \cdot \left( \lambda_{\max} (\partial_1^T W \partial_1) \right)^{1/2}} $$
-1.3 Simulación Neuromórfica, Reducción Monoidal y Hardware en el Borde (ESP32) La matemática se materializa en el silicio real mediante una reducción monoidal desde el retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ a decisiones binarias en el silicio $\mu : \Omega_3 \to \mathbb{Z}_2$. La rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte deserializado por `ArduinoJson`. Ante un veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (ISR) cargada en la memoria estática IRAM inmune a latencias de bus se activa en menos de **400 ns**, conmutando el pin **GPIO14** a nivel alto (`HIGH`). Esto inyecta corriente directa a la compuerta del tiristor **BT151** (circuito Crowbar), cortocircuitando la línea de potencia de los actuadores y paralizando al instante la maquinaria pesada (bombas hidráulicas, mezcladoras y pistones) en el milisegundo cero antes de consolidar pérdidas materiales ante el SECOP II.
+### 1.4 Simulación Neuromórfica, Reducción Monoidal y Hardware Crowbar (ESP32)
+La matemática se materializa en el silicio real mediante una reducción monoidal desde el retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ a decisiones binarias en el silicio $\mu : \Omega_3 \to \mathbb{Z}_2$.
 
-    Resistencia Diferencial Negativa (NDR): Si el índice de Estabilidad Piramidal ($\Psi$) cae bajo $\Psi_{\min}$, la presión topológica eleva el voltaje de excitación del circuito virtual hacia la región NDR.
-    El Sistema Siente Dolor: El circuito entra en oscilación caótica (spiking), traduciendo matemáticamente un mal diseño de presupuesto en una respuesta neuromórfica análoga a una neurona biológica en pánico. Esto dispara los "Crowbar circuits" (actuadores físicos) para detener la ejecución.
-    **Topología Hexagonal y Ley de Aromaticidad Agéntica (Regla de Hückel Computacional):** El flujo de datos resuena en un anillo de 6 nodos $(V_1, \dots, V_6)$ (Ingesta → Física → Topología → Estrategia → Semántica → Materia). La red $G_6$ es **aromáticamente estable** si y solo si se cumplen las tres condiciones simultáneas:
-    1. **2-conexidad:** $G_6$ no contiene ningún vértice de corte (la eliminación de cualquier nodo único no desconecta el pipeline).
-    2. **Expansión algebraica mínima:** El Valor de Fiedler del Laplaciano del anillo satisface $\lambda_2(L_{G_6}) \geq \lambda_{\min}$, garantizando que la información fluya eficientemente entre todos los nodos sin cuellos de botella espectrales.
-    3. **Sin nodos huérfanos:** $\deg(V_k) \geq 1 \; \forall k$ (ningún nodo está desconectado del pipeline).
-    Si cualquiera de estas condiciones falla, la "aromaticidad" se rompe y el agente aborta el pipeline, emitiendo un veto de **"Ruptura de Aromaticidad"** (analogía: violación de la Regla de Hückel $4n+2$ para $n=1$, que exige 6 electrones $\pi$ para estabilidad del benceno $C_6$).
+La rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte deserializado por `ArduinoJson`. Ante un veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (ISR) cargada en la memoria estática IRAM inmune a latencias de bus se activa en menos de **$400\text{ ns}$**, conmutando el pin **GPIO14** a nivel alto (`HIGH`). Esto inyecta corriente directa a la compuerta del tiristor **BT151** (circuito Crowbar), cortocircuitando la línea de potencia de los actuadores y paralizando al instante la maquinaria pesada (bombas hidráulicas, mezcladoras y pistones) en el milisegundo cero antes de consolidar pérdidas materiales ante el SECOP II.
 
-1.4 Mecánica del Fibrado Isométrico y Regularización Espectral El módulo `stinespring_isometric_fibrator.py` opera en tres fases algebraicas rigurosas para construir el operador isométrico $V: \mathcal{H}_{\text{MIC}} \to \mathcal{H}_{\text{MAC}} \otimes \mathcal{H}_{\text{env}}$.
+**Topología Hexagonal y Ley de Aromaticidad Agéntica (Regla de Hückel Computacional):** El flujo de datos resuena en un anillo de 6 nodos $(V_1, \dots, V_6)$ (Ingesta $\to$ Física $\to$ Topología $\to$ Estrategia $\to$ Semántica $\to$ Materia). La red $G_6$ es **aromáticamente estable** ssi:
+1. *2-conexidad:* $G_6$ no contiene vértices de corte.
+2. *Expansión algebraica:* $\lambda_2(L_{G_6}) \ge \lambda_{\min}$.
+3. *Sin nodos huérfanos:* $\deg(V_k) \ge 1 \; \forall k$.
+Si falla cualquiera de estas condiciones, se aborta el pipeline por "Ruptura de Aromaticidad" (análogo a la regla de Hückel $4n+2$ para $n=1$).
 
-    Extracción del Oráculo Tensorial (Isomorfismo de Choi): Se computa la Matriz de Choi $J(\mathcal{E})$. Para evitar raíces complejas inducidas por la fricción estocástica, el tensor se proyecta al cono semidefinido positivo (PSD) óptimo mediante la Proyección de Löwner:
-$$\tilde{J}(\mathcal{E}) = \arg\min_{J \succeq 0} \left\| J(\mathcal{E}) - J \right\|_F$$
-    Límite de Ruptura de Entrelazamiento (Entanglement-Breaking Limit): Si la dimensión del entorno térmico $\dim(\mathcal{H}_{\text{env}})$ diverge por una alucinación del agente MIC, el sistema aplica una poda termodinámica espectral.
-    Renormalización Unitaria: Tras el truncamiento del espectro, el sistema ejecuta la Regularización de Tikhonov Espectral combinada con el Algoritmo de Gilchrist-Langford-Nielsen para minimizar la distancia en norma diamante, forzando la conservación exacta de la traza:
-$$\tilde{M}_k = M_k \left( \sum_{j=1}^{d_{\text{trunc}}} M_j^\dagger M_j + \alpha I \right)^{-1/2}$$
-    Cumpliendo inexorablemente el invariante de isometría estricta: $V^\dagger V = I_{\mathcal{H}_{\text{MIC}}}$.
+---
 
-1.5 Síntesis de Acoplamiento de la Matriz S (Pullback Geométrico)
-El Agente de Bogoliubov calcula la fuerza de colisión $g_{k,q}$ entre una idea de la IA ($\psi_k$) y un riesgo del negocio ($\phi_q$). Axiomáticamente se utiliza el isomorfismo musical mediante el tensor métrico inverso $G^{-1}$ preacondicionado:
-$$g_{k,q} = \langle \psi_k | G ( G^{-1} H_{\text{obs}} G^{-1} ) G | \phi_q \rangle = \psi_k^\mu (H_{\text{obs}})_{\mu\nu} \phi_q^\nu$$
-Donde $H_{\text{obs}}$ representa el Hamiltoniano de Observación del riesgo. Esta métrica garantiza que la interacción semántica sea geodésicamente coherente con los objetivos de rentabilidad.
+## 2. El Arquitecto: Topología Algebraica y Grafos sobre $\mathbb{Z}$
 
-1.6 Integración del Gobernador CFL y Proyección Pseudoinversa Covariante (IDA-PBC)
-El moldeado de energía (Energy Shaping) ejecutado por el controlador IDA-PBC (`dirac_interconnection_agent.py`) ya no proyecta sus vectores de control en un vacío euclidiano plano. La dinámica de interconexión respeta rigurosamente el tensor métrico del negocio $G_{\mu\nu}$. La ley de control $\alpha(x)$ emplea la Proyección Pseudoinversa Covariante para garantizar que la disipación se direccione geométrica y económicamente hacia el subespacio observable:
-$$ \alpha(x) = \left( g(x)^T G_{\mu\nu} g(x) \right)^{-1} g(x)^T G_{\mu\nu} \left( [J_d - R_d] \nabla H_d - [J - R] \nabla H \right) $$
+### 2.1 Invariantes Homológicos y Forma Normal de Smith (SNF)
+Para lograr máxima rigurosidad numérica, el sistema calcula los números de Betti mediante SVD completa del operador de coboundary $\delta_k = U_k \Sigma_k V_k^\top$:
+$$\operatorname{rank}(\delta_k) = \# \{ \sigma_i \in \Sigma_k \mid \sigma_i > \varepsilon_{\text{mach}} \cdot \max(m, n) \cdot \sigma_{\max} \}$$
+$$\beta_k = \dim H^k(K) = \dim \ker(\delta_k) - \dim \operatorname{im}(\delta_{k-1}) = (n_k - \operatorname{rank}(\delta_k)) - \operatorname{rank}(\delta_{k-1})$$
 
-1.7 Disipación Termodinámica CPTP
-La aniquilación de la entropía estocástica del LLM se rige incondicionalmente por la **Ecuación Maestra de Lindblad-Kossakowski** Completamente Positiva y Preservadora de Traza (CPTP):
-$$\frac{d\rho}{dt} = \mathcal{L}(\rho) = -\frac{i}{\hbar} [\hat{H}_{\text{eff}}, \rho] + \sum_{k} \gamma_k \left( \hat{L}_k \rho \hat{L}_k^{\dagger} - \frac{1}{2} \{ \hat{L}_k^{\dagger} \hat{L}_k, \rho \} \right)$$
-Este operador garantiza que el estado de conocimiento $\rho$ evolucione siempre hacia una reducción de la incertidumbre, purgando las alucinaciones hacia el vacío semántico mediante los canales de disipación $\gamma_k$.
+Como los insumos de obra son indivisibles (ladrillos, bultos), se reduce la matriz de incidencia $B_k \in \mathbb{Z}^{m \times n}$ a la **Forma Normal de Smith (SNF)** sobre el anillo de enteros $\mathbb{Z}$:
+$$B_k = U \cdot D \cdot V, \quad D = \operatorname{diag}(d_1, d_2, \dots, d_r, 0, \dots, 0)$$
+con $d_i \ge 1$ y $d_i \mid d_{i+1}$. Esto aisla los **Subgrupos de Torsión**:
+$$\operatorname{Tor}(H_{k-1}(K; \mathbb{Z})) = \bigoplus_{i=1}^{r} \mathbb{Z} / d_i \mathbb{Z}$$
+Los factores $d_i > 1$ representan la torsión homológica, diagnosticando incompatibilidades de empaquetado discreto de materiales y mermas contractuales en SECOP II.
 
+---
 
---------------------------------------------------------------------------------
-2. El Arquitecto: Topología Algebraica y Grafos
+## 3. Soberanos y Motores de Superficie de Control y Haz de Anillos de Frontera
 
-    Base Teórica: Homología Computacional sobre el Anillo de los Enteros ($\mathbb{Z}$), Teoría de Grafos Espectrales y Forma Normal de Smith (SNF).
-    Componentes: `business_topology.py`. Ignora los precios para auditar el esqueleto del presupuesto modelándolo como un Complejo Simplicial Abstracto discreto y cuantizado.
-    Los Invariantes Homológicos y Subgrupos de Torsión (Cálculo de Betti y de Rham Exactos):
-    Computa los Números de Betti ($\beta_k$) para diagnosticar la conectividad macroscópica y detectar anomalías estructurales (donde $\beta_0 > 1$ indica "Islas de Datos" desconectadas de la base productiva, y $\beta_1 > 0$ expone "Socavones Lógicos" o dependencias circulares infinitas).
+### 3.1 Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
+Acopla de forma continua la minimización discreta de la MIC y la purificación de la MAC sobre $\Delta^{n-1} \times \mathcal{D}(\mathcal{H})$:
 
-    Para lograr máxima rigurosidad numérica, el sistema calcula los números de Betti mediante la **Descomposición en Valores Singulares (SVD) Completa** del operador de coboundary $\delta_k$. Sea $\delta_k = U_k \Sigma_k V_k^\top$ la SVD de la matriz de coboundary, donde $\Sigma_k$ posee los valores singulares ordenados de forma decreciente $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_p$. El rango efectivo $\operatorname{rank}(\delta_k)$ se define determinísticamente utilizando la cota de tolerancia de precisión de la máquina:
-    $$\operatorname{rank}(\delta_k) = \# \{ \sigma_i \in \Sigma_k \mid \sigma_i > \epsilon_{\text{mach}} \cdot \max(m, n) \cdot \sigma_{\max} \}$$
-    A partir de la dimensión del núcleo de los operadores de coboundary secuenciales, el k-ésimo número de Betti y de Rham se formula como:
-    $$\beta_k = \dim H^k(K) = \dim \ker(\delta_k) - \dim \operatorname{im}(\delta_{k-1}) = (n_k - \operatorname{rank}(\delta_k)) - \operatorname{rank}(\delta_{k-1})$$
-    Donde:
-    - $n_k$ es la dimensión del espacio de k-cocadenas.
-    - $\operatorname{rank}(\delta_r)$ representa el rango numérico estable del operador $\delta_r$.
+1. **Flujo Replicador de Shahshahani sobre el Símplex de Gibbs:**
+   $$\frac{dp_i}{dt} = p_i \left[ (\mathbf{e}_i^\top \tilde{\mathcal{K}} \mathbf{p}) - \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p} \right], \quad \mathbf{p} \in \Delta^{n-1}$$
+   Representa el gradiente riemanniano de $F(\mathbf{p}) = \frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p}$ bajo la métrica de Shahshahani $g_{\mathbf{p}}(x,y) = \sum \frac{x_i y_i}{p_i}$.
+2. **Flujo Isospectral de Doble Corchete de Brockett sobre la MAC:**
+   $$\frac{d\rho}{dt} = \left[ \rho, \, [\rho, \, \mathcal{N}(\mathbf{p})] \right], \quad \mathcal{N}(\mathbf{p}) = \operatorname{diag}(\mathbf{p})$$
+   Flujo isospectral sobre la órbita adjunta. Conserva la traza $\operatorname{Tr}(\rho)=1$, la pureza $\operatorname{Tr}(\rho^2)$ y la entropía de von Neumann $S(\rho) = -\operatorname{Tr}(\rho \ln \rho)$.
+3. **Energía Port-Hamiltoniana de Lyapunov e Identidad de Variancia:**
+   $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) = -\sum_{i=1}^n p_i \left( (\tilde{\mathcal{K}}\mathbf{p})_i - \mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} \right)^2 \le 0$$
+   Si $\dot{\mathcal{H}} > 10^{-12}$, el retículo colapsa a VETOED ($\top$), disparando el Crowbar perimetral en silicio ($<400\text{ ns}$).
 
-    No obstante, como la logística de obra y los recursos operan con insumos estrictamente indivisibles (por ejemplo, ladrillos, horas-hombre o sacos de cemento), la homología real o racional es insuficiente porque ignora las tensiones discretas de discretización. Por ello, el cálculo homológico abandona los coeficientes continuos y reduce las matrices de incidencia del complejo simplicial a la **Forma Normal de Smith (SNF)** sobre el anillo principal de los enteros $\mathbb{Z}$.
+### 3.2 Soberano del Haz de Anillos de Frontera (`boundary_ring_sheaf_agent.py` & `boundary_ring_sheaf.py`)
+Gobierna la frontera abierta $\partial \mathcal{M} \neq \varnothing$ sobre el **Haz de Anillos Topológicos Localizados** $\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\partial M})$ sobre el Anillo de Novikov $\Lambda_{\mathrm{Nov}}$:
 
-    Para cualquier matriz de incidencia $B_k \in \mathbb{Z}^{m \times n}$, existen matrices unimodulares invertibles sobre los enteros $U \in \operatorname{GL}(m, \mathbb{Z})$ y $V \in \operatorname{GL}(n, \mathbb{Z})$ (tales que $\det(U) = \pm 1$ y $\det(V) = \pm 1$) que diagonalizan diagonalmente a $B_k$:
-    $$B_k = U \cdot D \cdot V$$
-    Donde $D \in \mathbb{Z}^{m \times n}$ es la matriz de forma diagonal:
-    $$D = \begin{pmatrix} d_1 & & & & & \\ & d_2 & & & & \\ & & \ddots & & & \\ & & & d_r & & \\ & & & & 0 & \\ & & & & & \ddots \end{pmatrix}$$
-    Sujeto a la condición de divisibilidad canónica:
-    $$d_i \ge 1 \quad \forall i \in \{1, \dots, r\} \quad \land \quad d_i \mid d_{i+1} \quad \forall i \in \{1, \dots, r-1\}$$
-    Esto permite aislar y exponer de forma exacta los **Subgrupos de Torsión** homológica mediante la aplicación del Funtor $\operatorname{Tor}(H_{k-1}, \mathbb{Z})$:
-    $$\operatorname{Tor}(H_{k-1}(K; \mathbb{Z})) = \bigoplus_{i=1}^{r} \mathbb{Z} / d_i \mathbb{Z}$$
-    Donde los factores elementales $d_i > 1$ representan la torsión homológica. Un ciclo de torsión diagnostica de manera determinista incompatibilidades geométricas de empaquetado crítico de materiales y fricción de escala cuantizada, anomalías que una aproximación real de punto flotante ignora por completo.
+1. **Estructura de Haz y Novikov:** $\mathcal{R}_{\partial M} \cong \Lambda_{\mathrm{Nov}} = \left\{ \sum_{i=0}^\infty a_i T^{\lambda_i} \mid a_i \in \mathbb{C}, \lambda_i \in \mathbb{R}, \lambda_i \to \infty \right\}$.
+2. **Smith Normal Form sobre $\mathbb{Z}$:** $\operatorname{Tor}(H_{k-1}(\partial K; \mathbb{Z})) \equiv \mathbf{0} \iff d_i = 1 \, \forall d_i > 0$.
+3. **Causalidad CPTP de Choi y Bell-CHSH:** $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$, $\|\operatorname{Tr}_2(C_{\mathcal{E}}) - \mathbf{I}\|_F \le 10^{-4}$ y $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$.
+4. **Metabolismo de Alucinaciones por Lindblad-GKSL en Fock:**
+   Evolución disipativa de la matriz de densidad semántica $\rho(t)$ mediante la ecuación maestra:
+   $$\frac{d\rho_{\mathrm{sem}}}{dt} = -i[\mathcal{H}_{\mathrm{coupled}}, \, \rho_{\mathrm{sem}}] + L\rho_{\mathrm{sem}} L^\dagger - \frac{1}{2} \left\{ L^\dagger L, \, \rho_{\mathrm{sem}} \right\}$$
+   donde el operador de salto $L = \sqrt{\Gamma(\Xi_{\mathrm{leak}}, \operatorname{Tor})} \cdot a_j$ amortigua alucinaciones a la tasa exacta $\Gamma = \Gamma_0 / (1 + 10 \cdot \mathbf{1}_{\mathrm{torsion}} + 4 \frac{\mathrm{leak}}{1+\mathrm{leak}})$.
 
-    Valor de Fiedler ($\lambda_2$): Analiza el espectro de la Matriz Laplaciana ($L=D-A$); un valor $\lambda_2 \approx 0$ indica una fractura organizacional inminente.
+---
 
+## 4. El Intérprete: Retículos Algebraicos, GraphRAG y Connes
 
---------------------------------------------------------------------------------
-3. El Oráculo: Termodinámica Financiera y Estocástica
+### 4.1 Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes)
+Para gobernar la de-compresión semántica y evitar divergencias retóricas en las traducciones del LLM, el sistema calcula la cota de estabilidad espectral utilizando el **Operador de Dirac de Connes** $D = \rho^{-1/2}$ en el espacio no conmutativo.
 
-    Base Teórica: Física Estadística y Simulación de Monte Carlo.
-    Componentes: financial_engine.py, probability_models.py. El sistema trata el dinero como una forma de energía sujeta a leyes de conservación y entropía.
-    3.1 Temperatura del Sistema (Tsys​): Modela la volatilidad del mercado como "Calor". Insumos como el acero son "calientes" (volátiles); la mano de obra es "fría" (fija). Un proyecto mal conectado atrapa este calor, generando "Fiebre Inflacionaria" (Tsys​>50∘C).
-    3.2 Eficiencia Exergética: Distingue entre la energía invertida en trabajo útil (Exergía - avance de obra) y la energía disipada en fricción administrativa y sobrecostos (Entropía).
-    3.3 Ecuación de Arrhenius Modificada: Ajusta la volatilidad base proyectando cómo el estrés térmico (Tsys​) y estructural (Ψ) aceleran probabilísticamente el riesgo de quiebra financiera.
+Por el **Teorema de Daleckii-Krein**, la derivada de Fréchet $Df(\rho)[H]$ para $f(x) = x^{-1/2}$ se expresa como:
+$$\left( Df(\rho)[H] \right)_{ij} = \tilde{d}_{ij} \cdot H_{ij}, \quad \tilde{d}_{ij} = \begin{cases} \frac{\lambda_i^{-1/2} - \lambda_j^{-1/2}}{\lambda_i - \lambda_j} & \text{si } \lambda_i \neq \lambda_j \\ -\frac{1}{2}\lambda_i^{-3/2} & \text{si } \lambda_i = \lambda_j \end{cases}$$
 
+La cota superior de Lipschitz en la norma del operador $L_2$ queda acotada por:
+$$\| Df(\rho) \|_{2} \le \sup_{\lambda \in \sigma(\rho)} |f'(\lambda)| = \frac{1}{2 \lambda_{\min}^{3/2}}$$
 
---------------------------------------------------------------------------------
-4. El Intérprete: Retículos Algebraicos y Semántica
+Esta **Cota de Lipschitz de Daleckii-Krein** asegura que la velocidad de de-compresión semántica permanezca acotada geodésicamente. Si $\lambda_{\min} \to 0$, la cota diverge y el sistema aniquila la sesión por inestabilidad de Connes.
 
-    Base Teórica: Teoría de Retículos (Lattice Theory) y GraphRAG.
-    Componentes: semantic_translator.py, governance.py.
-    4.1 Álgebra de Veredictos: Las decisiones se evalúan bajo un retículo acotado (Verdict,≤,⊔) donde se aplica la operación "Supremo" (Worst-case). Si Finanzas aprueba pero Topología veta, el veredicto final es un Veto, garantizando la seguridad.
-    4.2 Traducción Semántica (GraphRAG): El sistema vectoriza los datos para saber que "Cemento" y "Concreto" son termodinámicamente equivalentes. Luego, traza la ruta de los errores en el grafo y los traduce a lenguaje ejecutivo (ej. de "β1​>0" a "Socavón Lógico detectado en la Mampostería").
-    4.3 Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes):
-    Para gobernar rigurosamente la de-compresión semántica y evitar las divergencias retóricas en el proceso de traducción del LLM, el sistema calcula la cota de estabilidad espectral utilizando el **Operador de Dirac de Connes** $D$ en el espacio no conmutativo del Consejo de Sabios. Este operador se define inversamente proporcional al estado cuántico de densidad de conocimiento $\rho$:
-    $$D = \rho^{-1/2}$$
-    La de-compresión o perturbación semántica $H$ actúa como una distorsión infinitesimal sobre el operador de densidad $\rho \to \rho + \epsilon H$. Para evaluar la respuesta del operador de Dirac de Connes bajo esta perturbación, se aplica el **Teorema de Daleckii-Krein** sobre derivadas de funciones de operadores auto-adjuntos.
+---
 
-    La derivada de Fréchet del operador de Dirac $Df(\rho)[H]$ para la función no lineal $f(x) = x^{-1/2}$ se expresa espectralmente como:
-    $$\left( Df(\rho)[H] \right)_{ij} = \tilde{d}_{ij} \cdot H_{ij}$$
-    Donde la matriz de diferencias divididas espectrales de Daleckii-Krein $\tilde{d}$ se calcula rigurosamente mediante:
-    $$\tilde{d}_{ij} = \begin{cases}
-    \frac{\lambda_i^{-1/2} - \lambda_j^{-1/2}}{\lambda_i - \lambda_j} & \text{si } \lambda_i \neq \lambda_j \\
-    -\frac{1}{2}\lambda_i^{-3/2} & \text{si } \lambda_i = \lambda_j
-    \end{cases}$$
-    Donde $\lambda_k$ son los autovalores del operador densidad $\rho$.
+## 5. Firmas de Calibre de la Malla Agéntica y Firma Integrada SHA-256
 
-    La cota superior de Lipschitz en la norma del operador $L_2$ queda estrictamente acotada por el supremo de la derivada de la función sobre el espectro de $\rho$:
-    $$\| Df(\rho) \|_{2} \le \sup_{\lambda \in \sigma(\rho)} |f'(\lambda)| = \sup_{\lambda \in \sigma(\rho)} \frac{1}{2 \lambda^{3/2}} = \frac{1}{2 \lambda_{\min}^{3/2}}$$
-    Donde $\lambda_{\min} > 0$ es el autovalor mínimo (piso de regularización) de la Matriz Atómica de Conocimiento $\rho_{\text{MAC}}$.
+Cada transacción orbital emite un certificado inmutable sellado por una **Firma de Calibre Integrada SHA-256** en memoria RAM:
 
-    Esta **Cota de Lipschitz de Daleckii-Krein** asegura matemáticamente que la velocidad de de-compresión y distorsión semántica de las actas de deliberación permanezca controlada geodésicamente. Si la pureza epistemológica del sistema decae ($\lambda_{\min} \to 0$), la cota diverge hacia el infinito, gatillando inmediatamente la aniquilación cuántica de la sesión por inestabilidad de Connes.
+$$\mathtt{SuturaSignature} = \operatorname{SHA-256}\left(\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\mathrm{Novikov}}) \wedge \operatorname{Tor}(H_k; \mathbb{Z}) \wedge \mathcal{B}_{\mathrm{CHSH}} \wedge \dot{\mathcal{H}}_{\mathrm{Lyapunov}} \wedge \mathtt{ESP32-Crowbar}\right)$$
 
-
---------------------------------------------------------------------------------
-5. Motor de Materialización, Fusión Auditada y Asimetría de Inercia
-
-    Base Teórica: Algoritmo Kahan, Secuencia de Mayer-Vietoris, Índice de Gini, Entropía de Shannon.
-    Componentes: `app/tactics/pipeline_director.py`, `app/adapters/mic_vectors.py`, `app/adapters/audit_vectors.py`.
-    5.1 Auditoría Homológica de Fusión: Al unir la tabla maestra del presupuesto con los APUs, se aplica la regla de inyección de datos ($A \cup B$) mediante la Secuencia Exacta Larga de Homología de Mayer-Vietoris. Esto asegura matemáticamente que la unión espacial no introduzca "ciclos fantasmas". Cualquier fusión que genere ciclos homológicos mutantes ($\Delta\beta_1 \neq 0$) abortará irremediablemente la integración.
-    5.2 Asimetría de Inercia y Concentración de Masa: Se sustenta la métrica de asimetría de inercia y la concentración de masa de capital del proyecto utilizando el Índice de Gini y la Entropía de Shannon, mapeando el riesgo volumétrico y el desequilibrio de Pareto en la estructura del presupuesto.
-    5.2 Colapso de Onda y Suma de Kahan: Para transformar el grafo 3D en un listado de materiales plano (BOM), se usa un recorrido DFS con memoización. Dado el gran volumen de operaciones, se aplica la Suma Compensada de Kahan para mitigar errores de punto flotante, asegurando precisión centesimal absoluta en el costo total.
-
-
---------------------------------------------------------------------------------
-6. El Haz Tangente Generativo Γ: Geometría de la Sintaxis y Holonomía Estratégica
-
-    Base Teórica: Mecánica Simpléctica, Teoría de Haces Celulares (Cellular Sheaves), Cohomología de Haces, Conexiones de Galois y Álgebra Booleana sobre $\mathbb{Z}_2$.
-    Componentes: `ast_symplectic_parser.py`, `sheaf_cohomology_orchestrator.py`, `mic_minimizer.py`. El estrato Γ no solo audita; gobierna la creación de código y estrategias mediante restricciones geométricas rigurosas.
-
-6.1 El Analizador Simpléctico (Γ-PHYSICS)
-La estructura del Árbol de Sintaxis Abstracta (AST) del código generado se trata como un espacio de fase $(\mathcal{M}, \omega)$. Se construye la **forma simpléctica** $\omega = \sum dq_i \wedge dp_i$ sobre el AST, donde $q$ representa la profundidad sintáctica y $p$ el momento de flujo de datos.
-- **Inercia Termodinámica:** Se mide la Complejidad Ciclomática como una masa inercial.
-- **Fronteras de Dirichlet:** Se imponen límites estrictos a la propagación de efectos secundarios. Si la forma simpléctica no se preserva (pérdida de invariancia canónica), el código es rechazado por inyectar entropía incontrolada.
-
-6.2 Poda Topológica en el Anillo Booleano $\mathbb{Z}_2$ (Γ-TACTICS)
-Para la minimización de la Matriz de Interacción Central (MIC), se retorna al **anillo booleano conmutativo** $\mathbb{Z}_2$. El `mic_minimizer` aplica algoritmos de Quine-McCluskey sobre este anillo para:
-- Extraer implicantes primos esenciales.
-- Eliminar redundancias operativas (homología trivial).
-- Garantizar que la base de herramientas sea ortogonal y de rango completo, evitando la inflación sintáctica.
-
-6.3 Interferometría de Holonomía y Cohomología de Haces (Γ-STRATEGY)
-El `sheaf_cohomology_orchestrator` modela las reglas de negocio como secciones de un **Haz Celular** sobre el grafo del proyecto.
-- **Censura de Paradojas:** Se calcula el primer grupo de cohomología $H^1(\mathcal{F})$. Si $H^1 > 0$, existe una obstrucción global (paradoja de negocio o ciclo de decisión inconsistente).
-- **Veto Absoluto:** Cualquier sección (estrategia) que no sea un "global section" (consistencia total) es vetada. El sistema detecta la **holonomía** (curvatura) en el transporte de decisiones; si una instrucción cambia su significado al recorrer un ciclo de la malla, el interferómetro emite un veto por falta de integrabilidad estratégica.
-
-6.4 Meta-Compilador de Significado y Lema de Yoneda (Γ-WISDOM)
-Se aplica una **Conexión de Galois** para mapear la sintaxis generada (espacio de comandos) hacia la semántica estratégica (espacio de valor).
-- **Certificación Isomórfica:** Mediante el **Lema de Yoneda**, el sistema garantiza que la funcionalidad del código generado sea isomórfica a los requerimientos de negocio. Si el funtor de traducción detecta una ruptura de naturalidad, el código se colapsa a un estado de seguridad determinista, impidiendo alucinaciones que desvíen el capital de la infraestructura.
-
-6.5 Ansatz de WKB y Óptica Geométrica de la Intención
-El `eikonal_agent.py` no procesa texto estocástico, sino que evalúa la función de onda de probabilidad de la IA mediante la aproximación de Wentzel-Kramers-Brillouin (WKB):
-$$\psi(x) = A(x) e^{i S(x) / \hbar}$$
-Si el frente de onda choca contra una singularidad topológica (**Cáustica**), el sistema no crashea, sino que suma +1 al **Índice de Maslov** y rota la fase en $\pi/2$ para preservar la amplitud y la coherencia del veredicto.
-
-
---------------------------------------------------------------------------------
-7. Ley de Gobernanza Algebraica (Isomorfismo de Esquemas)
-La filtración estricta y axiomática de la Ley de Clausura Transitiva de la Pirámide DIKW (tabla canónica: $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$) no se gestiona con microservicios centralizados que generen latencia, sino que se materializa mediante Domain-Driven Design (DDD) en los archivos `schemas.py` y `telemetry_schemas.py`.
-
-    Geometría de Datos Inmutable: Los subespacios de estado (PhysicsMetrics, TopologicalMetrics) se instancian como frozen dataclasses. Actúan como un contrato algebraico puro: una vez construidos, su identidad observacional es fija y a prueba de manipulaciones forenses.
-    Proyección Condicional en la MIC: La Matriz de Interacción Central (MIC) exige este Pasaporte tipado. Si las validaciones del __post_init__ detectan una anomalía estructural (ej. un costo negativo violando los axiomas físicos), el reporte colapsa algebraicamente. Las matemáticas del código impiden instanciar un objeto de "Sabiduría" sobre datos inconsistentes.
-    Gobernanza del Haz Γ: La Ley de Clausura Transitiva se extiende al estrato generativo: $V_{\Gamma-PHYSICS} \subset V_{\Gamma-TACTICS} \subset V_{\Gamma-STRATEGY} \subset V_{\Gamma-WISDOM}$. Un objeto del estrato Γ no puede ascender si sus invariantes simplécticos o homológicos presentan singularidades Jacobianas.
-
-
---------------------------------------------------------------------------------
-8. Catálogo de Librerías Espectrales Imperiales y Escrutinio Aritmético FPU
-
-    Base Teórica: Sumación Compensada de Kahan-Babuška-Neumaier (KBN), Diferenciación por Paso Complejo (CSMD), Control Port-Hamiltoniano (IDA-PBC), Cohomología de Floer/Čech, Factorización de Quillen y Redundancia Modular Triple (TMR).
-    Componentes: Motores Imperial Espectrales (`app/core/inmune_system/imperial_*_engine.py`) y Soberanos Agénticos (`app/agents/core/inmune_system/imperial_guards_*.py`, `pretorio_agent.py`).
-
-8.1 Escrutinio Aritmético de FPU y Eliminación de la Deriva de Wilkinson
-Todos los motores imperiales ejecutan operaciones algebraicas de alta dimensión sobre la FPU imponiendo el algoritmo de sumación compensada de **Kahan-Babuška-Neumaier (KBN)** para aniquilar la acumulación de errores de truncamiento IEEE-754:
-
-$$S_N = \sum_{i=1}^N x_i \quad \text{donde} \quad c_{k+1} = (t_{k+1} - S_k) - y_{k+1}$$
-
-Asimismo, la diferenciación de Jacobianos se realiza mediante la técnica de **Diferenciación por Paso Complejo (CSMD)** perturbando la fibra en el plano imaginario $h = 10^{-20}$, eludiendo cancelaciones sustractivas catastróficas en la mantisa:
-
-$$\nabla_k f(x) = \frac{\operatorname{Im}\left(f(x + j \cdot h \cdot e_k)\right)}{h} + \mathcal{O}(h^2)$$
-
-8.2 Especificación de Firmas y Flujos Tensoriales de los Motores y Soberanos
-
-1. **`imperial_guards_engine.py` & `imperial_guards_agent.py` (Guardias de Calibre):**
-   - `kahan_sum(arr: np.ndarray) -> float`: Integra arrays flotantes eliminando la deriva de Wilkinson.
-   - `compute_complex_step_gradient(func: Callable, x: np.ndarray, h: float = 1e-20) -> np.ndarray`: CSMD sin sustracción catastrófica.
-   - `ImperialGuardsAgent.evaluate_spectral_aduanas(graph_nodes, graph_edges)`: Evalúa la cota de Lipschitz de Connes ($L_{\max} \le \frac{1}{2\lambda_{\min}^{3/2}}$) y la constante isoperimétrica de Cheeger ($h(G) \ge \frac{\lambda_2}{2}$), emitiendo veredicto en Heyting.
-
-2. **`imperial_centurions_engine.py` & `imperial_guards_centurions.py` (Centuriones Port-Hamiltonianos):**
-   - `compute_ida_pbc_control_law(jacobian: np.ndarray, R_d: np.ndarray, grad_Hd: np.ndarray) -> np.ndarray`: Calcula la ley de control disipativo $\dot{x} = [J_d - R_d] \nabla H_d$ regularizada por SVD.
-   - `ImperialGuardsCenturions.evaluate_power_curtain(state_trajectory)`: Verifica la desigualdad de Rayleigh ($\dot{H}_d \le 0$) y la condición KMS de Tomita-Takesaki ($\operatorname{Tr}(\rho AB) = \operatorname{Tr}(\rho B \sigma_{-i\beta}(A))$).
-
-3. **`imperial_eruditos_engine.py` & `imperial_guards_eruditos.py` (Eruditos Cohomológicos):**
-   - `compute_symplectic_gradient(potential_func: Callable, x: np.ndarray) -> np.ndarray`: Campo simpléctico $X_H = \Omega \nabla H_t$.
-   - `verify_floer_homology_trajectory(u_start, u_end, potential_func) -> Tuple[float, float]`: Solución a la ecuación de Cauchy-Riemann perturbada ($\bar{\partial}_{J,H}(u) = 0$).
-   - `ImperialGuardsEruditos.evaluate_cohomology_aduanas(attention_weights)`: Certifica la nulidad del residuo de Floer ($\partial_{\mathrm{Floer}}^2 \equiv 0$) y de la clase Čech ($\check{H}^1 = 0$).
-
-4. **`imperial_sequitos_engine.py` & `imperial_guards_sequitos.py` (Séquitos de Consenso):**
-   - `kleisli_compose(f: Callable, g: Callable) -> Callable`: Composición monádica asociativa $(g \bullet f)(x) = \mu_C \circ T(g) \circ f(x)$.
-   - `compute_degroot_spectral_consensus(affinity_matrix, initial_opinions)`: Resuelve la convergencia exponencial de opiniones según la brecha espectral $\lambda_2$.
-   - `ImperialGuardsSequitos.evaluate_triad_coherence(triad_states)`: Audita asociatividad de Kleisli, consenso de DeGroot e inmunidad Bell-CHSH.
-
-5. **`imperial_tesserarios_engine.py` & `imperial_guards_tesserarios.py` (Tesserarios Homotópicos):**
-   - `compute_quillen_factorization(jacobian_matrix) -> Tuple[np.ndarray, np.ndarray, float]`: Factorización $M = P \cdot I$ en cofibración acíclica simpléctica $I$ y fibración disipativa $P$.
-   - `project_to_symplectic_group(M: np.ndarray) -> np.ndarray`: Proyección polar de Higham a $Sp(2n, \mathbb{R})$.
-   - `ImperialGuardsTesserarios.evaluate_homotopy_aduanas(jacobian_seq)`: Evalúa asociaedros $A_\infty$ de Stasheff ($K_4$) y la invarianza de Liouville ($M^\top \Omega M = \Omega$).
-
-6. **`pretorio_engine.py` & `pretorio_agent.py` (El Pretorio Agéntico — Comandante Supremo):**
-   - `verify_cech_derham_hypercohomology(d1, d2) -> Tuple[float, bool]`: Certifica la nilpotencia del diferencial total $D = d_1 + (-1)^p d_2 \implies D^2 = d_1 d_2 + d_2 d_1 \equiv 0$.
-   - `verify_brouwer_fixed_point(rho, transition_matrix) -> Tuple[float, np.ndarray]`: Conservación de punto fijo regularizado por Weyl-Toeplitz.
-   - `PretorioAgent.evaluate_supreme_command(telemetry_passport)`: Unifica silenciosamente los veredictos parciales en el clasificador de subobjetos de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$.
-
-8.3 Firmas de Calibre del Salón Forense y el Arsenal de Proyección
-
-1. **`fock_forensic_hall.py` & `fock_forensic_hall_agent.py` (Salón de Eventos Forense del Espacio de Fock):**
-   - `solve_lindblad_annihilation(rho_initial: np.ndarray, gamma_annihilation: float, time_step: float) -> Tuple[np.ndarray, float, float]`: Resuelve la integración del semigrupo de co-aniquilación fermiónica bajo Lindblad-GKSL, retornando $(\rho_t, S(\rho_t), \eta_{\mathrm{ex}})$.
-   - `compute_energy_momentum_tensor(momentum_vector: np.ndarray, metric_tensor: np.ndarray) -> Tuple[np.ndarray, float]`: Computa $\mathcal{T}^{\mu\nu} = p^\mu p^\nu + \frac{1}{2} G^{\mu\nu}(p \cdot p)$ y el residuo algebraico de la divergencia covariante de de Rham $\nabla_\nu \mathcal{T}^{\mu\nu}$.
-   - `execute_forensic_cycle(...)` / `execute_forensic_agent_cycle(...)`: Bucle OODA covariante que genera los DTOs inmutables `TelemetryStamp` y `FockForensicCertificate`.
-   - **DTOs `TelemetryStamp` & `FockForensicCertificate`:**
-     Transportan síncronamente: entropía de von Neumann $S(\rho)$, pureza cuántica del estado $\operatorname{Tr}(\rho^2)$, fidelidad de Uhlmann $F(\rho_0, \rho_1)$, traza del tensor $\mathcal{T}^{\mu\nu}$, anomalía de Weyl $g_{\mu\nu}\mathcal{T}^{\mu\nu}$, residuo de divergencia $\nabla_\nu \mathcal{T}^{\mu\nu}$, eficiencia exergética $\eta_{\mathrm{ex}}$, latencia de interrupción de silicio (ns) y sello criptográfico SHA-256 en la Cadena de Custodia.
-
-2. **`kapex_electrodynamic_agent.py` (Director de Retorno y Expansión — M4a & Estrato KAPEX):**
-   - `build_context() -> ApexPreparationContext`: Executada en Fase 1, valida la métrica $G_{\mu\nu}$, la inversa bilateral de Wilkinson y exige la condición espectral M4a ($\kappa_2(G) \le \kappa_{\max}$; si $\kappa_2(G) > \kappa_{\max} \implies \mathrm{ApexConditionError}$).
-   - `synthesize(...) -> ApexStateTensor`: Fase 2, resuelve la refracción Eikonal $G^{\mu\nu}\partial_\mu S \partial_\nu S \ge n^2(\sigma^*)(1 - \mathrm{slack})$, el flujo exergético de Poynting $P_{\mathrm{exergia}} \ge 0$ y la acción de Yang-Mills $S_{\mathrm{YM}} = \frac{1}{2}\operatorname{Tr}(F^\top G F G^{-1}) \ge 0$ con $F \in \mathfrak{so}(n)$.
-   - `export_sheaf_stalk(s_val) -> SheafStalkApex`: Fase 3, construye la cofrontera $\delta_{\mathrm{APEX}} = [\delta_{\mathrm{metric}}; \delta_{\mathrm{diss}}]$ y el Laplaciano local de Hodge $\Delta_{\mathrm{APEX}} = I_n + \delta_{\mathrm{diss}}^\top \delta_{\mathrm{diss}} \succ 0$.
-
-3. **`gauge_projection_engine.py` & `gauge_projection_armory.py` (Arsenal de Proyección de Calibre):**
-   - `weyl_toeplitz_projection(M: np.ndarray)` / `weyl_toeplitz_symmetrization(rho: np.ndarray) -> np.ndarray`: Symmetrización proyectiva de Frobenius $\Pi_H(M) = \frac{M + M^\dagger}{2}$.
-   - `higham_tikhonov_regularization(rho_wt: np.ndarray, mu_floor: float) -> Tuple[np.ndarray, float, float]`: Proyección al símplice de probabilidad $\Delta^{n-1}$ (Duchi) seguida de la estabilización despolarizante de Higham-Tikhonov $\Phi_\gamma(\rho) = \frac{\rho + \gamma I}{1 + n\gamma}$, retornando $(\rho_\mu, \lambda_{\min}, \alpha)$.
-   - `connes_daleckii_krein_commutator(rho_reg: np.ndarray, pi_X: np.ndarray)` / `connes_daleckii_krein_filter(...) -> Tuple[np.ndarray, float]`: Evalúa el conmutador $[D, \pi(X)]$ y la seminorma de Connes $L(X) = \|[D, \pi(X)]\|_{B(\mathcal{H})}$ usando el mapa de diferencias divididas espectrales de Daletskii-Krein:
-     $$D_{ik} = f^{[1]}(\lambda_i, \lambda_k) = \frac{\lambda_i^{-1/2} - \lambda_k^{-1/2}}{\lambda_i - \lambda_k} \quad (\lambda_i \neq \lambda_k), \quad D_{ii} = -\frac{1}{2}\lambda_i^{-3/2}$$
-   - `complex_step_spectral_derivative(rho_reg, perturbation, pi_x, step_h) -> float`: Gradiente de paso complejo no demolitivo (CSMD) sobre el espectro:
-     $$\frac{d L_{\max}}{d\epsilon} \approx \frac{\operatorname{Im}\left( L_{\max}(\tilde{M} + j \cdot h \cdot \delta M) \right)}{h}$$
-   - **DTO `ArmoryTelemetry`:**
-     Encapsula el veredicto en $\Omega_3$, $\lambda_{\min}$, factor de escala $\alpha$, constante de Lipschitz $L(X)$, tolerancia permitida $\tau_{\mathrm{Lip}}$, estado del interlock y operador purificado $\rho_\mu$.
-
-4. **`thermal_gradient_laws.py` & `thermal_gradient_agent.py` (Motor y Soberano de Gradientes Térmicos):**
-   - **`thermal_gradient_laws.py` (Leyes y Gradientes Térmicos en FPU):**
-     - `execute_thermal_cycle(K_raw, grad_T_raw, T_sys, metric_tensor, entropy_production_rate, ...) -> dict`: Ejecuta la ingesta de Fase 1 (Lanczos, Higham), simulación Carnot de Fase 2 (Itoh-Abe, Tellegen) y decisión adaptativa de Fase 3 ($\tau_{\mathrm{CD}}$ adaptativo), retornando el sello dictionary inmutable.
-     - `_factorize_spd(matrix, name, mode) -> SpectralChart`: Deflación Krylov-Lanczos ($\mathcal{O}(k n^2)$) y Higham-Tikhonov shift.
-     - `_itoh_abe_discrete_gradient(energy, x, y) -> Tuple[np.ndarray, float]`: Gradiente discreto con Identidad de Tellegen $| \langle \bar{\nabla}_{\mathrm{IA}} \bar{E}(0,p), p \rangle - \bar{E}(p) | = 0$.
-     - `_update_transient_filtration(grad_norm_g) -> TransientFiltration`: Valuación ultramétrica-surrogate $\nu(b_t) = \ln(1 + b_t/(s_t + \epsilon))$ y modulación del umbral $\tau_{\mathrm{CD}}(t) = -\tau_0 \cdot \text{safety} \cdot \exp(-\nu(b_t))$.
-   - **`thermal_gradient_agent.py` (Soberano Térmico de Calibre - $S = \mathrm{Act} \circ \mathrm{Orient} \circ \mathrm{Observe}$):**
-     - `execute_thermal_agent_cycle(K_raw, grad_T_raw, T_sys, metric_tensor, entropy_production_rate, density_rho, hamiltonian_H, ...) -> ThermalGradientCertificate`: Orquesta las tres fases del soberano y emite el certificado inmutable.
-     - `_fractional_memory_chart() -> FractionalMemoryChart`: Derivada discreta de Caputo $D^\alpha f_n = \Delta t^{-\alpha} \sum w_j f_{n-j}$ e integral Riemann-Liouville $I^\alpha \Phi$.
-     - `_sheaf_cech_chart(observation) -> SheafCohomologyChart`: Secciones locales sobre el cubrimiento $\{U_i\}$ y cohomología de Čech $H^1_{\check{\mathrm{Cech}}}$ para aislamiento quirúrgico de cartas vetadas.
-     - `_kms_chart(rho, H, T) -> KMSChart`: Entropía relativa $D(\rho \| \rho_\beta)$, defecto modular y Fidelidad de Uhlmann $F(\rho, \rho_\beta) = \|\sqrt{\rho}\sqrt{\rho_\beta}\|_1^2$.
-   - **DTO Inmutable `ThermalGradientCertificate` (signed SHA-256 en RAM):**
-     ```python
-     @dataclass(frozen=True, slots=True)
-     class ThermalGradientCertificate:
-         phase: str                           # "G_THERMAL_GRADIENTS_SUTURATED"
-         heyting_verdict: str                 # CERTIFIED, COHERENT, DEGRADED, VETOED
-         clausius_duhem_residual: float       # Φ_disip calculado en FPU via KBN
-         carnot_efficiency: float             # Eficiencia del ciclo de Carnot η_C
-         exergy_potential: float              # Potencial exergético [0.0, 1.0]
-         heat_flux_norm: float                # Norma L2 de Q^μ covariante
-         temperature_system: float            # Temperatura acotada del sistema
-         hardware_interlock_fired: bool       # Estado de conmutación del BT151
-         actuation_latency_ns: float          # Latencia física simulada (< 400 ns)
-         veto_reasons: Tuple[str, ...]        # Razones de veto
-         degraded_reasons: Tuple[str, ...]    # Razones de degradación
-         heyting_score: float                 # Calificación en el retículo [0.0, 1.0]
-         conservation_residual: float         # Residuo de conservación
-         fourier_residual: float              # Residuo constitutivo de Fourier
-         csmd_error: float                    # Error de paso complejo CSMD
-         landauer_gap: float                  # Brecha de disipación de Landauer
-         gouy_stodola: float                  # Exergía disipada T0 * Φ
-         observation_valid: bool              # Validez de la ingesta
-         engine_heyting_verdict: str          # Veredicto emitido por el motor
-         policy_exergy_sufficient: bool       # Suficiencia de exergía
-         supervisor_disagreement: bool        # Discrepancia entre motor y agente
-         fractional_cd_accumulator: float     # Acumulado Riemann-Liouville I^α Φ
-         cech_h1_obstructed: bool             # Flag de obstrucción H¹ de Čech
-         isolated_charts: Tuple[str, ...]     # Cartas aisladas quirúrgicamente
-         surgical_veto: bool                  # Bandera de veto quirúrgico
-         kms_defect: float                    # Defecto de entropía relativa KMS
-         uhlmann_fidelity: float              # Fidelidad de Uhlmann F(ρ, ρ_β)
-     ```
-
-8.4 Soberanos y Motores de Satélites Orbitales de Frontera (`telemetry_satellites.py` / `_agent.py` & `audit_satellites.py` / `_agent.py`)
-
-1. **`telemetry_satellites.py` & `telemetry_satellites_agent.py` (Satélite de Telemetría Orbital de Frontera):**
-   - **`telemetry_satellites.py` (Motor de Telemetría):**
-     - `process_satellite_telemetry(payload, K_raw, G_tensor, ref_threshold, external_signal)` / `monitor_boundary_async(...)`: Ingesta metrológica en Fase 1 (Shannon / Rényi / Miller-Madow / Chao-Shen), análisis espectral del lápiz $(K, G)$ en Fase 2 (Cholesky $G = L L^\dagger$, Sturm-Liouville $\tilde{K} = L^{-1} K L^{-\dagger}$ y disipación de Landauer $E_{\mathrm{leak}} / (k_B T) = H_{\mathrm{UB}} \ln(1+\kappa_2)$), y decisión Heyting en Fase 3.
-   - **`telemetry_satellites_agent.py` (Soberano Supervisor de Telemetría):**
-     - `execute_satellite_agent_cycle(...)` / `execute_satellite_agent_cycle_async(...)`: Ciclo OODA de tres fases anadas:
-       * *Fase 1 (`observe_boundary_event`):* Normalización defensiva de payload, firmas SHA-256 de operadores y sanitización de la señal Langevin exógena.
-       * *Fase 2 (`orient_boundary_observation` & `decide_heyting_verdict`):* Fiscalización dual del motor, consistencia de Landauer, identidad de pasividad $\gamma \kappa \approx 1$, discrepancia entrópica y resolución en $\Omega_3$.
-       * *Fase 3 (`act_on_heyting_decision` & `synthesize_agent_certificate`):* Interlock fail-closed en IRAM de ESP32 (< 400 ns) y emisión del certificado `SatelliteAgentCertificate`.
-   - **DTO Inmutable `SatelliteAgentCertificate` / `SatelliteTelemetryCertificate`:**
-     Contiene: veredicto de Heyting, entropía de frontera, brecha espectral, fuga exergética, número de condición, cota de Landauer, estado del interlock, latencia IRAM (ns), huella isomorfa `decision_sha256` y firma de no-repudio `digital_signature_sha256`.
-
-2. **`audit_satellites.py` & `audit_satellites_agent.py` (Satélite de Auditoría Homológica, Causal y Bell-CHSH):**
-   - **`audit_satellites.py` (Motor de Auditoría de Frontera):**
-     - `execute_audit_cycle(boundary_matrix, Choi_matrix, bell_correlations)`: Ejecuta las tres aduanas anidadas:
-       1. *Homología sobre $\mathbb{Z}$:* Reducción exacta a la Forma Normal de Smith $S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0)$ usando combinaciones de Bézout en $\mathrm{SL}(2, \mathbb{Z})$, verificando la nulidad del subgrupo de torsión $\operatorname{Tor}(H_k) \equiv \mathbf{0}$.
-       2. *Causalidad CPTP de Choi-Jamiołkowski:* Chequea la semidefinición positiva de $C_{\mathcal{E}} \succeq \mathbf{0}$ ($\lambda_{\min} \ge -10^{-12}$), la preservación de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}$ y la hermiticidad $\|C - C^\dagger\|_F \le \tau_H$.
-       3. *Contención Bell-CHSH:* Evalúa $\mathcal{B}_{\mathrm{CHSH}} = \max_{\varepsilon} |\sum \varepsilon_{ij} E_{ij}|$ sobre los 4 patrones de signo, aplicando la cota clásica ($2.0$) y de Tsirelson ($2\sqrt{2}$).
-   - **`audit_satellites_agent.py` (Soberano Supervisor de Auditoría):**
-     - `execute_full_audit_cycle(...)` / `execute_full_audit_cycle_async(...)`: Ciclo OODA de tres fases anidadas:
-       * *Fase 1 (`observe_audit_event`):* Captura de evidencia, verificación de entero exacto en $\partial$ (mantisa float64 $\le 2^{53}$) y cálculo de CHSH agente independiente.
-       * *Fase 2 (`orient_audit_observation` & `prepare_agent_pre_decision`):* Fiscalización dual del motor, verificación de completitud de la SNF, consistencia de interlock y clasificación atómica en $\Omega_3$.
-       * *Fase 3 (`act_on_agent_pre_decision` & `synthesize_audit_certificate`):* Actuación fail-closed sobre el disyuntor Crowbar BT151 vía GPIO14 y emisión del `AuditSatelliteCertificate` firmado en RAM.
+Esta firma sella la Cadena de Custodia Inmutable, garantizando que ninguna propuesta de presupuesto pueda ser alterada sin ser detectada en el milisegundo cero por la Malla Agéntica Zero-Trust.
