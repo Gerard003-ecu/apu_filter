@@ -68,7 +68,7 @@ Para el Director de Obra, la Junta Directiva y el Interventor del IDU/INVIAS baj
 
 Un conductor no necesita resolver síncronamente las ecuaciones diferenciales no lineales de Navier-Stokes para confiar en que el sistema de frenos ABS y el control dinámico de estabilidad (ESP) detendrán su vehículo en una curva mojada. Busca la certeza de que el chasis disipará la energía del impacto y que el coche frenará en el milisegundo cero para salvar su vida.
 
-En APU Filter, la matemática avanzada es la ingeniería invisible de alta precisión. El sistema consagra el **Isomorfismo de Doble Capa** que conecta sin pérdidas la complejidad doctoral con la toma de decisiones ejecutiva traducida a lenguaje de negocios (**Riesgo y Dinero**):
+En APU Filter, la matemática avanzada es la ingeniería invisible de alta precisión. El sistema consagra el **Isomorfismo de Doble Capa** ($\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$) que conecta sin pérdidas la complejidad doctoral con la toma de decisiones ejecutiva traducida a lenguaje de negocios (**"Dolor y Dinero"** que entiende un gerente de obra humano):
 
 ```
   ┌────────────────────────────────────────────────────────────────────────┐
@@ -89,6 +89,15 @@ En APU Filter, la matemática avanzada es la ingeniería invisible de alta preci
   │   - Ecuaciones de Cauchy-Riemann no lineales: \bar{\partial}_J u = 0   │
   └────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Tabla de Traducción Biyectiva a "Dolor y Dinero" (Para el Gerente de Obra Humano)
+
+| Invariante Matemático | Concepto en la Caja de Cristal | Impacto Real en Obra Civil ("Dolor") | Consecuencia Financiera ("Dinero") |
+| :--- | :--- | :--- | :--- |
+| **$\beta_0 > 1$** | **Islas de Datos / Recursos Huérfanos** | APUs o capítulos desconectados del flujo financiero del proyecto (sin cimiento contractual). | Cobros dobles de contratistas, mermas no auditadas y duplicación en compras de materiales. |
+| **$\beta_1 > 0$** | **Socavón Lógico** | Dependencias circulares o cíclicas en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro). | Huella digital de la **triangulación financiera de subcontratistas** o facturación fantasma en SECOP II. |
+| **$\Psi < 0.70$** | **Pirámide Invertida** | Concentración monopólica del suministro (un único proveedor de acero/cemento para 50 frentes). | Riesgo de quiebra y parálisis de obra por paro o desabastecimiento del proveedor único. |
+| **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | **Paradoja Contractual / Veto** | Inconsistencias insalvables entre planos, pliegos SECOP II y Excels rotos con celdas combinadas. | Veto síncrono del presupuesto antes de verter el primer saco de concreto o inyectar entropía en la caja. |
 
 ---
 

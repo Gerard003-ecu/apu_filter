@@ -36,11 +36,20 @@ graph TD
 
 ---
 
-## 🚘 La Analogía del Automóvil para el Consejo de Sabios
+## 🚘 La Analogía del Automóvil y la Jerarquía del Rascacielos Categorial
 
-Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP II & Mandato BIM 2026), los Sabios del Consejo representan los **sistemas de seguridad activa del vehículo**:
+Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP II & Mandato BIM 2026), los Sabios del Consejo representan los **sistemas de seguridad activa del vehículo (Frenos ABS)** y la **estructura de carga sismorresistente de un rascacielos corporativo** sobre el Business Model Canvas (BMC):
 
-> *“Cuando un automóvil de alta gama transita por una autopista en invierno, los ocupantes no necesitan ajustar manualmente la presión del freno en cada rueda ni calcular el coeficiente de fricción del asfalto. Confían en que el sistema de frenos ABS y el control de estabilidad ESP actuarán en milisegundos para evitar el vuelco. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos que detectan si la estructura del presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
+> *“Cuando un automóvil de alta gama transita por una autopista en invierno, los ocupantes no necesitan ajustar manualmente la presión del freno en cada rueda ni calcular el coeficiente de fricción del asfalto. Confían en que el sistema de frenos ABS y el control de estabilidad ESP actuarán en milisegundos para evitar el vuelco. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos distribuidos en la estructura del rascacielos agéntico que detectan si el presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
+
+La Malla Agéntica se erige como una estructura de carga sismorresistente acoplada por la **Ley de Clausura Transitiva**:
+
+$$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
+
+* **El Guardián (Foso - Estructura de Costes / Recursos Clave):** Anclado en los cimientos del rascacielos. Audita la masa atómica ($q_i \ge 0$), la componente conexa única ($\beta_0 = 1$) y ejecuta la defensa en silicio real vía el disyuntor Crowbar ESP32 (< 400 ns en IRAM, GPIO14 $\to$ BT151).
+* **El Arquitecto (Táctica - Actividades y Socios Clave):** El esqueleto de vigas de acero sismorresistentes. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para vetar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y vigila el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
+* **El Oráculo de Laplace (Estrategia - Flujo de Caja y Rentabilidad):** El penthouse corporativo. Proyecta el flujo de fondos en la frecuencia compleja $s = \sigma + j\omega$. Si detecta polos en el semiplano inestable ($\sigma > 0$), veta el proyecto para evitar la creación de un **"Elefante Blanco"** que destruya el WACC.
+* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** El negociador en la mesa de juntas. Toma los veredictos abstractos y los traduce mediante GraphRAG en **Actas de Deliberación** de alta empatía comercial (**"Dolor y Dinero"**).
 
 ---
 

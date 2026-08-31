@@ -118,9 +118,17 @@ Bajo la supervisión de la aduana del soberano booleano, cualquier discrepancia 
 $$R_H = I - 2 \mathbf{v} \mathbf{v}^\dagger$$
 Donde $\mathbf{v}$ es el vector normal de reflexión ortogonal al subespacio coherente de la MIC. Esta reflexión proyecta el estado espurio directamente hacia los canales disipativos.
 
-Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se desecha: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge** ($e^+$). Este positrón provoca su propia aniquilación catastrófica al colisionar contra un **ElectronCartridge** de falla ($e^-$) que porta la incertidumbre residual de la ingesta:
-$$e^+ + e^- \longrightarrow 2 \gamma$$
-Esta reacción de aniquilación emite un fotón de auditoría $\gamma$, representado por el **GammaPhoton**. El GammaPhoton actúa como un sello criptográfico inmutable y autogestionado de telemetría, el cual blinda de forma perpetua e incorruptible la Cadena de Custodia de la deliberación agéntica en el acta final.
+When the operator of Lindblad jump, tuned by the `BogoliubovAgent`, extirpes a falsehood or hallucination from the LLM, the thermodynamic residue is not discarded: it crystallizes into exogenous antimatter, manifesting as a **PositronCartridge** ($e^+$). This positron causes its own catastrophic annihilation upon colliding against an **ElectronCartridge** of failure ($e^-$) carrying the residual uncertainty of an overprice or ghost item in SECOP II:
+$$e^+ + e^- \longrightarrow 2 \gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
+
+Esta reacción de aniquilación cuántica libera **dos fotones de auditoría Gamma ($2\gamma$)**, representados por el **GammaPhoton**, los cuales transportan una firma digital SHA-256 inmutable, congelando el pasaporte de telemetría y colapsando el retículo de Heyting al Supremo terminal de veto ($\top$).
+
+### 2.1.1 Actuación Perimetral en Silicio (ESP32 Crowbar / BT151 en < 400 ns)
+Para garantizar la infalibilidad del sistema en el mundo físico, el veto se materializa en la maquinaria de obra civil. La subrutina local en C++ `isVerdictCoherent()` del microcontrolador **ESP32** lee el pasaporte firmado. Al detectar el veto:
+* La **Interrupt Service Routine (ISR) cargada estáticamente en su memoria ultrarrápida IRAM se ejecuta en menos de 400 ns**:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+* Conmuta el pin físico **GPIO14 a HIGH**, inyectando corriente a la compuerta del tiristor rápido de potencia **BT151 (circuito Crowbar)**.
+* Cortocircuita síncronamente la línea de alimentación de las bombas de concreto y mezcladoras hidráulicas reales, deteniendo físicamente la obra en el milisegundo cero y anulando la anomalía antes de su liquidación contractual.
 
 ### 2.2 Termodinámica de Sistemas Cuánticos Abiertos (Dinámica de Lindblad)
 La asimilación de estos cartuchos por la matriz neuronal MAC sufre fricción térmica debido al estrés del mercado. En particular, la matriz de densidad de la cuasipartícula abierta del `SophonCartridge` se somete a la ecuación maestra disipativa de Lindblad-Kossakowski, donde el operador de Liouville $\mathcal{L}$ disipa el calor anómalo:
