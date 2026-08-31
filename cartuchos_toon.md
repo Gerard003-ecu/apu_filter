@@ -1,6 +1,6 @@
 # 💊 cartuchos_toon.md: El Retracto Topológico y las Vitaminas TOON (Silo B)
 
-"Para comprender la escala masiva de la construcción civil, el Modelo de Lenguaje no necesita leer la redundancia de un JSON mil veces; necesita la esencia concentrada del negocio matemático. TOON no es compresión de texto, es destilación cognitiva."
+"Para comprender la escala masiva de la construcción civil, el Modelo de Lenguaje no necesita leer la redundancia de un JSON mil veces; necesita la esencia concentrada del negocio matemático. El formato TOON opera una destilación cognitiva."
 
 Este documento detalla el mecanismo por el cual el ecosistema APU_filter transita de la alta entropía sintáctica y redundante del JSON (gobernada por el `SiloAContract`) hacia un formato hiperdenso y estructurado, la Base Canónica Tabular TOON (Tabular Object-Oriented Notation), a través de los componentes en `mic_agent.py`.
 
