@@ -9,7 +9,7 @@ En el ecosistema de la Fortaleza Matemática de **APU Filter v5.0**, el presupue
 - **Aristas (1-símplices):** dependencias binarias entre pares (APU $\to$ Proveedor / Insumo).
 - **Triángulos (2-símplices):** interdependencias ternarias (APU $\leftrightarrow$ Proveedor $\leftrightarrow$ Actividad) que emergen de compromisos contractuales trilaterales.
 
-Todo este diseño se subordina axiomáticamente a la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Este documento consolida el Esqueleto Táctico (**Nivel 2 — 𝕋 TACTICS, Las Murallas Topológicas**), respaldado computacionalmente por `app/tactics/business_topology.py` y auditado por `TopologicalControlSurfaceAgent` y `BoundaryRingSheafAgent`.
+Todo este diseño se subordina axiomáticamente a la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Este documento consolida el Esqueleto Táctico (**Nivel 2 — 𝕋 TACTICS, Las Murallas Topológicas**), respaldado computacionalmente por `app/tactics/business_topology.py` y auditado por `TopologicalControlSurfaceAgent`, `BoundaryRingSheafAgent` y el Soberano de Cirugía de Čech **`TopologicalSurgeryCechAgent`** [topological_surgery_cech_agent.py, Isomorfismo_Doble_Capa.md].
 
 ---
 

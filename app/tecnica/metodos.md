@@ -17,9 +17,15 @@ Para la Alta Gerencia de Obra Civil y los Comités de Licitación en Colombia (S
 
 ## 1. El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
 
-### 1.1 Propagador de de Rham, de Rham-Hodge y Causalidad de Kramers-Kronig
-El sistema resuelve la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$, definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable que satisface de forma exacta:
+### 1.1 Propagador de de Rham, Cirugía Topológica de Čech y Causalidad de Kramers-Kronig
+El sistema resuelve la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$ [topological_surgery_cech.py], definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable que satisface de forma exacta:
 $$L_F G L_F = L_F \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0}$$
+
+Ante perturbaciones por ruido electromagnético o interferencia analógica en sensores locales de obra, el Soberano **`topological_surgery_cech_agent.py`** formula el cubrimiento abierto de Čech $\mathcal{U} = \{U_i\}_{i=1}^M$ y calcula la 1-cocadena de Čech $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ sobre el Laplaciano elíptico $\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$ [topological_surgery_cech.py]. La obstrucción no trivial $\check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0}$ delata la presencia de lecturas espurias en fango.
+
+Para aislar el transductor ruidoso sin detener la obra civil ni alterar la conectividad de Fiedler ($\lambda_2 \ge \tau_{\mathrm{Fiedler}}$), el motor ejecuta una cirugía aplicando un pullback de deformación anisotrópica sobre la métrica de conductancias:
+$$\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$$
+donde $\mathbf{P}_{\mathrm{noisy}}$ es el proyector ortogonal sobre la carta ruidosa, reduciendo su acoplamiento al límite de Wilkinson ($\approx 10^{-15}$) [topological_surgery_cech.py].
 
 Para el régimen dinámico bajo excitación exógena de SECOP II, se integra el propagador retardado causal en el plano-S complejo:
 $$G_F(s) = (L_F - (s + j \cdot h) I_n)^{-1}$$

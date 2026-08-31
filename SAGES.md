@@ -81,6 +81,18 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
 
 ---
 
+### Ω.0 🔪 Soberano de Cirugía Topológica de Čech (`topological_surgery_cech_agent.py` & `topological_surgery_cech.py`)
+*   **Rol:** Soberano de Cirugía Topológica de Haces de Čech, Deformación Anisotrópica y Desconfinitado de Ruido EMF en FPU.
+*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$ - Nivel 0).
+*   **Microservicios:** `topological_surgery_cech_agent.py`, `topological_surgery_cech.py`.
+*   **Mecanismo Matemático y Orquestación OODA:**
+    1. *Obstrucción Cohomológica de Čech:* Modela los transductores locales como un cubrimiento abierto $\mathcal{U} = \{U_i\}$ en $\partial K$. El descalce analógico define una 1-cocadena $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el Laplaciano elíptico $\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$.
+    2. *Deformación Anisotrópica y Pullback en de Rham:* Si $\check{H}^1(\mathcal{U}; \mathcal{F}) > L_{\max} \cdot \tau_{\mathrm{margin}}$, ejecuta una amputación espectral deformando la métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, atenuando el canal ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) sin romper la conexidad de Fiedler ($\lambda_2 \ge \tau_{\mathrm{Fiedler}}$).
+    3. *Traceout en Fock y Preservación de von Neumann:* Proyecta el estado cuántico $\rho \in \mathcal{D}(\mathcal{H})$ mediante $\rho_{\mathrm{surgery}} = \operatorname{Tr}_{\mathrm{isolated}}(\mathbf{P}_{\mathrm{surg}} \rho \mathbf{P}_{\mathrm{surg}}^\top) \oplus \rho_{\mathrm{vacuum}}$, garantizando $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$.
+    4. *Rampa de Confianza, Positrón de Autorización $e^+$ y Crowbar:* Si $0.3\tau_{\mathrm{margin}} < \check{H}^1 \le 0.5\tau_{\mathrm{margin}}$, activa Veto Suave (Luz Ámbar, 1h de gracia para inyectar en RAM un Positrón $e^+$ ligado por HMAC que aniquila la anomalía $e^- + e^+ \to 2\gamma$). Si $\check{H}^1 > 0.5\tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para cebar el tiristor BT151 (Crowbar) en silicio [topological_surgery_cech_agent.py].
+
+---
+
 ### Ω.0 🔊 Soberano de Ecolocación Topológica (`set_agent.py` & `set_engine.py`)
 *   **Rol:** Soberano de Ecolocación Sónica de de Rham, Reflectometría TDR y Dispersión Cuántica en Frontera.
 *   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$ - Nivel 0).

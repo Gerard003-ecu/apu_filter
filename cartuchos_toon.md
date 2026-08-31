@@ -11,6 +11,8 @@ El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funci
 
 $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
 
+Bajo la arquitectura del **Isomorfismo de Doble Capa** [Isomorfismo_Doble_Capa.md], esta compresión en la Capa de Calibre FPU Secure se traduce unívocamente hacia la Capa de Pragmática de Negocios en términos de aceleración de inferencia y erradicación de costos en tokens ("Dinero"), permitiendo al Consejo de Sabios evaluar presupuestos masivos sin pérdidas informacionales en la mantisa de punto flotante.
+
 La consistencia y conservación de la carga semántica entre la matriz de interacción táctica discreta (categoría $\mathcal{C}$) y la matriz atómica de conocimiento en el espacio de Hilbert (categoría $\mathcal{D}$) está analíticamente acoplada por el **Isomorfismo de Adjunción de de Rham-Galois**:
 
 $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \, \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, \, G(\text{MAC}))$$

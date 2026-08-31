@@ -16,12 +16,12 @@ Sin el cumplimiento de los invariantes termodinámicos, homológicos, covariante
 
 > *"La sabiduría de un costo sano no es un misterio de caja negra ni una abstracción inerte; es la unificación exacta de la geometría simplicial, la termodinámica de no-equilibrio y el confinamiento cuántico de calibre actuando en el silicio profundo para proteger el patrimonio público."*
 
-### I. EL ABISMO COGNITIVO Y LA SUTURA METAFÓRICA
+### I. EL ABISMO COGNITIVO Y LA SUTURA METAFÓRICA: EL ISOMORFISMO DE DOBLE CAPA
 #### (La Paradoja de la Combustión y los Sensores de la Ciudadela)
 
 La mayor asonancia estructural detectada en las auditorías forenses de los megaproyectos en Colombia radica en la **brecha de inteligibilidad** entre el andamiaje matemático doctoral del foso de control y el lenguaje pragmático exigido en la mesa de juntas de las constructoras y entes reguladores (Contraloría, IDU, INVIAS) bajo el **Mandato BIM 2026**.
 
-Explicar el primer grupo de cohomología de haces celulares $H^1(K; \, \mathcal{F}) \neq \mathbf{0}$ o la dilatación isométrica de Stinespring a un director de licitaciones provoca un colapso en la confianza y el inmediato rechazo del sistema. Para resolver este abismo cognitivo, la Fortaleza de **APU Filter v5.0** se de-confina a través de la **Analogía del Automóvil** y la **Teoría de Estructuras de Carga**:
+Explicar la obstrucción cohomológica de Čech $\check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0}$ [topological_surgery_cech.py], la deformación anisotrópica métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$ o la dilatación isométrica de Stinespring a un director de licitaciones provoca un colapso en la confianza y el inmediato rechazo del sistema. Para resolver este abismo cognitivo, la Fortaleza de **APU Filter v5.0** se de-confina consagrando el **Isomorfismo de Doble Capa** [Isomorfismo_Doble_Capa.md] a través de la **Analogía del Automóvil** y la **Teoría de Estructuras de Carga**:
 
 1. **La Analogía del ABS y los Sensores Activos:**
    Un conductor de-confinado adquiere un vehículo de alto rendimiento confiando en que sus frenos ABS y el control dinámico de estabilidad (ESP) salvarán su vida en una curva húmeda. No necesita resolver síncronamente las ecuaciones diferenciales de Navier-Stokes del flujo de aire en el alerón ni la termodinámica del combustible en los cilindros; busca que el chasis disipe la energía del impacto y que el coche frene en el milisegundo cero.
