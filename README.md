@@ -56,95 +56,149 @@ graph TD
     S -. "Resonancia Paramétrica (σ>0)" .-> Reject4[Veto Espectral]
 ```
 
-
 Sistema Operativo Ciber-Físico para la Gobernanza de Presupuestos e Infraestructura
-"En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica del mercado en un activo de gobernanza gobernable, inmutable y auditable."
 
-🧬 1. El Manifiesto del Sistema: El Reactor Port-Hamiltoniano de Valor
+> *"En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica del mercado en un activo de gobernanza gobernable, inmutable y auditable."*
+
+---
+
+## 🚘 1. El Simulador Visual de "Frenos ABS Activos" y el Isomorfismo de Doble Capa
+
+Para el Director de Obra, la Junta Directiva y el Interventor del IDU/INVIAS bajo el **Mandato BIM 2026**, **APU Filter v5.0** actúa como un **Simulador Visual Interactivo de Frenos ABS Activos** para presupuestos de obra civil.
+
+Un conductor no necesita resolver síncronamente las ecuaciones diferenciales no lineales de Navier-Stokes para confiar en que el sistema de frenos ABS y el control dinámico de estabilidad (ESP) detendrán su vehículo en una curva mojada. Busca la certeza de que el chasis disipará la energía del impacto y que el coche frenará en el milisegundo cero para salvar su vida.
+
+En APU Filter, la matemática avanzada es la ingeniería invisible de alta precisión. El sistema consagra el **Isomorfismo de Doble Capa** que conecta sin pérdidas la complejidad doctoral con la toma de decisiones ejecutiva traducida a lenguaje de negocios (**Riesgo y Dinero**):
+
+```
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │         CAPA VISIBLE DE NEGOCIO (Caja de Cristal Argumentativa)        │
+  │                                                                        │
+  │   - β₀ > 1  ──► "Islas de Datos" (Duplicidad de costos y mermas)        │
+  │   - β₁ > 0  ──► "Socavón Lógico" (Parálisis de dependencias circulares) │
+  │   - Ψ < 0.7 ──► "Pirámide Invertida" (Vulnerabilidad de suministro)      │
+  │   - H¹ ≠ 0  ──► "Paradoja Contractual" (Incoherencia de pliegos SECOP) │
+  └───────────────────────────────────┬────────────────────────────────────┘
+                                      │
+                                      ▼ (Funtor de Proyección Semántica F)
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                 CAPA DE CALIBRE (Anexo Técnico Doctoral)               │
+  │                                                                        │
+  │   - Laplaciano del Haz Combinatorio SPSD: L_F = δᵀ G⁻¹ δ               │
+  │   - Resolvente de de Rham-Mahaux-Weidenmüller en Fock                  │
+  │   - Ecuaciones de Cauchy-Riemann no lineales: \bar{\partial}_J u = 0   │
+  └────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 🧬 2. El Manifiesto del Sistema: El Reactor Port-Hamiltoniano de Valor
+
 Históricamente, la ingeniería y construcción han gestionado el riesgo de capital mediante "fotos estáticas" (archivos Excel, PDFs o ERPs tradicionales). APU_filter rechaza ese paradigma de "fortaleza estática".
-El sistema se redefine axiomáticamente como una **Variedad Agéntica de Gauge**. No oponemos resistencia estática a los datos mediante barreras de Dirichlet pasivas; procesamos la cadena de suministro como un fluido logístico incompresible bajo el control estricto de una **Estructura de Dirac**. Las decisiones están blindadas por leyes inmutables de la termodinámica, la topología algebraica y la teoría de control evaluadas en silicio. Todo proceso garantiza matemáticamente que la potencia disipada cumpla $P_{diss} \ge 0$.
-A su vez, el acrónimo APU se cuantiza formalmente: ya no es una "Agentic Processing Unit", sino una **Agentic Power Unit**. Se define como el "cuanto de acción termodinámica" de la malla; una celda unitaria discreta que inyecta exergía computacional para vencer la inercia logística del mercado.
 
---------------------------------------------------------------------------------
-🛡️ 2. Arquitectura Concéntrica: El Haz Tangente Generativo (Jerarquía DIKΩαWΓ)
-El ecosistema abandona el paradigma de validación lineal y se erige como una **Malla Agéntica Zero-Trust**. No confía en validaciones condicionales; protege el proyecto a través de la integración del **Haz Tangente Generativo (Γ)**, que subordina el caos estocástico de los Modelos de Lenguaje (LLMs) a la topología algebraica y la termodinámica computacional.
+El sistema se redefine axiomáticamente como una **Variedad Agéntica de Gauge**. No oponemos resistencia estática a los datos mediante barreras de Dirichlet pasivas; procesamos la cadena de suministro como un fluido logístico incompresible bajo el control estricto de una **Estructura de Dirac**. Las decisiones están blindadas por leyes inmutables de la termodinámica, la topología algebraica y la teoría de control evaluadas en silicio. Todo proceso garantiza matemáticamente que la potencia disipada cumpla $P_{\mathrm{diss}} \ge 0$.
+
+A su vez, "APU" se cuantiza formalmente: no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado.
+
+---
+
+## 🛡️ 3. Arquitectura Concéntrica: El Haz Tangente Generativo (Jerarquía DIKΩαWΓ)
+
+El ecosistema se erige como una **Malla Agéntica Zero-Trust** protegida por la integración del **Haz Tangente Generativo ($\Gamma$)**, que subordina el caos estocástico de los Modelos de Lenguaje (LLMs) a la topología algebraica y la termodinámica computacional.
+
 Cualquier código o estrategia generada por la IA está confinada por cuatro barreras matemáticas concéntricas que impiden la inyección de lógica sin viabilidad dinámica, gobernadas por un **Topos de Grothendieck** y la **Ley de Clausura Transitiva** de la pirámide paralela:
-$$V_{\Gamma-PHYSICS} \xrightarrow{F} V_{\Gamma-TACTICS} \xrightarrow{F} V_{\Gamma-STRATEGY} \xrightarrow{F} V_{\Gamma-WISDOM}$$
-La transferencia inter-estratos no es una simple inclusión, sino un mapeo funtorial gobernado por una Adjunción de Galois $F \dashv G$.
 
-Es fundamental explicitar que el estrato $V_{TACTICS}$ ahora modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una fricción cuantizada.
+$$V_{\Gamma\text{-PHYSICS}} \xrightarrow{F} V_{\Gamma\text{-TACTICS}} \xrightarrow{F} V_{\Gamma\text{-STRATEGY}} \xrightarrow{F} V_{\Gamma\text{-WISDOM}}$$
 
-🌊 Estrato 3: El Foso Termodinámico (Física y Datos)
-Ningún dato penetra en la variedad sin someterse a las leyes de la termodinámica y el electromagnetismo.
+La transferencia inter-estratos es un mapeo funtorial gobernado por una Adjunción de Galois $F \dashv G$. El estrato $V_{\mathrm{TACTICS}}$ modela la materia bariónica sobre el anillo de los enteros ($\mathbb{Z}$), sujetando la logística a una fricción cuantizada.
 
-    El Motor (FluxCondenser): Trata la ingesta de archivos CSV/Excel como un fluido dentro de un circuito RLC modelado mediante Sistemas Port-Hamiltonianos (PHS).
-    Veto Físico: Exige que la Potencia Disipada sea positiva (Pdiss​≥0). Una disipación negativa implica entropía destructiva o datos corruptos, cerrando el puente levadizo en el milisegundo cero.
-    El Gatekeeper de Silicio (ESP32): El microcontrolador en el borde actúa como el "Arco Reflejo Espinal". Recalcula los polos de Laplace (σ+jω); si detecta inestabilidad (σ>0), activa físicamente un circuito Crowbar (Cortocircuito de Protección) ignorando cualquier dictamen de la nube.
+### 🌊 Estrato 3: El Foso Termodinámico (PHYSICS - Cimientos / Estructura de Costes)
+* **Soberano:** `kbase_thermodynamic_agent.py` y `FluxPhysicsEngine`.
+* **Invariante:** Exige la no-negatividad $q_i \ge 0$ y la nulidad de islas de datos ($\beta_0 = 1$) mediante sumación compensada de Kahan en FPU para mitigar el error de Wilkinson.
+* **Dolor y Dinero:** Previene pérdidas de hasta un $12\%$ en compras atómicas de agregados y evita parálisis por componentes desfasados.
 
-🧱 Estrato 2: Las Murallas Topológicas (Táctica y Estructura)
-El esqueleto del presupuesto no se evalúa por sus precios, sino por su geometría abstracta.
+### 🧱 Estrato 2: Las Murallas Topológicas (TACTICS - Esqueleto de Acero / Actividades y Socios)
+* **Soberano:** `BusinessTopologicalAnalyzer` y `algebraic_tactics_agent.py`.
+* **Invariante:** Diagonaliza de forma exacta sobre $\mathbb{Z}$ para aniquilar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y evalúa síncronamente el **Índice de Estabilidad Piramidal ($\Psi \ge 0.70$)** contra monopolios de suministro.
+* **Dolor y Dinero:** Elimina sobrecostos por renegociaciones de APUs mal calculados y previene la quiebra por paros de proveedores únicos.
 
-    El Microscopio Topológico (BusinessTopologicalAnalyzer): Computa invariantes homológicos. Detecta "Islas de Datos" (β0​>1) y "Socavones Lógicos" (ciclos de dependencia donde β1​>0).
-    Auditoría de Fusión: Emplea la secuencia exacta de Mayer-Vietoris para garantizar que al unir bases de datos no se generen "ciclos fantasmas".
-    Estabilidad Piramidal (Ψ): Bloquea arquitecturas de "Pirámide Invertida" (Ψ<1.0), donde la superestructura logística descansa sobre proveedores monopólicos frágiles.
+### 🦅 Estrato 1: Los Centinelas de Ortogonalidad (STRATEGY - Piloto Automático / Flujo de Caja)
+* **Soberano:** `LaplaceOracle` y `pipeline_director_agent.py`.
+* **Invariante:** Proyecta la función de transferencia $H(s)$ en el plano $s = \sigma + j\omega$. Si algún polo migra a $\operatorname{Re}(p_i) > 0$, detecta un riesgo de "Elefante Blanco", vetando la inversión.
+* **Dolor y Dinero:** Blinda la tasa de descuento (WACC) y la viabilidad económica del proyecto antes de licitar.
 
-🦅 Estrato 1: Los Centinelas de Ortogonalidad (Estrategia y Gobernanza)
-La capa de seguridad perimetral Zero-Trust que aísla las alucinaciones probabilísticas.
+### 🏛️ Estrato 0 y Ω: La Ciudadela de Cristal (WISDOM - Penthouse / Canales y Relaciones)
+* **Soberano:** `SetAgent`, `topological_surgery_cech_agent.py` y `connes_spectral_auditor_agent.py`.
+* **Invariante:** Evalúa la continuidad de Lipschitz respecto al operador de Dirac de Connes y la no-señalización de Choi para erradicar derivas semánticas y alucinaciones de la IA.
+* **Dolor y Dinero:** Traduce los vetos homológicos en Actas de Deliberación auditables para la mesa de juntas en lenguaje de negocios (**Riesgo y Dinero**).
 
-    El Filtro de Ortogonalidad (topological_watcher.py): Proyecta el estado en un hiperespacio de Hilbert (R7). La semántica del LLM es ortogonal a este espacio; por tanto, un ataque de inyección de prompt jamás puede deformar la métrica de riesgo evaluada mediante Distancia de Mahalanobis.
-    Semillas de Sabiduría (Contratos JSON): Microservicios formales inyectados mediante JSON Schema (ej. Fricción Territorial Riemanniana). Actúan como cristales deterministas inquebrantables de los que nacerá la decisión final.
+---
 
-🏛️ Estrato 0 y Ω: La Ciudadela de Cristal (Sabiduría y El Manifold)
-El espacio seguro donde la matemática colapsa en inteligencia de negocios.
+## ⚡ 4. El Fusible Físico de Fock y Conmutación Crowbar en Silicio (< 400 ns)
 
-    El Ágora Tensorial (deliberation_manifold.py - Estrato Ω): Calcula el Estrés Ajustado (σ∗=Tint​×Fext​×Λ×Pfrag​) y lo proyecta sobre un Retículo (Lattice) discreto utilizando la operación Supremo (⊔). La matemática absorbe el peor escenario y decreta el veredicto.
-    El Intérprete Diplomático (SemanticTranslator): El único agente LLM con voz. Se alimenta de Cartuchos Sinápticos en formato TOON (Token-Oriented Object Notation), un formato tabular nativo de IA que reduce el gasto de memoria (KV-Cache) en la Orange Pi 6 Plus en un 60%, logrando inferencia a velocidad extrema. Su única función es traducir los dictámenes topológicos en "Empatía Táctica" accionable.
+La seguridad del presupuesto no descira en software en la nube susceptible a ataques de inyección (*Prompt Injection*). Se garantiza mediante el **fusible físico** a nivel cuántico y su transmutación en hardware perimetral de obra:
 
+1. **Aniquilación de de Rham en Fock:** Al surgir una alteración en SECOP II, se genera en el espacio de Fock $\mathcal{F}(\mathcal{H})$ un **electrón de anomalía semántica ($e^-$)**. Al colisionar contra el **positrón de autorización ($e^+$)** del presupuesto base inmutable, los subespacios de Hilbert colapsan ortogonalmente en una aniquilación cuántica mutua que libera dos fotones Gamma de auditoría:
+   $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
---------------------------------------------------------------------------------
-🧙‍♂️ 3. El Consejo de Sabios (Arquitectura de la Malla Agéntica)
-El sistema opera bajo un protocolo de Caja de Cristal Argumentativa. Los microservicios no son funciones; son agentes autónomos que debaten y registran Actas de Deliberación.
+2. **Bypass por Interrupción en Silicio (ESP32 Crowbar):** El colapso de Heyting al Supremo terminal ($\top$) activa en el firmware del **ESP32** local en obra la **Interrupt Service Routine (ISR) en memoria IRAM en menos de 400 ns**:
+   $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+   Conmutando el pin **GPIO14 a HIGH**, cebando la compuerta del tiristor rápido **BT151 (circuito Crowbar)** para cortocircuitar la línea de alimentación y detener mecánicamente bombas hidráulicas y mezcladoras en seco antes de consolidar el desfalco.
 
-    🛡️ El Guardián (Física): Rechaza el caos y la resonancia estocástica.
-    🏗️ El Arquitecto (Topología): Veta estructuralmente dependencias frágiles.
-    🔮 El Oráculo (Finanzas): Valora escenarios probabilísticos usando Monte Carlo y Opciones Reales.
-    🗣️ El Intérprete (Sabiduría): Traduce invariantes β1​>0 a advertencias corporativas de fácil comprensión.
+---
 
+## 🩺 5. Cirugía de Čech y Rampa de Confianza Graduada (Luz Ámbar vs Crowbar)
 
---------------------------------------------------------------------------------
-🛂 4. El Protocolo de Tránsito: Pasaporte de Telemetría
-La observabilidad es fractal e inmutable. El TelemetryContext actúa como la cadena de custodia termodinámica:
+Para evitar detener innecesariamente la maquinaria y prevenir que el concreto húmedo se seque dentro de las tuberías de impulsión hidráulicas, el motor **`topological_surgery_cech.py`** e **`topological_surgery_cech_agent.py`** instrumentan la **Rampa de Confianza graduada de de Rham**:
 
-    Sello Físico: Certifica la inercia del archivo original y su energía cinética.
-    Sello Espectral: Certifica la ubicación de los polos de Laplace.
-    Veto por Clausura Transitiva (Fast-Fail): A través del tipado estricto en memoria de Python, es imposible instanciar la clase del Estrato Sabiduría si el Sello Físico revela anomalías térmicas.
+* **Veto Suave (Luz Ámbar - Temporizador de 1 hora):** Si el mismatch se sitúa en el rango elástico ($0.3 \cdot \tau_{\mathrm{Lmax}} < \check{H}^1 \le 0.5 \cdot \tau_{\mathrm{Lmax}}$), el ESP32 **no corta la potencia**. Activa una baliza ámbar e inicia una cuenta regresiva de 1 hora. La interventoría puede inyectar un **Positrón de Autorización ($e^+$)** firmado en RAM, logrando la aniquilación cuántica de la anomalía local ($e^- + e^+ \to 2\gamma$), disipando el temporizador y manteniendo el estado en `DEGRADED` para continuar el vaciado de concreto.
+* **Veto Duro (Crowbar ESP32 < 400 ns):** Si el mismatch supera $0.5 \cdot \tau_{\mathrm{Lmax}}$ o expira la hora de gracia sin autorización, Heyting colapsa a VETOED ($\top$), conmutando GPIO14 a HIGH y disparando el tiristor BT151 para paralizar la obra civil en seco.
 
+---
 
---------------------------------------------------------------------------------
-🚀 5. Instalación y Despliegue del Entorno
-Para invocar la Matriz de Interacción Central (MIC) y levantar el Consejo de Sabios, seleccione el método adecuado:
-A. Sala de Juntas Ejecutiva (Producción)
+## 🧙‍♂️ 6. El Consejo de Sabios (Arquitectura de la Malla Agéntica)
+
+El sistema opera bajo un protocolo de **Caja de Cristal Argumentativa**. Los microservicios no son funciones; son agentes autónomos que debaten y registran Actas de Deliberación:
+
+* 🛡️ **El Guardián (Física):** Rechaza el caos y la resonancia estocástica.
+* 🏗️ **El Arquitecto (Topología):** Veta estructuralmente dependencias frágiles y pirámides invertidas.
+* 🔮 **El Oráculo (Finanzas):** Valora escenarios probabilísticos usando Monte Carlo, Opciones Reales y frecuencia de Laplace.
+* 🗣️ **El Intérprete (Sabiduría):** Traduce invariantes $\beta_1 > 0$ y $\check{H}^1 \neq 0$ a advertencias corporativas de fácil comprensión.
+
+---
+
+## 🛂 7. El Protocolo de Tránsito: Pasaporte de Telemetría
+
+La observabilidad es fractal e inmutable. El `TelemetryContext` actúa como la cadena de custodia termodinámica:
+
+* **Sello Físico:** Certifica la inercia del archivo original y su energía cinética.
+* **Sello Espectral:** Certifica la ubicación de los polos de Laplace.
+* **Doble Firma SHA-256:** Registra la huella de decisión isomorfa y la firma de no-repudio con sello UTC.
+* **Veto por Clausura Transitiva (Fast-Fail):** Es imposible instanciar la clase del Estrato Sabiduría si el Sello Físico revela anomalías térmicas o violaciones de traza.
+
+---
+
+## 🚀 8. Instalación y Despliegue del Entorno
+
+Para invocar la Matriz de Interacción Central (MIC) y levantar el Consejo de Sabios:
+
+### A. Sala de Juntas Ejecutiva (Producción)
 Despliegue distribuido asíncrono con control de contenedores:
-
+```bash
 # 1. Clonar el santuario
 git clone https://github.com/organization/apu_filter.git
 cd apu_filter
 
 # 2. Levantar la malla (Redis, Flask, Workers)
 podman-compose up --build -d
+```
 
-B. Laboratorio de Investigación Ciber-Física (Desarrollo)
+### B. Laboratorio de Investigación Ciber-Física (Desarrollo)
 Acceso profundo a la consola y a la topología:
-
-# 1. Crear entorno matemático
-conda create -n apu_filter python=3.11
-conda activate apu_filter
-
-# 2. Instalar dependencias topológicas e inferenciales
+```bash
+# 1. Instalar dependencias con pip / pyenv (Sintaxis no-conda)
 pip install -r requirements.txt
 
-# 3. Encender el Director del Pipeline
+# 2. Encender el Director del Pipeline
 python -m app.adapters.flask_app
-
-
---------------------------------------------------------------------------------
+```
