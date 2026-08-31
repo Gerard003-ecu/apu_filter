@@ -66,19 +66,20 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 
 ### 1. 👥 Segmentos de Cliente (Customer Segments)
 * **Constructores de Megaproyectos e Infraestructura Pública (Mandato BIM 2026):** Organizaciones obligadas a cumplir con la normativa estatal en Colombia. Manejan grafos de dependencia masivos donde un socavón lógico ($\beta_1 > 0$) provoca sanciones en SECOP II.
-* **Gerentes de Riesgo, Aseguradoras y Entidades Financieras:** Requieren certificar la Estabilidad Espectral ($\operatorname{Re}(p_i) < 0$) y la ausencia de torsión homológica ($\operatorname{Tor}(H_k) = \mathbf{0}$) para emitir pólizas de cumplimiento o aprobar créditos.
-* **Oficinas de Gestión de Datos (CDOs) en Constructoras:** Empresas que implementan Data Mesh y exigen gobernanza agéntica autónoma inmutable (Zero-Trust).
+* **Gerentes de Riesgo, Aseguradoras y Entidades Financieras:** Requieren certificar la Estabilidad Espectral ($\operatorname{Re}(p_i) < 0$), la ausencia de torsión homológica ($\operatorname{Tor}(H_k) = \mathbf{0}$) y la invarianza de Čech $\check{H}^1(\mathcal{U}; \mathcal{F}) \le L_{\max} \cdot \tau_{\mathrm{margin}}$ para emitir pólizas de cumplimiento o aprobar créditos de redescuento.
+* **Oficinas de Gestión de Datos (CDOs) y Gerentes de Obra:** Empresas que implementan Data Mesh y exigen gobernanza agéntica autónoma inmutable (Zero-Trust) para proteger el WACC y el margen bruto ante disputas contractuales.
 
 ### 2. 💎 Propuesta de Valor (Value Propositions)
-* **Póliza de Seguro Pre-Construcción (Certificado de Estabilidad Física):** Certificación matemática de que la cimentación logística soportará el peso de la obra, evitando colapses antes de gastar el primer peso.
+* **Póliza de Seguro Pre-Construcción (Certificado de Estabilidad Física):** Certificación matemática de que la cimentación logística soportará el peso de la obra, evitando colapsos antes de gastar el primer peso.
+* **Cirugía Topológica de Čech y Amputación Anisotrópica:** Inmunización automática frente a ruido EMF o transductores fallidos mediante el pullback $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, asegurando que la obra no se detenga por falsos positivos de software.
 * **Gobernanza Computacional Federada (Policy-as-Code):** Malla agéntica que bloquea transacciones inestables ($\sigma > 0$) o presupuestos fragmentados antes de contaminar la caja.
 * **Simulador de Escenarios Dinámicos ("What-If" Gemelo Digital):** Simulación en tiempo real del impacto de sustituir un proveedor crítico mediante el Replicador de Shahshahani y el flujo de Brockett.
-* **Sutura y Certeza de Generación (FPU-Shield & TOON):** Eliminación de alucinaciones del LLM mediante el acotamiento de Lipschitz de Connes-Daleckii-Krein y compresión TOON de $30\%-60\%$ en $KV\text{-Cache}$.
+* **Sutura y Certeza de Generación (Isomorfismo de Doble Capa & TOON):** Traducción unívoca de autovalores complejos a lenguaje ejecutivo ("Dolor y Dinero"), eliminando alucinaciones del LLM con acotamiento de Lipschitz de Connes-Daleckii-Krein y compresión TOON de $30\%-60\%$ en $KV\text{-Cache}$.
 
 ### 3. 📢 Canales (Channels)
-* **Capa 1 (Panel Ejecutivo):** Alertas en lenguaje de negocio puro (Riesgo y Dinero) mediante `SemanticTranslator`.
-* **Capa 2 (Metáfora Visual Interactiva):** Simulador web interactivo (Cytoscape) donde los nodos de estrés brilla en rojo pulsante (`#EF4444`).
-* **Capa 3 (Auditoría Forense Matemática):** Acceso profundo a pasaportes de telemetría firmados SHA-256 para peritos e interventores.
+* **Capa 1 (Panel Ejecutivo de Doble Capa):** Alertas en lenguaje de negocio puro (Riesgo y Dinero) traducidas por `SemanticTranslator` [topological_surgery_cech_agent.py].
+* **Capa 2 (Metáfora Visual Interactiva):** Simulador web interactivo (Cytoscape) donde los nodos de estrés brillan en rojo pulsante (`#EF4444`).
+* **Capa 3 (Auditoría Forense Matemática):** Acceso profundo a pasaportes de telemetría firmados SHA-256 para peritos, interventores y Contraloría General.
 
 ### 4. ❤️ Relaciones con los Clientes (Customer Relationships)
 * **La Caja de Cristal Argumentativa (Actas de Deliberación):** Toda decisión se entrega como un Acta del Consejo de Sabios exponiendo la dialéctica interna (Tesis del Oráculo vs Antítesis del Arquitecto).

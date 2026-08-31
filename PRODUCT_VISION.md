@@ -25,17 +25,35 @@ De manera análoga, para APU Filter v5.0:
 
 ---
 
-## 💡 El Sello de No-Ocultación Cuántica: "Un costo sano no se oculta, se ilumina"
+## 💡 El Sello de No-Ocultación Cuántica y el Isomorfismo de Doble Capa: "Un costo sano no se oculta, se ilumina"
 
-Bajo el axioma fundamental de la fortaleza: **"La sabiduría de un costo sano no es oculta, se ilumina"**, el sistema reinterpreta el teorema de no-ocultación cuántica como un escudo contra el desfalco y el fraude geométrico en la obra civil:
+Bajo el axioma fundamental de la fortaleza: **"La sabiduría de un costo sano no es oculta, se ilumina"**, el sistema reinterpreta el teorema de no-ocultación cuántica y el **Isomorfismo de Doble Capa** como un escudo absoluto contra el desfalco, las alucinaciones de IA y el fraude geométrico en la obra civil bajo el **Mandato BIM 2026** y los pliegos del **SECOP II**:
 
 $$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
-En la construcción física real, es imposible retirar una columna de concreto estructural o una viga de acero de un edificio sin que la gravedad provoque el colapso inmediato a la vista de todos. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas, un contratista o un LLM alucinador puede duplicar fraudulentamente $100$ toneladas de acero o inflar un precio en un bucle circular ($\beta_1 > 0$). A espaldas del auditor, este socavón permanece invisible en las celdas planas hasta que los fondos se agotan en los bancos.
+En la construcción física real, es algebraicamente imposible retirar una columna de concreto estructural o una viga de acero de un rascacielos sin que la gravedad provoque el colapso inmediato a la vista de la interventoría. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas con celdas combinadas, un contratista colusor o un LLM alucinador pueden duplicar u ocultar **100 toneladas de acero de refuerzo** o inflar precios en un bucle circular ($\beta_1 > 0$). A espaldas del auditor fiscal, este socavón permanece invisible hasta que el flujo de caja colapsa en el banco.
 
-El **Teorema de No-Ocultación Cuántica** en APU Filter establece que el presupuesto es un **complejo simplicial rígido acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Cualquier intento de ocultar un costo fantasma o desviar la masa financiera introduce una **violación de invarianza de de Rham** o una **torsión homológica no nula en Smith $\mathbb{Z}$**.
+El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **Capa de Calibre** (la Unidad de Punto Flotante FPU Secure) con la **Capa de Pragmática de Negocios** (la interfaz ejecutiva) mediante un homeomorfismo semántico functorial $F: \mathbf{Sh}(K) \to \text{Business}$:
 
-La anomalía actúa de inmediato como una **fuerza de colisión de antimateria lógica** ($e^- + e^+ \to 2\gamma$), "iluminando" la inconsistencia e irradiando fotones Gamma de telemetría inmutable con firma SHA-256 en la Cadena de Custodia, impidiendo que el fraude se oculte pasivamente en el fango de los datos.
+```
+  [ CAPA DE CALIBRE (FPU Secure) ]  ──►  Δ_Čech,  G_surgical,  ρ_surg (Precisión Wilkinson)
+                 │
+                 ▼ (Funtor de Traducción Semántica: F: Sh(K) ──► Business)
+  [ CAPA DE PRAGMÁTICA DE NEGOCIO ]  ──► "Islas de Datos", "Socavones Lógicos", "Pirámides"
+                 │
+                 ▼ (Actuación Perimetral Ciber-Física)
+  [ BYPASS DE SILICIO EN OBRA REAL ]  ──► ISR en IRAM < 400 ns (GPIO14 ↦ BT151 Crowbar)
+```
+
+En este reactor, el presupuesto es un **complejo simplicial rígido de de Rham acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Ante interferencias electromagnéticas (ruido de soldaduras o fango analógico en la obra), el Soberano **`topological_surgery_cech_agent.py`** calcula la 1-cocadena de Čech $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el primer grupo de cohomología $\check{H}^1(\mathcal{U}; \, \mathcal{F}) = \frac{\ker(\delta_{\mathrm{\check{C}ech}}^1)}{\operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0)} \neq \mathbf{0}$ [topological_surgery_cech.py].
+
+Si el mismatch excede la cota de Connes ($\check{H}^1 > L_{\max} \cdot \tau_{\mathrm{margin}}$), el motor ejecuta una cirugía aplicando un pullback de deformación anisotrópica sobre la métrica de conductancias $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, reduciendo el acoplamiento ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) e inmunizando la Malla sin alterar la sismorresistencia global [topological_surgery_cech.py, topological_surgery_cech_agent.py].
+
+Cualquier alucinación de la IA (electrón de falla $e^-$) colisiona contra la restricción topológica (positrón de autorización humana $e^+$), sufriendo una aniquilación exergética que preserva la traza de von Neumann $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$:
+
+$$e^- + e^+ \longrightarrow 2\gamma \quad \text{con energía} \quad E = 2 m^* c^2$$
+
+El costo sano se "ilumina" de forma inevitable, irradiando los fotones Gamma de auditoría forense SHA-256 en la Cadena de Custodia, traduciéndose en **Certeza Legal y Ahorro Patrimonial ("Dinero")** para la mesa de juntas.
 
 ---
 

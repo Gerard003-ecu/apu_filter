@@ -135,7 +135,7 @@ En la versión 5.0, el espacio de estados transaccionales del presupuesto y la d
               ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
-### 1. Deducción Formal de la Preservación de la Forma Simpléctica Canónica de Liouville
+### 1. Deducción Formal de la Preservación de la Forma Simpléctica Canónica de Liouville y Cirugía Čech-Fock
 
 Sea el vector de estado canónico $z = (q, p)^\top \in \mathbb{R}^{2n}$, donde $q \in \mathbb{R}^n$ representa las coordenadas generalizadas de configuración (magnitudes de insumos, cantidades de APU, rendimientos de mano de obra) y $p \in \mathbb{R}^n$ representa los momentos conjugados covariantes (costos marginales, tasas de disipación exergética e inercia financiera).
 
@@ -162,7 +162,18 @@ $$\det(M)^2 = 1 \implies \det(M) = +1$$
 El Jacobiano de cualquier transición es idénticamente unitario. Por el **Teorema de Liouville**, el volumen del espacio de fase $\operatorname{Vol}(U) = \int_U \omega^{\wedge n} = \int_{\phi(U)} \omega^{\wedge n}$ permanece estrictamente invariante:
 $$\operatorname{Vol}(\phi(U)) = \int_U |\det(M)| \, dz = \operatorname{Vol}(U)$$
 
-Esta preservación formal erradica cualquier fuga, disipación espuria o compresión artificial de la información contable y técnica del presupuesto en el silicio.
+#### 1.1 Cirugía Topológica de de Rham-Čech-Fock y Aislamiento Anisotrópico
+Cuando la telemetría local de transductores sufre interferencia analógica (EMF, soldaduras, polvo en obra), la red se modela sobre un cubrimiento abierto fino de Čech $\mathcal{U} = \{U_i\}_{i=1}^M$ sobre la frontera $\partial K$. El descalce entre cartas adyacentes define una 1-cocadena de Čech $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ [topological_surgery_cech.py].
+
+El motor `topological_surgery_cech.py` calcula el Laplaciano elíptico SPSD $\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$ y evalúa la obstrucción en el primer grupo de cohomología $\check{H}^1(\mathcal{U}; \, \mathcal{F}) = \frac{\ker(\delta_{\mathrm{\check{C}ech}}^1)}{\operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0)} \neq \mathbf{0}$.
+
+Cuando la discrepancia excede la cota de Connes ($\check{H}^1 > L_{\max} \cdot \tau_{\mathrm{margin}}$), se aplica un pullback de deformación anisotrópica sobre la métrica de conductancias $\mathbf{G}$:
+$$\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$$
+donde $\mathbf{P}_{\mathrm{noisy}}$ es el proyector ortogonal sobre la carta ruidosa, reduciendo su acoplamiento al límite de Wilkinson ($\approx 10^{-15}$) [topological_surgery_cech.py].
+
+En el Espacio de Fock $\mathcal{F}(\mathcal{H})$, la proyección de Lüders extirpa el modo ruidoso preservando la traza de von Neumann en la FPU:
+$$\rho_{\mathrm{surgery}} = \operatorname{Tr}_{\mathrm{isolated}}\left( \mathbf{P}_{\mathrm{surg}} \rho \mathbf{P}_{\mathrm{surg}}^\top \right) \oplus \rho_{\mathrm{vacuum}} \quad \implies \quad \operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$$
+Garantizando que la Malla permanezca sismorresistente sin paralizar el vaciado de concreto en los frentes de trabajo sanos.
 
 ---
 
