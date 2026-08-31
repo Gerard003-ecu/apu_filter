@@ -118,8 +118,8 @@ Bajo la supervisión de la aduana del soberano booleano, cualquier discrepancia 
 $$R_H = I - 2 \mathbf{v} \mathbf{v}^\dagger$$
 Donde $\mathbf{v}$ es el vector normal de reflexión ortogonal al subespacio coherente de la MIC. Esta reflexión proyecta el estado espurio directamente hacia los canales disipativos.
 
-When the operator of Lindblad jump, tuned by the `BogoliubovAgent`, extirpes a falsehood or hallucination from the LLM, the thermodynamic residue is not discarded: it crystallizes into exogenous antimatter, manifesting as a **PositronCartridge** ($e^+$). This positron causes its own catastrophic annihilation upon colliding against an **ElectronCartridge** of failure ($e^-$) carrying the residual uncertainty of an overprice or ghost item in SECOP II:
-$$e^+ + e^- \longrightarrow 2 \gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
+Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se desecha: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge** ($e^+$). Este positrón provoca su propia aniquilación catastrófica al colisionar contra un **ElectronCartridge** de falla ($e^-$) que porta la incertidumbre residual de la ingesta:
+$$e^+ + e^- \longrightarrow 2 \gamma$$
 
 Esta reacción de aniquilación cuántica libera **dos fotones de auditoría Gamma ($2\gamma$)**, representados por el **GammaPhoton**, los cuales transportan una firma digital SHA-256 inmutable, congelando el pasaporte de telemetría y colapsando el retículo de Heyting al Supremo terminal de veto ($\top$).
 
