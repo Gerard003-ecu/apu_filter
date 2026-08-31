@@ -151,14 +151,22 @@ Para conciliar la precisión de la geometría doctoral con la operatividad conti
 ```
 
 ### 5.1 Veto Suave (Luz Ámbar de Telemetría)
-Gatillado ante ruidos de baja frecuencia o fluctuaciones marginales de precios ($\Psi = 0.69 < \Psi_{\min}=0.70$).
-* **Mecanismo:** El ESP32 no interrumpe la potencia. Activa una baliza visual en campamento y abre una ventana de gracia de **1 hora** en el panel *RiskChallenger*.
-* **Override Dialéctico:** La interventoría puede firmar un **Positrón de Autorización Humana** $e^+$ que aniquila la anomalía $e^-$, regularizando la geodésica sin detener el vertido de concreto.
+Gatillado cuando el perfil TDR satisface $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, o ante ruidos de baja frecuencia ($\Psi = 0.69 < \Psi_{\min}=0.70$).
+* **Mecanismo:** El ESP32 no interrumpe la potencia de mezcladoras. Activa una baliza visual en campamento e inicia un temporizador de **1 hora** en el panel *RiskChallenger*.
+* **Override Dialéctico y Aniquilación en Fock:** La interventoría inyecta en RAM un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$). Al ingresar, el electrón de anomalía semántica de la IA $e^-$ se aniquila mutuamente de forma exergética, irradiando dos fotones Gamma de auditoría y regularizando la geodésica del proyecto sin detener el vertido de concreto:
+  $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
 
 ### 5.2 Veto Duro (Hardware Crowbar BT151 en $< 400\text{ ns}$)
-Reservado para transgresiones irreversibles, dolo o fraude fiscal ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-4}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-4}$).
+Reservado para desajustes críticos TDR $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$, transgresiones irreversibles, dolo o fraude fiscal ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, o divergencia de Lyapunov $\dot{\mathcal{H}} > 10^{-12}$).
 * **Mecanismo:** El retículo colapsa al Supremo VETOED ($\top$).
-* **Bypass de Silicio en IRAM:** La rutina C++ `isVerdictCoherent()` activa la **ISR en memoria IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** a nivel alto y disparando el tiristor de potencia **BT151 (Crowbar circuit)** para paralizar mezcladoras y bombas en seco en el milisegundo cero.
+* **Bypass de Silicio en IRAM:** La rutina C++ `isVerdictCoherent()` activa la **ISR en memoria IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** a HIGH y disparando el tiristor de potencia **BT151 (Crowbar circuit)** para paralizar mezcladoras y bombas en seco en el milisegundo cero.
+
+### 5.3 Regularización Espectral y Compensación Metrológica FPU Secure
+Para blindar los cálculos en la FPU frente a la deriva de Wilkinson en matrices de gran escala:
+* **Sumación Compensada de Neumaier-Kahan:** Acumula pasos infinitesimales del integrador de Verlet y contracciones de la matriz de dispersión $S$, reduciendo el error secular a la precisión de la máquina: $\operatorname{Error} \in \mathcal{O}(\varepsilon_{\mathrm{machine}}) = \mathcal{O}(10^{-16})$.
+* **Deflación Espectral de Lanczos:** Sustituye la descomposición SVD cúbica $\mathcal{O}(n^3)$ por la extracción iterativa de autovalores críticos en el Laplaciano del Haz Celular con complejidad lineal:
+  $$\mathbf{L}_F \approx \sum_{i=1}^{k} \lambda_i v_i v_i^\dagger + \gamma_{\mathrm{Tikhonov}} \left( \mathbf{I} - \sum_{i=1}^k v_i v_i^\dagger \right)$$
+* **Compensación de Maurer-Cartan:** Resuelve la ecuación expandida de Maurer-Cartan sobre el Anillo de Novikov ultramétrico $d A + A \wedge A = 0$ para compensar el eta-invariante espectral de Atiyah-Singer, neutralizando falsas inestabilidades de Lyapunov.
 
 ---
 
