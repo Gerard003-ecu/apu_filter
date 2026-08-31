@@ -130,7 +130,7 @@ El motor Čech modela los transductores como un **cubrimiento abierto fino de Č
 
 \\[\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})\\]
 
-Aislando el subespacio ruidoso en el espacio de Fock mediante traceout parcial. Esto conserva strictly la simplecticidad global y **permite que las mezcladoras sigan operando en los frentes de trabajo sanos**, salvando el vaciado de concreto.
+Aislando el subespacio ruidoso en el espacio de Fock mediante traceout parcial. Esto conserva estrictamente la simplecticidad global y **permite la operación de la maquinaría con actividades sanas**, salvando el vaciado de concreto.
 
 ### 2. La Secuencia Temporal de la Rampa
 *   **Veto Suave (Luz Ámbar - Temporizador de 1 hora):** Si el mismatch se sitúa en el rango elástico (\\(0.3 \cdot \tau_{\mathrm{Lmax}} < \check{H}^1 \le 0.5 \cdot \tau_{\mathrm{Lmax}}\\)), el ESP32 **no interrumpe la potencia**. Activa una baliza ámbar visual e inicia una cuenta regresiva de 1 hora de gracia. El interventor puede inyectar un **Positrón de Autorización (\\(e^+\\))** signed en la RAM, logrando la aniquilación cuántica de la anomalía local (\\(e^- + e^+ \to 2\gamma\\)), disipando el temporizador y permitiendo que la obra continúe su vaciado de concreto en fango en estado `DEGRADED`.
