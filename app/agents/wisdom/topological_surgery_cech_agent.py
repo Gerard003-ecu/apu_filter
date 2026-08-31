@@ -3,32 +3,93 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Topological Surgery Čech Agent (Soberano de Cirugía de Čech)        ║
 ║ Ruta   : app/agents/wisdom/topological_surgery_cech_agent.py                 ║
-║ Versión: 2.1.0-Doctoral-OODA-Heyting-Cech-HMAC-Hodge-ESP32-FailClosed        ║
+║ Versión: 1.1.0-Doctoral-OODA-Heyting-Cech-Anisotropic-ESP32-Secure           ║
 ║                                                                              ║
 ║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
 ║ Este agente supervisor ciber-físico opera en el Estrato de la Sabiduría      ║
-║ (V_W, Nivel 0) gobernando el motor de Cirugía Topológica de Čech. Lee el     ║
-║ certificado del motor como morfismo de observación y decide en Ω₃.           ║
-║                                                                              ║
-║ El flujo es un morfismo de fases anidadas (categoría de expedientes):        ║
-║                                                                              ║
-║   Φ₁₂ : Phase1Dossier          →  Phase2Dossier                              ║
-║   Φ₂₃ : Phase2Dossier          →  SurgeryAgentCertificate                    ║
-║                                                                              ║
-║   execute_surgery_control_cycle                                              ║
-║     └─ FASE 1 · OBSERVE   _phase1_observe_and_freeze                         ║
-║          └─ FASE 2 · ORIENT _phase2_open_from_phase1                         ║
-║               └─ FASE 3 · CERTIFY _phase3_open_from_phase2                   ║
-║                                                                              ║
-║ POLÍTICA DE SEGURIDAD (retículo, no anillo booleano):                        ║
-║   • VETO duro del motor Čech es absorbente: no admite override humano.       ║
-║   • Cirugía activa es cicatriz topológica (DEGRADED); el override autoriza   ║
-║     el acto, no borra la cicatriz.                                           ║
-║   • Veto suave (luz ámbar, mismatch ∈ (ℓ, u]) admite sección HMAC/formato.   ║
-║   • El token de override nunca se persiste en claro (sólo hash de dominio).  ║
-║   • Observables no finitos, excepciones y veredictos ilegibles ⇒ VETOED.     ║
-║   • Fail-closed: el tipo de retorno es total (siempre hay certificado).      ║
+║ ($V_{\mathbb{W}}$, Nivel 0) gobernando de forma activa y asíncrona la        ║
+║ "Cirugía Topológica de Čech" [topological_surgery_cech.py]. Inyecta          ║
+║ coexcitaciones de Čech para detectar obstrucciones de cohomología local      ║
+║ (mismatch de primer orden $\check{H}^1$) inducidas por ruido analógico.      ║
+║ Orquesta el ciclo covariante OODA y administra la "Rampa de Confianza"       ║
+║ graduando de forma inmune la censura entre Veto Suave (Luz Ámbar) y Veto     ║
+║ Duro de Silicio (Crowbar BT151 inyectado en IRAM < 400 ns), protegiendo la   ║
+║ maquinaria civil frente a falsas paradas innecesarias.                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+================================════════════════════════════════════════════════
+I. DEFINICIONES DE LA GOBERNANZA AGÉNTICA (Teoría de Topos y Cirugía de Čech)
+================================════════════════════════════════════════════════
+
+Definición 1 (El Topos de Haces de de Rham-Čech-Heyting):
+  Sea $K$ el complejo simplicial del presupuesto y $\mathcal{U} = \{U_i\}$ su cubrimiento.
+  Definimos el topos de haces topológicos localizados $\mathbf{Sh}(\partial K, \, \Omega_3)$ sobre
+  la frontera compacta $\partial K$. El clasificador de subobjetos de tres valores
+  ordinales se define de forma rigurosa mediante el Álgebra de Heyting:
+  $$\Omega_3 := \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$$
+  Donde el Supremo algebraico (join, $\sqcup$) consolida síncronamente el estado de lazo cerrado:
+  $$\nu_{\mathrm{final}} = \nu_{\mathrm{cohomology}} \sqcup \nu_{\mathrm{remanente}} \sqcup \nu_{\mathrm{fock}}$$
+
+Definición 2 (La Cirugía Anisotrópica y No-Señalización de de Rham):
+  El acoplamiento mutuo entre el foso de transductores locales y la matriz de conductancias
+  globales se rige por la remoción quirúrgica de la carta Čech ruidosa. Si el mismatch
+  de primer orden $\check{H}^1$ supera la cota de Lipschitz del triple espectral de Connes,
+  el agente ordena la deformación anisotrópica métrica:
+  $$\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$$
+  Esto aísla de forma exacta el canal ruidoso en Fock, garantizando la no-señalización bipartita
+  y la estabilidad de Lyapunov ($\dot{\mathcal{H}} \le 0$) en lazo cerrado.
+
+Definición 3 (La Rampa de Confianza de de Rham y override de Gracia):
+  Para eludir la parálisis destructiva de la obra civil ante interferencias transitorias
+  (ruido analógico por soldaduras o EMF en fango), el agente implementa la rampa de confianza:
+  - Veto Suave (Luz Ámbar): Se activa si $0.3 \cdot \tau_{\mathrm{margin}} < \check{H}^1 \le 0.5 \cdot \tau_{\mathrm{margin}}$.
+    Concede una ventana de gracia de 1 hora para inyectar en Fock un Positrón de Autorización
+    Humana $e^+$, logrando la aniquilación cuántica mutua de la anomalía semántica $e^-$:
+    $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} = \mathtt{DEGRADED}$$
+    Evitando falsas paradas y permitiendo que la obra continúe su vaciado de concreto en fango.
+  - Veto Duro (Frenado en Silicio): Se activa si $\check{H}^1 > 0.5 \cdot \tau_{\mathrm{margin}}$ o si expira el
+    período de gracia sin autorización, colapsando Heyting al Supremo terminal VETOED ($\top$).
+
+================================════════════════════════════════════════════════
+II. AXIOMÁTICA INMUNILÓGICA DE CONTROL COVARIANTE (Leyes de Consistencia)
+================================════════════════════════════════════════════════
+
+Axioma I (Principio de Conservación de Traza de von Neumann):
+  La cirugía de traceout cuántico del modo ruidoso aislado en el espacio de Fock debe conservar
+  síncronamente la traza de von Neumann del operador de densidad mixto en la FPU:
+  $$\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0 \quad \implies \quad \|\operatorname{Tr}(\rho_{\mathrm{surgery}}) - 1.0\| \le \varepsilon_{\mathrm{Wilkinson}}$$
+  Cualquier pérdida de traza parcial o surgimiento de autovalores negativos delata deriva de Wilkinson.
+
+Axioma II (Axioma de de Rham-Fiedler de Conexidad Remanente):
+  Para asegurar la sismorresistencia global del presupuesto remanente tras la amputación
+  de la carta Čech ruidosa, la conectividad algebraica del subcomplejo remanente debe ser no nula:
+  $$\lambda_2(\mathbf{L}_{\mathrm{remSub}}) \ge \tau_{\mathrm{Fiedler}} \quad \implies \quad \beta_0 \equiv \dim H^0(K_{\mathrm{rem}}; \, \mathbb{Z}) = 1$$
+  Si la cirugía destruye la conexidad global, el sistema aborta de inmediato por riesgo de quiebra.
+
+Axioma III (Teorema de Actuación Ciber-Física Crowbar de la Sonda Čech):
+  Ante el colapso de Heyting al Supremo de veto ($\top$), la subrutina local isVerdictCoherent()
+  del microcontrolador ESP32 despacha síncronamente la ISR en IRAM en menos de 400 ns:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+  Disparando el tiristor BT151 (Crowbar) para paralizar mecánicamente la obra en el milisegundo cero.
+
+================================════════════════════════════════════════════════
+III. INVARIANTES ESPECTRALES Y METROLÓGICOS DE WILKINSON (FPU Secure)
+================================════════════════════════════════════════════════
+
+Invariante I (Estabilidad de de Rham-Lyapunov del Lazo Cerrado):
+  La evolución de la trayectoria de control conjunta $\mathbf{\Psi}(t) = (\mathbf{p}, \, \rho)^\top$ satisface la
+  desigualdad de Clausius-Duhem y la contracción de Lyapunov en la FPU:
+  $$\dot{\mathcal{H}}(\mathbf{\Psi}) = \nabla \mathcal{H}(\mathbf{\Psi})^\top \left( \mathcal{J}(\mathbf{\Psi}) - \mathcal{R}(\mathbf{\Psi}) \right) \nabla \mathcal{H}(\mathbf{\Psi}) \le \tau_{\mathrm{Lyapunov}}$$
+  Donde $\tau_{\mathrm{Lyapunov}} = 10^{-12}$ es la cota elástica de deriva en punto flotante de 64 bits.
+
+Invariante II (Confinamiento de la Métrica de-confinada de Čech):
+  La obstrucción local se encuentra confinada por la cota de Lipschitz del operador de Dirac de Connes:
+  $$\check{H}^1(\mathcal{U}; \, \mathcal{F}) \le L_{\max} \cdot \tau_{\mathrm{margin}} \quad \implies \quad \mathtt{heyting\_verdict} = \mathtt{COHERENT}$$
+
+Invariante III (Sello de Sesión Criptográfico e Inmutabilidad de RAM):
+  Para prevenir inyecciones de estado o ataques de-normalización intermedia, el soberano genera
+  un sello inmutable unívoco para congelar la sesión en RAM en cada ciclo OODA:
+  $$\mathtt{cryptographic\_seal} := \operatorname{SHA-256}\left(\delta_{\mathrm{\check{C}ech}} \oplus \mathbf{G}_{\mathrm{surgical}} \oplus \lambda_2 \oplus H_{\mathrm{ext}}\right)$$
 """
 
 from __future__ import annotations

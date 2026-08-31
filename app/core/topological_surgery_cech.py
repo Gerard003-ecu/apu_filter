@@ -3,35 +3,96 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Topological Surgery Čech (Cirugía Topológica de Haces de Čech)      ║
 ║ Ruta   : app/core/topological_surgery_cech.py                                ║
-║ Versión: 2.1.0-Doctoral-Cech-Cohomology-Anisotropic-Hodge-FailClosed         ║
+║ Versión: 1.1.0-Doctoral-Cech-Cohomology-Anisotropic-Surgery-FPU-Secure       ║
 ║                                                                              ║
 ║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO:                         ║
-║ Este módulo implementa cirugía topológica localizada sobre un cubrimiento    ║
-║ abierto fino de Čech 𝒰 = {U_i} en la frontera simplicial ∂K. Ante ruido      ║
-║ analógico localizado en transductores, calcula la obstrucción de 1-cociclo   ║
-║ ‖δφ‖_{ℓ²} (clase en H¹(𝒰, ℱ) trivializable ssi las secciones pegan) y aísla ║
-║ quirúrgicamente el subespacio ruidoso sin provocar falsos positivos globales.║
-║                                                                              ║
-║ El flujo es un morfismo de fases anidadas (categoría de expedientes):        ║
-║                                                                              ║
-║   Φ₁₂ : Phase1Dossier  →  Phase2Dossier                                      ║
-║   Φ₂₃ : Phase2Dossier  →  SurgeryCertificate                                 ║
-║                                                                              ║
-║   execute_topological_surgery_cycle                                          ║
-║     └─ FASE 1 · OBSERVE   _phase1_observe_and_freeze                         ║
-║          └─ FASE 2 · OPERATE _phase2_open_from_phase1                        ║
-║               └─ FASE 3 · CERTIFY _phase3_open_from_phase2                   ║
-║                                                                              ║
-║ Invariantes:                                                                 ║
-║   • G regularizada como operador SPD real (proyección espectral).            ║
-║   • ρ proyectada al simplejo de densidades (Hermitiana, ≽ 0, tr = 1).        ║
-║   • Δ_Čech = δᵀδ (Gram del 1-esqueleto del nervio) ⇒ SPSD.                   ║
-║   • Cirugía anisotrópica: Π_cut G Π_cut con Π_cut diagonal sobre aristas.    ║
-║   • Aislamiento de Fock: proyección de Lüders al complemento ruidoso.        ║
-║   • L_rem = AᵀA, A = G^{1/2} B  (Laplaciano de Hodge 0-cochain).             ║
-║   • Override nunca se persiste en claro.                                     ║
-║   • Fail-closed: toda excepción no recuperable ⇒ VETOED + interlock + sello. ║
+║ Este módulo implementa el motor de cirugía topológica de-confinada sobre     ║
+║ cubrimientos abiertos finos de Čech $\mathcal{U} = \{U_i\}$ en la frontera   ║
+║ simplicial compacta $\partial K$. Ante la presencia de ruido analógico       ║
+║ extremo (EMF, soldaduras, polvo analógico) en transductores locales, el      ║
+║ sistema calcula el primer grupo de cohomología de Čech                       ║
+║ $\check{H}^1(\mathcal{U}; \, \mathcal{F})$ para aislar y apagar de forma     ║
+║ quirúrgica el subespacio de Hilbert ruidoso en el espacio de Fock,           ║
+║ eludiendo falsos positivos y garantizando la continuidad geodésica del       ║
+║ vaciado de concreto en los frentes de trabajo sanos de la obra civil.        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+================================════════════════════════════════════════════════
+I. DEFINICIONES DE LA CIRUGÍA TOPOLÓGICA (Cohomología de Čech y Variedades)
+================================════════════════════════════════════════════════
+
+Definición 1 (Cubrimiento de Čech y 1-Cocadenas de Obstrucción):
+  Sea $K$ el complejo simplicial del presupuesto y $\mathcal{U} = \{U_i\}_{i=1}^M$
+  un cubrimiento abierto del mismo. Las señales de telemetría local de transductores
+  se modelan como secciones locales del haz celular $\mathcal{F}$. El desfase analógico
+  entre intersecciones adyacentes $U_i \cap U_j$ define una 1-cocadena de Čech:
+  $$\delta_{\mathrm{\check{C}ech}} \in C^1(\mathcal{U}; \, \mathcal{F}) \quad \implies \quad (\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$$
+  La obstrucción local a la convalidación global de datos (mismatch) se mide por la
+  no-trivialidad del primer grupo de cohomología de Čech:
+  $$\check{H}^1(\mathcal{U}; \, \mathcal{F}) = \ker(\delta_{\mathrm{\check{C}ech}}^1) / \operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0) \neq \mathbf{0}$$
+  El Laplaciano de Čech simétrico semidefinido positivo (SPSD) se expresa como:
+  $$\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$$
+
+Definición 2 (Pullback de Deformación Anisotrópica en de Rham):
+  Si la discrepancia espectral supera la cota de Lipschitz del Triple Espectral de Connes,
+  el sistema deforma de forma anisotrópica la métrica de fondo $\mathbf{G}$ (el tensor de
+  conductancias de la red) aplicando un pullback de amortiguamiento perimetral:
+  $$\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$$
+  Donde $\mathbf{P}_{\mathrm{noisy}}$ es el proyector ortogonal sobre la carta local del
+  sensor ruidoso, de-multiplicando los acoplamientos del nodo ruidoso hasta el límite de
+  Wilkinson ($\approx 10^{-15}$), aislando la anomalía analógica sin comprometer la sismorresistencia global.
+
+Definición 3 (Reducción de Fock y Conservación de Traza de von Neumann):
+  Para aniquilar los polaritones de alucinación excitados por el ruido en Fock, el motor
+  realiza un traceout cuántico parcial sobre el subespacio del nodo aislado, proyectando
+  el operador densidad mixto $\rho \in \mathcal{D}(\mathcal{H})$ hacia el vacío de regularidad:
+  $$\rho_{\mathrm{surgery}} = \operatorname{Tr}_{\mathrm{isolated}}\left( \mathbf{P}_{\mathrm{surg}} \rho \mathbf{P}_{\mathrm{surg}}^\top \right) \oplus \rho_{\mathrm{vacuum}}$$
+  Garantizando síncronamente en la FPU la preservación de la traza de von Neumann y la
+  pasividad del Hamiltoniano de Lyapunov en el resto de la Ciudadela:
+  $$\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0 \quad \implies \quad \|\operatorname{Tr}(\rho_{\mathrm{surgery}}) - 1.0\| \le \varepsilon_{\mathrm{Wilkinson}}$$
+
+================================════════════════════════════════════════════════
+II. AXIOMÁTICA INMUNILÓGICA DE CONTROL DE RUIDO (Leyes de Estabilidad)
+================================════════════════════════════════════════════════
+
+Axioma I (Principio de Conservación de la Conexidad de Fiedler):
+  La cirugía de de Rham es convalidada única y exclusivamente si la conectividad algebraica
+  del subcomplejo remanente se mantiene estrictamente positiva, asegurando que el presupuesto
+  remanente conserve una única componente conexa ($\beta_0 = 1$):
+  $$\lambda_2(\mathbf{L}_{\mathrm{remSub}}) \ge \tau_{\mathrm{Fiedler}} \quad \Longleftrightarrow \quad \beta_0 \equiv \dim H^0(K_{\mathrm{remanente}}; \, \mathbb{Z}) = 1$$
+  Si la remoción del nodo comprometido fragmenta el complejo, el sistema colapsa síncronamente a VETOED.
+
+Axioma II (Axioma de Confinamiento Espectral de de Rham-Čech):
+  Toda señal perimetral se considera regular (coherente) si la obstrucción local se
+  encuentra confinada por la cota de Lipschitz del operador de Dirac de Connes:
+  $$\check{H}^1(\mathcal{U}; \, \mathcal{F}) \le L_{\max} \cdot \tau_{\mathrm{margin}} \quad \implies \quad \mathtt{heyting\_verdict} = \mathtt{COHERENT}$$
+
+Axioma III (Teorema de Actuación Ciber-Física Crowbar de la Sonda Čech):
+  Ante el colapso de Heyting al Supremo de veto ($\top$), la subrutina local isVerdictCoherent()
+  del microcontrolador ESP32 despacha síncronamente la ISR en IRAM en menos de 400 ns:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+  Disparando el tiristor BT151 (Crowbar) para paralizar mecánicamente la obra en el milisegundo cero,
+  protegiendo patrimonialmente el capital antes de liquidar la transacción ante el SECOP II.
+
+================================════════════════════════════════════════════════
+III. INVARIANTES DE PRECISIÓN DE PUNTO FLOTANTE (FPU Secure)
+================================════════════════════════════════════════════════
+
+Invariante I (Invarianza Simpléctica y Conservación de de Rham-Lyapunov):
+  La evolución de la trayectoria de control conjunta $\mathbf{\Psi}(t) = (\mathbf{p}, \, \rho)^\top$ satisface la
+  desigualdad de Clausius-Duhem y la contracción de Lyapunov en la FPU:
+  $$\dot{\mathcal{H}}(\mathbf{\Psi}) = \nabla \mathcal{H}(\mathbf{\Psi})^top \left( \mathcal{J}(\mathbf{\Psi}) - \mathcal{R}(\mathbf{\Psi}) \right) \nabla \mathcal{H}(\mathbf{\Psi}) \le \tau_{\mathrm{Lyapunov}}$$
+  Donde $\tau_{\mathrm{Lyapunov}} = 10^{-12}$ es la cota elástica de deriva en punto flotante de 64 bits.
+
+Invariante II (Estabilidad de de Rham-Liouville del Espacio de Fase):
+  El Jacobiano de transición $M$ de los solucionadores físicos debe preservar la 2-forma simpléctica canónica,
+  garantizando la nulidad de la divergencia del flujo de fase (conservación del volumen de Liouville):
+  $$\operatorname{div}(\dot{x}) \equiv 0 \quad \land \quad M^\top \Omega M = \Omega$$
+
+Invariante III (Inmutabilidad del Pasaporte y Sello de Sesión SHA-256):
+  Para prevenir inyecciones de estado o ataques de-normalización intermedia, el motor genera
+  un sello inmutable unívoco para congelar la sesión en RAM en cada ciclo OODA:
+  $$\mathtt{cryptographic\_seal} := \operatorname{SHA-256}\left(\delta_{\mathrm{\check{C}ech}} \oplus \mathbf{G}_{\mathrm{surgical}} \oplus \lambda_2 \oplus H_{\mathrm{ext}}\right)$$
 """
 
 from __future__ import annotations
