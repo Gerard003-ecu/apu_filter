@@ -10,11 +10,17 @@ $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_
 
 ---
 
-## 🚘 La Analogía del Automóvil para el Canvas Corporativo
+## 🚘 La Analogía del Automóvil y el Isomorfismo de Doble Capa en el Canvas Corporativo
 
-Para la Alta Gerencia de Obra y el Comité de Licitaciones, el Canvas no es un póster estático de notas adhesivas; es el **chasis estructural** del modelo de negocio:
+Para la Alta Gerencia de Obra y el Comité de Licitaciones, el Canvas no es un póster estático de notas adhesivas; es el **chasis sismorresistente** del modelo de negocio de la constructora.
 
 > *“Un vehículo de alta gama no se compra por la tipografía de su folleto comercial; se compra porque el motor ahorra un 40% de combustible y los frenos ABS detendrán el chasis en piso mojado para salvar la vida de los ocupantes. En APU Filter, los bloques del BMC están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo de negocio 'se vuelque' ante paros de proveedores o volatilidad de insumos.”*
+
+El sistema consagra el **Isomorfismo de Doble Capa** a través de un **Funtor de Traducción Semántica** $\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$, el cual asocia homeomórficamente los residuos espectrales con las pérdidas de-normalizadas de flujo de caja del proyecto:
+*   **Islas de Datos ($\beta_0 > 1$):** Recursos huérfanos sin cimiento contractual que propician cobros dobles de contratistas.
+*   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares que delatan la triangulación financiera de subcontratistas en SECOP II.
+*   **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad de Cheeger-Fiedler por concentración monopólica en un solo proveedor de cemento o acero.
+*   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias introducidas por IA estocástica o Excels rotos que detonan el veto síncrono antes de verter el primer saco de concreto.
 
 ---
 
