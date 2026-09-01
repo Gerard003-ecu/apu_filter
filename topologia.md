@@ -19,11 +19,15 @@ Para el Comité de Licitaciones y la Alta Gerencia de Obra Civil, la topología 
 
 > *“Un vehículo comercial no se evalúa por la estética del manual de usuario, sino porque sus frenos ABS detendrán el chasis en piso mojado para salvar la vida de los ocupantes. En APU Filter, los invariantes topológicos ($\beta_0, \beta_1, \beta_2, \chi, \Psi$) son los sensores giroscópicos que detectan si la estructura logística se está volcando antes de que el dinero desaparezca en el fango de la obra real.”*
 
-El **Funtor de Traducción Semántica** $\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$ proyecta homeomórficamente los residuos de de Rham a métricas de **"Dolor y Dinero"**:
-*   **Islas de Datos / Recursos Huérfanos ($\beta_0 > 1$):** APUs desconectados que generan compras dobles y mermas.
-*   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares que delatan la triangulación financiera de subcontratistas en SECOP II.
-*   **Pirámide Invertida ($\Psi < 0.70$):** Riesgo de quiebra por concentración monopólica en un solo proveedor de cemento o acero.
-*   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias entre pliegos e IA estocástica que provocan veto síncrono antes de verter el primer saco de concreto.
+El **Funtor de Traducción Semántica $\Phi$** establece un homeomorfismo semántico functorial biyectivo entre el clasificador de subobjetos del topos de de Rham-Čech-Heyting y la dimensión ejecutiva de negocios de la constructora:
+
+$$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
+
+Este funtor proyecta homeomórficamente los residuos espectrales de de Rham a métricas claras de **"Dolor y Dinero"** que entiende un gerente de obra humano:
+*   **Islas de Datos / Recursos Huérfanos ($\beta_0 > 1$):** APUs o capítulos desconectados del flujo financiero contractual que provocan compras paralelas no consolidadas por subcontratistas, duplicidad de adquisiciones de materiales y mermas no auditadas.
+*   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro) que imposibilitan el cálculo del costo en FPU, revelando la huella digital forense de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II.
+*   **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad espectral por concentración de masa de capital (ej. 50 frentes de obra civil dependiendo de un único proveedor monopólico de cemento o acero), alertando de quiebras inminentes, sobrecostos y parálisis ante paros de suministro.
+*   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias insalvables entre planos del modelo BIM, pliegos licitatorios de SECOP II y Excels rotos con celdas combinadas, provocando veto síncrono antes de verter el primer saco de concreto.
 
 ---
 

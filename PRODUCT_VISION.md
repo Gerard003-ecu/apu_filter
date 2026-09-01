@@ -33,12 +33,14 @@ $$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
 En la construcción física real, es algebraicamente imposible retirar una columna de concreto estructural o una viga de acero de un rascacielos sin que la gravedad provoque el colapso inmediato a la vista de la interventoría. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas con celdas combinadas, un contratista colusor o un LLM alucinador pueden duplicar u ocultar **100 toneladas de acero de refuerzo** o inflar precios en un bucle circular ($\beta_1 > 0$). A espaldas del auditor fiscal, este socavón permanece invisible hasta que el flujo de caja colapsa en el banco.
 
-El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **Capa de Calibre** (la Unidad de Punto Flotante FPU Secure) con la **Capa de Pragmática de Negocios** (la interfaz ejecutiva) mediante un homeomorfismo semántico functorial $F: \mathbf{Sh}(K) \to \text{Business}$:
+El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **Capa de Calibre** (la Unidad de Punto Flotante FPU Secure) con la **Capa de Pragmática de Negocios** (la interfaz ejecutiva de la Caja de Cristal Argumentativa) mediante el **Funtor de Traducción Semántica $\Phi$**:
+
+$$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
 ```
   [ CAPA DE CALIBRE (FPU Secure) ]  ──►  Δ_Čech,  G_surgical,  ρ_surg (Precisión Wilkinson)
                  │
-                 ▼ (Funtor de Traducción Semántica: F: Sh(K) ──► Business)
+                 ▼ (Funtor de Traducción Semántica: Φ: Sh(∂K, Ω₃) ──► Business)
   [ CAPA DE PRAGMÁTICA DE NEGOCIO ]  ──► "Islas de Datos", "Socavones Lógicos", "Pirámides"
                  │
                  ▼ (Actuación Perimetral Ciber-Física)
@@ -220,9 +222,9 @@ La gobernanza matemática de APU Filter no confía el capital a meras capas de s
 | **$\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \neq \mathbf{0}$** ($d_i > 1$) | `boundary_ring_sheaf_agent.py` | **Torsión homológica en Smith Z:** Incompatibilidad de empaquetado discreto de insumos. | **Mermas contractuales y rechazo en SECOP II:** Desperdicio de materiales, multas de interventoría y reestructuración de pliegos. |
 | **$\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$** | `boundary_ring_sheaf.py` | **Violación de Causalidad CPTP:** Canal cuántico no completamente positivo. | **Inyección de facturación fantasma:** Cobro de actividades no ejecutadas y desfalco patrimonial. |
 | **$\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$** | `audit_satellites_agent.py` | **Violación Cota Tsirelson / Bell:** Correlación no local espuria entre proveedores. | **Cartelización de proveedores de acero/cemento:** Inflación artificial del WACC y veto inmediato de licitaciones públicas. |
-| **$\beta_0 > 1$** | `business_topology.py` | **Islas de datos disconexas:** Recursos o APUs huérfanos sin vinculación a capítulos. | **Duplicación de cobros e inconsistencia BIM:** Compras paralelas no consolidadas y pérdida de descuentos por volumen. |
-| **$\beta_1 > 0$** | `business_topology.py` | **Socavones lógicos:** Dependencias circulares entre insumos y actividades. | **Imposibilidad de calcular APU real:** Parálisis en aprobación de actas de obra e inhabilitación legal en SECOP II. |
-| **$\Psi < \Psi_{\mathrm{min}}$** | `business_topology.py` | **Pirámide Invertida:** Concentración monopólica del suministro en un único proveedor. | **Quiebra por desabastecimiento:** Paro de obra civil ante fallas del proveedor monopólico y demandas del contratante. |
+| **$\beta_0 > 1$** | `business_topology.py` | **Islas de datos disconexas:** Recursos o APUs huérfanos sin vinculación a capítulos. | **Duplicación de cobros e inconsistencia BIM:** Compras paralelas no consolidadas por subcontratistas, mermas y pérdida de descuentos por volumen. |
+| **$\beta_1 > 0$** | `business_topology.py` | **Socavones lógicos:** Dependencias circulares entre insumos y actividades en el esqueleto de costos. | **Imposibilidad de calcular APU real:** Huella digital de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II. |
+| **$\Psi < \Psi_{\mathrm{min}}$** | `business_topology.py` | **Pirámide Invertida:** Concentración monopólica del suministro en un único proveedor de acero/cemento. | **Quiebra por desabastecimiento:** Paro de obra civil ante fallas o paros del proveedor monopólico y demandas por incumplimiento del Mandato BIM 2026. |
 | **$\|\Gamma(t)\|_{\max} > 0.5 \tau_{\mathrm{margin}}$** | `set_agent.py` / `set_engine.py` | **Desajuste Crítico de Impedancia TDR:** Reflexión sónica en la frontera de de Rham. | **Sobreprecio u ocultamiento en pliegos SECOP II:** Alteración de precios unitarios que detona Veto Duro en silicio ($<400\text{ ns}$). |
 | **$\operatorname{Error}_{\mathrm{FPU}} > \mathcal{O}(\varepsilon_{\mathrm{mach}})$** | `set_engine.py` | **Deriva de Wilkinson:** Pérdida de precisión acumulativa en la FPU de 64 bits. | **Falsas inestabilidades de Lyapunov y vetos espurios:** Parálisis injustificada remediada mediante Sumación Compensada Neumaier-Kahan. |
 

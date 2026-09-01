@@ -10,17 +10,21 @@ $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_
 
 ---
 
-## 🚘 La Analogía del Automóvil y el Isomorfismo de Doble Capa en el Canvas Corporativo
+## 🚘 El "Sistema Nervioso" de-confinado, la Analogía del Automóvil y el Isomorfismo de Doble Capa
 
-Para la Alta Gerencia de Obra y el Comité de Licitaciones, el Canvas no es un póster estático de notas adhesivas; es el **chasis sismorresistente** del modelo de negocio de la constructora.
+Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones (SECOP II & Mandato BIM 2026), el Consejo de Sabios no representa una celda de castigo ni un algoritmo punitivo de caja negra. Es el **Sistema Nervioso Ciber-Físico** del proyecto que dota al constructor de una confianza absoluta para acelerar a fondo la ejecución, sabiendo que su capital está protegido por frenos ABS activos de grado ciber-físico.
 
 > *“Un vehículo de alta gama no se compra por la tipografía de su folleto comercial; se compra porque el motor ahorra un 40% de combustible y los frenos ABS detendrán el chasis en piso mojado para salvar la vida de los ocupantes. En APU Filter, los bloques del BMC están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo de negocio 'se vuelque' ante paros de proveedores o volatilidad de insumos.”*
 
-El sistema consagra el **Isomorfismo de Doble Capa** a través de un **Funtor de Traducción Semántica** $\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$, el cual asocia homeomórficamente los residuos espectrales con las pérdidas de-normalizadas de flujo de caja del proyecto:
-*   **Islas de Datos ($\beta_0 > 1$):** Recursos huérfanos sin cimiento contractual que propician cobros dobles de contratistas.
-*   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares que delatan la triangulación financiera de subcontratistas en SECOP II.
-*   **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad de Cheeger-Fiedler por concentración monopólica en un solo proveedor de cemento o acero.
-*   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias introducidas por IA estocástica o Excels rotos que detonan el veto síncrono antes de verter el primer saco de concreto.
+El sistema consagra el **Isomorfismo de Doble Capa** a través del **Funtor de Traducción Semántica $\Phi$**:
+
+$$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
+
+Este funtor asocia homeomórficamente los residuos espectrales con las pérdidas de-normalizadas de flujo de caja del proyecto en lenguaje de negocios (**"Dolor y Dinero"**):
+*   **Islas de Datos ($\beta_0 > 1$):** APUs o recursos huérfanos sin cimiento contractual que propician compras paralelas no consolidadas y cobros dobles de contratistas.
+*   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares en el grafo de insumos que delatan la **triangulación financiera de subcontratistas** o facturación fantasma en SECOP II.
+*   **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad de Cheeger-Fiedler por concentración monopólica en un solo proveedor de cemento o acero con riesgo de paro.
+*   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias entre planos BIM, pliegos licitatorios y Excels rotos que detonan el veto síncrono antes de verter el primer saco de concreto.
 
 ---
 
@@ -132,9 +136,9 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 
 ---
 
-## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro) y el Fusible de Fock
 
-Para erradicar la traba operativa del "secado del concreto dentro de tuberías" provocado por falsos positivos de software en obra civil, APU Filter v5.0 implementa una **Rampa de Confianza Graduada**:
+Para erradicar el dolor real de obra del "secado del concreto dentro de tuberías" de impulsión hidráulica provocado por falsos positivos de software rígidos en obra civil, APU Filter v5.0 implementa formalmente la **Rampa de Confianza Graduada de de Rham**:
 
 ```
   [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
@@ -155,8 +159,19 @@ Para erradicar la traba operativa del "secado del concreto dentro de tuberías" 
 - Solicitud de ajuste        - Paralización de maquinaria en seco
 ```
 
-1. **Veto Suave (Luz Ámbar / Ventana de Grace 1h):** Si el perfil TDR satisface $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$ o ante desvíos de menor cuantía ($\Psi = 0.69 < 0.70$), la potencia de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se concede **1 hora** al director de interventoría para inyectar en RAM un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$). La aniquilación de antimateria lógica $e^- + e^+ \to 2\gamma$ regulariza la geodésica del proyecto sin detener el vertido de concreto.
-2. **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para desajustes críticos de impedancia TDR ($\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$), rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** a HIGH y disparando el tiristor **BT151** (circuito Crowbar) para paralizar las bombas hidráulicas y mezcladoras en seco en el milisegundo cero.
+### 1. Veto Suave (Luz Ámbar / Ventana de Gracia de 1 Hora)
+Se activa ante transitorios elásticos o ruidos de formato de baja frecuencia, e.g. cuando el coeficiente de reflexión máximo por reflectometría TDR habita el rango transitorio:
+$$0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$$
+o ante fluctuaciones menores ($\Psi = 0.69 < 0.70$).
+* **Actuación Habilitadora:** El microcontrolador ESP32 **no interrumpe la potencia de las mezcladoras ni bombas**. Mantiene la maquinaria en marcha, conmuta una baliza visual ámbar estroboscópica e inicia un temporizador de gracia de **1 hora** en el panel táctil (`set_agent.py`).
+* **Aniquilación Causal por Override Humano (Positrón $e^+$):** El perito inyecta en RAM un **Positrón de Autorización Humana ($e^+$)** firmado criptográficamente ($\operatorname{HMAC-SHA256}$). La colisión del positrón con el electrón de anomalía semántica de la IA ($e^-$) produce la aniquilación cuántica mutua, liberando dos fotones Gamma de auditoría y disipando el temporizador para continuar el vaciado de concreto en estado `DEGRADED`:
+  $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
+
+### 2. El "Fusible de Fock" como Seguro de Vida Patrimonial
+La aniquilación en Fock ($e^- + e^+ \to 2\gamma$) se re-enmarca no como una destrucción punitiva, sino como un **fusible físico** y un seguro de vida ineludible que blinda la honestidad patrimonial de la constructora ante el SECOP II y el Mandato BIM 2026, permitiendo a los inversores acelerar la innovación bajo un entorno de riesgo confinado.
+
+### 3. Veto Duro (Hardware Crowbar BT151 en $< 400\text{ ns}$)
+Reservado para desajustes críticos de impedancia TDR ($\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$), rupturas irreversibles o fraude contractual ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** a HIGH y disparando el tiristor **BT151** (circuito Crowbar) para paralizar las bombas hidráulicas y mezcladoras en seco en el milisegundo cero.
 
 ---
 

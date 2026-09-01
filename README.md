@@ -68,19 +68,23 @@ Para el Director de Obra, la Junta Directiva y el Interventor del IDU/INVIAS baj
 
 Un conductor no necesita resolver síncronamente las ecuaciones diferenciales no lineales de Navier-Stokes para confiar en que el sistema de frenos ABS y el control dinámico de estabilidad (ESP) detendrán su vehículo en una curva mojada. Busca la certeza de que el chasis disipará la energía del impacto y que el coche frenará en el milisegundo cero para salvar su vida.
 
-En APU Filter, la matemática avanzada es la ingeniería invisible de alta precisión. El sistema consagra el **Isomorfismo de Doble Capa** ($\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$) que conecta sin pérdidas la complejidad doctoral con la toma de decisiones ejecutiva traducida a lenguaje de negocios (**"Dolor y Dinero"** que entiende un gerente de obra humano):
+En APU Filter, la matemática avanzada es la ingeniería invisible de alta precisión. El sistema consagra el **Isomorfismo de Doble Capa** mediante el **Funtor de Traducción Semántica $\Phi$**, el cual establece un homeomorfismo semántico functorial biyectivo entre el clasificador de subobjetos del topos de de Rham-Čech-Heyting y el plano pragmático de negocios del Business Model Canvas (BMC) de la constructora:
+
+$$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
+
+Este funtor conecta sin pérdidas la complejidad doctoral confinada en la Unidad de Punto Flotante (FPU Secure) con la toma de decisiones ejecutiva traducida a lenguaje de negocios (**"Dolor y Dinero"** que entiende un gerente de obra humano):
 
 ```
   ┌────────────────────────────────────────────────────────────────────────┐
   │         CAPA VISIBLE DE NEGOCIO (Caja de Cristal Argumentativa)        │
   │                                                                        │
-  │   - β₀ > 1  ──► "Islas de Datos" (Duplicidad de costos y mermas)        │
-  │   - β₁ > 0  ──► "Socavón Lógico" (Parálisis de dependencias circulares) │
-  │   - Ψ < 0.7 ──► "Pirámide Invertida" (Vulnerabilidad de suministro)      │
-  │   - H¹ ≠ 0  ──► "Paradoja Contractual" (Incoherencia de pliegos SECOP) │
+  │   - β₀ > 1  ──► "Islas de Datos" (Compras paralelas y mermas)          │
+  │   - β₁ > 0  ──► "Socavón Lógico" (Triangulación financiera SECOP II)    │
+  │   - Ψ < 0.7 ──► "Pirámide Invertida" (Fragilidad por monopolio acero)  │
+  │   - H¹ ≠ 0  ──► "Paradoja Contractual" (Incoherencia BIM vs Pliegos)   │
   └───────────────────────────────────┬────────────────────────────────────┘
                                       │
-                                      ▼ (Funtor de Proyección Semántica F)
+                                      ▼ (Funtor de Traducción Semántica Φ)
   ┌────────────────────────────────────────────────────────────────────────┐
   │                 CAPA DE CALIBRE (Anexo Técnico Doctoral)               │
   │                                                                        │
@@ -94,10 +98,10 @@ En APU Filter, la matemática avanzada es la ingeniería invisible de alta preci
 
 | Invariante Matemático | Concepto en la Caja de Cristal | Impacto Real en Obra Civil ("Dolor") | Consecuencia Financiera ("Dinero") |
 | :--- | :--- | :--- | :--- |
-| **$\beta_0 > 1$** | **Islas de Datos / Recursos Huérfanos** | APUs o capítulos desconectados del flujo financiero del proyecto (sin cimiento contractual). | Cobros dobles de contratistas, mermas no auditadas y duplicación en compras de materiales. |
-| **$\beta_1 > 0$** | **Socavón Lógico** | Dependencias circulares o cíclicas en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro). | Huella digital de la **triangulación financiera de subcontratistas** o facturación fantasma en SECOP II. |
-| **$\Psi < 0.70$** | **Pirámide Invertida** | Concentración monopólica del suministro (un único proveedor de acero/cemento para 50 frentes). | Riesgo de quiebra y parálisis de obra por paro o desabastecimiento del proveedor único. |
-| **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | **Paradoja Contractual / Veto** | Inconsistencias insalvables entre planos, pliegos SECOP II y Excels rotos con celdas combinadas. | Veto síncrono del presupuesto antes de verter el primer saco de concreto o inyectar entropía en la caja. |
+| **$\beta_0 > 1$** | **Islas de Datos / Recursos Huérfanos** | APUs o capítulos aislados y desconectados del flujo financiero contractual del proyecto. | Compras paralelas no consolidadas por subcontratistas, duplicación en compras de materiales y mermas no auditadas. |
+| **$\beta_1 > 0$** | **Socavón Lógico** | Dependencias circulares o cíclicas en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro) imposibles de calcular en FPU. | Huella digital de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II. |
+| **$\Psi < 0.70$** | **Pirámide Invertida** | Concentración monopólica del suministro (ej. 50 frentes de obra civil dependiendo de un único proveedor de cemento o acero). | Riesgo de quiebra inminente, sobrecostos por paro de suministro y demandas por incumplimiento del cronograma Mandato BIM 2026. |
+| **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | **Paradoja Contractual / Veto** | Inconsistencias insalvables entre planos del modelo BIM, pliegos licitatorios de SECOP II y Excels rotos con celdas combinadas. | Veto síncrono del presupuesto antes de verter el primer saco de concreto o inyectar entropía en la caja de la constructora. |
 
 ---
 
