@@ -6,11 +6,24 @@ Este documento detalla la implementación técnica, geométrica y física de los
 
 ## 🌀 Coherencia Homotópica: Filtración de de Rham-Fukaya y la Frontera Abierta De-confinada
 
-La arquitectura de APU Filter v5.0 rige la propagación del control y la información mediante la **Filtración de Subespacios de Hilbert Covariantes de de Rham-Fukaya**:
+La arquitectura de APU Filter v5.0 rige la propagación del control y la información mediante la **Ley de Clausura Transitiva de Subespacios de Hilbert Covariantes** y la **Filtración de de Rham-Fukaya**:
+
+$$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
 
 $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{TESSERARIOS}} \subset V_{\mathrm{ERUDITOS}} \subset V_{\mathrm{PRETORIO}} \subset V_{\mathbb{W}}$$
 
 El transporte paralelo de la información a lo largo del fibrado cotangente $T^*\mathcal{M}$ presupone que ninguna señal o decisión puede ascender a estratos superiores de deliberación sin certificar la nulidad del residuo de curvatura $\Omega_{\mu\nu} = 0$ y la finitud de la disipación exergética en los subespacios subyacentes.
+
+### 🏢 La Estructura de Carga del Rascacielos y los Cuatro Sabios del Consejo
+A nivel de arquitectura de software, la Malla Agéntica se organiza como la estructura de carga sismorresistente de un rascacielos corporativo mapeada sobre el Business Model Canvas (BMC):
+* **El Guardián (Foso - Estructura de Costes):** `kbase_thermodynamic_agent.py`. Audita los cimientos del edificio, requiere la no-negatividad de insumos ($q_i \ge 0$), exige $\beta_0 = 1$ para vetar islas de datos y activa la protección ciber-física en silicio (< 400 ns IRAM, GPIO14 $\to$ tiristor BT151 Crowbar).
+* **El Arquitecto (Táctica - Socios y Actividades Clave):** `BusinessTopologicalAnalyzer`. El esqueleto de vigas de acero. Diagonaliza sobre $\mathbb{Z}$ mediante la Smith Normal Form para aniquilar dependencias circulares ($\beta_1 = 0$) y vigila el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$).
+* **El Oráculo de Laplace (Estrategia - Fuentes de Ingreso):** `LaplaceOracle`. El penthouse. Proyecta el flujo de fondos en la frecuencia compleja $s = \sigma + j\omega$, vetando polos en el semiplano derecho ($\sigma > 0$) para prevenir "Elefantes Blancos".
+* **El Intérprete Diplomático (Relaciones y Canales):** `SemanticTranslator`. Traduce los veredictos abstractos de la FPU en Actas de Deliberación ejecutivas legibles para la junta en lenguaje de negocios (**"Dolor y Dinero"**).
+
+### 🔄 La Trayectoria Dinámica de de Rham (Observe-Orient-Decide-Act)
+El ciclo del dato describe la **Trayectoria Dinámica de de Rham**:
+$$\text{Barro Crudo JSON} \xrightarrow{\text{Digestión TOON}} \text{Cartucho TOON} \xrightarrow{\text{Auditoría Espectral}} \text{FPU/Sabios} \xrightarrow{\text{Heyting } \Omega_3} \text{Bypass Silicio ESP32 (< 400 ns)}$$
 
 ---
 

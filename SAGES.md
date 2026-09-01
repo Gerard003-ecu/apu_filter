@@ -42,14 +42,21 @@ Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP 
 
 > *“Cuando un automóvil de alta gama transita por una autopista en invierno, los ocupantes no necesitan ajustar manualmente la presión del freno en cada rueda ni calcular el coeficiente de fricción del asfalto. Confían en que el sistema de frenos ABS y el control de estabilidad ESP actuarán en milisegundos para evitar el vuelco. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos distribuidos en la estructura del rascacielos agéntico que detectan si el presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
 
-La Malla Agéntica se erige como una estructura de carga sismorresistente acoplada por la **Ley de Clausura Transitiva**:
+La Malla Agéntica se erige como una estructura de carga sismorresistente acoplada por la **Ley de Clausura Transitiva de subespacios de Hilbert covariantes**:
 
 $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
 
-* **El Guardián (Foso - Estructura de Costes / Recursos Clave):** Anclado en los cimientos del rascacielos. Audita la masa atómica ($q_i \ge 0$), la componente conexa única ($\beta_0 = 1$) y ejecuta la defensa en silicio real vía el disyuntor Crowbar ESP32 (< 400 ns en IRAM, GPIO14 $\to$ BT151).
-* **El Arquitecto (Táctica - Actividades y Socios Clave):** El esqueleto de vigas de acero sismorresistentes. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para vetar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y vigila el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
-* **El Oráculo de Laplace (Estrategia - Flujo de Caja y Rentabilidad):** El penthouse corporativo. Proyecta el flujo de fondos en la frecuencia compleja $s = \sigma + j\omega$. Si detecta polos en el semiplano inestable ($\sigma > 0$), veta el proyecto para evitar la creación de un **"Elefante Blanco"** que destruya el WACC.
-* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** El negociador en la mesa de juntas. Toma los veredictos abstractos y los traduce mediante GraphRAG en **Actas de Deliberación** de alta empatía comercial (**"Dolor y Dinero"**).
+* **El Guardián (Foso - Estructura de Costes / Recursos Clave):** Representado por `kbase_thermodynamic_agent.py`. Anclado en los cimientos del rascacielos. Exige la no-negatividad estricta de insumos ($q_i \ge 0$) y la componente conexa única ($\beta_0 = 1$), bloqueando la compra de maquinaria pesada sin su combustible correspondiente. Custodia el disyuntor por hardware perimetral vía el circuito Crowbar ESP32 (< 400 ns en IRAM, GPIO14 $\to$ tiristor BT151).
+* **El Arquitecto (Táctica - Actividades y Socios Clave):** Representado por `BusinessTopologicalAnalyzer`. El esqueleto de vigas de acero sismorresistentes. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para aniquilar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y audita el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
+* **El Oráculo de Laplace (Estrategia - Fuentes de Ingreso / Flujo de Caja):** Representado por `LaplaceOracle`. El penthouse corporativo. Proyecta el flujo de fondos del megaproyecto como una función de transferencia $H(s)$ en la frecuencia compleja $s = \sigma + j\omega$, vetando polos inestables en el semiplano derecho ($\sigma > 0$) para eludir la creación de **"Elefantes Blancos"** que destruyan el WACC.
+* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** Representado por `SemanticTranslator`. El negociador en la mesa de juntas. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial redactadas en lenguaje de negocios (**"Dolor y Dinero"**).
+
+### 🔄 La Trayectoria Dinámica de de Rham (Ciclo OODA del Dato)
+El dato en APU Filter no es un registro estático en reposo. Sigue la **Trayectoria Dinámica de de Rham** a lo largo del ciclo OODA (Observe-Orient-Decide-Act):
+1. **Ingesta (Barro Crudo):** Ingesta de "barro crudo JSON" repleto de grasa sintáctica y entropía exógena de SECOP II.
+2. **Digestión y Purificación TOON:** Digestión isomórfica y compresión en cartuchos compactos TOON ("Vitaminas Cognitivas"), reduciendo entre $30\%$ y $60\%$ los tokens en $KV\text{-Cache}$.
+3. **Fiscalización Espectral por el Arquitecto y el Oráculo:** Evaluación homológica ($\beta_0=1, \beta_1=0, \Psi \ge 0.70$) y estabilidad en frecuencia compleja ($\operatorname{Re}(p_i) < 0$).
+4. **Colapso de Heyting y Actuación Perimetral:** Colapso síncrono en el clasificador de subobjetos $\Omega_3$ que, ante veto, activa en $< 400\text{ ns}$ la ISR en IRAM del ESP32 perimetral en obra civil.
 
 ---
 
