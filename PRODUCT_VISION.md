@@ -38,10 +38,10 @@ El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **C
 $$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
 ```
-  [ CAPA DE CALIBRE (FPU Secure) ]  ──►  Δ_Čech,  G_surgical,  ρ_surg (Precisión Wilkinson)
+  [ CAPA DE CALIBRE (FPU Secure) ]  ──►  q ∈ H (Hurwitz/Cayley-Dickson), Δ_Čech, G_surgical, ρ_surg
                  │
-                 ▼ (Funtor de Traducción Semántica: Φ: Sh(∂K, Ω₃) ──► Business)
-  [ CAPA DE PRAGMÁTICA DE NEGOCIO ]  ──► "Islas de Datos", "Socavones Lógicos", "Pirámides"
+                 ▼ (Funtor de Traducción Semántica: Φ_sem: Sh(∂K, Ω₃) ──► Business)
+  [ CAPA DE PRAGMÁTICA DE NEGOCIO ]  ──► "Islas de Datos", "Socavones Lógicos", "Rampas de de Rham"
                  │
                  ▼ (Actuación Perimetral Ciber-Física)
   [ BYPASS DE SILICIO EN OBRA REAL ]  ──► ISR en IRAM < 400 ns (GPIO14 ↦ BT151 Crowbar)
@@ -225,6 +225,7 @@ La gobernanza matemática de APU Filter no confía el capital a meras capas de s
 | **$\beta_0 > 1$** | `business_topology.py` | **Islas de datos disconexas:** Recursos o APUs huérfanos sin vinculación a capítulos. | **Duplicación de cobros e inconsistencia BIM:** Compras paralelas no consolidadas por subcontratistas, mermas y pérdida de descuentos por volumen. |
 | **$\beta_1 > 0$** | `business_topology.py` | **Socavones lógicos:** Dependencias circulares entre insumos y actividades en el esqueleto de costos. | **Imposibilidad de calcular APU real:** Huella digital de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II. |
 | **$\Psi < \Psi_{\mathrm{min}}$** | `business_topology.py` | **Pirámide Invertida:** Concentración monopólica del suministro en un único proveedor de acero/cemento. | **Quiebra por desabastecimiento:** Paro de obra civil ante fallas o paros del proveedor monopólico y demandas por incumplimiento del Mandato BIM 2026. |
+| **$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$** | `quaternionic_state_shifter.py` | **Deriva de Wilkinson:** Mermas de representabilidad por redondeo en FPU de 64 bits. | **Inestabilidad de-normalizada:** Alerta previa a la inyección de entropía en la caja de la constructora. |
 | **$\|\Gamma(t)\|_{\max} > 0.5 \tau_{\mathrm{margin}}$** | `set_agent.py` / `set_engine.py` | **Desajuste Crítico de Impedancia TDR:** Reflexión sónica en la frontera de de Rham. | **Sobreprecio u ocultamiento en pliegos SECOP II:** Alteración de precios unitarios que detona Veto Duro en silicio ($<400\text{ ns}$). |
 | **$\operatorname{Error}_{\mathrm{FPU}} > \mathcal{O}(\varepsilon_{\mathrm{mach}})$** | `set_engine.py` | **Deriva de Wilkinson:** Pérdida de precisión acumulativa en la FPU de 64 bits. | **Falsas inestabilidades de Lyapunov y vetos espurios:** Parálisis injustificada remediada mediante Sumación Compensada Neumaier-Kahan. |
 

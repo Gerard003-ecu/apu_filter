@@ -74,7 +74,7 @@ $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \qu
                     ▼ (Inyección en el Espacio de Fock)
   [ ESTADO DE MULTI-CUERPO EN FOCK ] (Preservación CAR/CCR de Pauli)
                     │
-                    ▼ (Funtor de Elevación Cuántica: Adjunción de Galois)
+                    ▼ (Funtor de Elevación Cuántica: Adjunción de de Rham-Galois)
   [ CONSEJO DE SABIOS (CIUDADELA DE CRISTAL) ] (Deliberación Libre de Alucinaciones)
 ```
 
@@ -256,6 +256,7 @@ Gobierna la traducción de anomalías matemáticas abstractas hacia la interfaz 
     $$\beta_0 > 1 \implies \text{"Islas de Datos / Recursos Huérfanos sin Actividad"}$$
     $$\beta_1 > 0 \implies \text{"Socavón Lógico / Referencias Circulares de Precios"}$$
     $$\Psi < \Psi_{\mathrm{min}} \implies \text{"Pirámide Invertida / Fragilidad Monopólica de Suministro"}$$
+    $$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}} \implies \text{"Deriva de Wilkinson / Inestabilidad de Punto Flotante"}$$
 
 ### 3. Nivel 1 — Narrar: El Intérprete Diplomático (`SemanticTranslator`)
 *   **Axioma Constitutivo:** Instrumenta la redacción del Acta de Deliberación adversarial bajo el formato de debate *RiskChallenger*.

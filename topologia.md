@@ -28,6 +28,7 @@ Este funtor proyecta homeomórficamente los residuos espectrales de de Rham a m�
 *   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro) que imposibilitan el cálculo del costo en FPU, revelando la huella digital forense de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II.
 *   **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad espectral por concentración de masa de capital (ej. 50 frentes de obra civil dependiendo de un único proveedor monopólico de cemento o acero), alertando de quiebras inminentes, sobrecostos y parálisis ante paros de suministro.
 *   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias insalvables entre planos del modelo BIM, pliegos licitatorios de SECOP II y Excels rotos con celdas combinadas, provocando veto síncrono antes de verter el primer saco de concreto.
+*   **Deriva de Wilkinson ($\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$):** Mermas de representabilidad por redondeo en la FPU de 64 bits, alertando sobre inestabilidad de-normalizada antes de procesar el payload o perturbar la caja de la constructora.
 
 ---
 

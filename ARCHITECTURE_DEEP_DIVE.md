@@ -45,6 +45,7 @@ Para APU Filter v5.0:
 | **$\beta_1 > 0$** | **Socavón Lógico** | Dependencias circulares entre insumos y actividades en el esqueleto de costos. | Triangulación financiera de subcontratistas y facturación fantasma en SECOP II. |
 | **$\Psi < 0.70$** | **Pirámide Invertida** | Concentración monopólica del suministro en un único proveedor de cemento o acero. | Quiebra y parálisis de obra civil ante paros del proveedor único. |
 | **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | **Paradoja Contractual / Veto** | Inconsistencias insalvables entre planos, pliegos SECOP II y Excels rotos. | Veto síncrono del presupuesto antes de verter el primer saco de concreto. |
+| **$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$** | **Deriva de Wilkinson (Inestabilidad)** | Mermas de representabilidad por redondeo en la Unidad de Punto Flotante de 64 bits. | Alerta de inestabilidad de-normalizada antes de procesar el payload. |
 
 ---
 
