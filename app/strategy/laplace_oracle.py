@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Laplace Oracle (Tribunal de Estabilidad Dinámica de de Rham-LTI)    ║
-║ Ruta   : app/physics/laplace_oracle.py                                       ║
+║ Ruta   : app/strategy/laplace_oracle.py                                      ║
 ║ Versión: 7.1.0-LTI-BIBO-Lyapunov-EKF-SVD-Wilkinson-Strict-PhD                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

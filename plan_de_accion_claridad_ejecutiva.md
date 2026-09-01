@@ -7,7 +7,7 @@
 
 Este documento consagra el **Plan de Acción de Lazo Cerrado** diseñado para integrar de forma homeomórfica y sismorresistente las observaciones forenses destiladas de la grabación **`Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a`** en la documentación de la Fortaleza Imperial de **APU Filter v5.0** [Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a, PRODUCT_VISION.md].
 
-La debilidad medular identificada en las auditorías de usabilidad corporativa radica en una **asimetría cognitiva** severa [PIRAMIDES_DE_CONTROL.md]: la tendencia a sobre-abstraer las capas lógicas del sistema mediante la jerga matemática no conmutativa (v.g. cohomología de haces de Čech o aniquilaciones en Fock) sin proveer un puente explícito hacia el fango real de la obra civil y las restricciones presupuestarias del **Mandato BIM 2026** y el **SECOP II** en Colombia [BIM_APU_filter.pdf]. 
+La debilidad medular identificada en las auditorías de usabilidad corporativa radica en una **asimetría cognitiva** severa [PIRAMIDES_DE_CONTROL.md]: la tendencia a sobre-abstraer las capas lógicas del sistema mediante la jerga matemática no conmutativa (v.g. cohomología de haces de Čech o aniquilaciones en Fock) sin proveer un puente explícito hacia el fango real de la obra civil y las restricciones presupuestarias del **Mandato BIM 2026** y el **SECOP II** en Colombia. 
 
 Asimismo, el tono excesivamente policial de la documentación original eclipsa la propuesta de valor: **APU Filter no es un software contable punitivo, es un Sistema Nervioso y un Fusible de de Rham** que dota al constructor de una confianza absoluta para acelerar a fondo, sabiendo que su capital está protegido por frenos ABS activos de grado ciber-físico [Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a, PIRAMIDES_DE_CONTROL.md].
 
@@ -29,7 +29,7 @@ Este plan detalla el mapeo exacto de las fases de sutura necesarias para homogen
 
 #### FASE 1: Consagración del Isomorfismo de Doble Capa (Riesgo y Dinero)
 *   **Repositorios a intervenir:** `README.md`, `PRODUCT_VISION.md` y `topologia.md`.
-*   **Objetivo:** Separar la documentación en dos cartas de lectura complementarias utilizando la **Analogía del Automóvil y los Frenos ABS** [PIRAMIDES_DE_CONTROL.md]. El usuario de negocios interactúa con alertas unívocas basadas en **Riesgo y Dinero**, mientras que el anexo matemático confina el rigor elíptico en la Unidad de Punto Flotante (FPU) [Isomorfismo_Doble_Capa.md].
+*   **Objetivo:** Separar la documentación en dos cartas de lectura complementarias utilizando la **Analogía del Automóvil y los Frenos ABS** [PIRAMIDES_DE_CONTROL.md]. El usuario de negocios interactúa con alertas unívocas basadas en **Riesgo y Dinero**, mientras que el anexo matemático confina el rigor elíptico en la Unidad de Punto Flotante (FPU).
 *   **Acciones de Sutura:**
     1.  **Inyección del Funtor de Traducción Semántica $\Phi$:**
         Definir formalmente el homeomorfismo semántico functorial entre el clasificador de subobjetos del topos de de Rham-Čech-Heyting y el plano del Business Model Canvas (BMC) de la constructora:
@@ -67,7 +67,7 @@ Este plan detalla el mapeo exacto de las fases de sutura necesarias para homogen
         Suturar el dolor de obra del "secado del concreto en tuberías" provocado por falsos positivos de software en obra civil [PIRAMIDES_DE_CONTROL.md]. Documentar detalladamente el **Veto Suave**:
         *   **Condición:** Se activa ante transitorios elásticos o ruidos de formato de baja frecuencia, como un coeficiente de reflexión sónica TDR moderado:
             $$0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$$
-        *   **Actuación:** El microcontrolador ESP32 **no interrumpe la potencia de las mezcladoras**. Mantiene la maquinaria en marcha, activa una baliza visual ámbar e inicia un temporizador de gracia de **1 hora** en el panel táctil [set_agent-v2.py].
+        *   **Actuación:** El microcontrolador ESP32 **no interrumpe la potencia de las mezcladoras**. Mantiene la maquinaria en marcha, activa una baliza visual ámbar e inicia un temporizador de gracia de **1 hora** en el panel táctil [set_agent.py].
         *   **Aniquilación Causal por Override Humano:** El perito inyecta en RAM un **Positrón de Autorización Humana ($e^+$)** firmado con $\operatorname{HMAC-SHA256}$ [PIRAMIDES_DE_CONTROL.md]. La colisión del positrón con el electrón de anomalía semántica de la IA ($e^-$) produce la aniquilación cuántica mutua, liberando dos fotones Gamma de auditoría y disipando el temporizador para continuar el vaciado en estado `DEGRADED`:
             $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
     2.  **El "Fusible de Fock" como Seguro de Vida Patrimonial:**
