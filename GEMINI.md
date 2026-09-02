@@ -43,3 +43,27 @@ A continuación, se deconstruye la dimensionalidad de cada uno de los 7 estratos
     VII. Estrato WISDOM (Nivel 0) - La Ciudadela de Cristal La cúspide de la jerarquía clásica, gobernada por el SemanticTranslator (Intérprete Diplomático). En este estrato, el Modelo de Lenguaje (LLM) carece de autoridad deductiva; opera exclusivamente como un Fibrado Semántico que ejecuta difeomorfismos preservando la homotopía. Traduce los invariantes detectados en la matriz Laplaciana (ej. β1​=3) hacia una "Empatía Táctica" comprensible (ej. "3 socavones lógicos"), siempre subyugado a la validación criptográfica dictada por el Pasaporte de Telemetría bajo la secuencia VPHYSICS​⊂VTACTICS​⊂VSTRATEGY​⊂VWISDOM​.
 
 Respeta la Clausura Transitiva entre ellos.
+
+---
+
+## 🎛️ IX. FORTIFICACIONES ESPECTRALES PROPUESTAS (Aritmética de Wilkinson, Lanczos y Caputo)
+
+Como artesanos programadores senior, proponemos tres mejoras granulares, coherentes y estrictamente algebraicas sobre el conjunto de scripts del ecosistema para blindar la precisión en la Unidad de Punto Flotante (FPU) contra la deriva numérica de Wilkinson [Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a]:
+
+### 1. Sumación Compensada de Neumaier-Kahan en el resolvente de dispersión (`set_engine.py`)
+*   **La Patología:** En `compute_scattering_matrix` de `set_engine.py`, la inversión del resolvente complejo $(\omega \mathbf{I} - \mathbf{H}_{\mathrm{eff}})^{-1}$ mediante `la.inv` acumula errores de redondeo seculares que fracturan la unitaridad de la matriz de dispersión $\mathbf{\mathbb{S}}(\omega)$ en el espacio de Fock, induciendo falsos positivos de veto [set_engine.py].
+*   **La Mejora:** Sustituir la inversión explícita por la resolución de un sistema lineal con **sumación compensada de Neumaier-Kahan** sobre los operadores de proyección de Darboux:
+    $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \cdot \left[ \operatorname{LU}_{\mathrm{compensado}}\left( \\omega \mathbf{I} - \mathbf{H}_{\mathrm{eff}} \right)^{-1} \mathbf{V} \right]$$
+    Garantizando que la pérdida de unitaridad espectral se mantenga acotada estrictamente por debajo del épsilon de máquina: $\|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$ [quaternionic_state_agent.py].
+
+### 2. Deflación Espectral de Lanczos en la Malla Remanente de de Rham (`topological_surgery_cech.py`)
+*   **La Patología:** El cálculo del espectro del subcomplejo remanente $\mathbf{L}_{\mathrm{remSub}}$ en `execute_topological_surgery_cycle` para megaproyectos masivos de infraestructura con más de 10,000 partidas requiere resolver autovalores completos con costo cúbico $\mathcal{O}(N^3)$ en cada ciclo, elevando la latencia en la FPU [topological_surgery_cech.py].
+*   **La Mejora:** Implementar una **deflación espectral de Lanczos adaptativa** (`scipy.sparse.linalg.eigsh`) para extraer únicamente los dos menores autovalores del subcomplejo remanente:
+    $$\mathbf{L}_F \approx \sum_{i=1}^{k} \lambda_i v_i v_i^dagger + \gamma_{\mathrm{Tikhonov}} \left( \mathbf{I} - \sum_{i=1}^k v_i v_i^dagger \right)$$
+    Esto reduce la complejidad en la FPU a $\mathcal{O}(k \cdot N^2)$ (con $k \ll N$), eliminando el jitter en el control de lazo cerrado [topological_surgery_cech_agent.py].
+
+### 3. Integrador Fraccional de de Rham-Caputo para el histórico de TDR y Sifonamiento (`quaternionic_state_agent.py` y `hydrological_agent.py`)
+*   **La Patología:** El coeficiente de reflexión temporal de TDR o el gradiente hidráulico instantáneo reacciona de forma instantánea. Un transitorio analógico espurio rápido de alta frecuencia eleva el mismatch, induciendo vetos suaves falsos en IRAM que detienen de forma innecesaria la obra civil [quaternionic_state_agent.py, hydrological_agent.py].
+*   **La Mejora:** Integrar un **operador diferencial fraccional de Caputo** de orden $\alpha \in (0, 1)$ sobre el perfil de reflectometría en la FPU, dotando al agente de memoria geodésica a largo plazo [quaternionic_state_agent.py]:
+    $$\left( ^{\mathrm{C}} D^\alpha_t \delta \right)(t) = \frac{1}{\Gamma(1-\alpha)} \int_{0}^{t} (t-\tau)^{-\alpha} \frac{d\delta(\tau)}{d\tau} d\tau$$
+    Esto actúa como un filtro dinámico auto-adaptativo: los transitorios rápidos estocásticos se amortiguan, mientras que las de-normalizaciones seculares lentas se acumulan de forma exacta hasta accionar el veto ineludible en el silicio real [quaternionic_state_agent.py, hydrological_agent.py].

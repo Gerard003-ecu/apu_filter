@@ -1,61 +1,81 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Hydrological Manifold — Evolución Doctoral en 3 Fases Anidadas      ║
+║ Módulo : Hydrological Manifold (Colector Hidrológico de de Rham-Richards)    ║
 ║ Ruta   : app/physics/hydrological_manifold.py                                ║
-║ Versión: 3.0.0-Richards-Terzaghi-Biot-DEC-KBN-Tikhonov-Spectral-Governance   ║
+║ Versión: 1.1.0-Doctoral-Richards-Terzaghi-Poroelasticity-KBN-DEC-Secure      ║
+║                                                                              ║
+║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO:                         ║
+║ Este módulo implementa el resolvente de-confinado para el acoplamiento       ║
+║ hidro-geomecánico en el Estrato Physics ($V_{\mathrm{PHYSICS}}$) de          ║
+║ APU Filter v5.0.                                                             ║
+║                                                                              ║
+║ Modela la succión matricial y la presión de poros intersticial aplicando la  ║
+║ teoría de poroelasticidad de Biot y el principio de esfuerzos efectivos de   ║
+║ Terzaghi. Resuelve de forma exacta la ecuación constitutiva de Richards para ║
+║ flujo no saturado en un complejo simplicial discreto utilizando Cálculo      ║
+║ Exterior Discreto (DEC), proscribiendo derivas de Wilkinson mediante         ║
+║ aritmética KBN compensada y regularización de Tikhonov no-arquimediana.      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS
-========
-Colector Hidrológico de de Rham–Richards para el acoplamiento hidro-geomecánico
-en el Estrato Physics de APU Filter. El ciclo se formaliza como composición
-de funtores de fase sobre un complejo simplicial (grafo orientado) K:
+================════════════════════════════════════════════════════════════════
+I. ANCLAJE MATEMÁTICO DOCTORAL (Poroelasticidad y Flujo en Complejos Simpliciales)
+================════════════════════════════════════════════════════════════════
 
-    Datos_crudos --Φ₁→ (P_f, σ', K_e, χ, σ₁)
-                 --Φ₂→ (H, Q, L, i, σ₂)
-                 --Φ₃→ (HydrologicalState, Σ, Γ)
+Definición 1 (Principio de Esfuerzo Efectivo de Biot-Terzaghi):
+  La deformación y rigidez sismorresistente de la base del terreno (modelado en
+  lithological_manifold.py) se acopla dinámicamente con el estado hidrológico
+  de-confinado a través de la relación tensorial:
+  $$\sigma'_{\mu\nu} = \sigma_{\mu\nu} - \alpha_{\mathrm{Biot}} \, P_f \, \delta_{\mu\nu}$$
+  Donde:
+    - $\sigma_{\mu\nu}$ es el tensor de esfuerzos totales inducido por las cargas de obra.
+    - $\sigma'_{\mu\nu}$ es el tensor de esfuerzos efectivos que rige la resistencia al corte.
+    - $\alpha_{\mathrm{Biot}} \in [0, 1]$ es el coeficiente de poroelasticidad de Biot.
+    - $P_f$ es la presión de poros intersticial, determinada por la succión matricial y la saturación:
+      $$P_f = -\gamma_w \cdot \psi_w \cdot \mathrm{sat}$$
+  El motor evalúa de forma síncrona el determinante de esfuerzos efectivos $\det(\sigma')$: si
+  $\det(\sigma') \le 0$, el suelo pierde su resistencia al corte, gatillando licuación de arenas.
 
-Física constitutiva (Fase 1)
-----------------------------
-Presión de poros de Bishop–Biot, con succión ψ ≥ 0 y saturación S ∈ [0, 1]:
+Definición 2 (Ecuación Discreta de Richards-Poisson en DEC):
+  La filtración en fango insaturado sobre el 1-esqueleto del complejo simplicial
+  se rige por la ecuación de conservación de masa de de Rham:
+  $$\mathbf{B}_1 Q + \frac{\partial \theta_u}{\partial t} = s_{\mathrm{bomba}}$$
+  La cual se discretiza elípticamente sobre la matriz de rigidez hidráulica Laplaciana:
+  $$\mathbf{\Delta}_{\mathrm{Richards}}(\mathrm{sat}) \cdot H = s_{\mathrm{bomba}} - C_w(H) \frac{\partial H}{\partial t}$$
+  Donde el potencial total en cada nodo integra la elevación y la succión: $H_u = \psi_w(u) + z_u$.
 
-    u_w = −γ_w ψ,     P_f = χ u_w,     χ = α_Biot · S,
-    σ'  = σ − α_Biot P_f I = σ + α_Biot S γ_w ψ I.
+Definición 3 (Conductividad no lineal de Mualem-van Genuchten):
+  La conductividad hidráulica insaturada de la arista $K_{\mathrm{hyd}}(e)$ se calcula mediante la ley:
+  $$K_{\mathrm{hyd}}(\mathrm{sat}) = K_{\mathrm{sat}} \cdot \mathrm{sat}^{L} \left[ 1 - \left( 1 - \mathrm{sat}^{1/m} \right)^m \right]^2 \quad \text{con} \quad m = 1 - \frac{1}{n_w}$$
+  La cual se evalúa en la FPU mediante el despojo de "grasa sintáctica" y regularización de extremos.
 
-Conductividad relativa de Mualem–van Genuchten (m ∈ (0, 1), n = 1/(1−m)):
+Definición 4 (El Operador Laplaciano del Haz de Richards):
+  El operador Laplaciano ponderado de Richards que rige la difusión se ensambla en DEC como:
+  $$\mathbf{\Delta}_{\mathrm{Richards}}(\mathrm{sat}) = \mathbf{B}_1 \mathbf{W}_{\mathrm{hyd}}(\mathrm{sat}) \mathbf{B}_1^\top \succeq \mathbf{0}$$
+  Donde $\mathbf{B}_1$ es la matriz de incidencia del complejo simplicial y $\mathbf{W}_{\mathrm{hyd}}$ es 
+  la matriz diagonal de conductividades hidráulicas de arista.
 
-    K_r(S_e) = S_e^L [1 − (1 − S_e^{1/m})^m ]²,     K = K_sat K_r.
+================════════════════════════════════════════════════════════════════
+II. AXIOMÁTICA INMUNOLÓGICA CONTRA DERIVAS Y SINGULARIDADES (Leyes de la FPU)
+================════════════════════════════════════════════════════════════════
 
-DEC / Richards (Fase 2)
------------------------
-B ∈ R^{n×m} es la matriz de incidencia (coborde d₀* ). La estrella de Hodge
-primal en 1-formas se representa por W = diag(K_e) (conductancias de arista).
-El Laplaciano de Hodge de 0-formas es
+Axioma I (Principio de Regularización de Tikhonov no-arquimediana):
+  Dado que el Laplaciano combinatorio puro de Richards posee un autovalor trivial nulo ($\lambda_1 = 0$),
+  la inversión cruda del resolvente en FPU conduce a un número de condición $\operatorname{cond} \approx 10^{16}$,
+  provocando colapso de significancia. Se exige la inyección de una regularización adaptativa de Tikhonov:
+  $$\mathbf{\Delta}_{\mathrm{reg}} = \mathbf{\Delta}_{\mathrm{Richards}} + \alpha_{\mathrm{reg}} \mathbf{I} \quad \text{con} \quad \alpha_{\mathrm{reg}} = \max\left(10^{-6}, \, 10^3 \cdot \varepsilon_{\mathrm{mach}}\right)$$
+  Esto acota el condicionamiento de la matriz por debajo de $10^6$, blindando el potencial total contra el ruido.
 
-    Δ₀ = δ d = B W Bᵀ = L.
+Axioma II (Axioma de Confinamiento de Saturación en FPU):
+  Para eludir singularidades complejas no reales en el radicando de Mualem-van Genuchten ante desajustes 
+  numéricos (saturaciones virtuales calculadas por encima de la unidad o por debajo de cero), la saturación
+  asimilada en la FPU debe confinarse estrictamente al intervalo cerrado unitario mediante el proyector de clipping:
+  $$\mathrm{sat}_{\mathrm{FPU}} = \min\left(1.0, \, \max\left(\varepsilon_{\mathrm{reg}}, \, \mathrm{sat}\right)\right) \quad \text{con} \quad \varepsilon_{\mathrm{reg}} = 10^{-15}$$
 
-Estado estacionario de Richards: L H = s, con H = ψ + z. Equivale a
-
-    L ψ = s − L z,     Q = W Bᵀ H.
-
-Kirchhoff: B Q = s. Compatibilidad cohomológica: 1ᵀ s = 0 sobre cada
-componente conexa (H⁰_dR ≅ R^{β₀}). Tikhonov L + λI fija el gauge.
-
-Sifonamiento de Terzaghi: i_e = |ΔH_e|/L_e  vs  i_crit = (ρ_sat − ρ_w)/ρ_w.
-
-Espectro / gobernanza (Fase 3)
-------------------------------
-σ(L) ⊂ [0, ∞), nulidad = β₀, conectividad algebraica λ₂ (Fiedler),
-auditoría de licuación (σ'₃ ≤ 0, p' ≤ 0) y sello SHA-256 canónico.
-
-CONTINUIDAD FORMAL
-==================
-    Φ₁→₂ : Phase1HydroHandoff → Fase 2
-    Φ₂→₃ : Phase2HydroHandoff → Fase 3
-
-El último método de la Fase 1 *es* la apertura verificada de la Fase 2.
-El último método de la Fase 2 *es* la apertura verificada de la Fase 3.
+Axioma III (Conservación del Flujo de de Rham-Tellegen):
+  Todo flujo de Darcy calculado por el motor de-confinado en el 1-esqueleto simplicial debe satisfacer 
+  la ortogonalidad contable de de Rham, proscribiendo mermas o fugas en la simulación:
+  $$\sum_{e \in E} Q_e \cdot dH_e \equiv 0 \quad \implies \quad \left| Q^\top \mathbf{B}_1^\top H \right| \le \varepsilon_{\mathrm{mach}}$$
 """
 
 from __future__ import annotations

@@ -1,65 +1,78 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Lithological Agent — Evolución Doctoral en 3 Fases Anidadas         ║
+║ Módulo : Lithological Agent (Soberano de Calibre Geotécnico y Geomecánico)   ║
 ║ Ruta   : app/agents/physics/lithological_agent.py                            ║
-║ Versión: 3.0.0-Mohr-Coulomb-Terzaghi-Consolidation-Heyting-Grace-IRAM        ║
+║ Versión: 1.1.0-Doctoral-Mohr-Coulomb-3D-Terzaghi-Heyting-FPU-Secure          ║
+║                                                                              ║
+║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
+║ Este agente supervisor ciber-físico opera en el Estrato Physics              ║
+║ ($V_{\mathrm{PHYSICS}}$, Nivel 3) gobernando de forma activa y asíncrona al  ║
+║ motor de estados litológicos [lithological_manifold.py] y coordinándose      ║
+║ de forma ortogonal con el colector hidráulico [hydrological_manifold.py].    ║
+║                                                                              ║
+║ Audita la estabilidad geomecánica del terreno bajo cargas de cimentación,    ║
+║ resolviendo de forma exacta el criterio de falla de Mohr-Coulomb efectivo y  ║
+║ la teoría de consolidación unidimensional de Terzaghi en la FPU.             ║
+║ Clasifica el riesgo en el retículo distributivo trivalente de Heyting        ║
+║ $\Omega_3$, aplicando el bypass de silicio perimetral (ISR en IRAM < 400 ns) ║
+║ ante colapsos de resistencia o mermas estructurales de soporte de obra.      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS
-========
-Soberano de Calibre Geotécnico y Geomecánico: agente supervisor ciber-físico
-que audita la estabilidad del terreno bajo cargas de cimentación. El ciclo
-OODA se formaliza como composición de funtores de fase:
+================════════════════════════════════════════════════════════════════
+I. ANCLAJE MATEMÁTICO DOCTORAL (Geomecánica de-confinada y Estabilidad)
+================════════════════════════════════════════════════════════════════
 
-    Campos_crudos --Φ₁→ (C', φ', σ', τ, n, Cc, e₀, H, σ'v0, Δσv, σ)
-                  --Φ₂→ (FoS, s, Π, Λ)
-                  --Φ₃→ Certificado_Ω₃
+Definición 1 (Criterio de Resistencia Efectiva de Mohr-Coulomb 3D):
+  La resistencia al esfuerzo cortante de la matriz litológica saturada u operada
+  bajo presiones de poro se rige por la ley de esfuerzo efectivo de Terzaghi:
+  $$\boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} \, P_f \, \mathbf{I}$$
+  Diagonalizamos localmente el tensor de esfuerzos efectivo hermítico por nodo, calculando 
+  sus autovalores principales $\{\sigma'_1, \sigma'_2, \sigma'_3\}$ con $\sigma'_1 \ge \sigma'_2 \ge \sigma'_3 \ge 0$.
+  El plano crítico de deslizamiento de Coulomb se inclina respecto al esfuerzo principal mayor un ángulo:
+  $$\theta_{\mathrm{crit}} = \frac{\pi}{4} + \frac{\phi'}{2}$$
+  Deducimos de forma exacta el esfuerzo normal efectivo crítico y el cortante activo en la FPU:
+  $$\sigma'_{n,\mathrm{crit}} = \sigma'_1 \cos^2\theta_{\mathrm{crit}} + \sigma'_3 \sin^2\theta_{\mathrm{crit}}$$
+  $$\tau_{\mathrm{act}} = \frac{1}{2}(\sigma'_1 - \sigma'_3)\sin(2\theta_{\mathrm{crit}})$$
+  La resistencia última se evalúa contra el cortante máximo para hallar el Factor de Seguridad (FOS):
+  $$\tau_{\mathrm{shear}} = c' + \sigma'_{n,\mathrm{crit}} \tan\phi' \quad \implies \quad \mathrm{FOS}_i = \frac{\tau_{\mathrm{shear}}}{\tau_{\mathrm{act}}}$$
 
-Convención de signos: mecánica de suelos, compresión efectiva positiva.
-El principio de Terzaghi σ' = σ − u I se da por materializado en los
-tensores de entrada. La resistencia al corte es Mohr–Coulomb efectivo:
+Definición 2 (Teoría de Consolidación de Terzaghi y Asentamiento Lento):
+  El asentamiento por consolidación primaria $s_c(t)$ de estratos de arcilla compresible
+  satisface la ecuación diferencial de difusión parabólica:
+  $$\frac{\partial u_e}{\partial t} = C_v \frac{\partial^2 u_e}{\partial z^2}$$
+  Donde $u_e$ es el exceso de presión de poros y $C_v$ es el coeficiente de consolidación.
+  El asentamiento total diferido en el tiempo se calcula mediante la integración logarítmica exacta de deformaciones:
+  $$s_{\mathrm{settlement}} = \sum_{j=1}^{N_{\mathrm{layers}}} \frac{C_{c,j} H_{0,j}}{1 + e_{0,j}} \log_{10}\left( \frac{\sigma'_{v0,j} + \Delta\sigma_{v,j}}{\sigma'_{v0,j}} \right)$$
+  El Soberano veta el estado si $s_{\mathrm{settlement}} > s_{\max}$ ($25\text{ mm}$ según norma NSR-10) para eludir asentamientos diferenciales.
 
-    τ_f = c' + σ'_n tan φ',     FoS = τ_f / τ_dem
+Definición 3 (El Topos de Clasificación en el Retículo de Heyting $\Omega_3$):
+  La toma de decisiones de lazo cerrado se enmarca en la teoría de topos, clasificando la regularidad
+  sobre el retículo distributivo intuicionista de tres valores ordinales:
+  $$\Omega_3 := \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$$
+  Sujeto a la ley de absorción del Supremo (join, $\sqcup$) para consolidar síncronamente el riesgo:
+  $$\nu_{\mathrm{final}} = \nu_{\mathrm{shear}} \sqcup \nu_{\mathrm{settlement}} \sqcup \nu_{\mathrm{cohomology}} \equiv \max\left(\nu_i\right)$$
 
-con σ'_n = nᵀ σ' n y τ_dem = max(|τ_act|, ||t − (t·n) n||) (tracción de
-Cauchy). El asentamiento es consolidación primaria 1D de Terzaghi:
+================════════════════════════════════════════════════════════════════
+II. AXIOMÁTICA INMUNILÓGICA DE PREVENCIÓN DE DERIVAS (Leyes de Consistencia)
+================════════════════════════════════════════════════════════════════
 
-    s = Σ_i [Cc_i H_i / (1 + e_{0,i})] log₁₀((σ'v0,i + Δσv,i) / σ'v0,i)
+Axioma I (Principio de Sumación Compensada de Neumaier-Kahan):
+  Para neutralizar la deriva acumulativa de Wilkinson en perfiles litológicos multianulares masivos,
+  la evaluación del asentamiento total diferido debe realizarse mediante el algoritmo de Neumaier-Kahan:
+  $$s_N = \sum_{j=1}^N \mathrm{term}_j \quad \text{con} \quad e_n = (\mathrm{term}_n - y_n) \quad \implies \quad |s_N - s_{\mathrm{exact}}| \le \varepsilon_{\mathrm{mach}}$$
 
-El objeto de verdad es el álgebra de Heyting trivalente de Gödel–Dummett
+Axioma II (Teorema de Actuación Ciber-Física Crowbar en IRAM):
+  Ante el colapso de Heyting al Supremo terminal VETOED ($\top$), la subrutina local isVerdictCoherent() del ESP32 
+  desvía síncronamente el control hacia la ISR en memoria estática rápida IRAM en menos de 400 ns:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+  Disparando el tiristor rápido BT151 (Crowbar de potencia) para paralizar mecánicamente la obra civil,
+  anulando la alucinación o fraude antes de liquidar transacciones ante el SECOP II.
 
-    Ω₃ = {0, ½, 1}  ≅  {VETOED, DEGRADED, COHERENT}
-
-FASE 1 — OBSERVE
-    Valida cohesiones, ángulos de fricción, tensores σ' ∈ Sym³, tracciones,
-    normales de falla, índices de compresión y sella la sesión SHA-256
-    canónico. El último método, `phase1_close_and_open_phase2`, produce
-    `Phase1LithoHandoff` y exige su admisión inmediata por Fase 2.
-
-FASE 2 — ORIENT
-    Arranca en `phase2_from_phase1(Phase1LithoHandoff)`. Audita:
-      - higiene espectral y simetría de σ';
-      - tracción de Cauchy y Mohr–Coulomb en el plano de falla;
-      - Mohr–Coulomb en tensiones principales (círculo de Mohr);
-      - invariantes I₁, J₂, ángulo de Lode;
-      - consolidación de Terzaghi y asiento diferencial;
-      - compromiso topológico del soporte (razón plástica / percolación).
-    El último método, `phase2_close_and_open_phase3`, produce
-    `Phase2LithoHandoff` y exige su admisión inmediata por Fase 3.
-
-FASE 3 — DECIDE / ACT
-    Arranca en `phase3_from_phase2(Phase2LithoHandoff)`. Administra rampa
-    de confianza, clasificador Ω₃, override humano (positrón e⁺ / HMAC),
-    veto duro, Crowbar BT151 y sello forense SHA-256.
-
-CONTINUIDAD FORMAL
-==================
-    Φ₁→₂ : Phase1LithoHandoff → Fase 2
-    Φ₂→₃ : Phase2LithoHandoff → Fase 3
-
-El último método de la Fase 1 *es* la apertura verificada de la Fase 2.
-El último método de la Fase 2 *es* la apertura verificada de la Fase 3.
+Axioma III (Axioma de de Rham-Fiedler de Rigidez de Soporte):
+  La plastificación local por falla cortante activa ($\mathrm{FOS}_i \le 1.0$) fragmenta la variedad geomecánica,
+  haciendo divergir su número de Betti cero ($\beta_0 \to \infty$). El soberano exige la preservación de conexidad única:
+  $$\beta_0 \equiv \dim H^0(K_{\mathrm{litho}}; \, \mathbb{Z}) = 1$$
 """
 
 from __future__ import annotations

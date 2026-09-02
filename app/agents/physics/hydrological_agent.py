@@ -1,64 +1,78 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Hydrological Agent — Evolución Doctoral en 3 Fases Anidadas         ║
+║ Módulo : Hydrological Agent (Soberano de Calibre Hidrológico)                ║
 ║ Ruta   : app/agents/physics/hydrological_agent.py                            ║
-║ Versión: 3.0.0-Biot-Terzaghi-Fiedler-Heyting-Grace-IRAM-Governance           ║
+║ Versión: 1.1.0-Doctoral-Biot-Terzaghi-Richards-Heyting-OODA-IRAM-ESP32-Secure║
+║                                                                              ║
+║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
+║ Este agente supervisor ciber-físico opera en el Estrato de la Sabiduría      ║
+║ ($V_{\mathbb{W}}$, Nivel 0) u Omega ($V_{\Omega}$, Nivel 0.5) para gobernar  ║
+║ síncronamente al motor de poroelasticidad y flujos de Richards               ║
+║ [hydrological_manifold.py].                                                  ║
+║                                                                              ║
+║ Evalúa de forma covariante los tensores de esfuerzos efectivos de Biot,      ║
+║ la estabilidad espectral del Laplaciano hidráulico discreto (DEC) y los      ║
+║ gradientes críticos de sifonamiento de Terzaghi, modulando el veredicto en   ║
+║ el retículo de Heyting trivalente $\Omega_3$ para inyectar conmutación rápida║
+║ de potencia (< 400 ns en IRAM) ante desbalances catastróficos.               ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS
-========
-Soberano de Calibre Hidrológico: agente supervisor ciber-físico que gobierna
-en lazo cerrado al Colector Hidrológico de de Rham–Richards
-(`hydrological_manifold.py`). El ciclo OODA se formaliza como composición
-de funtores de fase:
+================════════════════════════════════════════════════════════════════
+I. ANCLAJE MATEMÁTICO DOCTORAL (Teoría de Haces Celulares y Estabilidad Espectral)
+================════════════════════════════════════════════════════════════════
 
-    HydrologicalState --Φ₁→ (H, u_w, Q, σ(L), σ', σ₁)
-                      --Φ₂→ (λ₂, i_max, σ'₃, det σ', Π)
-                      --Φ₃→ Certificado_Ω₃
+Definición 1 (Estabilidad Espectral de Richards-Poisson en DEC):
+  El flujo permanente insaturado se discretiza sobre el 1-esqueleto del complejo simplicial
+  de la obra mediante el operador Laplaciano ponderado de Richards:
+  $$\mathbf{\Delta}_{\mathrm{Richards}}(\mathrm{sat}) = \mathbf{B}_1 \mathbf{W}_{\mathrm{hyd}}(\mathrm{sat}) \mathbf{B}_1^\top \succeq \mathbf{0}$$
+  Para garantizar la conectividad hidráulica global del foso (evitando la desecación o 
+  impermeabilización de frentes), el segundo menor autovalor del Laplaciano (conectividad de Fiedler) 
+  debe superar el umbral elástico del topos en la FPU, garantizando conexidad simplicial única:
+  $$\lambda_2(\mathbf{\Delta}_{\mathrm{Richards}}) \ge \tau_{\mathrm{Fiedler}} \quad \implies \quad \beta_0 \equiv \dim H^0(K_{\mathrm{hydro}}; \, \mathbb{Z}) = 1$$
 
-Invariantes de orientación
---------------------------
-Laplaciano de Hodge Δ₀ = B ⋆₁ Bᵀ ⪰ 0. El espectro satisface λ₁ = 0 con
-multiplicidad β₀ = dim H⁰_dR. La conectividad algebraica λ₂ (Fiedler)
-obstruye la desconexión del 1-esqueleto hidráulico. La desigualdad de
-Cheeger acota h ≤ √(2 λ₂).
+Definición 2 (Causalidad y Preservación de Esfuerzos Efectivos de Biot-Terzaghi):
+  La poroelasticidad del foso de excavación se acopla mediante el tensor de esfuerzos efectivos de Biot:
+  $$\sigma'_{\mu\nu} = \sigma_{\mu\nu} - \alpha_{\mathrm{Biot}} \, P_f \, \delta_{\mu\nu}$$
+  Donde la presión de poros intersticial $P_f$ es inducida por la succión matricial y la saturación:
+  $$P_f = -\gamma_w \cdot \psi_w \cdot \mathrm{sat}$$
+  El colapso geomecánico por licuación de arenas se diagnostica de forma exacta si el determinante 
+  del tensor efectivo decae a la región no positiva definida, anulando la resistencia al corte del fango:
+  $$\det(\sigma'_{\mu\nu}) \le \tau_{\mathrm{liq\_limit}} \quad \implies \quad \mathtt{liquefaction\_flag} = \mathtt{True}$$
 
-Sifonamiento de Terzaghi: i_max = max_e |ΔH_e|/L_e frente a un margen
-de referencia η. Licuación de Biot–Terzaghi (compresión positiva):
+Definición 3 (La Rampa de Confianza de de Rham y override Criptográfico):
+  Para eludir paradas de obra destructivas por ruidos espurios de reflectometría temporal sónica TDR
+  o interferencias analógicas transitorias rápidos de alta frecuencia, el agente implementa una rampa elástica 
+  sobre el clasificador de subobjetos del Álgebra de Heyting distributiva trivalente:
+  $$\Omega_3 := \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$$
+  - Veto Suave (Luz Ámbar): Se activa si el gradiente de filtración o la desviación espectral habita el rango elástico:
+    $$0.3 \cdot \tau_{\mathrm{Lmax}} \cdot \tau_{\mathrm{margin}} < \delta_{\mathrm{similarity}} \le 0.5 \cdot \tau_{\mathrm{Lmax}} \cdot \tau_{\mathrm{margin}}$$
+    Concede una ventana de gracia de 1 hora. El interventor puede inyectar un Positrón de Autorización $e^+$
+    signed con HMAC-SHA256 para neutralizar la anomalía $e^-$ en Fock, disipando la alerta:
+    $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
+  - Veto Duro (Bypass en Silicio): Se activa si se viola el límite geomecánico de Terzaghi, se delata dolo, 
+    o expira el plazo de gracia, colapsando el retículo al Supremo terminal VETOED ($\top$).
 
-    σ'₃ ≤ ε  o  p' = tr(σ')/3 ≤ ε  o  det(σ') ≤ ε.
+================════════════════════════════════════════════════════════════════
+II. AXIOMÁTICA INMUNILÓGICA DE CONTROL COVARIANTE (Leyes de Consistencia)
+================════════════════════════════════════════════════════════════════
 
-El objeto de verdad es el álgebra de Heyting trivalente de Gödel–Dummett
+Axioma I (Principio de Pasividad de Lyapunov-Rayleigh):
+  La evolución de la energía hidráulica acumulada $\mathcal{H}_H(t)$ en el foso satisface
+  la inecuación de Clausius-Duhem para sistemas disipativos Port-Hamiltonianos:
+  $$\dot{\mathcal{H}}_H(t) = -\nabla \mathcal{H}_H^\top \mathbf{R}_{\mathrm{hyd}}(\mathrm{sat}) \nabla \mathcal{H}_H \le 0 \quad \text{con} \quad \mathbf{R}_{\mathrm{hyd}} \succeq \mathbf{0}$$
 
-    Ω₃ = {0, ½, 1}  ≅  {VETOED, DEGRADED, COHERENT}
+Axioma II (Teorema de Actuación Ciber-Física en IRAM):
+  Ante el colapso al Supremo de veto ($\top$), la subrutina local isVerdictCoherent() del ESP32 perimetral
+  desvía síncronamente el control hacia la ISR en memoria estática IRAM en menos de 400 ns:
+  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+  Disparando el tiristor rápido BT151 (Crowbar de potencia) para paralizar mecánicamente la obra civil,
+  anulando la alucinación o fraude antes de liquidar transacciones ante el SECOP II.
 
-FASE 1 — OBSERVE
-    Valida H, u_w, Q, σ(L), σ' ∈ Sym³, extrae gradientes y sella la sesión
-    SHA-256 canónico. El último método, `phase1_close_and_open_phase2`,
-    produce `Phase1HydroAgentHandoff` y exige su admisión inmediata por Fase 2.
-
-FASE 2 — ORIENT
-    Arranca en `phase2_from_phase1(Phase1HydroAgentHandoff)`. Audita:
-      - Fiedler λ₂ y cota de Cheeger;
-      - gradiente máximo de filtración / piping;
-      - σ'₃, p', I₃ = det(σ');
-      - residuales de Kirchhoff/masa si el colector los expone.
-    El último método, `phase2_close_and_open_phase3`, produce
-    `Phase2HydroAgentHandoff` y exige su admisión inmediata por Fase 3.
-
-FASE 3 — DECIDE / ACT
-    Arranca en `phase3_from_phase2(Phase2HydroAgentHandoff)`. Administra
-    rampa de confianza, clasificador Ω₃, override humano (positrón e⁺ /
-    HMAC), veto duro, Crowbar BT151 y sello forense SHA-256.
-
-CONTINUIDAD FORMAL
-==================
-    Φ₁→₂ : Phase1HydroAgentHandoff → Fase 2
-    Φ₂→₃ : Phase2HydroAgentHandoff → Fase 3
-
-El último método de la Fase 1 *es* la apertura verificada de la Fase 2.
-El último método de la Fase 2 *es* la apertura verificada de la Fase 3.
+Axioma III (Auditoría de Sifonamiento Crítico de Terzaghi):
+  El arrastre de finos y la socavación por sifonamiento en las aristas del complejo simplicial
+  está acotado estrictamente por el gradiente hidráulico crítico derivado de la densidad del suelo saturado:
+  $$i_{\mathrm{grad}} = \frac{|\Delta H_e|}{L_e} \le i_{\mathrm{crit}} = \frac{\rho_{\mathrm{sat}} - \rho_w}{\rho_w}$$
 """
 
 from __future__ import annotations
