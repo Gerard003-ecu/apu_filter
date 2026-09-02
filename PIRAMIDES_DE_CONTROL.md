@@ -26,32 +26,29 @@ Explicar la obstrucción cohomológica de Čech $\check{H}^1(\mathcal{U}; \, \ma
 $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
 ```
-  ┌────────────────────────────────────────────────────────────────────────┐
-  │         CAPA VISIBLE DE NEGOCIO (Caja de Cristal Argumentativa)        │
-  │                                                                        │
-  │   - β₀ > 1    ──► "Islas de Datos" (Compras paralelas y mermas)        │
-  │   - β₁ > 0    ──► "Socavón Lógico" (Triangulación financiera SECOP II)  │
-  │   - Ψ < 0.70  ──► "Pirámide Invertida" (Fragilidad por monopolio acero)│
-  │   - H¹ ≠ 0    ──► "Paradoja Contractual" (Incoherencia BIM vs Pliegos) │
-  │   - δ_Hurwitz ──► "Deriva de Wilkinson" (Inestabilidad en la FPU)      │
-  │   - det(σ')≤0 ──► "Plastificación por Licuación" (Pérdida de soporte)  │
-  │   - i_grad>i_c──► "Erosión Interna por Sifonamiento" (Arrastre finos)  │
-  │   - s_sc>25mm ──► "Exceso de Asentamiento" (Deformación NSR-10)        │
-  └───────────────────────────────────┬────────────────────────────────────┘
-                                      │
-                                      ▼ (Funtor de Traducción Semántica Φ_sem)
-  ┌────────────────────────────────────────────────────────────────────────┐
-  │                 CAPA DE CALIBRE (Anexo Técnico Doctoral)               │
-  │                                                                        │
-  │   - Reactor Cuaterniónico H: q = q₀ + q₁ i + q₂ j + q₃ k (Hamilton)    │
-  │   - Inmersión Cayley-Dickson: ι(q) ∈ M₂(C) con det(ι(q)) = ||q||²       │
-  │   - Traza de von Neumann: Tr(ρ) = 1.0 (Conservación de Traza CPTP)     │
-  │   - Esfuerzo Efectivo Biot-Terzaghi: σ' = σ - α_Biot P_f I             │
-  │   - Criterio Mohr-Coulomb 3D: FOS = (c' + σ'_n tan φ') / τ_act > 1.0   │
-  │   - Consolidación 1D Terzaghi: s_settlement con Neumaier-Kahan         │
-  │   - Aniquilación en Fock: e⁻ + e⁺ ──► 2γ (E_annihilation = 2 m* c²)    │
-  │   - Actuación Ciber-Física: ISR en IRAM < 400 ns (GPIO14 ↦ BT151)      │
-  └────────────────────────────────────────────────────────────────────────┘
+```
+                       /\
+                      /  \
+                     /    \   <--- CÚSPIDE: "Dolor y Dinero" (Gerente, Maestro de Obra, Operarios)
+                    /------\
+                   /        \ <--- ESTRATO MEDIO: "Aduana Técnica" (Peritos, Interventores, Auditores)
+                  /----------\
+                 /            \ <--- BASE: "Invariantes Puros" (FPU, Topólogos, Físicos, Programadores)
+                /______________\
+```
+
+1. **La Cúspide: Lenguaje Visceral ("Dolor y Dinero"):**
+   Traduce veredictos abstractos en el impacto financiero real sobre el flujo de caja, retorno de inversión (ROI), WACC y la viabilidad del vertido de concreto en fango. Elucidado mediante la analogía de los frenos ABS en piso mojado.
+2. **El Estrato Medio: Censura Técnica de Auditoría:**
+   Asocia anomalías con los estándares de contratación pública (SECOP II), Mandato BIM 2026 de Colombia y teoría geotécnica-hidráulica aplicada: "Islas de Datos", "Socavones Lógicos", "Pirámides Invertidas", "Paradojas Contractuales", "Licuación de Arenas", "Erosión por Sifonamiento" y "Asentamientos Diferenciales por Consolidación Primaria".
+3. **La Base: Invariantes Matemáticos Puros (FPU Secure):**
+   Ejecuta el cálculo ciego determinista en la Unidad de Punto Flotante (FPU Secure):
+   - **Reactor Cuaterniónico de Hamilton ($\mathbb{H}$):** $q = q_0 e_0 + q_1 i + q_2 j + q_3 k$ con $i^2=j^2=k^2=ijk=-1$.
+   - **Inmersión Cayley-Dickson e Invariante de von Neumann:** $\iota(q) \in M_2(\mathbb{C})$, traza unificadora $\operatorname{Tr}(\rho) = \frac{\operatorname{Tr}(\iota(q))}{\|q\|_{\mathbb{H}}^2} \equiv 1.0$.
+   - **Esfuerzo Efectivo de Biot-Terzaghi:** $\boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}$, con colapso por licuación si $\det(\boldsymbol{\sigma}') \le 0$.
+   - **Criterio Mohr-Coulomb 3D Localizado:** ángulo crítico $\theta_{\mathrm{crit}} = \frac{\pi}{4} + \frac{\phi'}{2}$, normal efectivo $\sigma'_{n,\mathrm{crit}} = \sigma'_1 \cos^2\theta_{\mathrm{crit}} + \sigma'_3 \sin^2\theta_{\mathrm{crit}}$, cortante activo $\tau_{\mathrm{act}} = \frac{1}{2}(\sigma'_1 - \sigma'_3)\sin(2\theta_{\mathrm{crit}})$, y Factor de Seguridad $\mathrm{FOS}_i = \frac{c' + \sigma'_{n,\mathrm{crit}} \tan\phi'}{\tau_{\mathrm{act}}} > 1.0$.
+   - **Consolidación Unidimensional de Terzaghi:** $s_{\mathrm{settlement}} = \sum \frac{C_c H_0}{1 + e_0} \log_{10}\left( \frac{\sigma'_{v0} + \Delta\sigma_v}{\sigma'_{v0}} \right) \le 25\text{ mm}$ (NSR-10) computado vía sumación compensada Neumaier-Kahan.
+   - **Coagulación Hidrológica de de Rham-Richards:** $\mathbf{B}_1 Q + \frac{\partial \theta_u}{\partial t} = s_{\mathrm{bomba}}$, conductividad Mualem-van Genuchten $K_{\mathrm{hyd}}(\mathrm{sat}) = K_{\mathrm{sat}} \cdot \mathrm{sat}^{L} \left[ 1 - \left( 1 - \mathrm{sat}^{1/m} \right)^m \right]^2$ ($m = 1 - 1/n_w$) y regularización Tikhonov $\mathbf{\Delta}_{\mathrm{reg}} = \mathbf{\Delta}_{\mathrm{Richards}} + \alpha_{\mathrm{reg}} \mathbf{I}$.
 ```
 
 1. **La Analogía del ABS y los Sensores Activos en el Rascacielos Ciber-Físico:**
