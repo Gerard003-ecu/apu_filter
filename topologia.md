@@ -28,7 +28,10 @@ Este funtor proyecta homeomórficamente los residuos espectrales de de Rham a m�
 *   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro) que imposibilitan el cálculo del costo en FPU, revelando la huella digital forense de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II.
 *   **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad espectral por concentración de masa de capital (ej. 50 frentes de obra civil dependiendo de un único proveedor monopólico de cemento o acero), alertando de quiebras inminentes, sobrecostos y parálisis ante paros de suministro.
 *   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias insalvables entre planos del modelo BIM, pliegos licitatorios de SECOP II y Excels rotos con celdas combinadas, provocando veto síncrono antes de verter el primer saco de concreto.
-*   **Deriva de Wilkinson ($\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$):** Mermas de representabilidad por redondeo en la FPU de 64 bits, alertando sobre inestabilidad de-normalizada antes de procesar el payload o perturbar la caja de la constructora.
+*   **Deriva de Wilkinson ($\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$):** Mermas de representabilidad por redondeo en la FPU de 64 bits ($\|p \cdot q\|_{\mathbb{H}} \neq \|p\| \|q\|$), alertando sobre inestabilidad de-normalizada antes de procesar el payload o perturbar la caja de la constructora.
+*   **Plastificación por Licuación ($\det(\sigma') \le 0$):** Aniquilación de la resistencia al corte del suelo por presiones de poros en foso ($P_f = -\gamma_w \psi_w \mathrm{sat}$), accionando el Crowbar perimetral (<400 ns) para desenergizar bombas hidráulicas.
+*   **Erosión Interna por Sifonamiento ($i_{\mathrm{grad}} > i_{\mathrm{crit}}$):** Arrastre de finos bajo cimentaciones por gradientes hidráulicos acelerados en el complejo simplicial.
+*   **Exceso de Asentamiento ($s_{\mathrm{sc}} > 25\text{ mm}$):** Deformación vertical por consolidación 1D Terzaghi con sumación Neumaier-Kahan que agrieta vigas e incumple la norma sismorresistente NSR-10.
 
 ---
 

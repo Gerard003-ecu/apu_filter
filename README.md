@@ -78,11 +78,14 @@ Este funtor conecta sin pérdidas la complejidad doctoral confinada en la Unidad
   ┌────────────────────────────────────────────────────────────────────────┐
   │         CAPA VISIBLE DE NEGOCIO (Caja de Cristal Argumentativa)        │
   │                                                                        │
-  │   - β₀ > 1  ──► "Islas de Datos" (Compras paralelas y mermas)          │
-  │   - β₁ > 0  ──► "Socavón Lógico" (Triangulación financiera SECOP II)    │
-  │   - Ψ < 0.7 ──► "Pirámide Invertida" (Fragilidad por monopolio acero)  │
-  │   - H¹ ≠ 0  ──► "Paradoja Contractual" (Incoherencia BIM vs Pliegos)   │
+  │   - β₀ > 1    ──► "Islas de Datos" (Compras paralelas y mermas)        │
+  │   - β₁ > 0    ──► "Socavón Lógico" (Triangulación financiera SECOP II)  │
+  │   - Ψ < 0.70  ──► "Pirámide Invertida" (Fragilidad por monopolio acero)│
+  │   - H¹ ≠ 0    ──► "Paradoja Contractual" (Incoherencia BIM vs Pliegos) │
   │   - δ_Hurwitz ──► "Deriva de Wilkinson" (Inestabilidad en la FPU)      │
+  │   - det(σ')≤0 ──► "Plastificación por Licuación" (Pérdida de soporte)  │
+  │   - i_grad>i_c──► "Erosión Interna por Sifonamiento" (Arrastre finos)  │
+  │   - s_sc>25mm ──► "Exceso de Asentamiento" (Deformación NSR-10)        │
   └───────────────────────────────────┬────────────────────────────────────┘
                                       │
                                       ▼ (Funtor de Traducción Semántica Φ_sem: Sh(∂K, Ω₃) ──► Business)
@@ -91,10 +94,12 @@ Este funtor conecta sin pérdidas la complejidad doctoral confinada en la Unidad
   │                                                                        │
   │   - Reactor Cuaterniónico H: q = q₀ + q₁ i + q₂ j + q₃ k (Hamilton)    │
   │   - Inmersión Cayley-Dickson: ι(q) ∈ M₂(C) con det(ι(q)) = ||q||²       │
-  │   - Proyección Estereográfica en 2-Esfera S² ≅ ℂ̂: δ_sim = |Z|(1-q₃)     │
-  │   - Laplaciano del Haz Combinatorio SPSD: L_F = δᵀ G⁻¹ δ               │
-  │   - Deflación Espectral Lanczos / Sumación Compensada Neumaier-Kahan   │
-  │   - Integrador Fraccional de Caputo: (ᶜD^α_t δ)(t) en TDR              │
+  │   - Traza de von Neumann: Tr(ρ) = 1.0 (Conservación de Traza CPTP)     │
+  │   - Esfuerzo Efectivo Biot-Terzaghi: σ' = σ - α_Biot P_f I             │
+  │   - Criterio Mohr-Coulomb 3D: FOS = (c' + σ'_n tan φ') / τ_act > 1.0   │
+  │   - Consolidación 1D Terzaghi: s_settlement con Neumaier-Kahan         │
+  │   - Aniquilación en Fock: e⁻ + e⁺ ──► 2γ (E_annihilation = 2 m* c²)    │
+  │   - Actuación Ciber-Física: ISR en IRAM < 400 ns (GPIO14 ↦ BT151)      │
   └────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -106,7 +111,10 @@ Este funtor conecta sin pérdidas la complejidad doctoral confinada en la Unidad
 | **$\beta_1 > 0$** | **Socavón Lógico** | Dependencias circulares o cíclicas en el grafo de insumos (ej. Muro $\to$ Ladrillo $\to$ Flete $\to$ Muro) imposibles de calcular en FPU. | Huella digital de la **triangulación financiera de subcontratistas**, facturación fantasma e inhabilitación legal en SECOP II. |
 | **$\Psi < 0.70$** | **Pirámide Invertida** | Concentración monopólica del suministro (ej. 50 frentes de obra civil dependiendo de un único proveedor de cemento o acero). | Riesgo de quiebra inminente, sobrecostos por paro de suministro y demandas por incumplimiento del cronograma Mandato BIM 2026. |
 | **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | **Paradoja Contractual / Veto** | Inconsistencias insalvables entre planos del modelo BIM, pliegos licitatorios de SECOP II y Excels rotos con celdas combinadas. | Veto síncrono del presupuesto antes de verter el primer saco de concreto o inyectar entropía en la caja de la constructora. |
-| **$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$** | **Deriva de Wilkinson (Inestabilidad)** | Mermas de representabilidad por redondeo en la Unidad de Punto Flotante de 64 bits. | Alerta de inestabilidad de-normalizada antes de procesar el payload o perturbar la caja de la constructora. |
+| **$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$** | **Deriva de Wilkinson (Inestabilidad)** | Mermas de representabilidad por redondeo en la Unidad de Punto Flotante de 64 bits ($\|p \cdot q\|_{\mathbb{H}} \neq \|p\| \|q\|$). | Alerta de inestabilidad de-normalizada antes de procesar el payload o perturbar la caja de la constructora. |
+| **$\det(\sigma') \le 0$** | **Plastificación por Licuación (Fango)** | Pérdida total de la resistencia al corte del esqueleto sólido por presiones de poros intersticiales extremas ($P_f = -\gamma_w \psi_w \mathrm{sat}$). | Peligro inminente de colapso de pilotes y cimientos, accionando el disyuntor Crowbar de forma instantánea. |
+| **$i_{\mathrm{grad}} > i_{\mathrm{crit}}$** | **Erosión Interna por Sifonamiento** | Arrastre destructivo de finos bajo el foso de la obra civil por gradientes hidráulicos acelerados ($i_{\mathrm{crit}} = \frac{\rho_{\mathrm{sat}} - \rho_w}{\rho_w}$). | Deformación geomecánica de cimentaciones e inhabilitación estructural del megaproyecto civil. |
+| **$s_{\mathrm{sc}} > 25\text{ mm}$** | **Exceso de Asentamiento (NSR-10)** | Deformación vertical excesiva por consolidación unidimensional de Terzaghi en arcillas compresibles. | Inducción de asentamientos diferenciales destructivos y agrietamiento de vigas portantes en desacuerdo con la norma NSR-10. |
 
 ---
 
