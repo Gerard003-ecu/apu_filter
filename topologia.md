@@ -228,7 +228,8 @@ Para conciliar la rigidez matemática con las exigencias del frente de obra civi
 Si el veredicto en Heyting colapsa al Supremo terminal VETOED ($\top$):
 1. Se aplica la reducción monoidal $\mu : \Omega_3 \to \mathbb{Z}_2$.
 2. La rutina local C++ `isVerdictCoherent()` valida el pasaporte de telemetría firmado SHA-256.
-3. Ante veto ($\top \mapsto 1$), la **ISR en memoria IRAM** del microcontrolador **ESP32** conmuta el pin **GPIO14** en menos de **$400\,\text{ns}$**.
+3. Ante veto ($\top \mapsto 1$), la **ISR en memoria IRAM** del microcontrolador **ESP32** conmuta el pin **GPIO14** en menos de **$400\,\text{ns}$**:
+   $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
 4. Dispara el tiristor de potencia **BT151 (Crowbar circuit)**, cortocircuitando la línea de potencia y paralizando síncronamente la maquinaria pesada en obra.
 
 ---

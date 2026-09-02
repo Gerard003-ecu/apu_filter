@@ -95,7 +95,9 @@ Adicionalmente, el parser valida síncronamente el test de **Isospectralidad de 
 $$\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})$$
 
 * **Demostración Empírica de Despojo de Grasa Sintáctica:** Un ítem de vaciado de concreto en JSON redundante (412 tokens consumidos en $KV\text{-Cache}$) se condensa a un cartucho TOON de 56 tokens (reducción del **$86.4\%$**), liberando la memoria a corto plazo de la IA de borde (Google LiteRT-LM) para evaluar presupuestos masivos en tiempo real.
-* **Fusible Ciber-Físico de Fock:** Si la IA o el contratista inyectan un ítem fantasma o sobreprecio en SECOP II, se genera un electrón de anomalía ($e^-$) que colisiona con el positrón de autorización ($e^+$) en el espacio de Fock $\mathcal{F}(\mathcal{H})$, produciendo la aniquilación cuántica mutua:
+* **Fusible Ciber-Físico de Fock:** Si la IA o el contratista inyectan un ítem fantasma o sobreprecio en SECOP II, se genera en el espacio de Fock fermiónico $\mathcal{F}(\mathcal{H})$ un electrón de anomalía ($e^-$):
+  $$a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$$
+  que colisiona con el positrón de autorización ($e^+$), produciendo la aniquilación cuántica mutua:
   $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
   liberando dos fotones Gamma ($2\gamma$) con firma SHA-256 que detonan la ISR en IRAM del ESP32 en $< 400\text{ ns}$ (GPIO14 $\to$ tiristor BT151 Crowbar) para desenergizar las mezcladoras y bombas hidráulicas en seco.
 
@@ -384,6 +386,7 @@ $$\mu_{\text{monoidal}} : \Omega_3 \longrightarrow \mathbb{Z}_2, \quad \mu(\math
 
 El acoplamiento físico en el **Tribunal de Silicio** del microcontrolador **ESP32** se ejecuta de forma síncrona:
 1. La rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte de telemetría deserializado en tiempo real por `ArduinoJson`.
-2. Ante un veredicto de veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (**ISR**) alojada en la memoria ultrarrápida **IRAM** conmuta el pin físico **GPIO14** a nivel alto (`HIGH`) en menos de **$400\,\text{ns}$**.
+2. Ante un veredicto de veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (**ISR**) alojada en la memoria ultrarrápida **IRAM** conmuta el pin físico **GPIO14** a nivel alto (`HIGH`) en menos de **$400\,\text{ns}$**:
+   $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
 3. La señal inyecta corriente continua directa a la compuerta del tiristor de potencia de conmutación rápida **BT151** (circuito Crowbar), cortocircuitando la línea de alimentación eléctrica de los actuadores reales.
 4. Se paraliza la maquinaria pesada (bombas hidráulicas, mezcladoras y plantas de dosificación) en el milisegundo cero, anulando la anomalía de la IA en el mundo físico antes de consolidar pérdidas materiales o sanciones ante el SECOP II.

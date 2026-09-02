@@ -67,3 +67,20 @@ Esta compresión destila la información en "vitaminas cognitivas", liberando la
 Al rechazar matemáticamente cualquier carga que no se ajuste al `SiloAContract`, garantizamos que la base vectorial del presupuesto permanezca ortogonal al ruido exterior. La Fortaleza Matemática no intenta "entender" texto anómalo o heurísticas ambiguas; simplemente mide la exergía estructural del payload. Si la entropía del formato ($H$) excede el límite del contrato, la carga colapsa fuera de la variedad diferenciable del proyecto.
 
 Toda la deliberación sobre los rechazos o desviaciones sintácticas se traduce mediante el **Isomorfismo de Doble Capa** [Isomorfismo_Doble_Capa.md] y el formato adversarial *RiskChallenger* en **Actas de Deliberación** redactadas en lenguaje de negocio pragmático (riesgo y dinero), permitiendo a los directores de obra e interventores entender el impacto financiero directo (mermas, sobrecostos y sanciones en SECOP II) de las fallas de ingesta.
+
+--------------------------------------------------------------------------------
+## 5. Aniquilación Ciber-Física en Fock y Actuación Crowbar en Silicio (< 400 ns)
+
+Cuando una inyección de datos maliciosa o alucinada intenta trasgredir las fronteras de `SiloAContract`, se genera en el espacio de Fock $\mathcal{F}(\mathcal{H})$ una excitación fermiónica: el **electrón de anomalía semántica ($e^-$)**:
+
+$$a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$$
+
+Al colisionar contra la restricción topológica (positrón de autorización base $e^+$), ambos subespacios sufren una aniquilación cuántica mutua exergética:
+
+$$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
+
+Liberando dos fotones Gamma ($2\gamma$) con firma SHA-256. El colapso del retículo de Heyting $\Omega_3 \mapsto \top$ activa la **Interrupt Service Routine (ISR)** alojada en la memoria ultrarrápida **IRAM** del microcontrolador **ESP32** en menos de 400 ns:
+
+$$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+
+Conmutando el pin **GPIO14** a nivel alto (`HIGH`), disparando el tiristor de potencia **BT151 (circuito Crowbar)** para cortocircuitar la línea de potencia y paralizar síncronamente la maquinaria pesada en seco antes de consolidar el desfalco patrimonial ante el SECOP II.

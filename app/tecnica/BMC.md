@@ -172,7 +172,11 @@ o ante fluctuaciones menores ($\Psi = 0.69 < 0.70$).
   $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
 
 ### 2. El "Fusible de Fock" como Seguro de Vida Patrimonial
-La aniquilación en Fock ($e^- + e^+ \to 2\gamma$) se re-enmarca no como una destrucción punitiva, sino como un **fusible físico** y un seguro de vida ineludible que blinda la honestidad patrimonial de la constructora ante el SECOP II y el Mandato BIM 2026, permitiendo a los inversores acelerar la innovación bajo un entorno de riesgo confinado.
+Cuando un contratista intenta inyectar un sobreprecio o ítem fantasma en SECOP II, se genera en el espacio de Fock fermiónico $\mathcal{F}(\mathcal{H})$ una excitación: el **electrón de anomalía semántica ($e^-$)**:
+$$a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$$
+Esta cuasipartícula colisiona en la cámara de reacción contra la restricción topológica (positrón de autorización $e^+$). Al no solaparse sus subespacios de Hilbert, se produce una aniquilación cuántica mutua exergética:
+$$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
+liberando dos fotones Gamma ($2\gamma$) con firma SHA-256. Esta aniquilación se re-enmarca como un **fusible físico** y seguro de vida que blinda el patrimonio de la constructora ante el SECOP II y el Mandato BIM 2026.
 
 ### 3. Veto Duro (Hardware Crowbar BT151 en $< 400\text{ ns}$)
 Reservado para desajustes críticos de impedancia TDR ($\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$), rupturas irreversibles o fraude contractual ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo de Heyting colapsa a VETOED ($\top$), ejecutando la **ISR en IRAM del ESP32 en $< 400\text{ ns}$**, conmutando **GPIO14** a HIGH y disparando el tiristor **BT151** (circuito Crowbar) para paralizar las bombas hidráulicas y mezcladoras en seco en el milisegundo cero.

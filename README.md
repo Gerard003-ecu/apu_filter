@@ -164,7 +164,9 @@ La transferencia inter-estratos es un mapeo funtorial gobernado por una Adjunci�
 
 La seguridad del presupuesto no descira en software en la nube susceptible a ataques de inyección (*Prompt Injection*). Se garantiza mediante el **fusible físico** a nivel cuántico y su transmutación en hardware perimetral de obra:
 
-1. **Aniquilación de de Rham en Fock:** Al surgir una alteración en SECOP II, se genera en el espacio de Fock $\mathcal{F}(\mathcal{H})$ un **electrón de anomalía semántica ($e^-$)**. Al colisionar contra el **positrón de autorización ($e^+$)** del presupuesto base inmutable, los subespacios de Hilbert colapsan ortogonalmente en una aniquilación cuántica mutua que libera dos fotones Gamma de auditoría:
+1. **Aniquilación de de Rham en Fock:** Al surgir una alteración en SECOP II, se genera en el espacio de Fock $\mathcal{F}(\mathcal{H})$ un **electrón de anomalía semántica ($e^-$)**:
+   $$a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$$
+   Al colisionar contra el **positrón de autorización ($e^+$)** del presupuesto base inmutable, los subespacios de Hilbert colapsan ortogonalmente en una aniquilación cuántica mutua que libera dos fotones Gamma de auditoría:
    $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
 2. **Bypass por Interrupción en Silicio (ESP32 Crowbar):** El colapso de Heyting al Supremo terminal ($\top$) activa en el firmware del **ESP32** local en obra la **Interrupt Service Routine (ISR) en memoria IRAM en menos de 400 ns**:
