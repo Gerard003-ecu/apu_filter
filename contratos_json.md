@@ -66,7 +66,7 @@ Esta compresión destila la información en "vitaminas cognitivas", liberando la
 ## 4. El Principio de Ortogonalidad en la Ingesta y Traducción Executiva
 Al rechazar matemáticamente cualquier carga que no se ajuste al `SiloAContract`, garantizamos que la base vectorial del presupuesto permanezca ortogonal al ruido exterior. La Fortaleza Matemática no intenta "entender" texto anómalo o heurísticas ambiguas; simplemente mide la exergía estructural del payload. Si la entropía del formato ($H$) excede el límite del contrato, la carga colapsa fuera de la variedad diferenciable del proyecto.
 
-Toda la deliberación sobre los rechazos o desviaciones sintácticas se traduce mediante el **Isomorfismo de Doble Capa** [Isomorfismo_Doble_Capa.md] y el formato adversarial *RiskChallenger* en **Actas de Deliberación** redactadas en lenguaje de negocio pragmático (riesgo y dinero), permitiendo a los directores de obra e interventores entender el impacto financiero directo (mermas, sobrecostos y sanciones en SECOP II) de las fallas de ingesta.
+Toda la deliberación sobre los rechazos o desviaciones sintácticas se traduce mediante la **Pirámide Traductora de Tres Estratos (Isomorfismo de Doble Capa v5)** y el formato adversarial *RiskChallenger* en **Actas de Deliberación** redactadas en lenguaje visceral de negocio ("Dolor y Dinero"), permitiendo a los gerentes de obra, interventores y maestranzas entender el impacto financiero directo (mermas, sobrecostos, duplicación de facturas y sanciones en SECOP II) de las fallas de ingesta en la FPU.
 
 --------------------------------------------------------------------------------
 ## 5. Aniquilación Ciber-Física en Fock y Actuación Crowbar en Silicio (< 400 ns)
