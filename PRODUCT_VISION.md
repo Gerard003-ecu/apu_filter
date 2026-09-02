@@ -51,9 +51,9 @@ En este reactor, el presupuesto es un **complejo simplicial rígido de de Rham a
 
 Si el mismatch excede la cota de Connes ($\check{H}^1 > L_{\max} \cdot \tau_{\mathrm{margin}}$), el motor ejecuta una cirugía aplicando un pullback de deformación anisotrópica sobre la métrica de conductancias $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, reduciendo el acoplamiento ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) e inmunizando la Malla sin alterar la sismorresistencia global [topological_surgery_cech.py, topological_surgery_cech_agent.py].
 
-Cualquier alucinación de la IA (electrón de falla $e^-$) colisiona contra la restricción topológica (positrón de autorización humana $e^+$), sufriendo una aniquilación exergética que preserva la traza de von Neumann $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$:
+Cualquier alucinación de la IA (electrón de falla $e^-$ generado por $a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$) colisiona contra la restricción topológica (positrón de autorización humana $e^+$), sufriendo una aniquilación exergética que preserva la traza de von Neumann $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$:
 
-$$e^- + e^+ \longrightarrow 2\gamma \quad \text{con energía} \quad E = 2 m^* c^2$$
+$$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
 El costo sano se "ilumina" de forma inevitable, irradiando los fotones Gamma de auditoría forense SHA-256 en la Cadena de Custodia, traduciéndose en **Certeza Legal y Ahorro Patrimonial ("Dinero")** para la mesa de juntas.
 
@@ -208,7 +208,10 @@ La gobernanza matemática de APU Filter no confía el capital a meras capas de s
 ```
 
 1. **Detección del Mismatch:** La rutina en C++ `isVerdictCoherent()` en el firmware del ESP32 lee el pasaporte firmado. Si detecta inestabilidad de Lyapunov ($\dot{\mathcal{H}} > 10^{-12}$), torsión homológica ($\operatorname{Tor}(H_k) \neq \mathbf{0}$) o violaciones CPTP ($\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$), identifica una incongruencia epistémica.
-2. **Activación por Hardware en IRAM:** El ESP32 deriva síncronamente el flujo de control hacia su **Interrupt Service Routine (ISR) en IRAM en menos de $400\text{ ns}$**.
+2. **Activación por Hardware en IRAM:** El ESP32 deriva síncronamente el flujo de control hacia su **Interrupt Service Routine (ISR) en IRAM en menos de $400\text{ ns}$**:
+
+$$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+
 3. **Conmutación del GPIO14 y Crowbar BT151:** La ISR conmuta el pin **GPIO14** a nivel alto (`HIGH`), inyectando corriente de compuerta al tiristor **BT151**.
 4. **Parálisis Mecánica Instantánea:** El BT151 cortocircuita la línea de potencia de las bombas hidráulicas y mezcladoras de concreto en el milisegundo cero, paralizando la obra antes de vaciar concreto defectuoso o incurrir en detrimento patrimonial ante el SECOP II.
 

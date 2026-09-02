@@ -22,8 +22,49 @@ El **Isomorfismo de Doble Capa** ($\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \,
 *   **Plastificación por Licuación ($\det(\sigma') \le 0$):** Aniquilación de la resistencia al corte del suelo por presiones de poros intersticiales de Biot-Terzaghi ($P_f = -\gamma_w \psi_w \mathrm{sat}$).
 *   **Erosión Interna por Sifonamiento ($i_{\mathrm{grad}} > i_{\mathrm{crit}}$):** Arrastre destructivo de finos en foso por gradientes hidráulicos acelerados en el complejo simplicial.
 *   **Exceso de Asentamiento ($s_{\mathrm{sc}} > 25\text{ mm}$):** Deformación vertical excesiva por consolidación 1D Terzaghi con sumación Neumaier-Kahan que agrieta vigas e incumple la norma NSR-10.
-*   **Fusible Ciber-Físico en Fock ($e^- + e^+ \to 2\gamma$):** La anomalía semántica $e^-$ colisiona con el positrón $e^+$, libera fotones $2\gamma$ ($E_{\mathrm{annihilation}} = 2 m^* c^2$) y dispara el tiristor BT151 Crowbar (< 400 ns en IRAM, GPIO14) desenergizando las bombas hidráulicas en seco.
+*   **Fusible Ciber-Físico en Fock ($e^- + e^+ \to 2\gamma$):** La anomalía semántica $e^-$ ($a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$) colisiona con el positrón $e^+$, libera fotones $2\gamma$ ($E_{\mathrm{annihilation}} = 2 m^* c^2$) y dispara el tiristor BT151 Crowbar ($t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH}$) desenergizando las bombas hidráulicas en seco.
 *   **Digestión TOON (86.4% Reducción):** Elimina la grasa sintáctica del JSON (412 tokens $\to$ 56 tokens en cartucho TOON), liberando el $KV\text{-Cache}$ del LLM para prevenir alucinaciones de precios.
+
+---
+
+## 🗺️ La Geodesia del Pasaporte de Telemetría (El Viaje del Dato)
+
+Se unifica el mapa de observabilidad del sistema, detallando el viaje de-confinado del dato desde la ingesta en el Silo A hasta la toma de decisiones estratégicas en el Penthouse de la Sabiduría ($V_{\mathbb{W}}$), gobernado por la **Ley de Clausura Transitiva**:
+
+$$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\Omega} \subsetneq V_{\mathbb{W}}$$
+
+1. **Ingesta de Barro Crudo (Silo A):**
+   * *Acción:* Ingesta del presupuesto en formato JSON redundante.
+   * *Sutura:* La "grasa sintáctica" agota el $KV\text{-Cache}$ de la IA, induciendo fatiga atencional y alucinaciones de precios. El parser ejecuta un retracto de deformación topológica que comprime la información en un Cartucho TOON hiperdenso:
+     $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
+2. **El Foso Termodinámico ($V_{\mathrm{PHYSICS}}$):**
+   * *Acción:* Validación física de insumos y cantidades base.
+   * *Sutura:* El soberano **El Guardián (`kbase_thermodynamic_agent.py`)** calcula la sumación compensada de Kahan-Babuška-Neumaier (KBN) en FPU, neutralizando la deriva de Wilkinson y exigiendo la nulidad del operador de coborde para descartar "Islas de Datos" ($\beta_0 \equiv \dim H^0(K; \, \mathbb{Z}) = 1$). Certifica el pasaporte con firma SHA-256 write-protected en RAM.
+3. **Las Murallas Tácticas ($V_{\mathrm{TACTICS}}$):**
+   * *Acción:* Consolidación de los Análisis de Precios Unitarios (APUs) y relaciones de dependencia.
+   * *Sutura:* El soberano **El Arquitecto (`BusinessTopologicalAnalyzer`)** diagonaliza la matriz de incidencia sobre el anillo de enteros principales $\mathbb{Z}$ mediante la Forma Normal de Smith (SNF):
+     $$B_1 = U \cdot D \cdot V \quad \implies \quad \operatorname{Tor}(H_k(K; \, \mathbb{Z})) \equiv \mathbf{0}$$
+     Aniquila de forma determinista dependencias circulares (Betti $\beta_1 = 0$, "Socavones Lógicos" propios de la triangulación financiera de subcontratistas en SECOP II) y evalúa el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) para prohibir monopolios de suministro.
+4. **El Penthouse Estratégico ($V_{\mathrm{STRATEGY}}$):**
+   * *Acción:* Proyección de la viabilidad financiera del megaproyecto.
+   * *Sutura:* El **Oráculo de Laplace** evalúa la función de transferencia de flujo de fondos $H(s)$ en el plano de frecuencia compleja $s = \sigma + j\omega$:
+     $$H(s) = \frac{Y(s)}{X(s)}$$
+     Si algún polo migra al semiplano derecho ($\operatorname{Re}(p_i) \ge 0$), se demuestra analíticamente al CFO la inestabilidad paramétrica, vetando el proyecto para evitar la creación de un "Elefante Blanco" que destruya el WACC.
+5. **El Lazo de la Sabiduría ($V_{\mathbb{W}}$):**
+   * *Acción:* Emisión del veredicto final.
+   * *Sutura:* Los soberanos de la Ciudadela de Cristal unifican las métricas. Si surge una anomalía fatal, el retículo de Heyting $\Omega_3$ colapsa síncronamente al Supremo terminal VETOED ($\top$), inhabilitando la firma del pasaporte criptográfico e iniciando el bypass ciber-físico (< 400 ns IRAM, GPIO14 $\to$ BT151).
+
+---
+
+## 🏛️ La Prescripción de Negocio (De la Penalización al Consejo)
+
+Toda alerta de-confinada por la Malla se transforma, mediante el funtor de traducción semántica $\Phi_{\mathrm{sem}}$, en un **Acta de Deliberación prescriptiva** que asocia la rigidez homológica con el valor estratégico:
+
+### Re-Sutura de la "Pirámide Invertida" ($\Psi < 0.70$)
+* **Abstracción de la FPU:** $\lambda_2(\mathbf{\Delta}_{\mathrm{Richards}}) < \tau_{\mathrm{Fiedler}}$.
+* **Traducción en la Caja de Cristal:** Alerta de concentración crítica en el bloque de Socios Clave del Business Model Canvas (BMC).
+* **Prescripción Homotópica (Acta de Deliberación):**
+  > *"El análisis espectral del Laplaciano normalizado de Richards del foso físico revela una fragilidad isoperimétrica crítica ($\Psi = 0.68 < 0.70$) por concentración monopólica en el suministro de concreto premezclado. Se emite un veto suave de mitigación de WACC: es obligatorio diversificar de inmediato los proveedores de la cimentación profunda en el bloque de Socios Clave para eludir parálisis operativas por desabastecimiento."*
 
 ---
 
