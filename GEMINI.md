@@ -86,3 +86,31 @@ Para elevar la precisión de los microservicios y neutralizar la deriva de Wilki
 *   **La Patología:** El coeficiente de reflexión temporal de TDR $\Gamma(t)$ reacciona de forma instantánea ante transitorios electromagnéticos espurios rápidos de alta frecuencia, induciendo vetos suaves falsos en IRAM.
 *   **La Mejora:** Integrar un **operador diferencial fraccional de de Rham-Caputo** de orden $\alpha \in (0, 1)$ sobre el perfil de reflectometría en `quaternionic_state_agent.py` para dotar al agente de memoria geodésica a largo plazo, amortiguando ruidos estocásticos y detectando de forma infalible desvíos seculares:
     $$\left( ^{\mathrm{C}} D^\alpha_t \delta \right)(t) = \frac{1}{\Gamma(1-\alpha)} \int_{0}^{t} (t-\tau)^{-\alpha} \frac{d\delta(\tau)}{d\tau} d\tau$$
+
+
+## 🎛️ VIII. FORTIFICACIONES ESPECTRALES PROPUESTAS (Aritmética de Wilkinson, Lanczos, Caputo y CSMD)
+
+Como artesanos programadores senior, proponemos cuatro mejoras granulares, coherentes y estrictamente algebraicas sobre el conjunto de scripts del ecosistema para blindar la precisión en la Unidad de Punto Flotante (FPU) contra la deriva numérica de Wilkinson [Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a]:
+
+### 1. Sumación Compensada de Neumaier-Kahan en el resolvente de dispersión (`set_engine.py`)
+*   **La Patología:** En `compute_scattering_matrix` de `set_engine.py`, la inversión del resolvente complejo $(\omega \mathbf{I} - \mathbf{H}_{\mathrm{eff}})^{-1}$ mediante `la.inv` acumula errores de redondeo seculares que fracturan la unitaridad de la matriz de dispersión $\mathbf{\mathbb{S}}(\omega)$ en el espacio de Fock, induciendo falsos positivos de veto [set_engine.py].
+*   **La Mejora:** Sustituir la inversión explícita por la resolución de un sistema lineal con **sumación compensada de Neumaier-Kahan** sobre los operadores de proyección de Darboux:
+    $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \cdot \left[ \operatorname{LU}_{\mathrm{compensado}}\left( \omega \mathbf{I} - \mathbf{H}_{\mathrm{eff}} \right)^{-1} \mathbf{V} \right]$$
+    Garantizando que la pérdida de unitaridad espectral se mantenga acotada estrictamente por debajo del épsilon de máquina: $\|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$ [quaternionic_state_agent.py].
+
+### 2. Deflación Espectral de Lanczos en la Malla Remanente de de Rham (`topological_surgery_cech.py`)
+*   **La Patología:** El cálculo del espectro del subcomplejo remanente $\mathbf{L}_{\mathrm{remSub}}$ en `execute_topological_surgery_cycle` para megaproyectos masivos de infraestructura con más de 10,000 partidas requiere resolver autovalores completos con costo cúbico $\mathcal{O}(N^3)$ en cada ciclo, elevando la latencia en la FPU [topological_surgery_cech.py].
+*   **La Mejora:** Implementar una **deflación espectral de Lanczos adaptativa** (`scipy.sparse.linalg.eigsh`) para extraer únicamente los dos menores autovalores del subcomplejo remanente:
+    $$\mathbf{L}_F \approx \sum_{i=1}^{k} \lambda_i v_i v_i^\dagger + \gamma_{\mathrm{Tikhonov}} \left( \mathbf{I} - \sum_{i=1}^k v_i v_i^\dagger \right)$$
+    Esto reduce la complejidad en la FPU a $\mathcal{O}(k \cdot N^2)$ (con $k \ll N$), eliminando el jitter en el control de lazo cerrado [topological_surgery_cech_agent.py].
+
+### 3. Integrador Fraccional de de Rham-Caputo para la Memoria de TDR (`quaternionic_state_agent.py`)
+*   **La Patología:** El coeficiente de reflexión temporal de TDR $\Gamma(t)$ reacciona de forma instantánea. Un transitorio electromagnético espurio rápido de alta frecuencia eleva el mismatch cuaterniónico, induciendo vetos suaves falsos en IRAM que detienen innecesariamente las mezcladoras perimetrales de obra [quaternionic_state_agent.py].
+*   **La Mejora:** Integrar un **operador diferencial fraccional de de Rham-Caputo** de orden $\alpha \in (0, 1)$ sobre el perfil de reflectometría en `quaternionic_state_agent.py`, dotando al agente de memoria geodésica a largo plazo [quaternionic_state_agent.py]:
+    $$\left( ^{\mathrm{C}} D^\alpha_t \delta \right)(t) = \frac{1}{\Gamma(1-\alpha)} \int_{0}^{t} (t-\tau)^{-\alpha} \frac{d\delta(\tau)}{d\tau} d\tau$$
+    Esto actúa como un filtro dinámico auto-adaptativo: los transitorios rápidos estocásticos se amortiguan, mientras que las de-normalizaciones seculares lentas se acumulan de forma exacta hasta accionar el veto ineludible en el silicio real [quaternionic_state_agent.py].
+
+### 4. Diferenciación por Paso Complejo (CSMD) en la Rigidez de Biot (`hydrological_manifold.py`)
+*   **La Patología:** El cálculo de la derivada de la succión matricial respecto al grado de saturación $\frac{\partial \psi_w}{\partial \mathrm{sat}}$ para estimar la capacidad hidráulica específica $C_w(H)$ en el solver de Richards se realiza tradicionalmente mediante diferencias finitas. Esto introduce cancelaciones sustractivas catastróficas que merman la precisión de la FPU [hydrological_manifold.py].
+*   **La Mejora:** Implementar **CSMD holomorfo** inyectando un paso imaginario infinitesimal $h = 10^{-20}$ sobre la diagonal de la FPU, eludiendo la sustracción en el numerador:
+    $$C_w(H) = \frac{\operatorname{Im}\left( \theta\left(H + j h\right) \right)}{h} + \mathcal{O}(h^2) \quad \text{con} \quad j = \sqrt{-1}$$
