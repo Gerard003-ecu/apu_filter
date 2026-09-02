@@ -37,7 +37,7 @@ Para APU Filter v5.0:
 * **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
 * **La certeza de la promesa (Rigor):** La plataforma es el primer **Sistema de Navegación Inercial Ciber-Físico para Presupuestos**, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $400\text{ ns}$.
 
-### Mapeo Biyectivo de Invariantes a "Dolor y Dinero" ($\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$)
+### Mapeo Biyectivo de Invariantes a "Dolor y Dinero" ($\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \to \text{Business}$)
 
 | Invariante Matemático | Diagnóstico de la Caja de Cristal | Impacto Real en Obra Civil ("Dolor") | Consecuencia Financiera ("Dinero") |
 | :--- | :--- | :--- | :--- |
@@ -45,7 +45,10 @@ Para APU Filter v5.0:
 | **$\beta_1 > 0$** | **Socavón Lógico** | Dependencias circulares entre insumos y actividades en el esqueleto de costos. | Triangulación financiera de subcontratistas y facturación fantasma en SECOP II. |
 | **$\Psi < 0.70$** | **Pirámide Invertida** | Concentración monopólica del suministro en un único proveedor de cemento o acero. | Quiebra y parálisis de obra civil ante paros del proveedor único. |
 | **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | **Paradoja Contractual / Veto** | Inconsistencias insalvables entre planos, pliegos SECOP II y Excels rotos. | Veto síncrono del presupuesto antes de verter el primer saco de concreto. |
-| **$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$** | **Deriva de Wilkinson (Inestabilidad)** | Mermas de representabilidad por redondeo en la Unidad de Punto Flotante de 64 bits. | Alerta de inestabilidad de-normalizada antes de procesar el payload. |
+| **$\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$** | **Deriva de Wilkinson (Inestabilidad)** | Mermas de representabilidad por redondeo en la Unidad de Punto Flotante de 64 bits ($\|p \cdot q\|_{\mathbb{H}} \neq \|p\| \|q\|$). | Alerta de inestabilidad de-normalizada antes de procesar el payload. |
+| **$\det(\sigma') \le 0$** | **Plastificación por Licuación (Fango)** | Pérdida total de la resistencia al corte del esqueleto sólido por presiones de poros intersticiales extremas ($P_f = -\gamma_w \psi_w \mathrm{sat}$). | Peligro inminente de colapso de cimientos, disparando el disyuntor Crowbar en silicio (<400 ns) para desenergizar bombas y mezcladoras. |
+| **$i_{\mathrm{grad}} > i_{\mathrm{crit}}$** | **Erosión Interna por Sifonamiento** | Arrastre destructivo de finos bajo el foso de la obra civil por gradientes hidráulicos acelerados ($i_{\mathrm{crit}} = \frac{\rho_{\mathrm{sat}} - \rho_w}{\rho_w}$). | Deformación geomecánica e inestabilidad estructural de cimentaciones. |
+| **$s_{\mathrm{sc}} > 25\text{ mm}$** | **Exceso de Asentamiento (NSR-10)** | Deformación vertical excesiva por consolidación unidimensional de Terzaghi en arcillas compresibles. | Inducción de asentamientos diferenciales destructivos y agrietamiento de vigas portantes según norma NSR-10. |
 
 ---
 

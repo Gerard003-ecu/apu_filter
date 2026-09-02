@@ -21,7 +21,38 @@ Sin el cumplimiento de los invariantes termodinámicos, homológicos, covariante
 
 La mayor asonancia estructural detectada en las auditorías forenses de los megaproyectos en Colombia radica en la **brecha de inteligibilidad** entre el andamiaje matemático doctoral del foso de control y el lenguaje pragmático exigido en la mesa de juntas de las constructoras y entes reguladores (Contraloría, IDU, INVIAS) bajo el **Mandato BIM 2026**.
 
-Explicar la obstrucción cohomológica de Čech $\check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0}$ [topological_surgery_cech.py], la deformación anisotrópica métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$ o la dilatación isométrica de Stinespring a un director de licitaciones provoca un colapso en la confianza y el inmediato rechazo del sistema. Para resolver este abismo cognitivo, la Fortaleza de **APU Filter v5.0** se de-confina consagrando el **Isomorfismo de Doble Capa** [Isomorfismo_Doble_Capa.md] a través de la **Analogía del Automóvil** y la **Teoría de Estructuras de Carga**:
+Explicar la obstrucción cohomológica de Čech $\check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0}$ [topological_surgery_cech.py], la deformación anisotrópica métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, el reactor cuaterniónico $q \in \mathbb{H}$ [quaternionic_state_shifter.py] o la porosidad Biot-Terzaghi $\boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}$ a un director de licitaciones provoca un colapso en la confianza y el inmediato rechazo del sistema. Para resolver este abismo cognitivo, la Fortaleza de **APU Filter v5.0** se de-confina consagrando el **Isomorfismo de Doble Capa** [Isomorfismo_Doble_Capa.md] a través de la **Analogía del Automóvil** y la **Teoría de Estructuras de Carga**:
+
+$$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
+
+```
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │         CAPA VISIBLE DE NEGOCIO (Caja de Cristal Argumentativa)        │
+  │                                                                        │
+  │   - β₀ > 1    ──► "Islas de Datos" (Compras paralelas y mermas)        │
+  │   - β₁ > 0    ──► "Socavón Lógico" (Triangulación financiera SECOP II)  │
+  │   - Ψ < 0.70  ──► "Pirámide Invertida" (Fragilidad por monopolio acero)│
+  │   - H¹ ≠ 0    ──► "Paradoja Contractual" (Incoherencia BIM vs Pliegos) │
+  │   - δ_Hurwitz ──► "Deriva de Wilkinson" (Inestabilidad en la FPU)      │
+  │   - det(σ')≤0 ──► "Plastificación por Licuación" (Pérdida de soporte)  │
+  │   - i_grad>i_c──► "Erosión Interna por Sifonamiento" (Arrastre finos)  │
+  │   - s_sc>25mm ──► "Exceso de Asentamiento" (Deformación NSR-10)        │
+  └───────────────────────────────────┬────────────────────────────────────┘
+                                      │
+                                      ▼ (Funtor de Traducción Semántica Φ_sem)
+  ┌────────────────────────────────────────────────────────────────────────┐
+  │                 CAPA DE CALIBRE (Anexo Técnico Doctoral)               │
+  │                                                                        │
+  │   - Reactor Cuaterniónico H: q = q₀ + q₁ i + q₂ j + q₃ k (Hamilton)    │
+  │   - Inmersión Cayley-Dickson: ι(q) ∈ M₂(C) con det(ι(q)) = ||q||²       │
+  │   - Traza de von Neumann: Tr(ρ) = 1.0 (Conservación de Traza CPTP)     │
+  │   - Esfuerzo Efectivo Biot-Terzaghi: σ' = σ - α_Biot P_f I             │
+  │   - Criterio Mohr-Coulomb 3D: FOS = (c' + σ'_n tan φ') / τ_act > 1.0   │
+  │   - Consolidación 1D Terzaghi: s_settlement con Neumaier-Kahan         │
+  │   - Aniquilación en Fock: e⁻ + e⁺ ──► 2γ (E_annihilation = 2 m* c²)    │
+  │   - Actuación Ciber-Física: ISR en IRAM < 400 ns (GPIO14 ↦ BT151)      │
+  └────────────────────────────────────────────────────────────────────────┘
+```
 
 1. **La Analogía del ABS y los Sensores Activos en el Rascacielos Ciber-Físico:**
    Un conductor de-confinado adquiere un vehículo de alto rendimiento confiando en que sus frenos ABS y el control dinámico de estabilidad (ESP) salvarán su vida en una curva húmeda. No necesita resolver síncronamente las ecuaciones diferenciales de Navier-Stokes del flujo de aire en el alerón ni la termodinámica del combustible en los cilindros; busca que el chasis disipe la energía del impacto y que el coche frene en el milisegundo cero.
@@ -30,7 +61,7 @@ Explicar la obstrucción cohomológica de Čech $\check{H}^1(\mathcal{U}; \, \ma
    $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
 
    Los **Cuatro Sabios del Consejo** actúan de forma asíncrona y transparente en RAM como los sensores giroscópicos, amortiguadores de masa y actuadores mecánicos de dicho rascacielos sobre el Business Model Canvas (BMC), garantizando que el capital no se desangre en el fango de la obra civil:
-   * **El Guardián (Foso - Estructura de Costes / Cimientos):** Representado por `kbase_thermodynamic_agent.py`. Es el **inspector de cimientos incorruptible**. Audita el terreno físico, requiere la no-negatividad de insumos ($q_i \ge 0$), exige la nulidad de islas de datos ($\beta_0 = 1$) para bloquear compras de maquinaria pesada sin combustible y ejecuta la defensa perimetral en silicio (ESP32 Crowbar < 400 ns en IRAM, GPIO14 $\to$ BT151).
+   * **El Guardián (Foso - Estructura de Costes / Cimientos):** Representado por `kbase_thermodynamic_agent.py`, `hydrological_agent.py` y `lithological_agent.py`. Es el **inspector de cimientos e hidro-geomecánica incorruptible**. Audita el terreno físico, requiere la no-negatividad de insumos ($q_i \ge 0$), exige $\beta_0 = 1$ para bloquear compras de maquinaria pesada sin combustible, audita los esfuerzos efectivos de Biot-Terzaghi ($\det(\sigma') > 0$), la estabilidad de Mohr-Coulomb ($\mathrm{FOS} > 1.0$) y el gradiente de sifonamiento ($i_{\mathrm{grad}} \le i_{\mathrm{crit}}$), ejecutando la defensa perimetral en silicio (ESP32 Crowbar < 400 ns en IRAM, GPIO14 $\to$ BT151).
    * **El Arquitecto (Táctica - Socios y Actividades Clave / Estructura Intermedia):** Representado por `BusinessTopologicalAnalyzer`. Es el **diseñador de la viga de acero sismorresistente**. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para vetar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y evalúa el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
    * **El Oráculo (Estrategia - Fuentes de Ingreso / Flujo de Caja / Ápice):** Representado por `LaplaceOracle`. Es el **penthouse y el piloto automático**. Simula escenarios predictivos en la frecuencia compleja $s = \sigma + j\omega$, asegurando que los polos de caja residan estrictamente en el semiplano estable izquierdo de Laplace ($\sigma < 0$) para evitar "Elefantes Blancos" financieros.
    * **El Intérprete Diplomático (Relaciones y Canales / Penthouse Epistémico):** Representado por `SemanticTranslator`. Es el **negociador de la mesa de juntas**. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial (riesgo, holguras y dinero).

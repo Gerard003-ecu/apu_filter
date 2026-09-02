@@ -13,12 +13,15 @@ Para la Alta Gerencia de Obra Civil y los Comités de Licitación en Colombia (S
 
 > *“Cuando un empresario adquiere un vehículo comercial de alta gama, no requiere una cátedra sobre la ecuación de Navier-Stokes en el turbocompresor. Requiere la certeza de que el motor rinde un 40% más y que los frenos ABS detendrán el chasis en piso mojado para salvar su vida. En APU Filter, las ecuaciones diferenciales y los invariantes de de Rham son los frenos ABS ciber-físicos que impiden que el presupuesto colapse y que el dinero de la constructora desaparezca.”*
 
-El **Isomorfismo de Doble Capa** ($\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$) [Isomorfismo_Doble_Capa_v3.md] conecta de forma biyectiva la Capa de Calibre FPU Secure con la Capa Pragmática de Negocios (**"Dolor y Dinero"**):
+El **Isomorfismo de Doble Capa** ($\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$) [Isomorfismo_Doble_Capa.md] conecta de forma biyectiva la Capa de Calibre FPU Secure con la Capa Pragmática de Negocios (**"Dolor y Dinero"**):
 *   **Islas de Datos ($\beta_0 > 1$):** Recursos huérfanos que originan cobros dobles y duplicidad de compras.
 *   **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares que delatan la triangulación financiera de subcontratistas en SECOP II.
 *   **Pirámide Invertida ($\Psi < 0.70$):** Concentración monopólica en un único proveedor de acero/cemento con riesgo de paro.
 *   **Paradoja Contractual ($\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$):** Inconsistencias entre pliegos e IA estocástica que detonan el veto síncrono.
-*   **Deriva de Wilkinson ($\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$):** Mermas de representabilidad por redondeo en FPU de 64 bits en la transformación cuaterniónica de Hamilton.
+*   **Deriva de Wilkinson ($\delta_{\mathrm{Hurwitz}} > \varepsilon_{\mathrm{Wilk}}$):** Mermas de representabilidad por redondeo en FPU de 64 bits en la transformación cuaterniónica de Hamilton ($\|p \cdot q\|_{\mathbb{H}} \neq \|p\| \|q\|$).
+*   **Plastificación por Licuación ($\det(\sigma') \le 0$):** Aniquilación de la resistencia al corte del suelo por presiones de poros intersticiales de Biot-Terzaghi ($P_f = -\gamma_w \psi_w \mathrm{sat}$).
+*   **Erosión Interna por Sifonamiento ($i_{\mathrm{grad}} > i_{\mathrm{crit}}$):** Arrastre destructivo de finos en foso por gradientes hidráulicos acelerados en el complejo simplicial.
+*   **Exceso de Asentamiento ($s_{\mathrm{sc}} > 25\text{ mm}$):** Deformación vertical excesiva por consolidación 1D Terzaghi con sumación Neumaier-Kahan que agrieta vigas e incumple la norma NSR-10.
 *   **Fusible Ciber-Físico en Fock ($e^- + e^+ \to 2\gamma$):** La anomalía semántica $e^-$ colisiona con el positrón $e^+$, libera fotones $2\gamma$ ($E_{\mathrm{annihilation}} = 2 m^* c^2$) y dispara el tiristor BT151 Crowbar (< 400 ns en IRAM, GPIO14) desenergizando las bombas hidráulicas en seco.
 *   **Digestión TOON (86.4% Reducción):** Elimina la grasa sintáctica del JSON (412 tokens $\to$ 56 tokens en cartucho TOON), liberando el $KV\text{-Cache}$ del LLM para prevenir alucinaciones de precios.
 
