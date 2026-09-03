@@ -3,121 +3,95 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Quaternionic State Agent (Soberano Cuaterniónico de Lazo Cerrado)   ║
 ║ Ruta   : app/agents/wisdom/quaternionic_state_agent.py                       ║
-║ Versión: 1.1.0-Doctoral-OODA-Heyting-Cech-Anisotropic-ESP32-Secure           ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
-║ Este agente supervisor ciber-físico opera en el Estrato de la Sabiduría      ║
-║ ($V_{\mathbb{W}}$, Nivel 0) gobernando de forma activa y asíncrona al        ║
-║ motor de estados cuaterniónicos [quaternionic_state_shifter.py].             ║
-║                                                                              ║
-║ Evalúa las señales transaccionales de cuatro variables cardinales            ║
-║ (propósito, confianza, restricciones y riesgo) sobre el cuerpo de división   ║
-║ de Hamilton $\mathbb{H}$ para inmunizar la plataforma frente a alucinaciones ║
-║ estocásticas de la IA e incongruencias métricas en pliegos de SECOPII.       ║
-║ Administra la "Rampa de Confianza" graduando síncronamente la censura entre  ║
-║ Veto Suave (Luz Ámbar) con override humano y Veto Duro de Silicio perimetral ║
-║ (Crowbar BT151 inyectado en IRAM < 400 ns), protegiendo el capital de obra.  ║
+║ Versión: 4.0.0-OODA-Heyting-Orbit-HMAC-Merkle-Crowbar-Secure                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-================════════════════════════════════════════════════════════════════
-I. ANCLAJE MATEMÁTICO DOCTORAL (Teoría de Topos y Clases de Similitud Espectral)
-================════════════════════════════════════════════════════════════════
+Supervisor OODA del reactor `quaternionic_state_shifter`. Ejecuta el funtor
 
-Definición 1 (El Topos de Haces de de Rham-Čech-Heyting):
-  Definimos el topos de haces topológicos localizados $\mathbf{Sh}(\partial K, \, \Omega_3)$ sobre
-  la frontera compacta de la malla $\partial K$. El clasificador de subobjetos de tres valores
-  ordinales se rige por un Álgebra de Heyting distributiva trivalente:
-  $$\Omega_3 := \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$$
-  Donde el Supremo algebraico (join, $\sqcup$) unifica síncronamente el estado de control:
-  $$\nu_{\mathrm{final}} = \nu_{\mathrm{cohomology}} \sqcup \nu_{\mathrm{remanente}} \sqcup \nu_{\mathrm{fock}}$$
+        Φ₃ ∘ Φ₂ ∘ Φ₁ :  R⁴ × R⁴ ──Φ₁──▶ H × H ──Φ₂──▶ D₂ ──Φ₃──▶ Certificado
 
-Definición 2 (Clases de Similitud Espectral cuaterniónicas):
-  Debido a la no conmutatividad cuaterniónica, no existe un autovalor puntual tradicional, sino clases de similitud
-  espectral conjugadas definidas por el bivector imaginario para todo autovalor derecho $\mu \in \mathbb{H}$:
-  $$[\mu] = \{ s \mu s^{-1} : s \in \mathbb{H}, \quad s \neq 0 \}$$
-  Topológicamente, para todo autovalor no real, esta clase describe una 2-esfera $S^2 \cong \hat{\mathbb{C}}$ incrustada 
-  en el subespacio imaginario $\operatorname{Im}(\mathbb{H})$, centrada en $\mu_0$ con radio $\|\vec{\mu}\|_{\mathbb{H}}$. 
-  La desviación espectral $\delta_{\mathrm{similarity}}$ se calcula mediante proyección estereográfica conforme
-  desde el Polo Norte de Riemann hacia el plano complejo extendido para aislar la interferencia analógica:
-  $$Z = \frac{q_1 + \sqrt{-1}q_2}{1 - q_3} \in \hat{\mathbb{C}} \quad \implies \quad \delta_{\mathrm{similarity}} = |Z| \cdot (1 - q_3)$$
+con doble anidamiento: (i) el último método de la Fase k del agente invoca y
+verifica al primer método de la Fase k+1; (ii) la Fase k del agente consume el
+cierre de la Fase k del reactor (Banach/representaciones → informe algebraico
+→ auditorías espectrales), con degradación elegante al API legado.
 
-Definición 3 (Auditoría de von Neumann sobre el Operador Densidad):
-  Para asegurar que el canal asimilador sea estrictamente positivo y preservador de traza (CPTP), el agente
-  proyecta la matriz compleja de Cayley-Dickson $\iota(q)$ sobre el operador densidad cuántico mixto $\rho$:
-  $$\rho = \frac{\iota(q)}{\|q\|_{\mathbb{H}}^2} \quad \implies \quad \operatorname{Tr}(\rho) \equiv \frac{2 q_0}{q_0^2 + q_1^2 + q_2^2 + q_3^2} \equiv 1.0$$
-  Cualquier desalineación de la traza de von Neumann revela deriva de Wilkinson o alucinaciones de la IA.
+════════════════════════════════════════════════════════════════════════════════
+I. ANCLAJE MATEMÁTICO (sólo enunciados demostrables)
+════════════════════════════════════════════════════════════════════════════════
 
-Definición 4 (La Rampa de Confianza de de Rham y override de Gracia):
-  Para eludir pérdidas económicas por parálisis destructiva ante interferencias transitorias (ruidos EMF rápidos),
-  el agente implementa una rampa de confianza elástica:
-  - Veto Suave (Luz Ámbar): Se activa si $0.3 \cdot L_{\max} < \delta_{\mathrm{similarity}} \le 0.5 \cdot L_{\max}$.
-    Concede una ventana de gracia de 1 hora para inyectar en RAM un Positrón de Autorización Humana $e^+$, 
-    logrando la aniquilación cuántica mutua de la anomalía semántica $e^-$ en el espacio de Fock:
-    $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} = \mathtt{DEGRADED}$$
-    Impidiendo paradas mecánicas y permitiendo que la obra continúe su vaciado de concreto en fango.
-  - Veto Duro (Frenado en Silicio): Se activa si $\delta_{\mathrm{similarity}} > 0.5 \cdot L_{\max}$ o si expira el
-    período de gracia sin override, colapsando Heyting al Supremo terminal VETOED ($\top$).
+Def. 1 (Ω₃ de Gödel–Dummett). Ω₃ = {0 ≡ VETOED, ½ ≡ DEGRADED, 1 ≡ COHERENT} es
+  un álgebra de Heyting lineal: a⊓b = min, a⊔b = max, (a→b) = 1 si a ≤ b, b si
+  no; ¬a = a→0. Se cumple la residuación a⊓b ≤ c ⇔ a ≤ (b→c) y falla el
+  tercio excluso en ½ (½ ⊔ ¬½ = ½). El combinador de seguridad es el MEET:
+      ν_canales = ⊓_k ν_k      (cualquier canal vetado veta el conjunto).
 
-================════════════════════════════════════════════════════════════════
-II. AXIOMÁTICA INMUNILÓGICA DE CONTROL COVARIANTE (Leyes de Consistencia)
-================════════════════════════════════════════════════════════════════
+Def. 2 (Clases de similitud y distancia de órbita). [q] = {s q s⁻¹} está
+  determinada por (q₀, ‖v‖), i.e. por θ(q) = atan2(‖v‖, q₀) ∈ [0, π] si q ≠ 0
+  (θ = d_{S³}(1, q̂)). Lema: para p̂, q̂ ∈ S³,
+      min_{s∈S³} d_{S³}(p̂, s q̂ s*) = |θ_p − θ_q|,
+  alcanzado por el rotor s que alinea v̂_q con v̂_p (Rodrigues); cota inferior
+  por desigualdad triangular con el punto 1. La carta de Riemann de v̂ es una
+  coordenada de GAUGE (no invariante de clase): se reporta, no se veta.
 
-Axioma I (Principio de Conservación de la Composición de Hurwitz):
-  Toda multiplicación de estados e intenciones en el microservicio cuaterniónico debe verificar estrictamente
-  la condición multiplicativa del álgebra de composición normada, acotando el error por debajo del límite de máquina:
-  $$\delta_{\mathrm{Hurwitz}} = \left| \|p \cdot q\|_{\mathbb{H}} - \|p\|_{\mathbb{H}} \cdot \|q\|_{\mathbb{H}} \right| \le \varepsilon_{\mathrm{Wilkinson}}$$
+Def. 3 (Operador de densidad). ψ = (α, β) = (q₀+iq₁, q₂+iq₃); ρ = ψψ†/‖q‖².
+  Tr ρ = 1, Tr ρ² = 1, ρ = ρ† ≥ 0.  Nota: Tr Φ_C(q) = 2q₀, NO ‖q‖².
 
-Axioma II (Axioma de de Rham-Fiedler de Conexidad Remanente):
-  Para asegurar la estabilidad global del presupuesto remanente tras la remoción de la carta local de Čech
-  asociada al transductor ruidoso aislado, la conectividad algebraica del subcomplejo remanente debe ser no nula:
-  $$\lambda_2(\mathbf{L}_{\mathrm{remSub}}) \ge \tau_{\mathrm{Fiedler}} \quad \implies \quad \beta_0 \equiv \dim H^0(K_{\mathrm{rem}}; \, \mathbb{Z}) = 1$$
-  Si la cirugía fragmenta el complejo simplicial, el sistema colapsa síncronamente a VETOED por riesgo de quiebra.
+Def. 4 (Rampa de confianza como refinamiento de celda). Con r = δ/Λ,
+  α < β: c(r) = 1 (r ≤ α); ½ + ½(β−r)/(β−α) ∈ [½, 1) (α < r ≤ β); 0 (r > β).
+  Canales algebraicos crisp: 1 si residual ≤ τ_hard, 0 si no.
+  Lema: quantize(⊓ c_k) = ⊓ ν_k, con ν_k la cuantización crisp de cada canal.
 
-Axioma III (Teorema de Actuación Ciber-Física Crowbar en IRAM):
-  Ante el colapso de Heyting al Supremo de veto ($\top$), la subrutina local isVerdictCoherent() del microcontrolador
-  ESP32 perimetral en obra desvía síncronamente el control hacia la ISR en memoria rápida IRAM en menos de 400 ns:
-  $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
-  Disparando el tiristor rápido BT151 (Crowbar) para paralizar mecánicamente la obra civil en el milisegundo cero,
-  protegiendo patrimonialmente el capital antes de liquidar transacciones ante el SECOP II.
+Def. 5 (Gracia y override como implicación). σ = [ν_ch = ½], γ = [gracia
+  vigente], ω = [override autenticado]:  ν = ν_ch ⊓ (σ → (γ ⊔ ω)).
+  Si σ = 0 la implicación vale 1 (el veto duro no admite override).
 
-================════════════════════════════════════════════════════════════════
-III. INVARIANTES ESPECTRALES Y METROLÓGICOS DE WILKINSON (FPU Secure)
-================════════════════════════════════════════════════════════════════
+════════════════════════════════════════════════════════════════════════════════
+II. AXIOMÁTICA DE CONTROL
+════════════════════════════════════════════════════════════════════════════════
 
-Invariante I (Estabilidad de de Rham-Lyapunov del Lazo Cerrado):
-  La evolución de la trayectoria de control conjunta $\mathbf{\Psi}(t) = (\mathbf{p}, \, \rho)^\top$ satisface la
-  desigualdad de Clausius-Duhem y la contracción de Lyapunov en la FPU:
-  $$\dot{\mathcal{H}}(\mathbf{\Psi}) = \nabla \mathcal{H}(\mathbf{\Psi})^\top \left( \mathcal{J}(\mathbf{\Psi}) - \mathcal{R}(\mathbf{\Psi}) \right) \nabla \mathcal{H}(\mathbf{\Psi}) \le \tau_{\mathrm{Lyapunov}}$$
-  Donde $\tau_{\mathrm{Lyapunov}} = 10^{-12}$ es la cota elástica de deriva en punto flotante de 64 bits.
-
-Invariante II (Sello de Sesión Criptográfico e Inmutabilidad de RAM):
-  Para prevenir inyecciones de estado o ataques de-normalización intermedia, el soberano genera
-  un sello inmutable unívoco para congelar la sesión en RAM en cada ciclo OODA:
-  $$\mathtt{cryptographic\_seal} := \operatorname{SHA-256}\left(\delta_{\mathrm{\check{C}ech}} \oplus \mathbf{G}_{\mathrm{surgical}} \oplus \lambda_2 \oplus H_{\mathrm{ext}}\right)$$
+Ax. I  (Hurwitz). ε_H = |‖pq‖ − ‖p‖‖q‖| / max(1, ‖p‖‖q‖) ≤ τ_hard.
+Ax. II (Override autenticado). token = HMAC-SHA256(key, "QSA/OVERRIDE/v4" ‖
+       session_sha256); comparación en tiempo constante; ligado a la sesión.
+Ax. III(Crowbar). Presupuesto τ_IRAM = 400 ns; latencia nominal t₀ < τ con
+       jitter N(0, σ²); P(t > τ) = ½·erfc((τ − t₀)/(σ√2)) se reporta; toda
+       violación del presupuesto se certifica, nunca se recorta.
+Inv. I (Almacenamiento). H = ½(δ² + ε_H² + ε_Tr²); disipación H_k − H_{k−1}
+       auditada entre ciclos (no bloqueante).
+Inv. II(Sellos). Sesión y certificado en binario canónico SHA-256; cadena de
+       Merkle sobre (token_k, hash_k) de Φ₁→Φ₂→Φ₃.
 """
 
 from __future__ import annotations
 
 import hashlib
+import hmac
 import logging
 import math
 import struct
 from dataclasses import dataclass
-from typing import Any, Dict, Final, Mapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Final, Iterable, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
-import scipy.linalg as la
 
 try:
-    from app.core.quaternionic_state_shifter import (
+    from app.core.quaternionic_state_shifter import (  # type: ignore
         QuaternionicState,
         QuaternionicStateShifter,
+        __version__ as _SHIFTER_VERSION,
     )
 except ImportError:  # pragma: no cover - resolución local de desarrollo
-    from quaternionic_state_shifter import (  # type: ignore
-        QuaternionicState,
-        QuaternionicStateShifter,
-    )
+    try:
+        from quaternionic_state_shifter import (  # type: ignore
+            QuaternionicState,
+            QuaternionicStateShifter,
+            __version__ as _SHIFTER_VERSION,
+        )
+    except ImportError:  # pragma: no cover
+        from quaternionic_state_shifter import (  # type: ignore
+            QuaternionicState,
+            QuaternionicStateShifter,
+        )
+        _SHIFTER_VERSION = "unknown"
 
 __all__ = [
     "QuaternionicStateAgent",
@@ -127,46 +101,39 @@ __all__ = [
     "Heyting3",
 ]
 
-__version__: Final[str] = "3.0.0-OODA-Heyting-Hurwitz-DeRham-Spectral-Governance"
+__version__: Final[str] = "4.0.0-OODA-Heyting-Orbit-HMAC-Merkle-Crowbar-Secure"
 
 logger = logging.getLogger("APU.Agents.Wisdom.QuaternionicStateAgent")
 
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
-_CROWBAR_IRAM_LATENCY_NS: Final[float] = 400.0
-_CROWBAR_LATENCY_MIN_NS: Final[float] = 385.0
-_CROWBAR_LATENCY_MAX_NS: Final[float] = 415.0
+_CROWBAR_IRAM_BUDGET_NS: Final[float] = 400.0
+_CROWBAR_NOMINAL_LATENCY_NS: Final[float] = 360.0
 _SOFT_VETO_LOWER: Final[float] = 0.3
 _SOFT_VETO_UPPER: Final[float] = 0.5
 _PHASE1_ENTRY: Final[str] = "phase2_from_phase1"
 _PHASE2_ENTRY: Final[str] = "phase3_from_phase2"
 _SHA256_HEX_LEN: Final[int] = 64
+_OVERRIDE_DOMAIN: Final[bytes] = b"QSA/OVERRIDE/v4"
+_MERKLE_GENESIS: Final[bytes] = b"\x00" * 32
+_NAN_BYTES: Final[bytes] = b"\x00\x00\x00\x00\x00\x00\xf8\x7f"
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# UTILIDADES CANÓNICAS, NUMÉRICAS Y DE VALIDACIÓN
+# NÚCLEO NUMÉRICO, CANÓNICO Y DE VALIDACIÓN
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _canonicalize_signed_zero(arr: np.ndarray) -> np.ndarray:
-    """Elimina −0.0 para garantizar firmas SHA-256 deterministas."""
     out = np.array(arr, dtype=np.float64, copy=True)
     out[out == 0.0] = 0.0
     return out
 
 
-def _as_finite_vector4(S: np.ndarray, name: str) -> np.ndarray:
-    """
-    Valida que una señal sea un vector real finito de dimensión exactamente 4.
-
-    Excepciones
-    -----------
-    ValueError
-        Si la forma no es (4,) o existen valores no finitos.
-    """
+def _as_finite_vector4(S: Any, name: str) -> np.ndarray:
+    """Vector real finito de forma exacta (4,), float64, cero canónico."""
     arr = np.asarray(S, dtype=np.float64)
     if arr.shape != (4,):
         raise ValueError(
-            f"La señal '{name}' debe ser estrictamente cuatridimensional. "
-            f"Obtenida: {arr.shape}"
+            f"La señal '{name}' debe ser estrictamente cuatridimensional. Obtenida: {arr.shape}"
         )
     if not np.all(np.isfinite(arr)):
         raise ValueError(f"La señal '{name}' contiene valores NaN o infinitos.")
@@ -174,28 +141,25 @@ def _as_finite_vector4(S: np.ndarray, name: str) -> np.ndarray:
 
 
 def _canonical_bytes(arr: np.ndarray) -> bytes:
-    """Bytes contiguos con prefijo de dtype y forma, libres de colisión trivial."""
-    a = np.ascontiguousarray(arr)
+    a = np.ascontiguousarray(_canonicalize_signed_zero(arr))
     header = f"{a.dtype.str}|{a.shape}".encode("utf-8")
     return len(header).to_bytes(8, "little") + header + a.tobytes()
 
 
-def _pack_f64(value: float) -> bytes:
-    """Serialización little-endian de float64 con centinelas IEEE-754."""
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        return b"\x00\x00\x00\x00\x00\x00\xf8\x7f"
+def _pack_f64(value: Any) -> bytes:
+    """float64 little-endian con NaN canónico (bool/None/no-numérico ⇒ NaN)."""
+    if isinstance(value, bool) or not isinstance(value, (int, float, np.floating, np.integer)):
+        return _NAN_BYTES
     x = float(value)
-    if math.isnan(x):
-        return b"\x00\x00\x00\x00\x00\x00\xf8\x7f"
-    if x == math.inf:
-        return struct.pack("<d", math.inf)
-    if x == -math.inf:
-        return struct.pack("<d", -math.inf)
-    return struct.pack("<d", x)
+    return _NAN_BYTES if math.isnan(x) else struct.pack("<d", x)
+
+
+def _pack_flag(flag: bool) -> bytes:
+    return b"\x01" if bool(flag) else b"\x00"
 
 
 def _sha_update_str(hasher: "hashlib._Hash", text: str) -> None:
-    payload = text.encode("utf-8")
+    payload = str(text).encode("utf-8")
     hasher.update(len(payload).to_bytes(8, "little"))
     hasher.update(payload)
 
@@ -206,13 +170,16 @@ def _sha_update_arr(hasher: "hashlib._Hash", arr: np.ndarray) -> None:
     hasher.update(payload)
 
 
-def _complex_is_nonfinite(z: Any) -> bool:
-    """True si z no es un complejo finito."""
-    try:
-        c = complex(z)
-    except (TypeError, ValueError):
-        return True
-    return (not math.isfinite(float(c.real))) or (not math.isfinite(float(c.imag)))
+def _merkle_chain(links: Sequence[Tuple[str, str]]) -> str:
+    """h_k = SHA256(h_{k−1} ‖ len(tok) ‖ tok ‖ len(hash) ‖ hash); h₀ = 0³²."""
+    digest = _MERKLE_GENESIS
+    for token, link_hash in links:
+        m = hashlib.sha256()
+        m.update(digest)
+        _sha_update_str(m, token)
+        _sha_update_str(m, link_hash)
+        digest = m.digest()
+    return digest.hex()
 
 
 def _finite_or_nan(value: Any) -> float:
@@ -223,31 +190,21 @@ def _finite_or_nan(value: Any) -> float:
     return x if math.isfinite(x) else math.nan
 
 
-def _clip_unit(x: float) -> float:
-    if x > 1.0:
-        return 1.0
-    if x < -1.0:
-        return -1.0
-    return x
-
-
-def _state_hash(state: QuaternionicState) -> str:
+def _state_hash(state: Any) -> str:
     value = getattr(state, "sha256_hash", "")
     return value if isinstance(value, str) else ""
 
 
-def _state_token(state: QuaternionicState, fallback: str) -> str:
+def _state_token(state: Any, fallback: str) -> str:
     value = getattr(state, "phase_token", None)
-    if isinstance(value, str) and value:
-        return value
-    return fallback
+    return value if isinstance(value, str) and value else fallback
 
 
-def _state_norm(state: QuaternionicState) -> float:
+def _state_norm(state: Any) -> float:
     return _finite_or_nan(getattr(state, "norm", math.nan))
 
 
-def _state_squared_norm(state: QuaternionicState) -> float:
+def _state_squared_norm(state: Any) -> float:
     sq = getattr(state, "squared_norm", None)
     if sq is not None:
         return _finite_or_nan(sq)
@@ -257,35 +214,68 @@ def _state_squared_norm(state: QuaternionicState) -> float:
 
 def _vector_norm3(vector_part: Any) -> float:
     arr = np.asarray(vector_part, dtype=np.float64).ravel()
-    if arr.size == 0:
-        return 0.0
-    return float(math.hypot(*[float(x) for x in arr]))
+    return float(math.hypot(*[float(x) for x in arr])) if arr.size else 0.0
+
+
+def _state_vector4(state: Any) -> np.ndarray:
+    return np.asarray(getattr(state, "vector_rep"), dtype=np.float64).reshape(4)
+
+
+def _hamilton(p: np.ndarray, q: np.ndarray) -> np.ndarray:
+    """Producto de Hamilton con acumulación de redondeo correcto."""
+    p0, p1, p2, p3 = (float(p[0]), float(p[1]), float(p[2]), float(p[3]))
+    q0, q1, q2, q3 = (float(q[0]), float(q[1]), float(q[2]), float(q[3]))
+    return np.array(
+        [
+            math.fsum((p0 * q0, -p1 * q1, -p2 * q2, -p3 * q3)),
+            math.fsum((p0 * q1, p1 * q0, p2 * q3, -p3 * q2)),
+            math.fsum((p0 * q2, -p1 * q3, p2 * q0, p3 * q1)),
+            math.fsum((p0 * q3, p1 * q2, -p2 * q1, p3 * q0)),
+        ],
+        dtype=np.float64,
+    )
+
+
+def _conj(q: np.ndarray) -> np.ndarray:
+    return np.array([q[0], -q[1], -q[2], -q[3]], dtype=np.float64)
+
+
+def _geodesic_angle(u: np.ndarray, v: np.ndarray) -> float:
+    """d_{S³}(u, v) = 2·atan2(‖u − v‖, ‖u + v‖): error O(ε) uniforme en [0, π]."""
+    return float(2.0 * math.atan2(math.hypot(*(u - v)), math.hypot(*(u + v))))
+
+
+def _aligning_rotor(a: np.ndarray, b: np.ndarray, reg: float) -> np.ndarray:
+    """
+    Rotor unitario s ∈ S³ con s a s* = b para a, b ∈ S² ⊂ Im(H):
+        s ∝ (1 + a·b, a × b)     (medio ángulo de Rodrigues).
+    Caso antipodal: rotación de π alrededor de cualquier eje ⊥ a.
+    """
+    a = np.asarray(a, dtype=np.float64)
+    b = np.asarray(b, dtype=np.float64)
+    w = 1.0 + float(np.dot(a, b))
+    c = np.cross(a, b)
+    if w < reg:
+        e = np.zeros(3)
+        e[int(np.argmin(np.abs(a)))] = 1.0
+        n = np.cross(a, e)
+        n /= math.hypot(*n)
+        return np.array([0.0, n[0], n[1], n[2]], dtype=np.float64)
+    s = np.array([w, c[0], c[1], c[2]], dtype=np.float64)
+    return s / math.hypot(*s)
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# ÁLGEBRA DE HEYTING TRIVALENTE Ω₃
+# ÁLGEBRA DE HEYTING TRIVALENTE Ω₃ (Gödel–Dummett)
 # ═════════════════════════════════════════════════════════════════════════════
 
 class Heyting3:
-    """
-    Álgebra de Heyting de Gödel–Dummett de tres valores.
-
-        0 ↔ VETOED,   ½ ↔ DEGRADED,   1 ↔ COHERENT
-
-    Es un retículo residuado acotado: el implicador es adjunto derecho del
-    encuentro. El override humano actúa como sección de la implicación
-    DEGRADED → ¬(gracia expirada), impidiendo el colapso a 0.
-    """
+    """Retículo residuado lineal {0 < ½ < 1}; ver Def. 1."""
 
     VETOED: Final[float] = 0.0
     DEGRADED: Final[float] = 0.5
     COHERENT: Final[float] = 1.0
-
-    _LABEL: Final[Dict[float, str]] = {
-        0.0: "VETOED",
-        0.5: "DEGRADED",
-        1.0: "COHERENT",
-    }
+    CARRIER: Final[Tuple[float, float, float]] = (0.0, 0.5, 1.0)
 
     @staticmethod
     def meet(a: float, b: float) -> float:
@@ -296,50 +286,56 @@ class Heyting3:
         return float(max(a, b))
 
     @staticmethod
+    def meet_all(values: Iterable[float]) -> float:
+        out = Heyting3.COHERENT
+        for v in values:
+            out = Heyting3.meet(out, v)
+        return out
+
+    @staticmethod
     def implies(a: float, b: float) -> float:
-        return 1.0 if a <= b else float(b)
+        return Heyting3.COHERENT if a <= b else float(b)
 
     @staticmethod
     def neg(a: float) -> float:
         return Heyting3.implies(a, Heyting3.VETOED)
 
     @staticmethod
-    def clamp(value: float) -> float:
-        if not math.isfinite(value):
-            return Heyting3.VETOED
-        if value >= 1.0:
-            return Heyting3.COHERENT
-        if value <= 0.0:
-            return Heyting3.VETOED
-        if value >= 0.5:
-            return Heyting3.DEGRADED if value < 1.0 else Heyting3.COHERENT
-        return Heyting3.VETOED if value < 0.5 else Heyting3.DEGRADED
-
-    @staticmethod
-    def from_verdict(verdict: str) -> float:
-        mapping = {
-            "VETOED": Heyting3.VETOED,
-            "DEGRADED": Heyting3.DEGRADED,
-            "COHERENT": Heyting3.COHERENT,
-        }
-        return mapping.get(str(verdict).upper(), Heyting3.VETOED)
-
-    @staticmethod
-    def to_verdict(value: float) -> str:
-        if not math.isfinite(value) or value <= 0.0:
-            return "VETOED"
-        if value >= 1.0:
-            return "COHERENT"
-        return "DEGRADED"
-
-    @staticmethod
     def quantize(value: float) -> float:
-        """Proyecta un valor de verdad continuo sobre {0, ½, 1}."""
+        """Proyección {c = 0} ↦ 0, {0 < c < 1} ↦ ½, {c ≥ 1} ↦ 1; no finito ↦ 0."""
         if not math.isfinite(value) or value <= 0.0:
             return Heyting3.VETOED
         if value >= 1.0:
             return Heyting3.COHERENT
         return Heyting3.DEGRADED
+
+    clamp = quantize  # compatibilidad: `clamp` era una reimplementación inerte.
+
+    @staticmethod
+    def from_verdict(verdict: str) -> float:
+        return {"VETOED": 0.0, "DEGRADED": 0.5, "COHERENT": 1.0}.get(
+            str(verdict).upper(), Heyting3.VETOED
+        )
+
+    @staticmethod
+    def to_verdict(value: float) -> str:
+        q = Heyting3.quantize(value)
+        return "VETOED" if q == 0.0 else ("COHERENT" if q == 1.0 else "DEGRADED")
+
+    @classmethod
+    def verify_axioms(cls) -> bool:
+        """Residuación, distributividad, no contradicción y no-booleanidad en Ω₃."""
+        O = cls.CARRIER
+        for a in O:
+            for b in O:
+                for c in O:
+                    if (cls.meet(a, b) <= c) != (a <= cls.implies(b, c)):
+                        return False
+                    if cls.meet(a, cls.join(b, c)) != cls.join(cls.meet(a, b), cls.meet(a, c)):
+                        return False
+            if cls.meet(a, cls.neg(a)) != cls.VETOED:
+                return False
+        return cls.join(cls.DEGRADED, cls.neg(cls.DEGRADED)) == cls.DEGRADED
 
 
 # ═════════════════════════════════════════════════════════════════════════════
@@ -348,11 +344,7 @@ class Heyting3:
 
 @dataclass(frozen=True, slots=True, eq=False)
 class Phase1AgentHandoff:
-    """
-    Frontera formal Φ₁→₂.
-
-    Salida cerrada de la Fase 1 y dominio de `phase2_from_phase1`.
-    """
+    """Φ₁→₂ : (p, q, σ₁, δ₁) ∈ H × H × Σ × D₁. Dominio de `phase2_from_phase1`."""
 
     p_state: QuaternionicState
     q_state: QuaternionicState
@@ -366,21 +358,15 @@ class Phase1AgentHandoff:
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Phase1AgentHandoff):
             return NotImplemented
-        return (
-            self.session_sha256 == other.session_sha256
-            and self.next_entrypoint == other.next_entrypoint
-            and _state_hash(self.p_state) == _state_hash(other.p_state)
-            and _state_hash(self.q_state) == _state_hash(other.q_state)
-        )
+        return (self.session_sha256 == other.session_sha256
+                and self.next_entrypoint == other.next_entrypoint
+                and _state_hash(self.p_state) == _state_hash(other.p_state)
+                and _state_hash(self.q_state) == _state_hash(other.q_state))
 
 
 @dataclass(frozen=True, slots=True, eq=False)
 class Phase2AgentHandoff:
-    """
-    Frontera formal Φ₂→₃.
-
-    Salida cerrada de la Fase 2 y dominio de `phase3_from_phase2`.
-    """
+    """Φ₂→₃ : (p, q, σ₁, δ, ε_H, ε_Tr, Λ, D₂). Dominio de `phase3_from_phase2`."""
 
     p_state: QuaternionicState
     q_state: QuaternionicState
@@ -392,30 +378,25 @@ class Phase2AgentHandoff:
     diagnostics: Dict[str, Any]
     next_entrypoint: str
 
+    def _metric_bytes(self) -> bytes:
+        return b"".join(_pack_f64(x) for x in (
+            self.similarity_mismatch, self.hurwitz_drift,
+            self.trace_von_neumann_error, self.elastic_bound))
+
     def __hash__(self) -> int:
-        return hash((self.session_sha256, self.next_entrypoint))
+        return hash((self.session_sha256, self.next_entrypoint, self._metric_bytes()))
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Phase2AgentHandoff):
             return NotImplemented
-        return (
-            self.session_sha256 == other.session_sha256
-            and self.next_entrypoint == other.next_entrypoint
-            and self.similarity_mismatch == other.similarity_mismatch
-            and self.hurwitz_drift == other.hurwitz_drift
-            and self.trace_von_neumann_error == other.trace_von_neumann_error
-            and self.elastic_bound == other.elastic_bound
-        )
+        return (self.session_sha256 == other.session_sha256
+                and self.next_entrypoint == other.next_entrypoint
+                and self._metric_bytes() == other._metric_bytes())
 
 
 @dataclass(frozen=True, slots=True, eq=False)
 class QuaternionicAgentCertificate:
-    """
-    Certificado inmutable de calibración, veto y actuación.
-
-    Se conservan los campos originales por compatibilidad. Los campos
-    añadidos van al final con valores por defecto.
-    """
+    """Certificado inmutable. Campos originales conservados; los nuevos al final."""
 
     phase: str
     heyting_verdict: str
@@ -436,6 +417,18 @@ class QuaternionicAgentCertificate:
     elastic_bound: float = 0.0
     override_sha256: str = ""
 
+    merkle_root: str = ""
+    similarity_geodesic: float = math.nan
+    similarity_gauge_defect: float = math.nan
+    channel_truth_values: Tuple[float, ...] = ()
+    override_rejected: bool = False
+    latency_budget_ns: float = _CROWBAR_IRAM_BUDGET_NS
+    latency_budget_violated: bool = False
+    latency_exceedance_probability: float = math.nan
+    lyapunov_storage: float = math.nan
+    lyapunov_dissipation: float = math.nan
+    reactor_version: str = ""
+
     def __hash__(self) -> int:
         return hash(self.digital_signature_sha256)
 
@@ -445,24 +438,21 @@ class QuaternionicAgentCertificate:
         return self.digital_signature_sha256 == other.digital_signature_sha256
 
     def __repr__(self) -> str:
-        return (
-            f"QuaternionicAgentCertificate(verdict={self.heyting_verdict!r}, "
-            f"confidence={self.confidence:.6g}, "
-            f"seal={self.digital_signature_sha256[:12]!r})"
-        )
+        return (f"QuaternionicAgentCertificate(verdict={self.heyting_verdict!r}, "
+                f"confidence={self.confidence:.6g}, seal={self.digital_signature_sha256[:12]!r})")
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# SOBERANO DE CALIBRE CUATERNIÓNICO — TRES FASES ANIDADAS
+# SOBERANO DE CALIBRE CUATERNIÓNICO — TRES FASES ANIDADAS (OODA)
 # ═════════════════════════════════════════════════════════════════════════════
 
 class QuaternionicStateAgent:
     """
-    Soberano de Calibre Cuaterniónico (SET-Quaternion) — OODA en 3 fases.
-
-    FASE 1  OBSERVE : validación, construcción, sello de sesión.
-    FASE 2  ORIENT  : S², Hopf, Hurwitz, von Neumann, C*, Lipschitz.
-    FASE 3  DECIDE/ACT : rampa, Heyting Ω₃, override e⁺, Crowbar, certificado.
+    FASE 1  OBSERVE   : validación, Fase 1 del reactor, sello de sesión.
+    FASE 2  ORIENT    : órbitas de similitud, Hurwitz, von Neumann, informe
+                        algebraico y espectral del reactor, cota elástica.
+    FASE 3  DECIDE/ACT: canales Ω₃, rampa, gracia/override HMAC, Lyapunov,
+                        Crowbar con presupuesto, certificado + Merkle.
     """
 
     def __init__(
@@ -474,6 +464,10 @@ class QuaternionicStateAgent:
         jitter_sigma: float = 2.8,
         soft_veto_lower: float = _SOFT_VETO_LOWER,
         soft_veto_upper: float = _SOFT_VETO_UPPER,
+        override_hmac_key: Optional[bytes] = None,
+        crowbar_nominal_latency_ns: float = _CROWBAR_NOMINAL_LATENCY_NS,
+        latency_sampler: Optional[Callable[[], float]] = None,
+        lyapunov_tolerance: float = 1e-12,
     ) -> None:
         if not math.isfinite(tolerance) or tolerance <= 0.0:
             raise ValueError("tolerance debe ser finita y estrictamente positiva.")
@@ -483,12 +477,24 @@ class QuaternionicStateAgent:
             raise ValueError("grace_period_seconds debe ser finita y no negativa.")
         if not math.isfinite(jitter_sigma) or jitter_sigma < 0.0:
             raise ValueError("jitter_sigma debe ser finita y no negativa.")
-        if not math.isfinite(soft_veto_lower) or not math.isfinite(soft_veto_upper):
-            raise ValueError("los umbrales de veto suave deben ser finitos.")
+        if not (math.isfinite(soft_veto_lower) and math.isfinite(soft_veto_upper)):
+            raise ValueError("Los umbrales de veto suave deben ser finitos.")
         if not (0.0 < soft_veto_lower < soft_veto_upper):
+            raise ValueError("Se exige 0 < soft_veto_lower < soft_veto_upper.")
+        if not math.isfinite(crowbar_nominal_latency_ns) or crowbar_nominal_latency_ns <= 0.0:
+            raise ValueError("crowbar_nominal_latency_ns debe ser finita y positiva.")
+        if crowbar_nominal_latency_ns >= _CROWBAR_IRAM_BUDGET_NS:
             raise ValueError(
-                "Se exige 0 < soft_veto_lower < soft_veto_upper."
+                f"La latencia nominal ({crowbar_nominal_latency_ns} ns) debe ser menor que "
+                f"el presupuesto τ_IRAM = {_CROWBAR_IRAM_BUDGET_NS} ns (Ax. III)."
             )
+        if override_hmac_key is not None and (not isinstance(override_hmac_key, (bytes, bytearray))
+                                              or len(override_hmac_key) < 16):
+            raise ValueError("override_hmac_key debe ser bytes de al menos 16 octetos.")
+        if not math.isfinite(lyapunov_tolerance) or lyapunov_tolerance < 0.0:
+            raise ValueError("lyapunov_tolerance debe ser finita y no negativa.")
+        if not Heyting3.verify_axioms():  # pragma: no cover - autoprueba algebraica
+            raise RuntimeError("Ω₃ no satisface los axiomas de Heyting (fallo interno).")
 
         self._tol = float(tolerance)
         self._safety_margin = float(safety_margin)
@@ -497,592 +503,521 @@ class QuaternionicStateAgent:
         self._jitter_sigma = float(jitter_sigma)
         self._soft_veto_lower = float(soft_veto_lower)
         self._soft_veto_upper = float(soft_veto_upper)
+        self._override_key: Optional[bytes] = bytes(override_hmac_key) if override_hmac_key else None
+        self._nominal_latency = float(crowbar_nominal_latency_ns)
+        self._lyapunov_tol = float(lyapunov_tolerance)
         self._rng = np.random.default_rng(rng_seed)
+        self._latency_sampler: Callable[[], float] = latency_sampler or (
+            lambda: self._nominal_latency + float(self._rng.normal(0.0, self._jitter_sigma))
+        )
         self._shifter = QuaternionicStateShifter(tolerance=tolerance)
 
     def _tolerance_of(self, scale: float = 1.0) -> float:
         return max(self._tol, self._tol * abs(scale), 32.0 * _MACHINE_EPS)
 
     def _hard_algebraic_threshold(self) -> float:
-        """Umbral duro para identidades algebraicas ya relativizadas."""
+        """Umbral crisp para identidades exactas en ℝ ya relativizadas."""
         return max(self._tol, 32.0 * _MACHINE_EPS)
 
     # ═════════════════════════════════════════════════════════════════════════
-    # ADAPTADORES DE COMPATIBILIDAD CON SHIFTER LEGADO / EVOLUCIONADO
+    # ADAPTADORES: GOBIERNO DE LAS FASES HOMÓLOGAS DEL REACTOR
     # ═════════════════════════════════════════════════════════════════════════
 
-    def _build_state(self, S: np.ndarray) -> QuaternionicState:
-        """Materializa q ∈ H usando la Fase 1 del reactor, o el API legado."""
-        if hasattr(self._shifter, "phase1_construct_canonical_state"):
-            return self._shifter.phase1_construct_canonical_state(S)
-        return self._shifter.build_state(S)
+    def _optional_shifter_call(self, method_name: str, *args: Any, **kwargs: Any) -> Any:
+        method = getattr(self._shifter, method_name, None)
+        if not callable(method):
+            return None
+        try:
+            return method(*args, **kwargs)
+        except (ValueError, ZeroDivisionError, OverflowError, RuntimeError, TypeError) as exc:
+            logger.warning("Reactor.%s falló: %s", method_name, exc)
+            return None
 
-    def _raw_multiply(
-        self,
-        p: QuaternionicState,
-        q: QuaternionicState,
-    ) -> QuaternionicState:
-        """Producto hamiltoniano sin renormalización, para auditar deriva pura."""
+    def _reactor_phase1(self, S: np.ndarray) -> Tuple[QuaternionicState, Dict[str, Any]]:
+        """Fase 1 del reactor (cierre Φ₁→₂ con diagnósticos) o API legado."""
+        closer = getattr(self._shifter, "phase1_close_and_open_phase2", None)
+        if callable(closer):
+            handoff = closer(S)
+            return handoff.state, dict(handoff.diagnostics)
+        ctor = getattr(self._shifter, "phase1_construct_canonical_state", None)
+        return (ctor(S) if callable(ctor) else self._shifter.build_state(S)), {}
+
+    def _reactor_phase2_report(self, state: QuaternionicState) -> Dict[str, Any]:
+        """Informe algebraico de la Fase 2 del reactor (cierre Φ₂→₃), si existe."""
+        handoff = self._optional_shifter_call("phase2_close_and_open_phase3", state)
+        report = getattr(handoff, "algebra_report", None)
+        return dict(report) if isinstance(report, Mapping) else {}
+
+    def _reactor_phase3_audits(self, state: QuaternionicState) -> Dict[str, Dict[str, Any]]:
+        out: Dict[str, Dict[str, Any]] = {}
+        for key, method in (("spectral", "phase3_spectral_audit"),
+                            ("similarity", "phase3_similarity_class"),
+                            ("hopf", "phase3_hopf_fibration"),
+                            ("riemann", "phase3_riemann_sphere_chart"),
+                            ("von_neumann", "phase1_von_neumann_trace_audit")):
+            res = self._optional_shifter_call(method, state)
+            out[key] = dict(res) if isinstance(res, Mapping) else {}
+        return out
+
+    def _raw_multiply(self, p: QuaternionicState, q: QuaternionicState) -> QuaternionicState:
+        """Producto sin renormalización (deriva pura). Legado: puede renormalizar."""
         if hasattr(self._shifter, "phase2_hamilton_product"):
             return self._shifter.phase2_hamilton_product(p, q, verify=False)
         return self._shifter.quaternionic_multiply(p, q)
-
-    def _riemann_chart(self, state: QuaternionicState) -> Dict[str, Any]:
-        """Carta de Riemann rica si existe; si no, envoltorio del API legado."""
-        if hasattr(self._shifter, "phase3_riemann_sphere_chart"):
-            return dict(self._shifter.phase3_riemann_sphere_chart(state))
-
-        Z, z = self._shifter.project_to_riemann_sphere(state)
-        if _complex_is_nonfinite(Z):
-            coord = complex(math.inf, math.inf)
-            coord_real = math.inf
-            coord_imag = math.inf
-        else:
-            coord = complex(Z)
-            coord_real = float(coord.real)
-            coord_imag = float(coord.imag)
-        return {
-            "chart": "legacy",
-            "coordinate": coord,
-            "coordinate_real": coord_real,
-            "coordinate_imag": coord_imag,
-            "height": float(z),
-            "metric_factor": math.nan,
-            "sphericity_residual": math.nan,
-        }
-
-    def _optional_shifter_call(self, method_name: str, *args: Any) -> Any:
-        method = getattr(self._shifter, method_name, None)
-        if callable(method):
-            return method(*args)
-        return None
 
     # ═════════════════════════════════════════════════════════════════════════
     # FASE 1 — OBSERVE: VALIDACIÓN, CONSTRUCCIÓN Y SELLO DE SESIÓN
     # ═════════════════════════════════════════════════════════════════════════
 
     def phase1_validate_signal(self, S: np.ndarray, name: str) -> np.ndarray:
-        """
-        Fase 1.1 — Validación formal de una señal S ∈ R⁴.
-
-        Condiciones: forma (4,), valores finitos, float64, −0.0 → +0.0.
-        """
+        """Fase 1.1 — S ∈ R⁴ finito, float64, −0.0 ↦ +0.0."""
         return _as_finite_vector4(S, name)
 
     def phase1_observe_pair(
-        self,
-        p_S: np.ndarray,
-        q_S: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray, QuaternionicState, QuaternionicState]:
+        self, p_S: np.ndarray, q_S: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, QuaternionicState, QuaternionicState, Dict[str, Any]]:
         """
-        Fase 1.2 — Observación covariante del par transaccional (p_S, q_S).
-
-        Realiza el pullback simultáneo
-            Φ × Φ : R⁴ × R⁴ → H × H
-        y devuelve las señales canónicas junto a los estados.
+        Fase 1.2 — Pullback Φ × Φ : R⁴ × R⁴ → H × H gobernando la Fase 1 del
+        reactor. Devuelve señales canónicas, estados y diagnósticos del reactor.
         """
         p_arr = self.phase1_validate_signal(p_S, "p_S")
         q_arr = self.phase1_validate_signal(q_S, "q_S")
-        p_state = self._build_state(p_arr)
-        q_state = self._build_state(q_arr)
-        return p_arr, q_arr, p_state, q_state
+        p_state, p_diag = self._reactor_phase1(p_arr)
+        q_state, q_diag = self._reactor_phase1(q_arr)
+        reactor_diag = {**{f"p_reactor_{k}": v for k, v in p_diag.items()},
+                        **{f"q_reactor_{k}": v for k, v in q_diag.items()}}
+        return p_arr, q_arr, p_state, q_state, reactor_diag
 
     def phase1_observation_diagnostics(
-        self,
-        p_state: QuaternionicState,
-        q_state: QuaternionicState,
+        self, p_state: QuaternionicState, q_state: QuaternionicState,
     ) -> Dict[str, Any]:
-        """
-        Fase 1.3 — Diagnóstico de Banach y unitariedad del par observado.
-
-        Reporta normas ℓ², residuos de unitariedad y, si el reactor evolucionado
-        los expone, residuos de ortogonalidad L(q)ᵀL(q) = ||q||² I₄.
-        """
-        def _pack_state(prefix: str, state: QuaternionicState) -> Dict[str, Any]:
+        """Fase 1.3 — Normas, unitariedad, ortogonalidad y ángulo polar del par."""
+        def _pack(prefix: str, st: QuaternionicState) -> Dict[str, Any]:
             return {
-                f"{prefix}_norm": _state_norm(state),
-                f"{prefix}_squared_norm": _state_squared_norm(state),
-                f"{prefix}_vector_norm": _finite_or_nan(
-                    getattr(state, "vector_norm", math.nan)
-                ),
-                f"{prefix}_is_unitary": bool(getattr(state, "is_unitary", False)),
-                f"{prefix}_unitarity_residual": _finite_or_nan(
-                    getattr(state, "unitarity_residual", math.nan)
-                ),
-                f"{prefix}_orthogonality_residual": _finite_or_nan(
-                    getattr(state, "orthogonality_residual", math.nan)
-                ),
-                f"{prefix}_condition_estimate": _finite_or_nan(
-                    getattr(state, "condition_estimate", math.nan)
-                ),
-                f"{prefix}_sha256_prefix": _state_hash(state)[:16],
+                f"{prefix}_norm": _state_norm(st),
+                f"{prefix}_squared_norm": _state_squared_norm(st),
+                f"{prefix}_vector_norm": _finite_or_nan(getattr(st, "vector_norm", math.nan)),
+                f"{prefix}_theta": self._polar_angle(st),
+                f"{prefix}_is_unitary": bool(getattr(st, "is_unitary", False)),
+                f"{prefix}_unitarity_residual": _finite_or_nan(getattr(st, "unitarity_residual", math.nan)),
+                f"{prefix}_orthogonality_residual": _finite_or_nan(getattr(st, "orthogonality_residual", math.nan)),
+                f"{prefix}_condition_estimate": _finite_or_nan(getattr(st, "condition_estimate", math.nan)),
+                f"{prefix}_sha256_prefix": _state_hash(st)[:16],
             }
-
-        diagnostics: Dict[str, Any] = {}
-        diagnostics.update(_pack_state("p", p_state))
-        diagnostics.update(_pack_state("q", q_state))
-        diagnostics["machine_epsilon"] = _MACHINE_EPS
-        diagnostics["regularization"] = self._regularization
-        diagnostics["tolerance"] = self._tol
-        return diagnostics
+        return {**_pack("p", p_state), **_pack("q", q_state),
+                "machine_epsilon": _MACHINE_EPS, "regularization": self._regularization,
+                "tolerance": self._tol, "reactor_version": str(_SHIFTER_VERSION),
+                "agent_version": __version__}
 
     def _phase1_session_hash(
-        self,
-        p_arr: np.ndarray,
-        q_arr: np.ndarray,
-        p_state: QuaternionicState,
-        q_state: QuaternionicState,
+        self, p_arr: np.ndarray, q_arr: np.ndarray,
+        p_state: QuaternionicState, q_state: QuaternionicState,
     ) -> str:
         """
-        Fase 1.4 — Sello de sesión SHA-256 canónico longitud-prefijado.
-
-        Carga útil:
-          - señales canónicas p, q;
-          - hashes de estado del reactor si existen;
-          - parámetros de gobernanza (tolerancia, margen, gracia, umbrales);
-          - token de fase PHASE1/OBSERVE.
+        Fase 1.4 — Sello de sesión SHA-256 (Inv. II): señales, hashes de estado,
+        versiones y TODOS los parámetros de gobernanza (nunca la clave HMAC).
         """
         h = hashlib.sha256()
-        h.update(b"QSA/SESSION/v3")
+        h.update(b"QSA/SESSION/v4")
         _sha_update_arr(h, p_arr)
         _sha_update_arr(h, q_arr)
         _sha_update_str(h, _state_hash(p_state))
         _sha_update_str(h, _state_hash(q_state))
-        h.update(_pack_f64(self._tol))
-        h.update(_pack_f64(self._safety_margin))
-        h.update(_pack_f64(self._grace_limit))
-        h.update(_pack_f64(self._soft_veto_lower))
-        h.update(_pack_f64(self._soft_veto_upper))
+        _sha_update_str(h, str(_SHIFTER_VERSION))
+        _sha_update_str(h, __version__)
+        for v in (self._tol, self._safety_margin, self._grace_limit, self._soft_veto_lower,
+                  self._soft_veto_upper, self._nominal_latency, self._jitter_sigma,
+                  self._lyapunov_tol):
+            h.update(_pack_f64(v))
+        h.update(_pack_flag(self._override_key is not None))
         _sha_update_str(h, "PHASE1/OBSERVE")
         digest = h.hexdigest()
-        if len(digest) != _SHA256_HEX_LEN:
+        if len(digest) != _SHA256_HEX_LEN:  # pragma: no cover
             raise RuntimeError("El sello de sesión no es un SHA-256 de 64 nibbles.")
         return digest
 
-    def phase1_close_and_open_phase2(
-        self,
-        p_S: np.ndarray,
-        q_S: np.ndarray,
-    ) -> Phase1AgentHandoff:
+    def phase1_close_and_open_phase2(self, p_S: np.ndarray, q_S: np.ndarray) -> Phase1AgentHandoff:
         """
         Fase 1.5 — Cierre formal de Fase 1 y apertura verificada de Fase 2.
 
-        Definición formal de frontera:
+            Φ₁→₂ : (p_S, q_S) ∈ R⁴ × R⁴ ↦ (p, q, σ₁, δ₁) ∈ H × H × Σ × D₁
 
-            Φ₁→₂ : (p_S, q_S) ∈ R⁴ × R⁴  ↦  (p, q, σ₁, δ₁) ∈ H × H × Σ × D₁
-
-        Este es el último método de la Fase 1. Su contrato es exactamente el
-        dominio de `phase2_from_phase1`: produce `Phase1AgentHandoff` y exige
-        que la Fase 2 lo admita de inmediato. Con ello la Fase 1 queda
-        anidada, como prefijo functorial, dentro de la Fase 2.
+        Último método de Fase 1. Su codominio es el dominio de `phase2_from_phase1`,
+        que se invoca y verifica aquí (anidamiento como prefijo functorial).
         """
-        p_arr, q_arr, p_state, q_state = self.phase1_observe_pair(p_S, q_S)
+        p_arr, q_arr, p_state, q_state, reactor_diag = self.phase1_observe_pair(p_S, q_S)
         session_sha256 = self._phase1_session_hash(p_arr, q_arr, p_state, q_state)
-        diagnostics = self.phase1_observation_diagnostics(p_state, q_state)
-        diagnostics["session_sha256_prefix"] = session_sha256[:16]
-        diagnostics["p_is_unitary"] = bool(getattr(p_state, "is_unitary", False))
-        diagnostics["q_is_unitary"] = bool(getattr(q_state, "is_unitary", False))
-        diagnostics["p_norm"] = _state_norm(p_state)
-        diagnostics["q_norm"] = _state_norm(q_state)
+        diagnostics = {**self.phase1_observation_diagnostics(p_state, q_state), **reactor_diag,
+                       "session_sha256_prefix": session_sha256[:16]}
+        handoff = Phase1AgentHandoff(p_state=p_state, q_state=q_state,
+                                     session_sha256=session_sha256,
+                                     diagnostics=diagnostics, next_entrypoint=_PHASE1_ENTRY)
 
-        handoff = Phase1AgentHandoff(
-            p_state=p_state,
-            q_state=q_state,
-            session_sha256=session_sha256,
-            diagnostics=diagnostics,
-            next_entrypoint=_PHASE1_ENTRY,
-        )
-
-        opened_p, opened_q = self.phase2_from_phase1(handoff)
-        p_h, q_h = _state_hash(opened_p), _state_hash(opened_q)
-        if p_h and p_h != _state_hash(p_state):
-            raise RuntimeError(
-                "Invariante de anidamiento Φ₁→₂ violado: el estado p admitido "
-                "por Fase 2 no coincide con el observado en Fase 1."
-            )
-        if q_h and q_h != _state_hash(q_state):
-            raise RuntimeError(
-                "Invariante de anidamiento Φ₁→₂ violado: el estado q admitido "
-                "por Fase 2 no coincide con el observado en Fase 1."
-            )
-
-        logger.info(
-            "Fase Observe [QUATERNION_AGENT]: Sesión sellada. SHA prefix=%s",
-            session_sha256[:16],
-        )
+        opened_p, opened_q = self.phase2_from_phase1(handoff)        # ← anidamiento Φ₁→₂
+        if _state_hash(opened_p) != _state_hash(p_state) or _state_hash(opened_q) != _state_hash(q_state):
+            raise RuntimeError("Invariante de anidamiento Φ₁→₂ violado.")
+        logger.info("Fase Observe [QUATERNION_AGENT]: sesión sellada %s", session_sha256[:16])
         return handoff
 
     # ═════════════════════════════════════════════════════════════════════════
-    # FASE 2 — ORIENT: INVARIANTES ESPECTRALES Y ALGEBRAICOS
+    # FASE 2 — ORIENT: INVARIANTES DE ÓRBITA, ALGEBRAICOS Y ESPECTRALES
     # (continuación formal de phase1_close_and_open_phase2)
     # ═════════════════════════════════════════════════════════════════════════
 
-    def phase2_from_phase1(
-        self,
-        handoff: Phase1AgentHandoff,
-    ) -> Tuple[QuaternionicState, QuaternionicState]:
-        """
-        Fase 2.0 — Entrada formal desde Fase 1.
-
-        Continuación directa de `phase1_close_and_open_phase2`. Consume
-        `Phase1AgentHandoff` y devuelve el par observado (p, q) ∈ H × H.
-        """
+    def phase2_from_phase1(self, handoff: Phase1AgentHandoff) -> Tuple[QuaternionicState, QuaternionicState]:
+        """Fase 2.0 — Entrada formal: admite Φ₁→₂ y devuelve (p, q) ∈ H × H."""
         if not isinstance(handoff, Phase1AgentHandoff):
             raise TypeError("Se esperaba Phase1AgentHandoff como frontera Φ₁→₂.")
         if handoff.next_entrypoint != _PHASE1_ENTRY:
-            raise ValueError(
-                "Phase1AgentHandoff inválido: el punto de entrada esperado es "
-                f"{_PHASE1_ENTRY!r}."
-            )
-        if not isinstance(handoff.session_sha256, str) or len(
-            handoff.session_sha256
-        ) != _SHA256_HEX_LEN:
+            raise ValueError(f"Phase1AgentHandoff inválido: se esperaba {_PHASE1_ENTRY!r}.")
+        if not isinstance(handoff.session_sha256, str) or len(handoff.session_sha256) != _SHA256_HEX_LEN:
             raise ValueError("El sello de sesión de Φ₁→₂ no es un SHA-256 válido.")
+        for name, st in (("p", handoff.p_state), ("q", handoff.q_state)):
+            if _state_vector4(st).shape != (4,):
+                raise ValueError(f"El estado {name} de Φ₁→₂ no es cuatridimensional.")
         return handoff.p_state, handoff.q_state
+
+    def _polar_angle(self, state: QuaternionicState) -> float:
+        """θ(q) = atan2(‖v‖, q₀) ∈ [0, π]; NaN si q es nulo (clase sin representante unitario)."""
+        n = _state_norm(state)
+        if not math.isfinite(n) or n < self._regularization:
+            return math.nan
+        th = _finite_or_nan(getattr(state, "theta", math.nan))
+        if math.isfinite(th):
+            return th
+        q0 = _finite_or_nan(getattr(state, "scalar_part", math.nan))
+        vn = _finite_or_nan(getattr(state, "vector_norm", math.nan))
+        if not math.isfinite(vn):
+            vn = _vector_norm3(getattr(state, "vector_part", ()))
+        return float(math.atan2(vn, q0)) if math.isfinite(q0) else math.nan
 
     def phase2_evaluate_similarity_sphere(self, state: QuaternionicState) -> float:
         """
-        Fase 2.1 — Medida de desviación sobre la 2-esfera S².
+        Fase 2.1 — Invariante de clase de un estado: δ(q) = θ(q)/π = d_{S³}(1, q̂)/π.
 
-        Sea z ∈ [−1, 1] la altura del punto proyectado. Se definen:
-
-            P(z) = (1 + z) / 2     (obstrucción al polo norte)
-            C(z) = √max(0, 1 − z²) (curvatura ecuatorial)
-
-        El mismatch es δ = max(P(z), C(z)) ∈ [0, 1]. Cerca del polo norte la
-        carta estereográfica se vuelve singular; cerca del ecuador la métrica
-        redonda alcanza curvatura máxima en la proyección. El origen de Im(H)
-        se declara δ = 0 (fibra nula).
+        Es constante sobre la órbita [q] (Def. 2) y libre de gimbal lock.
+        Estado nulo ⇒ NaN (no certificable).
         """
-        vector_norm = _finite_or_nan(getattr(state, "vector_norm", math.nan))
-        if not math.isfinite(vector_norm):
-            vector_norm = _vector_norm3(getattr(state, "vector_part", ()))
+        th = self._polar_angle(state)
+        return float(th / math.pi) if math.isfinite(th) else math.nan
 
-        if vector_norm <= self._regularization:
-            return 0.0
-
-        chart = self._riemann_chart(state)
-        z = _finite_or_nan(chart.get("height", 0.0))
-        if not math.isfinite(z):
-            return 1.0
-        z = _clip_unit(z)
-
-        coord = chart.get("coordinate", 0.0 + 0.0j)
-        if _complex_is_nonfinite(coord):
-            return 1.0
-
-        polar_obstruction = (1.0 + z) / 2.0
-        equatorial_curvature = math.sqrt(max(0.0, 1.0 - z * z))
-        mismatch = max(polar_obstruction, equatorial_curvature)
-        return float(min(1.0, max(0.0, mismatch)))
-
-    def phase2_hopf_obstruction(self, state: QuaternionicState) -> Dict[str, float]:
+    def phase2_similarity_orbit_mismatch(
+        self, p: QuaternionicState, q: QuaternionicState,
+    ) -> Dict[str, float]:
         """
-        Fase 2.2 — Obstrucción de la fibración de Hopf π : S³ → S².
+        Fase 2.2 — Distancia entre órbitas de similitud y defecto de gauge.
 
-        Si el reactor expone `phase3_hopf_fibration`, se audita que el punto
-        base viva en S² (||π(u)|| = 1). En caso contrario se reporta NaN
-        no bloqueante: la orientación no depende de un reactor evolucionado.
+            δ_class = |θ_p − θ_q| / π            (invariante, Lema Def. 2)
+            d_geo   = d_{S³}(p̂, q̂) / π          (incluye orientación)
+            gauge   = d_geo − δ_class ≥ 0       (removible por conjugación)
+
+        Se verifica el lema construyendo s con s v̂_q s* = v̂_p y midiendo
+        d_{S³}(p̂, s q̂ s*) − |θ_p − θ_q| (debe ser ≈ 0).
         """
-        hopf = self._optional_shifter_call("phase3_hopf_fibration", state)
-        if not isinstance(hopf, dict):
-            return {
-                "hopf_base_norm": math.nan,
-                "hopf_sphericity_residual": math.nan,
-            }
+        th_p, th_q = self._polar_angle(p), self._polar_angle(q)
+        nan_out = {"similarity_mismatch": math.nan, "similarity_geodesic": math.nan,
+                   "similarity_gauge_defect": math.nan, "similarity_alignment_residual": math.nan,
+                   "theta_p": th_p, "theta_q": th_q}
+        if not (math.isfinite(th_p) and math.isfinite(th_q)):
+            return nan_out
+        pu = _state_vector4(p) / _state_norm(p)
+        qu = _state_vector4(q) / _state_norm(q)
+        class_distance = abs(th_p - th_q)
+        geodesic = _geodesic_angle(pu, qu)
+        gauge = geodesic - class_distance
+        if gauge < -self._tolerance_of(1.0):
+            logger.warning("Desigualdad triangular violada numéricamente: %.3e", gauge)
+
+        vp, vq = _vector_norm3(pu[1:]), _vector_norm3(qu[1:])
+        if vp >= self._regularization and vq >= self._regularization:
+            s = _aligning_rotor(qu[1:] / vq, pu[1:] / vp, self._regularization)
+            aligned = _hamilton(_hamilton(s, qu), _conj(s))
+            alignment_residual = abs(_geodesic_angle(pu, aligned) - class_distance)
+        else:
+            alignment_residual = abs(gauge)   # p̂ o q̂ real: geodésica ≡ distancia de clase
+        if alignment_residual > self._tolerance_of(1.0) * 1e3:
+            logger.warning("Lema de órbita con residual %.3e", alignment_residual)
         return {
-            "hopf_base_norm": _finite_or_nan(hopf.get("base_norm")),
-            "hopf_sphericity_residual": _finite_or_nan(
-                hopf.get("sphericity_residual")
-            ),
+            "similarity_mismatch": float(class_distance / math.pi),
+            "similarity_geodesic": float(geodesic / math.pi),
+            "similarity_gauge_defect": float(max(0.0, gauge) / math.pi),
+            "similarity_alignment_residual": float(alignment_residual),
+            "theta_p": th_p, "theta_q": th_q,
         }
 
-    def phase2_audit_hurwitz_composition(
-        self,
-        p: QuaternionicState,
-        q: QuaternionicState,
-    ) -> float:
+    def phase2_riemann_gauge_chart(self, state: QuaternionicState) -> Dict[str, Any]:
         """
-        Fase 2.3 — Auditoría de la identidad de los cuatro cuadrados.
+        Fase 2.3 — Coordenada de gauge de v̂ ∈ S² (carta estereográfica del
+        reactor). Diagnóstica: NO entra en el veredicto (Def. 2).
+        """
+        chart = self._optional_shifter_call("phase3_riemann_sphere_chart", state)
+        if not isinstance(chart, Mapping):
+            legacy = getattr(self._shifter, "project_to_riemann_sphere", None)
+            if callable(legacy):
+                try:
+                    Z, z = legacy(state)
+                    return {"gauge_chart": "legacy", "gauge_height": _finite_or_nan(z),
+                            "gauge_coordinate_real": _finite_or_nan(complex(Z).real),
+                            "gauge_coordinate_imag": _finite_or_nan(complex(Z).imag)}
+                except (ValueError, ZeroDivisionError, TypeError):
+                    pass
+            return {"gauge_chart": "unavailable", "gauge_height": math.nan,
+                    "gauge_coordinate_real": math.nan, "gauge_coordinate_imag": math.nan}
+        return {"gauge_chart": str(chart.get("chart", "")),
+                "gauge_height": _finite_or_nan(chart.get("height")),
+                "gauge_coordinate_real": _finite_or_nan(chart.get("coordinate_real")),
+                "gauge_coordinate_imag": _finite_or_nan(chart.get("coordinate_imag")),
+                "gauge_transition_residual": _finite_or_nan(chart.get("transition_residual"))}
 
-            ε_H = | ||p q|| − ||p|| ||q|| | / max(1, ||p|| ||q||)
+    def phase2_hopf_obstruction(self, state: QuaternionicState) -> Dict[str, float]:
+        """Fase 2.4 — ‖π(û)‖ = 1 y Hopf ≡ Bloch, si el reactor los expone (NaN ⇒ neutro)."""
+        hopf = self._optional_shifter_call("phase3_hopf_fibration", state)
+        if not isinstance(hopf, Mapping):
+            return {"hopf_base_norm": math.nan, "hopf_sphericity_residual": math.nan,
+                    "hopf_bloch_identity_residual": math.nan}
+        return {"hopf_base_norm": _finite_or_nan(hopf.get("base_norm")),
+                "hopf_sphericity_residual": _finite_or_nan(hopf.get("sphericity_residual")),
+                "hopf_bloch_identity_residual": _finite_or_nan(hopf.get("bloch_identity_residual"))}
 
-        Si el reactor expone `phase2_hurwitz_residual`, se toma el máximo
-        entre ambas medidas (conservadurismo de orientación).
+    def phase2_audit_hurwitz_composition(self, p: QuaternionicState, q: QuaternionicState) -> float:
+        """
+        Fase 2.5 — ε_H = |‖pq‖ − ‖p‖‖q‖| / max(1, ‖p‖‖q‖) (Ax. I), cruzado con
+        `phase2_hurwitz_residual` del reactor (se toma el máximo).
         """
         prod = self._raw_multiply(p, q)
-        expected = float(p.norm) * float(q.norm)
-        if not math.isfinite(expected) or not math.isfinite(float(prod.norm)):
-            return 1.0
-        if expected <= self._regularization:
-            drift = float(abs(prod.norm))
-        else:
-            drift = abs(float(prod.norm) - expected) / max(1.0, expected)
-
-        alt = self._optional_shifter_call("phase2_hurwitz_residual", p, q, prod)
-        if alt is not None:
-            alt_f = _finite_or_nan(alt)
-            if math.isfinite(alt_f):
-                drift = max(drift, alt_f)
-        return float(drift)
+        expected = _state_norm(p) * _state_norm(q)
+        pn = _state_norm(prod)
+        if not (math.isfinite(expected) and math.isfinite(pn)):
+            return math.nan
+        drift = abs(pn) if expected <= self._regularization else abs(pn - expected) / max(1.0, expected)
+        alt = _finite_or_nan(self._optional_shifter_call("phase2_hurwitz_residual", p, q, prod))
+        return float(max(drift, alt)) if math.isfinite(alt) else float(drift)
 
     def phase2_verify_von_neumann_trace(self, state: QuaternionicState) -> float:
         """
-        Fase 2.4 — Auditoría de traza de von Neumann sobre ι(q) ∈ M₂(C).
+        Fase 2.6 — Def. 3 corregida: ρ = ψψ†/‖q‖², ψ = (q₀+iq₁, q₂+iq₃).
 
-        Identidad exacta: Tr(ι(q)) = 2 q₀. Normalizando ρ = ι(q) / ||q||²,
+            ε_Tr = hypot(Re Tr ρ − 1, Im Tr ρ, Tr ρ² − 1, ‖ρ − ρ†‖_F)
 
-            error = hypot( Re Tr(ρ) − 2 q₀/||q||² , Im Tr(ρ) ).
-
-        El origen se declara error = 1 (estado no invertible / no densificable).
+        Estado nulo ⇒ NaN (no densificable). Se cruza con el reactor.
         """
-        norm_sq = _state_squared_norm(state)
-        if (not math.isfinite(norm_sq)) or norm_sq < self._regularization:
-            return 1.0
-
-        try:
-            cd_mat = np.asarray(state.cayley_dickson_matrix, dtype=np.complex128)
-            rho = cd_mat / norm_sq
-            tr = np.trace(rho)
-        except (TypeError, ValueError, np.linalg.LinAlgError):
-            return 1.0
-
-        expected = 2.0 * float(state.scalar_part) / norm_sq
-        real_err = float(np.real(tr) - expected)
-        imag_err = float(np.imag(tr))
-        if not math.isfinite(real_err) or not math.isfinite(imag_err):
-            return 1.0
-        return float(math.hypot(real_err, imag_err))
-
-    def phase2_cstar_residual(self, state: QuaternionicState) -> float:
-        """
-        Fase 2.5 — Residual C* ||q* q|| = ||q||², si el reactor lo expone.
-        """
-        residual = self._optional_shifter_call("phase2_cstar_identity", state)
-        if residual is None:
+        n2 = _state_squared_norm(state)
+        if not math.isfinite(n2) or n2 < self._regularization:
             return math.nan
-        return _finite_or_nan(residual)
+        v = _state_vector4(state)
+        psi = np.array([complex(v[0], v[1]), complex(v[2], v[3])], dtype=np.complex128)
+        rho = np.outer(psi, psi.conj()) / n2
+        tr = complex(np.trace(rho))
+        purity = float(np.real(np.trace(rho @ rho)))
+        herm = float(np.linalg.norm(rho - rho.conj().T, ord="fro"))
+        err = math.hypot(tr.real - 1.0, tr.imag, purity - 1.0, herm)
+        if not math.isfinite(err):
+            return math.nan
+        alt = self._optional_shifter_call("phase1_von_neumann_trace_audit", state)
+        if isinstance(alt, Mapping):
+            for key in ("trace_residual", "purity_residual", "hermiticity_residual"):
+                r = _finite_or_nan(alt.get(key))
+                if math.isfinite(r):
+                    err = max(err, r)
+        return float(err)
 
-    def phase2_spectral_consistency(self, state: QuaternionicState) -> Dict[str, float]:
+    def phase2_reactor_algebra_report(self, state: QuaternionicState) -> Dict[str, float]:
         """
-        Fase 2.6 — Consistencia espectral de L(q) cuando el reactor la expone.
+        Fase 2.7 — Identidades exactas de la Fase 2 del reactor: C*, polinomio
+        mínimo, homomorfismos L/R/Φ_C. Canal opcional crisp (NaN ⇒ neutro ⊤).
+        """
+        rep = self._reactor_phase2_report(state)
+        keys = ("cstar_residual", "minimal_polynomial_matrix_residual",
+                "minimal_polynomial_algebraic_residual", "left_homomorphism_residual",
+                "right_antihomomorphism_residual", "cayley_dickson_homomorphism_residual",
+                "bimodule_commutation_residual", "exp_log_residual")
+        out = {f"reactor_{k}": _finite_or_nan(rep.get(k)) for k in keys}
+        finite = [v for k, v in out.items() if math.isfinite(v) and not k.endswith("exp_log_residual")]
+        out["reactor_algebra_max_residual"] = max(finite) if finite else math.nan
+        out["reactor_algebra_available"] = 1.0 if finite else 0.0
+        return out
 
-        Se recogen radio espectral, residual frente a ||q|| y residual del
-        modelo {q₀ ± i ||v||} (multiplicidad 2). Ausencia del método no es
-        veto: se reporta NaN.
-        """
-        audit = self._optional_shifter_call("phase3_spectral_audit", state)
-        if not isinstance(audit, dict):
-            return {
-                "spectral_radius": math.nan,
-                "spectral_residual": math.nan,
-                "eigenvalue_model_residual": math.nan,
-                "determinant_residual": math.nan,
-            }
+    def phase2_spectral_consistency(self, state: QuaternionicState) -> Dict[str, Any]:
+        """Fase 2.8 — Espectro de L(q), clase de similitud del reactor y Cayley–Hamilton."""
+        audits = self._reactor_phase3_audits(state)
+        sp, sim = audits["spectral"], audits["similarity"]
         return {
-            "spectral_radius": _finite_or_nan(audit.get("spectral_radius")),
-            "spectral_residual": _finite_or_nan(audit.get("spectral_residual")),
-            "eigenvalue_model_residual": _finite_or_nan(
-                audit.get("eigenvalue_model_residual")
-            ),
-            "determinant_residual": _finite_or_nan(
-                audit.get("determinant_residual")
-            ),
+            "spectral_radius": _finite_or_nan(sp.get("spectral_radius")),
+            "spectral_residual": _finite_or_nan(sp.get("spectral_residual")),
+            "eigenvalue_model_residual": _finite_or_nan(sp.get("eigenvalue_model_residual")),
+            "determinant_residual": _finite_or_nan(sp.get("determinant_residual")),
+            "cayley_hamilton_residual": _finite_or_nan(sp.get("cayley_hamilton_residual")),
+            "normality_residual": _finite_or_nan(sp.get("normality_residual")),
+            "similarity_center": _finite_or_nan(sim.get("center")),
+            "similarity_radius": _finite_or_nan(sim.get("radius")),
+            "similarity_class_type": str(sim.get("class_type", "unknown")),
+            "similarity_cd_spectrum_residual": _finite_or_nan(sim.get("cayley_dickson_spectrum_residual")),
         }
 
     def phase2_elastic_bound(self, lipschitz_bound_Lmax: float) -> float:
-        """
-        Fase 2.7 — Cota elástica Λ = L_max · η.
-
-        η = safety_margin es el factor de seguridad multiplicativo sobre la
-        constante de Lipschitz del flujo. Λ escala los umbrales de la
-        2-esfera de similitud.
-        """
+        """Fase 2.9 — Λ = L_max · η (adimensional; escala el cociente r = δ/Λ)."""
         if not math.isfinite(lipschitz_bound_Lmax) or lipschitz_bound_Lmax <= 0.0:
-            raise ValueError(
-                "lipschitz_bound_Lmax debe ser finita y estrictamente positiva."
-            )
-        bound = float(lipschitz_bound_Lmax) * float(self._safety_margin)
+            raise ValueError("lipschitz_bound_Lmax debe ser finita y estrictamente positiva.")
+        bound = float(lipschitz_bound_Lmax) * self._safety_margin
         if not math.isfinite(bound) or bound <= 0.0:
-            raise OverflowError(
-                "La cota elástica de Lipschitz no es representable o es nula."
-            )
-        return float(bound)
+            raise OverflowError("La cota elástica no es representable o es nula.")
+        return bound
 
     def phase2_collect_invariants(
-        self,
-        p_state: QuaternionicState,
-        q_state: QuaternionicState,
-        lipschitz_bound_Lmax: float,
+        self, p_state: QuaternionicState, q_state: QuaternionicState, lipschitz_bound_Lmax: float,
     ) -> Dict[str, Any]:
-        """
-        Fase 2.8 — Recolección conjunta de invariantes de orientación.
-
-        El mismatch cohomológico primario se evalúa sobre q (estado de
-        calibre). p se reporta como canal auxiliar. Hurwitz usa el par.
-        """
-        mismatch_q = self.phase2_evaluate_similarity_sphere(q_state)
-        mismatch_p = self.phase2_evaluate_similarity_sphere(p_state)
-        hurwitz_drift = self.phase2_audit_hurwitz_composition(p_state, q_state)
-        trace_err = self.phase2_verify_von_neumann_trace(q_state)
-        elastic_bound = self.phase2_elastic_bound(lipschitz_bound_Lmax)
-        hopf = self.phase2_hopf_obstruction(q_state)
-        cstar = self.phase2_cstar_residual(q_state)
-        spectral = self.phase2_spectral_consistency(q_state)
-
+        """Fase 2.10 — Recolección conjunta: canales primarios + diagnósticos del reactor."""
+        orbit = self.phase2_similarity_orbit_mismatch(p_state, q_state)
         return {
-            "similarity_mismatch": float(mismatch_q),
-            "similarity_mismatch_p_channel": float(mismatch_p),
-            "hurwitz_drift": float(hurwitz_drift),
-            "trace_von_neumann_error": float(trace_err),
-            "elastic_bound": float(elastic_bound),
-            "cstar_residual": float(cstar) if cstar == cstar else math.nan,
-            **hopf,
-            **spectral,
-            "safety_margin": self._safety_margin,
-            "tolerance": self._tol,
+            **orbit,
+            "similarity_mismatch_p_channel": self.phase2_evaluate_similarity_sphere(p_state),
+            "similarity_mismatch_q_channel": self.phase2_evaluate_similarity_sphere(q_state),
+            "hurwitz_drift": self.phase2_audit_hurwitz_composition(p_state, q_state),
+            "trace_von_neumann_error": self.phase2_verify_von_neumann_trace(q_state),
+            "elastic_bound": self.phase2_elastic_bound(lipschitz_bound_Lmax),
+            **self.phase2_reactor_algebra_report(q_state),
+            **self.phase2_spectral_consistency(q_state),
+            **self.phase2_hopf_obstruction(q_state),
+            **self.phase2_riemann_gauge_chart(q_state),
+            "safety_margin": self._safety_margin, "tolerance": self._tol,
             "regularization": self._regularization,
-            "soft_veto_lower": self._soft_veto_lower,
-            "soft_veto_upper": self._soft_veto_upper,
+            "soft_veto_lower": self._soft_veto_lower, "soft_veto_upper": self._soft_veto_upper,
         }
 
     def phase2_close_and_open_phase3(
-        self,
-        phase1_handoff: Phase1AgentHandoff,
-        lipschitz_bound_Lmax: float,
+        self, phase1_handoff: Phase1AgentHandoff, lipschitz_bound_Lmax: float,
     ) -> Phase2AgentHandoff:
         """
-        Fase 2.9 — Cierre formal de Fase 2 y apertura verificada de Fase 3.
+        Fase 2.11 — Cierre formal de Fase 2 y apertura verificada de Fase 3.
 
-        Definición formal de frontera:
+            Φ₂→₃ : (p, q, σ₁) ↦ (p, q, σ₁, δ, ε_H, ε_Tr, Λ, D₂)
 
-            Φ₂→₃ : (p, q, σ₁) ↦ (p, q, σ₁, δ, ε_H, ε_Tr, Λ) ∈ H² × Σ × D₂
-
-        donde
-          δ    = mismatch de similitud espectral de q,
-          ε_H  = deriva de Hurwitz,
-          ε_Tr = error de traza de von Neumann,
-          Λ    = cota elástica de Lipschitz.
-
-        Este es el último método de la Fase 2. Su contrato es exactamente el
-        dominio de `phase3_from_phase2`. Con ello la Fase 2 queda anidada,
-        como prefijo functorial, dentro de la Fase 3.
+        Último método de Fase 2; su codominio es el dominio de `phase3_from_phase2`.
         """
         p_state, q_state = self.phase2_from_phase1(phase1_handoff)
-        invariants = self.phase2_collect_invariants(
-            p_state, q_state, lipschitz_bound_Lmax
-        )
-
+        inv = self.phase2_collect_invariants(p_state, q_state, lipschitz_bound_Lmax)
         handoff = Phase2AgentHandoff(
-            p_state=p_state,
-            q_state=q_state,
-            session_sha256=phase1_handoff.session_sha256,
-            similarity_mismatch=float(invariants["similarity_mismatch"]),
-            hurwitz_drift=float(invariants["hurwitz_drift"]),
-            trace_von_neumann_error=float(invariants["trace_von_neumann_error"]),
-            elastic_bound=float(invariants["elastic_bound"]),
-            diagnostics=invariants,
-            next_entrypoint=_PHASE2_ENTRY,
+            p_state=p_state, q_state=q_state, session_sha256=phase1_handoff.session_sha256,
+            similarity_mismatch=float(inv["similarity_mismatch"]),
+            hurwitz_drift=float(inv["hurwitz_drift"]),
+            trace_von_neumann_error=float(inv["trace_von_neumann_error"]),
+            elastic_bound=float(inv["elastic_bound"]),
+            diagnostics=inv, next_entrypoint=_PHASE2_ENTRY,
         )
-
-        opened = self.phase3_from_phase2(handoff)
+        opened = self.phase3_from_phase2(handoff)                     # ← anidamiento Φ₂→₃
         if opened.session_sha256 != handoff.session_sha256:
-            raise RuntimeError(
-                "Invariante de anidamiento Φ₂→₃ violado: el sello de sesión "
-                "admitido por Fase 3 no coincide con el de Fase 2."
-            )
-
-        logger.debug(
-            "Fase Orient [QUATERNION_AGENT]: mismatch=%.6e, hurwitz=%.6e, trace=%.6e",
-            handoff.similarity_mismatch,
-            handoff.hurwitz_drift,
-            handoff.trace_von_neumann_error,
-        )
+            raise RuntimeError("Invariante de anidamiento Φ₂→₃ violado.")
+        logger.debug("Fase Orient [QUATERNION_AGENT]: δ=%.6e ε_H=%.6e ε_Tr=%.6e gauge=%.6e",
+                     handoff.similarity_mismatch, handoff.hurwitz_drift,
+                     handoff.trace_von_neumann_error, inv["similarity_gauge_defect"])
         return handoff
 
     # ═════════════════════════════════════════════════════════════════════════
-    # FASE 3 — DECIDE / ACT: RAMPA, HEYTING, VETO, HARDWARE Y CERTIFICACIÓN
+    # FASE 3 — DECIDE / ACT: CANALES Ω₃, RAMPA, GRACIA, HARDWARE Y CERTIFICADO
     # (continuación formal de phase2_close_and_open_phase3)
     # ═════════════════════════════════════════════════════════════════════════
 
     def phase3_from_phase2(self, handoff: Phase2AgentHandoff) -> Phase2AgentHandoff:
-        """
-        Fase 3.0 — Entrada formal desde Fase 2.
-
-        Continuación directa de `phase2_close_and_open_phase3`. Consume
-        `Phase2AgentHandoff` y lo reexpone si la frontera es válida.
-        """
+        """Fase 3.0 — Entrada formal: admite Φ₂→₃ y valida el dominio de las métricas."""
         if not isinstance(handoff, Phase2AgentHandoff):
             raise TypeError("Se esperaba Phase2AgentHandoff como frontera Φ₂→₃.")
         if handoff.next_entrypoint != _PHASE2_ENTRY:
-            raise ValueError(
-                "Phase2AgentHandoff inválido: el punto de entrada esperado es "
-                f"{_PHASE2_ENTRY!r}."
-            )
-        if not isinstance(handoff.session_sha256, str) or len(
-            handoff.session_sha256
-        ) != _SHA256_HEX_LEN:
+            raise ValueError(f"Phase2AgentHandoff inválido: se esperaba {_PHASE2_ENTRY!r}.")
+        if not isinstance(handoff.session_sha256, str) or len(handoff.session_sha256) != _SHA256_HEX_LEN:
             raise ValueError("El sello de sesión de Φ₂→₃ no es un SHA-256 válido.")
+        d = handoff.similarity_mismatch
+        if not (math.isnan(d) or 0.0 <= d <= 1.0 + 4.0 * _MACHINE_EPS):
+            raise ValueError(f"similarity_mismatch fuera de [0, 1]: {d!r}")
+        for name, val in (("hurwitz_drift", handoff.hurwitz_drift),
+                          ("trace_von_neumann_error", handoff.trace_von_neumann_error)):
+            if not (math.isnan(val) or val >= 0.0):
+                raise ValueError(f"{name} debe ser ≥ 0 o NaN: {val!r}")
+        if not math.isfinite(handoff.elastic_bound) or handoff.elastic_bound <= 0.0:
+            raise ValueError("elastic_bound debe ser finita y estrictamente positiva.")
         return handoff
+
+    def phase3_channel_truth_values(self, handoff: Phase2AgentHandoff) -> Dict[str, float]:
+        """
+        Fase 3.1 — Valores crisp ν_k ∈ Ω₃ por canal.
+
+          similarity : r = δ/Λ;  r ≤ α ↦ 1;  α < r ≤ β ↦ ½;  r > β ↦ 0;  NaN ↦ 0
+          hurwitz, von_neumann : residual ≤ τ_hard ↦ 1; si no ↦ 0; NaN ↦ 0
+          reactor_algebra (opcional) : idem; NaN (no disponible) ↦ 1 (neutro)
+        """
+        hard = self._hard_algebraic_threshold()
+        a, b = self._soft_veto_lower, self._soft_veto_upper
+
+        def sphere(delta: float, lam: float) -> float:
+            if not (math.isfinite(delta) and math.isfinite(lam)) or lam <= 0.0:
+                return Heyting3.VETOED
+            r = delta / lam
+            return Heyting3.COHERENT if r <= a else (Heyting3.DEGRADED if r <= b else Heyting3.VETOED)
+
+        def crisp(res: float, neutral_if_nan: bool = False) -> float:
+            if not math.isfinite(res):
+                return Heyting3.COHERENT if neutral_if_nan else Heyting3.VETOED
+            return Heyting3.COHERENT if res <= hard else Heyting3.VETOED
+
+        return {
+            "similarity": sphere(handoff.similarity_mismatch, handoff.elastic_bound),
+            "hurwitz": crisp(handoff.hurwitz_drift),
+            "von_neumann": crisp(handoff.trace_von_neumann_error),
+            "reactor_algebra": crisp(_finite_or_nan(handoff.diagnostics.get("reactor_algebra_max_residual")),
+                                     neutral_if_nan=True),
+        }
 
     def phase3_confidence_ramp(self, handoff: Phase2AgentHandoff) -> float:
         """
-        Fase 3.1 — Rampa de confianza Lipschitz-saturada.
-
-        Para cada canal se define un valor de verdad continuo c ∈ [0, 1]:
-
-            r_S = δ / Λ
-            c_S = 1                 si r_S ≤ α
-                = (β − r_S)/(β − α) si α < r_S ≤ β
-                = 0                 si r_S > β
-
-        con α = soft_veto_lower, β = soft_veto_upper. Los canales algebraicos
-        (Hurwitz, von Neumann) saturan contra el umbral duro. La confianza
-        global es el encuentro de Heyting (mínimo) de los canales finitos.
+        Fase 3.2 — Confianza continua c = ⊓ c_k (Def. 4). El canal de similitud
+        refina la celda DEGRADED en [½, 1); los algebraicos son crisp. Lema:
+        quantize(c) = ⊓ ν_k (verificado en `phase3_decide_heyting`).
         """
-        mismatch = float(handoff.similarity_mismatch)
-        hurwitz = float(handoff.hurwitz_drift)
-        trace_err = float(handoff.trace_von_neumann_error)
-        bound = float(handoff.elastic_bound)
-        alpha = self._soft_veto_lower
-        beta = self._soft_veto_upper
-        hard = self._hard_algebraic_threshold()
+        a, b = self._soft_veto_lower, self._soft_veto_upper
+        d, lam = handoff.similarity_mismatch, handoff.elastic_bound
+        if not (math.isfinite(d) and math.isfinite(lam)) or lam <= 0.0:
+            c_sphere = Heyting3.VETOED
+        else:
+            r = d / lam
+            if r <= a:
+                c_sphere = Heyting3.COHERENT
+            elif r <= b:
+                c_sphere = 0.5 + 0.5 * (b - r) / (b - a)
+            else:
+                c_sphere = Heyting3.VETOED
+        truths = self.phase3_channel_truth_values(handoff)
+        c = Heyting3.meet_all([c_sphere, truths["hurwitz"], truths["von_neumann"], truths["reactor_algebra"]])
+        return float(min(1.0, max(0.0, c)))
 
-        def _sphere_channel(delta: float, lam: float) -> float:
-            if not math.isfinite(delta) or not math.isfinite(lam) or lam <= 0.0:
-                return Heyting3.VETOED
-            ratio = delta / lam
-            if ratio <= alpha:
-                return Heyting3.COHERENT
-            if ratio > beta:
-                return Heyting3.VETOED
-            span = beta - alpha
-            if span <= 0.0:
-                return Heyting3.VETOED
-            return float((beta - ratio) / span)
+    def phase3_issue_override_token(self, session_sha256: str) -> str:
+        """
+        Fase 3.3a — Lado de la autoridad humana: token = HMAC-SHA256(key, dominio ‖ sesión).
+        Requiere clave configurada (Ax. II).
+        """
+        if self._override_key is None:
+            raise PermissionError("No hay override_hmac_key configurada: no se pueden emitir tokens.")
+        if not isinstance(session_sha256, str) or len(session_sha256) != _SHA256_HEX_LEN:
+            raise ValueError("session_sha256 inválido.")
+        return hmac.new(self._override_key, _OVERRIDE_DOMAIN + session_sha256.encode("utf-8"),
+                        hashlib.sha256).hexdigest()
 
-        def _algebra_channel(residual: float) -> float:
-            if not math.isfinite(residual):
-                return Heyting3.VETOED
-            if residual <= hard:
-                return Heyting3.COHERENT
-            # saturación suave hasta 10 × umbral duro
-            hi = 10.0 * hard
-            if residual >= hi:
-                return Heyting3.VETOED
-            return float((hi - residual) / (hi - hard))
-
-        channels = [
-            _sphere_channel(mismatch, bound),
-            _algebra_channel(hurwitz),
-            _algebra_channel(trace_err),
-        ]
-        confidence = channels[0]
-        for ch in channels[1:]:
-            confidence = Heyting3.meet(confidence, ch)
-        if not math.isfinite(confidence):
-            return Heyting3.VETOED
-        return float(min(1.0, max(0.0, confidence)))
+    def _phase3_verify_override(self, token: Optional[str], session_sha256: str) -> Tuple[bool, Optional[str], bool]:
+        """
+        Fase 3.3b — (aceptado, registro_sha256, rechazado). Con clave: comparación
+        en tiempo constante. Sin clave: modo legado (cualquier token no vacío) con advertencia.
+        """
+        if token is None or not str(token).strip():
+            return False, None, False
+        tok = str(token).strip()
+        record = hashlib.sha256(_OVERRIDE_DOMAIN + session_sha256.encode("utf-8")
+                                + tok.encode("utf-8")).hexdigest()
+        if self._override_key is None:
+            logger.warning("Override en MODO LEGADO sin autenticación HMAC (Ax. II no aplicado).")
+            return True, record, False
+        expected = self.phase3_issue_override_token(session_sha256)
+        if hmac.compare_digest(expected.lower(), tok.lower()):
+            return True, record, False
+        logger.error("Override RECHAZADO: HMAC inválido para la sesión %s.", session_sha256[:16])
+        return False, record, True
 
     def phase3_decide_heyting(
         self,
@@ -1092,174 +1027,123 @@ class QuaternionicStateAgent:
         elapsed_grace_seconds: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
-        Fase 3.2 — Clasificador de Heyting trivalente Ω₃.
+        Fase 3.4 — Clasificador Ω₃:  ν = ν_ch ⊓ (σ → (γ ⊔ ω))   (Def. 5).
 
-        Reglas (con α = soft_veto_lower, β = soft_veto_upper, Λ cota elástica):
-
-          - DEGRADED (½)  si  α Λ < δ ≤ β Λ  y las métricas son finitas.
-          - VETOED   (0)  si  δ > β Λ, o ε_H / ε_Tr superan el umbral duro,
-                          o hay métricas no finitas, o el veto suave expira
-                          sin override.
-          - COHERENT (1)  en el resto de casos.
-
-        El positrón e⁺ (override_token no vacío) es un morfismo
-            DEGRADED → DEGRADED
-        que anula la implicación «gracia expirada ⇒ VETOED».
+        ν_ch = ⊓ canales; σ = [ν_ch = ½]; γ = [gracia vigente]; ω = [override válido].
+        El veto duro (ν_ch = 0) no admite override porque σ = 0 ⇒ (σ → ·) = 1.
         """
-        mismatch = float(handoff.similarity_mismatch)
-        hurwitz_drift = float(handoff.hurwitz_drift)
-        trace_err = float(handoff.trace_von_neumann_error)
-        elastic_bound = float(handoff.elastic_bound)
+        truths = self.phase3_channel_truth_values(handoff)
+        nu_ch = Heyting3.meet_all(truths.values())
         confidence = self.phase3_confidence_ramp(handoff)
+        if Heyting3.quantize(confidence) != nu_ch:  # pragma: no cover - lema Def. 4
+            raise RuntimeError("Lema de cuantización violado: rampa y canales discrepan.")
 
-        finite_metrics = all(
-            math.isfinite(x)
-            for x in (mismatch, hurwitz_drift, trace_err, elastic_bound)
-        )
-        hard_threshold = self._hard_algebraic_threshold()
-        alpha = self._soft_veto_lower
-        beta = self._soft_veto_upper
-
-        is_soft_veto = bool(
-            finite_metrics
-            and (alpha * elastic_bound < mismatch <= beta * elastic_bound)
-        )
-        is_hard_veto = bool(
-            (not finite_metrics)
-            or (mismatch > beta * elastic_bound)
-            or (hurwitz_drift > hard_threshold)
-            or (trace_err > hard_threshold)
-        )
-
-        override_expired = False
-        override_sha256: Optional[str] = None
-
-        if is_soft_veto:
-            if override_token is not None and str(override_token).strip():
-                override_sha256 = hashlib.sha256(
-                    str(override_token).encode("utf-8")
-                ).hexdigest()
-                logger.info(
-                    "¡POSITRÓN DE AUTORIZACIÓN HUMANA [e+] INYECTADO! "
-                    "Aniquilando anomalía en Fock. Sello: %s",
-                    override_sha256[:16],
-                )
-                override_expired = False
-            else:
-                if elapsed_grace_seconds is not None:
-                    if not math.isfinite(float(elapsed_grace_seconds)):
-                        override_expired = True
-                    else:
-                        override_expired = (
-                            float(elapsed_grace_seconds) >= self._grace_limit
-                        )
-                else:
-                    override_expired = bool(simulate_grace_expired)
-
-                if override_expired:
-                    logger.warning(
-                        "¡PERÍODO DE GRACIA DE %.0f SEGUNDOS EXPIRADO SIN OVERRIDE! "
-                        "Gatillando veto ciber-físico de protección de capital.",
-                        self._grace_limit,
-                    )
-                else:
-                    logger.warning(
-                        "¡VETO SUAVE ACTIVO (LUZ ÁMBAR)! "
-                        "Inconsistencia marginal en la 2-esfera de similitud. "
-                        "Cuenta atrás de %.0f segundos activa.",
-                        self._grace_limit,
-                    )
-
-        if is_hard_veto or (is_soft_veto and override_expired):
-            truth = Heyting3.VETOED
-        elif is_soft_veto and not override_expired:
-            truth = Heyting3.DEGRADED
+        if elapsed_grace_seconds is not None:
+            e = float(elapsed_grace_seconds)
+            if not math.isfinite(e) or e < 0.0:
+                raise ValueError("elapsed_grace_seconds debe ser finito y no negativo.")
+            gamma = Heyting3.COHERENT if e < self._grace_limit else Heyting3.VETOED
         else:
-            truth = Heyting3.COHERENT
+            e = math.nan
+            gamma = Heyting3.VETOED if simulate_grace_expired else Heyting3.COHERENT
 
-        # El encuentro con la rampa nunca eleva el veredicto: solo puede bajarlo
-        # a DEGRADED si la confianza cae bajo 1 sin llegar a 0, o a VETOED si es 0.
-        quantized_confidence = Heyting3.quantize(confidence)
-        truth = Heyting3.meet(truth, quantized_confidence)
+        sigma = Heyting3.COHERENT if nu_ch == Heyting3.DEGRADED else Heyting3.VETOED
+        accepted, override_sha256, rejected = (False, None, False)
+        if sigma == Heyting3.COHERENT:
+            accepted, override_sha256, rejected = self._phase3_verify_override(
+                override_token, handoff.session_sha256)
+        omega = Heyting3.COHERENT if accepted else Heyting3.VETOED
+
+        truth = Heyting3.meet(nu_ch, Heyting3.implies(sigma, Heyting3.join(gamma, omega)))
         verdict = Heyting3.to_verdict(truth)
+        is_soft = sigma == Heyting3.COHERENT
+        expired = bool(is_soft and gamma == Heyting3.VETOED and not accepted)
+
+        if is_soft and accepted:
+            logger.info("Override humano [e⁺] aceptado. Registro: %s", (override_sha256 or "")[:16])
+        elif expired:
+            logger.warning("Gracia de %.0f s expirada sin override válido: colapso a VETOED.", self._grace_limit)
+        elif is_soft:
+            logger.warning("VETO SUAVE (luz ámbar): r = %.4f ∈ (α, β]; cuenta atrás %.0f s.",
+                           handoff.similarity_mismatch / handoff.elastic_bound, self._grace_limit)
 
         return {
-            "heyting_verdict": verdict,
-            "heyting_truth_value": float(truth),
+            "heyting_verdict": verdict, "heyting_truth_value": float(truth),
+            "channel_truth_values": dict(truths), "channels_meet": float(nu_ch),
             "confidence": float(confidence),
-            "is_soft_veto": is_soft_veto,
-            "is_hard_veto": is_hard_veto,
-            "override_grace_period_expired": override_expired,
+            "is_soft_veto": is_soft, "is_hard_veto": nu_ch == Heyting3.VETOED,
+            "override_grace_period_expired": expired,
+            "override_accepted": accepted, "override_rejected": rejected,
             "override_sha256": override_sha256,
-            "hard_threshold": hard_threshold,
-            "elastic_bound": elastic_bound,
-            "grace_period_seconds": self._grace_limit,
-            "elapsed_grace_seconds": (
-                float(elapsed_grace_seconds)
-                if elapsed_grace_seconds is not None
-                else math.nan
-            ),
+            "sigma": sigma, "gamma": gamma, "omega": omega,
+            "hard_threshold": self._hard_algebraic_threshold(),
+            "elastic_bound": handoff.elastic_bound,
+            "grace_period_seconds": self._grace_limit, "elapsed_grace_seconds": e,
         }
+
+    def phase3_lyapunov_dissipation(
+        self, handoff: Phase2AgentHandoff, previous_storage: Optional[float] = None,
+    ) -> Dict[str, float]:
+        """
+        Fase 3.5 — Función de almacenamiento H = ½(δ² + ε_H² + ε_Tr²) (Inv. I) y
+        disipación H_k − H_{k−1}; contractivo si ≤ τ_Lyapunov. No bloqueante.
+        """
+        terms = (handoff.similarity_mismatch, handoff.hurwitz_drift, handoff.trace_von_neumann_error)
+        storage = math.inf if any(not math.isfinite(t) for t in terms) else 0.5 * math.fsum(t * t for t in terms)
+        if previous_storage is None or not math.isfinite(previous_storage) or not math.isfinite(storage):
+            dissipation, contractive = math.nan, math.nan
+        else:
+            dissipation = storage - float(previous_storage)
+            contractive = 1.0 if dissipation <= self._lyapunov_tol else 0.0
+        return {"lyapunov_storage": storage, "lyapunov_dissipation": dissipation,
+                "lyapunov_contractive": contractive, "lyapunov_tolerance": self._lyapunov_tol}
 
     def phase3_actuate_hardware(self, heyting_verdict: str) -> Tuple[bool, float]:
         """
-        Fase 3.3 — Actuación de hardware Crowbar BT151.
-
-        Sólo el colapso a VETOED conmuta el interlock. El jitter gaussiano
-        simula la dispersión física IRAM y se recorta a [385, 415] ns.
-
-        Retorna
-        -------
-        Tuple[bool, float]
-            (interlock_fired, actuation_latency_ns)
+        Fase 3.6 — Crowbar BT151 (GPIO14 ↦ HIGH) sólo ante VETOED. La latencia
+        procede del muestreador inyectado (telemetría real o modelo t₀ + N(0,σ²));
+        NUNCA se recorta al presupuesto (Ax. III).
         """
         if str(heyting_verdict) != "VETOED":
             return False, 0.0
+        latency = _finite_or_nan(self._latency_sampler())
+        if math.isfinite(latency) and latency < 0.0:
+            latency = math.nan
+        logger.critical("Ω₃ colapsada a ⊥ en Soberano Cuaterniónico: GPIO14=HIGH vía IRAM en %.2f ns "
+                        "(presupuesto %.0f ns). Crowbar BT151 gatillado.", latency, _CROWBAR_IRAM_BUDGET_NS)
+        return True, latency
 
-        jitter = float(self._rng.normal(loc=0.0, scale=self._jitter_sigma))
-        actuation_latency_ns = float(
-            np.clip(
-                _CROWBAR_IRAM_LATENCY_NS + jitter,
-                _CROWBAR_LATENCY_MIN_NS,
-                _CROWBAR_LATENCY_MAX_NS,
-            )
-        )
-        logger.critical(
-            "¡COLA DE HEYTING COLAPSADA EN SOBERANO CUATERNIÓNICO! "
-            "Conmutando GPIO14 a HIGH en %.2f ns vía IRAM. Crowbar BT151 gatillado.",
-            actuation_latency_ns,
-        )
-        return True, actuation_latency_ns
+    def phase3_actuation_audit(self, fired: bool, latency_ns: float) -> Dict[str, Any]:
+        """Fase 3.7 — Presupuesto τ_IRAM y probabilidad analítica de exceso ½·erfc((τ−t₀)/(σ√2))."""
+        tau, t0, s = _CROWBAR_IRAM_BUDGET_NS, self._nominal_latency, self._jitter_sigma
+        p_exceed = (0.5 * math.erfc((tau - t0) / (s * math.sqrt(2.0)))) if s > 0.0 else (0.0 if t0 <= tau else 1.0)
+        violated = bool(fired and (not math.isfinite(latency_ns) or latency_ns > tau))
+        if violated:
+            logger.error("Presupuesto de actuación violado: %.2f ns > %.0f ns.", latency_ns, tau)
+        return {"latency_budget_ns": tau, "latency_nominal_ns": t0, "jitter_sigma_ns": s,
+                "latency_exceedance_probability": float(p_exceed),
+                "latency_budget_violated": violated, "actuation_latency_ns": float(latency_ns)}
 
-    def _phase3_certificate_seal(
-        self,
-        verdict: str,
-        mismatch: float,
-        hurwitz_drift: float,
-        trace_err: float,
-        actuation_latency_ns: float,
-        session_sha256: str,
-        override_sha256: str,
-        hardware_interlock_fired: bool,
-        confidence: float,
-        truth: float,
-    ) -> str:
-        """Sello binario canónico del certificado (no depende de `repr`)."""
+    def _phase3_certificate_seal(self, payload: Mapping[str, Any], chain: Sequence[str]) -> str:
+        """Fase 3.8 — Sello binario canónico del certificado (Inv. II)."""
         h = hashlib.sha256()
-        h.update(b"QSA/CERT/v3")
-        _sha_update_str(h, "G_WISDOM_QUATERNION_SUTURATED")
-        _sha_update_str(h, verdict)
-        h.update(_pack_f64(mismatch))
-        h.update(_pack_f64(hurwitz_drift))
-        h.update(_pack_f64(trace_err))
-        h.update(_pack_f64(actuation_latency_ns))
-        h.update(_pack_f64(confidence))
-        h.update(_pack_f64(truth))
-        _sha_update_str(h, session_sha256)
-        _sha_update_str(h, override_sha256)
-        _sha_update_str(
-            h, "HARDWARE_FIRED" if hardware_interlock_fired else "HARDWARE_IDLE"
-        )
+        h.update(b"QSA/CERT/v4")
+        for key in sorted(payload):
+            _sha_update_str(h, key)
+            val = payload[key]
+            if isinstance(val, bool):
+                h.update(b"b" + _pack_flag(val))
+            elif isinstance(val, (int, float, np.floating, np.integer)):
+                h.update(b"f" + _pack_f64(val))
+            elif isinstance(val, (tuple, list)):
+                h.update(b"t" + len(val).to_bytes(8, "little"))
+                for x in val:
+                    h.update(_pack_f64(x) if isinstance(x, (int, float)) else str(x).encode("utf-8"))
+            else:
+                h.update(b"s")
+                _sha_update_str(h, "" if val is None else str(val))
+        for tok in chain:
+            _sha_update_str(h, tok)
         return h.hexdigest()
 
     def phase3_issue_certificate(
@@ -1268,65 +1152,77 @@ class QuaternionicStateAgent:
         decision: Mapping[str, Any],
         hardware_interlock_fired: bool,
         actuation_latency_ns: float,
+        actuation_audit: Optional[Mapping[str, Any]] = None,
+        lyapunov: Optional[Mapping[str, float]] = None,
     ) -> QuaternionicAgentCertificate:
-        """
-        Fase 3.4 — Emisión del certificado formal inmutable.
-
-        Incluye veredicto Ω₃, métricas físicas, rampa de confianza, estado
-        de veto, actuación de hardware, cadena de fases y sello SHA-256.
-        """
+        """Fase 3.9 — Certificado inmutable con sello SHA-256 y raíz de Merkle Φ₁→Φ₂→Φ₃."""
+        act = dict(actuation_audit or self.phase3_actuation_audit(hardware_interlock_fired, actuation_latency_ns))
+        lya = dict(lyapunov or self.phase3_lyapunov_dissipation(handoff))
         verdict = str(decision["heyting_verdict"])
-        mismatch = float(handoff.similarity_mismatch)
-        hurwitz_drift = float(handoff.hurwitz_drift)
-        trace_err = float(handoff.trace_von_neumann_error)
-        override_expired = bool(decision["override_grace_period_expired"])
         override_sha256 = str(decision.get("override_sha256") or "NO_OVERRIDE")
-        confidence = float(decision.get("confidence", math.nan))
-        truth = float(
-            decision.get("heyting_truth_value", Heyting3.from_verdict(verdict))
-        )
+        truths = decision.get("channel_truth_values", {})
+        truth_tuple = tuple(float(truths[k]) for k in ("similarity", "hurwitz", "von_neumann", "reactor_algebra")
+                            if k in truths)
+        p_token, q_token = _state_token(handoff.p_state, "LEGACY_P"), _state_token(handoff.q_state, "LEGACY_Q")
+        phase_chain = ("PHASE1/OBSERVE", p_token, q_token, "PHASE2/ORIENT", "PHASE3/DECIDE/ACT")
 
-        p_token = _state_token(handoff.p_state, "LEGACY_P")
-        q_token = _state_token(handoff.q_state, "LEGACY_Q")
-        phase_chain = (
-            "PHASE1/OBSERVE",
-            p_token,
-            q_token,
-            "PHASE2/ORIENT",
-            "PHASE3/DECIDE/ACT",
-        )
+        metrics_hash = hashlib.sha256(handoff._metric_bytes()).hexdigest()
+        decision_hash = hashlib.sha256(b"".join((
+            verdict.encode("utf-8"), _pack_f64(decision.get("heyting_truth_value")),
+            _pack_f64(decision.get("confidence")), override_sha256.encode("utf-8")))).hexdigest()
+        merkle_root = _merkle_chain((
+            ("PHASE1/OBSERVE", handoff.session_sha256),
+            (p_token, _state_hash(handoff.p_state)), (q_token, _state_hash(handoff.q_state)),
+            ("PHASE2/ORIENT", metrics_hash), ("PHASE3/DECIDE/ACT", decision_hash)))
 
-        digital_sig = self._phase3_certificate_seal(
-            verdict=verdict,
-            mismatch=mismatch,
-            hurwitz_drift=hurwitz_drift,
-            trace_err=trace_err,
-            actuation_latency_ns=float(actuation_latency_ns),
-            session_sha256=handoff.session_sha256,
-            override_sha256=override_sha256,
-            hardware_interlock_fired=bool(hardware_interlock_fired),
-            confidence=confidence,
-            truth=truth,
-        )
+        payload: Dict[str, Any] = {
+            "phase": "G_WISDOM_QUATERNION_SUTURATED", "verdict": verdict,
+            "mismatch": handoff.similarity_mismatch, "hurwitz": handoff.hurwitz_drift,
+            "trace": handoff.trace_von_neumann_error, "elastic_bound": handoff.elastic_bound,
+            "geodesic": _finite_or_nan(handoff.diagnostics.get("similarity_geodesic")),
+            "gauge_defect": _finite_or_nan(handoff.diagnostics.get("similarity_gauge_defect")),
+            "confidence": float(decision.get("confidence", math.nan)),
+            "truth": float(decision.get("heyting_truth_value", Heyting3.from_verdict(verdict))),
+            "channel_truths": truth_tuple,
+            "is_soft_veto": bool(decision["is_soft_veto"]),
+            "expired": bool(decision["override_grace_period_expired"]),
+            "override_rejected": bool(decision.get("override_rejected", False)),
+            "hardware_fired": bool(hardware_interlock_fired),
+            "latency_ns": float(actuation_latency_ns),
+            "budget_violated": bool(act["latency_budget_violated"]),
+            "p_exceed": float(act["latency_exceedance_probability"]),
+            "lyapunov_storage": float(lya["lyapunov_storage"]),
+            "lyapunov_dissipation": float(lya["lyapunov_dissipation"]),
+            "session": handoff.session_sha256, "override": override_sha256,
+            "merkle_root": merkle_root, "reactor_version": str(_SHIFTER_VERSION),
+            "agent_version": __version__,
+        }
+        seal = self._phase3_certificate_seal(payload, phase_chain)
 
         return QuaternionicAgentCertificate(
-            phase="G_WISDOM_QUATERNION_SUTURATED",
-            heyting_verdict=verdict,
-            cohomological_mismatch=mismatch,
-            norm_drift_error=hurwitz_drift,
-            trace_von_neumann_error=trace_err,
+            phase="G_WISDOM_QUATERNION_SUTURATED", heyting_verdict=verdict,
+            cohomological_mismatch=handoff.similarity_mismatch,
+            norm_drift_error=handoff.hurwitz_drift,
+            trace_von_neumann_error=handoff.trace_von_neumann_error,
             is_surgery_active=(verdict == "DEGRADED"),
             is_soft_veto_active=bool(decision["is_soft_veto"]),
-            override_grace_period_expired=override_expired,
+            override_grace_period_expired=bool(decision["override_grace_period_expired"]),
             hardware_interlock_fired=bool(hardware_interlock_fired),
             actuation_latency_ns=float(actuation_latency_ns),
-            digital_signature_sha256=digital_sig,
-            session_sha256=handoff.session_sha256,
-            phase_chain=phase_chain,
-            confidence=confidence,
-            heyting_truth_value=truth,
-            elastic_bound=float(handoff.elastic_bound),
-            override_sha256=override_sha256,
+            digital_signature_sha256=seal,
+            session_sha256=handoff.session_sha256, phase_chain=phase_chain,
+            confidence=payload["confidence"], heyting_truth_value=payload["truth"],
+            elastic_bound=handoff.elastic_bound, override_sha256=override_sha256,
+            merkle_root=merkle_root,
+            similarity_geodesic=payload["geodesic"], similarity_gauge_defect=payload["gauge_defect"],
+            channel_truth_values=truth_tuple,
+            override_rejected=payload["override_rejected"],
+            latency_budget_ns=float(act["latency_budget_ns"]),
+            latency_budget_violated=payload["budget_violated"],
+            latency_exceedance_probability=payload["p_exceed"],
+            lyapunov_storage=payload["lyapunov_storage"],
+            lyapunov_dissipation=payload["lyapunov_dissipation"],
+            reactor_version=str(_SHIFTER_VERSION),
         )
 
     def phase3_close_loop(
@@ -1335,51 +1231,25 @@ class QuaternionicStateAgent:
         override_token: Optional[str] = None,
         simulate_grace_expired: bool = False,
         elapsed_grace_seconds: Optional[float] = None,
+        previous_storage: Optional[float] = None,
     ) -> QuaternionicAgentCertificate:
-        """
-        Fase 3.5 — Orquestación completa de la Fase 3.
-
-        Ejecuta, en orden:
-          1. validación de frontera Φ₂→₃;
-          2. rampa de confianza y decisión Heyting;
-          3. actuación de hardware;
-          4. certificación final.
-        """
+        """Fase 3.10 — Orquestación de Fase 3: frontera → decisión → actuación → certificado."""
         validated = self.phase3_from_phase2(phase2_handoff)
-
-        decision = self.phase3_decide_heyting(
-            handoff=validated,
-            override_token=override_token,
-            simulate_grace_expired=simulate_grace_expired,
-            elapsed_grace_seconds=elapsed_grace_seconds,
-        )
-        interlock_fired, latency = self.phase3_actuate_hardware(
-            heyting_verdict=decision["heyting_verdict"]
-        )
-        certificate = self.phase3_issue_certificate(
-            handoff=validated,
-            decision=decision,
-            hardware_interlock_fired=interlock_fired,
-            actuation_latency_ns=latency,
-        )
-
-        if certificate.heyting_verdict == "VETOED":
-            logger.critical(
-                "Soberano Cuaterniónico emitió VETO DURO. Sello: %s",
-                certificate.digital_signature_sha256[:16],
-            )
+        decision = self.phase3_decide_heyting(validated, override_token, simulate_grace_expired,
+                                              elapsed_grace_seconds)
+        fired, latency = self.phase3_actuate_hardware(decision["heyting_verdict"])
+        act = self.phase3_actuation_audit(fired, latency)
+        lya = self.phase3_lyapunov_dissipation(validated, previous_storage)
+        cert = self.phase3_issue_certificate(validated, decision, fired, latency, act, lya)
+        if cert.heyting_verdict == "VETOED":
+            logger.critical("Soberano Cuaterniónico: VETO DURO. Sello %s", cert.digital_signature_sha256[:16])
         else:
-            logger.info(
-                "Soberano Cuaterniónico regulado síncronamente. Veredicto: %s. "
-                "Confianza=%.6g. Sello: %s",
-                certificate.heyting_verdict,
-                certificate.confidence,
-                certificate.digital_signature_sha256[:16],
-            )
-        return certificate
+            logger.info("Soberano Cuaterniónico regulado. Veredicto %s, confianza %.6g, sello %s",
+                        cert.heyting_verdict, cert.confidence, cert.digital_signature_sha256[:16])
+        return cert
 
     # ═════════════════════════════════════════════════════════════════════════
-    # API PRINCIPAL COMPATIBLE CON OODA LEGADO
+    # API PRINCIPAL OODA
     # ═════════════════════════════════════════════════════════════════════════
 
     def execute_quaternionic_control_cycle(
@@ -1390,43 +1260,26 @@ class QuaternionicStateAgent:
         override_token: Optional[str] = None,
         simulate_grace_expired: bool = False,
         elapsed_grace_seconds: Optional[float] = None,
+        previous_storage: Optional[float] = None,
     ) -> QuaternionicAgentCertificate:
-        """
-        API principal — Orquesta el funtor compuesto Φ₃ ∘ Φ₂ ∘ Φ₁.
-
-        Equivalencia de fases:
-          OBSERVE    → phase1_close_and_open_phase2
-          ORIENT     → phase2_close_and_open_phase3
-          DECIDE/ACT → phase3_close_loop
-        """
-        phase1_handoff = self.phase1_close_and_open_phase2(p_S, q_S)
-        phase2_handoff = self.phase2_close_and_open_phase3(
-            phase1_handoff=phase1_handoff,
-            lipschitz_bound_Lmax=lipschitz_bound_Lmax,
-        )
-        return self.phase3_close_loop(
-            phase2_handoff=phase2_handoff,
-            override_token=override_token,
-            simulate_grace_expired=simulate_grace_expired,
-            elapsed_grace_seconds=elapsed_grace_seconds,
-        )
+        """Φ₃ ∘ Φ₂ ∘ Φ₁ : OBSERVE → ORIENT → DECIDE/ACT."""
+        h1 = self.phase1_close_and_open_phase2(p_S, q_S)
+        h2 = self.phase2_close_and_open_phase3(h1, lipschitz_bound_Lmax)
+        return self.phase3_close_loop(h2, override_token, simulate_grace_expired,
+                                      elapsed_grace_seconds, previous_storage)
 
     # ═════════════════════════════════════════════════════════════════════════
     # MÉTODOS LEGADOS (COMPATIBILIDAD)
     # ═════════════════════════════════════════════════════════════════════════
 
     def evaluate_similarity_sphere(self, state: QuaternionicState) -> float:
-        """API legada — equivalente a Fase 2.1."""
+        """API legada — Fase 2.1 (ahora invariante de clase θ/π; nulo ⇒ NaN)."""
         return self.phase2_evaluate_similarity_sphere(state)
 
-    def audit_hurwitz_composition(
-        self,
-        p: QuaternionicState,
-        q: QuaternionicState,
-    ) -> float:
-        """API legada — equivalente a Fase 2.3."""
+    def audit_hurwitz_composition(self, p: QuaternionicState, q: QuaternionicState) -> float:
+        """API legada — Fase 2.5."""
         return self.phase2_audit_hurwitz_composition(p, q)
 
     def verify_von_neumann_trace(self, state: QuaternionicState) -> float:
-        """API legada — equivalente a Fase 2.4."""
+        """API legada — Fase 2.6 (operador de densidad correcto)."""
         return self.phase2_verify_von_neumann_trace(state)
