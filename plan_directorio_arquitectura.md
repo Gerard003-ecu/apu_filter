@@ -31,7 +31,7 @@ $$\check{H}^1\left(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}\right) \equiv \mat
 
 ## 🧱 II. MAPA DIFEOMÓRFICO DEL DIRECTORIO DE APU FILTER v5.0
 
-Sometemos la variedad del sistema de archivos a un empaquetado regular y libre de colisiones, mapeando cada componente a su correspondiente sección homológica de la Fortaleza [fortaleza_directorio_difeomorfismo.md]:
+Sometemos la variedad del sistema de archivos a un empaquetado regular y libre de colisiones, mapeando cada componente a su correspondiente sección homológica de la Fortaleza:
 
 ```
 apu_filter_v5/
