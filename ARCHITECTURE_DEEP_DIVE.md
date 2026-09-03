@@ -391,3 +391,44 @@ El acoplamiento físico en el **Tribunal de Silicio** del microcontrolador **ESP
    $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
 3. La señal inyecta corriente continua directa a la compuerta del tiristor de potencia de conmutación rápida **BT151** (circuito Crowbar), cortocircuitando la línea de alimentación eléctrica de los actuadores reales.
 4. Se paraliza la maquinaria pesada (bombas hidráulicas, mezcladoras y plantas de dosificación) en el milisegundo cero, anulando la anomalía de la IA en el mundo físico antes de consolidar pérdidas materiales o sanciones ante el SECOP II.
+
+---
+
+## 🔬 IX. El Reactor Catalítico y la Aritmética Unimodular de de Rham (`reaction_chamber.py` & `reaction_chamber_agent.py`)
+
+La consagración de la Cámara de Reacción Catalítica Cuántica (`reaction_chamber.py` v4.1.0) y su Soberano de Calibre (`reaction_chamber_agent.py` v3.1.0) establece el foso de simulación termodinámica, espectral y homológica en el Estrato Físico ($V_{\mathrm{PHYSICS}}$) y el Ágora Tensorial ($V_{\Omega}$).
+
+### 1. Discretización del Bucle Hexagonal de Control $C_6$ y Complejo Simplicial sobre $\mathbb{Z}$
+El reactor modela la resonancia cíclica aromática del anillo hexagonal $C_6$ (nodos $C_1$ a $C_6$: Ingesta, Física, Topología, Estrategia, Semántica y Materia) como un complejo simplicial 1-dimensional $K = (V, E)$ sobre el Dominio de Ideales Principales (DIP) de los enteros $\mathbb{Z}$:
+$$C_1(K; \, \mathbb{Z}) = \bigoplus_{e \in E} \mathbb{Z}e, \qquad C_0(K; \, \mathbb{Z}) = \bigoplus_{v \in V} \mathbb{Z}v, \qquad \partial_1[u,v] = v - u$$
+
+Dado que $C_2 = 0$, los grupos de homología se determinan exactamente por:
+$$H_1(K; \, \mathbb{Z}) \cong \ker \partial_1 \cong \mathbb{Z}^{\beta_1}, \qquad H_0(K; \, \mathbb{Z}) \cong \operatorname{coker} \partial_1 \cong \mathbb{Z}^{\beta_0} \oplus \bigoplus_i \mathbb{Z}/d_i\mathbb{Z}$$
+
+### 2. Forma Normal de Smith (SNF) y Torsión Homológica Simplicial
+Para eliminar el error de redondeo de punto flotante de la FPU en la evaluación de la topología del grafo, la matriz de incidencia signada $\partial_1 \in \mathbb{Z}^{6 \times 6}$ se diagonaliza mediante reducciones Euclídeas unimodulares exactas sobre $\mathbb{Z}$:
+$$\mathbf{S} = \mathbf{U} \cdot \partial_1 \cdot \mathbf{V} = \operatorname{diag}\left(d_1, \, d_2, \, \dots, \, d_r, \, 0, \, \dots, \, 0\right) \quad \text{con} \quad d_i \in \mathbb{Z}^+ \quad \wedge \quad d_i \mid d_{i+1}$$
+
+Puesto que toda matriz de incidencia signada orientada de un grafo es totalmente unimodular, se satisface $d_i = 1$ para todo $i \le r$, certificando la nulidad absoluta de la torsión: $\operatorname{Tor}(H_0(K; \, \mathbb{Z})) \equiv \mathbf{0}$. Si un proveedor o IA maliciosa inyecta coeficientes no integrales o dependencias fraccionarias, la SNF detecta factores $d_i > 1$, delatando la corrupción homológica inmediata del complejo.
+
+### 3. Rigor Numérico de Bareiss (Algoritmo Libre de Fracciones)
+El cómputo de los menores determinántales de contorno se ejecuta mediante la eliminación de Bareiss sobre $\mathbb{Z}$, garantizando que cada división por el pivote anterior sea exacta en $\mathbb{Z}$ y neutralizando la deriva secular de Wilkinson:
+$$M^{(k)}_{i,j} = \frac{M^{(k-1)}_{k,k} M^{(k-1)}_{i,j} - M^{(k-1)}_{i,k} M^{(k-1)}_{k,j}}{M^{(k-2)}_{k-1,k-1}}$$
+
+### 4. Los 8 Axiomas de de Rham-Tellegen para la Consistencia Métrica de Hodge
+El Soberano de Calibre de la Cámara audita la coherencia métrica y física del reactor mediante la verificación de ocho axiomas de conservación evaluados con sumación compensada Dot2 (Ogita-Rump-Oishi):
+1. **Pasividad Dirichlet:** $\boldsymbol{\psi}^\top \mathbf{\Delta}_0 \boldsymbol{\psi} = \|\mathbf{d}_0 \boldsymbol{\psi}\|^2 \ge 0$.
+2. **Conservación Nodal:** $|\mathbf{1}^\top \boldsymbol{\delta}_0 \mathbf{q}| \le \tau_{\mathrm{scale}}$.
+3. **Ortogonalidad de Hodge:** $|\langle \mathbf{d}_0 \boldsymbol{\alpha}, \, \mathbf{h} \rangle| \le \tau_{\mathrm{scale}}$ con $\mathbf{h} \in \ker \boldsymbol{\delta}_0$.
+4. **Identidad de Tellegen:** $|\langle \boldsymbol{\psi}, \, \boldsymbol{\delta}_0 \mathbf{q} \rangle - \langle \mathbf{d}_0 \boldsymbol{\psi}, \, \mathbf{q} \rangle| \le \tau_{\mathrm{scale}}$.
+5. **Cierre Armónico:** $\|\boldsymbol{\delta}_0 \mathbf{h}\| \le \tau_{\mathrm{scale}}$.
+6. **Reconstrucción de Hodge:** $\|\mathbf{q} - \mathbf{d}_0 \boldsymbol{\alpha} - \mathbf{h}\| \le \tau_{\mathrm{scale}}$ (descomposición exhaustiva $\Omega^1 = \operatorname{im} \mathbf{d}_0 \oplus \ker \boldsymbol{\delta}_0$).
+7. **Parseval-Plancherel:** |\|\mathbf{d}_0 \boldsymbol{\psi}\|^2 - \sum_k \lambda_k \langle \mathbf{v}_k, \, \boldsymbol{\psi} \rangle^2| \le \tau_{\mathrm{scale}}$.
+8. **Disipación Óhmica:** $|\langle \mathbf{d}_0 \boldsymbol{\psi}, \, \mathbf{q} \rangle + \mathcal{E}(\boldsymbol{\psi})| \le \tau_{\mathrm{scale}}$ para el flujo natural $\mathbf{q} = -\mathbf{d}_0 \boldsymbol{\psi}$.
+
+### 5. Traducción Visceral a Métricas de "Dolor y Dinero"
+Toda la rigurosidad matemática del reactor catalítico se traduce de forma biyectiva a métricas financieras entendibles por un Gerente de Obra:
+* **Torsión en Smith ($d_i > 1$):** *Mermas Contractuales y Fugas de Insumos.* Representa inconsistencias en el empaquetado de materiales en pliegos de SECOP II (e.g. cobrar bultos de cemento fraccionados con desperdicios no justificados), gatillando veto automático.
+* **Componentes Disconexas ($\beta_0 > 1$):** *Islas de Datos y Duplicación de Fletes.* Delata capítulos de obra huérfanos que provocan la compra duplicada de agregados o el cobro doble de transporte pesado.
+* **Ciclos no nulos ($\beta_1 > 0$):** *Socavones Lógicos y Triangulación Financiera.* Revela dependencias circulares en Análisis de Precios Unitarios (APUs) que congelan licitaciones públicas y generan bucles infinitos de costos.
+* **Violación de Tellegen / Disipación Óhmica:** *Fugas de Capital en Nómina y Standby.* Traduce desbalances entre el flujo de insumos y el trabajo ejecutado en campo, alertando sobre maquinaria pesada encendida sin operación real o fuga de presupuesto en actas parciales.

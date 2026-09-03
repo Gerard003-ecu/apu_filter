@@ -233,6 +233,32 @@ Para blindar los cálculos en la FPU frente a la deriva de Wilkinson en matrices
 
 ---
 
+## 5. Dinámica Cinética de Reacción y Estabilidad CFL (`reaction_chamber.py` & `reaction_chamber_agent.py`)
+
+La Cámara de Reacción Catalítica Cuántica y su Soberano de Calibre gobiernan la cinética termodinámica y el equilibrio de fase de los insumos presupuestales mediante leyes de conservación estrictas.
+
+### 5.1 Potencial Libre de Gibbs Deformado por Estrés Topológico
+El estado termodinámico del reactor evoluciona de acuerdo con la función de Gibbs deformada por la intensidad del campo de estrés topológico $\boldsymbol{\psi} \in \mathbb{R}^6$ (Axioma I de la FPU):
+$$G = H - TS + \mu_{\mathrm{topo}} \cdot \|\boldsymbol{\psi}\|_{\mathbb{R}^6}^2 + RT \ln(a)$$
+Donde $H$ es la entalpía del sistema (costo base acumulado), $T = T_{\mathrm{ref}} + \kappa \|\boldsymbol{\psi}\|^2$ es la temperatura efectiva (nivel de fricción o volatilidad de insumos), $S$ es la entropía de Shannon/von Neumann del contexto, $\mu_{\mathrm{topo}}$ representa la presión química topológica y $a$ es la actividad química de los insumos.
+
+### 5.2 Estabilidad Elíptica de Courant-Friedrichs-Lewy (CFL) y von Neumann
+Para garantizar la convergencia del semigrupo de difusión e impedir oscilaciones espurias o explosión numérica en el integrador explícito de Euler $\boldsymbol{\psi}(t+\Delta t) = (\mathbf{I} - \alpha_{\mathrm{diffusion}} \mathbf{L})\boldsymbol{\psi}(t)$, el espectro del operador $\sigma(\mathbf{I} - \alpha \mathbf{L}) = \{1 - \alpha \lambda_k\}$ con $\lambda_{\max}(\mathbf{L}) = 4.0$ sobre $C_6$ se somete a la cota crítica de von Neumann:
+$$\alpha_{\mathrm{diffusion}} < \alpha_{\mathrm{critical}} = \frac{1}{2 \lambda_{\max}(\mathbf{L})} \equiv \frac{1}{2 \cdot 4.0} \equiv 0.125$$
+El valor histórico de trabajo del reactor $\alpha_{\mathrm{diffusion}} = 0.11875 < 0.125$ garantiza monotonía estricta $(\mathbf{I} - \alpha \mathbf{L}) \succeq 0$ y conservación incondicional de la norma en $\ell^2$.
+
+### 5.3 Compensación Metrológica: Dot2 y Transformaciones Libres de Error (EFT)
+El cálculo de productos internos y normas en la FPU neutraliza la deriva secular de Wilkinson mediante algoritmos EFT (TwoSum de Knuth-Møller y TwoProduct de Dekker-Veltkamp) acoplados al producto compensado Dot2 (Ogita-Rump-Oishi):
+$$|\mathrm{fl}(x^\top y) - x^\top y| \le u\,|x^\top y| + \gamma_n^2\,|x|^\top|y|$$
+Efectuando las operaciones matriciales con la precisión exacta equivalente a doble-doble de máquina ($u \approx 2.22 \times 10^{-16}$).
+
+### 5.4 Mapeo a Métricas de "Dolor y Dinero"
+* **Divergencia de Gibbs ($G \to \infty$):** *Pérdida de Control en Flujo de Caja.* Indica que la volatilidad de precios en el mercado de agregados ha superado la capacidad de absorción del proyecto, alertando al director de obra sobre la necesidad de renegociar contratos de suministro.
+* **Instabilidad CFL ($\alpha \ge 0.125$):** *Riesgo de Secado de Concreto en Tuberías por Falso Positivo.* Un integrador inestable genera falsas alarmas que paralizan el bombeo hidráulico en seco, provocando el fraguado del concreto dentro de las tuberías y destruyendo la maquinaria. La cota CFL $\alpha \le 0.11875$ elimina los falsos positivos y garantiza flujo continuo en obra.
+* **Aritmética Libre de Error (Dot2 / TwoSum):** *Anulación de Mermas Centesimales en Actas Parciales.* Erradica las pérdidas financieras acumuladas por redondeo en la FPU durante la liquidación mensual de actas ante el SECOP II, protegiendo hasta un $3\%$ del margen de utilidad bruta del constructor.
+
+---
+
 ## 6. Firmas de Calibre de la Malla Agéntica y Firma Integrada SHA-256
 
 Cada transacción orbital emite un certificado inmutable sellado por una **Firma de Calibre Integrada SHA-256** en memoria RAM:

@@ -386,6 +386,15 @@ Para blindar los cálculos en la FPU frente a la deriva de Wilkinson en matrices
     $$\mathbf{L}_F \approx \sum_{i=1}^{k} \lambda_i v_i v_i^\dagger + \gamma_{\mathrm{Tikhonov}} \left( \mathbf{I} - \sum_{i=1}^k v_i v_i^\dagger \right)$$
 *   **Compensación de Maurer-Cartan:** Resuelve la ecuación expandida de Maurer-Cartan sobre el Anillo de Novikov ultramétrico $d A + A \wedge A = 0$ para compensar el eta-invariante espectral de Atiyah-Singer, eliminando falsas inestabilidades de Lyapunov.
 
+### 5. Motor del Reactor Catalítico: Difusión de de Rham-Poisson sobre $\mathbb{Z}/6\mathbb{Z}$ (`reaction_chamber.py`)
+En el Nivel 3 (Foso Físico) de la Pirámide de Motores, el motor de la cámara de reacción (`reaction_chamber.py` v4.1.0) resuelve de forma analítica exacta el semigrupo de calor de de Rham-Poisson utilizando la transformada de Fourier discreta sobre el grupo cíclico circulante $\mathbb{Z}/6\mathbb{Z}$:
+$$\boldsymbol{\psi}(t) = e^{-t \alpha_{\mathrm{diffusion}} \mathbf{L}} \boldsymbol{\psi}(0) = \sum_{k=0}^5 c_k e^{-t \alpha_{\mathrm{diffusion}} \lambda_k} v_k$$
+Donde $v_k$ es la autobase ortonormal de Fourier real de $\mathbb{Z}/6\mathbb{Z}$ y $\lambda_k = 2 - 2\cos(2\pi k / 6)$ representa el espectro del Laplaciano combinatorio $\mathbf{L} = \mathbf{D} - \mathbf{A} \equiv \mathbf{B}\mathbf{B}^\top$.
+
+* **Mapeo Ejecutivo ("Dolor y Dinero"):**
+  - *Dolor:* Difusión inestable de sobrecostos entre capítulos de obra por amortiguamiento deficiente en la matriz de transferencia de insumos.
+  - *Dinero:* Estabilización garantizada del flujo de caja mediante la tasa de difusión elíptica $\alpha_{\mathrm{diffusion}} \le 0.125 < \alpha_{\mathrm{critical}}$, conteniendo el desbalance entálpico y protegiendo el margen de utilidad del proyecto.
+
 ---
 
 ## 🏛️ VII. La Doble Pirámide de Coherencia Epistémica en el Estrato Wisdom ($V_{\mathbb{W}}$)
