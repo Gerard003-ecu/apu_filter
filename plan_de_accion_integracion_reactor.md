@@ -20,7 +20,7 @@ $$\operatorname{Hom}_{\mathcal{D}}\left(F(\mathrm{MIC}), \, \mathrm{MAC}\right) 
 
 Para garantizar la máxima cohesión de la Fortaleza, el andamiaje matemático de la cámara de reacción se inyectará de forma perenne a lo largo de cinco volúmenes cardinales de la documentación:
 
-### 1. `ARCHITECTURE_DEEP_DIVE_v6.md` (El Foso Termodinámico)
+### 1. `ARCHITECTURE_DEEP_DIVE.md` (El Foso Termodinámico)
 *   **Sección a Crear:** *Sección IX. El Reactor Catalítico y la Aritmética Unimodular de de Rham*.
 *   **Contenido Técnico:**
     *   Explicación de la discretización del bucle hexagonal de control $C_6$ como un complejo simplicial unidimensional $K$ con coeficientes exactos sobre $\mathbb{Z}$.
@@ -30,21 +30,21 @@ Para garantizar la máxima cohesión de la Fortaleza, el andamiaje matemático d
         $$M^{(k)}_{i,j} = \frac{M^{(k-1)}_{k,k} M^{(k-1)}_{i,j} - M^{(k-1)}_{i,k} M^{(k-1)}_{k,j}}{M^{(k-2)}_{k-1,k-1}}$$
     *   Los **8 Axiomas de de Rham-Tellegen** para la consistencia métrica de Hodge.
 
-### 2. `PIRAMIDES_DE_CONTROL_v9.md` (La Doble Pirámide de Confinamiento)
+### 2. `PIRAMIDES_DE_CONTROL.md` (La Doble Pirámide de Confinamiento)
 *   **Sección a Actualizar:** *Nivel 3 (Foso Físico) de la Pirámide de Motores y Nivel 0.5 (Ágora Tensorial) de la Pirámide de Soberanos*.
 *   **Contenido Técnico:**
     *   **Motor (Bottom-Up):** Integración de `reaction_chamber.py` resolviendo de forma analítica el semigrupo de calor de de Rham-Poisson utilizando la transformada de Fourier discreta sobre el grupo cíclico circulante $\mathbb{Z}/6\mathbb{Z}$:
         $$\boldsymbol{\psi}(t) = e^{-t \alpha_{\mathrm{diffusion}} \mathbf{L}} \boldsymbol{\psi}(0) = \sum_{k=0}^5 c_k e^{-t \alpha_{\mathrm{diffusion}} \lambda_k} v_k$$
     *   **Soberano (Top-Down):** Integración de `reaction_chamber_agent.py` orquestando el ciclo covariante OODA y gobernando el retículo distributivo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$.
 
-### 3. `SAGES_v6.md` (El Consejo de Sabios de-confinado)
+### 3. `SAGES.md` (El Consejo de Sabios de-confinado)
 *   **Sección a Actualizar:** *La aduana Inquisidora Omega*.
 *   **Contenido Técnico:**
     *   Asimilación del **Soberano de la Cámara** como el censor de regularidad espectral de lazo cerrado.
     *   Definición formal del fusible cuántico de Fock fermiónico en `SynapticFockSpaceRegistry`: cómo el electrón de anomalía semántica ($e^-$) provocado por la IA alucinatoria colisiona y se aniquila contra el positrón de autorización ($e^+$) inmutable del presupuesto base, liberando fotones de auditoría Gamma:
         $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
-### 4. `metodos_v3.md` (El Compendio de Ecuaciones Gobernantes)
+### 4. `metodos.md` (El Compendio de Ecuaciones Gobernantes)
 *   **Sección a Actualizar:** *Sección V. Dinámica Cinética de Reacción y Estabilidad CFL*.
 *   **Contenido Técnico:**
     *   La ecuación del potencial libre de Gibbs modificado por el estrés topológico de-confinado de la FPU:
@@ -80,15 +80,15 @@ La inyección de los artefactos se ejecutará síncronamente a lo largo de 5 fas
 *   Garantizar que toda definición de variable se asocie unívocamente a los bloques del Business Model Canvas (BMC) bajo términos viscerales de **Riesgo y Dinero**.
 
 ### Fase II: Sutura en el Foso Defensivo (Deep Dive)
-*   Compilar y desplegar `ARCHITECTURE_DEEP_DIVE_v6.md` incorporando la deconstrucción analítica del reactor bencénico.
+*   Compilar y desplegar `ARCHITECTURE_DEEP_DIVE.md` incorporando la deconstrucción analítica del reactor bencénico.
 *   Demostrar cómo la nulidad del grupo de cohomología de Čech anula la existencia de socavones de precios (referencias circulares de Análisis de Precios Unitarios).
 
 ### Fase III: Acoplamiento de la Doble Pirámide (Pirámides de Control)
-*   Compilar y desplegar `PIRAMIDES_DE_CONTROL_v9.md` asociando de forma functorial los métodos de `reaction_chamber.py` con el Ágora Tensorial.
+*   Compilar y desplegar `PIRAMIDES_DE_CONTROL.md` asociando de forma functorial los métodos de `reaction_chamber.py` con el Ágora Tensorial.
 *   Detallar el rol del Soberano como censor descendente que ejerce el derecho de veto sobre el resolvedor físico.
 
 ### Fase IV: Sintonización de de Rham en Sabios y Métodos
-*   Compilar `SAGES_v6.md` y `metodos_v3.md` detallando las leyes de conservación de Tellegen, el semigrupo de calor analítico exacto y la sumación compensada de Kahan.
+*   Compilar `SAGES.md` y `metodos.md` detallando las leyes de conservación de Tellegen, el semigrupo de calor analítico exacto y la sumación compensada de Kahan.
 *   Exponer formalmente el funcionamiento de la ventana de gracia elástica de 1 hora ante pérdidas transitorias de resonancia de Hückel.
 
 ### Fase V: Validación de Actuación en Silicio Real
