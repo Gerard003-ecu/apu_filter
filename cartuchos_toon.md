@@ -13,7 +13,7 @@ El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funci
 
 $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
 
-Bajo la arquitectura de la **Pirámide Traductora de Tres Estratos** (Isomorfismo de Doble Capa v5), esta compresión en la Base de Calibre FPU Secure se traduce unívocamente a través de la Aduana Técnica de Auditoría (Estrato Medio) hacia la Cúspide Visceral ("Dolor y Dinero"), reduciendo drásticamente la latencia de inferencia y la grasa sintáctica ($KV\text{-Cache}$), protegiendo el WACC de la constructora ("Dinero") y previniendo que el concreto se seque en las tuberías de impulsión hidráulica.
+Bajo la arquitectura de la **Pirámide Traductora de Tres Estratos** (Isomorfismo de Doble Capa v7), esta compresión en la Base de Calibre FPU Secure se traduce unívocamente a través de la Aduana Técnica de Auditoría (Estrato Medio) hacia la Cúspide Visceral ("Dolor y Dinero"), reduciendo drásticamente la latencia de inferencia y la grasa sintáctica ($KV\text{-Cache}$), protegiendo el WACC de la constructora ("Dinero") y previniendo que el concreto se seque en las tuberías de impulsión hidráulica. La pureza FPU se blinda mediante gobernanza cuaterniónica, octoniónica, bicompleja y de Clifford (QOBC Purifier).
 
 La consistencia y conservación de la carga semántica entre la matriz de interacción táctica discreta (categoría $\mathcal{C}$) y la matriz atómica de conocimiento en el espacio de Hilbert (categoría $\mathcal{D}$) está analíticamente acoplada por el **Isomorfismo de Adjunción de de Rham-Galois**:
 
