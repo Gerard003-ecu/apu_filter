@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Specular Flow Sovereign Agent (Soberano de la Reflexión de Calibre)  ║
+║ Módulo : Specular Flow Sovereign Agent (Soberano de la Reflexión de Calibre) ║
 ║ Ruta   : app/agents/omega/specular_flow_agent.py                             ║
 ║ Versión: 3.0.0-Allievi-Householder-Tellegen-Doctoral-Topos-Strict            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
