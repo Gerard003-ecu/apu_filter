@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Atomic Piston Service (Gemelo Digital Port-Hamiltoniano - IPU)       ║
+║ Módulo : Atomic Piston Service (Gemelo Digital Port-Hamiltoniano - IPU)      ║
 ║ Ruta   : app/physics/atomic_piston_service.py                                ║
 ║ Versión: 4.0.0-Lie-Geometric-Phase1-Nested-POVM-Strict-PhD                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝

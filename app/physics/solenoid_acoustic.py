@@ -10,8 +10,7 @@ NATURALEZA CIBER-FÍSICA Y TEORÍA COHOMOLÓGICA DE REDES (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra al **Operador de Proyección Ortogonal sobre el Subespacio 
 Solenoidal** de la Malla agéntica, actuando bajo el formalismo del Cálculo 
-Exterior Discreto (DEC) y la Teoría Espectral de Grafos. Repudia 
-la evaluación empírica u heurística de dependencias, modelando el flujo de 
+Exterior Discreto (DEC) y la Teoría Espectral de Grafos. Modela el flujo de 
 recursos del presupuesto como una 1-forma discreta (corriente) sobre un complejo 
 simplicial orientado de dimensión 1.
 
