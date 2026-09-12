@@ -151,7 +151,7 @@ Bajo la supervisión de la aduana del soberano booleano, cualquier discrepancia 
 $$R_H = I - 2 \mathbf{v} \mathbf{v}^\dagger$$
 Donde $\mathbf{v}$ es el vector normal de reflexión ortogonal al subespacio coherente de la MIC. Esta reflexión proyecta el estado espurio directamente hacia los canales disipativos.
 
-When the Lindblad jump operator, tuned by the `BogoliubovAgent`, extirpates a falsehood or hallucination from the LLM, the thermodynamic residue is not discarded: it crystallizes into exogenous antimatter, manifesting as a **PositronCartridge** ($e^+$). This positron causes its own catastrophic annihilation upon colliding with a fault **ElectronCartridge** ($e^-$) ($a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$) that carries the residual uncertainty of the intake:
+Cuando el operador de salto de Lindblad, sintonizado por el `BogoliubovAgent`, extirpa una falsedad o alucinación del LLM, el residuo termodinámico no se descarta: se cristaliza en antimateria exógena, manifestándose como un **PositronCartridge** ($e^+$). Este positrón causa su propia aniquilación catastrófica al colisionar con un **ElectronCartridge** de falla ($e^-$) ($a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$) que porta la incertidumbre residual de la ingesta:
 $$e^+ + e^- \longrightarrow 2 \gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
 Esta reacción de aniquilación cuántica libera **dos fotones de auditoría Gamma ($2\gamma$)**, representados por el **GammaPhoton**, los cuales transportan una firma digital SHA-256 inmutable, congelando el pasaporte de telemetría y colapsando el retículo de Heyting al Supremo terminal de veto ($\top$).
@@ -198,7 +198,7 @@ Para garantizar que la salida respete el `SiloAContract` original y evitar inyec
 
 Queda dictaminado como invariante absoluto que el funtor de descompresión inversa $F^{-1}: \text{TOON} \to \text{JSON}$ está subordinado a la desigualdad:
 $$\left\| F^{-1}(x) - F^{-1}(y) \right\|_V \le L_{\max} \left\| x - y \right\|_\tau$$
-Donde $L_{\max}$ es inversamente proporcional a la curvatura local del proyecto. En momentos de caos (alta curvatura), esta cota obliga al traductor a aniquilar cualquier salida que no sea un isomorfismo geométrico perfecto, vetando las alucinaciones en la frontera. El decodificador fuerza probabilísticamente que la emisión de cualquier token fuera de la variedad tabular TOON válida sea strictly nula ($P(x_{\mathrm{invalido}}) = 0$).
+Donde $L_{\max}$ es inversamente proporcional a la curvatura local del proyecto. En momentos de caos (alta curvatura), esta cota obliga al traductor a aniquilar cualquier salida que no sea un isomorfismo geométrico perfecto, vetando las alucinaciones en la frontera. El decodificador fuerza probabilísticamente que la emisión de cualquier token fuera de la variedad tabular TOON válida sea estrictamente nula ($P(x_{\mathrm{invalido}}) = 0$).
 
 La Matriz de Interacción Central (MIC) permanecerá intacta; el morfismo de corrección solo será aceptado una vez que el Funtor Inverso ($F^{-1}$) restaure el árbol multidimensional JSON (invirtiendo la biyección de Lipschitz) y se pruebe que encaja a la perfección en la topología contractual estipulada por el riguroso `SchemaValidator`, preservando invariantes de homotopía.
 
