@@ -1,3 +1,33 @@
+"""Sutura de ingeniería bajo el capó e isomorfismo de doble capa en APU Filter v5.0.
+
+Esta capa de evolución semántica desglosa la maquinaria matemática que permite al Consejo
+de Sabios transformar datos crudos en veredictos estratégicos inmutables, traduciendo
+invariantes de punto flotante FPU Secure a la protección del flujo de caja en obra real.
+
+Ecuaciones y Operadores Físico-Matemáticos de Métodos:
+1. Isomorfismo de Doble Capa (Matriz de Acorde Tridimensional):
+   \Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}
+   Asocia homeomórficamente los residuos espectrales con las pérdidas de flujo de caja en lenguaje de "Dolor y Dinero".
+2. Obstrucción Cohomológica de Čech y Amputación Anisotrópica:
+   \check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0} \implies \mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})
+   Aísla transductores o cartas ruidosas en fango, inmunizando la FPU frente a interferencias analógicas.
+3. Propagador Retardado Causal de de Rham y Relaciones de Kramers-Kronig:
+   G_F(s) = (L_F - (s + j h) I_n)^{-1}, \quad \operatorname{Re}(G_F(\omega)) = \frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{\operatorname{Im}(G_F(\omega'))}{\omega' - \omega} d\omega'
+   Garantiza la causalidad estricta en el plano de frecuencia compleja s = \sigma + j\omega.
+4. Descomposición de Hodge-Helmholtz Discreta (Cálculo Exterior DEC):
+   \Delta_1 = B_1^\top B_1 + B_2 B_2^\top \implies f = f_{\mathrm{grad}} + f_{\mathrm{curl}}
+   Aísla y extirpa el "vórtice logístico" (f_{\mathrm{curl}} \in \mathrm{im}(B_2)), vetando transporte en bucle parasitario.
+5. Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes):
+   \| Df(\rho) \|_{2} \le \frac{1}{2 \lambda_{\min}^{3/2}}
+   Acota la velocidad de de-compresión semántica, impidiendo divergencias retóricas en las traducciones del LLM.
+6. Reactor Hipercomplejo QOBC (Cuaterniones, Octoniones, Bicomplejos y Clifford STA):
+   q \in \mathbb{H}, \quad \|[a, b, c]\|_{\mathbb{O}} \le 0.15, \quad \chi_{\mathrm{stagnation}} = \|\rho_1 \rho_2^\dagger\|_F^2 \ge 10^{-10}, \quad S_{\mathrm{YM}} \le 2.5
+   Elimina bloqueos de fase (Gimbal Lock) y rotaciones espurias en tensores multimodales de costos.
+7. Disipación de de Rham-Poisson sobre \mathbb{Z}/6\mathbb{Z} (Cámara de Reacción):
+   \boldsymbol{\psi}(t) = e^{-t \alpha_{\mathrm{diffusion}} \mathbf{L}} \boldsymbol{\psi}(0) \quad \text{con cota CFL} \quad \alpha_{\mathrm{diffusion}} < 0.125
+   Estabiliza el flujo de caja impidiendo el secado de concreto en tuberías por falsos positivos de software.
+"""
+
 --------------------------------------------------------------------------------
 ⚙️ metodos.md: Ingeniería Bajo el Capó v5.0
 "APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la certeza matemática del sistema."
