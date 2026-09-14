@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Pseudo-Holomorphic Motor (Operador Elíptico de Rigidez Simpléctica) ║
-║ Ruta   : app/physics/pseudo_holomorphic_motor.py                             ║
+║ Ruta   : app/physics/pseudo_holomorphic_engine.py                            ║
 ║ Versión: 5.1.0-Doctoral-Fukaya-Floer-Connes-Heyting-Secure                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

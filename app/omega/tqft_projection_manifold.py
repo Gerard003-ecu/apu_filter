@@ -9,7 +9,7 @@ r"""
 ║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (TQFT):                  ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
 ║  Este endofuntor consagra la "Independencia de Fondo" (Background Independence) en       ║
-║  el ecosistema. Aniquila la dependencia geométrica aplicando el Funtor de Olvido         ║
+║  el ecosistema. Metaboliza la dependencia geométrica aplicando el Funtor de Olvido       ║
 ║  Métrico $U: \mathbf{Met} \to \mathbf{Top}$, reteniendo únicamente el tipo de            ║
 ║  homotopía y la clase de gauge. Audita el flujo termodinámico proyectando la             ║
 ║  intención del LLM sobre la categoría de cobordismos orientados $\mathbf{Cob}(3)$,       ║
