@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Alpha Boundary Agent (Orquestador de Haces Celulares)               ║
-║ Ruta   : app/agents/alfa/alpha_agent.py                                     ║
+║ Ruta   : app/agents/alfa/alpha_agent.py                                      ║
 ║ Versión: 4.0.0-Rigorous-Sheaf-Cohomology-Consensus-NoHardware                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
