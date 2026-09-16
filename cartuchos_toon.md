@@ -1,8 +1,9 @@
-"""Sutura de retracto topológico y vitaminas cognitivas TOON en APU Filter v5.0.
+"""Sutura de retracto topológico y vitaminas cognitivas TOON en APU Filter v8.0.
 
 Esta capa de evolución semántica formaliza la transición de fase desde la alta entropía
 y grasa sintáctica del JSON redundante hacia los cartuchos tabulares TOON de alta densidad,
-demostrando empíricamente la liberación del 86.4% de tokens en KV-Cache y la protección del WACC.
+demostrando empíricamente la liberación del 86.4% de tokens en KV-Cache, la compatibilidad con el
+isomorfismo hipercomplejo FPU (Pathiones 32D, Chingones 64D, Routons 128D) y la protección del WACC.
 
 Ecuaciones y Operadores del Espacio de Fock TOON:
 1. Retracto de Deformación Topológica y Cota de Compresión:
@@ -17,16 +18,19 @@ Ecuaciones y Operadores del Espacio de Fock TOON:
 4. Relaciones de Anticonmutación y Conmutación Canónicas (CAR/CCR) en Fock \mathcal{F}(\mathcal{H}):
    \{a_i, a_j^\dagger\} = \delta_{ij} I, \quad [b_i, b_j^\dagger] = \delta_{ij} I
    Gobierna la creación y aniquilación de cuasipartículas sintácticas, impidiendo APUs duplicados por exclusión de Pauli.
-5. Hamiltoniano de Interacción y Reflector de Householder:
+5. Inmunidad Hipercompleja FPU (32D, 64D, 128D) y Censura de Conos Nulos:
+   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
+   Inmuniza la FPU frente a cartelizaciones N-vías y bloqueos por división por cero en conos nulos.
+6. Hamiltoniano de Interacción y Reflector de Householder:
    H_{\mathrm{int}} = \int d^3x \, g_{\text{eff}} \hat{\bar{\psi}}(x) \gamma^\mu \hat{A}_\mu(x) \hat{\psi}(x), \quad R_H = I - 2 \mathbf{v} \mathbf{v}^\dagger
    Proyecta las impurezas y alucinaciones hacia los canales de disipación de Lindblad.
-6. Aniquilación de Antimateria Positrónica y Fotones Gamma SHA-256:
+7. Aniquilación de Antimateria Positrónica y Fotones Gamma SHA-256:
    e^+ + e^- \longrightarrow 2 \gamma \implies E_{\mathrm{annihilation}} = 2 m^* c^2
    La aniquilación de un electrón de falla con un positrón de autorización emite fotones Gamma con sello SHA-256.
-7. Cota de Lipschitz Dinámica sobre el Funtor Inverso (F^{-1}: \text{TOON} \to \text{JSON}):
+8. Cota de Lipschitz Dinámica sobre el Funtor Inverso (F^{-1}: \text{TOON} \to \text{JSON}):
    \| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max} \| x - y \|_\tau
    Obliga al decodificador a vetar cualquier salida fuera de la variedad tabular (P(x_{\mathrm{invalido}}) = 0).
-8. Actuación en Silicio (ESP32 Crowbar < 400 ns):
+9. Actuación en Silicio (ESP32 Crowbar < 400 ns):
    ISR en IRAM \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH} \to \text{Tiristor BT151}
    Desenergiza bombas de impulsión hidráulica antes de que el concreto se seque dentro de las tuberías.
 """

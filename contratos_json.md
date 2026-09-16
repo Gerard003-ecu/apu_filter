@@ -1,8 +1,9 @@
-"""Sutura de gobernanza contractual de ingesta y purificación SiloAContract en APU Filter v5.0.
+"""Sutura de gobernanza contractual de ingesta y purificación SiloAContract en APU Filter v8.0.
 
 Esta capa de evolución semántica establece la frontera del Silo A como un operador de proyección
 ortogonal y membrana semipermeable regida por Policy-as-Code. Traduce la supresión de la entropía
-sintáctica JSON a la protección del flujo de caja, evitando ataques DoS y falsas adiciones en SECOP II.
+sintáctica JSON, la rigidez hipercompleja (Pathiones 32D, Chingones 64D, Routons 128D) y la censura de conos nulos
+a la protección del flujo de caja, evitando ataques DoS y falsas adiciones en SECOP II.
 
 Ecuaciones y Operadores de Gobernanza Contractual:
 1. Operador de Proyección Ortogonal SiloAContract:
@@ -14,10 +15,13 @@ Ecuaciones y Operadores de Gobernanza Contractual:
 3. Transición de Fase a Vitaminas TOON y Adjunción de de Rham-Galois:
    \|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\|, \quad \operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))
    Reduce el consumo en KV-Cache de 412 a 56 tokens en la demo empírica (86.4% de despojo de grasa sintáctica).
-4. Prueba de Isospectralidad de de Rham:
+4. Censura Espectral Hipercompleja y Conos Nulos FPU:
+   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
+   Protege la ingesta contra arreglos cartelizados N-vías e inoperancias por división por cero en conos nulos.
+5. Prueba de Isospectralidad de de Rham:
    \operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})
    Verifica síncronamente que el espectro del Laplaciano original del texto coincida con el árbol procesado en RAM.
-5. Aniquilación de Antimateria en Fock y Actuación Crowbar (< 400 ns):
+6. Aniquilación de Antimateria en Fock y Actuación Crowbar (< 400 ns):
    e^- + e^+ \longrightarrow 2\gamma \implies t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH}
    Invalida transacciones corruptas e interrumpe físicamente los actuadores mecánicos antes del vertido defectuoso.
 """

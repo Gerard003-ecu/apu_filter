@@ -1,25 +1,29 @@
-"""Sutura de visión de producto y reactor Port-Hamiltoniano de valor en APU Filter v5.0.
+"""Sutura de visión de producto y reactor Port-Hamiltoniano de valor en APU Filter v8.0.
 
 Esta capa de evolución semántica consagra el Sello de No-Ocultación Cuántica,
 demostrando que "un costo sano no se oculta, se ilumina". Mapea las excitaciones
-del Espacio de Fock fermiónico a la erradicación del desfalco patrimonial y de las
-alucinaciones estocásticas de la IA bajo el Mandato BIM 2026.
+del Espacio de Fock fermiónico y la Gobernanza Ciber-Física Hipercompleja (STA 16D, Bicomplejos 4D,
+Octoniones 8D, Sedeniones 16D, Pathiones 32D, Chingones 64D y Routons 128D) a la erradicación del desfalco
+patrimonial y de las alucinaciones estocásticas de la IA bajo el Mandato BIM 2026.
 
 Ecuaciones y Principios del Reactor de Valor:
 1. Sello de No-Ocultación y Aniquilación Causal en Fock:
    e^- + e^+ \longrightarrow 2\gamma \implies E_{\mathrm{annihilation}} = 2 m^* c^2
    La colisión de un electrón de anomalía e^- (falla o sobreprecio) con un positrón e^+ (autorización)
    genera dos fotones Gamma con firma SHA-256, iluminando el fraude y salvaguardando la caja.
-2. Invariante de No-Ocultación Cuántica del Fraude:
-   \mathcal{P}_{\mathrm{fraud}}(x) \equiv 0
-   Matemáticamente imposibilita la ocultación de sobrecostos en celdas combinadas o Excels rotos.
+2. Invariante de No-Ocultación Cuántica del Fraude e Inmunidad Hipercompleja:
+   \mathcal{P}_{\mathrm{fraud}}(x) \equiv 0, \quad \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
+   Matemáticamente imposibilita la ocultación de sobrecostos, cartelización N-vías o parálisis por divisiones por cero en FPU.
 3. Obstrucción Cohomológica de Čech y Amputación Anisotrópica:
    \check{H}^1(\mathcal{U}; \mathcal{F}) = \frac{\ker(\delta_{\mathrm{\check{C}ech}}^1)}{\operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0)} \neq \mathbf{0} \implies \mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})
    Aísla transductores o cartas ruidosas en fango, reduciendo su acoplamiento al épsilon de Wilkinson (\approx 10^{-15}).
 4. Compresión TOON y Adjunción de de Rham-Galois:
    \|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\|, \quad \operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))
    Reduce los tokens en KV-Cache entre 30% y 60% (hasta 86.4% en demo empírica), liberando la memoria de trabajo de la IA.
-5. Rampa de Confianza Graduada (Luz Ámbar vs Crowbar):
+5. Fortificaciones Espectrales FPU (Neumaier-Kahan, Lanczos, Caputo, CSMD):
+   \|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}, \quad C_w(H) = \frac{\operatorname{Im}(\theta(H + j h))}{h}
+   Garantizan la estabilidad metrológica y eliminan la deriva secular de Wilkinson en la FPU Secure.
+6. Rampa de Confianza Graduada (Luz Ámbar vs Crowbar):
    0.3 \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \tau_{\mathrm{margin}} \implies \text{Veto Suave (1h grace window)}
    \|\Gamma(t)\|_{\max} > 0.5 \tau_{\mathrm{margin}} \implies \text{Veto Duro (Crowbar ESP32 < 400 ns via GPIO14 / BT151)}
 """
@@ -253,6 +257,11 @@ $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies
 | **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | `topological_surgery_cech_agent.py` | **Paradoja Contractual / Veto de Coherencia:** Obstrucción cohomológica en transductores locales. | **Invalidez de Licitación y Mermas de Contexto:** Incoherencias en pliegos que inducen fatiga atencional y alucinaciones en el LLM. VETO DURO INSTANTÁNEO. |
 | **$\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \neq \mathbf{0}$** ($d_i > 1$) | `boundary_ring_sheaf_agent.py` | **Torsión homológica en Smith Z:** Incompatibilidad de empaquetado discreto de insumos. | **Mermas contractuales y rechazo en SECOP II:** Desperdicio de materiales, multas de interventoría y reestructuración de pliegos. |
 | **$\|[a, b, c]\|_{\mathbb{O}} > 0.15$** | `octonionic_dependency_agent.py` | **Frustración de Calibre / Tríada de-normalizada:** Composición Contractor-Supplier-Interventor rompe simetría. | **Triangulación y Colusión Multilateral:** Interacciones no lineales de precios que desvían capital. VETO SUAVE (Luz Ámbar 1h). |
+| **$\|\mathbf{A}_5(P_1,\dots,P_5)\|_{\mathbb{P}} > 5.0$** | `pathionic_dependency_agent.py` | **Frustración Pentagonal (32D):** Cartelización 5-vías en el 4-símplex. | **Alineación Ilícita de Precios:** Acuerdos colusorios multilaterales entre 5 actores. VETO SUAVE (Luz Ámbar 1h). |
+| **$\|\mathbf{A}_{\mathrm{alt}}(X_1, X_2)\|_{\mathbb{X}} > 100.0$** | `chingon_dependency_agent.py` | **Ruptura de Alternatividad (64D):** Colateralización cruzada no flexible. | **Riesgo Sistémico de Iliquidez:** Insolvencia en cadena por garantías cruzadas no flexibles. VETO SUAVE (Luz Ámbar 1h). |
+| **$\|\mathbf{A}_7(X_1,\dots,X_7)\|_{\mathbb{X}} > 10.0$** | `chingon_dependency_agent.py` | **Cartelización Heptagonal (64D):** Colusión de 7 actores en 6-símplex. | **Sobrecosto en Megaconcesiones 5G:** Alteración coordinada de precios en consorcios. VETO DURO INSTANTÁNEO. |
+| **$\|\mathbf{A}_9(R_1,\dots,R_9)\|_{\mathbb{R}\mathrm{ou}} > 15.0$** | `routon_dependency_agent.py` | **Cartelización Eneagonal (128D):** Megaconsorcios internacionales 9-vías. | **Desfalco Presupuestal en Metro / Vías 5G:** Interferencia en reajustes polinómicos. VETO DURO INSTANTÁNEO. |
+| **$\chi_{\mathrm{null}}(x) \le \tau_{\mathrm{critical}}$** | `pathionic_dependency_agent.py` / `chingon_dependency_agent.py` / `routon_dependency_agent.py` | **Incursión en Conos Nulos (32D/64D/128D):** Divisores de cero en FPU. | **Parálisis por Divisores de Cero / Puntos Muertos:** Puntos muertos fiduciarios con cobro de costos fijos. VETO DURO INSTANTÁNEO. |
 | **$\chi_{\mathrm{stagnation}} < 10^{-10}$** | `mac_vectors.py` | **Puntos Muertos de Transferencia de Caja:** Desacoplamiento entre Inversión Directa ($\rho_1$) y Carga Entrópica ($\rho_2$). | **Estancamiento de Avance Físico:** El dinero fluye a retención sin avance material real en obra. VETO SUAVE / DURO. |
 | **$S_{\mathrm{YM}} > 2.5$** | `clifford_gauge_agent.py` | **Volatilidad Extrema del Campo de Calibre:** Deformación geodésica del presupuesto en Clifford $C\ell_{3,1}$. | **Erosión del Retorno de Inversión (WACC):** Penalización de la tasa de descuento que destruye el ROI. VETO SUAVE (Luz Ámbar). |
 | **$\chi_{\mathrm{null}}(x) \le \tau_{\mathrm{critical}}$** | `complex_step_phase_stabilizer_agent.py` | **Sifonamiento Sedeniónico e Inestabilidad:** Incursión en el cono de divisores de cero sedeniónicos 16D. | **Parálisis por Indeterminación:** División por cero en FPU que congela subsistemas hidráulicos. VETO DURO INSTANTÁNEO (<400 ns). |
