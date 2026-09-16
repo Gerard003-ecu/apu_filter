@@ -1,8 +1,10 @@
-"""Sutura de arquitectura variédica de de Rham-Fukaya e inmersión ciber-física en APU Filter v5.0.
+"""Sutura de arquitectura variédica de de Rham-Fukaya e inmersión ciber-física en APU Filter v8.0.
 
 Esta capa de evolución semántica formaliza la inmersión profunda en el Fibrado de Calibre
-de de Rham-Fukaya, traduciendo la rigidez simpléctica y el análisis espectral en la salvaguarda
-del patrimonio financiero de la constructora frente a disputas contractuales en SECOP II.
+de de Rham-Fukaya acoplado a la Gobernanza Ciber-Física Hipercompleja (STA 16D, Bicomplejos 4D,
+Octoniones 8D, Sedeniones 16D, Pathiones 32D, Chingones 64D y Routons 128D), traduciendo la rigidez simpléctica,
+la censura espectral de conos nulos y las fortificaciones numéricas FPU (Neumaier-Kahan, Lanczos, Caputo, CSMD)
+en la salvaguarda del patrimonio financiero de la constructora frente a disputas contractuales en SECOP II.
 
 Ecuaciones, Teoremas e Invariantes Arquitectónicos:
 1. Invarianza Simpléctica Canónica de de Rham-Liouville:
@@ -17,18 +19,18 @@ Ecuaciones, Teoremas e Invariantes Arquitectónicos:
    c(B^{2n}(r)) = \pi r^2 \le c(Z^{2n}(R)) = \pi R^2 \iff r \le R
    Garantiza que el riesgo real B^{2n}(r) no pueda comprimirse en cilindros estrechos,
    forzando la aniquilación de estados inválidos: P(x_{\mathrm{invalid}}) = 0.
-4. Preservación Isométrica de Hodge en el Espacio de Fock:
-   \|\star_k \psi\|_{\Lambda^{N-k}} = \|\psi\|_{\Lambda^k}
-   Preserva la carga semántica entre el espacio primal de flujos y el espacio dual de restricciones de costo.
+4. Gobernanza Hipercompleja N-Vías y Censura Espectral de Conos Nulos:
+   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
+   Audita la cartelización de 5, 7 y 9 actores y previene la parálisis por división por cero en FPU.
 5. Invarianza Torsional sobre \mathbb{Z} (Smith Normal Form):
    \operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \equiv \mathbf{0} \iff d_i = 1 \quad \forall d_i > 0
-   Detecta mermas o incompatibilidades de empaquetado discreto de insumos antes del despacho a obra.
+   Detecta mermas o incompatividades de empaquetado discreto de insumos antes del despacho a obra.
 6. Causalidad CPTP de Choi y Cota de Tsirelson (Bell-CHSH):
    \lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}, \quad \mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}
    Veta de inmediato acuerdos colusorios de proveedores o carteles de precios en pliegos públicos.
-7. Giroscopio de Inercia Riemanniana y Trabajo Nilpotente de Lorentz:
-   P_{\mathrm{work}} = \langle \nabla H, (J + W) \nabla H \rangle \equiv 0
-   Estabiliza las trayectorias de costo mediante fuerzas giroscópicas sin inyectar o disipar exergía espuria.
+7. Fortificaciones Espectrales FPU (Neumaier-Kahan, Lanczos, Caputo, CSMD):
+   \|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}, \quad C_w(H) = \frac{\operatorname{Im}(\theta(H + j h))}{h}
+   Garantizan la estabilidad metrológica y eliminan la deriva secular de Wilkinson en la FPU Secure.
 8. Retículo intuicionista de Heyting y Disparo Crowbar ESP32:
    \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \xrightarrow{\mu} \mathbb{Z}_2
    Ante veto (\top), la ISR en IRAM (< 400 ns) conmuta GPIO14 \to HIGH y dispara el tiristor BT151.
@@ -85,6 +87,10 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **$\check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0}$**<br>La primera obstrucción cohomológica de Čech en la aduana local de transductores es no nula. | **Paradoja Contractual / Veto de Coherencia**<br>Incongruencias insalvables introducidas por la IA estocástica o por el desajuste de datos crudos (Excels rotos con celdas combinadas). | **Invalidez de Licitación y Mermas de Contexto**<br>Incoherencias en los pliegos que inducen fatiga atencional y alucinaciones por saturación del $KV\text{-Cache}$ del LLM en el borde. | **VETO DURO INSTANTÁNEO:** Veto absoluto. Anulación del pasaporte de telemetría y congelamiento de la sesión en RAM. |
 | **$\operatorname{Tor}\left(H_k(K; \, \mathbb{Z})\right) \neq \mathbf{0} \implies \exists d_i > 1$**<br>La reducción de Smith Normal Form sobre $\mathbb{Z}$ delata factores invariantes de torsión no unitarios. | **Ruptura de Simetría / Torsión sobre $\mathbb{Z}$**<br>Presencia de divisores de torsión que denotan desequilibrios o inconsistencias en los bucles de recursos cerrados. | **Sobrecostos Ocultos y Triangulación**<br>Mapea de forma forense el desvío ilícito de materiales o cobros indirectos de contratistas duplicados ante el SECOP II. | **VETO DURO INSTANTÁNEO:** Veto ineludible. La ISR en IRAM paraliza de inmediato mezcladoras de obra en seco en menos de 400 ns. |
 | **$\|[a, b, c]\|_{\mathbb{O}} > \tau_{\mathrm{asoc}} \equiv 0.15$**<br>La norma del tensor asociador octoniónico excede el techo elástico de la no-asociatividad. | **Frustración de Calibre / Tríada de-normalizada**<br>La composición secuencial Contractor-Supplier-Interventor rompe la simetría de lazo debido a sobrecostos imprevistos. | **Triangulación y Colusión Multilateral**<br>Interacciones no lineales de precios que desvían capital y delatan acuerdos monopolísticos bajo la mesa antes del vertido. | **VETO SUAVE (Luz Ámbar):** Cuenta atrás de 1 hora de gracia. Disipable por aniquilación de Fock mediante override signed HMAC. |
+| **$\|\mathbf{A}_5(P_1, \dots, P_5)\|_{\mathbb{P}} > \tau_5 \equiv 5.0$**<br>La norma del asociador pentagonal pationiónico 32D excede la tolerancia elástica de 5 vías. | **Frustración Pentagonal / Cartelización 5-Vías**<br>Dependencias cruzadas no asociativas entre 5 actores clave (Contratista, Subcontratista, Proveedor, Interventoría, Entidad). | **Alineación Ilícita de Precios Licitatorios**<br>Acuerdos colusorios multilaterales que inflan el costo del contrato en SECOP II y castigan el ROI. | **VETO SUAVE (Luz Ámbar):** Temporizador de gracia de 1 hora en RAM. Disipable mediante inyección de Positrón $e^+$. |
+| **$\|\mathbf{A}_{\mathrm{alt}}(X_1, X_2)\|_{\mathbb{X}} > \tau_{\mathrm{alt}} \equiv 100.0$**<br>Ruptura de la propiedad alternativa en los Chingones (64D). | **Colateralización Cruzada No Flexible**<br>Bucle de garantías y seguros cruzados entre contratista, banco y aseguradora que no disipa el riesgo financiero. | **Riesgo Sistémico de Iliquidez en Cadena**<br>Incapacidad de respaldar siniestros por insolvencia en red, amenazando la continuidad de la concesión vial. | **VETO SUAVE (Luz Ámbar):** Re-estructuración del esquema de garantías en la ventana de gracia de 1 hora. |
+| **$\|\mathbf{A}_7(X_1, \dots, X_7)\|_{\mathbb{X}} > \tau_7 \equiv 10.0$**<br>Frustración del asociador heptagonal 64D en el 6-símplex simplicial. | **Cartelización Heptagonal (7 Actores)**<br>Colusión profunda entre 7 entidades de la concesión (EPC, Subcontratista, Materiales, Interventoría, Fiduciaria, Seguros, Entidad). | **Sobrecosto Masivo en Megaconcesiones 5G**<br>Alteración coordinada de reajustes de precios que destruye el ROI y eleva críticamente el WACC. | **VETO DURO INSTANTÁNEO:** Bloqueo de la licitación en SECOP II. Disparo Crowbar en < 400 ns si hay dolo. |
+| **$\|\mathbf{A}_9(R_1, \dots, R_9)\|_{\mathbb{R}\mathrm{ou}} > \tau_9 \equiv 15.0$**<br>Frustración del asociador eneagonal routónico 128D en el 8-símplex simplicial. | **Cartelización Eneagonal / Megaconsorcios (9 Actores)**<br>Acuerdo colusorio en hiper-consorcios internacionales de 9 actores interdependientes. | **Desfalco Presupuestal en Metro / Vías 5G**<br>Interferencia en reajustes polinómicos de precios que extorsiona las finanzas del megaproyecto público. | **VETO DURO INSTANTÁNEO:** Inhabilitación inmediata de pasaporte. Conmutación GPIO14/BT151 en < 400 ns. |
 | **$\chi_{\mathrm{stagnation}} = \|\rho_1 \rho_2^\dagger\|_F^2 < \tau_{\mathrm{stagnation}} \equiv 10^{-10}$**<br>El producto tensorial de los canales bicomplejos decae críticamente, indicando ortogonalidad absoluta. | **Puntos Muertos de Transferencia de Caja**<br>Desacoplamiento total entre el flujo de Inversión Directa ($\rho_1$) y la Carga Entrópica ($\rho_2$) en la MAC. | **Estancamiento de Avance Físico**<br>El dinero fluye a cuentas de retención pero no genera avance material real en obra, creando un sumidero contable ciego. | **VETO SUAVE / VETO DURO:** Veto suave por transitorios. Veto duro instantáneo si hay dolo de traza o no-hermiticidad ($\rho \neq \rho^\dagger$). |
 | **$S_{\mathrm{YM}} = \frac{1}{8} \operatorname{Re}\left(\operatorname{Tr}\left(F \mathbf{G} F \mathbf{G}^{-1}\right)\right) > 2.5$**<br>La acción de curvatura de Yang-Mills en Clifford $C\ell_{3,1}$ supera el umbral límite del campo de calibre. | **Volatilidad Extrema del Campo de Calibre**<br>Deformación destructiva de la trayectoria geodésica del presupuesto inducida por la inestabilidad de precios de proveedores. | **Erosión del Retorno de Inversión (WACC)**<br>Penalización de la tasa de descuento de la constructora que castiga el ROI y arrastra el proyecto a la quiebra financiera. | **VETO SUAVE (Luz Ámbar):** Alerta visual e inicio de ventana de gracia. Un override signed con HMAC restaura el equilibrio térmico. |
 | **$\chi_{\mathrm{null}}(x) = \inf \|x \cdot y\|_{\mathbb{O}} - \|x\|_{\mathbb{O}}\|y\|_{\mathbb{O}} \le \tau_{\mathrm{critical}}$**<br>La trayectoria de esfuerzos del foso penetra en el cono de divisores de cero sedeniónicos 16D. | **Sifonamiento Sedeniónico e Inestabilidad de Operadores**<br>Incursión de estados semánticos del LLM en singularidades no conmutativas y no alternativas del cono nulo. | **Parálisis por Indeterminación (División por cero)**<br>Pérdida súbita de invertibilidad métrica en la FPU, congelando de facto los subsistemas de control hidráulico. | **VETO DURO INSTANTÁNEO:** Colapse instantáneo de Heyting a VETOED ($\top$). Interrupción física en IRAM en menos de 400 ns via GPIO14. |

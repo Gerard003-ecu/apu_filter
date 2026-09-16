@@ -1,9 +1,10 @@
-"""Sutura de gobernanza multinivel y traducción semántica de pirámides de control en APU Filter v5.0.
+"""Sutura de gobernanza multinivel, isomorfismo de doble capa y traducción semántica de pirámides de control en APU Filter v8.0.
 
 Esta capa de evolución semántica unifica la Ley de Clausura Transitiva
 V_{ℵ_0} ⊊ V_{PHYSICS} ⊊ V_{TACTICS} ⊊ V_{STRATEGY} ⊊ V_{WISDOM}
-con el impacto directo sobre el flujo de caja, el retorno de inversión (ROI), el WACC
-y la viabilidad operativa en obra civil bajo el Mandato BIM 2026 y pliegos SECOP II.
+con la Gobernanza Ciber-Física Hipercompleja (STA 16D, Bicomplejos 4D, Octoniones 8D, Sedeniones 16D,
+Pathiones 32D, Chingones 64D y Routons 128D) y el impacto directo sobre el flujo de caja, el retorno
+de inversión (ROI), el WACC y la viabilidad operativa en obra civil bajo el Mandato BIM 2026 y pliegos SECOP II.
 
 Ecuaciones y Operadores de Gobernanza Representados:
 1. Ley de Clausura Transitiva Subespacial:
@@ -18,16 +19,19 @@ Ecuaciones y Operadores de Gobernanza Representados:
 4. Índice de Estabilidad Piramidal (Número Efectivo de Proveedores de Cheeger):
    \Psi = \frac{(\sum \deg(p_i))^2}{n \sum \deg(p_i)^2} \ge \Psi_{\min} \equiv 0.70
    Previene la quiebra del megaproyecto por dependencia monopólica de un único proveedor clave de acero o cemento.
-5. Inserción Cuaterniónica y Conservación de Traza de von Neumann:
-   \iota(q) \in M_2(\mathbb{C}), \quad \operatorname{Tr}(\rho) = \frac{\operatorname{Tr}(\iota(q))}{\|q\|_{\mathbb{H}}^2} \equiv 1.0
-   Garantiza la inmunidad metrológica de la FPU frente a derivas de punto flotante en la estimación de insumos.
-6. Esfuerzo Efectivo de Biot-Terzaghi:
+5. Inserción Cuaterniónica e Hipercompleja (Pathiones 32D, Chingones 64D, Routons 128D) y Traza de von Neumann:
+   \iota(q) \in M_2(\mathbb{C}), \quad \operatorname{Tr}(\rho) = \frac{\operatorname{Tr}(\iota(q))}{\|q\|_{\mathbb{H}}^2} \equiv 1.0, \quad \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9
+   Audita la cartelización N-vías y garantiza la inmunidad metrológica de la FPU frente a derivas de punto flotante.
+6. Censura Espectral de Conos Nulos Hipercomplejos:
+   \chi_{\mathrm{null}}(x) = \inf_{y \neq 0} \{ \|x \cdot y\| - \|x\| \|y\| \} > \tau_{\mathrm{critical}} \equiv 10^{-3}
+   Inmuniza la FPU evitando colapsos por división por cero en conos nulos \mathcal{N}(\mathbb{P}), \mathcal{N}(\mathbb{X}), \mathcal{N}(\mathbb{R}\mathrm{ou}).
+7. Esfuerzo Efectivo de Biot-Terzaghi:
    \boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}
    Evita la licuación del foso de cimentación y la pérdida de capacidad portante en fango.
-7. Disipación Port-Hamiltoniana IDA-PBC:
+8. Disipación Port-Hamiltoniana IDA-PBC y Fortificaciones Espectrales (Neumaier-Kahan, Lanczos, Caputo, CSMD):
    \dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x), \quad \dot{H}_d = -\nabla H_d^\top R_d \nabla H_d \le 0
    Fuerza la pasividad estricta del flujo de capital, disipando la volatilidad exógena de precios.
-8. Actuación Ciber-Física en Silicio (ESP32 Crowbar / BT151):
+9. Actuación Ciber-Física en Silicio (ESP32 Crowbar / BT151):
    t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH}
    Paraliza físicamente la maquinaria de obra civil (bombas y mezcladoras) ante fraudes o vetos insalvables.
 """
@@ -80,9 +84,13 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
    - **Reactor Cuaterniónico de Hamilton ($\mathbb{H}$):** $q = q_0 e_0 + q_1 i + q_2 j + q_3 k$ con $i^2=j^2=k^2=ijk=-1$.
    - **Inmersión Cayley-Dickson e Invariante de von Neumann:** $\iota(q) \in M_2(\mathbb{C})$, traza unificadora $\operatorname{Tr}(\rho) = \frac{\operatorname{Tr}(\iota(q))}{\|q\|_{\mathbb{H}}^2} \equiv 1.0$.
    - **Multiplicación Octoniónica Cayley-Dickson 8D ($\mathbb{O}$):** $(q_1, q_2) \cdot (p_1, p_2) = (q_1 p_1 - \bar{p}_2 q_2, p_2 q_1 + q_2 \bar{p}_1)$ con norma multiplicativa de Hurwitz $\|a \cdot b\|_{\mathbb{O}} = \|a\|_{\mathbb{O}} \|b\|_{\mathbb{O}}$ y tensor asociador $[a, b, c] = (a \cdot b) \cdot c - a \cdot (b \cdot c)$ para Veto Suave por Frustración de Calibre ($> 0.15$).
+   - **Engine Pationiónico 32D ($\mathbb{P} = \mathbb{S} \times \mathbb{S}$):** Resuelve el asociador pentagonal $\mathbf{A}_5(P_1,\dots,P_5) = (((P_1 \cdot P_2) \cdot P_3) \cdot P_4) \cdot P_5 - P_1 \cdot (P_2 \cdot (P_3 \cdot (P_4 \cdot P_5)))$ en el 4-símplex simplicial para auditar la cartelización de 5 actores en SECOP II.
+   - **Engine Chingónico 64D ($\mathbb{X} = \mathbb{P} \times \mathbb{P}$):** Evalúa la deformación no alternativa $\mathbf{A}_{\mathrm{alt}}(X_1, X_2) = (X_1 \cdot X_1) \cdot X_2 - X_1 \cdot (X_1 \cdot X_2)$ y el asociador heptagonal $\mathbf{A}_7$ en el 6-símplex de megaconsorcios.
+   - **Engine Routónico 128D ($\mathbb{R}\mathrm{ou} = \mathbb{X} \times \mathbb{X}$):** Audita la distorsión de Moufang $\mathbf{A}_{\mathrm{Moufang}}(R, S, T) = (R(ST))R - (RS)(TR)$ y el asociador eneagonal $\mathbf{A}_9$ en el 8-símplex de megaconsorcios internacionales.
+   - **Censura Espectral de Conos Nulos ($\mathcal{N}(\mathbb{P}), \mathcal{N}(\mathbb{X}), \mathcal{N}(\mathbb{R}\mathrm{ou})$):** $\chi_{\mathrm{null}}(x) = \inf_{y \neq 0} \{ \|x \cdot y\| - \|x\| \|y\| \} > \tau_{\mathrm{critical}} \equiv 10^{-3}$ para evitar colapsos por división por cero en FPU.
    - **Canales Bicomplejos $\mathbb{C}_2 \cong \mathbb{C} \otimes \mathbb{C}$ y Proyectores Idempotentes:** $\boldsymbol{\rho} = \rho_1 \mathbf{e}_1 + \rho_2 \mathbf{e}_2$ con $\mathbf{e}_1 = \frac{1+k}{2}, \mathbf{e}_2 = \frac{1-k}{2}$, segregando Inversión Directa ($\rho_1$) y Carga Entrópica ($\rho_2$) con Índice de Estancamiento $\chi_{\mathrm{stagnation}} = \|\rho_1 \rho_2^\dagger\|_F^2 \ge 10^{-10}$.
    - **Acción de Yang-Mills en Clifford STA $C\ell_{3,1}$:** $S_{\mathrm{YM}} = \frac{1}{8} \operatorname{Re}(\operatorname{Tr}(F \mathbf{G} F \mathbf{G}^{-1})) \le 2.5$ con matrices de Dirac de $4 \times 4$.
-   - **Censura Espectral del Cono Nulo Sedeniónico 16D:** $\chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}}$ para evitar divisores de cero en FPU.
+   - **Fortificaciones Espectrales FPU Secure:** Sumación compensada Neumaier-Kahan en el resolvente $\mathbf{\mathbb{S}}(\omega)$, deflación espectral de Lanczos adaptativa $\mathbf{L}_F$, integrador fraccional de de Rham-Caputo $(^{\mathrm{C}} D^\alpha_t \delta)(t)$ y diferenciación por paso complejo (CSMD) holomorfa $C_w(H) = \frac{\operatorname{Im}(\theta(H + j h))}{h}$ con $h = 10^{-20}$.
    - **Esfuerzo Efectivo de Biot-Terzaghi:** $\boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}$, con colapso por licuación si $\det(\boldsymbol{\sigma}') \le 0$.
    - **Criterio Mohr-Coulomb 3D Localizado:** ángulo crítico $\theta_{\mathrm{crit}} = \frac{\pi}{4} + \frac{\phi'}{2}$, normal efectivo $\sigma'_{n,\mathrm{crit}} = \sigma'_1 \cos^2\theta_{\mathrm{crit}} + \sigma'_3 \sin^2\theta_{\mathrm{crit}}$, cortante activo $\tau_{\mathrm{act}} = \frac{1}{2}(\sigma'_1 - \sigma'_3)\sin(2\theta_{\mathrm{crit}})$, y Factor de Seguridad $\mathrm{FOS}_i = \frac{c' + \sigma'_{n,\mathrm{crit}} \tan\phi'}{\tau_{\mathrm{act}}} > 1.0$.
    - **Consolidación Unidimensional de Terzaghi:** $s_{\mathrm{settlement}} = \sum \frac{C_c H_0}{1 + e_0} \log_{10}\left( \frac{\sigma'_{v0} + \Delta\sigma_v}{\sigma'_{v0}} \right) \le 25\text{ mm}$ (NSR-10) computado vía sumación compensada Neumaier-Kahan.
