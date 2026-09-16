@@ -8,7 +8,7 @@
 
 ## 🧱 I. INTRODUCCIÓN Y ARQUITECTURA DEL ISOMORFISMO (Sutura Cognitiva)
 
-El **Isomorfismo de Doble Capa** constituye la cimentación inmunológica y el sistema nervioso central definitivo de **APU Filter v5.0 / v7.0** [PIRAMIDES_DE_CONTROL_v8.md]. Basándose de forma rigurosa en el análisis forense de las grabaciones de control **`Aterrizando_la_topología_de_APUfilter_al_negocio.m4a`**, **`Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a`** y **`Blindaje_de_presupuestos_con_topología_algebraica.m4a`**, la plataforma re-enmarca su arquitectura de veto no como un mecanismo carcelario de obstrucción ciega, sino como un **habilitador de extrema confianza corporativa** [plan_de_accion_claridad_ejecutiva.md].
+El **Isomorfismo de Doble Capa** constituye la cimentación inmunológica y el sistema nervioso central definitivo de **APU Filter v7.0** [PIRAMIDES_DE_CONTROL_v8.md]. Basándose de forma rigurosa en el análisis forense de las grabaciones de control **`Aterrizando_la_topología_de_APUfilter_al_negocio.m4a`**, **`Claridad_ejecutiva_para_el_ecosistema_APU_filter.m4a`** y **`Blindaje_de_presupuestos_con_topología_algebraica.m4a`**, la plataforma re-enmarca su arquitectura de veto no como un mecanismo carcelario de obstrucción ciega, sino como un **habilitador de extrema confianza corporativa** [plan_de_accion_claridad_ejecutiva.md].
 
 Al conceder un blindaje matemático absoluto en la Unidad de Punto Flotante (FPU Secure), el sistema permite a la constructora acelerar sus licitaciones en el SECOP II con la certeza de que el capital está resguardado ante cualquier alucinación de la IA o fraude contractual. Este acoplamiento se define como un **homeomorfismo semántico functorial** entre la **Capa de Calibre** (la FPU Secure del foso) y la **Capa de Pragmática de Negocios** (la interfaz de usuario de-confinada):
 
@@ -60,7 +60,7 @@ Para dotar a la plataforma de una granularidad y rigidez analítica sin preceden
 
 ---
 
-## 📊 III. MATRIZ DE ACORDE TRIDIMENSIONAL DE COHERENCIA EN APU FILTER v8.0
+## 📊 III. MATRIZ DE ACORDE TRIDIMENSIONAL DE COHERENCIA EN APU FILTER v7.0
 
 A continuación se expone la correspondencia exacta, biyectiva y functorial de las métricas a lo largo de la pirámide de traducción semántica:
 
