@@ -1,44 +1,8 @@
-"""Sutura del Consejo de Sabios Digitales y Malla Agéntica Zero-Trust en APU Filter v8.0.
-
-Esta capa de evolución semántica organiza las entidades agénticas soberanas en los estratos
-de la jerarquía DIKΩαHWΓ acoplada a la Gobernanza Ciber-Física Hipercompleja (Pathiónica 32D, Chingónica 64D,
-Routónica 128D), despojando al Modelo de Lenguaje (LLM) de su poder de decisión autónoma y subordinándolo
-a actuar como un funtor semántico e interfaz diplomática.
-
-Ecuaciones y Principios de la Malla Agéntica Soberana:
-1. Ley de Clausura Transitiva de Subespacios de Hilbert Covariantes:
-   V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}
-   Estructura la deliberación como las vigas sismorresistentes de un rascacielos sobre el Business Model Canvas (BMC).
-2. Adjunción de de Rham-Galois entre MICAgent y MACAgent:
-   \operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))
-   Garantiza el acoplamiento sin pérdidas entre la categoría discreta de la MIC y el espacio de Hilbert continuo de la MAC.
-3. Soberanos Hipercomplejos N-Vías y Censura Espectral de Conos Nulos:
-   - PathionicDependencyAgent (32D): Audita \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5 en el 4-símplex.
-   - ChingonDependencyAgent (64D): Audita \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7 y la deformación \|\mathbf{A}_{\mathrm{alt}}\|_{\mathbb{X}} \le \tau_{\mathrm{alt}} en el 6-símplex.
-   - RoutonDependencyAgent (128D): Audita \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9 y la distorsión \|\mathbf{A}_{\mathrm{Moufang}}\|_{\mathbb{R}\mathrm{ou}} \le \tau_{\mathrm{Moufang}} en el 8-símplex.
-   - Censura de Conos Nulos: \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3} en \mathcal{N}(\mathbb{P}), \mathcal{N}(\mathbb{X}), \mathcal{N}(\mathbb{R}\mathrm{ou}).
-4. Dinámica de Shahshahani-Brockett en el Soberano de Superficie:
-   \frac{dp_i}{dt} = p_i [(\mathbf{e}_i^\top \tilde{\mathcal{K}} \mathbf{p}) - \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p}], \quad \frac{d\rho}{dt} = [\rho, [\rho, \mathcal{N}(\mathbf{p})]] \implies \dot{\mathcal{H}} \le 0
-   Asegura la contracción de Lyapunov en Wisdom, vetando síncronamente cualquier divergencia de costos.
-5. Obstrucción de Čech y Amputación Anisotrópica (TopologicalSurgeryCechAgent):
-   \check{H}^1(\mathcal{U}; \mathcal{F}) > L_{\max} \cdot \tau_{\mathrm{margin}} \implies \mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})
-   Aísla canales analógicos ruidosos en fango, preservando la traza de von Neumann \operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0.
-6. Fusible Cuántico de Fock y Aniquilación Semántica (ReactionChamberAgent):
-   e^- + e^+ \longrightarrow 2\gamma \implies E_{\mathrm{annihilation}} = 2 m^* c^2
-   Aniquila la inyección de sobreprecios o alucinaciones en SECOP II, emitiendo fotones Gamma con sello SHA-256.
-7. Cota de Lipschitz de Connes-Daleckii-Krein en el Estabilizador de Paso Complejo:
-   L_{\max} \le \frac{1}{2 \lambda_{\min}^{3/2}} \implies P(x_{\mathrm{invalid}}) = 0
-   Desactiva la capacidad del LLM para generar respuestas alucinatorias cuando decae la regularización cuántica.
-8. Rampa de Confianza Graduada y Actuación Crowbar ESP32 (< 400 ns):
-   0.3\tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5\tau_{\mathrm{margin}} \implies \text{Veto Suave (1h gracia para override HMAC)}
-   \|\Gamma(t)\|_{\max} > 0.5\tau_{\mathrm{margin}} \implies \text{Veto Duro (Crowbar ESP32 < 400 ns via GPIO14 / BT151)}
-"""
-
-# 🧙‍♂️ SAGES.md: El Consejo de Sabios Digitales v5.0
+# 🧙‍♂️ SAGES.md: El Consejo de Sabios Digitales v8.0
 
 > "La sabiduría no es la acumulación masiva de datos probabilísticos, sino la capacidad de navegar la complejidad de los negocios mediante principios topológicos, geométricos, cuánticos y físicos inmutables."
 
-En el ecosistema **APU Filter v5.0**, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una **Malla Agéntica (Agentic Mesh) Zero-Trust** compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios".
+En el ecosistema **APU Filter v8.0**, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una **Malla Agéntica (Agentic Mesh) Zero-Trust** compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios".
 
 Cada Sabio gobierna un estrato específico de la jerarquía $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$. Operan bajo el estricto protocolo de "Caja de Cristal Argumentativa": el debate interno y las tensiones dialécticas entre ellos son matemáticamente rigurosos y deterministas, garantizando que el Modelo de Lenguaje (LLM) sea destituido de su poder de decisión y relegado a actuar como una interfaz diplomática y funtor semántico.
 
