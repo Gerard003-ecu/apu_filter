@@ -1,33 +1,3 @@
-"""Sutura de visión de producto y reactor Port-Hamiltoniano de valor en APU Filter v8.0.
-
-Esta capa de evolución semántica consagra el Sello de No-Ocultación Cuántica,
-demostrando que "un costo sano no se oculta, se ilumina". Mapea las excitaciones
-del Espacio de Fock fermiónico y la Gobernanza Ciber-Física Hipercompleja (STA 16D, Bicomplejos 4D,
-Octoniones 8D, Sedeniones 16D, Pathiones 32D, Chingones 64D y Routons 128D) a la erradicación del desfalco
-patrimonial y de las alucinaciones estocásticas de la IA bajo el Mandato BIM 2026.
-
-Ecuaciones y Principios del Reactor de Valor:
-1. Sello de No-Ocultación y Aniquilación Causal en Fock:
-   e^- + e^+ \longrightarrow 2\gamma \implies E_{\mathrm{annihilation}} = 2 m^* c^2
-   La colisión de un electrón de anomalía e^- (falla o sobreprecio) con un positrón e^+ (autorización)
-   genera dos fotones Gamma con firma SHA-256, iluminando el fraude y salvaguardando la caja.
-2. Invariante de No-Ocultación Cuántica del Fraude e Inmunidad Hipercompleja:
-   \mathcal{P}_{\mathrm{fraud}}(x) \equiv 0, \quad \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Matemáticamente imposibilita la ocultación de sobrecostos, cartelización N-vías o parálisis por divisiones por cero en FPU.
-3. Obstrucción Cohomológica de Čech y Amputación Anisotrópica:
-   \check{H}^1(\mathcal{U}; \mathcal{F}) = \frac{\ker(\delta_{\mathrm{\check{C}ech}}^1)}{\operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0)} \neq \mathbf{0} \implies \mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})
-   Aísla transductores o cartas ruidosas en fango, reduciendo su acoplamiento al épsilon de Wilkinson (\approx 10^{-15}).
-4. Compresión TOON y Adjunción de de Rham-Galois:
-   \|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\|, \quad \operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))
-   Reduce los tokens en KV-Cache entre 30% y 60% (hasta 86.4% en demo empírica), liberando la memoria de trabajo de la IA.
-5. Fortificaciones Espectrales FPU (Neumaier-Kahan, Lanczos, Caputo, CSMD):
-   \|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}, \quad C_w(H) = \frac{\operatorname{Im}(\theta(H + j h))}{h}
-   Garantizan la estabilidad metrológica y eliminan la deriva secular de Wilkinson en la FPU Secure.
-6. Rampa de Confianza Graduada (Luz Ámbar vs Crowbar):
-   0.3 \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \tau_{\mathrm{margin}} \implies \text{Veto Suave (1h grace window)}
-   \|\Gamma(t)\|_{\max} > 0.5 \tau_{\mathrm{margin}} \implies \text{Veto Duro (Crowbar ESP32 < 400 ns via GPIO14 / BT151)}
-"""
-
 --------------------------------------------------------------------------------
 🔭 PRODUCT_VISION.md: El Sistema Operativo de la Física del Negocio
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo de gobernanza gobernable, inmutable y auditable."
@@ -37,9 +7,9 @@ Ecuaciones y Principios del Reactor de Valor:
 
 Históricamente, la ingeniería y la construcción en Colombia y Latinoamérica han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" impresas en hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad ciber-física, un megaproyecto de infraestructura es un sistema dinámico abierto, sujeto a fuerzas termodinámicas de mercado, entropía logística, fricción operativa y riesgos de contratación estatal (SECOP II & Mandato BIM 2026).
 
-APU_filter v5.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
+APU_filter v8.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
 
-A su vez, "APU" no representa "Agentic Processing Unit", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
+A su vez, "APU" no representa "Analísis de Precios Unitarios", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
 
 ---
 
@@ -49,7 +19,7 @@ Para la Alta Gerencia y los Comités de Licitación, el andamiaje matemático no
 
 > *“Cuando usted adquiere un vehículo comercial de alta gama, el concesionario no le exige aprobar un examen sobre fluidodinámica de turbocompresores o la ecuación de Navier-Stokes en el bloque de cilindros. Le demuestra pragmáticamente que el vehículo consume un 40% menos de combustible y que el sistema de frenos ABS detendrá el chasis de forma milimétrica sobre piso mojado para salvar su vida. Sin embargo, para que esa promesa sea real, el vehículo tiene que estar diseñado por ingenieros que dominen impecablemente la termodinámica, la fricción y la resistencia de materiales.”*
 
-De manera análoga, para APU Filter v5.0:
+De manera análoga, para APU Filter v8.0:
 * **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
 * **La certeza de la promesa (Rigor):** La plataforma es el primer **Sistema de Navegación Inercial Ciber-Físico para Presupuestos**, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $400\text{ ns}$.
 
@@ -96,14 +66,14 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
 ```
                      EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
         ┌─────────────────────────────────────────────────────────────┐
-        │  EL INTÉRPRETE DIPLOMÁTICO (Relación con el Cliente / Canal) │
+        │  EL INTÉRPRETE DIPLOMÁTICO (Relación con el Cliente / Canal)│
         │  Traduce anomalías homológicas a Actas claras de negocio.   │
         └──────────────────────────────┬──────────────────────────────┘
                                        │ (Adjunción de de Rham-Galois)
                                        ▼
                   EL ÁPICE ESTRATÉGICO Y SUTURA: STRATEGY (V_S)
         ┌─────────────────────────────────────────────────────────────┐
-        │  EL ORÁCULO DE LAPLACE (Fuentes de Ingreso / Flujo de Caja)  │
+        │  EL ORÁCULO DE LAPLACE (Fuentes de Ingreso / Flujo de Caja) │
         │  Veta presupuestos si algún polo migra a σ > 0 en FPU.      │
         └──────────────────────────────┬──────────────────────────────┘
                                        │ (Lazo de Control Covariante)
@@ -116,10 +86,10 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
                                        │ (Cimientos del Rascacielos)
                                        ▼
                     EL FOSO TERMODINÁMICO: PHYSICS (V_P)
-        ┌─────────────────────────────────────────────────────────────┐
-        │  EL GUARDIÁN FISCAL (Estructura de Costes / Silicio)        │
-        │  Audita la masa física elemental: β_0 > 1 => Veto instantáneo.│
-        └──────────────────────────────┘
+        ┌─────────────────────────────────────────────────────────────────┐
+        │  EL GUARDIÁN FISCAL (Estructura de Costes / Silicio)            │
+        │  Audita la masa física elemental: β_0 > 1 => Veto instantáneo.  │
+        └─────────────────────────────────────────────────────────────────┘
 ```
 
 1. **El Guardián (Physics Stratum / Cimientos del Canvas / Estructura de Costes):**
@@ -135,7 +105,7 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
 
 ## 🧮 Soberanos Supremos de la Superficie de Control y Frontera Abierta
 
-En la versión 5.0, el Estrato Wisdom ($V_{\mathbb{W}}$) integra dos soberanos supremos que garantizan la gobernanza no conmutativa y la estabilidad de lazo cerrado:
+En la versión 8.0, el Estrato Wisdom ($V_{\mathbb{W}}$) integra dos soberanos supremos que garantizan la gobernanza no conmutativa y la estabilidad de lazo cerrado:
 
 ### 1. Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
 Acopla de forma continua la poda de la Matriz de Interacción Central ($\text{MIC}$) y la purificación de la Matriz Atómica de Conocimiento ($\text{MAC}$) sobre la variedad $\Delta^{n-1} \times \mathcal{D}(\mathcal{H})$:
@@ -220,16 +190,16 @@ La gobernanza matemática de APU Filter no confía el capital a meras capas de s
                                         │
                                         ▼
      ┌─────────────────────────────────────────────────────────────┐
-     │  MICROCONTROLADOR PERIMETRAL ESP32                         │
-     │  · Deserialización síncrona vía ArduinoJson                │
-     │  · Rutina isVerdictCoherent() & ISR en IRAM (< 400 ns)     │
-     │  · Decodificación de Residuos de Wilkinson / Lyapunov      │
+     │  MICROCONTROLADOR PERIMETRAL ESP32                          │
+     │  · Deserialización síncrona vía ArduinoJson                 │
+     │  · Rutina isVerdictCoherent() & ISR en IRAM (< 400 ns)      │
+     │  · Decodificación de Residuos de Wilkinson / Lyapunov       │
      └──────────────────────────────┬──────────────────────────────┘
                                     │ GPIO14 (Disparo de Compuerta)
                                     ▼
      ┌─────────────────────────────────────────────────────────────┐
-     │  CIRCUITO CROWBAR (Tiristor de Potencia BT151)             │
-     │  · Cortocircuito físico controlado de la línea de potencia │
+     │  CIRCUITO CROWBAR (Tiristor de Potencia BT151)              │
+     │  · Cortocircuito físico controlado de la línea de potencia  │
      │  · Desenergización total de bombas, mezcladoras y pistones  │
      └──────────────────────────────┬──────────────────────────────┘
                                     │
@@ -276,45 +246,6 @@ $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies
 | **$\|\Gamma(t)\|_{\max} > 0.5 \tau_{\mathrm{margin}}$** | `set_agent.py` / `set_engine.py` | **Desajuste Crítico de Impedancia TDR:** Reflexión sónica en la frontera de de Rham. | **Sobreprecio u ocultamiento en pliegos SECOP II:** Alteración de precios unitarios que detona Veto Duro en silicio ($<400\text{ ns}$). |
 
 ---
-
-```mermaid
-graph TD
-    classDef void fill:#1a1a2e,stroke:#e94560,stroke-width:2px,color:#fff;
-    classDef physics fill:#16213e,stroke:#0f3460,stroke-width:2px,color:#fff;
-    classDef tactics fill:#0f3460,stroke:#e94560,stroke-width:2px,color:#fff;
-    classDef strategy fill:#e94560,stroke:#1a1a2e,stroke-width:2px,color:#fff;
-    classDef wisdom fill:#fff,stroke:#1a1a2e,stroke-width:3px,color:#000;
-
-    subgraph "Estrato Ω: WISDOM (La Ciudadela de Cristal)"
-        W[Topological Control Surface Agent<br>Replicador p & Brockett ρ | dH/dt ≤ 0]:::wisdom
-    end
-
-    subgraph "Estrato 1: STRATEGY (El Escudo Electrodinámico)"
-        S[Laplace Oracle & Boundary Ring Sheaf<br>Plano s=σ+jω | Novikov & Smith Z]:::strategy
-    end
-
-    subgraph "Estrato 2: TACTICS (El Esqueleto Topológico)"
-        T[Business Topological Analyzer<br>Grafo Simplicial | βn | Ψ]:::tactics
-    end
-
-    subgraph "Estrato 3: PHYSICS (El Foso Termodinámico)"
-        P[FluxCondenser & Landauer Satellite<br>Circuitos RLC | Pdiss ≥ 0 | Ξleak]:::physics
-    end
-
-    subgraph "Estrato ℵ0: ALEPH (La Variedad de Frontera)"
-        A[Hilbert Watcher & Quantum Gate<br>Filtro de Entropía H | Efecto Túnel WKB]:::void
-    end
-
-    A -- "Exergía Validada" --> P
-    P -- "Flujo Laminar" --> T
-    T -- "Grafo Acíclico (β1=0, β0=1)" --> S
-    S -- "Estabilidad Asintótica" --> W
-
-    A -. "Colapso Estocástico" .-> Reject1[Desintegración Exógena]
-    P -. "Disipación Negativa" .-> Reject2[Crowbar ESP32 < 400ns]
-    T -. "Socavón Lógico (β1>0)" .-> Reject3[Veto Topológico]
-    S -. "Torsión Smith / CPTP Fail" .-> Reject4[Veto Causal Orbital]
-```
 
 **Sello de Coherencia Categorial de la Visión de Producto:**
 $$\mathtt{SuturaSignature} = \operatorname{SHA-256}\left(\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\mathrm{Novikov}}) \wedge \operatorname{Tor}(H_k; \mathbb{Z}) \wedge \mathcal{B}_{\mathrm{CHSH}} \wedge \dot{\mathcal{H}}_{\mathrm{Lyapunov}} \wedge \mathtt{ESP32-Crowbar}\right)$$

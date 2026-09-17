@@ -1,46 +1,9 @@
-
-"""Sutura de topología algebraica simplicial y geometría del riesgo en APU Filter v8.0.
-
-Esta capa de evolución semántica redefine el presupuesto de obra como un Complejo Simplicial
-Abstracto K sobre el anillo de enteros \mathbb{Z} acoplado al Fibrado de Calibre Hipercomplejo (32D, 64D, 128D),
-traduciendo invariantes homológicos, espectrales y de asociador N-vías a la prevención de colapsos financieros,
-multas por mora y vetos en licitaciones públicas de SECOP II.
-
-Ecuaciones y Operadores Topológicos Tácticos:
-1. Números de Betti Homológicos (SVD del Operador Cofrontera \delta_k):
-   \beta_k = \dim H^k(K) = (n_k - \operatorname{rank}(\delta_k)) - \operatorname{rank}(\delta_{k-1})
-   - \beta_0 = 1: Unificación del proyecto (ausencia de "Islas de Datos" / recursos huérfanos).
-   - \beta_1 = 0: Aciclicidad estricta (ausencia de "Socavones Lógicos" / dependencias circulares de precios).
-   - \beta_2 = 0: Disolución de cavidades ternarias (interdependencias trilaterales bloqueantes).
-2. Característica de Euler-Poincaré Extendida:
-   \chi(K) = \beta_0 - \beta_1 + \beta_2 = |V| - |E| + |F|
-   Cuantifica la entropía estructural del proyecto para el cálculo del peaje termodinámico y pricing SaaS.
-3. Índice de Estabilidad Piramidal (Número Efectivo de Proveedores de Cheeger):
-   \Psi := \frac{(\sum_{j=1}^{n} \deg(p_j))^2}{n \cdot \sum_{j=1}^{n} \deg(p_j)^2} \ge \Psi_{\min} \equiv 0.70
-   Mide la resiliencia logística, vetando "Pirámides Invertidas" causadas por monopolios de suministro de acero.
-4. Gobernanza Hipercompleja en Símplex N-dimensionales:
-   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Audita la frustración de calibre y cartelización en los 4-, 6- y 8-símplicos simplicatorios.
-5. Conectividad Algebraica Espectral de Fiedler:
-   \lambda_2(\mathbf{L}) > 0 \quad \text{con} \quad \mathbf{L} = \mathbf{D} - \mathbf{A}
-   Garantiza que la red de valor carezca de puntos de corte frágiles que causen parálisis organizacionales.
-6. Invarianza Torsional de Smith sobre \mathbb{Z}:
-   \operatorname{Tor}(H_{k-1}(K; \mathbb{Z})) = \bigoplus_{i=1}^{r} \mathbb{Z} / d_i \mathbb{Z} \equiv \mathbf{0} \iff d_i = 1 \quad \forall d_i > 0
-   Detecta incompatibilidades de empaquetado discreto de insumos y mermas contractuales en SECOP II.
-7. Dinámica de la Superficie de Control (Shahshahani & Brockett):
-   \frac{dp_i}{dt} = p_i [(\mathbf{e}_i^\top \tilde{\mathcal{K}} \mathbf{p}) - \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p}], \quad \frac{d\rho}{dt} = [\rho, [\rho, \mathcal{N}(\mathbf{p})]], \quad \dot{\mathcal{H}} \le 0
-   Monitorea la estabilidad de Lyapunov en Wisdom, gatillando el Crowbar ESP32 (< 400 ns) si \dot{\mathcal{H}} > 10^{-12}.
-8. Sonda de Ecolocación SET y Matriz de Dispersión Cuántica \mathbb{S}(\omega):
-   \mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger (\omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger)^{-1} \mathbf{V}, \quad \Gamma_k(t) = \mathcal{F}^{-1}\{\Gamma_k(\omega)\}(t)
-   Efectúa reflectometría sónica TDR para descubrir desajustes de impedancia financiera en la frontera \partial K.
-"""
-
 --------------------------------------------------------------------------------
 🕸️ topologia.md: La Geometría del Riesgo y la Topología de la Variedad
 "Un edificio no se cae porque sus ladrillos sean baratos; se cae porque sus conexiones fallan. APU_filter ignora el precio para ver la forma, revelando la fragilidad oculta que el Excel clásico no puede mostrar."
 --------------------------------------------------------------------------------
 
-En el ecosistema de la Fortaleza Matemática de **APU Filter v5.0**, el presupuesto de obra deja de ser un listado plano de ítems contables para convertirse formalmente en un **2-Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$, donde:
+En el ecosistema de la Fortaleza Matemática de **APU Filter v8.0**, el presupuesto de obra deja de ser un listado plano de ítems contables para convertirse formalmente en un **2-Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$, donde:
 - **Vértices (0-símplices):** insumos atómicos y APUs individuales.
 - **Aristas (1-símplices):** dependencias binarias entre pares (APU $\to$ Proveedor / Insumo).
 - **Triángulos (2-símplices):** interdependencias ternarias (APU $\leftrightarrow$ Proveedor $\leftrightarrow$ Actividad) que emergen de compromisos contractuales trilaterales.
@@ -48,12 +11,6 @@ En el ecosistema de la Fortaleza Matemática de **APU Filter v5.0**, el presupue
 Todo este diseño se subordina axiomáticamente a la **Ley de Clausura Transitiva de la pirámide DIKW** (tabla canónica): $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$. Este documento consolida el Esqueleto Táctico (**Nivel 2 — 𝕋 TACTICS, Las Murallas Topológicas**), respaldado computacionalmente por `app/tactics/business_topology.py` y auditado por `TopologicalControlSurfaceAgent`, `BoundaryRingSheafAgent` y el Soberano de Cirugía de Čech **`TopologicalSurgeryCechAgent`** [topological_surgery_cech_agent.py, Isomorfismo_Doble_Capa.md].
 
 ---
-
-## 🚘 La Analogía del Automóvil y el Seguro de Vida (Para la Mesa de Juntas)
-
-Para el Comité de Licitaciones y la Alta Gerencia de Obra Civil, la topología algebraica no es una abstracción teórica; es el **freno de emergencia ABS** que previene el colapso financiero:
-
-> *“Un vehículo comercial no se evalúa por la estética del manual de usuario, sino porque sus frenos ABS detendrán el chasis en piso mojado para salvar la vida de los ocupantes. En APU Filter, los invariantes topológicos ($\beta_0, \beta_1, \beta_2, \chi, \Psi$) son los sensores giroscópicos que detectan si la estructura logística se está volcando antes de que el dinero desaparezca en el fango de la obra real.”*
 
 El **Funtor de Traducción Semántica $\Phi$** establece un homeomorfismo semántico functorial biyectivo entre el clasificador de subobjetos del topos de de Rham-Čech-Heyting y la dimensión ejecutiva de negocios de la constructora:
 

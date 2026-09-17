@@ -1,40 +1,3 @@
-"""Sutura de retracto topológico y vitaminas cognitivas TOON en APU Filter v8.0.
-
-Esta capa de evolución semántica formaliza la transición de fase desde la alta entropía
-y grasa sintáctica del JSON redundante hacia los cartuchos tabulares TOON de alta densidad,
-demostrando empíricamente la liberación del 86.4% de tokens en KV-Cache, la compatibilidad con el
-isomorfismo hipercomplejo FPU (Pathiones 32D, Chingones 64D, Routons 128D) y la protección del WACC.
-
-Ecuaciones y Operadores del Espacio de Fock TOON:
-1. Retracto de Deformación Topológica y Cota de Compresión:
-   \|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, 0.60]
-   Reduce el consumo de tokens en la ventana de atención atenuando la fatiga de contexto del LLM.
-2. Adjunción Functorial de de Rham-Galois:
-   \operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))
-   Preserva incondicionalmente la carga semántica entre la matriz táctica discreta y la matriz atómica continua.
-3. Invarianza Isospectral de de Rham:
-   \operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})
-   Garantiza que el espectro del Laplaciano de los datos crudos coincida idénticamente con el árbol procesado en RAM.
-4. Relaciones de Anticonmutación y Conmutación Canónicas (CAR/CCR) en Fock \mathcal{F}(\mathcal{H}):
-   \{a_i, a_j^\dagger\} = \delta_{ij} I, \quad [b_i, b_j^\dagger] = \delta_{ij} I
-   Gobierna la creación y aniquilación de cuasipartículas sintácticas, impidiendo APUs duplicados por exclusión de Pauli.
-5. Inmunidad Hipercompleja FPU (32D, 64D, 128D) y Censura de Conos Nulos:
-   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Inmuniza la FPU frente a cartelizaciones N-vías y bloqueos por división por cero en conos nulos.
-6. Hamiltoniano de Interacción y Reflector de Householder:
-   H_{\mathrm{int}} = \int d^3x \, g_{\text{eff}} \hat{\bar{\psi}}(x) \gamma^\mu \hat{A}_\mu(x) \hat{\psi}(x), \quad R_H = I - 2 \mathbf{v} \mathbf{v}^\dagger
-   Proyecta las impurezas y alucinaciones hacia los canales de disipación de Lindblad.
-7. Aniquilación de Antimateria Positrónica y Fotones Gamma SHA-256:
-   e^+ + e^- \longrightarrow 2 \gamma \implies E_{\mathrm{annihilation}} = 2 m^* c^2
-   La aniquilación de un electrón de falla con un positrón de autorización emite fotones Gamma con sello SHA-256.
-8. Cota de Lipschitz Dinámica sobre el Funtor Inverso (F^{-1}: \text{TOON} \to \text{JSON}):
-   \| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max} \| x - y \|_\tau
-   Obliga al decodificador a vetar cualquier salida fuera de la variedad tabular (P(x_{\mathrm{invalido}}) = 0).
-9. Actuación en Silicio (ESP32 Crowbar < 400 ns):
-   ISR en IRAM \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH} \to \text{Tiristor BT151}
-   Desenergiza bombas de impulsión hidráulica antes de que el concreto se seque dentro de las tuberías.
-"""
-
 # 💊 cartuchos_toon.md: El Retracto Topológico y las Vitaminas TOON (Silo B)
 
 "Para comprender la escala masiva de la construcción civil, el Modelo de Lenguaje no necesita leer la redundancia de un JSON mil veces; necesita la esencia concentrada del negocio matemático. El formato TOON opera una destilación cognitiva."
@@ -44,19 +7,19 @@ Este documento detalla el mecanismo por el cual el ecosistema APU_filter transit
 --------------------------------------------------------------------------------
 ## 1. El Funtor de Transición de Fase y la Compresión del KV-Cache
 
-En el contexto de un clúster de agentes, la inyección directa de miles de APUs o Insumos serializados en JSON colapsa inmediatamente el recurso más crítico de la inferencia en LLMs modernos: la ventana de atención (KV-Cache).
+En el contexto de un clúster de agentes, la inyección directa de miles de APUs o Insumos serializados en JSON colapsa, inmediatamente, el recurso más crítico de la inferencia en LLMs modernos: la ventana de atención (KV-Cache).
 
 El `MICAgent` implementa la transición de fase hacia el `SiloBCartridge`. Funcionalmente, el `TOONCompressor` ejecuta un **Retracto de Deformación Topológica** que proyecta el espacio sintáctico redundante sobre una variedad de dimensión mínima, garantizando una compresión del consumo de tokens en $KV\text{-Cache}$ entre un $30\%$ y un $60\%$:
 
 $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
 
-Bajo la arquitectura de la **Pirámide Traductora de Tres Estratos** (Isomorfismo de Doble Capa v7), esta compresión en la Base de Calibre FPU Secure se traduce unívocamente a través de la Aduana Técnica de Auditoría (Estrato Medio) hacia la Cúspide Visceral ("Dolor y Dinero"), reduciendo drásticamente la latencia de inferencia y la grasa sintáctica ($KV\text{-Cache}$), protegiendo el WACC de la constructora ("Dinero") y previniendo que el concreto se seque en las tuberías de impulsión hidráulica. La pureza FPU se blinda mediante gobernanza cuaterniónica, octoniónica, bicompleja y de Clifford (QOBC Purifier).
+Bajo la arquitectura de la **Pirámide Traductora de Tres Estratos**, esta compresión en la Base de Calibre FPU, se traduce unívocamente a través de la Aduana Técnica de Auditoría (Estrato Medio) hacia la Cúspide Visceral ("Dolor y Dinero"), reduciendo drásticamente la latencia de inferencia y la grasa sintáctica ($KV\text{-Cache}$), protegiendo el WACC de la constructora ("Dinero") y previniendo que el concreto se seque en las tuberías de impulsión hidráulica. La pureza FPU se blinda mediante gobernanza cuaterniónica, octoniónica, bicompleja y de Clifford (QOBC Purifier).
 
-La consistencia y conservación de la carga semántica entre la matriz de interacción táctica discreta (categoría $\mathcal{C}$) y la matriz atómica de conocimiento en el espacio de Hilbert (categoría $\mathcal{D}$) está analíticamente acoplada por el **Isomorfismo de Adjunción de de Rham-Galois**:
+La consistencia y conservación de la carga semántica entre la matriz de interacción central discreta (categoría $\mathcal{C}$) y la matriz atómica de conocimiento en el espacio de Hilbert (categoría $\mathcal{D}$) está analíticamente acoplada por el **Isomorfismo de Adjunción de de Rham-Galois**:
 
 $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \, \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, \, G(\text{MAC}))$$
 
-Asimismo, el parser verifica síncronamente el test de **Isospectralidad de de Rham** para garantizar que el espectro del Laplaciano original coincida idénticamente con el del árbol procesado en RAM, previniendo alterations silentes de datos o precios:
+Asimismo, el parser verifica síncronamente el test de **Isospectralidad de de Rham** para garantizar que el espectro del Laplaciano original coincida idénticamente con el del árbol procesado en RAM, previniendo alteraciones silenciosas de datos o precios:
 
 $$\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\mathbf{L}_{\mathrm{parsed}})$$
 
@@ -64,7 +27,7 @@ $$\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\m
 
 ## 🔬 1.1 Demostración Empírica Comparativa: JSON vs TOON
 
-Para evidenciar la drástica reducción de la "grasa sintáctica", considere la representación de un ítem de obra civil tradicional (Análisis de Precio Unitario de Vaciado de Concreto 3000 PSI):
+Para evidenciar la reducción de la "grasa sintáctica", considere la representación de un ítem de obra civil tradicional (Análisis de Precio Unitario de Vaciado de Concreto 3000 PSI):
 
 ### Entrada JSON Cruda (412 Tokens - Grasa Sintáctica):
 ```json
@@ -109,7 +72,7 @@ INS|EQ-BOMBA-MIX|0.64|120000.00
 --------------------------------------------------------------------------------
 ## 2. Inyección de Vitaminas Cognitivas (ToonCartridges) y El Álgebra de Partículas en el Espacio de Fock
 
-El retracto de deformación de datos (Silo B) transita formalmente hacia el **Álgebra de Partículas en el Espacio de Fock $\mathcal{F}(\mathcal{H})$** dentro de la cámara de reacción (**Reaction Chamber**). Para los gerentes e ingenieros operando la plataforma, la IA no debe disipar valiosos ciclos de reloj "leyendo llaves repetidas" (la grasa sintáctica de un JSON) que saturan la memoria atencional (KV-Cache). Al empaquetar la carga en `ToonCartridges` ("Vitaminas Cognitivas"), el sistema le suministra el núcleo matemático puro de la información.
+El retracto de deformación de datos (Silo B) transita formalmente hacia el **Álgebra de Partículas en el Espacio de Fock $\mathcal{F}(\mathcal{H})$** dentro de la cámara de reacción (**Reaction Chamber**). Para los gerentes e ingenieros operando la plataforma, la IA no debe disipar valiosos ciclos de reloj "leyendo llaves repetidas" (la grasa sintáctica de un JSON) que saturan la memoria atencional (KV-Cache). Al empaquetar la carga en `ToonCartridges` ("Vitaminas Cognitivas"), el sistema le suministra los fundamentos matemáticos tangibles-cuantitativos (Insumos, APU's, presupuesto, e.t.c) y los intagibles-cualitativos (Política, gremios, acuerdos con los territorios, clima, topografía, e.t.c).
 
 En la cámara de reacción, la creación y aniquilación de características sintácticas se rige por los operadores de creación $a_i^\dagger$ y aniquilación $a_j$ que satisfacen las relaciones de anticonmutación canónicas (CAR) para fermiones estructurales:
 $$\{a_i, a_j^\dagger\} = \delta_{ij} I, \quad \{a_i, a_j\} = 0, \quad \{a_i^\dagger, a_j^\dagger\} = 0$$

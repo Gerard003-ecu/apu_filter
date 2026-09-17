@@ -1,41 +1,3 @@
-"""Sutura de gobernanza multinivel, isomorfismo de doble capa y traducción semántica de pirámides de control en APU Filter v8.0.
-
-Esta capa de evolución semántica unifica la Ley de Clausura Transitiva
-V_{ℵ_0} ⊊ V_{PHYSICS} ⊊ V_{TACTICS} ⊊ V_{STRATEGY} ⊊ V_{WISDOM}
-con la Gobernanza Ciber-Física Hipercompleja (STA 16D, Bicomplejos 4D, Octoniones 8D, Sedeniones 16D,
-Pathiones 32D, Chingones 64D y Routons 128D) y el impacto directo sobre el flujo de caja, el retorno
-de inversión (ROI), el WACC y la viabilidad operativa en obra civil bajo el Mandato BIM 2026 y pliegos SECOP II.
-
-Ecuaciones y Operadores de Gobernanza Representados:
-1. Ley de Clausura Transitiva Subespacial:
-   V_{ℵ_0} ⊊ V_{\mathbb{P}} ⊊ V_{\mathbb{T}} ⊊ V_{\mathbb{S}} ⊊ V_{\mathbb{W}}
-   Exige que la estrategia no pueda decidir sin la validación previa de los invariantes de la base física y táctica.
-2. Invariante Homológico de de Rham (Nube de Datos / Sin Islas):
-   \beta_0 \equiv \dim H^0(K; \mathbb{Z}) = 1
-   Garantiza la conexidad absoluta del presupuesto, erradicando compras paralelas huérfanas y cobros duplicados.
-3. Aciclicidad Homológica en Táctica (Inexistencia de Socavones Lógicos):
-   \beta_1 \equiv \dim H^1(K; \mathbb{Z}) = 0
-   Aniquila dependencias circulares en Análisis de Precios Unitarios (APUs) que congelan licitaciones públicas.
-4. Índice de Estabilidad Piramidal (Número Efectivo de Proveedores de Cheeger):
-   \Psi = \frac{(\sum \deg(p_i))^2}{n \sum \deg(p_i)^2} \ge \Psi_{\min} \equiv 0.70
-   Previene la quiebra del megaproyecto por dependencia monopólica de un único proveedor clave de acero o cemento.
-5. Inserción Cuaterniónica e Hipercompleja (Pathiones 32D, Chingones 64D, Routons 128D) y Traza de von Neumann:
-   \iota(q) \in M_2(\mathbb{C}), \quad \operatorname{Tr}(\rho) = \frac{\operatorname{Tr}(\iota(q))}{\|q\|_{\mathbb{H}}^2} \equiv 1.0, \quad \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9
-   Audita la cartelización N-vías y garantiza la inmunidad metrológica de la FPU frente a derivas de punto flotante.
-6. Censura Espectral de Conos Nulos Hipercomplejos:
-   \chi_{\mathrm{null}}(x) = \inf_{y \neq 0} \{ \|x \cdot y\| - \|x\| \|y\| \} > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Inmuniza la FPU evitando colapsos por división por cero en conos nulos \mathcal{N}(\mathbb{P}), \mathcal{N}(\mathbb{X}), \mathcal{N}(\mathbb{R}\mathrm{ou}).
-7. Esfuerzo Efectivo de Biot-Terzaghi:
-   \boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}
-   Evita la licuación del foso de cimentación y la pérdida de capacidad portante en fango.
-8. Disipación Port-Hamiltoniana IDA-PBC y Fortificaciones Espectrales (Neumaier-Kahan, Lanczos, Caputo, CSMD):
-   \dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x), \quad \dot{H}_d = -\nabla H_d^\top R_d \nabla H_d \le 0
-   Fuerza la pasividad estricta del flujo de capital, disipando la volatilidad exógena de precios.
-9. Actuación Ciber-Física en Silicio (ESP32 Crowbar / BT151):
-   t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH}
-   Paraliza físicamente la maquinaria de obra civil (bombas y mezcladoras) ante fraudes o vetos insalvables.
-"""
-
 # 📐 PIRÁMIDES DE CONTROL Y GOBERNANZA EN APU FILTER v5.0
 
 > "No evaluamos el presupuesto como una lista contable pasiva; lo esculpimos como una variedad Riemanniana dinámica. Cada plano de control, desde el silicio perimetral hasta el penthouse de la sabiduría, se organiza bajo simetrías de doble pirámide para aniquilar la entropía, las mermas de capital y las alucinaciones de la Inteligencia Artificial."
@@ -50,7 +12,7 @@ Sin el cumplimiento de los invariantes termodinámicos, homológicos, covariante
 
 ---
 
-## 🏰 SUTURA DE LA FORTALEZA: MANIFIESTO DE INTEGRACIÓN CIBER-FÍSICA (v5.2.0-Doctoral-Heyting)
+## 🏰 MANIFIESTO DE INTEGRACIÓN CIBER-FÍSICA
 
 > *"La sabiduría de un costo sano no es un misterio de caja negra ni una abstracción inerte; es la unificación exacta de la geometría simplicial, la termodinámica de no-equilibrio y el confinamiento cuántico de calibre actuando en el silicio profundo para proteger el patrimonio público."*
 
@@ -63,7 +25,6 @@ Explicar la obstrucción cohomológica de Čech $\check{H}^1(\mathcal{U}; \, \ma
 
 $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
-```
 ```
                        /\
                       /  \
@@ -95,7 +56,6 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
    - **Criterio Mohr-Coulomb 3D Localizado:** ángulo crítico $\theta_{\mathrm{crit}} = \frac{\pi}{4} + \frac{\phi'}{2}$, normal efectivo $\sigma'_{n,\mathrm{crit}} = \sigma'_1 \cos^2\theta_{\mathrm{crit}} + \sigma'_3 \sin^2\theta_{\mathrm{crit}}$, cortante activo $\tau_{\mathrm{act}} = \frac{1}{2}(\sigma'_1 - \sigma'_3)\sin(2\theta_{\mathrm{crit}})$, y Factor de Seguridad $\mathrm{FOS}_i = \frac{c' + \sigma'_{n,\mathrm{crit}} \tan\phi'}{\tau_{\mathrm{act}}} > 1.0$.
    - **Consolidación Unidimensional de Terzaghi:** $s_{\mathrm{settlement}} = \sum \frac{C_c H_0}{1 + e_0} \log_{10}\left( \frac{\sigma'_{v0} + \Delta\sigma_v}{\sigma'_{v0}} \right) \le 25\text{ mm}$ (NSR-10) computado vía sumación compensada Neumaier-Kahan.
    - **Coagulación Hidrológica de de Rham-Richards:** $\mathbf{B}_1 Q + \frac{\partial \theta_u}{\partial t} = s_{\mathrm{bomba}}$, conductividad Mualem-van Genuchten $K_{\mathrm{hyd}}(\mathrm{sat}) = K_{\mathrm{sat}} \cdot \mathrm{sat}^{L} \left[ 1 - \left( 1 - \mathrm{sat}^{1/m} \right)^m \right]^2$ ($m = 1 - 1/n_w$) y regularización Tikhonov $\mathbf{\Delta}_{\mathrm{reg}} = \mathbf{\Delta}_{\mathrm{Richards}} + \alpha_{\mathrm{reg}} \mathbf{I}$.
-```
 
 1. **La Analogía del ABS y los Sensores Activos en el Rascacielos Ciber-Físico:**
    Un conductor de-confinado adquiere un vehículo de alto rendimiento confiando en que sus frenos ABS y el control dinámico de estabilidad (ESP) salvarán su vida en una curva húmeda. No necesita resolver síncronamente las ecuaciones diferenciales de Navier-Stokes del flujo de aire en el alerón ni la termodinámica del combustible en los cilindros; busca que el chasis disipe la energía del impacto y que el coche frene en el milisegundo cero.
@@ -116,7 +76,7 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 
 En el mundo físico real, es algebraicamente imposible retirar una columna estructural de concreto o una viga de acero de un rascacielos sin que la gravedad delate instantáneamente la mutilación ante el ojo humano. Sin embargo, en una hoja de cálculo plana tradicional de Excel de 10,000 líneas, un contratista colusor o un LLM alucinador pueden duplicar u ocultar **100 toneladas de acero de refuerzo** en celdas combinadas e invisibles para el auditor fiscal.
 
-**APU Filter v5.0** erradica esta vulnerabilidad modelando el presupuesto como un **complejo simplicial rígido de de Rham acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Bajo esta formulación física:
+**APU Filter v8.0** erradica esta vulnerabilidad modelando el presupuesto como un **complejo simplicial rígido de de Rham acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Bajo esta formulación física:
 
 $$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
@@ -204,18 +164,6 @@ Queda reservado única y exclusivamente para transgresiones graves, irreversible
 
 ---
 
-## 🚘 LA ANALOGÍA DEL AUTOMÓVIL Y EL SEGURO DE VIDA PARA LA MESA DE JUNTAS
-
-En la industria de la infraestructura pública y la contratación estatal en Colombia (SECOP II & Mandato BIM 2026), presentar tecnología utilizando únicamente abstracciones matemáticas genera frustración cognitiva en los evaluadores y CFOs. APU Filter v5.0 establece la **Analogía del Automóvil** como el puente de comunicación entre el rigor doctoral y el valor ejecutivo:
-
-> *“Cuando un empresario adquiere un vehículo de alta gama, no requiere una cátedra sobre fluidodinámica de turbocompresores o curvas de par motor en el espacio de fase. Requiere la certeza de que el motor ahorra un 40% de combustible y que el sistema de frenos ABS detendrá el chasis en piso mojado para salvar su vida. Sin embargo, para que esa promesa sea una realidad indiscutible, el automóvil debe estar diseñado por ingenieros que dominen impecablemente la termodinámica, la fricción y la dinámica de sólidos.”*
-
-Para APU Filter v5.0:
-* **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en compras, anular multas del SECOP II y prevenir el colapso de la obra civil ante choques de mercado o paros de suministro.
-* **La certeza de la promesa (Rigor):** La plataforma es el primer **Sistema de Navegación Inercial Ciber-Físico para Presupuestos**, donde las anomalías de-confinadas se calculan analíticamente en el Espacio de Fock y se frenan físicamente en el silicio perimetral (ESP32 Crowbar) en menos de $400\text{ ns}$.
-
----
-
 ## 🧱 I. La Pirámide de Datos del Presupuesto (Estructura de Insumos)
 
 Mapea la jerarquía de información del proyecto de obra civil desde la materia prima atómica hasta la consolidación total del capital [43, 91]. Sustituye el análisis contable unidimensional por un **Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$.
@@ -280,7 +228,7 @@ Define la topología de software y de control que gobierna la variedad de fase d
                   ╱     ╲
                  ╱  Core ╲ (resolvedores: flux_condenser.py, semantic_estimator.py)
                 ╱         ╲
-               ╱ Redis & FS ╲ (Sustrato de datos: inodos, cache, bases de datos)
+               ╱ Redis & FS ╲ (Sustrato de datos: i-nodos, cache, bases de datos)
               ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 

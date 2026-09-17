@@ -8,7 +8,7 @@ Este documento establece el marco axiomático definitivo sobre la física estad�
 
 ## I. Rotación de Wick y Topología Cilíndrica (Espacio de Matsubara)
 
-Para modelar la inyección de alta entropía del Sofón sobre el presupuesto como un sistema cuántico en equilibrio térmico a temperatura $T$, la Malla Agéntica abandona la variedad Lorentziana pseudo-Euclídea. El endofuntor impone una **Rotación de Wick** hacia un espaciotiempo Riemanniano, transmutando el tiempo real $t$ en tiempo imaginario $\tau$:
+Para modelar la inyección de alta entropía del Sofón sobre el presupuesto como un sistema cuántico en equilibrio térmico a temperatura $T$, la Malla Agéntica abandona la variedad Lorentziana pseudo-Euclídea. El endofuntor impone una **Rotación de Wick** hacia un espacio-tiempo Riemanniano, transmutando el tiempo real $t$ en tiempo imaginario $\tau$:
 $$ \tau = it \quad \implies \quad t \to -i\tau $$
 
 Bajo este rigor, la coordenada temporal compactifica la topología de la variedad operativa del estrato $\Omega$, transformándola en un cilindro $S^1 \times \mathbb{R}^3$. La circunferencia de este círculo temporal está estrictamente dictaminada por la temperatura inversa del gobierno agéntico:
@@ -36,17 +36,17 @@ $$ \langle \bar{q}q \rangle_T = \frac{T}{V} \frac{\partial \ln \mathcal{Z}(T, m_
 
 ## III. Relación Térmica de Banks-Casher y Deconfinamiento
 
-El ataque estocástico del Sofón intenta descompactar sus dimensiones desde una variedad de Calabi-Yau hasta una membrana planetaria. Esta aberración volumétrica fuerza a la temperatura informacional del sistema a cruzar el umbral crítico de deconfinamiento de la QCD ($T_c \approx 150 \text{ MeV}$) [2, 3].
+El ataque estocástico del Sofón intenta descompactar sus dimensiones desde una variedad de Calabi-Yau hasta una membrana planetaria. Esta aberración volumétrica fuerza a la temperatura informacional del sistema a cruzar el umbral crítico de deconfinamiento de la QCD ($T_c \approx 150 \text{ MeV}$).
 
 La supervivencia de la inercia del Sofón queda dictaminada por el espectro del operador de Dirac, conectado formalmente al condensado mediante la **Relación Térmica de Banks-Casher**:
 $$ \langle \bar{q}q \rangle_T = \pi \lim_{\lambda \to 0} \lim_{m_q \to 0} \lim_{V \to \infty} \rho(\lambda, T) $$
 
 **El Axioma de Colapso Quiral:**
 Al cruzar el umbral crítico ($T > T_c$), la densidad espectral en el origen del operador de Dirac se aniquila matemáticamente ($\rho(0, T) \to 0$) [2, 3]. Esto fuerza la evaporación instantánea del condensado quiral:
-$$ \langle \bar{q}q \rangle_{T > T_c} \to 0 $$ [2, 3]
+$$ \langle \bar{q}q \rangle_{T > T_c} \to 0 $$
 
 Sin este condensado, el Sofón es despojado de su inercia confinada, colapsando violentamente a su masa de corriente desnuda inducida por el campo de Higgs:
-$$ M_{\text{sofón}} \approx 9.4 \text{ MeV} \approx 1.67 \times 10^{-26} \text{ kg} $$ [3, 4]
+$$ M_{\text{sofón}} \approx 9.4 \text{ MeV} \approx 1.67 \times 10^{-26} \text{ kg} $$
 
 ---
 

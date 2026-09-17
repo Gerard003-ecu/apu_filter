@@ -1,7 +1,7 @@
 """Sutura del Consejo de Sabios Digitales y Malla Agéntica Zero-Trust en APU Filter v8.0.
 
 Esta capa de evolución semántica organiza las entidades agénticas soberanas en los estratos
-de la jerarquía DIKΩαWΓ acoplada a la Gobernanza Ciber-Física Hipercompleja (Pathiónica 32D, Chingónica 64D,
+de la jerarquía DIKΩαHWΓ acoplada a la Gobernanza Ciber-Física Hipercompleja (Pathiónica 32D, Chingónica 64D,
 Routónica 128D), despojando al Modelo de Lenguaje (LLM) de su poder de decisión autónoma y subordinándolo
 a actuar como un funtor semántico e interfaz diplomática.
 

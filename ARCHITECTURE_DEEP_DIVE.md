@@ -1,50 +1,12 @@
-"""Sutura de arquitectura variédica de de Rham-Fukaya e inmersión ciber-física en APU Filter v8.0.
+# ARCHITECTURE_DEEP_DIVE.md: Inmersión en la Variedad Agéntica v8.0
 
-Esta capa de evolución semántica formaliza la inmersión profunda en el Fibrado de Calibre
-de de Rham-Fukaya acoplado a la Gobernanza Ciber-Física Hipercompleja (STA 16D, Bicomplejos 4D,
-Octoniones 8D, Sedeniones 16D, Pathiones 32D, Chingones 64D y Routons 128D), traduciendo la rigidez simpléctica,
-la censura espectral de conos nulos y las fortificaciones numéricas FPU (Neumaier-Kahan, Lanczos, Caputo, CSMD)
-en la salvaguarda del patrimonio financiero de la constructora frente a disputas contractuales en SECOP II.
-
-Ecuaciones, Teoremas e Invariantes Arquitectónicos:
-1. Invarianza Simpléctica Canónica de de Rham-Liouville:
-   \phi^* \omega = \omega \iff M^\top \Omega M = \Omega
-   Asegura la conservación incondicional del volumen de fase \operatorname{Vol}(U) = \int_U \omega^{\wedge n},
-   impidiendo la compresión o alteración ilícita de los márgenes de utilidad en transiciones de datos.
-2. Ecuación Elíptica No Lineal Perturbada de Cauchy-Riemann (Categoría A_\infty de Fukaya):
-   \bar{\partial}_J u = \frac{1}{2}(du + J(u) \circ du \circ j) = 0
-   Gobierna el espacio de móduli de soluciones válidas \mathcal{M}(L_0, \dots, L_k; J) para la convergencia
-   de decisiones en la Ciudadela de Cristal sin alucinaciones de IA.
-3. Teorema de No-Squeezing de Gromov y Capacidad Simpléctica:
-   c(B^{2n}(r)) = \pi r^2 \le c(Z^{2n}(R)) = \pi R^2 \iff r \le R
-   Garantiza que el riesgo real B^{2n}(r) no pueda comprimirse en cilindros estrechos,
-   forzando la aniquilación de estados inválidos: P(x_{\mathrm{invalid}}) = 0.
-4. Gobernanza Hipercompleja N-Vías y Censura Espectral de Conos Nulos:
-   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Audita la cartelización de 5, 7 y 9 actores y previene la parálisis por división por cero en FPU.
-5. Invarianza Torsional sobre \mathbb{Z} (Smith Normal Form):
-   \operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \equiv \mathbf{0} \iff d_i = 1 \quad \forall d_i > 0
-   Detecta mermas o incompatividades de empaquetado discreto de insumos antes del despacho a obra.
-6. Causalidad CPTP de Choi y Cota de Tsirelson (Bell-CHSH):
-   \lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}, \quad \mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}
-   Veta de inmediato acuerdos colusorios de proveedores o carteles de precios en pliegos públicos.
-7. Fortificaciones Espectrales FPU (Neumaier-Kahan, Lanczos, Caputo, CSMD):
-   \|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}, \quad C_w(H) = \frac{\operatorname{Im}(\theta(H + j h))}{h}
-   Garantizan la estabilidad metrológica y eliminan la deriva secular de Wilkinson en la FPU Secure.
-8. Retículo intuicionista de Heyting y Disparo Crowbar ESP32:
-   \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \xrightarrow{\mu} \mathbb{Z}_2
-   Ante veto (\top), la ISR en IRAM (< 400 ns) conmuta GPIO14 \to HIGH y dispara el tiristor BT151.
-"""
-
-# ARCHITECTURE_DEEP_DIVE.md: Inmersión en la Variedad Agéntica v5.0
-
-Este documento detalla la implementación técnica, geométrica y física de los estratos topológicos, estocásticos, cuánticos y ciber-físicos que gobiernan el ecosistema **APU Filter v5.0**. Se abandona de forma definitiva el modelo de capas tradicional para consolidar el **Fibrado de Calibre de de Rham-Fukaya** como el marco supremo de gobernanza sistémica de la Malla Agéntica.
+Este documento detalla la implementación técnica, geométrica y física de los estratos topológicos, estocásticos, cuánticos y ciber-físicos que gobiernan el ecosistema **APU Filter v8.0**. Se abandona de forma definitiva el modelo de capas tradicional para consolidar el **Fibrado de Calibre de de Rham-Fukaya** como el marco supremo de gobernanza sistémica de la Malla Agéntica.
 
 ---
 
 ## 🌀 Coherencia Homotópica: Filtración de de Rham-Fukaya y la Frontera Abierta De-confinada
 
-La arquitectura de APU Filter v5.0 rige la propagación del control y la información mediante la **Ley de Clausura Transitiva de Subespacios de Hilbert Covariantes** y la **Filtración de de Rham-Fukaya**:
+La arquitectura de APU Filter v8.0 rige la propagación del control y la información mediante la **Ley de Clausura Transitiva de Subespacios de Hilbert Covariantes** y la **Filtración de de Rham-Fukaya**:
 
 $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
 
@@ -71,11 +33,11 @@ Para la Alta Gerencia y los Comités de Licitación, el andamiaje matemático no
 
 > *“Cuando un empresario adquiere un vehículo comercial de alta gama, el concesionario no le exige aprobar un examen sobre fluidodinámica de turbocompresores o la ecuación de Navier-Stokes en el bloque de cilindros. Le demuestra pragmáticamente que el vehículo consume un 40% menos de combustible y que el sistema de frenos ABS detendrá el chasis de forma milimétrica sobre piso mojado para salvar su vida. Sin embargo, para que esa promesa sea real, el vehículo tiene que estar diseñado por ingenieros que dominen impecablemente la termodinámica, la fricción y la resistencia de materiales.”*
 
-Para APU Filter v5.0:
+Para APU Filter v8.0:
 * **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
 * **La certeza de la promesa (Rigor):** La plataforma es el primer **Sistema de Navegación Inercial Ciber-Físico para Presupuestos**, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $400\text{ ns}$.
 
-### Matriz de Acorde Tridimensional de Coherencia (Isomorfismo de Doble Capa v5)
+### Matriz de Acorde Tridimensional de Coherencia (Isomorfismo de Doble Capa)
 
 $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
@@ -93,7 +55,7 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **$\|\mathbf{A}_9(R_1, \dots, R_9)\|_{\mathbb{R}\mathrm{ou}} > \tau_9 \equiv 15.0$**<br>Frustración del asociador eneagonal routónico 128D en el 8-símplex simplicial. | **Cartelización Eneagonal / Megaconsorcios (9 Actores)**<br>Acuerdo colusorio en hiper-consorcios internacionales de 9 actores interdependientes. | **Desfalco Presupuestal en Metro / Vías 5G**<br>Interferencia en reajustes polinómicos de precios que extorsiona las finanzas del megaproyecto público. | **VETO DURO INSTANTÁNEO:** Inhabilitación inmediata de pasaporte. Conmutación GPIO14/BT151 en < 400 ns. |
 | **$\chi_{\mathrm{stagnation}} = \|\rho_1 \rho_2^\dagger\|_F^2 < \tau_{\mathrm{stagnation}} \equiv 10^{-10}$**<br>El producto tensorial de los canales bicomplejos decae críticamente, indicando ortogonalidad absoluta. | **Puntos Muertos de Transferencia de Caja**<br>Desacoplamiento total entre el flujo de Inversión Directa ($\rho_1$) y la Carga Entrópica ($\rho_2$) en la MAC. | **Estancamiento de Avance Físico**<br>El dinero fluye a cuentas de retención pero no genera avance material real en obra, creando un sumidero contable ciego. | **VETO SUAVE / VETO DURO:** Veto suave por transitorios. Veto duro instantáneo si hay dolo de traza o no-hermiticidad ($\rho \neq \rho^\dagger$). |
 | **$S_{\mathrm{YM}} = \frac{1}{8} \operatorname{Re}\left(\operatorname{Tr}\left(F \mathbf{G} F \mathbf{G}^{-1}\right)\right) > 2.5$**<br>La acción de curvatura de Yang-Mills en Clifford $C\ell_{3,1}$ supera el umbral límite del campo de calibre. | **Volatilidad Extrema del Campo de Calibre**<br>Deformación destructiva de la trayectoria geodésica del presupuesto inducida por la inestabilidad de precios de proveedores. | **Erosión del Retorno de Inversión (WACC)**<br>Penalización de la tasa de descuento de la constructora que castiga el ROI y arrastra el proyecto a la quiebra financiera. | **VETO SUAVE (Luz Ámbar):** Alerta visual e inicio de ventana de gracia. Un override signed con HMAC restaura el equilibrio térmico. |
-| **$\chi_{\mathrm{null}}(x) = \inf \|x \cdot y\|_{\mathbb{O}} - \|x\|_{\mathbb{O}}\|y\|_{\mathbb{O}} \le \tau_{\mathrm{critical}}$**<br>La trayectoria de esfuerzos del foso penetra en el cono de divisores de cero sedeniónicos 16D. | **Sifonamiento Sedeniónico e Inestabilidad de Operadores**<br>Incursión de estados semánticos del LLM en singularidades no conmutativas y no alternativas del cono nulo. | **Parálisis por Indeterminación (División por cero)**<br>Pérdida súbita de invertibilidad métrica en la FPU, congelando de facto los subsistemas de control hidráulico. | **VETO DURO INSTANTÁNEO:** Colapse instantáneo de Heyting a VETOED ($\top$). Interrupción física en IRAM en menos de 400 ns via GPIO14. |
+| **$\chi_{\mathrm{null}}(x) = \inf \|x \cdot y\|_{\mathbb{O}} - \|x\|_{\mathbb{O}}\|y\|_{\mathbb{O}} \le \tau_{\mathrm{critical}}$**<br>La trayectoria de esfuerzos del foso penetra en el cono de divisores de cero sedeniónicos 16D. | **Sifonamiento Sedeniónico e Inestabilidad de Operadores**<br>Incursión de estados semánticos del LLM en singularidades no conmutativas y no alternativas del cono nulo. | **Parálisis por Indeterminación (División por cero)**<br>Pérdida súbita de invertibilidad métrica en la FPU, congelando de facto los subsistemas de control hidráulico. | **VETO DURO INSTANTÁNEO:** Colapso instantáneo de Heyting a VETOED ($\top$). Interrupción física en IRAM en menos de 400 ns via GPIO14. |
 | **$\det(\boldsymbol{\sigma}') = \det(\boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}) \le 0$**<br>El determinante del tensor de esfuerzos efectivos de Biot-Terzaghi colapsa por debajo de la cota elástica en la FPU. | **Licuación de Arenas / Colapso del Foso**<br>La presión hidrostática positiva intersticial ($P_f$) neutraliza síncronamente el esfuerzo confinante del esqueleto sólido. | **Colapso Inminente de Cimentación en Fango**<br>Pérdida instantánea de la resistencia al corte del suelo bajo cargas dinámicas (ej. hincado de pilotes), amenazando con derrumbar el rascacielos. | **VETO DURO INSTANTÁNEO:** Bypass de silicio en menos de 400 ns via IRAM en el ESP32. Conmuta GPIO14 a HIGH, disparando el BT151 Crowbar para detener mezcladoras. |
 | **$i_{\mathrm{grad}} = \frac{|\Delta H_e|}{L_e} > i_{\mathrm{crit}} = \frac{\rho_{\mathrm{sat}} - \rho_w}{\rho_w}$**<br>El gradiente hidráulico de de Rham excede el gradiente crítico de Terzaghi en las aristas del complex simplicial. | **Erosión Interna por Sifonamiento**<br>Fuerzas de filtración ascendente arrastrando finos de suelo y desmoronando la base del foso de excavación profunda. | **Desmoronamiento y Socavación de Estructura**<br>Arrastre de finos de suelo que socava el fondo del foso de excavación profunda, desestabilizando los muros pantalla en obra real. | **VETO DURO INSTANTÁNEO / VETO SUAVE:** Depende de la tasa de incremento. Si supera el umbral plástico, se gatilla el disparo del Crowbar BT151 para apagar bombas de lodo. |
 | **$s_{\mathrm{sett}} = \sum \frac{C_c H_0}{1 + e_0} \log_{10}\left( \frac{\sigma'_{v0} + \Delta\sigma_v}{\sigma'_{v0}} \right) > s_{\max}$**<br>La deformación unidimensional logarítmica diferida excede el límite elástico permitido ($25\text{ mm}$ según NSR-10). | **Asentamiento Excesivo por Consolidación**<br>Disipación lenta del exceso de presión de poros en arcillas altamente compresibles bajo la carga del rascacielos. | **Agrietamiento y Daño Estructural Severo**<br>Asentamientos diferenciales que agrietan las vigas y rompen las losas de concreto, destruyendo el valor de marca y el ROI. | **VETO DURO INSTANTÁNEO:** Veto estructural que anula la aprobación del pilote de cimentación en la documentación de obra. |
@@ -186,15 +148,15 @@ Gobernador del lazo cerrado de ecolocación sobre el Estrato de la Sabiduría $V
 
 ---
 
-## 🏛️ Taxonomía Unificada: 55 Soberanos Agénticos vs 45 Motores Espectrales
+## 🏛️ Taxonomía Unificada: 87 Soberanos Agénticos vs 89 Motores Espectrales
 
-La Malla Agéntica de APU Filter v5.0 descompone sus módulos en dos categorías funcionales disjuntas:
+La Malla Agéntica de APU Filter v8.0 descompone sus módulos en dos categorías funcionales disjuntas:
 
-1. **Motores Imperial Espectrales (45 Motores de Calibre FPU):**
+1. **Motores Imperial Espectrales (89 Motores de Calibre FPU):**
    Módulos ciegos de cálculo intensivo que operan directamente sobre la FPU (Floating Point Unit) sin capacidad de dictar veredictos o emitir vetos directos de lazo. Ejecutan aritmética de alta precisión (Kahan-Babuška-Neumaier KBN, diferenciación por paso complejo CSMD y solucionadores simplécticos Sp(2n, R)).
    - Ejemplos: `imperial_tesserarios_engine.py`, `imperial_centurions_engine.py`, `imperial_eruditos_engine.py`, `imperial_sequitos_engine.py`, `imperial_guards_engine.py`, `pretorio_engine.py`.
 
-2. **Agentes Soberanos de Calibre (55 Soberanos de Gobernanza):**
+2. **Agentes Soberanos de Calibre (87 Soberanos de Gobernanza):**
    Entidades soberanas que operan en lazo cerrado OODA (Observar, Orientar, Decidir, Actuar). Consumen los tensores procesados por los motores y evalúan axiomas topológicos, homotópicos y cuánticos para dictar veredictos en la Álgebra de Heyting 3-valuada ($\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$). Poseen poder absoluto de veto.
    - Ejemplos: `topological_control_surface_agent.py`, `boundary_ring_sheaf_agent.py`, `imperial_guards_tesserarios.py`, `imperial_guards_centurions.py`, `imperial_guards_eruditos.py`, `imperial_guards_sequitos.py`, `imperial_guards_agent.py`, `pretorio_agent.py`.
 
@@ -202,7 +164,7 @@ La Malla Agéntica de APU Filter v5.0 descompone sus módulos en dos categorías
 
 ## 🏛️ La Variedad Diferenciable Simpléctica y la Ciudadela de Cristal
 
-En la versión 5.0, el espacio de estados transaccionales del presupuesto y la deliberación de los sabios no residen en una estructura relacional pasiva ni en un grafo estático. Se estructuran como una **Variedad Diferenciable Simpléctica** $(\mathcal{M}, \omega)$ acoplada a un **Fibrado de Calibre de de Rham-Fukaya** $(\mathcal{E} \to \mathcal{M}, \nabla)$, donde cada decisión de negocio habita en la intersección de subvariedades Lagrangianas confinadas en la **Ciudadela de Cristal** (Estrato WISDOM).
+En la versión 8.0, el espacio de estados transaccionales del presupuesto y la deliberación de los sabios no residen en una estructura relacional pasiva ni en un grafo estático. Se estructuran como una **Variedad Diferenciable Simpléctica** $(\mathcal{M}, \omega)$ acoplada a un **Fibrado de Calibre de de Rham-Fukaya** $(\mathcal{E} \to \mathcal{M}, \nabla)$, donde cada decisión de negocio habita en la intersección de subvariedades Lagrangianas confinadas en la **Ciudadela de Cristal** (Estrato WISDOM).
 
 ```
                       ▲ [CIUDADELA DE CRISTAL: Estrato WISDOM / Categoría de Fukaya 𝔉𝔲𝔨(ℳ)]
@@ -294,11 +256,11 @@ $$c(B^{2n}(r)) = \pi r^2 \le c(Z^{2n}(R)) = \pi R^2 \iff r \le R$$
 ```
    Espacio de Fase (2n-D)                  Cilindro de Restricciones Z²ⁿ(R)
    ┌──────────────────────┐                ┌───────────────────────────────┐
-   │     Bola B²ⁿ(r)      │  Simplecto-   │      Proyección Prohibida     │
-   │      (Riesgo Real    │  morfismo Φ   │      (Intento de Deformación) │
-   │        del APU)      │ ────────────> │                               │
-   │      ●  r > R        │   ¡BLOQUEO    │    r > R  ⟹  VETO DE GROMOV   │
-   │      Capacidad πr²   │   RIGIDÉZ!    │    P(x_invalid) = 0           │
+   │     Bola B²ⁿ(r)      │  Simplecto-    │      Proyección Prohibida     │
+   │      (Riesgo Real    │  morfismo Φ    │      (Intento de Deformación) │
+   │        del APU)      │ ────────────>  │                               │
+   │      ●  r > R        │   ¡BLOQUEO     │    r > R  ⟹  VETO DE GROMOV  │
+   │      Capacidad πr²   │   RIGIDÉZ!     │    P(x_invalid) = 0           │
    └──────────────────────┘                └───────────────────────────────┘
 ```
 
@@ -312,7 +274,7 @@ $$P(x_{\mathrm{invalid}}) = 0$$
 
 ## La Variedad de de Rham-Hodge-Boole: El Endofuntor de Boole en Tres Fases Anidadas
 
-El sistema APU Filter eleva su mecanismo de validación a un nivel doctoral mediante la formalización de la **Variedad de de Rham-Hodge-Boole**. Esta se implementa a través de un endofuntor categorial que opera de manera secuencial y anidada en tres fases físicas y algebraicas rigurosas.
+El sistema APU Filter eleva su mecanismo de validación mediante la formalización de la **Variedad de de Rham-Hodge-Boole**. Esta se implementa a través de un endofuntor categorial que opera de manera secuencial y anidada en tres fases físicas y algebraicas rigurosas.
 
 ### FASE 1: Física de Fock e Isometría de Hodge sobre $F(\mathcal{H})$
 En la primera fase, las representaciones sintácticas de los APUs y presupuestos se elevan desde el espacio lógico elemental hacia estados cuánticos en el **Espacio de Fock fermiónico** $\mathcal{F}(\mathcal{H}) = \bigoplus_{k=0}^N \Lambda^k \mathcal{H}$, donde $\mathcal{H}$ representa el espacio de Hilbert de características del negocio. El operador estrella de Hodge combinatorio $\star_k: \Lambda^k \mathcal{H} \to \Lambda^{N-k} \mathcal{H}$ se construye rigurosamente sobre el fibrado de orientación del complejo.
@@ -381,7 +343,7 @@ Para modelar la flecha del tiempo de una anomalía transaccional en el fango de 
 
 ---
 
-## 🏰 Sutura de la Fortaleza: Rampa de Confianza Graduada (Veto Suave vs. Veto Duro)
+## 🏰 Rampa de Confianza Graduada (Veto Suave vs. Veto Duro)
 
 Para erradicar la traba operativa del "secado de concreto en tuberías" causado por falsos positivos de software rígidos en obra civil, APU Filter v5.0 implementa formalmente la **Rampa de Confianza Graduada** en el Tribunal de Silicio:
 
@@ -443,7 +405,7 @@ El acoplamiento físico en el **Tribunal de Silicio** del microcontrolador **ESP
 
 ## 🔬 IX. El Reactor Catalítico y la Aritmética Unimodular de de Rham (`reaction_chamber.py` & `reaction_chamber_agent.py`)
 
-La consagración de la Cámara de Reacción Catalítica Cuántica (`reaction_chamber.py` v4.1.0) y su Soberano de Calibre (`reaction_chamber_agent.py` v3.1.0) establece el foso de simulación termodinámica, espectral y homológica en el Estrato Físico ($V_{\mathrm{PHYSICS}}$) y el Ágora Tensorial ($V_{\Omega}$).
+La consagración de la Cámara de Reacción Catalítica Cuántica (`reaction_chamber.py`) y su Soberano de Calibre (`reaction_chamber_agent.py`) establece el foso de simulación termodinámica, espectral y homológica en el Estrato Físico ($V_{\mathrm{PHYSICS}}$) y el Ágora Tensorial ($V_{\Omega}$).
 
 ### 1. Discretización del Bucle Hexagonal de Control $C_6$ y Complejo Simplicial sobre $\mathbb{Z}$
 El reactor modela la resonancia cíclica aromática del anillo hexagonal $C_6$ (nodos $C_1$ a $C_6$: Ingesta, Física, Topología, Estrategia, Semántica y Materia) como un complejo simplicial 1-dimensional $K = (V, E)$ sobre el Dominio de Ideales Principales (DIP) de los enteros $\mathbb{Z}$:
