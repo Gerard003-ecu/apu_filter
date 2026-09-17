@@ -11,16 +11,16 @@ r"""
 ║ Motor de Calibre Routónico 128D [routon_dependency_engine.py] en la FPU.     ║
 ║                                                                              ║
 ║ Audita, como predicados locales en el retículo de Heyting Ω_3:               ║
-║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{128} (equivalencia de normas). ║
+║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{128} (equivalencia de normas).  ║
 ║   2. Asociador eneagonal de 9 vías A_9 y diámetro de Stasheff A_4.           ║
 ║   3. Distorsión de Moufang A_M(R,S,T)=(R(ST))R-(RS)(TR) (grado 4).           ║
 ║   4. Composición de Hurwitz / submultiplicatividad de Banach.                ║
-║   5. Penetración no trivial del cono nulo 𝒩(ℝou), σ_min(L_R).               ║
+║   5. Penetración no trivial del cono nulo 𝒩(ℝou), σ_min(L_R).                ║
 ║                                                                              ║
 ║ AXIOMAS DE GOBERNANZA:                                                       ║
 ║   (H3)  Ω_3 = {VETOED ≺ DEGRADED ≺ COHERENT} es la cadena de Heyting de      ║
 ║         tres elementos (álgebra de Gödel): ∧=mín, ∨=máx,                     ║
-║         a → b = ⊤ si a ≼ b, si no b;  ¬a = a → ⊥.                           ║
+║         a → b = ⊤ si a ≼ b, si no b;  ¬a = a → ⊥.                            ║
 ║   (M)   El veredicto global es el meet de los predicados locales.            ║
 ║   (Γ)   Modalidad de gracia: Γ(DEGRADED)=DEGRADED si t<T, si no VETOED.      ║
 ║   (σ)   Override HMAC-SHA256 no promociona a ⊤: σ(DEGRADED)=DEGRADED         ║

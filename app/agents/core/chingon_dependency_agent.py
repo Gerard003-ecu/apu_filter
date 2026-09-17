@@ -11,16 +11,16 @@ r"""
 ║ Motor de Calibre Chingónico 64D [chingon_dependency_engine.py] en la FPU.    ║
 ║                                                                              ║
 ║ Audita, como predicados locales en el retículo de Heyting Ω_3:               ║
-║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{64} (equivalencia de normas).  ║
+║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{64} (equivalencia de normas).   ║
 ║   2. Asociador heptagonal de 7 vías A_7 y diámetro de Stasheff A_4.          ║
 ║   3. Tensores A_alt^L=[X,X,Y] y A_alt^R=[X,Y,Y] (homogéneos de grado 3).     ║
 ║   4. Composición de Hurwitz / submultiplicatividad de Banach.                ║
-║   5. Penetración no trivial del cono nulo 𝒩(𝕏), σ_min(L_X).                 ║
+║   5. Penetración no trivial del cono nulo 𝒩(𝕏), σ_min(L_X).                  ║
 ║                                                                              ║
 ║ AXIOMAS DE GOBERNANZA:                                                       ║
 ║   (H3)  Ω_3 = {VETOED ≺ DEGRADED ≺ COHERENT} es la cadena de Heyting de      ║
 ║         tres elementos (álgebra de Gödel): ∧=mín, ∨=máx,                     ║
-║         a → b = ⊤ si a ≼ b, si no b;  ¬a = a → ⊥.                           ║
+║         a → b = ⊤ si a ≼ b, si no b;  ¬a = a → ⊥.                            ║
 ║   (M)   El veredicto global es el meet de los predicados locales.            ║
 ║   (Γ)   Modalidad de gracia: Γ(DEGRADED)=DEGRADED si t<T, si no VETOED.      ║
 ║   (σ)   Override HMAC-SHA256 no promociona a ⊤: σ(DEGRADED)=DEGRADED         ║
