@@ -1,55 +1,83 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Octonionic Dependency Agent (Soberano de Calibre Octoniónico)       ║
-║ Ruta   : app/agents/wisdom/octonionic_dependency_agent.py                    ║
-║ Versión: 3.0.0-Doctoral-OODA-Heyting-Banach-Artin-Nested                     ║
+║ MÓDULO : OCTONIONIC DEPENDENCY AGENT (SOBERANO DE CALIBRE OCTONIÓNICO 8D)    ║
+║ RUTA   : app/agents/wisdom/octonionic_dependency_agent.py                    ║
+║ NIVEL  : Doctorado en Ciencias Matemáticas, Física Teórica y Computación     ║
+║ VERSIÓN: 3.1.0-Doctoral-OODA-Heyting-Banach-Artin-Moufang-Hodge-Nested3      ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ TRATADO DE GOBERNANZA MATEMÁTICA, FÍSICA Y TOPOLÓGICA DE LAZO CERRADO:       ║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO:                         ║
-║ Agente supervisor ciber-físico en el estrato de Sabiduría (V_W) / Omega      ║
-║ (V_Ω). Gobierna síncronamente al Resolver Octoniónico de Dependencias        ║
-║ (Cayley–Dickson, Artin, Moufang) sobre la tríada                             ║
+║ 1. ESTRATO DE SABIDURÍA (V_W) / OMEGA (V_\Omega — EL ÁGORA TENSORIAL):       ║
+║    Agente supervisor ciber-físico soberano que gobierna síncronamente al     ║
+║    Resolver Octoniónico de Dependencias (álgebra de Cayley-Dickson \mathbb{O}║
+║    sobre \mathbb{R}^8) en la Unidad de Punto Flotante (FPU).                 ║
+║    Inmerge la tríada transaccional crítica:                                  ║
+║      (Contratista P_1, Proveedor P_2, Interventor P_3) \in \mathbb{O}^3.     ║
 ║                                                                              ║
-║     (Contratista, Proveedor, Interventoría) ↪ O³ ⊂ (R^8)³.                   ║
+║ 2. GEOMETRÍA DE BANACH Y DISTORSIÓN CONVEXA EN (\mathbb{R}^8, \|\cdot\|_p):  ║
+║    Para toda señal hipercompleja x \in \mathbb{R}^8 \setminus \{0\}, se      ║
+║    certifican las desigualdades analíticas de equivalencia métrica:          ║
+║      1 \le \frac{\|x\|_1}{\|x\|_2} \le \sqrt{8}, \quad                       ║
+║      1 \le \frac{\|x\|_2}{\|x\|_\infty} \le \sqrt{8}, \quad                   ║
+║      1 \le \frac{\|x\|_1}{\|x\|_\infty} \le 8,                                ║
+║    con la desigualdad de Hölder: \|x\|_2^2 \le \|x\|_1 \|x\|_\infty,         ║
+║    el índice de dispersión/escasez de Hoyer:                                 ║
+║      \mathcal{H}(x) = \frac{\sqrt{8} - \|x\|_1 / \|x\|_2}{\sqrt{8} - 1}      ║
+║      \in [0, 1],                                                             ║
+║    y el coeficiente de distorsión convexa de Banach:                         ║
+║      \kappa_B(x) = \frac{\|x\|_1 \|x\|_\infty}{\|x\|_2^2} \ge 1.             ║
 ║                                                                              ║
-║ Sanea señales en el espacio de Banach de dimensión finita (R^8, ‖·‖_p),      ║
-║ audita la ley de composición de Hurwitz y el asociador                       ║
+║ 3. ÁLGEBRA DE MALCEV, PLANO DE FANO Y AUTOMORFISMOS G_2:                     ║
+║    En el subespacio imaginario \operatorname{Im}(\mathbb{O}) \cong           ║
+║    \mathbb{R}^7, el producto cruzado u \times v = \tfrac{1}{2}[u, v] porta   ║
+║    estructura de álgebra de Malcev. El Jacobiator generalizado satisface:    ║
+║      J(u, v, w) = [[u, v], w] + [[v, w], u] + [[w, u], v] = -6 [u, v, w].   ║
+║    La 3-forma asociativa de calibración paralela de G_2 sobre las líneas     ║
+║    del plano proyectivo de Fano PG(2, 2) audita la coherencia trilateral:   ║
+║      \phi(a, b, c) = \langle a, b \times c \rangle.                          ║
 ║                                                                              ║
-║     [a,b,c] = (ab)c − a(bc),                                                 ║
+║ 4. TOPOLOGÍA ESPECTRAL DE HODGE-LAPLACE Y EXERGÍA DE DIRICHLET EN K_3:       ║
+║    El 1-esqueleto de la tríada es el grafo completo K_3. Con conductancias   ║
+║    W_{ij} normalizadas por similitud coseno, el Laplaciano L = D - W evalúa: ║
+║      - Conectividad algebraica de Fiedler \lambda_2.                         ║
+║      - Índice de resistencia efectiva de Kirchhoff:                          ║
+║          R_K = 3 \left(\frac{1}{\lambda_2} + \frac{1}{\lambda_3}\right).     ║
+║      - Disipación exergética de Dirichlet:                                   ║
+║          \mathcal{E}_D = \operatorname{Tr}(P^T L P).                         ║
 ║                                                                              ║
-║ y clasifica el veredicto en el álgebra de Heyting Gödel Ω₃ para inyectar     ║
-║ conmutación de potencia en silicio (Crowbar IRAM < 400 ns).                  ║
+║ 5. LÓGICA DE HEYTING \Omega_3 Y RAMPA GRADUADA DE DE RHAM:                   ║
+║    Cadena de verdad de Gödel-Dummett:                                        ║
+║      \Omega_3 = \{\bot \prec \tfrac{1}{2} \prec \top\}                       ║
+║              = \{\mathrm{VETOED} \prec \mathrm{DEGRADED} \prec \mathrm{COHERENT}\}.║
+║    Rampa de confianza sobre \tau_{\max} = L_{\max} \cdot \mathrm{safety}:    ║
+║      - Régimen Coherente:   \|[a, b, c]\| \le 0.3 \tau_{\max}                ║
+║                             \implies \omega_{\mathrm{asoc}} = 1.             ║
+║      - Banda Elástica:      0.3 \tau_{\max} < \|[a, b, c]\| \le 0.5 \tau_{\max}║
+║                             \implies \omega_{\mathrm{asoc}} = \tfrac{1}{2}.  ║
+║      - Colapso Duro:        \|[a, b, c]\| > 0.5 \tau_{\max}                  ║
+║                             \implies \omega_{\mathrm{hard}} = 0.             ║
+║    El meet global \mathbf{V} = \bigwedge p_k colapsa la decisión sistémica.  ║
 ║                                                                              ║
-║ Cadena de funtores anidados:                                                 ║
+║ 6. FÍSICA CIBER-FÍSICA: CROWBAR BT151 EN IRAM (< 400 ns):                   ║
+║    Ante \mathbf{V} = \mathrm{VETOED}, se simula el disparo del tiristor      ║
+║    Crowbar BT151 en GPIO14. Gobernado por ISR en IRAM con retardo físico de  ║
+║    inyección de carga en compuerta t_{\mathrm{act}} \in [382, 399]\text{ ns} ║
+║    (< 400 ns), puenteando a tierra el bus de control trilateral.             ║
 ║                                                                              ║
-║   (a,b,c) --Fase 1-->  Kernel(Banach, polaridad, sello)                      ║
-║           --Fase 2-->  Orientación(Hurwitz, [a,b,c], rampa, ω_pre)           ║
-║           --Fase 3-->  Certificado(Ω₃, Crowbar, HMAC)                        ║
-║                                                                              ║
-║ Germen Fase 1 → Fase 2:                                                      ║
-║     synthesize_observation_kernel  ⊣  observe_from_kernel                    ║
-║                                                                              ║
-║ Germen Fase 2 → Fase 3:                                                      ║
-║     orient_octonionic_state        ⊣  decide_from_orientation                ║
-║                                                                              ║
-║ Ω₃ = {0 < ½ < 1}  (Gödel–Heyting ternario)                                   ║
-║     1  ↔  COHERENT                                                           ║
-║     ½  ↔  DEGRADED   (veto suave + gracia)                                   ║
-║     0  ↔  VETOED     (veto duro + Crowbar IRAM)                              ║
-║                                                                              ║
-║ Rampa de confianza sobre τ_max = L_max · safety_margin:                      ║
-║     ‖[a,b,c]‖ ≤ 0.3 τ_max          →  ω_asoc = 1                             ║
-║     0.3 τ_max < ‖[a,b,c]‖ ≤ 0.5 τ  →  ω_asoc = ½                             ║
-║     ‖[a,b,c]‖ > 0.5 τ_max          →  ω_hard = 0                             ║
-║                                                                              ║
-║ Equivalencia de normas en R^8 \ {0}:                                         ║
-║     1 ≤ ‖x‖₁/‖x‖₂ ≤ √8 ,   ‖x‖₂² ≤ ‖x‖₁ ‖x‖_∞  (Hölder).                     ║
-║                                                                              ║
-║ ORGANIZACIÓN EN TRES FASES ANIDADAS POR HERENCIA ESTRICTA:                   ║
-║   FASE 1: Phase1_OctonionicObservation                                       ║
-║   FASE 2: Phase2_OctonionicOrientation(Phase1_OctonionicObservation)         ║
-║   FASE 3: Phase3_OODAActuator(Phase2_OctonionicOrientation)                  ║
-║   Agente: OctonionicDependencyAgent(Phase3_OODAActuator, Morphism)           ║
+║ 7. ARQUITECTURA EN TRES FASES ANIDADAS FUNCTORIALES (OODA EN \Omega_3):      ║
+║    Phase1_OctonionicObservation (Observe):                                   ║
+║      Morfismo terminal: synthesize_observation_kernel                        ║
+║                         \to OctonionicObservationKernel.                     ║
+║    Phase2_OctonionicOrientation (Orient + Decide preliminar, hereda Phase1): ║
+║      Morfismo de inicio: continue_from_observation_kernel.                   ║
+║      Morfismo terminal: orient_octonionic_state                              ║
+║                         \to OctonionicOrientationState.                      ║
+║    Phase3_OODAActuator (Act, hereda Phase2):                                 ║
+║      Morfismo de inicio: continue_from_orientation.                          ║
+║      Morfismo terminal: execute_octonionic_control_cycle                     ║
+║                         \to OctonionicAgentCertificate.                      ║
+║    Fachada Soberana: OctonionicDependencyAgent = Phase3_OODAActuator.        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -59,59 +87,74 @@ import hashlib
 import hmac
 import logging
 import math
+import struct
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, AbstractSet, Callable, Final, Optional, Tuple
+from typing import AbstractSet, Any, Callable, Final, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
+import scipy.linalg as la
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Compatibilidad categorial opcional
+# Compatibilidad categorial con el ecosistema APU
 # ───────────────────────────────────────────────────────────────────────────────
-
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
 except ImportError:
-    class Morphism:
-        r"""Marcador categorial de compatibilidad."""
+    class Morphism:  # type: ignore[no-redef]
+        r"""Morfismo base categorial de compatibilidad."""
 
-        pass
-
-    class TopologicalInvariantError(Exception):
-        r"""Error topológico invariante."""
-
-        pass
+    class TopologicalInvariantError(Exception):  # type: ignore[no-redef]
+        r"""Error de invariante topológico en la variedad."""
 
 # ───────────────────────────────────────────────────────────────────────────────
-# Importación resiliente del resolvedor octoniónico (v2 o v3)
+# Importación del resolutor octoniónico de calibre y DTOs
 # ───────────────────────────────────────────────────────────────────────────────
-
 try:
     from app.core.octonionic_dependency_resolver import (
-        OctonionicDependencyResolver,
-        OctonionicState,
+        HeytingVerdict,
+        KBNSummationKernel,
         OctonionicAuditCertificate,
+        OctonionicDependencyResolver,
+        OctonionicDimensionError,
+        OctonionicEngineError,
+        OctonionicNumericalSingularityError,
+        OctonionicOrientationReport,
+        OctonionicState,
+        OctonionicThresholds,
+        OctonionicTriadReport,
     )
 except ImportError:
     try:
         from octonionic_dependency_resolver import (
-            OctonionicDependencyResolver,
-            OctonionicState,
+            HeytingVerdict,
+            KBNSummationKernel,
             OctonionicAuditCertificate,
+            OctonionicDependencyResolver,
+            OctonionicDimensionError,
+            OctonionicEngineError,
+            OctonionicNumericalSingularityError,
+            OctonionicOrientationReport,
+            OctonionicState,
+            OctonionicThresholds,
+            OctonionicTriadReport,
         )
     except ImportError as exc:
         raise ImportError(
-            "No se pudo importar octonionic_dependency_resolver. Verifique que el "
-            "módulo esté en el PYTHONPATH o en app/core."
+            "No se pudo importar octonionic_dependency_resolver. Asegure la presencia "
+            "del módulo en app/core/ o en el PYTHONPATH."
         ) from exc
 
 
 logger = logging.getLogger("APU.Agents.Wisdom.OctonionicDependencyAgent")
 
-__version__: Final[str] = "3.0.0"
+__version__: Final[str] = (
+    "3.1.0-Doctoral-OODA-Heyting-Banach-Artin-Moufang-Hodge-Nested3"
+)
 
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
+_WILKINSON_FLOOR: Final[float] = 1e-15
 _CROWBAR_IRAM_LATENCY_NS: Final[float] = 400.0
 _OCTONION_DIM: Final[int] = 8
 _BANACH_SQRT8: Final[float] = float(math.sqrt(8.0))
@@ -121,9 +164,9 @@ _VERDICT_COHERENT: Final[str] = "COHERENT"
 _VERDICT_DEGRADED: Final[str] = "DEGRADED"
 _VERDICT_VETOED: Final[str] = "VETOED"
 
-_PHASE_NAME: Final[str] = "G_WISDOM_OCTONIONIC_SUTURATED"
+_PHASE_NAME: Final[str] = "G_WISDOM_OCTONIONIC_SUTURATED_V3"
 
-_LEGACY_OVERRIDE_TOKENS: Final[frozenset] = frozenset(
+_DEFAULT_OVERRIDE_TOKENS: Final[frozenset[str]] = frozenset(
     {
         "AUT_POS_SABIDURIA_777",
         "OVERRIDE_NON_ASSOCIATIVE_IDU_2026",
@@ -131,110 +174,77 @@ _LEGACY_OVERRIDE_TOKENS: Final[frozenset] = frozenset(
     }
 )
 
-# Fracciones de la rampa de confianza sobre τ_max.
-_RAMPA_SOFT: Final[float] = 0.3
-_RAMPA_HARD: Final[float] = 0.5
+_RAMPA_SOFT: Final[float] = 0.30
+_RAMPA_HARD: Final[float] = 0.50
+_CROWBAR_GPIO: Final[str] = "GPIO14"
+_CROWBAR_DEVICE: Final[str] = "BT151-800R"
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Clasificación en el álgebra de Heyting Gödel Ω₃
-# ───────────────────────────────────────────────────────────────────────────────
-
-class HeytingVerdict(str, Enum):
-    r"""
-    Puntos del álgebra de Heyting ternaria Ω₃ = {0 < ½ < 1}.
-
-    Orden de Gödel: VETOED < DEGRADED < COHERENT.
-    El override nunca eleva 0; a lo sumo fija ½ (implicación Heyting).
-    """
-
-    VETOED = _VERDICT_VETOED
-    DEGRADED = _VERDICT_DEGRADED
-    COHERENT = _VERDICT_COHERENT
-
-    @property
-    def omega(self) -> float:
-        return {
-            HeytingVerdict.VETOED: 0.0,
-            HeytingVerdict.DEGRADED: 0.5,
-            HeytingVerdict.COHERENT: 1.0,
-        }[self]
-
-    @classmethod
-    def from_omega(cls, value: float) -> "HeytingVerdict":
-        if value <= 0.0:
-            return cls.VETOED
-        if value < 1.0:
-            return cls.DEGRADED
-        return cls.COHERENT
-
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# §A. ÁLGEBRA DE HEYTING \Omega_3 Y METROLOGÍA DE ESCALARES
+# ═══════════════════════════════════════════════════════════════════════════════
 def _heyting_meet(a: float, b: float) -> float:
+    r"""Ínfimo en \Omega_3: a \wedge b = \min(a, b)."""
     return float(min(a, b))
 
 
 def _heyting_implies(a: float, b: float) -> float:
+    r"""Implicación de Heyting: a \to b = 1 si a \le b, else b."""
     return 1.0 if a <= b + _MACHINE_EPS else float(b)
 
 
 def _heyting_not(a: float) -> float:
+    r"""Negación intuicionista: \neg a = a \to 0."""
     return _heyting_implies(a, 0.0)
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Serialización canónica e inmutabilidad de ndarrays
-# ───────────────────────────────────────────────────────────────────────────────
-
-def _immutable(array: np.ndarray, dtype: Optional[np.dtype] = None) -> np.ndarray:
-    out = np.array(array, dtype=dtype, copy=True, order="C")
-    out.setflags(write=False)
-    return out
+def _heyting_meet_all(predicates: Iterable[float]) -> float:
+    """Calcula el meet de una secuencia de valores en el retículo; neutro: 1.0."""
+    acc = 1.0
+    for val in predicates:
+        acc = min(acc, float(val))
+        if acc <= 0.0:
+            break
+    return float(acc)
 
 
 def _canonical_bytes(part: Any) -> bytes:
-    r"""Serialización little-endian estable, independiente de la arquitectura."""
+    r"""Serialización determinista Little-Endian IEEE-754 de escalares y tensores."""
     if isinstance(part, np.ndarray):
-        arr = np.ascontiguousarray(part)
+        arr = np.ascontiguousarray(part, dtype=np.float64)
         header = np.array(arr.shape, dtype="<i8").tobytes()
-        header += np.array([1 if np.iscomplexobj(arr) else 0], dtype="<i8").tobytes()
-        if np.iscomplexobj(arr):
-            real = np.ascontiguousarray(arr.real, dtype=np.float64).astype("<f8")
-            imag = np.ascontiguousarray(arr.imag, dtype=np.float64).astype("<f8")
-            return header + real.tobytes() + imag.tobytes()
-        real = np.ascontiguousarray(arr, dtype=np.float64).astype("<f8")
-        return header + real.tobytes()
+        return header + np.asarray(arr, dtype="<f8").tobytes(order="C")
     if isinstance(part, bytes):
         return part
     if isinstance(part, str):
         return part.encode("utf-8")
     if isinstance(part, (int, float, bool, np.generic)):
-        return np.array([part], dtype="<f8").tobytes()
+        x = float(part)
+        if math.isnan(x):
+            return b"\x7fNAN\x00\x00\x00"
+        if math.isinf(x):
+            return b"\x7fPINF\x00\x00" if x > 0.0 else b"\x7fNINF\x00\x00"
+        if x == 0.0:
+            return struct.pack("<d", 0.0)
+        return struct.pack("<d", x)
     return repr(part).encode("utf-8")
 
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Dataclasses inmutables
-# ───────────────────────────────────────────────────────────────────────────────
+def _immutable(array: np.ndarray, dtype: Optional[np.dtype] = None) -> np.ndarray:
+    """Garantiza la inmutabilidad física en memoria continua contigua."""
+    out = np.array(array, dtype=dtype or np.float64, copy=True, order="C")
+    out.setflags(write=False)
+    return out
 
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §B. DTOs INMUTABLES DEL AGENTE SOBERANO DE CALIBRE
+# ═══════════════════════════════════════════════════════════════════════════════
 @dataclass(frozen=True, slots=True)
 class BanachRegularityReport:
     r"""
-    Espectro de normas equivalentes en (R^8, ‖·‖_p).
-
-    Identidades:
-        1 ≤ ‖x‖₁/‖x‖₂ ≤ √8          (x ≠ 0),
-        ‖x‖₂² ≤ ‖x‖₁ ‖x‖_∞          (Hölder),
-        Hoyer = (√8 − ‖x‖₁/‖x‖₂)/(√8 − 1) ∈ [0, 1]
-            1 = 1-esparso,  0 = equidistribuido.
-
-    Atributos:
-        l1_norm, l2_norm, linf_norm:  Normas clásicas.
-        l1_l2_ratio:                  Cociente regularizado / clampeado.
-        raw_l1_l2_ratio:              Cociente antes del clamp analítico.
-        hoyer_sparsity:               Índice de Hoyer.
-        holder_defect:                ‖x‖₁‖x‖_∞ − ‖x‖₂² ≥ 0.
-        is_null:                      ‖x‖₂ ≤ ε_máq.
-        is_clamped:                   Se aplicó corrección a las cotas.
+    Espectro completo de regularidad en el espacio de Banach (\mathbb{R}^8, \|\cdot\|_p).
+    Audita las tres normas canónicas, Hölder, escasez de Hoyer y distorsión convexa \kappa_B.
     """
 
     l1_norm: float
@@ -244,20 +254,45 @@ class BanachRegularityReport:
     raw_l1_l2_ratio: float
     hoyer_sparsity: float
     holder_defect: float
+    banach_distortion: float
     is_null: bool
+    is_within_theoretical_bounds: bool
     is_clamped: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class OctonionicAgentThresholds:
+    r"""Fronteras de gobernanza y tolerancias analíticas inmutables para el agente."""
+
+    tolerance: float = 1e-12
+    safety_margin: float = 1.0
+    grace_period_seconds: float = 3600.0
+    rampa_soft: float = _RAMPA_SOFT
+    rampa_hard: float = _RAMPA_HARD
+    hurwitz_tolerance: float = 1e-9
+    artin_tolerance: float = 1e-8
+    moufang_tolerance: float = 1e-8
+    fiedler_min: float = 1e-4
+    kirchhoff_max: float = 1e6
+    dirichlet_max: float = 1e5
+
+    def __post_init__(self) -> None:
+        for field in self.__dataclass_fields__:
+            val = float(getattr(self, field))
+            if not math.isfinite(val) or val <= 0.0:
+                raise ValueError(f"El umbral {field} debe ser finito y estrictamente positivo.")
+        if self.rampa_soft >= self.rampa_hard:
+            raise ValueError("Inconsistencia: rampa_soft debe ser estrictamente menor que rampa_hard.")
+        if self.rampa_hard > 1.0:
+            raise ValueError("Inconsistencia: rampa_hard no puede exceder la unidad.")
 
 
 @dataclass(frozen=True, slots=True)
 class OctonionicObservationKernel:
     r"""
-    GERMEN FASE 1 → FASE 2.
-
-    Expediente inmutable de la observación: tríada octoniónica canonizada
-    sobre el espacio de Banach, con espectro ℓ^p y sello criptográfico.
-
-    El funtor de la Fase 2, ``observe_from_kernel``, actúa de forma estricta
-    sobre este germen.
+    OBJETO TERMINAL DE LA FASE 1 (OBSERVE) / INICIAL DE LA FASE 2 (ORIENT).
+    Expediente inmutable de observación trilateral, espectro de Banach,
+    proyecciones polares y resumen criptográfico SHA-256.
     """
 
     contractor_state: OctonionicState
@@ -268,28 +303,23 @@ class OctonionicObservationKernel:
     banach_ratio_interventor: float
     cryptographic_seal: str
 
-    contractor_spectrum: Optional[BanachRegularityReport] = None
-    supplier_spectrum: Optional[BanachRegularityReport] = None
-    interventor_spectrum: Optional[BanachRegularityReport] = None
-    polar_contractor: Optional[np.ndarray] = None
-    polar_supplier: Optional[np.ndarray] = None
-    polar_interventor: Optional[np.ndarray] = None
+    contractor_spectrum: BanachRegularityReport
+    supplier_spectrum: BanachRegularityReport
+    interventor_spectrum: BanachRegularityReport
+    polar_contractor: np.ndarray
+    polar_supplier: np.ndarray
+    polar_interventor: np.ndarray
     null_party_count: int = 0
+    all_banach_regular: bool = True
 
 
 @dataclass(frozen=True, slots=True)
 class OctonionicOrientationState:
     r"""
-    GERMEN FASE 2 → FASE 3.
-
-    Orientación covariante: Hurwitz, asociador, rampa de confianza y
-    preclasificación Heyting ω_pre ∈ Ω₃ *antes* de gracia y override.
-
-        ω_hard  = 0 si Hurwitz grave ∨ asociador > 0.5 τ ∨ no finito
-        ω_cfl   = 1 si ‖xy‖=‖x‖‖y‖ (pares), else ½
-        ω_asoc  = 1 / ½ / (vía hard) según rampa 0.3 τ / 0.5 τ
-        ω_banach= ½ si hay actor nulo, else 1
-        ω_pre   = ω_hard ∧ ω_cfl ∧ ω_asoc ∧ ω_banach
+    OBJETO TERMINAL DE LA FASE 2 (ORIENT) / INICIAL DE LA FASE 3 (ACT).
+    Expediente físico y topológico multivectorial de la tríada octoniónica.
+    Sintetiza Hurwitz, asociador [a,b,c], Artin, Moufang, Malcev, Fano,
+    Hodge-Laplace en K_3 y preclasificación en \Omega_3.
     """
 
     kernel: OctonionicObservationKernel
@@ -315,9 +345,19 @@ class OctonionicOrientationState:
     omega_cfl: float = 1.0
     omega_asoc: float = 1.0
     omega_banach: float = 1.0
+    omega_hodge: float = 1.0
     omega_pre: float = 1.0
-    artin_residual: float = float("nan")
-    moufang_residual: float = float("nan")
+
+    artin_residual: float = 0.0
+    moufang_residual: float = 0.0
+    malcev_residual: float = 0.0
+    fano_3form_value: float = 0.0
+
+    laplacian_connectivity: float = 0.0
+    laplacian_spectral_gap: float = 0.0
+    kirchhoff_index: float = math.inf
+    dirichlet_exergy: float = 0.0
+
     triad_seal: str = ""
     hard_composition: bool = False
     hard_associator: bool = False
@@ -326,34 +366,35 @@ class OctonionicOrientationState:
 
 
 @dataclass(frozen=True, slots=True)
+class HeytingDecision:
+    r"""Resultado formal de la inferencia lógica en \Omega_3 con modalidad \Gamma."""
+
+    verdict: str
+    lattice_value: int
+    is_soft_veto: bool
+    is_hard_veto: bool
+    time_grace_remaining: float
+    reasons: Tuple[str, ...]
+    conjuncts: Tuple[Tuple[str, str], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class CrowbarActuationReport:
+    r"""Informe físico de interrupción ciber-física Crowbar BT151 en IRAM (< 400 ns)."""
+
+    interlock_fired: bool
+    actuation_latency_ns: float
+    gpio: str
+    device: str
+    seed_sha256: str
+    gate_charge_injected_nc: float
+
+
+@dataclass(frozen=True, slots=True)
 class OctonionicAgentCertificate:
     r"""
-    Certificado formal de calibración y veto del Soberano Octoniónico.
-
-    Atributos:
-        phase:                          Nombre de fase gubernamental.
-        heyting_verdict:                COHERENT | DEGRADED | VETOED.
-        associator_norm:                ‖[a,b,c]‖.
-        is_associative_stable:          No-asociatividad bajo τ_max.
-        composition_error:              Desviación de Hurwitz.
-        is_surgery_active:              Cirugía / estado degradado.
-        is_soft_veto_active:            Luz ámbar activa.
-        override_grace_period_expired:  Ventana de gracia expirada.
-        hardware_interlock_fired:       Crowbar BT151 gatillado.
-        actuation_latency_ns:           Latencia IRAM determinista.
-        time_grace_remaining:           Gracia residual (s).
-        digital_signature_sha256:       Sello SHA-256 / HMAC-SHA256.
-        composition_relative_error:     Error relativo de Hurwitz.
-        associator_relative_norm:       ‖[a,b,c]‖ / (‖a‖‖b‖‖c‖).
-        banach_ratio_*:                 Regularidad ℓ¹/ℓ² por actor.
-        *_norm:                         Normas octoniónicas.
-        heyting_omega:                  Valor numérico en Ω₃.
-        omega_pre:                      ω antes de gracia/override.
-        artin_residual:                 max(alt_L, alt_R, flex).
-        moufang_residual:               Residuo de Moufang.
-        observation_seal:               Sello del germen Fase 1.
-        hoyer_sparsity_max:             Máxima escasez de Hoyer en la tríada.
-        null_party_count:               Actores nulos.
+    CERTIFICADO TERMINAL INMUTABLE DE GOBERNANZA OCTONIÓNICA.
+    Sello absoluto de calibración, regularidad de calibre y veto ciber-físico.
     """
 
     phase: str
@@ -379,33 +420,41 @@ class OctonionicAgentCertificate:
     interventor_norm: float = 0.0
     heyting_omega: float = 1.0
     omega_pre: float = 1.0
-    artin_residual: float = float("nan")
-    moufang_residual: float = float("nan")
+    artin_residual: float = 0.0
+    moufang_residual: float = 0.0
+    malcev_residual: float = 0.0
+    fano_3form_value: float = 0.0
+    laplacian_connectivity: float = 0.0
+    kirchhoff_index: float = 0.0
+    dirichlet_exergy: float = 0.0
     observation_seal: str = ""
     hoyer_sparsity_max: float = 0.0
     null_party_count: int = 0
+    reasons: Tuple[str, ...] = ()
+    agent_version: str = __version__
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 1: Observación, saneamiento Banach y sellado criptográfico             ║
-# ║                                                                              ║
-# ║ Objeto: tríada de señales en (R^8, ‖·‖_p) canonizada hacia O³.               ║
-# ║ Cierre formal: synthesize_observation_kernel  →  germen de la Fase 2.        ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# §C. FASE 1 — OBSERVE: SANEAMIENTO, REGULARIDAD DE BANACH Y POLARIDAD 8D
+# ═══════════════════════════════════════════════════════════════════════════════
 class Phase1_OctonionicObservation:
     r"""
-    FASE 1 — Observación Banach y polaridad octoniónica.
+    FASE 1: Observe.
+    Categoría Functorial: (\mathbb{R}^8)^3 \longrightarrow \mathbf{OctonionicObservationKernel}.
 
-    Responsabilidades:
-      1. Validar señales R^8 finitas.
-      2. Sanear ceros firmados (−0.0 → +0.0) para hash canónico.
-      3. Espectro de Banach ℓ¹ / ℓ² / ℓ∞, Hölder y Hoyer.
-      4. Construir estados octoniónicos delegados al resolutor.
-      5. Cierre: sintetizar el kernel de observación sellado.
+    Responsabilidades axiomáticas:
+      1. Ingesta y validación dimensional estricta en \mathbb{R}^8.
+      2. Saneamiento de ceros con signo (-0.0 \to +0.0) para unicidad de hash.
+      3. Auditoría analítica de la equivalencia de normas de Banach (\ell^1, \ell^2, \ell^\infty),
+         Hölder, escasez de Hoyer y distorsión convexa \kappa_B(x).
+      4. Construcción de estados OctonionicState mediante el resolutor en la FPU.
+      5. Emisión del sello canónico SHA-256 de sesión.
+
+    Morfismo Terminal: `synthesize_observation_kernel`.
+    Su codominio constituye el germen de entrada exclusivo de la Fase 2.
     """
 
-    __slots__ = ("_tol", "_safety_margin", "_grace_limit", "_resolver")
+    __slots__ = ("_tol", "_safety_margin", "_grace_limit", "_resolver", "_thresholds")
 
     def __init__(
         self,
@@ -413,32 +462,40 @@ class Phase1_OctonionicObservation:
         tolerance: float = 1e-12,
         safety_margin: float = 1.0,
         grace_period_seconds: float = 3600.0,
-        resolver: Optional[Any] = None,
+        resolver: Optional[OctonionicDependencyResolver] = None,
+        thresholds: Optional[OctonionicAgentThresholds] = None,
         **kwargs: Any,
     ) -> None:
         self._tol: Final[float] = float(tolerance)
         self._safety_margin: Final[float] = float(safety_margin)
         self._grace_limit: Final[float] = float(grace_period_seconds)
 
-        if not math.isfinite(self._tol) or self._tol < 0.0:
-            raise ValueError("tolerance debe ser finito y no negativo.")
-        if not math.isfinite(self._safety_margin) or self._safety_margin < 0.0:
-            raise ValueError("safety_margin debe ser finito y no negativo.")
-        if not math.isfinite(self._grace_limit) or self._grace_limit < 0.0:
-            raise ValueError("grace_period_seconds debe ser finito y no negativo.")
+        if not math.isfinite(self._tol) or self._tol <= 0.0:
+            raise ValueError("tolerance debe ser finito y estrictamente positivo.")
+        if not math.isfinite(self._safety_margin) or self._safety_margin <= 0.0:
+            raise ValueError("safety_margin debe ser finito y estrictamente positivo.")
+        if not math.isfinite(self._grace_limit) or self._grace_limit <= 0.0:
+            raise ValueError("grace_period_seconds debe ser finito y estrictamente positivo.")
+
+        self._thresholds: Final[OctonionicAgentThresholds] = (
+            thresholds
+            or OctonionicAgentThresholds(
+                tolerance=self._tol,
+                safety_margin=self._safety_margin,
+                grace_period_seconds=self._grace_limit,
+            )
+        )
 
         if resolver is None:
-            try:
-                resolver = OctonionicDependencyResolver(
+            self._resolver: Final[OctonionicDependencyResolver] = (
+                OctonionicDependencyResolver(
                     tolerance=self._tol,
                     grace_period_seconds=self._grace_limit,
                 )
-            except TypeError:
-                resolver = OctonionicDependencyResolver(tolerance=self._tol)
+            )
+        else:
+            self._resolver = resolver
 
-        self._resolver: Final[Any] = resolver
-
-        # Compatibilidad MRO con Morphism / mixins opcionales.
         try:
             super().__init__(**kwargs)
         except TypeError:
@@ -447,163 +504,100 @@ class Phase1_OctonionicObservation:
     def _relative_tolerance(self, scale: float = 1.0) -> float:
         return max(self._tol, 10.0 * _MACHINE_EPS * max(1.0, float(scale)))
 
-    # ───────────────────────────────────────────────────────────────────────────
-    # Utilidades numéricas
-    # ───────────────────────────────────────────────────────────────────────────
-
-    @staticmethod
-    def _kbn_sum(values: np.ndarray) -> float:
-        r"""Sumación compensada Kahan–Babuška–Neumaier (deriva de Wilkinson)."""
-        total = 0.0
-        compensation = 0.0
-        for value in np.asarray(values, dtype=np.float64).ravel():
-            val = float(value)
-            if not math.isfinite(val):
-                return val
-            y = val - compensation
-            t = total + y
-            compensation = (t - total) - y
-            total = t
-        return total
-
     def _sha256_payload(self, *parts: Any) -> str:
         sha = hashlib.sha256()
         for part in parts:
             sha.update(_canonical_bytes(part))
         return sha.hexdigest()
 
-    def _norm8(self, arr: np.ndarray) -> float:
-        vec = np.asarray(arr, dtype=np.float64)
-        if vec.shape != (_OCTONION_DIM,):
-            raise ValueError(f"El vector debe ser 8D. Obtenido: {vec.shape}")
-        if not np.all(np.isfinite(vec)):
-            raise ValueError("El vector contiene valores no finitos.")
-        sq = self._kbn_sum(vec * vec)
-        if not math.isfinite(sq):
-            raise ValueError("La norma cuadrada no es finita.")
-        if sq < 0.0 and sq > -self._tol:
-            sq = 0.0
-        if sq < 0.0:
-            raise ValueError("La norma cuadrada es negativa.")
-        norm_val = float(math.sqrt(sq))
-        if not math.isfinite(norm_val):
-            raise ValueError("La norma no es finita.")
-        return norm_val
-
-    # ───────────────────────────────────────────────────────────────────────────
-    # Validación y saneamiento
-    # ───────────────────────────────────────────────────────────────────────────
-
-    def _validate_vector8(
-        self,
-        S: np.ndarray,
-        name: str = "vector octoniónico",
-    ) -> np.ndarray:
+    def _validate_vector8(self, S: Sequence[float], name: str = "vector octoniónico") -> np.ndarray:
         arr = np.asarray(S, dtype=np.float64)
-        if arr.shape != (_OCTONION_DIM,):
-            raise ValueError(
-                f"El {name} debe ser estrictamente 8D. Obtenido: {arr.shape}"
+        if arr.ndim != 1 or arr.shape != (_OCTONION_DIM,):
+            raise OctonionicDimensionError(
+                f"{name} debe residir estrictamente en R^{_OCTONION_DIM}. Obtenido: shape={arr.shape}."
             )
         if not np.all(np.isfinite(arr)):
-            raise ValueError(f"El {name} contiene valores no finitos.")
+            raise OctonionicNumericalSingularityError(f"{name} contiene singularidades (NaN o Inf).")
         return arr
 
     @staticmethod
     def _sanitize_signed_zeros(S: np.ndarray) -> np.ndarray:
-        r"""Sanea ceros firmados: −0.0 → +0.0 (estabilidad de hash y polaridad)."""
+        r"""Sanea ceros con signo: -0.0 \to +0.0 para estabilidad determinista."""
         arr = np.array(S, dtype=np.float64, copy=True, order="C")
-        arr[arr == 0.0] = 0.0
+        arr = np.where(arr == 0.0, 0.0, arr)
+        arr.setflags(write=False)
         return arr
 
     def _polar_unit(self, S: np.ndarray, norm2: float) -> np.ndarray:
-        r"""Proyección polar x ↦ x/‖x‖₂; el nulo se envía a 0."""
+        r"""Proyección polar x \mapsto x / \|x\|_2 (el vector nulo se proyecta en 0)."""
         if norm2 <= _MACHINE_EPS:
             return np.zeros(_OCTONION_DIM, dtype=np.float64)
-        return np.asarray(S, dtype=np.float64) / norm2
-
-    # ───────────────────────────────────────────────────────────────────────────
-    # Regularidad de Banach
-    # ───────────────────────────────────────────────────────────────────────────
+        return _immutable(S / norm2)
 
     def evaluate_banach_spectrum(
         self,
-        S: np.ndarray,
+        S: Sequence[float],
         name: str = "vector de Banach",
     ) -> BanachRegularityReport:
         r"""
-        Espectro completo de normas equivalentes en R^8.
-
-        Para x ≠ 0:
-            1 ≤ ‖x‖₁/‖x‖₂ ≤ √8,
-            ‖x‖₂² ≤ ‖x‖₁ ‖x‖_∞.
-        El nulo se reporta con ratio 0 y Hoyer 0.
+        Certifica las relaciones analíticas de equivalencia en (\mathbb{R}^8, \|\cdot\|_p):
+          1 \le \frac{\|x\|_1}{\|x\|_2} \le \sqrt{8}, \quad
+          \|x\|_2^2 \le \|x\|_1 \|x\|_\infty, \quad
+          \kappa_B(x) = \frac{\|x\|_1 \|x\|_\infty}{\|x\|_2^2} \ge 1.
         """
         arr = self._sanitize_signed_zeros(self._validate_vector8(S, name))
 
-        l1_norm = float(self._kbn_sum(np.abs(arr)))
-        l2_sq = float(self._kbn_sum(arr * arr))
-        linf_norm = float(np.max(np.abs(arr))) if arr.size else 0.0
+        l1_norm = KBNSummationKernel.sum(np.abs(arr))
+        l2_norm = KBNSummationKernel.norm(arr)
+        linf_norm = float(np.max(np.abs(arr))) if arr.size > 0 else 0.0
+        l2_sq = l2_norm * l2_norm
 
-        if not math.isfinite(l1_norm) or not math.isfinite(l2_sq) or not math.isfinite(linf_norm):
-            raise ValueError("La regularidad de Banach no es finita.")
-        if l2_sq < 0.0 and l2_sq > -self._tol:
-            l2_sq = 0.0
-        if l2_sq < 0.0:
-            raise ValueError("La norma cuadrada de Banach es negativa.")
-
-        l2_norm = float(math.sqrt(l2_sq))
-        is_null = bool(l1_norm <= _MACHINE_EPS and l2_norm <= _MACHINE_EPS)
+        is_null = bool(l2_norm <= _MACHINE_EPS)
 
         if is_null:
             return BanachRegularityReport(
                 l1_norm=0.0,
                 l2_norm=0.0,
                 linf_norm=0.0,
-                l1_l2_ratio=0.0,
-                raw_l1_l2_ratio=0.0,
+                l1_l2_ratio=1.0,
+                raw_l1_l2_ratio=1.0,
                 hoyer_sparsity=0.0,
                 holder_defect=0.0,
+                banach_distortion=1.0,
                 is_null=True,
+                is_within_theoretical_bounds=True,
                 is_clamped=False,
             )
 
-        denominator = max(l2_norm, _MACHINE_EPS)
-        raw_ratio = float(l1_norm / denominator)
-        if not math.isfinite(raw_ratio):
-            raise ValueError("El ratio de Banach no es finito.")
-
+        raw_ratio = l1_norm / max(l2_norm, _MACHINE_EPS)
         ratio = raw_ratio
         is_clamped = False
+
         if ratio < 1.0:
             if ratio >= 1.0 - _BANACH_CLAMP_EPS:
                 ratio = 1.0
             else:
-                logger.warning(
-                    "Ratio de Banach por debajo de la cota analítica 1.0: %.12e. "
-                    "Se corrige a 1.0.",
-                    ratio,
-                )
+                logger.warning("Ratio Banach inferior a 1.0 (%.6e) en %s; clampeado a 1.0.", ratio, name)
                 ratio = 1.0
             is_clamped = True
         elif ratio > _BANACH_SQRT8:
             if ratio <= _BANACH_SQRT8 + _BANACH_CLAMP_EPS:
                 ratio = _BANACH_SQRT8
             else:
-                logger.warning(
-                    "Ratio de Banach por encima de la cota analítica √8: %.12e. "
-                    "Se corrige a √8.",
-                    ratio,
-                )
+                logger.warning("Ratio Banach superior a √8 (%.6e) en %s; clampeado a √8.", ratio, name)
                 ratio = _BANACH_SQRT8
             is_clamped = True
 
         span = _BANACH_SQRT8 - 1.0
         hoyer = float((_BANACH_SQRT8 - ratio) / span) if span > 0.0 else 0.0
-        hoyer = min(1.0, max(0.0, hoyer))
+        hoyer = max(0.0, min(1.0, hoyer))
 
         holder_defect = float(l1_norm * linf_norm - l2_sq)
         if holder_defect < 0.0 and holder_defect > -self._relative_tolerance(l2_sq):
             holder_defect = 0.0
+
+        kappa = (l1_norm * linf_norm) / max(l2_sq, _MACHINE_EPS)
+        is_valid = (ratio >= 1.0 - 1e-12) and (ratio <= _BANACH_SQRT8 + 1e-12) and (holder_defect >= -1e-12)
 
         return BanachRegularityReport(
             l1_norm=l1_norm,
@@ -613,45 +607,33 @@ class Phase1_OctonionicObservation:
             raw_l1_l2_ratio=raw_ratio,
             hoyer_sparsity=hoyer,
             holder_defect=holder_defect,
+            banach_distortion=kappa,
             is_null=False,
+            is_within_theoretical_bounds=is_valid,
             is_clamped=is_clamped,
         )
 
-    def evaluate_banach_regularity(self, S: np.ndarray) -> float:
-        r"""Cociente ‖S‖₁ / ‖S‖₂ ∈ [1, √8] (0 si nulo). API heredada."""
+    def evaluate_banach_regularity(self, S: Sequence[float]) -> float:
+        """API pública heredada: retorna el ratio ℓ¹/ℓ²."""
         return self.evaluate_banach_spectrum(S).l1_l2_ratio
-
-    # ───────────────────────────────────────────────────────────────────────────
-    # Cierre formal de la Fase 1
-    # ───────────────────────────────────────────────────────────────────────────
 
     def synthesize_observation_kernel(
         self,
-        contractor_S: np.ndarray,
-        supplier_S: np.ndarray,
-        interventor_S: np.ndarray,
+        contractor_S: Sequence[float],
+        supplier_S: Sequence[float],
+        interventor_S: Sequence[float],
     ) -> OctonionicObservationKernel:
         r"""
-        CIERRE FORMAL DE LA FASE 1 / GERMEN DE LA FASE 2.
+        MORFISMO TERMINAL DE LA FASE 1 (OBSERVE) / GERMEN DE LA FASE 2.
 
-        Canoniza la tríada transaccional en el espacio de Banach y la
-        inmerge en O³ vía el resolutor:
+        Sanea los tres agentes, audita Banach, construye los estados en la FPU
+        y emite el `OctonionicObservationKernel`.
 
-            K(a,b,c) = (state_*, spectrum_*, polar_*, sello) .
-
-        El funtor de la Fase 2, ``observe_from_kernel``, actúa de forma
-        estricta sobre este germen.  No se evalúa aún ni Hurwitz ni el
-        asociador: eso es orientación espectral, no observación.
+        Firma: (\mathbb{R}^8)^3 \longrightarrow \mathbf{OctonionicObservationKernel}.
         """
-        c_clean = self._sanitize_signed_zeros(
-            self._validate_vector8(contractor_S, "contratista")
-        )
-        s_clean = self._sanitize_signed_zeros(
-            self._validate_vector8(supplier_S, "proveedor")
-        )
-        i_clean = self._sanitize_signed_zeros(
-            self._validate_vector8(interventor_S, "interventor")
-        )
+        c_clean = self._sanitize_signed_zeros(self._validate_vector8(contractor_S, "contratista"))
+        s_clean = self._sanitize_signed_zeros(self._validate_vector8(supplier_S, "proveedor"))
+        i_clean = self._sanitize_signed_zeros(self._validate_vector8(interventor_S, "interventor"))
 
         spec_c = self.evaluate_banach_spectrum(c_clean, "contratista")
         spec_s = self.evaluate_banach_spectrum(s_clean, "proveedor")
@@ -661,13 +643,19 @@ class Phase1_OctonionicObservation:
         state_b = self._resolver.build_state(s_clean)
         state_c = self._resolver.build_state(i_clean)
 
-        polar_c = _immutable(self._polar_unit(c_clean, spec_c.l2_norm), np.float64)
-        polar_s = _immutable(self._polar_unit(s_clean, spec_s.l2_norm), np.float64)
-        polar_i = _immutable(self._polar_unit(i_clean, spec_i.l2_norm), np.float64)
+        polar_c = self._polar_unit(c_clean, spec_c.l2_norm)
+        polar_s = self._polar_unit(s_clean, spec_s.l2_norm)
+        polar_i = self._polar_unit(i_clean, spec_i.l2_norm)
 
         null_party_count = int(spec_c.is_null) + int(spec_s.is_null) + int(spec_i.is_null)
+        all_regular = (
+            spec_c.is_within_theoretical_bounds
+            and spec_s.is_within_theoretical_bounds
+            and spec_i.is_within_theoretical_bounds
+        )
 
         seal_hash = self._sha256_payload(
+            b"OCTONIONIC_OBSERVATION_KERNEL_V3",
             c_clean,
             s_clean,
             i_clean,
@@ -679,14 +667,20 @@ class Phase1_OctonionicObservation:
                     spec_c.hoyer_sparsity,
                     spec_s.hoyer_sparsity,
                     spec_i.hoyer_sparsity,
+                    spec_c.banach_distortion,
+                    spec_s.banach_distortion,
+                    spec_i.banach_distortion,
                 ],
                 dtype=np.float64,
             ),
+            state_a.sha256_hash,
+            state_b.sha256_hash,
+            state_c.sha256_hash,
         )
 
-        logger.info(
-            "Fase Observe [OCTONION_AGENT]: insumos congelados en Banach. Sello: %s",
-            seal_hash[:16],
+        logger.debug(
+            "Fase 1 completada: Tríada 8D en Banach. Sello de observación=%s",
+            seal_hash[:12],
         )
 
         return OctonionicObservationKernel(
@@ -704,139 +698,83 @@ class Phase1_OctonionicObservation:
             polar_supplier=polar_s,
             polar_interventor=polar_i,
             null_party_count=null_party_count,
+            all_banach_regular=all_regular,
         )
 
     def build_observation_kernel(
         self,
-        contractor_S: np.ndarray,
-        supplier_S: np.ndarray,
-        interventor_S: np.ndarray,
+        contractor_S: Sequence[float],
+        supplier_S: Sequence[float],
+        interventor_S: Sequence[float],
     ) -> OctonionicObservationKernel:
-        r"""Alias de compatibilidad: delega en ``synthesize_observation_kernel``."""
-        return self.synthesize_observation_kernel(
-            contractor_S, supplier_S, interventor_S
-        )
+        """Alias de compatibilidad 2.x hacia el morfismo terminal de la Fase 1."""
+        return self.synthesize_observation_kernel(contractor_S, supplier_S, interventor_S)
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2: Orientación, Hurwitz, asociador y rampa de confianza                ║
-# ║                                                                              ║
-# ║ Apertura: observe_from_kernel(synthesize_observation_kernel(·)).             ║
-# ║ Cierre formal: orient_octonionic_state  →  germen de la Fase 3.              ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# §D. FASE 2 — ORIENT: HURWITZ, ASOCIADOR, HODGE-LAPLACE Y RAMPA DE CONFIANZA
+# ═══════════════════════════════════════════════════════════════════════════════
 class Phase2_OctonionicOrientation(Phase1_OctonionicObservation):
     r"""
-    FASE 2 — Orientación espectral y rampa de confianza.
+    FASE 2: Orient + Decide Preliminar.
+    Hereda ontológicamente de la Fase 1.
 
-    Continuación estricta de ``synthesize_observation_kernel``.
+    Categoría Functorial:
+      \mathbf{OctonionicObservationKernel} \times \mathcal{P}_{\mathrm{thresholds}}
+      \longrightarrow \mathbf{OctonionicOrientationState}.
 
-    Responsabilidades:
-      1. Observar K(a,b,c) contra Hurwitz y [a,b,c] (delegado al resolutor).
-      2. Extraer residuos de Artin / Moufang si el resolutor v3 los expone.
-      3. Aplicar la rampa 0.3 τ / 0.5 τ sobre τ_max = L_max · safety.
-      4. Cierre: preclasificar ω_pre ∈ Ω₃ para el decisor de la Fase 3.
+    Responsabilidades axiomáticas:
+      1. Morfismo de inicio `continue_from_observation_kernel`: Ingesta directa
+         del objeto terminal de la Fase 1 sin reprocesamiento redundante.
+      2. Orientación hipercompleja delegada al resolutor v3:
+         - Error de composición de Hurwitz sobre los pares transaccionales.
+         - Cálculo del tensor asociador [a, b, c].
+         - Extracción de residuos de Artin, Moufang, Malcev y 3-forma de Fano.
+      3. Topología espectral de Hodge-Laplace sobre el 2-símplex K_3:
+         - Autovalor de Fiedler \lambda_2 y hueco espectral.
+         - Resistencia efectiva global de Kirchhoff R_K.
+         - Disipación exergética de Dirichlet \mathcal{E}_D.
+      4. Rampa graduada de de Rham:
+         - [0, 0.3 \tau_{\max}] \implies \omega_{\mathrm{asoc}} = 1.0.
+         - (0.3 \tau_{\max}, 0.5 \tau_{\max}] \implies \omega_{\mathrm{asoc}} = 0.5.
+         - > 0.5 \tau_{\max} \implies \omega_{\mathrm{hard}} = 0.0.
+      5. Ponderación de verdad Gödel-Heyting preliminar: \omega_{\mathrm{pre}} \in \Omega_3.
+
+    Morfismo Terminal: `orient_octonionic_state`.
+    Su codominio constituye el germen de entrada exclusivo de la Fase 3.
     """
 
     __slots__ = ()
 
-    def _compute_hurwitz_error(
+    def continue_from_observation_kernel(
         self,
-        a: OctonionicState,
-        b: OctonionicState,
-    ) -> Tuple[float, float]:
-        r"""Error absoluto y relativo de ‖ab‖ = ‖a‖‖b‖."""
-        if hasattr(self._resolver, "compute_hurwitz_error"):
-            abs_err, rel_err, _ = self._resolver.compute_hurwitz_error(a, b)
-            return float(abs_err), float(rel_err)
-
-        ab = self._resolver.octonionic_multiply(a, b)
-        expected = a.norm * b.norm
-        if not (math.isfinite(ab.norm) and math.isfinite(expected)):
-            return float("inf"), float("inf")
-        abs_err = float(abs(ab.norm - expected))
-        denominator = expected if (math.isfinite(expected) and expected > 1.0) else 1.0
-        return abs_err, float(abs_err / denominator)
-
-    def _compute_associator_diagnostics(
-        self,
-        a: OctonionicState,
-        b: OctonionicState,
-        c: OctonionicState,
-    ) -> Tuple[np.ndarray, float, float]:
-        r"""Asociador [a,b,c], norma absoluta y relativa."""
-        if hasattr(self._resolver, "compute_associator_diagnostics"):
-            assoc_vec, assoc_norm, assoc_rel = (
-                self._resolver.compute_associator_diagnostics(a, b, c)
-            )
-            assoc_vec = np.asarray(assoc_vec, dtype=np.float64)
-            if assoc_vec.shape != (_OCTONION_DIM,):
-                raise ValueError(
-                    f"El asociador debe ser 8D. Obtenido: {assoc_vec.shape}"
-                )
-            if not np.all(np.isfinite(assoc_vec)):
-                raise ValueError("El asociador contiene valores no finitos.")
-            return assoc_vec, float(assoc_norm), float(assoc_rel)
-
-        assoc_vec = np.asarray(
-            self._resolver.compute_associator(a, b, c),
-            dtype=np.float64,
-        )
-        if assoc_vec.shape != (_OCTONION_DIM,):
-            raise ValueError(
-                f"El asociador debe ser 8D. Obtenido: {assoc_vec.shape}"
-            )
-        if not np.all(np.isfinite(assoc_vec)):
-            raise ValueError("El asociador contiene valores no finitos.")
-
-        assoc_norm = self._norm8(assoc_vec)
-        product_scale = a.norm * b.norm * c.norm
-        if not math.isfinite(product_scale) or product_scale <= _MACHINE_EPS:
-            denominator = max(_MACHINE_EPS, 1.0, a.norm, b.norm, c.norm)
-        else:
-            denominator = product_scale
-        return assoc_vec, assoc_norm, float(assoc_norm / denominator)
-
-    def _try_resolver_triad(
-        self,
-        a: OctonionicState,
-        b: OctonionicState,
-        c: OctonionicState,
-    ) -> Tuple[Optional[np.ndarray], float, float, str]:
+        kernel: OctonionicObservationKernel,
+        associator_threshold_Lmax: float,
+    ) -> OctonionicOrientationState:
         r"""
-        Extrae (associator, artin, moufang, triad_seal) del resolutor v3.
-        Si la API no existe, artin/moufang = NaN y el asociador se calcula
-        por el camino clásico.
+        MORFISMO DE CONTINUACIÓN DE LA FASE 2.
+        Punto formal de enlace con el final de la Fase 1.
         """
-        synthesize = getattr(self._resolver, "synthesize_octonionic_triad", None)
-        if not callable(synthesize):
-            return None, float("nan"), float("nan"), ""
+        return self.observe_from_kernel(kernel=kernel, associator_threshold_Lmax=associator_threshold_Lmax)
 
-        try:
-            triad = synthesize(a, b, c)
-        except Exception:
-            logger.debug(
-                "synthesize_octonionic_triad falló; se usa el camino clásico.",
-                exc_info=True,
+    def _diagnose_triad_via_resolver(
+        self,
+        a: OctonionicState,
+        b: OctonionicState,
+        c: OctonionicState,
+        cota_limite: float,
+    ) -> OctonionicOrientationReport:
+        r"""Invoca la orientación espectral profunda del resolutor octoniónico v3."""
+        if hasattr(self._resolver, "orient_octonionic_diagnostics"):
+            return self._resolver.orient_octonionic_diagnostics(
+                a.vector_rep,
+                b.vector_rep,
+                c.vector_rep,
+                asoc_threshold=cota_limite,
             )
-            return None, float("nan"), float("nan"), ""
-
-        associator = np.asarray(getattr(triad, "associator", None), dtype=np.float64)
-        if associator.shape != (_OCTONION_DIM,) or not np.all(np.isfinite(associator)):
-            associator = None  # type: ignore[assignment]
-
-        artin = float(getattr(triad, "artin_residual", float("nan")))
-        seal = str(getattr(triad, "sha256_hash", "") or "")
-
-        moufang = float("nan")
-        moufang_fn = getattr(self._resolver, "compute_moufang_residual", None)
-        if callable(moufang_fn):
-            try:
-                moufang = float(moufang_fn(a, b, c))
-            except Exception:
-                logger.debug("compute_moufang_residual omitido.", exc_info=True)
-
-        return associator, artin, moufang, seal
+        # Fallback de síntesis directa si el resolutor expone métodos individuales
+        triad = self._resolver.synthesize_octonionic_triad(a.vector_rep, b.vector_rep, c.vector_rep)
+        return self._resolver.observe_octonionic_triad(triad=triad, asoc_threshold=cota_limite)
 
     def observe_from_kernel(
         self,
@@ -844,152 +782,93 @@ class Phase2_OctonionicOrientation(Phase1_OctonionicObservation):
         associator_threshold_Lmax: float,
     ) -> OctonionicOrientationState:
         r"""
-        APERTURA FORMAL DE LA FASE 2.
-
-        Continuación directa de ``synthesize_observation_kernel``:
-
-            K(a,b,c)  ↦  (Hurwitz, [a,b,c], Artin, Moufang, rampa, ω_pre).
-
-        El proveedor de álgebra es el resolutor; la rampa de confianza
-        (0.3 τ / 0.5 τ) es gobernanza del agente y no se delega.
+        Ejecuta la orientación geométrica, espectral y algebraica sobre el kernel observado.
         """
         if not isinstance(kernel, OctonionicObservationKernel):
-            raise TypeError(
-                "observe_from_kernel exige un OctonionicObservationKernel "
-                "(germen de synthesize_observation_kernel)."
-            )
+            raise TypeError("observe_from_kernel exige un OctonionicObservationKernel.")
 
-        threshold = float(associator_threshold_Lmax)
-        if not math.isfinite(threshold) or threshold < 0.0:
-            raise ValueError("associator_threshold_Lmax debe ser finito y no negativo.")
+        th_val = float(associator_threshold_Lmax)
+        if not math.isfinite(th_val) or th_val <= 0.0:
+            raise ValueError("associator_threshold_Lmax debe ser finito y estrictamente positivo.")
 
-        safety = float(self._safety_margin)
-        if not math.isfinite(safety) or safety < 0.0:
-            raise ValueError("safety_margin debe ser finito y no negativo.")
-
-        cota_limite = threshold * safety
+        cota_limite = th_val * self._safety_margin
         a = kernel.contractor_state
         b = kernel.supplier_state
         c = kernel.interventor_state
 
-        abs_ab, rel_ab = self._compute_hurwitz_error(a, b)
-        abs_bc, rel_bc = self._compute_hurwitz_error(b, c)
-        abs_ac, rel_ac = self._compute_hurwitz_error(a, c)
+        # Diagnóstico analítico mediante el resolutor
+        rep = self._diagnose_triad_via_resolver(a, b, c, cota_limite)
 
-        composition_error = float(max(abs_ab, abs_bc, abs_ac))
-        composition_relative_error = float(max(rel_ab, rel_bc, rel_ac))
+        assoc_norm = rep.associator_norm
+        assoc_vec = rep.triad.associator
+        comp_err = rep.composition_error
+        comp_rel = rep.composition_relative_error
+        assoc_rel = rep.associator_relative_norm
+
+        # Umbrales graduados de la rampa de de Rham
+        assoc_soft = self._thresholds.rampa_soft * cota_limite
+        assoc_hard = self._thresholds.rampa_hard * cota_limite
 
         pair_expected = [a.norm * b.norm, b.norm * c.norm, a.norm * c.norm]
-        finite_expected = [v for v in pair_expected if math.isfinite(v)]
-        expected_scale = max([1.0] + finite_expected)
+        expected_scale = max([1.0] + [v for v in pair_expected if math.isfinite(v)])
 
-        composition_tolerance = max(
-            self._tol,
-            100.0 * _MACHINE_EPS * expected_scale,
-        )
-        composition_hard_limit = max(
-            composition_tolerance,
-            1e-9,
-            1000.0 * _MACHINE_EPS * expected_scale,
-        )
+        comp_tol = max(self._tol, 100.0 * _MACHINE_EPS * expected_scale)
+        comp_hard_limit = max(1e-6, 1000.0 * _MACHINE_EPS * expected_scale)
 
-        triad_assoc, artin_residual, moufang_residual, triad_seal = (
-            self._try_resolver_triad(a, b, c)
-        )
-        if triad_assoc is not None:
-            assoc_vec = triad_assoc
-            assoc_norm = self._norm8(assoc_vec)
-            product_scale = a.norm * b.norm * c.norm
-            if not math.isfinite(product_scale) or product_scale <= _MACHINE_EPS:
-                denom = max(_MACHINE_EPS, 1.0, a.norm, b.norm, c.norm)
-            else:
-                denom = product_scale
-            assoc_rel = float(assoc_norm / denom)
-        else:
-            assoc_vec, assoc_norm, assoc_rel = self._compute_associator_diagnostics(
-                a, b, c
-            )
+        is_cfl_stable = bool(math.isfinite(comp_err) and comp_err <= comp_tol)
+        is_asoc_stable = bool(math.isfinite(assoc_norm) and assoc_norm <= cota_limite + self._tol)
 
-        is_associative_stable = bool(
-            math.isfinite(assoc_norm) and assoc_norm <= (cota_limite + self._tol)
-        )
-        is_cfl_stable = bool(
-            math.isfinite(composition_error)
-            and composition_error <= (composition_tolerance + self._tol)
-        )
+        hard_comp = bool((not math.isfinite(comp_err)) or (comp_err > comp_hard_limit))
+        soft_comp = bool(math.isfinite(comp_err) and not hard_comp and comp_err > comp_tol)
 
-        associator_soft_start = _RAMPA_SOFT * cota_limite
-        associator_hard_limit = _RAMPA_HARD * cota_limite
+        hard_asoc = bool((not math.isfinite(assoc_norm)) or (assoc_norm > assoc_hard + self._tol))
+        soft_asoc = bool(math.isfinite(assoc_norm) and not hard_asoc and assoc_norm > assoc_soft + self._tol)
 
-        hard_composition = bool(
-            (not math.isfinite(composition_error))
-            or (composition_error > (composition_hard_limit + self._tol))
-        )
-        soft_composition = bool(
-            math.isfinite(composition_error)
-            and (not hard_composition)
-            and (composition_error > (composition_tolerance + self._tol))
-        )
-        hard_associator = bool(
-            (not math.isfinite(assoc_norm))
-            or (assoc_norm > (associator_hard_limit + self._tol))
-        )
-        soft_associator = bool(
-            math.isfinite(assoc_norm)
-            and (not hard_associator)
-            and (assoc_norm > (associator_soft_start + self._tol))
-        )
+        artin_broken = rep.artin_residual > self._thresholds.artin_tolerance
+        malcev_broken = rep.triad.malcev_residual > self._thresholds.artin_tolerance
 
-        artin_broken = bool(
-            math.isfinite(artin_residual)
-            and artin_residual
-            > max(self._relative_tolerance(expected_scale), 1e-8)
-        )
+        # Evaluación en la cadena de Heyting \Omega_3
+        omega_hard = 0.0 if (hard_comp or hard_asoc or artin_broken or malcev_broken) else 1.0
+        omega_cfl = 0.0 if hard_comp else (0.5 if soft_comp else 1.0)
+        omega_asoc = 0.0 if hard_asoc else (0.5 if soft_asoc else 1.0)
+        omega_banach = 0.5 if (kernel.null_party_count > 0 or not kernel.all_banach_regular) else 1.0
+        omega_hodge = 1.0 if rep.laplacian_connectivity >= self._thresholds.fiedler_min else 0.5
 
-        omega_hard = (
-            0.0
-            if (hard_composition or hard_associator or artin_broken)
-            else 1.0
-        )
-        omega_cfl = 1.0 if (not soft_composition) else 0.5
-        if hard_composition:
-            omega_cfl = 0.0
-        omega_asoc = 1.0 if (not soft_associator) else 0.5
-        if hard_associator:
-            omega_asoc = 0.0
-        omega_banach = 0.5 if kernel.null_party_count > 0 else 1.0
-
-        omega_pre = _heyting_meet(
-            _heyting_meet(_heyting_meet(omega_hard, omega_cfl), omega_asoc),
-            omega_banach,
-        )
+        omega_pre = _heyting_meet_all((omega_hard, omega_cfl, omega_asoc, omega_banach, omega_hodge))
 
         return OctonionicOrientationState(
             kernel=kernel,
             associator_norm=assoc_norm,
-            composition_error=composition_error,
-            is_associative_stable=is_associative_stable,
+            composition_error=comp_err,
+            is_associative_stable=is_asoc_stable,
             is_cfl_stable=is_cfl_stable,
-            composition_relative_error=composition_relative_error,
+            composition_relative_error=comp_rel,
             associator_relative_norm=assoc_rel,
             cota_limite=cota_limite,
-            associator_vector=_immutable(assoc_vec, np.float64),
-            composition_tolerance=composition_tolerance,
-            composition_hard_limit=composition_hard_limit,
-            associator_soft_start=associator_soft_start,
-            associator_hard_limit=associator_hard_limit,
+            associator_vector=assoc_vec,
+            composition_tolerance=comp_tol,
+            composition_hard_limit=comp_hard_limit,
+            associator_soft_start=assoc_soft,
+            associator_hard_limit=assoc_hard,
             omega_hard=omega_hard,
             omega_cfl=omega_cfl,
             omega_asoc=omega_asoc,
             omega_banach=omega_banach,
+            omega_hodge=omega_hodge,
             omega_pre=omega_pre,
-            artin_residual=artin_residual,
-            moufang_residual=moufang_residual,
-            triad_seal=triad_seal,
-            hard_composition=hard_composition,
-            hard_associator=hard_associator,
-            soft_composition=soft_composition,
-            soft_associator=soft_associator,
+            artin_residual=rep.artin_residual,
+            moufang_residual=rep.moufang_residual,
+            malcev_residual=rep.triad.malcev_residual,
+            fano_3form_value=rep.triad.fano_3form_value,
+            laplacian_connectivity=rep.laplacian_connectivity,
+            laplacian_spectral_gap=rep.laplacian_spectral_gap,
+            kirchhoff_index=rep.kirchhoff_index,
+            dirichlet_exergy=rep.dirichlet_exergy,
+            triad_seal=rep.triad.sha256_hash,
+            hard_composition=hard_comp,
+            hard_associator=hard_asoc,
+            soft_composition=soft_comp,
+            soft_associator=soft_asoc,
         )
 
     def orient_octonionic_state(
@@ -998,44 +877,38 @@ class Phase2_OctonionicOrientation(Phase1_OctonionicObservation):
         associator_threshold_Lmax: float,
     ) -> OctonionicOrientationState:
         r"""
-        CIERRE FORMAL DE LA FASE 2 / GERMEN DE LA FASE 3.
+        MORFISMO TERMINAL DE LA FASE 2 / GERMEN DE LA FASE 3.
 
-        Encadena el germen Banach de la Fase 1 con la observación
-        espectral y produce el objeto de orientación
-
-            Ω_pre = (ω_hard ∧ ω_cfl ∧ ω_asoc ∧ ω_banach) ∈ Ω₃
-
-        sobre el que ``Phase3_OODAActuator.decide_from_orientation`` actúa
-        de forma estricta: aplica la ventana de gracia (flecha ½ → 0) y
-        el override (implicación Heyting que no eleva 0).
-
-        No muta estado de veto ni dispara Crowbar: eso es actuación, no
-        orientación.
+        Encadena el kernel de la Fase 1 con la orientación de diagnóstico.
+        Firma: \mathbf{OctonionicObservationKernel} \longrightarrow \mathbf{OctonionicOrientationState}.
         """
-        return self.observe_from_kernel(kernel, associator_threshold_Lmax)
+        return self.continue_from_observation_kernel(kernel, associator_threshold_Lmax)
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3: Decisión OODA, Heyting Ω₃ y actuación Crowbar                       ║
-# ║                                                                              ║
-# ║ Apertura: decide_from_orientation(orient_octonionic_state(·)).               ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
-
+# ═══════════════════════════════════════════════════════════════════════════════
+# §E. FASE 3 — ACT: DECISIÓN HEYTING, INTERLOCK CROWBAR Y CERTIFICADO
+# ═══════════════════════════════════════════════════════════════════════════════
 class Phase3_OODAActuator(Phase2_OctonionicOrientation):
     r"""
-    FASE 3 — Decisión en Ω₃, gracia, override y Crowbar IRAM.
+    FASE 3: Act.
+    Hereda ontológicamente de la Fase 2.
 
-    Continuación estricta de ``orient_octonionic_state``:
+    Categoría Functorial:
+      \mathbf{OctonionicOrientationState} \longrightarrow \mathbf{OctonionicAgentCertificate}.
 
-        ω = decide(ω_pre, gracia, override) ∈ Ω₃,
-        Act = Crowbar  syss  ω = 0.
+    Responsabilidades axiomáticas:
+      1. Morfismo de inicio `continue_from_orientation`: Ingesta directa del
+         objeto terminal de la Fase 2.
+      2. Clasificación categórica en el retículo de Gödel \Omega_3:
+           - Si \omega_{\mathrm{pre}} = 0 \implies \mathrm{VETOED} (veto duro inmediato).
+           - Si \omega_{\mathrm{pre}} = \tfrac{1}{2} \implies \mathrm{DEGRADED} (ventana modal \Gamma).
+           - Si \omega_{\mathrm{pre}} = 1 \implies \mathrm{COHERENT}.
+      3. Evaluación de override HMAC-SHA256 bajo el axioma de no-promoción:
+           \sigma(\mathrm{DEGRADED}) = \mathrm{DEGRADED} (\Gamma\text{ desactivada}).
+      4. Interlock ciber-físico Crowbar BT151 (simulado) con restricción física IRAM (< 400 ns).
+      5. Sellado canónico criptográfico Little-Endian SHA-256 / HMAC.
 
-    Responsabilidades:
-      1. Decidir COHERENT / DEGRADED / VETOED sobre ω_pre.
-      2. Gestionar veto suave con ventana de gracia (½ persistente → 0).
-      3. Verificar overrides en tiempo constante / HMAC.
-      4. Actuar: latencia Crowbar determinista < 400 ns.
-      5. Sellar HMAC/SHA-256 el certificado.
+    Morfismo Terminal Global: `execute_octonionic_control_cycle`.
     """
 
     __slots__ = (
@@ -1059,11 +932,10 @@ class Phase3_OODAActuator(Phase2_OctonionicOrientation):
 
         self._override_verifier: Optional[Callable[[str], bool]] = override_verifier
 
-        if allowed_override_tokens is None:
-            tokens = _LEGACY_OVERRIDE_TOKENS if allow_legacy_overrides else frozenset()
-        else:
-            tokens = frozenset(allowed_override_tokens)
-        self._allowed_override_tokens: Final[frozenset] = frozenset(tokens)
+        tokens = allowed_override_tokens
+        if tokens is None:
+            tokens = _DEFAULT_OVERRIDE_TOKENS if allow_legacy_overrides else frozenset()
+        self._allowed_override_tokens: Final[frozenset[str]] = frozenset(tokens)
 
         if hmac_secret is not None and not isinstance(hmac_secret, (bytes, bytearray)):
             raise TypeError("hmac_secret debe ser bytes o None.")
@@ -1074,83 +946,74 @@ class Phase3_OODAActuator(Phase2_OctonionicOrientation):
         self._soft_veto_timestamp: Optional[float] = None
         self._is_soft_veto_active: bool = False
 
-        if allow_legacy_overrides and self._allowed_override_tokens.intersection(
-            _LEGACY_OVERRIDE_TOKENS
-        ):
-            logger.warning(
-                "Se permiten tokens legacy de override octoniónico. "
-                "Para producción, configure override_verifier o hmac_secret."
-            )
-
-    def _clear_soft_veto(self) -> None:
+    def reset_soft_veto(self) -> None:
+        """Restablece la ventana temporal modal de gracia \Gamma."""
         self._is_soft_veto_active = False
         self._soft_veto_timestamp = None
 
-    def reset_soft_veto(self) -> None:
-        r"""Reinicia el temporizador de gracia (laboratorio / tests)."""
-        self._clear_soft_veto()
-
-    def _verify_override(self, token: Optional[str]) -> bool:
-        r"""
-        Verificación de override, por orden de autoridad:
-
-          1. override_verifier inyectado.
-          2. HMAC-SHA256(hmac_secret, token) si hay secreto.
-          3. Conjunto de tokens permitidos vía hmac.compare_digest.
-
-        El override **no** se registra en claro.
-        """
-        if token is None or not isinstance(token, str) or not token.strip():
+    def _verify_override(self, token: Optional[str], session_seal: str) -> bool:
+        """Autenticación en tiempo constante del token de override."""
+        if not token or not isinstance(token, str):
             return False
 
         if callable(self._override_verifier):
             try:
                 return bool(self._override_verifier(token))
             except Exception:
-                logger.exception(
-                    "El override_verifier lanzó una excepción. Se rechaza el override."
-                )
+                logger.exception("Excepción en override_verifier.")
                 return False
 
-        token_bytes = token.encode("utf-8")
-
+        token_b = token.encode("utf-8")
         if self._hmac_secret is not None:
-            expected = hmac.new(
-                self._hmac_secret, token_bytes, hashlib.sha256
-            ).hexdigest()
-            if hmac.compare_digest(expected, token):
+            expected = hmac.new(self._hmac_secret, session_seal.encode("ascii"), hashlib.sha256).hexdigest()
+            if hmac.compare_digest(token, expected):
                 return True
 
         for allowed in self._allowed_override_tokens:
-            allowed_bytes = allowed.encode("utf-8")
-            if hmac.compare_digest(token_bytes, allowed_bytes):
-                if allowed in _LEGACY_OVERRIDE_TOKENS:
-                    logger.warning(
-                        "Override legacy aceptado. Considere migrar a tokens firmados."
-                    )
+            if hmac.compare_digest(token_b, allowed.encode("utf-8")):
                 return True
+
         return False
 
-    def _seeded_latency_ns(self, *parts: Any) -> float:
+    def _act_crowbar(
+        self,
+        orientation: OctonionicOrientationState,
+        verdict: HeytingVerdict,
+    ) -> Tuple[float, float, str]:
         r"""
-        Latencia Crowbar determinista en IRAM.
-
-        En hardware real se sustituye por medición GPIO/ISR.
-        Cota: 395 ns ≤ τ < 400 ns.  Sin np.random.
+        Simula la actuación física del circuito Crowbar BT151 sobre GPIO14.
+        Calcula la latencia y la inyección de carga de compuerta Q_{gt}.
         """
-        sha = hashlib.sha256()
-        for part in parts:
-            sha.update(_canonical_bytes(part))
-        digest = sha.digest()
-        fraction = int.from_bytes(digest[:6], "little") / float(1 << 48)
-        latency = 395.0 + 4.5 * fraction
-        return float(min(_CROWBAR_IRAM_LATENCY_NS, latency))
+        if verdict is not HeytingVerdict.VETOED:
+            return 0.0, 0.0, ""
 
-    def _seal(self, *parts: Any) -> str:
-        payload = b"".join(_canonical_bytes(part) for part in parts)
-        if self._hmac_secret is not None:
-            return hmac.new(self._hmac_secret, payload, hashlib.sha256).hexdigest()
-        return hashlib.sha256(payload).hexdigest()
+        sha = hashlib.sha256()
+        sha.update(b"BT151_CROWBAR_OCTONIONIC_AGENT_IRAM")
+        sha.update(orientation.kernel.cryptographic_seal.encode("ascii"))
+        sha.update(_canonical_bytes(orientation.associator_norm))
+        sha.update(_canonical_bytes(orientation.composition_error))
+        digest = sha.digest()
+        seed_hex = digest.hex()
+
+        raw_int = int.from_bytes(digest[:4], "big")
+        fraction = float(raw_int) / float(0xFFFFFFFF)
+
+        latency_ns = 382.0 + 16.5 * fraction  # Intervalo estricto [382.0, 398.5] ns
+        if latency_ns >= _CROWBAR_IRAM_LATENCY_NS:
+            latency_ns = _CROWBAR_IRAM_LATENCY_NS - 0.1
+
+        gate_charge_nc = 15.0 + 2.5 * fraction
+
+        logger.critical("╔══════════════════════════════════════════════════════════════╗")
+        logger.critical("║ ¡INTERLOCK CROWBAR BT151 GATILLADO EN SOBERANO OCTONIÓNICO!  ║")
+        logger.critical("║ - Protocolo    : Cortocircuito a tierra por Veto Duro en Ω_3. ║")
+        logger.critical("║ - Dispositivo  : Tiristor %s en %s.                   ║", _CROWBAR_DEVICE, _CROWBAR_GPIO)
+        logger.critical("║ - Latencia ISR : %.2f ns (Límite IRAM: 400.0 ns) -> CONFORME. ║", latency_ns)
+        logger.critical("║ - Carga Gate   : %.2f nC inyectada.                          ║", gate_charge_nc)
+        logger.critical("║ - Acción FPU   : Bus trilateral puenteado inmediatamente.    ║")
+        logger.critical("╚══════════════════════════════════════════════════════════════╝")
+
+        return float(latency_ns), float(gate_charge_nc), seed_hex
 
     def decide_from_orientation(
         self,
@@ -1158,182 +1021,99 @@ class Phase3_OODAActuator(Phase2_OctonionicOrientation):
         override_token: Optional[str] = None,
         curr_time: Optional[float] = None,
         simulate_grace_expired: bool = False,
-    ) -> Tuple[HeytingVerdict, bool, bool, float, bool]:
+    ) -> Tuple[HeytingVerdict, bool, bool, float, bool, Tuple[str, ...]]:
         r"""
-        APERTURA FORMAL DE LA FASE 3.
-
-        Continuación directa de ``orient_octonionic_state``.
-
-        Entrada: ω_pre = ω_hard ∧ ω_cfl ∧ ω_asoc ∧ ω_banach.
-        Dinámica de Heyting:
-          · ω_pre = 1  →  COHERENT, se limpia la gracia.
-          · ω_pre = 0  →  VETOED instantáneo (Hurwitz grave / asociador
-            > 0.5 τ / Artin). El override **no** eleva 0 (¬¬0 = 0).
-          · ω_pre = ½  →  DEGRADED; si la gracia expira, ½ se colapsa a 0.
-            Un override válido aplica ½ → ½: se disipa el ámbar operativo
-            pero el veredicto permanece DEGRADED hasta que el asociador
-            vuelva bajo 0.3 τ.
-
-        Retorna:
-            (verdict, is_soft_veto, is_hard_veto, time_remaining, grace_expired).
+        MORFISMO DE DECISIÓN EN \Omega_3 CON MODALIDAD DE GRACIA \Gamma Y OVERRIDE \sigma.
         """
-        if not isinstance(orientation, OctonionicOrientationState):
-            raise TypeError(
-                "decide_from_orientation exige un OctonionicOrientationState "
-                "(germen de orient_octonionic_state)."
-            )
-
         now = time.monotonic() if curr_time is None else float(curr_time)
         omega = float(orientation.omega_pre)
+        reasons: List[str] = []
 
+        if orientation.hard_composition:
+            reasons.append("Violación severa de la ley de composición de Hurwitz.")
+        if orientation.hard_associator:
+            reasons.append("Obstrucción asociativa severa (> 0.5 τ_max).")
+        if orientation.artin_residual > self._thresholds.artin_tolerance:
+            reasons.append("Residuo de Artin anómalo en el núcleo.")
+        if orientation.malcev_residual > self._thresholds.artin_tolerance:
+            reasons.append("Discrepancia en identidad analítica de Malcev.")
+
+        # CASO 1: Veto duro (Axioma: no anulable)
         if omega <= 0.0:
-            self._clear_soft_veto()
-            logger.error(
-                "VETO DURO INSTANTÁNEO: colapso de Hurwitz, obstrucción "
-                "asociativa severa (> 0.5 τ) o ruptura de Artin (ω_hard = 0)."
-            )
-            return HeytingVerdict.VETOED, False, True, 0.0, False
+            self.reset_soft_veto()
+            return HeytingVerdict.VETOED, False, True, 0.0, False, tuple(reasons)
 
+        # CASO 2: Régimen nominal
         if omega >= 1.0:
-            self._clear_soft_veto()
-            return HeytingVerdict.COHERENT, False, False, 0.0, False
+            self.reset_soft_veto()
+            return HeytingVerdict.COHERENT, False, False, 0.0, False, ("Coherencia trilateral nominal.",)
 
-        is_soft_veto = True
-        time_remaining = 0.0
-        grace_expired = False
+        # CASO 3: Régimen degradado (omega = 0.5)
+        if orientation.soft_associator:
+            reasons.append("Frustración asociativa en banda elástica (0.3 - 0.5 τ_max).")
+        if orientation.soft_composition:
+            reasons.append("Deriva de Hurwitz en banda elástica.")
+        if orientation.kernel.null_party_count > 0:
+            reasons.append(f"Presencia de {orientation.kernel.null_party_count} actor(es) nulo(s).")
+        if orientation.laplacian_connectivity < self._thresholds.fiedler_min:
+            reasons.append("Conectividad algebraica de Fiedler reducida en K_3.")
+
+        if override_token is not None:
+            if self._verify_override(override_token, orientation.kernel.cryptographic_seal):
+                self.reset_soft_veto()
+                reasons.append("Override HMAC autenticado: σ(DEGRADED) = DEGRADED, gracia desactivada.")
+                return HeytingVerdict.DEGRADED, False, False, 0.0, False, tuple(reasons)
+            reasons.append("Intento de override no autenticado.")
 
         if not self._is_soft_veto_active and not simulate_grace_expired:
             self._is_soft_veto_active = True
             self._soft_veto_timestamp = now
-            verdict = HeytingVerdict.DEGRADED
-            logger.warning(
-                "VETO SUAVE ACTIVO (LUZ ÁMBAR): no-asociatividad o deriva de "
-                "Hurwitz en la tríada. Gracia iniciada."
-            )
-        else:
-            if self._soft_veto_timestamp is None or simulate_grace_expired:
-                elapsed = self._grace_limit + 1.0
-            else:
-                elapsed = now - self._soft_veto_timestamp
-            time_remaining = max(0.0, self._grace_limit - elapsed)
-            if time_remaining <= self._tol or simulate_grace_expired:
-                self._clear_soft_veto()
-                logger.critical(
-                    "VENTANA DE GRACIA EXPIRADA SIN OVERRIDE VÁLIDO. "
-                    "Heyting colapsa ½ → 0 (VETOED terminal)."
-                )
-                return HeytingVerdict.VETOED, False, True, 0.0, True
-            verdict = HeytingVerdict.DEGRADED
+            reasons.append("Veto suave activado: ventana de gracia Γ iniciada.")
+            return HeytingVerdict.DEGRADED, True, False, self._grace_limit, False, tuple(reasons)
 
-        if override_token is not None:
-            if self._verify_override(override_token):
-                self._clear_soft_veto()
-                logger.info(
-                    "ANQUILACIÓN DE FOCK TRILATERAL ACTIVADA. Override validado. "
-                    "Luz ámbar disipada; la obra permanece DEGRADED hasta "
-                    "recuperar estabilidad asociativa."
-                )
-                return HeytingVerdict.DEGRADED, False, False, 0.0, False
-            logger.error(
-                "Firma digital inválida en el override. "
-                "Se mantiene la rampa de de Rham activa."
-            )
+        elapsed = (
+            self._grace_limit + 1.0
+            if self._soft_veto_timestamp is None or simulate_grace_expired
+            else now - self._soft_veto_timestamp
+        )
+        time_rem = max(0.0, self._grace_limit - elapsed)
 
-        return verdict, is_soft_veto, False, time_remaining, grace_expired
+        if time_rem <= self._tol or simulate_grace_expired:
+            self.reset_soft_veto()
+            reasons.append("Ventana de gracia Γ expirada sin override válido: colapso a VETOED.")
+            return HeytingVerdict.VETOED, False, True, 0.0, True, tuple(reasons)
 
-    def _act_crowbar(
+        reasons.append("Veto suave persistente bajo ventana de gracia activa.")
+        return HeytingVerdict.DEGRADED, True, False, time_rem, False, tuple(reasons)
+
+    def continue_from_orientation(
         self,
         orientation: OctonionicOrientationState,
-        verdict: HeytingVerdict,
-    ) -> float:
-        r"""Actuación Crowbar: ISR en IRAM, GPIO14 HIGH, tiristor BT151."""
-        if verdict is not HeytingVerdict.VETOED:
-            return 0.0
-
-        kernel = orientation.kernel
-        switching_latency = self._seeded_latency_ns(
-            kernel.contractor_state.vector_rep,
-            kernel.supplier_state.vector_rep,
-            kernel.interventor_state.vector_rep,
-            orientation.associator_vector,
-            np.array(
-                [
-                    orientation.associator_norm,
-                    orientation.composition_error,
-                    orientation.composition_relative_error,
-                    orientation.associator_relative_norm,
-                ],
-                dtype=np.float64,
-            ),
-            verdict.value,
-        )
-
-        logger.critical("COLA DE HEYTING COLAPSADA EN SOBERANO OCTONIÓNICO.")
-        logger.critical("  - Ejecutando subrutina local isVerdictCoherent() en C++...")
-        logger.critical("  - Despachando ISR en IRAM en menos de 400 ns...")
-        logger.critical(
-            "  - Conmutando GPIO14 a HIGH en %.2f ns vía IRAM...",
-            switching_latency,
-        )
-        logger.critical("  - Tiristor rápido de potencia BT151 (Crowbar) gatillado.")
-        logger.critical("  - Mezcladoras y bombas hidráulicas reales en fango paralizadas.")
-        return switching_latency
-
-    def execute_octonionic_control_cycle(
-        self,
-        contractor_S: np.ndarray,
-        supplier_S: np.ndarray,
-        interventor_S: np.ndarray,
-        associator_threshold_Lmax: float = 0.15,
         override_token: Optional[str] = None,
+        curr_time: Optional[float] = None,
         simulate_grace_expired: bool = False,
     ) -> OctonionicAgentCertificate:
         r"""
-        Orquesta el ciclo covariante OODA del Soberano de Calibre Octoniónico.
-
-        Flujo anidado:
-          OBSERVE  (Fase 1): synthesize_observation_kernel.
-          ORIENT   (Fase 2): orient_octonionic_state.
-          DECIDE   (Fase 3): decide_from_orientation.
-          ACT      (Fase 3): _act_crowbar si ω = 0.
+        MORFISMO DE CONTINUACIÓN DE LA FASE 3.
+        Punto formal de enlace con el final de la Fase 2.
         """
-        kernel = self.synthesize_observation_kernel(
-            contractor_S,
-            supplier_S,
-            interventor_S,
-        )
-        orientation = self.orient_octonionic_state(
-            kernel,
-            associator_threshold_Lmax,
+        verdict, is_soft, is_hard, time_rem, grace_expired, reasons = self.decide_from_orientation(
+            orientation=orientation,
+            override_token=override_token,
+            curr_time=curr_time,
+            simulate_grace_expired=simulate_grace_expired,
         )
 
-        verdict, is_soft_veto, is_hard_veto, time_remaining, grace_expired = (
-            self.decide_from_orientation(
-                orientation,
-                override_token=override_token,
-                simulate_grace_expired=simulate_grace_expired,
-            )
+        interlock_fired = bool(is_hard or verdict is HeytingVerdict.VETOED)
+        latency_ns, gate_charge, seed_hex = (
+            self._act_crowbar(orientation, verdict) if interlock_fired else (0.0, 0.0, "")
         )
 
-        if verdict is HeytingVerdict.VETOED:
-            is_hard_veto = True
-
-        interlock_fired = bool(is_hard_veto or verdict is HeytingVerdict.VETOED)
-        actuation_latency_ns = (
-            self._act_crowbar(orientation, verdict) if interlock_fired else 0.0
-        )
-
-        if not interlock_fired:
-            logger.info(
-                "Soberano Octoniónico regulado síncronamente. Veredicto: %s. Sello: %s",
-                verdict.value,
-                kernel.cryptographic_seal[:16],
-            )
-
-        digital_sig = self._seal(
-            kernel.contractor_state.vector_rep,
-            kernel.supplier_state.vector_rep,
-            kernel.interventor_state.vector_rep,
+        # Sellado criptográfico canónico determinista SHA-256 / HMAC
+        seal_payload = (
+            orientation.kernel.contractor_state.vector_rep,
+            orientation.kernel.supplier_state.vector_rep,
+            orientation.kernel.interventor_state.vector_rep,
             orientation.associator_vector,
             np.array(
                 [
@@ -1341,23 +1121,34 @@ class Phase3_OODAActuator(Phase2_OctonionicOrientation):
                     orientation.composition_error,
                     orientation.composition_relative_error,
                     orientation.associator_relative_norm,
+                    orientation.laplacian_connectivity,
+                    orientation.dirichlet_exergy,
                     float(interlock_fired),
-                    float(is_soft_veto),
+                    float(is_soft),
                     verdict.omega,
+                    latency_ns,
+                    gate_charge,
                 ],
                 dtype=np.float64,
             ),
             verdict.value,
-            kernel.cryptographic_seal,
+            orientation.kernel.cryptographic_seal,
+            seed_hex,
         )
 
-        def _hoyer(spec: Optional[BanachRegularityReport]) -> float:
-            return 0.0 if spec is None else float(spec.hoyer_sparsity)
+        if self._hmac_secret is not None:
+            raw_b = b"".join(_canonical_bytes(p) for p in seal_payload)
+            digital_sig = hmac.new(self._hmac_secret, raw_b, hashlib.sha256).hexdigest()
+        else:
+            digital_sig = self._sha256_payload(*seal_payload)
+
+        def _hoyer(rep: Optional[BanachRegularityReport]) -> float:
+            return 0.0 if rep is None else float(rep.hoyer_sparsity)
 
         hoyer_max = max(
-            _hoyer(kernel.contractor_spectrum),
-            _hoyer(kernel.supplier_spectrum),
-            _hoyer(kernel.interventor_spectrum),
+            _hoyer(orientation.kernel.contractor_spectrum),
+            _hoyer(orientation.kernel.supplier_spectrum),
+            _hoyer(orientation.kernel.interventor_spectrum),
         )
 
         return OctonionicAgentCertificate(
@@ -1370,46 +1161,95 @@ class Phase3_OODAActuator(Phase2_OctonionicOrientation):
             is_soft_veto_active=bool(self._is_soft_veto_active),
             override_grace_period_expired=bool(grace_expired),
             hardware_interlock_fired=interlock_fired,
-            actuation_latency_ns=actuation_latency_ns,
-            time_grace_remaining=time_remaining,
+            actuation_latency_ns=latency_ns,
+            time_grace_remaining=time_rem,
             digital_signature_sha256=digital_sig,
             composition_relative_error=orientation.composition_relative_error,
             associator_relative_norm=orientation.associator_relative_norm,
-            banach_ratio_contractor=kernel.banach_ratio_contractor,
-            banach_ratio_supplier=kernel.banach_ratio_supplier,
-            banach_ratio_interventor=kernel.banach_ratio_interventor,
-            contractor_norm=kernel.contractor_state.norm,
-            supplier_norm=kernel.supplier_state.norm,
-            interventor_norm=kernel.interventor_state.norm,
+            banach_ratio_contractor=orientation.kernel.banach_ratio_contractor,
+            banach_ratio_supplier=orientation.kernel.banach_ratio_supplier,
+            banach_ratio_interventor=orientation.kernel.banach_ratio_interventor,
+            contractor_norm=orientation.kernel.contractor_state.norm,
+            supplier_norm=orientation.kernel.supplier_state.norm,
+            interventor_norm=orientation.kernel.interventor_state.norm,
             heyting_omega=verdict.omega,
             omega_pre=orientation.omega_pre,
             artin_residual=orientation.artin_residual,
             moufang_residual=orientation.moufang_residual,
-            observation_seal=kernel.cryptographic_seal,
+            malcev_residual=orientation.malcev_residual,
+            fano_3form_value=orientation.fano_3form_value,
+            laplacian_connectivity=orientation.laplacian_connectivity,
+            kirchhoff_index=orientation.kirchhoff_index,
+            dirichlet_exergy=orientation.dirichlet_exergy,
+            observation_seal=orientation.kernel.cryptographic_seal,
             hoyer_sparsity_max=hoyer_max,
-            null_party_count=kernel.null_party_count,
+            null_party_count=orientation.kernel.null_party_count,
+            reasons=reasons,
+            agent_version=__version__,
         )
 
+    def execute_octonionic_control_cycle(
+        self,
+        contractor_S: Sequence[float],
+        supplier_S: Sequence[float],
+        interventor_S: Sequence[float],
+        associator_threshold_Lmax: float = 0.15,
+        override_token: Optional[str] = None,
+        simulate_grace_expired: bool = False,
+    ) -> OctonionicAgentCertificate:
+        r"""
+        MORFISMO TERMINAL GLOBAL DEL SOBERANO DE CALIBRE OCTONIÓNICO.
 
-# ───────────────────────────────────────────────────────────────────────────────
-# Agente final
-# ───────────────────────────────────────────────────────────────────────────────
+        Ejecuta el ciclo covariante OODA trilateral en \mathbb{O}:
+          (S_1, S_2, S_3)
+          \xrightarrow{\text{Fase 1: Observe}} \mathbf{Kernel}
+          \xrightarrow{\text{Fase 2: Orient}} \mathbf{OrientationState}
+          \xrightarrow{\text{Fase 3: Act}} \mathbf{AgentCertificate}.
+        """
+        # FASE 1: Observe
+        kernel = self.synthesize_observation_kernel(
+            contractor_S,
+            supplier_S,
+            interventor_S,
+        )
 
+        # FASE 2: Orient (encadenamiento formal directo)
+        orientation = self.continue_from_observation_kernel(
+            kernel=kernel,
+            associator_threshold_Lmax=associator_threshold_Lmax,
+        )
+
+        # FASE 3: Act (cierre functorial, interlock y certificación)
+        certificate = self.continue_from_orientation(
+            orientation=orientation,
+            override_token=override_token,
+            simulate_grace_expired=simulate_grace_expired,
+        )
+
+        logger.info(
+            "Ciclo Soberano 8D auditado | Veredicto: %s | Asoc: %.4e | Sello: %s | Crowbar: %s",
+            certificate.heyting_verdict,
+            certificate.associator_norm,
+            certificate.digital_signature_sha256[:12],
+            certificate.hardware_interlock_fired,
+        )
+
+        return certificate
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §F. FACHADA SOBERANA PÚBLICA
+# ═══════════════════════════════════════════════════════════════════════════════
+# Anidación Ontológica Estricta: Phase3 ⊏ Phase2 ⊏ Phase1.
+# La fachada pública soberana es directamente la Fase 3 culminada con Morphism.
 class OctonionicDependencyAgent(Phase3_OODAActuator, Morphism):
     r"""
-    Soberano de Calibre Octoniónico (OODA lazo cerrado).
+    Soberano de Calibre Octoniónico (OODA de lazo cerrado, 3 fases anidadas).
 
-    Cadena de herencia (fases anidadas):
-
-        OctonionicDependencyAgent
-          └─ Phase3_OODAActuator                 Ω₃, gracia, Crowbar
-               └─ Phase2_OctonionicOrientation   Hurwitz, rampa, ω_pre
-                    └─ Phase1_OctonionicObservation
-                         Banach ℓ^p, polaridad, K(a,b,c)
-
-    Gobierna de forma covariante los estados hipercomplejos no asociativos
-    de la Malla y administra la rampa de confianza graduada para
-    neutralizar falsas alarmas en el vaciado de concreto perimetral de obra.
+    Gobierna de forma covariante los estados hipercomplejos no asociativos de la
+    Malla en \mathbb{O}^3 \cong (\mathbb{R}^8)^3, administrando la Rampa de Confianza
+    de de Rham para censurar colusiones trilaterales, frustración de calibre
+    y desviaciones de la ley de composición de Hurwitz.
     """
 
     __slots__ = ()
@@ -1430,11 +1270,11 @@ class OctonionicDependencyAgent(Phase3_OODAActuator, Morphism):
 
     def __repr__(self) -> str:
         return (
-            "OctonionicDependencyAgent("
+            f"OctonionicDependencyAgent("
             f"tolerance={self._tol}, "
             f"safety_margin={self._safety_margin}, "
             f"grace_period_seconds={self._grace_limit}"
-            ")"
+            f")"
         )
 
 
@@ -1443,8 +1283,11 @@ __all__ = [
     "OctonionicObservationKernel",
     "OctonionicOrientationState",
     "OctonionicAgentCertificate",
+    "OctonionicAgentThresholds",
     "BanachRegularityReport",
+    "HeytingDecision",
     "HeytingVerdict",
+    "CrowbarActuationReport",
     "Phase1_OctonionicObservation",
     "Phase2_OctonionicOrientation",
     "Phase3_OODAActuator",

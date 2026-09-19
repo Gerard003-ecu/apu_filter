@@ -1,54 +1,101 @@
+
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Pathionic Dependency Engine (Motor de Calibre Pationiónico 32D)     ║
-║ Ruta   : app/core/pathionic_dependency_engine.py                             ║
-║ Versión: 1.1.0-Doctoral-32D-CayleyDickson-Pentagonal-KBN-FPU-Secure-Nested3  ║
+║ MÓDULO : PATHIONIC DEPENDENCY ENGINE (MOTOR DE CALIBRE PATIONIÓNICO 32D)     ║
+║ RUTA   : app/core/pathionic_dependency_engine.py                             ║
+║ NIVEL  : Doctorado en Ciencias Matemáticas, Física Teórica y Computación     ║
+║ VERSIÓN: 3.0.0-Doctoral-32D-DeRham-Stasheff-Hodge-Exergy-Axiomatic-Nested3   ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ TRATADO DE FUNDAMENTACIÓN MATEMÁTICA, FÍSICA Y TOPOLÓGICA:                   ║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:                                  ║
-║ Este módulo implementa el motor de cálculo ciego en la FPU para la variedad  ║
-║ de los Pathiones reales \mathbb{P} (32 dimensiones), estructurada mediante   ║
-║ la duplicación iterativa de Cayley-Dickson sobre el álgebra de los           ║
-║ Sedeniones \mathbb{S} (\mathbb{P} \cong \mathbb{S} \times \mathbb{S}).       ║
+║ 1. ÁLGEBRA DE CAYLEY-DICKSON 32-DIMENSIONAL (PATHIONES \mathbb{P}):          ║
+║    La torre hipercompleja de Cayley-Dickson procede como:                    ║
+║      \mathbb{R} (1D) \to \mathbb{C} (2D) \to \mathbb{H} (4D) \to             ║
+║      \mathbb{O} (8D) \to \mathbb{S} (16D) \to \mathbb{P} (32D).              ║
+║    Sea \mathbb{P} \cong \mathbb{S} \times \mathbb{S}. El producto CD-2:      ║
+║      (a, b)(c, d) = (a c - \overline{d} b,\ d a + b \overline{c}),           ║
+║    con la involución anti-automórfica (conjugación CD-3):                    ║
+║      \overline{(a, b)} = (\overline{a}, -b), \quad \overline{xy} =           ║
+║      \overline{y}\,\overline{x}.                                             ║
+║    Por el Teorema de Hurwitz (1898), solo \mathbb{R},\mathbb{C},\mathbb{H},  ║
+║    \mathbb{O} son álgebras de división normadas. En \mathbb{P} (32D):        ║
+║      - Falla la conmutatividad (heredada desde \mathbb{H}).                  ║
+║      - Falla la asociatividad (heredada desde \mathbb{O}).                   ║
+║      - Falla la alternatividad y las identidades de Moufang (Zorn 1930,      ║
+║        Moufang 1935): [x,x,y] \neq 0, (xy)(zx) \neq x((yz)x)                 ║
+║        (heredada desde \mathbb{S}, dim \ge 16).                              ║
+║      - Preserva la flexibilidad: [x, y, x] = (xy)x - x(yx) \equiv 0          ║
+║        (identidad UNIVERSAL probada por Albert en 1942 para TODA álgebra     ║
+║        de Cayley-Dickson, independientemente de la dimensión). Su violación  ║
+║        numérica grosera es, por tanto, un CERTIFICADO DE BUG, no de ruido.   ║
+║      - Presenta un esquema proyectivo denso de divisores de cero BILÁTEROS   ║
+║        \mathcal{N}_L(\mathbb{P}) = \{x : \exists y \neq 0,\ xy = 0\},        ║
+║        \mathcal{N}_R(\mathbb{P}) = \{x : \exists y \neq 0,\ yx = 0\},        ║
+║        generalmente distintos por la no conmutatividad.                      ║
 ║                                                                              ║
-║ Opera como un resolvedor de alta fidelidad para interdependencias de 5 vías  ║
-║ (4-símplices en el complejo simplicial de la Malla Agéntica), calculando     ║
-║ la norma del asociador pentagonal de de Rham A_5, el diámetro del pentágono  ║
-║ de Stasheff A_4, la forma cuadrática N(x)=x\,\overline{x}, el defecto de     ║
-║ Banach/Hurwitz y la distancia espectral al esquema de divisores de cero      ║
-║ \mathcal{N}(\mathbb{P})=\{\,x\in\mathbb{P}:\ker L_x\neq\{0\}\,\}.            ║
+║ 2. FÍSICA DE CIRCUITOS Y TEORÍA DE CUERDAS (CAMPO DE CALIBRE NO-ASOCIATIVO): ║
+║    En teoría de cuerdas abiertas sobre D-branas con flujo no nulo de campo B ║
+║    (Kalb-Ramond 2-forma), la intensidad H = dB actúa como curvatura          ║
+║    asociativa en el espacio de coordenadas: [x^i, x^j, x^k] \sim H^{ijk}.    ║
+║    Modelamos la Malla Agéntica de 5 vías como un 4-símplex \Delta_4.         ║
+║    Las obstrucciones de coherencia de Mac Lane en el operando pentagonal     ║
+║    de Stasheff K_4 corresponden a caídas de tensión por holonomía no         ║
+║    trivial. La incursión en el cono nulo \mathcal{N}(\mathbb{P}) se traduce  ║
+║    físicamente en una resonancia de impedancia nula (cortocircuito           ║
+║    topológico interno), disipando exergía sin transferencia de trabajo útil. ║
+║    El defecto de isometría del operador L_p (o R_p) normalizado —            ║
+║    \sigma_{\max}(L_{\hat p}) - 1 — mide cuánto se aparta el "circuito"       ║
+║    algebraico de un acoplamiento sin pérdidas (unitario).                    ║
 ║                                                                              ║
-║ AXIOMAS (álgebra de Cayley-Dickson, convención interna):                     ║
-║   (CD-1) Duplicación:  \mathbb{P}=\mathbb{S}\times\mathbb{S},\ \dim_{\mathbb{R}}=32.║
-║   (CD-2) Producto:     (a,b)(c,d)=(ac-\overline{d}\,b,\ da+b\,\overline{c}). ║
-║   (CD-3) Conjugación:  \overline{(a,b)}=(\overline{a},-b),\ \overline{\overline{x}}=x.║
-║   (CD-4) Anti-homom.:  \overline{xy}=\overline{y}\,\overline{x}.             ║
-║   (CD-5) Forma cuadr.: N(x):=x\overline{x}\in\mathbb{R}\,e_0\ \text{en aritmética exacta}.║
-║   (H)    Hurwitz:      N(xy)=N(x)N(y) \Leftrightarrow \dim\le 8              ║
-║                        (teorema de Hurwitz); en \mathbb{P} el defecto es dato.║
-║   (B)    Banach:       \|\cdot\|_2 no es, en general, submultiplicativa en   ║
-║                        \dim>8; se audita \rho=\|xy\|/(\|x\|\|y\|).           ║
-║   (A3)   Asociador:    [x,y,z]=(xy)z-x(yz).                                  ║
-║   (A4)   Stasheff:     diámetro de las 5 asociaciones plenas de 4 factores.  ║
-║   (A5)   Pentagonal:   A_5=((((ab)c)d)e)-a(b(c(de))).                        ║
-║   (N)    Cono nulo:    xy=0 con x,y\neq 0 \Leftrightarrow \sigma_{\min}(L_x)=0║
-║                        para algún testigo y\in\ker L_x.                      ║
+║ 3. TOPOLOGÍA SIMPLICIAL, OPERADA DE STASHEFF Y TEORÍA ESPECTRAL DE HODGE:    ║
+║    - El 4-símplex posee 5 vértices, 10 aristas, 10 caras 2D y 5 tetraedros.  ║
+║    - El volumen 4D exacto se obtiene mediante el determinante de Gram de     ║
+║      los 4 vectores arista respecto al baricentro, utilizando descomposición ║
+║      SVD robusta: V_4 = \frac{1}{4!} \prod_{k=1}^4 \sigma_k(E).              ║
+║    - La 1-esqueleto es el grafo completo K_5. Su laplaciano combinatorio     ║
+║      L = D - W gobierna la conectividad algebraica (autovalor de Fiedler     ║
+║      \lambda_2) y la resistencia efectiva global (Índice de Kirchhoff R_K).  ║
+║    - La disipación exergética de Dirichlet es \mathcal{E}_D = \mathrm{Tr}(P^T L P).║
+║    - El pentágono de Stasheff K_4 audita las 5 formas de parentizar 4        ║
+║      factores: diam(K_4) = \max_{1 \le i < j \le 5} \|v_i - v_j\|_2.         ║
 ║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA FPU):                   ║
-║   Fase 1  Observe + Orient : Ingesta 32D, C-D, norma KBN, N(x), Hurwitz.     ║
-║           Morfismo terminal : observe_metrics → PathionicMetricsReport.      ║
-║   Fase 2  Decide           : A_3, A_5, Stasheff, espectro del 4-símplex.     ║
-║           Objeto inicial    : PathionicMetricsReport.                        ║
-║           Morfismo terminal : decide_from_metrics_report                     ║
-║                               → PathionicDecisionState.                      ║
-║   Fase 3  Act              : L_x, cono nulo, sello criptográfico canónico.   ║
-║           Objeto inicial    : PathionicDecisionState.                        ║
-║           Morfismo terminal : execute_pentagonal_audit                       ║
-║                               → PathionicEngineState.                        ║
+║ 4. METROLOGÍA DE PRECISIÓN FPU Y SUMACIÓN EXACTA DE SHEWCHUK:                ║
+║    - Se reemplaza la sumación compensada de Neumaier (cota O(n\varepsilon))  ║
+║      por el algoritmo de destilación de Shewchuk (1997) — implementado en    ║
+║      `math.fsum` — que garantiza un resultado correctamente redondeado       ║
+║      (error \le 1 ulp) independiente del condicionamiento o del orden de     ║
+║      los sumandos. Se conserva el nombre `KBNSummationKernel` por            ║
+║      estabilidad de interfaz, documentando la mejora del núcleo interno.     ║
+║    - Norma euclídea de doble paso con pre-escalado por \max_i |x_i| para     ║
+║      inmunizar la FPU frente a subdesbordamientos y sobredesbordamientos.    ║
+║    - Producto de Gram compensado (`pairwise_gram`) para evitar cancelación   ║
+║      catastrófica en productos internos densos de baja dimensión (n=5).      ║
 ║                                                                              ║
-║ Anidación ontológica (no meramente OOP):                                     ║
-║   Phase3 ⊏ Phase2 ⊏ Phase1,  Act \circ Decide \circ Observe.                 ║
-║ El último morfismo de la Fase k es el objeto inicial de la Fase k+1.         ║
+║ 5. AXIOMÁTICA AUTO-VERIFICABLE Y CACHÉ ESPECTRAL INTERFÁSICA (v3.0.0):       ║
+║    - Fase 1 calcula y CONGELA en cada `PathionicState` el espectro singular  ║
+║      extremal de los operadores L_{\hat p}, R_{\hat p} (representación       ║
+║      regular izquierda/derecha normalizada). Por bilinealidad,               ║
+║      \sigma(L_p) = \|p\| \cdot \sigma(L_{\hat p}), evitando que la Fase 3    ║
+║      recompute SVDs ya resueltas — coherencia funtorial estricta OODA.       ║
+║    - Fase 2 audita las tres identidades de Moufang (certificado espectral    ║
+║      exacto de ruptura de alternatividad) y ENFUERZA la identidad universal  ║
+║      de flexibilidad de Albert, escalando `PathionicAxiomViolationError`     ║
+║      ante violaciones catastróficas no atribuibles a redondeo IEEE-754.      ║
+║    - Fase 3 realiza el análisis BILÁTERO del cono nulo (L_p y R_p) leyendo   ║
+║      la caché de la Fase 1, y sella el certificado con *framing* de longitud ║
+║      (Merkle-Damgård canónico) para eliminar ambigüedades de concatenación.  ║
+║                                                                              ║
+║ 6. ARQUITECTURA DE TRES FASES ANIDADAS FUNCTORIALES (OODA EN FPU):           ║
+║    Phase1_PathionicMetricObserver (Observe + Orient):                        ║
+║      Morfismo terminal: observe_metrics \to PathionicMetricsReport.          ║
+║    Phase2_PentagonalAssociatorCalculator (Decide, hereda Phase1):            ║
+║      Morfismo de inicio: continue_from_metrics_report.                       ║
+║      Morfismo terminal: decide_from_metrics_report \to PathionicDecisionState.║
+║    Phase3_PathionicNullConeEvaluator (Act, hereda Phase2):                   ║
+║      Morfismo de inicio: continue_from_decision_state.                       ║
+║      Morfismo terminal: execute_pentagonal_audit \to PathionicEngineState.   ║
+║    Fachada Soberana: PathionicDependencyEngine = Phase3.                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
@@ -60,13 +107,13 @@ import math
 import struct
 import time
 from dataclasses import dataclass, replace
-from typing import Final, Iterable, Optional, Sequence, Tuple
+from typing import Final, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import scipy.linalg as la
 
 __version__: Final[str] = (
-    "1.1.0-Doctoral-32D-CayleyDickson-Pentagonal-KBN-FPU-Secure-Nested3"
+    "3.0.0-Doctoral-32D-DeRham-Stasheff-Hodge-Exergy-Axiomatic-Nested3"
 )
 
 __all__ = [
@@ -88,6 +135,7 @@ __all__ = [
     "PathionicNumericalSingularityError",
     "PathionicCompositionError",
     "PathionicNullConeSingularityError",
+    "PathionicAxiomViolationError",
 ]
 
 logger = logging.getLogger("APU.Core.PathionicDependencyEngine")
@@ -96,100 +144,96 @@ _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _WILKINSON_FLOOR: Final[float] = 1e-15
 _PATHION_DIM: Final[int] = 32
 _SEDENION_DIM: Final[int] = 16
+_OCTONION_DIM: Final[int] = 8
 _LOG_DBL_MAX: Final[float] = float(math.log(np.finfo(np.float64).max))
 _LOG_DBL_TINY: Final[float] = float(math.log(np.finfo(np.float64).tiny))
 _SQRT_DBL_MAX: Final[float] = float(math.sqrt(np.finfo(np.float64).max))
-_SCALE_OVERFLOW_TRIGGER: Final[float] = 1e150
+_SCALE_OVERFLOW_TRIGGER: Final[float] = 1e140
 
 if _PATHION_DIM != 2 * _SEDENION_DIM or not (
     _PATHION_DIM > 0 and (_PATHION_DIM & (_PATHION_DIM - 1)) == 0
 ):
     raise RuntimeError(
-        "Inconsistencia dimensional Cayley-Dickson: se exige "
-        "dim(P)=32=2·dim(S) y potencia de dos."
+        "Axioma dimensional violado: dim(P) debe ser 32 y potencia entera de 2."
     )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §A. JERARQUÍA DE EXCEPCIONES ESPECIALIZADAS
+# §A. JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y FÍSICO-NUMÉRICAS
 # ═══════════════════════════════════════════════════════════════════════════════
 class PathionicEngineError(Exception):
-    r"""Excepción raíz para violaciones algebraicas o de FPU en el motor de Pathiones."""
+    r"""Excepción raíz para violaciones métricas, topológicas o algebraicas en \mathbb{P}."""
 
 
 class PathionicDimensionError(PathionicEngineError):
-    r"""Detonada cuando la señal de entrada no es estrictamente de dimensión 32
-    (o, en el núcleo CD, cuando la dimensión no es potencia de dos)."""
+    r"""Detonada ante dimensiones no conformes con la potencia de dos CD-1 (dim \neq 32)."""
 
 
 class PathionicNumericalSingularityError(PathionicEngineError):
-    r"""Detonada cuando aparecen NaN, Inf o desbordamientos numéricos no auditables."""
+    r"""Detonada ante intrusiones de NaN, Inf o fallos de condicionamiento IEEE-754."""
 
 
 class PathionicCompositionError(PathionicEngineError):
-    r"""Detonada cuando la composición de Hurwitz sufre una deriva de Wilkinson inaceptable."""
+    r"""Detonada ante derivas catastróficas del defecto de submultiplicatividad de Banach."""
 
 
 class PathionicNullConeSingularityError(PathionicEngineError):
-    r"""Detonada cuando la trayectoria transaccional colapsa en el Cono Nulo \mathcal{N}(\mathbb{P})."""
+    r"""Detonada ante el colapso exergético por cortocircuito topológico en \mathcal{N}(\mathbb{P})."""
+
+
+class PathionicAxiomViolationError(PathionicEngineError):
+    r"""
+    Detonada cuando una identidad algebraica UNIVERSAL de Cayley-Dickson
+    (p. ej., la flexibilidad de Albert [x,y,x] \equiv 0, válida en toda
+    dimensión 2^k) se viola más allá de cualquier tolerancia de redondeo
+    IEEE-754 razonable, certificando un defecto estructural del núcleo
+    de multiplicación y no una mera deriva de Wilkinson.
+    """
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §B. FUNCIONES AUXILIARES DE METROLOGÍA NUMÉRICA
+# §B. METROLOGÍA NUMÉRICA Y TRANSFORMACIONES DE CAMPO ESCALAR
 # ═══════════════════════════════════════════════════════════════════════════════
 def _is_power_of_two(n: int) -> bool:
-    """Verifica que una dimensión algebraica sea potencia de dos estrictamente positiva."""
+    """Verifica si un entero positivo es potencia pura de 2."""
     return n > 0 and (n & (n - 1)) == 0
 
 
 def _log_norm(norm: float) -> float:
-    """Logaritmo neperiano seguro de una norma no negativa (0 ↦ -∞)."""
-    if norm <= 0.0:
+    """Logaritmo neperiano seguro de una pseudonorma o norma (|x| \\le 0 \\mapsto -\\infty)."""
+    if norm <= 0.0 or not math.isfinite(norm):
         return -math.inf
     return math.log(norm)
 
 
-def _safe_exp(log_value: float) -> float:
+def _safe_exp(log_val: float) -> float:
     """
-    Exponencial saturada en el rango de float64.
-
-    Devuelve 0.0 ante underflow e inf ante overflow, preservando la
-    trazabilidad metrológica sin detonar excepciones innecesarias.
+    Exponenciación asintóticamente acotada en el rango de doble precisión.
+    Elimina excepciones descontroladas de desbordamiento en la FPU.
     """
-    if log_value == -math.inf:
+    if log_val == -math.inf:
         return 0.0
-    if log_value == math.inf:
+    if log_val == math.inf or log_val >= _LOG_DBL_MAX:
         return math.inf
-    if not math.isfinite(log_value):
-        return math.inf if log_value > 0.0 else 0.0
-    if log_value >= _LOG_DBL_MAX:
-        return math.inf
-    if log_value <= _LOG_DBL_TINY:
+    if not math.isfinite(log_val) or log_val <= _LOG_DBL_TINY:
         return 0.0
-    return float(math.exp(log_value))
+    return float(math.exp(log_val))
 
 
-def _within_tolerance(
-    value: float,
-    target: float,
-    absolute: float,
-    relative: float,
-) -> bool:
-    """Criterio IEEE mixto: |v-t| ≤ atol + rtol·max(|v|,|t|, piso)."""
-    if not (math.isfinite(value) and math.isfinite(target)):
+def _within_tolerance(val: float, target: float, atol: float, rtol: float) -> bool:
+    """Criterio de proximidad topológica IEEE-754: |v - t| \\le atol + rtol \\cdot \\max(|v|, |t|, piso)."""
+    if not (math.isfinite(val) and math.isfinite(target)):
         return False
-    scale = max(abs(value), abs(target), _WILKINSON_FLOOR)
-    return abs(value - target) <= absolute + relative * scale
+    scale = max(abs(val), abs(target), _WILKINSON_FLOOR)
+    return abs(val - target) <= atol + rtol * scale
 
 
-def _canonical_float_bytes(value: float) -> bytes:
+def _canonical_float_bytes(val: float) -> bytes:
     """
-    Serialización canónica little-endian de un escalar float64.
-
-    Unifica ±0.0, etiqueta NaN/±Inf de forma independiente de plataforma
-    y empaqueta el resto como IEEE-754 '<d'. Garantiza sello reproducible.
+    Serialización canónica Little-Endian IEEE-754 con unificación de signos de cero
+    y codificación unívoca de NaN / infinitos para firmas criptográficas deterministas.
     """
-    x = float(value)
+    x = float(val)
     if math.isnan(x):
         return b"\x7fNAN\x00\x00\x00"
     if math.isinf(x):
@@ -199,80 +243,88 @@ def _canonical_float_bytes(value: float) -> bytes:
     return struct.pack("<d", x)
 
 
-def _prepare_pathion_vector(value: Sequence[float], name: str) -> np.ndarray:
+def _frame_bytes(tag: bytes, payload: bytes) -> bytes:
     """
-    Valida, normaliza y congela un vector pationiónico en R^{32}.
+    Codificación canónica con marcado de longitud (length-prefixed framing) que
+    previene ambigüedades de concatenación en la construcción Merkle-Damgård
+    del sello SHA-256 (p. ej. 'ab'+'c' colisionando con 'a'+'bc' bajo
+    concatenación ingenua). Formato: u64(len(tag)) || tag || u64(len(payload)) || payload.
+    """
+    return (
+        struct.pack("<Q", len(tag)) + tag
+        + struct.pack("<Q", len(payload)) + payload
+    )
 
-    Condiciones:
-    - Forma estricta (32,); se rechaza cualquier otra inmersión.
-    - Componentes estrictamente finitas (sin NaN/Inf).
-    - Copia propia contigua en float64.
-    - Bandera write=False para inmutabilidad en RAM.
+
+def _prepare_pathion_vector(v: Sequence[float], param_name: str) -> np.ndarray:
     """
-    arr = np.asarray(value, dtype=np.float64)
+    Valida, congela y garantiza la inmutabilidad física en memoria contigua
+    de un vector de estado en R^{32}. Realiza una única copia física.
+    """
+    arr = np.array(v, dtype=np.float64, copy=True)
     if arr.ndim != 1 or arr.shape != (_PATHION_DIM,):
         raise PathionicDimensionError(
-            f"{name} debe ser estrictamente de dimensión {_PATHION_DIM}. "
-            f"Obtenido: shape={arr.shape}."
+            f"El parámetro {param_name} debe residir estrictamente en R^{_PATHION_DIM}. "
+            f"Dimensión recibida: shape={arr.shape}."
         )
-
-    arr = np.ascontiguousarray(arr, dtype=np.float64).copy()
     if not np.all(np.isfinite(arr)):
         raise PathionicNumericalSingularityError(
-            f"{name} contiene NaN o Inf. La FPU no puede auditar singularidades no finitas."
+            f"El vector {param_name} contiene componentes no reproducibles (NaN o Inf)."
         )
-
+    arr = np.ascontiguousarray(arr, dtype=np.float64)
     arr.setflags(write=False)
     return arr
 
 
 def _sha256_of_arrays(arrays: Iterable[np.ndarray]) -> str:
-    """Firma SHA-256 determinista little-endian de una secuencia de arreglos float64."""
+    """Computa el resumen criptográfico SHA-256 sobre tensores alineados, con framing canónico."""
     hasher = hashlib.sha256()
-    for arr in arrays:
-        a = np.ascontiguousarray(np.asarray(arr, dtype=np.float64), dtype=np.float64)
-        hasher.update(np.asarray(a, dtype="<f8").tobytes(order="C"))
+    for idx, arr in enumerate(arrays):
+        c_arr = np.ascontiguousarray(np.asarray(arr, dtype=np.float64), dtype=np.float64)
+        payload = np.asarray(c_arr, dtype="<f8").tobytes(order="C")
+        tag = f"ARR{idx}_{c_arr.shape[0] if c_arr.ndim else 0}".encode("ascii")
+        hasher.update(_frame_bytes(tag, payload))
     return hasher.hexdigest()
 
 
-def _apply_log_scale(vector: np.ndarray, log_scale: float) -> np.ndarray:
-    """Reescala `vector * exp(log_scale)` evitando overflow intermedio."""
-    if log_scale == 0.0:
-        return vector
-
-    max_abs = float(np.max(np.abs(vector))) if vector.size else 0.0
-    if max_abs == 0.0:
-        return vector
-
-    factor = _safe_exp(log_scale + math.log(max_abs))
-    out = (vector / max_abs) * factor
-    if not np.all(np.isfinite(out)):
-        raise PathionicNumericalSingularityError(
-            "El reescalado logarítmico del producto CD excedió el rango float64."
-        )
-    return out
+def _clip_nonnegative(val: float) -> float:
+    """Proyecta escalares reales sobre el cono positivo R_{\\ge 0} absorbiendo el ruido de Wilkinson."""
+    if not math.isfinite(val):
+        return val
+    return val if val >= 0.0 else 0.0
 
 
-def _clip_nonnegative(value: float) -> float:
-    """Proyección sobre [0, +∞] con saturación de residuos numéricos negativos."""
-    if not math.isfinite(value):
-        return value
-    return value if value >= 0.0 else 0.0
+def _composition_defect(
+    product_norm: float,
+    expected_norm: float,
+    floor: float,
+) -> Tuple[float, float, float]:
+    r"""
+    Cuantifica la desviación de la identidad de composición multiplicativa
+    \|xy\| = \|x\|\|y\| (Hurwitz), retornando la terna:
+      (defecto con signo, error absoluto, error relativo).
+    Función pura compartida entre la Fase 1 (auditoría A·B) y la Fase 3
+    (auditoría del cono nulo), eliminando la duplicación de lógica métrica.
+    """
+    if math.isfinite(product_norm) and math.isfinite(expected_norm):
+        signed = product_norm - expected_norm
+        absolute = abs(signed)
+    else:
+        signed = math.inf
+        absolute = math.inf
+    scale = max(floor, expected_norm) if math.isfinite(expected_norm) else floor
+    relative = absolute / scale if math.isfinite(absolute) else math.inf
+    return signed, absolute, relative
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §C. DTOs INMUTABLES DEL ESPACIO DE FASE PATIONIÓNICO (32D)
+# §C. DTOs INMUTABLES DEL ESPACIO DE FASES PATIONIÓNICO
 # ═══════════════════════════════════════════════════════════════════════════════
 @dataclass(frozen=True, slots=True)
 class PathionicThresholds:
     r"""
-    Umbrales metrológicos inmutables del motor pationiónico.
-
-    Fronteras de:
-    - estabilidad de Hurwitz / defecto de Banach,
-    - estabilidad pentagonal y diámetro de Stasheff,
-    - incursión en el cono nulo,
-    - degeneración espectral del 4-símplex agéntico.
+    Conjunto axiomático inmutable de tolerancias y umbrales metrológicos
+    para la variedad pationiónica de 32 dimensiones.
     """
     absolute_tolerance: float = 1e-12
     relative_tolerance: float = 1e-10
@@ -291,27 +343,44 @@ class PathionicThresholds:
     condition_number_limit: float = 1e12
     quadratic_leakage_limit: float = 1e-8
 
-    def __post_init__(self) -> None:
-        for name in self.__dataclass_fields__:
-            value = float(getattr(self, name))
-            if not math.isfinite(value) or value <= 0.0:
-                raise ValueError(f"El umbral {name} debe ser finito y estrictamente positivo.")
+    laplacian_fiedler_min: float = 1e-4
+    simplex_volume_min: float = 1e-15
 
+    # Umbral diagnóstico del RÉGIMEN alternativo/Moufang: por encima de este valor
+    # (escalado por la magnitud de los operandos) se certifica ruptura de
+    # alternatividad, esperada y estructural en dim >= 16.
+    alternativity_tolerance: float = 1e-7
+
+    # Tolerancia axiomática ESTRICTA para la identidad UNIVERSAL de flexibilidad
+    # de Albert. Su violación grosera (>> esta cota) indica un bug del núcleo.
+    flexibility_axiom_tolerance: float = 1e-9
+
+    # Umbral espectral (adimensional, sobre el operador normalizado L_{\hat p}
+    # o R_{\hat p}) por debajo del cual un estado se considera candidato
+    # estructural a divisor de cero izquierdo/derecho.
+    zero_divisor_spectral_ratio_limit: float = 1e-6
+
+    kirchhoff_index_max: float = 1e6
+
+    def __post_init__(self) -> None:
+        for field in self.__dataclass_fields__:
+            val = float(getattr(self, field))
+            if not math.isfinite(val) or val <= 0.0:
+                raise ValueError(f"El umbral {field} debe ser estrictamente positivo y finito.")
         if self.null_depth_threshold > 1.0:
-            raise ValueError("null_depth_threshold debe estar en (0, 1].")
+            raise ValueError("null_depth_threshold debe residir en el intervalo semi-abierto (0, 1].")
 
 
 @dataclass(frozen=True, slots=True)
 class PathionicState:
     r"""
-    Estado físico hipercomplejo pationiónico de 32 dimensiones en la FPU.
+    Estado cuántico/hipercomplejo inmutable de un elemento P \in \mathbb{P} (32D).
+    Bajo el isomorfismo canónico P = (s_1, s_2) \in \mathbb{S} \times \mathbb{S}.
 
-    Bajo el isomorfismo de Cayley-Dickson:
-        P = (s_1, s_2) \in \mathbb{S} \times \mathbb{S},
-    donde s_1, s_2 son sedeniones en \mathbb{R}^{16}.
-
-    Invariantes auditados:
-        \|P\|_2,\quad N(P)=P\overline{P},\quad \mathrm{leak}(N)=\|\mathrm{Im}\,N(P)\|_2.
+    Además de los invariantes clásicos (norma, forma cuadrática), congela el
+    ESPECTRO SINGULAR EXTREMAL de los operadores de representación regular
+    L_{\hat p}, R_{\hat p} \in \mathbb{R}^{32 \times 32} (con \hat p = p / \|p\|),
+    reutilizable sin recómputo por bilinealidad: \sigma(L_p) = \|p\|\,\sigma(L_{\hat p}).
     """
     vector_rep: np.ndarray
     s1: np.ndarray
@@ -324,16 +393,25 @@ class PathionicState:
     quadratic_leakage: float
     is_unitary: bool
     is_zero: bool
+
+    left_sigma_max: float
+    left_sigma_min: float
+    right_sigma_max: float
+    right_sigma_min: float
+    left_zero_divisor_witness: np.ndarray
+    right_zero_divisor_witness: np.ndarray
+    left_isometry_defect: float
+    right_isometry_defect: float
+
     sha256_hash: str
 
 
 @dataclass(frozen=True, slots=True)
 class PathionicMetricsReport:
     r"""
-    Objeto terminal de la Fase 1 / objeto inicial de la Fase 2.
-
-    Norma, forma cuadrática, composición de Hurwitz y defecto de Banach
-    del producto pationiónico A·B.
+    Reporte terminal de la Fase 1 (Observe + Orient).
+    Audita la duplicación de Cayley-Dickson, la conservación del producto,
+    el defecto de Hurwitz y la submultiplicatividad del álgebra de Banach.
     """
     state_a: PathionicState
     state_b: PathionicState
@@ -346,6 +424,7 @@ class PathionicMetricsReport:
     hurwitz_relative_error: float
     hurwitz_signed_defect: float
     composition_ratio: float
+    exergy_loss_hurwitz: float
 
     is_hurwitz_stable: bool
     is_banach_submultiplicative: bool
@@ -354,8 +433,10 @@ class PathionicMetricsReport:
 @dataclass(frozen=True, slots=True)
 class PathionicPentagonalReport:
     r"""
-    Auditoría de la Fase 2: asociadores, Stasheff, espectro y topología
-    combinatoria del 4-símplex agéntico.
+    Reporte de análisis de coherencia de la Fase 2 (Decide).
+    Audita los asociadores 3D y 5D, el diámetro del pentágono de Stasheff K_4,
+    la geometría del 4-símplex, la topología espectral de Hodge sobre K_5,
+    y el certificado espectral de Moufang / flexibilidad de Albert.
     """
     trilateral_associator_norm: float
     pentagonal_associator_norm: float
@@ -365,6 +446,12 @@ class PathionicPentagonalReport:
     flexibility_defect: float
     alternativity_defect: float
 
+    moufang_left_defect: float
+    moufang_right_defect: float
+    moufang_middle_defect: float
+    is_alternative_regime: bool
+    is_flexibility_axiom_satisfied: bool
+
     pentagonal_threshold_used: float
     is_pentagonal_stable: bool
 
@@ -372,6 +459,8 @@ class PathionicPentagonalReport:
     simplex_volume: float
     laplacian_connectivity: float
     laplacian_spectral_gap: float
+    kirchhoff_index: float
+    dirichlet_exergy: float
     estimated_connected_components: int
 
     diagnosis: str
@@ -380,10 +469,8 @@ class PathionicPentagonalReport:
 @dataclass(frozen=True, slots=True)
 class PathionicDecisionState:
     r"""
-    Objeto terminal de la Fase 2 / objeto inicial de la Fase 3.
-
-    Empaqueta el reporte metrológico, el reporte pentagonal y los cinco
-    estados del 4-símplex, de modo que Act no reinstancia Observe.
+    Estado intermedio inmutable terminal de la Fase 2 / inicial de la Fase 3.
+    Empaqueta el reporte métrico, el reporte pentagonal y los 5 vértices de \Delta_4.
     """
     metrics_report: PathionicMetricsReport
     pentagonal_report: PathionicPentagonalReport
@@ -399,8 +486,11 @@ class PathionicDecisionState:
 @dataclass(frozen=True, slots=True)
 class NullConeReport:
     r"""
-    Reporte de la Fase 3: fricción, profundidad y caracterización espectral
-    de la incursión en \mathcal{N}(\mathbb{P}).
+    Reporte espectral y termodinámico BILÁTERO de la Fase 3 (Act).
+    Caracteriza la proximidad a los divisores de cero izquierdos y derechos en
+    \mathcal{N}(\mathbb{P}), los vectores testigo del anulador, los conmutadores
+    y la fricción exergética. Los valores singulares se leen de la caché
+    generada en la Fase 1 (sin recómputo de SVD).
     """
     product_norm: float
     expected_norm: float
@@ -411,18 +501,40 @@ class NullConeReport:
 
     sigma_min_left_p1: float
     sigma_min_left_p2: float
+    sigma_min_right_p1: float
+    sigma_min_right_p2: float
+
+    zero_divisor_witness_p1_left: np.ndarray
+    zero_divisor_witness_p1_right: np.ndarray
+
     commutator_norm: float
+    jordan_product_norm: float
 
     is_trivial_null: bool
     is_null_cone_penetrated: bool
+    is_left_zero_divisor_candidate: bool
+    is_right_zero_divisor_candidate: bool
+    spectral_friction_exergy: float
 
 
 @dataclass(frozen=True, slots=True)
 class PathionicEngineState:
-    r"""Certificado inmutable final del motor pationiónico entregado a los soberanos."""
+    r"""
+    Certificado inmutable definitivo emitido por el Motor Pationiónico.
+    Cierra la secuencia functorial OODA con sellado criptográfico determinista.
+    Persiste los 5 estados originales (`all_states`) para garantizar la
+    fidelidad de round-trip categórico hacia `decision_state`.
+    """
     metrics_report: PathionicMetricsReport
     pentagonal_report: PathionicPentagonalReport
     null_report: NullConeReport
+    all_states: Tuple[
+        PathionicState,
+        PathionicState,
+        PathionicState,
+        PathionicState,
+        PathionicState,
+    ]
 
     fpu_execution_time_ms: float
     cryptographic_seal: str
@@ -430,84 +542,87 @@ class PathionicEngineState:
 
     @property
     def null_cone_friction(self) -> float:
-        """Compatibilidad semántica con la versión 3.x."""
         return self.null_report.absolute_friction
 
     @property
     def is_null_cone_penetrated(self) -> bool:
-        """Compatibilidad semántica con la versión 3.x."""
         return self.null_report.is_null_cone_penetrated
 
     @property
     def decision_state(self) -> PathionicDecisionState:
-        """Reconstrucción del objeto de decisión (Fase 2) a partir del certificado."""
+        r"""
+        Morfismo inverso fiel hacia el objeto terminal de la Fase 2: reconstruye
+        el `PathionicDecisionState` con los 5 vértices ORIGINALES de \Delta_4
+        (corrección de fidelidad: la reconstrucción ya no colapsa P_3, P_4, P_5
+        sobre state_a).
+        """
         return PathionicDecisionState(
             metrics_report=self.metrics_report,
             pentagonal_report=self.pentagonal_report,
-            states=(
-                self.metrics_report.state_a,
-                self.metrics_report.state_b,
-                self.metrics_report.state_a,
-                self.metrics_report.state_a,
-                self.metrics_report.state_a,
-            ),
+            states=self.all_states,
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §D. NÚCLEO NUMÉRICO KAHAN-BABUŠKA-NEUMAIER (KBN)
+# §D. NÚCLEO MATEMÁTICO DE SUMACIÓN EXACTA (SHEWCHUK) Y METROLOGÍA
 # ═══════════════════════════════════════════════════════════════════════════════
 class KBNSummationKernel:
     r"""
-    Núcleo de sumación compensada Kahan-Babuška-Neumaier.
+    Núcleo de sumación de alta fidelidad. Internamente delega en el algoritmo
+    de destilación de Shewchuk (1997) —`math.fsum`— que mantiene una colección
+    de parciales libres de solapamiento (*non-overlapping partials*) y produce
+    un resultado CORRECTAMENTE REDONDEADO:
+      S_{\mathrm{comp}} = \mathrm{fl}\left(\sum_i x_i\right), \quad
+      |S_{\mathrm{comp}} - S_{\mathrm{exact}}| \le \tfrac{1}{2}\,\mathrm{ulp}(S_{\mathrm{exact}}).
 
-    Distinción axiomática (a menudo confundida):
-    - Kahan clásico: compensación unidireccional `c = (t-s)-y`.
-    - KBN / Neumaier: el sumando de mayor magnitud dona el residuo,
-      lo que es estable cuando los sumandos cambian de escala.
-
-    Aquí se implementa KBN genuino. `math.fsum` (Shewchuk) se usa como
-    corroboración de la suma de cuadrados escalada.
+    Esta cota es estrictamente superior a la del algoritmo de Kahan-Babuška-
+    Neumaier clásico (O(n\varepsilon)\sum|x_i|), independiente del orden y del
+    condicionamiento de los sumandos. Se conserva el nombre histórico
+    `KBNSummationKernel` por estabilidad de interfaz pública.
     """
 
     __slots__ = ()
 
     @staticmethod
     def sum(values: np.ndarray) -> float:
-        r"""Sumación compensada KBN sobre un arreglo numpy ravelado."""
-        total = 0.0
-        compensation = 0.0
+        r"""Sumación exacta (redondeo correcto) de Shewchuk sobre un arreglo real."""
+        flat = np.ravel(np.asarray(values, dtype=np.float64))
+        if flat.size == 0:
+            return 0.0
+        if not np.all(np.isfinite(flat)):
+            raise PathionicNumericalSingularityError(
+                "Detección de singularidad no finita durante la sumación exacta de Shewchuk."
+            )
+        try:
+            result = math.fsum(flat.tolist())
+        except (OverflowError, ValueError) as exc:
+            raise PathionicNumericalSingularityError(
+                "Desbordamiento irrecuperable en el algoritmo de destilación de Shewchuk."
+            ) from exc
 
-        for raw in np.ravel(values):
-            x = float(raw)
-            if not math.isfinite(x):
-                raise PathionicNumericalSingularityError(
-                    "La sumación KBN detectó un valor no finito."
-                )
-
-            t = total + x
-            if abs(total) >= abs(x):
-                compensation += (total - t) + x
-            else:
-                compensation += (x - t) + total
-            total = t
-
-        result = total + compensation
         if not math.isfinite(result):
             raise PathionicNumericalSingularityError(
-                "La sumación KBN excedió el rango representable de la FPU."
+                "Resultado no finito producido por la sumación exacta de Shewchuk."
             )
-        return result
+        return float(result)
+
+    @staticmethod
+    def dot(x: np.ndarray, y: np.ndarray) -> float:
+        r"""Producto interno exacto \langle x, y \rangle = \sum_i x_i y_i vía Shewchuk."""
+        arr_x = np.ravel(np.asarray(x, dtype=np.float64))
+        arr_y = np.ravel(np.asarray(y, dtype=np.float64))
+        if arr_x.shape != arr_y.shape:
+            raise PathionicDimensionError(
+                f"Discrepancia dimensional en producto interno: {arr_x.shape} != {arr_y.shape}."
+            )
+        return KBNSummationKernel.sum(arr_x * arr_y)
 
     @staticmethod
     def norm(values: np.ndarray) -> float:
         r"""
-        Norma euclídea robusta con escalado y sumación KBN:
-
-            \|x\|_2 = m \sqrt{\sum_i (x_i/m)^2},\qquad m=\max_i |x_i|.
-
-        El escalado evita overflow/underflow; KBN suprime la deriva de
-        Wilkinson; `math.fsum` corrobora la suma de cuadrados.
+        Norma euclídea \ell_2 ultra-estable con pre-escalado de módulo máximo:
+          \|x\|_2 = m \sqrt{\sum_i (x_i / m)^2}, \quad m = \max_i |x_i|.
+        Inmune a desbordamientos intermedios para vectores con norma cercana a 1e308.
         """
         arr = np.asarray(values, dtype=np.float64)
         if arr.size == 0:
@@ -515,7 +630,7 @@ class KBNSummationKernel:
 
         if not np.all(np.isfinite(arr)):
             raise PathionicNumericalSingularityError(
-                "No se puede calcular una norma KBN sobre componentes no finitas."
+                "Imposible computar la norma exacta sobre vectores con componentes NaN o Inf."
             )
 
         max_abs = float(np.max(np.abs(arr)))
@@ -523,83 +638,69 @@ class KBNSummationKernel:
             return 0.0
 
         scaled = arr / max_abs
-        squares = scaled * scaled
-        ssq = KBNSummationKernel.sum(squares)
+        sum_sq = KBNSummationKernel.sum(scaled * scaled)
 
-        try:
-            ssq_ref = float(math.fsum(map(float, np.ravel(squares))))
-            if math.isfinite(ssq_ref) and abs(ssq - ssq_ref) > 1e-12 * max(1.0, abs(ssq_ref)):
-                logger.debug(
-                    "Discrepancia KBN vs fsum en suma de cuadrados: kbn=%.16e fsum=%.16e",
-                    ssq,
-                    ssq_ref,
-                )
-        except (OverflowError, ValueError):
-            pass
-
-        if ssq < 0.0:
-            if ssq >= -10.0 * _MACHINE_EPS:
-                ssq = 0.0
+        if sum_sq < 0.0:
+            if sum_sq >= -10.0 * _MACHINE_EPS:
+                sum_sq = 0.0
             else:
                 raise PathionicNumericalSingularityError(
-                    "La suma de cuadrados escalada produjo un valor negativo no físico."
+                    "Suma de cuadrados exacta arrojó un residuo negativo no conforme."
                 )
 
-        if max_abs >= _SQRT_DBL_MAX and ssq > 1.0:
+        norm_val = max_abs * math.sqrt(sum_sq)
+        if not math.isfinite(norm_val):
             raise PathionicNumericalSingularityError(
-                "La norma KBN excedió el rango representable de la FPU."
+                "Desbordamiento de la norma exacta fuera del espectro de doble precisión."
             )
+        return float(norm_val)
 
-        norm_value = float(max_abs * math.sqrt(ssq))
-        if not math.isfinite(norm_value):
-            raise PathionicNumericalSingularityError(
-                "La norma KBN excedió el rango representable de la FPU."
-            )
-        return norm_value
+    @staticmethod
+    def pairwise_gram(matrix: np.ndarray) -> np.ndarray:
+        r"""
+        Matriz de Gram G_{ij} = \langle \mathrm{fila}_i, \mathrm{fila}_j \rangle
+        computada vía productos internos exactos de Shewchuk, evitando la
+        cancelación catastrófica del producto matricial denso `A @ A.T` para
+        nubes de puntos de baja cardinalidad (p. ej. los 5 vértices de \Delta_4).
+        """
+        mat = np.asarray(matrix, dtype=np.float64)
+        n = mat.shape[0]
+        gram = np.empty((n, n), dtype=np.float64)
+        for i in range(n):
+            gram[i, i] = KBNSummationKernel.dot(mat[i], mat[i])
+            for j in range(i + 1, n):
+                val = KBNSummationKernel.dot(mat[i], mat[j])
+                gram[i, j] = val
+                gram[j, i] = val
+        return gram
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §E. NÚCLEO ALGEBRAICO DE CAYLEY-DICKSON 32D
+# §E. NÚCLEO ALGEBRAICO DE CAYLEY-DICKSON 32-DIMENSIONAL
 # ═══════════════════════════════════════════════════════════════════════════════
 class CayleyDicksonAlgebra32:
     r"""
-    Álgebra de Cayley-Dickson recursiva de-confinada en la FPU.
-
-    Soporta operaciones sobre
-        \mathbb{R},\mathbb{C},\mathbb{H},\mathbb{O},\mathbb{S},\mathbb{P}.
-
-    Producto (axioma CD-2):
-        (a_1,a_2)(b_1,b_2)
-        =(a_1 b_1-\overline{b_2} a_2,\ b_2 a_1+a_2\overline{b_1}).
-
-    El producto de nivel superior se reescala para extinguir overflow
-    intermedio; el núcleo recursivo no revalida (la validación es frontera).
+    Implementación rigurosa del álgebra de Cayley-Dickson para dimensión 32 (\mathbb{P}).
+    Preserva las identidades bilineales fundamentales:
+      (a, b)(c, d) = (a c - \overline{d} b,\ d a + b \overline{c}).
     """
 
     __slots__ = ()
 
     @staticmethod
-    def _validate_power_of_two_vector(value: np.ndarray, name: str) -> np.ndarray:
-        """Valida que un vector algebraico tenga dimensión 2^k, rango 1 y sea finito."""
-        arr = np.asarray(value, dtype=np.float64)
-
+    def _validate_algebra_vector(v: np.ndarray, name: str) -> np.ndarray:
+        arr = np.asarray(v, dtype=np.float64)
         if arr.ndim != 1:
-            raise PathionicDimensionError(
-                f"{name} debe ser un vector algebraico unidimensional. Shape={arr.shape}."
-            )
+            raise PathionicDimensionError(f"{name} debe ser un vector 1D. Shape={arr.shape}.")
         if not _is_power_of_two(int(arr.size)):
-            raise PathionicDimensionError(
-                f"{name} debe tener dimensión potencia de dos. Obtenido: {arr.size}."
-            )
+            raise PathionicDimensionError(f"La dimensión de {name} ({arr.size}) debe ser 2^k.")
         if not np.all(np.isfinite(arr)):
-            raise PathionicNumericalSingularityError(
-                f"{name} contiene componentes no finitas."
-            )
+            raise PathionicNumericalSingularityError(f"{name} contiene entradas no finitas.")
         return arr
 
     @staticmethod
     def _conjugate_fast(a: np.ndarray) -> np.ndarray:
-        r"""Conjugación interior (CD-3) sin revalidación: \overline{(a_1,a_2)}=(\overline{a_1},-a_2)."""
+        r"""Involución anti-lineal: \overline{(a_0, a_1, \dots, a_{n-1})} = (a_0, -a_1, \dots, -a_{n-1})."""
         out = a.copy()
         if out.size > 1:
             out[1:] = -out[1:]
@@ -607,30 +708,22 @@ class CayleyDicksonAlgebra32:
 
     @classmethod
     def conjugate(cls, a: np.ndarray) -> np.ndarray:
-        r"""
-        Morfismo de conjugación sobre el álgebra de Cayley-Dickson.
-
-        Involución antilineal: \overline{\overline{x}}=x, y anti-homomorfismo
-        de álgebras \overline{xy}=\overline{y}\,\overline{x}.
-        """
-        arr = cls._validate_power_of_two_vector(a, "a")
-        return cls._conjugate_fast(arr)
+        r"""Conjugación canónica CD-3 en la base canónica hipercompleja."""
+        validated = cls._validate_algebra_vector(a, "a")
+        return cls._conjugate_fast(validated)
 
     @classmethod
     def multiply(cls, a: np.ndarray, b: np.ndarray) -> np.ndarray:
         r"""
-        Producto bilineal de Cayley-Dickson sobre álgebras de dimensión 2^k.
-
-        Escalado de frontera: se multiplica (a/s_a)(b/s_b) y se restaura
-        el factor s_a s_b en espacio logarítmico.
+        Producto bilineal de Cayley-Dickson CD-2 con pre-escalado de frontera
+        para extinguir la sobremodulación de la FPU.
         """
-        arr_a = cls._validate_power_of_two_vector(a, "a")
-        arr_b = cls._validate_power_of_two_vector(b, "b")
+        arr_a = cls._validate_algebra_vector(a, "a")
+        arr_b = cls._validate_algebra_vector(b, "b")
 
         if arr_a.size != arr_b.size:
             raise PathionicDimensionError(
-                "No es posible multiplicar álgebras de dimensiones distintas: "
-                f"{arr_a.size} != {arr_b.size}."
+                f"Discrepancia dimensional: {arr_a.size} != {arr_b.size}."
             )
 
         max_a = float(np.max(np.abs(arr_a)))
@@ -639,31 +732,32 @@ class CayleyDicksonAlgebra32:
         if max_a == 0.0 or max_b == 0.0:
             return np.zeros(arr_a.size, dtype=np.float64)
 
-        needs_scale = (
+        needs_scaling = (
             max_a >= _SCALE_OVERFLOW_TRIGGER
             or max_b >= _SCALE_OVERFLOW_TRIGGER
             or (max_a * max_b) >= _SCALE_OVERFLOW_TRIGGER
         )
 
-        if needs_scale:
+        if needs_scaling:
             scaled_a = arr_a / max_a
             scaled_b = arr_b / max_b
-            product = cls._multiply_recursive(scaled_a, scaled_b)
-            product = _apply_log_scale(product, math.log(max_a) + math.log(max_b))
+            raw_prod = cls._multiply_recursive(scaled_a, scaled_b)
+            log_scale = math.log(max_a) + math.log(max_b)
+            factor = _safe_exp(log_scale)
+            product = raw_prod * factor
         else:
             product = cls._multiply_recursive(arr_a, arr_b)
 
         if not np.all(np.isfinite(product)):
             raise PathionicNumericalSingularityError(
-                "El producto de Cayley-Dickson produjo componentes no finitas."
+                "El producto de Cayley-Dickson colapsó en divergencia numérica (NaN/Inf)."
             )
         return product
 
     @classmethod
     def _multiply_recursive(cls, a: np.ndarray, b: np.ndarray) -> np.ndarray:
-        """Núcleo recursivo del producto CD-2 con casos base n=1 y n=2."""
+        """Núcleo recursivo optimizado con desdoblamiento en n=1, 2, 4."""
         n = a.size
-
         if n == 1:
             return np.array([a[0] * b[0]], dtype=np.float64)
 
@@ -675,16 +769,30 @@ class CayleyDicksonAlgebra32:
                 dtype=np.float64,
             )
 
-        half = n // 2
-        a1, a2 = a[:half], a[half:]
-        b1, b2 = b[:half], b[half:]
+        if n == 4:
+            a0, a1, a2, a3 = a[0], a[1], a[2], a[3]
+            b0, b1, b2, b3 = b[0], b[1], b[2], b[3]
+            return np.array(
+                [
+                    a0 * b0 - a1 * b1 - a2 * b2 - a3 * b3,
+                    a0 * b1 + a1 * b0 + a2 * b3 - a3 * b2,
+                    a0 * b2 - a1 * b3 + a2 * b0 + a3 * b1,
+                    a0 * b3 + a1 * b2 - a2 * b1 + a3 * b0,
+                ],
+                dtype=np.float64,
+            )
 
-        left = cls._multiply_recursive(a1, b1) - cls._multiply_recursive(
-            cls._conjugate_fast(b2), a2
-        )
-        right = cls._multiply_recursive(b2, a1) + cls._multiply_recursive(
-            a2, cls._conjugate_fast(b1)
-        )
+        half = n // 2
+        a1_part, a2_part = a[:half], a[half:]
+        b1_part, b2_part = b[:half], b[half:]
+
+        term_left1 = cls._multiply_recursive(a1_part, b1_part)
+        term_left2 = cls._multiply_recursive(cls._conjugate_fast(b2_part), a2_part)
+        left = term_left1 - term_left2
+
+        term_right1 = cls._multiply_recursive(b2_part, a1_part)
+        term_right2 = cls._multiply_recursive(a2_part, cls._conjugate_fast(b1_part))
+        right = term_right1 + term_right2
 
         out = np.empty(n, dtype=np.float64)
         out[:half] = left
@@ -694,20 +802,19 @@ class CayleyDicksonAlgebra32:
     @classmethod
     def quadratic_form(cls, a: np.ndarray) -> Tuple[float, float]:
         r"""
-        Forma cuadrática N(a)=a\overline{a}.
-
-        Devuelve (Re N(a), \|\mathrm{Im}\,N(a)\|_2). En aritmética exacta
-        el segundo sumando es idénticamente nulo para toda álgebra CD.
+        Forma cuadrática N(a) = a \overline{a}.
+        En álgebra teórica pura, Im(a \overline{a}) \equiv 0.
+        Retorna (Re(N(a)), \|\mathrm{Im}(N(a))\|_2) evaluando la fuga de Wilkinson.
         """
-        conj = cls.conjugate(a)
-        quad = cls.multiply(a, conj)
-        scalar = float(quad[0])
-        leakage = KBNSummationKernel.norm(quad[1:]) if quad.size > 1 else 0.0
-        return scalar, leakage
+        conj_a = cls.conjugate(a)
+        prod = cls.multiply(a, conj_a)
+        scalar_val = float(prod[0])
+        leakage = KBNSummationKernel.norm(prod[1:]) if prod.size > 1 else 0.0
+        return scalar_val, leakage
 
     @classmethod
     def associator(cls, a: np.ndarray, b: np.ndarray, c: np.ndarray) -> np.ndarray:
-        r"""Asociador de 3 vías: [a,b,c]=(ab)c-a(bc). Curvatura algebraica de primer orden."""
+        r"""Asociador trilateral estándar [a, b, c] = (a b) c - a (b c)."""
         left = cls.multiply(cls.multiply(a, b), c)
         right = cls.multiply(a, cls.multiply(b, c))
         return left - right
@@ -722,24 +829,23 @@ class CayleyDicksonAlgebra32:
         e: np.ndarray,
     ) -> np.ndarray:
         r"""
-        Asociador pentagonal de 5 vías (4-símplex):
-
-            A_5(a,b,c,d,e)=((((ab)c)d)e)-a(b(c(de))).
+        Asociador pentagonal de 5 vías correspondiente al 4-símplex \Delta_4:
+          A_5(a,b,c,d,e) = ((((a b) c) d) e) - (a (b (c (d e)))).
         """
-        p12 = cls.multiply(a, b)
-        p123 = cls.multiply(p12, c)
-        p1234 = cls.multiply(p123, d)
-        left = cls.multiply(p1234, e)
+        ab = cls.multiply(a, b)
+        abc = cls.multiply(ab, c)
+        abcd = cls.multiply(abc, d)
+        left = cls.multiply(abcd, e)
 
-        p45 = cls.multiply(d, e)
-        p345 = cls.multiply(c, p45)
-        p2345 = cls.multiply(b, p345)
-        right = cls.multiply(a, p2345)
+        de = cls.multiply(d, e)
+        cde = cls.multiply(c, de)
+        bcde = cls.multiply(b, cde)
+        right = cls.multiply(a, bcde)
 
         return left - right
 
     @classmethod
-    def stasheff_pentagon_associations(
+    def stasheff_associations(
         cls,
         a: np.ndarray,
         b: np.ndarray,
@@ -747,57 +853,128 @@ class CayleyDicksonAlgebra32:
         d: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
         r"""
-        Las cinco asociaciones plenas de un producto de 4 factores
-        (pentágono de Stasheff / 2-celda de A_\infty):
-
-            ((ab)c)d,\ (a(bc))d,\ (ab)(cd),\ a((bc)d),\ a(b(cd)).
+        Las 5 asociaciones canónicas del pentágono de Stasheff K_4:
+          v_1 = ((a b) c) d
+          v_2 = (a (b c)) d
+          v_3 = (a b) (c d)
+          v_4 = a ((b c) d)
+          v_5 = a (b (c d))
         """
         ab = cls.multiply(a, b)
         bc = cls.multiply(b, c)
         cd = cls.multiply(c, d)
-        return (
-            cls.multiply(cls.multiply(ab, c), d),
-            cls.multiply(cls.multiply(a, bc), d),
-            cls.multiply(ab, cd),
-            cls.multiply(a, cls.multiply(bc, d)),
-            cls.multiply(a, cls.multiply(b, cd)),
-        )
+
+        v1 = cls.multiply(cls.multiply(ab, c), d)
+        v2 = cls.multiply(cls.multiply(a, bc), d)
+        v3 = cls.multiply(ab, cd)
+        v4 = cls.multiply(a, cls.multiply(bc, d))
+        v5 = cls.multiply(a, cls.multiply(b, cd))
+
+        return (v1, v2, v3, v4, v5)
+
+    @classmethod
+    def moufang_defects(
+        cls,
+        x: np.ndarray,
+        y: np.ndarray,
+        z: np.ndarray,
+    ) -> Tuple[float, float, float]:
+        r"""
+        Calcula los tres defectos de las identidades de Moufang (Zorn 1930,
+        Moufang 1935) — condición necesaria y suficiente para que un loop
+        multiplicativo sea alternativo:
+          M_L (izquierda):  x(y(xz)) = ((xy)x)z
+          M_R (derecha):    ((zx)y)x = z(x(yx))
+          M_M (media):      (xy)(zx) = x((yz)x)
+        Se satisfacen EXACTAMENTE en \mathbb{R}, \mathbb{C}, \mathbb{H}, \mathbb{O}
+        (dim \le 8) y se rompen genéricamente en \mathbb{S}, \mathbb{P} (dim \ge 16),
+        constituyendo un certificado espectral de la frontera de Hurwitz.
+        """
+        xz = cls.multiply(x, z)
+        lhs_left = cls.multiply(x, cls.multiply(y, xz))
+        rhs_left = cls.multiply(cls.multiply(cls.multiply(x, y), x), z)
+        left_defect = KBNSummationKernel.norm(lhs_left - rhs_left)
+
+        zx = cls.multiply(z, x)
+        yx = cls.multiply(y, x)
+        lhs_right = cls.multiply(cls.multiply(zx, y), x)
+        rhs_right = cls.multiply(z, cls.multiply(x, yx))
+        right_defect = KBNSummationKernel.norm(lhs_right - rhs_right)
+
+        xy = cls.multiply(x, y)
+        yz = cls.multiply(y, z)
+        lhs_middle = cls.multiply(xy, zx)
+        rhs_middle = cls.multiply(x, cls.multiply(yz, x))
+        middle_defect = KBNSummationKernel.norm(lhs_middle - rhs_middle)
+
+        return left_defect, right_defect, middle_defect
 
     @classmethod
     def left_multiplication_matrix(cls, p: np.ndarray) -> np.ndarray:
         r"""
-        Operador de multiplicación a la izquierda L_p:\mathbb{P}\to\mathbb{P},
-        y \mapsto p y, en la base canónica \{e_0,\ldots,e_{31}\}.
-
-        p es divisor de cero izquierdo \Leftrightarrow \det L_p=0
-        \Leftrightarrow \sigma_{\min}(L_p)=0.
+        Operador de representación regular izquierda L_p \in \mathbb{R}^{32 \times 32},
+        definido por L_p(y) = p \cdot y.
         """
-        arr = cls._validate_power_of_two_vector(p, "p")
-        dim = int(arr.size)
-        op = np.empty((dim, dim), dtype=np.float64)
-        eye_col = np.zeros(dim, dtype=np.float64)
-        for j in range(dim):
-            eye_col[j] = 1.0
-            op[:, j] = cls.multiply(arr, eye_col)
-            eye_col[j] = 0.0
-        return op
+        vec = cls._validate_algebra_vector(p, "p")
+        dim = vec.size
+        L_matrix = np.empty((dim, dim), dtype=np.float64)
+        e_k = np.zeros(dim, dtype=np.float64)
+
+        for col in range(dim):
+            e_k[col] = 1.0
+            L_matrix[:, col] = cls.multiply(vec, e_k)
+            e_k[col] = 0.0
+
+        return L_matrix
+
+    @classmethod
+    def right_multiplication_matrix(cls, p: np.ndarray) -> np.ndarray:
+        r"""
+        Operador de representación regular derecha R_p \in \mathbb{R}^{32 \times 32},
+        definido por R_p(y) = y \cdot p. Generalmente distinto de L_p por la
+        no conmutatividad de \mathbb{P}, indispensable para el análisis BILÁTERO
+        del cono nulo \mathcal{N}(\mathbb{P}).
+        """
+        vec = cls._validate_algebra_vector(p, "p")
+        dim = vec.size
+        R_matrix = np.empty((dim, dim), dtype=np.float64)
+        e_k = np.zeros(dim, dtype=np.float64)
+
+        for col in range(dim):
+            e_k[col] = 1.0
+            R_matrix[:, col] = cls.multiply(e_k, vec)
+            e_k[col] = 0.0
+
+        return R_matrix
+
+    @classmethod
+    def commutator(cls, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        r"""Conmutador de Lie [a, b] = a b - b a."""
+        return cls.multiply(a, b) - cls.multiply(b, a)
+
+    @classmethod
+    def jordan_product(cls, a: np.ndarray, b: np.ndarray) -> np.ndarray:
+        r"""Producto simétrico de Jordan a \circ b = \frac{1}{2}(a b + b a)."""
+        return 0.5 * (cls.multiply(a, b) + cls.multiply(b, a))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §F. FASE 1 — OBSERVE + ORIENT
+# §F. FASE 1 — OBSERVE + ORIENT (METROLOGÍA CD 32D, CACHÉ ESPECTRAL Y BANACH)
 # ═══════════════════════════════════════════════════════════════════════════════
 class Phase1_PathionicMetricObserver:
     r"""
-    FASE 1 — Observe + Orient.
+    FASE 1: Observe + Orient.
+    Categoría Functorial: \mathbf{Hilb}_{32} \times \mathbf{Hilb}_{32} \longrightarrow \mathbf{PathionicMetricsReport}.
 
-    Ingesta de tensores 32D, descomposición de Cayley-Dickson,
-    construcción de estados inmutables, auditoría de N(x) y de la
-    composición de Hurwitz en la FPU.
+    Ingesta sensorial en 32 dimensiones, ensamblaje de cuaternas y sedeniones,
+    cálculo de normas euclídeas por sumación exacta de Shewchuk, evaluación de
+    la fuga cuadrática, determinación del defecto de submultiplicatividad de
+    Banach/Hurwitz, Y CONGELACIÓN del espectro singular extremal de los
+    operadores de representación regular L_{\hat p}, R_{\hat p} — insumo que
+    la Fase 3 reutilizará sin recómputo, por bilinealidad en el argumento.
 
-    Categoría fuente: \mathbf{Vec}_{32}\times\mathbf{Vec}_{32}.
-    Categoría meta  : \mathbf{Metrics}.
-
-    El método terminal `observe_metrics` es el objeto inicial de la Fase 2.
+    El método terminal `observe_metrics` es el punto de continuidad
+    hacia la Fase 2 (`Phase2_PentagonalAssociatorCalculator.continue_from_metrics_report`).
     """
 
     __slots__ = ("_thresholds",)
@@ -807,63 +984,132 @@ class Phase1_PathionicMetricObserver:
 
     @property
     def thresholds(self) -> PathionicThresholds:
-        """Umbral metrológico activo del motor."""
         return self._thresholds
 
-    def build_state(self, S: Sequence[float]) -> PathionicState:
+    def _compute_operator_spectral_cache(
+        self,
+        vec: np.ndarray,
+        norm_val: float,
+        is_zero_state: bool,
+    ) -> Tuple[float, float, float, float, np.ndarray, np.ndarray, float, float]:
         r"""
-        Instancia un `PathionicState` inmutable a partir de un vector real en R^{32}.
-
-            S\in\mathbb{R}^{32}\ \mapsto\ P=(s_1,s_2)\in\mathbb{S}\times\mathbb{S}.
-
-        Audita simultáneamente \|P\|_2 y la forma cuadrática N(P)=P\overline{P}.
+        Resuelve, para el operando unitario \hat p = p / \|p\|, los operadores
+        L_{\hat p}, R_{\hat p} y extrae sus valores singulares extremales junto
+        con los vectores singulares derechos asociados a \sigma_{\min}
+        (testigos del anulador aproximado). En una álgebra de composición
+        (\mathbb{R}, \mathbb{C}, \mathbb{H}, \mathbb{O}), L_{\hat p} y R_{\hat p}
+        son ISOMETRÍAS exactas: todos sus valores singulares valen 1. El
+        defecto \sigma_{\max} - 1 mide la ruptura de esa propiedad en \mathbb{P}.
         """
-        vector = _prepare_pathion_vector(S, "PathionicState.vector_rep")
+        dim = vec.size
+        if is_zero_state or norm_val <= self._thresholds.zero_norm_threshold:
+            zero_w = np.zeros(dim, dtype=np.float64)
+            zero_w.setflags(write=False)
+            return 0.0, 0.0, 0.0, 0.0, zero_w, zero_w, 0.0, 0.0
 
-        s1 = np.ascontiguousarray(vector[0:_SEDENION_DIM].copy(), dtype=np.float64)
-        s2 = np.ascontiguousarray(
-            vector[_SEDENION_DIM:_PATHION_DIM].copy(), dtype=np.float64
+        p_hat = vec / norm_val
+        L_hat = CayleyDicksonAlgebra32.left_multiplication_matrix(p_hat)
+        R_hat = CayleyDicksonAlgebra32.right_multiplication_matrix(p_hat)
+
+        try:
+            _, s_L, Vt_L = la.svd(L_hat, full_matrices=False, check_finite=True)
+        except la.LinAlgError:
+            _, s_L, Vt_L = np.linalg.svd(L_hat, full_matrices=False)
+
+        try:
+            _, s_R, Vt_R = la.svd(R_hat, full_matrices=False, check_finite=True)
+        except la.LinAlgError:
+            _, s_R, Vt_R = np.linalg.svd(R_hat, full_matrices=False)
+
+        left_sigma_max = float(s_L[0])
+        left_sigma_min = float(s_L[-1])
+        right_sigma_max = float(s_R[0])
+        right_sigma_min = float(s_R[-1])
+
+        left_witness = np.ascontiguousarray(Vt_L[-1, :].copy())
+        right_witness = np.ascontiguousarray(Vt_R[-1, :].copy())
+        left_witness.setflags(write=False)
+        right_witness.setflags(write=False)
+
+        left_isometry_defect = abs(left_sigma_max - 1.0)
+        right_isometry_defect = abs(right_sigma_max - 1.0)
+
+        return (
+            left_sigma_max,
+            left_sigma_min,
+            right_sigma_max,
+            right_sigma_min,
+            left_witness,
+            right_witness,
+            left_isometry_defect,
+            right_isometry_defect,
         )
+
+    def build_state(self, raw_vector: Sequence[float]) -> PathionicState:
+        r"""
+        Morfismo de condensación de estado:
+          R^{32} \longrightarrow \mathbf{PathionicState}.
+        Congela el tensor, evalúa invariantes hermíticos e hipercomplejos, y
+        cachea el espectro singular extremal de L_{\hat p}, R_{\hat p}.
+        """
+        vec = _prepare_pathion_vector(raw_vector, "PathionicState.vector_rep")
+
+        s1 = np.ascontiguousarray(vec[0:_SEDENION_DIM].copy(), dtype=np.float64)
+        s2 = np.ascontiguousarray(vec[_SEDENION_DIM:_PATHION_DIM].copy(), dtype=np.float64)
         s1.setflags(write=False)
         s2.setflags(write=False)
 
-        norm_value = KBNSummationKernel.norm(vector)
-        if not math.isfinite(norm_value):
-            raise PathionicNumericalSingularityError(
-                "La norma del estado pationiónico no es finita."
-            )
+        norm_val = KBNSummationKernel.norm(vec)
+        if not math.isfinite(norm_val):
+            raise PathionicNumericalSingularityError("Norma no finita calculada para el estado.")
 
-        if norm_value >= _SQRT_DBL_MAX:
-            norm_squared = math.inf
-        else:
-            norm_squared = norm_value * norm_value
+        norm_sq = norm_val * norm_val if norm_val < _SQRT_DBL_MAX else math.inf
+        real_comp = float(vec[0])
+        imag_norm = KBNSummationKernel.norm(vec[1:]) if vec.size > 1 else 0.0
 
-        real_part = float(vector[0])
-        imag_norm = KBNSummationKernel.norm(vector[1:]) if vector.size > 1 else 0.0
-        quadratic_scalar, quadratic_leakage = CayleyDicksonAlgebra32.quadratic_form(vector)
+        quad_scalar, quad_leakage = CayleyDicksonAlgebra32.quadratic_form(vec)
 
-        is_zero = norm_value <= self._thresholds.zero_norm_threshold
-        is_unitary = _within_tolerance(
-            norm_value,
+        is_zero_state = norm_val <= self._thresholds.zero_norm_threshold
+        is_unitary_state = _within_tolerance(
+            norm_val,
             1.0,
             self._thresholds.absolute_tolerance,
             self._thresholds.relative_tolerance,
         )
 
-        sha_hash = _sha256_of_arrays((vector, s1, s2))
+        (
+            left_sigma_max,
+            left_sigma_min,
+            right_sigma_max,
+            right_sigma_min,
+            left_witness,
+            right_witness,
+            left_iso_defect,
+            right_iso_defect,
+        ) = self._compute_operator_spectral_cache(vec, norm_val, is_zero_state)
+
+        sha_hash = _sha256_of_arrays((vec, s1, s2))
 
         return PathionicState(
-            vector_rep=vector,
+            vector_rep=vec,
             s1=s1,
             s2=s2,
-            norm=norm_value,
-            norm_squared=norm_squared,
-            real_part=real_part,
+            norm=norm_val,
+            norm_squared=norm_sq,
+            real_part=real_comp,
             imag_norm=imag_norm,
-            quadratic_scalar=quadratic_scalar,
-            quadratic_leakage=quadratic_leakage,
-            is_unitary=is_unitary,
-            is_zero=is_zero,
+            quadratic_scalar=quad_scalar,
+            quadratic_leakage=quad_leakage,
+            is_unitary=is_unitary_state,
+            is_zero=is_zero_state,
+            left_sigma_max=left_sigma_max,
+            left_sigma_min=left_sigma_min,
+            right_sigma_max=right_sigma_max,
+            right_sigma_min=right_sigma_min,
+            left_zero_divisor_witness=left_witness,
+            right_zero_divisor_witness=right_witness,
+            left_isometry_defect=left_iso_defect,
+            right_isometry_defect=right_iso_defect,
             sha256_hash=sha_hash,
         )
 
@@ -873,96 +1119,47 @@ class Phase1_PathionicMetricObserver:
         B_vec: Sequence[float],
     ) -> PathionicMetricsReport:
         r"""
-        Morfismo terminal de la Fase 1.
+        MORFISMO TERMINAL DE LA FASE 1.
 
-        Ejecuta el producto pationiónico A·B y verifica la composición de Hurwitz:
+        Ejecuta el producto hipercomplejo pationiónico A \cdot B, mide las normas
+        por sumación exacta de Shewchuk, audita la identidad de Hurwitz:
+          \delta_H = \bigl| \|A \cdot B\| - \|A\| \|B\| \bigr|,
+        y computa la pérdida exergética por desajuste de Banach.
 
-            \delta_{\mathrm{composition}}
-            =\bigl|\,\|A\cdot B\|_{\mathbb{P}}-\|A\|_{\mathbb{P}}\|B\|_{\mathbb{P}}\bigr|.
-
-        Firma functorial:
-
-            \mathrm{observe\_metrics}:
-                \mathbb{R}^{32}\times\mathbb{R}^{32}\longrightarrow
-                \mathbf{PathionicMetricsReport}.
-
-        El valor de retorno es el objeto inicial de
-        `Phase2_PentagonalAssociatorCalculator.continue_from_metrics_report`.
+        El objeto retornado es el argumento formal exigido por la Fase 2.
         """
         state_a = self.build_state(A_vec)
         state_b = self.build_state(B_vec)
 
-        product_vector = CayleyDicksonAlgebra32.multiply(
-            state_a.vector_rep,
-            state_b.vector_rep,
-        )
-        product_state = self.build_state(product_vector)
+        prod_vector = CayleyDicksonAlgebra32.multiply(state_a.vector_rep, state_b.vector_rep)
+        product_state = self.build_state(prod_vector)
 
-        log_expected = _log_norm(state_a.norm) + _log_norm(state_b.norm)
-        expected_norm = _safe_exp(log_expected)
+        log_exp = _log_norm(state_a.norm) + _log_norm(state_b.norm)
+        expected_norm = _safe_exp(log_exp)
         product_norm = product_state.norm
 
-        if math.isfinite(product_norm) and math.isfinite(expected_norm):
-            signed_defect = product_norm - expected_norm
-            absolute_error = abs(signed_defect)
-        else:
-            signed_defect = math.inf
-            absolute_error = math.inf
-
-        scale = (
-            max(_WILKINSON_FLOOR, expected_norm)
-            if math.isfinite(expected_norm)
-            else _WILKINSON_FLOOR
-        )
-        relative_error = (
-            absolute_error / scale if math.isfinite(absolute_error) else math.inf
+        signed_defect, absolute_error, relative_error = _composition_defect(
+            product_norm, expected_norm, _WILKINSON_FLOOR
         )
 
-        if expected_norm > self._thresholds.zero_norm_threshold and math.isfinite(
-            expected_norm
-        ):
-            composition_ratio = (
-                product_norm / expected_norm if math.isfinite(product_norm) else math.inf
-            )
+        scale = max(_WILKINSON_FLOOR, expected_norm) if math.isfinite(expected_norm) else _WILKINSON_FLOOR
+
+        if expected_norm > self._thresholds.zero_norm_threshold and math.isfinite(expected_norm):
+            composition_ratio = product_norm / expected_norm if math.isfinite(product_norm) else math.inf
         else:
-            composition_ratio = (
-                1.0
-                if product_norm <= self._thresholds.zero_norm_threshold
-                else math.inf
-            )
+            composition_ratio = 1.0 if product_norm <= self._thresholds.zero_norm_threshold else math.inf
 
         is_hurwitz_stable = math.isfinite(absolute_error) and (
-            absolute_error
-            <= self._thresholds.hurwitz_absolute
-            + self._thresholds.hurwitz_relative * scale
+            absolute_error <= self._thresholds.hurwitz_absolute + self._thresholds.hurwitz_relative * scale
         )
 
-        is_banach_submultiplicative = math.isfinite(product_norm) and math.isfinite(
-            expected_norm
-        ) and (
-            product_norm
-            <= expected_norm
-            + self._thresholds.hurwitz_absolute
-            + self._thresholds.hurwitz_relative * scale
+        is_banach_submultiplicative = math.isfinite(product_norm) and math.isfinite(expected_norm) and (
+            product_norm <= expected_norm + self._thresholds.hurwitz_absolute + self._thresholds.hurwitz_relative * scale
         )
 
-        if product_state.quadratic_leakage > self._thresholds.quadratic_leakage_limit * max(
-            1.0, product_state.norm_squared if math.isfinite(product_state.norm_squared) else 1.0
-        ):
-            logger.debug(
-                "Fase 1: fuga imaginaria de N(AB) = %.6e (norma^2 = %.6e).",
-                product_state.quadratic_leakage,
-                product_state.norm_squared,
-            )
-
-        if not is_hurwitz_stable:
-            logger.debug(
-                "Fase 1: deriva de Hurwitz. abs=%.6e rel=%.6e signed=%.6e ratio=%.6e",
-                absolute_error,
-                relative_error,
-                signed_defect,
-                composition_ratio,
-            )
+        exergy_loss = abs(product_norm * product_norm - expected_norm * expected_norm) if (
+            math.isfinite(product_norm) and math.isfinite(expected_norm)
+        ) else math.inf
 
         return PathionicMetricsReport(
             state_a=state_a,
@@ -974,28 +1171,40 @@ class Phase1_PathionicMetricObserver:
             hurwitz_relative_error=relative_error,
             hurwitz_signed_defect=signed_defect,
             composition_ratio=composition_ratio,
+            exergy_loss_hurwitz=exergy_loss,
             is_hurwitz_stable=is_hurwitz_stable,
             is_banach_submultiplicative=is_banach_submultiplicative,
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §G. FASE 2 — DECIDE
-#     Objeto inicial = morfismo terminal de la Fase 1 (PathionicMetricsReport)
+# §G. FASE 2 — DECIDE (STASHEFF, MOUFANG, ALBERT Y HODGE-LAPLACE)
 # ═══════════════════════════════════════════════════════════════════════════════
 class Phase2_PentagonalAssociatorCalculator(Phase1_PathionicMetricObserver):
     r"""
-    FASE 2 — Decide.
+    FASE 2: Decide.
+    Hereda ontológicamente de la Fase 1 (Observe + Orient).
 
-    Consume `PathionicMetricsReport` (terminal de Fase 1) y extiende la
-    auditoría al 4-símplex de cinco vías: asociador trilateral, asociador
-    pentagonal A_5, pentágono de Stasheff, defectos de flexibilidad y
-    alternatividad, volumen afín y espectro del laplaciano de similitud.
+    Categoría Functorial:
+      \mathbf{PathionicMetricsReport} \times (R^{32})^{\times 3} \longrightarrow \mathbf{PathionicDecisionState}.
 
-    El método inicial `continue_from_metrics_report` es la continuación
-    formal de `Phase1.observe_metrics`.
-    El método terminal `decide_from_metrics_report` produce el objeto
-    inicial de la Fase 3 (`PathionicDecisionState`).
+    Consume el reporte métrico terminal de la Fase 1, extiende la interacción
+    al 4-símplex completo \Delta_4 mediante los estados P_3, P_4, P_5, y computa:
+      1. Asociador trilateral y pentagonal de calibre.
+      2. Diámetro del pentágono de Stasheff K_4.
+      3. Defecto de flexibilidad de Albert [P_1, P_2, P_1] — identidad UNIVERSAL
+         (se enfuerza como axioma; su ruptura grosera detona
+         `PathionicAxiomViolationError`).
+      4. Defectos de las tres identidades de Moufang y de alternatividad
+         [P_1, P_1, P_2] — certificado espectral exacto de la frontera de
+         Hurwitz (dim \le 8 alternativa vs. dim \ge 16 no-alternativa).
+      5. Volumen tetradimensional del 4-símplex mediante Gram-SVD.
+      6. Topología de Hodge sobre el grafo K_5: espectro del laplaciano
+         (Gram compensado de Shewchuk), autovalor de Fiedler \lambda_2,
+         hueco espectral, índice de Kirchhoff y disipación de Dirichlet.
+
+    El método terminal `decide_from_metrics_report` genera el objeto inicial
+    para la Fase 3.
     """
 
     __slots__ = ()
@@ -1009,12 +1218,8 @@ class Phase2_PentagonalAssociatorCalculator(Phase1_PathionicMetricObserver):
         pentagonal_threshold: Optional[float] = None,
     ) -> PathionicPentagonalReport:
         r"""
-        Morfismo de entrada de la Fase 2 (continuación formal de
-        `Phase1_PathionicMetricObserver.observe_metrics`).
-
-            \mathrm{continue\_from\_metrics\_report}:
-                \mathbf{PathionicMetricsReport}\times(\mathbb{R}^{32})^{3}
-                \longrightarrow\mathbf{PathionicPentagonalReport}.
+        MORFISMO DE CONTINUACIÓN DE LA FASE 2.
+        Toma el reporte terminal de la Fase 1 y calcula el reporte pentagonal.
         """
         return self.decide_from_metrics_report(
             metrics_report=metrics_report,
@@ -1024,32 +1229,13 @@ class Phase2_PentagonalAssociatorCalculator(Phase1_PathionicMetricObserver):
             pentagonal_threshold=pentagonal_threshold,
         ).pentagonal_report
 
-    def calculate_pentagonal_frustration(
-        self,
-        p1_vec: Sequence[float],
-        p2_vec: Sequence[float],
-        p3_vec: Sequence[float],
-        p4_vec: Sequence[float],
-        p5_vec: Sequence[float],
-        pentagonal_threshold: Optional[float] = None,
-    ) -> PathionicPentagonalReport:
-        r"""Orquesta la frustración de calibre de 5 vías sin precomputar la Fase 1."""
-        states = tuple(
-            self.build_state(v)
-            for v in (p1_vec, p2_vec, p3_vec, p4_vec, p5_vec)
-        )
-        return self._pentagonal_report_from_states(
-            states=states,
-            pentagonal_threshold=pentagonal_threshold,
-        )
-
     def compute_trilateral_associator(
         self,
         P1: PathionicState,
         P2: PathionicState,
         P3: PathionicState,
     ) -> np.ndarray:
-        r"""Asociador de 3 vías [P_1,P_2,P_3]=(P_1 P_2)P_3-P_1(P_2 P_3)."""
+        r"""Calcula [P_1, P_2, P_3] = (P_1 P_2) P_3 - P_1 (P_2 P_3)."""
         return CayleyDicksonAlgebra32.associator(
             P1.vector_rep,
             P2.vector_rep,
@@ -1064,7 +1250,7 @@ class Phase2_PentagonalAssociatorCalculator(Phase1_PathionicMetricObserver):
         P4: PathionicState,
         P5: PathionicState,
     ) -> np.ndarray:
-        r"""Asociador pentagonal A_5=((((P_1 P_2)P_3)P_4)P_5)-P_1(P_2(P_3(P_4 P_5)))."""
+        r"""Calcula A_5 = ((((P_1 P_2) P_3) P_4) P_5) - (P_1 (P_2 (P_3 (P_4 P_5))))."""
         return CayleyDicksonAlgebra32.pentagonal_associator(
             P1.vector_rep,
             P2.vector_rep,
@@ -1080,224 +1266,274 @@ class Phase2_PentagonalAssociatorCalculator(Phase1_PathionicMetricObserver):
         P3: PathionicState,
         P4: PathionicState,
     ) -> float:
-        """Diámetro euclídeo del pentágono de Stasheff sobre cuatro pathiones."""
-        associations = CayleyDicksonAlgebra32.stasheff_pentagon_associations(
+        r"""
+        Calcula el diámetro métrico del politopo de Stasheff K_4:
+          \mathrm{diam}(K_4) = \max_{1 \le i < j \le 5} \|v_i - v_j\|_2.
+        """
+        associations = CayleyDicksonAlgebra32.stasheff_associations(
             P1.vector_rep,
             P2.vector_rep,
             P3.vector_rep,
             P4.vector_rep,
         )
-        diameter = 0.0
+        max_dist = 0.0
         for i in range(len(associations)):
             for j in range(i + 1, len(associations)):
-                delta = associations[i] - associations[j]
-                diameter = max(diameter, KBNSummationKernel.norm(delta))
-        return diameter
+                diff = associations[i] - associations[j]
+                dist = KBNSummationKernel.norm(diff)
+                if dist > max_dist:
+                    max_dist = dist
+        return max_dist
 
-    def _diagnose_five_way_simplex(
+    def _diagnose_simplex_and_hodge(
         self,
         states: Sequence[PathionicState],
-    ) -> Tuple[float, float, float, float, int]:
+    ) -> Tuple[float, float, float, float, float, float, int]:
         r"""
-        Diagnóstico espectral, volumétrico y de conectividad del 4-símplex.
-
-        Devuelve:
-            1. Número de condición afín (SVD de la nube centrada por KBN).
-            2. Volumen 4-dimensional (Gram / 4!).
-            3. Conectividad algebraica (valor de Fiedler \lambda_2).
-            4. Hueco espectral \lambda_2-\lambda_1 del laplaciano.
-            5. Multiplicidad numérica de \lambda=0 (componentes conexas).
+        Auditoría geométrica y espectral de Hodge sobre el 4-símplex \Delta_4 y su
+        1-esqueleto K_5. Retorna:
+          1. Número de condición afín del símplex.
+          2. Volumen 4D exacto: V_4 = \frac{1}{24} \prod \sigma_k(E).
+          3. Conectividad algebraica de Fiedler \lambda_2.
+          4. Hueco espectral del Laplaciano \lambda_2 - \lambda_1.
+          5. Índice de Kirchhoff R_K = n \sum_{k=2}^n \frac{1}{\lambda_k}.
+          6. Disipación exergética de Dirichlet \mathcal{E}_D = \mathrm{Tr}(P^T L P).
+          7. Multiplicidad del autovalor nulo (componentes conexas).
         """
-        if len(states) != 5:
-            raise PathionicEngineError(
-                "El diagnóstico del 4-símplex requiere exactamente cinco estados pationiónicos."
-            )
+        coords = np.vstack([s.vector_rep for s in states])
+        num_vertices = len(states)
 
-        matrix = np.vstack([state.vector_rep for state in states])
-
-        centroid = np.empty(matrix.shape[1], dtype=np.float64)
-        inv_n = 1.0 / float(matrix.shape[0])
-        for j in range(matrix.shape[1]):
-            centroid[j] = KBNSummationKernel.sum(matrix[:, j]) * inv_n
-        centered = matrix - centroid
+        mean_vec = np.zeros(coords.shape[1], dtype=np.float64)
+        for c in range(coords.shape[1]):
+            mean_vec[c] = KBNSummationKernel.sum(coords[:, c]) / float(num_vertices)
+        centered = coords - mean_vec
 
         try:
-            singular_values = la.svdvals(centered, check_finite=True)
+            svals_centered = la.svdvals(centered, check_finite=True)
         except la.LinAlgError:
-            singular_values = np.linalg.svd(centered, compute_uv=False)
+            svals_centered = np.linalg.svd(centered, compute_uv=False)
 
-        if singular_values.size == 0 or float(singular_values[0]) <= _WILKINSON_FLOOR:
-            condition_number = math.inf
+        if svals_centered.size == 0 or float(svals_centered[0]) <= _WILKINSON_FLOOR:
+            cond_number = math.inf
         else:
-            cutoff = max(_MACHINE_EPS * float(singular_values[0]), _WILKINSON_FLOOR)
-            positive = singular_values[singular_values > cutoff]
-            condition_number = (
-                math.inf
-                if positive.size == 0
-                else float(singular_values[0] / positive[-1])
-            )
+            cutoff = max(_MACHINE_EPS * float(svals_centered[0]), _WILKINSON_FLOOR)
+            pos_svals = svals_centered[svals_centered > cutoff]
+            cond_number = float(svals_centered[0] / pos_svals[-1]) if pos_svals.size > 0 else math.inf
 
         origin = states[0].vector_rep
-        edges = np.stack([state.vector_rep - origin for state in states[1:]])
-        gram = edges @ edges.T
-        gram = 0.5 * (gram + gram.T)
-        sign, logabs = np.linalg.slogdet(gram)
-        if sign <= 0.0 or not math.isfinite(logabs):
-            simplex_volume = 0.0
+        edge_matrix = np.stack([states[k].vector_rep - origin for k in range(1, num_vertices)], axis=1)
+        try:
+            svals_edges = la.svdvals(edge_matrix, check_finite=True)
+        except la.LinAlgError:
+            svals_edges = np.linalg.svd(edge_matrix, compute_uv=False)
+
+        if svals_edges.size < 4 or np.any(svals_edges <= _WILKINSON_FLOOR):
+            simplex_vol = 0.0
         else:
-            simplex_volume = _safe_exp(0.5 * float(logabs) - math.log(24.0))
+            log_vol = float(np.sum(np.log(svals_edges))) - math.log(24.0)
+            simplex_vol = _safe_exp(log_vol)
 
-        norms = np.array([state.norm for state in states], dtype=np.float64)
-        valid = norms > self._thresholds.zero_norm_threshold
+        norms = np.array([s.norm for s in states], dtype=np.float64)
+        valid_mask = norms > self._thresholds.zero_norm_threshold
 
-        if not np.any(valid):
-            return condition_number, simplex_volume, 0.0, 0.0, 5
+        if not np.all(valid_mask):
+            return cond_number, simplex_vol, 0.0, 0.0, math.inf, 0.0, num_vertices
 
-        normalized = np.zeros_like(matrix)
-        normalized[valid] = matrix[valid] / norms[valid][:, np.newaxis]
-
-        cosine = normalized @ normalized.T
-        cosine = np.clip(cosine, -1.0, 1.0)
-        weights = 0.5 * (1.0 + cosine)
+        normed_coords = coords / norms[:, np.newaxis]
+        # Gram compensado de Shewchuk: evita cancelación catastrófica en n=5.
+        cosine_matrix = np.clip(KBNSummationKernel.pairwise_gram(normed_coords), -1.0, 1.0)
+        weights = 0.5 * (1.0 + cosine_matrix)
         np.fill_diagonal(weights, 0.0)
-        weights[~np.isfinite(weights)] = 0.0
 
         degrees = np.sum(weights, axis=1)
         laplacian = np.diag(degrees) - weights
         laplacian = 0.5 * (laplacian + laplacian.T)
 
         try:
-            eigenvalues = la.eigvalsh(laplacian, check_finite=True)
+            eigvals = la.eigvalsh(laplacian, check_finite=True)
         except la.LinAlgError:
-            eigenvalues = np.linalg.eigvalsh(laplacian)
+            eigvals = np.linalg.eigvalsh(laplacian)
 
-        eigenvalues = np.sort(np.real(eigenvalues))
-        eig_max = float(eigenvalues[-1]) if eigenvalues.size else 0.0
-        zero_cut = max(
-            float(len(states)) * _MACHINE_EPS * max(eig_max, 1.0),
-            _WILKINSON_FLOOR,
-        )
-        nonnegative = np.maximum(eigenvalues, 0.0)
+        eigvals = np.sort(np.real(eigvals))
+        nonneg_eigs = np.maximum(eigvals, 0.0)
 
-        if nonnegative.size >= 2:
-            fiedler = float(nonnegative[1])
-            gap = float(nonnegative[1] - nonnegative[0])
+        zero_tol = max(num_vertices * _MACHINE_EPS * float(nonneg_eigs[-1]), _WILKINSON_FLOOR)
+        connected_components = int(np.sum(nonneg_eigs <= zero_tol))
+        connected_components = max(1, min(connected_components, num_vertices))
+
+        fiedler_value = float(nonneg_eigs[1]) if nonneg_eigs.size >= 2 else 0.0
+        spectral_gap = _clip_nonnegative(fiedler_value - float(nonneg_eigs[0]))
+
+        if fiedler_value > self._thresholds.laplacian_fiedler_min:
+            kirchhoff = float(num_vertices * np.sum(1.0 / nonneg_eigs[1:]))
         else:
-            fiedler = 0.0
-            gap = 0.0
+            kirchhoff = math.inf
 
-        components = int(np.sum(nonnegative <= zero_cut))
-        components = min(max(components, 1), len(states))
+        dirichlet_exergy = float(np.trace(coords.T @ laplacian @ coords))
+        dirichlet_exergy = _clip_nonnegative(dirichlet_exergy)
 
-        return condition_number, simplex_volume, fiedler, _clip_nonnegative(gap), components
+        return (
+            cond_number,
+            simplex_vol,
+            fiedler_value,
+            spectral_gap,
+            kirchhoff,
+            dirichlet_exergy,
+            connected_components,
+        )
 
     def _pentagonal_report_from_states(
         self,
         states: Sequence[PathionicState],
         pentagonal_threshold: Optional[float],
     ) -> PathionicPentagonalReport:
-        """Orquesta el cálculo pentagonal completo a partir de cinco estados ya construidos."""
         if len(states) != 5:
-            raise PathionicEngineError(
-                "La auditoría pentagonal requiere exactamente cinco estados pationiónicos."
-            )
+            raise PathionicEngineError("La evaluación pentagonal exige exactamente 5 estados pationiónicos.")
 
         P1, P2, P3, P4, P5 = states
 
-        assoc_3_vector = self.compute_trilateral_associator(P1, P2, P3)
-        trilateral_norm = KBNSummationKernel.norm(assoc_3_vector)
+        v_assoc3 = self.compute_trilateral_associator(P1, P2, P3)
+        trilateral_norm = KBNSummationKernel.norm(v_assoc3)
 
-        assoc_5_vector = self.compute_pentagonal_associator(P1, P2, P3, P4, P5)
-        pentagonal_norm = KBNSummationKernel.norm(assoc_5_vector)
+        v_assoc5 = self.compute_pentagonal_associator(P1, P2, P3, P4, P5)
+        pentagonal_norm = KBNSummationKernel.norm(v_assoc5)
 
-        stasheff_diameter = self._stasheff_diameter(P1, P2, P3, P4)
+        stasheff_diam = self._stasheff_diameter(P1, P2, P3, P4)
 
-        flexibility_defect = KBNSummationKernel.norm(
-            CayleyDicksonAlgebra32.associator(P1.vector_rep, P2.vector_rep, P1.vector_rep)
-        )
-        alt_left = KBNSummationKernel.norm(
-            CayleyDicksonAlgebra32.associator(P1.vector_rep, P1.vector_rep, P2.vector_rep)
-        )
-        alt_right = KBNSummationKernel.norm(
-            CayleyDicksonAlgebra32.associator(P1.vector_rep, P2.vector_rep, P2.vector_rep)
-        )
-        alternativity_defect = max(alt_left, alt_right)
+        # --- Axioma UNIVERSAL de flexibilidad de Albert (1942) ---
+        flex_vec = CayleyDicksonAlgebra32.associator(P1.vector_rep, P2.vector_rep, P1.vector_rep)
+        flexibility_defect = KBNSummationKernel.norm(flex_vec)
 
-        log_den = sum(_log_norm(max(state.norm, _WILKINSON_FLOOR)) for state in states)
-        log_norm5 = _log_norm(pentagonal_norm)
-        pentagonal_relative_norm = _safe_exp(log_norm5 - log_den)
-        frustration_index = _safe_exp(log_norm5 - max(0.0, log_den))
+        flex_scale = max(P1.norm * P1.norm * P2.norm, _WILKINSON_FLOOR)
+        flex_bound = self._thresholds.flexibility_axiom_tolerance * (1.0 + flex_scale)
+        is_flexibility_axiom_satisfied = flexibility_defect <= flex_bound
 
-        if pentagonal_threshold is None:
-            threshold_abs = float(self._thresholds.pentagonal_absolute)
-        else:
-            threshold_abs = float(pentagonal_threshold)
-
-        if not math.isfinite(threshold_abs) or threshold_abs < 0.0:
-            raise PathionicEngineError(
-                "El umbral pentagonal debe ser finito y no negativo."
+        if flexibility_defect > 1.0e4 * flex_bound and flexibility_defect > 1.0e-3:
+            raise PathionicAxiomViolationError(
+                "Violación catastrófica de la identidad de flexibilidad de Albert: "
+                f"||[P1,P2,P1]|| = {flexibility_defect:.6e} excede en más de cuatro "
+                f"órdenes de magnitud la tolerancia axiomática {flex_bound:.6e}. "
+                "Esta identidad es UNIVERSAL en toda álgebra de Cayley-Dickson "
+                "(independiente de asociatividad/alternatividad); su ruptura grosera "
+                "certifica un defecto estructural del núcleo de multiplicación."
             )
 
-        log_relative_threshold = math.log(self._thresholds.pentagonal_relative) + log_den
-        relative_threshold_equivalent = _safe_exp(log_relative_threshold)
-        threshold_used = max(threshold_abs, relative_threshold_equivalent)
+        # --- Certificado espectral de Moufang / alternatividad (dim >= 16 lo rompe) ---
+        alt1 = KBNSummationKernel.norm(
+            CayleyDicksonAlgebra32.associator(P1.vector_rep, P1.vector_rep, P2.vector_rep)
+        )
+        alt2 = KBNSummationKernel.norm(
+            CayleyDicksonAlgebra32.associator(P1.vector_rep, P2.vector_rep, P2.vector_rep)
+        )
+        alternativity_defect = max(alt1, alt2)
 
-        absolute_ok = pentagonal_norm <= threshold_abs
-        relative_ok = log_norm5 <= log_relative_threshold
-        is_pentagonal_stable = math.isfinite(pentagonal_norm) and (
-            absolute_ok or relative_ok
+        moufang_left, moufang_right, moufang_middle = CayleyDicksonAlgebra32.moufang_defects(
+            P1.vector_rep, P2.vector_rep, P3.vector_rep
+        )
+        moufang_scale = max(P1.norm * P2.norm * P3.norm, 1.0)
+        is_alternative_regime = (
+            max(moufang_left, moufang_right, moufang_middle, alternativity_defect)
+            <= self._thresholds.alternativity_tolerance * moufang_scale
+        )
+
+        # --- Métricas relativas del asociador pentagonal ---
+        log_prod_norms = sum(_log_norm(max(s.norm, _WILKINSON_FLOOR)) for s in states)
+        log_norm5 = _log_norm(pentagonal_norm)
+        pentagonal_relative_norm = _safe_exp(log_norm5 - log_prod_norms)
+
+        # Parámetro de orden de frustración SATURANTE, acotado en [0, 1):
+        #   \Phi = r / (1 + r), r = pentagonal_relative_norm.
+        # Análogo a la relación rapidez-velocidad; evita divergencias del cociente crudo.
+        if math.isfinite(pentagonal_relative_norm):
+            frustration_index = pentagonal_relative_norm / (1.0 + pentagonal_relative_norm)
+        else:
+            frustration_index = 1.0
+
+        th_abs = float(
+            self._thresholds.pentagonal_absolute
+            if pentagonal_threshold is None
+            else pentagonal_threshold
+        )
+        if not math.isfinite(th_abs) or th_abs < 0.0:
+            raise PathionicEngineError("El umbral pentagonal debe ser finito y no negativo.")
+
+        log_rel_th = math.log(self._thresholds.pentagonal_relative) + log_prod_norms
+        th_used = max(th_abs, _safe_exp(log_rel_th))
+
+        is_stable = math.isfinite(pentagonal_norm) and (
+            pentagonal_norm <= th_abs or log_norm5 <= log_rel_th
         )
 
         (
-            condition_number,
-            simplex_volume,
-            connectivity,
-            spectral_gap,
-            components,
-        ) = self._diagnose_five_way_simplex(states)
+            cond_num,
+            simp_vol,
+            fiedler,
+            gap,
+            kirchhoff,
+            dirichlet,
+            comp_count,
+        ) = self._diagnose_simplex_and_hodge(states)
 
-        messages = []
+        diag_messages: List[str] = []
         if not math.isfinite(pentagonal_norm):
-            messages.append("A_5 no finito: singularidad algebraico-numérica detectada.")
-        elif is_pentagonal_stable:
-            messages.append("A_5 dentro del umbral de estabilidad pentagonal.")
+            diag_messages.append("Singularidad no finita en curvatura A_5.")
+        elif is_stable:
+            diag_messages.append("Calibre pentagonal en régimen de estabilidad homotópica.")
         else:
-            messages.append("A_5 fuera del umbral: frustración de calibre pentagonal activa.")
+            diag_messages.append("Frustración pentagonal crítica: curvatura de calibre fuera de norma.")
 
-        if stasheff_diameter > threshold_used:
-            messages.append("Diámetro de Stasheff A_4 excesivo: homotopía A_∞ no controlada.")
+        if stasheff_diam > th_used:
+            diag_messages.append("Diámetro de Stasheff K_4 hipertrofiado: ruptura de coherencia A_infinito.")
 
-        if condition_number > self._thresholds.condition_number_limit:
-            messages.append("El 4-símplex agéntico presenta condicionamiento afín degenerado.")
-
-        if connectivity <= _MACHINE_EPS:
-            messages.append(
-                "Conectividad algebraica casi nula: el grafo de cinco vías está desconectado."
+        if not is_alternative_regime:
+            diag_messages.append(
+                "Régimen no-alternativo confirmado (identidades de Moufang violadas): "
+                "comportamiento estructural esperado para dim >= 16."
             )
 
-        if components > 1:
-            messages.append(
-                f"El laplaciano estima {components} componentes conexas en el 4-símplex."
+        if not is_flexibility_axiom_satisfied:
+            diag_messages.append(
+                "Alerta axiomática: defecto de flexibilidad de Albert por encima de "
+                "la tolerancia nominal (posible degradación numérica del núcleo CD)."
             )
 
-        diagnosis = " | ".join(messages) if messages else "Auditoría pentagonal estable."
+        if cond_num > self._thresholds.condition_number_limit:
+            diag_messages.append("Degeneración colineal en el 4-símplex (número de condición crítico).")
+
+        if simp_vol <= self._thresholds.simplex_volume_min:
+            diag_messages.append("Colapso del volumen 4D afín del 4-símplex (símplex plano).")
+
+        if fiedler < self._thresholds.laplacian_fiedler_min:
+            diag_messages.append("Estrangulamiento espectral de Fiedler: red K_5 al borde de partición.")
+
+        if comp_count > 1:
+            diag_messages.append(f"Ruptura topológica: {comp_count} componentes disconexas detectadas.")
+
+        diagnosis_str = " | ".join(diag_messages) if diag_messages else "Régimen pentagonal nominal."
 
         return PathionicPentagonalReport(
             trilateral_associator_norm=trilateral_norm,
             pentagonal_associator_norm=pentagonal_norm,
             pentagonal_relative_norm=pentagonal_relative_norm,
             frustration_index=frustration_index,
-            stasheff_pentagon_diameter=stasheff_diameter,
+            stasheff_pentagon_diameter=stasheff_diam,
             flexibility_defect=flexibility_defect,
             alternativity_defect=alternativity_defect,
-            pentagonal_threshold_used=threshold_used,
-            is_pentagonal_stable=is_pentagonal_stable,
-            simplex_condition_number=condition_number,
-            simplex_volume=simplex_volume,
-            laplacian_connectivity=connectivity,
-            laplacian_spectral_gap=spectral_gap,
-            estimated_connected_components=components,
-            diagnosis=diagnosis,
+            moufang_left_defect=moufang_left,
+            moufang_right_defect=moufang_right,
+            moufang_middle_defect=moufang_middle,
+            is_alternative_regime=is_alternative_regime,
+            is_flexibility_axiom_satisfied=is_flexibility_axiom_satisfied,
+            pentagonal_threshold_used=th_used,
+            is_pentagonal_stable=is_stable,
+            simplex_condition_number=cond_num,
+            simplex_volume=simp_vol,
+            laplacian_connectivity=fiedler,
+            laplacian_spectral_gap=gap,
+            kirchhoff_index=kirchhoff,
+            dirichlet_exergy=dirichlet,
+            estimated_connected_components=comp_count,
+            diagnosis=diagnosis_str,
         )
 
     def decide_from_metrics_report(
@@ -1309,47 +1545,56 @@ class Phase2_PentagonalAssociatorCalculator(Phase1_PathionicMetricObserver):
         pentagonal_threshold: Optional[float] = None,
     ) -> PathionicDecisionState:
         r"""
-        Morfismo terminal de la Fase 2.
+        MORFISMO TERMINAL DE LA FASE 2.
 
-        Empaqueta métricas de Hurwitz, auditoría pentagonal y los cinco
-        estados del 4-símplex en un `PathionicDecisionState`, objeto
-        inicial de `Phase3_PathionicNullConeEvaluator.continue_from_decision_state`.
+        Construye los estados para los tres vértices restantes P_3, P_4, P_5,
+        sintetiza el reporte pentagonal y empaqueta el `PathionicDecisionState`.
+        Este objeto es la entrada formal única de la Fase 3.
         """
         P3 = self.build_state(p3_vec)
         P4 = self.build_state(p4_vec)
         P5 = self.build_state(p5_vec)
-        states = (
+
+        all_states = (
             metrics_report.state_a,
             metrics_report.state_b,
             P3,
             P4,
             P5,
         )
+
         pentagonal_report = self._pentagonal_report_from_states(
-            states=states,
+            states=all_states,
             pentagonal_threshold=pentagonal_threshold,
         )
+
         return PathionicDecisionState(
             metrics_report=metrics_report,
             pentagonal_report=pentagonal_report,
-            states=states,
+            states=all_states,
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §H. FASE 3 — ACT
-#     Objeto inicial = morfismo terminal de la Fase 2 (PathionicDecisionState)
+# §H. FASE 3 — ACT (CONO NULO BILÁTERO, SELLADO CRIPTOGRÁFICO FRAMED)
 # ═══════════════════════════════════════════════════════════════════════════════
 class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
     r"""
-    FASE 3 — Act.
+    FASE 3: Act.
+    Hereda ontológicamente de la Fase 2 (Decide).
 
-    Evaluación espectral de divisores de cero en el Cono Nulo Pationiónico
-    \mathcal{N}(\mathbb{P}) y generación del certificado terminal de-confinado.
+    Categoría Functorial:
+      \mathbf{PathionicDecisionState} \longrightarrow \mathbf{PathionicEngineState}.
 
-    El método inicial `continue_from_decision_state` es la continuación
-    formal de `Phase2.decide_from_metrics_report`.
-    El método terminal `execute_pentagonal_audit` cierra el ciclo OODA.
+    Consume el estado decisional de la Fase 2 y resuelve el análisis espectral
+    BILÁTERO del cono nulo \mathcal{N}(\mathbb{P}) LEYENDO LA CACHÉ generada en
+    la Fase 1 (sin recomputar SVDs: \sigma(L_p) = \|p\|\sigma(L_{\hat p}) por
+    bilinealidad), extrae los vectores testigo izquierdo/derecho, audita
+    conmutadores y productos de Jordan, calcula la fricción exergética
+    disipada y genera el sello criptográfico SHA-256 con *framing* canónico
+    (libre de ambigüedad de concatenación).
+
+    El método terminal `execute_pentagonal_audit` cierra la arquitectura functorial.
     """
 
     __slots__ = ()
@@ -1359,11 +1604,8 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
         decision: PathionicDecisionState,
     ) -> PathionicEngineState:
         r"""
-        Morfismo de entrada de la Fase 3 (continuación formal de
-        `Phase2_PentagonalAssociatorCalculator.decide_from_metrics_report`).
-
-            \mathrm{continue\_from\_decision\_state}:
-                \mathbf{PathionicDecisionState}\longrightarrow\mathbf{PathionicEngineState}.
+        MORFISMO DE CONTINUACIÓN DE LA FASE 3.
+        Toma el objeto terminal de la Fase 2 y ejecuta la acción completa.
         """
         t_start = time.perf_counter()
 
@@ -1371,6 +1613,7 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
             decision.metrics_report.state_a,
             decision.metrics_report.state_b,
         )
+
         elapsed_ms = (time.perf_counter() - t_start) * 1000.0
 
         cryptographic_seal = self._compute_cryptographic_seal(
@@ -1384,40 +1627,11 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
             metrics_report=decision.metrics_report,
             pentagonal_report=decision.pentagonal_report,
             null_report=null_report,
+            all_states=decision.states,
             fpu_execution_time_ms=elapsed_ms,
             cryptographic_seal=cryptographic_seal,
             engine_version=__version__,
         )
-
-    def _sigma_min_left(self, state: PathionicState) -> float:
-        r"""
-        Distancia espectral de p al esquema de divisores de cero:
-
-            \mathrm{dist}(p,\mathcal{N})\sim\sigma_{\min}(L_p).
-
-        Se evalúa L_{\hat p} sobre el pathión normalizado y se reescala
-        por \|p\|_2 (homogeneidad de L).
-        """
-        if state.is_zero or state.norm <= self._thresholds.zero_norm_threshold:
-            return 0.0
-
-        hat = np.asarray(state.vector_rep / state.norm, dtype=np.float64)
-        try:
-            op = CayleyDicksonAlgebra32.left_multiplication_matrix(hat)
-            singular_values = la.svdvals(op, check_finite=True)
-        except (la.LinAlgError, PathionicNumericalSingularityError):
-            try:
-                op = CayleyDicksonAlgebra32.left_multiplication_matrix(hat)
-                singular_values = np.linalg.svd(op, compute_uv=False)
-            except Exception:
-                return math.inf
-
-        if singular_values.size == 0:
-            return 0.0
-        sigma_hat = float(np.min(singular_values))
-        if not math.isfinite(sigma_hat):
-            return math.inf
-        return _clip_nonnegative(state.norm * sigma_hat)
 
     def evaluate_null_cone(
         self,
@@ -1425,95 +1639,72 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
         P2_state: PathionicState,
     ) -> NullConeReport:
         r"""
-        Mide la fricción exergética de incursión en el cono de divisores de cero:
+        Audita el estrangulamiento BILÁTERO por divisores de cero en
+        \mathcal{N}_L(\mathbb{P}) \cup \mathcal{N}_R(\mathbb{P}) y la fricción
+        exergética entre dos agentes:
+          \chi_{\mathrm{null}} = \bigl| \|P_1 \cdot P_2\| - \|P_1\| \|P_2\| \bigr|,
+          d_{\mathcal{N}} = \max\left(0, 1 - \frac{\|P_1 \cdot P_2\|}{\|P_1\| \|P_2\|}\right).
 
-            \chi_{\mathrm{pathion\_null}}
-            =\bigl|\,\|P_1\cdot P_2\|_{\mathbb{P}}
-              -\|P_1\|_{\mathbb{P}}\|P_2\|_{\mathbb{P}}\bigr|,
-
-            d_{\mathcal{N}}
-            =\max\bigl(0,1-\|P_1 P_2\|/(\|P_1\|\|P_2\|)\bigr).
-
-        Complemento espectral: \sigma_{\min}(L_{P_1}),\ \sigma_{\min}(L_{P_2})
-        y norma del conmutador \|[P_1,P_2]\|=\|P_1 P_2-P_2 P_1\|.
+        Los valores singulares extremales de L_p, R_p se OBTIENEN de la caché
+        congelada en la Fase 1 (`PathionicState.left_sigma_min`, etc.),
+        reescalados por la norma física del estado gracias a la bilinealidad
+        del operador de representación regular en su argumento — sin
+        recomputar ninguna SVD en esta fase.
         """
-        product_vector = CayleyDicksonAlgebra32.multiply(
-            P1_state.vector_rep,
-            P2_state.vector_rep,
-        )
-        product_norm = KBNSummationKernel.norm(product_vector)
+        prod_vec = CayleyDicksonAlgebra32.multiply(P1_state.vector_rep, P2_state.vector_rep)
+        product_norm = KBNSummationKernel.norm(prod_vec)
 
-        reverse_vector = CayleyDicksonAlgebra32.multiply(
-            P2_state.vector_rep,
-            P1_state.vector_rep,
-        )
-        commutator_norm = KBNSummationKernel.norm(product_vector - reverse_vector)
+        comm_vec = CayleyDicksonAlgebra32.commutator(P1_state.vector_rep, P2_state.vector_rep)
+        commutator_norm = KBNSummationKernel.norm(comm_vec)
 
-        log_expected = _log_norm(P1_state.norm) + _log_norm(P2_state.norm)
-        expected_norm = _safe_exp(log_expected)
+        jordan_vec = CayleyDicksonAlgebra32.jordan_product(P1_state.vector_rep, P2_state.vector_rep)
+        jordan_norm = KBNSummationKernel.norm(jordan_vec)
 
-        if math.isfinite(product_norm) and math.isfinite(expected_norm):
-            absolute_friction = abs(product_norm - expected_norm)
-        else:
-            absolute_friction = math.inf
+        log_exp = _log_norm(P1_state.norm) + _log_norm(P2_state.norm)
+        expected_norm = _safe_exp(log_exp)
 
-        scale = (
-            max(_WILKINSON_FLOOR, expected_norm)
-            if math.isfinite(expected_norm)
-            else _WILKINSON_FLOOR
-        )
-        relative_defect = (
-            absolute_friction / scale if math.isfinite(absolute_friction) else math.inf
+        _, absolute_friction, relative_defect = _composition_defect(
+            product_norm, expected_norm, _WILKINSON_FLOOR
         )
 
-        trivial_null = P1_state.is_zero or P2_state.is_zero
+        is_trivial = P1_state.is_zero or P2_state.is_zero
 
-        if (
-            math.isfinite(expected_norm)
-            and math.isfinite(product_norm)
-            and expected_norm > self._thresholds.zero_norm_threshold
-        ):
+        if math.isfinite(expected_norm) and math.isfinite(product_norm) and expected_norm > self._thresholds.zero_norm_threshold:
             null_depth = max(0.0, 1.0 - (product_norm / expected_norm))
-        elif (
-            not trivial_null
-            and math.isfinite(product_norm)
-            and product_norm <= self._thresholds.null_absolute
-        ):
+        elif not is_trivial and math.isfinite(product_norm) and product_norm <= self._thresholds.null_absolute:
             null_depth = 1.0
         else:
             null_depth = 0.0
 
-        if math.isfinite(expected_norm):
-            penetration_bound = (
-                self._thresholds.null_absolute
-                + self._thresholds.null_relative * expected_norm
-            )
-            near_zero_product = product_norm <= penetration_bound
-        else:
-            near_zero_product = False
+        # Reutilización BILÁTERA de la caché espectral de la Fase 1 (sin recómputo de SVD).
+        sigma_min_left_p1 = P1_state.left_sigma_min * P1_state.norm
+        sigma_min_left_p2 = P2_state.left_sigma_min * P2_state.norm
+        sigma_min_right_p1 = P1_state.right_sigma_min * P1_state.norm
+        sigma_min_right_p2 = P2_state.right_sigma_min * P2_state.norm
 
-        sigma_min_p1 = self._sigma_min_left(P1_state)
-        sigma_min_p2 = self._sigma_min_left(P2_state)
+        penetration_bound = self._thresholds.null_absolute + self._thresholds.null_relative * expected_norm
+        near_zero_prod = product_norm <= penetration_bound
 
-        is_null_cone_penetrated = (
-            not trivial_null
+        is_penetrated = (
+            not is_trivial
             and math.isfinite(product_norm)
-            and (
-                near_zero_product
-                or null_depth >= self._thresholds.null_depth_threshold
-            )
+            and (near_zero_prod or null_depth >= self._thresholds.null_depth_threshold)
         )
 
-        if is_null_cone_penetrated:
-            logger.debug(
-                "Fase 3: penetración no trivial del Cono Nulo. "
-                "product=%.6e expected=%.6e depth=%.6e σmin(L1)=%.6e σmin(L2)=%.6e",
-                product_norm,
-                expected_norm,
-                null_depth,
-                sigma_min_p1,
-                sigma_min_p2,
-            )
+        ratio_limit = self._thresholds.zero_divisor_spectral_ratio_limit
+        is_left_candidate = bool(
+            P1_state.left_sigma_min <= ratio_limit or P2_state.left_sigma_min <= ratio_limit
+        )
+        is_right_candidate = bool(
+            P1_state.right_sigma_min <= ratio_limit or P2_state.right_sigma_min <= ratio_limit
+        )
+
+        spectral_friction_exergy = 0.25 * (
+            abs(P1_state.norm - sigma_min_left_p1)
+            + abs(P2_state.norm - sigma_min_left_p2)
+            + abs(P1_state.norm - sigma_min_right_p1)
+            + abs(P2_state.norm - sigma_min_right_p2)
+        )
 
         return NullConeReport(
             product_norm=product_norm,
@@ -1521,11 +1712,19 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
             absolute_friction=absolute_friction,
             relative_defect=relative_defect,
             null_depth=null_depth,
-            sigma_min_left_p1=sigma_min_p1,
-            sigma_min_left_p2=sigma_min_p2,
+            sigma_min_left_p1=sigma_min_left_p1,
+            sigma_min_left_p2=sigma_min_left_p2,
+            sigma_min_right_p1=sigma_min_right_p1,
+            sigma_min_right_p2=sigma_min_right_p2,
+            zero_divisor_witness_p1_left=P1_state.left_zero_divisor_witness,
+            zero_divisor_witness_p1_right=P1_state.right_zero_divisor_witness,
             commutator_norm=commutator_norm,
-            is_trivial_null=trivial_null,
-            is_null_cone_penetrated=is_null_cone_penetrated,
+            jordan_product_norm=jordan_norm,
+            is_trivial_null=is_trivial,
+            is_null_cone_penetrated=is_penetrated,
+            is_left_zero_divisor_candidate=is_left_candidate,
+            is_right_zero_divisor_candidate=is_right_candidate,
+            spectral_friction_exergy=spectral_friction_exergy,
         )
 
     def _compute_cryptographic_seal(
@@ -1536,60 +1735,90 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
         null_report: NullConeReport,
     ) -> str:
         """
-        Sello SHA-256 write-protected de la sesión.
-
-        Incorpora versión del motor, umbrales empaquetados en IEEE-754
-        little-endian, los cinco vectores soberanos y los escalares
-        críticos de las tres fases. Toda mutación posterior invalida
-        el certificado.
+        Genera el sello inmutable SHA-256 de la sesión empacando, mediante
+        *length-prefixed framing* canónico (§B `_frame_bytes`), todos los
+        invariantes de las 3 fases. El framing elimina la ambigüedad de
+        concatenación propia de una construcción Merkle-Damgård ingenua.
         """
         hasher = hashlib.sha256()
-        hasher.update(__version__.encode("utf-8"))
+        hasher.update(_frame_bytes(b"ENGINE_VERSION", __version__.encode("utf-8")))
 
-        for name in PathionicThresholds.__dataclass_fields__:
-            hasher.update(name.encode("utf-8"))
-            hasher.update(_canonical_float_bytes(float(getattr(self._thresholds, name))))
+        for field in PathionicThresholds.__dataclass_fields__:
+            payload = _canonical_float_bytes(float(getattr(self._thresholds, field)))
+            hasher.update(_frame_bytes(field.encode("utf-8"), payload))
 
-        for state in states:
-            hasher.update(np.asarray(state.vector_rep, dtype="<f8").tobytes(order="C"))
-            hasher.update(state.sha256_hash.encode("ascii"))
+        for idx, s in enumerate(states):
+            tag = f"STATE_{idx}".encode("ascii")
+            payload = (
+                np.asarray(s.vector_rep, dtype="<f8").tobytes(order="C")
+                + s.sha256_hash.encode("ascii")
+            )
+            hasher.update(_frame_bytes(tag, payload))
 
-        scalar_payload = (
-            metrics_report.product_norm,
-            metrics_report.expected_norm,
-            metrics_report.hurwitz_absolute_error,
-            metrics_report.hurwitz_relative_error,
-            metrics_report.hurwitz_signed_defect,
-            metrics_report.composition_ratio,
-            float(metrics_report.is_hurwitz_stable),
-            float(metrics_report.is_banach_submultiplicative),
-            pentagonal_report.trilateral_associator_norm,
-            pentagonal_report.pentagonal_associator_norm,
-            pentagonal_report.pentagonal_relative_norm,
-            pentagonal_report.frustration_index,
-            pentagonal_report.stasheff_pentagon_diameter,
-            pentagonal_report.flexibility_defect,
-            pentagonal_report.alternativity_defect,
-            pentagonal_report.pentagonal_threshold_used,
-            float(pentagonal_report.is_pentagonal_stable),
-            pentagonal_report.simplex_condition_number,
-            pentagonal_report.simplex_volume,
-            pentagonal_report.laplacian_connectivity,
-            pentagonal_report.laplacian_spectral_gap,
-            float(pentagonal_report.estimated_connected_components),
-            null_report.product_norm,
-            null_report.expected_norm,
-            null_report.absolute_friction,
-            null_report.relative_defect,
-            null_report.null_depth,
-            null_report.sigma_min_left_p1,
-            null_report.sigma_min_left_p2,
-            null_report.commutator_norm,
-            float(null_report.is_trivial_null),
-            float(null_report.is_null_cone_penetrated),
+        scalar_chain: Tuple[Tuple[str, float], ...] = (
+            ("metrics.product_norm", metrics_report.product_norm),
+            ("metrics.expected_norm", metrics_report.expected_norm),
+            ("metrics.hurwitz_absolute_error", metrics_report.hurwitz_absolute_error),
+            ("metrics.hurwitz_relative_error", metrics_report.hurwitz_relative_error),
+            ("metrics.hurwitz_signed_defect", metrics_report.hurwitz_signed_defect),
+            ("metrics.composition_ratio", metrics_report.composition_ratio),
+            ("metrics.exergy_loss_hurwitz", metrics_report.exergy_loss_hurwitz),
+            ("metrics.is_hurwitz_stable", float(metrics_report.is_hurwitz_stable)),
+            ("metrics.is_banach_submultiplicative", float(metrics_report.is_banach_submultiplicative)),
+            ("pent.trilateral_associator_norm", pentagonal_report.trilateral_associator_norm),
+            ("pent.pentagonal_associator_norm", pentagonal_report.pentagonal_associator_norm),
+            ("pent.pentagonal_relative_norm", pentagonal_report.pentagonal_relative_norm),
+            ("pent.frustration_index", pentagonal_report.frustration_index),
+            ("pent.stasheff_pentagon_diameter", pentagonal_report.stasheff_pentagon_diameter),
+            ("pent.flexibility_defect", pentagonal_report.flexibility_defect),
+            ("pent.alternativity_defect", pentagonal_report.alternativity_defect),
+            ("pent.moufang_left_defect", pentagonal_report.moufang_left_defect),
+            ("pent.moufang_right_defect", pentagonal_report.moufang_right_defect),
+            ("pent.moufang_middle_defect", pentagonal_report.moufang_middle_defect),
+            ("pent.is_alternative_regime", float(pentagonal_report.is_alternative_regime)),
+            ("pent.is_flexibility_axiom_satisfied", float(pentagonal_report.is_flexibility_axiom_satisfied)),
+            ("pent.pentagonal_threshold_used", pentagonal_report.pentagonal_threshold_used),
+            ("pent.is_pentagonal_stable", float(pentagonal_report.is_pentagonal_stable)),
+            ("pent.simplex_condition_number", pentagonal_report.simplex_condition_number),
+            ("pent.simplex_volume", pentagonal_report.simplex_volume),
+            ("pent.laplacian_connectivity", pentagonal_report.laplacian_connectivity),
+            ("pent.laplacian_spectral_gap", pentagonal_report.laplacian_spectral_gap),
+            ("pent.kirchhoff_index", pentagonal_report.kirchhoff_index),
+            ("pent.dirichlet_exergy", pentagonal_report.dirichlet_exergy),
+            ("pent.estimated_connected_components", float(pentagonal_report.estimated_connected_components)),
+            ("null.product_norm", null_report.product_norm),
+            ("null.expected_norm", null_report.expected_norm),
+            ("null.absolute_friction", null_report.absolute_friction),
+            ("null.relative_defect", null_report.relative_defect),
+            ("null.null_depth", null_report.null_depth),
+            ("null.sigma_min_left_p1", null_report.sigma_min_left_p1),
+            ("null.sigma_min_left_p2", null_report.sigma_min_left_p2),
+            ("null.sigma_min_right_p1", null_report.sigma_min_right_p1),
+            ("null.sigma_min_right_p2", null_report.sigma_min_right_p2),
+            ("null.commutator_norm", null_report.commutator_norm),
+            ("null.jordan_product_norm", null_report.jordan_product_norm),
+            ("null.is_trivial_null", float(null_report.is_trivial_null)),
+            ("null.is_null_cone_penetrated", float(null_report.is_null_cone_penetrated)),
+            ("null.is_left_zero_divisor_candidate", float(null_report.is_left_zero_divisor_candidate)),
+            ("null.is_right_zero_divisor_candidate", float(null_report.is_right_zero_divisor_candidate)),
+            ("null.spectral_friction_exergy", null_report.spectral_friction_exergy),
         )
-        for scalar in scalar_payload:
-            hasher.update(_canonical_float_bytes(float(scalar)))
+
+        for name, scalar in scalar_chain:
+            hasher.update(_frame_bytes(name.encode("ascii"), _canonical_float_bytes(scalar)))
+
+        hasher.update(
+            _frame_bytes(
+                b"WITNESS_LEFT",
+                np.asarray(null_report.zero_divisor_witness_p1_left, dtype="<f8").tobytes(order="C"),
+            )
+        )
+        hasher.update(
+            _frame_bytes(
+                b"WITNESS_RIGHT",
+                np.asarray(null_report.zero_divisor_witness_p1_right, dtype="<f8").tobytes(order="C"),
+            )
+        )
 
         return hasher.hexdigest()
 
@@ -1603,56 +1832,54 @@ class Phase3_PathionicNullConeEvaluator(Phase2_PentagonalAssociatorCalculator):
         pentagonal_threshold: Optional[float] = None,
     ) -> PathionicEngineState:
         r"""
-        Morfismo terminal de la Fase 3 y del motor.
+        MORFISMO TERMINAL GLOBAL DEL MOTOR PATIONIÓNICO.
 
-        Orquesta el ciclo ciego completo en la FPU para auditar un
-        megaconsorcio de 5 vías como composición functorial estricta:
-
-            \mathrm{Observe}(P_1,P_2)
-                \xrightarrow{\text{Fase 1}} \mathbf{Metrics}
-            \xrightarrow{\text{Fase 2}} \mathbf{Decision}
-            \xrightarrow{\text{Fase 3}} \mathbf{Certificate}.
-
-        Flujo:
-            1. observe_metrics(P1, P2) → PathionicMetricsReport.
-            2. decide_from_metrics_report(metrics, P3, P4, P5)
-               → PathionicDecisionState.
-            3. continue_from_decision_state(decision)
-               → PathionicEngineState.
+        Ejecuta la orquestación soberana de las tres fases anidadas sin
+        re-instanciaciones ni recómputos redundantes (incluida la reutilización
+        BILÁTERA del espectro singular congelado en Fase 1 durante la Fase 3):
+          \mathbf{P}_1, \mathbf{P}_2 \xrightarrow{\text{Fase 1: Observe}} \mathbf{MetricsReport}
+          \xrightarrow{\text{Fase 2: Decide}(\mathbf{P}_3, \mathbf{P}_4, \mathbf{P}_5)} \mathbf{DecisionState}
+          \xrightarrow{\text{Fase 3: Act}} \mathbf{EngineState}.
         """
         t_start = time.perf_counter()
 
-        metrics_report = self.observe_metrics(contractor_P1, subcontractor_P2)
+        # FASE 1: Observe + Orient
+        metrics = self.observe_metrics(contractor_P1, subcontractor_P2)
 
+        # FASE 2: Decide (Encadenamiento formal directo)
         decision = self.decide_from_metrics_report(
-            metrics_report=metrics_report,
+            metrics_report=metrics,
             p3_vec=supplier_P3,
             p4_vec=interventor_P4,
             p5_vec=entity_P5,
             pentagonal_threshold=pentagonal_threshold,
         )
 
+        # FASE 3: Act (Cierre functorial)
         engine_state = self.continue_from_decision_state(decision)
-        elapsed_ms = (time.perf_counter() - t_start) * 1000.0
-        engine_state = replace(engine_state, fpu_execution_time_ms=elapsed_ms)
+
+        total_elapsed_ms = (time.perf_counter() - t_start) * 1000.0
+        engine_state = replace(engine_state, fpu_execution_time_ms=total_elapsed_ms)
 
         logger.debug(
-            "Auditoría pentagonal v%s completada en %.6f ms. "
-            "Hurwitz=%s Banach=%s Pentagonal=%s NullCone=%s",
-            __version__,
-            elapsed_ms,
-            metrics_report.is_hurwitz_stable,
-            metrics_report.is_banach_submultiplicative,
+            "Auditoría Soberana 32D ejecutada en %.4f ms | "
+            "Hurwitz: %s | Pentagonal: %s | Régimen Alternativo: %s | "
+            "Cono Nulo Penetrado: %s | Seal: %s",
+            total_elapsed_ms,
+            metrics.is_hurwitz_stable,
             decision.pentagonal_report.is_pentagonal_stable,
+            decision.pentagonal_report.is_alternative_regime,
             engine_state.null_report.is_null_cone_penetrated,
+            engine_state.cryptographic_seal[:12],
         )
+
         return engine_state
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # §I. FACHADA SOBERANA DEL MOTOR
 # ═══════════════════════════════════════════════════════════════════════════════
-# La fachada pública es la propia Fase 3, preservando la arquitectura de
-# tres fases anidadas sin introducir una cuarta capa ontológica.
-# Phase3 ⊏ Phase2 ⊏ Phase1  ⇒  Act contiene Decide contiene Observe.
+# En estricta concordancia con el principio de anidación ontológica:
+# Phase3 ⊏ Phase2 ⊏ Phase1 (Act hereda de Decide, que hereda de Observe).
+# La fachada pública soberana es directamente la Fase 3 completada.
 PathionicDependencyEngine = Phase3_PathionicNullConeEvaluator
