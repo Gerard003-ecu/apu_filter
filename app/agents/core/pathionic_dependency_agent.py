@@ -12,11 +12,11 @@ r"""
 ║ en la Unidad de Punto Flotante (FPU).                                        ║
 ║                                                                              ║
 ║ Audita, como predicados locales en el retículo de Heyting Ω_3:               ║
-║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{32} (equivalencia de normas).  ║
+║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{32} (equivalencia de normas).   ║
 ║   2. Asociador pentagonal de 5 vías A_5 y diámetro de Stasheff A_4.          ║
 ║   3. Auto-asociador de potencia A_power = [P,P,P] (homogéneo de grado 3).    ║
 ║   4. Composición de Hurwitz / submultiplicatividad de Banach.                ║
-║   5. Penetración no trivial del cono nulo 𝒩(ℙ), σ_min(L_P).                 ║
+║   5. Penetración no trivial del cono nulo 𝒩(ℙ), σ_min(L_P).                  ║
 ║                                                                              ║
 ║ AXIOMAS DE GOBERNANZA:                                                       ║
 ║   (H3)  Ω_3 = {VETOED ≺ DEGRADED ≺ COHERENT} es la cadena de Heyting de      ║
