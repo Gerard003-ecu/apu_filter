@@ -1,4 +1,4 @@
-# ⚙️ metodos.md: Ingeniería Bajo el Capó v3.0
+# ⚙️ metodos.md: Ingeniería Bajo el Capó v8.0
 
 > "APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos, la geometría simpléctica y los circuitos neuromórficos que garantizan la sabiduría del sistema."
 

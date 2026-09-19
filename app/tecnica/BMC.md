@@ -1,38 +1,8 @@
-"""Sutura del modelo de negocio cuántico y mapa simplicial BMC en APU Filter v8.0.
-
-Esta capa de evolución semántica re-ancla los 9 bloques del Business Model Canvas (BMC)
-como un 1-complejo simplicial acoplado a la Ley de Clausura Transitiva DIKΩαWΓ y al
-Fibrado de Calibre Hipercomplejo (Pathiones 32D, Chingones 64D, Routons 128D),
-traduciendo la rigidez homológica a la sostenibilidad comercial de la constructora.
-
-Ecuaciones y Principios del BMC Cuántico:
-1. Característica de Euler-Poincaré Extendida sobre el Canvas:
-   \chi(K) = \beta_0 - \beta_1 + \beta_2 \le 0
-   Previene la canibalización sistémica del modelo de negocio en tiempo real.
-2. Isomorfismo de Doble Capa y Funtor de Traducción Semántica:
-   \Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}
-   Homeomorfismo entre residuos espectrales y la dimensión ejecutiva ("Dolor y Dinero").
-3. Inmunidad Hipercompleja N-Vías y Censura Espectral de Conos Nulos:
-   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Inmuniza el BMC frente a cartelizaciones N-vías y parálisis por división por cero.
-4. Distribución Rascacielos de los Cuatro Sabios en el Canvas:
-   - El Guardián (Physics / Cimientos): Audita la masa atómica q_i \ge 0 y ejecuta la defensa perimetral ESP32 Crowbar.
-   - El Arquitecto (Tactics / Estructura Intermedia): Diagonaliza sobre \mathbb{Z} (Smith SNF) e inspecciona el índice \Psi \ge 0.70.
-   - El Oráculo de Laplace (Strategy / Penthouse): Evalúa la estabilidad espectral en s = \sigma + j\omega (\sigma < 0).
-   - El Intérprete Diplomático (Wisdom / Atrio): Traduce anomalías en Actas de Deliberación para comités de licitación.
-5. Rampa de Confianza Graduada y Fusible de Fock:
-   e^- + e^+ \longrightarrow 2\gamma \implies \text{Aniquilación de sobreprecios en Fock}
-   Otorga 1 hora de gracia en Veto Suave para override HMAC firmado o gatilla el disyuntor Crowbar en Veto Duro (< 400 ns).
-6. Colapso del Supremo de Heyting y Veto Ciber-Físico:
-   v_{\text{final}} = v_{\text{Physics}} \sqcup v_{\text{Tactics}} \sqcup v_{\text{Strategy}} \sqcup v_{\text{Wisdom}}
-   Si el Supremo es VETOED (\top), la reducción monoidal \mu: \Omega_3 \to \mathbb{Z}_2 detiene la transacción e interrumpe bombas de obra civil.
-"""
-
-📊 BMC.md: El Modelo de Negocio Cuántico v5.0
+📊 BMC.md: El Modelo de Negocio Cuántico v8.0
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo gobernable, inmutable y auditable."
 --------------------------------------------------------------------------------
 
-Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema **APU_filter v5.0**. El sistema se re-ancla como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. El Business Model Canvas (BMC) se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré Extendida ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real (`app/alfa/business_canvas.py`).
+Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema **APU_filter v8.0**. El sistema se re-ancla como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. El Business Model Canvas (BMC) se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré Extendida ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real (`app/alfa/business_canvas.py`).
 
 Todo este andamiaje se rige por la **Ley de Clausura Transitiva de la pirámide** $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$:
 
@@ -64,15 +34,15 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 
 ```
                      EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
-        ┌─────────────────────────────────────────────────────────────┐
+        ┌──────────────────────────────────────────────────────────────┐
         │  EL INTÉRPRETE DIPLOMÁTICO (Relación con el Cliente / Canal) │
-        │  Traduce anomalías homológicas a Actas claras de negocio.   │
-        └──────────────────────────────┬──────────────────────────────┘
+        │  Traduce anomalías homológicas a Actas claras de negocio.    │
+        └──────────────────────────────┬───────────────────────────────┘
                                        │ (Adjunción de de Rham-Galois)
                                        ▼
                   EL ÁPICE ESTRATÉGICO Y SUTURA: STRATEGY (V_S)
         ┌─────────────────────────────────────────────────────────────┐
-        │  EL ORÁCULO DE LAPLACE (Fuentes de Ingreso / Flujo de Caja)  │
+        │  EL ORÁCULO DE LAPLACE (Fuentes de Ingreso / Flujo de Caja) │
         │  Veta presupuestos si algún polo migra a σ > 0 en FPU.      │
         └──────────────────────────────┬──────────────────────────────┘
                                        │ (Lazo de Control Covariante)

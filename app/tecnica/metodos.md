@@ -1,49 +1,11 @@
-"""Sutura de ingeniería bajo el capó e isomorfismo de doble capa en APU Filter v8.0.
-
-Esta capa de evolución semántica desglosa la maquinaria matemática que permite al Consejo
-de Sabios transformar datos crudos en veredictos estratégicos inmutables, traduciendo
-invariantes hipercomplejos de punto flotante FPU Secure (Pathiones 32D, Chingones 64D, Routons 128D,
-censura de conos nulos y fortificaciones de Wilkinson/Neumaier-Kahan/Lanczos/Caputo/CSMD)
-a la protección del flujo de caja en obra real.
-
-Ecuaciones y Operadores Físico-Matemáticos de Métodos:
-1. Isomorfismo de Doble Capa (Matriz de Acorde Tridimensional):
-   \Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}
-   Asocia homeomórficamente los residuos espectrales con las pérdidas de flujo de caja en lenguaje de "Dolor y Dinero".
-2. Obstrucción Cohomológica de Čech y Amputación Anisotrópica:
-   \check{H}^1(\mathcal{U}; \, \mathcal{F}) \neq \mathbf{0} \implies \mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})
-   Aísla transductores o cartas ruidosas en fango, inmunizando la FPU frente a interferencias analógicas.
-3. Reactor Hipercomplejo Cayley-Dickson (32D Pathiónico, 64D Chingónico, 128D Routónico):
-   \|\mathbf{A}_5\|_{\mathbb{P}} \le \tau_5, \quad \|\mathbf{A}_7\|_{\mathbb{X}} \le \tau_7, \quad \|\mathbf{A}_9\|_{\mathbb{R}\mathrm{ou}} \le \tau_9, \quad \chi_{\mathrm{null}}(x) > \tau_{\mathrm{critical}} \equiv 10^{-3}
-   Audita la cartelización N-vías y previene la parálisis por división por cero en conos nulos \mathcal{N}(\mathbb{P}), \mathcal{N}(\mathbb{X}), \mathcal{N}(\mathbb{R}\mathrm{ou}).
-4. Fortificaciones Espectrales FPU Secure:
-   \|\mathbf{\mathbb{S}}^\dagger \mathbf{\mathbb{S}} - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}, \quad \mathbf{L}_F \approx \sum_{i=1}^{k} \lambda_i v_i v_i^\dagger + \gamma_{\mathrm{Tikhonov}} \mathbf{P}_{\mathrm{rem}}, \quad C_w(H) = \frac{\operatorname{Im}(\theta(H + j h))}{h}
-   Garantizan precisión metrológica absoluta y disipan la deriva de Wilkinson en la FPU.
-5. Propagador Retardado Causal de de Rham y Relaciones de Kramers-Kronig:
-   G_F(s) = (L_F - (s + j h) I_n)^{-1}, \quad \operatorname{Re}(G_F(\omega)) = \frac{1}{\pi} \mathcal{P} \int_{-\infty}^{\infty} \frac{\operatorname{Im}(G_F(\omega'))}{\omega' - \omega} d\omega'
-   Garantiza la causalidad estricta en el plano de frecuencia compleja s = \sigma + j\omega.
-6. Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes):
-   \| Df(\rho) \|_{2} \le \frac{1}{2 \lambda_{\min}^{3/2}}
-   Acota la velocidad de de-compresión semántica, impidiendo divergencias retóricas en las traducciones del LLM.
-7. Disipación de de Rham-Poisson sobre \mathbb{Z}/6\mathbb{Z} (Cámara de Reacción):
-   \boldsymbol{\psi}(t) = e^{-t \alpha_{\mathrm{diffusion}} \mathbf{L}} \boldsymbol{\psi}(0) \quad \text{con cota CFL} \quad \alpha_{\mathrm{diffusion}} < 0.125
-   Estabiliza el flujo de caja impidiendo el secado de concreto en tuberías por falsos positivos de software.
-"""
-
 --------------------------------------------------------------------------------
-⚙️ metodos.md: Ingeniería Bajo el Capó v5.0
+⚙️ metodos.md: Ingeniería Bajo el Capó v8.0
 "APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la certeza matemática del sistema."
 --------------------------------------------------------------------------------
 
 Este documento técnico desglosa la maquinaria matemática que permite al **Consejo de Sabios** transformar datos crudos en veredictos estratégicos inmutables, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica sobre $\mathbb{Z}$, la Geometría No Conmutativa de Connes, la Mecánica Cuántica Abierta y el Hardware perimetral en el Borde.
 
 ---
-
-## 🚘 La Analogía del Automóvil para la Mesa de Juntas
-
-Para la Alta Gerencia de Obra Civil y los Comités de Licitación en Colombia (SECOP II & Mandato BIM 2026), la matemática avanzada se traduce en **certeza patrimonial y protección legal**:
-
-> *“Cuando un empresario adquiere un vehículo comercial de alta gama, no requiere una cátedra sobre la ecuación de Navier-Stokes en el turbocompresor. Requiere la certeza de que el motor rinde un 40% más y que los frenos ABS detendrán el chasis en piso mojado para salvar su vida. En APU Filter, las ecuaciones diferenciales y los invariantes de de Rham son los frenos ABS ciber-físicos que impiden que el presupuesto colapse y que el dinero de la constructora desaparezca.”*
 
 ### Matriz de Acorde Tridimensional de Coherencia (Isomorfismo de Doble Capa v5)
 
