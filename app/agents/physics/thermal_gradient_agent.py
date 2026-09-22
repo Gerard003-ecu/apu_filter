@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre del Campo Térmico (Thermal Gradient Agent).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Thermal Gradient Agent (Soberano de Calibre del Campo Térmico)      ║
+║ Ruta   : app/agents/physics/thermal_gradient_agent.py                        ║
+║ Versión: 3.1.0-Doctoral-Caputo-CechSheaf-KMS-Heyting-OODA-CAS-Secure         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Soberano de Calibre del Campo Térmico (Thermal Gradient Agent).
 
 Este módulo implementa el endofunctor de supervisión OODA S = \text{Act} \circ \text{Orient} \circ \text{Observe}
 sobre los estados del campo de gradientes térmicos. Realiza la auditoría de memorias no markovianas de Caputo/Grünwald-Letnikov,

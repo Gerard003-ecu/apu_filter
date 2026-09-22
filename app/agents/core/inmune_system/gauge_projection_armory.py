@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Arsenal de Proyección de Calibre (Gauge Projection Armory).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Gauge Projection Armory (Arsenal de Proyección de Calibre)          ║
+║ Ruta   : app/agents/core/inmune_system/gauge_projection_armory.py            ║
+║ Versión: 3.0.0-Doctoral-Hermitian-Higham-Duchi-DK-Connes-Heyting-Secure      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Arsenal de Proyección de Calibre (Gauge Projection Armory).
 
 Este módulo implementa el agente supervisor del sistema inmune digital para la proyección y filtrado
 espectral de calibre. Conecta los cálculos de la FPU del `GaugeProjectionEngine` con la gobernanza

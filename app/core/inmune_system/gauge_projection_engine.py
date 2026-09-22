@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Motor de Proyección de Calibre Espectral (Gauge Projection Engine).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Gauge Projection Engine (Motor de Proyección de Calibre)            ║
+║ Ruta   : app/core/inmune_system/gauge_projection_engine.py                   ║
+║ Versión: 3.0.0-Doctoral-Hermitian-Higham-Duchi-DK-Frechet-CSMD-Secure        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Motor de Proyección de Calibre Espectral (Gauge Projection Engine).
 
 Este módulo constituye el núcleo de cálculo numérico ciego (FPU espectral de alta precisión)
 para el procesamiento de matrices de densidad y observables en la arquitectura del filtro APU.
