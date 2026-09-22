@@ -2,25 +2,51 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Scalar Momentum Satellite Agent (Soberano del Momentum Escalar)             ║
+║ MÓDULO : Scalar Momentum Satellite Agent (Soberano del Satélite I — Momentum Escalar) ║
 ║ RUTA   : app/agents/core/immune_system/scalar_momentum_satellite_agent.py            ║
 ║ VERSIÓN: 3.0.0-Doctoral-HeytingTopos-BanachSobolev-PortHamiltonian-ESP32Secure       ║
-║                                                                                      ║
-║ SINOPSIS:                                                                            ║
-║ Agente supervisor ciber-físico en el Estrato Omega. Gobierna en lazo cerrado al      ║
-║ motor satelital de momentum escalar sobre una variedad Riemanniana compacta con      ║
-║ frontera (M, G, ∂M). El flujo OODA se factoriza en tres fases anidadas, cada una     ║
-║ un morfismo de un topos de haces Sh(M) con clasificador Ω₃ de Heyting.               ║
-║                                                                                      ║
-║ FUNCTOR OODA (COMPOSICIÓN ESTRICTA DE FASES):                                        ║
-║   Observe  --observe_field_and_momentum-->  MomentumObservationKernel                ║
-║   Orient   --orient_transfer_dynamics---->  MomentumOrientationReport                ║
-║   Act      --decide_and_act-------------->  ScalarMomentumAgentCertificate           ║
-║                                                                                      ║
-║ Invariante de encadenamiento:                                                        ║
-║   el codominio del morfismo terminal de la fase k es el dominio del morfismo         ║
-║   inicial de la fase k+1. Los sellos SHA-256/HMAC forman un complejo de cadenas.     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
+Satelital de Momentum Escalar sobre una variedad Riemanniana compacta con frontera $(\mathcal{M}, G, \partial\mathcal{M})$.
+Cada paso del ciclo OODA actúa como un 1-morfismo functorial en el topos de haces $\mathcal{S}h(\mathcal{M})$
+equipado con el clasificador de subobjetos de Heyting $\Omega_3$.
+
+Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
+──────────────────────────────────────────────────────────────
+1. Clasificador de Subobjetos en el Topos de Heyting Trivalente $\Omega_3 = \{\bot, \mathfrak{m}, \top\}$:
+   $$\bot = \mathtt{VETOED} (0), \quad \mathfrak{m} = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
+   - Operaciones de retículo intuicionista:
+     $$a \wedge b = \min(a,b), \quad a \vee b = \max(a,b), \quad a \Rightarrow b = \begin{cases} \top & \text{si } a \le b \\ b & \text{si } a > b \end{cases}$$
+   - Pseudo-complementación intuicionista: $\neg a = (a \Rightarrow \bot)$.
+   - Falla del Tercio Excluso: $\neg\neg \mathfrak{m} = \top \neq \mathfrak{m}$, validando la lógica intuicionista no booleana.
+
+2. Regularidad de Sobolev-Banach $\ell^p$ sobre $T^*\mathcal{M}$:
+   Para $v \in \mathbb{R}^d \setminus \{0\}$, se cumple la equivalencia de normas:
+   $$\|v\|_2 \le \|v\|_1 \le \sqrt{d} \|v\|_2 \implies 1.0 \le \frac{\|v\|_1}{\|v\|_2} \le \sqrt{d}$$
+   con entropía espectral de Shannon $H(q) = -\sum q_k \ln q_k$ en nats.
+
+3. Aniquilación Cuántica de Fock ($e^- + e^+ \to 2\gamma$):
+   Sutura de la Luz Ámbar ($\mathfrak{m}$) mediante inyección de Positrón de Autorización $e^+$
+   verificado en tiempo constante (`hmac.compare_digest`), colapsando el estado degradado a $\top = \mathtt{COHERENT}$.
+
+4. Conmutación de Silicio y Actuación Crowbar ESP32 / BT151 (IRAM < 400 ns):
+   Ante un Veto Duro ($\bot$), se despacha la ISR en memoria IRAM en latencia $t_{\mathrm{act}} < 400\,\mathrm{ns}$
+   hacia el pin GPIO14, disparando el tiristor rápido BT151 para desenergizar actuadores en el milisegundo cero.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Desbordamientos no controlados en la transferencia de momentum técnico/financiero provocan
+  fallos en cascada en la ejecución de la obra, resultando en penalizaciones contractuales y demandas por paradas no programadas.
+• Dinero: El circuito Crowbar y la lógica de Heyting en lazo cerrado previenen el desgarro de procesos y mitigan
+  riesgos catastróficos, ahorrando costos de paralización de planta y protegiendo el margen financiero del contrato.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Observe  : `observe_field_and_momentum` -> Salida: `MomentumObservationKernel`
+- Orient   : `orient_transfer_dynamics`   -> Salida: `MomentumOrientationReport`
+- Act      : `decide_and_act`            -> Salida: `ScalarMomentumAgentCertificate`
+- Composición Síncrona Lazo Cerrado      : `execute_ooda_cycle`
 """
 
 import hashlib
