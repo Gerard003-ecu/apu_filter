@@ -3,66 +3,69 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Quaternionic State Shifter (Reactor Cuaterniónico de Estado)        ║
 ║ Ruta   : app/core/quaternionic_state_shifter.py                              ║
-║ Versión: 4.0.0-Hurwitz-Spin3-Atlas-Merkle-FPU-Secure                         ║
+║ Versión: 3.1.0-Doctoral-Hurwitz-Composition-Cayley-Dickson-FPU-Secure        ║
+║                                                                              ║
+║ SINOPSIS MATEMÁTICA Y GOBERNANZA DE LAZO CERRADO:                            ║
+║ Este módulo implementa el microservicio de procesamiento de estados          ║
+║ hipercomplejos cuatridimensionales en la FPU de APU Filter v8.0.             ║
+║                                                                              ║
+║ Mapea el vector de estado transaccional de entrada de cuatro variables       ║
+║ $S = (s_{\mathrm{purpose}}, s_{\mathrm{confidence}}, s_{\mathrm{constraints}}║
+║ s_{\mathrm{risk}})^\top \in \mathbb{R}^4$                                    ║
+║ hacia un cuaternión de Hamilton $q \in \mathbb{H}$ para blindar el cálculo   ║
+║ contra pérdidas de significación metrológica, garantizando la invarianza de  ║
+║ norma multiplicativa bajo el Teorema de Hurwitz y erradicando el bloqueo de  ║
+║ fase (Gimbal Lock) en el transporte paralelo de de Rham perimetral.          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Mapea S = (s_purpose, s_confidence, s_constraints, s_risk)ᵀ ∈ R⁴ al cuaternión
-q = q₀ + q₁i + q₂j + q₃k ∈ H, y ejecuta el funtor compuesto
+================================════════════════════════════════════════════════
+I. ANCLAJE MATEMÁTICO DOCTORAL (Álgebras de División, Cayley-Dickson y Hurwitz)
+================================════════════════════════════════════════════════
 
-        Φ₃ ∘ Φ₂ ∘ Φ₁ :  R⁴ ──Φ₁──▶ H ──Φ₂──▶ H ──Φ₃──▶ Reporte de lazo cerrado
+Axioma 1 (Álgebra de Cuaterniones de Hamilton $\mathbb{H}$):
+  La estructura de cuaterniones reales es un álgebra de división asociativa no conmutativa
+  de dimensión 4 sobre el cuerpo $\mathbb{R}$, dotada de la base ortonormal $\{1, \mathbf{i}, \mathbf{j}, \mathbf{k}\}$:
+  $$\mathbb{H} = \left\{ q = q_0 + q_1 \mathbf{i} + q_2 \mathbf{j} + q_3 \mathbf{k} \;\middle|\; (q_0, q_1, q_2, q_3) \in \mathbb{R}^4 \right\}$$
+  donde los elementos de base satisfacen las relaciones de anticonmutación canónicas de Hamilton:
+  $$\mathbf{i}^2 = \mathbf{j}^2 = \mathbf{k}^2 = \mathbf{i}\mathbf{j}\mathbf{k} = -\mathbf{I}$$
+  $$\mathbf{i}\mathbf{j} = -\mathbf{j}\mathbf{i} = \mathbf{k}, \quad \mathbf{j}\mathbf{k} = -\mathbf{k}\mathbf{j} = \mathbf{i}, \quad \mathbf{k}\mathbf{i} = -\mathbf{i}\mathbf{k} = \mathbf{j}$$
 
-donde cada fase está *anidada* en la siguiente: el último método de la fase k
-produce exactamente el objeto que consume el primer método de la fase k+1, y
-la propia fase k verifica esa admisibilidad antes de cerrarse.
+Axioma 2 (Isomorfismo Mapeo de Telemetría 4D):
+  Se define el isomorfismo de espacios vectoriales $\Phi: \mathbb{R}^4 \xrightarrow{\quad \cong \quad} \mathbb{H}$ que
+  asocia un vector de estado transaccional de entrada $S \in \mathbb{R}^4$ con un cuaternión $q \in \mathbb{H}$:
+  $$\Phi(S) = s_{\mathrm{purpose}} + s_{\mathrm{confidence}} \mathbf{i} + s_{\mathrm{constraints}} \mathbf{j} + s_{\mathrm{risk}} \mathbf{k}$$
 
-════════════════════════════════════════════════════════════════════════════════
-I. ANCLAJE MATEMÁTICO (sólo enunciados demostrables)
-════════════════════════════════════════════════════════════════════════════════
+Teorema 1 (Teorema de Hurwitz e Invarianza de Norma Multiplicativa):
+  De acuerdo con el Teorema de Hurwitz, las únicas álgebras de composición normadas sobre $\mathbb{R}$
+  son $\mathbb{R}, \mathbb{C}, \mathbb{H}$ y $\mathbb{O}$. Para todo $p, q \in \mathbb{H}$, la norma euclidiana
+  satisface la propiedad multiplicativa exacta:
+  $$\|p \cdot q\|_{\mathbb{H}} = \|p\|_{\mathbb{H}} \cdot \|q\|_{\mathbb{H}}$$
+  donde la norma de $q = q_0 + \mathbf{v}$ ($\mathbf{v} = q_1 \mathbf{i} + q_2 \mathbf{j} + q_3 \mathbf{k}$) se define mediante el conjugado $q^* = q_0 - \mathbf{v}$:
+  $$\|q\|_{\mathbb{H}} = \sqrt{q \cdot q^*} = \sqrt{q_0^2 + q_1^2 + q_2^2 + q_3^2}$$
+  El producto cuaterniónico en componentes bilineales vectoriales adopta la forma:
+  $$p \cdot q = \left( p_0 q_0 - \langle \mathbf{p}, \mathbf{q} \rangle \right) + \left( p_0 \mathbf{q} + q_0 \mathbf{p} + \mathbf{p} \times \mathbf{q} \right)$$
+  Esta invarianza de norma inmuniza el procesamiento de señales en la FPU contra deriva secular y underflow de Wilkinson.
 
-Def. 1 (Álgebra de Hamilton). H = R⟨1,i,j,k⟩, i² = j² = k² = ijk = −1. Es una
-  R-álgebra de división asociativa, no conmutativa, de centro Z(H) = R.
+Teorema 2 (Representación de Cayley-Dickson en $M_2(\mathbb{C})$):
+  Existe un isomorfismo de álgebras de Lie $\Psi: \mathbb{H} \xhookrightarrow{\quad} M_2(\mathbb{C})$ obtenido vía la construcción
+  de Cayley-Dickson que expresa todo cuaternión $q = \alpha + \beta \mathbf{j}$ (con $\alpha = q_0 + i q_1, \beta = q_2 + i q_3 \in \mathbb{C}$)
+  como una matriz compleja de $2 \times 2$:
+  $$\Psi(q) = \begin{pmatrix} \alpha & \beta \\ -\bar{\beta} & \bar{\alpha} \end{pmatrix} = \begin{pmatrix} q_0 + i q_1 & q_2 + i q_3 \\ -q_2 + i q_3 & q_0 - i q_1 \end{pmatrix} \in M_2(\mathbb{C})$$
+  Esta representación garantiza que $\det(\Psi(q)) = |\alpha|^2 + |\beta|^2 = \|q\|_{\mathbb{H}}^2$.
 
-Def. 2 (Composición de Hurwitz). ‖pq‖ = ‖p‖‖q‖. H es C*-álgebra real con la
-  involución q* = q₀ − v: (pq)* = q*p*, q q* = ‖q‖², ‖q* q‖ = ‖q‖².
+Teorema 3 (Matriz de de Rham de Multiplicación Izquierda y Conservación de Liouville):
+  El operador lineal de multiplicación por la izquierda $L(q): \mathbb{H} \to \mathbb{H}$ definido por $L(q)p = q \cdot p$
+  se representa sobre la base ortonormal por la matriz real $\Phi_L(q) \in M_4(\mathbb{R})$:
+  $$\Phi_L(q) = \begin{pmatrix} q_0 & -q_1 & -q_2 & -q_3 \\ q_1 & q_0 & -q_3 & q_2 \\ q_2 & q_3 & q_0 & -q_1 \\ q_3 & -q_2 & q_1 & q_0 \end{pmatrix} \in M_4(\mathbb{R})$$
+  La matriz satisface $\Phi_L(q)^\top \Phi_L(q) = \|q\|_{\mathbb{H}}^2 \mathbf{I}_4$. Para cuaterniones unitarios ($\|q\|_{\mathbb{H}} = 1$),
+  $\Phi_L(q) \in SO(4)$, lo cual impone un determinante jacobiano unitario $\det(\Phi_L(q)) = \|q\|_{\mathbb{H}}^4 = 1$,
+  preservando idénticamente la medida de Liouville y la 2-forma simpléctica en el espacio de fase de la FPU:
+  $$\operatorname{div}(\dot{x}) = 0 \quad \text{y} \quad \mathrm{d}\omega = 0$$
 
-Def. 3 (Representación regular). L(q)x = qx, R(q)x = xq, L,R ∈ M₄(R).
-  L(q) = q₀ I₄ + K(q),  K = −Kᵀ,  ‖K‖_F = 2‖v‖,  ‖L‖_F = 2‖q‖.
-  L(q)ᵀL(q) = ‖q‖² I₄  (conforme-ortogonal; NO antisimétrica salvo q₀ = 0).
-  det L(q) = ‖q‖⁴.  L es homomorfismo, R antihomomorfismo, [L(p), R(q)] = 0.
-  Polinomio mínimo (q ∉ R):  m(λ) = λ² − 2q₀λ + ‖q‖²;  χ_L(λ) = m(λ)².
-  σ(L(q)) = {q₀ ± i‖v‖}, cada uno con multiplicidad algebraica 2.
-
-Def. 4 (Cayley–Dickson / Pauli). Φ_C : H ↪ M₂(C), q = α + βj, α = q₀+iq₁,
-  β = q₂+iq₃:  Φ_C(q) = [[α, β], [−β̄, ᾱ]] = q₀I + i(q₁σ₃ + q₂σ₂ + q₃σ₁).
-  det Φ_C(q) = ‖q‖², Φ_C(q)*Φ_C(q) = ‖q‖² I₂,  Φ_C(S³) = SU(2) ≅ Spin(3).
-
-Def. 5 (Clases de similitud espectral). Para μ ∈ H∖R, [μ] = {sμs⁻¹} es la
-  2-esfera de centro μ₀ y radio ‖Im μ‖ en R ⊕ Im(H); representante canónico
-  μ₀ + i‖Im μ‖ ∈ C. Coincide con σ(Φ_C(μ)).
-
-Def. 6 (Hopf ≡ Bloch). Con ψ = (α, β)/‖q‖ ∈ S³ ⊂ C², ρ = ψψ† es un estado
-  puro (Tr ρ = Tr ρ² = 1) y su vector de Bloch
-      b = (2Re(αβ̄), 2Im(αβ̄), |α|² − |β|²)/‖q‖² ∈ S²
-  es exactamente la fibración de Hopf π : S³ → S², invariante bajo la fibra
-  U(1) actuando por multiplicación izquierda por e^{iφ} ∈ C ⊂ H.
-
-Def. 7 (Recubrimiento Spin(3) → SO(3)). Ad(r)x = r x r*, r ∈ S³. En Im(H),
-  Ad(r) = I + 2r₀[v]ₓ + 2[v]ₓ² ∈ SO(3) (Rodrigues), ángulo 2·atan2(‖v‖, r₀).
-  El núcleo es {±1}: parametrización sin singularidades (sin gimbal lock).
-
-════════════════════════════════════════════════════════════════════════════════
-II. AXIOMÁTICA NUMÉRICA
-════════════════════════════════════════════════════════════════════════════════
-
-Ax. I  (Sumación de redondeo correcto). Toda reducción escalar usa `math.fsum`
-       (Shewchuk), que domina estrictamente a Kahan/Neumaier; Neumaier se usa
-       como auditor independiente.
-Ax. II (Condicionamiento angular). Ningún ángulo se obtiene de arccos/arcsin;
-       siempre `atan2` de longitudes (error O(ε) uniforme en [0, π]).
-Ax. III(Traza de von Neumann). Tr ρ = ‖ψ‖²/‖q‖² = 1 y Tr ρ² = 1, con
-       |Tr ρ − 1| ≤ c·ε_mach.  (Nota: Tr Φ_C(q) = 2q₀, no ‖q‖².)
-Ax. IV (Determinismo). Todo hash se calcula sobre bytes canónicos con
-       cero-signado normalizado, longitud-prefijados y con token de fase.
+Teorema 4 (Proyección Estereográfica sobre la 2-Esfera de Riemann $S^2$):
+  Dada la parte imaginaria tridimensional $\mathbf{v} = (q_1, q_2, q_3)^\top \in \mathbb{R}^3$, su dirección unitaria $\mathbf{u} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2} = (x, y, z)^\top \in S^2 \subset \mathbb{R}^3$
+  se proyecta desde el polo norte $(0,0,1)$ hacia el plano complejo extendido $\mathbb{C}_{\infty}$ mediante la transformación conforme:
+  $$Z = \frac{x + i y}{1 - z} \in \mathbb{C} \cup \{\infty\}$$
 """
 
 from __future__ import annotations
