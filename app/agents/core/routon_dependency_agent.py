@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre Routónico 128D (Routon Dependency Agent).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Routon Dependency Agent (Soberano de Calibre Routónico 128D)        ║
+║ Ruta   : app/agents/core/routon_dependency_agent.py                          ║
+║ Versión: 3.0.0-Doctoral-OODA-Heyting-CayleyDickson-128D-IRAM-ESP32-Nested3   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Soberano de Calibre Routónico 128D (Routon Dependency Agent).
 
 Este módulo implementa el agente supervisor ciber-físico OODA de lazo cerrado para la gobernanza
 síncrona del motor de calibre routónico en \mathbb{R}\mathrm{ou} \cong (\mathbb{R}^{128})^9.

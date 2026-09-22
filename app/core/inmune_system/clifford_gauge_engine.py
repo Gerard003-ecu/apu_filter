@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Motor de Calibre de Clifford STA (Clifford Gauge Engine).
+r"""
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Clifford Gauge Engine (Motor de Calibre de Clifford STA)             ║
+║ Ruta   : app/core/inmune_system/clifford_gauge_engine.py                      ║
+║ Versión: 4.0.0-Doctoral-STA-Vierbein-Hodge-Nested                             ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Motor de Calibre de Clifford STA (Clifford Gauge Engine).
 
 Este módulo implementa la FPU algebraica para el álgebra del espacio-tiempo (Spacetime Algebra, STA)
 \mathcal{C}\ell_{1,3}(\mathbb{R}) \hookrightarrow M_4(\mathbb{C}). Opera como un motor tensorial ciego

@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Motor de Calibre Routónico 128D (Routon Dependency Engine).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Routon Dependency Engine (Motor de Calibre Routónico 128D)          ║
+║ Ruta   : app/core/routon_dependency_engine.py                                ║
+║ Versión: 1.1.0-Doctoral-128D-CayleyDickson-Eneagonal-Moufang-KBN-Nested3     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Motor de Calibre Routónico 128D (Routon Dependency Engine).
 
 Este módulo implementa el motor de cálculo ciego en la FPU para la variedad de los Routones reales
 \mathbb{R}\mathrm{ou} (128 dimensiones), estructurada mediante la duplicación iterativa de Cayley-Dickson

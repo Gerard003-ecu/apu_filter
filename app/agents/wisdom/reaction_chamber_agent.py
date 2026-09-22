@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Agente Soberano de la Cámara de Reacción (Reaction Chamber Agent).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Reaction Chamber Agent (Agente de la Cámara de Reacción)            ║
+║ Ruta   : app/agents/wisdom/reaction_chamber_agent.py                         ║
+║ Versión: 3.1.0-Hodge-Smith-Heyting-CFL-IRAM-Governance                       ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Agente Soberano de la Cámara de Reacción (Reaction Chamber Agent).
 
 Este módulo implementa la gobernanza de lazo cerrado para la cámara de reacción catalítica cuántica.
 Audita la dinámicas del reactor mediante un topos de morfismos anidados en tres fases

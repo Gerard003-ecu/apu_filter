@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre Octoniónico 8D (Octonionic Dependency Agent).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Octonionic Dependency Agent (Soberano de Calibre Octoniónico 8D)    ║
+║ Ruta   : app/agents/wisdom/octonionic_dependency_agent.py                    ║
+║ Versión: 3.1.0-Doctoral-OODA-Heyting-Banach-Artin-Moufang-Hodge-Nested3      ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Soberano de Calibre Octoniónico 8D (Octonionic Dependency Agent).
 
 Este módulo implementa el agente supervisor ciber-físico soberano para la gobernanza de lazo cerrado
 sobre el resolutor de dependencias en el álgebra de Cayley-Dickson \mathbb{O} (\mathbb{R}^8).

@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Salón de Forensia en el Espacio de Fock (Fock Forensic Hall).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Fock Forensic Hall (Salón de Eventos del Espacio de Fock)           ║
+║ Ruta   : app/core/inmune_system/fock_forensic_hall.py                        ║
+║ Versión: 3.0.0-Doctoral-CAR-GKSL-Weyl-KyFan-Heyting-Secure                   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Salón de Forensia en el Espacio de Fock (Fock Forensic Hall).
 
 Este módulo implementa el entorno de diagnóstico cuántico y forensia espectral sobre el espacio
 de Fock fermiónico F_-(C^n) \cong C^{2^n}. Opera mediante la evolución de semigrupos cuánticos
