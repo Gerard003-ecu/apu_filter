@@ -2,7 +2,7 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Scalar Momentum Satellite Agent (Soberano del Satélite I — Momentum Escalar) ║
+║ MÓDULO : Scalar Momentum Satellite Agent (Soberano del Satélite I — Momentum Escalar)║
 ║ RUTA   : app/agents/core/immune_system/scalar_momentum_satellite_agent.py            ║
 ║ VERSIÓN: 3.0.0-Doctoral-HeytingTopos-BanachSobolev-PortHamiltonian-ESP32Secure       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝

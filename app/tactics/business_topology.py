@@ -9,10 +9,9 @@ r"""
 NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DEL RIESGO EN EL ESTRATO TACTICS (V_𝕋) ───
 Este módulo materializa al Operador de Proyección Topológica supremo encargado
 de auditar el esqueleto estructural de los presupuestos de obra civil ante el
-mandato nacional BIM 2026 en Colombia. El sistema repudia de manera absoluta la
-contabilidad lineal plana, modelando la red de valor (APUs, insumos y contratos)
-como un 2-Complejo Simplicial Abstracto $$K$$ sobre el anillo principal de los
-enteros $$\mathbb{Z}$$.
+mandato nacional BIM 2026 en Colombia. El sistema modela la red de valor (APUs,
+insumos y contratos) como un 2-Complejo Simplicial Abstracto $$K$$ sobre el anillo
+principal de los enteros $$\mathbb{Z}$$.
 
 Su mandato axiomático es la detección temprana de patologías logísticas y
 socavones lógicos mediante invariantes homológicos y teoría espectral de grafos,
