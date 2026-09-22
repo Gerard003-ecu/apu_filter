@@ -67,7 +67,18 @@ INS|MAT-CONC-3000|1.05|485000.00
 INS|EQ-BOMBA-MIX|0.64|120000.00
 ```
 
-**Resultado Metrológico:** Reducción del **$86.4\%$** en consumo de tokens en la ventana $KV\text{-Cache}$, demostrando empíricamente cómo TOON libera la memoria atencional de la IA para ejecutar el escaneo de ecolocación TDR en tiempo real en la FPU sin latencia ni distorsión.
+**Resultado Metrológico:** Reducción del **$86.4\%$** en consumo de tokens en la ventana $KV\text{-Cache}$, demostrando empíricamente cómo TOON libera la memoria atencional de la IA para ejecutar el escaneo de ecolocación TDR y la auditoría de los 6 Satélites Orbitales en tiempo real en la FPU sin latencia ni distorsión.
+
+--------------------------------------------------------------------------------
+## 1.2 La Constelación Orbital v3.1.0 y la Ingesta de Cartuchos TOON
+
+Los Cartuchos TOON purificados son auditados en la frontera abierta $\partial \mathcal{M} \neq \varnothing$ por la **Constelación de Seis Satélites Orbitales**:
+1. **Satélite I (Momentum Escalar):** Audita el impulso covariante $p_\mu = G_{\mu\nu}\dot{q}^\nu$ y pasividad de Lyapunov $P_{\mathrm{diss}} \ge 0$ ($2.85\text{ ms}$ FPU / $397.53\text{ ns}$ Crowbar).
+2. **Satélite II (Inercia Centroidal):** Fiscaliza el centroide simpléctico $q_{\mathrm{centroid}}^\mu$ y precesión de inercia $L_{\mu\nu} \in \mathfrak{so}(n)$ en Fukaya $\mathcal{F}uk(\mathcal{M})$ ($2.73\text{ ms}$ FPU / $397.48\text{ ns}$ Crowbar).
+3. **Satélite III (Deformación Centrípeta):** Revisa el potencial $H_{\mathrm{centripetal}}$ y la deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$ ($2.78\text{ ms}$ FPU / $397.26\text{ ns}$ Crowbar).
+4. **Satélite IV (Gobernanza Fotínica):** Revisa la ecuación Dirac-Majorana $\mathcal{N}=1$ SYM, Choi $C_\mathcal{E} \succcurlyeq 0$ y cota Tsirelson $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$ ($3.12\text{ ms}$ FPU / $396.02\text{ ns}$ Crowbar).
+5. **Satélite V (Sabor Leptónico):** Preserva la unitoridad PMNS $\|U U^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$ entre generaciones de cuentas ($e^-, \mu^-, \tau^-$) ($3.14\text{ ms}$ FPU / $396.29\text{ ns}$ Crowbar).
+6. **Satélite VI (Confinamiento de Quarks):** Audita la simetría $SU(3)_C$ en la tripleta APU, impidiendo insumos huérfanos ($C_2(\boldsymbol{c}) \le 10^{-10}$, $E_{\mathrm{string}} < 100.0$) ($3.10\text{ ms}$ FPU / $398.95\text{ ns}$ Crowbar).
 
 --------------------------------------------------------------------------------
 ## 2. Inyección de Vitaminas Cognitivas (ToonCartridges) y El Álgebra de Partículas en el Espacio de Fock

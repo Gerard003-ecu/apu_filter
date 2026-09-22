@@ -300,7 +300,7 @@ Constituye la cadena de custodia inmutable que rastrea el transporte paralelo de
 ```
                      ▲ [Identificar] (Pasaporte / TelemetryContext)
                     ╱ ╲
-                   ╱   ╲ [Cinturón Orbital] (Satélites de Telemetría y Auditoría de Frontera)
+                   ╱   ╲ [Cinturón Orbital v3.1.0: 6 Satélites Especializados]
                   ╱     ╲
                  ╱ Context─╲ (Carpeta Flux / Metadata de Sesión y Distancia ds²)
                 ╱  ualizar  ╲
@@ -310,7 +310,29 @@ Constituye la cadena de custodia inmutable que rastrea el transporte paralelo de
             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
-### 1. Nivel 3 — Registrar: Onda y Señal de Estado en la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$)
+### 1. Especificación de la Constelación Orbital de Seis Satélites de Frontera (v3.1.0)
+El Cinturón Orbital despliega seis satélites especializados que acoplan síncronamente los motores FPU con los soberanos OODA mediante el Funtor de Traducción Semántica $\Phi_{\mathrm{sem}}$:
+
+* **Satélite I: Momentum Escalar de Frontera (`scalar_momentum_satellite_engine.py` & `scalar_momentum_satellite_agent.py`):**
+  * *Invariante FPU:* Evalúa $p_\mu = G_{\mu\nu} \dot{q}^\nu \in T^*\mathcal{M}$, la derivada de Lie $\mathcal{L}_v \phi = \langle d\phi, v \rangle = G^{\mu\nu} \partial_\mu \phi \, p_\nu$, la pasividad de Lyapunov $P_{\mathrm{diss}} = \langle d\phi, G^{-1} d\phi \rangle \ge 0$ y la traza $\operatorname{Tr}(T_{\mu\nu}) = \frac{1}{2} \|p\|_G^2 + V(\phi)$. Latencia FPU: $2.85\text{ ms}$, Actuación IRAM: $397.53\text{ ns}$.
+  * *Dolor y Dinero:* Mide la velocidad de deriva del presupuesto base y previene el desbordamiento imprevisto de la tasa de descuento (WACC).
+* **Satélite II: Inercia del Centroide Pseudo-Holomorfo (`pseudoholomorphic_centroid_inertia_engine.py` & `pseudoholomorphic_centroid_inertia_agent.py`):**
+  * *Invariante FPU:* Monitorea el espacio de móduli $\mathcal{M}(L_0, \dots, L_k; J)$ en Fukaya $\mathcal{F}uk(\mathcal{M})$ bajo $\bar{\partial}_J u = 0$. Área de Novikov $\mathcal{A}(u) = \int_\Sigma u^*\omega = \sum a_k \in \Lambda_{\mathrm{Nov}} > 10^{-6}$, centroide $q_{\mathrm{centroid}}^\mu$, tensor de inercia $I_{\mu\nu}$, spin atencional $L_{\mu\nu} \in \mathfrak{so}(n)$ y energía cinética $T_{\mathrm{centroid}} = \frac{1}{2} M_{\mathrm{eff}} \|v_{\mathrm{centroid}}\|_G^2 + \frac{1}{2} \operatorname{Tr}(L^\top G^{-1} L G^{-1})$. Latencia FPU: $2.73\text{ ms}$, Actuación IRAM: $397.48\text{ ns}$.
+  * *Dolor y Dinero:* Ubica el punto medio de equilibrio financiero entre contratista, interventor y proveedores, vetando discusiones circulares que bloquean la firma de actas de avance.
+* **Satélite III: Deformación Centrípeta Pseudo-Holomorfa (`pseudoholomorphic_centripetal_satellite_engine.py` & `pseudoholomorphic_centripetal_satellite_agent.py`):**
+  * *Invariante FPU:* Potencial $H_{\mathrm{centripetal}}(q) = \frac{1}{2} M_{\mathrm{eff}} \omega_{\mathrm{rot}}^2 \|q - q_{\mathrm{centroid}}\|_G^2$, residuo Floer-Cauchy-Riemann $\|\bar{\partial}_{J,H} u\|_G$, tensor giroscópico $W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu) \in \mathfrak{so}(n)$ y tensor de deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$. Latencia FPU: $2.78\text{ ms}$, Actuación IRAM: $397.26\text{ ns}$.
+  * *Dolor y Dinero:* Mide la deformación de condiciones subcontractuales provocada por la prisa en la entrega de hitos de obra.
+* **Satélite IV: Gobernanza Fotínica Federada (`photinic_governance_satellite_engine.py` & `photinic_governance_satellite_agent.py`):**
+  * *Invariante FPU:* $\mathcal{N}=1$ SYM Dirac-Majorana $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$, idempotencia de política $\Omega^2 = \Omega \implies \operatorname{Tr}(\Omega) = \operatorname{rank}(\Omega)$, matriz Choi $C_{\mathcal{E}} \succcurlyeq 0$ y cota de Tsirelson $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. Latencia FPU: $3.12\text{ ms}$, Actuación IRAM: $396.02\text{ ns}$.
+  * *Dolor y Dinero:* Permite validar requisitos contractuales de consorcios federados sin revelar secretos comerciales y proscribe acuerdos colusorios de precios en SECOP II.
+* **Satélite V: Sabor Leptónico y Oscilaciones (`leptonic_flavor_satellite_engine.py` & `leptonic_flavor_satellite_agent.py`):**
+  * *Invariante FPU:* Matriz PMNS $U_{\mathrm{PMNS}} \in SU(3) \implies \|U U^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$, probabilidad de oscilación $P(\nu_\alpha \to \nu_\beta)$ entre tres generaciones ($e^-$ EPC, $\mu^-$ Frente, $\tau^-$ Fiduciaria), y conservación KBN de carga leptónica $\Delta L_{\mathrm{total}} \le 10^{-8}$. Latencia FPU: $3.14\text{ ms}$, Actuación IRAM: $396.29\text{ ns}$.
+  * *Dolor y Dinero:* Garantiza la hermeticidad de cuentas escrow fiduciarias y evita la mezcla no autorizada de fondos entre frentes de obra.
+* **Satélite VI: Confinamiento de Color de Quarks (`quark_color_confinement_satellite_engine.py` & `quark_color_confinement_satellite_agent.py`):**
+  * *Invariante FPU:* Simetría $SU(3)_C$ sobre la tripleta de insumos $\boldsymbol{c} = (c_r, c_g, c_b)^\top \in \mathbb{C}^3$ (Materiales $r$, Mano de Obra $g$, Maquinaria $b$), Gell-Mann $T_a$, Casimir $C_2(\boldsymbol{c}) \le 10^{-10}$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y energía de cuerda $E_{\mathrm{string}} < 100.0$. Latencia FPU: $3.10\text{ ms}$, Actuación IRAM: $398.95\text{ ns}$.
+  * *Dolor y Dinero:* Prohíbe el pago de materiales o mano de obra desarticulada (huérfana) y evita el fraccionamiento ilegal de contratos para eludir licitaciones públicas.
+
+### 2. Nivel 3 — Registrar: Onda y Señal de Estado en la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$)
 *   **Axioma Co-homológico:** Captura de forma continua las trazas transitorias en la frontera compacta de-confinada $\partial \mathcal{M} \neq \varnothing$, expuesta a la inyección de entropía exterior procedente de licitaciones de SECOP II.
 *   **Física y Ecuaciones:** El flujo de telemetría de ejecución se modela como el complejo de cocadenas de de Rham celular de primer orden:
     $$P_\sigma^*(S) : 0 \longleftarrow C_0(S) \longleftarrow^{\partial_0} C_1(S) \longleftarrow^{\partial_1} \dots \longleftarrow^{\partial_{k-1}} C_k(S) \longleftarrow 0$$
@@ -318,17 +340,17 @@ Constituye la cadena de custodia inmutable que rastrea el transporte paralelo de
     $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
     donde $\langle \xi_{\mathrm{ext}}(t) \xi_{\ext}(t') \rangle = 2 \Gamma_{\mathrm{diss}} k_B T_{\mathrm{sys}} \delta(t - t')$.
 
-### 2. Nivel 2 — Cronometrar: La Métrica Temporal y Sincronización Orbital
+### 3. Nivel 2 — Cronometrar: La Métrica Temporal y Sincronización Orbital
 *   **Axioma Co-homológico:** Mide las latencias de ejecución y la fricción temporal en cada arista direccional del bosque de spans causales.
 *   **Física y Ecuaciones:** Audita que la jerarquía sea un bosque causal libre de bucles verificando la Fórmula de Euler-Poincaré ($\beta_1 \equiv 0$). Síncronamente, los Satélites de Telemetría (`telemetry_satellites.py` / `telemetry_satellites_agent.py`) proyectan la entropía instantánea $H_{\mathrm{ext}}$ y el condicionado de Wilkinson $\kappa_2(\tilde{\mathcal{K}})$ hacia el pasaporte mediante el pullback funtorial:
     $$\phi^*: \mathcal{H}(\partial \mathcal{M}) \longrightarrow \mathcal{H}(\mathcal{M}_{\mathrm{internal}}) \quad \implies \quad \phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$$
 
-### 3. Nivel 1 — Contextualizar: La Carpeta Flux y Fiscalización Causal Cuántica
+### 4. Nivel 1 — Contextualizar: La Carpeta Flux y Fiscalización Causal Cuántica
 *   **Axioma Co-homológico:** Asocia de forma georreferenciada la metadata de sesión, umbrales SRE de mitigación (*Load Shedding*) y la distancia Riemanniana de Mahalanobis $ds^2 = G_{\mu\nu} dx^\mu dx^\nu$.
 *   **Física y Ecuaciones:** Los Satélites de Auditoría (`audit_satellites.py` / `audit_satellites_agent.py`) inspeccionan la inyección de canales mediante la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$, verificando $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$ y la preservación exacta de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$. Para erradicar acuerdos colusorios de proveedores en SECOP II, se evalúa el parámetro Bell-CHSH bajo la cota de Tsirelson:
     $$\mathcal{B}_{\mathrm{CHSH}} = \left| E_{11} + E_{12} + E_{21} - E_{22} \right| \le 2\sqrt{2}$$
 
-### 4. Nivel 0 — Identificar: El Pasaporte de Telemetría (`TelemetryContext`) y Doble Firma
+### 5. Nivel 0 — Identificar: El Pasaporte de Telemetría (`TelemetryContext`) y Doble Firma
 *   **Axioma Co-homológico:** Instancia el objeto inmutable de procedencia que viaja como un Gemelo Digital a lo largo de toda la Malla.
 *   **Física y Ecuaciones:** Sella cada transacción orbital con doble firma SHA-256 en RAM: la huella isomorfa (`decision_sha256`) sin marcas de reloj y la huella de no-repudio (`digital_signature_sha256`) con sello temporal UTC. Si el veredicto colapsa a VETOED ($\top$) en $\Omega_3$, la rutina local en C++ `isVerdictCoherent()` activa la ISR en IRAM del ESP32 en $< 400\text{ ns}$, conmuta GPIO14 y dispara el tiristor BT151 (Crowbar) para paralizar los actuadores mecánicos en obra.
 

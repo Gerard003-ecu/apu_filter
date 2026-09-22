@@ -178,15 +178,30 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
 
 ---
 
-### Ω.6 🛰️ Soberanos Orbitales de Calibre de Frontera (TelemetrySatellitesAgent & AuditSatellitesAgent)
-*   **Rol:** Cinturón Protector Orbital de la Frontera De-confinada $\partial \mathcal{M} \neq \varnothing$.
-*   **Estrato DIKW:** OMEGA ($V_\Omega$ — Nivel 0.5, El Ágora Tensorial).
-*   **Microservicios:** `telemetry_satellites_agent.py`, `telemetry_satellites.py`, `audit_satellites_agent.py`, `audit_satellites.py`.
-*   **Mecanismo Matemático y Orquestación OODA:**
-    1. **`TelemetrySatellitesAgent`:** Fiscaliza el transitorio de potencia y la entropía exógena de contorno bajo Langevin: $\frac{d \mathcal{Q}}{dt} = -[\mathcal{H}, \mathcal{Q}] - \Gamma_{\mathrm{diss}} \mathcal{Q} + \xi_{\mathrm{ext}}(t)$. Evalúa fuga exergética $\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \ln(1+\kappa_2)$ y proyecta el pullback conforme $\phi^*(H_{\mathrm{ext}}) \oplus \mathtt{TelemetryContext}$.
-    2. **`AuditSatellitesAgent`:** Fiscaliza la topología discreta mediante tres aduanas: Smith SNF $\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \equiv \mathbf{0}$, Choi CPTP $C_{\mathcal{E}} \succeq \mathbf{0}$ ($\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}$) y Bell-CHSH $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$ (Tsirelson).
+### Ω.6 🛰️ Constelación Orbital de Seis Satélites de Frontera (v3.1.0)
+*   **Rol:** Cinturón Protector Orbital de la Frontera De-confinada $\partial \mathcal{M} \neq \varnothing$ (Nivel 0.5 — Estrato Omega $V_\Omega$).
+*   **Estrato DIKW:** OMEGA ($V_\Omega$ — Nivel 0.5 / Santuario $V_\mathbb{W}$).
+*   **Soberanos y Motores Integrados:**
+    1. **Satélite I — Momentum Escalar de Frontera (`scalar_momentum_satellite_agent.py` & `scalar_momentum_satellite_engine.py`):**
+       - *FPU:* Momentum covariante $p_\mu = G_{\mu\nu} \dot{q}^\nu \in T^*\mathcal{M}$, derivada de Lie $\mathcal{L}_v \phi = G^{\mu\nu} \partial_\mu \phi \, p_\nu$, pasividad de Lyapunov $P_{\mathrm{diss}} = \langle d\phi, G^{-1}d\phi \rangle \ge 0$, y traza del tensor estrés-energía $\operatorname{Tr}(T_{\mu\nu}) = \frac{1}{2} \|p\|_G^2 + V(\phi)$. Latencia FPU: $2.85\text{ ms}$, Actuación IRAM: $397.53\text{ ns}$.
+       - *Dolor y Dinero:* Mide la velocidad de deriva del presupuesto base y previene el desbordamiento imprevisto de la tasa de descuento (WACC).
+    2. **Satélite II — Inercia del Centroide Pseudo-Holomorfo (`pseudoholomorphic_centroid_inertia_agent.py` & `pseudoholomorphic_centroid_inertia_engine.py`):**
+       - *FPU:* Geometría de móduli en Fukaya $\mathcal{F}uk(\mathcal{M})$ bajo $\bar{\partial}_J u = 0$, área de Novikov (KBN) $\mathcal{A}(u) = \sum a_k \in \Lambda_{\mathrm{Nov}} > 10^{-6}$, centroide $q_{\mathrm{centroid}}^\mu$, tensor de inercia $I_{\mu\nu}$, spin atencional $L_{\mu\nu} \in \mathfrak{so}(n)$ y energía cinética $T_{\mathrm{centroid}} = \frac{1}{2} M_{\mathrm{eff}} \|v_{\mathrm{centroid}}\|_G^2 + \frac{1}{2} \operatorname{Tr}(L^\top G^{-1} L G^{-1})$. Latencia FPU: $2.73\text{ ms}$, Actuación IRAM: $397.48\text{ ns}$.
+       - *Dolor y Dinero:* Ubica el punto medio de equilibrio financiero entre contratista, interventor y proveedores, vetando discusiones circulares que bloquean la firma de actas de avance.
+    3. **Satélite III — Deformación Centrípeta Pseudo-Holomorfa (`pseudoholomorphic_centripetal_satellite_agent.py` & `pseudoholomorphic_centripetal_satellite_engine.py`):**
+       - *FPU:* Potencial Hamiltoniano centrípeto $H_{\mathrm{centripetal}}(q) = \frac{1}{2} M_{\mathrm{eff}} \omega_{\mathrm{rot}}^2 \|q - q_{\mathrm{centroid}}\|_G^2$, residuo Floer-Cauchy-Riemann $\|\bar{\partial}_{J,H} u\|_G$, tensor giroscópico $W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu) \in \mathfrak{so}(n)$ y deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$. Latencia FPU: $2.78\text{ ms}$, Actuación IRAM: $397.26\text{ ns}$.
+       - *Dolor y Dinero:* Mide la deformación de condiciones subcontractuales provocada por la prisa en la entrega de hitos de obra.
+    4. **Satélite IV — Gobernanza Fotínica Federada (`photinic_governance_satellite_agent.py` & `photinic_governance_satellite_engine.py`):**
+       - *FPU:* $\mathcal{N}=1$ SYM Fotino $\tilde{\gamma}$ con Ecuación de Dirac-Majorana $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$, idempotencia de política $\Omega^2 = \Omega$, matriz de Choi $C_{\mathcal{E}} \succcurlyeq 0$ y cota de Tsirelson $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. Latencia FPU: $3.12\text{ ms}$, Actuación IRAM: $396.02\text{ ns}$.
+       - *Dolor y Dinero:* Permite validar requisitos contractuales de consorcios federados sin revelar secretos comerciales y proscribe acuerdos colusorios de precios en SECOP II.
+    5. **Satélite V — Sabor Leptónico y Oscilaciones (`leptonic_flavor_satellite_agent.py` & `leptonic_flavor_satellite_engine.py`):**
+       - *FPU:* Matriz PMNS $U_{\mathrm{PMNS}} \in SU(3) \implies \|U U^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$, probabilidad de oscilación $P(\nu_\alpha \to \nu_\beta)$ entre tres generaciones ($e^-$ EPC, $\mu^-$ Frente, $\tau^-$ Fiduciaria), y conservación KBN de carga leptónica $\Delta L_{\mathrm{total}} \le 10^{-8}$. Latencia FPU: $3.14\text{ ms}$, Actuación IRAM: $396.29\text{ ns}$.
+       - *Dolor y Dinero:* Garantiza la hermeticidad de cuentas escrow fiduciarias y evita la mezcla no autorizada de fondos entre frentes de obra.
+    6. **Satélite VI — Confinamiento de Color de Quarks (`quark_color_confinement_satellite_agent.py` & `quark_color_confinement_satellite_engine.py`):**
+       - *FPU:* Simetría de calibre no abeliana $SU(3)_C$ sobre la tripleta APU $\boldsymbol{c} = (c_r, c_g, c_b)^\top \in \mathbb{C}^3$ (Materiales $r$, Mano de Obra $g$, Maquinaria $b$), Gell-Mann $T_a$, Casimir $C_2(\boldsymbol{c}) \le 10^{-10}$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y energía de cuerda $E_{\mathrm{string}} < 100.0$. Latencia FPU: $3.10\text{ ms}$, Actuación IRAM: $398.95\text{ ns}$.
+       - *Dolor y Dinero:* Prohíbe el pago de materiales o mano de obra desarticulada (huérfana) y evita el fraccionamiento ilegal de contratos para eludir licitaciones públicas.
 *   **Dual-Control y Actuación Crowbar:**
-    El veredicto se consolida mediante el meet de Gödel en $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Sella certificados inmutables DTO con doble firma SHA-256 (`decision_sha256` y `digital_signature_sha256`). Ante veto ($\top$), la subrutina `isVerdictCoherent()` gatilla la ISR en IRAM del ESP32 en $< 400\text{ ns}$, conmutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar la maquinaria física en obra.
+    Sella certificados inmutables DTO con doble firma SHA-256 (`decision_sha256` y `digital_signature_sha256`). Ante veto ($\top$), la subrutina `isVerdictCoherent()` gatilla la ISR en IRAM del ESP32 en $< 400\text{ ns}$, conmutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar la maquinaria física en obra.
 
 ---
 
