@@ -4,7 +4,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO : Quark Color Confinement Satellite Engine (Satélite VI — Confinamiento)      ║
 ║ RUTA   : app/core/immune_system/quark_color_confinement_satellite_engine.py          ║
-║ VERSIÓN: 2.0.0-Doctoral-SU3-GellMann-Cornell-Luescher-ANO-Hodge-FPU-Secure            ║
+║ VERSIÓN: 2.0.0-Doctoral-SU3-GellMann-Cornell-Luescher-ANO-Hodge-FPU-Secure           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 Motor FPU para la auditoría de calibre no abeliano $SU(3)_c$, confinamiento de color de quarks,
