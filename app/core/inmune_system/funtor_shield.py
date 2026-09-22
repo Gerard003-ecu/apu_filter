@@ -13,7 +13,7 @@ $$\mathcal{F}_{\mathrm{shield}}: \mathcal{C}_{\mathrm{states}} \longrightarrow \
 
 Su propósito fundamental es abortar cualquier evaluación heurística o arbitraria, 
 imponiendo de forma determinista un difeomorfismo simpléctico y cohomológico que 
-aniquile las fluctuaciones probabilísticas degeneradas de los agentes generativos. 
+metabolice las fluctuaciones probabilísticas degeneradas de los agentes generativos. 
 Subyuga el flujo transaccional al cumplimiento de las leyes de conservación física, 
 re-proyectando los vectores de estado en la Unidad de Punto Flotante (FPU) bajo las 
 restricciones termodinámicas de la física de circuitos eléctricos.
