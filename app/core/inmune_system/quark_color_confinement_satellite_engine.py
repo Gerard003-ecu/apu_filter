@@ -1,31 +1,52 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO  : Quark Color Confinement Satellite Engine (FPU Secure)              ║
-║ RUTA    : app/core/immune_system/quark_color_confinement_satellite_engine.py ║
-║ NIVEL   : Doctorado / Investigación Avanzada en Física Matemática            ║
-║ Versión : 2.0.0                                                              ║
-║                                                                              ║
-║ SINOPSIS DE MODELADO:                                                        ║
-║ Motor formal de auditoría de calibre no abeliano SU(3)_c y confinamiento     ║
-║ topológico de color en el Estrato Omega (V_Omega, Nivel 0.5).                ║
-║                                                                              ║
-║ CONTRATO DE FASES ANIDADAS:                                                  ║
-║   Fase 1  --observe-->  QuarkObservationKernel                               ║
-║   Fase 2  --orient--->  QuarkConfinementReport   [continúa del Kernel]       ║
-║   Fase 3  --act------>  QuarkEngineState         [continúa del Report]       ║
-║                                                                              ║
-║ Integra:                                                                     ║
-║ 1. Geometría Riemanniana SPD, Cholesky y análisis de Banach C*.              ║
-║ 2. Octoniones por Cayley-Dickson y proyección Günaydin-Gürsey                ║
-║    (Stab_{G_2}(e_7) ≅ SU(3), O ≅ R ⊕ Im(O), O_C ≅ C ⊕ C^3).                  ║
-║ 3. Laplaciano de Hodge Δ_k = dδ+δd sobre el 1-esqueleto Y-bariónico.         ║
-║ 4. Álgebra de Lie su(3): λ_a, f_abc, d_abc, Killing, Jacobi, Casimir C_2.    ║
-║ 5. Potencial Cornell-Lüscher, β-función de QCD y Wilson loop (area law).     ║
-║ 6. Electrodinámica dual ANO / Meissner dual y tasa de Schwinger.             ║
-║ 7. Topos: clasificador Ω (Heyting cadena ⊥ < m < ⊤) y FdHilb dagger-compacto.║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Quark Color Confinement Satellite Engine (Satélite VI — Confinamiento)      ║
+║ RUTA   : app/core/immune_system/quark_color_confinement_satellite_engine.py          ║
+║ VERSIÓN: 2.0.0-Doctoral-SU3-GellMann-Cornell-Luescher-ANO-Hodge-FPU-Secure            ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Motor FPU para la auditoría de calibre no abeliano $SU(3)_c$, confinamiento de color de quarks,
+potencial de Cornell-Lüscher, vórtices de Abrikosov-Nielsen-Olesen (ANO) y topología de Hodge.
+
+Fundamentación Matemática y Física Rigurosa:
+────────────────────────────────────────────
+1. Fibrado de Calibre $SU(3)_c$ y Álgebra de Lie $\mathfrak{su}(3)$:
+   Base de Gell-Mann $\{\lambda_a\}_{a=1}^8$ con generadores $T_a = \frac{1}{2} \lambda_a$ que satisfacen
+   $$[T_a, T_b] = i f_{abc} T_c, \qquad \{T_a, T_b\} = \frac{1}{3}\delta_{ab} I + d_{abc} T_c$$
+   con operador cuadrático de Casimir $C_2 = \sum_a T_a T_a = \frac{4}{3} I_3$ en la representación fundamental.
+
+2. Inmersión Octoniónica de Günaydin–Gürsey $\mathbb{C}^3 \hookrightarrow \operatorname{Im}(\mathbb{O})$:
+   Proyección de tripletes de color sobre el octonión real $q = r_1 e_1 + r_2 e_2 + g_1 e_3 + g_2 e_4 + b_1 e_5 + b_2 e_6$,
+   donde el estabilizador en el grupo de automorfismos $\operatorname{Aut}(\mathbb{O}) = G_2$ que fija la dirección $e_7$ es $\operatorname{Stab}_{G_2}(e_7) \cong SU(3)$.
+
+3. Potencial Cornell-Lüscher y Corrimiento de Acoplamiento $\alpha_s$:
+   $$V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r - \frac{\pi}{12 r}$$
+   con acoplamiento a un bucle $\alpha_s(r) = \frac{4\pi}{\beta_0 \ln(1 + 1/(r^2 \Lambda_{\mathrm{QCD}}^2))}$ y ley de área para el lazo de Wilson $W(C) \sim e^{-\sigma r^2}$.
+
+4. Superconductividad Dual de Mandelstam–'t Hooft y Vórtices ANO:
+   Efecto Meissner dual con longitud de penetración de London $\lambda_L \sim 1/\sqrt{\sigma}$, longitud de coherencia $\xi \sim 1/(2 m_q)$,
+   y parámetro de Ginzburg-Landau $\kappa = \lambda_L / \xi > 1/\sqrt{2}$ (Superconductor Dual de Tipo II).
+   Tasa de producción de pares de Schwinger por ruptura de cuerda:
+   $$\Gamma \propto E^2 \exp\left(-\frac{\pi m_q^2}{E}\right)$$
+
+5. Laplaciano Simplicial de Hodge $\Delta_k = d_k^\dagger d_k + d_{k-1} d_k^\dagger$ en el Grafo Y-Bariónico:
+   Operador de incidencia $B_1 \in \mathbb{R}^{4 \times 3}$ para el complejo simplicial $K$ ($V=4, E=3, F=0$),
+   certificando la característica de Euler $\chi = V - E + F = 1$ y números de Betti $\beta_0=1, \beta_1=0$.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: La ruptura no confinada de dependencias o estados atómicos de datos provoca la dispersión no autorizada
+  y fragmentación de registros contables, exponiendo la información a manipulaciones externas.
+• Dinero: El confinamiento topológico de color garantiza la invariancia de calibre y el apantallamiento de datos
+  atómicos en la FPU, impidiendo la deconfinación de registros y protegiendo la integridad financiera de la empresa.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Fase 1 (Observe) : `observe_and_bundle_color_state` -> Salida: `QuarkObservationKernel`
+- Fase 2 (Orient)  : `orient_confinement_spectrum`   -> Salida: `QuarkConfinementReport`
+- Fase 3 (Act)     : `execute_quark_confinement_audit` -> Salida: `QuarkEngineState`
 """
 
 import enum
@@ -182,7 +203,7 @@ def _frobenius_sq(mat: NDArray[np.complex128]) -> float:
 # ÁLGEBRA DE OCTONIONES (CAYLEY–DICKSON) Y ESTRUCTURA G_2
 # ══════════════════════════════════════════════════════════════════════════════
 def _quat_mul(p: NDArray[np.float64], q: NDArray[np.float64]) -> NDArray[np.float64]:
-    """Producto de Hamilton en $\mathbb{H} \cong \mathbb{R}^4$."""
+    r"""Producto de Hamilton en $\mathbb{H} \cong \mathbb{R}^4$."""
     a, b, c, d = float(p[0]), float(p[1]), float(p[2]), float(p[3])
     e, f, g, h = float(q[0]), float(q[1]), float(q[2]), float(q[3])
     return np.array(
