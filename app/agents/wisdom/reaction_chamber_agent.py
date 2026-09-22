@@ -1,70 +1,55 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Reaction Chamber Agent — Evolución Doctoral en 3 Fases Anidadas     ║
-║ Ruta   : app/agents/wisdom/reaction_chamber_agent.py                         ║
-║ Versión: 3.1.0-Hodge-Smith-Heyting-CFL-IRAM-Governance                       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Agente Soberano de la Cámara de Reacción (Reaction Chamber Agent).
 
-SINOPSIS
-========
-Soberano de Calibre de la Cámara de Reacción Catalítica Cuántica.
+Este módulo implementa la gobernanza de lazo cerrado para la cámara de reacción catalítica cuántica.
+Audita la dinámicas del reactor mediante un topos de morfismos anidados en tres fases
+(Observe, Orient, Decide/Act), garantizando la estabilidad homológica, espectral y termodinámica
+en complejos de cadenas finitos sobre Z.
 
-Audita al reactor `reaction_chamber.py` (v4.1.0) mediante un topos de
-morfismos anidados Φ₁ → Φ₂ → Φ₃.  Cada fase es un objeto cuya flecha
-terminal es el objeto inicial de la siguiente:
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El agente supervisa la evolución del estado \psi \in \mathbb{R}^n sobre un complejo simplicial con
+    matriz de adyacencia A \in M_n(\mathbb{R}) y operador de borde \partial_1 : C_1 \to C_0.
+    La arquitectura opera mediante tres fases functoriales anidadas:
 
-    FASE 1  IntegerExactArithmetic.construct_observation_kernel
-         │  + validación Banach / Dot2 / Bareiss / SNF / sello SHA-256
-         └─► phase1_close_and_open_phase2  ──►  Phase1ReactionHandoff
-                │
-    FASE 2  Auditoría homológico-espectral (continúa el kernel)
-         │  Smith / Hückel(Kato–Temple) / Fiedler(Cheeger exacto) /
-         │  CFL(propagador) / Hodge–Tellegen(ponderado) / libro de Betti
-         └─► phase2_close_and_open_phase3  ──►  Phase2ReactionHandoff
-                │
-    FASE 3  Gobierno de Heyting (continúa el estado espectral)
-         │  Átomos Ω₃, meet, gracia, override HMAC(exp,nonce), Crowbar, sello
-         └─► phase3_close_loop  ──►  ReactionChamberVerdict
+    1. Fase 1 (Observe - Ingestion & Exact Arithmetic):
+       - Aritmética Libre de Error (Dot2 & Knuth-Møller): Evaluación exacta del producto interno
+         \langle \psi, \psi \rangle_2 mediante algoritmos de Ogita-Rump-Oishi y sumación KBN.
+       - Álgebra sobre Z (Bareiss & Smith Normal Form): Eliminación fraction-free de Bareiss para det(\partial_1)
+         y cálculo de la forma normal de Smith SNF(\partial_1) = \text{diag}(s_1, \dots, s_r, 0, \dots).
+       - Sello de Sesión Inmutable: Generación del digesto SHA-256 sobre la representación canónica.
 
-CONTINUIDAD FORMAL
-==================
-    Φ₁→₂ : Phase1ReactionHandoff  →  phase2_from_phase1
-    Φ₂→₃ : Phase2ReactionHandoff  →  phase3_from_phase2
+    2. Fase 2 (Orient - Homological & Spectral Audit):
+       - Torsión Homológica: Detección de torsión en C_0/{\text{Im}}\,\partial_1 \iff \exists s_k > 1.
+         Si \partial_1 es de incidencia signada totalmente unimodular, s_k = 1 \forall k; por lo tanto,
+         torsión representa corrupción topológica estructural.
+       - Resonancia de Hückel & Cota de Kato-Temple:
+         Evaluación del Hamiltoniano H = \alpha I + \beta A y la energía de Rayleigh E(\hat{\psi}) = \langle \hat{\psi}, H \hat{\psi} \rangle.
+         Verificación a posteriori de la cota de Kato-Temple \lambda_{\min} \ge E - \frac{r^2}{\lambda_2 - E} con residuo r = \|(H - E)\hat{\psi}\|_2.
+       - Conectividad de Fiedler & Desigualdad de Cheeger:
+         Laplaciano combinatorio L = D - A. Certificación de la conectividad espectral \lambda_2 y cotas
+         \frac{\lambda_2}{2} \le h(G) \le \sqrt{2 d_{\max} \lambda_2} para la constante de Cheeger h(G).
+       - Estabilidad CFL & Disipación de Hodge-Tellegen:
+         Condición von Neumann \rho(I - \alpha L) \le 1 \iff \alpha \le \frac{2}{\lambda_{\max}} y compatibilidad Hodge L_A \approx \partial W \partial^T.
 
-El último método de la Fase k invoca de inmediato el morfismo de admisión
-de la Fase k+1: la frontera es un tipo, no un comentario.
+    3. Fase 3 (Decide/Act - Heyting Governance & Crowbar Interlock):
+       - Inferencia en el Álgebra de Heyting \Omega_3 = \{\text{VETOED} < \text{DEGRADED} < \text{COHERENT}\}:
+         Combinador global \mathbf{V} = \bigwedge a_i. Si \mathbf{V} = \text{DEGRADED}, activa ventana modal de gracia \Gamma.
+       - Autenticación HMAC-SHA256: Override seguro \sigma(\text{DEGRADED}) = \text{DEGRADED} (anula \Gamma pero no promociona a \text{COHERENT}).
+       - Disparo Ciber-Físico Simulado (Crowbar BT151): Despacho IRAM en < 400 ns ante \mathbf{V} = \text{VETOED}.
 
-FUNDAMENTOS
-===========
-Homología entera (Smith):
-    ∂₁ : C₁ → C₀  sobre ℤ,   SNF(∂₁) = diag(s₁ | … | s_r, 0, …)
-    Torsión ⇔ ∃k: s_k > 1.   Para una matriz de incidencia signada genuina
-    (totalmente unimodular) todos los s_k = 1; por tanto torsión en ∂₁
-    certifica corrupción del complejo, no topología exótica.
-    β₀ = dim ker L,   β₁ = |E| − rank ∂₁,   χ = |V| − |E| = β₀ − β₁.
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Invarianza Topológica de Incidencia Signada):
+      Si \partial_1 es incidencia signada totalmente unimodular, H_0(C, \mathbb{Z}) es libre de torsión (\text{s}_k = 1 \quad \forall k \le r).
+    - Axioma II (Cota Rigurosa de Courant-Fischer-Weyl):
+      E(\hat{\psi}) \ge \lambda_{\min}(H) \quad \forall \hat{\psi} \in S^{n-1}.
+    - Axioma III (Invariante de Adjunción de Heyting):
+      (a \wedge b) \le c \iff a \le (b \to c) \quad \forall a, b, c \in \Omega_3.
+    - Invariante I (Cierre de Transmisión de Sesión):
+      \text{SHA256}(\text{P3}) = \text{SHA256}(\text{P1} \parallel \text{P2} \parallel \text{Decisión}), garantizando auditabilidad ininterrumpida.
 
-Hückel / Rayleigh–Ritz:
-    H = αI + βA,  E(ψ) = ⟨ψ̂, Hψ̂⟩ ≥ λ_min          (Courant–Fischer)
-    r = ‖(H − E)ψ̂‖₂ ,  dist(E, spec H) ≤ r          (Weyl / Bauer–Fike)
-    λ_min ≥ E − r²/(λ₂ − E)  si  r < λ₂ − E          (Kato–Temple)
-    Cₙ:  spec(H) = { α + 2β cos(2πk/n) }.
-
-Fiedler / Cheeger (Laplaciano combinatorio L = D − A):
-    λ₂/2 ≤ h(G) ≤ √(2 d_max λ₂),  h(G) = min_{0<|S|≤n/2} w(S,Sᶜ)/|S|.
-
-CFL / von Neumann:
-    P = I − αL,  ρ(P) = max|1 − αλ| ≤ 1 ⇔ 0 ≤ α ≤ 2/λ_max
-    P ≥ 0 entrada a entrada ⇔ α d_max ≤ 1  (semigrupo estocástico)
-    Cota de trabajo del reactor:  α_crit = 1/(2λ_max) = 1/8 para C₆.
-
-Hodge–Tellegen:
-    L_A = D − A,  L_∂ = ∂ W ∂ᵀ,  ‖L_A − L_∂‖_F ≤ τ,  ∂ᵀ1 = 0 (Kirchhoff).
-
-Heyting trivalente Ω₃ = {⊥ < U < ⊤}:
-    ⊥ = VETOED, U = DEGRADED, ⊤ = COHERENT
-    a∧b = min, a∨b = max, a→b = ⊤ si a ≤ b si no b, ¬a = a→⊥
-    ¬¬U = ⊤ ≠ U  (no booleana: falla el tercero excluido).
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    En plantas de procesamiento químico, reactores catalíticos y redes de distribución de energía, las inestabilidades no lineales o las pérdidas de resonancia en bucles de control generan embalamientos térmicos, deterioro acelerado de activos y paradas no programadas con costos de millones de dólares por día.
+    El Reaction Chamber Agent mitiga de raíz estos riesgos al auditar la topología y estabilidad espectral del reactor en tiempo real. Al detectar anomalías homológicas o pérdida de estabilidad CFL antes de que causen daños físicos, el agente aplica vetos preventivos o aislamientos quirúrgicos, salvaguardando la integridad de los equipos, eliminando costos por mantenimiento reactivo y evitando multas por incumplimiento ambiental o de seguridad industrial.
 """
 
 from __future__ import annotations
