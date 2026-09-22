@@ -1,36 +1,52 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Photinic Governance Satellite Engine (Motor Fotínico de Gobernanza) ║
-║ Ruta   : app/core/immune_system/photinic_governance_satellite_engine.py      ║
-║ Versión: 5.0.0-Doctoral-Majorana-SYM-Dekker-Choi-Horodecki-Tsirelson-HMAC    ║
-║ Nivel  : Estrato Omega ($V_\Omega$, Nivel 0.5 — Núcleo Ciber-Físico FPU)     ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y ARQUITECTURA TEÓRICA DOCTORAL (v5):                    ║
-║ 1. **Corrección crítica de seguridad**: se elimina el "clamp" de v4 que      ║
-║    renormalizaba artificialmente $u_1+u_2\le 2$ antes de evaluar la Cota de  ║
-║    Tsirelson, lo cual anulaba por completo el detector de corrupción         ║
-║    adversarial/super-cuántica. El valor $\mathcal{B}_{\rm CHSH}$ ahora fluye ║
-║    sin alteración hasta la puerta de certificación de Fase 3.                ║
-║ 2. **Corrección de forma**: bipartición Alice/Bob del tensor de correlación  ║
-║    de Horodecki reparada para $N$ impar de nodos federados (previamente      ║
-║    lanzaba `ValueError` de numpy por incompatibilidad de formas).            ║
-║ 3. Criterio físico correcto de canal CPTP: positividad completa vía          ║
-║    espectro de Choi $C_\mathcal{E}\succeq -\varepsilon$, y causalidad vía    ║
-║    el defecto de sub-unitalidad $D=I-\sum_k K_k^\top K_k\succeq-\varepsilon$ ║
-║    (POVM físicamente admisible), en reemplazo de un umbral de Frobenius      ║
-║    arbitrario ($\le 1.0$) sin fundamento físico.                            ║
-║ 4. Aritmética compensada de **Dekker (TwoProduct)** + Kahan-Neumaier:        ║
-║    transformación libre de error de la multiplicación de punto flotante,    ║
-║    reparando una discrepancia entre el docstring y la implementación de v4.  ║
-║ 5. Entropía de von Neumann genuina del estado reducido de gobernanza         ║
-║    $\rho_{\rm fed}=S_{\rm fed}/\operatorname{Tr}(S_{\rm fed})\succeq 0$,     ║
-║    junto con la entropía de entrelazamiento bipartita de Horodecki y la      ║
-║    pureza cuántica $\operatorname{Tr}(\rho^2)$.                             ║
-║ 6. Doble sello criptográfico HMAC-SHA256 (reparación de la importación       ║
-║    muerta de `hmac` presente en v4).                                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Photinic Governance Satellite Engine (Satélite IV — Gobernanza Fotínica)     ║
+║ RUTA   : app/core/immune_system/photinic_governance_satellite_engine.py              ║
+║ VERSIÓN: 5.0.0-Doctoral-Majorana-SYM-Dekker-Choi-Horodecki-Tsirelson-HMAC            ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Motor FPU de Gobernanza Fotínica Federada para la auditoría de canales cuánticos CPTP,
+acoplamiento espinorial de Majorana en $N=1$ Super-Yang-Mills y no-localidad de Bell-CHSH.
+
+Fundamentación Matemática y Física Rigurosa:
+────────────────────────────────────────────
+1. Acoplamiento Espinorial de Majorana en $N=1$ SYM:
+   $$I_{\mathrm{Majorana}} = \sqrt{\operatorname{Tr}(S_{\mathrm{fed}}^2)}, \qquad \chi_5 = \frac{\operatorname{Tr}(S_{\mathrm{fed}})}{\|S_{\mathrm{fed}}\|_F}$$
+   donde $S_{\mathrm{fed}} = \frac{1}{N} \sum_k p_k \otimes p_k + \varepsilon I_d$ es el tensor de Gram federado.
+
+2. Proyector Ortogonal de Grothendieck:
+   $$\Omega = V_r V_r^\top \implies \Omega^2 = \Omega, \quad \operatorname{Tr}(\Omega) = \operatorname{rank}(\Omega)$$
+
+3. Superoperador de Choi-Jamiołkowski y Admisibilidad Causal CPTP:
+   $$\mathcal{E}(X) = \sum_{k=1}^N K_k X K_k^\top, \quad C_\mathcal{E} \succeq -\varepsilon_{\mathrm{Wilkinson}}$$
+   Causalidad verificada mediante el defecto de sub-unitalidad de un operador POVM:
+   $$D = I_d - \sum_k K_k^\top K_k \succeq -\varepsilon_{\mathrm{Wilkinson}}$$
+
+4. Criterio de Horodecki y Cota de Tsirelson (Bell-CHSH) SIN Renormalización:
+   $$\langle \mathcal{B}_{\mathrm{CHSH}} \rangle_{\max} = 2 \sqrt{u_1 + u_2} \le 2\sqrt{2}$$
+   donde $u_1 \ge u_2$ son los dos autovalores dominantes de $T^\top T$, permitiendo la detección de
+   corrupción adversarial super-cuántica ($\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$).
+
+5. Entropía de von Neumann y Pureza Cuántica:
+   $$\rho_{\mathrm{fed}} = \frac{S_{\mathrm{fed}}}{\operatorname{Tr}(S_{\mathrm{fed}})}, \quad S(\rho) = -\operatorname{Tr}(\rho \ln \rho), \quad \mathcal{P} = \operatorname{Tr}(\rho^2)$$
+
+6. Aritmética Compensada de Dekker (TwoProduct) y Kahan-Neumaier:
+   Transformación libre de error para productos punto de precisión efectiva doble en FPU IEEE-754.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Colusión adversarial o manipulación no local en la gobernanza federada de políticas públicas
+  y de presupuesto causa desviaciones opacas y fraudes en consorcios descentralizados.
+• Dinero: El enforcement estricto de la cota de Tsirelson y la positividad completa detecta inmediatamente
+  inyecciones maliciosas o sesgos coordinados, protegiendo los fondos federados y la transparencia gubernamental.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Fase 1 (Observe) : `observe_federated_nodes`     -> Salida: `PhotinicObservationKernel`
+- Fase 2 (Orient)  : `orient_photinic_policy`       -> Salida: `PhotinicPolicyReport`
+- Fase 3 (Act)     : `execute_photinic_audit`      -> Salida: `PhotinicEngineState`
 """
 
 import hashlib

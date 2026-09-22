@@ -2,51 +2,58 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Pseudoholomorphic Centripetal Satellite Engine                              ║
+║ MÓDULO : Pseudoholomorphic Centripetal Satellite Engine (Satélite III — Centrípeta)  ║
 ║ RUTA   : app/core/immune_system/pseudoholomorphic_centripetal_satellite_engine.py    ║
 ║ VERSIÓN: 3.0.0-Doctoral-Fukaya-Floer-CholeskyFrame-Hypercomplex-KBN-FPU-Secure       ║
-║                                                                                      ║
-║ SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:                                          ║
-║ Motor de cálculo ciego en FPU para auditar deformación elasto-plástica,              ║
-║ confinamiento simpléctico y tensores de esfuerzo giroscópico $\mathfrak{so}(n)$      ║
-║ sobre polígonos pseudo-holomorfos                                                    ║
-║ $u: (\Sigma, \partial\Sigma) \to (\mathcal{M}, \partial\mathcal{M})$ en              ║
-║ $\mathcal{F}uk(\mathcal{M})$, sometidos a campos hamiltonianos centrípetos en        ║
-║ el Cinturón Orbital de Frontera ($\partial\mathcal{M}\neq\varnothing$).              ║
-║                                                                                      ║
-║ FUNDAMENTACIÓN GEOMÉTRICA (versión 3.0 — refinamientos doctorales):                  ║
-║ 1. Estructura casi-compleja $G$-compatible en el marco de Cholesky:                  ║
-║    $G = L L^{\top}$, $y = L^{\top}x$, $J_{x} = L^{-\top} J_{0} L^{\top}$,            ║
-║    de modo que $J^{2}=-\mathbb{I}$ (par) y $J^{\top} G J = G$.                       ║
-║    Forma simpléctica $\omega(u,v)=G(Ju,v)\iff\Omega=J^{\top}G=-\Omega^{\top}$.       ║
-║    Dimensión 4: terna casi-hipercompleja $(I,J,K)$ con $IJ=K$, $I^{2}=J^{2}=K^{2}=-1$.║
-║    Dimensión impar: estructura de casi-contacto Sasakiana                            ║
-║    $\phi^{2}=-\mathbb{I}+\xi\otimes\eta$, $\eta=G(\xi,\cdot)$.                       ║
-║                                                                                      ║
-║ 2. Floer–Cauchy–Riemann perturbada:                                                  ║
-║    $\bar{\partial}_{J,H}u=\partial_{s}u+J(u)(\partial_{\tau}u-X_{H_{\mathrm{cent}}}(u))$.║
-║    Campo hamiltoniano: $X_{H}=J\,\mathrm{grad}_{G}H$,                                ║
-║    $H=\tfrac12 M_{\mathrm{eff}}\|\omega_{\mathrm{rot}}\|_{G}^{2}\|q-q_{c}\|_{G}^{2}$. ║
-║                                                                                      ║
-║ 3. Área de Novikov dual: pesos baricéntricos $\sum a_{k}$ (KBN) y área de Stokes     ║
-║    discreta $\mathcal{A}_{\partial}(u)=\tfrac12\sum_{k}\omega(u_{k},u_{k+1})$.        ║
-║                                                                                      ║
-║ 4. $\mathfrak{so}(n)$: $W=\alpha(p\wedge\omega)$, Casimir euclídeo                    ║
-║    $\mathcal{C}_{2}=-\tfrac12\mathrm{Tr}(W^{2})=\tfrac12\|W\|_{F}^{2}\ge 0$,         ║
-║    Casimir métrico $\mathcal{C}_{2}^{G}=-\tfrac12\mathrm{Tr}((G^{-1}W)^{2})$.        ║
-║                                                                                      ║
-║ 5. Deformación radial de móduli: $\epsilon=\frac1{\mathcal{A}}\sum a_{k}\,           ║
-║    \delta q_{k}\otimes\delta q_{k}$; espectro generalizado $\epsilon v=\sigma G v$.  ║
-║                                                                                      ║
-║ 6. Identidad energética / Port-Hamiltoniano:                                         ║
-║    $\dot H + P_{\mathrm{diss}}\approx 0$ (giroscopio potencia-neutro).               ║
-║                                                                                      ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA):                               ║
-║   Fase 1 Observe → CentripetalObserverKernel                                         ║
-║   Fase 2 Orient  absorbe el Kernel (continuación formal del método terminal F1)      ║
-║                → CentripetalDeformationReport                                        ║
-║   Fase 3 Act     absorbe (Kernel, Report) → CentripetalEngineState                   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Motor FPU para auditar deformación elasto-plástica, confinamiento simpléctico y tensores
+de esfuerzo giroscópico en $\mathfrak{so}(n)$ sobre polígonos pseudo-holomorfos
+$u: (\Sigma, \partial\Sigma) \to (\mathcal{M}, \partial\mathcal{M})$ en la Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$,
+sometidos a campos Hamiltonianos centrípetos en el Cinturón Orbital de Frontera ($\partial\mathcal{M}\neq\varnothing$).
+
+Fundamentación Matemática y Física Rigurosa:
+────────────────────────────────────────────
+1. Estructura casi-compleja $J$ $G$-compatible en el marco ortonormal de Cholesky:
+   $$G = L L^\top, \quad y = L^\top x, \quad J_x = L^{-\top} J_0 L^\top$$
+   garantizando $J^2 = -\mathbb{I}$ (dimensión par) y $J^\top G J = G$.
+   Forma simpléctica $\omega(u,v) = G(Ju, v) \iff \Omega = J^\top G = -\Omega^\top$.
+   En dimensión 4: terna casi-hipercompleja $(I,J,K)$ con $IJ = K$, $I^2 = J^2 = K^2 = -1$.
+   En dimensión impar: estructura de casi-contacto Sasakiana $\phi^2 = -\mathbb{I} + \xi \otimes \eta$.
+
+2. Ecuación de Floer–Cauchy–Riemann Perturbada:
+   $$\bar{\partial}_{J,H} u = \partial_s u + J(u)(\partial_\tau u - X_{H_{\mathrm{cent}}}(u)) = 0$$
+   donde el campo Hamiltoniano centrípeto es $X_H = J\,\mathrm{grad}_G H$, con potencial:
+   $$H_{\mathrm{cent}}(q) = \frac{1}{2} M_{\mathrm{eff}} \|\omega_{\mathrm{rot}}\|_G^2 \|q - q_c\|_G^2$$
+
+3. Área de Novikov y Área de Stokes Discreta:
+   $$\mathcal{A}(u) = \sum_k a_k, \quad \mathcal{A}_{\partial}(u) = \frac{1}{2} \sum_k \omega(u_k, u_{k+1})$$
+
+4. Álgebra de Lie $\mathfrak{so}(n)$ y Tensores Giroscópicos:
+   $$W = \alpha (p \wedge \omega_{\mathrm{rot}}) \in \mathfrak{so}(n)$$
+   Casimir Euclídeo $\mathcal{C}_2 = -\frac{1}{2}\operatorname{Tr}(W^2) = \frac{1}{2}\|W\|_F^2 \ge 0$,
+   Casimir Métrico $\mathcal{C}_2^G = -\frac{1}{2}\operatorname{Tr}((G^{-1}W)^2) \ge 0$.
+
+5. Deformación Radial de Móduli y Fluencia Elasto-Plástica:
+   $$\epsilon_{\mathrm{radial}} = \frac{1}{\mathcal{A}} \sum_k a_k (\delta q_k \otimes \delta q_k)$$
+   con espectro generalizado de deformación $\epsilon v = \sigma G v$.
+
+6. Identidad Energética Port-Hamiltoniana:
+   $$\dot{H} + P_{\mathrm{diss}} \approx 0$$
+   certificando que el acoplamiento giroscópico es potencia-neutro.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Deformaciones elasto-plásticas centrípetas no confinadas provocan derivas de insumos y desbordamiento
+  de precios unitarios, resultando en pérdidas millonarias en contratos a precio fijo.
+• Dinero: El confinamiento simpléctico y la auditoría giroscópica restringen la dispersión radial en la FPU,
+  estabilizando las variaciones de costos e imprevistos en la franja elástica predeterminada.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Fase 1 (Observe) : `observe_centripetal_polygon`      -> Salida: `CentripetalObserverKernel`
+- Fase 2 (Orient)  : `orient_from_kernel`               -> Salida: `CentripetalDeformationReport`
+- Fase 3 (Act)     : `act_from_kernel_and_report`       -> Salida: `CentripetalEngineState`
 """
 
 import hashlib
@@ -107,7 +114,7 @@ class CentrifugalDiskBubblingError(CentripetalEngineError):
 
 
 class PlasticDeformationRuptureError(CentripetalEngineError):
-    """Falla elasto-plástica: $\|\epsilon_{\mathrm{radial}}\|_{F}$ excede fluencia."""
+    r"""Falla elasto-plástica: $\|\epsilon_{\mathrm{radial}}\|_{F}$ excede fluencia."""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -182,7 +189,7 @@ def _immutable_array(tensor: NDArray[np.float64]) -> NDArray[np.float64]:
 def _finite_or_raise(tensor: NDArray[np.float64], name: str) -> None:
     if not np.all(np.isfinite(tensor)):
         raise CentripetalDimensionError(
-            f"El tensor '{name}' contiene NaN/Inf: no es un punto de $\mathbb{{R}}^{{n}}$."
+            f"El tensor '{name}' contiene NaN/Inf: no es un punto de $\\mathbb{{R}}^{{n}}$."
         )
 
 
@@ -437,7 +444,7 @@ class Phase1_CentripetalPolygonObserver:
         else:
             if reeb is None or contact is None:
                 raise AlmostComplexCompatibilityError(
-                    "Estructura Sasakiana incompleta: falta el par $(\xi,\eta)$."
+                    r"Estructura Sasakiana incompleta: falta el par $(\xi,\eta)$."
                 )
             target = -np.eye(dim, dtype=np.float64) + np.outer(reeb, contact)
             phi2_res = float(la.norm(j_matrix @ j_matrix - target, "fro"))
@@ -665,7 +672,7 @@ class Phase1_CentripetalPolygonObserver:
             )
         if angular_velocity_vector.ndim != 1 or angular_velocity_vector.shape[0] != dim:
             raise CentripetalDimensionError(
-                f"$\omega_{{\\mathrm{{rot}}}}$ debe ser 1D de dimensión {dim}. "
+                rf"$\omega_{{\mathrm{{rot}}}}$ debe ser 1D de dimensión {dim}. "
                 f"Forma: {angular_velocity_vector.shape}"
             )
         if not math.isfinite(base_mass) or base_mass <= 0.0:

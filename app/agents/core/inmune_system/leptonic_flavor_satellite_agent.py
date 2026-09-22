@@ -1,28 +1,48 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Leptonic Flavor Satellite Agent (Soberano de Sabor Leptónico)       ║
-║ Ruta   : app/agents/core/immune_system/leptonic_flavor_satellite_agent.py    ║
-║ Versión: 5.0.0-Doctoral-OODA-Heyting-PMNS-Fock-RC-Crowbar-HMAC-Threadsafe    ║
-║ Nivel  : Estrato Omega ($V_\Omega$, Nivel 0.5 — Ágora Tensorial)             ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y GOBERNANZA DE LAZO CERRADO (v5):                       ║
-║ 1. Separación estricta entre **física cruda** (nunca lanza por violaciones   ║
-║    clasificables de unitoridad/carga) y **certificación** (lanza para        ║
-║    telemetría avanzada), reparando un defecto arquitectónico crítico de la   ║
-║    v4 donde el veto duro por no-unitoridad era código muerto.                ║
-║ 2. Álgebra de Heyting $\Omega_3=\{\bot,\ast,\top\}$ formalizada con          ║
-║    operadores de retículo (meet/join) y pseudo-complementación, certificando ║
-║    computacionalmente $\neg\neg\ast\neq\ast$ (fallo del tercero excluido).   ║
-║ 3. Circuito RC real del disparo Crowbar BT151: $t_{\rm rise}=RC\ln\frac{V_{OH}}{V_{OH}-V_{GT}}$║
-║    con verificación estricta de corriente de compuerta $I_G\ge 5\,I_{GT}$ y  ║
-║    excepción dura si se excede el presupuesto temporal de IRAM (400 ns).     ║
-║ 4. Sutura de Fock con tokens HMAC de vida limitada (ventana de frescura) y   ║
-║    prevención de repetición, ejecutados bajo exclusión mutua (`RLock`).      ║
-║ 5. Canarios metrológicos de consistencia cruzada agente↔motor y cota física  ║
-║    del invariante de Jarlskog, cerrando el lazo de auditoría inmunológica.   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Leptonic Flavor Satellite Agent (Soberano del Satélite V — Sabor Leptónico) ║
+║ RUTA   : app/agents/core/immune_system/leptonic_flavor_satellite_agent.py            ║
+║ VERSIÓN: 5.0.0-Doctoral-OODA-Heyting-PMNS-Fock-RC-Crowbar-HMAC-Threadsafe            ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
+Satelital de Sabor y Oscilación Leptónica en el Cinturón Orbital de Frontera.
+
+Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
+──────────────────────────────────────────────────────────────
+1. Separación Categórica de Física Cruda y Certificación Estricta:
+   Garantiza la preservación del reporte de oscilación física de sabor aun cuando la certificación estricta
+   del motor rechace unitoridad PMNS o conservación de carga de Noether, haciendo alcanzable la clasificación de Veto Duro.
+
+2. Álgebra de Heyting Formalizada $\Omega_3 = \{\bot, \ast, \top\}$:
+   $$\bot = \mathtt{VETOED} (0), \quad \ast = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
+   gobernado por la regla de inferencia intuicionista:
+   $$\text{verdict} = \text{instantáneo} \wedge \text{histéresis}$$
+   demostrando numéricamente la falla del tercero excluido ($\neg\neg \ast = \top \neq \ast$).
+
+3. Disparo Físico de Silicio RC y Crowbar BT151 (< 400 ns / IRAM):
+   Modelo RC real de compuerta: $t_{\mathrm{rise}} = R_{\mathrm{gate}} C_{\mathrm{gate}} \ln\left(\frac{V_{OH}}{V_{OH} - V_{GT}}\right)$
+   con verificación de corriente de compuerta $I_G = \frac{V_{OH} - V_{GT}}{R_{\mathrm{gate}}} \ge 5 I_{GT}$ y cota de IRAM < 400 ns.
+
+4. Sutura Cuántica de Fock y Canario Metrológico de Majorana:
+   - Aniquilación $e^- + e^+ \to 2\gamma$ mediante tokens HMAC efímeros con ventana de frescura ($\le 300\,\mathrm{s}$) y prevención de repetición bajo `RLock`.
+   - Canario metrológico de consistencia cruzada agente↔motor sobre las normas riemannianas $\|v\|_{\ell^2, G}$.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Desalineaciones imprevistas en la distribución de partidas y centros de costo provocan fugas financieras
+  y distorsiones presupuestarias opacas en la consolidación contable.
+• Dinero: La preservación de carga de Noether y el control de unitoridad PMNS evitan fugas y pérdidas
+  de capital, protegiendo la exactitud y auditoría financiera de la organización.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Observe  : `observe_leptonic_event`            -> Salida: `LeptonicAgentObservation`
+- Orient   : `orient_leptonic_observation`       -> Salida: `LeptonicAgentOrientation`
+- Act      : `decide_heyting_verdict`            -> Salida: `LeptonicAgentCertificate`
+- Composición Síncrona Lazo Cerrado             : `audit_leptonic_flavor_cycle`
 """
 
 import hashlib

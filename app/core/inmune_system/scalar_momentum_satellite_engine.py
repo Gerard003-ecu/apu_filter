@@ -2,59 +2,64 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Scalar Momentum Satellite Engine (Motor de Transferencia de Momentum)       ║
+║ MÓDULO : Scalar Momentum Satellite Engine (Satélite I — Momentum Escalar)            ║
 ║ RUTA   : app/core/immune_system/scalar_momentum_satellite_engine.py                  ║
 ║ VERSIÓN: 3.0.0-Doctoral-Hypercomplex-Spectral-PortHamiltonian-Banach-Secure          ║
-║                                                                                      ║
-║ SINOPSIS MATEMÁTICA, GEOMÉTRICA Y METROLOGÍA DE LA FPU:                              ║
-║ Este módulo constituye el núcleo de cálculo numérico de ultra-alta fidelidad en la   ║
-║ FPU para la evaluación de la transferencia de momentum covariante $p_\mu \in T^*_x\mathcal{M}$║
-║ sobre un campo escalar suave $\phi \in C^\infty(\mathcal{M}, \mathbb{R})$ definido   ║
-║ en una variedad Riemanniana compacta con frontera orientada $(\mathcal{M}, G, \partial\mathcal{M})$.║
-║                                                                                      ║
-║ FUNDAMENTACIÓN FÍSICA Y ESTRUCTURAS ALGEBRAICAS INTEGRADAS:                          ║
-║ 1. Geometría Simpléctica y Fibrados Cotangentes:                                     ║
-║    El espacio de fases es el fibrado cotangente $T^*\mathcal{M}$, equipado con la   ║
-║    forma simpléctica canónica $\omega = dp_\mu \wedge dx^\mu$.                       ║
-║    La velocidad contravariante es generada por el isomorfismo musical (sharp):       ║
-║    $v = G^\sharp(p) \implies v^\mu = G^{\mu\nu} p_\nu \in T_x\mathcal{M}$.           ║
-║                                                                                      ║
-║ 2. Derivada de Lie y Corchetes de Poisson:                                           ║
-║    $\mathcal{L}_v \phi = \iota_v d\phi = \langle d\phi, v \rangle = p_\mu G^{\mu\nu} \partial_\nu \phi = \{\phi, H\}$, ║
-║    donde $H(x, p) = \frac{1}{2} G^{\mu\nu}(x) p_\mu p_\nu$.                          ║
-║                                                                                      ║
-║ 3. Diferenciación Holomorfa por Paso Complejo (CSMD) auditada en TODAS las           ║
-║    direcciones coordenadas mediante condiciones de Cauchy-Riemann, con retroceso    ║
-║    a diferencias centradas de orden 4 EXTRAPOLADAS DE RICHARDSON (dos niveles        ║
-║    $h, h/2$) hacia orden $\mathcal{O}(h^6)$, con estimación explícita del error de   ║
-║    truncamiento y sumación KBN.                                                      ║
-║                                                                                      ║
-║ 4. Teoría Espectral, Métricas de Banach y Topología Algebraica:                      ║
-║    $G = U \Lambda U^\top$, proyectores espectrales $\{P_k\}$ AUDITADOS por           ║
-║    idempotencia ($P_k^2=P_k$) y completitud ($\sum_k P_k = I$), forma de volumen    ║
-║    $\mathrm{vol}_G = \sqrt{\det G}$, log-volumen estable, $\kappa_2(G)$ y radio      ║
-║    espectral.                                                                        ║
-║                                                                                      ║
-║ 5. Dinámica Port-Hamiltoniana y Pasividad Termodinámica (Tellegen):                  ║
-║    $\dot{z} = (J - R)\nabla H + g u$, con $R=\mathrm{diag}(\sigma G^{-1},\kappa G^{-1})\succeq 0$ ║
-║    AUDITADA explícitamente como bloque PSD independiente para momentum ($\sigma$) y  ║
-║    gradiente ($\kappa$). Generador de Lumer-Phillips construido con el bivector      ║
-║    simpléctico genuino $J=p\wedge v$ y evaluado en el PRODUCTO INTERNO $G$-PONDERADO:║
-║    $\langle \mathcal{A}x,x\rangle_G = x^\top G\mathcal{A}x \le 0$.                   ║
-║                                                                                      ║
-║ 6. Winding topológico generalizado a $n$-dimensiones vía determinante de Gram        ║
-║    $\|x\wedge v\|_G^2 = \|x\|_G^2\|v\|_G^2 - \langle x,v\rangle_G^2$, y cadena de     ║
-║    custodia criptográfica auto-verificable (HMAC de tiempo constante).               ║
-║                                                                                      ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS DE TRANSICIÓN FORMAL (OODA LOOP):     ║
-║   Fase 1 (Observe): Ingesta metrológica, espectro auditado de $G$, CSMD/Richardson  ║
-║          validado cruzadamente, Hodge $*d\phi$.  → Salida: ScalarMomentumKernel.     ║
-║   Fase 2 (Orient) : Absorbe ScalarMomentumKernel. Lie, $T_{\mu\nu}$, matriz de       ║
-║          disipación PSD auditada. → Salida: MomentumTransferReport.                  ║
-║   Fase 3 (Act)    : Absorbe (Kernel, Report). Verificación de cadena de custodia,    ║
-║          Lumer-Phillips $G$-ponderado, Winding de Gram, Sello Soberano.             ║
-║          → Salida Terminal: ScalarMomentumEngineState.                              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Módulo FPU de alta precisión para el cálculo covariante de la transferencia de momentum escalar
+$p_\mu \in T^*_x\mathcal{M}$ sobre un campo suave $\phi \in C^\infty(\mathcal{M}, \mathbb{R})$
+definido en una variedad Riemanniana compacta orientada $(\mathcal{M}, G, \partial\mathcal{M})$.
+
+Fundamentación Matemática y Física Rigurosa:
+────────────────────────────────────────────
+1. Geometría Simpléctica en Fibrados Cotangentes:
+   El espacio de fases $T^*\mathcal{M}$ posee la 2-forma simpléctica canónica $\omega = dp_\mu \wedge dx^\mu$.
+   La velocidad contravariante surge del isomorfismo musical (sharp $\sharp$):
+   $$v = G^\sharp(p) \implies v^\mu = G^{\mu\nu} p_\nu \in T_x\mathcal{M}$$
+
+2. Derivada de Lie y Corchetes de Poisson:
+   $$\mathcal{L}_v \phi = \iota_v d\phi = \langle d\phi, v \rangle = p_\mu G^{\mu\nu} \partial_\nu \phi = \{\phi, H\}$$
+   donde el Hamiltoniano cinético libre es $H(x, p) = \frac{1}{2} G^{\mu\nu}(x) p_\mu p_\nu$.
+
+3. Diferenciación Holomorfa por Paso Complejo (CSMD) y Richardson:
+   Auditada en todas las direcciones coordenadas mediante las condiciones de Cauchy-Riemann:
+   $$\frac{\partial u}{\partial x^k} = \frac{\partial v}{\partial y^k}, \quad \frac{\partial u}{\partial y^k} = -\frac{\partial v}{\partial x^k}$$
+   Con retroceso a diferencias centradas de orden 4 extrapoladas de Richardson $\mathcal{O}(h^6)$:
+   $$D^\star = \frac{16 D_{h/2} - D_h}{15} + \mathcal{O}(h^6)$$
+
+4. Teoría Espectral de Operadores Autoadjuntos y Espacios de Banach:
+   $G = U \Lambda U^\top$, con proyectores espectrales de Banach $\{P_k = u_k u_k^\top\}$ auditados por:
+   - Idempotencia: $\|P_k^2 - P_k\|_F < \delta_{\mathrm{idempotency}}$
+   - Completitud: $\|\sum_k P_k - I\|_F < \delta_{\mathrm{completeness}}$
+   Forma de volumen Riemanniana $\mathrm{vol}_G = \sqrt{\det G} = \prod L_{ii}$ con log-volumen estable.
+
+5. Dinámica Port-Hamiltoniana y Pasividad Termodinámica de Tellegen:
+   $$\dot{z} = (J - R)\nabla H + g u, \quad R = \begin{pmatrix} \sigma G^{-1} & 0 \\ 0 & \kappa G^{-1} \end{pmatrix} \succeq 0$$
+   donde $\sigma, \kappa \ge 0$ son conductancias disipativas desacopladas. El generador infinitesimal $\mathcal{A} = -\sigma G - \eta J$
+   satisface la contractividad de Lumer-Phillips en el producto interno $G$-ponderado:
+   $$\langle \mathcal{A}x, x\rangle_G = x^\top G \mathcal{A} x \le 0 \iff \frac{1}{2}\left(G\mathcal{A} + (G\mathcal{A})^\top\right) \preceq \epsilon_{\mathrm{Wilkinson}} I$$
+
+6. Topología Algebraica y Determinante de Gram $n$-Dimensional:
+   $$\|x \wedge v\|_G^2 = \|x\|_G^2 \|v\|_G^2 - \langle x, v\rangle_G^2$$
+   proporcionando el invariante de enrollamiento (winding number) $G$-métrico.
+
+7. Metrología FPU y Cota de Redondeo de Wilkinson:
+   $$\gamma_n = \frac{c \cdot n \cdot \epsilon_{\mathrm{mach}}}{1 - c \cdot n \cdot \epsilon_{\mathrm{mach}}}$$
+   combinada con sumación compensada exactísima Kahan-Babuška-Neumaier (KBN).
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Inestabilidades numéricas en la transferencia de momentum en estimaciones de costo/rendimiento
+  provocan desviaciones financieras (ruina por sobrecostos en licitaciones de infraestructura).
+• Dinero: Garantiza convergencia FPU de ultra-alta fidelidad en IEEE-754, eliminando derivas de redondeo y
+  protegiendo la rentabilidad de megaproyectos mediante auditoría inmutable en lazo cerrado OODA.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Fase 1 (Observe) : `observe_scalar_field` -> Salida: `ScalarMomentumKernel`
+- Fase 2 (Orient)  : `orient_from_kernel`   -> Salida: `MomentumTransferReport`
+- Fase 3 (Act)     : `act_from_kernel_and_report` -> Salida: `ScalarMomentumEngineState`
 """
 
 import hashlib

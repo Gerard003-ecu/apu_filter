@@ -2,57 +2,49 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Pseudoholomorphic Centroid Inertia Agent (Soberano de Inercia Centroidal)   ║
+║ MÓDULO : Pseudoholomorphic Centroid Inertia Agent (Soberano del Satélite II)         ║
 ║ RUTA   : app/agents/wisdom/pseudoholomorphic_centroid_inertia_agent.py               ║
 ║ VERSIÓN: 2.0.0-Doctoral-Fukaya-Novikov-HeytingTopos-Casimir-ESP32Secure              ║
-║                                                                                      ║
-║ SINOPSIS MATEMÁTICA, CATEGÓRICA Y GOBERNANZA DE LAZO CERRADO:                        ║
-║ Este agente supervisor ciber-físico opera en el Estrato de Sabiduría                 ║
-║ ($V_{\mathbb{W}}$, Nivel 0) u Omega ($V_\Omega$, Nivel 0.5 — El Ágora Tensorial)     ║
-║ para gobernar síncronamente en lazo cerrado al "Motor de Inercia Centroidal          ║
-║ Pseudo-Holomorfo" [pseudoholomorphic_centroid_inertia_engine.py] en la FPU.          ║
-║                                                                                      ║
-║ FUNDAMENTACIÓN FÍSICA Y ESTRUCTURAS ALGEBRAICAS INTEGRADAS:                          ║
-║ 1. Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$ y Curvatura de Novikov:          ║
-║    El espacio de móduli $\overline{\mathcal{M}}_{0,k+1}(\mathcal{M}, J)$ de discos   ║
-║    pseudo-holomorfos $u: (\Sigma, \partial\Sigma) \to (\mathcal{M}, \bigcup L_i)$    ║
-║    posee estructura $A_\infty$. La curvatura cuántica $\mu^0(1) \in CF^*(L, L)$      ║
-║    mide la obstrucción generada por el "Burbujeo de Discos" (Disk Bubbling).         ║
-║    Cuando el área simpléctica colapsa $\mathcal{A}(u) \le \tau_{\mathrm{Maslov}}$,   ║
-║    la pérdida de compacidad de Gromov desencadena una singularidad de Maslov.        ║
-║                                                                                      ║
-║ 2. Retículo de Heyting Trivalente $\Omega_3$ (Topos de Subobjetos):                  ║
-║    Clasificador intuicionista $\Omega_3 = \{\bot = 0, \mathfrak{m} = 1, \top = 2\}$: ║
-║    - $\top = \mathtt{COHERENT}$ : Régimen elástico estable en el interior abierto.  ║
-║    - $\mathfrak{m} = \mathtt{DEGRADED}$ : Luz Ámbar / Rampa de de Rham. Subobjeto    ║
-║      de frontera con ventana de gracia temporal de 3600 segundos (1 hora).           ║
-║    - $\bot = \mathtt{VETOED}$ : Colapso topológico / Singularidad de Maslov / Veto. ║
-║    Operaciones de retículo: Ínfimo $a \wedge b = \min(a,b)$, Supremo $a \vee b = \max(a,b)$,║
-║    Implicación de Heyting $a \Rightarrow b = \max\{c : a \wedge c \le b\}$, y      ║
-║    pseudo-complemento intuicionista $\neg a = (a \Rightarrow \bot)$ ($\neg\neg\mathfrak{m} \neq \mathfrak{m}$).║
-║                                                                                      ║
-║ 3. Álgebra de Lie $\mathfrak{so}(n)$, Tensor de Inercia e Invariante de Casimir:     ║
-║    - Tensor de Inercia Riemanniano $I_{\mu\nu} \in \mathcal{S}^+_n(\mathbb{R})$.     ║
-║    - Bivector de Spin Atencional $L_{\mu\nu} \in \mathfrak{so}(n)$, con residuo     ║
-║      de antisimetría $\|L + L^\top\|_F \le \epsilon$.                                ║
-║    - Invariante Cuadrático de Casimir: $\mathcal{C}_2(L) = -\frac{1}{2}\operatorname{Tr}((G^{-1}L)^2)$. ║
-║                                                                                      ║
-║ 4. Aniquilación de Modos de Fock y Conmutación de Silicio ESP32 (Crowbar BT151):     ║
-║    - Mecanismo de Fock $e^- + e^+ \to 2\gamma$: Inyección de Positrón de Autorización║
-║      validado mediante HMAC-SHA256 en tiempo constante (`compare_digest`) para       ║
-║      disipar la Luz Ámbar antes de la expiración de la ventana de gracia.            ║
-║    - Hardware Interlock en silicio perimetral: Despacho de interrupción ISR en IRAM  ║
-║      en $t_{\mathrm{act}} < 400\text{ ns}$ hacia el pin GPIO14, disparando el        ║
-║      tiristor rápido de potencia BT151 (Crowbar) para desenergizar actuadores en     ║
-║      el milisegundo cero ante colapso a $\bot (\mathtt{VETOED})$.                    ║
-║                                                                                      ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS CONTINUAS (OODA AGENT LOOP):          ║
-║   Fase 1 (Observe): `observe_centroid_mesh(...)` -> `CentroidObservationKernel`      ║
-║   Fase 2 (Orient) : Inicia DIRECTAMENTE absorbiendo `CentroidObservationKernel`:     ║
-║                     `orient_centroid_kinematics(...)` -> `CentroidOrientationReport` ║
-║   Fase 3 (Act)    : Inicia DIRECTAMENTE absorbiendo `CentroidOrientationReport`:     ║
-║                     `decide_and_act_from_report(...)` -> `PseudoholomorphicCentroidAgentCertificate`║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Agente supervisor ciber-físico en el Estrato de Sabiduría ($V_{\mathbb{W}}$) / Omega ($V_\Omega$).
+Gobernanza síncrona en lazo cerrado para la Inercia Centroidal Pseudo-Holomorfa en la Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$.
+
+Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
+──────────────────────────────────────────────────────────────
+1. Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$ y Curvatura $A_\infty$:
+   El espacio de móduli $\overline{\mathcal{M}}_{0,k+1}(\mathcal{M}, J)$ de discos pseudo-holomorfos posee estructura $A_\infty$.
+   La curvatura cuántica $\mu^0(1) \in CF^*(L, L)$ mide la obstrucción por Burbujeo de Discos.
+   Cuando $\mathcal{A}(u) \le \tau_{\mathrm{Maslov}}$, la pérdida de compacidad de Gromov desencadena una singularidad de Maslov.
+
+2. Retículo de Heyting Trivalente $\Omega_3 = \{\bot, \mathfrak{m}, \top\}$:
+   - $\top = \mathtt{COHERENT}$ (2) : Régimen elástico estable en el interior abierto.
+   - $\mathfrak{m} = \mathtt{DEGRADED} (1)$ : Luz Ámbar / Subobjeto de frontera con ventana de gracia (3600 s).
+   - $\bot = \mathtt{VETOED} (0)$ : Colapso topológico / Singularidad de Maslov / Veto duro.
+   Operaciones: Ínfimo $a \wedge b = \min(a,b)$, Supremo $a \vee b = \max(a,b)$, e Implicación de Heyting $a \Rightarrow b$.
+
+3. Álgebra de Lie $\mathfrak{so}(n)$, Tensor de Inercia y Casimir:
+   Tensor de Inercia $I_{\mu\nu} \in \mathcal{S}^+_n(\mathbb{R})$, Bivector de Spin Atencional $L_{\mu\nu} \in \mathfrak{so}(n)$
+   con $\|L + L^\top\|_F \le \epsilon$, y Casimir Cuadrático $\mathcal{C}_2(L) = -\frac{1}{2}\operatorname{Tr}((G^{-1}L)^2) \ge 0$.
+
+4. Aniquilación de Fock ($e^- + e^+ \to 2\gamma$) y Crowbar ESP32 (IRAM < 400 ns):
+   - Inyección del Positrón $e^+$ validado vía HMAC-SHA256 en tiempo constante (`compare_digest`) para disipar la Luz Ámbar.
+   - Ante colapso a $\bot$, despacho de la ISR en IRAM en $t_{\mathrm{act}} < 400\,\mathrm{ns}$ al pin GPIO14,
+     disparando el tiristor BT151 (Crowbar) para desenergizar actuadores mecánicos en el milisegundo cero.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Desalineaciones del centroide de datos durante procesos de agregación masiva producen distorsiones
+  en el cómputo de rendimientos y costos unitarios, induciendo sobrecostos operacionales.
+• Dinero: El control de inercia centroidal en lazo cerrado estabiliza los baricentros de datos y aborta
+  transacciones corruptas en tiempo real (< 400 ns), previniendo pérdidas financieras por liquidaciones erogadas por error.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Observe  : `observe_centroid_mesh`         -> Salida: `CentroidObservationKernel`
+- Orient   : `orient_from_kernel`            -> Salida: `CentroidOrientationReport`
+- Act      : `decide_and_act_from_report`    -> Salida: `PseudoholomorphicCentroidAgentCertificate`
+- Composición Síncrona Lazo Cerrado         : `audit_centroid_inertia_cycle`
 """
 
 import hashlib

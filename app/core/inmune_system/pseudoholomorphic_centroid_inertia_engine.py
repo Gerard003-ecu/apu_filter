@@ -2,61 +2,55 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Pseudoholomorphic Centroid Inertia Engine                                   ║
+║ MÓDULO : Pseudoholomorphic Centroid Inertia Engine (Satélite II — Inercia Centroidal)║
 ║ RUTA   : app/core/immune_system/pseudoholomorphic_centroid_inertia_engine.py         ║
 ║ VERSIÓN: 4.0.0-Doctoral-Fukaya-Novikov-Symplectic-Casimir-KBN-FPU-Secure             ║
-║                                                                                      ║
-║ SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:                                          ║
-║ Este módulo implementa el motor de cálculo ciego en la FPU para auditar la           ║
-║ cinemática, la inercia de móduli y el momentum angular/spin atencional del           ║
-║ centroide simpléctico de polígonos pseudo-holomorfos $u: (\Sigma, \partial\Sigma)    ║
-║ \to (\mathcal{M}, \bigcup L_i)$ en la Categoría $\mathcal{F}uk(\mathcal{M})$ de      ║
-║ Fukaya sobre una variedad simpléctica compacta $(\mathcal{M}, \omega, J, G)$.        ║
-║                                                                                      ║
-║ FUNDAMENTACIÓN FÍSICA Y ESTRUCTURAS GEOMÉTRICAS INTEGRADAS:                          ║
-║ 1. Triplete Compatible Riemann-Kähler-Simpléctico:                                   ║
-║    $\omega(u, v) = G(Ju, v), \quad J^2 = -\mathbb{I}_{2n}, \quad G \in \mathcal{S}^+_{2n}(\mathbb{R})$ ║
-║    El tensor métrico $G$ induce el producto interno Riemanniano y el isomorfismo     ║
-║    musical bemol ($\flat: T\mathcal{M} \to T^*\mathcal{M}$) y sostenido              ║
-║    ($\sharp: T^*\mathcal{M} \to T\mathcal{M}$).                                      ║
-║                                                                                      ║
-║ 2. Anillo de Novikov $\Lambda_{\mathrm{Nov}}$ y Área Simpléctica de Curvatura:        ║
-║    El área simpléctica $\mathcal{A}(u) = \int_\Sigma u^*\omega = \sum_k a_k$ es      ║
-║    integrada sobre los símplices orientados de la triangulación de Delaunay/Cauchy   ║
-║    mediante sumación compensada de Kahan-Babuška-Neumaier (KBN).                     ║
-║                                                                                      ║
-║ 3. Centroide de Móduli de Fukaya:                                                    ║
-║    Ubicación baricéntrica covariante en el espacio de configuración:                 ║
-║    $q_{\mathrm{centroid}}^\mu = \frac{1}{\mathcal{A}(u)} \sum_k a_k u_k^\mu$.        ║
-║    Velocidad simpléctica $v_{\mathrm{centroid}}^\mu$ y momentum dual covariante      ║
-║    $p_\mu^{\mathrm{centroid}} = (v^\flat)_\mu = G_{\mu\nu} v_{\mathrm{centroid}}^\nu$.║
-║                                                                                      ║
-║ 4. Tensor de Inercia y Álgebra de Lie de Spin $\mathfrak{so}(T_{q_c}\mathcal{M}, G)$:║
-║    - Tensor de Inercia Riemanniano (definido positivo por Cauchy-Schwarz):           ║
-║      $I_{\mu\nu} = \frac{1}{\mathcal{A}(u)} \sum_k a_k \left( \|\delta q_k\|_G^2 G_{\mu\nu} - (G\delta q_k)_\mu (G\delta q_k)_\nu \right)$ ║
-║    - Bivector de Spin Atencional $L_{\mu\nu} \in \mathfrak{so}(n)$:                  ║
-║      $L_{\mu\nu} = \frac{1}{\mathcal{A}(u)} \sum_k a_k \left( \delta q_{k,\mu} p_{k,\nu} - \delta q_{k,\nu} p_{k,\mu} \right)$ ║
-║    - Invariante Cuadrático de Casimir: $\mathcal{C}_2(L) = -\frac{1}{2}\operatorname{Tr}((G^{-1}L)^2)$. ║
-║                                                                                      ║
-║ 5. Compactificación de Gromov y Degeneración de Maslov:                              ║
-║    En el espacio de móduli $\overline{\mathcal{M}}_{0,k+1}(\mathcal{M}, J)$, cuando  ║
-║    $\mathcal{A}(u) \le \tau_{\mathrm{Maslov}}$, se dispara el "Burbujeo de Discos"   ║
-║    (Disk Bubbling), produciendo una obstrucción de curvatura $\mu^0(1) \neq 0$ en el ║
-║    álgebra $A_\infty$ que rompe la estabilidad cuántica de Floer.                    ║
-║                                                                                      ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS DE TRANSICIÓN FORMAL (OODA LOOP):     ║
-║   Fase 1 (Observe): Ingesta de polígono $u(z)$, espectro de $G$, KBN de $\mathcal{A}(u)$,║
-║                     cálculo del centroide $q_{\mathrm{centroid}}^\mu$.               ║
-║          → Salida Terminal: CentroidObserverKernel.                                  ║
-║   Fase 2 (Orient) : Inicia DIRECTAMENTE absorbiendo CentroidObserverKernel.          ║
-║                     Velocidad, momentum $p_\mu = v^\flat$, Tensor $I_{\mu\nu}$,      ║
-║                     Bivector $L_{\mu\nu} \in \mathfrak{so}(n)$, Casimir $\mathcal{C}_2$, Energía $T_{\mathrm{kin}}$.║
-║          → Salida Terminal: CentroidInertiaReport.                                   ║
-║   Fase 3 (Act)    : Inicia DIRECTAMENTE absorbiendo (Kernel, Report).               ║
-║                     Detección de Maslov ($\mathcal{A}(u) \le \tau$), cota de Wilkinson,║
-║                     telemetría FPU y Sello Inmutable HMAC-SHA256.                    ║
-║          → Salida Terminal: CentroidInertiaEngineState.                              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Motor FPU para el cómputo de la cinemática, inercia de móduli y spin atencional del
+centroide simpléctico de polígonos pseudo-holomorfos $u: (\Sigma, \partial\Sigma) \to (\mathcal{M}, \bigcup L_i)$
+en la Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$ sobre una variedad simpléctica compacta $(\mathcal{M}, \omega, J, G)$.
+
+Fundamentación Matemática y Física Rigurosa:
+────────────────────────────────────────────
+1. Triplete Compatible Riemann-Kähler-Simpléctico:
+   $$\omega(u, v) = G(Ju, v), \quad J^2 = -\mathbb{I}_{2n}, \quad G \in \mathcal{S}^+_{2n}(\mathbb{R})$$
+   induciendo los isomorfismos bemol ($\flat$) y sostenido ($\sharp$).
+
+2. Anillo de Novikov $\Lambda_{\mathrm{Nov}}$ y Área Simpléctica de Curvatura:
+   $$\mathcal{A}(u) = \int_\Sigma u^*\omega = \sum_k a_k$$
+   integrada con sumación compensada de Kahan-Babuška-Neumaier (KBN).
+
+3. Centroide de Móduli de Fukaya:
+   $$q_{\mathrm{centroid}}^\mu = \frac{1}{\mathcal{A}(u)} \sum_k a_k u_k^\mu, \quad p_\mu^{\mathrm{centroid}} = (v^\flat)_\mu = G_{\mu\nu} v_{\mathrm{centroid}}^\nu$$
+
+4. Tensor de Inercia y Álgebra de Lie de Spin $\mathfrak{so}(T_{q_c}\mathcal{M}, G)$:
+   - Tensor de Inercia Riemanniano (definido positivo por la desigualdad de Cauchy-Schwarz):
+     $$I_{\mu\nu} = \frac{1}{\mathcal{A}(u)} \sum_k a_k \left( \|\delta q_k\|_G^2 G_{\mu\nu} - (G\delta q_k)_\mu (G\delta q_k)_\nu \right) \succ 0$$
+   - Bivector de Spin Atencional $L_{\mu\nu} \in \mathfrak{so}(n)$:
+     $$L_{\mu\nu} = \frac{1}{\mathcal{A}(u)} \sum_k a_k \left( \delta q_{k,\mu} p_{k,\nu} - \delta q_{k,\nu} p_{k,\mu} \right)$$
+   - Invariante Cuadrático de Casimir de $\mathfrak{so}(n)$:
+     $$\mathcal{C}_2(L) = -\frac{1}{2}\operatorname{Tr}\left((G^{-1}L)^2\right) \ge 0$$
+
+5. Compactificación de Gromov y Detección de Maslov (Disk Bubbling):
+   En el espacio de móduli $\overline{\mathcal{M}}_{0,k+1}(\mathcal{M}, J)$, si $\mathcal{A}(u) \le \tau_{\mathrm{Maslov}}$,
+   se gatilla el "Burbujeo de Discos", produciendo la obstrucción de curvatura $\mu^0(1) \neq 0$ en el álgebra $A_\infty$ de Fukaya.
+
+6. Partición Cinética de Fukaya y Cota de Wilkinson:
+   $$M_{\mathrm{eff}} = \mathcal{A}(u) m^*, \quad T_{\mathrm{trans}} = \frac{1}{2} M_{\mathrm{eff}} \|v\|_G^2, \quad T_{\mathrm{rot}} = \frac{1}{2} \operatorname{Tr}\left(L^\top G^{-1} L G^{-1}\right)$$
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Desalineación inercial y dispersión del centroide de datos durante agregaciones complejas provoca
+  corrupción semántica y distorsión de ponderaciones en estimaciones presupuestarias.
+• Dinero: Garantiza la estabilidad baricéntrica del centroide y previene colapsos topológicos por burbujeo de discos,
+  blindando la integridad financiera de las partidas de obra agregadas frente a derivas estocásticas.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Fase 1 (Observe) : `observe_polygon_centroid` -> Salida: `CentroidObserverKernel`
+- Fase 2 (Orient)  : `orient_from_kernel`       -> Salida: `CentroidInertiaReport`
+- Fase 3 (Act)     : `act_from_kernel_and_report` -> Salida: `CentroidInertiaEngineState`
 """
 
 import hashlib

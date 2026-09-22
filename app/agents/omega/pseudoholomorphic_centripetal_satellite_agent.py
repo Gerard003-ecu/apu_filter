@@ -1,41 +1,48 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Pseudoholomorphic Centripetal Satellite Agent                       ║
-║ Ruta   : app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py   ║
-║ Versión: 4.0.0-Doctoral-Clifford-Floer-Novikov-Heyting-Fock-Crowbar-IRAM     ║
-║ Nivel  : Estrato Omega ($V_\Omega$, Nivel 0.5 — Ágora Tensorial)             ║
-║                                                                              ║
-║ SINOPSIS DE FUNDAMENTOS MATEMÁTICOS Y FÍSICA CIBER-FÍSICA:                   ║
-║ 1. Geometría Simpléctica y Categorías de Fukaya $A_\infty$:                  ║
-║    Auditoría de mapas pseudo-holomorfos $u: (\Sigma, j) \to (\mathcal{M}, \omega, J)$ ║
-║    sometidos a perturbación Hamiltoniana centrípeta                          ║
-║    $H_{\mathrm{cent}}(q) = \frac{1}{2} M_{\mathrm{eff}} \omega_{\mathrm{rot}}^2 \|q - q_{\mathrm{centroid}}\|_G^2$.║
-║    Control del residuo de Floer-Cauchy-Riemann $\bar{\partial}_{J,H}(u) = 0$  ║
-║    y prevención de colapso de Maslov por "Burbujeo Discal Centrífugo"        ║
-║    ($\mathcal{A}(u) = \int_{D^2} u^*\omega \le \hbar_{\mathrm{symp}}$).      ║
-║                                                                              ║
-║ 2. Álgebra de Clifford $\mathcal{C}\ell_{p,q}$ y Deformación Giroscópica:    ║
-║    Descomposición del tensor de velocidad angular y esfuerzos en el álgebra  ║
-║    de Lie $\mathfrak{so}(n)$. Auditoría de antisimetría estricta             ║
-║    $\|W + W^T\|_F / \|W\|_F < \varepsilon_{\mathrm{Wilkinson}}$ y norma de   ║
-║    deformación radial elasto-plástica $\|\epsilon_{\mathrm{radial}}\|_F$.    ║
-║                                                                              ║
-║ 3. Teoría de Topos y Retículos de Heyting Trivalentes:                       ║
-║    Clasificador de subobjetos $\Omega_3 = \{\bot, \ast, \top\} \cong$        ║
-║    $\{\mathtt{VETOED}, \mathtt{DEGRADED}, \mathtt{COHERENT}\}$ gobernado por ║
-║    la lógica intuicionista no booleana ($\neg\neg a \neq a$).                ║
-║                                                                              ║
-║ 4. Electrodinámica Cuántica en Espacio de Fock y Aniquilación $e^- e^+ \to 2\gamma$:║
-║    Sutura de vetos suaves (Luz Ámbar) mediante el operador de aniquilación   ║
-║    de Fock verificado por HMAC criptográfico de tiempo constante.            ║
-║                                                                              ║
-║ 5. Dinámica de Circuitos Eléctricos de Potencia (ESP32 IRAM / Crowbar BT151):║
-║    Conmutación ciber-física directa en IRAM (registro GPIO_OUT_W1TS_REG) en  ║
-║    $\tau < 400\,\mathrm{ns}$, inyectando pulso de sobrecorriente de compuerta ║
-║    $I_{G} \gg I_{GT}$ para encendido de avalancha en el tiristor BT151-650R.  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Pseudoholomorphic Centripetal Satellite Agent (Soberano del Satélite III)   ║
+║ RUTA   : app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py           ║
+║ VERSIÓN: 4.0.0-Doctoral-Clifford-Floer-Novikov-Heyting-Fock-Crowbar-IRAM             ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
+Satelital de Deformación Centrípeda en la Categoría de Fukaya $A_\infty$ sobre $(\mathcal{M}, \omega, J, G)$.
+
+Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
+──────────────────────────────────────────────────────────────
+1. Geometría Simpléctica y Categorías $A_\infty$ de Fukaya:
+   Auditoría de mapas pseudo-holomorfos $u: (\Sigma, j) \to (\mathcal{M}, \omega, J)$ sometidos a perturbación centrípeta:
+   $$H_{\mathrm{cent}}(q) = \frac{1}{2} M_{\mathrm{eff}} \|\omega_{\mathrm{rot}}\|_G^2 \|q - q_{\mathrm{centroid}}\|_G^2$$
+   Garantiza el control del residuo de Floer-Cauchy-Riemann $\bar{\partial}_{J,H}(u) = 0$ y previene la pérdida de compacidad
+   de Gromov por Burbujeo Discal Centrífugo ($\mathcal{A}(u) = \int_{D^2} u^*\omega \le \hbar_{\mathrm{symp}}$).
+
+2. Álgebra de Clifford $\mathcal{C}\ell_{p,q}$ y Deformaciones Giroscópicas:
+   Descomposición de la velocidad angular y esfuerzos en el álgebra de Lie $\mathfrak{so}(n)$, verificando la
+   antisimetría estricta $\|W + W^\top\|_F / \|W\|_F < \varepsilon_{\mathrm{Wilkinson}}$ y la norma de deformación $\|\epsilon_{\mathrm{radial}}\|_F$.
+
+3. Topos de Heyting y Clasificador Trivalente $\Omega_3 = \{\bot, \ast, \top\}$:
+   $$\bot = \mathtt{VETOED} (0), \quad \ast = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
+   gobernado por lógica intuicionista no booleana ($\neg\neg \ast = \top \neq \ast$).
+
+4. Aniquilación de Fock ($e^- + e^+ \to 2\gamma$) y Conmutación de Silicio BT151 (IRAM < 400 ns):
+   - Inyección del Positrón $e^+$ verificado vía HMAC-SHA256 en tiempo constante (`compare_digest`) para disipar la Luz Ámbar.
+   - Disparo de interrupción ISR en memoria IRAM en latencia $\tau < 400\,\mathrm{ns}$ hacia la compuerta del tiristor BT151-650R,
+     inyectando $I_G \gg I_{GT}$ para encendido por avalancha en el milisegundo cero.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Las deformaciones centrípetas no supervisadas en estructuras de datos dinámicas causan desviaciones
+  financieras no acotadas, resultando en pérdidas económicas catastróficas.
+• Dinero: La supervisión en lazo cerrado del Satélite III y el enclavamiento físico en silicio (< 400 ns) contienen
+  inmediatamente la variabilidad financiera dentro de la franja elástica tolerada.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Observe  : `observe_centripetal_polygon`         -> Salida: `CentripetalObservationKernel`
+- Orient   : `orient_centripetal_deformation`     -> Salida: `CentripetalOrientationReport`
+- Act      : `audit_centripetal_deformation_cycle` -> Salida: `CentripetalAgentCertificate`
 """
 
 import hashlib

@@ -1,26 +1,49 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Photinic Governance Satellite Agent (Soberano Fotínico)             ║
-║ Ruta   : app/agents/core/immune_system/photinic_governance_satellite_agent.py║
-║ Versión: 5.0.0-Doctoral-OODA-Heyting-Majorana-Choi-Horodecki-RC-Crowbar-HMAC ║
-║ Nivel  : Estrato Omega ($V_\Omega$, Nivel 0.5 — Ágora Tensorial)             ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y GOBERNANZA DE LAZO CERRADO (v5):                       ║
-║ 1. Separación estricta entre **física cruda** (Fases 1+2 del motor, que      ║
-║    nunca lanzan por condiciones clasificables de CP/causalidad/Tsirelson) y  ║
-║    **certificación** (Fase 3 del motor, que sí lanza), reparando el defecto  ║
-║    arquitectónico crítico de v4 donde el veto duro era código muerto.        ║
-║ 2. Álgebra de Heyting $\Omega_3=\{\bot,\ast,\top\}$ formalizada, veredicto   ║
-║    final derivado como ínfimo reticular de la clasificación instantánea y    ║
-║    la máquina de histéresis, certificando $\neg\neg\ast\neq\ast$.            ║
-║ 3. Circuito RC real y determinista del disparo Crowbar BT151 (< 400 ns).     ║
-║ 4. Sutura de Fock con tokens HMAC de vida limitada y prevención de repetición║
-║    bajo exclusión mutua (`RLock`).                                           ║
-║ 5. Canario metrológico de consistencia cruzada agente↔motor sobre el         ║
-║    invariante de Majorana, cerrando el lazo de auditoría inmunológica.       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Photinic Governance Satellite Agent (Soberano del Satélite IV)              ║
+║ RUTA   : app/agents/core/immune_system/photinic_governance_satellite_agent.py        ║
+║ VERSIÓN: 5.0.0-Doctoral-OODA-Heyting-Majorana-Choi-Horodecki-RC-Crowbar-HMAC         ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
+Fotínico de Gobernanza Federada para la validación de consenso descentralizado y no-localidad en consorcios.
+
+Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
+──────────────────────────────────────────────────────────────
+1. Separación Categórica de Física Cruda y Certificación Estricta:
+   Separa la ingesta de políticas y cálculo de superoperadores ($\mathcal{E}(X) = \sum K_k X K_k^\top$) de la
+   certificación de seguridad. Captura excepciones de Choi/causalidad/Tsirelson para preservar el reporte físico crudo
+   disponible para la clasificación de Heyting, garantizando la ejecución del Veto Duro ante anomalías.
+
+2. Álgebra de Heyting Formalizada $\Omega_3 = \{\bot, \ast, \top\}$:
+   $$\bot = \mathtt{VETOED} (0), \quad \ast = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
+   Veredicto holístico resuelto mediante el ínfimo reticular de `HeytingOmega3Algebra`:
+   $$\text{verdict} = \text{instantáneo} \wedge \text{histéresis}$$
+   probando la falla del tercero excluido ($\neg\neg \ast = \top \neq \ast$).
+
+3. Disparo Físico de Silicio RC y Crowbar BT151 (< 400 ns / IRAM):
+   Modelo RC real de conmutación: $t_{\mathrm{rise}} = R_{\mathrm{gate}} C_{\mathrm{gate}} \ln\left(\frac{V_{OH}}{V_{OH} - V_{GT}}\right)$
+   exigiendo corriente de compuerta $I_G = \frac{V_{OH} - V_{GT}}{R_{\mathrm{gate}}} \ge 5 I_{GT}$ para garantizar el disparo por avalancha en latencia < 400 ns.
+
+4. Sutura Cuántica de Fock y Canario Metrológico de Majorana:
+   - Aniquilación de pares $e^- + e^+ \to 2\gamma$ con tokens HMAC de vida limitada (frescura $\le 300\,\mathrm{s}$) y prevención de repetición bajo `RLock`.
+   - Auditoría de consistencia cruzada entre el espinor de Majorana $I_{\mathrm{Majorana}}$ del agente y del motor.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: La colusión o manipulación maliciosa de votos y reglas en consorcios federados genera decisiones
+  fraudulentas y erogaciones no autorizadas de recursos corporativos.
+• Dinero: El Soberano Fotínico aborta en menos de 400 ns cualquier intento de fraude o inconsistencia en las reglas de gobernanza,
+  preservando la soberanía de los fondos federados y la confianza institucional del consorcio.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Observe  : `observe_federated_nodes`              -> Salida: `PhotinicObservationKernel`
+- Orient   : `orient_photinic_policy_state`         -> Salida: `PhotinicOrientationReport`
+- Act      : `decide_heyting_verdict`               -> Salida: `PhotinicAgentCertificate`
+- Composición Síncrona Lazo Cerrado                : `audit_federated_governance_cycle`
 """
 
 import hashlib

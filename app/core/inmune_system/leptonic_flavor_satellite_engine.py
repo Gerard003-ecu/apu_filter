@@ -1,33 +1,51 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Leptonic Flavor Satellite Engine (Motor de Sabor y Oscilación)      ║
-║ Ruta   : app/core/immune_system/leptonic_flavor_satellite_engine.py          ║
-║ Versión: 5.0.0-Doctoral-PMNS-Majorana-MSW-Jarlskog-Banach-Graph-FPU-HMAC     ║
-║ Nivel  : Estrato Omega ($V_\Omega$, Nivel 0.5 — Núcleo Ciber-Físico FPU)    ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y ARQUITECTURA TEÓRICA DOCTORAL (v5):                   ║
-║ 1. Geometría de Sabor Leptónico y Mezcla PMNS con Fases de Majorana,         ║
-║    con auditoría cruzada analítica/numérica del invariante de Jarlskog       ║
-║    (invariancia de gauge frente a fases de Majorana demostrada por cómputo). ║
-║ 2. Dinámica MSW exacta corregida: $H_{\rm eff}\cdot L = 2\,k\,(L/E)\,U M U^\dagger ║
-║    + V_e L/(\hbar c)$, con $k=1.267\,\mathrm{eV^{-2}\,km^{-1}\,GeV}$,        ║
-║    exponenciación de Lie simpléctica y auditoría de unitariedad de $S(L)$.   ║
-║ 3. Teoría espectral de grafos de mezcla: Laplaciano de Hodge, conectividad   ║
-║    de Fiedler, distribución estacionaria de Perron-Frobenius, entropía de    ║
-║    Shannon de mezcla y constante de Kemeny (tiempo medio de recurrencia).    ║
-║ 4. Mecánica cuántica rigurosa: la matriz de densidad reducida de sabor       ║
-║    $\rho = S_{\rm Gram}/\mathrm{Tr}(S_{\rm Gram})$ es genuinamente PSD y de  ║
-║    traza unitaria; se certifica pureza $\mathrm{Tr}(\rho^2)$ y entropía      ║
-║    relativa cuántico-clásica (divergencia de Kullback-Leibler).             ║
-║ 5. Certificación espectral de Bauer-Fike: para el Hamiltoniano hermítico     ║
-║    $H_{\rm eff}$, el número de condición de sus autovalores es exactamente  ║
-║    1 (matriz normal), lo cual se verifica computacionalmente.               ║
-║ 6. Seguridad criptográfica reforzada: doble sello HMAC-SHA256 (se repara    ║
-║    la importación muerta de `hmac` de la v4, coherente con el nombre del    ║
-║    subsistema `immune_system`).                                            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Leptonic Flavor Satellite Engine (Satélite V — Sabor Leptónico)             ║
+║ RUTA   : app/core/immune_system/leptonic_flavor_satellite_engine.py                  ║
+║ VERSIÓN: 5.0.0-Doctoral-PMNS-Majorana-MSW-Jarlskog-Banach-Graph-FPU-HMAC             ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Motor FPU para el cálculo de la geometría de sabor leptónico, mezcla PMNS con fases de Majorana,
+efecto Mikheyev-Smirnov-Wolfenstein (MSW), invariantes de Jarlskog y topología espectral de grafos.
+
+Fundamentación Matemática y Física Rigurosa:
+────────────────────────────────────────────
+1. Geometría de Sabor Leptónico y Mezcla PMNS $U(3)$ con Fases de Majorana:
+   $$U = R_{23} \Gamma_\delta R_{13} \Gamma_\delta^\dagger R_{12} \operatorname{diag}\left(1, e^{i \alpha_{21}/2}, e^{i \alpha_{31}/2}\right)$$
+   con verificación de la invariancia de gauge de Majorana en el invariante de Jarlskog:
+   $$\mathcal{J}_{\mathrm{CP}} = c_{12} s_{12} c_{23} s_{23} c_{13}^2 s_{13} \sin \delta_{\mathrm{CP}}$$
+
+2. Dinámica MSW Corregida y Propagación Simpléctica $S(L) = e^{-i H_{\mathrm{eff}} L}$:
+   $$H_{\mathrm{eff}} L = \left(2 \cdot 1.267 \cdot \frac{L}{E}\right) U \operatorname{diag}(0, \Delta m_{21}^2, \Delta m_{31}^2) U^\dagger + \left(V_e L \cdot 5.06773 \times 10^9\right) \operatorname{diag}(1, 0, 0)$$
+   auditando la unitoridad $\|S S^\dagger - I\|_F < \varepsilon_{\mathrm{unitarity}}$ y la conservación de la carga leptónica de Noether.
+
+3. Teoría Espectral de Grafos de Mezcla (Markov y Perron-Frobenius):
+   Laplaciano de Hodge $L_{\mathrm{flavor}} = I_3 - \frac{1}{2}(P + P^\top)$, con conectividad de Fiedler $\lambda_2$,
+   distribución estacionaria de Perron-Frobenius $\pi P = \pi$, entropía de mezcla $H(\pi) = -\sum \pi_\alpha \ln \pi_\alpha$,
+   y constante de Kemeny $\mathcal{K} = \sum_{\lambda_i \neq 1} \frac{1}{1 - \lambda_i}$.
+
+4. Mecánica Cuántica de Sabor y Densidad Reducida PSD:
+   $$\rho_{\mathrm{flavor}} = \frac{S_{\mathrm{Gram}}}{\operatorname{Tr}(S_{\mathrm{Gram}})} \succeq 0, \quad \operatorname{Tr}(\rho) = 1, \quad \mathcal{P} = \operatorname{Tr}(\rho^2)$$
+   Divergencia de Kullback-Leibler cuántico-clásica $D_{\mathrm{KL}}(\pi \| q)$ entre la distribución estacionaria $\pi$ y las diagonales $q_\alpha = \rho_{\alpha\alpha}$.
+
+5. Certificación Espectral de Bauer-Fike:
+   Para el Hamiltoniano hermítico $H_{\mathrm{eff}}$, la base de autovectores satisface $\kappa_2(V) = 1$,
+   garantizando $|\lambda_{\mathrm{computado}} - \lambda_{\mathrm{exacto}}| \le \|\delta H\|_2$.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: Desalineaciones de mezcla de sabor en la clasificación semántica generan derivas opacas en la asignación
+  de costos indirectos, distorsionando la contabilidad presupuestaria.
+• Dinero: El control MSW y la unitoridad PMNS garantizan una distribución invariante de cargas y costos sin
+  pérdida de probabilidad, asegurando la trazabilidad auditada de los recursos financieros del consorcio.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Fase 1 (Observe) : `observe_leptonic_flavors`     -> Salida: `LeptonicObservationKernel`
+- Fase 2 (Orient)  : `orient_leptonic_flavor`       -> Salida: `LeptonicFlavorReport`
+- Fase 3 (Act)     : `execute_leptonic_audit`      -> Salida: `LeptonicEngineState`
 """
 
 import hashlib
