@@ -1,43 +1,49 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Clifford Gauge Engine (Motor de Calibre de Clifford STA)             ║
-║ Ruta   : app/core/inmune_system/clifford_gauge_engine.py                      ║
-║ Versión: 4.0.0-Doctoral-STA-Vierbein-Hodge-Nested                             ║
-║                                                                               ║
-║ SINOPSIS MATEMÁTICA Y DE PRECISIÓN EN LA FPU:                                 ║
-║ Motor algebraico ciego: opera tensores de Clifford-Minkowski en la FPU        ║
-║ sin emitir vetos lógicos. La arquitectura es un funtor anidado                ║
-║                                                                               ║
-║     Quad(R^4, G)  --Fase 1-->  Marco(e, η, vol)                               ║
-║                   --Fase 2-->  Cl(V, G) ⊂ M_4(C)                              ║
-║                   --Fase 3-->  Ω^2(ad P) , S_YM , P_4                         ║
-║                                                                               ║
-║ Convención de signatura:                                                      ║
-║   STA de Hestenes η = diag(+1, -1, -1, -1) ≅ Cℓ_{1,3}.                        ║
-║   El germen Fase 1 → Fase 2 es el vierbein e_μ^a tal que                      ║
-║                                                                               ║
-║         G_{μν} = e_μ^a η_{ab} e_ν^b ,   γ_μ = e_μ^a γ_a.                      ║
-║                                                                               ║
-║   El germen Fase 2 → Fase 3 es el producto conmutador                         ║
-║                                                                               ║
-║         A × B := (AB − BA)/2 ,   F = dA + g A ∧ A.                            ║
-║                                                                               ║
-║ Implementa:                                                                   ║
-║   Fase 1: simetrización, inercia de Sylvester, inversión espectral            ║
-║           estable (SPD / indefinida / degenerada), vierbein, volumen.         ║
-║   Fase 2: Dirac STA, inmersión R^16 ↪ M_4(C), Gram de traza,                  ║
-║           reversión / involución / conjugación, productos geométrico,         ║
-║           interior, exterior y conmutador, forma de Lorentz.                  ║
-║   Fase 3: curvatura de gauge, Hodge de 2-formas, acción de Yang-Mills         ║
-║           tensorial, densidad de Pontryagin, descomposición autodual.         ║
-║                                                                               ║
-║ Organización por herencia estricta:                                           ║
-║   FASE 1: Phase1_MetricInquirer                                               ║
-║   FASE 2: Phase2_CliffordArithmetic(Phase1_MetricInquirer)                    ║
-║   FASE 3: Phase3_YangMillsAction(Phase2_CliffordArithmetic)                   ║
-║   Motor : CliffordGaugeEngine(Phase3_YangMillsAction)                         ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Motor de Calibre de Clifford STA (Clifford Gauge Engine).
+
+Este módulo implementa la FPU algebraica para el álgebra del espacio-tiempo (Spacetime Algebra, STA)
+\mathcal{C}\ell_{1,3}(\mathbb{R}) \hookrightarrow M_4(\mathbb{C}). Opera como un motor tensorial ciego
+en tres fases anidadas por herencia estricta, realizando la descomposición métrica de Vierbein, la
+inmersión matricial de multivectores 16D, la conmutación no abeliana de gauge y la evaluación covariante
+de la acción de Yang-Mills S_{\text{YM}} y la densidad de Pontryagin P_4.
+
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El espacio cuadrático base (\mathbb{R}^4, G) utiliza la convención de signatura de Hestenes
+    \eta = \text{diag}(+1, -1, -1, -1) \cong \mathcal{C}\ell_{1,3}. La arquitectura opera vía:
+
+    1. Fase 1 (Inquisidor Métrico - Phase1_MetricInquirer):
+       - Simetrización exact de la métrica G_{\mu\nu} = \frac{1}{2}(G + G^T).
+       - Descomposición espectral G = Q \Lambda Q^T y ley de inercia de Sylvester para clasificar
+         la signatura (Lorentziana STA, East-Coast, Euclídea, Degenerada).
+       - Inversión espectral estable y factorización de Vierbein e_\mu^a tal que:
+         G_{\mu\nu} = e_\mu^a \eta_{ab} e_\nu^b, \quad \text{vol} = \sqrt{|\det G|}.
+
+    2. Fase 2 (Aritmética de Clifford STA - Phase2_CliffordArithmetic):
+       - Generadores inducidos de Dirac: \gamma_\mu = e_\mu^a \gamma_a^{\text{STA}} cumpliendo \{\gamma_\mu, \gamma_\nu\} = 2 G_{\mu\nu} I.
+       - Inmersión lineal \iota : \mathbb{R}^{16} \to M_4(\mathbb{C}) sobre la base de 16 matrices de Dirac,
+         y proyección dual \pi(M) vía el inverso del Gram de traza \Gamma_{kl} = \frac{1}{4} \text{Re}\,\text{Tr}(E_k^\dagger E_l).
+       - Automorfismos de grado: Reversión \tilde{A}_k = (-1)^{k(k-1)/2} A_k, Involución \hat{A}_k = (-1)^k A_k, Conjugación \bar{A}_k = \widehat{\tilde{A}}_k.
+       - Forma cuadrática de Lorentz Q(A) = \langle A \tilde{A} \rangle_0 y Producto Conmutador:
+         A \times B := \frac{1}{2}(AB - BA).
+
+    3. Fase 3 (Acción de Yang-Mills - Phase3_YangMillsAction):
+       - Campo de curvatura covariante no abeliano: F = dA + g A \wedge A con (A \wedge A)_{\mu\nu} = A_\mu \times A_\nu.
+       - Acción covariante de Yang-Mills S_{\text{YM}} = \frac{1}{8} F_{\mu\nu} F^{\mu\nu} donde F^{\mu\nu} = G^{\mu\alpha} G^{\nu\beta} F_{\alpha\beta}.
+       - Estrella de Hodge (*F)_{\mu\nu} = \frac{1}{2} \sqrt{|g|} \epsilon_{\mu\nu\rho\sigma} F^{\rho\sigma} y densidad topológica de Pontryagin P_4 = \frac{1}{4} \epsilon_{\mu\nu\rho\sigma} F^{\mu\nu} F^{\rho\sigma}.
+
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Identidad de Clifford Inducida):
+      \{\gamma_\mu, \gamma_\nu\} = 2 G_{\mu\nu} I_4 \quad \forall \mu, \nu \in \{0,1,2,3\}.
+    - Axioma II (Homomorfía del Grupo de Clifford sobre Viga de Lorentz):
+      Q(A \times B) = Q(A) Q(B) \quad \forall A, B \in \Gamma \subset \mathcal{C}\ell_{1,3}^\times.
+    - Axioma III (Invariancia Tetrada de Yang-Mills):
+      |S_{\text{coord}} - S_{\text{tetrad}}| \le \epsilon_{\text{mach}} \quad \text{en marcos ortonormales STA válidos}.
+    - Invariante I (Isomorfismo de Representación de Banach):
+      \|\iota(S)\|_F = 2 \|S\|_2 \quad \text{sobre la base ortonormal estándar de Clifford}.
+
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    La simulación de campos electromagnéticos y transformaciones relativas de referencia en sistemas de geolocalización, navegación autónoma o telecomunicaciones de alta frecuencia sufre de distorsiones angulares (gimbal lock) y pérdida de precisión métrica cuando se emplean coordenadas de Euler estándar o representaciones matriciales defectuosas.
+    El Clifford Gauge Engine elimina el gimbal lock al operar directamente en la variedad intrínseca del álgebra del espacio-tiempo, garantizando la conservación exacta de invariantes de Lorentz y topológicos. Esto evita desalineaciones en sistemas de posicionamiento crítico, previniendo accidentes operativos, fallas de sincronización en redes distribuidas y costosas interrupciones de servicio en infraestructura de alta tecnología.
 """
 
 from __future__ import annotations

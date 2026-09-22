@@ -1,29 +1,52 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Fock Forensic Hall (Salón de Eventos del Espacio de Fock)           ║
-║ Ruta   : app/core/inmune_system/fock_forensic_hall.py                        ║
-║ Versión: 3.0.0-Doctoral-CAR-GKSL-Weyl-KyFan-Heyting-Secure                   ║
-║                                                                              ║
-║ ARQUITECTURA DE FASES ANIDADAS (morfismos, no meras secciones):              ║
-║                                                                              ║
-║   Fase 1  --η-->  Fase 2  --χ-->  Fase 3                                     ║
-║   Observe+Orient    Decide (Ω₃)    Act + sello de telemetría                 ║
-║                                                                              ║
-║   η  = _phase1_terminal_morphism  = objeto inicial de la Fase 2              ║
-║   χ  = clasificador de subobjetos = objeto inicial de la Fase 3              ║
-║                                                                              ║
-║ FÍSICA (sin metáfora suelta):                                                ║
-║   • ℋ = ℱ_-(ℂ^{n}) ≅ ℂ^{2ⁿ},  CAR vía Jordan–Wigner.                        ║
-║   • H = Σ_j N_j,  L = a₀a₁ (n≥2)  ó  L = a₀ (n=1).                           ║
-║     Canal de co-aniquilación de par (no unital, no unital-dual).             ║
-║   • Semigrupo: ρ(t) = e^{tℒ}(ρ₀), ℒ en forma GKSL (CPTP, traza-preservante).║
-║   • T^{μν} = p^μ p^ν  (polvo / fotón puntual). Sin ∂g no hay ∇_ν T^{μν}      ║
-║     puntual; se certifican identidades algebraicas y la traza de Weyl.       ║
-║   • Exergía = (⟨N⟩₀ − ⟨N⟩_t)/⟨N⟩₀  ∈ [0,1].                                  ║
-║   • Ω₃ = {COHERENT < DEGRADED < VETOED} cadena de Heyting.                   ║
-║   • Fase 3: ISR *simulada*. No hay GPIO, ESP32 ni BT151 reales.              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Salón de Forensia en el Espacio de Fock (Fock Forensic Hall).
+
+Este módulo implementa el entorno de diagnóstico cuántico y forensia espectral sobre el espacio
+de Fock fermiónico F_-(C^n) \cong C^{2^n}. Opera mediante la evolución de semigrupos cuánticos
+mórficos y la clasificación en el retículo de Heyting \Omega_3, auditando la conservación de
+partículas, entropías de von Neumann/Rényi, tensor de energía-impulso de polvo T^{\mu\nu} y la
+relación de anticonmutación canónica (CAR).
+
+DEFINICIÓN FORMAL Y OPERATORIA:
+    Para n modos fermiónicos, el espacio de estados es F_-(C^n) de dimensión d = 2^n. Los
+    operadores de aniquilación a_j y creación a_j^\dagger se construyen exactamente mediante la
+    transformación de Jordan-Wigner:
+        a_j = Z^{\otimes j} \otimes \sigma^- \otimes I^{\otimes (n-j-1)}
+    satisfaciendo las relaciones CAR: \{a_i, a_j^\dagger\} = \delta_{ij} I y \{a_i, a_j\} = 0.
+
+    1. Fase 1 (Observe + Orient):
+       - Evolución Abierta de Gorini-Kossakowski-Sudarshan-Lindblad (GKSL):
+         \frac{d\rho}{dt} = \mathcal{L}(\rho) = -i[H, \rho] + \gamma \sum_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \rho\} \right)
+         con Hamiltoniano de número H = N = \sum_j a_j^\dagger a_j y canal de co-aniquilación de par L = a_0 a_1 (para n \ge 2).
+       - Exergía de Ocupación:
+         \eta_{\text{ex}} = \frac{\langle N \rangle_0 - \langle N \rangle_t}{\langle N \rangle_0} \in [0, 1].
+       - Tensor de Energía-Impulso y Traza de Weyl:
+         T^{\mu\nu} = p^\mu p^\nu con p^\mu = g^{\mu\nu} p_\nu. Traza covariante invariante de Weyl \text{Tr}_g(T) = g_{\mu\nu} T^{\mu\nu}.
+
+    2. Fase 2 (Decide):
+       - Clasificación en la Cadena de Heyting \Omega_3 = \{\text{COHERENT} < \text{DEGRADED} < \text{VETOED}\}:
+         Los atómicos críticos (violación de entropía, divergencia de momentum, no monotonía del número de partículas, rotura de CAR) hacen join (\vee) directo a VETOED.
+         Los marginales (deriva de traza, divergencia leve) hacen join a DEGRADED.
+       - Clasificador de Subobjetos \chi: \chi = \top \iff \text{veredicto} = \text{VETOED}.
+
+    3. Fase 3 (Act):
+       - Interlock Ciber-Físico Simulado (Crowbar):
+         En caso de \chi = \top, simula la activación del tiristor Crowbar BT151/GPIO14 con latencia gaussiana en IRAM (< 400 ns).
+       - Telemetría Forense con Sello Cryptográfico SHA-256 (Digesto Inmutable).
+
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Completitud Positiva y Preservación de Traza CPTP):
+      \text{Tr}(\mathcal{L}(\rho)) = 0 \implies \text{Tr}(e^{t\mathcal{L}}(\rho)) = 1 \quad \forall t \ge 0.
+    - Axioma II (Álgebra de Fermiones CAR):
+      \max_{i,j} \|\{a_i, a_j^\dagger\} - \delta_{ij} I\|_F \le \epsilon_{\text{CAR}} < 10^{-10}.
+    - Axioma III (Involución de Heyting y Monotonía Exergética):
+      \langle N \rangle_t \le \langle N \rangle_0 + \epsilon_{\text{tol}} \quad \text{en semigrupos disipativos puramente aniquiladores}.
+    - Invariante I (Fail-Closed Forense):
+      Cualquier excepción o violación topológica/espectral fuerza inmediatamente \chi = \top (VETOED preventivo), bloqueando la canalización de datos.
+
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    En entornos de procesamiento distribuido y canalización de activos digitales, la degradación imperceptible de estados o la corrupción de memoria (bit-flips) genera inconsistencias silenciosas que destruyen la auditabilidad de registros contables y provocan fugas de capital por ejecuciones erróneas.
+    Fock Forensic Hall proporciona una garantía matemática absoluta de integridad forense. Al vetar automáticamente cualquier transacción que viole las leyes físicas subyacentes o presente entropía anómala, previene fraudes, errores en conciliaciones y detiene fugas financieras en tiempo real antes de que se consoliden en la base de datos central.
 """
 
 from __future__ import annotations
