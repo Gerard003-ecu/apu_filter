@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Agente Soberano Cuaterniónico de Lazo Cerrado (Quaternionic State Agent).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Quaternionic State Agent (Soberano Cuaterniónico de Lazo Cerrado)   ║
+║ Ruta   : app/agents/wisdom/quaternionic_state_agent.py                       ║
+║ Versión: 4.0.0-OODA-Heyting-Orbit-HMAC-Merkle-Crowbar-Secure                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Agente Soberano Cuaterniónico de Lazo Cerrado (Quaternionic State Agent).
 
 Este módulo implementa el agente supervisor OODA de lazo cerrado sobre el reactor cuaterniónico
 `quaternionic_state_shifter`. Gobierna la dinámica de pares de estados en \mathbb{H} \times \mathbb{H}

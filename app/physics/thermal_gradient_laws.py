@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Leyes y Gradientes de Convección Térmica (Thermal Gradient Laws).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Thermal Gradient Laws (Leyes y Gradientes de Convección Térmica)    ║
+║ Ruta   : app/physics/thermal_gradient_laws.py                                ║
+║ Versión: 3.1.0-Doctoral-Lanczos-ItohAbe-AdaptiveCD-Fourier-Carnot-KBN-CSMD   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Leyes y Gradientes de Convección Térmica (Thermal Gradient Laws).
 
 Este módulo implementa el motor de cálculo físico y termodinámico ciego en la FPU para campos
 de gradientes térmicos en la variedad (M, g). Opera mediante una arquitectura de tres fases anidadas por mixins,

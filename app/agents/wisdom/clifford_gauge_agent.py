@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre de Clifford (Clifford Gauge Agent).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Clifford Gauge Agent (Soberano de Calibre de Clifford)              ║
+║ Ruta   : app/agents/wisdom/clifford_gauge_agent.py                           ║
+║ Versión: 3.0.0-Doctoral-STA-OODA-Heyting-Vierbein-Nested                     ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+Soberano de Calibre de Clifford (Clifford Gauge Agent).
 
 Este módulo implementa el agente supervisor ciber-físico OODA sobre el topos de estados del
 álgebra del espacio-tiempo STA \mathcal{C}\ell_{1,3}(\mathbb{R}). Gobierna pares de multivectores (P, Q),
