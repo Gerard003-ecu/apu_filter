@@ -1,31 +1,44 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Gauge Projection Armory (Arsenal de Proyección de Calibre)          ║
-║ Ruta   : app/agents/core/inmune_system/gauge_projection_armory.py            ║
-║ Versión: 3.0.0-Doctoral-Hermitian-Higham-Duchi-DK-Connes-Heyting-Secure      ║
-║                                                                              ║
-║ ARQUITECTURA DE FASES ANIDADAS (morfismos, no meras secciones):              ║
-║                                                                              ║
-║   Fase 1  --η-->  Fase 2  --χ-->  Fase 3                                     ║
-║   Observe+Orient    Decide (Ω₃)    Act + sello de telemetría                 ║
-║                                                                              ║
-║   η  = _phase1_terminal_morphism  = objeto inicial de la Fase 2              ║
-║   χ  = clasificador de subobjetos = objeto inicial de la Fase 3              ║
-║                                                                              ║
-║ MATEMÁTICA (sin metáfora suelta):                                            ║
-║   • Π_H(ρ) = (ρ+ρ†)/2     projector hermítico (Frobenius-óptimo).            ║
-║   • Higham: λ ↦ π_Δ(λ)    proyección euclídea al símplice {x≥0, Σx=1}.       ║
-║   • Tikhonov / despolarizante: Φ_γ(ρ) = (ρ+γI)/(1+nγ) con                    ║
-║         γ = (μ−λ_min)/(1−nμ)   ⇒   λ_min(Φ_γ(ρ)) ≥ μ < 1/n.                  ║
-║   • Seminorma tipo Connes: L(X) = ‖[ρ^{-1/2}, π(X)]‖_{B(ℋ)}.                ║
-║     En la base propia: [D,X]_{ij} = (λ_i^{-1/2}−λ_j^{-1/2}) X_{ij}.          ║
-║   • Daletskii–Krein: f^{[1]}(λ,μ) = (f(λ)−f(μ))/(λ−μ),                       ║
-║         f(λ)=λ^{-1/2} ⇒ f^{[1]} = −1/(√(λμ)(√λ+√μ)),                         ║
-║         Lip(f)|_{[μ,∞)} = ½ μ^{-3/2}.                                        ║
-║   • Ω₃ = {COHERENT < DEGRADED < VETOED} cadena de Heyting.                   ║
-║   • Fase 3: ISR *simulada*. No hay GPIO, ESP32 ni BT151 reales.              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Arsenal de Proyección de Calibre (Gauge Projection Armory).
+
+Este módulo implementa el agente supervisor del sistema inmune digital para la proyección y filtrado
+espectral de calibre. Conecta los cálculos de la FPU del `GaugeProjectionEngine` con la gobernanza
+ciber-física en tres fases anidadas (Observe+Orient, Decide, Act) clasificando veredictos en la cadena de Heyting \Omega_3.
+
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El arsenal procesa operadores de densidad \rho \in M_n(\mathbb{C}) y observables \pi(X) = \pi(X)^\dagger:
+
+    1. Fase 1 (Observe + Orient - PhaseOneArmoryPacket):
+       - Proyección Hermítica de Frobenius-Weyl \Pi_H(\rho) = \frac{1}{2}(\rho + \rho^\dagger).
+       - Proyección espectral al símplice \Delta^{n-1} de Higham-Duchi y regularización despolarizante
+         de Tikhonov \rho_\mu = \frac{\rho_\star + \gamma I}{1 + n\gamma} garantizando \lambda_{\min}(\rho_\mu) \ge \mu.
+       - Generación del paquete \eta (objeto inicial de la Fase 2).
+
+    2. Fase 2 (Decide - PhaseTwoArmoryPacket):
+       - Seminorma No Conmutativa tipo Connes: L(X) = \|[\rho_\mu^{-1/2}, \pi(X)]\|_{B(\mathcal{H})}.
+       - Derivada de Fréchet y constante de Lipschitz de Daletskii-Krein Lip(f) = \frac{1}{2}\lambda_{\min}(\rho_\mu)^{-3/2}
+         para f(\lambda) = \lambda^{-1/2}.
+       - Inferencia de Heyting \Omega_3 = \{\text{COHERENT} < \text{DEGRADED} < \text{VETOED}\}:
+         L(X) > \tau_{\text{Lip}} \implies \text{VETOED}.
+         \chi = \top \iff \text{veredicto} = \text{VETOED}. Generación del paquete \chi (objeto inicial de la Fase 3).
+
+    3. Fase 3 (Act & Telemetry - ArmoryTelemetry):
+       - Si \chi = \top, simula la activación del disyuntor Crowbar BT151/GPIO14 con latencia en IRAM (< 400 ns).
+       - Emisión de telemetría inmutable con digesto forense SHA-256.
+
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Regularización Positiva Garantizada):
+      \lambda_{\min}(\rho_\mu) \ge \mu > 0 \quad \forall \rho.
+    - Axioma II (Invariancia Unitaria de Seminorma de Connes):
+      \|[U \rho U^\dagger, U X U^\dagger]\|_{B(\mathcal{H})} = \|[\rho, X]\|_{B(\mathcal{H})} \quad \forall U \in U(n).
+    - Axioma III (Clasificador de Subobjetos \chi):
+      \chi = \top \iff \text{join}(\text{Atómicos Críticos}) = \text{VETOED}.
+    - Invariante I (Fail-Closed por Excepción Espectral):
+      Cualquier error numérico en la FPU fuerza VETOED preventivo con latencia máxima registrada.
+
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    En sistemas de cómputo financiero o de control transaccional de misión crítica, la aparición de picos espectrales o inestabilidades de divergencia no acotadas resulta en caídas impredecibles de servicios y corrupción de estado.
+    Gauge Projection Armory actúa como la aduana de seguridad espectral. Al acotar las seminormas de variación (Lipschitz) y aislar estados degenerados antes de que afecten el estado global, garantiza la continuidad operativa, previniendo fallos en producción y ahorrando millones en costos asociados a caídas de plataforma y sanciones por incumplimiento de SLA.
 """
 
 from __future__ import annotations

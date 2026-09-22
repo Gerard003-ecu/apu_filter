@@ -1,34 +1,62 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Gauge Projection Engine (Motor de Proyección de Calibre)            ║
-║ Ruta   : app/core/inmune_system/gauge_projection_engine.py                   ║
-║ Versión: 3.0.0-Doctoral-Hermitian-Higham-Duchi-DK-Frechet-CSMD-Secure        ║
-║                                                                              ║
-║ ARQUITECTURA DE FASES ANIDADAS (morfismos, no meras secciones):              ║
-║                                                                              ║
-║   Fase 1  --η-->  Fase 2  --χ-->  Fase 3                                     ║
-║   Observe+Orient    Decide (números)   Act (sensibilidad) + paquete          ║
-║                                                                              ║
-║   η  = _phase1_terminal_morphism  = objeto inicial de la Fase 2              ║
-║   χ  = _phase2_terminal_morphism  = objeto inicial de la Fase 3              ║
-║                                                                              ║
-║ Motor CIEGO: no clasifica en Ω₃, no dispara ISR, no toca GPIO.               ║
-║ El Arsenal (agente) consume estas métricas y decide.                         ║
-║                                                                              ║
-║ MATEMÁTICA (sin metáfora suelta):                                            ║
-║   • Π_H(M) = (M+M†)/2          projector hermítico Frobenius-óptimo.         ║
-║   • Higham: λ ↦ π_Δ(λ)         proyección euclídea al símplice.              ║
-║   • Tikhonov / despolarizante: Φ_γ(ρ)=(ρ+γI)/(1+nγ),                         ║
-║         γ = (μ−λ_min)/(1−nμ)  ⇒  λ_min(Φ_γ) ≥ μ < 1/n.                       ║
-║   • f(λ) = λ^{-1/2},  D_ρ = f(ρ)  (NO es el Dirac de un triple de Connes).   ║
-║   • Conmutador:   [D,X]_{ik} = (f(λ_i)−f(λ_k)) X̃_{ik},  [D,X]_{ii} = 0.     ║
-║   • Fréchet DK:   Df(ρ)[H]_{ik} = f^{[1]}(λ_i,λ_k) H̃_{ik},                   ║
-║         f^{[1]}(λ,μ) = −1/(√(λμ)(√λ+√μ)),   f^{[1]}(λ,λ)=−½ λ^{-3/2}.        ║
-║   • L(X) = ‖[D,X]‖_{B(ℋ)}  (norma espectral, SVD).                           ║
-║   • dC[H] = [Df(ρ)[H], X];  d‖C‖₂ = Re(u* dC v) si σ_max es simple.          ║
-║   • CSMD holomorfo: solo sobre g(ρ)=Tr([ρ^{-1/2},X]²) vía raíz principal.    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Motor de Proyección de Calibre Espectral (Gauge Projection Engine).
+
+Este módulo constituye el núcleo de cálculo numérico ciego (FPU espectral de alta precisión)
+para el procesamiento de matrices de densidad y observables en la arquitectura del filtro APU.
+Opera mediante una composición de tres fases anidadas (Observe/Orient, Decide, Act),
+garantizando la estabilización de operadores en el espacio de Banach B(H) e impidiendo la
+propagación de inestabilidades espectrales o derivadas no acotadas hacia capas de decisión.
+
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El motor opera sobre el espacio de operadores acotados B(H) sobre un espacio de Hilbert H
+    de dimensión n. Procesa matrices complejas arbitrarias M en M_n(C) y observables X = X^†
+    a través del siguiente pipeline functorial anidado:
+
+    1. Fase 1 (Observe + Orient):
+       - Proyección Hermítica de Frobenius-Weyl:
+         \Pi_H(M) = \frac{1}{2}(M + M^\dagger)
+         que minimiza \|M - \Pi_H(M)\|_F sobre el subespacio real de operadores hermíticos.
+       - Proyección al Símplice de Higham-Duchi:
+         \pi_\Delta(\mathrm{spec}(\Pi_H(M))) proyecta los autovalores al símplice de probabilidad
+         \Delta^{n-1} = \{x \in \mathbb{R}^n : x \ge 0, \sum x_i = 1\}.
+       - Canal Despolarizante de Tikhonov con Suelo Normalizado \mu:
+         \rho_\mu = \frac{\rho_\star + \gamma I}{1 + n\gamma}, \quad \gamma = \max\left(0, \frac{\mu - \lambda_{\min}(\rho_\star)}{1 - n\mu}\right)
+         donde \rho_\star es el estado proyectado. Esto garantiza de forma estricta que \lambda_{\min}(\rho_\mu) \ge \mu.
+
+    2. Fase 2 (Decide):
+       - Conmutador de Connes en la Base Propia:
+         Para D = \rho_\mu^{-1/2} y X = X^\dagger, en la base ortonormal de autovectores de \rho_\mu:
+         [D, X]_{ik} = (\lambda_i^{-1/2} - \lambda_k^{-1/2}) \tilde{X}_{ik}, \quad [D, X]_{ii} = 0
+         evitando cancelaciones catastróficas mediante la identidad estable:
+         \lambda_i^{-1/2} - \lambda_k^{-1/2} = \frac{\lambda_k - \lambda_i}{\sqrt{\lambda_i \lambda_k}(\sqrt{\lambda_i} + \sqrt{\lambda_k})}.
+       - Derivada de Fréchet de Daletskii-Krein:
+         Df(\rho_\mu)[H]_{ik} = f^{[1]}(\lambda_i, \lambda_k) \tilde{H}_{ik}
+         con la diferencia dividida de primer orden f^{[1]}(\lambda, \mu) = -\frac{1}{\sqrt{\lambda \mu}(\sqrt{\lambda} + \sqrt{\mu})}.
+       - Seminorma de Lipschitz Espectral:
+         L(X) = \|[D, X]\|_{B(H)} = \sigma_{\max}([D, X]).
+
+    3. Fase 3 (Act):
+       - Sensibilidad Espectral Analítica:
+         Cálculo de la derivada direccional analítica \frac{d\|[D, X]\|_2}{d\epsilon} a lo largo de perturbaciones H
+         vía la fórmula de perturbación de valor singular dominante (SVD top-gap) y diferenciación de Fréchet.
+       - Extensión Holomorfa CSMD:
+         Paso complejo holomorfo sobre \text{Tr}([(\rho_\mu + i h H)^{-1/2}, X]^2) vía la raíz cuadrada principal.
+
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Positividad Estricta de Tikhonov):
+      \forall \rho_\mu, \quad \lambda_{\min}(\rho_\mu) \ge \mu > 0.
+    - Axioma II (Preservación de Traza en KBN):
+      \text{Tr}(\rho_\mu) = \sum_{i=1}^n (\rho_\mu)_{ii} = 1.0 \pm \epsilon_{\text{mach}} \quad \text{mediante sumación de Kahan-Babuška-Neumaier}.
+    - Axioma III (Invariancia Unitaria de Seminorma):
+      \|U [D, X] U^\dagger\|_{B(H)} = \|[D, X]\|_{B(H)} \quad \forall U \in U(n).
+    - Invariante I (Cota de Lipschitz de Fréchet):
+      \|Df(\rho_\mu)[H]\|_F \le \frac{1}{2} \lambda_{\min}(\rho_\mu)^{-3/2} \|H\|_F.
+    - Invariante II (Fail-Closed Numérico):
+      Cualquier violación por NaN/Inf o falta de convergencia colapsa el ciclo a una respuesta regularizada o nula de emergencia, impidiendo la corrupción de la FPU.
+
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    La inestabilidad en la inversión de matrices casi singulares en sistemas de filtrado de datos financieros y operativos genera desbordamientos numéricos (NaN/Inf) que provocan caídas catastróficas de servidores, pérdida de transacciones y errores masivos en la conciliación de partidas de presupuesto.
+    Este motor elimina la posibilidad de divergencia al forzar espectros strictly positivos y regularizados (Tikhonov-Higham), protegiendo la infraestructura contra pérdidas económicas por interrupción de servicio (downtime), garantizando la auditabilidad continua de los cálculos de riesgo y reduciendo a cero los costos por recuperaciones manuales de fallos en ejecución.
 """
 
 from __future__ import annotations

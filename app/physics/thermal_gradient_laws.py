@@ -1,35 +1,44 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Thermal Gradient Laws (Leyes y Gradientes de Convección Térmica)    ║
-║ Ruta   : app/physics/thermal_gradient_laws.py                                ║
-║ Versión: 3.1.0-Doctoral-Lanczos-ItohAbe-AdaptiveCD-Fourier-Carnot-KBN-CSMD   ║
-║                                                                              ║
-║ SINOPSIS (rigor doctoral; lo que SÍ se computa):                             ║
-║                                                                              ║
-║   (Fase 1)  Deflación espectral de Weyl / Lanczos–Krylov                     ║
-║             λ_min, λ_max, κ₂(K) extraídos por ARPACK (eigsh, both-ends)      ║
-║             cuando n > n_krylov. Higham: K ← K + (α − λ_min)_+ I.            ║
-║             Opcional: K ≈ Σ_{i=1}^{k} λ_i v_i v_iᵀ + γ (I − P_k)             ║
-║             (rango k + ridge; k ≪ n). Complejidad O(k n²) vs O(n³).          ║
-║                                                                              ║
-║   (Fase 2)  Gradiente discreto de Itoh–Abe de Ē(p) = pᵀ κ p                  ║
-║             ⟨∇̄_IA Ē(0, p), p⟩ = Ē(p) − Ē(0)     (Tellegen / cadena discreta) ║
-║             ⟨q, dT⟩ := −⟨∇̄_IA Ē(0, ∇T), ∇T⟩                                  ║
-║             q_Fourier = −κ ∇T  (constitutiva); q_IA audita el pairing.       ║
-║             Carnot local: η_C = L|dT|_g / (T + L|dT|_g)  (unidades legales). ║
-║                                                                              ║
-║   (Fase 3)  Umbral CD adaptativo (envolvente de transitorio)                 ║
-║             b = | |dT|_g − s_t | ,  s_t = ρ s_{t−1} + (1−ρ) |dT|_g           ║
-║             ν(b) = log(1 + b/(s_t+ε))     (valuación ultramétrica-surrogate) ║
-║             τ_CD(t) = τ₀ exp(−ν(b))                                          ║
-║             Dilata el margen ante transitorios; NO es un potencial de        ║
-║             Gromov–Witten ni una ecuación de Maurer–Cartan en Λ_K.           ║
-║             Es un dead-zone / histéresis con filtración de escala.           ║
-║                                                                              ║
-║ ARQUITECTURA: In --F1→ Phase1 --F2→ Phase2 --F3→ Phase3 → dict               ║
-║ Crowbar/GPIO SIMULADO. No hay acceso a silicio.                              ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Leyes y Gradientes de Convección Térmica (Thermal Gradient Laws).
+
+Este módulo implementa el motor de cálculo físico y termodinámico ciego en la FPU para campos
+de gradientes térmicos en la variedad (M, g). Opera mediante una arquitectura de tres fases anidadas por mixins,
+realizando deflación espectral de Lanczos-Krylov, diferenciación discreta conservativa de Itoh-Abe,
+evaluación de la Segunda Ley de Clausius-Duhem con umbral adaptativo e interlock ciber-físico.
+
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El motor opera sobre el tensor de conductividad K \in M_n(\mathbb{R}) y el gradiente de temperatura \nabla T \in \mathbb{R}^n:
+
+    1. Fase 1 (Ingesta y Purificación - Phase1ThermalIngestionMixin):
+       - Proyección simétrica de Weyl \pi_{\text{Sym}}(K) = \frac{1}{2}(K + K^T) e inspección de Onsager.
+       - Deflación Espectral de Lanczos-Krylov (ARPACK `both-ends`) para n > n_{\text{Krylov}} extrayendo \lambda_{\min}, \lambda_{\max} y \kappa_2(K).
+       - Regularización SPD de Higham K \leftarrow K + (\alpha - \lambda_{\min})_+ I garantizando definidez positiva estricta.
+
+    2. Fase 2 (Simulación de Carnot & Itoh-Abe - Phase2CarnotSimulationMixin):
+       - Gradiente Discreto Conservativo de Itoh-Abe para la energía cuadrática \bar{E}(p) = p^T \kappa p:
+         \langle \bar{\nabla}_{\text{IA}} \bar{E}(0, p), p \rangle = \bar{E}(p) - \bar{E}(0) \quad \text{(Teorema de Tellegen discreto)}.
+       - Flujo térmico constitutivo q = -\kappa \nabla T y emparejamiento fiel \langle q, d T \rangle = -\bar{E}(\nabla T).
+       - Producción de entropía \Phi = \sigma - \frac{\langle q, d T \rangle}{T^2} \ge 0 (Clausius-Duhem).
+       - Eficiencia local de Carnot \eta_C = \frac{L \|\nabla T\|_g}{T + L \|\nabla T\|_g} y potencial de exergía.
+
+    3. Fase 3 (Umbral Adaptativo & Veto Heyting - Phase3HeytingVetoMixin):
+       - Envolvente de transitorios de frecuencia rápida b_t = |\|\nabla T\|_g - s_t| con s_t = \rho s_{t-1} + (1-\rho) \|\nabla T\|_g.
+       - Valuación ultramétrica surrogate \nu_t = \log\left(1 + \frac{b_t}{s_t + \epsilon}\right) y umbral adaptativo \tau_{\text{CD}}(t) = -\tau_0 \cdot \text{safety} \cdot e^{-\nu_t}.
+       - Clasificación en la Cadena de Heyting \Omega_3 y disparo del disyuntor Crowbar BT151/GPIO14 simulado (< 400 ns).
+
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Segunda Ley de Clausius-Duhem):
+      \Phi = \sigma - \frac{\langle q, d T \rangle}{T^2} \ge \tau_{\text{CD}}(t) \quad \forall t \ge 0.
+    - Axioma II (Identidad de Tellegen de Itoh-Abe):
+      \langle \bar{\nabla}_{\text{IA}} \bar{E}(0, \nabla T), \nabla T \rangle = \bar{E}(\nabla T) \quad \text{exacto independientemente del orden de coordenadas}.
+    - Axioma III (Límite Físico de Carnot):
+      0 \le \eta_C = 1 - \frac{T_{\text{cold}}}{T_{\text{hot}}} \le 1 \quad \text{para todo par de reservorios válidos}.
+    - Invariante I (Cota de Deflación Krylov-Higham):
+      \lambda_{\min}(K_{\text{reg}}) \ge \alpha = \text{floor} > 0.
+
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    La simulación incorrecta de la transferencia de calor o el cálculo inestable de gradientes térmicos en modelos de simulación de turbinas, calderas industriales o sistemas de baterías origina falsas alarmas de sobrecalentamiento o falla en la detección de choques térmicos reales. Esto genera paradas innecesarias de planta con costos millonarios o, peor aún, fallas mecánicas catastróficas.
+    Thermal Gradient Laws asegura una evaluación térmicamente fiel y libre de falsos positivos en transitorios rápidos mediante su umbral adaptativo de Clausius-Duhem e Itoh-Abe. Esto evita paradas no programadas por picos de corta duración, a la vez que garantiza una respuesta de corte instantánea ante fugas de entropía genuinas, maximizando la continuidad operativa y la vida útil de los activos.
 """
 
 from __future__ import annotations

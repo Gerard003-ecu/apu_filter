@@ -1,64 +1,50 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Quaternionic State Agent (Soberano Cuaterniónico de Lazo Cerrado)   ║
-║ Ruta   : app/agents/wisdom/quaternionic_state_agent.py                       ║
-║ Versión: 4.0.0-OODA-Heyting-Orbit-HMAC-Merkle-Crowbar-Secure                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Agente Soberano Cuaterniónico de Lazo Cerrado (Quaternionic State Agent).
 
-Supervisor OODA del reactor `quaternionic_state_shifter`. Ejecuta el funtor
+Este módulo implementa el agente supervisor OODA de lazo cerrado sobre el reactor cuaterniónico
+`quaternionic_state_shifter`. Gobierna la dinámica de pares de estados en \mathbb{H} \times \mathbb{H}
+mediante el funtor anidado \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbb{R}^4 \times \mathbb{R}^4 \to \text{Certificado},
+asegurando la conservación de la geometría de órbitas de similitud, la ley de composición de Hurwitz
+y la consistencia del operador de densidad en el álgebra de Heyting \Omega_3.
 
-        Φ₃ ∘ Φ₂ ∘ Φ₁ :  R⁴ × R⁴ ──Φ₁──▶ H × H ──Φ₂──▶ D₂ ──Φ₃──▶ Certificado
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El agente procesa pares de señales cuatridimensionales (p_S, q_S) \in \mathbb{R}^4 \times \mathbb{R}^4.
+    La arquitectura opera mediante tres fases functoriales estrictamente anidadas:
 
-con doble anidamiento: (i) el último método de la Fase k del agente invoca y
-verifica al primer método de la Fase k+1; (ii) la Fase k del agente consume el
-cierre de la Fase k del reactor (Banach/representaciones → informe algebraico
-→ auditorías espectrales), con degradación elegante al API legado.
+    1. Fase 1 (Observe - Ingestion & Quaternion Embedding):
+       - Validación Banach \ell^2 e inmersión de señales en el cuerpo de los cuaterniones de Hamilton \mathbb{H}.
+       - Construcción de estados canónicos con sello inmutable SHA-256 sobre la representación little-endian.
 
-════════════════════════════════════════════════════════════════════════════════
-I. ANCLAJE MATEMÁTICO (sólo enunciados demostrables)
-════════════════════════════════════════════════════════════════════════════════
+    2. Fase 2 (Orient - Orbit Invariants & Hurwitz Audit):
+       - Distancia de Órbita de Similitud: Para cuaterniones p, q \in \mathbb{H}, la clase de similitud [q] = \{s q s^{-1} : s \in \mathbb{H}^\times\}
+         está caracterizada por el ángulo polar \theta(q) = \text{atan2}(\|v\|, q_0) \in [0, \pi]. La distancia invariante de clase es
+         \delta_{\text{class}}(p, q) = \frac{|\theta_p - \theta_q|}{\pi}.
+       - Defecto de Gauge y Alineación de Rodrigues: Se mide la distancia geodésica d_{S^3}(\hat{p}, \hat{q}) / \pi y el defecto de gauge
+         \delta_{\text{gauge}} = \delta_{\text{geo}} - \delta_{\text{class}} \ge 0, el cual se remueve mediante el rotor de alineación de Rodrigues s \propto (1 + \hat{v}_q \cdot \hat{v}_p, \hat{v}_q \times \hat{v}_p).
+       - Deriva de Composición de Hurwitz: \epsilon_H = \frac{|\|pq\| - \|p\|\|q\||}{\max(1, \|p\|\|q\|)}.
+       - Consistencia de Operador de Densidad de von Neumann:
+         \psi = (q_0 + i q_1, q_2 + i q_3) \in \mathbb{C}^2, \quad \rho = \frac{\psi \psi^\dagger}{\|q\|^2}.
+         Auditoría de traza \text{Tr}(\rho) = 1, pureza \text{Tr}(\rho^2) = 1 y hermiticidad.
 
-Def. 1 (Ω₃ de Gödel–Dummett). Ω₃ = {0 ≡ VETOED, ½ ≡ DEGRADED, 1 ≡ COHERENT} es
-  un álgebra de Heyting lineal: a⊓b = min, a⊔b = max, (a→b) = 1 si a ≤ b, b si
-  no; ¬a = a→0. Se cumple la residuación a⊓b ≤ c ⇔ a ≤ (b→c) y falla el
-  tercio excluso en ½ (½ ⊔ ¬½ = ½). El combinador de seguridad es el MEET:
-      ν_canales = ⊓_k ν_k      (cualquier canal vetado veta el conjunto).
+    3. Fase 3 (Decide/Act - Heyting Governance, HMAC & Crowbar):
+       - Inferencia en el Retículo de Gödel-Dummett \Omega_3 = \{0 \equiv \text{VETOED}, \frac{1}{2} \equiv \text{DEGRADED}, 1 \equiv \text{COHERENT}\}:
+         Rampa de confianza c(r) con r = \frac{\delta}{\Lambda}. Si r \in (\alpha, \beta], c(r) \in [\frac{1}{2}, 1) (luz ámbar / veto suave).
+       - Modalidad de Gracia y Override HMAC-SHA256: \nu = \nu_{\text{ch}} \wedge (\sigma \to (\gamma \vee \omega)) con token HMAC ligado a la sesión.
+       - Árbol de Merkle y Disparo Ciber-Físico: Enlace de prueba Merkle sobre las fases y conmutación Crowbar en IRAM (< 400 ns).
 
-Def. 2 (Clases de similitud y distancia de órbita). [q] = {s q s⁻¹} está
-  determinada por (q₀, ‖v‖), i.e. por θ(q) = atan2(‖v‖, q₀) ∈ [0, π] si q ≠ 0
-  (θ = d_{S³}(1, q̂)). Lema: para p̂, q̂ ∈ S³,
-      min_{s∈S³} d_{S³}(p̂, s q̂ s*) = |θ_p − θ_q|,
-  alcanzado por el rotor s que alinea v̂_q con v̂_p (Rodrigues); cota inferior
-  por desigualdad triangular con el punto 1. La carta de Riemann de v̂ es una
-  coordenada de GAUGE (no invariante de clase): se reporta, no se veta.
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Isometría de Hurwitz):
+      \epsilon_H = \frac{|\|pq\| - \|p\|\|q\||}{\max(1, \|p\|\|q\|)} \le \tau_{\text{hard}} \quad \forall p, q \in \mathbb{H}.
+    - Axioma II (Autenticación Invariante de Override HMAC):
+      token = \text{HMAC-SHA256}(K_{\text{secret}}, \text{"QSA/OVERRIDE/v4"} \parallel \text{session\_sha256}) en tiempo constante.
+    - Axioma III (Presupuesto Estricto de Latencia Crowbar):
+      \tau_{\text{IRAM}} = 400\text{ ns}. La distribución gaussiana P(t > \tau) = \frac{1}{2}\text{erfc}\left(\frac{\tau - t_0}{\sigma\sqrt{2}}\right) se certifica sin recortes.
+    - Invariante I (Función de Almacenamiento de Lyapunov):
+      H_k = \frac{1}{2}(\delta^2 + \epsilon_H^2 + \epsilon_{\text{Tr}}^2). La disipación H_k - H_{k-1} \le \tau_{\text{Lyapunov}} garantiza contracción.
 
-Def. 3 (Operador de densidad). ψ = (α, β) = (q₀+iq₁, q₂+iq₃); ρ = ψψ†/‖q‖².
-  Tr ρ = 1, Tr ρ² = 1, ρ = ρ† ≥ 0.  Nota: Tr Φ_C(q) = 2q₀, NO ‖q‖².
-
-Def. 4 (Rampa de confianza como refinamiento de celda). Con r = δ/Λ,
-  α < β: c(r) = 1 (r ≤ α); ½ + ½(β−r)/(β−α) ∈ [½, 1) (α < r ≤ β); 0 (r > β).
-  Canales algebraicos crisp: 1 si residual ≤ τ_hard, 0 si no.
-  Lema: quantize(⊓ c_k) = ⊓ ν_k, con ν_k la cuantización crisp de cada canal.
-
-Def. 5 (Gracia y override como implicación). σ = [ν_ch = ½], γ = [gracia
-  vigente], ω = [override autenticado]:  ν = ν_ch ⊓ (σ → (γ ⊔ ω)).
-  Si σ = 0 la implicación vale 1 (el veto duro no admite override).
-
-════════════════════════════════════════════════════════════════════════════════
-II. AXIOMÁTICA DE CONTROL
-════════════════════════════════════════════════════════════════════════════════
-
-Ax. I  (Hurwitz). ε_H = |‖pq‖ − ‖p‖‖q‖| / max(1, ‖p‖‖q‖) ≤ τ_hard.
-Ax. II (Override autenticado). token = HMAC-SHA256(key, "QSA/OVERRIDE/v4" ‖
-       session_sha256); comparación en tiempo constante; ligado a la sesión.
-Ax. III(Crowbar). Presupuesto τ_IRAM = 400 ns; latencia nominal t₀ < τ con
-       jitter N(0, σ²); P(t > τ) = ½·erfc((τ − t₀)/(σ√2)) se reporta; toda
-       violación del presupuesto se certifica, nunca se recorta.
-Inv. I (Almacenamiento). H = ½(δ² + ε_H² + ε_Tr²); disipación H_k − H_{k−1}
-       auditada entre ciclos (no bloqueante).
-Inv. II(Sellos). Sesión y certificado en binario canónico SHA-256; cadena de
-       Merkle sobre (token_k, hash_k) de Φ₁→Φ₂→Φ₃.
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    En el control de actitud de satélites, robótica industrial de precisión y sistemas de renderizado 3D/VR, la acumulación de errores de redondeo en multiplicaciones de cuaterniones destruye la ortogonalidad y provoca bloqueos de rotación o derivas de orientación. Esto conduce a pérdida de enlace de datos, colisiones físicas de brazos robóticos y costosos reajustes operativos.
+    El Quaternionic State Agent elimina estos fallos al verificar continuamente la ortogonalidad, la norma unitaria y la validez de las órbitas de similitud. Al detectar y corregir la deriva antes de que afecte a los actuadores, se evitan daños mecánicos, se prolonga la vida útil de los equipos y se eliminan las interrupciones en líneas de producción automatizadas.
 """
 
 from __future__ import annotations

@@ -1,52 +1,45 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Routon Dependency Agent (Soberano de Calibre Routónico 128D).       ║
-║ Ruta   : app/agents/core/routon_dependency_agent.py                          ║
-║ Versión: 3.0.0-Doctoral-OODA-Heyting-CayleyDickson-128D-IRAM-ESP32-Nested3   ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO:                         ║
-║ Este agente supervisor ciber-físico opera en el Estrato de la Sabiduría      ║
-║ (V_W, Nivel 0) u Omega (V_Ω, Nivel 0.5) para gobernar síncronamente al       ║
-║ Motor de Calibre Routónico 128D [routon_dependency_engine.py] en la FPU.     ║
-║                                                                              ║
-║ Audita, como predicados locales en el retículo de Heyting Ω_3:               ║
-║   1. Regularidad de Banach ℓ¹/ℓ²/ℓ^∞ sobre ℝ^{128} (equivalencia de normas).  ║
-║   2. Asociador eneagonal de 9 vías A_9 y diámetro de Stasheff A_4.           ║
-║   3. Distorsión de Moufang A_M(R,S,T)=(R(ST))R-(RS)(TR) (grado 4).           ║
-║   4. Composición de Hurwitz / submultiplicatividad de Banach.                ║
-║   5. Penetración no trivial del cono nulo 𝒩(ℝou), σ_min(L_R).                ║
-║                                                                              ║
-║ AXIOMAS DE GOBERNANZA:                                                       ║
-║   (H3)  Ω_3 = {VETOED ≺ DEGRADED ≺ COHERENT} es la cadena de Heyting de      ║
-║         tres elementos (álgebra de Gödel): ∧=mín, ∨=máx,                     ║
-║         a → b = ⊤ si a ≼ b, si no b;  ¬a = a → ⊥.                            ║
-║   (M)   El veredicto global es el meet de los predicados locales.            ║
-║   (Γ)   Modalidad de gracia: Γ(DEGRADED)=DEGRADED si t<T, si no VETOED.      ║
-║   (σ)   Override HMAC-SHA256 no promociona a ⊤: σ(DEGRADED)=DEGRADED         ║
-║         con Γ desactivada. El veto duro no es anulable.                      ║
-║   (B)   1 ≤ ‖x‖₁/‖x‖₂ ≤ √128,  1 ≤ ‖x‖₂/‖x‖_∞ ≤ √128,                        ║
-║         1 ≤ ‖x‖₁/‖x‖_∞ ≤ 128  (equivalencia de normas en ℝ^{128}).           ║
-║   (Mf)  A_M(R,S,T)=(R(ST))R-(RS)(TR);  δ_M=‖A_M‖/(‖R‖²‖S‖‖T‖).               ║
-║   (A9)  A_9 es el asociador de asociación extrema de 9 factores.             ║
-║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA Ω_3):                   ║
-║   Fase 1  Observe : saneamiento, Banach, estados FPU 128D.                   ║
-║           Morfismo terminal : observe_nine_way → RoutonObservationKernel.    ║
-║   Fase 2  Orient + Decide : motor 128D, A_M, A_9, meet de Heyting, Γ.        ║
-║           Objeto inicial    : RoutonObservationKernel.                       ║
-║           Morfismo terminal : govern_from_observation_kernel                 ║
-║                               → RoutonGovernedDecision.                      ║
-║   Fase 3  Act : Crowbar BT151 simulado (GPIO14, < 400 ns spec.) y sello.     ║
-║           Objeto inicial    : RoutonGovernedDecision.                        ║
-║           Morfismo terminal : audit_eneagonal_cycle                          ║
-║                               → RoutonAgentCertificate.                      ║
-║                                                                              ║
-║ Anidación ontológica: Phase3 ⊏ Phase2 ⊏ Phase1  ⇒  Act∘Decide∘Observe.       ║
-║ El último morfismo de la Fase k es el objeto inicial de la Fase k+1.         ║
-║ En particular, Phase1.observe_nine_way devuelve un RoutonObservationKernel   ║
-║ que es consumido por Phase2.continue_from_observation_kernel.                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano de Calibre Routónico 128D (Routon Dependency Agent).
+
+Este módulo implementa el agente supervisor ciber-físico OODA de lazo cerrado para la gobernanza
+síncrona del motor de calibre routónico en \mathbb{R}\mathrm{ou} \cong (\mathbb{R}^{128})^9.
+Supervisa el consorcio de 9 vías (8-símplex agéntico) mediante tres fases anidadas
+(Observe, Orient + Decide, Act) sobre el retículo de Heyting \Omega_3.
+
+DEFINICIÓN FORMAL Y OPERATORIA:
+    El agente supervisa la interacción de 9 actores en \mathbb{R}^{128} a través de la secuencia functorial:
+
+    1. Fase 1 (Observe - Phase1_RoutonSovereignObserver):
+       - Saneamiento de vectores 128D y certificación de la regularidad de Banach \ell^1, \ell^2, \ell^\infty:
+         1 \le \frac{\|x\|_1}{\|x\|_2} \le \sqrt{128}, \quad 1 \le \frac{\|x\|_2}{\|x\|_\infty} \le \sqrt{128}, \quad 1 \le \frac{\|x\|_1}{\|x\|_\infty} \le 128.
+       - Generación del objeto terminal RoutonObservationKernel con digesto SHA-256 inmutable.
+
+    2. Fase 2 (Orient + Decide - Phase2_RoutonHeytingGovernor):
+       - Ingesta de RoutonObservationKernel y orquestación del motor RoutonDependencyEngine.
+       - Invariantes Eneagonales: Evaluación del asociador de 9 vías A_9, distorsión de Moufang A_M(R,S,T) = (R(ST))R - (RS)(TR)
+         y diámetro del pentágono de Stasheff A_4.
+       - Incursión en el Cono Nulo \mathcal{N}(\mathbb{R}\mathrm{ou}): \chi_{\text{null}} = |\|R_1 R_2\| - \|R_1\| \|R_2\|| y \sigma_{\min}(L_{R_1}).
+       - Inferencia de Heyting \Omega_3: Evaluador global \mathbf{V} = \bigwedge p_k sobre los predicados de eneágono, Moufang, Hurwitz, cono nulo y Banach.
+       - Generación de RoutonGovernedDecision con modalidad modal de gracia \Gamma.
+
+    3. Fase 3 (Act - Phase3_RoutonCrowbarActuator):
+       - Consumo de RoutonGovernedDecision.
+       - Disparo Ciber-Físico Crowbar BT151: Ante \mathbf{V} = \text{VETOED}, ejecuta el corte determinista en IRAM sobre GPIO14 (< 400 ns).
+       - Emisión del RoutonAgentCertificate final firmado criptográficamente.
+
+AXIOMAS E INVARIANTES RIGUROSOS:
+    - Axioma I (Cadena de Gödel-Heyting \Omega_3):
+      \mathbf{V} = \bigwedge_{k=1}^7 p_k \in \{\text{VETOED} \prec \text{DEGRADED} \prec \text{COHERENT}\}.
+    - Axioma II (Aniquilación Modal de Gracia):
+      \sigma(\text{DEGRADED}) = \text{DEGRADED} \quad \text{con } \Gamma \text{ desactivada}. El veto duro (\mathbf{V} = \text{VETOED}) es no anulable.
+    - Axioma III (Presupuesto Ciber-Físico IRAM):
+      t_{\text{act}} < 400\text{ ns} \quad \text{en simulación de gatillado sobre GPIO14}.
+    - Invariante I (Invarianza de Cierre Functorial):
+      Phase3 ⊏ Phase2 ⊏ Phase1 \implies \text{Act} \circ (\text{Orient} + \text{Decide}) \circ \text{Observe} es la única vía de certificación legítima.
+
+IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
+    En consorcios de toma de decisiones distribuidas de 9 vías (como gobernanza de consorcios bancarios o redes de liquidación interbancaria), la colusión sutil o las fallas de coherencia entre los miembros producen inconsistencias en el estado del libro mayor que generan bloqueos de procesamiento y pérdidas millonarias en minutos.
+    El Routon Dependency Agent previene estos fallos bloqueando en microsegundos cualquier transacción que viole la asociatividad eneagonal o presente divisores de cero en 128D, garantizando la consistencia del libro mayor y eliminando el riesgo de ejecuciones erróneas en infraestructuras financieras críticas.
 """
 
 from __future__ import annotations
