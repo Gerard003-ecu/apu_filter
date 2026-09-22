@@ -1,49 +1,68 @@
 # -*- coding: utf-8 -*-
-r"""Motor de Calibre Routónico 128D (Routon Dependency Engine).
-
-Este módulo implementa el motor de cálculo ciego en la FPU para la variedad de los Routones reales
-\mathbb{R}\mathrm{ou} (128 dimensiones), estructurada mediante la duplicación iterativa de Cayley-Dickson
-sobre el álgebra de los Chingones \mathbb{X} (\mathbb{R}\mathrm{ou} \cong \mathbb{X} \times \mathbb{X}).
-Opera como un resolvedor de alta fidelidad para interdependencias de 9 vías (8-símplices en la Malla Agéntica)
-a través de una arquitectura de tres fases anidadas (Observe+Orient, Decide, Act).
-
-DEFINICIÓN FORMAL Y OPERATORIA:
-    El motor opera sobre vectores R_i \in \mathbb{R}^{128} mediante la duplicación recursiva de Cayley-Dickson:
-        (a, b)(c, d) = (a c - \bar{d} b, d a + b \bar{c}), \quad \bar{(a, b)} = (\bar{a}, -b).
-
-    1. Fase 1 (Observe + Orient - Phase1_RoutonMetricObserver):
-       - Ingesta de tensores 128D, descomposición de Cayley-Dickson y sumación KBN.
-       - Evaluación de la forma cuadrática N(R) = R \bar{R} y de la deriva de composición de Hurwitz:
-         \delta_{\text{Hurwitz}} = |\|R_1 \cdot R_2\| - \|R_1\| \|R_2\||.
-       - Generación de RoutonMetricsReport (objeto inicial de la Fase 2).
-
-    2. Fase 2 (Decide - Phase2_EneagonalAssociatorCalculator):
-       - Ingesta de RoutonMetricsReport y evaluación de los 9 actores del 8-símplex.
-       - Asociador Eneagonal A_9:
-         A_9(X_1, \dots, X_9) = ((((((((X_1 X_2) X_3) X_4) X_5) X_6) X_7) X_8) X_9) - X_1 (X_2 (X_3 (X_4 (X_5 (X_6 (X_7 (X_8 X_9))))))).
-       - Distorsión de Moufang A_M(R,S,T) = (R(ST))R - (RS)(TR) y defectos de las tres identidades L/R/M.
-       - Diámetro del pentágono de Stasheff A_4, alternatividad, flexibilidad y condicionamiento del 8-símplex.
-       - Generación de RoutonDecisionState (objeto inicial de la Fase 3).
-
-    3. Fase 3 (Act - Phase3_RoutonNullConeEvaluator):
-       - Ingesta de RoutonDecisionState.
-       - Caracterización del Cono Nulo \mathcal{N}(\mathbb{R}\mathrm{ou}) = \{r : \ker L_r \neq \{0\}\} mediante \sigma_{\min}(L_r).
-       - Fricción de cono nulo \chi_{\text{null}} = |\|R_1 R_2\| - \|R_1\| \|R_2\|| y profundidad d_{\mathcal{N}} = \max(0, 1 - \frac{\|R_1 R_2\|}{\|R_1\| \|R_2\|}).
-       - Emisión final de RoutonEngineState con sello SHA-256 inmutable.
-
-AXIOMAS E INVARIANTES RIGUROSOS:
-    - Axioma I (Construcción Iterativa de Cayley-Dickson):
-      \dim(\mathbb{R}\mathrm{ou}) = 128 = 2 \cdot \dim(\mathbb{X}).
-    - Axioma II (Pérdida de Submultiplicatividad en \dim > 8):
-      \|R_1 R_2\|_2 \neq \|R_1\|_2 \|R_2\|_2 \quad \text{en general para } \mathbb{R}\mathrm{ou}.
-    - Axioma III (Divisores de Cero y Espectro del Operador de Multiplicación Izquierda):
-      R \in \mathcal{N}(\mathbb{R}\mathrm{ou}) \setminus \{0\} \iff \sigma_{\min}(L_R) = 0.
-    - Invariante I (Invarianza de Cierre Functorial):
-      Phase3 ⊏ Phase2 ⊏ Phase1 \implies \text{Act} \circ \text{Decide} \circ (\text{Observe}+\text{Orient}) es la secuencia única de ejecución.
-
-IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
-    En sistemas de simulación de alta dimensionalidad y motores de decisión complejos de 9 vías, la acumulación no detectada de divisores de cero o la pérdida de asociatividad genera bloqueos de cálculo silenciosos y divergencias en la FPU que invalidan los resultados de modelos de predicción y riesgo.
-    Routon Dependency Engine proporciona detección inmediata de singularidades espectrales en 128D. Al medir la distancia al cono nulo y evaluar los asociadores eneagonales en microsegundos, el motor evita decisiones basadas en estados matemáticamente corruptos, protegiendo las inversiones en modelos analíticos de alto costo y asegurando la estabilidad del cómputo.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Routon Dependency Engine (Motor de Calibre Routónico 128D)          ║
+║ Ruta   : app/core/routon_dependency_engine.py                                ║
+║ Versión: 1.1.0-Doctoral-128D-CayleyDickson-Eneagonal-Moufang-KBN-Nested3     ║
+║                                                                              ║
+║ SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:                                  ║
+║ Este módulo implementa el motor de cálculo ciego en la FPU para la variedad  ║
+║ de los Routons reales \mathbb{R}\mathrm{ou} (128 dimensiones), estructurada  ║
+║ mediante la duplicación iterativa de Cayley-Dickson sobre el álgebra de los  ║
+║ Chingones \mathbb{X}:                                                        ║
+║                                                                              ║
+║     \mathbb{R}\mathrm{ou} \cong \mathbb{X}\times\mathbb{X},                  ║
+║     \dim_{\mathbb{R}}=128.                                                   ║
+║                                                                              ║
+║ Opera como resolvedor de alta fidelidad para interdependencias de 9 vías     ║
+║ (8-símplices en el complejo simplicial de la Malla Agéntica), calculando:    ║
+║                                                                              ║
+║   1. Norma del asociador eneagonal A_9 y diámetro de Stasheff A_4.           ║
+║   2. Distorsión de Moufang (identidad media, API 3.x):                       ║
+║        A_M(R,S,T)=(R(ST))R-(RS)(TR).                                         ║
+║      y defectos L/R/M de las tres identidades de octoniones.                 ║
+║   3. Alternatividad L/R, flexibilidad y potencia.                            ║
+║   4. Forma cuadrática N(R)=R\overline{R} y defecto de Banach/Hurwitz.        ║
+║   5. Distancia espectral al esquema de divisores de cero                     ║
+║        \mathcal{N}(\mathbb{R}\mathrm{ou})                                    ║
+║        =\{\,r:\ker L_r\neq\{0\}\,\}.                                         ║
+║                                                                              ║
+║ AXIOMAS (álgebra de Cayley-Dickson, convención interna):                     ║
+║   (CD-1) Duplicación:  \mathbb{R}\mathrm{ou}=\mathbb{X}\times\mathbb{X}.     ║
+║   (CD-2) Producto:     (a,b)(c,d)=(ac-\overline{d}\,b,\ da+b\,\overline{c}). ║
+║   (CD-3) Conjugación:  \overline{(a,b)}=(\overline{a},-b).                   ║
+║   (CD-4) Anti-homom.:  \overline{xy}=\overline{y}\,\overline{x}.             ║
+║   (CD-5) Forma cuadr.: N(x):=x\overline{x}\in\mathbb{R}\,e_0\ exacto.        ║
+║   (H)    Hurwitz:      N(xy)=N(x)N(y) \Leftrightarrow \dim\le 8.             ║
+║   (B)    Banach:       \|\cdot\|_2 no es submultiplicativa en \dim>8.        ║
+║   (A3)   Asociador:    [x,y,z]=(xy)z-x(yz).                                  ║
+║   (Alt)  Alternatividad: [x,x,y]=[x,y,y]=0  (falla en \dim\ge 16).           ║
+║   (F)    Flexibilidad: [x,y,x]=0.                                            ║
+║   (P)    Potencia:     [x,x,x]=0.                                            ║
+║   (Mf)   Moufang:      últimas identidades exactas en \dim=8 (octoniones).   ║
+║          L: (x(yx))z=x(y(xz));  R: ((zx)y)x=z((xy)x);                        ║
+║          M: (xy)(zx)=(x(yz))x.                                               ║
+║   (A4)   Stasheff:     diámetro de las 5 asociaciones plenas de 4 factores.  ║
+║   (A9)   Eneagonal:    A_9=((((((((x_1 x_2)x_3)x_4)x_5)x_6)x_7)x_8)x_9)      ║
+║                              -x_1(x_2(x_3(x_4(x_5(x_6(x_7(x_8 x_9)))))))).   ║
+║   (N)    Cono nulo:    xy=0,\ x,y\neq 0 \Leftrightarrow \sigma_{\min}(L_x)=0.║
+║                                                                              ║
+║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA FPU):                   ║
+║   Fase 1  Observe+Orient : Ingesta 128D, C-D, norma KBN, N(x), Hurwitz.      ║
+║           Morfismo terminal : observe_metrics → RoutonMetricsReport.         ║
+║   Fase 2  Decide         : A_3, Moufang L/M/R, A_9, Stasheff, 8-símplex.     ║
+║           Objeto inicial    : RoutonMetricsReport.                           ║
+║           Morfismo terminal : decide_from_metrics_report                     ║
+║                               → RoutonDecisionState.                         ║
+║   Fase 3  Act            : L_r, cono nulo 128D, sello criptográfico canónico.║
+║           Objeto inicial    : RoutonDecisionState.                           ║
+║           Morfismo terminal : execute_eneagonal_audit                        ║
+║                               → RoutonEngineState.                           ║
+║                                                                              ║
+║ Anidación ontológica (no meramente OOP):                                     ║
+║   Phase3 ⊏ Phase2 ⊏ Phase1,  Act \circ Decide \circ Observe.                 ║
+║ El último morfismo de la Fase k es el objeto inicial de la Fase k+1.         ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 from __future__ import annotations

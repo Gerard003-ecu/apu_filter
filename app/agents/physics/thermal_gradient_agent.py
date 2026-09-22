@@ -1,46 +1,39 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre del Campo Térmico (Thermal Gradient Agent).
-
-Este módulo implementa el endofunctor de supervisión OODA S = \text{Act} \circ \text{Orient} \circ \text{Observe}
-sobre los estados del campo de gradientes térmicos. Realiza la auditoría de memorias no markovianas de Caputo/Grünwald-Letnikov,
-la cohomología de Čech H^1_\text{Čech} sobre un haz de Heyting en cubrimientos de coordenadas y la condición KMS
-finito-dimensional para estados KMS a temperatura inversa \beta = 1/T.
-
-DEFINICIÓN FORMAL Y OPERATORIA:
-    El agente procesa tensores de conductividad K y gradientes \nabla T en \mathbb{R}^n mediante tres fases anidadas por mixins:
-
-    1. Fase 1 (Observe - Phase1ThermalObservationMixin):
-       - Sello de ejecución del motor ThermalGradientLaws y acumulación en ventana de memoria fraccional.
-       - Auditoría de conservación de energía y generación de Phase1ThermalObservation.
-
-    2. Fase 2 (Orient - Phase2ThermalOrientationMixin):
-       - Memoria Fraccional de Caputo / Grünwald-Letnikov (\alpha \in (0,1)):
-         D^\alpha f_n = \Delta t^{-\alpha} \sum_{j=0}^n w_j^{(\alpha)} f_{n-j}, \quad w_0 = 1, \quad w_j = \left(1 - \frac{\alpha+1}{j}\right) w_{j-1}.
-         Acuñamiento de fuga secular I^\alpha \Phi < -\tau_{\text{secular}} frente a transitorios térmicos |D^\alpha T| > 0.
-       - Haz de Heyting y Cohomología de Čech H^1_\text{Čech}:
-         Sobre un cubrimiento \{U_i\}, evalúa secciones locales \Gamma(U_i, \mathcal{H}). Si dos cartas en solape presentan discrepancia de rango |\Delta \text{rank}| \ge 2,
-         se certifica obstrucción H^1_\text{Čech} \neq 0, activando veto quirúrgico local.
-       - Condición KMS y Fidelidad de Uhlmann:
-         Para un operador de densidad \rho y Hamiltoniano H, evalúa el estado Gibbs \rho_\beta = \frac{e^{-\beta H}}{Z} (\beta = 1/T),
-         la entropía relativa D(\rho \parallel \rho_\beta), el defecto modular \|\log \rho + \beta H - c I\|_{\text{HS}} y la fidelidad F_{\text{Uhlmann}}(\rho, \rho_\beta) = \|\sqrt{\rho}\sqrt{\rho_\beta}\|_1^2.
-
-    3. Fase 3 (Decide/Act - Phase3ThermalDecisionActuationMixin):
-       - Clasificación en la Cadena de Heyting \Omega_3 = \{\text{VETOED} < \text{DEGRADED} < \text{COHERENT} < \text{CERTIFIED}\}.
-       - Veto quirúrgico aislante de cartas locales o activación de interlock Crowbar BT151/GPIO14 simulado en IRAM (< 400 ns).
-
-AXIOMAS E INVARIANTES RIGUROSOS:
-    - Axioma I (Criterio de Fuga Secular de Caputo):
-      I^\alpha \Phi < -\tau_{\text{secular}} \implies \text{Violación irreversible de la Segunda Ley en el historial no-markoviano}.
-    - Axioma II (Aislamiento Quirúrgico de Čech):
-      H^1_\text{Čech} \neq 0 \implies \text{Degradación quirúrgica localizada en cartas } U_i \text{ vetadas}, \text{preservando la operabilidad de } \bigcup_{j \neq i} U_j.
-    - Axioma III (Invariante Estructural KMS):
-      D(\rho \parallel \rho_\beta) \le \epsilon_{\text{KMS}} \iff \rho \text{ está en equilibrio térmico local a temperatura } T = 1/\beta.
-    - Invariante I (Composición Endofunctorial OODA):
-      S = \text{Act} \circ \text{Orient} \circ \text{Observe} \quad \text{sobre la variedad de gradientes térmicos}.
-
-IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
-    En sistemas de refrigeración de centros de datos de alto rendimiento, reactores nucleares o baterías de vehículos eléctricos, los puntos calientes locales (hotspots) no detectados a tiempo provocan embalamientos térmicos, degradación acelerada del hardware e incendios catastróficos.
-    El Thermal Gradient Agent proporciona monitoreo continuo no markoviano e interrupción quirúrgica. Al aislar secciones con gradientes anómalos sin apagar la totalidad del sistema, se previene el daño permanente de componentes críticos, se reducen las pérdidas financieras por reemplazo de equipos y se mantiene la disponibilidad operativa del sistema.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Thermal Gradient Agent (Soberano de Calibre del Campo Térmico)      ║
+║ Ruta   : app/agents/physics/thermal_gradient_agent.py                        ║
+║ Versión: 3.1.0-Doctoral-Caputo-CechSheaf-KMS-Heyting-OODA-CAS-Secure         ║
+║                                                                              ║
+║ SINOPSIS (rigor doctoral; lo que SÍ se computa):                             ║
+║ El agente es el endofunctor de supervisión  S = Act ∘ Orient ∘ Observe       ║
+║ sobre sellos de ThermalGradientLaws. No re-simula Fourier. Audita el         ║
+║ certificado y tres memorias / geometrías opcionales:                         ║
+║                                                                              ║
+║   (1) Caputo / Grünwald–Letnikov  α ∈ (0,1) sobre la serie {Φ_n, T_n}        ║
+║       D^α f_n = Δt^{-α} ∑_{j=0}^{n} w_j^{(α)} f_{n-j}                        ║
+║       w_0=1,  w_j = (1 − (α+1)/j) w_{j−1}                                    ║
+║       I^α Φ  (Riemann–Liouville discreta) acumula fugas seculares.           ║
+║       |D^α T| grande + I^α Φ ≥ 0  → transitorio (no veto).                   ║
+║       I^α Φ < τ_frac persistente → veto secular.  NO es un D^α de Rham       ║
+║       sobre un complejo simplicial: no hay 1-esqueleto aquí.                 ║
+║                                                                              ║
+║   (2) Haz de Heyting sobre un cubrimiento finito {U_i} de coordenadas        ║
+║       Sección Γ(U_i): veredicto local de ⟨q,dT⟩|_{U_i}.                      ║
+║       Restricción: meet en U_i ∩ U_j.                                        ║
+║       H¹_Čech ≠ 0  ⇔  dos cartas solapadas con |Δ rank| ≥ 2.                 ║
+║       Veto quirúrgico: se aislan las cartas VETOED; el resto opera.          ║
+║       Sin cubrimiento: una carta, H¹=0.  NO es un topos de Grothendieck.     ║
+║                                                                              ║
+║   (3) KMS finito-dimensional (si se inyectan ρ, H)                           ║
+║       ρ_β = e^{−βH}/Z ,  β = 1/T                                             ║
+║       D(ρ‖ρ_β) y  ‖log ρ + βH − c I‖_HS  (defecto modular).                  ║
+║       F_Uhlmann(ρ,ρ_β) = ‖√ρ √ρ_β‖_1² .                                      ║
+║       Sin ρ: kms_available=False.  NO hay álgebra de von Neumann MAC.        ║
+║                                                                              ║
+║ ARQUITECTURA: In --F1→ Phase1 --F2→ Phase2 --F3→ Phase3 → Certificate        ║
+║ Crowbar/GPIO SIMULADO. No hay acceso a silicio.                              ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 from __future__ import annotations

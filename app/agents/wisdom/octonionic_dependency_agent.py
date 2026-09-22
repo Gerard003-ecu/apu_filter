@@ -1,47 +1,84 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre Octoniónico 8D (Octonionic Dependency Agent).
-
-Este módulo implementa el agente supervisor ciber-físico soberano para la gobernanza de lazo cerrado
-sobre el resolutor de dependencias en el álgebra de Cayley-Dickson \mathbb{O} (\mathbb{R}^8).
-Audita síncronamente la tríada transaccional crítica (Contratista P_1, Proveedor P_2, Interventor P_3) \in \mathbb{O}^3
-mediante tres fases anidadas en el ciclo OODA sobre la cadena de Heyting \Omega_3.
-
-DEFINICIÓN FORMAL Y OPERATORIA:
-    El agente inmerge la tríada \mathbb{O}^3 y evalúa sus propiedades geométricas, algebraicas y topológicas:
-
-    1. Fase 1 (Observe - Phase1_OctonionicObservation):
-       - Geometría de Banach en (\mathbb{R}^8, \|\cdot\|_p): Evaluación de normas \ell^1, \ell^2, \ell^\infty,
-         desigualdad de Hölder \|x\|_2^2 \le \|x\|_1 \|x\|_\infty, índice de escasez de Hoyer \mathcal{H}(x) \in [0,1]
-         y coeficiente de distorsión convexa \kappa_B(x) = \frac{\|x\|_1 \|x\|_\infty}{\|x\|_2^2} \ge 1.
-       - Construcción de estados OctonionicState y generación del kernel de observación con sello SHA-256.
-
-    2. Fase 2 (Orient - Phase2_OctonionicOrientation):
-       - Álgebra de Malcev y Estructura de Fano: En \text{Im}(\mathbb{O}) \cong \mathbb{R}^7, el Jacobiator generalizado
-         J(u,v,w) = -6 [u,v,w] y la 3-forma asociativa de G_2 sobre PG(2,2): \phi(a,b,c) = \langle a, b \times c \rangle.
-       - Evaluación del asociador trilateral A_3(a,b,c) = (ab)c - a(bc) y residuos de las identidades de Artin y Moufang.
-       - Topología Espectral de Hodge-Laplace en K_3: Conectividad de Fiedler \lambda_2, resistencia efectiva de Kirchhoff R_K
-         y disipación exergética de Dirichlet \mathcal{E}_D = \text{Tr}(P^T L P).
-       - Rampa Graduada de de Rham: Asignación de verdad \omega_{\text{asoc}} \in \{0, \frac{1}{2}, 1\} según
-         \|[a,b,c]\| frente al umbral elástico \tau_{\max}.
-
-    3. Fase 3 (Act - Phase3_OODAActuator):
-       - Inferencia de Heyting \Omega_3: Evaluador global \mathbf{V} = \bigwedge p_k.
-       - Ventana Modal de Gracia \Gamma y Override HMAC: Autenticación de tokens en tiempo constante.
-       - Interlock Ciber-Físico Crowbar BT151: Ante \mathbf{V} = \text{VETOED}, simula el disparo del tiristor BT151/GPIO14 en IRAM (< 400 ns).
-
-AXIOMAS E INVARIANTES RIGUROSOS:
-    - Axioma I (Equivalencia Métrica de Banach en \mathbb{R}^8):
-      1 \le \frac{\|x\|_1}{\|x\|_2} \le \sqrt{8}, \quad 1 \le \frac{\|x\|_2}{\|x\|_\infty} \le \sqrt{8}, \quad 1 \le \frac{\|x\|_1}{\|x\|_\infty} \le 8 \quad \forall x \neq 0.
-    - Axioma II (Invariante de Calibración G_2 en Fano PG(2,2)):
-      \phi(a,b,c) = \langle a, b \times c \rangle es totalmente antisimétrica e invariante bajo la acción del grupo de Lie G_2 = \text{Aut}(\mathbb{O}).
-    - Axioma III (Presupuesto de Actuación Crowbar en IRAM):
-      t_{\text{act}} \in [382, 399]\text{ ns} < 400\text{ ns} \quad \text{ante colapso a VETOED}.
-    - Invariante I (Invarianza de Cierre OODA):
-      Phase3 ⊏ Phase2 ⊏ Phase1 \implies \text{Act} \circ \text{Orient} \circ \text{Observe} es la única vía de generación de certificados válidos.
-
-IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
-    En esquemas de contratación trilateral, licitaciones complejas y acuerdos multi-actor, la falta de coordinación o la colusión no detectable entre partes genera desviaciones presupuestarias masivas, incumplimientos de entrega y litigios prolongados.
-    El Octonionic Dependency Agent detecta al instante cualquier inconsistencia no asociativa o falta de alineación entre Contratista, Proveedor e Interventor. Al bloquear automáticamente contratos defectuosos o activar alertas de veto suave en tiempo real, se evitan pérdidas multimillonarias por ejecuciones fallidas, se garantizan los acuerdos nivel de servicio (SLA) y se protege la transparencia corporativa.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : OCTONIONIC DEPENDENCY AGENT (SOBERANO DE CALIBRE OCTONIÓNICO 8D)    ║
+║ RUTA   : app/agents/wisdom/octonionic_dependency_agent.py                    ║
+║ NIVEL  : Doctorado en Ciencias Matemáticas, Física Teórica y Computación     ║
+║ VERSIÓN: 3.1.0-Doctoral-OODA-Heyting-Banach-Artin-Moufang-Hodge-Nested3      ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║ TRATADO DE GOBERNANZA MATEMÁTICA, FÍSICA Y TOPOLÓGICA DE LAZO CERRADO:       ║
+║                                                                              ║
+║ 1. ESTRATO DE SABIDURÍA (V_W) / OMEGA (V_\Omega — EL ÁGORA TENSORIAL):       ║
+║    Agente supervisor ciber-físico soberano que gobierna síncronamente al     ║
+║    Resolver Octoniónico de Dependencias (álgebra de Cayley-Dickson \mathbb{O}║
+║    sobre \mathbb{R}^8) en la Unidad de Punto Flotante (FPU).                 ║
+║    Inmerge la tríada transaccional crítica:                                  ║
+║      (Contratista P_1, Proveedor P_2, Interventor P_3) \in \mathbb{O}^3.     ║
+║                                                                              ║
+║ 2. GEOMETRÍA DE BANACH Y DISTORSIÓN CONVEXA EN (\mathbb{R}^8, \|\cdot\|_p):  ║
+║    Para toda señal hipercompleja x \in \mathbb{R}^8 \setminus \{0\}, se      ║
+║    certifican las desigualdades analíticas de equivalencia métrica:          ║
+║      1 \le \frac{\|x\|_1}{\|x\|_2} \le \sqrt{8}, \quad                       ║
+║      1 \le \frac{\|x\|_2}{\|x\|_\infty} \le \sqrt{8}, \quad                   ║
+║      1 \le \frac{\|x\|_1}{\|x\|_\infty} \le 8,                                ║
+║    con la desigualdad de Hölder: \|x\|_2^2 \le \|x\|_1 \|x\|_\infty,         ║
+║    el índice de dispersión/escasez de Hoyer:                                 ║
+║      \mathcal{H}(x) = \frac{\sqrt{8} - \|x\|_1 / \|x\|_2}{\sqrt{8} - 1}      ║
+║      \in [0, 1],                                                             ║
+║    y el coeficiente de distorsión convexa de Banach:                         ║
+║      \kappa_B(x) = \frac{\|x\|_1 \|x\|_\infty}{\|x\|_2^2} \ge 1.             ║
+║                                                                              ║
+║ 3. ÁLGEBRA DE MALCEV, PLANO DE FANO Y AUTOMORFISMOS G_2:                     ║
+║    En el subespacio imaginario \operatorname{Im}(\mathbb{O}) \cong           ║
+║    \mathbb{R}^7, el producto cruzado u \times v = \tfrac{1}{2}[u, v] porta   ║
+║    estructura de álgebra de Malcev. El Jacobiator generalizado satisface:    ║
+║      J(u, v, w) = [[u, v], w] + [[v, w], u] + [[w, u], v] = -6 [u, v, w].   ║
+║    La 3-forma asociativa de calibración paralela de G_2 sobre las líneas     ║
+║    del plano proyectivo de Fano PG(2, 2) audita la coherencia trilateral:   ║
+║      \phi(a, b, c) = \langle a, b \times c \rangle.                          ║
+║                                                                              ║
+║ 4. TOPOLOGÍA ESPECTRAL DE HODGE-LAPLACE Y EXERGÍA DE DIRICHLET EN K_3:       ║
+║    El 1-esqueleto de la tríada es el grafo completo K_3. Con conductancias   ║
+║    W_{ij} normalizadas por similitud coseno, el Laplaciano L = D - W evalúa: ║
+║      - Conectividad algebraica de Fiedler \lambda_2.                         ║
+║      - Índice de resistencia efectiva de Kirchhoff:                          ║
+║          R_K = 3 \left(\frac{1}{\lambda_2} + \frac{1}{\lambda_3}\right).     ║
+║      - Disipación exergética de Dirichlet:                                   ║
+║          \mathcal{E}_D = \operatorname{Tr}(P^T L P).                         ║
+║                                                                              ║
+║ 5. LÓGICA DE HEYTING \Omega_3 Y RAMPA GRADUADA DE DE RHAM:                   ║
+║    Cadena de verdad de Gödel-Dummett:                                        ║
+║      \Omega_3 = \{\bot \prec \tfrac{1}{2} \prec \top\}                       ║
+║              = \{\mathrm{VETOED} \prec \mathrm{DEGRADED} \prec \mathrm{COHERENT}\}.║
+║    Rampa de confianza sobre \tau_{\max} = L_{\max} \cdot \mathrm{safety}:    ║
+║      - Régimen Coherente:   \|[a, b, c]\| \le 0.3 \tau_{\max}                ║
+║                             \implies \omega_{\mathrm{asoc}} = 1.             ║
+║      - Banda Elástica:      0.3 \tau_{\max} < \|[a, b, c]\| \le 0.5 \tau_{\max}║
+║                             \implies \omega_{\mathrm{asoc}} = \tfrac{1}{2}.  ║
+║      - Colapso Duro:        \|[a, b, c]\| > 0.5 \tau_{\max}                  ║
+║                             \implies \omega_{\mathrm{hard}} = 0.             ║
+║    El meet global \mathbf{V} = \bigwedge p_k colapsa la decisión sistémica.  ║
+║                                                                              ║
+║ 6. FÍSICA CIBER-FÍSICA: CROWBAR BT151 EN IRAM (< 400 ns):                   ║
+║    Ante \mathbf{V} = \mathrm{VETOED}, se simula el disparo del tiristor      ║
+║    Crowbar BT151 en GPIO14. Gobernado por ISR en IRAM con retardo físico de  ║
+║    inyección de carga en compuerta t_{\mathrm{act}} \in [382, 399]\text{ ns} ║
+║    (< 400 ns), puenteando a tierra el bus de control trilateral.             ║
+║                                                                              ║
+║ 7. ARQUITECTURA EN TRES FASES ANIDADAS FUNCTORIALES (OODA EN \Omega_3):      ║
+║    Phase1_OctonionicObservation (Observe):                                   ║
+║      Morfismo terminal: synthesize_observation_kernel                        ║
+║                         \to OctonionicObservationKernel.                     ║
+║    Phase2_OctonionicOrientation (Orient + Decide preliminar, hereda Phase1): ║
+║      Morfismo de inicio: continue_from_observation_kernel.                   ║
+║      Morfismo terminal: orient_octonionic_state                              ║
+║                         \to OctonionicOrientationState.                      ║
+║    Phase3_OODAActuator (Act, hereda Phase2):                                 ║
+║      Morfismo de inicio: continue_from_orientation.                          ║
+║      Morfismo terminal: execute_octonionic_control_cycle                     ║
+║                         \to OctonionicAgentCertificate.                      ║
+║    Fachada Soberana: OctonionicDependencyAgent = Phase3_OODAActuator.        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 from __future__ import annotations
@@ -910,7 +947,7 @@ class Phase3_OODAActuator(Phase2_OctonionicOrientation):
         self._is_soft_veto_active: bool = False
 
     def reset_soft_veto(self) -> None:
-        r"""Restablece la ventana temporal modal de gracia \Gamma."""
+        """Restablece la ventana temporal modal de gracia \Gamma."""
         self._is_soft_veto_active = False
         self._soft_veto_timestamp = None
 

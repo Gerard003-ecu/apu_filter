@@ -1,47 +1,42 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre de Clifford (Clifford Gauge Agent).
-
-Este módulo implementa el agente supervisor ciber-físico OODA sobre el topos de estados del
-álgebra del espacio-tiempo STA \mathcal{C}\ell_{1,3}(\mathbb{R}). Gobierna pares de multivectores (P, Q),
-audita la homomorfía de la forma cuadrática de Lorentz Q(A) = \langle A \tilde{A} \rangle_0, evalúa
-la acción de Yang-Mills S_{\text{YM}} y clasifica el veredicto en el álgebra de Heyting Gödel \Omega_3.
-
-DEFINICIÓN FORMAL Y OPERATORIA:
-    El agente supervisa la interacción de pares de estados de Clifford (P, Q) \in \mathcal{C}\ell_{1,3}(\mathbb{R})^2
-    mediante tres fases anidadas por herencia estricta:
-
-    1. Fase 1 (Observe - Phase1_CliffordStateFactory):
-       - Construcción de CliffordState mediante la inmersión de Dirac \iota : \mathbb{R}^{16} \to M_4(\mathbb{C}).
-       - Evaluación del producto geométrico P Q y cálculo de la deriva de Lorentz:
-         \delta Q = |Q(P Q) - Q(P) Q(Q)|.
-         \delta Q = 0 sobre el grupo de Clifford \Gamma \subset \mathcal{C}\ell_{1,3}^\times; \delta Q > 0 indica la clase de obstrucción del par frente a Spin(1,3).
-       - Generación del informe de interacción CliffordInteractionReport (germen de la Fase 2).
-
-    2. Fase 2 (Orient - Phase2_GaugeDiagnostics):
-       - Ingesta de la métrica de fondo G_{\mu\nu} y números de Betti b_0, b_1, b_2 de la malla.
-       - Evaluación de la acción covariante de Yang-Mills S_{\text{YM}} = \frac{1}{8} F_{\mu\nu} F^{\mu\nu} sobre el bivector de Faraday del proveedor.
-       - Auditoría de anomalías topológicas: La malla coherente debe ser homotópicamente contráctil (b_0 = 1, b_1 = 0, b_2 = 0).
-       - Preclasificación Heyting \omega_{\text{pre}} = \omega_{\text{hard}} \wedge \omega_{\text{YM}} \in \Omega_3 = \{0 \equiv \text{VETOED}, \frac{1}{2} \equiv \text{DEGRADED}, 1 \equiv \text{COHERENT}\}.
-
-    3. Fase 3 (Act - Phase3_OODAActuator):
-       - Inferencia en el Álgebra de Gödel \Omega_3: \omega = \text{decide}(\omega_{\text{pre}}, \text{gracia}, \text{override}).
-         La implicación de Heyting \omega_{\text{pre}} = \frac{1}{2} \implies \text{DEGRADED} (veto suave); el override no promociona a \text{COHERENT} (1).
-       - Interlock Crowbar en IRAM: Si \omega = 0 (\text{VETOED}), simula el disparo del tiristor Crowbar BT151/GPIO14 con latencia determinista < 400 ns.
-       - Sellado criptográfico HMAC-SHA256 del certificado inmutable.
-
-AXIOMAS E INVARIANTES RIGUROSOS:
-    - Axioma I (Homomorfía del Grupo de Clifford sobre Viga de Lorentz):
-      \delta Q = |Q(P Q) - Q(P) Q(Q)| \le \epsilon_{\text{CFL}} \quad \forall P, Q \in \Gamma.
-    - Axioma II (Contractibilidad Homotópica de Malla Coherente):
-      \text{Anomalía Topológica} \iff b_0 \neq 1 \lor b_1 > 0 \lor b_2 > 0.
-    - Axioma III (Non-Promotion en Heyting \Omega_3):
-      \sigma(\text{DEGRADED}) = \text{DEGRADED} \quad \text{(El override no puede transformar un estado degradado en completamente coherente)}.
-    - Invariante I (Cierre Functorial OODA):
-      Phase3 ⊏ Phase2 ⊏ Phase1 \implies \text{Act} \circ \text{Orient} \circ \text{Observe} es la única cadena legítima de procesamiento.
-
-IMPACTO EJECUTIVO DE NEGOCIO ("DOLOR Y DINERO"):
-    En sistemas de telecomunicaciones de alta frecuencia, redes cuánticas y control de fase de arreglos en fase (phased arrays), la distorsión de calibre o las disrupciones topológicas en la señal provocan pérdida de sincronismo de fase, atenuación severa y caídas masivas de la tasa de transferencia de datos (throughput).
-    El Clifford Gauge Agent previene estas caídas al monitorear continuamente la invariancia de Lorentz y la topología de la red. Al interceptar interferencias o desalineaciones espectrales antes de que degraden el enlace, garantiza una disponibilidad de red del 99.999% ("five nines"), protegiendo los ingresos por Acuerdos de Nivel de Servicio (SLA) y evitando penalizaciones contractuales por interrupción de servicio.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Clifford Gauge Agent (Soberano de Calibre de Clifford)              ║
+║ Ruta   : app/agents/wisdom/clifford_gauge_agent.py                           ║
+║ Versión: 3.0.0-Doctoral-STA-OODA-Heyting-Vierbein-Nested                     ║
+║                                                                              ║
+║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
+║ Agente supervisor ciber-físico sobre el topos de estados STA. Gobierna       ║
+║ pares multivectoriales (P, Q) ∈ Cl_{1,3}(R)^2, audita la homomorfía de       ║
+║ la forma de Lorentz Q(A) = ⟨A Ã⟩_0, contrae la 2-forma de curvatura con      ║
+║ G^{μν} y clasifica el veredicto en el álgebra de Heyting Gödel Ω₃.           ║
+║                                                                              ║
+║ Cadena de funtores anidados:                                                 ║
+║                                                                              ║
+║   (P, Q) --Fase 1-->  Interacción(P, Q, PQ, δQ)                              ║
+║          --Fase 2-->  Orientación(S_YM, Betti, ω_pre)                        ║
+║          --Fase 3-->  Certificado(Ω₃, Crowbar, sello HMAC)                   ║
+║                                                                              ║
+║ Germen Fase 1 → Fase 2:                                                      ║
+║     synthesize_gauge_interaction  ⊣  observe_gauge_interaction               ║
+║                                                                              ║
+║ Germen Fase 2 → Fase 3:                                                      ║
+║     orient_gauge_diagnostics      ⊣  decide_from_orientation                 ║
+║                                                                              ║
+║ Ω₃ = {0 < ½ < 1}  (Gödel–Heyting ternario)                                   ║
+║     1  ↔  COHERENT                                                           ║
+║     ½  ↔  DEGRADED   (veto suave + gracia)                                   ║
+║     0  ↔  VETOED     (veto duro + Crowbar IRAM)                              ║
+║                                                                              ║
+║     a ∧ b = min(a,b),  a ∨ b = max(a,b),                                     ║
+║     a → b = 1 si a ≤ b else b,  ¬a = a → 0.                                  ║
+║                                                                              ║
+║ ORGANIZACIÓN EN TRES FASES ANIDADAS POR HERENCIA ESTRICTA:                   ║
+║   FASE 1: Phase1_CliffordStateFactory                                        ║
+║   FASE 2: Phase2_GaugeDiagnostics(Phase1_CliffordStateFactory)               ║
+║   FASE 3: Phase3_OODAActuator(Phase2_GaugeDiagnostics)                       ║
+║   Agente: CliffordGaugeAgent(Phase3_OODAActuator)                            ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 """
 
 from __future__ import annotations
