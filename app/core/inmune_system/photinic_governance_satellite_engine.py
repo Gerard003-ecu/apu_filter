@@ -39,7 +39,7 @@ Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
 ─────────────────────────────────────────────────────────────
 • Dolor: Colusión adversarial o manipulación no local en la gobernanza federada de políticas públicas
   y de presupuesto causa desviaciones opacas y fraudes en consorcios descentralizados.
-• Dinero: El enforcement estricto de la cota de Tsirelson y la positividad completa detecta inmediatamente
+• Dinero: El endurecimiento estricto de la cota de Tsirelson y la positividad completa detecta inmediatamente
   inyecciones maliciosas o sesgos coordinados, protegiendo los fondos federados y la transparencia gubernamental.
 
 Estructura Functorial OODA:
