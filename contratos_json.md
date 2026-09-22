@@ -12,6 +12,16 @@ Un archivo JSON estándar, especialmente aquellos generados por proveedores de l
 Bajo la **Ley de Clausura Transitiva de la pirámide DIKW** ($V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$), el estrato físico y topológico debe purgar este ruido transformando el barro crudo en **Vitaminas Cognitivas** mediante el formato **TOON (Tabular Object-Oriented Notation)** antes de que el payload ascienda a la deliberación estratégica del Consejo de Sabios.
 
 --------------------------------------------------------------------------------
+## 1.1 Fiscalización Orbital de Contratos (Cinturón v3.1.0)
+El flujo entrante codificado en `SiloAContract` es auditado por el **Cinturón Orbital de Seis Satélites de Frontera**:
+* **Satélite I (Momentum Escalar):** Mide la velocidad de deriva del flujo de caja con $P_{\mathrm{diss}} = \langle d\phi, G^{-1} d\phi \rangle \ge 0$ ($2.85\text{ ms}$ FPU / $397.53\text{ ns}$ Crowbar).
+* **Satélite II (Inercia Centroidal):** Monitorea la precesión del centroide simpléctico $q_{\mathrm{centroid}}^\mu$ y el área de Novikov $\mathcal{A}(u) > 10^{-6}$ ($2.73\text{ ms}$ FPU / $397.48\text{ ns}$ Crowbar).
+* **Satélite III (Deformación Centrípeta):** Fiscaliza la deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$ y tensor giroscópico $W_{\mu\nu}$ ($2.78\text{ ms}$ FPU / $397.26\text{ ns}$ Crowbar).
+* **Satélite IV (Gobernanza Fotínica):** Audita la causalidad CPTP $C_\mathcal{E} \succcurlyeq 0$ y cota Tsirelson $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$ bajo Dirac-Majorana $\mathcal{N}=1$ SYM ($3.12\text{ ms}$ FPU / $396.02\text{ ns}$ Crowbar).
+* **Satélite V (Sabor Leptónico):** Preserva la unitoridad PMNS $\|U U^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$ entre frentes de obra ($3.14\text{ ms}$ FPU / $396.29\text{ ns}$ Crowbar).
+* **Satélite VI (Confinamiento Quarks):** Audita la simetría $SU(3)_C$ en la tripleta de insumos, impidiendo compras huérfanas ($C_2 \le 10^{-10}$, $E_{\mathrm{string}} < 100.0$) ($3.10\text{ ms}$ FPU / $398.95\text{ ns}$ Crowbar).
+
+--------------------------------------------------------------------------------
 ## 2. SiloAContract: El Operador de Proyección Ortogonal
 Para gobernar este caos, la plataforma implementa los contratos de datos (JSON Schemas) en el `SiloAContract` no como meras sugerencias de tipado, sino como proyecciones matemáticas rigurosas.
 El `SiloAContract` ejecuta las siguientes funciones termodinámicas de defensa:
