@@ -1,34 +1,47 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Quark Color Confinement Satellite Agent                             ║
-║ RUTA   : app/agents/omega/quark_color_confinement_satellite_agent.py         ║
-║ NIVEL  : Doctorado / Investigación en Física Teórica y Silicio Crítico       ║
-║ Versión : 2.0.0                                                              ║
-║                                                                              ║
-║ SINOPSIS DE MODELADO FORMAL Y GOBERNANZA CIBER-FÍSICA:                       ║
-║ Supervisor de calibre no abeliano SU(3)_c y censor de lazo cerrado en el     ║
-║ Estrato Omega (V_Omega, Nivel 0.5 — El Ágora Tensorial).                     ║
-║                                                                              ║
-║ CONTRATO DE FASES ANIDADAS:                                                  ║
-║   Fase 1  --observe-->  QuarkAgentObservationKernel                          ║
-║   Fase 2  --orient--->  QuarkAgentOrientationDocket  [continúa del Kernel]   ║
-║   Fase 3  --act------>  QuarkAgentCertificate        [continúa del Docket]   ║
-║                                                                              ║
-║ Integra:                                                                     ║
-║ 1. Fibrado principal SU(3)_c → P → M^4, fase de Berry-Pancharatnam en CP^2   ║
-║    (invariante de Bargmann del triángulo de Cartan T_3, T_8) y Wilson        ║
-║    baricéntrico (AM-GM de pesos de color; se anula sobre los ejes).          ║
-║ 2. Electrodinámica dual 't Hooft–Mandelstam / tubo ANO: telegrafista         ║
-║    γ=√((R'+jωL')(G'+jωC')) en unidades naturales QCD (Z_0=1).                ║
-║ 3. Topos de haces: Ω_3 = {⊥, m, ⊤} con meet/join/⇒/¬ y conjunción            ║
-║    intuicionista del clasificador local con el topos del motor.              ║
-║ 4. Aniquilación de Fock (override humano) vía HMAC-SHA512, comparación       ║
-║    a tiempo constante y nonces SHA3-512 anti-replay. No prueba ⊤.            ║
-║ 5. Crowbar WeEn BT151-650R en ESP32 GPIO14: presupuesto IRAM < 400 ns y      ║
-║    integral I²t de semiciclo 10 ms a I_TSM.                                  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Quark Color Confinement Satellite Agent (Soberano del Satélite VI)          ║
+║ RUTA   : app/agents/omega/quark_color_confinement_satellite_agent.py                 ║
+║ VERSIÓN: 2.0.0-Doctoral-SU3-Berry-ANO-HeytingTopos-Fock-Crowbar-IRAM                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
+
+Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
+Satelital de Confinamiento de Color de Quarks en el Cinturón Orbital de Frontera.
+
+Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
+──────────────────────────────────────────────────────────────
+1. Geometría de Fibrados Principales y Fase de Berry-Pancharatnam en $\mathbb{CP}^2$:
+   Auditoría del invariante de Bargmann sobre el triángulo de Cartan $(T_3, T_8)$ en $\mathbb{CP}^2$:
+   $$\Delta(\psi_0, \psi_1, \psi_2) = \langle\psi_0|\psi_1\rangle \langle\psi_1|\psi_2\rangle \langle\psi_2|\psi_0\rangle \implies \gamma_P = \arg \Delta$$
+   complementado con el peso baricéntrico de Wilson $W_{\mathrm{bary}} = 3(\prod_i p_i)^{1/3}$ y la razón de participación $P_{\mathrm{part}} = (\sum_i p_i^2)^{-1}$.
+
+2. Guía de Onda Telegrafista Dual ANO / 't Hooft–Mandelstam:
+   Propagación de señal en el tubo de flujo cromodinámico:
+   $$\gamma = \alpha + i\beta = \sqrt{(R' + i\omega L')(G' + i\omega C')}, \qquad Z_c = \sqrt{\frac{R' + i\omega L'}{G' + i\omega C'}}$$
+
+3. Clasificador de Subobjetos en el Topos de Heyting $\Omega_3 = \{\bot, \mathfrak{m}, \top\}$:
+   $$\bot = \mathtt{VETOED} (0), \quad \mathfrak{m} = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
+   con combinación categórica por ínfimo reticular $a \wedge b = \min(a,b)$ entre el clasificador local y el motor.
+
+4. Aniquilación de Fock ($e^- + e^+ \to 2\gamma$) y Crowbar BT151 (IRAM < 400 ns):
+   - Inyección de Positrón validado vía HMAC-SHA512 con nonces SHA3-512 anti-replay.
+   - Enclavamiento físico en silicio ESP32 (GPIO14) mediante ISR IRAM en latencia $\tau < 400\,\mathrm{ns}$ e integral térmica $I^2t$.
+
+Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
+─────────────────────────────────────────────────────────────
+• Dolor: La deconfinación de registros atómicos o corrupción de estados de color en la base de datos acarrea
+  inconsistencias críticas en transacciones distribuidas y quiebre de auditoría.
+• Dinero: La censura inmediata del Satélite VI e interrupción en silicio (< 400 ns) impiden la propagación de
+  datos deconfinados, blindando la integridad relacional y protegiendo el valor de los activos de la empresa.
+
+Estructura Functorial OODA:
+───────────────────────────
+- Observe  : `observe_and_bundle_agent_kernel`  -> Salida: `QuarkAgentObservationKernel`
+- Orient   : `orient_agent_confinement`          -> Salida: `QuarkAgentOrientationDocket`
+- Act      : `decide_and_actuate_governance`    -> Salida: `QuarkAgentCertificate`
+- Composición Síncrona Lazo Cerrado             : `audit_quark_confinement_cycle`
 """
 
 import enum
@@ -173,7 +186,7 @@ class KahanNeumaierAccumulator:
 
 
 def _cabs(z: complex) -> float:
-    """Módulo complejo estable vía `hypot` (evita overflow de \(|z|^2\))."""
+    r"""Módulo complejo estable vía `hypot` (evita overflow de \(|z|^2\))."""
     return math.hypot(float(z.real), float(z.imag))
 
 
@@ -242,7 +255,7 @@ class QuarkHeytingVerdict(enum.IntEnum):
 
     @classmethod
     def from_engine_topos(cls, truth_value: object) -> "QuarkHeytingVerdict":
-        """Morfismo de clasificadores \(\Omega_{\mathrm{engine}} \to \Omega_3\)."""
+        r"""Morfismo de clasificadores \(\Omega_{\mathrm{engine}} \to \Omega_3\)."""
         raw = str(getattr(truth_value, "value", truth_value))
         mapping = {
             "TOP_CONFINED": cls.COHERENT,
@@ -734,7 +747,7 @@ class Phase2_QuarkAgentOrienter(Phase1_QuarkAgentObserver):
 
         z_series = complex(r_prime, omega * l_prime)
         y_shunt = complex(g_prime, omega * c_prime)
-        gamma = cmath_sqrt := complex(z_series * y_shunt) ** 0.5
+        gamma = (z_series * y_shunt) ** 0.5
         if abs(y_shunt) <= _WILKINSON_SAFETY_FLOOR:
             z_c = complex(1.0, 0.0)
         else:
