@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Generative Boole Hodge Suturator Agent (Soberano del Haz Boole)    ║
-║ Ruta   : app/agents/boole/generative_boole_hodge_suturator_agent.py         ║
-║ Versión: 5.0.0-Doctoral-Nested-OODA-Heyting-TMR-Hodge-ESP32-Secure          ║
+║ Módulo : Generative Boole Hodge Suturator Agent (Soberano del Haz Boole)     ║
+║ Ruta   : app/agents/boole/generative_boole_hodge_suturator_agent.py          ║
+║ Versión: 5.0.0-Doctoral-Nested-OODA-Heyting-TMR-Hodge-ESP32-Secure           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL ───────────────────────────────────────
