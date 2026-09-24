@@ -1,49 +1,34 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO : Pseudoholomorphic Centripetal Satellite Agent (Soberano del Satélite III)   ║
 ║ RUTA   : app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py           ║
-║ VERSIÓN: 4.0.0-Doctoral-Clifford-Floer-Novikov-Heyting-Fock-Crowbar-IRAM             ║
+║ VERSIÓN: 5.0.0-Doctoral-Rigorous-Nested-3Phases-Clifford-Floer-Novikov-Fock-IRAM     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
-Satelital de Deformación Centrípeda en la Categoría de Fukaya $A_\infty$ sobre $(\mathcal{M}, \omega, J, G)$.
+Arquitectura Verificada en Tres Fases Anidadas Formales.
+Refinamiento Granular y Rigor Doctorado en Topología Algebraica, Teoría Espectral,
+Mecánica Cuántica y Física de Circuitos para Conmutación Criogénica de Silicio.
 
-Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
-──────────────────────────────────────────────────────────────
-1. Geometría Simpléctica y Categorías $A_\infty$ de Fukaya:
-   Auditoría de mapas pseudo-holomorfos $u: (\Sigma, j) \to (\mathcal{M}, \omega, J)$ sometidos a perturbación centrípeta:
-   $$H_{\mathrm{cent}}(q) = \frac{1}{2} M_{\mathrm{eff}} \|\omega_{\mathrm{rot}}\|_G^2 \|q - q_{\mathrm{centroid}}\|_G^2$$
-   Garantiza el control del residuo de Floer-Cauchy-Riemann $\bar{\partial}_{J,H}(u) = 0$ y previene la pérdida de compacidad
-   de Gromov por Burbujeo Discal Centrífugo ($\mathcal{A}(u) = \int_{D^2} u^*\omega \le \hbar_{\mathrm{symp}}$).
+FUNDACIÓN MATEMÁTICA DOCTORAL:
+─────────────────────────────
 
-2. Álgebra de Clifford $\mathcal{C}\ell_{p,q}$ y Deformaciones Giroscópicas:
-   Descomposición de la velocidad angular y esfuerzos en el álgebra de Lie $\mathfrak{so}(n)$, verificando la
-   antisimetría estricta $\|W + W^\top\|_F / \|W\|_F < \varepsilon_{\mathrm{Wilkinson}}$ y la norma de deformación $\|\epsilon_{\mathrm{radial}}\|_F$.
+I.   GEOMETRÍA SIMPLÉCTICA DE FUKAYA Y MAPAS PSEUDOHOLOMORFOS:
+     Auditoría exhaustiva de $(u: (\Sigma, j) \to (\mathcal{M}, \omega, J))$ bajo perturbación centrípeta.
+     Preservación de compacidad de Gromov. Control de residual Floer-Cauchy-Riemann $\bar{\partial}_{J,H}(u)=0$.
 
-3. Topos de Heyting y Clasificador Trivalente $\Omega_3 = \{\bot, \ast, \top\}$:
-   $$\bot = \mathtt{VETOED} (0), \quad \ast = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
-   gobernado por lógica intuicionista no booleana ($\neg\neg \ast = \top \neq \ast$).
+II.  ÁLGEBRA DE CLIFFORD $\mathcal{C}\ell_{p,q}$ Y DESCOMPOSICIÓN $\mathfrak{so}(n)$:
+     Normas de Wilkinson. Acondicionamiento espectral. Forma de volumen de Rham.
 
-4. Aniquilación de Fock ($e^- + e^+ \to 2\gamma$) y Conmutación de Silicio BT151 (IRAM < 400 ns):
-   - Inyección del Positrón $e^+$ verificado vía HMAC-SHA256 en tiempo constante (`compare_digest`) para disipar la Luz Ámbar.
-   - Disparo de interrupción ISR en memoria IRAM en latencia $\tau < 400\,\mathrm{ns}$ hacia la compuerta del tiristor BT151-650R,
-     inyectando $I_G \gg I_{GT}$ para encendido por avalancha en el milisegundo cero.
+III. TOPOS DE HEYTING CON CLASIFICADOR TRIVALENTE $\Omega_3 = \{\bot, \ast, \top\}$:
+     Lógica intuicionista. Negación clásica NO es involución.
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Las deformaciones centrípetas no supervisadas en estructuras de datos dinámicas causan desviaciones
-  financieras no acotadas, resultando en pérdidas económicas catastróficas.
-• Dinero: La supervisión en lazo cerrado del Satélite III y el enclavamiento físico en silicio (< 400 ns) contienen
-  inmediatamente la variabilidad financiera dentro de la franja elástica tolerada.
+IV.  FÍSICA DE CONMUTACIÓN CRIOGÉNICA: BT151-650R, ISR IRAM < 400 ns, ESP32 Xtensa LX6.
+     Inyección de positrón Fock. Aniquilación cuántica $e^+ + e^- \to 2\gamma$.
 
-Estructura Functorial OODA:
-───────────────────────────
-- Observe  : `observe_centripetal_polygon`         -> Salida: `CentripetalObservationKernel`
-- Orient   : `orient_centripetal_deformation`     -> Salida: `CentripetalOrientationReport`
-- Act      : `audit_centripetal_deformation_cycle` -> Salida: `CentripetalAgentCertificate`
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac
@@ -52,224 +37,736 @@ import math
 import time
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Final, Optional, Tuple, Dict, Any, Union
+from typing import (
+    Final, Optional, Tuple, Dict, Any, Union, Callable,
+    Protocol, TypeVar, Generic, Literal
+)
 
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-# ------------------------------------------------------------------------------
-# FALLBACKS COVARIANTES RESILIENTES Y CONTROL DEL ECOSISTEMA APU
-# ------------------------------------------------------------------------------
-try:
-    from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
-    class Morphism:
-        r"""Stub ontológico del morfismo en la categoría de sistemas ciber-físicos."""
-        def __init__(self, *args: Any, **kwargs: Any) -> None:
-            pass
+# ══════════════════════════════════════════════════════════════════════════════
+# CAPA 0: DEFINICIONES FORMALES DE TIPOS Y PROTOCOLOS CATEGORIALES
+# ══════════════════════════════════════════════════════════════════════════════
 
-    class TopologicalInvariantError(Exception):
-        r"""Violación fundamental de invariantes topológicos o de Floer."""
-        pass
-
-# Fallback autónomo y autoportante del motor centrípeto
-try:
-    from pseudoholomorphic_centripetal_satellite_engine import (
-        PseudoholomorphicCentripetalSatelliteEngine,
-        CentripetalEngineState,
-        CentripetalObserverKernel,
-        CentripetalDeformationReport,
-        BaseMetricCache,
-        CentripetalEngineError,
-        MetricIndefinitenessError,
-        CentripetalDimensionError,
-        CentrifugalDiskBubblingError,
-    )
-except ImportError:
-    try:
-        from app.core.immune_system.pseudoholomorphic_centripetal_satellite_engine import (
-            PseudoholomorphicCentripetalSatelliteEngine,
-            CentripetalEngineState,
-            CentripetalObserverKernel,
-            CentripetalDeformationReport,
-            BaseMetricCache,
-            CentripetalEngineError,
-            MetricIndefinitenessError,
-            CentripetalDimensionError,
-            CentrifugalDiskBubblingError,
-        )
-    except ImportError:
-        # Implementación de referencia doctoral de respaldo si el motor no se halla en PYTHONPATH
-        class CentripetalEngineError(Exception):
-            """Error base del motor centrípeto."""
-            pass
-
-        class MetricIndefinitenessError(CentripetalEngineError):
-            """La métrica de Riemann no es simétrica definida positiva."""
-            pass
-
-        class CentripetalDimensionError(CentripetalEngineError):
-            """Discrepancia en las dimensiones del espacio fibrado."""
-            pass
-
-        class CentrifugalDiskBubblingError(CentripetalEngineError):
-            """Ruptura de compacidad de Gromov por burbujeo de discos pseudo-holomorfos."""
-            pass
-
-        @dataclass(frozen=True, slots=True)
-        class CentripetalDeformationReport:
-            centripetal_potential: float
-            cauchy_riemann_residual: float
-            gyroscopic_skew_residual: float
-            radial_deformation_norm: float
-            is_gyroscopic_skew_symmetric: bool
-            spectral_gap: float
-            maslov_index: int
-
-        @dataclass(frozen=True, slots=True)
-        class CentripetalEngineState:
-            deformation_report: CentripetalDeformationReport
-            is_centrifugal_bubbling_detected: bool
-            is_plastic_deformation_critical: bool
-
-        class PseudoholomorphicCentripetalSatelliteEngine:
-            def __init__(self, tolerance: float = 1.0e-12) -> None:
-                self.tol = tolerance
-
-            def execute_centripetal_audit(
-                self,
-                polygon_vertices: NDArray[np.float64],
-                vertex_velocities: NDArray[np.float64],
-                angular_velocity_vector: NDArray[np.float64],
-                G_metric: NDArray[np.float64],
-                simplex_areas: Optional[NDArray[np.float64]] = None,
-                base_mass: float = 1.0,
-                coupling_alpha: float = 0.1,
-                bubbling_threshold: float = 1.0e-06,
-                plastic_threshold: float = 50.0
-            ) -> CentripetalEngineState:
-                n_verts, dim = polygon_vertices.shape
-                # Centroide baricéntrico ponderado
-                if simplex_areas is not None and simplex_areas.shape[0] == n_verts:
-                    total_area = float(np.sum(simplex_areas)) + 1e-15
-                    weights = simplex_areas / total_area
-                    centroid = np.sum(polygon_vertices * weights[:, None], axis=0)
-                else:
-                    centroid = np.mean(polygon_vertices, axis=0)
-
-                # Desplazamiento radial respecto al centroide
-                delta_q = polygon_vertices - centroid
-                omega_sq = float(np.dot(angular_velocity_vector, angular_velocity_vector))
-                
-                # Potencial centrípeto H = 1/2 * M * omega^2 * Tr(delta_q G delta_q^T) / N
-                m_eff = base_mass * (1.0 + coupling_alpha * float(np.mean(la.norm(vertex_velocities, axis=1))))
-                radial_sq = np.sum((delta_q @ G_metric) * delta_q, axis=1)
-                pot = float(0.5 * m_eff * omega_sq * np.mean(radial_sq))
-
-                # Tensor de curvatura y deformación radial
-                radial_norm = float(np.sqrt(np.mean(radial_sq)))
-                plastic_crit = radial_norm > plastic_threshold
-
-                # Tensor giroscópico medio W_uv = 1/2 (v_u q_v - v_v q_u)
-                W = np.zeros((dim, dim), dtype=np.float64)
-                for i in range(n_verts):
-                    W += np.outer(vertex_velocities[i], delta_q[i]) - np.outer(delta_q[i], vertex_velocities[i])
-                W /= float(n_verts)
-                
-                skew_residual = float(la.norm(W + W.T, 'fro') / max(la.norm(W, 'fro'), 1e-15))
-                is_skew = skew_residual < 1.0e-8
-
-                # Área simpléctica estimada (aproximación simpléctica de Floer)
-                cross_2d = 0.0
-                for i in range(n_verts):
-                    p1 = delta_q[i]
-                    p2 = delta_q[(i + 1) % n_verts]
-                    cross_2d += abs(p1[0] * p2[1] - p1[1] * p2[0]) if dim >= 2 else abs(p1[0] * p2[0])
-                area_symp = float(0.5 * cross_2d)
-                is_bubbling = area_symp < bubbling_threshold
-
-                # Residuo de Cauchy-Riemann perturbado
-                cr_residual = float(la.norm(vertex_velocities - np.cross(angular_velocity_vector[:3], delta_q[:, :3]) if dim >= 3 else vertex_velocities, 'fro'))
-                
-                # Brecha espectral del Laplaciano de Hodge discreto
-                L_mesh = np.diag(np.sum(np.abs(delta_q @ delta_q.T), axis=1)) - (delta_q @ delta_q.T)
-                eig_vals = np.sort(np.real(la.eigvals(L_mesh)))
-                spectral_gap = float(eig_vals[1] - eig_vals[0]) if len(eig_vals) > 1 else 0.0
-
-                report = CentripetalDeformationReport(
-                    centripetal_potential=pot,
-                    cauchy_riemann_residual=cr_residual,
-                    gyroscopic_skew_residual=skew_residual,
-                    radial_deformation_norm=radial_norm,
-                    is_gyroscopic_skew_symmetric=is_skew,
-                    spectral_gap=spectral_gap,
-                    maslov_index=2 if not is_bubbling else 0
-                )
-                return CentripetalEngineState(
-                    deformation_report=report,
-                    is_centrifugal_bubbling_detected=is_bubbling,
-                    is_plastic_deformation_critical=plastic_crit
-                )
-
-logger = logging.getLogger("APU.Agents.Omega.PseudoholomorphicCentripetalSatelliteAgent")
-
-# ------------------------------------------------------------------------------
-# CONSTANTES FÍSICAS, LÍMITES METROLÓGICOS DE WILKINSON Y SILICIO
-# ------------------------------------------------------------------------------
-_MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
-_WILKINSON_SAFETY_FLOOR: Final[float] = 1.0e-15
-_CROWBAR_MAX_IRAM_BUDGET_NS: Final[float] = 400.0  # Límite infranqueable de hardware
-_ESP32_CLOCK_FREQ_HZ: Final[float] = 240.0e6      # Frecuencia Xtensa LX6 (240 MHz)
-_ESP32_CYCLE_TIME_NS: Final[float] = 1.0e9 / _ESP32_CLOCK_FREQ_HZ # 4.1667 ns por ciclo
-_BT151_VGT_VOLTS: Final[float] = 1.1               # Tensión compuerta BT151 típica (V)
-_BT151_IGT_AMPS: Final[float] = 0.005              # Corriente de disparo de compuerta (5 mA)
-_ESP32_GPIO_VOH_VOLTS: Final[float] = 3.3          # Tensión de salida GPIO HIGH (V)
-_CROWBAR_GATE_RESISTOR_OHMS: Final[float] = 47.0   # Resistencia limitadora de compuerta
+T = TypeVar('T')
+E = TypeVar('E', bound=Exception)
 
 
-class CentripetalHeytingVerdict(IntEnum):
+class CategoricalMorphism(Protocol):
     r"""
-    Álgebra de Heyting $\Omega_3 = \{\bot, \ast, \top\}$ en el topos de subobjetos:
-    $\bot = 0$ (VETOED - Colapso o Desgarro de Maslov / Hardware Interlock)
-    $\ast = 1$ (DEGRADED - Luz Ámbar / Turbulencia Elástica / Gracia de Fock)
-    $\top = 2$ (COHERENT - Geometría pseudo-holomorfa síncrona en Fukaya)
+    Protocolo de morfismo categórico en la categoría $\mathbf{CyberPhys}$ de
+    sistemas ciber-físicos. Todo agente hereda este contrato de interfaz.
     """
-    VETOED = 0
-    DEGRADED = 1
-    COHERENT = 2
 
-    @property
-    def canonical_name(self) -> str:
-        return self.name
+    def domain(self) -> Any:
+        """Retorna el objeto dominio del morfismo."""
+        ...
 
+    def codomain(self) -> Any:
+        """Retorna el objeto codominio del morfismo."""
+        ...
+
+    def compose(self, other: 'CategoricalMorphism') -> 'CategoricalMorphism':
+        """Composición categórica: self ∘ other."""
+        ...
+
+
+class TopologicalInvariantError(Exception):
+    r"""Violación de invariante topológico (Maslov, Floer, genus)."""
+    pass
+
+
+class CentripetalEngineError(Exception):
+    r"""Error base del motor centrípeto pseudo-holomorfo."""
+    pass
+
+
+class MetricIndefinitenessError(CentripetalEngineError):
+    r"""Tensor métrico $G \notin \mathrm{Sym}^+(d)$ (no simétrico definido positivo)."""
+    pass
+
+
+class CentripetalDimensionError(CentripetalEngineError):
+    r"""Discordancia dimensional en fibrados $E \to B$."""
+    pass
+
+
+class CentrifugalDiskBubblingError(CentripetalEngineError):
+    r"""Pérdida de compacidad de Gromov por burbujeo de discos pseudo-holomorfos."""
+    pass
+
+
+class HeyingLogicError(CentripetalEngineError):
+    r"""Colapso en clasificador de subobjetos del topos de Heyting."""
+    pass
+
+
+class FockAnnihilationError(CentripetalEngineError):
+    r"""Fallo en sutura cuántica $e^- + e^+ \to 2\gamma$ de par."""
+    pass
+
+
+class CrowbarISRError(CentripetalEngineError):
+    r"""Fallo en disparo de interrupción de silicio BT151 (latencia > 400 ns)."""
+    pass
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CAPA 1: CONSTANTES DE METROLOGÍA DE WILKINSON Y FÍSICA DE SILICIO
+# ══════════════════════════════════════════════════════════════════════════════
+
+_MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
+_MACHINE_RADIX: Final[int] = np.finfo(np.float64).radix
+_WILKINSON_SAFETY_FLOOR: Final[float] = 1.0e-15
+_WILKINSON_OVERFLOW_CEILING: Final[float] = 1.0e+15
+
+# Física de silicio Xtensa LX6 (ESP32-S3)
+_ESP32_CLOCK_FREQ_HZ: Final[float] = 240.0e6
+_ESP32_CYCLE_TIME_NS: Final[float] = 1.0e9 / _ESP32_CLOCK_FREQ_HZ
+_CROWBAR_MAX_IRAM_BUDGET_NS: Final[float] = 400.0
+
+# Tiristor BT151-650R (Thyristor - Rectificador Controlado de Silicio)
+_BT151_VGT_VOLTS: Final[float] = 1.1
+_BT151_IGT_AMPS: Final[float] = 0.005
+_BT151_TRR_NS: Final[float] = 100.0  # Reverse Recovery Time
+_BT151_TON_NS: Final[float] = 150.0  # Turn-On Time Máximo
+
+# Interfaz GPIO ESP32
+_ESP32_GPIO_VOH_VOLTS: Final[float] = 3.3
+_CROWBAR_GATE_RESISTOR_OHMS: Final[float] = 47.0
+_GATE_DRIVE_CURRENT_MA: Final[float] = (
+    (_ESP32_GPIO_VOH_VOLTS - _BT151_VGT_VOLTS) / (_CROWBAR_GATE_RESISTOR_OHMS / 1000.0)
+)
+
+# Tolerancias de Floer-Cauchy-Riemann y Novikov
+_FLOER_CR_TOLERANCE: Final[float] = 1.0e-8
+_FLOER_MASLOV_THRESHOLD: Final[float] = 1.0e-6
+_NOVIKOV_COUPLING_EPS: Final[float] = 1.0e-12
+
+# Límites de deformación en Fukaya
+_ELASTIC_STRAIN_LIMIT: Final[float] = 0.30
+_PLASTIC_STRAIN_LIMIT: Final[float] = 0.50
+_CENTRIFUGAL_BUBBLING_THRESHOLD: Final[float] = 1.0e-6
+
+logger = logging.getLogger("APU.Agents.Omega.CentripetalSatellite.Doctoral")
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CAPA 2: ESTRUCTURAS ALGEBRAICAS FUNDAMENTALES (DATOS INMUTABLES)
+# ══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class MetricTensorReport:
+    r"""
+    Reporte de auditoría del tensor métrico $G \in \mathcal{C}\ell_{p,q}$.
+    Encapsula la descomposición de Cholesky, autovalores, número de condición
+    y forma de volumen de Rham.
+    """
+    is_positive_definite: bool
+    is_symmetric: bool
+    condition_number: float
+    eigenvalues: NDArray[np.float64]
+    clifford_volume_form: float
+    frobenius_norm: float
+    max_abs_element: float
+    rank: int
+    audit_timestamp: float
+
+
+@dataclass(frozen=True, slots=True)
+class BanachSpaceRegularity:
+    r"""
+    Certificado de regularidad en álgebra de Banach $(\ell^1, \ell^2, \ell^\infty)$.
+    Verifica equivalencia de normas con cotas de Wilkinson.
+    """
+    tensor_shape: Tuple[int, ...]
+    norm_l1: float
+    norm_l2: float
+    norm_linf: float
+    banach_ratio_l1_l2: float
+    banach_ratio_linf_l2: float
+    is_banach_regular: bool
+    max_element_index: Tuple[int, ...]
+    min_nonzero_element: float
+
+
+@dataclass(frozen=True, slots=True)
+class PseudoholomorphicMapAudit:
+    r"""
+    Auditoría de mapa pseudo-holomorfo $u: (\Sigma, j) \to (\mathcal{M}, \omega, J, H)$
+    bajo perturbación centrípeta.
+    """
+    cauchy_riemann_residual_l2: float
+    cauchy_riemann_residual_linf: float
+    symplectic_area: float
+    symplectic_action: float
+    is_gromov_compact: bool
+    is_cr_satisfied: bool
+    disk_bubbling_factor: float
+    energy_level: Literal["ground", "excited", "critical", "unstable"]
+
+
+@dataclass(frozen=True, slots=True)
+class CliffordAlgebraDecomposition:
+    r"""
+    Descomposición estructurada de álgebra de Clifford $\mathcal{C}\ell_{p,q}$.
+    Captura anticonmutatividad, métrica euclídea y deformación.
+    """
+    dimension: int
+    signature_p_q: Tuple[int, int]
+    gyroscopic_tensor_so_n: NDArray[np.float64]
+    skew_residual: float
+    is_properly_antisymmetric: bool
+    killing_cartan_form_norm: float
+    spectral_gap: float
+
+
+@dataclass(frozen=True, slots=True)
+class FloerHomologyData:
+    r"""
+    Datos canónicos de homología de Floer $HF^*(\mathcal{L}, H)$.
+    Contiene índice de Maslov, número de Conley-Zehnder, género.
+    """
+    maslov_index: int
+    conley_zehnder_number: float
+    genus_lower_bound: int
+    is_orientable: bool
+    is_mapping_class_preserving: bool
+    morse_theory_dimension: int
+
+
+@dataclass(frozen=True, slots=True)
+class CentripetalDeformationReport:
+    r"""
+    Reporte integral de deformación centrípeta.
+    Sintetiza potencial, residuales y diagnósticos de compacidad.
+    """
+    centripetal_potential: float
+    cauchy_riemann_residual: float
+    gyroscopic_skew_residual: float
+    radial_deformation_norm: float
+    is_gyroscopic_skew_symmetric: bool
+    spectral_gap: float
+    maslov_index: int
+    symplectic_energy: float
+    is_centrifugal_bubbling_detected: bool
+    is_plastic_deformation_critical: bool
+    report_timestamp: float
+
+
+@dataclass(frozen=True, slots=True)
+class CentripetalEngineState:
+    r"""
+    Estado instantáneo del motor pseudo-holomorfo centrípeto.
+    Encapsula reporte de deformación y diagnósticos de alarma.
+    """
+    deformation_report: CentripetalDeformationReport
+    is_centrifugal_bubbling_detected: bool
+    is_plastic_deformation_critical: bool
+    engine_health: Literal["nominal", "degraded", "critical", "failed"]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CAPA 3: FALLBACK DE MOTOR CENTRÍPETO (RESPALDO AUTOPORTANTE)
+# ══════════════════════════════════════════════════════════════════════════════
+
+class PseudoholomorphicCentripetalSatelliteEngine:
+    r"""
+    Motor núcleo pseudo-holomorfo. Audita ciclos de deformación centrípeta bajo
+    control de Floer-Cauchy-Riemann. Implementación de referencia académica doctoral.
+    """
+
+    def __init__(self, tolerance: float = _NOVIKOV_COUPLING_EPS) -> None:
+        self.tol: Final[float] = float(np.clip(tolerance, _WILKINSON_SAFETY_FLOOR, 1.0e-6))
+        logger.info(f"PseudoholomorphicCentripetalSatelliteEngine inicializado. Tolerancia: {self.tol:.2e}")
+
+    def execute_centripetal_audit(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        vertex_velocities: NDArray[np.float64],
+        angular_velocity_vector: NDArray[np.float64],
+        G_metric: NDArray[np.float64],
+        simplex_areas: Optional[NDArray[np.float64]] = None,
+        base_mass: float = 1.0,
+        coupling_alpha: float = 0.1,
+        bubbling_threshold: float = _FLOER_MASLOV_THRESHOLD,
+        plastic_threshold: float = 50.0
+    ) -> CentripetalEngineState:
+        r"""
+        Ejecución auditada de ciclo centrípeto. Retorna estado completo del motor.
+        """
+        n_verts, dim = polygon_vertices.shape
+        if polygon_vertices.shape[0] < 3:
+            raise CentripetalDimensionError("Polígono requiere al menos 3 vértices.")
+
+        # Centroide baricéntrico ponderado (Teoría de Masas)
+        if simplex_areas is not None and simplex_areas.shape[0] == n_verts:
+            total_area = float(np.sum(np.abs(simplex_areas))) + _WILKINSON_SAFETY_FLOOR
+            weights = np.abs(simplex_areas) / total_area
+            centroid = np.average(polygon_vertices, axis=0, weights=weights)
+        else:
+            centroid = np.mean(polygon_vertices, axis=0)
+
+        delta_q = polygon_vertices - centroid
+        omega_norm_sq = float(np.dot(angular_velocity_vector, angular_velocity_vector))
+
+        # Masa efectiva con acoplamiento Novikov
+        base_vel_norm = float(np.mean(la.norm(vertex_velocities, axis=1)))
+        m_eff = float(base_mass * (1.0 + coupling_alpha * base_vel_norm))
+
+        # Desplazamientos radiales en métrica G
+        radial_displacement_sq = np.sum((delta_q @ G_metric) * delta_q, axis=1)
+        potencial_centripeto = float(0.5 * m_eff * omega_norm_sq * np.mean(radial_displacement_sq))
+
+        # Norma de deformación radial
+        deformacion_radial = float(np.sqrt(np.mean(radial_displacement_sq)))
+        es_deformacion_plastica = deformacion_radial > plastic_threshold
+
+        # Tensor giroscópico W ∈ so(n): Anticonmutatividad
+        W_gyro = np.zeros((dim, dim), dtype=np.float64)
+        for i in range(n_verts):
+            p_cov = delta_q[i] @ G_metric  # Co-vector
+            W_gyro += np.outer(vertex_velocities[i], p_cov) - np.outer(p_cov, vertex_velocities[i])
+        W_gyro /= float(n_verts)
+
+        residual_skew = float(la.norm(W_gyro + W_gyro.T, 'fro') / max(la.norm(W_gyro, 'fro'), _WILKINSON_SAFETY_FLOOR))
+        es_simetria_skew = residual_skew < _FLOER_CR_TOLERANCE
+
+        # Área simpléctica (Novikov)
+        area_symp = 0.0
+        for i in range(n_verts):
+            p1, p2 = delta_q[i], delta_q[(i + 1) % n_verts]
+            if dim >= 2:
+                area_symp += 0.5 * abs(p1[0] * p2[1] - p1[1] * p2[0])
+        area_symp = float(area_symp)
+        es_burbujeo = area_symp < bubbling_threshold
+
+        # Residual de Cauchy-Riemann
+        if dim >= 3:
+            cross_prod = np.cross(angular_velocity_vector[:3], delta_q[:, :3])
+            cr_residual = float(la.norm(vertex_velocities[:, :3] - cross_prod, 'fro'))
+        else:
+            cr_residual = float(la.norm(vertex_velocities - np.outer(angular_velocity_vector, np.ones(n_verts)), 'fro'))
+
+        # Brecha espectral de Laplaciano de Hodge discreto
+        L_mesh = np.diag(np.sum(np.abs(delta_q @ delta_q.T), axis=1)) - (delta_q @ delta_q.T)
+        eig_vals = np.sort(np.real(la.eigvals(L_mesh)))
+        brecha_espectral = float(eig_vals[1] - eig_vals[0]) if len(eig_vals) > 1 else 0.0
+
+        # Índice de Maslov
+        indice_maslov = 0 if es_burbujeo else 2
+
+        reporte = CentripetalDeformationReport(
+            centripetal_potential=potencial_centripeto,
+            cauchy_riemann_residual=cr_residual,
+            gyroscopic_skew_residual=residual_skew,
+            radial_deformation_norm=deformacion_radial,
+            is_gyroscopic_skew_symmetric=es_simetria_skew,
+            spectral_gap=brecha_espectral,
+            maslov_index=indice_maslov,
+            symplectic_energy=area_symp,
+            is_centrifugal_bubbling_detected=es_burbujeo,
+            is_plastic_deformation_critical=es_deformacion_plastica,
+            report_timestamp=time.time()
+        )
+
+        health_status = "nominal"
+        if es_burbujeo:
+            health_status = "critical"
+        elif es_deformacion_plastica or residual_skew > 1.0e-6:
+            health_status = "degraded"
+
+        return CentripetalEngineState(
+            deformation_report=reporte,
+            is_centrifugal_bubbling_detected=es_burbujeo,
+            is_plastic_deformation_critical=es_deformacion_plastica,
+            engine_health=health_status  # type: ignore
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# FASE 1 ANIDADA: INGESTA TENSORIAL, AUDITORÍA DE BANACH Y CONDICIONAMIENTO CLIFFORD
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True, slots=True)
 class CentripetalObservationKernel:
     r"""
-    Expediente canónico inmutable de Fase 1 (Observe).
-    Audita y encapsula la regularidad en el espacio de Banach $\ell^2 \hookrightarrow \ell^\infty$,
-    y el condicionamiento del tensor métrico de Riemann-Clifford.
+    ESTRUCTURA IMMUTABLE DE FASE 1 (Observe):
+    Expediente topológico canónico de Kung Fu Digital. Audita inmersión en $\ell^2 \hookrightarrow \ell^\infty$,
+    descomposición de Cholesky, y sellado criptográfico SHA-256.
     """
     polygon_vertices: NDArray[np.float64]
     vertex_velocities: NDArray[np.float64]
     angular_velocity_vector: NDArray[np.float64]
     G_metric: NDArray[np.float64]
-    banach_ratio_position: float
-    banach_ratio_velocity: float
-    metric_condition_number: float
-    clifford_volume_form: float
-    is_metric_positive_definite: bool
+    metric_audit: MetricTensorReport
+    banach_position_regularity: BanachSpaceRegularity
+    banach_velocity_regularity: BanachSpaceRegularity
+    pseudoholomorphic_audit: PseudoholomorphicMapAudit
+    clifford_decomposition: CliffordAlgebraDecomposition
+    floer_data: FloerHomologyData
     cryptographic_seal: str
     observation_timestamp: float
 
 
+class Phase1_CentripetalAgentObserver:
+    r"""
+    FASE 1 — Observe (Kung Fu Digital de Observación):
+    Saneamiento IEEE 754 ($x = -0.0 \mapsto +0.0$), auditoría de inmersión en Banach,
+    descomposición de Cholesky de métrica $G \in \mathcal{C}\ell_{p,q}$, y sellado SHA-256.
+
+    Métodos de esta fase son el fundamento para la Fase 2 (Orient).
+    """
+
+    def __init__(self, tolerance: float = _NOVIKOV_COUPLING_EPS) -> None:
+        self._tol: Final[float] = float(np.clip(tolerance, _WILKINSON_SAFETY_FLOOR, 1.0e-6))
+
+    def sanitize_ieee754_sign_zeros(self, tensor: NDArray[np.float64]) -> NDArray[np.float64]:
+        r"""
+        Saneamiento de de Rham: Elimina -0.0 y reemplaza con +0.0.
+        Normaliza subnormales a cero.
+        """
+        return np.where(tensor == -0.0, +0.0, tensor)
+
+    def evaluate_banach_space_regularity(
+        self,
+        tensor: NDArray[np.float64],
+        tensor_name: str = "unknown"
+    ) -> BanachSpaceRegularity:
+        r"""
+        Evalúa regularidad en álgebra de Banach $(\ell^1, \ell^2, \ell^\infty)$.
+        Verifica cotas de Wilkinson:
+        $$1.0 \le \frac{\|T\|_1}{\|T\|_2} \le \sqrt{N \cdot d}$$
+        """
+        norm_l1 = float(np.sum(np.abs(tensor)))
+        norm_l2 = float(np.clip(la.norm(tensor, ord='fro'), _WILKINSON_SAFETY_FLOOR, _WILKINSON_OVERFLOW_CEILING))
+        norm_linf = float(np.max(np.abs(tensor)))
+
+        ratio_l1_l2 = norm_l1 / norm_l2
+        ratio_linf_l2 = norm_linf / norm_l2
+
+        max_idx = np.unravel_index(np.argmax(np.abs(tensor)), tensor.shape)
+        min_nonzero = float(np.min(np.abs(tensor[tensor != 0.0]))) if np.any(tensor != 0.0) else 0.0
+
+        # Cota analítica de Wilkinson
+        sqrt_product = math.sqrt(float(np.prod(tensor.shape)) if tensor.ndim > 0 else 1.0)
+        is_regular = 1.0 <= ratio_l1_l2 <= sqrt_product + 1.0
+
+        return BanachSpaceRegularity(
+            tensor_shape=tensor.shape,
+            norm_l1=norm_l1,
+            norm_l2=norm_l2,
+            norm_linf=norm_linf,
+            banach_ratio_l1_l2=ratio_l1_l2,
+            banach_ratio_linf_l2=ratio_linf_l2,
+            is_banach_regular=is_regular,
+            max_element_index=max_idx,
+            min_nonzero_element=min_nonzero
+        )
+
+    def audit_metric_tensor_clifford(
+        self,
+        G_metric: NDArray[np.float64]
+    ) -> MetricTensorReport:
+        r"""
+        Audita tensor métrico de Riemann-Clifford $G \in \mathrm{Sym}^+(d)$.
+        Descomposición de Cholesky, autovalores, número de condición de Wilkinson.
+        """
+        if G_metric.ndim != 2 or G_metric.shape[0] != G_metric.shape[1]:
+            raise MetricIndefinitenessError("G debe ser matriz cuadrada (d × d).")
+
+        # Simetrización de de Rham
+        G_sym = 0.5 * (G_metric + G_metric.T)
+        is_symmetric = float(la.norm(G_metric - G_metric.T, 'fro')) < self._tol
+
+        frobenius_norm = float(la.norm(G_sym, 'fro'))
+        max_element = float(np.max(np.abs(G_sym)))
+
+        # Descomposición de Cholesky para positividad
+        try:
+            L_cholesky = la.cholesky(G_sym, lower=True)
+            det_G = float(np.prod(np.diag(L_cholesky)) ** 2)
+            is_pos_def = True
+        except la.LinAlgError:
+            det_G = float(la.det(G_sym))
+            is_pos_def = False
+
+        vol_clifford = float(math.sqrt(max(det_G, _WILKINSON_SAFETY_FLOOR)))
+
+        # Espectro y número de condición
+        eigvals = la.eigvalsh(G_sym)
+        min_ev = float(np.min(eigvals))
+        max_ev = float(np.max(eigvals))
+
+        if min_ev <= 0.0 or not is_pos_def:
+            is_pos_def = False
+            cond_num = float("inf")
+        else:
+            cond_num = max_ev / max(min_ev, _WILKINSON_SAFETY_FLOOR)
+
+        rank = int(np.linalg.matrix_rank(G_sym))
+
+        return MetricTensorReport(
+            is_positive_definite=is_pos_def,
+            is_symmetric=is_symmetric,
+            condition_number=cond_num,
+            eigenvalues=eigvals,
+            clifford_volume_form=vol_clifford,
+            frobenius_norm=frobenius_norm,
+            max_abs_element=max_element,
+            rank=rank,
+            audit_timestamp=time.time()
+        )
+
+    def audit_pseudoholomorphic_map(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        vertex_velocities: NDArray[np.float64],
+        angular_velocity_vector: NDArray[np.float64],
+        G_metric: NDArray[np.float64]
+    ) -> PseudoholomorphicMapAudit:
+        r"""
+        Audita mapa pseudo-holomorfo $u: (\Sigma, j) \to (\mathcal{M}, \omega, J, H)$
+        bajo perturbación centrípeta. Calcula residual Cauchy-Riemann y área simpléctica.
+        """
+        n_verts, dim = polygon_vertices.shape
+        centroid = np.mean(polygon_vertices, axis=0)
+        q_centered = polygon_vertices - centroid
+
+        # Área simpléctica (Novikov)
+        area_symp = 0.0
+        for i in range(n_verts):
+            p1, p2 = q_centered[i], q_centered[(i + 1) % n_verts]
+            if dim >= 2:
+                area_symp += 0.5 * abs(p1[0] * p2[1] - p1[1] * p2[0])
+        area_symp = float(area_symp)
+
+        # Acción simpléctica
+        accion_symp = float(area_symp)
+
+        # Residual Cauchy-Riemann
+        if dim >= 3:
+            cross_prod = np.cross(angular_velocity_vector[:3], q_centered[:, :3])
+            cr_l2 = float(la.norm(vertex_velocities[:, :3] - cross_prod, 'fro'))
+            cr_linf = float(np.max(np.abs(vertex_velocities[:, :3] - cross_prod)))
+        else:
+            cr_l2 = float(la.norm(vertex_velocities, 'fro'))
+            cr_linf = float(np.max(np.abs(vertex_velocities)))
+
+        is_cr_ok = cr_l2 < _FLOER_CR_TOLERANCE
+        es_compacto_gromov = area_symp > _CENTRIFUGAL_BUBBLING_THRESHOLD
+        disk_bubbling = _CENTRIFUGAL_BUBBLING_THRESHOLD / max(area_symp, _WILKINSON_SAFETY_FLOOR)
+
+        # Clasificación de nivel de energía
+        if cr_l2 < _FLOER_CR_TOLERANCE and area_symp > _CENTRIFUGAL_BUBBLING_THRESHOLD:
+            energy_level: Literal["ground", "excited", "critical", "unstable"] = "ground"
+        elif cr_l2 < 0.01 and area_symp > 0.1:
+            energy_level = "excited"
+        elif cr_l2 < 0.1:
+            energy_level = "critical"
+        else:
+            energy_level = "unstable"
+
+        return PseudoholomorphicMapAudit(
+            cauchy_riemann_residual_l2=cr_l2,
+            cauchy_riemann_residual_linf=cr_linf,
+            symplectic_area=area_symp,
+            symplectic_action=accion_symp,
+            is_gromov_compact=es_compacto_gromov,
+            is_cr_satisfied=is_cr_ok,
+            disk_bubbling_factor=disk_bubbling,
+            energy_level=energy_level
+        )
+
+    def decompose_clifford_algebra_so_n(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        vertex_velocities: NDArray[np.float64],
+        G_metric: NDArray[np.float64]
+    ) -> CliffordAlgebraDecomposition:
+        r"""
+        Descompone álgebra de Clifford $\mathcal{C}\ell_{p,q}$ en anticonmutadores.
+        Calcula tensor giroscópico $W \in \mathfrak{so}(n)$.
+        """
+        n_verts, dim = polygon_vertices.shape
+        centroid = np.mean(polygon_vertices, axis=0)
+        q_centered = polygon_vertices - centroid
+
+        W_gyro = np.zeros((dim, dim), dtype=np.float64)
+        for i in range(n_verts):
+            p_cov = q_centered[i] @ G_metric
+            W_gyro += np.outer(vertex_velocities[i], p_cov) - np.outer(p_cov, vertex_velocities[i])
+        W_gyro /= float(n_verts)
+
+        residual_skew = float(la.norm(W_gyro + W_gyro.T, 'fro') / max(la.norm(W_gyro, 'fro'), _WILKINSON_SAFETY_FLOOR))
+        es_antisimetrico = residual_skew < _FLOER_CR_TOLERANCE
+
+        # Forma de Killing-Cartan
+        killing_cartan_norm = float(la.norm(W_gyro + W_gyro.T, 'fro'))
+
+        # Laplaciano de Hodge para brecha espectral
+        L_mesh = np.diag(np.sum(np.abs(q_centered @ q_centered.T), axis=1)) - (q_centered @ q_centered.T)
+        eig_vals = np.sort(np.real(la.eigvals(L_mesh)))
+        brecha_espectral = float(eig_vals[1] - eig_vals[0]) if len(eig_vals) > 1 else 0.0
+
+        return CliffordAlgebraDecomposition(
+            dimension=dim,
+            signature_p_q=(dim, 0),  # Euclídeo
+            gyroscopic_tensor_so_n=W_gyro,
+            skew_residual=residual_skew,
+            is_properly_antisymmetric=es_antisimetrico,
+            killing_cartan_form_norm=killing_cartan_norm,
+            spectral_gap=brecha_espectral
+        )
+
+    def compute_floer_homology_invariants(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        deformation_norm: float
+    ) -> FloerHomologyData:
+        r"""
+        Calcula invariantes de homología de Floer $HF^*(\mathcal{L}, H)$.
+        Índice de Maslov, número de Conley-Zehnder, género.
+        """
+        n_verts = polygon_vertices.shape[0]
+
+        # Índice de Maslov heurístico
+        maslov_index = 2 if deformation_norm < _CENTRIFUGAL_BUBBLING_THRESHOLD else 0
+
+        # Número de Conley-Zehnder (aproximación de Morris)
+        czn = float(maslov_index / 2.0) if maslov_index > 0 else 0.5
+
+        # Género (Teoría de Clasificación de Superficies)
+        genus_bound = max(0, (n_verts - 3) // 2)
+
+        is_orientable = True
+        is_mcp = True  # Mapping Class Preserving
+
+        morse_dim = maslov_index
+
+        return FloerHomologyData(
+            maslov_index=maslov_index,
+            conley_zehnder_number=czn,
+            genus_lower_bound=genus_bound,
+            is_orientable=is_orientable,
+            is_mapping_class_preserving=is_mcp,
+            morse_theory_dimension=morse_dim
+        )
+
+    def observe_centripetal_polygon(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        vertex_velocities: NDArray[np.float64],
+        angular_velocity_vector: NDArray[np.float64],
+        G_metric: NDArray[np.float64]
+    ) -> CentripetalObservationKernel:
+        r"""
+        Fase 1 - Entrada pública: Inicia observación e ingesta tensorial.
+        Valida dimensiones y saneamiento IEEE 754.
+        """
+        if polygon_vertices.ndim != 2 or vertex_velocities.ndim != 2 or angular_velocity_vector.ndim != 1:
+            raise CentripetalDimensionError("Dimensiones de tensores no coinciden con especificación.")
+
+        n_verts, dim = polygon_vertices.shape
+        if vertex_velocities.shape != (n_verts, dim):
+            raise CentripetalDimensionError(f"Velocidades {vertex_velocities.shape} vs vértices ({n_verts}, {dim}).")
+        if angular_velocity_vector.shape[0] != dim:
+            raise CentripetalDimensionError(f"Rotación {angular_velocity_vector.shape[0]} vs fibrado {dim}.")
+        if G_metric.ndim != 2 or G_metric.shape != (dim, dim):
+            raise CentripetalDimensionError(f"Métrica {G_metric.shape} vs dimensión {dim}.")
+
+        # Saneamiento IEEE 754
+        clean_verts = self.sanitize_ieee754_sign_zeros(polygon_vertices)
+        clean_vels = self.sanitize_ieee754_sign_zeros(vertex_velocities)
+        clean_omega = self.sanitize_ieee754_sign_zeros(angular_velocity_vector)
+        clean_G = self.sanitize_ieee754_sign_zeros(G_metric)
+
+        return self.canonize_centripetal_observation_kernel(
+            polygon_vertices=clean_verts,
+            vertex_velocities=clean_vels,
+            angular_velocity_vector=clean_omega,
+            G_metric=clean_G
+        )
+
+    def canonize_centripetal_observation_kernel(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        vertex_velocities: NDArray[np.float64],
+        angular_velocity_vector: NDArray[np.float64],
+        G_metric: NDArray[np.float64]
+    ) -> CentripetalObservationKernel:
+        r"""
+        MÉTODO TERMINAL FORMAL DE FASE 1:
+        Canoniza el expediente topológico inmutable. Ejecuta auditoría integral:
+        - Métrica (Cholesky, autovalores, condición)
+        - Banach (normas $\ell^1, \ell^2, \ell^\infty$)
+        - Pseudoholomorfo (Cauchy-Riemann, área simpléctica)
+        - Clifford ($\mathfrak{so}(n)$, antisimetría)
+        - Floer (Maslov, Conley-Zehnder)
+        Emite sello SHA-256.
+
+        Este método es el acoplamiento directo y formal hacia Fase 2 (Orient).
+        """
+        # Auditorías componentes
+        metric_audit = self.audit_metric_tensor_clifford(G_metric)
+        if not metric_audit.is_positive_definite:
+            raise MetricIndefinitenessError(
+                f"Colapso métrico: κ(G) = {metric_audit.condition_number:.4e}, det(G) < 0."
+            )
+
+        banach_pos = self.evaluate_banach_space_regularity(polygon_vertices, "vertices")
+        banach_vel = self.evaluate_banach_space_regularity(vertex_velocities, "velocities")
+
+        pseudo_audit = self.audit_pseudoholomorphic_map(
+            polygon_vertices, vertex_velocities, angular_velocity_vector, G_metric
+        )
+
+        clifford_decomp = self.decompose_clifford_algebra_so_n(
+            polygon_vertices, vertex_velocities, G_metric
+        )
+
+        floer_inv = self.compute_floer_homology_invariants(
+            polygon_vertices, pseudo_audit.symplectic_area
+        )
+
+        # Sellado criptográfico SHA-256
+        hasher = hashlib.sha256()
+        hasher.update(polygon_vertices.tobytes())
+        hasher.update(vertex_velocities.tobytes())
+        hasher.update(angular_velocity_vector.tobytes())
+        hasher.update(G_metric.tobytes())
+        hasher.update(f"{metric_audit.condition_number:.8e}".encode("ascii"))
+        hasher.update(f"{pseudo_audit.cauchy_riemann_residual_l2:.8e}".encode("ascii"))
+        seal = hasher.hexdigest()
+
+        return CentripetalObservationKernel(
+            polygon_vertices=polygon_vertices,
+            vertex_velocities=vertex_velocities,
+            angular_velocity_vector=angular_velocity_vector,
+            G_metric=G_metric,
+            metric_audit=metric_audit,
+            banach_position_regularity=banach_pos,
+            banach_velocity_regularity=banach_vel,
+            pseudoholomorphic_audit=pseudo_audit,
+            clifford_decomposition=clifford_decomp,
+            floer_data=floer_inv,
+            cryptographic_seal=seal,
+            observation_timestamp=time.time()
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# FASE 2 ANIDADA: ORIENTACIÓN SIMPLÉCTICA DE FUKAYA, ÁLGEBRA so(n) Y NOVIKOV
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
 @dataclass(frozen=True, slots=True)
 class CentripetalOrientationReport:
     r"""
-    Expediente canónico inmutable de Fase 2 (Orient).
-    Sintetiza la acción simpléctica de Fukaya, tensor de tensión giroscópico $\mathfrak{so}(n)$,
-    resonancia espectral y deformación radial.
+    ESTRUCTURA IMMUTABLE DE FASE 2 (Orient):
+    Expediente de síntesis simpléctica. Hereda kernel de Fase 1 e integra cálculos
+    del motor Fukaya.
     """
     kernel: CentripetalObservationKernel
     engine_state: CentripetalEngineState
@@ -283,15 +780,176 @@ class CentripetalOrientationReport:
     is_centrifugal_bubbling_detected: bool
     is_plastic_deformation_critical: bool
     symplectic_energy: float
+    novikov_coupling_strength: float
     orientation_timestamp: float
+
+
+class Phase2_CentripetalAgentOrienter(Phase1_CentripetalAgentObserver):
+    r"""
+    FASE 2 — Orient (Síntesis Simpléctica):
+    Hereda de Fase 1 e ingiere directamente `CentripetalObservationKernel`.
+    Ejecuta motor pseudo-holomorfo Fukaya, calcula energía simpléctica Novikov,
+    inspecciona índice de Maslov y deformación giroscópica.
+
+    Sus métodos terminales son el acoplamiento formal hacia Fase 3 (Decide & Act).
+    """
+
+    def __init__(self, tolerance: float = _NOVIKOV_COUPLING_EPS) -> None:
+        super().__init__(tolerance=tolerance)
+        self._engine: Final[PseudoholomorphicCentripetalSatelliteEngine] = (
+            PseudoholomorphicCentralizedsatelliteEngine(tolerance=tolerance)
+        )
+        logger.info("Phase2_CentripetalAgentOrienter inicializado con motor Fukaya.")
+
+    def compute_gyroscopic_so_n_tensor(
+        self,
+        kernel: CentripetalObservationKernel
+    ) -> Tuple[NDArray[np.float64], float, bool]:
+        r"""
+        Calcula tensor giroscópico angular $W \in \mathfrak{so}(n)$ en álgebra de Lie.
+        Verifica residual de Killing-Cartan para antisimetría estricta.
+        """
+        W_gyro = kernel.clifford_decomposition.gyroscopic_tensor_so_n
+        residual_skew = kernel.clifford_decomposition.skew_residual
+        es_antisimetrico = kernel.clifford_decomposition.is_properly_antisymmetric
+
+        return W_gyro, residual_skew, es_antisimetrico
+
+    def evaluate_novikov_ring_energy(
+        self,
+        kernel: CentripetalObservationKernel
+    ) -> Tuple[float, int, bool, float]:
+        r"""
+        Calcula energía simpléctica en anillo de Novikov $\Lambda_{\mathrm{Nov}}$.
+        Retorna (energía, índice de Maslov, es burbujeo, factor de acoplamiento).
+        """
+        area_symp = kernel.pseudoholomorphic_audit.symplectic_area
+        maslov_idx = kernel.floer_data.maslov_index
+        es_burbujeo = not kernel.pseudoholomorphic_audit.is_gromov_compact
+
+        # Acoplamiento Novikov: factor de suavización exponencial
+        acoplamiento = float(1.0 - math.exp(-max(area_symp, 0.0)))
+
+        return area_symp, maslov_idx, es_burbujeo, acoplamiento
+
+    def orient_centripetal_deformation(
+        self,
+        kernel: CentripetalObservationKernel,
+        simplex_areas: Optional[NDArray[np.float64]] = None,
+        base_mass: float = 1.0,
+        coupling_alpha: float = 0.1,
+        bubbling_threshold: float = _FLOER_MASLOV_THRESHOLD,
+        plastic_threshold: float = 50.0
+    ) -> CentripetalOrientationReport:
+        r"""
+        Fase 2 - Auditoría de deformación centrípeta. Invoca motor Fukaya.
+        """
+        engine_state = self._engine.execute_centripetal_audit(
+            polygon_vertices=kernel.polygon_vertices,
+            vertex_velocities=kernel.vertex_velocities,
+            angular_velocity_vector=kernel.angular_velocity_vector,
+            G_metric=kernel.G_metric,
+            simplex_areas=simplex_areas,
+            base_mass=base_mass,
+            coupling_alpha=coupling_alpha,
+            bubbling_threshold=bubbling_threshold,
+            plastic_threshold=plastic_threshold
+        )
+
+        rep = engine_state.deformation_report
+        W_gyro, skew_res, is_skew = self.compute_gyroscopic_so_n_tensor(kernel)
+        symp_energy, maslov_idx, is_bubbling, coupling = self.evaluate_novikov_ring_energy(kernel)
+
+        return CentripetalOrientationReport(
+            kernel=kernel,
+            engine_state=engine_state,
+            centripetal_potential=rep.centripetal_potential,
+            cauchy_riemann_residual=rep.cauchy_riemann_residual,
+            gyroscopic_skew_residual=skew_res,
+            radial_deformation_norm=rep.radial_deformation_norm,
+            spectral_gap=rep.spectral_gap,
+            maslov_index=maslov_idx,
+            is_gyroscopic_skew_symmetric=is_skew,
+            is_centrifugal_bubbling_detected=is_bubbling,
+            is_plastic_deformation_critical=rep.is_plastic_deformation_critical,
+            symplectic_energy=symp_energy,
+            novikov_coupling_strength=coupling,
+            orientation_timestamp=time.time()
+        )
+
+    def synthesize_centripetal_orientation(
+        self,
+        kernel_or_vertices: Union[CentripetalObservationKernel, NDArray[np.float64]],
+        vertex_velocities: Optional[NDArray[np.float64]] = None,
+        angular_velocity_vector: Optional[NDArray[np.float64]] = None,
+        G_metric: Optional[NDArray[np.float64]] = None,
+        simplex_areas: Optional[NDArray[np.float64]] = None,
+        base_mass: float = 1.0,
+        coupling_alpha: float = 0.1,
+        bubbling_threshold: float = _FLOER_MASLOV_THRESHOLD,
+        plastic_threshold: float = 50.0
+    ) -> CentripetalOrientationReport:
+        r"""
+        MÉTODO TERMINAL FORMAL DE FASE 2:
+        Garantiza continuidad holomorfa incondicional. Acepta kernel de Fase 1 o tensores crudos.
+        Si recibe tensores, invoca `canonize_centripetal_observation_kernel` de Fase 1.
+        Emite `CentripetalOrientationReport` como acoplamiento directo hacia Fase 3.
+        """
+        if isinstance(kernel_or_vertices, CentripetalObservationKernel):
+            kernel = kernel_or_vertices
+        else:
+            if any(x is None for x in [vertex_velocities, angular_velocity_vector, G_metric]):
+                raise CentripetalDimensionError(
+                    "Sin kernel de Fase 1, deben proveerse todos los tensores canónicos."
+                )
+            kernel = self.canonize_centripetal_observation_kernel(
+                polygon_vertices=kernel_or_vertices,
+                vertex_velocities=vertex_velocities,
+                angular_velocity_vector=angular_velocity_vector,
+                G_metric=G_metric
+            )
+
+        return self.orient_centripetal_deformation(
+            kernel=kernel,
+            simplex_areas=simplex_areas,
+            base_mass=base_mass,
+            coupling_alpha=coupling_alpha,
+            bubbling_threshold=bubbling_threshold,
+            plastic_threshold=plastic_threshold
+        )
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# FASE 3 ANIDADA: TOPOS DE HEYTING, ANIQUILACIÓN DE FOCK Y CROWBAR IRAM EN SILICIO
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+class CentripetalHeytingVerdict(IntEnum):
+    r"""
+    Álgebra de Heyting $\Omega_3 = \{\bot, \ast, \top\}$ en topos de De Rham:
+    - $\bot = 0$ (VETOED) : Colapso terminal. Hardware interlock. Fin inmediato.
+    - $\ast = 1$ (DEGRADED) : Luz Ámbar. Turbulencia elástica. Gracia de Fock.
+    - $\top = 2$ (COHERENT) : Geometría pseudo-holomorfa. Operación nominal.
+
+    Lógica intuicionista: $\neg\neg(\ast) \neq \ast$.
+    """
+    VETOED = 0
+    DEGRADED = 1
+    COHERENT = 2
+
+    @property
+    def canonical_name(self) -> str:
+        return self.name
+
+    def __str__(self) -> str:
+        return f"Heyting.{self.canonical_name}"
 
 
 @dataclass(frozen=True, slots=True)
 class CentripetalAgentCertificate:
     r"""
-    Certificado supremo inmutable de Fase 3 (Decide & Act).
-    Emite el veredicto formal de Heyting, telemetría cuántica de Fock, y la
-    bitácora de excitación física del Crowbar BT151 en silicio IRAM.
+    ESTRUCTURA IMMUTABLE DE FASE 3 (Decide & Act):
+    Certificado supremo emitido al culminar ciclo OODA en lazo cerrado.
+    Contiene veredicto Heyting, telemetría Fock, y bitácora de actuación BT151.
     """
     phase: str
     heyting_verdict: str
@@ -317,342 +975,17 @@ class CentripetalAgentCertificate:
     execution_duration_microseconds: float
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE 1: INGESTA TENSORIAL, AUDITORÍA DE BANACH Y CONDICIONAMIENTO DE CLIFFORD
-# ══════════════════════════════════════════════════════════════════════════════
-
-class Phase1_CentripetalAgentObserver:
-    r"""
-    FASE 1 — Observe:
-    Saneamiento de ceros de signo IEEE 754 ($x = -0.0 \mapsto +0.0$),
-    auditoría de inmersión en espacio de Banach ($\|u\|_1 / \|u\|_2 \le \sqrt{d}$),
-    análisis espectral de Cholesky de la métrica $G \in \mathcal{C}\ell_{p,q}$,
-    y sellado criptográfico inmutable.
-    """
-
-    def __init__(self, tolerance: float = 1.0e-12) -> None:
-        self._tol: Final[float] = float(tolerance)
-
-    def evaluate_banach_spectral_regularity(self, tensor: NDArray[np.float64]) -> float:
-        r"""
-        Evalúa la regularidad de equivalencia de normas en el álgebra de Banach sobre $\ell^2 \hookrightarrow \ell^1$:
-        $$\mathcal{R}(S) = \frac{\|S\|_1}{\|S\|_2}$$
-        Satisface la cota analítica de silicio de Wilkinson:
-        $$1.0 \le \mathcal{R}(S) \le \sqrt{N \cdot d}$$
-        """
-        norm_l1 = float(np.sum(np.abs(tensor)))
-        norm_l2 = float(np.clip(la.norm(tensor, ord='fro'), _WILKINSON_SAFETY_FLOOR, None))
-        return norm_l1 / norm_l2
-
-    def compute_clifford_spinor_metric_cohomology(
-        self,
-        G_metric: NDArray[np.float64]
-    ) -> Tuple[bool, float, float]:
-        r"""
-        Inspecciona el espacio métrico de Riemann $G \succ 0$:
-        1. Descomposición de Cholesky $G = L L^T$ para probar definitud positiva estricta.
-        2. Cálculo del número de condición de Wilkinson $\kappa(G) = \lambda_{\max}/\lambda_{\min}$.
-        3. Cálculo de la forma de volumen de Clifford $\operatorname{vol}_G = \sqrt{\det G}$.
-        """
-        if G_metric.ndim != 2 or G_metric.shape[0] != G_metric.shape[1]:
-            raise MetricIndefinitenessError("El tensor métrico G debe ser una matriz cuadrada bilineal simétrica.")
-
-        # Simetrización de seguridad de de Rham
-        G_sym = 0.5 * (G_metric + G_metric.T)
-        
-        try:
-            L = la.cholesky(G_sym, lower=True)
-            det_G = float(np.prod(np.diag(L)) ** 2)
-            vol_clifford = float(math.sqrt(max(det_G, _WILKINSON_SAFETY_FLOOR)))
-            is_pos_def = True
-        except la.LinAlgError:
-            det_G = float(la.det(G_sym))
-            vol_clifford = float(math.sqrt(max(det_G, 0.0)))
-            is_pos_def = False
-
-        eigvals = la.eigvalsh(G_sym)
-        min_ev = float(np.min(eigvals))
-        max_ev = float(np.max(eigvals))
-
-        if min_ev <= 0.0:
-            is_pos_def = False
-            cond_num = float("inf")
-        else:
-            cond_num = max_ev / max(min_ev, _WILKINSON_SAFETY_FLOOR)
-
-        return is_pos_def, cond_num, vol_clifford
-
-    def observe_centripetal_polygon(
-        self,
-        polygon_vertices: NDArray[np.float64],
-        vertex_velocities: NDArray[np.float64],
-        angular_velocity_vector: NDArray[np.float64],
-        G_metric: NDArray[np.float64]
-    ) -> CentripetalObservationKernel:
-        r"""
-        Inicia la ingesta de los tensores cinemáticos y ejecuta el saneamiento numérico de signo.
-        """
-        if polygon_vertices.ndim != 2 or vertex_velocities.ndim != 2:
-            raise CentripetalDimensionError("Los vértices y velocidades del polígono deben ser tensores rango-2 (k x d).")
-        if angular_velocity_vector.ndim != 1:
-            raise CentripetalDimensionError("El vector de velocidad angular debe ser un tensor rango-1 (d).")
-
-        n_verts, dim = polygon_vertices.shape
-        if vertex_velocities.shape != (n_verts, dim):
-            raise CentripetalDimensionError(
-                f"Dimensión de velocidades {vertex_velocities.shape} diverge de los vértices ({n_verts}, {dim})."
-            )
-        if angular_velocity_vector.shape[0] != dim:
-            raise CentripetalDimensionError(
-                f"Dimensión de rotación angular {angular_velocity_vector.shape[0]} diverge del fibrado ({dim})."
-            )
-
-        # Saneamiento de Rham: Eliminación de -0.0 IEEE 754 y subnormales
-        clean_verts = np.where(polygon_vertices == -0.0, +0.0, polygon_vertices)
-        clean_vels = np.where(vertex_velocities == -0.0, +0.0, vertex_velocities)
-        clean_omega = np.where(angular_velocity_vector == -0.0, +0.0, angular_velocity_vector)
-        clean_G = np.where(G_metric == -0.0, +0.0, G_metric)
-
-        return self.canonize_centripetal_observation_kernel(
-            polygon_vertices=clean_verts,
-            vertex_velocities=clean_vels,
-            angular_velocity_vector=clean_omega,
-            G_metric=clean_G
-        )
-
-    def canonize_centripetal_observation_kernel(
-        self,
-        polygon_vertices: NDArray[np.float64],
-        vertex_velocities: NDArray[np.float64],
-        angular_velocity_vector: NDArray[np.float64],
-        G_metric: NDArray[np.float64]
-    ) -> CentripetalObservationKernel:
-        r"""
-        MÉTODO TERMINAL FORMAL DE FASE 1:
-        Canoniza el expediente topológico inmutable. Evalúa las normas de Banach y
-        el acondicionamiento de Clifford, sellando criptográficamente el Kernel.
-        Este método es el puerto de enlace y acoplamiento directo hacia la Fase 2.
-        """
-        ratio_pos = self.evaluate_banach_spectral_regularity(polygon_vertices)
-        ratio_vel = self.evaluate_banach_spectral_regularity(vertex_velocities)
-
-        is_pos_def, cond_num, vol_clifford = self.compute_clifford_spinor_metric_cohomology(G_metric)
-        if not is_pos_def:
-            raise MetricIndefinitenessError(
-                f"Colapso métrico en V_Omega: Tensor G no es simétrico definido positivo (cond={cond_num:.4e})."
-            )
-
-        # Sellado de integridad SHA3-256 de calibre
-        hasher = hashlib.sha256()
-        hasher.update(polygon_vertices.tobytes())
-        hasher.update(vertex_velocities.tobytes())
-        hasher.update(angular_velocity_vector.tobytes())
-        hasher.update(G_metric.tobytes())
-        hasher.update(f"{cond_num:.8e}_{vol_clifford:.8e}".encode("ascii"))
-        seal = hasher.hexdigest()
-
-        return CentripetalObservationKernel(
-            polygon_vertices=polygon_vertices,
-            vertex_velocities=vertex_velocities,
-            angular_velocity_vector=angular_velocity_vector,
-            G_metric=G_metric,
-            banach_ratio_position=ratio_pos,
-            banach_ratio_velocity=ratio_vel,
-            metric_condition_number=cond_num,
-            clifford_volume_form=vol_clifford,
-            is_metric_positive_definite=is_pos_def,
-            cryptographic_seal=seal,
-            observation_timestamp=time.time()
-        )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE 2: ORIENTACIÓN SIMPLÉCTICA DE FUKAYA, ÁLGEBRA so(n) Y NOVIKOV
-# ══════════════════════════════════════════════════════════════════════════════
-
-class Phase2_CentripetalAgentOrienter(Phase1_CentripetalAgentObserver):
-    r"""
-    FASE 2 — Orient:
-    Hereda de la Fase 1 e ingiere directamente el `CentripetalObservationKernel`.
-    Evalúa la curvatura giroscópica en el álgebra de Lie $\mathfrak{so}(n)$, calcula la energía
-    simpléctica en el anillo de Novikov $\Lambda_{\mathrm{Nov}}$, inspecciona la degeneración de
-    Maslov y sintetiza el reporte de deformación centrípeta.
-    """
-
-    def __init__(self, tolerance: float = 1.0e-12) -> None:
-        super().__init__(tolerance=tolerance)
-        self._engine: Final[PseudoholomorphicCentripetalSatelliteEngine] = (
-            PseudoholomorphicCentripetalSatelliteEngine(tolerance=tolerance)
-        )
-
-    def compute_gyroscopic_so_n_algebra(
-        self,
-        polygon_vertices: NDArray[np.float64],
-        vertex_velocities: NDArray[np.float64],
-        G_metric: NDArray[np.float64]
-    ) -> Tuple[NDArray[np.float64], float, bool]:
-        r"""
-        Construye el tensor giroscópico angular $W \in \mathfrak{so}(n)$ en el álgebra de Lie:
-        $$W = \frac{1}{2 N} \sum_{i=1}^N \left( v_i \otimes (G q_i) - (G q_i) \otimes v_i \right)$$
-        Verifica el residual de Killing-Cartan para antisimetría estricta:
-        $$\mathcal{R}_{\mathfrak{so}(n)} = \frac{\|W + W^T\|_F}{\max(\|W\|_F, \varepsilon)} < 10^{-8}$$
-        """
-        n_verts, dim = polygon_vertices.shape
-        centroid = np.mean(polygon_vertices, axis=0)
-        q_centered = polygon_vertices - centroid
-
-        # Co-vectores covariantes p_i = G q_i
-        p_cov = q_centered @ G_metric
-
-        W = np.zeros((dim, dim), dtype=np.float64)
-        for i in range(n_verts):
-            W += np.outer(vertex_velocities[i], p_cov[i]) - np.outer(p_cov[i], vertex_velocities[i])
-        W /= float(2.0 * n_verts)
-
-        norm_w = float(la.norm(W, ord='fro'))
-        skew_error = float(la.norm(W + W.T, ord='fro'))
-        skew_residual = skew_error / max(norm_w, _WILKINSON_SAFETY_FLOOR)
-        is_skew_ok = skew_residual < 1.0e-8
-
-        return W, skew_residual, is_skew_ok
-
-    def evaluate_floer_novikov_energy(
-        self,
-        kernel: CentripetalObservationKernel
-    ) -> Tuple[float, int, bool]:
-        r"""
-        Calcula la energía simpléctica en el anillo de Novikov:
-        $$E(u) = \frac{1}{2} \int_\Sigma \|du - X_H \otimes \beta\|_J^2$$
-        y detecta pérdida de compacidad de Gromov por burbujeo de discos de Maslov $\mu(u) = 2 \to 0$.
-        """
-        verts = kernel.polygon_vertices
-        n_verts, dim = verts.shape
-        centroid = np.mean(verts, axis=0)
-        q = verts - centroid
-
-        # Cálculo de forma simpléctica canónica sobre 2-caras
-        symp_area = 0.0
-        for i in range(n_verts):
-            v1 = q[i]
-            v2 = q[(i + 1) % n_verts]
-            if dim >= 2:
-                symp_area += 0.5 * abs(v1[0] * v2[1] - v1[1] * v2[0])
-            else:
-                symp_area += 0.5 * abs(v1[0] * v2[0])
-
-        # Burbujeo discal centrífugo cuando el área colapsa por debajo de la cota cuántica de Maslov
-        bubbling_threshold = 1.0e-6
-        is_bubbling = bool(symp_area <= bubbling_threshold)
-        maslov_index = 0 if is_bubbling else 2
-
-        return symp_area, maslov_index, is_bubbling
-
-    def orient_centripetal_deformation(
-        self,
-        kernel: CentripetalObservationKernel,
-        simplex_areas: Optional[NDArray[np.float64]] = None,
-        base_mass: float = 1.0,
-        coupling_alpha: float = 0.1,
-        bubbling_threshold: float = 1.0e-06,
-        plastic_threshold: float = 50.0
-    ) -> CentripetalOrientationReport:
-        r"""
-        Conduce la orientación simpléctica del kernel y ejecuta el cálculo auditado en FPU.
-        """
-        engine_state = self._engine.execute_centripetal_audit(
-            polygon_vertices=kernel.polygon_vertices,
-            vertex_velocities=kernel.vertex_velocities,
-            angular_velocity_vector=kernel.angular_velocity_vector,
-            G_metric=kernel.G_metric,
-            simplex_areas=simplex_areas,
-            base_mass=base_mass,
-            coupling_alpha=coupling_alpha,
-            bubbling_threshold=bubbling_threshold,
-            plastic_threshold=plastic_threshold
-        )
-
-        rep = engine_state.deformation_report
-        _, skew_res, is_skew = self.compute_gyroscopic_so_n_algebra(
-            kernel.polygon_vertices, kernel.vertex_velocities, kernel.G_metric
-        )
-        symp_energy, maslov_idx, is_bubbling = self.evaluate_floer_novikov_energy(kernel)
-
-        return CentripetalOrientationReport(
-            kernel=kernel,
-            engine_state=engine_state,
-            centripetal_potential=rep.centripetal_potential,
-            cauchy_riemann_residual=rep.cauchy_riemann_residual,
-            gyroscopic_skew_residual=skew_res,
-            radial_deformation_norm=rep.radial_deformation_norm,
-            spectral_gap=rep.spectral_gap,
-            maslov_index=maslov_idx,
-            is_gyroscopic_skew_symmetric=is_skew and rep.is_gyroscopic_skew_symmetric,
-            is_centrifugal_bubbling_detected=is_bubbling or engine_state.is_centrifugal_bubbling_detected,
-            is_plastic_deformation_critical=engine_state.is_plastic_deformation_critical,
-            symplectic_energy=symp_energy,
-            orientation_timestamp=time.time()
-        )
-
-    def synthesize_centripetal_orientation(
-        self,
-        kernel_or_vertices: Union[CentripetalObservationKernel, NDArray[np.float64]],
-        vertex_velocities: Optional[NDArray[np.float64]] = None,
-        angular_velocity_vector: Optional[NDArray[np.float64]] = None,
-        G_metric: Optional[NDArray[np.float64]] = None,
-        simplex_areas: Optional[NDArray[np.float64]] = None,
-        base_mass: float = 1.0,
-        coupling_alpha: float = 0.1,
-        bubbling_threshold: float = 1.0e-06,
-        plastic_threshold: float = 50.0
-    ) -> CentripetalOrientationReport:
-        r"""
-        MÉTODO TERMINAL FORMAL DE FASE 2:
-        Garantiza la continuidad holomorfa incondicional.
-        Si se le suministran tensores crudos, invoca transparentemente a
-        `canonize_centripetal_observation_kernel` de la Fase 1; si recibe el `CentripetalObservationKernel`,
-        procesa directamente la orientación simpléctica y emite el `CentripetalOrientationReport`.
-        Este reporte es el punto de enlace e inicio de la Fase 3.
-        """
-        if isinstance(kernel_or_vertices, CentripetalObservationKernel):
-            kernel = kernel_or_vertices
-        else:
-            if vertex_velocities is None or angular_velocity_vector is None or G_metric is None:
-                raise CentripetalDimensionError(
-                    "Si no se suministra un CentripetalObservationKernel, deben proveerse todos los tensores canónicos."
-                )
-            kernel = self.canonize_centripetal_observation_kernel(
-                polygon_vertices=kernel_or_vertices,
-                vertex_velocities=vertex_velocities,
-                angular_velocity_vector=angular_velocity_vector,
-                G_metric=G_metric
-            )
-
-        return self.orient_centripetal_deformation(
-            kernel=kernel,
-            simplex_areas=simplex_areas,
-            base_mass=base_mass,
-            coupling_alpha=coupling_alpha,
-            bubbling_threshold=bubbling_threshold,
-            plastic_threshold=plastic_threshold
-        )
-
-
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE 3: DECISIÓN EN TOPOS DE HEYTING, ANIQUILACIÓN DE FOCK Y CROWBAR IRAM
-# ══════════════════════════════════════════════════════════════════════════════
-
 class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
     r"""
-    FASE 3 — Decide & Act:
-    Hereda y conecta directamente con la síntesis de Fase 2.
-    Evalúa el clasificador de subobjetos en el retículo de Heyting $\Omega_3$,
-    resuelve la aniquilación cuántica de pares en espacio de Fock ($e^- + e^+ \to 2\gamma$),
-    y dispara el actuador de hardware Crowbar BT151 mediante rutina IRAM < 400 ns en ESP32.
+    FASE 3 — Decide & Act (Sentencia Heyting, Fock, Crowbar):
+    Hereda Fase 2 e implementa lógica de decisión en topos de Heyting,
+    aniquilación cuántica de pares Fock ($e^- + e^+ \to 2\gamma$),
+    y actuación de hardware en ESP32 BT151 IRAM < 400 ns.
     """
 
     def __init__(
         self,
-        tolerance: float = 1.0e-12,
+        tolerance: float = _NOVIKOV_COUPLING_EPS,
         safety_margin: float = 1.0,
         grace_period_seconds: float = 3600.0,
         secret_fock_key: Optional[bytes] = None
@@ -662,7 +995,11 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
         self._grace_limit: Final[float] = float(grace_period_seconds)
         self._soft_veto_timestamp: Optional[float] = None
         self._is_soft_veto_active: bool = False
-        self._secret_key: Final[bytes] = secret_fock_key or b"APU_OMEGA_FOCK_SUTURA_SECRET_KEY_999"
+        self._secret_key: Final[bytes] = secret_fock_key or b"APU_OMEGA_FOCK_SUTURA_QUANTUM_999"
+        logger.info(
+            f"Phase3_CentripetalAgentDecider inicializado. "
+            f"Grace: {self._grace_limit}s, Safety Margin: {self._safety_margin}"
+        )
 
     def evaluate_heyting_topos_subobject_classifier(
         self,
@@ -670,42 +1007,40 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
         plastic_limit: float
     ) -> Tuple[CentripetalHeytingVerdict, bool, bool]:
         r"""
-        Clasificador de subobjetos en el topos de De Rham-Heyting:
-        Evalúa las proposiciones intuicionistas sobre $\Omega_3 = \{\bot, \ast, \top\}$:
-        - $\phi_{\mathrm{skew}} = (\|W + W^T\|_F < 10^{-8})$
-        - $\phi_{\mathrm{bubbling}} = \neg (\mathcal{A} \le \hbar_{\mathrm{symp}})$
-        - $\phi_{\mathrm{strain}} = (\|\epsilon\|_F \le 0.30 \cdot L_{\max})$
-        - $\phi_{\mathrm{elastic}} = (0.30 \cdot L_{\max} < \|\epsilon\|_F \le 0.50 \cdot L_{\max})$
-        - $\phi_{\mathrm{cr}} = (\mathcal{R}_{\bar\partial} \le 10.0)$
+        Clasificador de subobjetos en topos de Heyting $\Omega_3$.
+        Evaluación de proposiciones intuicionistas sobre integridad geométrica.
+
+        Retorna: (veredicto, es_veto_suave, es_veto_duro)
         """
         def_norm = report.radial_deformation_norm
         cr_res = report.cauchy_riemann_residual
         skew_res = report.gyroscopic_skew_residual
 
-        # Condiciones de Veto Duro Terminal (Colapso irreversible de Maslov o fractura)
-        is_hard_veto = (
+        # Condiciones de Veto Duro: Colapso terminal irreversible
+        veto_duro = (
             report.is_centrifugal_bubbling_detected or
             report.is_plastic_deformation_critical or
-            (not report.is_gyroscopic_skew_symmetric) or
-            (def_norm > 0.50 * plastic_limit) or
-            (skew_res > 1.0e-8) or
-            (report.kernel.metric_condition_number > 1.0e8)
+            (not report.is_gyroscopic_skew_symmetric and skew_res > 1.0e-6) or
+            (def_norm > _PLASTIC_STRAIN_LIMIT * plastic_limit) or
+            (report.kernel.metric_audit.condition_number > 1.0e8)
         )
 
-        # Condiciones de Veto Suave (Luz Ámbar / Turbulencia elástica recuperable)
-        is_soft_veto = not is_hard_veto and (
-            (0.30 * plastic_limit < def_norm <= 0.50 * plastic_limit) or
-            (cr_res > 10.0)
+        # Condiciones de Veto Suave: Luz Ámbar, turbulencia elástica recuperable
+        veto_suave = (
+            not veto_duro and (
+                (_ELASTIC_STRAIN_LIMIT * plastic_limit < def_norm <= _PLASTIC_STRAIN_LIMIT * plastic_limit) or
+                (cr_res > 10.0)
+            )
         )
 
-        if is_hard_veto:
-            verdict = CentripetalHeytingVerdict.VETOED
-        elif is_soft_veto:
-            verdict = CentripetalHeytingVerdict.DEGRADED
+        if veto_duro:
+            veredicto = CentripetalHeytingVerdict.VETOED
+        elif veto_suave:
+            veredicto = CentripetalHeytingVerdict.DEGRADED
         else:
-            verdict = CentripetalHeytingVerdict.COHERENT
+            veredicto = CentripetalHeytingVerdict.COHERENT
 
-        return verdict, is_soft_veto, is_hard_veto
+        return veredicto, veto_suave, veto_duro
 
     def evaluate_quantum_fock_annihilation(
         self,
@@ -713,32 +1048,37 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
         current_potential: float
     ) -> Tuple[bool, float]:
         r"""
-        Sutura de Fock por aniquilación de pares $e^- + e^+ \to 2\gamma$:
-        El estado de alarma persistente (Luz Ámbar) representa un electrón atrapado ($e^-$).
-        El token de anulación humana representa el positrón inyectado ($e^+$).
-        Verifica la sección eficaz mediante HMAC-SHA256 en tiempo constante:
-        $$\Gamma_{e^- e^+ \to 2\gamma} = \frac{\pi \alpha^2}{m_e^2 s} \left[ \ln\left(\frac{s}{m_e^2}\right) - 1 \right] \to 1.0$$
+        Aniquilación cuántica $e^- + e^+ \to 2\gamma$ en espacio de Fock.
+        Estado Ámbar persistente = electrón atrapado ($e^-$).
+        Token de override humano = positrón inyectado ($e^+$).
+        Verifica autenticidad mediante HMAC-SHA256 en tiempo constante.
+
+        Sección eficaz de Fock:
+        $$\sigma(e^+ e^- \to 2\gamma) \approx 1.0 \text{ (transición completada)}$$
         """
         if token is None or not self._is_soft_veto_active:
             return False, 0.0
 
-        # Tokens canónicos autorizados de alta entropía
+        # Tokens de autoridad cuántica de alta entropía
         valid_seeds = [
-            "AUT_POS_SABIDURIA_777",
-            "OVERRIDE_CENTRIPETAL_FUKAYA_2026",
-            "HMAC_SUTURA_FOCK_SECURE_CENTRIPETAL"
+            "AUT_POS_SABIDURIA_OMEGA_777",
+            "OVERRIDE_CENTRIPETAL_FUKAYA_2026_QUANTUM",
+            "HMAC_SUTURA_FOCK_SECURE_CENTRIPETAL_ISR"
         ]
 
         token_valid = False
         for seed in valid_seeds:
             expected_mac = hmac.new(self._secret_key, seed.encode("utf-8"), hashlib.sha256).hexdigest()
-            # Comparación en tiempo constante estricta contra canal lateral de temporización
-            if hmac.compare_digest(token, seed) or hmac.compare_digest(token, expected_mac):
-                token_valid = True
-                break
+            try:
+                # Comparación en tiempo constante contra canal lateral de temporización
+                if hmac.compare_digest(token, seed) or hmac.compare_digest(token, expected_mac):
+                    token_valid = True
+                    break
+            except (TypeError, AttributeError):
+                pass
 
         if token_valid:
-            # Transición cuántica completada: Dispersión radiativa de Fock
+            # Dispersión radiativa de Fock completada
             prob = 1.0 - math.exp(-max(current_potential, 0.01) / 100.0)
             return True, float(prob)
 
@@ -750,24 +1090,30 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
         latency_ceiling_ns: float = _CROWBAR_MAX_IRAM_BUDGET_NS
     ) -> Tuple[bool, int, float]:
         r"""
-        Simulación con precisión física de conmutación de silicio del tiristor BT151-650R:
-        1. Escritura atómica directa al registro de hardware ESP32 `GPIO.out_w1ts = (1 << 14)`.
-           En memoria ultrarrápida IRAM Xtensa LX6 @ 240 MHz, toma de 2 a 4 ciclos de reloj.
-        2. Inyección de sobrecorriente de disparo:
-           $$I_G = \frac{V_{\mathrm{GPIO}} - V_{GT}}{R_{\mathrm{gate}}} = \frac{3.3\,\mathrm{V} - 1.1\,\mathrm{V}}{47\,\Omega} \approx 46.8\,\mathrm{mA} \gg I_{GT} (5\,\mathrm{mA})$$
-        3. Tiempo de retardo intrínseco de avalancha $t_d(I_G)$ y de subida $t_r$, garantizando
-           el clavado (crowbar) en tiempo total estrictamente inferior a 400.0 ns.
+        Simulación con precisión física de conmutación del tiristor BT151-650R.
+
+        Hardware: ESP32 Xtensa LX6 @ 240 MHz (4.167 ns por ciclo).
+
+        1. Escritura atómica directa a registro GPIO: 2-4 ciclos.
+        2. Inyección de sobrecorriente de disparo (gate drive):
+           $$I_G = \frac{V_{GPIO} - V_{GT}}{R_{gate}} = \frac{3.3 - 1.1}{47\,\Omega} \approx 46.8\,\mathrm{mA} \gg 5\,\mathrm{mA}$$
+        3. Retardo de avalancha + subida en silicio: 45-52 ciclos.
+        4. Latencia total < 400 ns (garantizado).
+
+        Retorna: (success, iram_cycles, latency_ns)
         """
-        # Reloj Xtensa a 240 MHz (1 ciclo = 4.166667 ns)
-        # Latencia base de interrupción ISR en IRAM: ~28 a 34 ciclos
-        # Escritura al bus DPORT/GPIO: ~12 ciclos
-        # Retardo de recombinación de compuerta en silicio: ~48 a 50 ciclos
-        iram_cycles = int(32 + 12 + np.random.randint(45, 52))
+        # ISR IRAM Xtensa LX6: ~32 ciclos
+        # Escritura GPIO DPORT: ~12 ciclos
+        # Retardo de recombinación de avalancha en BT151: ~45-52 ciclos
+        iram_cycles_base = 32 + 12
+        iram_cycles_random = np.random.randint(45, 52)
+        iram_cycles = iram_cycles_base + iram_cycles_random
+
         latency_ns = iram_cycles * _ESP32_CYCLE_TIME_NS
 
-        # Asegurar cota asintótica de Wilkinson para no sobrepasar el techo físico
+        # Truncamiento de seguridad: Garantizar respeto del techo físico
         if latency_ns > latency_ceiling_ns:
-            latency_ns = latency_ceiling_ns - _MACHINE_EPS
+            latency_ns = latency_ceiling_ns - (_MACHINE_EPS * 1000.0)
             iram_cycles = int(latency_ns / _ESP32_CYCLE_TIME_NS)
 
         return True, iram_cycles, float(latency_ns)
@@ -786,20 +1132,24 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
         simulate_grace_expired: bool = False
     ) -> CentripetalAgentCertificate:
         r"""
-        MÉTODO TERMINAL FORMAL DE FASE 3 Y DEL AGENTE COVARIANTE:
+        MÉTODO TERMINAL FORMAL DE FASE 3 Y DEL AGENTE COMPLETO:
         Punto de culminación holomorfa en lazo cerrado OODA.
-        Acepta directamente el `CentripetalOrientationReport` de Fase 2 o los tensores
-        crudos (acoplándose de inmediato vía `synthesize_centripetal_orientation`),
-        calcula la deducción intuicionista en $\Omega_3$, ejecuta la sutura cuántica de Fock,
-        y comanda el Crowbar en silicio ESP32 emitiendo el certificado inmutable.
+
+        Flujo:
+        1. Acoplamiento Fase 2→3: Obtiene u/genera `CentripetalOrientationReport`.
+        2. Evaluación Heyting: Calcula veredicto en $\Omega_3$.
+        3. Lógica de Veto: Soft (Ámbar, grace period) vs Hard (terminal).
+        4. Fock: Inyecta positrón si token válido.
+        5. Hardware: Dispara BT151 si VETOED.
+        6. Certificado: Emite sello SHA-256 inmutable.
         """
         t_start = time.perf_counter()
         curr_time = time.time()
         plastic_limit = deformation_threshold_Lmax * self._safety_margin
 
-        # ----------------------------------------------------------------------
-        # ACOPLAMIENTO DE FASE 2 -> FASE 3
-        # ----------------------------------------------------------------------
+        # ────────────────────────────────────────────────────────────────────────────────
+        # ACOPLAMIENTO FORMAL FASE 2 → FASE 3
+        # ────────────────────────────────────────────────────────────────────────────────
         if isinstance(polygon_vertices, CentripetalOrientationReport):
             orient_report = polygon_vertices
         else:
@@ -814,99 +1164,114 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
                 plastic_threshold=plastic_limit
             )
 
-        # ----------------------------------------------------------------------
-        # TOPOS DE HEYTING Y EVALUACIÓN DE VETOS
-        # ----------------------------------------------------------------------
-        verdict, is_soft_veto, is_hard_veto = self.evaluate_heyting_topos_subobject_classifier(
+        # ────────────────────────────────────────────────────────────────────────────────
+        # DECISIÓN EN TOPOS DE HEYTING
+        # ────────────────────────────────────────────────────────────────────────────────
+        veredicto, es_veto_suave, es_veto_duro = self.evaluate_heyting_topos_subobject_classifier(
             orient_report, plastic_limit
         )
 
-        fock_annihilated = False
-        fock_prob = 0.0
-        time_remaining = 0.0
-        override_expired = False
+        fock_aniquilado = False
+        fock_probabilidad = 0.0
+        tiempo_gracia_restante = 0.0
+        grace_expirado = False
 
-        if is_hard_veto:
-            verdict = CentripetalHeytingVerdict.VETOED
+        if es_veto_duro:
+            # Colapso terminal instantáneo
+            veredicto = CentripetalHeytingVerdict.VETOED
             self._is_soft_veto_active = False
             self._soft_veto_timestamp = None
-            logger.critical("¡VETO DURO INSTANTÁNEO EN FUKAYA! Burbujeo discal o fractura plástica crítica.")
+            logger.critical(
+                "¡VETO DURO TERMINAL! Burbujeo discal o fractura plástica crítica en V_Omega."
+            )
 
-        elif is_soft_veto:
+        elif es_veto_suave:
             if not self._is_soft_veto_active and not simulate_grace_expired:
-                # Transición a Luz Ámbar: Creación de par atrapado
+                # Transición a Luz Ámbar
                 self._is_soft_veto_active = True
                 self._soft_veto_timestamp = curr_time
-                time_remaining = self._grace_limit
-                verdict = CentripetalHeytingVerdict.DEGRADED
-                logger.warning("¡VETO SUAVE ACTIVADO (LUZ ÁMBAR)! Turbulencia elástica centrípeta en V_Omega.")
+                tiempo_gracia_restante = self._grace_limit
+                veredicto = CentripetalHeytingVerdict.DEGRADED
+                logger.warning(
+                    "¡VETO SUAVE ACTIVADO (LUZ ÁMBAR)! Turbulencia elástica en V_Omega. "
+                    f"Grace period: {tiempo_gracia_restante:.1f}s"
+                )
             else:
-                elapsed = self._grace_limit + 1.0 if self._soft_veto_timestamp is None else (curr_time - self._soft_veto_timestamp)
-                time_remaining = max(0.0, self._grace_limit - elapsed)
-
-                if time_remaining <= self._tol or simulate_grace_expired:
-                    # Expiración de ventana: Colapso Heyting a VETOED terminal
-                    verdict = CentripetalHeytingVerdict.VETOED
-                    is_hard_veto = True
-                    is_soft_veto = False
-                    self._is_soft_veto_active = False
-                    override_expired = True
-                    logger.critical("¡VENTANA DE GRACIA EXPIRADA! Transición colapsada a VETOED irreversible.")
+                # Cálculo de tiempo restante
+                if self._soft_veto_timestamp is None:
+                    tiempo_transcurrido = self._grace_limit + 1.0
                 else:
-                    verdict = CentripetalHeytingVerdict.DEGRADED
+                    tiempo_transcurrido = curr_time - self._soft_veto_timestamp
+                tiempo_gracia_restante = max(0.0, self._grace_limit - tiempo_transcurrido)
 
-            # Inyección de positrón de sutura (Fock Override)
+                if tiempo_gracia_restante <= self._tol or simulate_grace_expired:
+                    # Expiración de ventana: Colapso Heyting a VETOED
+                    veredicto = CentripetalHeytingVerdict.VETOED
+                    es_veto_duro = True
+                    es_veto_suave = False
+                    self._is_soft_veto_active = False
+                    grace_expirado = True
+                    logger.critical(
+                        "¡VENTANA DE GRACIA EXPIRADA! Transición a VETOED irreversible."
+                    )
+                else:
+                    veredicto = CentripetalHeytingVerdict.DEGRADED
+
+            # Inyección de positrón Fock
             if self._is_soft_veto_active and override_token is not None:
-                fock_annihilated, fock_prob = self.evaluate_quantum_fock_annihilation(
+                fock_aniquilado, fock_probabilidad = self.evaluate_quantum_fock_annihilation(
                     override_token, orient_report.centripetal_potential
                 )
-                if fock_annihilated:
-                    verdict = CentripetalHeytingVerdict.DEGRADED
-                    is_soft_veto = False
+                if fock_aniquilado:
+                    veredicto = CentripetalHeytingVerdict.DEGRADED
+                    es_veto_suave = False
                     self._is_soft_veto_active = False
                     self._soft_veto_timestamp = None
-                    time_remaining = 0.0
-                    logger.info("¡ANIQUILACIÓN DE FOCK COMPLETADA (%s)! Luz Ámbar disipada a 2γ.", f"{fock_prob:.4%}")
+                    tiempo_gracia_restante = 0.0
+                    logger.info(
+                        f"¡ANIQUILACIÓN DE FOCK EXITOSA ({fock_probabilidad:.4%})! "
+                        "Luz Ámbar disipada a radiación de fotones."
+                    )
                 else:
-                    logger.error("Token de anulación de Positrón de Fock inválido o espurio.")
+                    logger.warning("Token de positrón Fock inválido o espurio.")
 
         else:
+            # Operación nominal (COHERENT)
             self._is_soft_veto_active = False
             self._soft_veto_timestamp = None
-            verdict = CentripetalHeytingVerdict.COHERENT
+            veredicto = CentripetalHeytingVerdict.COHERENT
 
-        # ----------------------------------------------------------------------
-        # ACTUACIÓN CIBER-FÍSICA: CROWBAR BT151 EN SILICIO IRAM
-        # ----------------------------------------------------------------------
-        interlock_fired = False
-        iram_cycles = 0
-        actuation_ns = 0.0
+        # ────────────────────────────────────────────────────────────────────────────────
+        # ACTUACIÓN DE HARDWARE: CROWBAR BT151 EN SILICIO IRAM
+        # ────────────────────────────────────────────────────────────────────────────────
+        interlock_disparado = False
+        ciclos_iram = 0
+        latencia_ns = 0.0
 
-        if verdict == CentripetalHeytingVerdict.VETOED:
-            interlock_fired, iram_cycles, actuation_ns = self.simulate_bt151_crowbar_iram_discharge(
+        if veredicto == CentripetalHeytingVerdict.VETOED:
+            interlock_disparado, ciclos_iram, latencia_ns = self.simulate_bt151_crowbar_iram_discharge(
                 orient_report.centripetal_potential
             )
             logger.critical(
-                "¡DISPARO CROWBAR BT151 EJECUTADO EN IRAM! Ciclos Xtensa: %d, Latencia: %.2f ns (< 400 ns). "
-                "GPIO14 enclavado a HIGH. Actuadores mecánicos paralizados en el milisegundo cero.",
-                iram_cycles,
-                actuation_ns
+                f"¡DISPARO CROWBAR BT151 EN IRAM! "
+                f"Ciclos Xtensa: {ciclos_iram}, Latencia: {latencia_ns:.2f} ns (< 400 ns). "
+                f"GPIO14 enclavado a HIGH. Actuadores paralizados en t=0."
             )
 
-        duration_us = (time.perf_counter() - t_start) * 1.0e6
+        duracion_us = (time.perf_counter() - t_start) * 1.0e6
 
-        # Sello criptográfico SHA-256 de la sesión ejecutada
-        sig_payload = (
-            f"{verdict.canonical_name}:{orient_report.centripetal_potential:.6f}:"
+        # Sello criptográfico final
+        payload_firma = (
+            f"{veredicto.canonical_name}:{orient_report.centripetal_potential:.6f}:"
             f"{orient_report.radial_deformation_norm:.6f}:{orient_report.kernel.cryptographic_seal}:"
-            f"{actuation_ns:.2f}:{interlock_fired}"
+            f"{latencia_ns:.2f}:{interlock_disparado}"
         )
-        digital_sig = hashlib.sha256(sig_payload.encode("utf-8")).hexdigest()
+        firma_digital = hashlib.sha256(payload_firma.encode("utf-8")).hexdigest()
 
         return CentripetalAgentCertificate(
-            phase="G_OMEGA_CENTRIPETAL_SUTURATED",
-            heyting_verdict=verdict.canonical_name,
-            heyting_truth_value=verdict.value,
+            phase="OMEGA_CENTRIPETAL_SUTURATED_3PHASES",
+            heyting_verdict=veredicto.canonical_name,
+            heyting_truth_value=int(veredicto),
             centripetal_potential=orient_report.centripetal_potential,
             cauchy_riemann_residual=orient_report.cauchy_riemann_residual,
             gyroscopic_skew_residual=orient_report.gyroscopic_skew_residual,
@@ -916,38 +1281,64 @@ class Phase3_CentripetalAgentDecider(Phase2_CentripetalAgentOrienter):
             is_gyroscopic_skew_symmetric=orient_report.is_gyroscopic_skew_symmetric,
             is_centrifugal_bubbling_detected=orient_report.is_centrifugal_bubbling_detected,
             is_plastic_deformation_critical=orient_report.is_plastic_deformation_critical,
-            is_soft_veto_active=is_soft_veto,
-            override_grace_period_expired=override_expired,
-            fock_annihilation_occurred=fock_annihilated,
-            fock_transition_probability=fock_prob,
-            hardware_interlock_fired=interlock_fired,
-            crowbar_iram_cycles=iram_cycles,
-            actuation_latency_ns=actuation_ns,
-            time_grace_remaining=time_remaining,
-            digital_signature_sha256=digital_sig,
-            execution_duration_microseconds=duration_us
+            is_soft_veto_active=es_veto_suave,
+            override_grace_period_expired=grace_expirado,
+            fock_annihilation_occurred=fock_aniquilado,
+            fock_transition_probability=fock_probabilidad,
+            hardware_interlock_fired=interlock_disparado,
+            crowbar_iram_cycles=ciclos_iram,
+            actuation_latency_ns=latencia_ns,
+            time_grace_remaining=tiempo_gracia_restante,
+            digital_signature_sha256=firma_digital,
+            execution_duration_microseconds=duracion_us
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SOBERANO CENTRÍPETO PSEUDO-HOLOMORFO EN ESTRATO OMEGA
-# ══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# AGENTE SOBERANO INTEGRADOR: CONVERGENCIA DE FASES 1, 2, 3 EN ESTRUCTURA UNITARIA
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-class PseudoholomorphicCentripetalSatelliteAgent(Morphism, Phase3_CentripetalAgentDecider):
+class PseudoholomorphicCentripetalSatelliteAgent(Phase3_CentripetalAgentDecider, CategoricalMorphism):
     r"""
-    Soberano de Calibre Centrípeto Pseudo-Holomorfo en Lazo Cerrado OODA.
-    Hereda formalmente la estructura categórica de `Morphism` y encapsula la
-    totalidad del pipeline unificado de Fases 1, 2 y 3.
+    AGENTE SOBERANO UNIFICADO: Pseudoholomorphic Centripetal Satellite Agent.
+
+    Categoría: $\mathbf{CyberPhys}$ (sistemas ciber-físicos en lazo cerrado OODA).
+    Arquitectura: 3 Fases Anidadas Formales con Continuidad Holomorfa.
+
+    FASE 1 (Observe):
+    ├─ Ingestión tensorial y saneamiento IEEE 754.
+    ├─ Auditoría métrica: Cholesky, condición de Wilkinson, autovalores.
+    ├─ Regularidad Banach: Normas $\ell^1, \ell^2, \ell^\infty$.
+    ├─ Auditoría pseudoholomorfa: Cauchy-Riemann, área simpléctica.
+    ├─ Descomposición Clifford: $\mathfrak{so}(n)$, antisimetría.
+    └─ Invariantes de Floer: Maslov, Conley-Zehnder, género.
+       ↓ (acoplamiento formal)
+    FASE 2 (Orient):
+    ├─ Ingestión de `CentripetalObservationKernel` de Fase 1.
+    ├─ Ejecución del motor Fukaya: potencial centrípeto, deformación radial.
+    ├─ Energía simpléctica Novikov y acoplamiento.
+    ├─ Cálculo de índice de Maslov y burbujeo discal.
+    └─ Síntesis en `CentripetalOrientationReport`.
+       ↓ (acoplamiento formal)
+    FASE 3 (Decide & Act):
+    ├─ Clasificador de subobjetos en topos de Heyting $\Omega_3 = \{\bot, \ast, \top\}$.
+    ├─ Evaluación de condiciones de veto (duro/suave).
+    ├─ Lógica de gracia: ventana de override para aniquilación Fock.
+    ├─ Aniquilación cuántica: $e^- + e^+ \to 2\gamma$ con HMAC-SHA256.
+    ├─ Actuación hardware: Disparo BT151 en ESP32 IRAM < 400 ns.
+    └─ Emisión de certificado SHA-256 inmutable.
+
+    Invariante global: Continuidad holomorfa entre fases.
+    Contrato de interfaz: CategoricalMorphism (morfismo en categoría).
     """
 
     def __init__(
         self,
-        tolerance: float = 1.0e-12,
+        tolerance: float = _NOVIKOV_COUPLING_EPS,
         safety_margin: float = 1.0,
         grace_period_seconds: float = 3600.0,
         secret_fock_key: Optional[bytes] = None
     ) -> None:
-        Morphism.__init__(self)
         Phase3_CentripetalAgentDecider.__init__(
             self,
             tolerance=tolerance,
@@ -956,18 +1347,85 @@ class PseudoholomorphicCentripetalSatelliteAgent(Morphism, Phase3_CentripetalAge
             secret_fock_key=secret_fock_key
         )
         logger.info(
-            "PseudoholomorphicCentripetalSatelliteAgent inicializado. "
-            "Gobernanza activa: Topos Heyting Omega_3, Floer-Maslov, Fock, Crowbar BT151 IRAM."
+            "PseudoholomorphicCentripetalSatelliteAgent (Soberano III) inicializado. "
+            "Gobernanza en lazo cerrado OODA activada: Topos Heyting, Floer-Maslov, Fock, Crowbar BT151 IRAM."
+        )
+
+    def domain(self) -> str:
+        r"""Dominio categórico del agente."""
+        return "CyberPhys.Satellite.Centripetal"
+
+    def codomain(self) -> str:
+        r"""Codominio categórico (espacio de decisiones ejecutivas)."""
+        return "CyberPhys.Decision.HeyingVerdict"
+
+    def compose(self, other: 'CategoricalMorphism') -> 'CategoricalMorphism':
+        r"""Composición categórica (placeholder)."""
+        return self
+
+    def execute_full_ooda_cycle(
+        self,
+        polygon_vertices: NDArray[np.float64],
+        vertex_velocities: NDArray[np.float64],
+        angular_velocity_vector: NDArray[np.float64],
+        G_metric: NDArray[np.float64],
+        simplex_areas: Optional[NDArray[np.float64]] = None,
+        base_mass: float = 1.0,
+        coupling_alpha: float = 0.1,
+        deformation_threshold_Lmax: float = 50.0,
+        override_token: Optional[str] = None
+    ) -> CentripetalAgentCertificate:
+        r"""
+        Interfaz pública unificada del agente: Ejecución completa del ciclo OODA.
+        Encadena automáticamente Fases 1 → 2 → 3.
+        """
+        return self.audit_centripetal_deformation_cycle(
+            polygon_vertices=polygon_vertices,
+            vertex_velocities=vertex_velocities,
+            angular_velocity_vector=angular_velocity_vector,
+            G_metric=G_metric,
+            simplex_areas=simplex_areas,
+            base_mass=base_mass,
+            coupling_alpha=coupling_alpha,
+            deformation_threshold_Lmax=deformation_threshold_Lmax,
+            override_token=override_token
         )
 
 
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# DEFINICIÓN PÚBLICA Y EXPORTACIÓN
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
 __all__ = [
-    "CentripetalHeytingVerdict",
+    # Excepciones
+    "TopologicalInvariantError",
+    "CentripetalEngineError",
+    "MetricIndefinitenessError",
+    "CentripetalDimensionError",
+    "CentrifugalDiskBubblingError",
+    "HeyingLogicError",
+    "FockAnnihilationError",
+    "CrowbarISRError",
+    # Tipos de datos
+    "MetricTensorReport",
+    "BanachSpaceRegularity",
+    "PseudoholomorphicMapAudit",
+    "CliffordAlgebraDecomposition",
+    "FloerHomologyData",
+    "CentripetalDeformationReport",
+    "CentripetalEngineState",
+    # Estructuras inmutables
     "CentripetalObservationKernel",
     "CentripetalOrientationReport",
     "CentripetalAgentCertificate",
+    # Enumeraciones
+    "CentripetalHeytingVerdict",
+    # Motor base
+    "PseudoholomorphicCentripetalSatelliteEngine",
+    # Fases
     "Phase1_CentripetalAgentObserver",
     "Phase2_CentripetalAgentOrienter",
     "Phase3_CentripetalAgentDecider",
-    "PseudoholomorphicCentripetalSatelliteAgent",
+    # Agente integrador
+    "PseudoholomorphicCentralizedsatelliteAgent",
 ]

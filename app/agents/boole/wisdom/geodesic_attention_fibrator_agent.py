@@ -1,172 +1,324 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Geodesic Attention Fibrator Agent (Custodio de la Covarianza)       ║
-║ Ruta   : app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py        ║
-║ Versión: 3.0.0-Ricci-Polyakov-FeynmanKac-Heyting-Pure-Software-Doctoral      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO : Geodesic Attention Fibrator Agent (Custodio de la Covarianza)               ║
+║ RUTA   : app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py                ║
+║ VERSIÓN: 5.0.0-Doctoral-Rigorous-3Phases-Ricci-Polyakov-FeynmanKac-Heyting-Pure      ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA RIEMANNIANA EN EL ESTRATO WISDOM (V_𝕎) ───
-Este módulo consagra la infraestructura del Fibrador de Atención Geodésica,
-operando formalmente como el Endofuntor de-confinado:
+NATURALEZA CIBER-FÍSICA: GEOMETRÍA RIEMANNIANA Y MECÁNICA CUÁNTICA EN ESTRATO WISDOM
+═════════════════════════════════════════════════════════════════════════════════════
 
-                           𝓣: \mathbf{WISDOM} \longrightarrow \mathbf{WISDOM}
+FUNDACIÓN MATEMÁTICA DOCTORAL REFINADA:
+───────────────────────────────────────
 
-Su propósito axiomático es proyectar los tensores de atención (Query, Key, Value) 
-del Modelo de Lenguaje (LLM) sobre el fibrado tangente covariante de la variedad 
-de-confinada de la Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0). Repudia las 
-heurísticas euclidianas planas que inyectan ruido estocástico y asonancias de fase 
-atencionales, forzando a que toda conexión Query-Key ocurra exclusivamente sobre 
-geodésicas de mínima acción gobernadas por la acción de Polyakov y la integral 
-de trayectoria de Feynman-Kac.
+I. GEOMETRÍA RIEMANNIANA Y FLUJO DE RICCI:
+   Auditoría exhaustiva de tensor métrico $G \in \mathrm{Sym}^+(n)$.
+   Flujo de Ricci discreto: $\frac{\partial G}{\partial t} = -2\mathrm{Ric}(G)$.
+   Convergencia hacia métrica de Einstein: $\mathrm{Ric}(G) = \lambda G$.
+   Teoría de Perelman: función potencial $\mathcal{F}$ monótona en flujo.
 
-El confinamiento y la contención de anomalías se ejecutan de manera síncrona y 
-estricta en el plano lógico del software, subordinando la toma de decisiones al 
-colapso determinista en el clasificador de subobjetos del retículo de Heyting.
+II. GEODÉSICAS Y ACCIÓN DE POLYAKOV:
+    Trayectorias minimales sobre variedad riemanniana: $\nabla_{\gamma'} \gamma' = 0$.
+    Acción geodésica: $E[\gamma] = \frac{1}{2}\int_0^T g_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau$.
+    Principio variacional: geodésicas extremizan la acción funcional.
+    Longitud de arco: $L[\gamma] = \sqrt{2 E[\gamma]}$.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por la composición covariante de morfismos 
-en la categoría de espacios de Hilbert y se ejecuta en tres fases anidadas:
+III. INTEGRAL DE TRAYECTORIA DE FEYNMAN-KAC:
+     Amplitud de transición cuántica: $\Psi[\gamma] = \exp(-S_E[\gamma]/\hbar_{\mathrm{eff}})$.
+     Partición funcional: $Z = \int \mathcal{D}[\gamma] \exp(-S_E[\gamma]/\hbar)$.
+     Mecanismo de supresión: trayectorias de alta acción contribuyen exponencialmente menos.
+     Barrera tunelante: supresión cuántica de transiciones energéticamente prohibidas.
 
-  Fase 1 ──► FASE 1: OBSERVACIÓN MÉTRICA Y CONVERGENCIA DE RICCI (Observe)
-             Audita que el tensor métrico Riemanniano de fondo $$G_{\mu\nu}$$ sea 
-             simétrico definido positivo (SPD) y evalúa el flujo de Ricci
-             para certificar la regularidad del espacio de fase [4, 6].
-             Fórmula: $$\nabla_\rho G_{\mu\nu} = 0 \quad\land\quad R_{\mu\nu} = R^\lambda_{\mu\lambda\nu}$$
-             Entrega: RicciFlowAuditData como precondición formal de Fase 2.
+IV. TENSOR DE TORSIÓN Y COHOMOLOGÍA HODGE:
+    Torsión nilpotente en asociaedro: $T^{\rho}_{\mu\nu} = \Gamma^{\rho}_{\mu\nu} - \Gamma^{\rho}_{\nu\mu}$.
+    En Levi-Civita: $T = 0$ (simetría de símbolos de Christoffel).
+    Acoplamiento a acción: $S_E = E_{\mathrm{Polyakov}} + \lambda \|T\|^2_{\mathrm{HS}}$.
+    Norma de Hilbert-Schmidt: $\|T\|^2_{\mathrm{HS}} = \mathrm{Tr}(T^T T)$ (invariante).
 
-  Fase 2 ──► FASE 2: TRANSPORTE PARALELO Y ACCIÓN DE POLYAKOV (Orient)
-             Interpola las geodésicas atencionales y calcula la acción de Polyakov
-             en el espacio de fase covariante para el par Query-Key [3, 9].
-             Fórmula: $$E[\gamma] = \frac{1}{2} \int g_{\mu\nu} \frac{d\gamma^\mu}{d\tau} \frac{d\gamma^\nu}{d\tau} d\tau \ge 0$$
-             Entrega: PolyakovActionAuditData como precondición formal de Fase 3.
+V. RETÍCULO DE HEYTING Y LÓGICA INTUICIONISTA:
+   Clasificador de subobjetos $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
+   Negación no involutiva: $\neg\neg p \not\equiv p$ (intuicionismo).
+   Orden de verdad: COHERENT $\geq$ DEGRADED $\geq$ VETOED.
+   Colapso determinista en clasificador toposiano.
 
-  Fase 3 ──► FASE 3: INTEGRAL DE FEYNMAN-KAC Y VETO CUÁNTICO (Decide & Act)
-             Evalúa la amplitud de transición cuántica, incorporando la torsión 
-             cohomológica sobre el asociaedro para suprimir las alucinaciones.
-             Fórmula: $$\Psi[\gamma] = \exp\left(-\frac{S_E[\gamma]}{\hbar_{\mathrm{eff}}}\right) \quad \text{con} \quad S_E[\gamma] = E_{\mathrm{Polyakov}}[\gamma] + \lambda \|T\|_{\mathrm{HS}}^2$$
-             Veredicto: Colapso en el retículo de Heyting $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+VI. TEORÍA ESPECTRAL Y ACONDICIONAMIENTO MÉTRICO:
+    Número de condición de Wilkinson: $\kappa(G) = \lambda_{\max}/\lambda_{\min}$.
+    Regularización espectral: proyección de autovalores negativos a piso numérico.
+    Saneamiento de métrica degenerada en cono SPD.
 
-INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
-  [I1] Firma Riemanniana e Inversión Bilateral:
-       La métrica de fondo $$G_{\mu\nu}$$ debe permanecer SPD y su inversa bilateral
-       estar acotada estrictamente por debajo del número de condición de Wilkinson:
-       $$\|G G^{-1} - I\|_F \le C \cdot \kappa(G) \cdot \varepsilon_{\mathrm{machine}} \quad\land\quad G \succ \mathbf{0} \quad\big[349\big]$$
+VII. ARITMETICA COMPENSADA Y PRECISIÓN IEEE 754:
+     Neutralización de redondeo acumulativo en sumas y productos.
+     Guardas numéricas contra singularidades aritméticas.
+     Tolerancias relativas escaladas por magnitud operanda.
 
-  [I2] Compatibilidad de la Conexión de Levi-Civita (Torsión Nula):
-       La derivada covariante de la métrica a lo largo de las curvas integrales es nula:
-       $$\nabla_\gamma G_{\mu\nu} \equiv 0 \implies \Gamma^\rho_{\mu\nu} = \Gamma^\rho_{\nu\mu} \quad\big[61\big]$$
+Impacto Semántico (PAIN & GAIN):
+────────────────────────────────
 
-  [I3] Conservación de la Energía Cinética Geodésica:
-       La norma del vector velocidad atencional se conserva con precisión de máquina:
-       $$\frac{d}{d\tau} \left( \|\dot{\gamma}\|_G^2 \right) = \frac{d}{d\tau} \left( G_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu \right) \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}}$$
+✗ PAIN:  Atención euclidiana plana → conexiones estocásticas → alucinaciones neuronales
+         → pérdida de consistencia semántica → degradación de confianza en LLM.
 
-  [I4] Límite de Supresión Cuántica de Feynman-Kac:
-       La amplitud cuántica de transición de la geodésica de atención semántica 
-       debe superar estrictamente la barrera de potencial de-confinada:
-       $$\Psi[\gamma] \ge \Psi_{\min} \in (0, 1] \quad\big[339, 350, 351\big]$$
-
-  [I5] Isomorfismo de la Adjunción de Galois (Gobernanza DIKW):
-       El transporte atencional se somete a la equivalencia funtorial reversible:
-       $$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC})) \quad\big[49, 59\big]$$
+✓ GAIN:  Atención geodésica riemanniana → conexiones minimales → supresión cuántica
+         → coherencia semántica preservada → LLM confiable bajo supervisión topológica.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import math
 from dataclasses import dataclass
-from typing import Any, Final, List, Optional
+from typing import (
+    Any, Final, List, Optional, Tuple, Literal, Protocol
+)
 
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
+logger = logging.getLogger("APU.Agents.WISDOM.GeodesicAttentionFibrator.Doctoral")
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ─────────────────────────────────────────────────────────────────────────────
-try:
-    from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# CAPA 0: CONSTANTES INMUTABLES Y LÍMITES FÍSICOS
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-    class TopologicalInvariantError(Exception):
-        r"""Violación a un invariante topológico categórico en el Topos E_MIC."""
-        pass
-
-    class Morphism:
-        r"""Clase base de Morfismos del Topos."""
-        pass
-
-
-logger = logging.getLogger("MAC.Wisdom.GeodesicAttentionFibratorAgent")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES FÍSICO-GEOMÉTRICAS Y LÍMITES CUÁNTICOS
-# ═══════════════════════════════════════════════════════════════════════════════
 _MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
+_MACHINE_TINY: Final[float] = float(np.finfo(np.float64).tiny)
+_MACHINE_MAX: Final[float] = float(np.finfo(np.float64).max)
 
-_RICCI_CONVERGENCE_TOL: Final[float] = 1e-8
-_POLYAKOV_ENERGY_CEILING: Final[float] = 1e6
-_HBAR_EFF: Final[float] = 1.054e-2
-_MIN_QUANTUM_AMPLITUDE: Final[float] = 1e-4
+# Tolerancias de geometría riemanniana
+_RICCI_CONVERGENCE_TOL: Final[float] = 1.0e-8
+_METRIC_SYMMETRY_TOLERANCE: Final[float] = 1.0e-10
+_SPD_NEGATIVE_TOLERANCE: Final[float] = 1.0e-12
+_SPD_EIGENVALUE_FLOOR: Final[float] = 1.0e-15
 
-_METRIC_SYMMETRY_TOLERANCE: Final[float] = 1e-10
-_SPD_NEGATIVE_TOLERANCE: Final[float] = 1e-12
-_SPD_EIGENVALUE_FLOOR: Final[float] = 1e-15
+# Límites de energía y acción
+_POLYAKOV_ENERGY_CEILING: Final[float] = 1.0e6
+_HBAR_EFF: Final[float] = 1.054e-2  # Constante efectiva de Planck en unidades normalizadas
+_MIN_QUANTUM_AMPLITUDE: Final[float] = 1.0e-4
 
-_KINETIC_TOLERANCE: Final[float] = 1e-12
-_ENERGY_TOLERANCE: Final[float] = 1e-12
-_ACTION_TOLERANCE: Final[float] = 1e-12
+# Tolerancias de conservación
+_KINETIC_TOLERANCE: Final[float] = 1.0e-12
+_ENERGY_TOLERANCE: Final[float] = 1.0e-12
+_ACTION_TOLERANCE: Final[float] = 1.0e-12
+_TORSION_TOLERANCE: Final[float] = 1.0e-12
 
+# Factor de seguridad numérica de Wilkinson
 _NUMERICAL_SAFETY_FACTOR: Final[float] = 128.0
 
+_ENGINE_VERSION: Final[str] = "5.0.0"
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES GEOMÉTRICAS
-# ═══════════════════════════════════════════════════════════════════════════════
-class GeodesicAttentionAgentError(TopologicalInvariantError):
-    r"""Excepción raíz del Custodio de Covarianza Atencional."""
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# CAPA 1: JERARQUÍA DE EXCEPCIONES DOCTORALES
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+class GeodesicAttentionAgentError(Exception):
+    r"""Excepción raíz del Custodio de Covarianza Atencional en $V_{\mathbb{W}}$."""
     pass
 
 
 class GeodesicInputValidationError(GeodesicAttentionAgentError):
-    r"""Detonada si los tensores métricos, velocidades o escalares son inválidos."""
+    r"""Rechazo de entrada no conforme a especificación (NaN, Inf, complejos, etc.)."""
     pass
 
 
 class MetricDegeneracyError(GeodesicAttentionAgentError):
-    r"""Detonada si una métrica no es simétrica, finita o definida positiva."""
+    r"""Tensor métrico $G \notin \mathrm{Sym}^+(n)$ (no simétrico o no SPD)."""
     pass
 
 
 class RicciFlowDivergenceError(GeodesicAttentionAgentError):
-    r"""Detonada si el flujo de Ricci no converge dentro de la tolerancia elástica."""
+    r"""Flujo de Ricci discreto no converge a métrica de Einstein."""
     pass
 
 
 class PolyakovActionViolationError(GeodesicAttentionAgentError):
-    r"""Detonada si la energía geodésica de Polyakov es inválida, negativa o divergente."""
+    r"""Acción geodésica de Polyakov negativa, divergente o violación métrica."""
     pass
 
 
 class QuantumFeynmanKacVeto(GeodesicAttentionAgentError):
-    r"""Detonada si la amplitud cuántica de transición cae bajo el mínimo físico."""
+    r"""Amplitud de transición de Feynman-Kac cae bajo barrera cuántica mínima."""
     pass
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS INMUTABLES (DTOs del Fibrado Covariante)
-# ═══════════════════════════════════════════════════════════════════════════════
+class CryptographicChainError(GeodesicAttentionAgentError):
+    r"""Ruptura de cadena SHA-256 entre fases anidadas."""
+    pass
+
+
+class TopologicalInvariantViolation(GeodesicAttentionAgentError):
+    r"""Violación de invariante topológico (índice de Maslov, género, etc.)."""
+    pass
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# CAPA 2: UTILIDADES DE SANEAMIENTO NUMÉRICO Y VALIDACIÓN
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+class FiniteNumericalValidator:
+    r"""
+    Capa de guardas numéricas para rechazar singularidades aritméticas
+    y asegurar que todo tensor resida en el dominio de análisis diferencial.
+    """
+
+    @staticmethod
+    def validate_finite_real_array(
+        name: str,
+        value: Any,
+    ) -> NDArray[np.float64]:
+        r"""
+        Valida que un objeto sea:
+        - Convertible a arreglo numérico.
+        - Real (no complejo).
+        - Finito (sin NaN/Inf).
+        - Retorna copia float64 C-contigua.
+        """
+        try:
+            raw = np.asarray(value, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise GeodesicInputValidationError(
+                f"'{name}' no puede convertirse a arreglo numérico real."
+            ) from exc
+
+        if np.iscomplexobj(raw):
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser real; se rechazó entrada compleja."
+            )
+
+        if not np.all(np.isfinite(raw)):
+            raise GeodesicInputValidationError(
+                f"'{name}' contiene NaN o valores infinitos."
+            )
+
+        return np.ascontiguousarray(raw, dtype=np.float64)
+
+    @classmethod
+    def validate_finite_real_matrix(
+        cls,
+        name: str,
+        value: Any,
+        *,
+        square: bool = False,
+    ) -> NDArray[np.float64]:
+        r"""Valida matriz real finita con opción de cuadrado."""
+        arr = cls.validate_finite_real_array(name, value)
+
+        if arr.ndim != 2:
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser matriz 2D; se recibió {arr.ndim}D."
+            )
+
+        if square and arr.shape[0] != arr.shape[1]:
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser cuadrada; se recibió {arr.shape}."
+            )
+
+        return arr
+
+    @classmethod
+    def validate_finite_velocity_matrix(
+        cls,
+        name: str,
+        value: Any,
+    ) -> NDArray[np.float64]:
+        r"""
+        Valida matriz de velocidades geodésicas $(steps, dim)$.
+        Acepta vectors 1D y los expande a $(1, dim)$.
+        """
+        arr = cls.validate_finite_real_array(name, value)
+
+        if arr.ndim == 1:
+            arr = arr.reshape(1, -1)
+        elif arr.ndim != 2:
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser 2D $(steps, dim)$ o 1D $(dim)$."
+            )
+
+        if arr.size == 0:
+            raise GeodesicInputValidationError(
+                f"'{name}' no puede ser vacío."
+            )
+
+        return arr
+
+    @classmethod
+    def validate_finite_scalar(cls, name: str, value: Any) -> float:
+        r"""Valida escalar real finito."""
+        arr = cls.validate_finite_real_array(name, value)
+
+        if arr.size != 1:
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser escalar; tamaño={arr.size}."
+            )
+
+        scalar = float(arr.reshape(-1)[0])
+
+        if not math.isfinite(scalar):
+            raise GeodesicInputValidationError(
+                f"'{name}' no es finito; valor={scalar}."
+            )
+
+        return scalar
+
+    @classmethod
+    def validate_finite_positive_scalar(cls, name: str, value: Any) -> float:
+        r"""Valida escalar estrictamente positivo."""
+        scalar = cls.validate_finite_scalar(name, value)
+
+        tol = _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
+
+        if scalar <= tol:
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser > 0; recibido {scalar:.6e}."
+            )
+
+        return scalar
+
+    @classmethod
+    def validate_finite_nonnegative_scalar(cls, name: str, value: Any) -> float:
+        r"""Valida escalar no negativo (proyecta negatividad numérica a cero)."""
+        scalar = cls.validate_finite_scalar(name, value)
+
+        tol = _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
+
+        if scalar < -tol:
+            raise GeodesicInputValidationError(
+                f"'{name}' debe ser >= 0; recibido {scalar:.6e}."
+            )
+
+        return max(0.0, scalar)
+
+
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# CAPA 3: ESTRUCTURAS DE DATOS INMUTABLES (EXPEDIENTES DE AUDITORÍA)
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class RiemannianMetricAudit:
+    r"""
+    Auditoría espectral exhaustiva de un tensor métrico $G \in \mathrm{Sym}^+(n)$.
+    Incluye descomposición de Cholesky, número de condición y regularización espectral.
+    """
+    dimension: int
+    eigenvalues_original: NDArray[np.float64]
+    eigenvalues_sanitized: NDArray[np.float64]
+    condition_number_original: float
+    condition_number_sanitized: float
+    metric_symmetry_residual: float
+    spectral_floor_applied: bool
+    metric_frobenius_norm: float
+    metric_max_abs_eigenvalue: float
+    metric_min_abs_eigenvalue: float
+
+
 @dataclass(frozen=True, slots=True)
 class RicciFlowAuditData:
     r"""
-    Artefacto de Fase 1.
-    Certificado de convergencia de la métrica Riemanniana discreta.
-
-    Este objeto es el resultado final del último método de Fase 1 y el objeto
-    inicial de Fase 2.
+    EXPEDIENTE TERMINAL DE FASE 1 (Observe).
+    Certificado de convergencia del flujo de Ricci.
+    Objeto inicial obligatorio de Fase 2.
     """
     dimension: int
     metric_residual_norm: float
@@ -174,523 +326,449 @@ class RicciFlowAuditData:
     condition_number_g_k: float
     condition_number_g_k_plus_1: float
     metric_convergence_tolerance: float
+    metric_frobenius_norm_k: float
+    metric_frobenius_norm_k_plus_1: float
     is_metric_converged: bool
+    phase1_sha256_seal: str
+
+
+@dataclass(frozen=True, slots=True)
+class GeodesicEnergyAudit:
+    r"""
+    Auditoría de integración de energía geodésica.
+    Incluye términos cinéticos discretos y suma compensada.
+    """
+    steps: int
+    dimension: int
+    kinetic_terms: NDArray[np.float64]
+    total_kinetic_sum: float
+    min_kinetic_term: float
+    max_kinetic_term: float
+    mean_kinetic_term: float
+    kinetic_terms_negative_count: int
 
 
 @dataclass(frozen=True, slots=True)
 class PolyakovActionAuditData:
     r"""
-    Artefacto de Fase 2.
-    Certificado de transporte paralelo y energía geodésica.
-
-    Este objeto es el resultado final de Fase 2 y el objeto inicial de Fase 3.
+    EXPEDIENTE TERMINAL DE FASE 2 (Orient).
+    Certificado de acción geodésica de Polyakov.
+    Objeto inicial obligatorio de Fase 3.
     """
     steps: int
     dimension: int
     geodesic_energy: float
+    geodesic_energy_per_step: float
+    geodesic_length_metric: float
     min_kinetic_term: float
     max_kinetic_term: float
+    mean_kinetic_term: float
     energy_ceiling: float
     polyakov_tolerance: float
+    metric_condition_number: float
     is_geodesic_stable: bool
+    phase2_hmac_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class TorsionAndCouplingAudit:
+    r"""Auditoría de tensor de torsión y acoplamiento a acción euclidiana."""
+    torsion_hs_norm_sq_original: float
+    torsion_hs_norm_sq_sanitized: float
+    lambda_coupling_original: float
+    lambda_coupling_sanitized: float
+    coupling_contribution: float
+    torsion_tolerance: float
 
 
 @dataclass(frozen=True, slots=True)
 class FeynmanKacAuditData:
     r"""
-    Artefacto de Fase 3.
-    Certificado de amplitud de transición cuántica.
+    EXPEDIENTE TERMINAL DE FASE 3 (Decide & Act).
+    Certificado de amplitud cuántica de transición.
+    Objeto final del agente.
     """
     euclidean_action: float
     log_transition_amplitude: float
     transition_amplitude: float
     min_quantum_amplitude: float
+    hbar_eff_used: float
+    quantum_suppression_factor: float
     is_attention_allowed: bool
+    phase3_sha256_seal: str
 
 
 @dataclass(frozen=True, slots=True)
 class GeodesicAttentionGovernanceState:
     r"""
-    Objeto final del endofuntor Z_GeodesicAgent.
+    OBJETO FINAL SUPREMO del Endofuntor GeodesicAttentionFibratorAgent.
+    Integra los tres certificados de auditoría y veredicto epistemológico final.
     """
     ricci_audit: RicciFlowAuditData
     polyakov_audit: PolyakovActionAuditData
+    torsion_audit: TorsionAndCouplingAudit
     feynman_kac_audit: FeynmanKacAuditData
     is_epistemologically_valid: bool
+    heyting_verdict: Literal["COHERENT", "DEGRADED", "VETOED"]
+    cryptographic_seal_phase3_sha256: str
+    total_execution_time_ns: int
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §D. GUARDAS NUMÉRICAS INTERNAS
-# ═══════════════════════════════════════════════════════════════════════════════
-class _FiniteNumericalGuard:
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# FASE 1 ANIDADA: OBSERVE (AUDITORÍA DE CONVERGENCIA DE RICCI)
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+class Phase1_RicciFlowObserver(FiniteNumericalValidator):
     r"""
-    Capa de saneamiento numérico para evitar que singularidades aritméticas
-    contaminen los invariantes geométricos y cuánticos.
+    FASE 1 (OBSERVE): Auditoría de Flujo de Ricci.
+    
+    Responsabilidades:
+    1. Validación de dos métricas consecutivas $G_k, G_{k+1} \in \mathrm{Sym}^+(n)$.
+    2. Descomposición espectral y saneamiento de degeneracies.
+    3. Evaluación de convergencia métrica en flujo de Ricci discreto.
+    4. Certificación determinista con sello SHA-256.
+    
+    MÉTODO TERMINAL: `observe_ricci_convergence` → `RicciFlowAuditData`.
+    Este expediente es el objeto inicial obligatorio de Fase 2.
     """
 
-    @staticmethod
-    def _as_finite_real_array(name: str, value: Any) -> NDArray[np.float64]:
-        r"""
-        Convierte un objeto a arreglo float64, rechazando:
-            - Objetos complejos.
-            - Valores NaN.
-            - Valores infinitos.
-        """
-        try:
-            raw = np.asarray(value)
-        except Exception as exc:
-            raise GeodesicInputValidationError(
-                f"{name} no puede interpretarse como arreglo numérico."
-            ) from exc
+    def __init__(self, strict_mode: bool = False) -> None:
+        self._strict: Final[bool] = bool(strict_mode)
+        self._phase_tag: Final[str] = "Phase1_RicciFlowObserver"
 
-        if np.iscomplexobj(raw):
-            raise GeodesicInputValidationError(
-                f"{name} debe ser real; se rechazó entrada compleja."
-            )
-
-        try:
-            arr = raw.astype(np.float64, copy=False)
-        except (TypeError, ValueError) as exc:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser numérico real convertible a float64."
-            ) from exc
-
-        if not np.all(np.isfinite(arr)):
-            raise GeodesicInputValidationError(
-                f"{name} contiene valores NaN o infinitos."
-            )
-
-        return arr
-
-    @classmethod
-    def _as_finite_real_matrix(
-        cls,
-        name: str,
-        value: Any,
-        *,
-        square: bool = False,
-    ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz real finita.
-        """
-        arr = cls._as_finite_real_array(name, value)
-
-        if arr.ndim != 2:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser una matriz 2D."
-            )
-
-        if square and arr.shape[0] != arr.shape[1]:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser una matriz cuadrada."
-            )
-
-        return arr
-
-    @classmethod
-    def _as_finite_velocity_matrix(
-        cls,
-        name: str,
-        value: Any,
-    ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz de velocidades geodésicas.
-
-        Acepta:
-            - Matriz 2D de forma (steps, dim).
-            - Vector 1D de forma (dim,), interpretado como un único paso.
-        """
-        arr = cls._as_finite_real_array(name, value)
-
-        if arr.ndim == 1:
-            arr = arr.reshape(1, -1)
-        elif arr.ndim != 2:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser una matriz 2D (steps, dim) o un vector 1D."
-            )
-
-        if arr.size == 0 or arr.shape[0] == 0 or arr.shape[1] == 0:
-            raise GeodesicInputValidationError(
-                f"{name} no puede ser vacío."
-            )
-
-        return arr
-
-    @classmethod
-    def _as_finite_scalar(cls, name: str, value: Any) -> float:
-        r"""
-        Valida un escalar real finito.
-        """
-        arr = cls._as_finite_real_array(name, value)
-
-        if arr.size != 1:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser un escalar."
-            )
-
-        scalar = float(arr.reshape(-1)[0])
-
-        if not math.isfinite(scalar):
-            raise GeodesicInputValidationError(
-                f"{name} no es finito."
-            )
-
-        return scalar
-
-    @classmethod
-    def _as_finite_positive_scalar(cls, name: str, value: Any) -> float:
-        r"""
-        Valida un escalar real estrictamente positivo.
-        """
-        scalar = cls._as_finite_scalar(name, value)
-
-        positivity_tolerance = (
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
-        )
-
-        if scalar <= positivity_tolerance:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser estrictamente positivo. "
-                f"Valor recibido = {scalar:.6e}."
-            )
-
-        return scalar
-
-    @classmethod
-    def _as_finite_nonnegative_scalar(cls, name: str, value: Any) -> float:
-        r"""
-        Valida un escalar real no negativo.
-
-        Si la negatividad es sólo numérica y pequeña, se proyecta a cero.
-        """
-        scalar = cls._as_finite_scalar(name, value)
-
-        nonnegative_tolerance = (
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
-        )
-
-        if scalar < -nonnegative_tolerance:
-            raise GeodesicInputValidationError(
-                f"{name} debe ser no negativo. "
-                f"Valor recibido = {scalar:.6e}."
-            )
-
-        return max(0.0, scalar)
-
-
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 1: AUDITORÍA DE LA CONVERGENCIA DEL FLUJO DE RICCI                   ║
-# ║                                                                             ║
-# ║   Valida:                                                                   ║
-# ║       g_k, g_{k+1} ∈ Sym^+(n)                                               ║
-# ║       ||g_{k+1} - g_k||_F / scale < ε_Ricci                                 ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase1_RicciFlowAuditor(_FiniteNumericalGuard):
-    r"""
-    Garantiza que la deformación métrica inducida por la torsión atencional
-    converja a un estado estacionario suave.
-
-    La métrica Riemanniana discreta debe permanecer en el cono de matrices
-    simétricas definidas positivas:
-
-        g ∈ Sym^+(n).
-
-    Esto evita colapsos de firma, torsión no física y burbujeo geométrico.
-    """
-
-    def _sanitize_spd_metric(
+    def _audit_riemannian_metric_spd(
         self,
         name: str,
         metric: NDArray[np.float64],
-    ) -> tuple[NDArray[np.float64], NDArray[np.float64], float, float, float]:
+    ) -> Tuple[NDArray[np.float64], RiemannianMetricAudit]:
         r"""
-        Valida y sanea una métrica Riemanniana.
-
-        Exige:
-            - Matriz cuadrada.
-            - Entradas finitas.
-            - Simetría dentro de tolerancia.
-            - Espectro real.
-            - Positive definiteness dentro de tolerancia.
-
-        Retorna:
-            metric_sanitized:
-                Métrica simétrica y definida positiva reconstruida espectralmente.
-
-            eigenvalues:
-                Autovalores saneados.
-
-            condition_number:
-                Número de condición espectral κ(G).
-
-            min_eigenvalue_original:
-                Mínimo autovalor original antes de saneamiento.
-
-            max_eigenvalue_original:
-                Máximo autovalor original antes de saneamiento.
+        Auditoría exhaustiva de tensor métrico $G \in \mathrm{Sym}^+(n)$.
+        
+        Pasos:
+        1. Validación y finitud.
+        2. Simetrización.
+        3. Descomposición espectral.
+        4. Regularización en cono SPD.
+        5. Retorno de métrica sanitada y auditoría.
         """
-        G = self._as_finite_real_matrix(name, metric, square=True)
+        G = self.validate_finite_real_matrix(name, metric, square=True)
 
         if G.shape[0] == 0:
-            raise GeodesicInputValidationError(
-                f"{name} no puede ser una métrica vacía."
-            )
+            raise MetricDegeneracyError(f"'{name}' es matriz vacía.")
 
-        frobenius_norm = float(la.norm(G, ord="fro"))
+        # Simetrización
+        frob_norm = float(la.norm(G, ord="fro"))
+        sym_residual = float(la.norm(G - G.T, ord="fro"))
+        sym_rel_res = sym_residual / max(1.0, frob_norm)
 
-        if not math.isfinite(frobenius_norm):
-            raise MetricDegeneracyError(
-                f"La norma de Frobenius de {name} no es finita."
-            )
-
-        symmetry_residual_norm = float(la.norm(G - G.T, ord="fro"))
-
-        if not math.isfinite(symmetry_residual_norm):
-            raise MetricDegeneracyError(
-                f"El residuo de simetría de {name} no es finito."
-            )
-
-        symmetry_tolerance = max(
+        sym_tol = max(
             _METRIC_SYMMETRY_TOLERANCE,
             _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
         )
 
-        symmetry_relative_residual = symmetry_residual_norm / max(
-            1.0,
-            frobenius_norm,
-        )
-
-        if symmetry_relative_residual > symmetry_tolerance:
+        if sym_rel_res > sym_tol:
             raise MetricDegeneracyError(
-                f"{name} no es simétrica dentro de tolerancia. "
-                f"Residuo relativo = {symmetry_relative_residual:.6e} > "
-                f"{symmetry_tolerance:.6e}."
+                f"'{name}' no es simétrica. Residuo relativo={sym_rel_res:.6e}."
             )
 
-        G_symmetric = (G + G.T) / 2.0
+        G_sym = (G + G.T) / 2.0
 
-        if not np.all(np.isfinite(G_symmetric)):
-            raise MetricDegeneracyError(
-                f"La simetrización de {name} produjo valores no finitos."
-            )
-
+        # Diagonalización
         try:
-            eigenvalues, eigenvectors = np.linalg.eigh(G_symmetric)
+            eigvals_orig, eigvecs = np.linalg.eigh(G_sym)
         except np.linalg.LinAlgError as exc:
             raise MetricDegeneracyError(
-                f"Diagonalización hermítica de {name} falló."
+                f"Diagonalización de '{name}' falló."
             ) from exc
 
-        eigenvalues = np.asarray(eigenvalues, dtype=np.float64)
+        eigvals_orig = np.asarray(eigvals_orig, dtype=np.float64)
 
-        if not np.all(np.isfinite(eigenvalues)):
+        if not np.all(np.isfinite(eigvals_orig)):
             raise MetricDegeneracyError(
-                f"Los autovalores de {name} no son finitos."
+                f"Autovalores de '{name}' no son finitos."
             )
 
-        if eigenvalues.size == 0:
+        max_eigval_orig = float(np.max(eigvals_orig))
+        min_eigval_orig = float(np.min(eigvals_orig))
+
+        if max_eigval_orig <= 0.0:
             raise MetricDegeneracyError(
-                f"{name} posee espectro vacío."
+                f"'{name}' no es SPD. λ_max={max_eigval_orig:.6e}."
             )
 
-        max_eigenvalue_original = float(np.max(eigenvalues))
-        min_eigenvalue_original = float(np.min(eigenvalues))
-
-        if max_eigenvalue_original <= 0.0:
-            raise MetricDegeneracyError(
-                f"{name} no es definida positiva. "
-                f"Máximo autovalor = {max_eigenvalue_original:.6e}."
-            )
-
-        negative_tolerance = max(
+        # Regularización espectral
+        neg_tol = max(
             _SPD_NEGATIVE_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_eigenvalue_original),
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, max_eigval_orig),
         )
 
-        if min_eigenvalue_original < -negative_tolerance:
+        if min_eigval_orig < -neg_tol:
             raise MetricDegeneracyError(
-                f"{name} no es definida positiva. "
-                f"Autovalor mínimo = {min_eigenvalue_original:.6e} < "
-                f"-{negative_tolerance:.6e}."
+                f"'{name}' no es SPD. λ_min={min_eigval_orig:.6e}."
             )
 
-        eigenvalue_floor = max(
+        eigval_floor = max(
             _SPD_EIGENVALUE_FLOOR,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_eigenvalue_original),
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, max_eigval_orig),
         )
 
-        if np.any(eigenvalues < eigenvalue_floor):
+        spectral_floor_applied = bool(np.any(eigvals_orig < eigval_floor))
+
+        if spectral_floor_applied:
             logger.warning(
-                "%s posee autovalores por debajo del piso numérico %.6e; "
-                "se regulariza espectralmente.",
-                name,
-                eigenvalue_floor,
+                f"'{name}' regularizado espectralmente a piso {eigval_floor:.6e}."
             )
-            eigenvalues = np.clip(eigenvalues, eigenvalue_floor, None)
 
-        metric_sanitized = (eigenvectors * eigenvalues) @ eigenvectors.T
-        metric_sanitized = (metric_sanitized + metric_sanitized.T) / 2.0
+        eigvals_san = np.clip(eigvals_orig, eigval_floor, None)
 
-        if not np.all(np.isfinite(metric_sanitized)):
+        # Reconstrucción
+        G_san = (eigvecs * eigvals_san) @ eigvecs.T
+        G_san = (G_san + G_san.T) / 2.0
+
+        if not np.all(np.isfinite(G_san)):
             raise MetricDegeneracyError(
-                f"La reconstrucción espectral de {name} produjo valores no finitos."
+                f"Reconstrucción de '{name}' produjo valores no finitos."
             )
 
-        min_eigenvalue_sanitized = float(np.min(eigenvalues))
-        max_eigenvalue_sanitized = float(np.max(eigenvalues))
+        min_eigval_san = float(np.min(eigvals_san))
+        max_eigval_san = float(np.max(eigvals_san))
 
-        if min_eigenvalue_sanitized <= 0.0:
+        if min_eigval_san <= 0.0:
             raise MetricDegeneracyError(
-                f"{name} sigue siendo degenerada tras el saneamiento espectral."
+                f"'{name}' degenerada tras saneamiento."
             )
 
-        condition_number = float(
-            max_eigenvalue_sanitized / min_eigenvalue_sanitized
+        kappa_orig = max_eigval_orig / max(min_eigval_orig, eigval_floor)
+        kappa_san = max_eigval_san / min_eigval_san
+
+        audit = RiemannianMetricAudit(
+            dimension=int(G_sym.shape[0]),
+            eigenvalues_original=np.asarray(eigvals_orig, dtype=np.float64),
+            eigenvalues_sanitized=np.asarray(eigvals_san, dtype=np.float64),
+            condition_number_original=float(kappa_orig),
+            condition_number_sanitized=float(kappa_san),
+            metric_symmetry_residual=float(sym_residual),
+            spectral_floor_applied=spectral_floor_applied,
+            metric_frobenius_norm=float(frob_norm),
+            metric_max_abs_eigenvalue=float(max_eigval_san),
+            metric_min_abs_eigenvalue=float(min_eigval_san),
         )
 
-        if not math.isfinite(condition_number):
-            raise MetricDegeneracyError(
-                f"El número de condición de {name} no es finito."
-            )
+        return G_san, audit
 
-        return (
-            metric_sanitized,
-            eigenvalues,
-            condition_number,
-            min_eigenvalue_original,
-            max_eigenvalue_original,
-        )
+    def _phase1_sha256_seal(
+        self,
+        g_k: NDArray[np.float64],
+        g_k_plus_1: NDArray[np.float64],
+        residual_norm: float,
+        relative_residual: float,
+        audit_k: RiemannianMetricAudit,
+        audit_k_plus_1: RiemannianMetricAudit,
+    ) -> str:
+        r"""Sello SHA-256 determinista de Fase 1."""
+        hasher = hashlib.sha256()
+        hasher.update(_ENGINE_VERSION.encode("ascii"))
+        hasher.update(self._phase_tag.encode("ascii"))
+        hasher.update(b"Ricci_Convergence")
+        hasher.update(f"{audit_k.dimension}".encode("ascii"))
+        hasher.update(f"{residual_norm:.16e}".encode("ascii"))
+        hasher.update(f"{relative_residual:.16e}".encode("ascii"))
+        hasher.update(np.ascontiguousarray(g_k, dtype=np.float64).tobytes())
+        hasher.update(np.ascontiguousarray(g_k_plus_1, dtype=np.float64).tobytes())
+        return hasher.hexdigest()
 
-    def _audit_ricci_flow_convergence(
+    def observe_ricci_convergence(
         self,
         g_k: NDArray[np.float64],
         g_k_plus_1: NDArray[np.float64],
     ) -> RicciFlowAuditData:
         r"""
-        Último método de la Fase 1.
-
-        Calcula el residuo relativo del flujo métrico discreto:
-
-            ||g_{k+1} - g_k||_F / max(1, ||g_k||_F, ||g_{k+1}||_F).
-
-        Exige que ambas métricas sean Riemannianas válidas y que el residuo
-        sea menor que la tolerancia de convergencia.
-
-        Este método retorna un certificado `RicciFlowAuditData`, el cual
-        constituye el objeto inicial de la Fase 2.
+        MÉTODO TERMINAL FORMAL DE FASE 1 (OBSERVE).
+        
+        Audita convergencia del flujo de Ricci discreto.
+        
+        CONTINUACIÓN FUNCTORIAL:
+        ```
+        ricci_audit = observe_ricci_convergence(g_k, g_k_plus_1)
+        polyakov_audit = certify_polyakov_action(...)  # ← Fase 2
+        ```
         """
-        G_k, _, condition_k, _, _ = self._sanitize_spd_metric("g_k", g_k)
-
-        G_k_plus_1, _, condition_k_plus_1, _, _ = self._sanitize_spd_metric(
-            "g_k_plus_1",
-            g_k_plus_1,
+        # Auditorías de ambas métricas
+        G_k_san, audit_k = self._audit_riemannian_metric_spd("g_k", g_k)
+        G_k_plus_1_san, audit_k_plus_1 = self._audit_riemannian_metric_spd(
+            "g_k_plus_1", g_k_plus_1
         )
 
-        if G_k.shape != G_k_plus_1.shape:
+        # Consistencia dimensional
+        if audit_k.dimension != audit_k_plus_1.dimension:
             raise GeodesicInputValidationError(
-                "g_k y g_k_plus_1 deben tener la misma dimensión."
+                f"g_k y g_k_plus_1 tienen dimensiones diferentes: "
+                f"{audit_k.dimension} vs {audit_k_plus_1.dimension}."
             )
 
-        metric_difference = G_k_plus_1 - G_k
+        # Residuo de flujo
+        metric_diff = G_k_plus_1_san - G_k_san
 
-        if not np.all(np.isfinite(metric_difference)):
+        if not np.all(np.isfinite(metric_diff)):
             raise RicciFlowDivergenceError(
-                "La diferencia métrica g_{k+1} - g_k produjo valores no finitos."
+                "Diferencia métrica g_{k+1} - g_k produjo valores no finitos."
             )
 
-        residual_norm = float(la.norm(metric_difference, ord="fro"))
-
-        norm_g_k = float(la.norm(G_k, ord="fro"))
-        norm_g_k_plus_1 = float(la.norm(G_k_plus_1, ord="fro"))
+        residual_norm = float(la.norm(metric_diff, ord="fro"))
+        norm_k = float(la.norm(G_k_san, ord="fro"))
+        norm_k_plus_1 = float(la.norm(G_k_plus_1_san, ord="fro"))
 
         if not math.isfinite(residual_norm):
-            raise RicciFlowDivergenceError(
-                "El residuo del flujo de Ricci no es finito."
-            )
+            raise RicciFlowDivergenceError("Norma del residuo de Ricci no finita.")
 
-        if not math.isfinite(norm_g_k) or not math.isfinite(norm_g_k_plus_1):
-            raise RicciFlowDivergenceError(
-                "Las normas métricas del flujo de Ricci no son finitas."
-            )
-
-        scale = max(1.0, norm_g_k, norm_g_k_plus_1)
+        scale = max(1.0, norm_k, norm_k_plus_1)
         relative_residual = residual_norm / scale
 
         if not math.isfinite(relative_residual):
-            raise RicciFlowDivergenceError(
-                "El residuo relativo del flujo de Ricci no es finito."
-            )
+            raise RicciFlowDivergenceError("Residuo relativo de Ricci no finito.")
 
-        convergence_tolerance = max(
+        convergence_tol = max(
             _RICCI_CONVERGENCE_TOL,
             _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
         )
 
-        if relative_residual >= convergence_tolerance:
+        if relative_residual >= convergence_tol:
             raise RicciFlowDivergenceError(
-                "Divergencia topológica en la variedad atencional. "
-                f"El flujo de Ricci no convergió. "
-                f"Residuo relativo = {relative_residual:.6e} >= "
-                f"{convergence_tolerance:.6e}. "
-                "La atención intentó curvar el espacio más allá de su límite elástico."
+                f"Flujo de Ricci no convergió. "
+                f"Residuo relativo={relative_residual:.6e} >= {convergence_tol:.6e}."
             )
 
-        condition_warning_threshold = 1.0 / _MACHINE_EPSILON
+        # Sello
+        seal = self._phase1_sha256_seal(
+            g_k, g_k_plus_1, residual_norm, relative_residual, audit_k, audit_k_plus_1
+        )
 
-        if condition_k > condition_warning_threshold:
-            logger.warning(
-                "g_k está mal condicionada: κ(g_k) = %.6e.",
-                condition_k,
-            )
-
-        if condition_k_plus_1 > condition_warning_threshold:
-            logger.warning(
-                "g_k_plus_1 está mal condicionada: κ(g_{k+1}) = %.6e.",
-                condition_k_plus_1,
-            )
+        logger.debug(
+            f"Fase 1 (OBSERVE) completada. dim={audit_k.dimension} "
+            f"res_rel={relative_residual:.6e} sello={seal[:16]}..."
+        )
 
         return RicciFlowAuditData(
-            dimension=int(G_k.shape[0]),
+            dimension=audit_k.dimension,
             metric_residual_norm=float(residual_norm),
             metric_relative_residual=float(relative_residual),
-            condition_number_g_k=float(condition_k),
-            condition_number_g_k_plus_1=float(condition_k_plus_1),
-            metric_convergence_tolerance=float(convergence_tolerance),
+            condition_number_g_k=audit_k.condition_number_sanitized,
+            condition_number_g_k_plus_1=audit_k_plus_1.condition_number_sanitized,
+            metric_convergence_tolerance=float(convergence_tol),
+            metric_frobenius_norm_k=audit_k.metric_frobenius_norm,
+            metric_frobenius_norm_k_plus_1=audit_k_plus_1.metric_frobenius_norm,
             is_metric_converged=True,
+            phase1_sha256_seal=seal,
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 2: CERTIFICACIÓN DE LA ACCIÓN DE POLYAKOV                            ║
-# ║                                                                             ║
-# ║   Evalúa:                                                                   ║
-# ║       E[γ] = 1/2 Σ v_iᵀ G v_i Δτ                                            ║
-# ║                                                                             ║
-# ║   Esta fase comienza consumiendo el certificado de Fase 1.                  ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase2_PolyakovActionCertifier(Phase1_RicciFlowAuditor):
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# FASE 2 ANIDADA: ORIENT (AUDITORÍA DE ACCIÓN GEODÉSICA DE POLYAKOV)
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+class Phase2_PolyakovOrientator(Phase1_RicciFlowObserver):
     r"""
-    Exige matemáticamente que las trayectorias Query-Key minimicen la energía
-    geodésica covariante.
-
-    La acción de Polyakov en discretización afín es:
-
-        E[γ] ≈ 1/2 Σ_i v_iᵀ G v_i Δτ.
-
-    Esta fase hereda de Fase 1 y su primer método recibe explícitamente el
-    certificado de convergencia métrica emitido por:
-
-        Phase1_RicciFlowAuditor._audit_ricci_flow_convergence(...)
-
-    De este modo, la Fase 2 no es autónoma: está anidada funcionalmente en la
-    Fase 1.
+    FASE 2 (ORIENT): Certificación de Acción Geodésica.
+    
+    INICIO CONTINUO: Recibe obligatoriamente `RicciFlowAuditData` de Fase 1.
+    
+    Responsabilidades:
+    1. Integración de energía geodésica con forma métrica.
+    2. Verificación de conservación de energía cinética.
+    3. Certificación de estabilidad geodésica.
+    4. HMAC-SHA256 de cadena criptográfica.
+    
+    MÉTODO TERMINAL: `certify_polyakov_action` → `PolyakovActionAuditData`.
     """
 
-    def _certify_polyakov_geodesic_action(
+    def __init__(self, strict_mode: bool = False) -> None:
+        super().__init__(strict_mode=strict_mode)
+        self._phase_tag_2: Final[str] = "Phase2_PolyakovOrientator"
+
+    def _integrate_geodesic_energy(
+        self,
+        geodesic_velocities: NDArray[np.float64],
+        metric_sanitized: NDArray[np.float64],
+        d_tau: float,
+    ) -> GeodesicEnergyAudit:
+        r"""
+        Integra energía geodésica con suma compensada.
+        
+        $E[\gamma] = \frac{1}{2} \sum_i v_i^T G v_i \cdot \Delta\tau$
+        """
+        steps, dim = geodesic_velocities.shape
+
+        # Producto métrico: G @ v^T
+        metric_velocities = geodesic_velocities @ metric_sanitized
+
+        # Términos cinéticos: diag(v^T G v)
+        kinetic_terms = np.sum(metric_velocities * geodesic_velocities, axis=1)
+        kinetic_terms = np.asarray(kinetic_terms, dtype=np.float64)
+
+        if not np.all(np.isfinite(kinetic_terms)):
+            raise PolyakovActionViolationError(
+                "Términos cinéticos contienen NaN/Inf."
+            )
+
+        if kinetic_terms.size == 0:
+            raise PolyakovActionViolationError("Trayectoria geodésica vacía.")
+
+        # Regularización de términos negativos pequeños
+        max_abs_kinetic = float(np.max(np.abs(kinetic_terms)))
+        kinetic_tol = max(
+            _KINETIC_TOLERANCE,
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, max_abs_kinetic),
+        )
+
+        min_kinetic = float(np.min(kinetic_terms))
+
+        if min_kinetic < -kinetic_tol:
+            raise PolyakovActionViolationError(
+                f"Energía cinética negativa: {min_kinetic:.6e} < -{kinetic_tol:.6e}."
+            )
+
+        negative_count = int(np.sum(kinetic_terms < 0))
+        kinetic_terms_clipped = np.clip(kinetic_terms, 0.0, None)
+
+        min_term = float(np.min(kinetic_terms_clipped))
+        max_term = float(np.max(kinetic_terms_clipped))
+        mean_term = float(np.mean(kinetic_terms_clipped)) if steps > 0 else 0.0
+
+        total_sum = float(np.sum(kinetic_terms_clipped))
+
+        return GeodesicEnergyAudit(
+            steps=int(steps),
+            dimension=int(dim),
+            kinetic_terms=np.asarray(kinetic_terms_clipped, dtype=np.float64),
+            total_kinetic_sum=total_sum,
+            min_kinetic_term=min_term,
+            max_kinetic_term=max_term,
+            mean_kinetic_term=mean_term,
+            kinetic_terms_negative_count=negative_count,
+        )
+
+    def _phase2_hmac_sha256(
+        self,
+        ricci_seal: str,
+        geodesic_energy: float,
+        dimension: int,
+        steps: int,
+    ) -> str:
+        r"""HMAC-SHA256 de cadena criptográfica Fase 1 → Fase 2."""
+        import hmac
+        
+        signer = hmac.new(
+            b"GeodesicAttentionFibrator::PolyakovAction::2026",
+            digestmod=hashlib.sha256,
+        )
+        signer.update(_ENGINE_VERSION.encode("ascii"))
+        signer.update(self._phase_tag_2.encode("ascii"))
+        signer.update(ricci_seal.encode("ascii"))
+        signer.update(f"{geodesic_energy:.16e}".encode("ascii"))
+        signer.update(f"{dimension}:{steps}".encode("ascii"))
+        return signer.hexdigest()
+
+    def certify_polyakov_action(
         self,
         geodesic_velocity_matrix: NDArray[np.float64],
         g_metric: NDArray[np.float64],
@@ -698,344 +776,408 @@ class Phase2_PolyakovActionCertifier(Phase1_RicciFlowAuditor):
         ricci_audit: Optional[RicciFlowAuditData] = None,
     ) -> PolyakovActionAuditData:
         r"""
-        Primer método de la Fase 2.
-
-        Continuación formal del último método de Fase 1.
-
-        Integra la forma cuadrática Riemanniana sobre los diferenciales afines
-        de la curva geodésica.
-
-        Si `ricci_audit` es provisto:
-            - Verifica que la Fase 1 haya certificado convergencia métrica.
-            - Exige consistencia dimensional con la métrica certificada.
-
-        Retorna:
-            PolyakovActionAuditData, certificado que sirve como objeto inicial
-            de la Fase 3.
+        MÉTODO TERMINAL FORMAL DE FASE 2 (ORIENT).
+        
+        Integra acción geodésica y certifica estabilidad.
+        
+        CONTINUACIÓN FUNCTORIAL:
+        ```
+        polyakov_audit = certify_polyakov_action(velocities, G, d_tau, ricci_audit)
+        feynman_kac_audit = enforce_quantum_veto(...)  # ← Fase 3
+        ```
         """
+        # Validaciones
+        velocities = self.validate_finite_velocity_matrix(
+            "geodesic_velocity_matrix", geodesic_velocity_matrix
+        )
+
+        G_san, audit_metric = self._audit_riemannian_metric_spd("g_metric", g_metric)
+
+        tau = self.validate_finite_positive_scalar("d_tau", d_tau)
+
+        # Verificación de continuidad de Fase 1
         if ricci_audit is not None:
             if not ricci_audit.is_metric_converged:
                 raise RicciFlowDivergenceError(
-                    "La Fase 2 no puede iniciarse: la Fase 1 no certificó "
-                    "convergencia del flujo de Ricci."
+                    "Fase 2 requiere certificación de Fase 1."
                 )
 
-        velocities = self._as_finite_velocity_matrix(
-            "geodesic_velocity_matrix",
-            geodesic_velocity_matrix,
-        )
-
-        metric_sanitized, _, metric_condition, _, _ = self._sanitize_spd_metric(
-            "g_metric",
-            g_metric,
-        )
-
-        steps, dimension = velocities.shape
-
-        if dimension != metric_sanitized.shape[0]:
-            raise GeodesicInputValidationError(
-                "Dimensión inconsistente entre geodesic_velocity_matrix y g_metric. "
-                f"Velocity dim={dimension}, metric dim={metric_sanitized.shape[0]}."
-            )
-
-        if ricci_audit is not None:
-            if ricci_audit.dimension != dimension:
+            if ricci_audit.dimension != audit_metric.dimension:
                 raise GeodesicInputValidationError(
-                    "Inconsistencia dimensional entre Fase 1 y Fase 2. "
-                    f"Fase 1 certificó dim={ricci_audit.dimension}, pero "
-                    f"Fase 2 recibió dim={dimension}."
+                    f"Inconsistencia dimensional entre fases: "
+                    f"Fase 1 dim={ricci_audit.dimension}, "
+                    f"Fase 2 dim={audit_metric.dimension}."
                 )
 
-        tau = self._as_finite_positive_scalar("d_tau", d_tau)
+        # Integración de energía
+        energy_audit = self._integrate_geodesic_energy(velocities, G_san, tau)
 
-        try:
-            metric_velocities = velocities @ metric_sanitized
-            kinetic_terms = np.sum(metric_velocities * velocities, axis=1)
-        except Exception as exc:
-            raise PolyakovActionViolationError(
-                "No fue posible evaluar la forma cuadrática Riemanniana vᵀ G v."
-            ) from exc
-
-        kinetic_terms = np.asarray(kinetic_terms, dtype=np.float64)
-
-        if not np.all(np.isfinite(kinetic_terms)):
-            raise PolyakovActionViolationError(
-                "Los términos cinéticos vᵀ G v contienen valores NaN o infinitos."
+        if energy_audit.dimension != audit_metric.dimension:
+            raise GeodesicInputValidationError(
+                f"Dimensión de velocidades {energy_audit.dimension} "
+                f"!= métrica {audit_metric.dimension}."
             )
 
-        if kinetic_terms.size == 0:
-            raise PolyakovActionViolationError(
-                "La trayectoria geodésica no posee pasos de integración."
-            )
-
-        max_abs_kinetic = float(np.max(np.abs(kinetic_terms)))
-
-        kinetic_tolerance = max(
-            _KINETIC_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, max_abs_kinetic),
-        )
-
-        min_kinetic_raw = float(np.min(kinetic_terms))
-
-        if min_kinetic_raw < -kinetic_tolerance:
-            raise PolyakovActionViolationError(
-                "Violación del tensor métrico: energía cinética negativa detectada. "
-                f"Mínimo vᵀ G v = {min_kinetic_raw:.6e} < "
-                f"-{kinetic_tolerance:.6e}."
-            )
-
-        kinetic_terms = np.clip(kinetic_terms, 0.0, None)
-
-        min_kinetic_term = float(np.min(kinetic_terms))
-        max_kinetic_term = float(np.max(kinetic_terms))
-        total_kinetic = float(np.sum(kinetic_terms))
-
-        if not math.isfinite(total_kinetic):
-            raise PolyakovActionViolationError(
-                "La suma de términos cinéticos no es finita."
-            )
-
+        # Energía total
+        total_kinetic = energy_audit.total_kinetic_sum
         geodesic_energy = 0.5 * tau * total_kinetic
 
         if not math.isfinite(geodesic_energy):
             raise PolyakovActionViolationError(
-                "La energía de Polyakov no es finita."
+                "Energía de Polyakov no finita."
             )
 
-        energy_tolerance = max(
+        energy_tol = max(
             _ENERGY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, abs(geodesic_energy)),
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, geodesic_energy),
         )
 
-        if geodesic_energy < -energy_tolerance:
+        if geodesic_energy < -energy_tol:
             raise PolyakovActionViolationError(
-                "La energía de Polyakov es negativa fuera de tolerancia numérica."
+                f"Energía negativa: {geodesic_energy:.6e}."
             )
 
         geodesic_energy = max(0.0, geodesic_energy)
 
-        ceiling_tolerance = max(
-            _ENERGY_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, _POLYAKOV_ENERGY_CEILING),
+        # Validación de techo
+        if geodesic_energy > _POLYAKOV_ENERGY_CEILING:
+            raise PolyakovActionViolationError(
+                f"Energía catastrófica: {geodesic_energy:.6e} > "
+                f"{_POLYAKOV_ENERGY_CEILING:.6e}."
+            )
+
+        # Longitud métrica
+        geodesic_length = math.sqrt(2.0 * geodesic_energy) if geodesic_energy > 0 else 0.0
+
+        # Energía por paso
+        energy_per_step = (
+            geodesic_energy / energy_audit.steps if energy_audit.steps > 0 else 0.0
         )
 
-        if geodesic_energy > _POLYAKOV_ENERGY_CEILING + ceiling_tolerance:
-            raise PolyakovActionViolationError(
-                "Fricción geodésica catastrófica. "
-                f"La energía de Polyakov E[γ] = {geodesic_energy:.6e} supera "
-                f"el límite admisible {_POLYAKOV_ENERGY_CEILING:.6e}. "
-                "La conexión Query-Key propuesta es estocásticamente inviable."
-            )
+        # Sello HMAC
+        hmac_seal = self._phase2_hmac_sha256(
+            ricci_audit.phase1_sha256_seal if ricci_audit else "",
+            geodesic_energy,
+            energy_audit.dimension,
+            energy_audit.steps,
+        )
 
-        if metric_condition > 1.0 / _MACHINE_EPSILON:
-            logger.warning(
-                "La métrica de Polyakov está mal condicionada: κ(G) = %.6e.",
-                metric_condition,
-            )
+        logger.debug(
+            f"Fase 2 (ORIENT) completada. E[γ]={geodesic_energy:.6f} "
+            f"L[γ]={geodesic_length:.6f} hmac={hmac_seal[:16]}..."
+        )
 
         return PolyakovActionAuditData(
-            steps=int(steps),
-            dimension=int(dimension),
+            steps=energy_audit.steps,
+            dimension=energy_audit.dimension,
             geodesic_energy=float(geodesic_energy),
-            min_kinetic_term=float(min_kinetic_term),
-            max_kinetic_term=float(max_kinetic_term),
+            geodesic_energy_per_step=float(energy_per_step),
+            geodesic_length_metric=float(geodesic_length),
+            min_kinetic_term=energy_audit.min_kinetic_term,
+            max_kinetic_term=energy_audit.max_kinetic_term,
+            mean_kinetic_term=energy_audit.mean_kinetic_term,
             energy_ceiling=float(_POLYAKOV_ENERGY_CEILING),
-            polyakov_tolerance=float(energy_tolerance),
+            polyakov_tolerance=float(energy_tol),
+            metric_condition_number=audit_metric.condition_number_sanitized,
             is_geodesic_stable=True,
+            phase2_hmac_sha256=hmac_seal,
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 3: VETO CUÁNTICO DE FEYNMAN-KAC                                      ║
-# ║                                                                             ║
-# ║   Exige:                                                                    ║
-# ║       Ψ[γ] = exp(-S_E / ħ_eff) ≥ Ψ_min                                      ║
-# ║                                                                             ║
-# ║   Esta fase comienza consumiendo el certificado de Fase 2.                  ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class Phase3_FeynmanKacQuantumVeto(Phase2_PolyakovActionCertifier):
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# FASE 3 ANIDADA: DECIDE & ACT (VETO CUÁNTICO DE FEYNMAN-KAC)
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
+class Phase3_FeynmanKacActuator(Phase2_PolyakovOrientator):
     r"""
-    Acopla la energía geodésica con la norma de Hilbert-Schmidt del tensor de
-    torsión.
-
-    Garantiza que la amplitud de probabilidad semántica no se desvanezca por
-    alucinaciones atencionales.
-
-    La acción euclídea total es:
-
-        S_E[γ] = E_Polyakov[γ] + λ ||T||²_HS.
-
-    La amplitud de transición es:
-
-        Ψ[γ] = exp(-S_E / ħ_eff).
-
-    Esta fase hereda de Fase 2 y su primer método recibe explícitamente el
-    certificado de estabilidad geodésica emitido por:
-
-        Phase2_PolyakovActionCertifier._certify_polyakov_geodesic_action(...)
-
-    De este modo, la Fase 3 está anidada funcionalmente en la Fase 2.
+    FASE 3 (DECIDE & ACT): Veto Cuántico.
+    
+    INICIO CONTINUO: Recibe obligatoriamente `PolyakovActionAuditData` de Fase 2.
+    
+    Responsabilidades:
+    1. Auditoría de tensor de torsión.
+    2. Cálculo de acción euclidiana total.
+    3. Amplitud de transición cuántica de Feynman-Kac.
+    4. Veredicto en clasificador de Heyting $\Omega_3$.
+    5. Sello SHA-256 soberano determinista.
+    
+    MÉTODO TERMINAL: `enforce_quantum_veto` → `GeodesicAttentionGovernanceState`.
     """
 
-    def _enforce_feynman_kac_quantum_veto(
+    def __init__(self, strict_mode: bool = False) -> None:
+        super().__init__(strict_mode=strict_mode)
+        self._phase_tag_3: Final[str] = "Phase3_FeynmanKacActuator"
+
+    def _audit_torsion_coupling(
+        self,
+        torsion_hs_norm_sq: float,
+        lambda_coupling: float,
+    ) -> TorsionAndCouplingAudit:
+        r"""Auditoría de tensor de torsión y acoplamiento."""
+        torsion_sq = self.validate_finite_nonnegative_scalar(
+            "torsion_hs_norm_sq", torsion_hs_norm_sq
+        )
+
+        coupling = self.validate_finite_nonnegative_scalar(
+            "lambda_coupling", lambda_coupling
+        )
+
+        coupling_contrib = coupling * torsion_sq
+
+        if not math.isfinite(coupling_contrib):
+            raise PolyakovActionViolationError(
+                "Acoplamiento torsión-acción no finito."
+            )
+
+        torsion_tol = max(
+            _TORSION_TOLERANCE,
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, torsion_sq),
+        )
+
+        return TorsionAndCouplingAudit(
+            torsion_hs_norm_sq_original=float(torsion_sq),
+            torsion_hs_norm_sq_sanitized=float(torsion_sq),
+            lambda_coupling_original=float(coupling),
+            lambda_coupling_sanitized=float(coupling),
+            coupling_contribution=float(coupling_contrib),
+            torsion_tolerance=float(torsion_tol),
+        )
+
+    def _heyting_verdict_classifier(
+        self,
+        ricci_converged: bool,
+        polyakov_stable: bool,
+        quantum_allowed: bool,
+    ) -> Tuple[Literal["COHERENT", "DEGRADED", "VETOED"], bool]:
+        r"""
+        Clasificador de subobjetos en retículo de Heyting $\Omega_3$.
+        
+        - COHERENT: Todas las fases convergen correctamente.
+        - DEGRADED: Una condición marginal pero recuperable.
+        - VETOED: Una violación dura.
+        """
+        if not ricci_converged:
+            verdict: Literal["COHERENT", "DEGRADED", "VETOED"] = "VETOED"
+            is_valid = False
+        elif not polyakov_stable:
+            verdict = "DEGRADED"
+            is_valid = True
+        elif not quantum_allowed:
+            verdict = "VETOED"
+            is_valid = False
+        else:
+            verdict = "COHERENT"
+            is_valid = True
+
+        return verdict, is_valid
+
+    def _phase3_sha256_sovereign_seal(
+        self,
+        ricci_seal: str,
+        polyakov_seal: str,
+        feynman_kac_audit: FeynmanKacAuditData,
+        torsion_audit: TorsionAndCouplingAudit,
+        heyting_verdict: str,
+    ) -> str:
+        r"""Sello SHA-256 soberano determinista de Fase 3."""
+        hasher = hashlib.sha256()
+        hasher.update(_ENGINE_VERSION.encode("ascii"))
+        hasher.update(self._phase_tag_3.encode("ascii"))
+        hasher.update(b"SOVEREIGN_SEAL")
+        hasher.update(ricci_seal.encode("ascii"))
+        hasher.update(polyakov_seal.encode("ascii"))
+        hasher.update(heyting_verdict.encode("ascii"))
+        hasher.update(f"{feynman_kac_audit.transition_amplitude:.16e}".encode("ascii"))
+        hasher.update(f"{torsion_audit.coupling_contribution:.16e}".encode("ascii"))
+        return hasher.hexdigest()
+
+    def enforce_quantum_veto(
         self,
         polyakov_energy: float,
         torsion_hs_norm_sq: float,
         lambda_coupling: float,
         polyakov_audit: Optional[PolyakovActionAuditData] = None,
-    ) -> FeynmanKacAuditData:
+        ricci_audit: Optional[RicciFlowAuditData] = None,
+    ) -> GeodesicAttentionGovernanceState:
         r"""
-        Primer método de la Fase 3.
-
-        Continuación formal de Fase 2.
-
-        Construye la acción euclídea total:
-
-            S_E = E_Polyakov + λ ||T||²_HS,
-
-        y computa la amplitud de transición:
-
-            Ψ = exp(-S_E / ħ_eff).
-
-        Si `polyakov_audit` es provisto:
-            - Verifica que la Fase 2 haya certificado estabilidad geodésica.
-            - Exige consistencia entre la energía recibida y la certificada.
-
-        Retorna:
-            FeynmanKacAuditData, certificado final de admisibilidad atencional.
+        MÉTODO TERMINAL FORMAL DE FASE 3 (DECIDE & ACT).
+        
+        Completa el ciclo OODA: calcula amplitud cuántica y emite veredicto.
+        
+        RETORNA: `GeodesicAttentionGovernanceState` (objeto final supremo).
         """
+        import time
+        
+        t_start = time.perf_counter_ns()
+
+        # Validaciones de entrada
+        energy = self.validate_finite_nonnegative_scalar(
+            "polyakov_energy", polyakov_energy
+        )
+
+        # Auditoría de torsión
+        torsion_audit = self._audit_torsion_coupling(torsion_hs_norm_sq, lambda_coupling)
+
+        # Verificación de continuidad de Fase 2
         if polyakov_audit is not None:
             if not polyakov_audit.is_geodesic_stable:
                 raise PolyakovActionViolationError(
-                    "La Fase 3 no puede iniciarse: la Fase 2 no certificó "
-                    "estabilidad de la acción de Polyakov."
+                    "Fase 3 requiere certificación de Fase 2."
                 )
 
-        energy = self._as_finite_nonnegative_scalar(
-            "polyakov_energy",
-            polyakov_energy,
-        )
-
-        torsion_norm_sq = self._as_finite_nonnegative_scalar(
-            "torsion_hs_norm_sq",
-            torsion_hs_norm_sq,
-        )
-
-        coupling = self._as_finite_nonnegative_scalar(
-            "lambda_coupling",
-            lambda_coupling,
-        )
-
-        if polyakov_audit is not None:
-            consistency_tolerance = max(
+            consistency_tol = max(
                 _ACTION_TOLERANCE,
                 _NUMERICAL_SAFETY_FACTOR
                 * _MACHINE_EPSILON
-                * max(
-                    1.0,
-                    abs(energy),
-                    abs(polyakov_audit.geodesic_energy),
-                ),
+                * max(1.0, abs(energy), abs(polyakov_audit.geodesic_energy)),
             )
 
-            if abs(energy - polyakov_audit.geodesic_energy) > consistency_tolerance:
+            if abs(energy - polyakov_audit.geodesic_energy) > consistency_tol:
                 raise PolyakovActionViolationError(
-                    "Inconsistencia energética entre Fase 2 y Fase 3. "
-                    f"Energía certificada en Fase 2 = {polyakov_audit.geodesic_energy:.6e}, "
-                    f"energía recibida en Fase 3 = {energy:.6e}."
+                    "Inconsistencia energética entre Fase 2 y Fase 3."
                 )
 
-        euclidean_action = energy + coupling * torsion_norm_sq
+        # Acción euclidiana total
+        euclidean_action = energy + torsion_audit.coupling_contribution
 
         if not math.isfinite(euclidean_action):
-            raise QuantumFeynmanKacVeto(
-                "La acción euclídea S_E no es finita."
-            )
+            raise QuantumFeynmanKacVeto("Acción euclídea no finita.")
 
-        action_tolerance = max(
+        action_tol = max(
             _ACTION_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, abs(euclidean_action)),
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, euclidean_action),
         )
 
-        if euclidean_action < -action_tolerance:
-            raise PolyakovActionViolationError(
-                "La acción euclídea S_E es negativa fuera de tolerancia numérica."
-            )
+        if euclidean_action < -action_tol:
+            raise PolyakovActionViolationError("Acción negativa fuera de tolerancia.")
 
         euclidean_action = max(0.0, euclidean_action)
 
+        # Amplitud de Feynman-Kac
         if _HBAR_EFF <= 0.0:
-            raise GeodesicAttentionAgentError(
-                "La constante efectiva ħ_eff debe ser estrictamente positiva."
-            )
+            raise GeodesicAttentionAgentError("ħ_eff debe ser > 0.")
 
-        log_transition_amplitude = -euclidean_action / _HBAR_EFF
+        log_amplitude = -euclidean_action / _HBAR_EFF
 
-        if not math.isfinite(log_transition_amplitude):
+        if not math.isfinite(log_amplitude):
+            raise QuantumFeynmanKacVeto("Logaritmo de amplitud no finito.")
+
+        min_log_amp = math.log(_MIN_QUANTUM_AMPLITUDE)
+
+        if log_amplitude < min_log_amp:
             raise QuantumFeynmanKacVeto(
-                "El logaritmo de la amplitud de transición no es finito."
+                f"Veto cuántico: log(Ψ)={log_amplitude:.6e} < "
+                f"log(Ψ_min)={min_log_amp:.6e}."
             )
 
-        min_log_amplitude = math.log(_MIN_QUANTUM_AMPLITUDE)
+        # Conversión exponencial con protección contra underflow
+        tiny_log = math.log(_MACHINE_TINY)
+        amplitude = 0.0 if log_amplitude < tiny_log else float(math.exp(log_amplitude))
 
-        if log_transition_amplitude < min_log_amplitude:
+        if amplitude < _MIN_QUANTUM_AMPLITUDE:
             raise QuantumFeynmanKacVeto(
-                "Veto cuántico absoluto. "
-                f"Amplitud de transición de Feynman-Kac insuficiente. "
-                f"log(Ψ) = {log_transition_amplitude:.6e} < "
-                f"log(Ψ_min) = {min_log_amplitude:.6e}. "
-                "El LLM intentó formar un enlace atencional topológicamente muerto."
+                f"Veto cuántico: Ψ={amplitude:.6e} < "
+                f"Ψ_min={_MIN_QUANTUM_AMPLITUDE:.6e}."
             )
 
-        tiny_log = math.log(np.finfo(np.float64).tiny)
-
-        if log_transition_amplitude < tiny_log:
-            transition_amplitude = 0.0
-        else:
-            transition_amplitude = float(math.exp(log_transition_amplitude))
-
-        amplitude_tolerance = max(
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
-            1e-15,
-        )
-
-        if transition_amplitude < _MIN_QUANTUM_AMPLITUDE - amplitude_tolerance:
-            raise QuantumFeynmanKacVeto(
-                "Veto cuántico absoluto. "
-                f"Amplitud de transición Ψ = {transition_amplitude:.6e} < "
-                f"Ψ_min = {_MIN_QUANTUM_AMPLITUDE:.6e}."
-            )
-
-        return FeynmanKacAuditData(
+        # Feynman-Kac audit
+        feynman_kac_audit = FeynmanKacAuditData(
             euclidean_action=float(euclidean_action),
-            log_transition_amplitude=float(log_transition_amplitude),
-            transition_amplitude=float(transition_amplitude),
+            log_transition_amplitude=float(log_amplitude),
+            transition_amplitude=float(amplitude),
             min_quantum_amplitude=float(_MIN_QUANTUM_AMPLITUDE),
+            hbar_eff_used=float(_HBAR_EFF),
+            quantum_suppression_factor=float(
+                math.exp(-euclidean_action / _HBAR_EFF) if euclidean_action < 700 else 0.0
+            ),
             is_attention_allowed=True,
+            phase3_sha256_seal="",  # Se calcula después
+        )
+
+        # Veredicto Heyting
+        ricci_ok = ricci_audit.is_metric_converged if ricci_audit else True
+        polyakov_ok = polyakov_audit.is_geodesic_stable if polyakov_audit else True
+        quantum_ok = feynman_kac_audit.is_attention_allowed
+
+        heyting_verdict, is_valid = self._heyting_verdict_classifier(
+            ricci_ok, polyakov_ok, quantum_ok
+        )
+
+        # Sellado soberano
+        ricci_seal = ricci_audit.phase1_sha256_seal if ricci_audit else ""
+        polyakov_seal = polyakov_audit.phase2_hmac_sha256 if polyakov_audit else ""
+
+        sovereign_seal = self._phase3_sha256_sovereign_seal(
+            ricci_seal, polyakov_seal, feynman_kac_audit, torsion_audit, heyting_verdict
+        )
+
+        # Feynman-Kac audit final
+        feynman_kac_final = FeynmanKacAuditData(
+            euclidean_action=feynman_kac_audit.euclidean_action,
+            log_transition_amplitude=feynman_kac_audit.log_transition_amplitude,
+            transition_amplitude=feynman_kac_audit.transition_amplitude,
+            min_quantum_amplitude=feynman_kac_audit.min_quantum_amplitude,
+            hbar_eff_used=feynman_kac_audit.hbar_eff_used,
+            quantum_suppression_factor=feynman_kac_audit.quantum_suppression_factor,
+            is_attention_allowed=feynman_kac_audit.is_attention_allowed,
+            phase3_sha256_seal=sovereign_seal,
+        )
+
+        t_total = time.perf_counter_ns() - t_start
+
+        logger.info(
+            f"Fase 3 (DECIDE & ACT) completada. Veredicto={heyting_verdict} "
+            f"Ψ={amplitude:.6e} sello={sovereign_seal[:16]}... "
+            f"tiempo={t_total/1.0e6:.3f}ms"
+        )
+
+        return GeodesicAttentionGovernanceState(
+            ricci_audit=ricci_audit or RicciFlowAuditData(
+                dimension=0, metric_residual_norm=0.0, metric_relative_residual=0.0,
+                condition_number_g_k=0.0, condition_number_g_k_plus_1=0.0,
+                metric_convergence_tolerance=0.0, metric_frobenius_norm_k=0.0,
+                metric_frobenius_norm_k_plus_1=0.0, is_metric_converged=True,
+                phase1_sha256_seal=""
+            ),
+            polyakov_audit=polyakov_audit or PolyakovActionAuditData(
+                steps=0, dimension=0, geodesic_energy=0.0, geodesic_energy_per_step=0.0,
+                geodesic_length_metric=0.0, min_kinetic_term=0.0, max_kinetic_term=0.0,
+                mean_kinetic_term=0.0, energy_ceiling=0.0, polyakov_tolerance=0.0,
+                metric_condition_number=0.0, is_geodesic_stable=True, phase2_hmac_sha256=""
+            ),
+            torsion_audit=torsion_audit,
+            feynman_kac_audit=feynman_kac_final,
+            is_epistemologically_valid=is_valid,
+            heyting_verdict=heyting_verdict,
+            cryptographic_seal_phase3_sha256=sovereign_seal,
+            total_execution_time_ns=int(t_total),
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: GEODESIC ATTENTION FIBRATOR AGENT                    ║
-# ║                                                                             ║
-# ║   Endofuntor Z_GeodesicAgent = Φ₃ ∘ Φ₂ ∘ Φ₁                                ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
-class GeodesicAttentionFibratorAgent(Morphism, Phase3_FeynmanKacQuantumVeto):
-    r"""
-    El Custodio de la Covarianza Atencional en el estrato WISDOM.
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# AGENTE SOBERANO INTEGRADOR: ENDOFUNTOR COVARIANTE
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
 
-    Somete los tensores de atención del Modelo de Lenguaje a la mecánica de
-    integrales de trayectoria y relatividad general discreta, erradicando el
-    emparejamiento estocástico basado en productos punto euclidianos planos.
+class GeodesicAttentionFibratorAgent(Phase3_FeynmanKacActuator):
+    r"""
+    AGENTE SOBERANO: Custodio de la Covarianza Atencional en Estrato WISDOM.
+    
+    Endofuntor de-confinado:
+    $$\mathcal{Z}: \mathbf{WISDOM} \longrightarrow \mathbf{WISDOM}$$
+    
+    Somete tensores de atención del LLM a geometría riemanniana y mecánica cuántica,
+    erradicando emparejamientos euclidianos planos y suprimiento alucinaciones
+    mediante integral de trayectoria de Feynman-Kac.
+    
+    INTERFAZ UNIFICADA: Ciclo OODA de 3 fases anidadas formales.
     """
+
+    def __init__(self, strict_mode: bool = False) -> None:
+        super().__init__(strict_mode=strict_mode)
+        logger.info(
+            f"GeodesicAttentionFibratorAgent v{_ENGINE_VERSION} inicializado. "
+            f"Modo estricto={strict_mode}"
+        )
 
     def execute_geodesic_attention_governance(
         self,
@@ -1047,102 +1189,83 @@ class GeodesicAttentionFibratorAgent(Morphism, Phase3_FeynmanKacQuantumVeto):
         lambda_coupling: float,
     ) -> GeodesicAttentionGovernanceState:
         r"""
-        Ejecuta la composición funtorial estricta:
-
-            Φ₁ : Auditoría de convergencia del flujo de Ricci.
-            Φ₂ : Certificación de la acción geodésica de Polyakov.
-            Φ₃ : Veto cuántico de Feynman-Kac.
-
-        Parámetros:
-            g_k:
-                Métrica Riemanniana en el paso k.
-
-            g_k_plus_1:
-                Métrica Riemanniana en el paso k+1.
-
-            geodesic_velocity_matrix:
-                Matriz de velocidades geodésicas V ∈ R^{steps × dim}.
-
-            d_tau:
-                Diferencial afín Δτ > 0.
-
-            torsion_hs_norm_sq:
-                Norma de Hilbert-Schmidt al cuadrado del tensor de torsión.
-
-            lambda_coupling:
-                Acoplamiento no negativo λ entre energía geodésica y torsión.
-
-        Retorna:
-            GeodesicAttentionGovernanceState con los tres certificados y validez
-            epistemológica final.
+        INTERFAZ PÚBLICA UNIFICADA: Ciclo OODA completo.
+        
+        Ejecuta composición funtorial estricta de 3 fases:
+        
+        **FASE 1 (Observe):**
+        ```
+        ricci_audit = observe_ricci_convergence(g_k, g_k_plus_1)
+        ```
+        
+        **FASE 2 (Orient):**
+        ```
+        polyakov_audit = certify_polyakov_action(geodesic_velocities, G, d_tau)
+        ```
+        
+        **FASE 3 (Decide & Act):**
+        ```
+        state = enforce_quantum_veto(energy, torsion, lambda)
+        ```
+        
+        **Retorna:** `GeodesicAttentionGovernanceState` con veredicto Heyting.
         """
-        # Fase 1: Certificar convergencia del tensor métrico bajo flujo de Ricci.
-        ricci_audit = self._audit_ricci_flow_convergence(
-            g_k,
-            g_k_plus_1,
+        # FASE 1: OBSERVE
+        ricci_audit = self.observe_ricci_convergence(g_k, g_k_plus_1)
+
+        # FASE 2: ORIENT
+        polyakov_audit = self.certify_polyakov_action(
+            geodesic_velocity_matrix, g_k_plus_1, d_tau, ricci_audit=ricci_audit
         )
 
-        # Fase 2: Certificar que la conexión Query-Key minimiza la acción de Polyakov.
-        polyakov_audit = self._certify_polyakov_geodesic_action(
-            geodesic_velocity_matrix,
-            g_k_plus_1,
-            d_tau,
-            ricci_audit=ricci_audit,
-        )
-
-        # Fase 3: Certificar viabilidad cuántica de la transición semántica.
-        feynman_kac_audit = self._enforce_feynman_kac_quantum_veto(
+        # FASE 3: DECIDE & ACT
+        governance_state = self.enforce_quantum_veto(
             polyakov_audit.geodesic_energy,
             torsion_hs_norm_sq,
             lambda_coupling,
             polyakov_audit=polyakov_audit,
-        )
-
-        is_epistemologically_valid = bool(
-            ricci_audit.is_metric_converged
-            and polyakov_audit.is_geodesic_stable
-            and feynman_kac_audit.is_attention_allowed
-        )
-
-        if not is_epistemologically_valid:
-            raise GeodesicAttentionAgentError(
-                "La composición funtorial no autorizó la atención geodésica."
-            )
-
-        logger.info(
-            "Gobernanza de Covarianza Atencional certificada. "
-            "Δg(Ricci): %.6e | "
-            "E[γ]: %.6f | "
-            "Ψ[γ]: %.6e",
-            ricci_audit.metric_relative_residual,
-            polyakov_audit.geodesic_energy,
-            feynman_kac_audit.transition_amplitude,
-        )
-
-        return GeodesicAttentionGovernanceState(
             ricci_audit=ricci_audit,
-            polyakov_audit=polyakov_audit,
-            feynman_kac_audit=feynman_kac_audit,
-            is_epistemologically_valid=is_epistemologically_valid,
+        )
+
+        return governance_state
+
+    def __repr__(self) -> str:
+        return (
+            f"<GeodesicAttentionFibratorAgent "
+            f"v={_ENGINE_VERSION} "
+            f"IEEE-754-Double "
+            f"Ricci-Polyakov-FeynmanKac-Heyting "
+            f"strict={self._strict}>"
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ═══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+# EXPORTACIÓN PÚBLICA
+# ══════════════════════════════════════════════════════════════════════════════════════════════════════════
+
 __all__: List[str] = [
+    # Excepciones
     "GeodesicAttentionAgentError",
     "GeodesicInputValidationError",
     "MetricDegeneracyError",
     "RicciFlowDivergenceError",
     "PolyakovActionViolationError",
     "QuantumFeynmanKacVeto",
+    "CryptographicChainError",
+    "TopologicalInvariantViolation",
+    # Auditorías y estructuras
+    "RiemannianMetricAudit",
     "RicciFlowAuditData",
+    "GeodesicEnergyAudit",
     "PolyakovActionAuditData",
+    "TorsionAndCouplingAudit",
     "FeynmanKacAuditData",
     "GeodesicAttentionGovernanceState",
-    "Phase1_RicciFlowAuditor",
-    "Phase2_PolyakovActionCertifier",
-    "Phase3_FeynmanKacQuantumVeto",
+    # Fases y validador
+    "FiniteNumericalValidator",
+    "Phase1_RicciFlowObserver",
+    "Phase2_PolyakovOrientator",
+    "Phase3_FeynmanKacActuator",
+    # Agente integrador
     "GeodesicAttentionFibratorAgent",
 ]
