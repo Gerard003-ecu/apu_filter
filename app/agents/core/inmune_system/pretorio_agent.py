@@ -9,7 +9,7 @@ r"""
 SINOPSIS MATEMÁTICA Y DE GOBERNANZA:
 ────────────────────────────────────────────────────────────────────────────────
 Ejerce el mando absoluto e independiente en el penthouse de la pirámide de control 
-אDIKΩαWΓ. Realiza monitoreo pasivo en RAM sin introducir latencias en el ciclo OODA 
+אDIKΩαHWΓ. Realiza monitoreo pasivo en RAM sin introducir latencias en el ciclo OODA 
 ordinario, evaluando la consistencia mediante tres pilares:
 
 1. Hipercohomología de Čech-de Rham:
