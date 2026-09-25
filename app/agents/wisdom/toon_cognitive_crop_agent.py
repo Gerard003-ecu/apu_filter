@@ -2,7 +2,7 @@
 r"""
 ╔═══════════════════════════════════════════════════════════════════════════════╗
 ║  TOON Cognitive Crop Agent — Soberano de Calibre del Cultivo Cognitivo        ║
-║  Ubicación: app/wisdom/toon_cognitive_crop_agent.py                           ║
+║  Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py                    ║
 ║  Versión  : 2.2.0-Doctoral-Nested-Banach-U(n)-Rényi-MAC-Merkle                ║
 ║                                                                               ║
 ║  EVOLUCIÓN DOCTORAL ANIDADA — el soberano es el funtor                        ║
