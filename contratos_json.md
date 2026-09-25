@@ -72,6 +72,8 @@ $$\operatorname{Spec}(\mathbf{L}_{\mathrm{text}}) \approx \operatorname{Spec}(\m
 
 Esta compresión destila la información en "vitaminas cognitivas", liberando la memoria de trabajo del LLM para evaluar presupuestos masivos en tiempo real y emitir la autorización **antes de que el concreto húmedo se seque y fragüe dentro de las tuberías de impulsión hidráulicas** de la obra civil.
 
+Bajo la orquestación del `toon_wisdom_weaver_engine.py` y del `toon_cognitive_crop_engine.py`, la asimilación de vitaminas cognitivas TOON activa el módulo de Riego (compresión BPE + Shannon $\Delta_{\text{gr}}$), purificación de Brockett y contracción de Banach ($\rho(T_\eta) < 1.0$), manteniendo el valor del presupuesto y la estabilidad del WACC.
+
 --------------------------------------------------------------------------------
 ## 4. El Principio de Ortogonalidad en la Ingesta y Traducción Executiva
 Al rechazar matemáticamente cualquier carga que no se ajuste al `SiloAContract`, garantizamos que la base vectorial del presupuesto permanezca ortogonal al ruido exterior. La Fortaleza Matemática no intenta "entender" texto anómalo o heurísticas ambiguas; simplemente mide la exergía estructural del payload. Si la entropía del formato ($H$) excede el límite del contrato, la carga colapsa fuera de la variedad diferenciable del proyecto.

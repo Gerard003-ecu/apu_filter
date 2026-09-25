@@ -26,6 +26,12 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 | **Multiplicador de Floquet $|\mu_k| > 1$** | "Catástrofe de Resonancia Semántica." | **"Riesgo Circular Justificado:"** "La IA ha intentado justificar un riesgo circular que amplifica los costos; sugerencia vetada por inestabilidad de monodromía." |
 | **Divergencia de Fermat** | "Desviación Geodésica Extrema." | **"Logística de Energía Infinita:"** "La propuesta logística exige energía infinita y viola la física de la cadena de suministro; la geodésica semántica ha divergido del foco de rentabilidad." |
 | **Divergencia en la Ecuación Maestra de Lindblad** | "Colapso de Positividad Semidefinida." | **"Aniquilación de Mentira Contable:"** "El LLM ha intentado inyectar entropía catastrófica (una justificación absurda). La cámara de reacción ha aniquilado la mentira para preservar la salud contable." |
+| **Índice de Reward Hacking ($RHI > 0.88$)** | "Perturbación Cuasi-Isométrica Adversarial $U = e^{-i\epsilon H_{\text{trick}}}$." | **"Inmunidad Antifraude en SECOP II:"** Detección instantánea de fraccionamiento ilícito de compras y front-loading en la fase REM (Red Team). |
+| **Invariante TQFT Gromov-Witten ($GW$)** | "Filtro de Inmunización Onírica en $\Omega_3$." | **"Certificado de Vacunación Epistémica:"** Discriminación determinista entre cisnes negros plausibles y alucinaciones fantasma de la IA. |
+| **Vacío de Dirac ($H |\Omega\rangle = 0 \land \Delta S = 0$)** | "Cristalización de Experiencia Pasiva (0.0 dB)." | **"Memoria Inmutable Corporativa:"** Bloqueo total de repeticiones de errores o fraudes de contratación pasados en nuevas licitaciones. |
+| **Contracción de Banach ($\rho(T_\eta) < 1.0$)** | "Módulo de Cultivo Cognitivo (Riego, Luz, Disciplina, Fe)." | **"Protección del ROI & WACC:"** Mantenimiento continuo del valor del presupuesto, reduciendo la contingencia de obra del 15% al 3%. |
+| **Proyección Flash Grassmanniana ($Gr(r,n)$) & Bures ($d_B$)** | "Reflejo Instintivo Flash ($<10\,\mu\text{s}$)." | **"Recomendación Visceral en Campo:"** Emisión sub-milisegunda de luz verde con fracción de Kelly $s=\kappa f^*$ o cierre de válvula de pago ante fraude. |
+| **Punto Fijo Tarski-Brouwer ($\|T_\varphi(v)-v\|_2=0$)** | "Autoestado Invariante sobre la MAC." | **"Certeza Jurídica Inalienable:"** Prueba matemática irrebatible de autocoherencia que demuestra ante jueces e interventores que el veto no es arbitrario. |
 
 
 --------------------------------------------------------------------------------

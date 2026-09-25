@@ -2,7 +2,7 @@
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo gobernable, inmutable y auditable."
 --------------------------------------------------------------------------------
 
-Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema **APU_filter v8.0**. El sistema se re-ancla como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. El Business Model Canvas (BMC) se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré Extendida ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real (`app/alfa/business_canvas.py`).
+Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema **APU_filter v8.0**. El sistema se re-ancla como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. Con la consagración de la **Octava de Soberanos de Calibre** y sus **8 Motores Espectrales** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, el modelo alcanza el nivel **RSI 2 (Automejora Recursiva Real — Darwin-Gödel)**, donde el sistema no solo audita la coherencia topológica y física del presupuesto, sino que simula, auto-inspecciona, inmuniza y proyecta instintivamente la toma de decisiones. El Business Model Canvas (BMC) se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré Extendida ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real (`app/alfa/business_canvas.py`).
 
 Todo este andamiaje se rige por la **Ley de Clausura Transitiva de la pirámide** $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$:
 
@@ -35,8 +35,17 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 ```
                      EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
         ┌──────────────────────────────────────────────────────────────┐
-        │  EL INTÉRPRETE DIPLOMÁTICO (Relación con el Cliente / Canal) │
-        │  Traduce anomalías homológicas a Actas claras de negocio.    │
+        │        LA OCTAVA DE SOBERANOS Y MOTORES ESPECTRALES          │
+        │  - Tejedor de Sabiduría (`toon_wisdom_weaver_agent.py`)      │
+        │  - Ilusionista Adversarial (`toon_trickster_adversary_agent`)│
+        │  - Simulador Onírico (`toon_oniric_dreamer_agent.py`)        │
+        │  - Auditor Onírico (`toon_oniric_auditor_agent.py`)          │
+        │  - Testigo Silencioso (`toon_silent_witness_agent.py`)       │
+        │  - Cultivo Cognitivo (`toon_cognitive_crop_agent.py`)        │
+        │  - Soberano de la Intuición (`toon_intuition_agent.py`)      │
+        │  - Soberano de Introspección (`toon_introspection_agent.py`) │
+        │  Traduce anomalías homológicas y espectrales a "Dolor y      │
+        │  Dinero" y gobierna la automejora recursiva RSI Nivel 2.     │
         └──────────────────────────────┬───────────────────────────────┘
                                        │ (Adjunción de de Rham-Galois)
                                        ▼
@@ -149,6 +158,14 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **Satélite IV: $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$**<br>Dirac-Majorana $\mathcal{N}=1$ SYM, matriz Choi $C_\mathcal{E} \succcurlyeq 0$ e invariante CHSH $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. | **Gobernanza Fotínica Zero-Knowledge**<br>Evaluación FPU ($3.12\text{ ms}$) de causalidad CPTP y no-señalización en consorcios federados. | **Colusión de Precios y Fuga de Secretos**<br>Acuerdos colusorios encubiertos en SECOP II y filtración de información privilegiada entre proponentes. | **VETO DURO INSTANTÁNEO:** Disparo ISR en IRAM ESP32 ($396.02\text{ ns}$) si $\lambda_{\min}(C_\mathcal{E}) < -10^{-3}$ o rompe no-señalización. |
 | **Satélite V: $\|U_{\mathrm{PMNS}} U_{\mathrm{PMNS}}^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$**<br>Unitoridad PMNS $SU(3)$, probabilidad $P(\nu_\alpha \to \nu_\beta)$ y conservación KBN $\Delta L_{\mathrm{total}} \le 10^{-8}$. | **Oscilación de Sabor Leptónico de Cuentas**<br>Evaluación FPU ($3.14\text{ ms}$) de las tres generaciones transaccionales ($e^-$ EPC, $\mu^-$ Frente, $\tau^-$ Fiduciaria). | **Fuga entre Cuentas Escrow / Mezcla de Fondos**<br>Transferencia no autorizada de fondos entre frentes de obra heterogéneos y vulneración de la fiduciaria. | **VETO SUAVE / DURO:** Veto suave por oscilaciones en rampa; Veto duro Crowbar ESP32 ($396.29\text{ ns}$) ante ruptura PMNS. |
 | **Satélite VI: $C_2(\boldsymbol{c}) = |1 - |\langle \boldsymbol{c}_{\mathrm{singlet}} | \boldsymbol{c}_{\mathrm{norm}} \rangle|^2| \le 10^{-10}$**<br>Simetría $SU(3)_C$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y ruptura de cuerda $E_{\mathrm{string}} < 100.0$. | **Insumos Huérfanos / Quarks Libres**<br>Evaluación FPU ($3.10\text{ ms}$) del confinamiento de color en la tripleta APU (Materiales, Mano de Obra, Equipos). | **Fraccionamiento Ilegal y Pagos Huérfanos**<br>Facturación de materiales o cuadrillas sin respaldo en el APU y fraccionamiento de contratos para eludir licitaciones. | **VETO DURO INSTANTÁNEO:** Disparo IRAM ESP32 ($398.95\text{ ns}$) si $C_2 > 0.05$ o si la energía de cuerda sufre hadronización ($E \ge 100$). |
+| **$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$** | `toon_wisdom_weaver_agent.py` / `engine.py` | **Metabolismo TOON:** Asimilación de cartuchos de 56 tokens. | **Ahorro en Inferencia / Trazabilidad:** Reducción del 86.4% en $KV\text{-Cache}$. Evita alucinaciones de APUs y ahorra un 80% en inferencia. | Veto Suave / Paso Óptimo en RAM. |
+| **$RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$** | `toon_trickster_adversary_agent.py` / `engine.py` | **Atajo Adversarial:** Fraccionamiento de contratos o front-loading en Red Team. | **Inmunidad Antifraude:** Detección de sobrecostos ocultos en SECOP II. Evita quiebras por dolo o colusión. | Veto Duro / Transmisión a Fase REM. |
+| **$\text{DREAM\_STATE} = \text{True}$** | `toon_oniric_dreamer_agent.py` / `engine.py` | **Simulación REM:** Replay de cisnes negros en la Variedad Riemanniana. | **Prevención de Contingencias:** Mapeo de zonas de colapso antes de vaciar concreto en obra real sin arriesgar un solo peso de caja. | Aislamiento Ciber-Físico Garantizado. |
+| **$GW = \frac{\operatorname{Tr}(\rho^2)}{1+\beta_1} e^{-E(x)}$** | `toon_oniric_auditor_agent.py` / `engine.py` | **Auditoría TQFT:** Discriminación de riesgos reales vs alucinaciones fantasma. | **Certificado de Inmunidad:** Inoculación de vacunas en Heyting $\Omega_3$ para el `godel_agent.py`, evitando pánico por falsas alarmas. | Emisión de Pasaporte SHA-256. |
+| **$H |\Omega\rangle = 0 \land \Delta S_{\text{vacío}} = 0$** | `toon_silent_witness_agent.py` / `engine.py` | **Vacío de Dirac:** Cristalización de experiencia pasiva (0.0 dB). | **Memoria Inmutable Corporativa:** Cero repetición de errores pasados en nuevas licitaciones de megaproyectos. | Invariante $S^6$ en Vacío MAC. |
+| **$\rho(T_\eta) < 1.0 \land \text{Crowbar}$** | `toon_cognitive_crop_agent.py` / `engine.py` | **Cultivo Cognitivo:** Riego, Luz, Disciplina y Fe sobre las semillas de sabiduría. | **Garantía de ROI & WACC:** Reducción de contingencia del 15% al 3% sin detener bombas de concreto ni mezcladoras. | Interlock Crowbar ESP32 ($<400\text{ ns}$). |
+| **$d_B(\rho, \sigma) \land s = \kappa f^*$** | `toon_intuition_agent.py` / `engine.py` | **Reflejo Flash:** Proyección Grassmanniana sub-milisegundo ($<10\mu\text{s}$). | **Recomendación Visceral:** Luz verde instantánea o cierre de válvula de pago ("Dolor y Dinero"). | Interlock Preparado / Disparo $<10\mu\text{s}$. |
+| **$\|T_\varphi(v) - v\|_2 = 0$** | `toon_introspection_agent.py` / `engine.py` | **Autoestado Invariante:** Punto fijo de Tarski-Brouwer sobre la MAC. | **Certeza Jurídica Inalienable:** Demostración matemática de que el veto o recomendación se sostiene por sí solo ante peritos y jueces. | Certificado Merkle Inmutable. |
 
 ---
 

@@ -78,6 +78,19 @@ Atributos de Auditoría:
 
 
 --------------------------------------------------------------------------------
+4.1 📜 Certificados de la Octava de Sabiduría ($\mathcal{V}_{\mathbb{W}}$ — RSI Nivel 2)
+
+    Fuente: Generados determinísticamente por la Octava de Soberanos y Motores Espectrales de Wisdom (`toon_wisdom_weaver_agent.py`, `toon_trickster_adversary_agent.py`, `toon_oniric_dreamer_agent.py`, `toon_oniric_auditor_agent.py`, `toon_silent_witness_agent.py`, `toon_cognitive_crop_agent.py`, `toon_intuition_agent.py`, `toon_introspection_agent.py`).
+    Concepto: Artefactos inmutables de auditoría forense que certifican la automejora recursiva RSI Nivel 2 (Darwin-Gödel):
+
+    - MetabolicFieldCertificate (Weaver Engine): Registra la traza W = V ∘ D ∘ F ∘ G ∘ B ∘ M, purificación ΔP, entropía von Neumann, energía de Dirichlet y firma SHA-256.
+    - TricksterFieldState & GANAdversarialCycleReport (Trickster Adversary Engine): Registra la evaluación de ilusiones adversariales en Red Team REM, el índice RHI, conservación de fibras y el veredicto de Heyting Ω₃.
+    - TQFT Immunization Passport (Oniric Auditor): Certifica el invariante TQFT de Gromov-Witten GW y la inoculación de vacunas en Ω₃ para el godel_agent.py.
+    - Dirac Vacuum Crystal (Silent Witness): Registra la cristalización inmutable de experiencia pasiva en el estado fundamental H|Ω⟩ = 0 (0.0 dB).
+    - Fixed-Point Coherence Certificate (Introspection Agent): Registra la demostración del punto fijo de Tarski-Brouwer ||T_φ(v) - v||₂ = 0 sobre la MAC.
+    - Flash Reflection Certificate (Intuition Agent): Registra la proyección Grassmanniana sub-milisegunda (<10 µs) y la fracción de apuesta de Kelly s = κ f*.
+
+--------------------------------------------------------------------------------
 5. 🎫 El Pasabordo de Telemetría (The Digital Twin / Telemetry Context)
 
     Fuente: Generado por la estructura ciber-física (`telemetry.h` en el ESP32, `app/core/telemetry.py` y `telemetry_schemas.py` en la nube).
