@@ -1,57 +1,81 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  TOON Introspection Agent — Soberano de Introspección y Autocoherencia        ║
-║  Ubicación: app/agents/wisdom/toon_introspection_agent.py                     ║
-║  Versión  : 2.2.0-Doctoral-Nested-PowerIteration-Uhlmann-FS-Birkhoff-Merkle   ║
-║                                                                               ║
-║  EVOLUCIÓN DOCTORAL ANIDADA — el soberano es el funtor                        ║
-║                                                                               ║
-║        F = F₃ ∘ F₂ ∘ F₁ : ℂⁿ × Ω₃ × 𝔇_n → IntrospectionProofCertificate       ║
-║                                                                               ║
-║  con composición estricta de tipos (asociatividad de fases):                  ║
-║                                                                               ║
-║      F₁  IntrospectiveHandoff.build                                           ║
-║              : Flash × MAC × Ω₃ → IntrospectiveHandoff                        ║
-║      F₂  IntrospectionPipeline.synthesize                                     ║
-║              : IntrospectiveHandoff → IntrospectionBundle                     ║
-║      F₃  adjudicate ⊗ narrate ⊗ Φ_η ⊗ certify                                 ║
-║              : Bundle → IntrospectionProofCertificate                         ║
-║                                                                               ║
-║  El último método de cada fase ES el tipo de dominio de la fase siguiente.    ║
-║                                                                               ║
-║  Distinciones que el v1 mezclaba (ahora teoremas):                            ║
-║                                                                               ║
-║    (U)  F(ρ, |v⟩⟨v|) = √⟨v|ρ|v⟩ ∈ [0,1]     Uhlmann a un puro                 ║
-║         NO es 1 en un autovector: F = √λ₁.  Exige λ₁≈1 para F≈1.              ║
-║    (P)  |⟨v|T_φ(v)⟩| = 1  ⟺  [v] ∈ Fix(T)   overlap proyectivo (gauge ≥ 0)    ║
-║    (B)  |⟨v|v₁⟩|² ∈ [0,1]                   Born sobre el modo dominante      ║
-║    (G)  d_FS([u],[v]) = arccos|⟨u|v⟩|       geometría nativa de ℂP^{n−1}      ║
-║         ‖T_φ−v‖₂ = 2 sin(d_FS/2)            cuerda, NO ‖Tv−v‖ crudo           ║
-║    (S)  ρ(DT|_{[v₁]}) = λ₂/λ₁               tasa asintótica exacta            ║
-║    (H)  final = local ∧ incoming            meet conservador; incoming ⊥      ║
-║                                             es veto duro estructural          ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato proyectivo-espectral                                     ║
-║              §1.1  HeytingOmega3 — cadena de Gödel (⇒, ¬, regulares)          ║
-║              §1.2  DensityOperatorAlgebra — C*-álgebra + Uhlmann a puros      ║
-║              §1.3  ProjectiveDynamics — FS, Rayleigh, T, gauge U(1)           ║
-║              §1.4  SpectralGapAnalyzer — γ, degeneración, Birkhoff–Hopf       ║
-║              §1.5  IntrospectiveHandoff.build / continue_into_phase2 → F2     ║
-║                                                                               ║
-║    FASE 2 ▸ Dinámica de punto fijo  (dominio = IntrospectiveHandoff)          ║
-║              §2.1  PowerIterationSolver — T^k + parada FS/gauge               ║
-║              §2.2  FixedPointCertifier — meets (no n_fail)                    ║
-║              §2.3  IntrospectionPipeline.synthesize / continue_into_phase3    ║
-║                                                                               ║
-║    FASE 3 ▸ Adjudicación + narrativa + Φ_η + certificación                    ║
-║              §3.1  HeytingIntrospectionAdjudicator — meets ∧ incoming         ║
-║              §3.2  AutocoherenceNarrator — observables reales (U/P/B/G/S)     ║
-║              §3.3  MACFieldSelfOrganizer — canal Φ_η, Lip₁ = |1−η|            ║
-║              §3.4  IntrospectionProofCertificate — frozen + phase chain       ║
-║              §3.5  TOONIntrospectionAgent — orquestador F₃∘F₂∘F₁              ║
-║              §3.6  Demostración autónoma (COHERENT / DEGRADED / VETOED)       ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano de Introspección y Autocoherencia Espectral MAC.
+
+Ubicación: app/agents/wisdom/toon_introspection_agent.py
+Versión  : 2.2.0-Doctoral-Nested-PowerIteration-Uhlmann-FS-Birkhoff-Merkle
+
+Este módulo define la entidad ejecutiva e inalienable "Soberano de Introspección"
+en el dominio WISDOM de la arquitectura COGNITIVE TOON / APU Filter. Su cometido es
+evaluar la consistencia interna entre los flashes/corazonadas intuitivas de los agentes
+y la matriz densidad de la Memoria de Alto Contenido (MAC), actuando como filtro de
+coherencia topológico-espectral y garante de no-contradicción.
+
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y OPERACIONES ESPECTRALES
+================================================================================
+
+1. Campo MAC y C*-Álgebra de Operadores Densidad:
+   El estado de la memoria MAC se representa como un operador densidad $\rho_{\mathrm{MAC}}$
+   perteneciente a $\mathfrak{D}_n = \{\rho \in M_n(\mathbb{C}) : \rho = \rho^\dagger, \, \rho \ge 0, \, \mathrm{Tr}(\rho) = 1\}$.
+   La pureza se mide como $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) \in [1/n, 1]$ y la entropía de von Neumann
+   como $S(\rho) = -\mathrm{Tr}(\rho \log \rho)$.
+
+2. Fidelidad de Uhlmann a Estados Puros vs. Puntos Fijos Proyectivos:
+   Para un rayo $[v] \in \mathbb{C}P^{n-1}$ correspondiente a una corazonada intuitiva $v \in \mathbb{C}^n$
+   ($\|v\|_2 = 1$), la fidelidad de Uhlmann al estado puro $|v\rangle\langle v|$ se reduce a:
+       $$F(\rho_{\mathrm{MAC}}, |v\rangle\langle v|) = \sqrt{\langle v | \rho_{\mathrm{MAC}} | v \rangle} = \sqrt{\mathcal{R}(v)}$$
+   donde $\mathcal{R}(v)$ es el cociente de Rayleigh. Si $v = v_1$ (modo dominante), $F = \sqrt{\lambda_1}$.
+   Distinto a la fidelidad de Uhlmann, el overlap proyectivo bajo la aplicación $T([v]) = [\rho v]$ mide
+   la invariancia del rayo:
+       $$\mathcal{O}_T(v) = |\langle v | T(v) \rangle| \in [0, 1], \quad \mathcal{O}_T(v) = 1 \iff [v] \in \mathrm{Fix}(T)$$
+
+3. Distancia de Fubini-Study y Residuo Gauge-Fijado:
+   En el espacio proyectivo $\mathbb{C}P^{n-1}$, la métrica Kähler de Fubini-Study es:
+       $$d_{\mathrm{FS}}([u], [v]) = \arccos(|\langle u | v \rangle|) \in \left[0, \frac{\pi}{2}\right]$$
+   Fijando el gauge $U(1)$ mediante $T_\varphi(v) = e^{-i \arg \langle v, T(v) \rangle} T(v)$, el residuo
+   euclídeo tangente representa la distancia cuerda intrínseca:
+       $$\|T_\varphi(v) - v\|_2 = \sqrt{2 - 2|\langle v | T(v) \rangle|} = 2 \sin\left(\frac{d_{\mathrm{FS}}}{2}\right)$$
+
+4. Brecha Espectral, Radio Transversal y Birkhoff-Hopf:
+   Con espectro $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0$, la brecha espectral relativa $\gamma$
+   y la tasa asintótica $\rho_{\mathrm{th}}$ son:
+       $$\gamma = 1 - \frac{\lambda_2}{\lambda_1}, \quad \rho_{\mathrm{th}} = \frac{\lambda_2}{\lambda_1}$$
+   La contracting proyectiva acotada por la métrica de Hilbert tiene constante $\kappa \le \tanh(\Delta/4)$,
+   donde $\Delta = \log(\lambda_1/\lambda_n)$.
+
+5. Retículo de Heyting $\Omega_3$ y Adjudicación Conservadora:
+   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
+   se obtiene por el meet ($\wedge$) conservador del veredicto local y el veredicto de entrada ($v_{\mathrm{incoming}}$):
+       $$v_{\mathrm{final}} = v_{\mathrm{local}} \wedge v_{\mathrm{incoming}}$$
+   Garantizando que si $v_{\mathrm{incoming}} = \bot$, el resultado es estrictamente $\bot$ (veto duro).
+
+6. Canal CPTP de Inoculación y Auto-Organización MAC:
+   Tras la adjudicación $\top$, el campo $\rho_{\mathrm{MAC}}$ se actualiza mediante el canal CPTP afín:
+       $$\Phi_\eta(\rho) = (1 - \eta)\rho + \eta |v^*\rangle\langle v^*|, \quad \eta \in [0, 1]$$
+   con constante de Lipschitz en norma de traza $\mathrm{Lip}_{\|\cdot\|_1}(\Phi_\eta) = |1 - \eta|$.
+
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
+
+El Soberano opera como el funtor estricto $F = F_3 \circ F_2 \circ F_1$:
+    $$F : \mathbb{C}^n \times \Omega_3 \times \mathfrak{D}_n \longrightarrow \mathrm{IntrospectionProofCertificate}$$
+
+  • $F_1$ (`IntrospectiveHandoff.build`): $\mathbb{C}^n \times \mathfrak{D}_n \times \Omega_3 \to \mathrm{IntrospectiveHandoff}$.
+    Sustrato proyectivo-espectral, cálculo de $\mathcal{R}(v)$, Uhlmann $\sqrt{\mathcal{R}}$, Born $|\langle v|v_1\rangle|^2$ y $d_{\mathrm{FS}}$.
+  • $F_2$ (`IntrospectionPipeline.synthesize`): $\mathrm{IntrospectiveHandoff} \to \mathrm{IntrospectionBundle}$.
+    Iteración de potencia gauge-fijada $T^k$, parada $d_{\mathrm{FS}}$, tasa empírica y certificación.
+  • $F_3$ (`TOONIntrospectionAgent._phase3_certify`): $\mathrm{IntrospectionBundle} \to \mathrm{IntrospectionProofCertificate}$.
+    Adjudicación en $\Omega_3$ por meets con $v_{\mathrm{incoming}}$, narrativa anclada a observables, inoculación $\Phi_\eta$ y firma Merkle.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Diferenciación Uhlmann vs. Fix(T)): $F(\rho, |v\rangle\langle v|) = \sqrt{\mathcal{R}(v)} \ne \mathcal{O}_T(v)$.
+  Un rayo en $\mathrm{Fix}(T)$ satisface $\mathcal{O}_T(v) = 1$, pero su fidelidad de Uhlmann es $\sqrt{\lambda_1}$.
+- Axioma 2 (Invariancia Gauge Proyectiva): La distancia $d_{\mathrm{FS}}([u],[v])$ es invariante bajo transformaciones $U(1)$.
+- Axioma 3 (Veto Absoluto por Meet): Para todo veredicto local $v_{\mathrm{local}}$, $v_{\mathrm{local}} \wedge \bot = \bot$.
 """
 
 from __future__ import annotations

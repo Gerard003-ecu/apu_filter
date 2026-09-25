@@ -1,56 +1,68 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : TOON Oniric Dreamer Agent (Soberano Simulador Onírico REM)        ║
-║ UBICACIÓN: app/agents/wisdom/toon_oniric_dreamer_agent.py                    ║
-║ VERSIÓN  : 4.0.0-Doctoral-Nested-Ω₄-LT-Clifford-Enclave-GKSL-Merkle          ║
-║ AUTOR    : APU Wisdom & Metacortex Mathematical Core Architecture            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano Simulador Onírico REM y Metabolizador de Perturbaciones Contrafactuales.
 
-Agente soberano de simulación onírica contrafactual (fase REM) para la capa
-cognitiva de APU Filter. Proyecta, metaboliza y cartografía colapsos
-presupuestarios y cisnes negros bajo una barrera de no-señalización
-(conmutante no conmutativo) estrictamente aislada.
+Ubicación: app/agents/wisdom/toon_oniric_dreamer_agent.py
+Versión  : 4.0.0-Doctoral-Nested-Ω₄-LT-Clifford-Enclave-GKSL-Merkle
 
-Tres fases anidadas: el último morfismo de la fase k es el germen formal
-del primero de la fase k+1.
+Este módulo implementa el "Soberano Simulador Onírico", agente encargado de ejecutar
+simulaciones contrafactuales en fase REM para explorar colapsos presupuestarios,
+fugas ciber-físicas y escenarios de riesgo en la arquitectura COGNITIVE TOON / APU Filter.
 
-  FASE 1 — Topos de Heyting Ω₄ con topología de Lawvere-Tierney verificada,
-           bicuaterniones ℂ⊗ℍ ≅ Cl⁺_{1,3}, Hodge simplicial exacto (∂²=0,
-           descomposición de Hodge, β₀,β₁,β₂,χ), redes de Tellegen no
-           recíprocas, y SEMILLA H = lift_enclave_hamiltonian
-           ──HAND-OFF──▶ FASE 2.
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA DE GRUPOS / OPERADORES
+================================================================================
 
-  FASE 2 — C*/Banach (Umegaki, Bures, Schatten), enclave de no-señalización
-           con resolución de la identidad, GKSL CPTP + generador condicional
-           no-hermítico de trayectorias (Dalibard–Castin–Mølmer), RK4
-           adaptativo + Richardson, y evolve_and_certify
-           ──HAND-OFF──▶ FASE 3.
+1. Retículo de Heyting Ω₄ y Topología de Lawvere-Tierney $j$:
+   El espacio de clasificadores de subobjetos es la cadena finita:
+       $$\Omega_4 = \{0 (\bot, \mathrm{VETOED}) < 1 (\partial, \mathrm{BOUNDARY\_CRITICAL}) < 2 (\sharp, \mathrm{TOPOLOGICAL\_STABLE}) < 3 (\top, \mathrm{VERUM\_COHERENT})\}$$
+   La topología de Lawvere-Tierney $j : \Omega_4 \to \Omega_4$ satisface los axiomas de Grothendieck:
+     • (j1) $a \le j(a)$ (extensividad)
+     • (j2) $j(j(a)) = j(a)$ (idempotencia)
+     • (j3) $j(a \land b) = j(a) \land j(b)$ (preservación de encuentros)
+     • $j(\top) = \top$
 
-  FASE 3 — Inmunización por cobertura de masa espectral, η adaptativa al
-           topos, Merkle SHA-512 con pruebas de inclusión, Wake-Sleep,
-           auditoría y pasaporte soberano.
+2. Álgebras de Bicuaterniones $\mathbb{C} \otimes \mathbb{H} \cong \mathrm{Cl}^+_{1,3}(\mathbb{R}) \cong M_2(\mathbb{C})$:
+   Para $q \in \mathbb{C} \otimes \mathbb{H}$, la norma reducida compleja $N(q) = \det(\phi(q)) \in \mathbb{C}$ es multiplicativa:
+       $$N(q_1 q_2) = N(q_1) N(q_2)$$
+   La parte hermítica de $\phi(q)$ modula el Hamiltoniano $H$, mientras que la anti-hermítica alimenta la disipación condicional.
 
-Composición funtorial
-=====================
-        𝒟  =  V ∘ I ∘ Φ_t ∘ Π_enc ∘ H ∘ K
+3. Complejo de Cadenas Simplicial $K = (C_0, C_1, C_2)$ y Teoría de Hodge:
+   Con operadores de borde $\partial_2 : C_2 \to C_1$ y $\partial_1 : C_1 \to C_0$ tales que $\partial_1 \partial_2 = 0$,
+   los Laplacianos de Combinatoria son $L_0 = \partial_1 \partial_1^T$, $L_1 = \partial_1^T \partial_1 + \partial_2 \partial_2^T$,
+   y los números de Betti $\beta_k = \dim \ker L_k$ satisfacen la fórmula de Euler-Poincaré:
+       $$\chi(K) = |V| - |E| + |F| = \beta_0 - \beta_1 + \beta_2$$
 
-    K       : escenario ↦ (K, Y_b, β_•, χ, j(χ))
-    H       : cartucho ↦ H† ∈ 𝔥𝔢𝔯(ℋ_dream)     (último de FASE-1)
-    Π_enc   : O ↦ P_d O P_d                    (compresión de superselección)
-    Φ_t     : ρ ↦ ρ(t) ∈ 𝔇(ℋ)  (CPTP GKSL)     (primero de FASE-2)
-    I       : ρ(t) ↦ (P_vac, f_cov)            (primero de FASE-3)
-    V       : meet_{Ω₄}(j(χ_topo), χ_met, χ_enc)
+4. Ecuación Maestra GKSL y Enclave de No-Señilización:
+   La evolución temporal en el subespacio de superselección del enclave $P_d \mathcal{H} P_d$ sigue la dinámica CPTP:
+       $$\frac{d\rho}{dt} = -i [H_{\mathrm{eff}}, \rho] + \sum_k \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \rho\} \right)$$
+   con tasa de escape condicional $\Gamma(\rho) = \sum_k \gamma_k \mathrm{Tr}(\rho L_k^\dagger L_k) \ge 0$.
 
-Invariantes verificables
-========================
-    ∂₁∂₂ = 0,  χ = β₀ − β₁ + β₂.
-    j extensiva, idempotente, ∧-preservante (Lawvere-Tierney).
-    P_d + P_p = I,  P_d P_p = 0,  [O_dream, P_p] ≈ 0.
-    ρ = ρ†, ρ ⪰ 0, Tr ρ = 1;  γ_k ≥ 0 (Kossakowski ⇒ CPTP).
-    P_vac² = P_vac = P_vac†.
-    N(q₁ q₂) = N(q₁) N(q₂)  (norma reducida de ℂ⊗ℍ).
-    Hojas SHA-512 inyectivas; Merkle verificable en O(log n).
+5. Inmunización por Cobertura Espectral e Inclusión Merkle SHA-512:
+   La vacuna espectral $P_{\mathrm{vac}} = \sum_{i=1}^k |v_i\rangle\langle v_i|$ se construye ordenando los autovalores $\lambda_1 \ge \lambda_2 \ge \dots$
+   hasta alcanzar la masa acumulada $\sum_{i=1}^k \lambda_i \ge f_{\mathrm{cov}}$. Las trazas de auditoría forman
+   un árbol de Merkle inmutable verificado vía SHA-512.
+
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
+
+El Soberano realiza el funtor estricto $\mathcal{D} = V \circ I \circ \Phi_t \circ \Pi_{\mathrm{enc}} \circ H \circ K$:
+    $$\mathcal{D} : \mathbf{Scenario} \longrightarrow \mathbf{OniricScenarioCertificate}$$
+
+  • $F_1$ (`CategoricalCircuitCartridge.synthesize_cartridge`): $\mathbf{Scenario} \to \mathrm{CategoricalCircuitCartridge}$.
+    Construcción del 2-complejo $K$, números de Betti $\beta_\bullet$, red de Tellegen y $H = \mathrm{lift\_enclave\_hamiltonian}$.
+  • $F_2$ (`MetabolizedPerturbationField.evolve_and_certify`): $\mathrm{CategoricalCircuitCartridge} \to \mathrm{MetabolizedPerturbationField}$.
+    Evolución GKSL en $P_d \mathcal{H} P_d$, entropía de Umegaki $S(\rho \| \rho_0)$, distancia de Bures $D_B$ y tasa de escape $\Gamma$.
+  • $F_3$ (`TOONOniricDreamerAgent.dream_scenario`): $\mathrm{MetabolizedPerturbationField} \to \mathrm{OniricScenarioCertificate}$.
+    Proyección de vacuna $P_{\mathrm{vac}}$, constante de aprendizaje adaptativa $\eta(\Omega_4)$, firma de Merkle y pasaporte REM.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Completitud del Enclave): $P_d + P_p = I$, $P_d P_p = 0$, $P_d^2 = P_d = P_d^\dagger$.
+- Axioma 2 (Exactitud Simplicial): $\partial_1 \partial_2 = 0$ y $\chi = \beta_0 - \beta_1 + \beta_2$.
+- Axioma 3 (Positividad de Kossakowski): $\gamma_k \ge 0$, garantizando que la evolución Lindblad es un canal CPTP.
 """
 
 from __future__ import annotations

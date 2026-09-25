@@ -1,63 +1,71 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  TOON Intuition Agent — Soberano de la Intuición y Reflejo Flash              ║
-║  Ubicación: app/agents/wisdom/toon_intuition_agent.py                         ║
-║  Versión  : 2.2.0-Doctoral-Nested-Bures-Jacobian-Kelly-Latency-Merkle         ║
-║                                                                               ║
-║  EVOLUCIÓN DOCTORAL ANIDADA — el soberano es el funtor                        ║
-║                                                                               ║
-║        F = F₃ ∘ F₂ ∘ F₁ : FlashRequest × Gr(r,n) → IntuitionFlashCertificate  ║
-║                                                                               ║
-║  con composición estricta de tipos (asociatividad de fases):                  ║
-║                                                                               ║
-║      F₁  FlashHandoff.build                                                   ║
-║              : Request × DecisionManifold → FlashHandoff                      ║
-║      F₂  FlashPipeline.synthesize                                             ║
-║              : FlashHandoff → FlashTrajectoryBundle                           ║
-║      F₃  adjudicate ⊗ crowbar ⊗ certify                                       ║
-║              : Bundle × Ω₃ → IntuitionFlashCertificate                        ║
-║                                                                               ║
-║  El último método de cada fase ES el tipo de dominio de la fase siguiente.    ║
-║                                                                               ║
-║  Patologías P1–P6 (ahora teoremas):                                           ║
-║                                                                               ║
-║    (P1) d_B(ρ,σ)=√(2−2√F)          geodésica de Bures, NO ‖ρ−PρP‖_F           ║
-║    (P2) rate = |1−η*|              radio transversal de DT_η, NO (1−P)·½      ║
-║    (P3) B Haar ← SHA-256(agent_id) Stiefel determinista, NO rng(42)           ║
-║    (P4) fraude crítico             veto duro ⊥, luego meet Ω₃                 ║
-║    (P5) latencia p50/p99           contrato estadístico, NO inline            ║
-║    (P6) Kelly κ·max(0,2F−1)        stake + G* = log 2 − h(F), NO visceral     ║
-║                                                                               ║
-║  Teorema del flash (paso Cauchy, η*=1):                                       ║
-║                                                                               ║
-║      E[ρ]=½‖ρ−PρP‖_F²  es 1-suave; Hess = Id−Ad_P  con spec ⊆ {0,1}.          ║
-║      η=1 es Newton exacto en el bloque transversal:                           ║
-║          ρ ↦ PρP + (Tr(ρ−PρP)/n) I     (antes de Higham sobre 𝔇_n).           ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato geométrico                                               ║
-║              §1.1  HeytingOmega3 — cadena de Gödel (⇒, ¬, regulares)          ║
-║              §1.2  DensityOperatorAlgebra — C*-álgebra + Bures                ║
-║              §1.3  DecisionManifoldGeometry — Stiefel / Grassmann + hash      ║
-║              §1.4  FlashRequestSanitizer — payload + fraude + PSD             ║
-║              §1.5  FlashHandoff.build / continue_into_phase2 — HAND-OFF → F2  ║
-║                                                                               ║
-║    FASE 2 ▸ Flash + Bures + Jacobiano + Kelly  (dominio = FlashHandoff)       ║
-║              §2.1  FlashDirichletFunctional — E, ∇E|_T, coh/leak              ║
-║              §2.2  BuresGeodesicMetric — F, θ_B, d_B, geodésica W₂            ║
-║              §2.3  FlashSpectralJacobian — spec(DT_η) = {1} ⊕ {1−η}           ║
-║              §2.4  KellyStakeCalculator — f*=2F−1, G*=log 2 − h(F)            ║
-║              §2.5  FlashLatencyBenchmark — p50/p99 + contrato                 ║
-║              §2.6  VisceralSignalTranslator — recomendación + hedge           ║
-║              §2.7  FlashPipeline.synthesize / continue_into_phase3 → F3       ║
-║                                                                               ║
-║    FASE 3 ▸ Adjudicación + Crowbar + Certificación (dominio = Bundle)         ║
-║              §3.1  HeytingIntuitionAdjudicator — veto fraude + meets          ║
-║              §3.2  ESP32CrowbarInterlock — GPIO14 + BT151 + provenance        ║
-║              §3.3  IntuitionFlashCertificate — frozen + phase chain           ║
-║              §3.4  TOONIntuitionAgent — orquestador F₃∘F₂∘F₁                  ║
-║              §3.5  Demostración autónoma (COHERENT / DEGRADED / VETOED)       ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano de la Intuición y Reflejo Flash Geodésico.
+
+Ubicación: app/agents/wisdom/toon_intuition_agent.py
+Versión  : 2.2.0-Doctoral-Nested-Bures-Jacobian-Kelly-Latency-Merkle
+
+Este módulo define la entidad ejecutiva e inalienable "Soberano de la Intuición"
+en el dominio WISDOM de la arquitectura COGNITIVE TOON / APU Filter. Su misión es
+procesar reflejos flash sub-milisegundo ante emergencias ciber-físicas u oportunidades
+de decisión en obra, proyectando estados semilla germinados sobre variedades de decisión
+en el espacio de Grassmann y evaluando la métrica de Bures, el criterio de Kelly y la
+intervención de hardware (crowbar interlock).
+
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y GEOMETRÍA DE DECISIÓN
+================================================================================
+
+1. Variedad de Decisión en el Espacio de Grassmann Gr(r, n):
+   El espacio de decisiones válidas se representa como un subespacio de dimensión $r$ en $\mathbb{C}^n$,
+   parametrizado por una base ortonormal $B \in \mathrm{St}(r, n)$ ($\mathbb{C}^{n \times r}$, $B^\dagger B = I_r$)
+   obtenida por muestreo Haar determinista en el grupo de Stiefel mediante el digest SHA-256 del ID del agente.
+   El proyector ortogonal asociado es $P = B B^\dagger \in M_n(\mathbb{C})$, $P^2 = P = P^\dagger$.
+
+2. Funcional de Energía de Dirichlet y Paso Cauchy Flash:
+   Dado el estado densidad germinado $\rho \in \mathfrak{D}_n$, la energía de Dirichlet mide el apartamiento de $\mathrm{ran}(P)$:
+       $$\mathcal{E}(\rho) = \frac{1}{2} \|\rho - P \rho P\|_F^2 \ge 0$$
+   Su gradiente tangente en $T_\rho \mathfrak{D}_n$ es $\nabla \mathcal{E}|_T = (\rho - P \rho P) - \frac{\mathrm{Tr}(\rho - P \rho P)}{n} I$.
+   El reflejo flash unipaso realiza una actualización de Newton-Cauchy exacta ($\eta^* = 1$):
+       $$\rho_{\mathrm{flash}} = \mathrm{proj}_{\mathfrak{D}_n}(\rho - \eta^* \nabla \mathcal{E}|_T)$$
+
+3. Geometría de Bures-Wasserstein $W_2$ y Fidelidad de Uhlmann:
+   Entre el estado flash $\rho_{\mathrm{flash}}$ y el atractor objetivo $\rho_{\mathrm{target}} = \frac{P \rho P}{\mathrm{Tr}(P \rho P)}$,
+   la fidelidad de Uhlmann y la distancia geodésica de Bures son:
+       $$F(\rho, \sigma) = \left( \mathrm{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2 \in [0, 1]$$
+       $$d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}} \in [0, \sqrt{2}], \quad \theta_B = \arccos(\sqrt{F})$$
+
+4. Criterio de Apuesta $\kappa$-Kelly y Crecimiento Logarítmico:
+   Con probabilidad efectiva $p_{\mathrm{eff}} = F(\rho_{\mathrm{flash}}, \rho_{\mathrm{target}})$, la fracción óptima de Kelly es:
+       $$f^* = \max(0, 2 p_{\mathrm{eff}} - 1), \quad s = \kappa \cdot f^* \quad (\kappa \in (0, 1])$$
+   El crecimiento logarítmico esperado de la inversión es:
+       $$G(s) = p_{\mathrm{eff}} \log(1 + s) + (1 - p_{\mathrm{eff}}) \log(1 - s) = \log 2 - h_2(p_{\mathrm{eff}})$$
+
+5. Adjudicación de Heyting $\Omega_3$ e Interlock Ciber-Físico ESP32:
+   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
+   aplica meet conservador con detección de fraude. Si $v_{\mathrm{final}} = \bot$, se dispara de forma
+   inmediata el interlock de hardware (GPIO14 $\to$ HIGH, MOSFET BT151) con latencia nominal $< 400\text{ ns}$.
+
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
+
+El Soberano opera como el funtor estricto $F = F_3 \circ F_2 \circ F_1$:
+    $$F : \mathrm{IntuitiveFlashRequest} \times \mathrm{Gr}(r, n) \longrightarrow \mathrm{IntuitionFlashCertificate}$$
+
+  • $F_1$ (`FlashHandoff.build`): $\mathrm{IntuitiveFlashRequest} \times \mathrm{Gr}(r, n) \to \mathrm{FlashHandoff}$.
+    Sanitización $C^*$, proyector $P = B B^\dagger$, energía inicial $\mathcal{E}(\rho_0)$ y auditoría de fraude.
+  • $F_2$ (`FlashPipeline.synthesize`): $\mathrm{FlashHandoff} \to \mathrm{FlashTrajectoryBundle}$.
+    Paso Cauchy $\eta^*$, distancia geodésica $d_B$, espectro del Jacobiano $DT_\eta$, Kelly $\kappa$ y contrato de latencia $p99$.
+  • $F_3$ (`TOONIntuitionAgent._phase3_certify`): $\mathrm{FlashTrajectoryBundle} \to \mathrm{IntuitionFlashCertificate}$.
+    Adjudicación por meets, disparo ciber-físico ESP32 Crowbar si $\bot$, traducción visceral y firma Merkle.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Autonomía de Bures): $d_B(\rho, \sigma)$ es una distancia riemanniana intrínseca sobre $\mathfrak{D}_n$.
+- Axioma 2 (Invariante Determinista de Stiefel): La base $B \in \mathrm{St}(r, n)$ se genera exclusivamente mediante la semilla SHA-256 del ID.
+- Axioma 3 (Prioridad Absoluta del Crowbar): Si $v_{\mathrm{final}} = \bot$, la respuesta es una interrupción física inmediata ($\mathrm{interlock\_fired} = \mathrm{True}$).
 """
 
 from __future__ import annotations

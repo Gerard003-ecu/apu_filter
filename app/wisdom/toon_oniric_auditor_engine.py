@@ -8,53 +8,61 @@ r"""
 ║            germen formal del primero de k+1)                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Formalización (topos + TQFT + espectro-cuántica)
-================================================
+Formalización Categorial Doctoral (Funtor Auditor Onírico 𝒜)
+============================================================
 
-Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal
+Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal linealmente ordenado:
 
-        Ω₃  =  { VETOED  ≺  DEGRADED  ≺  COHERENT }.
+        Ω₃  =  { VETOED = 0  ≺  DEGRADED = 1  ≺  COHERENT = 2 }
 
-El auditor realiza un endofuntor
+El auditor realiza un endofuntor sobre la categoría de ciclos oníricos contrafactuales:
 
         𝒜  :  𝐂𝐢𝐜𝐥𝐨_𝐎𝐧𝐢𝐫𝐢𝐜𝐨  ──▶  𝐏𝐚𝐬𝐚𝐩𝐨𝐫𝐭𝐞_𝐈𝐦𝐦
 
-como composición estrictamente asociativa
+mediante la composición estrictamente asociativa de morfismos anidados:
 
         𝒜  =  V ∘ Hol ∘ Seal ∘ χ ∘ I_GW ∘ D ∘ Spec
 
-donde Spec es el ÚLTIMO morfismo de FASE-1 (extract_spectral_measure) y el
-PRIMERO que consume FASE-2; evaluate_dream_spectrum es el ÚLTIMO de FASE-2
-y _seal_and_accumulate el PRIMERO de FASE-3.
+donde cada flecha está ligada inalienablemente entre fases.
 
-Espectro y amplitudes
-=====================
+Estructura de Fases Anidadas e Invariantes
+===========================================
 
-    Spec : ρ ↦ λ ∈ Δ^{n-1}                 (medida espectral, simplex)
-    γ(ρ) = ‖λ‖₂² = Tr(ρ²)                  (pureza)
-    S(ρ) = −Σ λᵢ log λᵢ                    (von Neumann)
-    Δλ   = λ_max − λ_{max−1}               (gap)
-    E_D  = ½ Σᵢ (λ_{i+1} − λᵢ)²            (Dirichlet discreto / H¹)
-    E_∂  = Σᵢ |λ_{i+1} − λᵢ|               (energía de Dirac / TV)
-    I_GW = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
+FASE 1 — RETÍCULO Ω₃, DENSIDAD, MEDIDA ESPECTRAL Y SEMILLA Spec
+──────────────────────────────────────────────────────────────────────────
+  • HeytingOmega3: Álgebra de Heyting completa Ω₃ = {0 ≺ 1 ≺ 2}. Residuo a → b = ⊤ si a ≤ b, else b.
+    Satisface la ley de residuación (a ∧ c ≤ b ⇔ c ≤ (a → b)) y la falla del tercio excluso en DEGRADED.
+  • DensityOperator: Operador densidad ρ ∈ 𝔇(ℋₙ) = { ρ = ρ†, ρ ⪰ 0, Tr(ρ) = 1 }.
+  • SpectralMeasure: Medida espectral λ ∈ Δⁿ⁻¹ del estado ρ. Contiene pureza γ = Tr(ρ²), entropía S(ρ) = −Σ λᵢ log λᵢ
+    y el gap espectral Δλ = λ_max − λ_{max−1}.
+  • SpectralMeasureSeed (ABC): Germen formal de la extracción espectral. Su método `extract_spectral_measure`
+    es el ÚLTIMO de FASE-1 y el PRIMERO de FASE-2.
 
-I_GW es una amplitud TQFT sintética: γ juega el rol de clase virtual,
-e^{−E_D} el peso de energía (filtrado a la Gromov), (1+b₁)⁻¹ la penalización
-por género/ciclos, y el factor de Euler la corrección cobordista.
+FASE 2 — TQFT, GROMOV-WITTEN SINTÉTICO, DIRICHLET-DIRAC Y TRAZA ABIERTA
+──────────────────────────────────────────────────────────────────────────
+  • OniricSpectraEngine.extract_spectral_measure: CONTINUACIÓN FORMAL de `extract_spectral_measure`.
+    Diagonaliza y proyecta el espectro al simplex.
+  • OniricSpectraEngine.compute_gromov_witten_invariant: Amplitud TQFT / Gromov-Witten sintética acotada en [0, 1]:
+        I_GW = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
+    donde E_D = ½ Σ (λ_{i+1} − λᵢ)² es la energía de Dirichlet (H¹) y E_∂ = Σ |λ_{i+1} − λᵢ| es la energía de Dirac (TV).
+  • OniricSpectraEngine.evaluate_dream_spectrum: Ejecuta Spec ∘ D ∘ I_GW ∘ χ y produce UnsealedOniricTrace
+    (último objeto de FASE-2).
 
-Holonomía
-=========
+FASE 3 — AUDITOR, SELLO, HOLONOMÍA, MERKLE, INMUNIZACIÓN Y PASAPORTE
+──────────────────────────────────────────────────────────────────────────
+  • MerkleInclusionProof: Árbol Merkle SHA-256 con verificación en O(log n).
+  • TOONOniricAuditorEngine._seal_and_accumulate: CONTINUACIÓN FORMAL de `evaluate_dream_spectrum`.
+    Aplica Seal (SHA-256), acumula la holonomía H₊(t) = Σ I_GW(τ) y la fase de Wilson W(t) = exp(i H₊(t)) ∈ U(1),
+    y retorna OniricFieldState.
+  • TOONOniricAuditorEngine.audit_oniric_cycle: Ejecuta 𝒜 completo, registrando el estado inmunizado.
 
-    H₊(t)  = ⊕_{τ≤t} I_GW(τ)               (monoide (ℝ≥0, +, 0))
-    W(t)   = exp(i H₊(t)) ∈ U(1)           (Wilson)
-    χ_∥(t) = ⋀_{τ≤t} χ(τ) ∈ Ω₃             (transporte paralelo intuicionista)
-
-Invariantes verificables
-========================
-    ρ = ρ†, ρ ⪰ 0, Tr ρ = 1, spec(ρ) ⊂ [0,1].
-    I_GW ∈ [0, 1],  E_D ≥ 0,  E_∂ ≥ 0,  Δλ ≥ 0.
-    Hojas SHA-256 inyectivas; Merkle verificable en O(log n).
-    ∂-consistencia: bₖ ≥ 0; χ = b₀ − b₁ + b₂ si se proveen los tres.
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Positividad y Traza Cuántica: ρ = ρ†, spec(ρ) ⊂ [0, 1], Tr(ρ) = 1.
+  2. Bounding TQFT / Gromov-Witten: I_GW ∈ [0, 1], E_D ≥ 0, E_∂ ≥ 0.
+  3. Unitaridad de Holonomía: W(t) = exp(i H₊(t)) ∈ U(1)  (|W(t)| = 1).
+  4. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
+  5. Inyectividad Merkle: Verificación de inclusión SHA-256 inalterable en O(log n).
 """
 
 from __future__ import annotations

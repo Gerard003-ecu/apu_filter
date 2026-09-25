@@ -7,41 +7,65 @@ r"""
 ║ AUTOR    : APU Wisdom & Metacortex Mathematical Core Architecture            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Motor de simulación onírica contrafactual y síntesis inmunológica en fase REM
-para la capa cognitiva de APU Filter. Tres fases estrictamente anidadas: el
-último morfismo de la fase k es el germen formal del primero de la fase k+1.
+Formalización Categorial Doctoral (Funtor Onírico REM 𝒟)
+========================================================
 
-  FASE 1 — Topología simplicial exacta (∂²=0), Hodge completo (β₀,β₁,β₂,χ),
-           descomposición de Hodge de 1-formas, álgebra de división ℍ
-           (Sp(1)≅SU(2), Hopf, C*), circuitos de Kirchhoff-Tellegen no
-           recíprocos, y SEMILLA H = lift_hamiltonian  ──HAND-OFF──▶ FASE 2.
+Sea 𝓣_Ω el topos de haces sobre la cadena de Heyting tetravaluada:
 
-  FASE 2 — Álgebras C*/Banach (Umegaki, Bures, Uhlmann), dinámica GKSL con
-           RK4 adaptativo + Richardson + proyección a 𝔇(ℋ), Polyakov con
-           reducción de τ al dominio fundamental de PSL(2,ℤ), y
-           create_metabolized_state  ──HAND-OFF──▶ FASE 3.
+        Ω₄  =  { ABSURDUM_VETOED = 0 ≺ BOUNDARY_DEGRADED = 1 ≺ TOPOLOGICAL_SOUND = 2 ≺ VERUM_COHERENT = 3 }
 
-  FASE 3 — Inmunización espectral por cobertura de masa, tasa η adaptativa
-           al clasificador de Heyting Ω₄, árbol de Merkle con pruebas de
-           inclusión, orquestación Wake-Sleep, auditoría y pasaporte.
+El motor realiza una simulación onírica contrafactual y síntesis inmunológica mediante el funtor:
 
-Composición funtorial
-=====================
+        𝒟  :  𝐒𝐜𝐞𝐧𝐚𝐫𝐢𝐨_𝐑𝐄𝐌  ──▶  𝐃𝐫𝐞𝐚𝐦_𝐑𝐞𝐩𝐨𝐫𝐭
+
+componiendo de forma estrictamente asociativa las tres fases anidadas:
+
         𝒟  =  V ∘ I ∘ Φ_t ∘ H ∘ K
 
-    K  : escenario ↦ (K, Y_b, β_•, χ)          (complejo + circuito)
-    H  : (K, τ) ↦ H = H† ∈ 𝔥𝔢𝔯(ℋ_n)            (último de FASE-1)
-    Φ_t: (H, ρ) ↦ ρ(t) ∈ 𝔇(ℋ)  (CPTP GKSL)     (primero de FASE-2)
-    I  : ρ(t) ↦ (P_vac, f_cov)                  (primero de FASE-3)
-    V  : meet_{Ω₄}(χ_topo, χ_met, χ_enclave)
+donde el último morfismo de la fase k es el germen formal de la fase k+1.
 
-Invariantes verificables
-========================
-    ∂₁∂₂ = 0,  χ = β₀ − β₁ + β₂.
-    ρ = ρ†, ρ ⪰ 0, Tr ρ = 1,  Φ_t CPTP (γ_k ≥ 0 ⇒ Kossakowski).
-    P_vac² = P_vac = P_vac†  (proyector ortogonal).
-    |q₁ q₂| = |q₁| |q₂|,  |q* q| = |q|².
-    Hojas SHA-512 inyectivas; Merkle verificable en O(log n).
+Estructura de Fases Anidadas e Invariantes
+===========================================
+
+FASE 1 — RETÍCULO Ω₄, HEYTING, CUATERNIONES ℍ, HODGE SIMPLICIAL Y SEMILLA H
+──────────────────────────────────────────────────────────────────────────
+  • HeytingTruthValue: Álgebra de Heyting completa tetravaluada Ω₄. Satisface la residuación
+    a ∧ c ≤ b  ⇔  c ≤ (a → b). Pseudocomplemento ¬_H a = a → ⊥.
+  • Quaternion: Álgebra de división ℍ ≅ Cl⁺_{0,3}(ℝ) con inmersión ℍ ↪ M₂(ℂ) vía Pauli.
+    Álgebra de composición |q₁ q₂| = |q₁| |q₂|, C*-identidad |q* q| = |q|² y fibración de Hopf S³ → S².
+  • SimplicialHodgeComplex: 2-complejo de cadenas simplicial K = (V, E, F) con ∂₁∂₂ = 0.
+    Invariantes de Hodge: βₖ = dim ker L▖, Euler-Poincaré χ = β₀ − β₁ + β₂, y descomposición de Hodge C₁ = im ∂₂ ⊕ im ∂₁ᵀ ⊕ ker L₁.
+  • NonReciprocalCircuitField: Red AC no recíproca sobre K. Satisface la conservación de Tellegen Σ_e v_e i_e* = V† I
+    y el margen de pasividad λ_min((Y_b + Y_b†)/2) ≥ −ε.
+  • TopologicalCircuitBundle: Objeto terminal de FASE-1. Su método `lift_hamiltonian` es el ÚLTIMO de FASE-1
+    y el PRIMERO de FASE-2.
+
+FASE 2 — ÁLGEBRAS C*/BANACH, GKSL ADAPTATIVO, CFT DE CUERDAS Y ESTADO METABOLIZADO
+──────────────────────────────────────────────────────────────────────────
+  • BanachOperatorAlgebra: Estructura C* sobre B(ℋₙ). Proyección al simplex 𝔇(ℋₙ), entropía S(ρ) = −Tr(ρ log₂ ρ),
+    pureza P(ρ) = Tr(ρ²), relativa de Umegaki S(ρ‖σ) ≥ 0, fidelidad F(ρ,σ) y distancia Bures d_B.
+  • PolyakovWorldsheetMetrics: Acción bosónica S_P[X,h] con reducción del parámetro modular τ al dominio
+    fundamental ℱ de PSL(2,ℤ).
+  • LindbladCFTMasterEvolver: CONTINUACIÓN FORMAL de `lift_hamiltonian`. Integra la ecuación GKSL:
+        dρ/dt = −i[H, ρ] + Σ_k γ_k (L_k ρ L_k† − ½ {L_k† L_k, ρ})
+    mediante RK4 adaptativo + duplicación + Richardson (orden 5) + proyección a 𝔇(ℋₙ).
+  • MetabolizedFieldState.create_metabolized_state: ÚLTIMO método de FASE-2. Evalúa la coherencia metabólica
+    M = P(ρ) · exp(−E_D/κ_E) · exp(−S_rel/κ_S) y asigna el veredicto Ω₄.
+
+FASE 3 — INMUNIZACIÓN ESPECTRAL, MERKLE, WAKE-SLEEP Y REGISTRO
+──────────────────────────────────────────────────────────────────────────
+  • SpectralImmuneVaccineSynthesizer.synthesize_from_metabolized_state: PRIMER MORFISMO DE FASE-3 (continúa
+    `create_metabolized_state`). Construye el proyector de inmunidad P_vac = Σ_{i=1}^k |v_i⟩⟨v_i| sobre la masa espectral.
+  • MerkleInclusionProof: Árbol Merkle SHA-512 sobre las hojas de firma para verificación en O(log n).
+  • TOONOniricDreamerEngine: Orquestador soberano que ejecuta el ciclo REM y las fases Wake-Sleep.
+
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Exactitud Simplicial: ∂₁ ∂₂ = 0  (‖∂₁∂₂‖_F = 0).
+  2. Invariante de Euler-Poincaré: χ = β₀ − β₁ + β₂ = |V| − |E| + |F|.
+  3. Positividad y Traza Cuántica: ρ = ρ†, spec(ρ) ⊂ [0, 1], Tr(ρ) = 1.
+  4. Idempotencia del Proyector Vacunal: P_vac² = P_vac = P_vac† (‖P_vac² − P_vac‖_F ≈ 0).
+  5. Adjunción de Heyting: ∀ a,b,c ∈ Ω₄: (c ∧ a ≤ b) ⇔ (c ≤ (a → b)).
 """
 
 from __future__ import annotations

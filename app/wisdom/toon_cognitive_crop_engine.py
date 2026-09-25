@@ -4,53 +4,64 @@ r"""
 ║  TOON Cognitive Crop Engine — Soberano Motor del Cultivo Cognitivo            ║
 ║  Ubicación: app/wisdom/toon_cognitive_crop_engine.py                          ║
 ║  Versión  : 2.2.0-Doctoral-Nested-Banach-Brockett-Rényi-Faith-MAC             ║
-║                                                                               ║
-║  EVOLUCIÓN DOCTORAL ANIDADA — las cuatro operaciones del cultivo como         ║
-║  morfismos en la categoría Crop, con composición estricta F1 → F2 → F3:       ║
-║                                                                               ║
-║    · RIEGO      (§2.1): Shannon H₂ + estimador BPE Ω(⌈n/4⌉)                   ║
-║                          Δ_gr = 100 · [0.7·(1−t_t/t_j) + 0.3·(1−H_t/H_j)]     ║
-║                                                                               ║
-║    · LUZ        (§2.2): Brockett isospectral en U(n) (RK4 + polar)            ║
-║                          + reweighting de Rényi ρ ↦ ρ^α/Tr(ρ^α)               ║
-║                          + matching energético Fock (dos modos)               ║
-║                                                                               ║
-║    · DISCIPLINA (§2.3): radio espectral exacto de la linealización            ║
-║                          T_η(ρ) = ρ − η[ρ,[ρ,N]]  en el equilibrio diagonal:  ║
-║                              τ_ij = 1 − η (λ_i−λ_j) log(λ_i/λ_j)              ║
-║                          Banda de Banach: 0 < η < η_max = 2/g_max.            ║
-║                                                                               ║
-║    · FE         (§3.2): interlock ciber-físico ESP32 BT151 GPIO14 con         ║
-║                          latencia nominal y provenance SHA-256.               ║
-║                                                                               ║
-║  Teorema de anidamiento (asociatividad de fases):                             ║
-║                                                                               ║
-║      prepare ∈ Hom(M_n(ℂ), SeedState)                 cierra FASE 1           ║
-║      synthesize ∘ prepare ∈ Hom(M_n(ℂ)×Σ*×Σ*, Bundle) cierra FASE 2           ║
-║      certify ∘ synthesize ∘ prepare               cierra FASE 3               ║
-║                                                                               ║
-║  El último método de cada fase ES el tipo de dominio de la fase siguiente.    ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato algebraico del cultivo                                   ║
-║              §1.1  HeytingOmega3 — cadena de Heyting completa (Gödel)         ║
-║              §1.2  DensityOperatorAlgebra — C*-álgebra de estados             ║
-║              §1.3  BanachContractionAlgebra — ρ(T) en B(u(n))                 ║
-║              §1.4  SoilField — H_mac, gap de Kato, |Ω⟩                        ║
-║              §1.5  SeedCrystalPreparation.prepare — HAND-OFF → FASE 2         ║
-║                                                                               ║
-║    FASE 2 ▸ Riego + Luz + Disciplina  (dominio = SeedState de §1.5)           ║
-║              §2.1  CognitiveWateringModule — Shannon + BPE                    ║
-║              §2.2  CognitiveIlluminationModule — U(n)-Brockett + Rényi + Fock ║
-║              §2.3  CognitiveDisciplineModule — ρ(T) ⊆ [0, ∞)                  ║
-║              §2.4  CropGrowthPipeline.synthesize — HAND-OFF → FASE 3          ║
-║                                                                               ║
-║    FASE 3 ▸ Fe + Adjudicación + Certificación (dominio = CropGrowthBundle)    ║
-║              §3.1  HeytingCropAdjudicator — meet Ω₃ (lógica interna)          ║
-║              §3.2  CognitiveFaithModule — crowbar ESP32                       ║
-║              §3.3  CropGerminationCertificate — frozen + Merkle de fases      ║
-║              §3.4  TOONCognitiveCropEngine — orquestador soberano             ║
-║              §3.5  Demostración autónoma (COHERENT / DEGRADED / VETOED)       ║
+║  Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el   ║
+║            germen formal del primero de k+1)                                  ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Formalización Categorial Doctoral (Funtor del Cultivo Cognitivo C)
+==================================================================
+
+Sea 𝓣_Ω el topos de haces con clasificador Ω₃ = { VETOED = 0 ≺ DEGRADED = 1 ≺ COHERENT = 2 }.
+Las cuatro operaciones del cultivo se formalizan como morfismos en la categoría Crop mediante el funtor:
+
+        C  :  M_n(ℂ) × Σ* × Σ*  ──▶  CropGerminationCertificate
+
+componiendo de forma asociativa las tres fases anidadas:
+
+        C  =  Certify ∘ CropGrowthPipeline ∘ Prepare
+
+donde el tipo de retorno del último método de la fase k es el dominio inalienable de la fase k+1.
+
+Estructura de Fases Anidadas e Invariantes
+===========================================
+
+FASE 1 — SUSTRATO ALGEBRAICO Y PREPARACIÓN DEL CRISTAL SEMILLA
+──────────────────────────────────────────────────────────────────────────
+  • HeytingOmega3: Retículo de Heyting completo Ω₃. Residuo a → b = ⊤ si a ≤ b, else b.
+    Satisface residuación (a ∧ c ≤ b ⇔ c ≤ (a → b)) y la falla del tercio excluso en DEGRADED.
+  • DensityOperatorAlgebra: Operadores en 𝔇_n. Entropía S(ρ) = −Tr(ρ log ρ), Rényi S_α(ρ) = (1−α)⁻¹ log Tr(ρ^α),
+    pureza P(ρ) = Tr(ρ²) y reweighting Φ_α(ρ) = ρ^α / Tr(ρ^α).
+  • BanachContractionAlgebra: Mapeo de la mutación T_η(ρ) = ρ − η[ρ,[ρ,N]] en B(u(n)).
+    Radio espectral exacto en equilibrio diagonal: τ_ij = 1 − η (λ_i−λ_j) log(λ_i/λ_j), η_max = 2/g_max.
+  • SoilField: Campo base H_mac perturbado según Kato–Rellich, con gap topológico E₁ − E₀ y ground |Ω⟩⟨Ω|.
+  • SeedCrystalPreparation.prepare: Morfismo de hand-off FASE 1 ⟶ FASE 2. Prepara `SeedState`
+    (último objeto/método de FASE-1).
+
+FASE 2 — RIEGO, LUZ Y DISCIPLINA
+──────────────────────────────────────────────────────────────────────────
+  • CognitiveWateringModule.apply_water: (§2.1 Riego) Compresión de grasa sintáctica:
+        Δ_gr = 100 · [ 0.7·(1 − t_t/t_j) + 0.3·(1 − H_t/H_j) ],  t BPE Ω(⌈n/4⌉), H₂ Shannon.
+  • CognitiveIlluminationModule.apply_light: (§2.2 Luz) Flujo isospectral Brockett en U(n) (RK4 + polar)
+        + Rényi Φ_α + matching energético Fock e⁻ + e⁺ → 2γ.
+  • CognitiveDisciplineModule.audit_discipline: (§2.3 Disciplina) Verificación de la banda de Banach ρ(T_η) < 1.
+  • CropGrowthPipeline.synthesize: Compone Riego ⊗ Luz ⊗ Disciplina, emitiendo `CropGrowthBundle`
+    (último objeto/método de FASE-2).
+
+FASE 3 — FE, ADJUDICACIÓN Y CERTIFICACIÓN CIBER-FÍSICA
+──────────────────────────────────────────────────────────────────────────
+  • HeytingCropAdjudicator.adjudicate: PRIMER MORFISMO DE FASE-3 (continúa `synthesize`).
+    Colapsa el bundle en Ω₃ mediante meets: local = water ∧ discipline ∧ fock ∧ brockett ∧ renyi, final = local ∧ external.
+  • CognitiveFaithModule.verify_faith: (§3.2 Fe) Disparo del crowbar ESP32 (GPIO14 → HIGH, BT151) si Ω₃ = ⊥
+    con latencia nominal < 400 ns y firma SHA-256 de provenance.
+  • TOONCognitiveCropEngine: Orquestador soberano C = Certify ∘ Growth ∘ Prepare.
+
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Isotonicidad de Brockett: Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0 ⇒ L(ρ*) ≥ L(ρ₀).
+  2. Banda de Estabilidad de Banach: 0 < η < η_max = 2/g_max ⇒ ρ(T_η) < 1 (contracción local).
+  3. Proyección al Simplex 𝔇_n: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+  4. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
+  5. Inyectividad Merkle: Cadena de custodia `phase_chain_sha256` inalienable por SHA-256.
 """
 
 from __future__ import annotations

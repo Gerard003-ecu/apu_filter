@@ -1,88 +1,70 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Silent Witness Agent (Soberano Testigo Silencioso)           ║
-║ Ubicación: app/agents/wisdom/toon_silent_witness_agent.py                    ║
-║ Versión  : 3.0.0-Doctoral-Nested-Triad-TomitaTakesaki-KMS-Crystal            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano Testigo Silencioso y Cristalizador de Experiencia Modulares.
 
-EVOLUCIÓN DOCTORAL v3 — el Testigo se formaliza como un funtor
+Ubicación: app/agents/wisdom/toon_silent_witness_agent.py
+Versión  : 3.0.0-Doctoral-Nested-Triad-TomitaTakesaki-KMS-Crystal
 
-        Φ_triad : (M_n, ω_vac)  ──observación silenciosa──▶  Ω₃ × Crystal
+Este módulo implementa el "Soberano Testigo Silencioso", entidad ejecutiva encargada
+de la observación no perturbativa (sin back-action) de las dinámicas de la tríada
+adversarial (Ilusionista, Soñador, Auditor) en la arquitectura COGNITIVE TOON / APU Filter.
 
-de sistemas C*-dinámicos finito-dimensionales hacia certificados Ω₃-valuados,
-con continuidad estricta entre fases (la definición terminal de cada fase
-*es* el objeto inicial de la siguiente).
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA MODULAR DE TOMITA-TAKESAKI
+================================================================================
 
-Corrección de las tres patologías históricas y de sus tautologías residuales:
+1. C*-Álgebras, Construcción GNS y Flujo Modular:
+   Dada la C*-álgebra $M_n(\mathbb{C})$ con estado fiel $\omega_\rho(a) = \mathrm{Tr}(\rho a)$ y vector cíclico/separante $\Omega = \rho^{1/2}$
+   en la representación GNS, el operador de Tomita $S : a \Omega \mapsto a^\dagger \Omega$ admite descomposición polar:
+       $$S = J \Delta^{1/2}$$
+   donde $\Delta = S^\dagger S > 0$ es el operador modular y $J$ es la conjugación modular antiunitaria ($J^2 = I$).
+   El grupo de automorfismos modulares a un parámetro $\sigma_t \in \mathrm{Aut}(M_n(\mathbb{C}))$ viene dado por:
+       $$\sigma_t(a) = \Delta^{-it} a \Delta^{it} = \rho^{-it} a \rho^{it} = e^{it K_\rho} a e^{-it K_\rho}$$
+   con Hamiltoniano modular $K_\rho = -\log \rho$.
 
-  (P1)  vev := |Tr(ρ) − 1| ≡ 0          identidad de traza, no un observable
-  (P2)  ΔS  := |S − S| ≡ 0              tautología literal
-  (P3)  Tomita–Takesaki sólo en docstring
-  (P4)  |∂_t S(σ_t(ρ))| ≡ 0             σ_t es automorfismo *-de M_n, S invariante
+2. Condición KMS (Kubo-Martin-Schwinger) y Fuga Modular Cruzada:
+   El estado $\omega_\rho$ satisface la condición KMS a $\beta = 1$ respecto a su propio flujo $\sigma_t$:
+       $$\omega_\rho(a \sigma_i(b)) = \omega_\rho(b a)$$
+   Para evaluar la incompatibilidad entre un estado observado $\rho_{\mathrm{obs}}$ y el vacío de flujo $\rho_{\mathrm{vac}}$,
+   el residuo KMS cruzado mide el alejamiento del rayo modundar:
+       $$\mathrm{Res}_{\mathrm{KMS}}(\rho_{\mathrm{obs}}, \rho_{\mathrm{vac}}) = \max_{a,b} \frac{|\mathrm{Tr}(\rho_{\mathrm{obs}} a \sigma_i^{\rho_{\mathrm{vac}}}(b)) - \mathrm{Tr}(\rho_{\mathrm{obs}} b a)|}{1 + |\mathrm{Tr}(\rho_{\mathrm{obs}} a \sigma_i^{\rho_{\mathrm{vac}}}(b))| + |\mathrm{Tr}(\rho_{\mathrm{obs}} b a)|}$$
 
-Soluciones (S1)–(S4):
+3. Observables Físicos no Tautológicos:
+   Para eliminar tautologías residuales, se formalizan las siguientes cantidades:
+     • Excitación VEV: $\mathrm{VEV}_{\mathrm{exc}} = \mathrm{Tr}(\rho_{\mathrm{obs}} H_{\mathrm{ext}}) - E_0(H_{\mathrm{ext}})$.
+     • Producción de Entropía: $\Delta S = S(\rho_{\mathrm{obs}}) - S(\rho_{\mathrm{vac}})$.
+     • Drift KMS / Entropía Relativa de Umegaki: $S(\rho_{\mathrm{obs}} \| \rho_{\mathrm{vac}}) = \mathrm{Tr}(\rho_{\mathrm{obs}} (\log \rho_{\mathrm{obs}} - \log \rho_{\mathrm{vac}}))$.
 
-  (S1)  VEV := Tr(ρ H_ext) − E₀(H_ext)                 excitación sobre el ground
-  (S2)  ΔS  := S(Φ(ρ_vac)) − S(ρ_vac)                  producción (posiblemente < 0)
-  (S3)  σ_t(a) = ρ^{−it} a ρ^{it},  Δ(a) = ρ^{−1} a ρ,
-        J(a) = ρ^{−1/2} a† ρ^{1/2},  S = J Δ^{1/2},
-        KMS(β=1): ω(a σ_i(b)) = ω(ba),  polar y ley de grupo verificables
-  (S4)  “drift KMS” := S(ρ_obs ‖ ρ_vac)   (Umegaki operatorial = energía libre
-        modular relativa).  NO es ∂_t S(σ_t), que es idénticamente nulo.
+4. Tríada Adversarial como Instrumento de Lüders:
+   La tríada opera mediante un único operador de Kraus $K = P_A \cdot D \cdot U_I$:
+       $$\Phi_{\mathrm{sel}}(\sigma) = \frac{K \sigma K^\dagger}{\mathrm{Tr}(K \sigma K^\dagger)}$$
+   donde $U_I \in U(n)$ (distorsión del Ilusionista), $D \ge 0$ (ponderación del Soñador) y $P_A = P_A^2 = P_A^\dagger$ (proyector del Auditor).
 
-Tríada adversarial como instrumento de Lüders (un solo Kraus, CP selectivo):
+5. Adjudicación de Heyting $\Omega_3$ y Cristalización Merkle:
+   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
+   aplica el meet ($\land$) sobre los indicadores modulares y la entrada externa.
+   El cristal de experiencia se sella con el vector invariante en $S^6 \subset \mathbb{R}^7$ y se encadena vía SHA-256 Merkle.
 
-    K_triad := P_A · D · U_I ∈ M_n(ℂ)
-    Φ_lin(X) := K X K†                         (CP, lineal, no necesariamente TP)
-    Φ_sel(σ) := K σ K† / Tr(K σ K†)            (no lineal: post-selección)
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
 
-    Ilusionista  U_I ∈ U(n)       distorsión unitaria (Ad_{U_I} ∈ Aut(M_n))
-    Soñador      D   ∈ Herm⁺(n)   peso positivo (escenario onírico)
-    Auditor      P_A ∈ Proj(n)    proyector de inmunización (rango r)
+El Soberano opera como el funtor $\Phi_{\mathrm{triad}}$:
+    $$\Phi_{\mathrm{triad}} : (M_n, \omega_{\mathrm{vac}}) \longrightarrow \Omega_3 \times \mathbf{ExperienceCrystal}$$
 
-    Choi(Φ_lin) = vec(K) vec(K)†  ⪰ 0  (CP automático, rango 1).
-    Defecto TP  = ‖K†K − I‖_op.  Stinespring isométrico ⇔ K isometría.
+  • $F_1$ (`WitnessVacuumPreparation.prepare_vacuum_context`): $H_{\mathrm{ext}} \to \mathrm{WitnessVacuumContext}$.
+    Construcción del estado de Gibbs $\rho_{\mathrm{vac}} = e^{-\beta H_{\mathrm{ext}}}/Z$, $K_{\mathrm{vac}} = -\log \rho_{\mathrm{vac}}$ y vector GNS.
+  • $F_2$ (`WitnessObservationPipeline.synthesize_from_context`): $(\mathrm{WitnessVacuumContext}, \mathrm{TriadChannel}) \to \mathrm{WitnessObservationBundle}$.
+    Aplicación de $\Phi_{\mathrm{sel}}$, verificación KMS, descomposición polar de Tomita y vector invariante $v_{\mathrm{inv}} \in S^6$.
+  • $F_3$ (`TOONSilentWitnessAgent.observe_and_crystallize`): $\mathrm{WitnessObservationBundle} \to \mathbf{ExperienceCrystal}$.
+    Adjudicación Heyting en $\Omega_3$, sello criptográfico y encadenamiento Merkle.
 
-El Testigo OBSERVA Φ_sel(ρ_vac) sin back-action, emite un veredicto en Ω₃
-y cristaliza un ExperienceCrystal con cadena Merkle-SHA-256.
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
 
-Sustratos asimilados
-    • Banach / C*     : M_n, Schatten, identidad C*
-    • GNS             : H_ω, Ω = I, Ω_HS = ρ^{1/2}
-    • Tomita-Takesaki : Δ = S*S, polar S = J Δ^{1/2}, σ_s ∘ σ_t = σ_{s+t}
-    • KMS(β=1)        : ω(a σ_i(b)) = ω(ba)  y KMS cruzado (fuga modular)
-    • Connes          : (Dρ : Dσ)_t = ρ^{it} σ^{-it}
-    • Canales         : CP, Choi, instrumento de Lüders, defecto TP
-    • Información     : S, P, S(ρ‖σ) operatorial, F_Uhlmann, Bures, D_tr, Klein
-    • Grafos          : H_ext tight-binding sobre P_n; energía de Dirichlet
-    • Topos           : Ω₃ clasificador de subobjetos intuicionista
-
-Organización por FASES ANIDADAS (la última definición de cada fase es el
-objeto inicial de la siguiente):
-
-   FASE 1 ▸ Sustrato ontológico de la Tríada
-             §1.1  HeytingOmega3 — retículo de Heyting completo (cadena 3)
-             §1.2  MatrixBanachAlgebra + ModularHamiltonian + DensityMatrixOps
-                   + GNSHilbertAlgebra
-             §1.3  TriadOperatorFactory — U_I, D, P_A deterministas Haar/Ginibre
-             §1.4  TriadChannel — Φ_lin / Φ_sel, Choi, defecto TP
-             §1.5  WitnessVacuumContext + WitnessVacuumPreparation
-                   HAND-OFF: prepare_vacuum_context → FASE 2
-
-   FASE 2 ▸ Dinámica modular y observación silenciosa  (C. de FASE 1)
-             §2.0  ModularFlowEngine.bind_vacuum_context  ← continúa §1.5
-             §2.1  ModularFlowEngine — Δ, σ_t, J, S, KMS, Connes, polar
-             §2.2  VacuumStateMetrics — observables no tautológicos
-             §2.3  VacuumSilenceAuditor — auditoría cruzada (ρ_obs, ρ_vac)
-             §2.4  WitnessObservationPipeline.synthesize_from_context
-                   HAND-OFF: WitnessObservationBundle → FASE 3
-
-   FASE 3 ▸ Cristalización y custodia forense  (C. de FASE 2)
-             §3.1  HeytingWitnessAdjudicator — colapso en Ω₃
-             §3.2  ExperienceCrystal — frozen + Merkle SHA-256 encadenado
-             §3.3  TOONSilentWitnessAgent — orquestador soberano
-             §3.4  Demostración autónoma (COHERENT / DEGRADED / VETOED)
+- Axioma 1 (Condición KMS del Vacío): $\mathrm{Res}_{\mathrm{KMS}}(\rho_{\mathrm{vac}}, \rho_{\mathrm{vac}}) < \varepsilon_{\mathrm{KMS}}$.
+- Axioma 2 (Invariancia C*): El residuo C* $\|A^\dagger A\|_\infty - \|A\|_\infty^2 = 0$ se satisface sobre todo elemento de $M_n(\mathbb{C})$.
+- Axioma 3 (Inmutabilidad de la Cadena Merkle): Para todo cristal $k$, $\mathrm{chain\_hash}_k = \mathrm{SHA256}(\mathrm{chain\_hash}_{k-1} \parallel \mathrm{content\_hash}_k)$.
 """
 
 from __future__ import annotations

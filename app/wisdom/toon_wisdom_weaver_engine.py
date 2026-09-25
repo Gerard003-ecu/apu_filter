@@ -9,69 +9,81 @@ r"""
 ║            germen formal del primero de k+1)                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Formalización categorial (endofuntor metabolizador)
-===================================================
+Formalización Categorial Doctoral (Endofuntor Metabolizador W)
+==============================================================
 
-Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal
+Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal linealmente ordenado:
 
-        Ω₃  =  { VETOED  ≺  DEGRADED  ≺  COHERENT }
+        Ω₃  =  { VETOED = 0  ≺  DEGRADED = 1  ≺  COHERENT = 2 }
 
-con objeto clasificador Ω₃. El motor realiza un endofuntor
+donde Ω₃ es el objeto clasificador de subobjetos intuicionistas de 𝓣_Ω. El motor
+construye un endofuntor estricto sobre la categoría de cartuchos sinápticos:
 
-        W :  𝐂𝐚𝐫𝐭_𝐓𝐎𝐎𝐍  ──▶  𝐂𝐞𝐫𝐭_𝐌𝐞𝐭
+        W :  𝐂𝐚𝐫𝐭_𝐓𝐎𝐎Ns  ──▶  𝐂𝐞𝐫𝐭_𝐌𝐞𝐭
 
-junto con una transformación natural η : Id ⇒ W (unidad de la metabolización)
-y una counidad ε : W ⇒ Id_Cert (sellado SHA-256). La composición de flechas
-es estrictamente asociativa en 𝐁𝐚𝐧(ℋₙ), el álgebra de Banach de operadores
-acotados sobre ℋₙ ≅ ℂⁿ:
+dotado de una transformación natural de elevación η : Id ⇒ W (unidad de la
+metabolización) y una counidad de sellado criptográfico ε : W ⇒ Id_Cert. La composición
+de morfismos es asociativa en el álgebra C* de operadores acotados 𝐁𝐚𝐧(ℋₙ) sobre
+el espacio de Hilbert complejo de dimensión finita ℋₙ ≅ ℂⁿ:
 
         W  =  V ∘ D ∘ F ∘ G ∘ B ∘ M
 
-donde cada flecha vive en una fase anidada:
+Estructura de Fases Anidadas e Invariantes
+===========================================
 
-    FASE-1  objetos, retículo, cartucho, certificado y SEMILLA M
-    FASE-2  realización de M, B, G, F, D  y traza sin sello
-    FASE-3  V, crowbar ciber-físico, sello, auditoría, pasaporte
+FASE 1 — RETÍCULO DE HEYTING Ω₃, OBJETOS, CARTUCHO, CERTIFICADO Y SEMILLA M
+──────────────────────────────────────────────────────────────────────────
+  • HeytingOmega3: Álgebra de Heyting lineal (0 < 1 < 2). Satisface la adjunción
+    de residuación  a ∧ c ≤ b  ⇔  c ≤ (a → b)  donde  a → b = ⊤ si a ≤ b, y b en otro caso.
+    Pseudocomplemento ¬_H a = a → ⊥. Falla del tercio excluso en DEGRADED:
+    DEGRADED ∨ ¬_H(DEGRADED) = DEGRADED ≠ COHERENT.
+  • DensityOperator: Representante del cono positivo 𝔇(ℋₙ) = { ρ ∈ 𝐁𝐚𝐧(ℋₙ) | ρ = ρ†, ρ ⪰ 0, Tr(ρ) = 1 }.
+    Garantiza la identidad C* residual | ‖ρ†ρ‖₂ − ‖ρ‖₂² | = O(ε_num).
+  • TOONSynapticCartridge: Objeto de 𝐂𝐚𝐫𝐭_𝐓𝐎𝐎𝐍. Posee la matriz de atributos A ∈ Mₙ(ℂ),
+    costo tangible c ≥ 0, riesgo intangible r ∈ [0, 1] y razón de compresión κ_comp = 1 − |TOON|/|JSON|.
+  • MetabolicEndofunctorSeed (ABC): Germen formal de la metabolización. Su método
+    abstracto `lift_to_gibbs_state` es el ÚLTIMO método de FASE-1 y el PRIMERO de FASE-2.
 
-Espectro-cuántica (álgebra C* / Gibbs / Brockett)
-=================================================
+FASE 2 — CAMPO METABÓLICO, BROCKETT, GALOIS, FOCK, DIRICHLET Y TRAZA ABIERTA
+──────────────────────────────────────────────────────────────────────────
+  • (M) TOONMetabolicField.lift_to_gibbs_state: M : 𝔠 ↦ ρ₀. Construye el estado de Gibbs:
+        H = ½(A + A†) ∈ 𝔥𝔢𝔯(ℋₙ),    H̃ = H / ‖H‖_F  (si ‖H‖_F > ε_norm),
+        w = min( ceiling, log(1 + c/scale) · (1 + r) ),
+        ρ₀ = U diag(softmax(w λ(H̃))) U† ∈ 𝔇(ℋₙ).
+  • (B) BrockettIsospectralPurifier.purify: Flujo isospectral del doble corchete de Brockett en 𝔥𝔢𝔯(ℋₙ):
+        dρ/dt = [ρ, [ρ, N]],    N = diag(1, 2, …, n).
+        Función de Lyapunov isotónica L(ρ) = Tr(ρ N) con Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0.
+        Calcula la pureza γ(ρ) = Tr(ρ²) ∈ [1/n, 1] y la entropía de von Neumann S(ρ) = −Tr(ρ log ρ).
+        Garantiza la isotonicidad ΔP = γ* − γ₀ ≥ −ε_num.
+  • (G) GaloisAdjunctionValidator.validate_adjunction: Auditoría de la adjunción de Rham-Galois
+        Hom_D(F(MIC), MAC) ≅ Hom_C(MIC, G(MAC)) con cocientes de pairing:
+        ι_→ = ‖v_MIC‖₂ / (1 + γ_MAC),    ι_← = γ_MAC / (1 + ‖v_MIC‖₂).
+  • (F) FockSpaceAnnihilatorEngine.process_annihilation: Aniquilación fermiónica sobre Fock
+        1-modo ℱ_− = ℂ|0⟩ ⊕ ℂ|1⟩ con {a, a†} = 𝟙. Mapea el riesgo r:
+        r > 0.85 ⇒ (False, 0, VETOED); 0.50 < r ≤ 0.85 ⇒ (True, 1, DEGRADED); r ≤ 0.50 ⇒ (True, 2, COHERENT).
+  • (D) GeodesicAttentionCompressor.compute_dirichlet_energy: Geodésica sobre el laplaciano L = Deg − |A|_H.
+        Energía de Dirichlet compuesta E_D = (1 − κ)² (1 + r) + (1 − tanh λ₂(L)) / n, donde λ₂(L)
+        es la conectividad algebraica de Fiedler y β₀ = dim ker L es el número de Betti-0.
+  • (Composer) SpectralArrowComposer.compose_arrows: Compone M ∘ B ∘ G ∘ F ∘ D y produce
+    UnsealedMetabolicTrace (último objeto/método de FASE-2).
 
-    (M)  H  := (A + A†)/2 ∈ 𝔥𝔢𝔯(ℋₙ)                 (simetrización C*)
-         H̃  := H / ‖H‖_F   si ‖H‖_F > ε             (normalización de Banach)
-         w  := min( ceiling, log1p(c/s)·(1+r) )     (peso de Boltzman sintético)
-         ρ₀ := U diag(softmax(w λ(H̃))) U†           (estado de Gibbs espectral)
-               ∈ 𝔇(ℋₙ) = { ρ = ρ†, ρ ⪰ 0, Tr ρ = 1 }
+FASE 3 — WEAVER ENGINE, CROWBAR CIBER-FÍSICO, SELLO, AUDITORÍA, PASAPORTE
+──────────────────────────────────────────────────────────────────────────
+  • ESP32CrowbarWeaverHardware.trigger: Disyuntor ciber-físico en IRAM de ESP32 (GPIO14 → HIGH,
+    tiristor BT151) con latencia t_prop ≈ 380 ns.
+  • (V) TOONWisdomWeaverEngine._seal_and_verdict: V = ⋀_{Ω₃}(χ_Fock, χ_Galois, χ_Dirichlet).
+    Aplica V, el crowbar si V = VETOED, genera el sello de procedencia SHA-256 inyectivo y
+    retorna MetabolicFieldCertificate.
+  • TOONWisdomWeaverEngine.process_cognitive_vitamin: Ejecuta W(𝔠) completo, registrando
+    el certificado en la memoria inmutable del Weaver.
 
-    (B)  dρ/dt = [ρ, [ρ, N]],   N = diag(1,…,n)     (flujo doble corchete)
-         L(ρ)  = Tr(ρ N),   Ḋ = ‖[ρ, N]‖_F² ≥ 0     (Lyapunov isotónico)
-         γ(ρ)  = Tr(ρ²) = ‖λ‖₂²                     (pureza)
-         S(ρ)  = −Tr(ρ log ρ)                       (von Neumann)
-
-    (G)  Hom(F(MIC), MAC) ≅ Hom(MIC, G(MAC))        (adjunción de Rham-Galois)
-         ι_→ = ‖v_MIC‖ / (1+γ),  ι_← = γ / (1+‖v_MIC‖)
-
-    (F)  e⁻ + e⁺ → γ∈{0,1,2}                        (aniquilación de Fock)
-         {a, a†} = 𝟙  (álgebra de Clifford fermiónica discreta)
-
-    (D)  L = Deg − |A|  (laplaciano combinatorio)
-         E_D = (1−κ)²(1+r) + ⟨𝟙, L 𝟙⟩ / n²          (Dirichlet + grasa sintáctica)
-         β₀  = dim ker L                             (Betti-0 del grafo)
-
-    (V)  χ = ⋀_{Ω₃}(χ_Fock, χ_Galois, χ_Dirichlet)  (flecha característica)
-
-Invariantes verificables
-========================
-    Tr(ρ)=1,  ρ=ρ†,  spec(ρ) ⊂ [0,1],  ‖ρ‖₁ = 1.
-    ΔP := γ* − γ₀  ≥ −ε_num  (no-decrecimiento de Brockett).
-    S_vN ≥ 0,  γ ∈ [1/n, 1],  κ_comp ∈ [0, 1).
-    ‖A†A‖ = ‖A‖² + O(ε)       (identidad C* residual).
-    hashes SHA-256 inyectivos en el registro.
-
-Convenciones numéricas
-======================
-    Diagonalización hermitiana + softmax (log-sum-exp) en lugar de expm/Tr.
-    Integración RK4 del flujo de Brockett con proyección PSD-traza-1.
-    Constantes Final calibradas; ningún literal mágico fuera de Final.
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Invariante de Traza Cuántica: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+  2. Isotonicidad de Brockett: Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0 ⇒ L(ρ*) ≥ L(ρ₀).
+  3. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
+  4. Conservación de Conectividad Grafoteórica: β₀ = dim ker L ≥ 1.
+  5. Inyectividad Criptográfica: H_SHA256(cycle_id ‖ cartridge_id ‖ verdict ‖ γ* ‖ t) es inyectivo.
 """
 
 from __future__ import annotations

@@ -1,81 +1,73 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Silent Witness Engine                                         ║
+║ Módulo   : TOON Silent Witness Engine (Motor Espectral del Testigo Silencioso)║
 ║ Ubicación: app/wisdom/toon_silent_witness_engine.py                           ║
 ║ Versión  : 3.0.0-Doctoral-Nested-TomitaTakesaki-KMS-SpectralGap-Silence       ║
+║ Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el  ║
+║            germen formal del primero de k+1)                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-EVOLUCIÓN DOCTORAL v3 — el "Silencio Epistemológico" se formaliza como un
-funtor de sistemas C*-dinámicos finito-dimensionales hacia certificados
-Ω₃-valuados, con continuidad estricta entre fases:
+Formalización Categorial Doctoral (Funtor del Silencio Epistemológico S)
+========================================================================
 
-  (1) METAFÍSICA MODULAR (GNS + Tomita–Takesaki).
-      El vacío |Ω⟩ es el vector cíclico-separante de la construcción GNS del
-      estado normal fiel ω(a) = Tr(ρ a) sobre el álgebra de von Neumann
-      tipo I_n  M_n(ℂ) ⊂ B(ℂⁿ).
+Sea 𝓣_Ω el topos de haces con clasificador intuicionista Ω₃ = { VETOED = 0 ≺ DEGRADED = 1 ≺ COHERENT = 2 }.
+El Silencio Epistemológico se formaliza como un funtor de sistemas C*-dinámicos
+finito-dimensionales hacia certificados Ω₃-valuados firmados:
 
-        H_ω ≅ (M_n(ℂ), ⟨A|B⟩_ω = Tr(ρ A† B)),     Ω = I,  ‖Ω‖_ω² = 1.
-        Picture HS equivalente: Ω_HS = ρ^{1/2} ∈ HS(ℂⁿ), ω(a) = ⟨Ω_HS, a Ω_HS⟩.
+        S :  Sys_C*  ──▶  Cert_Silence
 
-      Operador modular y flujo (convención KMS-compatible, β = 1):
+mediante la composición asociativa e inalienable de tres fases anidadas:
 
-        Δ(a)     := ρ^{-1} a ρ
-        σ_t^ω(a) := Δ^{it} a Δ^{-it} = ρ^{-it} a ρ^{it} = e^{it K_ρ} a e^{-it K_ρ}
-        J(a)     := ρ^{-1/2} a† ρ^{1/2}
-        S        := J Δ^{1/2},   S(a) = a†,   J² = id  (antiunitario)
+        S  =  Adjudicate ∘ ModularPipeline ∘ VacuumPrep
 
-      Identidad polar verificable: J(Δ^{1/2}(a)) = a†.
-      Ley de grupo: σ_s ∘ σ_t = σ_{s+t}.
+Estructura de Fases Anidadas e Invariantes
+===========================================
 
-  (2) TERMODINÁMICA KMS Y HAMILTONIANO MODULAR.
-      K_ρ := −log ρ,   ρ = e^{−K_ρ}/Z,   Z = Tr e^{−K_ρ} = 1,   F = −log Z = 0.
-      Condición KMS(β=1):  ω(a σ_i(b)) = ω(ba).
-      El silencio es el límite β → ∞ de los estados KMS (proyector de Gibbs
-      al ground). En analogía de Rindler/Unruh, K_ρ es el Hamiltoniano de
-      entrelazamiento del “wedge” modular y β_Unruh = 2π/κ.
+FASE 1 — SUSTRATO ALGEBRAICO-MODULAR Y CONSTRUCCIÓN GNS
+──────────────────────────────────────────────────────────────────────────
+  • HeytingOmega3: Retículo de Heyting completo Ω₃ = {0 ≺ 1 ≺ 2}. Residuo x → y = ⊤ si x ≤ y, else y.
+    Verifica las leyes de residuación (a ∧ b ≤ c ⇔ a ≤ b → c), no contradicción y falla del tercio excluso.
+  • MatrixBanachAlgebra: Estructura C* sobre Mₙ(ℂ) con normas de Schatten ‖A‖_p y radio espectral r(A).
+  • ModularHamiltonian: Hamiltoniano modular K_ρ := −log ρ con ρ = e^{−K_ρ}/Z (Z = 1, F = −log Z = 0).
+    Espectro ascendente {E₀ ≤ E₁ ≤ … ≤ Eₙ₋₁}; gap = E₁ − E₀ representa la unicidad del vacío.
+  • DensityOperatorAlgebra: Operadores densidad en 𝔇(ℋₙ). Entropía S(ρ) = −Tr(ρ log ρ), pureza P(ρ) = Tr(ρ²),
+    relativa de Umegaki S(ρ‖σ) = Tr(ρ(log ρ − log σ)) ≥ 0 (Klein), fidelidad F(ρ,σ) = Tr √(√ρ σ √ρ) y Bures d_B.
+  • GNSHilbertAlgebra: Espacio de Hilbert GNS H_ω ≅ (M_n, ⟨A|B⟩_ω = Tr(ρ A† B)) con vector cíclico-separante Ω = I,
+    representado en la imagen de Hilbert-Schmidt por Ω_HS = ρ¹/² ∈ HS(ℂⁿ).
+  • VacuumStatePreparation.prepare_vacuum_context: Morfismo de hand-off FASE 1 ⟶ FASE 2. Prepara el par (ρ_Ω, K_Ω)
+    y el contexto `VacuumModularContext` (último objeto/método de FASE-1).
 
-  (3) CRITERIO OPERATIVO (conjunción en el retículo de Heyting Ω₃).
-      0 dB de emisión  ⟺
-        (pureza ≈ 1) ∧ (fidelidad a |Ω⟩ ≈ 1) ∧ (gap(K_ρ) > 0)
-        ∧ (KMS ≈ 0) ∧ (axiomas Tomita ≈ 0) ∧ (F ≈ 0).
+FASE 2 — DINÁMICA MODULAR, TEORÍA DE TOMITA-TAKESAKI Y ESPECTRO DEL VACÍO
+──────────────────────────────────────────────────────────────────────────
+  • TomitaTakesakiEngine.bind_vacuum_context: PRIMER MORFISMO DE FASE-2 (continúa prepare_vacuum_context).
+    Sella el contexto y realiza los operadores modulares:
+        Δ(a) = ρ⁻¹ a ρ,    σ_t^ω(a) = ρ⁻ⁱᵗ a ρⁱᵗ = eⁱᵗᴷ a e⁻ⁱᵗᴷ,
+        J(a) = ρ⁻¹/² a† ρ¹/²,    S(a) = a† = J(Δ¹/²(a)).
+    Verifica KMS(β=1): ω(a σ_i(b)) = ω(ba) y el cociente de Connes (Dρ : Dσ)_t = ρⁱᵗ σ⁻ⁱᵗ.
+  • VacuumSpectraAnalyzer.audit: Observables no tautológicos: VEV = ⟨H⟩_ρ − E₀(H), fluctuación thermal_fluctuation,
+    gap espectral gap(K_ρ), energía libre F = 0 y ruido en dB = 10 log₁₀(1 + Var_ρ(H)).
+  • SilentFieldDetector.probe: Sonda de silencio: pureza, fidelidad al ground F(ρ, |Ω⟩⟨Ω|), masa de fuga,
+    entropía relativa de Umegaki regularizada S(ρ‖σ_ε) y distancia Bures d_B.
+  • ModularSilencePipeline.synthesize_from_context: Compone bind + Tomita + espectro + sonda, emitiendo
+    `SilentFieldBundle` (último objeto de FASE-2).
 
-Sustratos asimilados
-    • Banach / C*     : M_n con normas de Schatten, ‖A*A‖ = ‖A‖²
-    • GNS             : H_ω, Ω cíclico-separante ⇔ ρ > 0
-    • Tomita-Takesaki : Δ = S*S, polar S = J Δ^{1/2}
-    • KMS(β=1)        : ω(a σ_i(b)) = ω(ba)
-    • Connes          : cociclo (Dρ : Dσ)_t = ρ^{it} σ^{-it}
-    • Espectral       : gap(K_ρ) = E₁ − E₀ ⇔ unicidad del vacío modular
-    • Información     : S(ρ), P(ρ), S(ρ‖σ) operatorial, F_Uhlmann, Bures, D_tr
-    • Grafos          : H como tight-binding sobre el camino P_n
-    • Topos           : Ω₃ clasificador de subobjetos intuicionista
+FASE 3 — SOBERANÍA, ADJUDICACIÓN Y CERTIFICACIÓN DEL SILENCIO
+──────────────────────────────────────────────────────────────────────────
+  • HeytingVacuumAdjudicator.adjudicate: PRIMER MORFISMO DE FASE-3 (continúa synthesize_from_context).
+    Colapsa el bundle en Ω₃ mediante la conmutación de meets:
+        χ_local = audit ∧ probe ∧ kms ∧ axioms ∧ polar ∧ group ∧ klein,
+        χ_final = χ_local ∧ χ_external.
+  • SilentFieldState: Certificado firmado con cadena de custodia forense SHA-256 encadenada (`phase_chain_sha256`).
+  • TOONSilentWitnessEngine.execute_silence_cycle: Orquestador soberano que ejecuta el ciclo F₁ → F₂ → F₃.
 
-Organización por FASES ANIDADAS (la última definición de cada fase es el
-objeto inicial de la siguiente):
-
-   FASE 1 ▸ Sustrato algebraico-modular
-             §1.1  HeytingOmega3 — retículo de Heyting completo (cadena 3)
-             §1.2  MatrixBanachAlgebra — Schatten, C*, radio espectral
-             §1.3  ModularHamiltonian — espectro de K_ρ = −log ρ
-             §1.4  DensityOperatorAlgebra — S, P, S(ρ‖σ), F, log, potencias
-             §1.5  GNSHilbertAlgebra — ⟨·|·⟩_ω, Ω_HS = ρ^{1/2}
-             §1.6  VacuumModularContext + VacuumStatePreparation
-                   HAND-OFF: prepare_vacuum_context → FASE 2
-
-   FASE 2 ▸ Dinámica modular y espectro del vacío  (C. de FASE 1)
-             §2.0  TomitaTakesakiEngine.bind_vacuum_context  ← continúa §1.6
-             §2.1  TomitaTakesakiEngine — Δ, σ_t, J, S, KMS, Connes
-             §2.2  VacuumSpectraAnalyzer — VEV, Var, gap, ruido (dB)
-             §2.3  SilentFieldDetector — pureza, fidelidad, Bures, D_tr
-             §2.4  ModularSilencePipeline.synthesize_from_context
-                   HAND-OFF: SilentFieldBundle → FASE 3
-
-   FASE 3 ▸ Soberanía y certificación del silencio  (C. de FASE 2)
-             §3.1  HeytingVacuumAdjudicator — colapso en Ω₃
-             §3.2  SilentFieldState — certificado encadenado SHA-256
-             §3.3  TOONSilentWitnessEngine — orquestador de ciclos
-             §3.4  Punto de entrada / demostración
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Invariación y Positividad C*: ρ = ρ†, spec(ρ) ⊂ [0, 1], Tr(ρ) = 1.
+  2. Axioma de Tomita-Takesaki: Polar S = J Δ¹/² y ley de grupo σ_s ∘ σ_t = σ_{s+t}.
+  3. Condición KMS(β=1): Tr(ρ a (ρ b ρ⁻¹)) = Tr(ρ b a)  ∀ a,b ∈ M_n(ℂ).
+  4. Desigualdad de Klein: S(ρ‖σ) = Tr(ρ(log ρ − log σ)) ≥ 0 con igualdad ⇔ ρ = σ.
+  5. Involución de Heyting y Preservación de Cadena: χ_final = ⋀_{Ω₃} χ_i; Merkle SHA-256 inyectivo.
 """
 
 from __future__ import annotations

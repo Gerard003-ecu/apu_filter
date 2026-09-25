@@ -1,74 +1,70 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  TOON WISDOM WEAVER AGENT — Sovereign Doctoral Edition v3.0.0                 ║
-║  Ubicación : app/agents/wisdom/toon_wisdom_weaver_agent.py                    ║
-║  Anterior  : v2.1.0-Doctoral-TOON-Weaver-Galois-Fock-Brockett-Heyting-ESP32   ║
-║                                                                               ║
-║  Sustratos formales asimilados (granularidad doctoral):                       ║
-║    • Álgebra de división ℍ, recubrimiento 2:1  Sp(1)≅SU(2)→SO(3), fibración   ║
-║      de Hopf S³ → S² y C*-identidad |q* q| = |q|²                             ║
-║    • Álgebra de Heyting lineal Ω₃ (residuo, regularidad, tercio excluso)      ║
-║    • Funtor cuantitativo JSON → TOON (Shannon, BPE, cota de Kolmogorov)       ║
-║    • Adjunción de Galois F ⊣ G (pairings HS y clásico, gap bidireccional)     ║
-║    • Flujo isospectral de Brockett [ρ,[ρ,N]] con RK4 + proyección PSD-traza-1 ║
-║    • Álgebra de Fock bosónica truncada (CCR residual) y canal fermiónico 2γ   ║
-║    • Fibrado geodésico atencional: Dirichlet + Fisher-Rao espectral + Bures   ║
-║    • Interlock ciber-físico ESP32 Crowbar (Kirchhoff + RC de gate BT151)      ║
-║                                                                               ║
-║  Organización por FASES ANIDADAS (el último método de k es el germen de k+1): ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato ontológico-estructural                                   ║
-║              §1.1  Quaternion (ℍ ≅ SU(2)×ℝ⁺, Hopf, exp/log)                   ║
-║              §1.2  HeytingOmega3 (retículo residuado, ¬¬-regularidad)         ║
-║              §1.3  JSONToTOONFunctor (Shannon + BPE + Kolmogorov)             ║
-║              §1.4  DensityOperator + Vitamin + Certificates                   ║
-║              §1.5  MetabolicEndofunctorSeed (ABC)                             ║
-║              §1.6  TOONMetabolicConverter.lift_to_gibbs_state  ──HAND-OFF──▶  ║
-║                     ρ₀ ∈ 𝔇(ℋ₄)  germen formal de toda la FASE 2              ║
-║                                                                               ║
-║    FASE 2 ▸ Dinámica cuántico-fibrada (CONTINUACIÓN DIRECTA de FASE 1)        ║
-║              §2.1  GaloisAdjunctionVerifier — recibe (v, ρ₀)                  ║
-║              §2.2  BrockettIsospectralEngine — recibe ρ₀, devuelve ρ*         ║
-║              §2.3  FockSpaceAlgebra + FockSpaceAnnihilator                    ║
-║              §2.4  GeodesicAttentionFibrator (Fisher-Rao + Dirichlet + Bures) ║
-║              §2.5  WisdomWeavingPipeline.synthesize  ──HAND-OFF──▶ FASE 3     ║
-║                     produce WisdomWeavingBundle (traza abierta)               ║
-║                                                                               ║
-║    FASE 3 ▸ Soberanía y actuación ciber-física (CONTINUACIÓN de FASE 2)       ║
-║              §3.1  HeytingAdjudicator.adjudicate — consume el Bundle          ║
-║              §3.2  ESP32CrowbarInterlock (BT151 + GPIO14 + provenance)        ║
-║              §3.3  TOONWeaverCertificate (cadena SHA-256 por fase)            ║
-║              §3.4  TOONWisdomWeaverAgent.weave_vitamin_cartridge              ║
-║              §3.5  Auditoría, pasaporte, punto de entrada / demo soberano     ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano Tejedor de Sabiduría TOON y Orquestador de la Dinámica Fibrada.
 
-Formalización categorial
-========================
+Ubicación: app/agents/wisdom/toon_wisdom_weaver_agent.py
+Versión  : 3.0.0-Doctoral-Nested-TOON-Weaver-Galois-Fock-Brockett-Heyting-ESP32
 
-Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal
+Este módulo define el "Soberano Tejedor de Sabiduría TOON", entidad máxima de orquestación
+cognitiva en el dominio WISDOM de la arquitectura COGNITIVE TOON / APU Filter. Su cometido es
+asimilar cartuchos de vitaminas cognitivas TOON, elevarlos a operadores densidad en $\mathfrak{D}_n$,
+verificar la adjunción de Galois $F \dashv G$, purificar el estado vía el flujo isospectral de Brockett,
+ejecutar aniquilaciones de Fock y evaluar la curvatura en el fibrado geodésico atencional.
 
-        Ω₃  =  { VETOED  ≺  DEGRADED  ≺  COHERENT }  =  {⊥ ≺ ⋆ ≺ ⊤}.
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y ESTRUCTURAS ÁLGEBRAICO-GEOMÉTRICAS
+================================================================================
 
-El agente realiza un funtor soberano
+1. Encaje Cuaterniónico $\mathbb{H} \cong \mathrm{SU}(2) \times \mathbb{R}^+$ y Fibración de Hopf:
+   Cada vitamina TOON se codifica en un cuaternión unitario $q = a + bi + cj + dk \in S^3 \subset \mathbb{H}$.
+   La inmersión en $M_2(\mathbb{C})$ vía matrices de Pauli satisface la C*-identidad $\|q^* q\| = \|q\|^2$.
+   La fibración de Hopf $\pi : S^3 \to S^2$ proyecta el estado a la esfera de Bloch/espacio de estados:
+       $$\pi(a,b,c,d) = (2(ac+bd), 2(bc-ad), a^2+b^2-c^2-d^2) \in S^2$$
 
-        𝒲  :  𝐂𝐚𝐫𝐭_𝐓𝐎𝐎𝐍  ──▶  𝐂𝐞𝐫𝐭_𝐖𝐞𝐚𝐯𝐞𝐫
+2. Adjunción de Galois $F \dashv G$ entre Categorías MIC y MAC:
+   Se establece la adjunción entre la categoría discreta de memoria individual (MIC) y la continua (MAC):
+       $$F : \mathbf{MIC} \longrightarrow \mathbf{MAC}, \quad F(V) = |V\rangle\langle V|$$
+       $$G : \mathbf{MAC} \longrightarrow \mathbf{MIC}, \quad G(M) = \mathrm{diag}(M)$$
+   La adjunción se verifica mediante la coincidencia del pairing Hilbert-Schmidt $\langle F(V), M \rangle_{\mathrm{HS}} = \langle V | M | V \rangle$
+   y el pairing clásico $\langle V, G(M) \rangle_{\mathbb{C}} = \mathrm{Re}(V^\dagger \mathrm{diag}(M))$.
 
-como composición estrictamente asociativa
+3. Flujo Isospectral de Doble Corchete de Brockett sobre $\mathfrak{D}_n$:
+   Dado la matriz diagonal de índices $N = \mathrm{diag}(1, 2, \dots, n)$, el flujo de Brockett evoluciona el estado:
+       $$\frac{d\rho}{dt} = [\rho, [\rho, N]]$$
+   con función de Lyapunov $L(\rho) = \mathrm{Tr}(\rho N)$ no decreciente ($\dot{L} = \|[\rho, N]\|_F^2 \ge 0$)
+   preservando el espectro $\sigma(\rho(t)) = \sigma(\rho(0))$.
 
-        𝒲  =  V ∘ D ∘ F ∘ G ∘ B ∘ M
+4. Espacio de Fock Bosónico y Aniquilación Fermiónica $e^- + e^+ \to 2\gamma$:
+   Sobre el espacio de Fock bosónico truncado a $N_{\max} = 4$, los operadores $a, a^\dagger$ verifican el conmutador residual:
+       $$[a, a^\dagger] = I - N_{\max} |N_{\max}-1\rangle\langle N_{\max}-1|$$
+   Las anomalías de costo $e^-$ se aniquilan con las restricciones $e^+$ cuando la resonancia $|E_{e^-} - E_{e^+}| < \varepsilon E_{e^+}$ se satisface,
+   emitiendo 2 fotones $\gamma$ de energía $E = (E_{e^-} + E_{e^+})$.
 
-donde M es el ÚLTIMO morfismo de FASE-1 (lift_to_gibbs_state) y el PRIMERO
-que consume FASE-2; synthesize es el ÚLTIMO de FASE-2 y adjudicate el PRIMERO
-de FASE-3.
+5. Curvatura Geodésica Atencional y Distancia de Bures:
+   La métrica de Fisher-Rao espectral $g_{\mathrm{FR}} = \sum_i \lambda_i^{-1}$, la energía de Dirichlet $\mathcal{E}_D(\rho) = \frac{1}{2} \|\nabla \rho\|_F^2$
+   y la distancia de Bures a la mezcla máxima $d_B(\rho, I/n)$ cuantifican la curvatura del fibrado.
 
-Invariantes verificables
-========================
-    ρ = ρ†,  ρ ⪰ 0,  Tr ρ = 1,  spec(ρ) ⊂ [0, 1].
-    ΔP := γ* − γ₀  ≥ −ε_num     (isotonicidad de Brockett).
-    ΔL := Tr(ρ* N) − Tr(ρ₀ N) ≥ −ε_num.
-    |q₁ q₂| = |q₁| |q₂|         (álgebra de composición).
-    hashes SHA-256 inyectivos en el registro del agente.
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
+
+El Soberano realiza la composición estricta del funtor $\mathcal{W}$:
+    $$\mathcal{W} : \mathbf{Cart\_TOON} \longrightarrow \mathbf{Cert\_Weaver}$$
+    $$\mathcal{W} = V \circ D \circ F \circ G \circ B \circ M$$
+
+  • $F_1$ (`TOONMetabolicConverter.lift_to_gibbs_state`): $\mathbf{Cart\_TOON} \to \mathfrak{D}_4$.
+    Elevación cuaterniónica y mezcla depolarizante $\rho_0 = (1-\tau)|V\rangle\langle V| + \tau I/n$.
+  • $F_2$ (`WisdomWeavingPipeline.synthesize`): $\mathfrak{D}_4 \to \mathrm{WisdomWeavingBundle}$.
+    Verificación Galois $F \dashv G$, purificación Brockett $\rho^*$, aniquilación Fock $2\gamma$ y curvatura geodésica.
+  • $F_3$ (`TOONWisdomWeaverAgent.weave_vitamin_cartridge`): $\mathrm{WisdomWeavingBundle} \to \mathrm{TOONWeaverCertificate}$.
+    Adjudicación Heyting en $\Omega_3$, disparo del interlock ciber-físico ESP32 Crowbar si $\bot$ y sello Merkle.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Isospectralidad de Brockett): $\sigma(\rho^*) = \sigma(\rho_0)$, con incremento de pureza $\Delta \mathcal{P} \ge -\varepsilon_{\mathrm{num}}$.
+- Axioma 2 (Invarianza de Norma Cuaterniónica): $\|q_1 q_2\| = \|q_1\| \|q_2\|$ para todo $q_1, q_2 \in \mathbb{H}$.
+- Axioma 3 (Coerción Ciber-Física Crowbar): Si $v_{\mathrm{final}} = \bot$, el disparo de hardware GPIO14 se activa con latencia $< 400\text{ ns}$.
 """
 
 from __future__ import annotations
