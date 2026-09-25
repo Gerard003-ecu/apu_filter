@@ -4,50 +4,63 @@ r"""
 ║  TOON Intuition Engine — Motor Espectral de la Intuición Flash                ║
 ║  Ubicación: app/wisdom/toon_intuition_engine.py                               ║
 ║  Versión  : 2.2.0-Doctoral-Nested-Bures-Dirichlet-BB-Grassmann-Merkle         ║
-║                                                                               ║
-║  EVOLUCIÓN DOCTORAL ANIDADA — el motor es el funtor                           ║
-║                                                                               ║
-║        F = F₃ ∘ F₂ ∘ F₁ : M_n(ℂ) × Gr(r,n) → IntuitiveFieldState              ║
-║                                                                               ║
-║  con composición estricta de tipos (asociatividad de fases):                  ║
-║                                                                               ║
-║      F₁  IntuitionFieldPreparation.prepare                                    ║
-║              : 𝔇_n × SubspaceGeometry → GeometricSeed                         ║
-║      F₂  IntuitionFlashPipeline.synthesize                                    ║
-║              : GeometricSeed → IntuitionTrajectoryBundle                      ║
-║      F₃  adjudicate ⊗ certify                                                 ║
-║              : Bundle × Ω₃ → IntuitiveFieldState                              ║
-║                                                                               ║
-║  El último método de cada fase ES el tipo de dominio de la fase siguiente.    ║
-║                                                                               ║
-║  Geometría (patologías P1–P5 del original, ahora teoremas):                   ║
-║                                                                               ║
-║    (P1) d_B(ρ,σ) = √(2−2√F(ρ,σ))     Bures, NO ‖ρ−PρP‖_F                      ║
-║    (P2) E[ρ] = ½‖ρ−PρP‖_F²           Dirichlet del proyector                  ║
-║         ∇E|_T = (ρ−PρP) − (Tr(ρ−PρP)/n) I     ∈ T_ρ 𝔇_n                       ║
-║         Lip_F(∇E) ≤ 1                (contracción de bloques de P)            ║
-║    (P3) veredicto por meets Ω₃ sobre ratios adimensionales                    ║
-║    (P4) Barzilai–Borwein BB1/BB2 + Armijo + proyección PSD (Higham)           ║
-║    (P5) cadena forense F1→F2→F3 por SHA-256                                   ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato geométrico (retículo + variedad + Grassmann)             ║
-║              §1.1  HeytingOmega3 — cadena de Gödel (⇒, ¬, regulares)          ║
-║              §1.2  DensityOperatorAlgebra — C*-álgebra de estados + Bures     ║
-║              §1.3  SubspaceGeometry — isometría, P, ángulos principales       ║
-║              §1.4  IntuitionFieldPreparation.prepare / continue_into_phase2   ║
-║                                                                               ║
-║    FASE 2 ▸ Dirichlet + Bures + BB  (dominio = GeometricSeed de §1.4)         ║
-║              §2.1  FlashDirichletFunctional — E, ∇E|_T, descomposición        ║
-║              §2.2  BuresGeodesicMetric — F, θ_B, d_B, geodésica W₂            ║
-║              §2.3  FlashAttractorSolver — BB1/BB2 + Armijo + Higham           ║
-║              §2.4  IntuitionFlashPipeline.synthesize / continue_into_phase3   ║
-║                                                                               ║
-║    FASE 3 ▸ Adjudicación + Certificación (dominio = IntuitionTrajectoryBundle)║
-║              §3.1  HeytingIntuitionAdjudicator — meets calibrados             ║
-║              §3.2  IntuitiveFieldState — certificado + phase chain            ║
-║              §3.3  TOONIntuitionEngine — orquestador F₃∘F₂∘F₁                 ║
-║              §3.4  Demostración autónoma (COHERENT / DEGRADED / VETOED)       ║
+║  Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el   ║
+║            germen formal del primero de k+1)                                  ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
+
+Formalización Categorial Doctoral (Funtor de Intuición Flash F)
+================================================================
+
+Sea 𝓣_Ω el topos de haces con clasificador Ω₃ = { VETOED = 0 ≺ DEGRADED = 1 ≺ COHERENT = 2 }.
+El motor proyecta reflejos de intuición relámpago mediante el funtor:
+
+        F  :  M_n(ℂ) × Gr(r, n)  ──▶  IntuitiveFieldState
+
+mediante la composición estrictamente asociativa de tres fases anidadas:
+
+        F  =  Certify ∘ FlashPipeline ∘ Prepare
+
+donde el tipo de retorno del último método de la fase k es el dominio inalienable de la fase k+1.
+
+Estructura de Fases Anidadas e Invariantes
+===========================================
+
+FASE 1 — SUSTRATO GEOMÉTRICO (RETÍCULO, VARIEDAD Y GRASSMANNIANA)
+──────────────────────────────────────────────────────────────────────────
+  • HeytingOmega3: Retículo de Heyting completo Ω₃. Residuo a → b = ⊤ si a ≤ b, else b.
+    Satisface residuación (a ∧ c ≤ b ⇔ c ≤ (a → b)) y falla del tercio excluso en DEGRADED.
+  • DensityOperatorAlgebra: Operadores en 𝔇_n. Métrica geodésica de Bures d_B(ρ,σ) = √(2 − 2√F(ρ,σ)),
+    fidelidad de Uhlmann F(ρ,σ) = [Tr √(√ρ σ √ρ)]² y proyección afín no expansiva `sanitize`.
+  • SubspaceGeometry: Subespacio Gr(r, n) representado por B ∈ St(r, n) y proyector P = B B† = P² = P†.
+  • IntuitionFieldPreparation.prepare: Morfismo de hand-off FASE 1 ⟶ FASE 2. Construye `GeometricSeed`
+    con el atractor estático ρ_target = P ρ P / Tr(P ρ P) (último objeto/método de FASE-1).
+
+FASE 2 — DINÁMICA DE DIRICHLET, BURES Y SOLVER BARZILAI-BORWEIN
+──────────────────────────────────────────────────────────────────────────
+  • FlashDirichletFunctional: Funcional de energía de Dirichlet E[ρ] = ½ ‖ρ − P ρ P‖_F² con gradiente
+    ∇E|_T = (ρ − P ρ P) − (Tr(ρ − P ρ P)/n) I ∈ T_ρ 𝔇_n. Hessiano Lip_F(∇E) ≤ 1.
+  • BuresGeodesicMetric: Geodésica de Bures–Wasserstein γ(t) = [(1−t)I + t C] ρ [(1−t)I + t C].
+  • FlashAttractorSolver.descend: Minimización BB1/BB2 con salvaguardas de Armijo y proyección Higham:
+        BB1: η = ⟨s,s⟩/⟨s,y⟩,    BB2: η = ⟨s,y⟩/⟨y,y⟩.
+  • IntuitionFlashPipeline.synthesize: Compone descend + Bures + landscape, emitiendo `IntuitionTrajectoryBundle`
+    (último objeto/método de FASE-2).
+
+FASE 3 — ADJUDICACIÓN, CERTIFICACIÓN Y ORQUESTACIÓN
+──────────────────────────────────────────────────────────────────────────
+  • HeytingIntuitionAdjudicator.adjudicate: PRIMER MORFISMO DE FASE-3 (continúa `synthesize`).
+    Colapsa el bundle en Ω₃ mediante meets de ratios adimensionales:
+        local = decay ∧ grad ∧ target ∧ geom ∧ conv,
+        final = local ∧ external.
+  • IntuitiveFieldState: Certificado signed con trazabilidad SHA-256 encadenada (`phase_chain_sha256`).
+  • TOONIntuitionEngine: Orquestador soberano F₃ ∘ F₂ ∘ F₁.
+
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Métrica Geodésica de Bures: d_B(ρ, σ) = √(2 − 2√F(ρ, σ)) ∈ [0, √2] (cumple desigualdad triangular).
+  2. Suavidad de Dirichlet: Lip_F(∇E) ≤ 1 ⇒ paso estable η ∈ (0, 2).
+  3. Proyector Ortogonal de Grassmann: P² = P = P†, ‖P‖_op = 1.
+  4. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
+  5. Inyectividad Merkle: Cadena de custodia `phase_chain_sha256` inalienable por SHA-256.
 """
 
 from __future__ import annotations

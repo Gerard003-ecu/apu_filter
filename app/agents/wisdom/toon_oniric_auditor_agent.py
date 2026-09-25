@@ -1,64 +1,67 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Oniric Auditor Agent (Soberano Auditor de Escenarios Oníricos)║
-║ Ubicación: app/agents/wisdom/toon_oniric_auditor_agent.py                     ║
-║ Versión  : 3.0.0-Doctoral-Nested-Ω₃-TQFT-Isolation-Holonomy-Merkle            ║
-║ Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el   ║
-║            germen formal del primero de k+1)                                  ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano Auditor de Escenarios Oníricos e Invariantes de Gromov-Witten / TQFT.
 
-Formalización categorial
-========================
+Ubicación: app/agents/wisdom/toon_oniric_auditor_agent.py
+Versión  : 3.0.0-Doctoral-Nested-Ω₃-TQFT-Isolation-Holonomy-Merkle
 
-Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal
+Este módulo implementa el "Soberano Auditor Onírico", entidad ejecutiva encargada
+de inmunizar, auditar y certificar escenarios contrafactuales simularos en el motor
+onírico (Oniric Dreamer Engine) en la arquitectura COGNITIVE TOON / APU Filter.
 
-        Ω₃  =  { VETOED  ≺  DEGRADED  ≺  COHERENT }.
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA DE CAMPOS TOPOLÓGICOS (TQFT)
+================================================================================
 
-El agente realiza un funtor soberano
+1. Invariantes de Gromov-Witten / Amplitud TQFT:
+   Dado un escenario con operador densidad $\rho \in \mathfrak{D}_n$, número de Betti $b_1$ (bucles del 1-esqueleto),
+   característica de Euler-Poincaré $\chi = b_0 - b_1 + b_2$, energía de Dirichlet $\mathcal{E}_D$ y entropía
+   de von Neumann $S(\rho)$, el invariante de Gromov-Witten / amplitud de la teoría de campos topológicos es:
+       $$I_{\mathrm{GW}}(\rho) = \frac{\mathcal{P}(\rho) e^{-\mathcal{E}_D} e^{-S(\rho)/n}}{1 + b_1} \cdot \frac{1 + \chi_+}{1 + |\chi|} \in [0, 1]$$
+   donde $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) = \|\lambda\|_2^2$ es la pureza del estado espectral.
 
-        𝒜  :  𝐒𝐜𝐞𝐧𝐚𝐫𝐢𝐨  ──▶  𝐂𝐞𝐫𝐭_𝐈𝐦𝐦
+2. Aislamiento Homológico y Guardián Booleano:
+   La función de aislamiento homológico verifica la inmunidad del entorno de simulación contrafactual:
+       $$\mathrm{dream\_verified} \equiv \mathrm{DREAM\_STATE\_FLAG}$$
+       $$\mathrm{hardware\_leak\_risk} \equiv \neg \mathrm{dream\_verified} \land (\mathrm{risk} > \theta_{\mathrm{leak}})$$
+       $$\mathrm{fully\_isolated} \equiv \mathrm{dream\_verified} \land \neg \mathrm{hardware\_leak\_risk}$$
 
-como composición estrictamente asociativa
+3. Holonomía Parcial y Fase Topológica de Wilson:
+   La acumulación de holonomía a lo largo de la traza de auditorías simula un bucle de Wilson en $U(1)$:
+       $$H_+(t) = \sum_{\tau \le t} I_{\mathrm{GW}}(\tau), \quad W(t) = \exp(i H_+(t)) \in U(1)$$
 
-        𝒜  =  V ∘ Seal₂ ∘ Seal₁ ∘ Isol ∘ I_GW ∘ D ∘ Spec
+4. Lógica de Adjudicación Intuicionista en $\Omega_3$:
+   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
+   asigna:
+     • $\bot$ si $\neg \mathrm{fully\_isolated} \lor b_1 > b_{\max} \lor I_{\mathrm{GW}} < \theta_{\mathrm{GW}}$
+     • $\star$ si $\mathcal{E}_D > \theta_{\mathcal{E}} \lor \mathrm{TV}(\lambda) > \theta_{\mathrm{TV}}$
+     • $\top$ en cualquier otro caso.
 
-donde Spec es el ÚLTIMO morfismo de FASE-1 (extract_spectral_measure) y el
-PRIMERO que consume FASE-2; compose_audit_arrows es el ÚLTIMO de FASE-2 y
-_seal_and_classify el PRIMERO de FASE-3.
+5. Estructura Criptográfica de Inclusión Merkle:
+   Las firmas digitales de cada certificado inmunizado forman las hojas de un árbol de Merkle binario.
+   Las pruebas de inclusión garantizan la verificación de inmutabilidad en tiempo $O(\log N)$.
 
-Espectro y amplitudes
-=====================
+================================================================================
+II. COMPOSICIÓN FUNTORIAL DE FASES Y ARQUITECTURA
+================================================================================
 
-    Spec : ρ ↦ λ ∈ Δ^{n−1}
-    γ(ρ) = ‖λ‖₂² = Tr(ρ²)
-    S(ρ) = −Σ λᵢ log λᵢ
-    E_D  = ½ Σ (λ_{i+1} − λᵢ)²              (Dirichlet / H¹)
-    E_∂  = Σ |λ_{i+1} − λᵢ|                 (Dirac / TV)
-    I_GW = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
+El Soberano actúa como la composición estricta del funtor $\mathcal{A}$:
+    $$\mathcal{A} : \mathbf{Scenario} \longrightarrow \mathbf{Cert\_Imm}$$
+    $$\mathcal{A} = V \circ \mathrm{Seal}_2 \circ \mathrm{Seal}_1 \circ \mathrm{Isol} \circ I_{\mathrm{GW}} \circ \mathcal{D} \circ \mathrm{Spec}$$
 
-Aislamiento (guardián homológico)
-=================================
+  • $F_1$ (`OniricAuditSeed.extract_spectral_measure`): $\rho \to \lambda \in \Delta^{n-1}$.
+    Diagonalización, pureza, entropía $S(\rho)$, variación total $\mathrm{TV}(\lambda)$ y residuo $C^*$.
+  • $F_2$ (`OniricAuditArrowComposer.compose_audit_arrows`): $\mathbf{Scenario} \to \mathrm{UnsealedOniricAuditTrace}$.
+    Evaluación de $I_{\mathrm{GW}}$, cota de Dirichlet y certificado de aislamiento homológico.
+  • $F_3$ (`OniricDreamAuditorAgent._seal_and_classify`): $\mathrm{UnsealedOniricAuditTrace} \to \mathrm{ImmunizationCertificate}$.
+    Clasificación en $\Omega_3$, doble sello criptográfico, holonomía $U(1)$ y árbol de Merkle.
 
-    dream_verified     := DREAM_STATE_FLAG
-    hardware_leak      := ¬dream ∧ (risk > θ_leak)
-    fully_isolated     := dream ∧ ¬leak
-    Λ_isolation        : 𝔽₂ × 𝔽₂ → Ω₃ ,   (0,·) ↦ ⊥
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
 
-Holonomía y sello dual
-======================
-
-    H₊(t) = ⊕_{τ≤t} I_GW(τ)
-    W(t)  = exp(i H₊(t)) ∈ U(1)
-    Seal₁ = SHA-256(semántica del payload)
-    Seal₂ = SHA-256(agente ‖ id ‖ Seal₁ ‖ t)
-
-Invariantes verificables
-========================
-    ρ = ρ†, ρ ⪰ 0, Tr ρ = 1.
-    I_GW ∈ [0,1], E_D ≥ 0, E_∂ ≥ 0, bₖ ≥ 0.
-    is_fully_isolated ≡ dream_verified ∧ ¬hardware_leak.
-    Hojas SHA-256 inyectivas; Merkle verificable en O(log n).
+- Axioma 1 (Normalización TQFT): $0 \le I_{\mathrm{GW}}(\rho) \le 1$ para todo operador densidad $\rho \in \mathfrak{D}_n$.
+- Axioma 2 (Aislamiento Estricto): Si $\mathrm{fully\_isolated} = \mathrm{False}$, el veredicto es indefectiblemente $\bot (\mathrm{VETOED})$.
+- Axioma 3 (Inmutabilidad de Merkle): Toda prueba de inclusión satisface $\mathrm{verify}() = \mathrm{True}$ sobre la raíz.
 """
 
 from __future__ import annotations

@@ -1,63 +1,83 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  TOON Introspection Engine — Motor Espectral de la Introspección              ║
-║  Ubicación: app/wisdom/toon_introspection_engine.py                           ║
-║  Versión  : 2.2.0-Doctoral-Nested-PowerIteration-FubiniStudy-Birkhoff-Merkle  ║
-║                                                                               ║
-║  EVOLUCIÓN DOCTORAL ANIDADA — el motor es el funtor                           ║
-║                                                                               ║
-║        F = F₃ ∘ F₂ ∘ F₁ : 𝔇_n × ℂⁿ → IntrospectionFieldState                  ║
-║                                                                               ║
-║  con composición estricta de tipos (asociatividad de fases):                  ║
-║                                                                               ║
-║      F₁  IntrospectiveFieldPreparation.prepare                                ║
-║              : 𝔇_n × ℂⁿ → IntrospectiveField                                  ║
-║      F₂  IntrospectionPipeline.synthesize                                     ║
-║              : IntrospectiveField → IntrospectionBundle                       ║
-║      F₃  adjudicate ⊗ self-organize ⊗ certify                                 ║
-║              : Bundle × Ω₃ → IntrospectionFieldState                          ║
-║                                                                               ║
-║  El último método de cada fase ES el tipo de dominio de la fase siguiente.    ║
-║                                                                               ║
-║  Patologías P1–P6 (ahora teoremas):                                           ║
-║                                                                               ║
-║    (P1) T^k hasta ‖T_φ(v)−v‖ < tol     iteración de potencia COMPLETA         ║
-║    (P2) d_FS([u],[v]) = arccos|⟨u|v⟩|  geometría de ℂP^{n−1}, NO ‖·‖₂ crudo  ║
-║         residuo gauge-fijado: T_φ = e^{−i arg⟨v,Tv⟩} Tv ∈ T_{[v]} ℂP^{n−1}    ║
-║    (P3) γ = 1−λ₂/λ₁,  ρ(DT|_{v₁}) = λ₂/λ₁     tasa espectral exacta           ║
-║    (P4) umbrales adimensionales        ratios, no {0.30, 0.70, 0.15}          ║
-║    (P5) Ω₃ por meets (∧)               no if-duro ni conteo n_fail            ║
-║    (P6) Merkle F1→F2→F3                phase_chain_sha256                     ║
-║                                                                               ║
-║  Geometría proyectiva:                                                        ║
-║                                                                               ║
-║    • ℂP^{n−1} = { [v] : v ∈ ℂⁿ \ {0} } / U(1)                                 ║
-║    • T([v]) = [ρ v]                 (well-defined: T(λv) = [ρv])              ║
-║    • Fix(T) = ℙ(autovectores de ρ)  (Brouwer: ℂP^{n−1} compacto)              ║
-║    • DT|_{[v₁]} tiene spec {λ_i/λ₁}_{i≥2}   (radio = λ₂/λ₁)                   ║
-║    • d_FS = arccos|⟨u|v⟩| ;  ‖T_φ−v‖₂ = 2 sin(d_FS/2)  (cuerda)              ║
-║    • Birkhoff–Hopf (ρ ≫ 0): tanh(Δ/4), Δ = log(λ₁/λₙ)  (diámetro proyectivo) ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato proyectivo-métrico                                       ║
-║              §1.1  HeytingOmega3 — cadena de Gödel (⇒, ¬, regulares)          ║
-║              §1.2  DensityOperatorAlgebra — C*-álgebra de estados             ║
-║              §1.3  ProjectiveDynamics — FS, Rayleigh, gauge U(1)              ║
-║              §1.4  SpectralGapAnalyzer — γ, degeneración, Birkhoff–Hopf       ║
-║              §1.5  IntrospectiveField.prepare / continue_into_phase2 → F2     ║
-║                                                                               ║
-║    FASE 2 ▸ Dinámica de punto fijo  (dominio = IntrospectiveField de §1.5)    ║
-║              §2.1  PowerIterationSolver — T^k + parada FS/gauge               ║
-║              §2.2  FixedPointCertifier — Courant–Fischer + tasa               ║
-║              §2.3  IntrospectionPipeline.synthesize / continue_into_phase3    ║
-║                                                                               ║
-║    FASE 3 ▸ Adjudicación + auto-organización (dominio = IntrospectionBundle)  ║
-║              §3.1  HeytingIntrospectionAdjudicator — meets calibrados         ║
-║              §3.2  FieldSelfOrganizer — canal Φ_η, Lip₁ = |1−η|               ║
-║              §3.3  IntrospectionFieldState — certificado + phase chain        ║
-║              §3.4  TOONIntrospectionEngine — orquestador F₃∘F₂∘F₁             ║
-║              §3.5  Demostración autónoma (COHERENT / DEGRADED / VETOED)       ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Motor Espectral de la Introspección Topológica y Auto-Organización del Campo MAC.
+
+Ubicación: app/wisdom/toon_introspection_engine.py
+Versión  : 2.2.0-Doctoral-Nested-PowerIteration-FubiniStudy-Birkhoff-Merkle
+
+Este módulo constituye la infraestructura espectral y topológica de la Introspección
+en la arquitectura COGNITIVE TOON / APU Filter. Su función es modelar la dinámica de
+auto-observación del campo cognitivo de la Memoria de Alto Contenido (MAC) mediante la
+evaluación de operadores densidad y la dinámica de iteración de potencia gauge-fijada
+sobre el espacio proyectivo complejo.
+
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y ESPACIO DE ESTADOS
+================================================================================
+
+1. Espacio de Estados y C*-Álgebra de Operadores Densidad:
+   El espacio de estados cuánticos/cognitivos de la MAC se formaliza sobre la
+   C*-álgebra $M_n(\mathbb{C})$ mediante el compacto convexo de operadores densidad:
+       $$\mathfrak{D}_n = \{ \rho \in M_n(\mathbb{C}) : \rho = \rho^\dagger, \, \rho \ge 0, \, \mathrm{Tr}(\rho) = 1 \}$$
+   donde $\mathrm{Tr}(\rho \log \rho)$ cuantifica la entropía de von Neumann $S(\rho)$
+   y $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) \in [1/n, 1]$ mide la pureza del estado.
+
+2. Geometría Proyectiva Complexa y Métrica de Fubini-Study:
+   La dinámica introspectiva opera sobre el espacio proyectivo complejo:
+       $$\mathbb{C}P^{n-1} = (\mathbb{C}^n \setminus \{0\}) / \sim_{U(1)}, \quad [v] \sim [\lambda v] \; (\lambda \in \mathbb{C}^\times)$$
+   Equipado con la métrica de Fubini-Study $d_{\mathrm{FS}}$, única métrica riemanniana
+   $U(n)$-invariante (y de Kähler):
+       $$d_{\mathrm{FS}}([u], [v]) = \arccos \left( \frac{|\langle u | v \rangle|}{\|u\|_2 \|v\|_2} \right) \in \left[0, \frac{\pi}{2}\right]$$
+   Para fijar la indeterminación de fase global $U(1)$, se define la alineación gauge:
+       $$T_\varphi(v) = e^{-i \arg \langle v, T(v) \rangle} T(v) \in T_{[v]} \mathbb{C}P^{n-1}$$
+   de modo que $\langle v | T_\varphi(v) \rangle \ge 0$, garantizando que el residuo euclídeo:
+       $$\|T_\varphi(v) - v\|_2 = \sqrt{2 - 2|\langle v | T(v) \rangle|} = 2 \sin\left(\frac{d_{\mathrm{FS}}}{2}\right)$$
+   sea una distancia cuerda intrínseca y gauge-invariante.
+
+3. Análisis Espectral, Gap y Tasa de Convergencia:
+   Sea $\sigma(\rho) = \{\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0\}$ el espectro
+   ordenado de $\rho$. El brecha espectral relativa $\gamma$ y la tasa teórica $\rho_{\mathrm{th}}$ son:
+       $$\gamma = 1 - \frac{\lambda_2}{\lambda_1}, \quad \rho_{\mathrm{th}} = \rho(DT|_{[v_1]}) = \frac{\lambda_2}{\lambda_1}$$
+   Por el teorema del punto fijo de Brouwer y la teoría de Perron-Frobenius / Birkhoff-Hopf,
+   si $\lambda_1 > \lambda_2$ (atractor dominante único), la aplicación $T([v]) = [\rho v]$
+   contrae la métrica de Fubini-Study con tasa asintótica $\rho_{\mathrm{th}}$. La constante
+   de contracting proyectiva de Birkhoff-Hopf para $\rho \succ 0$ se acota por:
+       $$\kappa \le \tanh\left(\frac{\Delta(\rho)}{4}\right), \quad \Delta(\rho) = \log\left(\frac{\lambda_1}{\lambda_n}\right)$$
+
+4. Lógica Intuicionista de Heyting $\Omega_3$:
+   La adjudicación introspectiva se realiza sobre la retícula de Gödel/Heyting:
+       $$\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\} \cong \{0, 1, 2\}$$
+   con la operación meet ($\wedge$) equivalente al ínfimo min.
+
+5. Canal de Auto-Organización Campo-Atractor:
+   Si el ciclo se certifica como $\top$, el campo densidad $\rho$ evoluciona mediante
+   el canal afín completamente positivo que preserva la traza (CPTP):
+       $$\Phi_\eta(\rho) = (1 - \eta) \rho + \eta |v^*\rangle\langle v^*|, \quad \eta \in [0, 1]$$
+   cuya constante de Lipschitz en norma de traza es $\mathrm{Lip}_{\|\cdot\|_1}(\Phi_\eta) = |1 - \eta|$.
+
+================================================================================
+II. COMPOSICIÓN FUNTORIAL DE FASES Y ARQUITECTURA
+================================================================================
+
+El motor se orquesta como la composición estricta de tres funtores inter-fase:
+    $$F = F_3 \circ F_2 \circ F_1 : \mathfrak{D}_n \times \mathbb{C}^n \longrightarrow \mathrm{IntrospectionFieldState}$$
+
+  • $F_1$ (`IntrospectiveFieldPreparation.prepare`): $\mathfrak{D}_n \times \mathbb{C}^n \to \mathrm{IntrospectiveField}$.
+    Sustrato proyectivo-métrico, sanitización C*, espectro de von Neumann y gap.
+  • $F_2$ (`IntrospectionPipeline.synthesize`): $\mathrm{IntrospectiveField} \to \mathrm{IntrospectionBundle}$.
+    Iteración de potencia gauge-fijada $T^k$, parada por $d_{\mathrm{FS}}$, tasa empírica y certificación.
+  • $F_3$ (`TOONIntrospectionEngine._phase3_certify`): $\mathrm{IntrospectionBundle} \times \Omega_3 \to \mathrm{IntrospectionFieldState}$.
+    Adjudicación por meets de Heyting, inoculación afín CPTP $\Phi_\eta$ y encadenamiento criptográfico Merkle.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Normalización y Positividad de C*): Para todo $\rho$, $\mathrm{Tr}(\rho) = 1$
+  y $\rho \ge 0$ tras la proyección de Higham sobre $\mathfrak{D}_n$.
+- Axioma 2 (Invariancia Gauge de Fubini-Study): La distancia $d_{\mathrm{FS}}([u],[v])$ es
+  independiente de las fases $e^{i\theta_1}, e^{i\theta_2}$.
+- Axioma 3 (Invariante Criptográfico Merkle): La cadena digest de fases satisface
+  $H_k = \mathrm{SHA256}(H_{k-1} \parallel \mathrm{Fase}_k)$, garantizando la inmutabilidad.
 """
 
 from __future__ import annotations

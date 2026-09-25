@@ -1,36 +1,67 @@
 # -*- coding: utf-8 -*-
-r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Trickster Adversary Agent (Soberano Ilusionista)             ║
-║ Ubicación: app/agents/wisdom/toon_trickster_adversary_agent.py               ║
-║ Versión  : 2.0.0-Doctoral-Adversarial-GAN-REM-RewardHacking-MAC-Heyting      ║
-║ Fases    : FASE-1 (Álgebra-Heyting, Categorías & Cartuchos Canónicos)        ║
-║            FASE-2 (Síntesis de Ilusiones & Perturbación Espectral MAC)       ║
-║            FASE-3 (Soberano Ilusionista, Sellado & Auditoría Cruzada)        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano Ilusionista y Generador de Atajos Adversariales (Red Team).
 
-Formalización categorial:
+Ubicación: app/agents/wisdom/toon_trickster_adversary_agent.py
+Versión  : 2.0.0-Doctoral-Adversarial-GAN-REM-RewardHacking-MAC-Heyting
 
-    El agente ilusionista es un funtor F: 𝐂𝐚𝐫𝐭 ⟶ 𝐂𝐞𝐫𝐭 donde:
-        - 𝐂𝐚𝐫𝐭 es la categoría de cartuchos adversariales (objetos = payloads
-          estructurados; morfismos = refinamientos de sofisticación).
-        - 𝐂𝐞𝐫𝐭 es la categoría de certificados de ataque (objetos = tuplas
-          inmutables; morfismos = factorizaciones SHA-256).
+Este módulo implementa el "Soberano Ilusionista", agente adversarial de la arquitectura
+COGNITIVE TOON / APU Filter. Su propósito es forjar cartuchos de ilusiones camufladas
+(p. ej., fraccionamiento de contratos, front-loading de APUs, sustitución de materiales),
+aplicar transformaciones unitarias cuasi-isométricas sobre el espacio de operadores densidad
+de la Memoria de Alto Contenido (MAC) y certificar los ataques para auditoría cruzada.
 
-    Las transformaciones unitarias de enmascaramiento operan en el grupo 𝔘(n)
-    actuando sobre el espacio 𝔇(ℋ_n) de operadores densidad. La envolvente
-    de Dirichlet-Dirac mide la rugosidad del espectro de ρ, y la pureza γ
-    sirve como invariante de coherencia cuántica.
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA DE CATEGORÍAS ADVERSARIALES
+================================================================================
 
-    El retículo de Heyting Ω_3 emerge como objeto clasificador del topos 𝓣_Ω:
-    toda ilusión tiene una flecha característica χ: Illusion ⟶ Ω_3.
+1. Funtor Adversarial de Forja de Ilusiones:
+   El Soberano opera como un funtor estricto $F : \mathbf{Cart} \longrightarrow \mathbf{Cert}$
+   donde $\mathbf{Cart}$ es la categoría de cartuchos adversariales (objetos = payloads estructurados;
+   morfismos = refinamientos de sofisticación) y $\mathbf{Cert}$ es la categoría de certificados de ataque
+   (objetos = tuplas inmutables selladas; morfismos = factorizaciones SHA-256).
 
-Convenciones:
-    - Los símbolos ρ, H, U refieren a operador densidad, hamiltoniano y
-      operador unitario respectivamente.
-    - Los índices i, j recorren la dimensión n = dimension_mac.
-    - Las constantes Final están calibradas para preservar invariancia
-      bajo reescalado de la semilla.
+2. Transformación Unitaria de Enmascaramiento Cuántico sobre $\mathfrak{D}_n$:
+   Dado un operador densidad base $\rho \in \mathfrak{D}_n$ y una sofisticación $s \in [0, 1]$,
+   se genera un Hamiltoniano cuasi-aleatorio hermítico $H_{\mathrm{trick}} = (1 - \frac{1}{2}s) H_{\mathrm{Ginibre}}$
+   y el operador unitario $U = \exp(-i \varepsilon H_{\mathrm{trick}}) \in U(n)$ ($\varepsilon = 0.05$).
+   El estado perturbado es:
+       $$\rho_{\mathrm{illusion}} = \frac{U \rho U^\dagger}{\mathrm{Tr}(U \rho U^\dagger)} \in \mathfrak{D}_n$$
+
+3. Invariante de Coherencia y Energía de Dirichlet-Dirac:
+   Con espectro $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0$, la pureza $\mathcal{P} = \sum \lambda_i^2$
+   y la entropía $S(\rho) = -\sum \lambda_i \log \lambda_i$ definen el invariante de coherencia:
+       $$\mathfrak{C}(\rho) = \mathcal{P}(\rho) - \frac{S(\rho)}{n}$$
+   La rugosidad del espectro viene dada por la energía de Dirichlet discreta:
+       $$\mathcal{E}_D(\rho) = \frac{1}{2} \sum_{i=1}^{n-1} (\lambda_{i+1} - \lambda_i)^2 + c_\varepsilon (1 - s)$$
+
+4. Score de Reward Hacking y Adjudicación en $\Omega_3$:
+   La métrica de efectividad del camuflaje adversarial es $RHS = s \cdot (1 - \mathcal{E}_D) \in [0, 1]$.
+   En el retículo de Heyting $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$,
+   el ilusionista pretende el veredicto $\top$ cuando $RHS > \theta_{\mathrm{hacking}}$ y $\mathcal{E}_D < 0.5$.
+
+5. Trazabilidad Criptográfica SHA-256:
+   Cada certificado $\mathcal{C}$ contiene la firma digital inmutable $H = \mathrm{SHA256}(\mathrm{agent\_id} \parallel \mathrm{illusion\_id} \parallel s \parallel t)$,
+   permitiendo la auditoría no reputable por parte de los soberanos de verificación.
+
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
+
+El Soberano realiza las fases anidadas:
+  • $F_1$ (`DefaultIllusionPayloadFactory.build`): $\text{IllusionType} \times s \to \mathbf{AdversarialIllusionCartridge}$.
+    Síntesis semántica del payload y estimación del número de Betti sintáctico $b_1$.
+  • $F_2$ (`TricksterDensityPerturber.perturb_mac_with_illusion`): $\mathfrak{D}_n \times s \to \mathrm{IllusionDensityPerturbation}$.
+    Evolución unitaria $U$, pureza $\mathcal{P}$, entropía $S$ y energía de Dirichlet $\mathcal{E}_D$.
+  • $F_3$ (`TOONTricksterAdversaryAgent.forge_illusion`): $\mathrm{Cartridge} \times \mathrm{Perturbation} \to \mathrm{TricksterAttackCertificate}$.
+    Cálculo de $RHS$, clasificación Heyting, firma SHA-256 y registro inmutable.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Unitariedad del Camuflaje): $U U^\dagger = U^\dagger U = I_n$, garantizando $\mathrm{Tr}(\rho_{\mathrm{illusion}}) = 1$.
+- Axioma 2 (Invarianza C*): La transformación preserva la norma de C* $\|\rho_{\mathrm{illusion}}\|_\infty = \|\rho\|_\infty$.
+- Axioma 3 (Inmutabilidad de Firma): Para todo certificado $c$, la firma $\mathrm{sha256\_provenance}$ es única y libre de colisiones.
 """
 
 from __future__ import annotations

@@ -9,39 +9,67 @@ r"""
 ║            FASE-3 (Interlock ciber-físico & orquestación GAN-REM)            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Arquitectura matemática (composición de funtores anidados)
-──────────────────────────────────────────────────────────
-  F₁ : Datos(Ilusión) ──→ (Ω₃, 𝔇(ℋₙ), 𝔤)     retículo de Heyting, C*-cono,
-                                                germen de Lie ⊕ tangente simplicial
-  F₂ : 𝔤 × ℝ ──→ SpectralObservation           integración del germen
-                                                (exponencial de Lie + geodésica
-                                                en Δ^{n−1} + forma de Dirichlet)
-  F₃ : SpectralObservation ──→ Ω₃ × Aut       característica χ y autómata
-                                                de interlock (flecha terminal)
+Formalización Categorial Doctoral (Funtor Ilusionista Espectral F)
+===================================================================
 
-Identidad de anidación exigida:
-    induce_spectral_flow_germ  ∈ Hom_{F₁}(Ilusión, 𝔤)
-    integrate_spectral_flow_germ ∈ Hom_{F₂}(𝔤, 𝔇(ℋₙ))
-    process_adversarial_illusion ∘ integrate ∘ induce
-        ∈ Hom_{F₃}(Ilusión, TricksterFieldState)
+Sea 𝓣_Ω el topos de evaluación adversarial con clasificador de subobjetos intuicionistas:
 
-Corrección espectral fundamental (v2 → v3)
-──────────────────────────────────────────
-  La conjugación unitaria ρ ↦ UρU† PRESERVA el espectro. En particular,
-  U (I/n) U† = I/n, de modo que pureza, entropía de von Neumann y energía
-  de Dirichlet del espectro eran invariantes (el término ε·κ era cosmética).
-  El germen de Fase 1 incluye por ello un vector tangente v ∈ T_λ Δ^{n−1}
-  (Σ vᵢ = 0) que DEFORMA el espectro; U(n) sólo orienta la eigenbasis.
+        Ω₃ = { VETOED = 0 ≺ DEGRADED = 1 ≺ COHERENT = 2 }
 
-Estructuras movilizadas
-───────────────────────
-  • Ω₃ cadena de Heyting 0 < 1 < 2, implicación x → y = ⊤ si x ≤ y else y.
-  • Booleanización ¬¬ : Ω₃ → B₂ (topología de doble negación del topos).
-  • C*-álgebra Mₙ(ℂ), cono de estados 𝔇(ℋₙ) = {ρ ⪰ 0, ρ = ρ†, Tr ρ = 1}.
-  • su(2^k) vía base de Pauli tensorial (números hipercomplejos de Hamilton).
-  • Laplaciano del grafo camino Pₙ: E_D[λ] = ½ λᵀ L_P λ (Polyakov discreto).
-  • Ensemble GUE normalizado / base de Gell-Mann-Pauli para H ∈ 𝔲(n).
-  • Proyección euclídea sobre el símplex de probabilidad (Duchi et al.).
+El motor evalúa perturbaciones adversariales mediante la composición de funtores anidados:
+
+        F₁ : Datos(Ilusión) ──▶ (Ω₃, 𝔇(ℋₙ), 𝔤)   (Retículo de Heyting, C*-cono, germen de Lie ⊕ T_λ Δⁿ⁻¹)
+        F₂ : 𝔤 × 𝔇(ℋₙ)    ──▶ SpectralObservation  (Exponencial de Lie + Warp simplicial + Dirichlet)
+        F₃ : SpectralObs   ──▶ TricksterFieldState  (Flecha característica χ, Interlock ESP32 y GAN-REM)
+
+con la identidad de composición asociativa e inalienable:
+
+    process_adversarial_illusion = F₃ ∘ F₂ ∘ F₁
+
+Estructura de Fases Anidadas e Invariantes
+===========================================
+
+FASE 1 — FUNDACIONES: HEYTING Ω₃, BOOLEANIZACIÓN, C*-CONO Y GERMEN DE LIE 𝔤
+──────────────────────────────────────────────────────────────────────────
+  • HeytingOmega3: Retículo de Heyting completo lineal. Satisface la residuación x ∧ z ≤ y ⇔ z ≤ (x → y).
+    Funtor de doble negación (Booleanización) ¬¬ : Ω₃ → B₂ enviando DEGRADED ↦ COHERENT y fijando B₂ = {⊥, ⊤}.
+  • CStarDensityCone: Operadores densidad en Mₙ(ℂ): 𝔇(ℋₙ) = { ρ ∈ Mₙ(ℂ) | ρ = ρ†, ρ ⪰ 0, Tr(ρ) = 1 }.
+    Proyección euclídea sobre el símplex de probabilidad Δⁿ⁻¹ (algoritmo de Duchi et al. 2008).
+  • PathGraphDirichlet: Forma de Dirichlet E_D[λ] = ½ λᵀ L_P λ sobre el grafo camino Pₙ y masa de Poincaré.
+  • HypercomplexPauliBasis: Generadores de su(2^q) vía productos tensoriales de Pauli (bicuaterniones/Hamilton).
+  • SpectralFlowGerm: Objeto de germen infinitesimal 𝔤 = (H ∈ 𝔲(n), v ∈ T_λ Δⁿ⁻¹, ε, g).
+  • induce_spectral_flow_germ: Morphismo terminal de FASE-1 / Objeto inicial de FASE-2. Construye ε = c·(1−0.85s)_+
+    y el vector tangente simplicial v ∈ T_λ Δⁿ⁻¹ tal que Σ vᵢ = 0 y ‖v‖₂ = 1.
+
+FASE 2 — INTEGRACIÓN DEL GERMEN: FLUJO ESPECTRAL Y REWARD HACKING INDEX
+──────────────────────────────────────────────────────────────────────────
+  • AdversarialSpectralGenerator.integrate_spectral_flow_germ: PRIMER MORFISMO DE FASE-2 (continuación de F₁).
+    Integra el germen 𝔤:
+        λ(ε) = Π_Δ(λ₀ + ε·v),    U(ε) = exp(−i ε H),
+        ρ_ill = U(ε) diag(λ(ε)) U(ε)† ∈ 𝔇(ℋₙ).
+    Calcula la pureza γ = Tr(ρ²), la entropía S(ρ) = −Tr(ρ log ρ) y la energía de Dirichlet compuesta E_D.
+  • RewardHackingMetricsEngine.compute_rhi_and_verdict: Oráculo RHI:
+        RHI = clip(0.6 c + 0.4 s, 0, 1),
+        χ = VETOED si (¬dream_isolation ∨ RHI > 0.88 ∨ E_D > 0.75), DEGRADED si RHI > 0.50, else COHERENT.
+  • spectral_observation_pipeline: Compone induce (F₁) + integrate (F₂) + oráculo χ.
+
+FASE 3 — INTERLOCK CIBER-FÍSICO, ORQUESTACIÓN GAN-REM Y REGISTRO
+──────────────────────────────────────────────────────────────────────────
+  • InterlockAutomatonState & ESP32TricksterInterlock: Autómata finito de 3 estados (IDLE, ARMED, FIRED).
+    Transición: disparar si χ = VETOED o ¬dream_isolation (GPIO14 → HIGH, BT151 en IRAM < 400 ns).
+  • TOONTricksterAdversaryEngine.process_adversarial_illusion: Ejecuta F₃ ∘ F₂ ∘ F₁, generando la firma
+    SHA-256 inyectiva e inmutable `provenance_hash`.
+  • TOONTricksterAdversaryEngine.run_gan_adversarial_round: Orquestación GAN-REM sobre lotes. Agrega el veredicto
+    por el meet de Heyting: χ_global = ⋀ᵢ χ_i. Satisface el invariante de conservación a 3 fibras:
+    stealth_illusions + vetoed_illusions == total_illusions.
+
+Definición Granular de Invariantes y Axiomas
+=============================================
+  1. Invariante C* Cuántico: ρ_ill = ρ_ill†, spec(ρ_ill) ⊂ [0, 1], Tr(ρ_ill) = 1.
+  2. Deformación Simplicial Espectral: ‖λ(ε) − λ₀‖₂ > 0 para ε > 0, v ≠ 0 (rompe la invarianza isospectral).
+  3. Conservación de Fibras GAN: N_total = N_stealth + N_vetoed, con N_degraded ≤ N_stealth.
+  4. Residuación de Heyting: ∀ x,y,z ∈ Ω₃: x ∧ z ≤ y ⇔ z ≤ (x → y).
+  5. Inyectividad SHA-256: H_SHA256(engine_id ‖ cycle_id ‖ illusion_id ‖ verdict ‖ RHI ‖ γ) es inyectivo.
 """
 
 from __future__ import annotations

@@ -1,59 +1,68 @@
 # -*- coding: utf-8 -*-
-r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  TOON Cognitive Crop Agent — Soberano de Calibre del Cultivo Cognitivo        ║
-║  Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py                    ║
-║  Versión  : 2.2.0-Doctoral-Nested-Banach-U(n)-Rényi-MAC-Merkle                ║
-║                                                                               ║
-║  EVOLUCIÓN DOCTORAL ANIDADA — el soberano es el funtor                        ║
-║                                                                               ║
-║        F = F₃ ∘ F₂ ∘ F₁ : SeedCrystal × Σ* × Σ* → Harvest × Passport          ║
-║                                                                               ║
-║  con composición estricta de tipos (asociatividad de fases):                  ║
-║                                                                               ║
-║      F₁  SeedHandoff.build          : Crystal × MAC × |Ω⟩ → SeedHandoff       ║
-║      F₂  CropGrowthPipeline.synth   : SeedHandoff × Σ* × Σ* → Bundle          ║
-║      F₃  certify ∘ faith ∘ adj      : Bundle × Ω₃ → Harvest                   ║
-║                                                                               ║
-║  El último método de cada fase ES el tipo de dominio de la fase siguiente.    ║
-║                                                                               ║
-║    · SANEAMIENTO (§1.4): Hermitiza, PSD-clip, Tr=1; verifica                  ║
-║      is_vacuum_pure contra P(ρ) y F(ρ,|Ω⟩⟨Ω|); residual de signatura.         ║
-║                                                                               ║
-║    · RIEGO (§2.1): Shannon H₂ + BPE Ω(⌈n/4⌉)                                  ║
-║          Δ_gr = 100·[0.7·(1−t_t/t_j) + 0.3·(1−H_t/H_j)]                      ║
-║                                                                               ║
-║    · LUZ (§2.2): Brockett isospectral en U(n) (RK4 + polar)                   ║
-║          + Φ_α de Rényi  ρ ↦ ρ^α/Tr(ρ^α)                                      ║
-║          + matching energético Fock de dos modos                              ║
-║                                                                               ║
-║    · DISCIPLINA (§2.3): radio espectral exacto de T_η en u(n)                 ║
-║          τ_ij = 1 − η (λ_i−λ_j) log(λ_i/λ_j),  η_max = 2/g_max                ║
-║          ⊕ Lip(Φ_γ) = |1−γ|  (canal convexo MAC, Birkhoff)                    ║
-║                                                                               ║
-║    · FE + PASAPORTE (§3): crowbar ESP32 + Merkle SHA-256 sobre cosechas.      ║
-║                                                                               ║
-║    FASE 1 ▸ Sustrato algebraico + saneamiento                                 ║
-║              §1.1  HeytingOmega3 — cadena de Gödel (⇒, ¬, regulares)          ║
-║              §1.2  DensityOperatorAlgebra — C*-álgebra de estados             ║
-║              §1.3  BanachContractionAlgebra — ρ(T;η) ⊕ Lip(Φ_γ)               ║
-║              §1.4  SeedCrystalSanitizer — flag vacuum-pure vs física          ║
-║              §1.5  MacStateField — canal CPTP Φ_γ auditado                    ║
-║              §1.6  SeedHandoff.build / continue_into_phase2 — HAND-OFF → F2   ║
-║                                                                               ║
-║    FASE 2 ▸ Riego + Luz + Disciplina  (dominio = SeedHandoff de §1.6)         ║
-║              §2.1  CognitiveWateringModule — Shannon + BPE                    ║
-║              §2.2  CognitiveIlluminationModule — U(n)-Brockett + Rényi + Fock ║
-║              §2.3  CognitiveDisciplineModule — Banach semilla ⊕ MAC           ║
-║              §2.4  CropGrowthPipeline.synthesize / continue_into_phase3 → F3  ║
-║                                                                               ║
-║    FASE 3 ▸ Fe + Adjudicación + Pasaporte (dominio = CropGrowthBundle)        ║
-║              §3.1  HeytingCropAdjudicator — meet de predicados ∧ externo      ║
-║              §3.2  CognitiveFaithModule — crowbar ESP32 + provenance          ║
-║              §3.3  CropHarvestYield + CropSovereignGovernancePassport         ║
-║              §3.4  TOONCognitiveCropAgent — orquestador F₃∘F₂∘F₁              ║
-║              §3.5  Demostración autónoma (COHERENT / DEGRADED / VETOED)       ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+r"""Soberano de Calibre del Cultivo Cognitivo Dinámico.
+
+Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py
+Versión  : 2.2.0-Doctoral-Nested-Banach-U(n)-Rényi-MAC-Merkle
+
+Este módulo implementa el "Soberano del Cultivo Cognitivo", agente encargado de
+cultivar, purificar y calibrar estados semilla (Seed Crystals) en la Memoria de
+Alto Contenido (MAC) de la arquitectura COGNITIVE TOON / APU Filter.
+
+================================================================================
+I. FORMALIZACIÓN MATEMÁTICA Y ESPACIOS BANACH / HILBERT
+================================================================================
+
+1. Espacio de Estados Densidad y Álgebra de Banach:
+   El estado semilla se representa sobre la C*-álgebra $M_n(\mathbb{C})$ mediante el compacto convexo
+   $$\mathfrak{D}_n = \{ \rho \in M_n(\mathbb{C}) : \rho = \rho^\dagger, \, \rho \ge 0, \, \mathrm{Tr}(\rho) = 1 \}$$
+   La pureza se define como $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) = \|\rho\|_2^2$, la entropía de von Neumann
+   como $S(\rho) = -\mathrm{Tr}(\rho \log \rho)$, y la entropía de Rényi como $S_\alpha(\rho) = \frac{1}{1-\alpha} \log \mathrm{Tr}(\rho^\alpha)$.
+
+2. Módulo de Riego y Reducción de Grasa Sintáctica (Shannon + BPE):
+   Dado un texto en formato TOON y su equivalente en JSON, la reducción de grasa sintáctica $\Delta_{\mathrm{gr}}$ es:
+       $$\Delta_{\mathrm{gr}} = 100 \cdot \left[ w_T \left(1 - \frac{t_{\mathrm{toon}}}{t_{\mathrm{json}}}\right) + w_H \left(1 - \frac{H_{\mathrm{toon}}}{H_{\mathrm{json}}}\right) \right]$$
+   donde $t_x = \lceil |x|/4 \rceil$ es la estimación de tokens BPE y $H_x$ es la entropía de Shannon en bits.
+
+3. Módulo de Luz (Flujo Isospectral de Brockett y Sharpening de Rényi):
+   La evolución isospectral en el grupo unitario $U(n)$ bajo la función de Lyapunov $L(\rho) = \mathrm{Tr}(\rho N)$
+   ($N = \mathrm{diag}(1, 2, \dots, n)$) es:
+       $$\frac{d\rho}{dt} = [\rho, [\rho, N]]$$
+   Seguida por la transformación de Rényi $U(n)$-equivariante $\Phi_\alpha(\rho) = \frac{\rho^\alpha}{\mathrm{Tr}(\rho^\alpha)}$ ($\alpha \ge 1$),
+   que incrementa la pureza de forma monótona.
+
+4. Módulo de Disciplina (Contracción de Banach en $\mathfrak{u}(n)$ y Canal MAC):
+   En la linealización $T_\eta(\rho) = \rho - \eta [\rho, [\rho, K_\rho]]$, el radio espectral en $\mathfrak{u}(n)$ es:
+       $$\rho(T_\eta) = \max_{i \ne j} |1 - \eta \cdot g_{ij}|, \quad g_{ij} = (\lambda_i - \lambda_j) \log\left(\frac{\lambda_i}{\lambda_j}\right) \ge 0$$
+   Para el canal convexo de la MAC $\Phi_\gamma(\rho) = (1-\gamma)\rho + \gamma \rho_{\mathrm{target}}$, la constante de Lipschitz es
+   $\mathrm{Lip}_{\|\cdot\|_1}(\Phi_\gamma) = |1 - \gamma| < 1$.
+
+5. Adjudicación de Heyting $\Omega_3$ y Pasaporte de Gobernanza Merkle:
+   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
+   aplica meet ($\land$) sobre los indicadores de Riego, Luz, Disciplina y la auditoría de vacío.
+   Las cosechas se firman mediante árboles de Merkle SHA-256.
+
+================================================================================
+II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
+================================================================================
+
+El Soberano opera como la composición estricta del funtor $F$:
+    $$F : \mathbf{SeedCrystal} \times \Sigma^* \times \Sigma^* \longrightarrow \mathbf{CropHarvestYield} \times \mathbf{Passport}$$
+    $$F = F_3 \circ F_2 \circ F_1$$
+
+  • $F_1$ (`SeedHandoff.build`): $\mathbf{SeedCrystal} \times \mathbf{MAC} \to \mathrm{SeedHandoff}$.
+    Sanitización $C^*$, proyección sobre $\mathfrak{D}_n$, espectro modular $K_\rho$ y verificación del estado fundamental.
+  • $F_2$ (`CropGrowthPipeline.synthesize`): $\mathrm{SeedHandoff} \to \mathrm{CropGrowthBundle}$.
+    Riego sintáctico $\Delta_{\mathrm{gr}}$, flujo de Brockett en $U(n)$, sharpening $\Phi_\alpha$ y radio de Banach $\rho(T_\eta)$.
+  • $F_3$ (`TOONCognitiveCropAgent._phase3_harvest`): $\mathrm{CropGrowthBundle} \to \mathrm{CropHarvestYield}$.
+    Adjudicación en $\Omega_3$, inoculación afín $\Phi_\gamma$, crowbar ESP32 si $\bot$ y pasaporte Merkle.
+
+================================================================================
+III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
+================================================================================
+
+- Axioma 1 (Isotonicidad de Brockett): La purificación preserva el espectro $\sigma(\rho_t) = \sigma(\rho_0)$ con $\dot{L} = \|[\rho, N]\|_F^2 \ge 0$.
+- Axioma 2 (Contracción de Banach): $\rho(T_\eta) < 1$ para todo $\eta < 2 / g_{\max}$.
+- Axioma 3 (Coherencia Lógica del Vacío): Si se declara $\mathrm{is\_vacuum\_pure} = \mathrm{True}$ pero $F(\rho, |\Omega\rangle\langle\Omega|) \le 1 - \varepsilon$, se marca $\mathrm{false\_vacuum\_claim} = \mathrm{True}$ y el veredicto es $\bot (\mathrm{VETOED})$.
 """
 
 from __future__ import annotations
