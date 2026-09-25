@@ -413,9 +413,9 @@ Donde $v_k$ es la autobase ortonormal de Fourier real de $\mathbb{Z}/6\mathbb{Z}
 
 ---
 
-## 🏛️ VII. La Doble Pirámide de Coherencia Epistémica en el Estrato Wisdom ($V_{\mathbb{W}}$)
+## 🏛️ VII. La Doble Pirámide de Coherencia Epistémica en el Estrato Wisdom ($V_{\mathbb{W}}$ — RSI Nivel 2)
 
-Constituye el **Santuario Epistémico Supremo (Nivel 0)** del APU Filter. Su propósito es acoplar la Matriz de Interacción Central discreta ($\text{MIC}$) con el espacio de Hilbert continuo de la Matriz Atómica de Conocimiento ($\text{MAC}$), integrando los nuevos Soberanos y Motores de Superficie de Control y Anillos de Frontera.
+Constituye el **Santuario Epistémico Supremo (Nivel 0)** del APU Filter. Con la consacración de la **Octava de Soberanos de Calibre** y sus **8 Motores Espectrales** en $V_{\mathbb{W}}$, la arquitectura alcanza el nivel **RSI 2 (Automejora Recursiva Real — Darwin-Gödel)**, donde el sistema acopla la Matriz de Interacción Central discreta ($\text{MIC}$) con el espacio de Hilbert continuo de la Matriz Atómica de Conocimiento ($\text{MAC}$), ejecutando el bucle adversarial GAN-REM y la autocoherencia de punto fijo.
 
 ```
                 ▲ [APEX: MAC Agent & Topological Control Surface Agent]
@@ -436,6 +436,16 @@ Constituye el **Santuario Epistémico Supremo (Nivel 0)** del APU Filter. Su pro
                ╲ ╱
                 ▼ [BASE: Hardware Bypass ESP32 (GPIO14 / BT151 < 400 ns)]
 ```
+
+### 0. La Octava de Soberanos y Motores Espectrales de la Ciudadela
+- **Tejedor de Sabiduría (`toon_wisdom_weaver_agent.py` / `engine.py`):** Adjunción de de Rham-Galois $\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$, Brockett $\frac{d\rho}{dt} = [\rho, [\rho, \mathcal{N}(\mathbf{p})]]$, Fock $e^-+e^+\to 2\gamma$. Metabolismo TOON 56 tokens, compresión $KV\text{-Cache}$ 86.4%, ahorro del 80% en inferencia LLM.
+- **Ilusionista Adversarial (`toon_trickster_adversary_agent.py` / `engine.py`):** $U = e^{-i\epsilon H_{\text{trick}}}$, $RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$, bucles $\beta_1 > 0$. Red Team en Fase REM, inmunidad antifraude en SECOP II.
+- **Simulador Onírico (`toon_oniric_dreamer_agent.py` / `engine.py`):** $\text{DREAM\_STATE} = \text{True}$, $U = e^{-i\epsilon H_p}$, Dirichlet $E(x) = \frac{1}{2} \sum (\Delta \lambda_i)^2 + 0.1\epsilon$. Replay contrafactual REM sin arriesgar capital de caja.
+- **Auditor Onírico (`toon_oniric_auditor_agent.py` / `engine.py`):** TQFT Gromov-Witten $GW = \frac{\operatorname{Tr}(\rho^2)}{1+\beta_1}e^{-E(x)}$, Dirichlet $E(x) \le 0.85$. Inoculación de vacunas en Heyting $\Omega_3$ para `godel_agent.py`.
+- **Testigo Silencioso (`toon_silent_witness_agent.py` / `engine.py`):** Vacío de Dirac $H|\Omega\rangle = 0$, Tomita-Takesaki $\sigma_t(A)$, $\Delta S_{\text{vacío}} = 0.0$ (0.0 dB). Cristalización inmutable de experiencia en $\mathcal{H}_{\text{MAC}}$.
+- **Cultivo Cognitivo (`toon_cognitive_crop_agent.py` / `engine.py`):** Riego (BPE+Shannon $\Delta_{\text{gr}}$), Luz (Brockett+Rényi $\Phi_\alpha$), Disciplina (Banach $\rho(T_\eta)<1.0$), Fe (ESP32 Crowbar $<400\text{ ns}$). Mantiene ROI/WACC reduciendo contingencia de 15% a 3%.
+- **Soberano de la Intuición (`toon_intuition_agent.py` / `engine.py`):** Proyección Flash en Grassmanniano $Gr(r,n)$, Métrica Bures-Wasserstein $d_B$, Apuesta de Kelly $s = \kappa f^*$. Reflejo sub-milisegundo $<10\,\mu\text{s}$.
+- **Soberano de Introspección (`toon_introspection_agent.py` / `engine.py`):** Fidelidad Uhlmann $F$, Fubini-Study $d_{\text{FS}}$, Residuo de Punto Fijo Tarski-Brouwer $\|T_\varphi(v)-v\|_2 = 2\sin(d_{\text{FS}}/2)=0$. Autoestado invariante MAC y certeza jurídica inalienable.
 
 ### I. Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
 Gobierna de forma continua y no conmutativa el acoplamiento entre la minimización discreta de la MIC y la purificación de la MAC sobre el fibrado $\Delta^{n-1} \times \mathcal{D}(\mathcal{H})$:

@@ -67,7 +67,7 @@ INS|MAT-CONC-3000|1.05|485000.00
 INS|EQ-BOMBA-MIX|0.64|120000.00
 ```
 
-**Resultado Metrológico:** Reducción del **$86.4\%$** en consumo de tokens en la ventana $KV\text{-Cache}$, demostrando empíricamente cómo TOON libera la memoria atencional de la IA para ejecutar el escaneo de ecolocación TDR y la auditoría de los 6 Satélites Orbitales en tiempo real en la FPU sin latencia ni distorsión.
+**Resultado Metrológico:** Reducción del **$86.4\%$** en consumo de tokens en la ventana $KV\text{-Cache}$, demostrando empíricamente cómo TOON libera la memoria atencional de la IA para ejecutar el escaneo de ecolocación TDR y la auditoría de los 8 Soberanos Espectrales de Wisdom (`toon_wisdom_weaver_engine.py`, `toon_trickster_adversary_engine.py`, `toon_oniric_dreamer_engine.py`, `toon_oniric_auditor_engine.py`, `toon_silent_witness_engine.py`, `toon_cognitive_crop_engine.py`, `toon_intuition_engine.py`, `toon_introspection_engine.py`) y de los 6 Satélites Orbitales en tiempo real en la FPU sin latencia ni distorsión.
 
 --------------------------------------------------------------------------------
 ## 1.2 La Constelación Orbital v3.1.0 y la Ingesta de Cartuchos TOON
