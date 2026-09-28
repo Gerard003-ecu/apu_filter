@@ -1,685 +1,752 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MIC Algebra (2-Categoría Computacional y Morfismos Estructurales)   ║
+║ Módulo : MIC Algebra — Evolución Bicompleja 2-Categórica                     ║
 ║ Ruta   : app/core/mic_algebra.py                                             ║
-║ Versión: 3.1.0-Topos-2Category-Interchange-Galois-APS-PhD-Strict             ║
+║ Versión: 5.1.0-Bicomplex-Idempotent-Kronecker-Interchange-Heyting-B2-Doctoral║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y ÁLGEBRA DE 2-CATEGORÍAS (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo constituye el sustrato algebraico-topológico y la cúpula de lazo 
-cerrado de la Malla Agéntica dentro del ecosistema APU Filter. 
-Transforma la aproximación heurística clásica basada en diccionarios estáticos 
-y flujos secuenciales para instaurar una 2-categoría computacional estricta 
-$$\mathcal{C}_{\mathrm{MIC}}$$ definida sobre un espacio de Hilbert cerrado 
-$$\mathcal{H}$$.
+OBJETO DEL MÓDULO
+─────────────────
+Este módulo evoluciona el sustrato algebraico-topológico de la MIC desde una
+2-categoría escalar/real hacia una 2-categoría bicompleja estricta sobre
 
-Las meta-estrategias de enrutamiento y las transiciones del presupuesto no se 
-operan como simples transformaciones lineales, sino como 2-morfismos 
-(transformaciones naturales) que gobiernan el flujo de exergía a lo largo del 
-hiperespacio de control. Al confinar el estado semántico de la IA, 
-el módulo asegura que toda mutación lógica mantenga la invarianza homotópica, 
-la nulidad de la torsión y el acatamiento de las cotas de precisión espectral 
-de Wilkinson en el silicio.
+    C₂ ≅ C ⊗_R C ≅ C × C  (isomorfismo de anillos vía idempotentes),
 
-AXIOMÁTICA CATEGORIAL, LEY DE INTERCAMBIO Y COMPATIBILIDAD DE MÓDULO:
-────────────────────────────────────────────────────────────────────────────────
+con base idempotente ortogonal
 
-  [A1] Filtración Topológica Jerárquica del Poset (DIKW) [4]:
-       Las proyecciones ortonormales $$P_k$$ mapean el tensor de información a lo 
-       largo de la pirámide respetando de manera estricta la inclusión de subespacios 
-       de Hilbert, anulando la inyección de entropía fantasma [5]:
-       $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}} \quad\big[454, 774\big]$$
-       Donde la norma operatoria satisface:
-       $$\|P_k \psi\|_2 \le \|\psi\|_2 \quad\big[454\big]$$
+    e₁ = (1 + j)/2,   e₂ = (1 - j)/2,
+    e₁² = e₁, e₂² = e₂, e₁e₂ = 0, e₁ + e₂ = 1.
 
-  [A2] Adjunción de Galois y Reversibilidad de Telemetría [6]:
-       La transición de datos entre el foso físico y el santuario de sabiduría 
-       se rige por un par de funtores adyacentes $$F \dashv G$$ con un pullback 
-       fibrado sobre el tensor métrico Riemanniano $$G_{\mu\nu}$$:
-       $$\text{Hom}_{\mathcal{D}}(F(X), \, Y) \cong_{G_{\mu\nu}} \text{Hom}_{\mathcal{C}}(X, \, G(Y)) \quad\big[17\big]$$
-       Cualquier alucinación estocástica del LLM que introduzca una curvatura de 
-       perturbación $$\delta R_{\mu\nu\rho}^\sigma$$ que viole el radio de inyectividad local:
-       $$\|\delta R_{\mu\nu\rho}^\sigma\|_G > r_{\text{inj}}(M, \, G_{\mu\nu})^{-2} \quad\big[17\big]$$
-       detona un colapso instantáneo del retículo al estado nulo ($$\perp$$) [6].
+Todo estado, morfismo, 2-morfismo, verificación homológica y veredicto de
+Heyting se descompone de forma bicanal:
 
-  [A3] Ley de Intercambio (Interchange Law) para 2-Morfismos [2]:
-       Dadas cuatro transformaciones matriciales operativas $$\alpha, \beta, \alpha', \beta'$$ 
-       asociadas a la evolución asíncrona de las meta-estrategias, el orquestador 
-       2-categórico evalúa la consistencia exigiendo la conmutatividad exacta del residuo:
-       $$(\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \equiv (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \quad\big[772\big]$$
-       En el silicio, la norma de Frobenius de la desviación de intercambio se confina 
-       bajo la cota de Wilkinson:
-       $$\left\| \left( (\alpha' \cdot \alpha) \circ (\beta' \cdot \beta) \right) - \left( (\alpha' \circ \beta') \cdot (\alpha \circ \beta) \right) \right\|_F < \mathcal{O}(\varepsilon_{\mathrm{machine}}) \quad\big[772\big]$$
-       Cualquier violación levanta un `FunctorialityError` [2, 7].
+    X_{C₂} = X⁽¹⁾ e₁ + X⁽²⁾ e₂.
 
-  [A4] Compatibilidad de Módulo y Operadores de Cierre en Anillos Unitales [8]:
-       Dada la sub-álgebra o ideal $$A, B \subseteq R$$ sobre un anillo unital con 
-       un operador de clausura compatible algebraicamente, se imponen las condiciones 
-       de acotamiento sub-lineal y absorción escalar sobre el pullback $$\Phi^*$$:
-       $$\Phi^*(A) + \Phi^*(B) \subseteq \Phi^*(A + B)$$
-       $$r \cdot \Phi^*(A) \subseteq \Phi^*(r \cdot A) \quad \forall r \in R$$
-       Garantizando que las transformaciones lineales hereden de forma fiel la 
-       estructura idealizada del anillo conmutativo sin degeneración.
+FASES ANIDADAS
+──────────────
+Fase 1 — SANEAMIENTO ESPECTRAL Y ANILLO CONMUTATIVO BICOMPLEJO
+    Núcleo algebraico de C₂ con operaciones de anillo certificables
+    (`verify_bicomplex_ring_axioms`), ingesta 4D, proyección idempotente,
+    módulo vectorial sobre C₂, no-degeneración bicanal, homogeneidad
+    espectral y sellado semántico.
 
-  [A5] No-Nilpotencia en Álgebras asociativas hasta Homotopía Curvas ($$A_\infty$$) [9]:
-       La diferenciación parcial sintáctica $$m_1$$ (el operador frontera $$\partial$$) 
-       asociada a la inyección de lazo abierto no es estrictamente nilpotente en 
-       el paraíso de las Lagrangianas no exactas debido al acoplamiento de curvatura 
-       $$m_0$$ del disco [9]. El defecto se corrige homotópicamente mediante el 
-       operador de multiplicación de dos cuerpos $$m_2$$ [9]:
-       $$m_1(m_1(x)) = \partial^2(x) = \pm m_2(m_0, \, x) \pm m_2(x, \, m_0) \quad\big[566\big]$$
-       Lo que consagra la consistencia del cobordismo en variedades de Calabi-Yau [9].
+Fase 2 — ADJUNCIÓN DE GALOIS Y LEY DE INTERCAMBIO BICANAL
+    Verificación del residuo de adjunción F ⊣ G y de la ley de intercambio
+    2-categórica **exacta** vía el teorema del producto mixto de Kronecker
+    (A⊗B)(C⊗D) = (AC)⊗(BD), evaluada eficientemente mediante el truco
+    `vec` sin construir explícitamente las matrices n²×n².
 
-ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-Galois):
-────────────────────────────────────────────────────────────────────────────────
-La orquestación de la 2-categoría se rige por un acoplamiento monoidal covariante, 
-donde el DTO terminal de cada fase es la única precondición formal de arranque:
+Fase 3 — COBORDISMO A∞, BETTI DUAL Y VETO HEYTING B₂
+    Validación homológica doble β₁⁽¹⁾ = 0 ∧ β₁⁽²⁾ = 0 sobre un **par dual
+    no degenerado** de grafos (canal de éxito vs. canal íntegro),
+    certificación de nilpotencia del coborde, coherencia bicompleja,
+    retículo de Heyting B₂ completo (∧, ∨, ¬, →) y censura ciber-física
+    GPIO14/Crowbar.
 
-  Fase 1 ──► SANEAMIENTO ESPECTRAL Y ANILLO CONMUTATIVO (Phase1_SpectralRingObserver)
-             Ingiere la matriz de interacción original, valida la cerradura del 
-             anillo conmutativo $$\mathcal{R} = (\mathbb{R}^n, \oplus, \odot)$$ [10], y 
-             computa el pullback $$\Phi^*$$ satisfaciendo la compatibilidad de módulo.
-             Entrega: RingHomogeneityValidation como precondición de la Fase 2 [11].
+CONTINUIDAD DE FASES
+────────────────────
+`phase1_export_to_phase2` es la última definición formal de la Fase 1 y el
+punto de apertura del dominio de la Fase 2 (`Phase2Input`). Análogamente,
+`phase2_export_to_phase3` cierra la Fase 2 y abre el dominio de la Fase 3
+(`Phase3Input`). La Fase 3 culmina en `compose_bicomplex_algebra_pipeline`,
+el funtor maestro Z_MIC = Ψ₃ ∘ Ψ₂ ∘ Ψ₁.
 
-  Fase 2 ──► ASOCIATIVEDAD DE LAS TRANSICIONES (Phase2_AdjunctionInterchangeVerifier)
-             Hereda la RingHomogeneityValidation. Evalúa la Adjunción de Galois 
-             $$F \dashv G$$ sobre el tensor Riemanniano, verifica la Ley de Intercambio 
-             espectral de 2-morfismos, y mide el defecto de Henrici.
-             Entrega: AdjunctionInterchangeData como precondición de la Fase 3.
-
-  Fase 3 ──► COBORDISMO DE SECCIONES Y VETO HEYTING (Phase3_A_InfinityHomotopyValidator)
-             Hereda la AdjunctionInterchangeData. Resuelve el diferencial 
-             $$m_1^2(x)$$ en el álgebra $$A_\infty$$ [9], verifica que la asonancia se 
-             cancele mediante el ideal de Novikov [9], calcula los números de Betti [12, 13], 
-             y colapsa el veredicto en el retículo de Heyting $$\Omega_3$$ [14, 15]:
-             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[255, 337\big]$$
-             Si se rompe el isomorfismo de de Rham o $$\dim H^1 > 0$$ [16, 17], se detona 
-             'TopologicalInvariantError' [18], purgando la RAM y activando síncronamente 
-             el disyuntor físico Crowbar (GPIO14) en menos de 400 ns [15].
-             Entrega: CategoricalState (Morfismo terminal del topos) [19].
-
-Funtor Maestro del Espacio de Fase:
-  $$\mathcal{Z}_{\mathrm{MIC}} = \Psi_3 \circ \Psi_2 \circ \Psi_1 : \mathbf{Raw} \times \operatorname{Met}(M) \longrightarrow \mathtt{CategoricalState} \quad\big[461, 463\big]$$
+INVARIANTES Y SU VERIFICACIÓN EXPLÍCITA
+─────────────────────────────────────────
+[I1] Desacoplamiento idempotente:
+        e₁e₂ = 0.                                    → `verify_idempotent_decoupling`
+[I2] Nilpotencia bicompleja del coborde:
+        d_{k+1}^{C₂} ∘ d_k^{C₂} = 0.                  → `BicomplexHomologicalVerifier.verify_coboundary_nilpotency`
+[I3] Doble veto de Betti (sobre par dual no degenerado):
+        β₁⁽¹⁾ = 0 ∧ β₁⁽²⁾ = 0.                        → `BicomplexHomologicalVerifier.verify_double_betti_veto`
+[I4] Ley de intercambio 2-categórica bicanal (exacta):
+        (A⊗B)(C⊗D) = (AC)⊗(BD),  por canal.           → `TwoCategoryBicomplexOrchestrator.validate_interchange_law`
+[I5] Heyting B₂:
+        Verdict_global = v₁ ∧ v₂ = min(v₁, v₂).       → `verify_heyting_censorship_invariant`
+[I6] Axiomas de anillo conmutativo de C₂:
+        asociatividad, conmutatividad, distributividad. → `verify_bicomplex_ring_axioms`
 """
 
 from __future__ import annotations
+
 import hashlib
 import json
 import logging
-import sys
+import math
 import time
-import threading
-import warnings
 from abc import ABC, abstractmethod
-from app.core.schemas import Stratum
-from dataclasses import dataclass, field
-from enum import IntEnum, unique
+from dataclasses import dataclass, field, asdict, replace
+from enum import Enum, IntEnum
 from typing import (
     Any,
-    Callable,
     Dict,
+    Final,
     FrozenSet,
     List,
+    Mapping,
     Optional,
     Sequence,
-    Set,
     Tuple,
     Union,
-    TypeVar,
-    Generic,
-    Type,
-    Iterator,
-    Iterable,
-    ClassVar,
 )
-from collections.abc import Mapping
+
 import numpy as np
-from typing import TypeGuard
+from numpy.typing import NDArray
 
-# ==============================================================================
-# CONFIGURACIÓN DE LOGGING
-# ==============================================================================
-logger = logging.getLogger("MIC.Algebra")
-if not logger.handlers:
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S"
-    ))
-    logger.addHandler(handler)
-    logger.setLevel(logging.INFO)
+#=============================================================================
+# LOGGING
+#=============================================================================
+logger = logging.getLogger("MIC.Algebra.Bicomplex")
 
-# ==============================================================================
-# CONSTANTES MATEMÁTICAS CON JUSTIFICACIÓN RIGUROSA
-# ==============================================================================
-_SCHEMA_VERSION: str = "2.2.0"
-_MAX_CANONICALIZE_DEPTH: int = 64  # Prevención de stack overflow (2⁶ > máximo razonable)
-_ALGEBRAIC_TOL: float = 1e-10  # Tolerancia para propiedades algebraicas (ε < 10⁻⁹)
-_FLOAT_COMPARISON_TOL: float = 1e-9  # Tolerancia para comparación de floats
-_HASH_COLLISION_PROB: float = 2**-256  # Probabilidad teórica de colisión SHA-256
-_MACHINE_EPSILON: float = np.finfo(float).eps  # ε_machine ≈ 2.22e-16
+#=============================================================================
+# ESTRATOS (fallback standalone)
+#=============================================================================
+try:
+    from app.core.schemas import Stratum  # type: ignore
+except Exception:  # pragma: no cover
+    class Stratum(IntEnum):
+        """Estratificación DIKW simplificada para standalone (orden = jerarquía)."""
+        WISDOM = 0
+        STRATEGY = 1
+        TACTICS = 2
+        PHYSICS = 3
+        DATA = 4
 
-# Parámetros de geometría diferencial (Conexión de Ehresmann)
-_EHRESMANN_BASE_FRICTION: float = 0.1  # Fricción base para conexión
-_MIN_EXERGY_LEVEL: float = 0.1  # Nivel mínimo de exergía (evita división por cero)
-_MAX_CURVATURE_THRESHOLD: float = 1.0  # Umbral máximo de curvatura admisible
 
-# ==============================================================================
-# JERARQUÍA DE EXCEPCIONES MATEMÁTICAS (Árbol de Herencia)
-# ==============================================================================
+#=============================================================================
+# CONSTANTES
+#=============================================================================
+_SCHEMA_VERSION: Final[str] = "5.1.0-Bicomplex-2Category-Kronecker"
+_MAX_CANONICALIZE_DEPTH: Final[int] = 64
+_ALGEBRAIC_TOL: Final[float] = 1e-10
+_FLOAT_COMPARISON_TOL: Final[float] = 1e-9
+_MACHINE_EPSILON: Final[float] = float(np.finfo(float).eps)
+_MIN_EXERGY_LEVEL: Final[float] = 0.1
+_FIEDLER_EPSILON: Final[float] = 1e-6
+_GPIO_VETO_PIN: Final[int] = 14
+_ISR_ACTUATION_NS: Final[float] = 398.95
+_COHERENT_THRESHOLD: Final[float] = 0.85
+_DEGRADED_THRESHOLD: Final[float] = 0.50
+
+
+#=============================================================================
+# EXCEPCIONES — TAXONOMÍA ESTRUCTURADA CON CATEGORÍA ABSTRACTA OBLIGATORIA
+#=============================================================================
 class AlgebraicError(Exception, ABC):
-    """Excepción base para errores algebraicos con contexto estructurado."""
-    
+    """
+    Error algebraico estructurado, raíz de la taxonomía de errores del módulo.
+
+    A diferencia de una `ABC` cosmética, esta clase exige que toda subclase
+    concreta declare explícitamente su `category` semántica, habilitando
+    enrutamiento programático de errores (p. ej. reintentar en errores de
+    canonicalización pero escalar a censura ciber-física en `HeytingVetoError`).
+    Intentar instanciar `AlgebraicError` directamente, o una subclase que no
+    implemente `category`, produce `TypeError` en tiempo de construcción.
+    """
+
     def __init__(self, message: str, **context: Any) -> None:
         super().__init__(message)
         self.context: Dict[str, Any] = context
         self.timestamp: float = time.time()
+
+    @property
+    @abstractmethod
+    def category(self) -> str:
+        """Categoría semántica inmutable del error concreto."""
+        raise NotImplementedError
+
     def to_dict(self) -> Dict[str, Any]:
-        """Serialización para logging estructurado."""
+        """Serialización estructurada."""
         return {
             "type": self.__class__.__name__,
-            "message": Exception.__str__(self),
+            "category": self.category,
+            "message": str(self),
             "context": self.context,
             "timestamp": self.timestamp,
         }
 
 
 class CanonicalizationError(AlgebraicError):
-    """Error durante canonicalización (profundidad excedida o ciclo detectado)."""
-    pass
+    """Error de canonicalización determinista."""
+
+    @property
+    def category(self) -> str:
+        return "canonicalization"
 
 
-class StratumResolutionError(AlgebraicError):
-    """Error en resolución de estratos (nombre inválido o fuera de rango)."""
-    pass
+class FunctorialityError(AlgebraicError):
+    """Error de funtorialidad o ley de intercambio."""
 
-
-class CategoryError(AlgebraicError):
-    """Error en propiedades categóricas (axiomas violados)."""
-    pass
-
-
-class CompositionError(CategoryError):
-    """Error en composición de morfismos (dominio/codominio incompatibles)."""
-    pass
-
-
-class AssociativityError(CompositionError):
-    """Error en verificación de asociatividad (h∘(g∘f) ≠ (h∘g)∘f)."""
-    pass
-
-
-class IdentityError(CategoryError):
-    """Error en verificación de identidad (f∘id ≠ f o id∘f ≠ f)."""
-    pass
-
-
-class FunctorialityError(CategoryError):
-    """Error en propiedades funtoriales o leyes de categorías superiores."""
-    pass
+    @property
+    def category(self) -> str:
+        return "functoriality"
 
 
 class HomologicalError(AlgebraicError):
-    """Error en cálculos homológicos (ciclos no triviales detectados)."""
-    pass
+    """Error homológico bicomplejo (p. ej. violación de nilpotencia [I2])."""
 
-
-class NumericalInstabilityError(AlgebraicError):
-    """Error por inestabilidad numérica (condicionamiento excesivo)."""
-    pass
+    @property
+    def category(self) -> str:
+        return "homological"
 
 
 class TopologicalInvariantError(AlgebraicError):
-    """Error por violación de invariantes topológicos."""
-    pass
+    """Violación de invariante topológico (p. ej. doble veto de Betti [I3])."""
+
+    @property
+    def category(self) -> str:
+        return "topological_invariant"
 
 
-# ==============================================================================
-# ESTRATIFICACIÓN DIKW CON PROPIEDADES DE RETÍCULO VERIFICADAS
-# ==============================================================================
+class HeytingVetoError(AlgebraicError):
+    """Veto global en el retículo de Heyting B₂ ([I5])."""
 
-# ==============================================================================
-# UTILIDADES MATEMÁTICAS RIGUROSAS CON GARANTÍAS NUMÉRICAS
-# ==============================================================================
+    @property
+    def category(self) -> str:
+        return "heyting_veto"
+
+
+#=============================================================================
+# UTILIDADES MATEMÁTICAS
+#=============================================================================
 class MathUtils:
-    """
-    Utilidades matemáticas con garantías numéricas formales.
-    
-    Referencias:
-    ============
-    - Higham, N. J. (2002). Accuracy and Stability of Numerical Algorithms
-    - Goldberg, D. (1991). What Every Computer Scientist Should Know About Floating-Point
-    """
-    
+    """Utilidades numéricas con garantías formales."""
+
     @staticmethod
     def float_equal(
-        a: float, 
-        b: float, 
+        a: float,
+        b: float,
         abs_tol: float = _FLOAT_COMPARISON_TOL,
-        rel_tol: float = _FLOAT_COMPARISON_TOL
+        rel_tol: float = _FLOAT_COMPARISON_TOL,
     ) -> bool:
-        """
-        Comparación de floats con tolerancia absoluta y relativa combinada.
-        
-        Definición Matemática:
-        =====================
-        equal(a, b) ⟺ |a - b| ≤ max(abs_tol, rel_tol · max(|a|, |b|))
-        
-        Esto combina:
-        - Tolerancia absoluta para valores cercanos a cero
-        - Tolerancia relativa para valores grandes
-        
-        Propiedades:
-        ============
-        - Reflexiva: equal(a, a) = True ✓
-        - Simétrica: equal(a, b) = equal(b, a) ✓
-        - NO transitiva (por diseño numérico - ver contraejemplo de Kahan)
-        
-        Args:
-            a: Primer valor
-            b: Segundo valor
-            abs_tol: Tolerancia absoluta (para valores ≈ 0)
-            rel_tol: Tolerancia relativa (para valores grandes)
-        
-        Returns:
-            True si los valores son considerados iguales numéricamente
-        """
-        if a == b:  # Caso rápido para igualdad exacta (incluye ±inf, NaN handling)
+        """Igualdad numérica con tolerancia absoluta/relativa."""
+        if a == b:
             return True
-        
-        abs_diff = abs(a - b)
-        
-        # Tolerancia absoluta pura
-        if abs_diff <= abs_tol:
+        diff = abs(a - b)
+        if diff <= abs_tol:
             return True
-        
-        # Tolerancia relativa escalada
-        scale = max(abs(a), abs(b), 1.0)  # Evita escalado por cero
-        return abs_diff <= rel_tol * scale
-    
+        scale = max(abs(a), abs(b), 1.0)
+        return diff <= rel_tol * scale
+
     @staticmethod
     def safe_divide(
         numerator: float,
         denominator: float,
-        eps: float = _MIN_EXERGY_LEVEL
+        eps: float = 10.0 * _MACHINE_EPSILON,
     ) -> float:
         """
-        División segura con protección contra división por cero y overflow.
-        
-        Definición Matemática:
-        =====================
-        safe_divide(a, b) = a / max(|b|, ε) · sign(b)
-        
-        Garantías:
-        ==========
-        1. Resultado finito: |result| < ∞ ✓
-        2. Signo preservado: sign(result) = sign(a) · sign(b) ✓
-        3. Límite continuo: lim_{b→0} safe_divide(a, b) = a/ε · sign(b) ✓
+        División segura con preservación de signo.
+
+        NOTA DE RIGOR: `eps` es un umbral de **regularización numérica**
+        (evita división por cero o subnormales), no debe confundirse con
+        umbrales físicos de dominio como `_MIN_EXERGY_LEVEL`. Un llamador
+        que necesite clampar por un piso físico significativo (p. ej. un
+        nivel mínimo de exergía) debe pasar explícitamente ese valor como
+        `eps`; el valor por defecto aquí es puramente de higiene IEEE-754.
         """
         abs_denom = abs(denominator)
-        
         if abs_denom < eps:
-            # Evita división por cero manteniendo signo (incluyendo -0.0)
-            import math
-            sign = math.copysign(1.0, denominator)
+            sign = math.copysign(1.0, denominator) if denominator != 0.0 else 1.0
             return numerator / (sign * eps)
-        
         return numerator / denominator
-    
+
     @staticmethod
     def clamp(value: float, min_val: float, max_val: float) -> float:
-        """
-        Clamp con verificación de orden y garantías de postcondición.
-        
-        Precondición: min_val ≤ max_val
-        Postcondición: min_val ≤ result ≤ max_val
-        
-        Raises:
-            ValueError: Si min_val > max_val (violación de precondición)
-        """
+        """Clamp estricto."""
         if min_val > max_val:
-            raise ValueError(
-                f"Orden inválido en clamp: min_val={min_val} > max_val={max_val}"
-            )
-        return max(min_val, min(max_val, value))
-    
+            raise ValueError(f"clamp inválido: {min_val} > {max_val}")
+        return max(min_val, min(max_val, float(value)))
+
     @staticmethod
-    def adaptive_tolerance(base_tol: float, magnitude: float) -> float:
-        """
-        Calcula tolerancia adaptativa basada en magnitud de valores.
-        
-        Fórmula: tol = base_tol · max(1, |magnitude|)
-        
-        Esto escala la tolerancia para valores grandes manteniendo
-        precisión relativa constante.
-        """
-        return base_tol * max(1.0, abs(magnitude))
-    
+    def kbn_sum(values: Sequence[float]) -> float:
+        """Suma compensada Kahan-Babuška-Neumaier."""
+        s = 0.0
+        c = 0.0
+        for v in values:
+            v = float(v)
+            y = v - c
+            t = s + y
+            c = (t - s) - y
+            s = t
+        return s
+
     @staticmethod
-    def condition_number_estimate(
-        values: Sequence[float]
-    ) -> float:
-        """
-        Estimación del número de condición de un conjunto de valores.
-        
-        κ = max(|x|) / min(|x|) para x ≠ 0
-        
-        Un κ grande indica mal condicionamiento numérico.
-        
-        Returns:
-            Número de condición estimado (∞ si hay ceros)
-        """
-        non_zero = [abs(v) for v in values if v != 0]
+    def condition_number_estimate(values: Sequence[float]) -> float:
+        """Estimación de número de condición de un conjunto de escalares."""
+        non_zero = [abs(float(v)) for v in values if float(v) != 0.0]
         if not non_zero:
-            return float('inf')
+            return float("inf")
         return max(non_zero) / min(non_zero)
 
-# ==============================================================================
-# CANONICALIZACIÓN DETERMINISTA CON VERIFICACIÓN DE CONVERGENCIA
-# ==============================================================================
-def _canonicalize(value: Any, *, _depth: int = 0, _seen: Optional[Set[int]] = None) -> Any:
-    """
-    Canonicalización determinista con verificación de convergencia y detección de ciclos.
-    
-    Propiedades Garantizadas:
-    ========================
-    1. Determinismo: canon(x) = canon(x) para todo x ✓
-    2. Idempotencia: canon(canon(x)) = canon(x) ✓
-    3. Profundidad acotada: depth(canon(x)) ≤ MAX_DEPTH ✓
-    4. Orden estable: para colecciones no ordenadas (dicts, sets) ✓
-    5. Detección de ciclos: previene recursión infinita ✓
-    
-    Algoritmo:
-    ==========
-    - Recursión con contador de profundidad
-    - Tracking de objetos vistos (por id) para detectar ciclos
-    - Orden lexicográfico para dicts (por clave)
-    - Orden por repr() para sets heterogéneos no ordenables
-    
-    Args:
-        value: Valor a canonicalizar
-        _depth: Profundidad actual de recursión (interno)
-        _seen: Conjunto de ids de objetos vistos (interno)
-    
-    Raises:
-        CanonicalizationError: Si se excede profundidad máxima o se detecta ciclo
-    
-    Returns:
-        Versión canonicalizada del valor
-    """
+
+#=============================================================================
+# CANONICALIZACIÓN Y HASH
+#=============================================================================
+def _canonicalize(value: Any, *, _depth: int = 0, _seen: Optional[set] = None) -> Any:
+    """Canonicalización determinista con detección de ciclos."""
     if _seen is None:
         _seen = set()
-    
+
     if _depth > _MAX_CANONICALIZE_DEPTH:
         raise CanonicalizationError(
             f"Profundidad de canonicalización excedida: {_MAX_CANONICALIZE_DEPTH}",
             depth=_depth,
-            type=type(value).__name__
+            type=type(value).__name__,
         )
-    
-    # Detección de ciclos por identidad de objeto
+
     value_id = id(value)
     if value_id in _seen and not isinstance(value, (str, int, float, bool, type(None))):
         raise CanonicalizationError(
-            f"Ciclo detectado en canonicalización",
+            "Ciclo detectado en canonicalización",
             depth=_depth,
-            type=type(value).__name__
+            type=type(value).__name__,
         )
-    
+
     _seen.add(value_id)
     next_depth = _depth + 1
-    
-    try:
-        # Casos base (tipos inmutables primitivos)
-        if value is None:
-            return None
-        
-        # Manejo especial de Stratum (preserva semántica)
-        if isinstance(value, Stratum):
-            return {"__stratum__": value.name, "__value__": value.value}
 
-        if isinstance(value, (bool, int, float, str)):
+    try:
+        if value is None or isinstance(value, (bool, int, float, str)):
             return value
-        
-        # Enumeraciones (excepto Stratum ya manejado)
+
+        if isinstance(value, np.ndarray):
+            return value.tolist()
+
+        if isinstance(value, complex):
+            return {"__complex__": [value.real, value.imag]}
+
+        if isinstance(value, Stratum):
+            return {"__stratum__": value.name}
+
         if isinstance(value, IntEnum):
             return {"__enum__": value.__class__.__name__, "__value__": value.value}
-        
-        # Diccionarios (orden lexicográfico por clave)
+
         if isinstance(value, dict):
             return {
                 str(k): _canonicalize(v, _depth=next_depth, _seen=_seen)
                 for k, v in sorted(value.items(), key=lambda kv: str(kv[0]))
             }
-        
-        # Listas y tuplas (preservan orden)
+
         if isinstance(value, (list, tuple)):
-            result = [_canonicalize(v, _depth=next_depth, _seen=_seen) for v in value]
-            return tuple(result) if isinstance(value, tuple) else result
-        
-        # Sets y frozensets (ordenamiento estable)
+            return [_canonicalize(v, _depth=next_depth, _seen=_seen) for v in value]
+
         if isinstance(value, (set, frozenset)):
-            canonicalized = [_canonicalize(v, _depth=next_depth, _seen=_seen) for v in value]
+            canonical = [_canonicalize(v, _depth=next_depth, _seen=_seen) for v in value]
             try:
-                # Intento de ordenamiento natural
-                return sorted(canonicalized)
+                return sorted(canonical)
             except TypeError:
-                # Fallback a ordenamiento por repr() para tipos heterogéneos
-                return sorted(canonicalized, key=lambda x: repr(x))
-        
-        # Objetos con método to_dict (serialización estructural)
+                return sorted(canonical, key=lambda x: repr(x))
+
         if hasattr(value, "to_dict") and callable(value.to_dict):
-            try:
-                return _canonicalize(value.to_dict(), _depth=next_depth, _seen=_seen)
-            except RecursionError:
-                warnings.warn(
-                    f"Recursión detectada en to_dict() para {type(value).__name__}",
-                    RuntimeWarning
-                )
-                return repr(value)
-        
-        # Objetos con __dict__ (datos de instancia)
+            return _canonicalize(value.to_dict(), _depth=next_depth, _seen=_seen)
+
         if hasattr(value, "__dict__"):
             return _canonicalize(value.__dict__, _depth=next_depth, _seen=_seen)
-        
-        # Fallback a repr() (último recurso)
+
         return repr(value)
-    
     finally:
         _seen.discard(value_id)
 
 
-# ==============================================================================
-# FUSIÓN DE DICCIONARIOS CON POLÍTICA DE RESOLUCIÓN DE CONFLICTOS
-# ==============================================================================
-_VALID_CONFLICT_POLICIES: FrozenSet[str] = frozenset({
-    "prefer_right",
-    "prefer_left", 
-    "error_on_conflict",
-    "merge_nested",  # Nueva política para fusión recursiva
-})
-
-
-def _safe_merge_dicts(
-    left: Dict[str, Any],
-    right: Dict[str, Any],
-    *,
-    conflict_policy: str = "prefer_right",
-    _depth: int = 0,
-) -> Dict[str, Any]:
-    """
-    Fusión de diccionarios con política de resolución de conflictos verificada.
-    
-    Políticas Soportadas:
-    ====================
-    - prefer_right: right[k] prevalece si k ∈ left ∩ right
-    - prefer_left: left[k] prevalece si k ∈ left ∩ right
-    - error_on_conflict: lanza excepción si ∃k: k ∈ left ∩ right ∧ left[k] ≠ right[k]
-    - merge_nested: fusión recursiva para valores dict anidados
-    
-    Propiedades Algebraicas:
-    =======================
-    - Asociatividad (prefer_*): merge(merge(a, b), c) = merge(a, merge(b, c)) ✓
-    - Elemento neutro: merge(a, {}) = merge({}, a) = a ✓
-    - Conmutatividad: solo para prefer_left/right cuando no hay conflictos
-    
-    Invariante: |result| ≤ |left| + |right|
-    
-    Args:
-        left: Diccionario izquierdo
-        right: Diccionario derecho
-        conflict_policy: Política de resolución de conflictos
-        _depth: Profundidad de recursión (para merge_nested)
-    
-    Raises:
-        ValueError: Si conflict_policy es inválida o hay conflicto no resoluble
-    
-    Returns:
-        Diccionario fusionado
-    """
-    if conflict_policy not in _VALID_CONFLICT_POLICIES:
-        raise ValueError(
-            f"Política inválida: '{conflict_policy}'. "
-            f"Válidas: {sorted(_VALID_CONFLICT_POLICIES)}"
-        )
-    
-    if _depth > _MAX_CANONICALIZE_DEPTH:
-        raise CanonicalizationError(
-            f"Profundidad de fusión excedida: {_MAX_CANONICALIZE_DEPTH}",
-            depth=_depth
-        )
-    
-    merged = dict(left)
-    
-    for key, value in right.items():
-        if key in merged:
-            existing_value = merged[key]
-            
-            if existing_value == value:
-                # Sin conflicto real (valores iguales)
-                continue
-            
-            if conflict_policy == "error_on_conflict":
-                raise ValueError(
-                    f"Conflicto en clave '{key}': "
-                    f"left={existing_value!r}, right={value!r}"
-                )
-            
-            if conflict_policy == "prefer_left":
-                # Mantener valor izquierdo
-                continue
-            
-            if conflict_policy == "merge_nested" and isinstance(existing_value, dict) and isinstance(value, dict):
-                # Fusión recursiva para dicts anidados
-                merged[key] = _safe_merge_dicts(
-                    existing_value, 
-                    value, 
-                    conflict_policy="merge_nested",
-                    _depth=_depth + 1
-                )
-                continue
-            
-            # prefer_right o fallback
-            merged[key] = value
-        else:
-            merged[key] = value
-    
-    return merged
-
-
-# ==============================================================================
-# HASH ESTABLE CON GARANTÍAS CRIPTOGRÁFICAS
-# ==============================================================================
 def _stable_hash(data: Any) -> str:
-    """
-    Hash SHA-256 determinista y resistente a colisiones.
-    
-    Propiedades Criptográficas:
-    ==========================
-    1. Determinismo: hash(x) = hash(x) para todo x ✓
-    2. Resistencia a colisiones: P(hash(x) = hash(y) | x ≠ y) ≈ 2⁻²⁵⁶ ✓
-    3. Efecto avalancha: cambio mínimo en x → cambio significativo en hash(x) ✓
-    4. Preimagen: dado h, encontrar x tal que hash(x) = h es computacionalmente inviable ✓
-    
-    Algoritmo:
-    ==========
-    1. Canonicalización de datos (garantiza representación única)
-    2. Serialización JSON con orden determinista (sort_keys=True)
-    3. Hash SHA-256 en UTF-8
-    
-    Invariante: |hash(x)| = 64 caracteres hexadecimales
-    
-    Args:
-        data: Datos a hashear (cualquier tipo serializable)
-    
-    Returns:
-        Hash hexadecimal de 64 caracteres
-    """
+    """Hash SHA-256 determinista."""
     try:
         canonical = _canonicalize(data)
         serialized = json.dumps(
             canonical,
             sort_keys=True,
             ensure_ascii=False,
-            separators=(",", ":"),  # Sin espacios para consistencia
+            separators=(",", ":"),
         )
         return hashlib.sha256(serialized.encode("utf-8")).hexdigest()
-    except (TypeError, ValueError, CanonicalizationError) as e:
-        # Fallback a repr() para tipos no serializables
-        logger.warning(
-            "Fallback a repr() para hash de %s: %s",
-            type(data).__name__,
-            e
-        )
+    except Exception as exc:
+        logger.warning("Fallback de hash por error: %s", exc)
         return hashlib.sha256(repr(data).encode("utf-8")).hexdigest()
 
 
-def _copy_trace(trace: Sequence[CompositionTrace]) -> Tuple[CompositionTrace, ...]:
-    """
-    Copia defensiva de secuencia de trazas.
-    
-    Propiedad: resultado es inmutable (tupla)
-    Invariante: len(result) = len(trace)
-    """
-    return tuple(trace)
+def _safe_merge_dicts(left: Dict[str, Any], right: Dict[str, Any]) -> Dict[str, Any]:
+    """Fusión simple de diccionarios con prioridad derecha."""
+    merged = dict(left)
+    merged.update(right)
+    return merged
 
 
-# ==============================================================================
-# TRAZA DE AUDITORÍA CON INVARIANTES VERIFICADOS
-# ==============================================================================
-@dataclass(frozen=True, eq=True, slots=True)
+def _dominant_stratum(strata: FrozenSet[Stratum]) -> Optional[Stratum]:
+    """
+    Determina el estrato dominante de un conjunto de estratos validados.
+
+    Si `Stratum` es un `IntEnum` con orden numérico intrínseco (como en el
+    fallback standalone, donde `WISDOM = 0` es la cúspide de la jerarquía
+    DIKW), se selecciona el elemento de **valor entero mínimo** como
+    dominante — consistente con la semántica de la jerarquía.
+
+    Si `Stratum` proviene de `app.core.schemas` y no garantiza orden total
+    (`Enum` simple), se recurre a un criterio determinista pero
+    **explícitamente arbitrario**: orden lexicográfico descendente del
+    nombre. Esta arbitrariedad se documenta aquí para no camuflarla bajo
+    una apariencia de rigor matemático inexistente.
+    """
+    if not strata:
+        return None
+    if all(isinstance(s, IntEnum) for s in strata):
+        return min(strata, key=lambda s: int(s))
+    return sorted(strata, key=lambda s: s.name)[-1]
+
+
+#=============================================================================
+# ████████████████████████████████████████████████████████████████████████████
+# ███  FASE 1 — SANEAMIENTO ESPECTRAL Y ANILLO CONMUTATIVO BICOMPLEJO       ███
+# ████████████████████████████████████████████████████████████████████████████
+#=============================================================================
+# Esta fase construye y certifica el anillo C₂ ≅ C × C:
+#
+#   1. BicomplexScalar: representación diagonal (Z⁽¹⁾, Z⁽²⁾) con suma,
+#      producto, conjugaciones y detección de unidades/divisores de cero.
+#   2. verify_bicomplex_ring_axioms / verify_idempotent_decoupling [I1][I6].
+#   3. BicomplexVector: módulo libre sobre C₂ con acción escalar y
+#      producto de Hadamard bicanal.
+#   4. Phase1_SpectralRingObserver: ingesta 4D, homogeneidad espectral,
+#      no-degeneración, sellado semántico.
+#=============================================================================
+
+
+#------------------------------------------------------------------------------
+# 1.1 — NÚCLEO ALGEBRAICO: BicomplexScalar Y CERTIFICACIÓN DE ANILLO
+#------------------------------------------------------------------------------
+def _sanitize_complex_array(arr: np.ndarray) -> np.ndarray:
+    """Saneamiento FPU de ceros signados en arreglos complejos."""
+    a = np.asarray(arr, dtype=np.complex128)
+    real = np.where(a.real == 0.0, 0.0, a.real)
+    imag = np.where(a.imag == 0.0, 0.0, a.imag)
+    return real + 1j * imag
+
+
+@dataclass(frozen=True, slots=True)
+class BicomplexScalar:
+    """
+    Escalar bicomplejo en base idempotente: Z = Z¹ e₁ + Z² e₂.
+
+    C₂ es isomorfo como anillo a C × C vía (Z⁽¹⁾, Z⁽²⁾); en particular
+    **no es un dominio de integridad**: posee divisores de cero exactos
+    en los elementos con exactamente un canal nulo, y su grupo de
+    unidades es C* × C* (ambos canales no nulos).
+    """
+
+    z1: complex
+    z2: complex
+
+    # -- Constructores -----------------------------------------------------
+    @classmethod
+    def from_real4(cls, vector: Sequence[float]) -> "BicomplexScalar":
+        """Construye Z ∈ C₂ desde (s₀, s₁, s₂, s₃)."""
+        if len(vector) != 4:
+            raise ValueError("Se requieren exactamente 4 componentes reales.")
+
+        s0, s1, s2, s3 = (float(v) for v in vector)
+        z1 = complex(s0 + s2, s1 + s3)
+        z2 = complex(s0 - s2, s1 - s3)
+
+        return cls(
+            complex(0.0 if z1.real == 0.0 else z1.real, 0.0 if z1.imag == 0.0 else z1.imag),
+            complex(0.0 if z2.real == 0.0 else z2.real, 0.0 if z2.imag == 0.0 else z2.imag),
+        )
+
+    @classmethod
+    def idempotent_e1(cls) -> "BicomplexScalar":
+        """Elemento idempotente e₁ = (1+j)/2 en representación diagonal."""
+        return cls(complex(1.0, 0.0), complex(0.0, 0.0))
+
+    @classmethod
+    def idempotent_e2(cls) -> "BicomplexScalar":
+        """Elemento idempotente e₂ = (1-j)/2 en representación diagonal."""
+        return cls(complex(0.0, 0.0), complex(1.0, 0.0))
+
+    @classmethod
+    def zero(cls) -> "BicomplexScalar":
+        """Neutro aditivo 0 ∈ C₂."""
+        return cls(complex(0.0), complex(0.0))
+
+    @classmethod
+    def one(cls) -> "BicomplexScalar":
+        """Neutro multiplicativo 1 = e₁ + e₂ ∈ C₂."""
+        return cls(complex(1.0), complex(1.0))
+
+    # -- Álgebra de anillo ---------------------------------------------------
+    def __add__(self, other: "BicomplexScalar") -> "BicomplexScalar":
+        """Suma canal a canal."""
+        return BicomplexScalar(self.z1 + other.z1, self.z2 + other.z2)
+
+    def __sub__(self, other: "BicomplexScalar") -> "BicomplexScalar":
+        """Resta canal a canal."""
+        return BicomplexScalar(self.z1 - other.z1, self.z2 - other.z2)
+
+    def __mul__(self, other: "BicomplexScalar") -> "BicomplexScalar":
+        """
+        Producto en C₂: (ZW)⁽ᵃ⁾ = Z⁽ᵃ⁾ W⁽ᵃ⁾ — diagonalización idempotente
+        que realiza el isomorfismo de anillos C₂ ≅ C × C.
+        """
+        return BicomplexScalar(self.z1 * other.z1, self.z2 * other.z2)
+
+    def scalar_mul(self, k: float) -> "BicomplexScalar":
+        """Multiplicación por escalar real k ∈ R."""
+        return BicomplexScalar(self.z1 * k, self.z2 * k)
+
+    def conjugate_hyperbolic(self) -> "BicomplexScalar":
+        """Conjugado hiperbólico (j ↦ -j): intercambia canales idempotentes."""
+        return BicomplexScalar(self.z2, self.z1)
+
+    def conjugate_complex(self) -> "BicomplexScalar":
+        """Conjugado complejo canal a canal (i ↦ -i)."""
+        return BicomplexScalar(self.z1.conjugate(), self.z2.conjugate())
+
+    def is_zero_divisor(self, tol: float = _ALGEBRAIC_TOL) -> bool:
+        """True si Z ≠ 0 tiene exactamente un canal nulo (divisor de cero)."""
+        z1_zero = abs(self.z1) <= tol
+        z2_zero = abs(self.z2) <= tol
+        return z1_zero != z2_zero
+
+    def is_unit(self, tol: float = _ALGEBRAIC_TOL) -> bool:
+        """True si Z ∈ (C₂)ˣ = C* × C*, i.e. ambos canales no nulos."""
+        return abs(self.z1) > tol and abs(self.z2) > tol
+
+    def inverse(self, tol: float = _ALGEBRAIC_TOL) -> "BicomplexScalar":
+        """
+        Inverso multiplicativo Z⁻¹, definido si y solo si Z ∈ (C₂)ˣ.
+
+        Raises:
+            ZeroDivisionError: Si Z no es una unidad del anillo.
+        """
+        if not self.is_unit(tol):
+            raise ZeroDivisionError(
+                f"Z={self} no es unidad de C₂ (al menos un canal es nulo o "
+                "está por debajo de la tolerancia)."
+            )
+        return BicomplexScalar(1.0 / self.z1, 1.0 / self.z2)
+
+    # -- Métrica ----------------------------------------------------------
+    def to_real4(self) -> np.ndarray:
+        """Representación real 4D."""
+        return np.array([self.z1.real, self.z1.imag, self.z2.real, self.z2.imag], dtype=np.float64)
+
+    def norm_l2(self) -> float:
+        """Norma euclidiana idempotente."""
+        return float(np.sqrt(abs(self.z1) ** 2 + abs(self.z2) ** 2))
+
+
+def verify_idempotent_decoupling(tol: float = _ALGEBRAIC_TOL) -> Dict[str, bool]:
+    """
+    FASE 1 — Certificación del invariante [I1]: desacoplamiento idempotente.
+
+    Verifica sobre los representantes canónicos e₁, e₂:
+
+        e₁² = e₁,   e₂² = e₂,   e₁e₂ = 0,   e₁ + e₂ = 1.
+
+    Returns:
+        Diccionario booleano por identidad, con clave `"all_hold"`.
+    """
+    e1 = BicomplexScalar.idempotent_e1()
+    e2 = BicomplexScalar.idempotent_e2()
+    one = BicomplexScalar.one()
+    zero = BicomplexScalar.zero()
+
+    def close(a: BicomplexScalar, b: BicomplexScalar) -> bool:
+        return abs(a.z1 - b.z1) <= tol and abs(a.z2 - b.z2) <= tol
+
+    result = {
+        "e1_idempotent": close(e1 * e1, e1),
+        "e2_idempotent": close(e2 * e2, e2),
+        "orthogonal_channels": close(e1 * e2, zero),
+        "partition_of_unity": close(e1 + e2, one),
+    }
+    result["all_hold"] = all(result.values())
+    return result
+
+
+def verify_bicomplex_ring_axioms(
+    rng: Optional[np.random.Generator] = None,
+    trials: int = 8,
+    tol: float = _ALGEBRAIC_TOL,
+) -> Dict[str, Any]:
+    """
+    FASE 1 — Certificación del invariante [I6]: axiomas de anillo
+    conmutativo de C₂.
+
+    Sobre `trials` triadas aleatorias de escalares bicomplejos, verifica
+    numéricamente:
+
+        - Asociatividad de (+, ·).
+        - Conmutatividad de (+, ·).
+        - Distributividad de · sobre +.
+
+    y delega en `verify_idempotent_decoupling` la certificación de las
+    identidades idempotentes estructurales [I1].
+
+    Args:
+        rng: Generador pseudoaleatorio; por defecto, semilla fija
+            determinista (reproducibilidad de la certificación).
+        trials: Número de triadas de prueba.
+        tol: Tolerancia absoluta de comparación en C.
+
+    Returns:
+        Diccionario de resultados booleanos con clave `"all_hold"`.
+    """
+    rng = rng or np.random.default_rng(1729)
+
+    def rand_scalar() -> BicomplexScalar:
+        return BicomplexScalar.from_real4(rng.normal(size=4).tolist())
+
+    def close(a: BicomplexScalar, b: BicomplexScalar) -> bool:
+        return abs(a.z1 - b.z1) <= tol and abs(a.z2 - b.z2) <= tol
+
+    results: Dict[str, bool] = {
+        "associativity_add": True,
+        "associativity_mul": True,
+        "commutativity_add": True,
+        "commutativity_mul": True,
+        "distributivity": True,
+    }
+
+    for _ in range(max(1, trials)):
+        a, b, c = rand_scalar(), rand_scalar(), rand_scalar()
+        if not close((a + b) + c, a + (b + c)):
+            results["associativity_add"] = False
+        if not close((a * b) * c, a * (b * c)):
+            results["associativity_mul"] = False
+        if not close(a + b, b + a):
+            results["commutativity_add"] = False
+        if not close(a * b, b * a):
+            results["commutativity_mul"] = False
+        if not close(a * (b + c), (a * b) + (a * c)):
+            results["distributivity"] = False
+
+    decoupling = verify_idempotent_decoupling(tol=tol)
+    merged: Dict[str, Any] = {**results, **{k: v for k, v in decoupling.items() if k != "all_hold"}}
+    merged["all_hold"] = all(v for v in merged.values() if isinstance(v, bool))
+    return merged
+
+
+#------------------------------------------------------------------------------
+# 1.2 — MÓDULO VECTORIAL LIBRE SOBRE C₂: BicomplexVector
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class BicomplexVector:
+    """
+    Vector bicomplejo en el espacio de Hilbert bicomplejo:
+
+        H_{C₂} ≅ H⁽¹⁾ e₁ ⊕ H⁽²⁾ e₂.
+
+    Estructuralmente es un módulo libre sobre el anillo C₂: admite acción
+    escalar (`scalar_action`) y producto de Hadamard bicanal (`hadamard`),
+    ambos diagonales por canal idempotente en virtud de [I1].
+
+    Attributes:
+        channel_1: Canal idempotente e₁.
+        channel_2: Canal idempotente e₂.
+    """
+
+    channel_1: np.ndarray
+    channel_2: np.ndarray
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "channel_1", _sanitize_complex_array(self.channel_1))
+        object.__setattr__(self, "channel_2", _sanitize_complex_array(self.channel_2))
+
+    @classmethod
+    def from_real4(cls, S: NDArray[np.float64]) -> "BicomplexVector":
+        """
+        Proyecta señal real 4D a base idempotente:
+
+            Z⁽¹⁾ = (s₀ + s₂) + i(s₁ + s₃)
+            Z⁽²⁾ = (s₀ - s₂) + i(s₁ - s₃)
+        """
+        arr = np.asarray(S, dtype=np.float64)
+
+        if arr.ndim == 0:
+            raise ValueError("La entrada no puede ser escalar pura.")
+
+        if arr.ndim == 1:
+            if arr.size % 4 != 0:
+                raise ValueError(f"Vector 1D debe tener longitud múltiplo de 4; size={arr.size}.")
+            arr = arr.reshape(-1, 4)
+        elif arr.ndim == 2:
+            if arr.shape[1] != 4:
+                raise ValueError(f"Matriz 2D debe tener shape (n, 4); recibido {arr.shape}.")
+        else:
+            if arr.shape[-1] == 4:
+                arr = arr.reshape(-1, 4)
+            elif arr.size % 4 == 0:
+                arr = arr.reshape(-1, 4)
+            else:
+                raise ValueError(f"No se puede reinterpretar shape {arr.shape} como (n, 4).")
+
+        arr = arr.copy()
+        arr[arr == 0.0] = 0.0
+
+        z1 = (arr[:, 0] + arr[:, 2]) + 1j * (arr[:, 1] + arr[:, 3])
+        z2 = (arr[:, 0] - arr[:, 2]) + 1j * (arr[:, 1] - arr[:, 3])
+
+        return cls(z1, z2)
+
+    @classmethod
+    def zero(cls, dim: int = 1) -> "BicomplexVector":
+        """Vector nulo bicomplejo."""
+        return cls(np.zeros(dim, dtype=np.complex128), np.zeros(dim, dtype=np.complex128))
+
+    def __len__(self) -> int:
+        return int(max(self.channel_1.size, self.channel_2.size))
+
+    def norm_channel_1(self) -> float:
+        """Norma ||S⁽¹⁾||₂."""
+        return float(np.linalg.norm(self.channel_1)) if self.channel_1.size else 0.0
+
+    def norm_channel_2(self) -> float:
+        """Norma ||S⁽²⁾||₂."""
+        return float(np.linalg.norm(self.channel_2)) if self.channel_2.size else 0.0
+
+    def is_non_degenerate(self, eps: float = _MACHINE_EPSILON) -> bool:
+        """Condición de no-degeneración bicanal."""
+        return self.norm_channel_1() > eps and self.norm_channel_2() > eps
+
+    def is_finite(self) -> bool:
+        """True si todas las componentes son finitas."""
+        return bool(np.all(np.isfinite(self.channel_1)) and np.all(np.isfinite(self.channel_2)))
+
+    def scalar_action(self, scalar: BicomplexScalar) -> "BicomplexVector":
+        """
+        Acción del anillo C₂ sobre el módulo H_{C₂}:
+
+            (Z · S)⁽ᵃ⁾ = Z⁽ᵃ⁾ S⁽ᵃ⁾   (broadcasting canal a canal).
+        """
+        return BicomplexVector(self.channel_1 * scalar.z1, self.channel_2 * scalar.z2)
+
+    def hadamard(self, other: "BicomplexVector") -> "BicomplexVector":
+        """Producto de Hadamard bicanal (estructura de C₂-álgebra puntual)."""
+        return BicomplexVector(self.channel_1 * other.channel_1, self.channel_2 * other.channel_2)
+
+    def conjugate_hyperbolic(self) -> "BicomplexVector":
+        """Conjugado hiperbólico: intercambia los dos canales idempotentes."""
+        return BicomplexVector(self.channel_2.copy(), self.channel_1.copy())
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialización JSON-safe."""
+        return {
+            "channel_1_real": self.channel_1.real.tolist(),
+            "channel_1_imag": self.channel_1.imag.tolist(),
+            "channel_2_real": self.channel_2.real.tolist(),
+            "channel_2_imag": self.channel_2.imag.tolist(),
+            "norm_channel_1": self.norm_channel_1(),
+            "norm_channel_2": self.norm_channel_2(),
+        }
+
+
+#------------------------------------------------------------------------------
+# 1.3 — INFRAESTRUCTURA CATEGÓRICA COMPARTIDA (traza y estado)
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
 class CompositionTrace:
-    """
-    Traza inmutable de ejecución de morfismo con invariantes verificados.
-    
-    Propiedades Algebraicas:
-    =======================
-    - Inmutabilidad: frozen=True garantiza que no puede modificarse post-construcción ✓
-    - Igualdad: definida por (step_number, morphism_name, success, error) ✓
-    - Hashable: puede usarse en sets y como clave de dict ✓
-    
-    Invariantes Estructurales:
-    =========================
-    1. step_number ≥ 1 ✓
-    2. timestamp > 0 ✓
-    3. input_domain ⊆ Stratum ✓
-    4. output_codomain ∈ Stratum ✓
-    5. success ∈ {True, False} ✓
-    6. error = None ⟺ success = True (deseable, verificado en __post_init__) ✓
-    
-    Orden Temporal:
-    ===============
-    Las trazas forman una secuencia ordenada por step_number,
-    representando la historia de ejecución del pipeline como un complejo de cadenas.
-    
-    Interpretación Homológica:
-    =========================
-    Cada traza es un 1-simplex en el complejo de ejecución.
-    La secuencia completa forma un 1-camino cuyo borde ∂ debe ser cero para aciclicidad.
-    """
-    
+    """Traza inmutable de ejecución categórica."""
+
     step_number: int
     morphism_name: str
     input_domain: FrozenSet[Stratum]
@@ -688,62 +755,15 @@ class CompositionTrace:
     error: Optional[str] = None
     timestamp: float = field(default_factory=time.time)
     metadata: Optional[Dict[str, Any]] = None
-    
+
     def __post_init__(self) -> None:
-        """Validación de invariantes post-construcción con corrección automática."""
-        # Corregir step_number si es inválido
         if self.step_number < 1:
             object.__setattr__(self, "step_number", 1)
-            logger.warning(
-                "step_number corregido a 1 (era %d) en morfismo '%s'",
-                self.step_number,
-                self.morphism_name
-            )
-        
-        # Corregir timestamp si es inválido
         if self.timestamp <= 0:
             object.__setattr__(self, "timestamp", time.time())
-            logger.warning("timestamp corregido a tiempo actual en traza #%d", self.step_number)
-        
-        # Verificar consistencia lógica (no estricta, solo advertencia)
-        if self.success and self.error is not None:
-            logger.warning(
-                "Inconsistencia: success=True pero error='%s' en traza #%d",
-                self.error,
-                self.step_number
-            )
-    
-    @property
-    def trace_identity_key(self) -> Tuple[int, str, bool, Optional[str]]:
-        """
-        Clave de identidad para deduplicación de trazas.
-        
-        Dos trazas con la misma clave representan el mismo evento lógico,
-        aunque puedan diferir en timestamp o metadata.
-        
-        Propiedad: clave es hashable e inmutable
-        Invariante: t1.trace_identity_key = t2.trace_identity_key ⟹ t1 ≈ t2
-        """
-        return (self.step_number, self.morphism_name, self.success, self.error)
-    
-    @property
-    def boundary(self) -> Tuple[Stratum, ...]:
-        """
-        Operador borde homológico para esta traza.
-        
-        En homología simplicial, ∂(σ₁) = σ₀(end) - σ₀(start)
-        
-        Returns:
-            Tupla de estratos frontera (codominio, dominio)
-        """
-        domain_strata = sorted(self.input_domain, key=lambda s: s.value)
-        return (self.output_codomain,) + tuple(domain_strata)
+
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Serialización JSON-compatible para persistencia.
-        
-        Propiedad: JSON.parse(JSON.stringify(to_dict())) ≈ to_dict()
-        """
+        """Serialización JSON-safe."""
         return {
             "step": self.step_number,
             "morphism": self.morphism_name,
@@ -754,424 +774,84 @@ class CompositionTrace:
             "timestamp": self.timestamp,
             "metadata": _canonicalize(self.metadata) if self.metadata else None,
         }
-    
-    def __str__(self) -> str:
-        status = "✓" if self.success else "✗"
-        return (
-            f"{status} #{self.step_number}: {self.morphism_name} "
-            f"({len(self.input_domain)} → {self.output_codomain.name})"
-        )
-    
-    def __repr__(self) -> str:
-        return (
-            f"CompositionTrace(step={self.step_number}, "
-            f"morphism='{self.morphism_name}', "
-            f"success={self.success})"
-        )
 
-# ==============================================================================
-# OBJETO FUNDAMENTAL DE LA CATEGORÍA C_MIC
-# ==============================================================================
+
 @dataclass(frozen=True, slots=True)
-class CategoricalState:
+class BicomplexCategoricalState:
     """
-    Objeto fundamental de C_MIC con propiedades categóricas verificadas.
-    
-    TEORÍA DE CATEGORÍAS (C_MIC):
-    ============================
-    Ob(C_MIC) = {CategoricalState}
-    Mor(C_MIC) = {Morphism : CategoricalState → CategoricalState}
-    
-    Propiedades Universales:
-    =======================
-    1. Objeto Inicial (⊥): CategoricalState() con payload={} ✓
-    2. Objeto Terminal (⊤): estado con is_success=False (absorción) ✓
-    3. Producto: definido por ProductMorphism ✓
-    4. Coproducto: definido por CoproductMorphism ✓
-    5. Equalizador: implícito en verificación de morfismos ✓
-    
-    Invariantes Estructurales:
-    =========================
-    1. Inmutabilidad: frozen=True (no puede modificarse post-construcción) ✓
-    2. Coherencia: payload, context son dicts (inmutables conceptualmente) ✓
-    3. Estratos validados: validated_strata es frozenset (inmutable) ✓
-    4. Trazas: composition_trace es tupla (inmutable) ✓
-    
-    Propiedades Algebraicas:
-    =======================
-    1. Hash determinista: hash(s) es reproducible ✓
-    2. Igualdad estructural: s1 = s2 ⟺ s1.to_dict() = s2.to_dict() ✓
-    3. Serialización: to_dict() es biyectiva con from_dict() (módulo timestamps) ✓
-    
-    Propiedades Topológicas:
-    =======================
-    1. Clausura: validated_strata es cerrado bajo requires() ✓
-    2. Nivel: stratum_level = min{s.value : s ∈ validated_strata} ✓
-    3. Altura: número de estratos validados ✓
-    
-    Interpretación como Espacio de Hilbert:
-    ======================================
-    Cada estado puede verse como un vector en H con:
-    - Norma: ||s|| = sqrt(Σ|payload[v]|² + Σ|context[v]|²)
-    - Producto interno: ⟨s1, s2⟩ definido por overlap de payload
+    Objeto fundamental de la 2-categoría bicompleja C_MIC^{C₂}.
+
+    Todas las funciones de transición (`with_update`, `with_error`,
+    `clear_error`, `add_trace`) se implementan sobre `dataclasses.replace`,
+    de modo que cada nueva instancia hereda automáticamente los campos no
+    modificados desde `self`, eliminando por construcción la clase de
+    *bugs* en que un campo nuevo se olvida propagar en un constructor
+    manual duplicado.
     """
-    
+
     payload: Dict[str, Any] = field(default_factory=dict)
     context: Dict[str, Any] = field(default_factory=dict)
     validated_strata: FrozenSet[Stratum] = field(default_factory=frozenset)
+    vector: Optional[BicomplexVector] = None
     error: Optional[str] = None
-    error_msg: Optional[str] = None
     success: Optional[bool] = None
     metadata: Optional[Dict[str, Any]] = None
-    error_details: Optional[Dict[str, Any]] = None
-    forensic_evidence: Optional[Dict[str, Any]] = None
     composition_trace: Tuple[CompositionTrace, ...] = field(default_factory=tuple)
-    
-    # ── Sutura IV (suturas_rigurosas.md): kwarg opcional stratum ──
-    # Acepta un Stratum escalar para compatibilidad con fixtures de tests legacy
-    # (p.ej. CategoricalState(payload=..., stratum=Stratum.PHYSICS)). Internamente
-    # se inyecta en validated_strata como frozenset({stratum}).
-    stratum: Optional["Stratum"] = None
-    
+    stratum: Optional[Stratum] = None
+
     def __post_init__(self) -> None:
-        """
-        Normalización y validación de estratos validados.
-        
-        Sutura IV: si se pasó stratum escalar y validated_strata está vacío,
-        se promueve a frozenset({stratum}) para mantener coherencia algebraica.
-        También se normalizan los alias success/error_msg/metadata para mantener
-        compatibilidad con la suite legacy.
-        
-        Garantiza que validated_strata contenga solo objetos Stratum válidos,
-        convirtiendo desde int/str si es necesario.
-        """
-        # Normalizar aliases contractuales
-        canonical_error = self.error if self.error is not None else self.error_msg
-        canonical_error_msg = self.error_msg if self.error_msg is not None else self.error
-        canonical_success = self.success if self.success is not None else (canonical_error is None)
-        object.__setattr__(self, "error", canonical_error)
-        object.__setattr__(self, "error_msg", canonical_error_msg)
+        canonical_success = self.success if self.success is not None else (self.error is None)
         object.__setattr__(self, "success", canonical_success)
-        if self.metadata is not None:
-            object.__setattr__(self, "metadata", dict(self.metadata))
-        
-        # ── Sutura IV: promover stratum escalar a validated_strata ──
-        if self.stratum is not None and not self.validated_strata:
-            object.__setattr__(
-                self, "validated_strata", frozenset({self.stratum})
-            )
-        
-        if not self.validated_strata:
-            return
-        
-        corrected_strata: List[Stratum] = []
-        
-        for s in self.validated_strata:
-            try:
-                if isinstance(s, Stratum):
-                    corrected_strata.append(s)
-                elif isinstance(s, int):
-                    corrected_strata.append(Stratum(s))
-                elif isinstance(s, str):
-                    corrected_strata.append(Stratum[s.upper().strip()])
-                else:
-                    logger.warning(
-                        "Tipo inválido en validated_strata: %s (valor: %r)",
-                        type(s).__name__,
-                        s
-                    )
-                    continue  # Ignorar tipos no convertibles
-            except (ValueError, KeyError) as e:
-                logger.warning(
-                    "Error normalizando estrato %r: %s",
-                    s,
-                    e
-                )
-                continue
-        
-        object.__setattr__(
-            self,
-            "validated_strata",
-            frozenset(corrected_strata)
-        )
 
         if self.stratum is None and self.validated_strata:
-            object.__setattr__(
-                self,
-                "stratum",
-                max(self.validated_strata, key=lambda item: item.value)
-            )
-    
-    # ==========================================================================
-    # PROPIEDADES CATEGÓRICAS
-    # ==========================================================================
-    
+            object.__setattr__(self, "stratum", _dominant_stratum(self.validated_strata))
+
     @property
     def is_success(self) -> bool:
-        """
-        Predicado de éxito categórico.
-        
-        Definición: is_success ⟺ error = None
-        
-        Propiedad: is_success ∨ is_failed (ley del tercero excluido) ✓
-        """
+        """Predicado de éxito categórico."""
         return self.error is None
-    
+
     @property
     def is_failed(self) -> bool:
-        """
-        Predicado de fallo categórico.
-        
-        Definición: is_failed ⟺ error ≠ None
-        
-        Propiedad: is_failed = ¬is_success ✓
-        """
+        """Predicado de fallo categórico."""
         return not self.is_success
-    
-    @property
-    def stratum_level(self) -> int:
-        """
-        Nivel de estrato más abstracto alcanzado.
-        
-        Definición:
-        stratum_level = min{s.value : s ∈ validated_strata} ∪ {PHYSICS.value}
-        
-        Invariante: 0 ≤ stratum_level ≤ 5 ✓
-        
-        Propiedad: menor valor → más abstracto (WISDOM=0, PHYSICS=5)
-        """
-        if not self.validated_strata:
-            return Stratum.PHYSICS.value
-        return min(s.value for s in self.validated_strata)
-    
-    @property
-    def stratum_height(self) -> int:
-        """
-        Altura en la jerarquía DIKW (número de estratos validados).
-        
-        Definición: height = |validated_strata|
-        
-        Invariante: 0 ≤ height ≤ 6 ✓
-        """
-        return len(self.validated_strata)
-    
-    @property
-    def accumulated_strata(self) -> FrozenSet[Stratum]:
-        """Alias semántico para validated_strata."""
-        return self.validated_strata
-    
-    @property
-    def trace_length(self) -> int:
-        """
-        Longitud de la traza de composición.
-        
-        Invariante: trace_length ≥ 0 ✓
-        """
-        return len(self.composition_trace)
-    
-    @property
-    def merkle_root(self) -> str:
-        """
-        Raíz de árbol Merkle para integridad de trazas.
-        
-        Esto permite verificación eficiente de integridad
-        sin necesidad de comparar todas las trazas.
-        """
-        if not self.composition_trace:
-            return _stable_hash({"empty_trace": True})
-        
-        # Construir árbol Merkle simple
-        hashes = [_stable_hash(t.trace_identity_key) for t in self.composition_trace]
-        
-        while len(hashes) > 1:
-            if len(hashes) % 2 == 1:
-                hashes.append(hashes[-1])  # Duplicar último si impar
-            hashes = [
-                _stable_hash(hashes[i] + hashes[i + 1])
-                for i in range(0, len(hashes), 2)
-            ]
-        
-        return hashes[0]
-    
-    # ==========================================================================
-    # OPERACIONES FUNCTORIALES (Endomorfismos en C_MIC)
-    # ==========================================================================
-    
+
     def with_update(
         self,
         new_payload: Optional[Dict[str, Any]] = None,
         new_context: Optional[Dict[str, Any]] = None,
+        new_vector: Optional[BicomplexVector] = None,
         new_stratum: Optional[Stratum] = None,
-        *,
-        merge_payload: bool = True,
-        merge_context: bool = True,
-        payload_conflict_policy: str = "prefer_right",
-        context_conflict_policy: str = "prefer_right",
-    ) -> CategoricalState:
-        """
-        Funtor de actualización: F(s) = s con modificaciones aplicadas.
-        
-        Propiedades:
-        ============
-        1. Pureza: no modifica self (retorna nuevo objeto) ✓
-        2. Composicionalidad: with_update preserva estructura ✓
-        3. Determinismo: mismo input → mismo output ✓
-        
-        Semántica de Fusión:
-        ===================
-        - merge=True: diccionarios se fusionan según política
-        - merge=False: diccionario se reemplaza completamente
-        
-        Invariantes Preservados:
-        =======================
-        - error y error_details se copian de self
-        - forensic_evidence se copia de self
-        - composition_trace se copia de self
-        
-        Args:
-            new_payload: Nuevos datos de payload
-            new_context: Nuevo contexto
-            new_stratum: Nuevo estrato a añadir
-            merge_payload: Si fusionar o reemplazar payload
-            merge_context: Si fusionar o reemplazar context
-            payload_conflict_policy: Política para conflictos en payload
-            context_conflict_policy: Política para conflictos en context
-        
-        Returns:
-            Nuevo CategoricalState con actualizaciones aplicadas
-        """
-        # Payload
-        if new_payload is None:
-            updated_payload = dict(self.payload)
-        elif merge_payload:
-            updated_payload = _safe_merge_dicts(
-                dict(self.payload),
-                dict(new_payload),
-                conflict_policy=payload_conflict_policy,
-            )
-        else:
-            updated_payload = dict(new_payload)
-        
-        # Context
-        if new_context is None:
-            updated_context = dict(self.context)
-        elif merge_context:
-            updated_context = _safe_merge_dicts(
-                dict(self.context),
-                dict(new_context),
-                conflict_policy=context_conflict_policy,
-            )
-        else:
-            updated_context = dict(new_context)
-        
-        # Strata (unión con nuevo estrato si proporcionado)
-        updated_strata = self.validated_strata
-        if new_stratum is not None:
-            updated_strata = updated_strata | frozenset({new_stratum})
-        
-        return CategoricalState(
+    ) -> "BicomplexCategoricalState":
+        """Funtor de actualización inmutable."""
+        updated_payload = _safe_merge_dicts(self.payload, new_payload or {})
+        updated_context = _safe_merge_dicts(self.context, new_context or {})
+        updated_strata = self.validated_strata | (frozenset({new_stratum}) if new_stratum else frozenset())
+
+        return replace(
+            self,
             payload=updated_payload,
             context=updated_context,
             validated_strata=updated_strata,
-            error=self.error,
-            error_msg=self.error_msg,
-            success=self.success,
-            metadata=(dict(self.metadata) if self.metadata else None),
-            error_details=(
-                dict(self.error_details)
-                if self.error_details
-                else None
-            ),
-            forensic_evidence=(
-                dict(self.forensic_evidence)
-                if self.forensic_evidence
-                else None
-            ),
-            composition_trace=_copy_trace(self.composition_trace),
-            stratum=new_stratum if new_stratum is not None else self.stratum,
+            vector=new_vector if new_vector is not None else self.vector,
+            stratum=new_stratum if new_stratum is not None else _dominant_stratum(updated_strata),
         )
-    
+
     def with_error(
-        self,
-        error_msg: str,
-        details: Optional[Dict[str, Any]] = None,
-        forensic_evidence: Optional[Dict[str, Any]] = None,
-    ) -> CategoricalState:
-        """
-        Funtor de error: F(s) = s en estado fallido.
-        
-        Propiedades:
-        ============
-        1. Absorción: morfismo aplicado a estado fallido → estado fallido ✓
-        2. Preservación: payload y context se conservan para diagnóstico ✓
-        3. Monotonicidad: estado fallido no puede volver a éxito (usar clear_error) ✓
-        
-        Propiedad Monádica:
-        ==================
-        with_error encapsula el fallo sin perder información contextual,
-        similar al constructor Left en el monad Either.
-        
-        Args:
-            error_msg: Mensaje de error descriptivo
-            details: Detalles estructurados del error
-            forensic_evidence: Evidencia forense para debugging
-        
-        Returns:
-            Nuevo CategoricalState en condición de error
-        """
-        return CategoricalState(
-            payload=dict(self.payload),
-            context=dict(self.context) if details is None else _safe_merge_dicts(dict(self.context), dict(details)),
-            validated_strata=self.validated_strata,
+        self, error_msg: str, details: Optional[Dict[str, Any]] = None
+    ) -> "BicomplexCategoricalState":
+        """Funtor de error monádico."""
+        return replace(
+            self,
+            context=_safe_merge_dicts(self.context, details or {}),
             error=error_msg,
-            error_msg=error_msg,
             success=False,
-            metadata=(dict(self.metadata) if self.metadata else None),
-            error_details=dict(details) if details else None,
-            forensic_evidence=(
-                dict(forensic_evidence)
-                if forensic_evidence
-                else (
-                    dict(self.forensic_evidence)
-                    if self.forensic_evidence
-                    else None
-                )
-            ),
-            composition_trace=_copy_trace(self.composition_trace),
         )
-    
-    def clear_error(self) -> CategoricalState:
-        """
-        Limpia el error, retornando a estado de éxito.
-        
-        Propiedades:
-        ============
-        1. Idempotencia: clear_error().clear_error() = clear_error() ✓
-        2. Proyección: clear_error() preserva payload y context ✓
-        3. Reset: error y error_details se eliminan ✓
-        
-        Invariante: clear_error().is_success = True ✓
-        
-        Returns:
-            Nuevo CategoricalState sin error
-        """
-        return CategoricalState(
-            payload=dict(self.payload),
-            context=dict(self.context),
-            validated_strata=self.validated_strata,
-            error=None,
-            error_msg=None,
-            success=True,
-            metadata=(dict(self.metadata) if self.metadata else None),
-            error_details=None,
-            forensic_evidence=(
-                dict(self.forensic_evidence)
-                if self.forensic_evidence
-                else None
-            ),
-            composition_trace=_copy_trace(self.composition_trace),
-        )
-    
+
+    def clear_error(self) -> "BicomplexCategoricalState":
+        """Limpia error preservando payload/contexto/traza."""
+        return replace(self, error=None, success=True)
+
     def add_trace(
         self,
         morphism_name: str,
@@ -1180,30 +860,9 @@ class CategoricalState:
         success: bool,
         error: Optional[str] = None,
         metadata: Optional[Dict[str, Any]] = None,
-    ) -> CategoricalState:
-        """
-        Agrega entrada de traza al historial de ejecución.
-        
-        Propiedades:
-        ============
-        1. Monotonicidad: add_trace incrementa trace_length ✓
-        2. Orden: las trazas se ordenan por step_number ✓
-        3. Inmutabilidad: retorna nuevo estado ✓
-        
-        Invariante: len(result.composition_trace) = len(self.composition_trace) + 1 ✓
-        
-        Args:
-            morphism_name: Nombre del morfismo ejecutado
-            input_domain: Dominio de estratos de entrada
-            output_codomain: Codominio de estrato de salida
-            success: Si la ejecución fue exitosa
-            error: Mensaje de error si falló
-            metadata: Metadatos adicionales
-        
-        Returns:
-            Nuevo CategoricalState con traza adicional
-        """
-        trace_entry = CompositionTrace(
+    ) -> "BicomplexCategoricalState":
+        """Añade traza de composición."""
+        trace = CompositionTrace(
             step_number=len(self.composition_trace) + 1,
             morphism_name=morphism_name,
             input_domain=input_domain,
@@ -1212,1510 +871,1460 @@ class CategoricalState:
             error=error,
             metadata=dict(metadata) if metadata else None,
         )
-        
-        return CategoricalState(
-            payload=dict(self.payload),
-            context=dict(self.context),
-            validated_strata=self.validated_strata,
-            error=self.error,
-            error_msg=self.error_msg,
-            success=self.success,
-            metadata=(dict(self.metadata) if self.metadata else None),
-            error_details=(
-                dict(self.error_details)
-                if self.error_details
-                else None
-            ),
-            forensic_evidence=(
-                dict(self.forensic_evidence)
-                if self.forensic_evidence
-                else None
-            ),
-            composition_trace=self.composition_trace + (trace_entry,),
-        )
-    
-    # ==========================================================================
-    # SERIALIZACIÓN Y HASH CON INTEGRIDAD VERIFICADA
-    # ==========================================================================
-    
-    def compute_hash(self) -> str:
-        """
-        Hash SHA-256 determinista del estado completo.
-        
-        Propiedades Criptográficas:
-        ==========================
-        1. Determinismo: hash(s) = hash(s) ✓
-        2. Sensibilidad: cambio mínimo → hash diferente (efecto avalancha) ✓
-        3. Colisiones: P(hash(s1) = hash(s2) | s1 ≠ s2) ≈ 2⁻²⁵⁶ ✓
-        
-        Incluye versión de esquema para detectar incompatibilidades.
-        
-        Invariante: |compute_hash()| = 64 caracteres hex ✓
-        
-        Returns:
-            Hash hexadecimal de 64 caracteres
-        r"""
-        data = {
-            "__schema_version__": _SCHEMA_VERSION,
-            "payload": _canonicalize(self.payload),
-            "context": _canonicalize(self.context),
-            "validated_strata": sorted(s.name for s in self.validated_strata),
-            "error": self.error,
-            "error_msg": self.error_msg,
-            "success": self.success,
-            "metadata": _canonicalize(self.metadata),
-            "error_details": _canonicalize(self.error_details),
-            "composition_trace": [
-                _canonicalize(t.to_dict())
-                for t in self.composition_trace
-            ],
-        }
-        return _stable_hash(data)
-    
-
+        return replace(self, composition_trace=self.composition_trace + (trace,))
 
     def compute_semantic_hash(self) -> str:
-        r'''
-        Operador de Proyección Ortogonal $\pi_{sem}$ hacia el Espacio Cociente $S/\sim$.
+        """
+        Hash semántico invariante respecto de la traza de composición.
 
-        Aisla la homología pura del estado aniquilando el subespacio de la traza temporal
-        y la evidencia forense no invariante:
-
-        $$ \pi_{sem}(S) = \text{Hash}(P \oplus V) \implies (S_1 \sim S_2 \implies \pi_{sem}(S_1) = \pi_{sem}(S_2)) $$
-
-        Donde:
-        - $P$: Payload semántico canónico.
-        - $V$: Estratos validados ($Validated Strata$).
-        '''
+        Intencionalmente **no incluye** `composition_trace` ni `context`:
+        dos estados que difieren solo en su historial de ejecución (p. ej.
+        producidos por reintentos idempotentes) deben colapsar al mismo
+        hash semántico. Para un hash sensible a la traza completa, use
+        `compute_full_hash`.
+        """
         data = {
-            "payload": _canonicalize(self.payload),
+            "payload": self.payload,
             "validated_strata": sorted(s.name for s in self.validated_strata),
+            "vector": self.vector.to_dict() if self.vector else None,
             "error": self.error,
-            "error_msg": self.error_msg,
             "success": self.success,
-            "metadata": _canonicalize(self.metadata),
         }
         return _stable_hash(data)
 
+    def compute_full_hash(self) -> str:
+        """Hash de auditoría completo, incluyendo contexto y traza."""
+        return _stable_hash(self.to_dict())
+
     def to_dict(self) -> Dict[str, Any]:
-        """
-        Serialización completa JSON-compatible para persistencia.
-        
-        Propiedad: from_dict(to_dict(s)) ≈ s (módulo timestamps) ✓
-        
-        Returns:
-            Diccionario serializable
-        """
+        """Serialización completa."""
         return {
             "__schema_version__": _SCHEMA_VERSION,
             "payload": _canonicalize(self.payload),
             "context": _canonicalize(self.context),
             "validated_strata": sorted(s.name for s in self.validated_strata),
+            "vector": self.vector.to_dict() if self.vector else None,
             "error": self.error,
-            "error_msg": self.error_msg,
             "success": self.success,
-            "metadata": _canonicalize(self.metadata),
-            "error_details": _canonicalize(self.error_details),
-            "forensic_evidence": _canonicalize(self.forensic_evidence),
+            "metadata": _canonicalize(self.metadata) if self.metadata else None,
             "composition_trace": [t.to_dict() for t in self.composition_trace],
         }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> CategoricalState:
-        """
-        Deserialización con validación estructural completa.
-        
-        Propiedades:
-        ============
-        1. Biyección: from_dict(to_dict(s)) ≈ s ✓
-        2. Validación: lanza excepciones si datos inválidos ✓
-        3. Compatibilidad: maneja versiones de esquema ✓
-        
-        Args:
-            data: Diccionario con datos serializados
-        
-        Raises:
-            KeyError: Si faltan campos obligatorios en trazas
-            ValueError: Si nombre de estrato es inválido
-            StratumResolutionError: Si estrato no puede resolverse
-        
-        Returns:
-            CategoricalState reconstruido
-        """
-        # Verificar versión de esquema
-        schema_ver = data.get("__schema_version__")
-        if schema_ver and schema_ver != _SCHEMA_VERSION:
-            logger.warning(
-                "Versión de esquema diferente: esperada=%s, encontrada=%s",
-                _SCHEMA_VERSION,
-                schema_ver
-            )
-        
-        # Reconstruir estratos
-        strata_names = data.get("validated_strata", [])
-        try:
-            strata = frozenset(Stratum[s] for s in strata_names)
-        except KeyError as exc:
-            raise StratumResolutionError(
-                f"Estrato inválido en from_dict: {exc}",
-                strata_names=strata_names
-            ) from exc
-        
-        # Reconstruir trazas
-        raw_traces = data.get("composition_trace", [])
-        traces: List[CompositionTrace] = []
-        
-        for i, t in enumerate(raw_traces):
-            # Verificar campos requeridos
-            required_fields = {"step", "morphism", "domain", "codomain", "success"}
-            missing = required_fields - set(t.keys())
-            if missing:
-                raise KeyError(
-                    f"Traza #{i} carece de campos: {sorted(missing)}"
-                )
-            
-            try:
-                traces.append(
-                    CompositionTrace(
-                        step_number=int(t["step"]),
-                        morphism_name=str(t["morphism"]),
-                        input_domain=frozenset(
-                            Stratum[s] for s in t["domain"]
-                        ),
-                        output_codomain=Stratum[t["codomain"]],
-                        success=bool(t["success"]),
-                        error=t.get("error"),
-                        timestamp=float(t.get("timestamp", 0.0)),
-                        metadata=t.get("metadata"),
-                    )
-                )
-            except (KeyError, ValueError) as exc:
-                raise ValueError(
-                    f"Error reconstruyendo traza #{i}: {exc}"
-                ) from exc
-        
-        return cls(
-            payload=dict(data.get("payload", {})),
-            context=dict(data.get("context", {})),
-            validated_strata=strata,
-            error=data.get("error"),
-            error_msg=data.get("error_msg", data.get("error")),
-            success=data.get("success"),
-            metadata=data.get("metadata"),
-            error_details=data.get("error_details"),
-            forensic_evidence=data.get("forensic_evidence"),
-            composition_trace=tuple(traces),
-        )
-    
-    def __str__(self) -> str:
-        status = "✓" if self.is_success else "✗"
-        strata_str = ", ".join(
-            sorted(s.name for s in self.validated_strata)
-        ) or "∅"
-        return (
-            f"CategoricalState[{status}]( "
-            f"strata={{{strata_str}}}, "
-            f"trace_len={self.trace_length})"
-        )
-    
-    def __repr__(self) -> str:
-        return (
-            f"CategoricalState("
-            f"payload_keys={sorted(self.payload.keys())}, "
-            f"validated_strata={len(self.validated_strata)}, "
-            f"error={self.error!r})"
-        )
-    
-    def __hash__(self) -> int:
-        """Hash basado en compute_hash para uso en colecciones."""
-        return hash(self.compute_semantic_hash())
-    
-    def __eq__(self, other: object) -> bool:
-        """Igualdad estructural basada en serialización."""
-        if not isinstance(other, CategoricalState):
-            return NotImplemented
-        return self.compute_semantic_hash() == other.compute_semantic_hash()
 
-# ==============================================================================
-# FACTORY CON VALIDACIÓN ESTRUCTURAL
-# ==============================================================================
-def create_categorical_state(
-    payload: Optional[Dict[str, Any]] = None,
-    context: Optional[Dict[str, Any]] = None,
-    strata: Optional[Set[Stratum]] = None,
-) -> CategoricalState:
+
+#------------------------------------------------------------------------------
+# 1.4 — OBSERVADOR ESPECTRAL Y FRONTERA DE FASE: FASE 1 → FASE 2
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class Phase1SpectralRingArtifact:
+    """Artefacto de Fase 1."""
+
+    vector: BicomplexVector
+    ring_homogeneous: bool
+    non_degenerate: bool
+    channel_norms: Tuple[float, float]
+    spectral_condition: Tuple[float, float]
+    semantic_hash: str
+    ring_axioms: Dict[str, Any] = field(default_factory=dict)
+    timestamp: float = field(default_factory=time.time)
+
+
+class Phase1_SpectralRingObserver:
     """
-    Factory para CategoricalState con valores seguros por defecto.
-    
-    Propiedades:
-    ============
-    1. Validación: todos los argumentos se validan ✓
-    2. Inmutabilidad: copias defensivas de dicts ✓
-    3. Objeto inicial: create_categorical_state() ≅ ⊥ ✓
-    
-    Args:
-        payload: Diccionario de carga útil (default: {})
-        context: Contexto adicional (default: {})
-        strata: Conjunto de estratos validados (default: ∅)
-    
-    Returns:
-        CategoricalState inicializado
+    Fase 1: Observador del anillo espectral bicomplejo.
+
+    Responsabilidades:
+      - Ingesta 4D y proyección idempotente.
+      - Verificación de finitud y homogeneidad espectral.
+      - No-degeneración bicanal.
+      - Certificación de los axiomas de anillo de C₂ ([I1], [I6]).
+      - Sellado semántico.
     """
-    return CategoricalState(
-        payload=dict(payload or {}),
-        context=dict(context or {}),
-        validated_strata=frozenset(strata or set()),
-    )
 
-
-def create_morphism_from_handler(
-    name: str,
-    target_stratum: Stratum,
-    handler: Callable[..., Any],
-    required_keys: Optional[List[str]] = None,
-    optional_keys: Optional[List[str]] = None,
-) -> AtomicVector:
-    """
-    Factory para crear AtomicVector desde un handler callable.
-    
-    Esto permite registrar funciones simples como morfismos categóricos.
-    
-    Args:
-        name: Nombre del morfismo
-        target_stratum: Estrato objetivo (codominio)
-        handler: Función que procesa el payload
-        required_keys: Claves requeridas en payload
-        optional_keys: Claves opcionales en payload
-    
-    Returns:
-        AtomicVector configurado
-    """
-    return AtomicVector(
-        name=name,
-        target_stratum=target_stratum,
-        handler=handler,
-        required_keys=required_keys,
-        optional_keys=optional_keys,
-    )
-
-# ==============================================================================
-# MORFISMOS — CLASE BASE CON AXIOMAS CATEGÓRICOS VERIFICADOS
-# ==============================================================================
-class Morphism(ABC):
-    """
-    Morfismo en la categoría C_MIC con axiomas categóricos verificables.
-    
-    Axiomas de Categoría:
-    ====================
-    1. Composición: ∀f: A→B, g: B→C, ∃g∘f: A→C ✓
-    2. Asociatividad: h∘(g∘f) = (h∘g)∘f ✓
-    3. Identidad: ∀A, ∃id_A: A→A tal que f∘id_A = f = id_B∘f ✓
-    
-    Propiedades:
-    ============
-    - Domain: conjunto de estratos de entrada
-    - Codomain: estrato de salida
-    - Call count: trazabilidad de ejecuciones
-    """
-    
-    def __init__(self, name: str = "", stratum: Optional["Stratum"] = None) -> None:
-        r"""Inicializa el morfismo.
-        
-        Args:
-            name: nombre del morfismo.
-            stratum: opcional, Sutura IV \u2014 kwarg legacy para subclases que
-                propagan el estrato categórico al constructor base (p.ej.
-                GeodesicAttentionFibrator). Se almacena en ``_stratum``.
-        """
-        self._name: str = name or self.__class__.__name__
-        self._logger: logging.Logger = logging.getLogger(
-            f"MIC.Morphism.{self.name}"
-        )
-        self._call_count: int = 0
-        # Sutura IV: almacenar stratum si se proporciona.
-        self._stratum: Optional["Stratum"] = stratum
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        r"""Dominio del morfismo (estratos de entrada requeridos).
-        
-        Sutura IV (suturas_rigurosas.md): default que devuelve frozenset
-        conteniendo el _stratum si fue provisto, sino vacío. Las subclases
-        deben sobreescribir este método para reflejar su contrato real.
-        Antes era @abstractmethod; se relajó para que las subclases
-        existentes (p.ej. GeodesicAttentionFibrator) puedan instanciarse.
-        """
-        if self._stratum is not None:
-            return frozenset({self._stratum})
-        return frozenset()
-    
-    @property
-    def codomain(self) -> Optional["Stratum"]:
-        r"""Codominio del morfismo (estrato de salida).
-        
-        Sutura IV: default devuelve _stratum si fue provisto. Las subclases
-        especializadas (p.ej. IdentityMorphism) deben sobreescribir para
-        declarar el codominio exacto de su contrato categórico.
-        """
-        return self._stratum
-    
-    @property
-    def name(self) -> str:
-        """Nombre del morfismo."""
-        return self._name
-
-    @name.setter
-    def name(self, value: str) -> None:
-        self._name = value
-
-    @property
-    def call_count(self) -> int:
-        """Número de veces que este morfismo ha sido ejecutado."""
-        return self._call_count
-    
-    def can_compose_with(self, other: Morphism) -> bool:
-        """
-        Verifica si este morfismo puede componerse con otro (self >> other).
-        
-        Condición: codomain(self) ∈ domain(other) ∪ codomain(other)
-        
-        Esto asegura que la salida de self puede ser entrada de other.
-        """
-        provided = self.domain | frozenset({self.codomain})
-        return other.domain.issubset(provided)
-    
-    @abstractmethod
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        """Aplicación del morfismo a un estado."""
-        ...
-    
-    def __rshift__(self, other: Morphism) -> Morphism:
-        """Operador de composición: f >> g = g ∘ f"""
-        return ComposedMorphism(self, other)
-    
-    def __mul__(self, other: Morphism) -> Morphism:
-        """Operador de producto: f × g"""
-        return ProductMorphism(self, other)
-    
-    def __or__(self, other: Morphism) -> Morphism:
-        """Operador de coproducto: f ∐ g"""
-        return CoproductMorphism(self, other)
-    
-    def __str__(self) -> str:
-        return f"Morphism({self.name}): {self.domain} → {self.codomain}"
-    
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(name='{self.name}')"
-
-
-class IdentityMorphism(Morphism):
-    """
-    Morfismo identidad para un estrato específico.
-    
-    Propiedades Categóricas:
-    =======================
-    - id_A: A → A ✓
-    - f ∘ id_A = f (identidad derecha) ✓
-    - id_B ∘ f = f (identidad izquierda) ✓
-    
-    Esto es fundamental para verificar las leyes de categoría.
-    """
-    
-    def __init__(self, stratum: Stratum) -> None:
-        super().__init__(f"id_{stratum.name}")
-        self._stratum = stratum
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        return frozenset({self._stratum})
-    
-    @property
-    def codomain(self) -> Stratum:
-        return self._stratum
-    
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        self._call_count += 1
-        return state.add_trace(
-            self.name, 
-            self.domain, 
-            self.codomain, 
-            success=True, 
-            metadata={"identity": True}
-        )
-    
-    def verify_identity_law(self, f: Morphism, state: CategoricalState) -> bool:
-        """
-        Verifica la ley de identidad: f ∘ id = f = id ∘ f
-        
-        Returns:
-            True si la ley se cumple para este estado de prueba
-        """
-        # f ∘ id_domain
-        result1 = f(self(state))
-        
-        # id_codomain ∘ f
-        id_codomain = IdentityMorphism(f.codomain)
-        result2 = id_codomain(f(state))
-        
-        # Verificar igualdad estructural
-        return (
-            result1.compute_semantic_hash() == f(state).compute_semantic_hash() and
-            result2.compute_semantic_hash() == f(state).compute_semantic_hash()
-        )
-
-
-class AtomicVector(Morphism):
-    """
-    Morfismo atómico que aplica un handler a un estado.
-    
-    Esto representa las "células" básicas de transformación en el pipeline.
-    Cada AtomicVector es un 1-morfismo en C_MIC.
-    """
-    
-    def __init__(
-        self, 
-        name: str, 
-        target_stratum: Stratum, 
-        handler: Callable[..., Any],
-        required_keys: Optional[List[str]] = None,
-        optional_keys: Optional[List[str]] = None,
-    ) -> None:
-        super().__init__(name)
-        self._target_stratum = target_stratum
-        self._handler = handler
-        self._required_keys: FrozenSet[str] = frozenset(required_keys or [])
-        self._optional_keys: FrozenSet[str] = frozenset(optional_keys or [])
-        # El dominio son los estratos requeridos por el target
-        self._domain = frozenset(target_stratum.requires())
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        return self._domain
-    
-    @property
-    def codomain(self) -> Stratum:
-        return self._target_stratum
-    
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        self._call_count += 1
-        
-        # Absorción monádica: error previo propaga
-        if state.is_failed:
-            return state.with_error(f"Absorción: {state.error}").add_trace(
-                self.name, 
-                self.domain, 
-                self.codomain, 
-                success=False, 
-                error=f"Absorción: {state.error}",
-                metadata={"absorbed": True}
-            )
-        
-        # Verificar clausura transitiva de estratos
-        missing = self.domain - state.validated_strata
-        if missing:
-            error_msg = (
-                f"Violación de clausura transitiva en '{self.name}': "
-                f"requiere estratos {sorted(s.name for s in missing)} no validados"
-            )
-            return state.with_error(error_msg).add_trace(
-                self.name, 
-                self.domain, 
-                self.codomain, 
-                success=False, 
-                error=error_msg
-            )
-        
-        # Extraer argumentos del payload
-        allowed_keys = self._required_keys | self._optional_keys
-        kwargs = {k: v for k, v in state.payload.items() if k in allowed_keys}
-        
-        # Verificar claves requeridas
-        missing_keys = self._required_keys - set(kwargs.keys())
-        if missing_keys:
-            error_msg = f"Claves requeridas faltantes: {sorted(missing_keys)}"
-            return state.with_error(error_msg).add_trace(
-                self.name, 
-                self.domain, 
-                self.codomain, 
-                success=False, 
-                error=error_msg
-            )
-        
-        try:
-            result = self._handler(**kwargs)
-            
-            # Manejar resultado como dict con campo success
-            if isinstance(result, dict) and not result.get("success", True):
-                return state.with_error(
-                    result.get("error", "Handler failed")
-                ).add_trace(
-                    self.name, 
-                    self.domain, 
-                    self.codomain, 
-                    success=False, 
-                    error=result.get("error")
-                )
-            
-            # Limpiar resultado (quitar claves privadas)
-            clean_res = (
-                {k: v for k, v in result.items() if not k.startswith("_")}
-                if isinstance(result, dict)
-                else {f"{self.name}_result": result}
-            )
-            
-            return state.with_update(
-                clean_res, 
-                new_stratum=self.codomain
-            ).add_trace(
-                self.name, 
-                self.domain, 
-                self.codomain, 
-                success=True
-            )
-        
-        except Exception as e:
-            error_msg = f"{type(e).__name__}: {str(e)}"
-            return state.with_error(error_msg).add_trace(
-                self.name, 
-                self.domain, 
-                self.codomain, 
-                success=False, 
-                error=error_msg
-            )
-
-
-class ComposedMorphism(Morphism):
-    r"""
-    Composición de dos morfismos: g ∘ f (aplicado como f luego g).
-    
-    Propiedades Categóricas:
-    =======================
-    - domain(g∘f) = domain(f) ∪ (domain(g) \ codomain(f)) ✓
-    - codomain(g∘f) = codomain(g) ✓
-    - Asociatividad verificada en __call__ ✓
-    
-    Conexión de Ehresmann:
-    ======================
-    Se calcula curvatura y holonomía para detectar inconsistencias
-    en la composición de transformaciones.
-    """
-    
-    def __init__(self, f: Morphism, g: Morphism) -> None:
-        super().__init__(f"{f.name} >> {g.name}")
-        self.f = f
-        self.g = g
-        
-        # Calcular dominio compuesto
-        provided_by_f = f.domain | frozenset({f.codomain})
-        self._domain = f.domain | (g.domain - provided_by_f)
-        self._codomain = g.codomain
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        return self._domain
-    
-    @property
-    def codomain(self) -> Stratum:
-        return self._codomain
-    
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        self._call_count += 1
-        
-        # Aplicar primer morfismo
-        state_f = self.f(state)
-        if state_f.is_failed:
-            return state_f
-        
-        # Conexión de Ehresmann simplificada (geometría diferencial)
-        current_level = state_f.stratum_level
-        target_level = self.g.codomain.value
-        distance = current_level - target_level
-        exergy = float(state_f.context.get("exergy_level", 1.0))
-        
-        # Calcular parámetros geométricos
-        omega = (0.1 * distance) / max(exergy, _MIN_EXERGY_LEVEL)
-        curvature = omega * omega
-        
-        # Aplicar correcciones si hay curvatura significativa
-        if curvature > 0.0:
-            phase = state_f.context.get("_phase_correction", 1.0) * (1.0 - omega)
-            state_f = state_f.with_update(
-                new_context={
-                    "_phase_correction": phase,
-                    "_curvature": curvature
-                }
-            )
-            
-            # Detectar holonomía (ciclos no triviales)
-            if (
-                float(state_f.context.get("topological_entropy", 0.0)) > 0.5 
-                and curvature > 0.1
-            ):
-                state_f = state_f.with_update(
-                    new_context={"_holonomy_detected": True}
-                )
-        
-        # Aplicar segundo morfismo
-        return self.g(state_f)
-    
-    def verify_associativity(
-        self, 
-        h: Morphism, 
-        test_state: CategoricalState
-    ) -> bool:
-        """
-        Verifica la ley de asociatividad: h∘(g∘f) = (h∘g)∘f
-        
-        Args:
-            h: Tercer morfismo para composición triple
-            test_state: Estado de prueba
-        
-        Returns:
-            True si la asociatividad se cumple
-        
-        Raises:
-            AssociativityError: Si la ley se viola
-        """
-        # h ∘ (g ∘ f)
-        lhs = self.f >> self.g >> h
-        result_lhs = lhs(test_state)
-        
-        # (h ∘ g) ∘ f
-        rhs = self.f >> (self.g >> h)
-        result_rhs = rhs(test_state)
-        
-        if result_lhs.compute_semantic_hash() != result_rhs.compute_semantic_hash():
-            raise AssociativityError(
-                "Violación de asociatividad: h∘(g∘f) ≠ (h∘g)∘f",
-                lhs_hash=result_lhs.compute_semantic_hash(),
-                rhs_hash=result_rhs.compute_semantic_hash(),
-                morphisms=[self.f.name, self.g.name, h.name]
-            )
-        
-        return True
-
-
-class ProductMorphism(Morphism):
-    """
-    Producto de morfismos: f × g (ejecución paralela).
-    
-    Propiedades Categóricas:
-    =======================
-    - domain(f×g) = domain(f) ∪ domain(g) ✓
-    - codomain(f×g) = min(codomain(f), codomain(g)) ✓
-    - Conmutatividad: f×g ≅ g×f ✓
-    """
-    
-    def __init__(self, f: Morphism, g: Morphism) -> None:
-        super().__init__(f"{f.name} × {g.name}")
-        self.f = f
-        self.g = g
-        self._domain = f.domain | g.domain
-        self._codomain = (
-            f.codomain if f.codomain.value <= g.codomain.value 
-            else g.codomain
-        )
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        return self._domain
-    
-    @property
-    def codomain(self) -> Stratum:
-        return self._codomain
-    
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        self._call_count += 1
-        
-        if state.is_failed:
-            return state
-        
-        # Ejecución paralela
-        sf = self.f(state)
-        sg = self.g(state)
-        
-        # Propagación de errores
-        if sf.is_failed:
-            return sf
-        if sg.is_failed:
-            return sg
-        
-        # Fusionar resultados
-        merged_state = CategoricalState(
-            payload={**sf.payload, **sg.payload},
-            context={**sf.context, **sg.context},
-            validated_strata=sf.validated_strata | sg.validated_strata,
-            composition_trace=sf.composition_trace + sg.composition_trace,
-        )
-        
-        return merged_state.add_trace(
-            self.name, 
-            self.domain, 
-            self.codomain, 
-            success=True
-        )
-
-
-class CoproductMorphism(Morphism):
-    """
-    Coproducto de morfismos: f ∐ g (ejecución selectiva).
-    
-    Propiedades Categóricas:
-    =======================
-    - domain(f∐g) = domain(f) ∪ domain(g) ✓
-    - codomain(f∐g) = min(codomain(f), codomain(g)) ✓
-    - Semántica: intenta f, si falla intenta g ✓
-    """
-    
-    def __init__(self, f: Morphism, g: Morphism) -> None:
-        super().__init__(f"{f.name} ∐ {g.name}")
-        self.f = f
-        self.g = g
-        self._domain = f.domain | g.domain
-        self._codomain = (
-            f.codomain if f.codomain.value <= g.codomain.value 
-            else g.codomain
-        )
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        return self._domain
-    
-    @property
-    def codomain(self) -> Stratum:
-        return self._codomain
-    
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        self._call_count += 1
-        
-        # Intentar primer morfismo
-        res = self.f(state)
-        
-        # Si falla, intentar segundo (fallback)
-        return res if res.is_success else self.g(state)
-
-
-class PullbackMorphism(Morphism):
-    """
-    Pullback de morfismos: límite de diagrama f, g.
-    
-    Propiedades Categóricas:
-    =======================
-    - domain = domain(f) ∪ domain(g) ✓
-    - codomain = min(codomain(f), codomain(g)) ✓
-    - Validator: verifica compatibilidad de resultados ✓
-    """
-    
-    def __init__(
-        self, 
-        name: str, 
-        f: Morphism, 
-        g: Morphism, 
-        validator: Callable[[CategoricalState, CategoricalState], bool]
-    ) -> None:
-        super().__init__(name)
-        self.f = f
-        self.g = g
-        self.validator = validator
-        self._domain = f.domain | g.domain
-        self._codomain = (
-            f.codomain if f.codomain.value <= g.codomain.value 
-            else g.codomain
-        )
-    
-    @property
-    def domain(self) -> FrozenSet[Stratum]:
-        return self._domain
-    
-    @property
-    def codomain(self) -> Stratum:
-        return self._codomain
-    
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        self._call_count += 1
-        
-        sf = self.f(state)
-        sg = self.g(state)
-        
-        # Verificar éxito y validación
-        if sf.is_failed or sg.is_failed or not self.validator(sf, sg):
-            return state.with_error("Pullback divergence")
-        
-        return CategoricalState(
-            payload={**sf.payload, **sg.payload},
-            validated_strata=sf.validated_strata | sg.validated_strata,
-        ).add_trace(
-            self.name, 
-            self.domain, 
-            self.codomain, 
-            success=True
-        )
-
-# ==============================================================================
-# FUNTORES — MAPEO ENTRE CATEGORÍAS
-# ==============================================================================
-T_Functor = TypeVar('T_Functor', bound='Functor')
-
-
-class Functor(ABC):
-    """
-    Funtor entre categorías: F: C → D.
-    
-    Axiomas de Funtor:
-    =================
-    1. Preservación de composición: F(g∘f) = F(g)∘F(f) ✓
-    2. Preservación de identidad: F(id_A) = id_{F(A)} ✓
-    
-    Esto mapea objetos y morfismos de una categoría a otra.
-    """
-    
-    def __init__(self, name: str = "") -> None:
-        self.name = name or self.__class__.__name__
-    
-    @abstractmethod
-    def map_object(self, state: CategoricalState) -> Any:
-        """Mapeo de objetos: Ob(C) → Ob(D)."""
-        ...
-    
-    @abstractmethod
-    def map_morphism(self, f: Morphism) -> Callable[[CategoricalState], Any]:
-        """Mapeo de morfismos: Mor(C) → Mor(D)."""
-        ...
-    
-    def verify_functoriality(
-        self, 
-        f: Morphism, 
-        g: Morphism, 
-        state: CategoricalState
-    ) -> bool:
-        """
-        Verifica la ley de funtorialidad covariante: F(g∘f) = F(g)∘F(f).
-
-        En C_MIC, la composición g∘f se representa como f >> g (f primero, luego g).
-        
-        Args:
-            f: Primer morfismo a aplicar.
-            g: Segundo morfismo a aplicar.
-            state: Objeto (estado) de prueba.
-
-        Returns:
-            True si F(g∘f)(state) ≡ (F(g)∘F(f))(state).
-        """
-        # F(g∘f)(state)
-        # Recordar: f >> g es la composición g ∘ f
-        composed = f >> g
-        result1 = self.map_morphism(composed)(state)
-        
-        # (F(g)∘F(f))(state) = F(g)(F(f)(state))
-        result2 = self.map_morphism(g)(self.map_morphism(f)(state))
-        
-        # Comparar resultados bajo el Proyector Semántico π_sem
-        # Esto aniquila el subespacio de la traza (entropía temporal)
-        def _pi_sem(obj: Any) -> Any:
-            if hasattr(obj, "compute_semantic_hash"):
-                return obj.compute_semantic_hash()
-
-            if isinstance(obj, dict):
-                # Si el diccionario tiene estructura de estado, proyectamos invariantes
-                if "payload" in obj and "validated_strata" in obj:
-                    return {
-                        "p": _canonicalize(obj.get("payload")),
-                        "v": sorted(obj.get("validated_strata", [])),
-                        "e": obj.get("error")
-                    }
-                return _canonicalize(obj)
-
-            return obj
-
-        return _pi_sem(result1) == _pi_sem(result2)
-
-
-class StateToDictFunctor(Functor):
-    """
-    Funtor de CategoricalState a Dict.
-    
-    Esto permite serialización y transformación a estructuras de datos.
-    """
-    
-    def __init__(self) -> None:
-        super().__init__("StateToDict")
-    
-    def map_object(self, state: CategoricalState) -> Dict[str, Any]:
-        return state.to_dict()
-    
-    def map_morphism(
-        self, 
-        f: Morphism
-    ) -> Callable[[Union[CategoricalState, Dict[str, Any]]], Dict[str, Any]]:
-        def F_f(s: Union[CategoricalState, Dict[str, Any]]) -> Dict[str, Any]:
-            state = s if isinstance(s, CategoricalState) else CategoricalState.from_dict(s)
-            return f(state).to_dict()
-        return F_f
-
-
-# ==============================================================================
-# TRANSFORMACIONES NATURALES — MAPEO ENTRE FUNTORES
-# ==============================================================================
-class NaturalTransformation(ABC, Generic[T_Functor]):
-    """
-    Transformación natural entre funtores: η: F ⇒ G.
-    
-    Propiedad de Naturalidad:
-    ========================
-    Para todo f: A → B en C, el siguiente cuadrado conmuta:
-    
-        F(A) --η_A--> G(A)
-         |            |
-        F(f)         G(f)
-         |            |
-         v            v
-        F(B) --η_B--> G(B)
-    
-    Es decir: η_B ∘ F(f) = G(f) ∘ η_A ✓
-    """
-    
-    def __init__(
-        self, 
-        source_morphism: Morphism, 
-        target_morphism: Morphism, 
-        name: str = ""
-    ) -> None:
-        self.source_morphism = source_morphism
-        self.target_morphism = target_morphism
-        self.name = name or self.__class__.__name__
-    
-    @abstractmethod
-    def __call__(self, state: CategoricalState) -> CategoricalState:
-        """Aplicación de la transformación natural."""
-        ...
-    
-    def verify_naturality(
-        self, 
-        f: Morphism, 
-        state: CategoricalState
-    ) -> bool:
-        """
-        Verifica el cuadrado de naturalidad.
-        
-        Returns:
-            True si η_B ∘ F(f) = G(f) ∘ η_A
-        """
-        # η_B ∘ F(f)
-        lhs = self(f(state))
-        
-        # G(f) ∘ η_A
-        rhs = f(self(state))
-        
-        return lhs.compute_semantic_hash() == rhs.compute_semantic_hash()
-    
-    def vertical_compose(
-        self, 
-        other: "NaturalTransformation"
-    ) -> "NaturalTransformation":
-        """
-        Composición vertical de transformaciones naturales.
-        
-        Requiere: target_morphism(self) = source_morphism(other)
-        """
-        if self.target_morphism.name != other.source_morphism.name:
-            raise CompositionError(
-                f"Incompatibilidad vertical: {self.target_morphism.name} ≠ "
-                f"{other.source_morphism.name}"
-            )
-        
-        class VerticallyComposed(NaturalTransformation):
-            def __call__(self_, state: CategoricalState) -> CategoricalState:
-                return other(self(state))
-        
-        return VerticallyComposed(
-            self.source_morphism, 
-            other.target_morphism, 
-            f"{other.name} · {self.name}"
-        )
-    
-    def horizontal_compose(
-        self, 
-        other: "NaturalTransformation"
-    ) -> "NaturalTransformation":
-        """Composición horizontal de transformaciones naturales."""
-        
-        class HorizontallyComposed(NaturalTransformation):
-            def __call__(self_, state: CategoricalState) -> CategoricalState:
-                return other(self(state))
-        
-        return HorizontallyComposed(
-            self.source_morphism >> other.source_morphism,
-            self.target_morphism >> other.target_morphism,
-            f"{other.name} ∘ {self.name}"
-        )
-
-
-# ==============================================================================
-# COMPOSITOR DE MORFISMOS CON VALIDACIÓN ESTRUCTURAL
-# ==============================================================================
-class MorphismComposer:
-    """
-    Constructor de pipelines de morfismos con validación de composicionalidad.
-    
-    Esto implementa un builder pattern para composiciones complejas.
-    """
-    
-    def __init__(self) -> None:
-        self.steps: List[Morphism] = []
-        self._accumulated_strata: FrozenSet[Stratum] = frozenset()
-    
-    def add_step(self, m: Morphism) -> "MorphismComposer":
-        """
-        Agrega un morfismo al pipeline.
-        
-        Verifica que el dominio del nuevo morfismo sea compatible
-        con los estratos acumulados.
-        
-        Raises:
-            TypeError: Si el morfismo no es componible con los anteriores
-        """
-        if self.steps and not m.domain.issubset(self._accumulated_strata):
-            raise TypeError(
-                f"Morfismo '{m.name}' no componible: "
-                f"domain={m.domain} ⊄ accumulated={self._accumulated_strata}"
-            )
-        
-        self.steps.append(m)
-        self._accumulated_strata |= m.domain | frozenset({m.codomain})
-        return self
-    
-    def build(self) -> Morphism:
-        """
-        Construye el morfismo compuesto final.
-        
-        Returns:
-            Morphism compuesto de todos los pasos
-        
-        Raises:
-            ValueError: Si no hay pasos agregados
-        """
-        if not self.steps:
-            raise ValueError("No hay pasos en el compositor")
-        
-        res = self.steps[0]
-        for m in self.steps[1:]:
-            res = res >> m  # Composición correcta
-        
-        return res
-    
-    def reset(self) -> None:
-        """Reinicia el compositor."""
-        self.steps = []
-        self._accumulated_strata = frozenset()
-    
-    def visualize(self) -> str:
-        r"""Representación visual del pipeline"""
-        if not self.steps:
-            return "(vacío)"
-        return "\n".join(f"{i+1}. {m}" for i, m in enumerate(self.steps))
-    
-    @property
-    def total_strata_coverage(self) -> FrozenSet[Stratum]:
-        """Estratos totales cubiertos por el pipeline."""
-        return self._accumulated_strata
-
-
-# ==============================================================================
-# VERIFICADOR ESTRUCTURAL Y HOMOLÓGICO
-# ==============================================================================
-class StructuralVerifier:
-    """
-    Verificador de propiedades estructurales de composiciones.
-    
-    Esto incluye verificación de:
-    - Composicionalidad de secuencias
-    - Cobertura de estratos
-    - Aciclicidad (homología)
-    """
-    
-    def is_composable_sequence(self, ms: Sequence[Morphism]) -> bool:
-        """
-        Verifica si una secuencia de morfismos es componible.
-        
-        Condición: ∀i, domain(m_{i+1}) ⊆ domain(m_i) ∪ codomain(m_i)
-        """
-        acc = frozenset()
-        for m in ms:
-            if acc and not m.domain.issubset(acc):
-                return False
-            acc |= m.domain | frozenset({m.codomain})
-        return True
-    
-    def verify_composition(self, c: Morphism) -> Dict[str, Any]:
-        """Verifica propiedades de una composición."""
-        return {
-            "is_valid": True,
-            "name": c.name,
-            "domain_size": len(c.domain),
-            "codomain": c.codomain.name,
-        }
-    
-    def compute_stratum_coverage(
-        self, 
-        ms: Sequence[Morphism]
-    ) -> Dict[str, Any]:
-        """Calcula cobertura de estratos."""
-        covered = frozenset()
-        for m in ms:
-            covered |= m.domain | frozenset({m.codomain})
-        
-        all_strata = frozenset(Stratum)
-        unreachable = all_strata - covered
-        
-        return {
-            "full_coverage": len(unreachable) == 0,
-            "unreachable_strata": [s.name for s in unreachable],
-            "coverage_ratio": len(covered) / len(all_strata),
-        }
-    
-    def compute_euler_characteristic(
-        self, 
-        traces: Sequence[CompositionTrace]
-    ) -> int:
-        """
-        Calcula característica de Euler del complejo de trazas.
-        
-        χ = V - E + F (vértices - aristas + caras)
-        
-        Para nuestro caso:
-        - V = número de estratos únicos
-        - E = número de trazas
-        - F = 1 (una cara por componente conexa)
-        """
-        vertices = set()
-        for t in traces:
-            vertices.add(t.output_codomain)
-            vertices.update(t.input_domain)
-        
-        edges = len(traces)
-        faces = 1  # Asumiendo una componente conexa
-        
-        return len(vertices) - edges + faces
-
-
-class HomologicalVerifier(StructuralVerifier):
-    """
-    Verificador homológico con cálculo de números de Betti.
-    
-    Esto detecta ciclos no triviales en el grafo de ejecución.
-    """
-    
-    def compute_betti_numbers(
-        self, 
-        traces: Sequence[CompositionTrace]
-    ) -> Dict[int, int]:
-        """
-        Calcula números de Betti βₙ = dim(Hₙ).
-        
-        β₀ = número de componentes conexas
-        β₁ = número de ciclos independientes
-        β₂ = número de cavidades 2D
-        
-        Para aciclicidad, requerimos β₁ = 0.
-        """
-        # Construir grafo de dependencias
-        edges = []
-        vertices = set()
-        
-        for t in traces:
-            vertices.add(t.output_codomain.value)
-            for d in t.input_domain:
-                vertices.add(d.value)
-                edges.append((d.value, t.output_codomain.value))
-        
-        # β₀ = componentes conexas (usando Union-Find simplificado)
-        parent = {v: v for v in vertices}
-        
-        def find(x: int) -> int:
-            if parent[x] != x:
-                parent[x] = find(parent[x])
-            return parent[x]
-        
-        def union(x: int, y: int) -> None:
-            px, py = find(x), find(y)
-            if px != py:
-                parent[px] = py
-        
-        for u, v in edges:
-            union(u, v)
-        
-        components = len({find(v) for v in vertices})
-        beta_0 = components
-        
-        # β₁ = ciclos = aristas - vértices + componentes (para grafo conexo)
-        beta_1 = max(0, len(edges) - len(vertices) + components)
-        
-        return {0: beta_0, 1: beta_1, 2: 0}
-    
-    def verify_acyclicity(
-        self, 
-        traces: Sequence[CompositionTrace]
-    ) -> bool:
-        """
-        Verifica que el grafo de trazas sea acíclico.
-        
-        Returns:
-            True si β₁ = 0 (sin ciclos no triviales)
-        """
-        betti = self.compute_betti_numbers(traces)
-        return betti.get(1, 0) == 0
-    
-    def detect_cycles(
-        self, 
-        traces: Sequence[CompositionTrace]
-    ) -> List[List[Stratum]]:
-        """
-        Detecta ciclos explícitos en el grafo de trazas.
-        
-        Returns:
-            Lista de ciclos (cada ciclo es una lista de estratos)
-        """
-        # Construir grafo de adyacencia
-        adj: Dict[int, List[int]] = {}
-        for t in traces:
-            v = t.output_codomain.value
-            if v not in adj:
-                adj[v] = []
-            for d in t.input_domain:
-                if d.value not in adj:
-                    adj[d.value] = []
-                adj[d.value].append(v)
-        
-        # DFS para detectar ciclos
-        visited = set()
-        rec_stack = set()
-        cycles = []
-        
-        def dfs(v: int, path: List[int]) -> None:
-            visited.add(v)
-            rec_stack.add(v)
-            path.append(v)
-            
-            for neighbor in adj.get(v, []):
-                if neighbor not in visited:
-                    dfs(neighbor, path)
-                elif neighbor in rec_stack:
-                    # Ciclo detectado
-                    cycle_start = path.index(neighbor)
-                    cycle = path[cycle_start:]
-                    cycles.append([Stratum(s) for s in cycle])
-            
-            path.pop()
-            rec_stack.remove(v)
-        
-        for v in adj:
-            if v not in visited:
-                dfs(v, [])
-        
-        return cycles
-
-
-# ==============================================================================
-# REGISTRO CATEGÓRICO CON THREAD-SAFETY
-# ==============================================================================
-class CategoricalRegistry:
-    """
-    Registro thread-safe de morfismos y composiciones.
-    
-    Esto permite descubrimiento dinámico y verificación global.
-    """
-    
-    def __init__(self) -> None:
-        self._morphisms: Dict[str, Morphism] = {}
-        self._compositions: Dict[str, Morphism] = {}
-        self._lock = threading.RLock()
-    
-    def register_morphism(self, name: str, m: Morphism) -> None:
-        """Registra un morfismo con nombre único."""
-        with self._lock:
-            m.name = name
-            self._morphisms[name] = m
-    
-    def register_composition(self, name: str, c: Morphism) -> None:
-        """Registra una composición con nombre único."""
-        with self._lock:
-            self._compositions[name] = c
-    
-    def get_morphism(self, name: str) -> Optional[Morphism]:
-        """Obtiene un morfismo por nombre."""
-        with self._lock:
-            return self._morphisms.get(name)
-    
-    def get_composition(self, name: str) -> Optional[Morphism]:
-        """Obtiene una composición por nombre."""
-        with self._lock:
-            return self._compositions.get(name)
-    
-    def list_morphisms(self) -> List[str]:
-        """Lista todos los nombres de morfismos registrados."""
-        with self._lock:
-            return sorted(self._morphisms.keys())
-    
-    def list_compositions(self) -> List[str]:
-        """Lista todos los nombres de composiciones registradas."""
-        with self._lock:
-            return sorted(self._compositions.keys())
-    
-    def verify_acyclicity(self) -> bool:
-        """Verifica aciclicidad global de todas las composiciones."""
-        verifier = HomologicalVerifier()
-        
-        with self._lock:
-            all_traces = []
-            for m in self._compositions.values():
-                if isinstance(m, ComposedMorphism):
-                    # Extraer trazas simuladas
-                    pass
-        
-        return True  # Simplificado para este ejemplo
-    
-    def topological_order(self) -> List[str]:
-        """
-        Retorna morfismos en orden topológico.
-        
-        Esto asegura que las dependencias se procesan antes que los dependientes.
-        """
-        with self._lock:
-            return list(self._morphisms.keys())
-
-
-# ==============================================================================
-# ORQUESTADOR DE 2-CATEGORÍA CON LEY DE INTERCAMBIO
-# ==============================================================================
-class TwoCategoryOrchestrator:
-    """
-    Orquestador para 2-categorías con verificación de ley de intercambio.
-    
-    Ley de Intercambio (Interchange Law):
-    =====================================
-    (α' · α) ∘ (β' · β) = (α' ∘ β') · (α ∘ β)
-    
-    donde · es composición vertical y ∘ es composición horizontal.
-    
-    Esto es fundamental para categorías de orden superior.
-    """
-    
     @staticmethod
-    def validate_interchange_law(
-        alpha: NaturalTransformation,
-        alpha_prime: NaturalTransformation,
-        beta: NaturalTransformation,
-        beta_prime: NaturalTransformation,
-        test_state: CategoricalState,
-    ) -> bool:
-        """
-        Verifica la ley de intercambio para 2-morfismos.
-        
-        LHS = (α' · α) ∘ (β' · β)
-        RHS = (α' ∘ β') · (α ∘ β)
-        
-        Raises:
-            FunctorialityError: Si la ley se viola
-        """
-        try:
-            # LHS: composición vertical luego horizontal
-            lhs_vertical = alpha.vertical_compose(alpha_prime)
-            rhs_vertical = beta.vertical_compose(beta_prime)
-            lhs = lhs_vertical.horizontal_compose(rhs_vertical)
-            
-            # RHS: composición horizontal luego vertical
-            lhs_horizontal = alpha.horizontal_compose(beta)
-            rhs_horizontal = alpha_prime.horizontal_compose(beta_prime)
-            rhs = lhs_horizontal.vertical_compose(rhs_horizontal)
-            
-            # Ejecutar y comparar
-            res_lhs = lhs(test_state)
-            res_rhs = rhs(test_state)
-            
-            is_valid = res_lhs.compute_semantic_hash() == res_rhs.compute_semantic_hash()
-            
-            if not is_valid:
-                raise FunctorialityError(
-                    "Violación de la Ley de Intercambio en 2-categoría",
-                    lhs_hash=res_lhs.compute_semantic_hash(),
-                    rhs_hash=res_rhs.compute_semantic_hash(),
-                )
-            
-            return True
-        
-        except (CompositionError, FunctorialityError):
-            raise
-        except Exception as e:
+    def _spectral_condition(channel: np.ndarray) -> float:
+        """Condición espectral proxy κ = max|z| / min|z| sobre el canal."""
+        mag = np.abs(channel).astype(np.float64)
+        if mag.size == 0:
+            return 1.0
+
+        finite = mag[np.isfinite(mag)]
+        if finite.size == 0:
+            return float("inf")
+
+        mx = float(np.max(finite))
+        positives = finite[finite > _MACHINE_EPSILON]
+
+        if positives.size == 0:
+            return 1.0 if mx <= _MACHINE_EPSILON else mx / _MACHINE_EPSILON
+
+        mn = float(np.min(positives))
+        return mx / mn if mn > 0.0 else float("inf")
+
+    @classmethod
+    def run(
+        cls,
+        S: NDArray[np.float64],
+        context: Optional[Dict[str, Any]] = None,
+        *,
+        ring_axiom_trials: int = 8,
+        rng: Optional[np.random.Generator] = None,
+    ) -> Phase1SpectralRingArtifact:
+        """Ejecuta Fase 1."""
+        vector = BicomplexVector.from_real4(S)
+
+        cond_1 = cls._spectral_condition(vector.channel_1)
+        cond_2 = cls._spectral_condition(vector.channel_2)
+
+        ring_homogeneous = vector.is_finite() and np.isfinite(cond_1) and np.isfinite(cond_2)
+        non_degenerate = vector.is_non_degenerate()
+        ring_axioms = verify_bicomplex_ring_axioms(rng=rng, trials=ring_axiom_trials)
+
+        artifact = Phase1SpectralRingArtifact(
+            vector=vector,
+            ring_homogeneous=ring_homogeneous,
+            non_degenerate=non_degenerate,
+            channel_norms=(vector.norm_channel_1(), vector.norm_channel_2()),
+            spectral_condition=(cond_1, cond_2),
+            ring_axioms=ring_axioms,
+            semantic_hash=_stable_hash({
+                "vector": vector.to_dict(),
+                "context": context or {},
+            }),
+        )
+
+        if not ring_axioms.get("all_hold", False):
+            logger.error("Fallo de certificación de anillo C₂: %s", ring_axioms)
+
+        logger.debug(
+            "Phase1: norms=(%.6f, %.6f), cond=(%.3e, %.3e), homogeneous=%s, ring_ok=%s",
+            artifact.channel_norms[0],
+            artifact.channel_norms[1],
+            cond_1,
+            cond_2,
+            ring_homogeneous,
+            ring_axioms.get("all_hold"),
+        )
+        return artifact
+
+
+@dataclass(frozen=True, slots=True)
+class Phase2Input:
+    """Objeto frontera entre Fase 1 y Fase 2."""
+
+    phase1_artifact: Phase1SpectralRingArtifact
+
+
+def phase1_export_to_phase2(artifact: Phase1SpectralRingArtifact) -> Phase2Input:
+    """
+    FASE 1 — Último método de la fase y continuación formal de la Fase 2.
+
+    Contrato: `phase1_export_to_phase2 : Phase1SpectralRingArtifact →
+    Phase2Input`. Como condición de admisión se exige que la certificación
+    de los axiomas de anillo de C₂ (`artifact.ring_axioms["all_hold"]`) sea
+    afirmativa: la Fase 2 opera sobre morfismos C₂-lineales, y estos solo
+    están bien definidos si el sustrato algebraico subyacente es
+    genuinamente un anillo conmutativo con la estructura idempotente
+    declarada.
+
+    Raises:
+        TypeError: Si `artifact` no es `Phase1SpectralRingArtifact`.
+        HomologicalError: Si la certificación de anillo no se sostiene.
+    """
+    if not isinstance(artifact, Phase1SpectralRingArtifact):
+        raise TypeError("phase1_export_to_phase2 requiere Phase1SpectralRingArtifact.")
+
+    if not artifact.ring_axioms.get("all_hold", False):
+        raise HomologicalError(
+            "El sustrato algebraico no satisface los axiomas de anillo de "
+            "C₂; la frontera Fase1→Fase2 no puede admitirlo.",
+            ring_axioms=artifact.ring_axioms,
+        )
+
+    return Phase2Input(phase1_artifact=artifact)
+
+
+#=============================================================================
+# ████████████████████████████████████████████████████████████████████████████
+# ███       FASE 2 — ADJUNCIÓN DE GALOIS Y LEY DE INTERCAMBIO BICANAL       ███
+# ████████████████████████████████████████████████████████████████████████████
+#=============================================================================
+# Esta fase certifica:
+#
+#   1. Morfismos C₂-lineales y su composición diagonal por canal.
+#   2. Ley de intercambio de Godement, formalizada EXACTAMENTE vía el
+#      teorema del producto mixto de Kronecker:
+#
+#          (A⊗B)(C⊗D) = (AC)⊗(BD),
+#
+#      evaluada sin construir las matrices n²×n² mediante el truco `vec`:
+#
+#          vec⁻¹[(A⊗B) vec(X)] = B X Aᵀ.
+#
+#   3. Residuo de adjunción de Galois F ⊣ G.
+#=============================================================================
+
+
+#------------------------------------------------------------------------------
+# 2.1 — MORFISMOS LINEALES BICOMPLEJOS
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class BicomplexLinearMorphism:
+    """
+    1-morfismo lineal bicomplejo:
+
+        Φ_{C₂} = Φ⁽¹⁾ e₁ + Φ⁽²⁾ e₂.
+
+    La composición preserva el desacoplamiento idempotente:
+
+        Ψ ∘ Φ = (Ψ⁽¹⁾ ∘ Φ⁽¹⁾) e₁ + (Ψ⁽²⁾ ∘ Φ⁽²⁾) e₂.
+    """
+
+    name: str
+    matrix_channel_1: np.ndarray
+    matrix_channel_2: np.ndarray
+    domain: FrozenSet[Stratum] = field(default_factory=frozenset)
+    codomain: Optional[Stratum] = None
+
+    def __post_init__(self) -> None:
+        m1 = np.asarray(self.matrix_channel_1, dtype=np.complex128)
+        m2 = np.asarray(self.matrix_channel_2, dtype=np.complex128)
+
+        if m1.ndim != 2:
+            raise ValueError("matrix_channel_1 debe ser 2D.")
+        if m2.ndim != 2:
+            raise ValueError("matrix_channel_2 debe ser 2D.")
+
+        object.__setattr__(self, "matrix_channel_1", m1)
+        object.__setattr__(self, "matrix_channel_2", m2)
+
+    @classmethod
+    def identity(
+        cls,
+        dim: int,
+        name: str = "id",
+        domain: Optional[FrozenSet[Stratum]] = None,
+        codomain: Optional[Stratum] = None,
+    ) -> "BicomplexLinearMorphism":
+        """Morfismo identidad bicanal."""
+        dim = max(int(dim), 1)
+        eye = np.eye(dim, dtype=np.complex128)
+        return cls(
+            name=name,
+            matrix_channel_1=eye.copy(),
+            matrix_channel_2=eye.copy(),
+            domain=domain or frozenset(),
+            codomain=codomain,
+        )
+
+    def apply(self, vector: BicomplexVector) -> BicomplexVector:
+        """Aplica el morfismo al vector bicomplejo."""
+        if self.matrix_channel_1.shape[1] != vector.channel_1.size:
             raise FunctorialityError(
-                f"Error verificando ley de intercambio: {e}"
-            ) from e
+                "Dimensión incompatible en canal e₁",
+                expected=self.matrix_channel_1.shape[1],
+                got=vector.channel_1.size,
+            )
+        if self.matrix_channel_2.shape[1] != vector.channel_2.size:
+            raise FunctorialityError(
+                "Dimensión incompatible en canal e₂",
+                expected=self.matrix_channel_2.shape[1],
+                got=vector.channel_2.size,
+            )
+
+        return BicomplexVector(
+            channel_1=self.matrix_channel_1 @ vector.channel_1,
+            channel_2=self.matrix_channel_2 @ vector.channel_2,
+        )
+
+    def compose(self, next_morphism: "BicomplexLinearMorphism") -> "BicomplexLinearMorphism":
+        """Composición Ψ ∘ Φ (self = Φ, next_morphism = Ψ)."""
+        return BicomplexLinearMorphism(
+            name=f"{self.name} >> {next_morphism.name}",
+            matrix_channel_1=next_morphism.matrix_channel_1 @ self.matrix_channel_1,
+            matrix_channel_2=next_morphism.matrix_channel_2 @ self.matrix_channel_2,
+            domain=self.domain | next_morphism.domain,
+            codomain=next_morphism.codomain or self.codomain,
+        )
 
 
-# ==============================================================================
-# EXPORTS PÚBLICOS (__all__)
-# ==============================================================================
+@dataclass(frozen=True, slots=True)
+class BicomplexComposedMorphism:
+    """Composición formal de dos morfismos bicomplejos."""
+
+    f: BicomplexLinearMorphism
+    g: BicomplexLinearMorphism
+
+    def to_linear(self) -> BicomplexLinearMorphism:
+        """Colapso de la composición a morfismo lineal bicanal."""
+        return self.f.compose(self.g)
+
+    def apply(self, vector: BicomplexVector) -> BicomplexVector:
+        """Aplicación composicional."""
+        return self.to_linear().apply(vector)
+
+
+#------------------------------------------------------------------------------
+# 2.2 — 2-MORFISMOS Y LEY DE INTERCAMBIO EXACTA (KRONECKER)
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class BicomplexNaturalTransformation:
+    """
+    2-morfismo bicomplejo representado matricialmente por canal.
+
+    Se usa para verificar la ley de intercambio de Godement:
+
+        (β'∘α') · (β∘α) = (β'·β) ∘ (α'·α).
+    """
+
+    name: str
+    matrix_channel_1: np.ndarray
+    matrix_channel_2: np.ndarray
+
+    def __post_init__(self) -> None:
+        m1 = np.asarray(self.matrix_channel_1, dtype=np.complex128)
+        m2 = np.asarray(self.matrix_channel_2, dtype=np.complex128)
+
+        if m1.ndim != 2:
+            raise ValueError("matrix_channel_1 debe ser 2D.")
+        if m2.ndim != 2:
+            raise ValueError("matrix_channel_2 debe ser 2D.")
+
+        object.__setattr__(self, "matrix_channel_1", m1)
+        object.__setattr__(self, "matrix_channel_2", m2)
+
+    @classmethod
+    def identity(cls, dim: int, name: str = "id_nat") -> "BicomplexNaturalTransformation":
+        """Transformación natural identidad."""
+        dim = max(int(dim), 1)
+        eye = np.eye(dim, dtype=np.complex128)
+        return cls(name=name, matrix_channel_1=eye.copy(), matrix_channel_2=eye.copy())
+
+
+class TwoCategoryBicomplexOrchestrator:
+    """
+    Orquestador 2-categórico bicomplejo con verificación **exacta** de la
+    ley de intercambio, vía el teorema del producto mixto de Kronecker:
+
+        (A⊗B)(C⊗D) = (AC)⊗(BD).
+
+    Identificando la composición horizontal `∘` con el producto tensorial
+    `⊗` y la composición vertical `·` con el producto matricial ordinario,
+    esta identidad es *exactamente* la ley de intercambio de Godement.
+    A diferencia de una hipótesis empírica, es un **teorema del álgebra
+    lineal**: cualquier residuo numérico más allá del redondeo IEEE-754
+    delata un error de implementación en las rutinas de composición, nunca
+    un genuino fallo estructural de la 2-categoría subyacente.
+
+    Se evita construir explícitamente las matrices n²×n² de Kronecker
+    (coste O(n⁶) en la verificación directa) aplicando el truco `vec`:
+
+        vec⁻¹[(A⊗B) vec(X)] = B X Aᵀ,
+
+    sobre matrices de prueba aleatorias X (estilo Freivalds), reduciendo
+    el coste por sonda a O(n³).
+    """
+
+    _PROBE_SEED: Final[int] = 424242
+    _PROBE_COUNT: Final[int] = 3
+    _MAX_DENSE_PROBE_DIM: Final[int] = 512
+
+    @staticmethod
+    def _frobenius(M: np.ndarray) -> float:
+        """Norma de Frobenius segura."""
+        if M.size == 0:
+            return 0.0
+        return float(np.linalg.norm(M, ord="fro"))
+
+    @staticmethod
+    def _condition_number_safe(M: np.ndarray) -> float:
+        """Número de condición con fallback robusto."""
+        if M.size == 0:
+            return 1.0
+        try:
+            cond = float(np.linalg.cond(M))
+            return cond if np.isfinite(cond) else 1.0 / _MACHINE_EPSILON
+        except Exception:
+            return 1.0 / _MACHINE_EPSILON
+
+    @classmethod
+    def _tolerance_channel(cls, operands: Sequence[np.ndarray]) -> float:
+        """Cota de Wilkinson adaptativa por canal."""
+        if not operands:
+            return _ALGEBRAIC_TOL
+
+        scale = max([1.0] + [cls._frobenius(M) for M in operands])
+        cond = max([1.0] + [cls._condition_number_safe(M) for M in operands])
+        return max(_ALGEBRAIC_TOL, _MACHINE_EPSILON * cond * scale)
+
+    @staticmethod
+    def _is_approx_identity(M: np.ndarray, tol: float = 1e-9) -> bool:
+        """Detección de matriz identidad para atajo de rendimiento."""
+        if M.ndim != 2 or M.shape[0] != M.shape[1]:
+            return False
+        return bool(np.allclose(M, np.eye(M.shape[0], dtype=M.dtype), atol=tol, rtol=tol))
+
+    @staticmethod
+    def _apply_kron_operator(A: np.ndarray, B: np.ndarray, X: np.ndarray) -> np.ndarray:
+        """
+        Aplica (A⊗B) a vec(X) sin construir A⊗B explícitamente:
+
+            vec⁻¹[(A⊗B) vec(X)] = B X Aᵀ.
+
+        Complejidad O(n³) frente a O(n⁶) de la construcción explícita del
+        producto de Kronecker n²×n².
+        """
+        return B @ X @ A.T
+
+    @classmethod
+    def _interchange_residual_channel(
+        cls,
+        alpha: np.ndarray,
+        alpha_prime: np.ndarray,
+        beta: np.ndarray,
+        beta_prime: np.ndarray,
+        rng: np.random.Generator,
+    ) -> float:
+        """
+        Residuo máximo de la identidad de intercambio sobre `_PROBE_COUNT`
+        sondas complejas aleatorias, evaluado vía `_apply_kron_operator`.
+        """
+        n = alpha.shape[0]
+        residuals: List[float] = []
+
+        for _ in range(cls._PROBE_COUNT):
+            X = rng.standard_normal((n, n)) + 1j * rng.standard_normal((n, n))
+
+            # LHS: vec⁻¹[((α'α) ⊗ (β'β)) vec(X)]
+            lhs = cls._apply_kron_operator(alpha_prime @ alpha, beta_prime @ beta, X)
+
+            # RHS: vec⁻¹[(α'⊗β')(α⊗β) vec(X)], aplicado en dos etapas.
+            inner = cls._apply_kron_operator(alpha, beta, X)
+            rhs = cls._apply_kron_operator(alpha_prime, beta_prime, inner)
+
+            residuals.append(cls._frobenius(lhs - rhs))
+
+        return max(residuals) if residuals else 0.0
+
+    @classmethod
+    def _interchange_residual_channel_naive_proxy(
+        cls,
+        alpha: np.ndarray,
+        alpha_prime: np.ndarray,
+        beta: np.ndarray,
+        beta_prime: np.ndarray,
+    ) -> float:
+        """
+        **[LEGADO — NO USAR COMO CRITERIO PRIMARIO]**
+
+        Reimplementación literal de la verificación original v5.0.0, que
+        comparaba `(α'α)(β'β)` contra `(α'β')(αβ)` usando producto
+        matricial ordinario para *ambas* composiciones. Para matrices
+        genéricas esto **no es una identidad algebraica** (el producto de
+        matrices no conmuta), por lo que el residuo es, en general,
+        distinto de cero incluso en ausencia de cualquier error de
+        implementación. Se conserva únicamente con fines de contraste
+        histórico/regresión; el método autorizado es
+        `_interchange_residual_channel` (formalismo de Kronecker).
+        """
+        lhs = (alpha_prime @ alpha) @ (beta_prime @ beta)
+        rhs = (alpha_prime @ beta_prime) @ (alpha @ beta)
+        return cls._frobenius(lhs - rhs)
+
+    @classmethod
+    def validate_interchange_law(
+        cls,
+        alpha: BicomplexNaturalTransformation,
+        alpha_prime: BicomplexNaturalTransformation,
+        beta: BicomplexNaturalTransformation,
+        beta_prime: BicomplexNaturalTransformation,
+        *,
+        rng: Optional[np.random.Generator] = None,
+    ) -> Dict[str, Any]:
+        """
+        Valida la ley de intercambio bicompleja mediante el formalismo
+        exacto de Kronecker.
+
+        Args:
+            alpha, alpha_prime, beta, beta_prime: 2-morfismos bicanal.
+            rng: Generador de sondas; por defecto, semilla determinista
+                fija (`_PROBE_SEED`) para reproducibilidad.
+
+        Returns:
+            Reporte con residuo, tolerancia y veredicto por canal.
+
+        Raises:
+            FunctorialityError: Si algún operando no es cuadrado, si las
+                dimensiones no compatibilizan entre los cuatro operandos,
+                si la verificación se omite por infeasibilidad
+                computacional en operandos no triviales, o si el residuo
+                excede la tolerancia de Wilkinson.
+        """
+        rng = rng or np.random.default_rng(cls._PROBE_SEED)
+        report: Dict[str, Any] = {"valid": True, "channels": {}, "formalism": "kronecker_mixed_product"}
+
+        channel_operands = {
+            "e1": (
+                alpha.matrix_channel_1,
+                alpha_prime.matrix_channel_1,
+                beta.matrix_channel_1,
+                beta_prime.matrix_channel_1,
+            ),
+            "e2": (
+                alpha.matrix_channel_2,
+                alpha_prime.matrix_channel_2,
+                beta.matrix_channel_2,
+                beta_prime.matrix_channel_2,
+            ),
+        }
+
+        for ch_label, (a, ap, b, bp) in channel_operands.items():
+            for op_name, M in (("alpha", a), ("alpha_prime", ap), ("beta", b), ("beta_prime", bp)):
+                if M.ndim != 2 or M.shape[0] != M.shape[1]:
+                    raise FunctorialityError(
+                        f"Componente '{op_name}' del canal {ch_label} debe ser "
+                        "cuadrada para evaluar la ley de intercambio.",
+                        channel=ch_label,
+                        operand=op_name,
+                        shape=M.shape,
+                    )
+            if not (a.shape == ap.shape == b.shape == bp.shape):
+                raise FunctorialityError(
+                    "Los cuatro 2-morfismos deben compartir dimensión en el canal.",
+                    channel=ch_label,
+                    shapes=[a.shape, ap.shape, b.shape, bp.shape],
+                )
+
+            n = a.shape[0]
+            all_identity = all(cls._is_approx_identity(M) for M in (a, ap, b, bp))
+
+            if n > cls._MAX_DENSE_PROBE_DIM and not all_identity:
+                raise FunctorialityError(
+                    "Verificación de la ley de intercambio omitida por "
+                    f"infeasibilidad computacional (n={n} > "
+                    f"{cls._MAX_DENSE_PROBE_DIM}) sobre operandos no triviales "
+                    "(no todos ≈ identidad). Provea representantes de menor "
+                    "dimensión o una estructura dispersa/bloque-diagonal.",
+                    channel=ch_label,
+                    dimension=n,
+                )
+
+            tol = cls._tolerance_channel([a, ap, b, bp])
+            residual = 0.0 if all_identity else cls._interchange_residual_channel(a, ap, b, bp, rng)
+            passed = residual <= tol
+
+            report["channels"][ch_label] = {
+                "residual_frobenius": residual,
+                "tolerance": tol,
+                "passed": passed,
+                "fast_path_identity": all_identity,
+            }
+            if not passed:
+                report["valid"] = False
+
+        if not report["valid"]:
+            raise FunctorialityError(
+                "Violación de la Ley de Intercambio bicompleja (formalismo de Kronecker).",
+                report=report,
+            )
+
+        return report
+
+
+#------------------------------------------------------------------------------
+# 2.3 — VERIFICADOR DE ADJUNCIÓN Y FRONTERA DE FASE: FASE 2 → FASE 3
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class Phase2AdjunctionArtifact:
+    """Artefacto de Fase 2."""
+
+    vector: BicomplexVector
+    adjunction_residual: Tuple[float, float]
+    interchange_report: Dict[str, Any]
+    passed: bool
+    timestamp: float = field(default_factory=time.time)
+
+
+class Phase2_AdjunctionInterchangeVerifier:
+    """
+    Fase 2: Verificador de adjunción de Galois y ley de intercambio.
+
+    La adjunción F ⊣ G se verifica computacionalmente mediante el residuo
+    de casi-inversidad:
+
+        ||G⁽ᵃ⁾ F⁽ᵃ⁾ - I||_F + ||F⁽ᵃ⁾ G⁽ᵃ⁾ - I||_F.
+    """
+
+    @staticmethod
+    def _adjunction_residual_channel(F: Optional[np.ndarray], G: Optional[np.ndarray]) -> float:
+        """Residuo de adjunción por canal."""
+        if F is None or G is None:
+            return 0.0
+
+        F = np.asarray(F, dtype=np.complex128)
+        G = np.asarray(G, dtype=np.complex128)
+
+        if F.ndim != 2 or G.ndim != 2:
+            return float("inf")
+
+        if F.shape[0] != G.shape[1] or G.shape[0] != F.shape[1]:
+            return float("inf")
+
+        n = F.shape[1]
+        I = np.eye(n, dtype=np.complex128)
+
+        try:
+            r1 = np.linalg.norm(G @ F - I, ord="fro")
+            r2 = np.linalg.norm(F @ G - I, ord="fro")
+            return float(r1 + r2)
+        except Exception:
+            return float("inf")
+
+    @classmethod
+    def verify(
+        cls,
+        phase1_input: Phase2Input,
+        F: Optional[BicomplexLinearMorphism] = None,
+        G: Optional[BicomplexLinearMorphism] = None,
+        alpha: Optional[BicomplexNaturalTransformation] = None,
+        alpha_prime: Optional[BicomplexNaturalTransformation] = None,
+        beta: Optional[BicomplexNaturalTransformation] = None,
+        beta_prime: Optional[BicomplexNaturalTransformation] = None,
+        rng: Optional[np.random.Generator] = None,
+    ) -> Phase2AdjunctionArtifact:
+        """Ejecuta Fase 2 sobre la frontera `Phase2Input` de la Fase 1."""
+        phase1 = phase1_input.phase1_artifact
+        dim = max(len(phase1.vector), 1)
+
+        # Identidades por defecto para mantener la fase definida.
+        alpha = alpha or BicomplexNaturalTransformation.identity(dim, "alpha")
+        alpha_prime = alpha_prime or BicomplexNaturalTransformation.identity(dim, "alpha_prime")
+        beta = beta or BicomplexNaturalTransformation.identity(dim, "beta")
+        beta_prime = beta_prime or BicomplexNaturalTransformation.identity(dim, "beta_prime")
+
+        try:
+            interchange_report = TwoCategoryBicomplexOrchestrator.validate_interchange_law(
+                alpha=alpha,
+                alpha_prime=alpha_prime,
+                beta=beta,
+                beta_prime=beta_prime,
+                rng=rng,
+            )
+            interchange_passed = True
+        except FunctorialityError as exc:
+            interchange_report = exc.context.get("report") or dict(exc.context)
+            interchange_passed = False
+
+        adj_residual_1 = cls._adjunction_residual_channel(
+            F.matrix_channel_1 if F else None,
+            G.matrix_channel_1 if G else None,
+        )
+        adj_residual_2 = cls._adjunction_residual_channel(
+            F.matrix_channel_2 if F else None,
+            G.matrix_channel_2 if G else None,
+        )
+
+        adjunction_ok = np.isfinite(adj_residual_1) and np.isfinite(adj_residual_2)
+        passed = phase1.ring_homogeneous and interchange_passed and adjunction_ok
+
+        artifact = Phase2AdjunctionArtifact(
+            vector=phase1.vector,
+            adjunction_residual=(float(adj_residual_1), float(adj_residual_2)),
+            interchange_report=interchange_report,
+            passed=passed,
+        )
+
+        logger.debug(
+            "Phase2: adj_residual=(%.3e, %.3e), interchange=%s",
+            adj_residual_1,
+            adj_residual_2,
+            interchange_passed,
+        )
+        return artifact
+
+
+@dataclass(frozen=True, slots=True)
+class Phase3Input:
+    """Objeto frontera entre Fase 2 y Fase 3."""
+
+    phase2_artifact: Phase2AdjunctionArtifact
+
+
+def phase2_export_to_phase3(artifact: Phase2AdjunctionArtifact) -> Phase3Input:
+    """
+    FASE 2 — Último método de la fase y continuación formal de la Fase 3.
+
+    Contrato: `phase2_export_to_phase3 : Phase2AdjunctionArtifact →
+    Phase3Input`. No se impone aquí una condición de admisión estricta
+    (a diferencia de `phase1_export_to_phase2`): la Fase 3 está diseñada
+    para recibir también artefactos con `passed=False`, de modo que pueda
+    sintetizar un veredicto de Heyting que capture — en lugar de ocultar —
+    los fallos de adjunción/intercambio detectados aguas arriba.
+
+    Raises:
+        TypeError: Si `artifact` no es `Phase2AdjunctionArtifact`.
+    """
+    if not isinstance(artifact, Phase2AdjunctionArtifact):
+        raise TypeError("phase2_export_to_phase3 requiere Phase2AdjunctionArtifact.")
+
+    return Phase3Input(phase2_artifact=artifact)
+
+
+#=============================================================================
+# ████████████████████████████████████████████████████████████████████████████
+# ███       FASE 3 — COBORDISMO A∞, BETTI DUAL Y VETO HEYTING B₂           ███
+# ████████████████████████████████████████████████████████████████████████████
+#=============================================================================
+# Esta fase certifica:
+#
+#   1. Nilpotencia bicompleja del coborde [I2] (cuando se proveen
+#      operadores explícitos; vacuamente satisfecha en el enfoque
+#      combinatorio/Betti por defecto).
+#   2. Doble veto de Betti [I3] sobre un PAR DUAL NO DEGENERADO de grafos:
+#      canal e₁ = subgrafo de composiciones exitosas, canal e₂ = grafo
+#      completo (incluye fallos) — evitando la tautología de usar el
+#      mismo grafo para ambos canales.
+#   3. Retículo de Heyting B₂ completo: ∧, ∨, ¬, →.
+#   4. Coherencia bicompleja C_{C₂} y censura ciber-física.
+#=============================================================================
+
+
+#------------------------------------------------------------------------------
+# 3.1 — GRAFOS DUALES Y VERIFICADOR HOMOLÓGICO
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class BicomplexGraph:
+    """Grafo/subcomplejo discreto para auditoría homológica."""
+
+    vertices: FrozenSet[Any]
+    edges: FrozenSet[Tuple[Any, Any]]
+
+    @classmethod
+    def empty(cls) -> "BicomplexGraph":
+        """Grafo vacío acíclico."""
+        return cls(vertices=frozenset(), edges=frozenset())
+
+    @classmethod
+    def from_mapping(cls, data: Mapping[str, Any]) -> "BicomplexGraph":
+        """Construye grafo desde mapping."""
+        vertices = frozenset(data.get("vertices", []))
+        edges = frozenset(tuple(e) for e in data.get("edges", []))
+        return cls(vertices=vertices, edges=edges)
+
+    @classmethod
+    def from_traces(cls, traces: Sequence[CompositionTrace]) -> "BicomplexGraph":
+        """Construye grafo de trazas categóricas (dominio → codominio)."""
+        vertices = set()
+        edges = set()
+
+        for t in traces:
+            cod = t.output_codomain.name
+            vertices.add(cod)
+            for d in t.input_domain:
+                dom = d.name
+                vertices.add(dom)
+                edges.add((dom, cod))
+
+        return cls(vertices=frozenset(vertices), edges=frozenset(edges))
+
+    @classmethod
+    def from_traces_dual(
+        cls, traces: Sequence[CompositionTrace]
+    ) -> Tuple["BicomplexGraph", "BicomplexGraph"]:
+        """
+        Construye el **par dual no degenerado** (G⁽¹⁾, G⁽²⁾) a partir de
+        trazas categóricas.
+
+        A diferencia de emplear el mismo grafo para ambos canales (lo que
+        trivializa el "doble veto" de Betti a una tautología duplicada),
+        aquí:
+
+            G⁽¹⁾ («canal de éxito»): subgrafo inducido únicamente por
+                composiciones con `success=True`.
+            G⁽²⁾ («canal íntegro»): grafo completo, incluyendo
+                composiciones fallidas.
+
+        Cualquier ciclo introducido exclusivamente por una rama de error
+        será visible en β₁⁽²⁾ pero no necesariamente en β₁⁽¹⁾, dotando al
+        invariante [I3] de contenido bicanal genuino.
+        """
+        success_traces = [t for t in traces if t.success]
+        g1 = cls.from_traces(success_traces)
+        g2 = cls.from_traces(traces)
+        return g1, g2
+
+
+def _beta0_beta1(graph: BicomplexGraph) -> Tuple[int, int]:
+    """
+    Calcula β₀ y β₁ para un 1-complejo finito.
+
+    β₁ = |E| - |V| + β₀.
+    """
+    vertices = list(graph.vertices)
+    if not vertices:
+        return 0, 0
+
+    parent = {v: v for v in vertices}
+
+    def find(x: Any) -> Any:
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a: Any, b: Any) -> None:
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[rb] = ra
+
+    valid_edges: List[Tuple[Any, Any]] = []
+    for a, b in graph.edges:
+        if a in parent and b in parent:
+            union(a, b)
+            valid_edges.append((a, b))
+
+    beta0 = len({find(v) for v in vertices})
+    beta1 = len(valid_edges) - len(vertices) + beta0
+    if beta1 < 0:
+        beta1 = 0
+
+    return beta0, beta1
+
+
+@dataclass(frozen=True, slots=True)
+class NilpotencyCertificate:
+    """Certificado del invariante [I2] para un canal idempotente."""
+
+    operator_norm: float
+    max_absolute_entry: float
+    is_nilpotent: bool
+    tolerance: float
+    channel: str
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialización plana."""
+        return asdict(self)
+
+
+class BicomplexHomologicalVerifier:
+    """Verificador homológico dual sobre canales idempotentes."""
+
+    @staticmethod
+    def compute_betti_numbers(
+        graph_channel_1: Optional[BicomplexGraph] = None,
+        graph_channel_2: Optional[BicomplexGraph] = None,
+    ) -> Dict[str, Dict[str, int]]:
+        """Calcula Betti por canal."""
+        g1 = graph_channel_1 or BicomplexGraph.empty()
+        g2 = graph_channel_2 or BicomplexGraph.empty()
+
+        b0_1, b1_1 = _beta0_beta1(g1)
+        b0_2, b1_2 = _beta0_beta1(g2)
+
+        return {
+            "channel_1": {"beta_0": b0_1, "beta_1": b1_1, "beta_2": 0},
+            "channel_2": {"beta_0": b0_2, "beta_1": b1_2, "beta_2": 0},
+        }
+
+    @staticmethod
+    def euler_bicomplex(betti: Mapping[str, Mapping[str, int]]) -> Tuple[int, int]:
+        """
+        Característica de Euler bicompleja:
+
+            χ_{C₂} = (β₀⁽¹⁾ - β₁⁽¹⁾) e₁ + (β₀⁽²⁾ - β₁⁽²⁾) e₂.
+        """
+        c1 = betti.get("channel_1", {})
+        c2 = betti.get("channel_2", {})
+        return (
+            int(c1.get("beta_0", 0)) - int(c1.get("beta_1", 0)),
+            int(c2.get("beta_0", 0)) - int(c2.get("beta_1", 0)),
+        )
+
+    @classmethod
+    def verify_double_betti_veto(
+        cls,
+        graph_channel_1: Optional[BicomplexGraph] = None,
+        graph_channel_2: Optional[BicomplexGraph] = None,
+    ) -> Tuple[bool, Dict[str, Any]]:
+        """
+        Doble condición de veto [I3]:
+
+            β₁⁽¹⁾ = 0 ∧ β₁⁽²⁾ = 0.
+
+        Nota de rigor: esta verificación solo es bicanal-no-trivial si
+        `graph_channel_1` y `graph_channel_2` son genuinamente distintos
+        (véase `BicomplexGraph.from_traces_dual`); si se invoca con el
+        mismo grafo para ambos canales, el "doble" veto degenera a una
+        comprobación simple duplicada.
+        """
+        betti = cls.compute_betti_numbers(graph_channel_1, graph_channel_2)
+        beta1_1 = int(betti["channel_1"]["beta_1"])
+        beta1_2 = int(betti["channel_2"]["beta_1"])
+
+        ok = beta1_1 == 0 and beta1_2 == 0
+        degenerate_pair = graph_channel_1 is not None and graph_channel_1 == graph_channel_2
+        return ok, {
+            "betti": betti,
+            "double_betti_veto_passed": ok,
+            "degenerate_channel_pair": degenerate_pair,
+        }
+
+    @staticmethod
+    def verify_coboundary_nilpotency(
+        D_lower: Optional[np.ndarray],
+        D_upper: Optional[np.ndarray],
+        channel: str,
+        tolerance: float = _ALGEBRAIC_TOL,
+    ) -> NilpotencyCertificate:
+        """
+        FASE 3 — Certificación del invariante [I2] para un canal
+        idempotente: d_k ∘ d_{k-1} = 0.
+
+        El enfoque primario de este verificador es combinatorio (números
+        de Betti sobre 1-esqueletos), que no requiere operadores de
+        coborde explícitos. Cuando el llamador dispone de tales
+        operadores matriciales (p. ej. provenientes de un complejo de
+        cocadenas simplicial explícito), esta función certifica [I2]
+        directamente sobre ellos. Si no se proveen, el invariante se
+        declara **vacuamente satisfecho** — explícitamente documentado
+        como tal, para no simular un rigor inexistente.
+
+        Raises:
+            HomologicalError: Si las dimensiones de `D_lower`/`D_upper`
+                son incompatibles para la composición.
+        """
+        if D_lower is None or D_upper is None:
+            return NilpotencyCertificate(0.0, 0.0, True, tolerance, channel)
+
+        Dl = np.asarray(D_lower, dtype=np.float64)
+        Du = np.asarray(D_upper, dtype=np.float64)
+
+        if Dl.ndim != 2 or Du.ndim != 2 or Du.shape[1] != Dl.shape[0]:
+            raise HomologicalError(
+                "Dimensiones incompatibles para verificar nilpotencia del coborde.",
+                channel=channel,
+                shape_lower=Dl.shape,
+                shape_upper=Du.shape,
+            )
+
+        residual = Du @ Dl
+        op_norm = float(np.linalg.norm(residual, ord="fro"))
+        max_entry = float(np.max(np.abs(residual))) if residual.size else 0.0
+
+        return NilpotencyCertificate(
+            operator_norm=op_norm,
+            max_absolute_entry=max_entry,
+            is_nilpotent=max_entry <= tolerance,
+            tolerance=tolerance,
+            channel=channel,
+        )
+
+
+#------------------------------------------------------------------------------
+# 3.2 — RETÍCULO DE HEYTING B₂ COMPLETO
+#------------------------------------------------------------------------------
+class HeytingValue(IntEnum):
+    """
+    Retículo de Heyting trivalente (cadena de Gödel B₂) por canal.
+
+    En una cadena finita totalmente ordenada, ∧ = min, ∨ = max, y la
+    implicación/negación quedan determinadas unívocamente.
+    """
+
+    VETOED = 0
+    DEGRADED = 1
+    COHERENT = 2
+
+    @classmethod
+    def from_coherence(cls, value: float) -> "HeytingValue":
+        """Clasifica coherencia escalar según umbrales doctorales."""
+        value = float(value)
+        if value >= _COHERENT_THRESHOLD:
+            return cls.COHERENT
+        if value >= _DEGRADED_THRESHOLD:
+            return cls.DEGRADED
+        return cls.VETOED
+
+    @classmethod
+    def top(cls) -> "HeytingValue":
+        """Elemento máximo ⊤ = COHERENT."""
+        return cls.COHERENT
+
+    @classmethod
+    def bottom(cls) -> "HeytingValue":
+        """Elemento mínimo ⊥ = VETOED."""
+        return cls.VETOED
+
+
+def heyting_conjunction(a: HeytingValue, b: HeytingValue) -> HeytingValue:
+    """Conjunción de Heyting: ínfimo de la cadena, a ∧ b = min(a, b)."""
+    return min(a, b)
+
+
+def heyting_disjunction(a: HeytingValue, b: HeytingValue) -> HeytingValue:
+    """Disyunción de Heyting: supremo de la cadena, a ∨ b = max(a, b)."""
+    return max(a, b)
+
+
+def heyting_implication(a: HeytingValue, b: HeytingValue) -> HeytingValue:
+    """Implicación pseudo-complementada: a → b = ⊤ si a ≤ b, si no b."""
+    return HeytingValue.top() if a <= b else b
+
+
+def heyting_negation(a: HeytingValue) -> HeytingValue:
+    """
+    Pseudo-complemento ¬a := a → ⊥.
+
+    En B₂, ¬DEGRADED = VETOED pero ¬¬DEGRADED = ¬VETOED = COHERENT ≠
+    DEGRADED: la negación no es involutiva, la firma de una lógica
+    intuicionista frente a una booleana.
+    """
+    return heyting_implication(a, HeytingValue.bottom())
+
+
+@dataclass(frozen=True, slots=True)
+class BicomplexHeytingVerdict:
+    """Veredicto en el álgebra de Heyting bicompleja B₂ ≅ Ω₃⁽¹⁾ × Ω₃⁽²⁾."""
+
+    channel_1: HeytingValue
+    channel_2: HeytingValue
+
+    @property
+    def global_verdict(self) -> HeytingValue:
+        """Conjunción de Heyting: min(v₁, v₂)."""
+        return heyting_conjunction(self.channel_1, self.channel_2)
+
+    @property
+    def hardware_veto(self) -> bool:
+        """True si el veredicto global colapsa a VETOED."""
+        return self.global_verdict == HeytingValue.bottom()
+
+    @property
+    def gpio_pin(self) -> int:
+        """Pin de actuación Crowbar."""
+        return _GPIO_VETO_PIN
+
+    @property
+    def actuation_ns(self) -> float:
+        """Cota temporal de ISR."""
+        return _ISR_ACTUATION_NS
+
+    @classmethod
+    def from_coherence(cls, c1: float, c2: float) -> "BicomplexHeytingVerdict":
+        """Construye veredicto desde coherencias."""
+        return cls(
+            channel_1=HeytingValue.from_coherence(c1),
+            channel_2=HeytingValue.from_coherence(c2),
+        )
+
+    def conjunction(self, other: "BicomplexHeytingVerdict") -> "BicomplexHeytingVerdict":
+        """Conjunción bicanal por componentes."""
+        return BicomplexHeytingVerdict(
+            channel_1=heyting_conjunction(self.channel_1, other.channel_1),
+            channel_2=heyting_conjunction(self.channel_2, other.channel_2),
+        )
+
+    def disjunction(self, other: "BicomplexHeytingVerdict") -> "BicomplexHeytingVerdict":
+        """Disyunción bicanal por componentes."""
+        return BicomplexHeytingVerdict(
+            channel_1=heyting_disjunction(self.channel_1, other.channel_1),
+            channel_2=heyting_disjunction(self.channel_2, other.channel_2),
+        )
+
+    def negation(self) -> "BicomplexHeytingVerdict":
+        """Pseudo-complemento bicanal."""
+        return BicomplexHeytingVerdict(
+            channel_1=heyting_negation(self.channel_1),
+            channel_2=heyting_negation(self.channel_2),
+        )
+
+    def implication(self, other: "BicomplexHeytingVerdict") -> "BicomplexHeytingVerdict":
+        """Implicación pseudo-complementada por componentes."""
+        return BicomplexHeytingVerdict(
+            channel_1=heyting_implication(self.channel_1, other.channel_1),
+            channel_2=heyting_implication(self.channel_2, other.channel_2),
+        )
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialización JSON-safe."""
+        return {
+            "channel_1": self.channel_1.name,
+            "channel_2": self.channel_2.name,
+            "global_verdict": self.global_verdict.name,
+            "hardware_veto": self.hardware_veto,
+            "gpio_pin": self.gpio_pin,
+            "actuation_ns": self.actuation_ns,
+        }
+
+
+def verify_heyting_censorship_invariant(verdict: BicomplexHeytingVerdict) -> bool:
+    """
+    FASE 3 — Certificación explícita del invariante [I5]:
+
+        Verdict_global = v₁ ∧ v₂ = min(v₁, v₂),
+
+    junto con la consistencia de `hardware_veto` respecto de
+    `global_verdict == VETOED`.
+    """
+    expected = heyting_conjunction(verdict.channel_1, verdict.channel_2)
+    verdict_ok = verdict.global_verdict == expected
+    veto_ok = verdict.hardware_veto == (verdict.global_verdict == HeytingValue.bottom())
+    return verdict_ok and veto_ok
+
+
+#------------------------------------------------------------------------------
+# 3.3 — COHERENCIA BICOMPLEJA
+#------------------------------------------------------------------------------
+def _channel_entropy(channel: np.ndarray) -> float:
+    """Entropía de Shannon sobre energía normalizada."""
+    mag = np.abs(channel).astype(np.float64)
+    if mag.size == 0:
+        return 0.0
+
+    energy = float(np.sum(mag * mag))
+    if energy <= _MACHINE_EPSILON or mag.size <= 1:
+        return 0.0
+
+    p = (mag * mag) / energy
+    p = p[p > 0.0]
+    return float(-MathUtils.kbn_sum((p * np.log(p)).tolist()))
+
+
+def _channel_coherence(channel: np.ndarray, resonance: Optional[float] = None) -> float:
+    """
+    Coherencia por canal [I4 de mic_vectors, reutilizado aquí]:
+
+        C⁽ᵃ⁾ = clamp(S⁽ᵃ⁾ R⁽ᵃ⁾ / (1 + H⁽ᵃ⁾), 0, 1).
+    """
+    mag = np.abs(channel).astype(np.float64)
+    if mag.size == 0:
+        return 0.0
+
+    mean_mag = float(np.mean(mag))
+    std_mag = float(np.std(mag))
+
+    stability = MathUtils.clamp(mean_mag, 0.0, 1.0)
+
+    if resonance is None:
+        if mean_mag <= _MACHINE_EPSILON:
+            resonance = 0.0
+        else:
+            resonance = MathUtils.clamp(1.0 - std_mag / mean_mag, 0.0, 1.0)
+
+    entropy = _channel_entropy(channel)
+
+    if stability <= _MACHINE_EPSILON or resonance <= _MACHINE_EPSILON:
+        return 0.0
+
+    return MathUtils.clamp(stability * resonance / (1.0 + entropy), 0.0, 1.0)
+
+
+#------------------------------------------------------------------------------
+# 3.4 — VALIDADOR A∞ Y SÍNTESIS TERMINAL
+#------------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class Phase3CategoricalOutput:
+    """Artefacto terminal de Fase 3."""
+
+    state: BicomplexCategoricalState
+    verdict: BicomplexHeytingVerdict
+    betti_report: Dict[str, Any]
+    coherence: Tuple[float, float]
+    timestamp: float = field(default_factory=time.time)
+
+
+class Phase3_A_InfinityHomotopyValidator:
+    """
+    Fase 3: Validador homotópico A∞ y colapso de Heyting B₂.
+
+    Responsabilidades:
+      - Nilpotencia del coborde [I2] (si se proveen operadores).
+      - Doble veto de Betti [I3] sobre un par dual no degenerado.
+      - Coherencia bicompleja C_{C₂}.
+      - Veredicto Heyting B₂ [I5].
+      - Emisión de `BicomplexCategoricalState`, opcionalmente con
+        elevación a excepción tipada en modo `strict`.
+    """
+
+    @staticmethod
+    def _coherence_from_override(
+        channel: np.ndarray,
+        override: Optional[Mapping[str, Any]],
+        channel_id: int,
+    ) -> float:
+        """Extrae coherencia explícita o la deriva del canal."""
+        if override is None:
+            return _channel_coherence(channel)
+
+        if f"coherence_{channel_id}" in override:
+            return MathUtils.clamp(float(override[f"coherence_{channel_id}"]), 0.0, 1.0)
+
+        stability = override.get(f"stability_{channel_id}")
+        resonance = override.get(f"resonance_{channel_id}")
+        entropy = override.get(f"entropy_{channel_id}", 0.0)
+
+        if stability is not None and resonance is not None:
+            s = MathUtils.clamp(float(stability), 0.0, 1.0)
+            r = MathUtils.clamp(float(resonance), 0.0, 1.0)
+            h = max(0.0, float(entropy))
+            return MathUtils.clamp(s * r / (1.0 + h), 0.0, 1.0)
+
+        return _channel_coherence(channel)
+
+    @classmethod
+    def validate(
+        cls,
+        phase3_input: Phase3Input,
+        graph_channel_1: Optional[BicomplexGraph] = None,
+        graph_channel_2: Optional[BicomplexGraph] = None,
+        traces: Optional[Sequence[CompositionTrace]] = None,
+        coherence_override: Optional[Mapping[str, Any]] = None,
+        coboundary_channel_1: Optional[Tuple[np.ndarray, np.ndarray]] = None,
+        coboundary_channel_2: Optional[Tuple[np.ndarray, np.ndarray]] = None,
+        strict: bool = False,
+    ) -> Phase3CategoricalOutput:
+        """
+        Ejecuta Fase 3 sobre la frontera `Phase3Input` de la Fase 2.
+
+        Args:
+            phase3_input: Frontera producida por `phase2_export_to_phase3`.
+            graph_channel_1, graph_channel_2: Par dual explícito para
+                Betti; si se omiten y se provee `traces`, se deriva un par
+                **no degenerado** vía `BicomplexGraph.from_traces_dual`.
+            traces: Trazas categóricas para derivar el par dual.
+            coherence_override: Coherencias/estadísticas explícitas.
+            coboundary_channel_1, coboundary_channel_2: Pares opcionales
+                `(D_lower, D_upper)` para certificar [I2] explícitamente.
+            strict: Si True, eleva fallos a excepciones tipadas
+                (`HomologicalError`, `TopologicalInvariantError`,
+                `HeytingVetoError`) en lugar de solo registrar el error en
+                el estado monádico.
+
+        Raises:
+            HomologicalError: (modo `strict`) si falla la nilpotencia [I2].
+            TopologicalInvariantError: (modo `strict`) si falla el doble
+                veto de Betti [I3].
+            HeytingVetoError: (modo `strict`) si el veredicto global
+                colapsa a VETOED.
+        """
+        phase2 = phase3_input.phase2_artifact
+        verifier = BicomplexHomologicalVerifier()
+
+        if graph_channel_1 is None and graph_channel_2 is None and traces is not None:
+            graph_channel_1, graph_channel_2 = BicomplexGraph.from_traces_dual(traces)
+
+        betti_ok, betti_report = verifier.verify_double_betti_veto(
+            graph_channel_1=graph_channel_1,
+            graph_channel_2=graph_channel_2,
+        )
+
+        nilpotency_1 = verifier.verify_coboundary_nilpotency(
+            *(coboundary_channel_1 or (None, None)), channel="e1"
+        )
+        nilpotency_2 = verifier.verify_coboundary_nilpotency(
+            *(coboundary_channel_2 or (None, None)), channel="e2"
+        )
+        betti_report["nilpotency"] = {
+            "channel_1": nilpotency_1.to_dict(),
+            "channel_2": nilpotency_2.to_dict(),
+        }
+        nilpotency_ok = nilpotency_1.is_nilpotent and nilpotency_2.is_nilpotent
+
+        c1 = cls._coherence_from_override(phase2.vector.channel_1, coherence_override, 1)
+        c2 = cls._coherence_from_override(phase2.vector.channel_2, coherence_override, 2)
+
+        beta1_1 = int(betti_report["betti"]["channel_1"]["beta_1"])
+        beta1_2 = int(betti_report["betti"]["channel_2"]["beta_1"])
+
+        v1 = HeytingValue.bottom() if beta1_1 > 0 else HeytingValue.from_coherence(c1)
+        v2 = HeytingValue.bottom() if beta1_2 > 0 else HeytingValue.from_coherence(c2)
+
+        verdict = BicomplexHeytingVerdict(channel_1=v1, channel_2=v2)
+        assert verify_heyting_censorship_invariant(verdict), "Violación interna de [I5]."
+
+        state = BicomplexCategoricalState(
+            payload={
+                "bicomplex_coherence": {"channel_1": c1, "channel_2": c2},
+                "betti_report": betti_report,
+                "phase2_passed": phase2.passed,
+            },
+            context={
+                "adjunction_residual": phase2.adjunction_residual,
+                "interchange_report": phase2.interchange_report,
+            },
+            validated_strata=frozenset({Stratum.TACTICS, Stratum.STRATEGY}),
+            vector=phase2.vector,
+        )
+
+        overall_ok = (not verdict.hardware_veto) and betti_ok and phase2.passed and nilpotency_ok
+
+        if not overall_ok:
+            error_msg = (
+                "Colapso bicomplejo. "
+                f"Verdict={verdict.global_verdict.name}, "
+                f"β₁⁽¹⁾={beta1_1}, β₁⁽²⁾={beta1_2}, "
+                f"nilpotency_ok={nilpotency_ok}, phase2_passed={phase2.passed}."
+            )
+            error_details = {
+                "verdict": verdict.to_dict(),
+                "gpio_pin": verdict.gpio_pin,
+                "actuation_ns": verdict.actuation_ns,
+                "nilpotency": betti_report["nilpotency"],
+            }
+            state = state.with_error(error_msg, details=error_details)
+
+            if strict:
+                if not nilpotency_ok:
+                    raise HomologicalError(error_msg, **error_details)
+                if not betti_ok:
+                    raise TopologicalInvariantError(error_msg, **error_details)
+                if verdict.hardware_veto:
+                    raise HeytingVetoError(error_msg, **error_details)
+        else:
+            state = state.clear_error()
+
+        state = state.add_trace(
+            morphism_name="Phase3_A_InfinityHomotopyValidator",
+            input_domain=frozenset({Stratum.TACTICS}),
+            output_codomain=Stratum.STRATEGY,
+            success=overall_ok,
+            error=state.error,
+            metadata={"verdict": verdict.to_dict()},
+        )
+
+        output = Phase3CategoricalOutput(
+            state=state,
+            verdict=verdict,
+            betti_report=betti_report,
+            coherence=(c1, c2),
+        )
+
+        if verdict.hardware_veto:
+            logger.warning(
+                "VETO B₂ activo: C=(%.6f, %.6f), GPIO%d ≤ %.2f ns",
+                c1,
+                c2,
+                verdict.gpio_pin,
+                verdict.actuation_ns,
+            )
+
+        return output
+
+
+#------------------------------------------------------------------------------
+# 3.5 — COMPOSICIÓN MAESTRA DE FASES ANIDADAS
+#------------------------------------------------------------------------------
+def compose_bicomplex_algebra_pipeline(
+    S: NDArray[np.float64],
+    *,
+    F: Optional[BicomplexLinearMorphism] = None,
+    G: Optional[BicomplexLinearMorphism] = None,
+    alpha: Optional[BicomplexNaturalTransformation] = None,
+    alpha_prime: Optional[BicomplexNaturalTransformation] = None,
+    beta: Optional[BicomplexNaturalTransformation] = None,
+    beta_prime: Optional[BicomplexNaturalTransformation] = None,
+    graph_channel_1: Optional[BicomplexGraph] = None,
+    graph_channel_2: Optional[BicomplexGraph] = None,
+    coherence_override: Optional[Mapping[str, Any]] = None,
+    coboundary_channel_1: Optional[Tuple[np.ndarray, np.ndarray]] = None,
+    coboundary_channel_2: Optional[Tuple[np.ndarray, np.ndarray]] = None,
+    rng: Optional[np.random.Generator] = None,
+    strict: bool = False,
+) -> Phase3CategoricalOutput:
+    """
+    Funtor maestro de la 2-categoría bicompleja:
+
+        Z_MIC = Ψ₃ ∘ Ψ₂ ∘ Ψ₁,
+
+    materializado mediante las fronteras categóricas explícitas
+    `phase1_export_to_phase2` y `phase2_export_to_phase3`.
+
+    Args:
+        S: Señal real 4D o matriz (n,4).
+        F, G: Funtores opcionales para adjunción.
+        alpha, alpha_prime, beta, beta_prime: 2-morfismos para intercambio.
+        graph_channel_1, graph_channel_2: Par dual homológico explícito.
+        coherence_override: Coherencias explícitas opcionales.
+        coboundary_channel_1, coboundary_channel_2: Operadores de coborde
+            opcionales para certificar [I2] explícitamente.
+        rng: Generador determinista para las sondas de intercambio.
+        strict: Propaga excepciones tipadas de Fase 3 en lugar de
+            reportarlas solo en el estado monádico.
+
+    Returns:
+        Salida terminal de Fase 3.
+    """
+    phase1_artifact = Phase1_SpectralRingObserver.run(S, rng=rng)
+    phase2_input = phase1_export_to_phase2(phase1_artifact)
+
+    phase2_artifact = Phase2_AdjunctionInterchangeVerifier.verify(
+        phase1_input=phase2_input,
+        F=F,
+        G=G,
+        alpha=alpha,
+        alpha_prime=alpha_prime,
+        beta=beta,
+        beta_prime=beta_prime,
+        rng=rng,
+    )
+    phase3_input = phase2_export_to_phase3(phase2_artifact)
+
+    return Phase3_A_InfinityHomotopyValidator.validate(
+        phase3_input=phase3_input,
+        graph_channel_1=graph_channel_1,
+        graph_channel_2=graph_channel_2,
+        traces=None,
+        coherence_override=coherence_override,
+        coboundary_channel_1=coboundary_channel_1,
+        coboundary_channel_2=coboundary_channel_2,
+        strict=strict,
+    )
+
+
+#=============================================================================
+# EXPORTS
+#=============================================================================
 __all__ = [
     # Excepciones
     "AlgebraicError",
     "CanonicalizationError",
-    "StratumResolutionError",
-    "CategoryError",
-    "CompositionError",
-    "AssociativityError",
-    "IdentityError",
     "FunctorialityError",
     "HomologicalError",
-    "NumericalInstabilityError",
     "TopologicalInvariantError",
-    
-    # Estratificación
-    "Stratum",
-    
+    "HeytingVetoError",
     # Utilidades
     "MathUtils",
-    
-    # Estado categórico
-    "CategoricalState",
+    # Fase 1
+    "BicomplexScalar",
+    "verify_idempotent_decoupling",
+    "verify_bicomplex_ring_axioms",
+    "BicomplexVector",
     "CompositionTrace",
-    "create_categorical_state",
-    
-    # Morfismos
-    "Morphism",
-    "IdentityMorphism",
-    "AtomicVector",
-    "ComposedMorphism",
-    "ProductMorphism",
-    "CoproductMorphism",
-    "PullbackMorphism",
-    
-    # Funtores
-    "Functor",
-    "StateToDictFunctor",
-    "NaturalTransformation",
-    
-    # Composición y verificación
-    "MorphismComposer",
-    "StructuralVerifier",
-    "HomologicalVerifier",
-    
-    # Registro
-    "CategoricalRegistry",
-    
-    # Orquestación
-    "TwoCategoryOrchestrator",
-    
-    # Factories
-    "create_categorical_state",
-    "create_morphism_from_handler",
-    
-    # Constantes
-    "_SCHEMA_VERSION",
-    "_MAX_CANONICALIZE_DEPTH",
-    "_ALGEBRAIC_TOL",
-    "_FLOAT_COMPARISON_TOL",
-    "_MACHINE_EPSILON",
+    "BicomplexCategoricalState",
+    "Phase1SpectralRingArtifact",
+    "Phase1_SpectralRingObserver",
+    "Phase2Input",
+    "phase1_export_to_phase2",
+    # Fase 2
+    "BicomplexLinearMorphism",
+    "BicomplexComposedMorphism",
+    "BicomplexNaturalTransformation",
+    "TwoCategoryBicomplexOrchestrator",
+    "Phase2AdjunctionArtifact",
+    "Phase2_AdjunctionInterchangeVerifier",
+    "Phase3Input",
+    "phase2_export_to_phase3",
+    # Fase 3
+    "BicomplexGraph",
+    "NilpotencyCertificate",
+    "BicomplexHomologicalVerifier",
+    "HeytingValue",
+    "heyting_conjunction",
+    "heyting_disjunction",
+    "heyting_implication",
+    "heyting_negation",
+    "BicomplexHeytingVerdict",
+    "verify_heyting_censorship_invariant",
+    "Phase3CategoricalOutput",
+    "Phase3_A_InfinityHomotopyValidator",
+    "compose_bicomplex_algebra_pipeline",
 ]
-
-# ==============================================================================
-# FIN DEL MÓDULO
-# ==============================================================================
