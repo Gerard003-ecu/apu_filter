@@ -9,7 +9,7 @@ r"""
 SINOPSIS MATEMÁTICA Y GEOMÉTRICA DE DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
 Ejerce la censura de primer nivel sobre el foso de la obra en la Malla Agéntica
-de APU Filter v5.0. Evalúa la regularidad y conectividad espectral del
+de APU Filter. Evalúa la regularidad y conectividad espectral del
 grafo de presupuesto $G = (V, E)$ mediante dos aduanas de control de calibre:
 
 ADUANA 1: CURVAS HETEROGEOMORFAS DE AUDITORÍA ESPECTRAL (CONNES)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Audit Vectors (Proyector de Coherencia Topológica y Entropía)      ║
+║ Módulo : Audit Vectors (Proyector de Coherencia Topológica y Entropía)       ║
 ║ Ruta   : app/adapters/audit_vectors.py                                       ║
 ║ Versión: 4.0.0-Tactical-Homological-Fiedler-Entropy-Strict-Doctoral          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝

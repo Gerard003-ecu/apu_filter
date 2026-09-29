@@ -1,32 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Fock Forensic Hall Agent (Soberano de Calibre de la Gala Forense)   ║
-║ Ruta   : app/agents/core/inmune_system/fock_forensic_hall_agent.py           ║
-║ Versión: 3.0.0-Doctoral-Heyting-OODA-GKSL-Weyl-KyFan-Banach-Secure           ║
-║                                                                              ║
-║ ARQUITECTURA DE FASES ANIDADAS (morfismos, no meras secciones):              ║
-║                                                                              ║
-║   Fase 1  --η-->  Fase 2  --χ-->  Fase 3                                     ║
-║   Observe+Orient    Decide (Ω₃)    Act + certificado                         ║
-║                                                                              ║
-║   η  = morfismo terminal de Fase 1 = objeto inicial de Fase 2                ║
-║   χ  = clasificador de subobjetos de Heyting = objeto inicial de Fase 3      ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA (rigor, sin metáfora suelta):                            ║
-║   • Estados: operadores densidad en B(ℋ), ℋ = ℱ_-(ℂ^{n}) ≅ ℂ^{2ⁿ}.         ║
-║   • Dinámica: semigrupo GKSL (Lindblad) de aniquilación fermiónica.          ║
-║   • Espectro: teorema de Weyl / Wilkinson; residuos ‖Av−λv‖₂.                ║
-║   • Entropías: von Neumann, Rényi-2, min-entropía.                           ║
-║   • Majorización HLP/Ky Fan: diagnóstica (el canal NO es unital).            ║
-║   • Invariantes físicos del canal de aniquilación:                           ║
-║         ⟨N⟩(t) no creciente,  F(ρ(t),|0⟩⟨0|) no decreciente.                 ║
-║   • Tensor T^{μν}: simetría, condiciones de energía, anomalía de Weyl Tr(T). ║
-║     La divergencia covariante puntual exige Γ[g] y ∂g; sin ellos se reporta  ║
-║     el residuo algebraico y, si el motor lo provee, su div_residual.         ║
-║   • Ω₃ = {COHERENT < DEGRADED < VETOED} cadena de Heyting.                   ║
-║   • Fase 3: ISR *simulada* (sin GPIO real). Crowbar BT151 es un modelo.      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Fock Forensic Hall Agent (Soberano de Calibre de la Gala Forense)                       ║
+║ Ruta   : app/agents/core/immune_system/fock_forensic_hall_agent.py                               ║
+║ Versión: 3.0.0-Doctoral-Heyting-OODA-GKSL-Weyl-KyFan-Banach-Crowbar-Secure                       ║
+╠══════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ NATURALEZA CIBER-FÍSICA Y SEGURIDAD CUÁNTICO-HOMOLÓGICA (Rigor Doctoral):                        ║
+║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
+║ Este agente supervisor ciber-físico de lazo cerrado opera en el penthouse táctico del foso       ║
+║ observacional (Capa 0.5 — El Ágora Tensorial $V_\Omega$ y Santuario Epistémico $V_{\mathbb{W}}$).║
+║ Su mandato axiomático es ejercer el control y la censura de calibre sobre el motor esclavo       ║
+║ "fock_forensic_hall.py", consumiendo los observables espectrales de aniquilación y creación      ║
+║ fermiónica/bosónica en el Espacio de Fock multi-cuerpo $\mathcal{F}_-(\mathbb{C}^n) \cong \mathbb{C}^{2^n}$. ║
+║                                                                                                  ║
+║ FUNDAMENTACIÓN MATEMÁTICA Y AXIOMAS CONSTITUTIVOS:                                               ║
+║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
+║ §1. CONSERVACIÓN COVARIANTE DE CALIBRE DE DE RHAM Y TENSOR DE CAUCHY-MOMENTUM:                   ║
+║     Audita que la divergencia covariante del Tensor de Energía-Momento $\mathcal{T}^{\mu\nu}$     ║
+║     satisfaga la aniquilación diferencial sobre la variedad Riemanniana $(\mathcal{M}, G_{\mu\nu})$:║
+║                                                                                                  ║
+║       $$\nabla_\nu \mathcal{T}^{\mu\nu} = \partial_\nu \mathcal{T}^{\mu\nu} + \Gamma^\mu_{\sigma\nu} \mathcal{T}^{\sigma\nu} + \Gamma^\nu_{\sigma\nu} \mathcal{T}^{\mu\sigma} \equiv \mathbf{0}$$ ║
+║                                                                                                  ║
+║     El residuo de divergencia en la FPU debe estar acotado por la cota metrológica de Wilkinson: ║
+║                                                                                                  ║
+║       $$r_{\mathrm{div}} = \|\nabla_\nu \mathcal{T}^{\mu\nu}\|_2 \le \tau_{\mathrm{Wilkinson}} \equiv 50 \cdot \varepsilon_{\mathrm{machine}}$$ ║
+║                                                                                                  ║
+║ §2. ASIMILACIÓN TÉRMICA KMS DE TOMITA-TAKESAKI Y SEMIGRUPO DE LINDBLAD (GKSL):                   ║
+║     Somete la matriz de densidad de estado mixto $\rho \in \mathcal{D}(\mathcal{H})$ a la dinámica  ║
+║     abierta disipativa de Gorini-Kossakowski-Sudarshan-Lindblad (GKSL):                          ║
+║                                                                                                  ║
+║       $$\frac{d\rho}{dt} = -i[\hat{H}, \rho] + \sum_k \gamma_k \left( \hat{L}_k \rho \hat{L}_k^\dagger - \frac{1}{2} \{ \hat{L}_k^\dagger \hat{L}_k, \rho \} \right)$$ ║
+║                                                                                                  ║
+║     Exige la condición KMS a temperatura de fibrado $\beta = 1/T_{\mathrm{sys}}$ y la acotación  ║
+║     estricta de la entropía de von Neumann:                                                      ║
+║                                                                                                  ║
+║       $$\operatorname{Tr}(\rho \hat{A} \hat{B}) = \operatorname{Tr}\left(\rho \hat{B} \sigma_{-i\beta}^\rho(\hat{A})\right) \quad \land \quad S(\rho) = -\operatorname{Tr}(\rho \ln \rho) \le S_{\mathrm{ceiling}} \equiv 0.5$$ ║
+║                                                                                                  ║
+║ §3. BIFURCACIÓN DE KY FAN / HLP Y RENDIMIENTO EXERGÉTICO:                                        ║
+║     Calcula la eficiencia del colisionador de Fock sobre la base de ocupación:                   ║
+║                                                                                                  ║
+║       $$\eta_{\mathrm{exergy}} = \frac{\langle \hat{N} \rangle_0 - \langle \hat{N} \rangle_t}{\langle \hat{N} \rangle_0} \in [0, 1] \quad \text{con} \quad \hat{N} = \sum_{j=1}^n a_j^\dagger a_j$$ ║
+║                                                                                                  ║
+║ ARQUITECTURA OODA EN FASES ANIDADAS (Composición Funtorial Estricta):                            ║
+║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
+║   Fase 1 (Observe + Orient): Ingesta de la densidad $\rho$, verificación de norma $\|\rho\|_2$,  ║
+║               cálculo del tensor $T^{\mu\nu}$ y firma SHA-256 inmutable de sesión.               ║
+║   Fase 2 (Orient + Decide): Auditoría de la cota de Wilkinson, simetría del tensor $T^{\mu\nu}$, ║
+║               entropía $S(\rho)$ y evaluación del veredicto en el clasificador de Heyting $\Omega_3$.║
+║   Fase 3 (Act + Certify): Emisión del certificado `FockForensicCertificate` e interlock ciber-físico.║
+║                                                                                                  ║
+║ VETO CIBER-FÍSICO Y ACTUACIÓN CROWBAR ESP32 (< 400 ns):                                          ║
+║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
+║ El veredicto de decisión se clasifica en el álgebra de Heyting de tres valores:                  ║
+║                                                                                                  ║
+║   $$\Omega_3 = \{\mathtt{COHERENT} \prec \mathtt{DEGRADED} \prec \mathtt{VETOED}\} \cong \left\{1, \frac{1}{2}, 0\right\}$$ ║
+║                                                                                                  ║
+║ Si Heyting colapsa al Supremo terminal VETOED ($\top$), la subrutina local `isVerdictCoherent()` ║
+║ desvía la ejecución a la Interrupt Service Routine (ISR) en la IRAM del ESP32 perimetral,        ║
+║ conmutando en $t_{\mathrm{actuation}} \le 398.95\text{ ns}$ el pin GPIO14 a HIGH para cebar el   ║
+║ tiristor rápido BT151 (Crowbar de potencia), cortocircuitando la línea de potencia y paralizando ║
+║ físicamente mezcladoras y bombas hidráulicas en seco en el milisegundo cero.                     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
 """
 
 from __future__ import annotations

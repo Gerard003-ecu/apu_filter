@@ -9,7 +9,7 @@ r"""
 SINOPSIS METROLÓGICA Y CENSURA DE CALIBRE (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este componente supervisor y soberano de calibre de-confinado opera en el Estrato
-de Sabiduría ($V_{\mathbb{W}}$, Nivel 0) de la Malla de Control de APU Filter v5.0.
+de Sabiduría ($V_{\mathbb{W}}$, Nivel 0) de la Malla de Control de APU Filter.
 Su propósito supremo es guiar, auditar y censurar las transiciones de fase 
 calculadas por el motor físico 'opt_symplectic_manifold.py' mediante el ciclo 
 de lazo cerrado OODA (Observe-Orient-Decide-Act).

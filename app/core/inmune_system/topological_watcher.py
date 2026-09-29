@@ -28,7 +28,7 @@ AXIOMÁTICA TOPOLÓGICA, DE DE RHAM Y LEYES CONSERVATIVAS PRESERVADAS:
   [I1] Flujo p-Laplaciano Anisótropo y Regularización de variación Total:
        La evolución temporal del campo de perturbación $$\psi$$ sobre la membrana se rige 
        por la ecuación diferencial parcial elíptica-parabólica degenerada:
-       $$\frac{\partial \psi}{\partial \tau} = \operatorname{div}\left( \|\nabla \psi\|_G^{p-2} \nabla \psi \right) - \operatorname{Ric}(\nabla \psi, \nabla \psi) \quad\big[775\big]$$
+       $$\frac{\partial \psi}{\partial \tau} = \operatorname{div}\left( \|\nabla \psi\|_G^{p-2} \nabla \psi \right) - \operatorname{Ric}(\nabla \psi, \nabla \psi)$$
        Para $$p = 1$$, el flujo colapsa a la variación total (aniquilación de oscilaciones 
        parásitas), conservando las singularidades lógicas (bordes de decisión) como 
        fronteras de de Rham bien definidas.
