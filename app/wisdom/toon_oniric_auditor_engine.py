@@ -10,7 +10,7 @@ r"""
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
 ───────────────────────────────────────────────
 El `TOONOniricAuditorEngine` constituye el motor espectral de auditoría topológica y 
-evaluación de la Teoría de Campos Topológicos Quantum (TQFT) sobre los escenarios 
+evaluación de la Teoría Cuántica de Campos Topológicos (TQFT) sobre los escenarios 
 sintéticos contrafactuales generados durante la fase REM del ecosistema APU Filter v8.0.
 
 Sea $(\mathcal{M}_{\mathrm{REM}}, \omega)$ una subvariedad simpléctica $2n$-dimensional que 
