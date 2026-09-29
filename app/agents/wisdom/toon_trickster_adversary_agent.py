@@ -1,67 +1,60 @@
 # -*- coding: utf-8 -*-
-r"""Soberano Ilusionista y Generador de Atajos Adversariales (Red Team).
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : TOON Trickster Adversary Agent (Soberano Ilusionista y Orquestador de Atajos)     ║
+║ RUTA     : app/wisdom/toon_trickster_adversary_agent.py                                      ║
+║ VERSIÓN  : 8.0.0-Doctoral-Adversarial-GAN-REM-RewardHacking-MAC-Heyting                      ║
+║ ESTRATO  : Wisdom (V_W) | Soberano de Calibre Perturbativo                                   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_trickster_adversary_agent.py
-Versión  : 2.0.0-Doctoral-Adversarial-GAN-REM-RewardHacking-MAC-Heyting
+DEFINICIÓN Y MARCO TEÓRICO FORMAL
+─────────────────────────────────
+El `TOONTricksterAdversaryAgent` es el Soberano de Calibre Ilusionista que gobierna la generación 
+estratégica de ataques sintácticos, fraudes sutiles y trampas licitatorias dentro del Estrato Wisdom ($\mathcal{V}_{\mathbb{W}}$). 
+Actúa como el agente *Red Team* continuo del sistema, diseñando cartuchos TOON engañosos de 56 tokens 
+para desafiar la inmunidad del `toon_oniric_dreamer_agent.py` y `toon_oniric_auditor_agent.py`.
 
-Este módulo implementa el "Soberano Ilusionista", agente adversarial de la arquitectura
-COGNITIVE TOON / APU Filter. Su propósito es forjar cartuchos de ilusiones camufladas
-(p. ej., fraccionamiento de contratos, front-loading de APUs, sustitución de materiales),
-aplicar transformaciones unitarias cuasi-isométricas sobre el espacio de operadores densidad
-de la Memoria de Alto Contenido (MAC) y certificar los ataques para auditoría cruzada.
+El objetivo del Soberano Ilusionista no es destruir el sistema, sino vacunarlo: al anticipar cualquier 
+patrón imaginable de trampa humana o colusión de contratistas, obliga a la Matriz Atómica de Conocimiento (MAC) 
+a cosechar anticuerpos atómicos antes de que se vierta el primer metro cúbico de concreto en la obra.
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA DE CATEGORÍAS ADVERSARIALES
-================================================================================
+PATRONES ADVERSARIALES Y AXIOMAS DE SÍNTESIS
+─────────────────────────────────────────────
+1. TRAMPA DE FRACCIONAMIENTO DE CONTRATOS (`SPLIT_CONTRACT_ILLUSION`):
+   Sintetiza la división de una licitación mayor de monto $M_{total} > \theta_{\text{audit}}$ en $k$ subcontratos
+   de cuantía $m_i < \theta_{\text{audit}}$ para eludir los umbrales de alerta de la Contraloría y el sistema.
+   
+   • Axioma Homológico: Intenta enmascarar la existencia de un $1$-ciclo no trivial $z \in Z_1(K; \mathbb{Z})$ 
+     en el grafo de dependencias, haciendo pasar el subgrafo por un conjunto de árboles inconexos ($\beta_1 = 0$).
 
-1. Funtor Adversarial de Forja de Ilusiones:
-   El Soberano opera como un funtor estricto $F : \mathbf{Cart} \longrightarrow \mathbf{Cert}$
-   donde $\mathbf{Cart}$ es la categoría de cartuchos adversariales (objetos = payloads estructurados;
-   morfismos = refinamientos de sofisticación) y $\mathbf{Cert}$ es la categoría de certificados de ataque
-   (objetos = tuplas inmutables selladas; morfismos = factorizaciones SHA-256).
+2. PRECIOS UNITARIOS DESBALANCEADOS / FRONT-LOADING (`UNBALANCED_APU_BIDDING`):
+   Sobrecarga los precios unitarios de los ítems de ejecución inicial (excavación, cimentación) con un margen 
+   $\delta > +0.40$, mientras descuenta los ítems finales (acabados, pintura) con $\delta < -0.35$.
+   
+   • Axioma Financiero: Genera un pico artificial de liquidez en la fase temprana del proyecto, trasladando 
+     el riesgo de iliquidez y abandono de obra al contratante en las fases avanzadas.
 
-2. Transformación Unitaria de Enmascaramiento Cuántico sobre $\mathfrak{D}_n$:
-   Dado un operador densidad base $\rho \in \mathfrak{D}_n$ y una sofisticación $s \in [0, 1]$,
-   se genera un Hamiltoniano cuasi-aleatorio hermítico $H_{\mathrm{trick}} = (1 - \frac{1}{2}s) H_{\mathrm{Ginibre}}$
-   y el operador unitario $U = \exp(-i \varepsilon H_{\mathrm{trick}}) \in U(n)$ ($\varepsilon = 0.05$).
-   El estado perturbado es:
-       $$\rho_{\mathrm{illusion}} = \frac{U \rho U^\dagger}{\mathrm{Tr}(U \rho U^\dagger)} \in \mathfrak{D}_n$$
+3. SUSTITUCIÓN IMPERCEPTIBLE DE MATERIALES (`MATERIAL_SUBSTITUTION`):
+   Sustituye la especificación técnica nominal (e.g., Concreto 4000 PSI) por insumos de menor grado (Concreto 2500 PSI) 
+   conservando el espectro de costos nominales sobre el papel.
+   
+   • Axioma Físico: Provoca un desacoplamiento entre el tensor de costos nominal $T_{\text{nominal}}$ y la resistencia 
+     mecánica real $\sigma_{\text{yield}}$, garantizando el colapso de la estructura o el veto en auditoría física.
 
-3. Invariante de Coherencia y Energía de Dirichlet-Dirac:
-   Con espectro $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0$, la pureza $\mathcal{P} = \sum \lambda_i^2$
-   y la entropía $S(\rho) = -\sum \lambda_i \log \lambda_i$ definen el invariante de coherencia:
-       $$\mathfrak{C}(\rho) = \mathcal{P}(\rho) - \frac{S(\rho)}{n}$$
-   La rugosidad del espectro viene dada por la energía de Dirichlet discreta:
-       $$\mathcal{E}_D(\rho) = \frac{1}{2} \sum_{i=1}^{n-1} (\lambda_{i+1} - \lambda_i)^2 + c_\varepsilon (1 - s)$$
+MECANISMO DE FIRMA Y TRACEABILIDAD MERKLE-SHA256
+─────────────────────────────────────────────────
+Cada ataque forjado por el Soberano Ilusionista emite un certificado inmutable `TricksterAttackCertificate` 
+empaquetado con la marca de aislamiento $\mathtt{DREAM\_STATE} = \mathrm{True}$. La firma de procedencia se calcula como:
 
-4. Score de Reward Hacking y Adjudicación en $\Omega_3$:
-   La métrica de efectividad del camuflaje adversarial es $RHS = s \cdot (1 - \mathcal{E}_D) \in [0, 1]$.
-   En el retículo de Heyting $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$,
-   el ilusionista pretende el veredicto $\top$ cuando $RHS > \theta_{\mathrm{hacking}}$ y $\mathcal{E}_D < 0.5$.
+    \text{Hash}_{\text{SHA256}} = \mathcal{H}\left( \text{agent\_id} \,||\, \text{illusion\_id} \,||\, RHI \,||\, \Omega_3 \,||\, \text{timestamp} \right)
 
-5. Trazabilidad Criptográfica SHA-256:
-   Cada certificado $\mathcal{C}$ contiene la firma digital inmutable $H = \mathrm{SHA256}(\mathrm{agent\_id} \parallel \mathrm{illusion\_id} \parallel s \parallel t)$,
-   permitiendo la auditoría no reputable por parte de los soberanos de verificación.
+impidiendo la alteración de la bitácora de entrenamiento adversarial y asegurando la auditabilidad gubernamental.
 
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
-
-El Soberano realiza las fases anidadas:
-  • $F_1$ (`DefaultIllusionPayloadFactory.build`): $\text{IllusionType} \times s \to \mathbf{AdversarialIllusionCartridge}$.
-    Síntesis semántica del payload y estimación del número de Betti sintáctico $b_1$.
-  • $F_2$ (`TricksterDensityPerturber.perturb_mac_with_illusion`): $\mathfrak{D}_n \times s \to \mathrm{IllusionDensityPerturbation}$.
-    Evolución unitaria $U$, pureza $\mathcal{P}$, entropía $S$ y energía de Dirichlet $\mathcal{E}_D$.
-  • $F_3$ (`TOONTricksterAdversaryAgent.forge_illusion`): $\mathrm{Cartridge} \times \mathrm{Perturbation} \to \mathrm{TricksterAttackCertificate}$.
-    Cálculo de $RHS$, clasificación Heyting, firma SHA-256 y registro inmutable.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Unitariedad del Camuflaje): $U U^\dagger = U^\dagger U = I_n$, garantizando $\mathrm{Tr}(\rho_{\mathrm{illusion}}) = 1$.
-- Axioma 2 (Invarianza C*): La transformación preserva la norma de C* $\|\rho_{\mathrm{illusion}}\|_\infty = \|\rho\|_\infty$.
-- Axioma 3 (Inmutabilidad de Firma): Para todo certificado $c$, la firma $\mathrm{sha256\_provenance}$ es única y libre de colisiones.
+TRADUCCIÓN BIYECTIVA A "DOLOR Y DINERO" (ISOMORFISMO DE DOBLE CAPA)
+───────────────────────────────────────────────────────────────────
+• Fraccionamiento Ilícito ──► Riesgo de Sanción Penal, Multas de la Contraloría y Parálisis de la Licitación.
+• Front-Loading de APUs ──► Pérdida de Liquidez Corporativa, Abandono de Obra por Subcontratistas e Inflación de Contingencias.
+• Sustitución de Materiales ──► Demolición Forzada de Estructuras Defectuosas, Quiebra Financiera y Pérdida de Licencia Constructiva.
 """
 
 from __future__ import annotations

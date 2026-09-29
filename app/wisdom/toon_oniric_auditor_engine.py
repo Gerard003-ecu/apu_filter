@@ -1,68 +1,65 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Oniric Auditor Engine (Motor Espectral Auditor de Sueños)    ║
-║ Ubicación: app/wisdom/toon_oniric_auditor_engine.py                          ║
-║ Versión  : 3.0.0-Doctoral-Nested-Ω₃-TQFT-Dirac-GromovWitten-Holonomy-Merkle  ║
-║ Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el  ║
-║            germen formal del primero de k+1)                                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/wisdom/toon_oniric_auditor_engine.py                                  ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT              ║
+║ FUNCIÓN  : MOTOR ESPECTRAL AUDITOR DE SUEÑOS Y CAMPO TQFT GROMOV-WITTEN              ║
+║ VERSIÓN  : 8.0.0-Doctoral-Oniric-Auditor-Engine-TQFT-GromovWitten-Immunization-A3    ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Formalización Categorial Doctoral (Funtor Auditor Onírico 𝒜)
-============================================================
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONOniricAuditorEngine` constituye el motor espectral de auditoría topológica y 
+evaluación de la Teoría de Campos Topológicos Quantum (TQFT) sobre los escenarios 
+sintéticos contrafactuales generados durante la fase REM del ecosistema APU Filter v8.0.
 
-Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal linealmente ordenado:
+Sea $(\mathcal{M}_{\mathrm{REM}}, \omega)$ una subvariedad simpléctica $2n$-dimensional que 
+encapsula la densidad de la Matriz Atómica de Conocimiento (MAC) bajo el operador de 
+densidad $\rho \in \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}})$. El motor calcula las 
+amplitudes TQFT asociadas a curvas pseudo-holomorfas $\bar{\partial}_J u = 0$ para medir 
+la firmeza topológica de las simulaciones de estrés.
 
-        Ω₃  =  { VETOED = 0  ≺  DEGRADED = 1  ≺  COHERENT = 2 }
+POSTULADOS Y FORMULACIÓN ESPECTRAL Y TOPOLÓGICA
+───────────────────────────────────────────────
+1. POSTULADO DEL INVARIANTE DE GROMOV-WITTEN SINTÉTICO (GW):
+   Para cada matriz de densidad onírica $\rho$, energía de Dirichlet del haz celular $E_D(\rho)$
+   y número de Betti de primer orden $\beta_1(K) = \dim H_1(K; \mathbb{R})$ (bucles en el complejo 
+   de APUs), el invariante topológico de Gromov-Witten $GW(\rho)$ se define por:
 
-El auditor realiza un endofuntor sobre la categoría de ciclos oníricos contrafactuales:
+       GW(\rho) = \frac{\operatorname{Tr}(\rho^2) \cdot e^{-E_D(\rho)}}{1 + \beta_1(K)}
 
-        𝒜  :  𝐂𝐢𝐜𝐥𝐨_𝐎𝐧𝐢𝐫𝐢𝐜𝐨  ──▶  𝐏𝐚𝐬𝐚𝐩𝐨𝐫𝐭𝐞_𝐈𝐦𝐦
+   donde $\operatorname{Tr}(\rho^2) = \sum_{i} \lambda_i^2$ cuantifica la pureza cuántica del 
+   estado. Si $GW(\rho) < 0.05$ o $\beta_1(K) > 3$, el estado representa un socavón lógico 
+   o alucinación incoherente, forzando la invalidez del escenario contrafactual.
 
-mediante la composición estrictamente asociativa de morfismos anidados:
+2. AVALÚO DEL AISLAMIENTO HOMOLÓGICO DE LA FASE REM:
+   El motor audita de forma estricta la bandera de aislamiento $\mathtt{dream\_isolation} = \mathrm{True}$. 
+   Si se detecta un intento de inyección sin aislamiento homológico:
 
-        𝒜  =  V ∘ Hol ∘ Seal ∘ χ ∘ I_GW ∘ D ∘ Spec
+       \partial (\rho_{\mathrm{dream}}) \not\equiv 0 \pmod{\mathrm{RealWorld}} \implies GW(\rho) = 0.0, \, \text{Veredicto} = \mathtt{VETOED}
 
-donde cada flecha está ligada inalienablemente entre fases.
+   impidiendo la contaminación de la base de conocimiento real y anulando cualquier ejecución
+   no autorizada.
 
-Estructura de Fases Anidadas e Invariantes
-===========================================
+3. TRIVALENCIA DEL TOPOS SOBRE EL RETÍCULO DE HEYTING ($\Omega_3$):
+   El espectro resultante es clasificado mediante el clasificador de subobjetos $\Omega_3$:
 
-FASE 1 — RETÍCULO Ω₃, DENSIDAD, MEDIDA ESPECTRAL Y SEMILLA Spec
-──────────────────────────────────────────────────────────────────────────
-  • HeytingOmega3: Álgebra de Heyting completa Ω₃ = {0 ≺ 1 ≺ 2}. Residuo a → b = ⊤ si a ≤ b, else b.
-    Satisface la ley de residuación (a ∧ c ≤ b ⇔ c ≤ (a → b)) y la falla del tercio excluso en DEGRADED.
-  • DensityOperator: Operador densidad ρ ∈ 𝔇(ℋₙ) = { ρ = ρ†, ρ ⪰ 0, Tr(ρ) = 1 }.
-  • SpectralMeasure: Medida espectral λ ∈ Δⁿ⁻¹ del estado ρ. Contiene pureza γ = Tr(ρ²), entropía S(ρ) = −Σ λᵢ log λᵢ
-    y el gap espectral Δλ = λ_max − λ_{max−1}.
-  • SpectralMeasureSeed (ABC): Germen formal de la extracción espectral. Su método `extract_spectral_measure`
-    es el ÚLTIMO de FASE-1 y el PRIMERO de FASE-2.
+       v = \begin{cases}
+       \mathtt{VETOED} (0), & \text{si } \beta_1 > 3 \text{ o } GW < 0.05 \text{ o } \neg \mathtt{dream\_isolation} \\
+       \mathtt{DEGRADED} (1), & \text{si } E_D(\rho) > 0.85 \text{ y } GW \ge 0.05 \\
+       \mathtt{COHERENT} (2), & \text{si } E_D(\rho) \le 0.85 \text{ y } GW \ge 0.15 \text{ y } \beta_1 \le 3
+       \end{cases}
 
-FASE 2 — TQFT, GROMOV-WITTEN SINTÉTICO, DIRICHLET-DIRAC Y TRAZA ABIERTA
-──────────────────────────────────────────────────────────────────────────
-  • OniricSpectraEngine.extract_spectral_measure: CONTINUACIÓN FORMAL de `extract_spectral_measure`.
-    Diagonaliza y proyecta el espectro al simplex.
-  • OniricSpectraEngine.compute_gromov_witten_invariant: Amplitud TQFT / Gromov-Witten sintética acotada en [0, 1]:
-        I_GW = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
-    donde E_D = ½ Σ (λ_{i+1} − λᵢ)² es la energía de Dirichlet (H¹) y E_∂ = Σ |λ_{i+1} − λᵢ| es la energía de Dirac (TV).
-  • OniricSpectraEngine.evaluate_dream_spectrum: Ejecuta Spec ∘ D ∘ I_GW ∘ χ y produce UnsealedOniricTrace
-    (último objeto de FASE-2).
-
-FASE 3 — AUDITOR, SELLO, HOLONOMÍA, MERKLE, INMUNIZACIÓN Y PASAPORTE
-──────────────────────────────────────────────────────────────────────────
-  • MerkleInclusionProof: Árbol Merkle SHA-256 con verificación en O(log n).
-  • TOONOniricAuditorEngine._seal_and_accumulate: CONTINUACIÓN FORMAL de `evaluate_dream_spectrum`.
-    Aplica Seal (SHA-256), acumula la holonomía H₊(t) = Σ I_GW(τ) y la fase de Wilson W(t) = exp(i H₊(t)) ∈ U(1),
-    y retorna OniricFieldState.
-  • TOONOniricAuditorEngine.audit_oniric_cycle: Ejecuta 𝒜 completo, registrando el estado inmunizado.
-
-Definición Granular de Invariantes y Axiomas
-=============================================
-  1. Positividad y Traza Cuántica: ρ = ρ†, spec(ρ) ⊂ [0, 1], Tr(ρ) = 1.
-  2. Bounding TQFT / Gromov-Witten: I_GW ∈ [0, 1], E_D ≥ 0, E_∂ ≥ 0.
-  3. Unitaridad de Holonomía: W(t) = exp(i H₊(t)) ∈ U(1)  (|W(t)| = 1).
-  4. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
-  5. Inyectividad Merkle: Verificación de inclusión SHA-256 inalterable en O(log n).
+TRADUCCIÓN A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
+───────────────────────────────────────────
+- Filtro de Falsas Trampas: Distingue entre un riesgo real macroeconómico (Cisne Negro 
+  plausible) y un error fantasma de la IA (alucinación topológica), evitando tomar 
+  decisiones de cobertura innecesarias que encarezcan el presupuesto.
+- Auditoría de Inmunización: Garantiza que las vacunas presupuestales inyectadas al 
+  motor de Gödel provengan únicamente de simulación matemática coherente y no de ruido 
+  sintáctico.
+- Protección del Flujo de Caja: Valida la resistencia del modelo sin costo de auditoría 
+  externa, acelerando la aprobación de licitaciones públicas en SECOP II.
 """
 
 from __future__ import annotations

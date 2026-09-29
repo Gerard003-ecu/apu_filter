@@ -1,68 +1,56 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Calibre del Cultivo Cognitivo Dinámico.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/agents/wisdom/toon_cognitive_crop_agent.py                            ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / CULTIVO COGNITIVO                   ║
+║ FUNCIÓN  : SOBERANO DEL CULTIVO COGNITIVO Y GOBERNADOR DEL CAMPO DE SABIDURÍA        ║
+║ VERSIÓN  : 8.0.0-Doctoral-Crop-Agent-Sovereign-HarvestYield-MAC-Heyting-A3           ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py
-Versión  : 2.2.0-Doctoral-Nested-Banach-U(n)-Rényi-MAC-Merkle
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONCognitiveCropAgent` actúa como el Soberano de Calibre encargado de gobernar el 
+campo de cultivo cognitivo, supervisar la germinación de semillas de sabiduría y autorizar 
+la inoculación de la cosecha limpia dentro de los pesos de la Matriz Atómica de Conocimiento (MAC).
 
-Este módulo implementa el "Soberano del Cultivo Cognitivo", agente encargado de
-cultivar, purificar y calibrar estados semilla (Seed Crystals) en la Memoria de
-Alto Contenido (MAC) de la arquitectura COGNITIVE TOON / APU Filter.
+Administra el ciclo de transformación endofuntorial sobre el topos de haces $\mathcal{T}_\Omega$:
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y ESPACIOS BANACH / HILBERT
-================================================================================
+    [ Testigo Silencioso ] ──► [ Semilla de Experiencia ] ──► [ Soberano del Cultivo ] ──► [ Inoculación MAC ]
 
-1. Espacio de Estados Densidad y Álgebra de Banach:
-   El estado semilla se representa sobre la C*-álgebra $M_n(\mathbb{C})$ mediante el compacto convexo
-   $$\mathfrak{D}_n = \{ \rho \in M_n(\mathbb{C}) : \rho = \rho^\dagger, \, \rho \ge 0, \, \mathrm{Tr}(\rho) = 1 \}$$
-   La pureza se define como $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) = \|\rho\|_2^2$, la entropía de von Neumann
-   como $S(\rho) = -\mathrm{Tr}(\rho \log \rho)$, y la entropía de Rényi como $S_\alpha(\rho) = \frac{1}{1-\alpha} \log \mathrm{Tr}(\rho^\alpha)$.
+POSTULADOS Y GOBERNANZA AGÉNTICA DEL CAMPO
+──────────────────────────────────────────
+1. POSTULADO DE LA RENDIMIENTO Y COSECHA DE SABIDURÍA (Harvest Yield):
+   El Soberano evalúa el rendimiento neto de la germinación $\Delta Y_{\mathrm{crop}}$ mediante 
+   la ganancia de pureza atómica y la reducción de entropía de von Neumann:
 
-2. Módulo de Riego y Reducción de Grasa Sintáctica (Shannon + BPE):
-   Dado un texto en formato TOON y su equivalente en JSON, la reducción de grasa sintáctica $\Delta_{\mathrm{gr}}$ es:
-       $$\Delta_{\mathrm{gr}} = 100 \cdot \left[ w_T \left(1 - \frac{t_{\mathrm{toon}}}{t_{\mathrm{json}}}\right) + w_H \left(1 - \frac{H_{\mathrm{toon}}}{H_{\mathrm{json}}}\right) \right]$$
-   donde $t_x = \lceil |x|/4 \rceil$ es la estimación de tokens BPE y $H_x$ es la entropía de Shannon en bits.
+       \Delta \operatorname{Tr}(\rho^2) = \operatorname{Tr}(\rho_{\mathrm{purified}}^2) - \operatorname{Tr}(\rho_{\mathrm{seed}}^2) > 0
+       \Delta S(\rho) = S(\rho_{\mathrm{purified}}) - S(\rho_{\mathrm{seed}}) < 0
 
-3. Módulo de Luz (Flujo Isospectral de Brockett y Sharpening de Rényi):
-   La evolución isospectral en el grupo unitario $U(n)$ bajo la función de Lyapunov $L(\rho) = \mathrm{Tr}(\rho N)$
-   ($N = \mathrm{diag}(1, 2, \dots, n)$) es:
-       $$\frac{d\rho}{dt} = [\rho, [\rho, N]]$$
-   Seguida por la transformación de Rényi $U(n)$-equivariante $\Phi_\alpha(\rho) = \frac{\rho^\alpha}{\mathrm{Tr}(\rho^\alpha)}$ ($\alpha \ge 1$),
-   que incrementa la pureza de forma monótona.
+   Solo las cosechas con $\Delta \operatorname{Tr}(\rho^2) > 0$ y veredicto $\mathtt{COHERENT}$ en $\Omega_3$ 
+   son inoculadas en la memoria persistente MAC.
 
-4. Módulo de Disciplina (Contracción de Banach en $\mathfrak{u}(n)$ y Canal MAC):
-   En la linealización $T_\eta(\rho) = \rho - \eta [\rho, [\rho, K_\rho]]$, el radio espectral en $\mathfrak{u}(n)$ es:
-       $$\rho(T_\eta) = \max_{i \ne j} |1 - \eta \cdot g_{ij}|, \quad g_{ij} = (\lambda_i - \lambda_j) \log\left(\frac{\lambda_i}{\lambda_j}\right) \ge 0$$
-   Para el canal convexo de la MAC $\Phi_\gamma(\rho) = (1-\gamma)\rho + \gamma \rho_{\mathrm{target}}$, la constante de Lipschitz es
-   $\mathrm{Lip}_{\|\cdot\|_1}(\Phi_\gamma) = |1 - \gamma| < 1$.
+2. EVALUACIÓN Y RETÍCULO DE HEYTING TRIVALENTE ($\Omega_3$):
+   El veredicto final del cultivo se clasifica dentro de la cadena finita del álgebra de Heyting:
 
-5. Adjudicación de Heyting $\Omega_3$ y Pasaporte de Gobernanza Merkle:
-   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
-   aplica meet ($\land$) sobre los indicadores de Riego, Luz, Disciplina y la auditoría de vacío.
-   Las cosechas se firman mediante árboles de Merkle SHA-256.
+       \Omega_3 = \{ \mathtt{VETOED} = 0 \prec \mathtt{DEGRADED} = 1 \prec \mathtt{COHERENT} = 2 \}
 
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
+   Si el cultivo es clasificado como $\mathtt{VETOED}$, el Soberano aborta la inoculación, marca la 
+   semilla como infértil y activa la bandera de interlock ciber-físico.
 
-El Soberano opera como la composición estricta del funtor $F$:
-    $$F : \mathbf{SeedCrystal} \times \Sigma^* \times \Sigma^* \longrightarrow \mathbf{CropHarvestYield} \times \mathbf{Passport}$$
-    $$F = F_3 \circ F_2 \circ F_1$$
+3. PASAPORTE DE GOBERNANZA GLOBAL DEL CAMPO Y FIRMA MERKLE-SHA256:
+   Para cada ciclo de cosecha, el Soberano emite un pasaporte global inmutable 
+   `CropSovereignGovernancePassport`, firmado mediante la cadena de custodia criptográfica:
 
-  • $F_1$ (`SeedHandoff.build`): $\mathbf{SeedCrystal} \times \mathbf{MAC} \to \mathrm{SeedHandoff}$.
-    Sanitización $C^*$, proyección sobre $\mathfrak{D}_n$, espectro modular $K_\rho$ y verificación del estado fundamental.
-  • $F_2$ (`CropGrowthPipeline.synthesize`): $\mathrm{SeedHandoff} \to \mathrm{CropGrowthBundle}$.
-    Riego sintáctico $\Delta_{\mathrm{gr}}$, flujo de Brockett en $U(n)$, sharpening $\Phi_\alpha$ y radio de Banach $\rho(T_\eta)$.
-  • $F_3$ (`TOONCognitiveCropAgent._phase3_harvest`): $\mathrm{CropGrowthBundle} \to \mathrm{CropHarvestYield}$.
-    Adjudicación en $\Omega_3$, inoculación afín $\Phi_\gamma$, crowbar ESP32 si $\bot$ y pasaporte Merkle.
+       \mathrm{ProofHash} = \operatorname{SHA-256}\Big( \mathrm{SovereigntyID} \mathbin{\Vert} \mathrm{HarvestCount} \mathbin{\Vert} \mathrm{HeytingVerdict} \mathbin{\Vert} \Delta Y_{\mathrm{crop}} \Big)
 
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Isotonicidad de Brockett): La purificación preserva el espectro $\sigma(\rho_t) = \sigma(\rho_0)$ con $\dot{L} = \|[\rho, N]\|_F^2 \ge 0$.
-- Axioma 2 (Contracción de Banach): $\rho(T_\eta) < 1$ para todo $\eta < 2 / g_{\max}$.
-- Axioma 3 (Coherencia Lógica del Vacío): Si se declara $\mathrm{is\_vacuum\_pure} = \mathrm{True}$ pero $F(\rho, |\Omega\rangle\langle\Omega|) \le 1 - \varepsilon$, se marca $\mathrm{false\_vacuum\_claim} = \mathrm{True}$ y el veredicto es $\bot (\mathrm{VETOED})$.
+TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
+──────────────────────────────────────
+- Garantía de Cosecha Limpia: Se asegura de que la empresa solo aprenda de obras ejecutadas con 
+  costos sanos, evitando repetir errores de cotización o sobrecostos históricos.
+- Blindaje del Flujo de Caja: La inoculación limpia perfecciona los algoritmos de predicción 
+  de insumos, protegiendo el margen de utilidad operativa de la constructora.
+- Gobernanza e Inviolabilidad Jurídica: Emisión inmutable de pasaportes de campo para respaldar 
+  la transparencia en auditorías de la Contraloría, DIAN y aseguradoras.
 """
 
 from __future__ import annotations

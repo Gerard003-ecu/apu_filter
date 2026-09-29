@@ -1,71 +1,65 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : TOON Oniric Dreamer Engine (Motor Espectral y Campo Metabolizador)║
-║ UBICACIÓN: app/wisdom/toon_oniric_dreamer_engine.py                          ║
-║ VERSIÓN  : 4.0.0-Doctoral-Nested-Ω₄-Hodge-GKSL-Richardson-MerkleTopos        ║
-║ AUTOR    : APU Wisdom & Metacortex Mathematical Core Architecture            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : toon_oniric_dreamer_engine.py                                             ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
+║ FUNCIÓN  : MOTOR ESPECTRAL ONÍRICO Y CAMPO DE SIMULACIÓN CONTRAFACTUAL               ║
+║ VERSIÓN  : 8.0.0-Doctoral-Oniric-REM-Contrafactual-DensityMatrix-A3                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Formalización Categorial Doctoral (Funtor Onírico REM 𝒟)
-========================================================
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONOniricDreamerEngine` constituye el motor espectral de simulación de escenarios 
+contrafactuales de alta entropía dentro de la fase REM (Rapid Eye Movement) del sistema
+de Automejora Recursiva (RSI Nivel 2 — Darwin-Gödel).
 
-Sea 𝓣_Ω el topos de haces sobre la cadena de Heyting tetravaluada:
+Sea $(\mathcal{H}_{\mathrm{MAC}}, \langle \cdot, \cdot \rangle)$ el espacio de Hilbert 
+complejo $n$-dimensional asociado a la Matriz Atómica de Conocimiento (MAC). El motor 
+onírico genera evoluciones estocásticas no hermíticas sobre el cono de operadores densidad:
 
-        Ω₄  =  { ABSURDUM_VETOED = 0 ≺ BOUNDARY_DEGRADED = 1 ≺ TOPOLOGICAL_SOUND = 2 ≺ VERUM_COHERENT = 3 }
+    \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}}) = \{ \rho \in \mathcal{B}(\mathcal{H}_{\mathrm{MAC}}) \mid \rho = \rho^\dagger, \, \rho \ge 0, \, \operatorname{Tr}(\rho) = 1 \}
 
-El motor realiza una simulación onírica contrafactual y síntesis inmunológica mediante el funtor:
+POSTULADOS Y FORMULACIÓN ESPECTRAL ONÍRICA
+──────────────────────────────────────────
+1. POSTULADO DE AISLAMIENTO HOMOLÓGICO Y FASE REM (DREAM_STATE = True):
+   Para todo operador densidad proyectado en la fase REM $\rho_{\mathrm{dream}}$, la 
+   evolución ocurre en la subvariedad contrafactual $\mathcal{M}_{\mathrm{REM}} \subset \mathcal{H}_{\mathrm{MAC}}$ 
+   sellada por el invariante homológico de contención:
+   
+       \partial (\rho_{\mathrm{dream}}) \equiv 0 \pmod{\mathrm{RealWorld}}, \quad \mathtt{is\_dream\_state} = \mathrm{True}
 
-        𝒟  :  𝐒𝐜𝐞𝐧𝐚𝐫𝐢𝐨_𝐑𝐄𝐌  ──▶  𝐃𝐫𝐞𝐚𝐦_𝐑𝐞𝐩𝐨𝐫𝐭
+   Este aislamiento garantiza que la inyección de estrés contrafactual (e.g. cisnes negros,
+   devaluaciones masivas, fallas geotécnicas extremo) no active disparos espurios en el 
+   disyuntor ciber-físico ESP32 Crowbar del mundo real.
 
-componiendo de forma estrictamente asociativa las tres fases anidadas:
+2. ECUACIÓN DE EVOLUCIÓN ONÍRICA Y PERTURBACIÓN DE LINDBLAD CONTRAFACTUAL:
+   La dinámica de los sueños contrafactuales está gobernada por la ecuación maestra de 
+   Lindblad no unitaria balanceada:
 
-        𝒟  =  V ∘ I ∘ Φ_t ∘ H ∘ K
+       \frac{d\rho_{\mathrm{dream}}}{dt} = -i [H_{\mathrm{base}} + H_{\mathrm{contrafactual}}, \rho_{\mathrm{dream}}] + \sum_{k} \gamma_k \left( L_k \rho_{\mathrm{dream}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\mathrm{dream}} \} \right)
 
-donde el último morfismo de la fase k es el germen formal de la fase k+1.
+   donde $H_{\mathrm{contrafactual}}$ introduce variaciones extremas de la volatilidad 
+   macroeconómica y $L_k$ representa los operadores de salto asociados a perturbaciones
+   improbables pero físicamente admisibles (Cisnes Negros).
 
-Estructura de Fases Anidadas e Invariantes
-===========================================
+3. MÉTRICA DE DIVERGENCIA Y MEDIDA DE ENTROPÍA DE SHANNON-VON NEUMANN:
+   Para cada escenario onírico generado, el motor evalúa la inyección de entropía espectral:
 
-FASE 1 — RETÍCULO Ω₄, HEYTING, CUATERNIONES ℍ, HODGE SIMPLICIAL Y SEMILLA H
-──────────────────────────────────────────────────────────────────────────
-  • HeytingTruthValue: Álgebra de Heyting completa tetravaluada Ω₄. Satisface la residuación
-    a ∧ c ≤ b  ⇔  c ≤ (a → b). Pseudocomplemento ¬_H a = a → ⊥.
-  • Quaternion: Álgebra de división ℍ ≅ Cl⁺_{0,3}(ℝ) con inmersión ℍ ↪ M₂(ℂ) vía Pauli.
-    Álgebra de composición |q₁ q₂| = |q₁| |q₂|, C*-identidad |q* q| = |q|² y fibración de Hopf S³ → S².
-  • SimplicialHodgeComplex: 2-complejo de cadenas simplicial K = (V, E, F) con ∂₁∂₂ = 0.
-    Invariantes de Hodge: βₖ = dim ker L▖, Euler-Poincaré χ = β₀ − β₁ + β₂, y descomposición de Hodge C₁ = im ∂₂ ⊕ im ∂₁ᵀ ⊕ ker L₁.
-  • NonReciprocalCircuitField: Red AC no recíproca sobre K. Satisface la conservación de Tellegen Σ_e v_e i_e* = V† I
-    y el margen de pasividad λ_min((Y_b + Y_b†)/2) ≥ −ε.
-  • TopologicalCircuitBundle: Objeto terminal de FASE-1. Su método `lift_hamiltonian` es el ÚLTIMO de FASE-1
-    y el PRIMERO de FASE-2.
+       S(\rho_{\mathrm{dream}}) = -\operatorname{Tr}(\rho_{\mathrm{dream}} \ln \rho_{\mathrm{dream}})
 
-FASE 2 — ÁLGEBRAS C*/BANACH, GKSL ADAPTATIVO, CFT DE CUERDAS Y ESTADO METABOLIZADO
-──────────────────────────────────────────────────────────────────────────
-  • BanachOperatorAlgebra: Estructura C* sobre B(ℋₙ). Proyección al simplex 𝔇(ℋₙ), entropía S(ρ) = −Tr(ρ log₂ ρ),
-    pureza P(ρ) = Tr(ρ²), relativa de Umegaki S(ρ‖σ) ≥ 0, fidelidad F(ρ,σ) y distancia Bures d_B.
-  • PolyakovWorldsheetMetrics: Acción bosónica S_P[X,h] con reducción del parámetro modular τ al dominio
-    fundamental ℱ de PSL(2,ℤ).
-  • LindbladCFTMasterEvolver: CONTINUACIÓN FORMAL de `lift_hamiltonian`. Integra la ecuación GKSL:
-        dρ/dt = −i[H, ρ] + Σ_k γ_k (L_k ρ L_k† − ½ {L_k† L_k, ρ})
-    mediante RK4 adaptativo + duplicación + Richardson (orden 5) + proyección a 𝔇(ℋₙ).
-  • MetabolizedFieldState.create_metabolized_state: ÚLTIMO método de FASE-2. Evalúa la coherencia metabólica
-    M = P(ρ) · exp(−E_D/κ_E) · exp(−S_rel/κ_S) y asigna el veredicto Ω₄.
+   y la distancia de Bures-Wasserstein respecto a la densidad base $\rho_0$:
 
-FASE 3 — INMUNIZACIÓN ESPECTRAL, MERKLE, WAKE-SLEEP Y REGISTRO
-──────────────────────────────────────────────────────────────────────────
-  • SpectralImmuneVaccineSynthesizer.synthesize_from_metabolized_state: PRIMER MORFISMO DE FASE-3 (continúa
-    `create_metabolized_state`). Construye el proyector de inmunidad P_vac = Σ_{i=1}^k |v_i⟩⟨v_i| sobre la masa espectral.
-  • MerkleInclusionProof: Árbol Merkle SHA-512 sobre las hojas de firma para verificación en O(log n).
-  • TOONOniricDreamerEngine: Orquestador soberano que ejecuta el ciclo REM y las fases Wake-Sleep.
+       d_B(\rho_0, \rho_{\mathrm{dream}})^2 = \operatorname{Tr}(\rho_0) + \operatorname{Tr}(\rho_{\mathrm{dream}}) - 2 \operatorname{Tr}\left( \left( \rho_0^{1/2} \rho_{\mathrm{dream}} \rho_0^{1/2} \right)^{1/2} \right)
 
-Definición Granular de Invariantes y Axiomas
-=============================================
-  1. Exactitud Simplicial: ∂₁ ∂₂ = 0  (‖∂₁∂₂‖_F = 0).
-  2. Invariante de Euler-Poincaré: χ = β₀ − β₁ + β₂ = |V| − |E| + |F|.
-  3. Positividad y Traza Cuántica: ρ = ρ†, spec(ρ) ⊂ [0, 1], Tr(ρ) = 1.
-  4. Idempotencia del Proyector Vacunal: P_vac² = P_vac = P_vac† (‖P_vac² − P_vac‖_F ≈ 0).
-  5. Adjunción de Heyting: ∀ a,b,c ∈ Ω₄: (c ∧ a ≤ b) ⇔ (c ≤ (a → b)).
+MAPPING A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
+─────────────────────────────────────────
+- Estrés Macro sin Riesgo de Capital: Permite someter el presupuesto a escenarios de 
+  devaluación (+45%), aumentos de insumos (+60%) o huelgas prolongadas sin desembolsar un solo 
+  peso real en la obra.
+- Blindaje de la Tasa WACC: Reduce la prima de riesgo al preparar al sistema contra eventos de 
+  cola gorda (Fat-Tail Events) antes de que la licitación sea ejecutada.
+- Prevención de Falsas Alertas: Evita la parálisis de obra por falsos positivos, restringiendo 
+  los experimentos al ecosistema REM aislado.
 """
 
 from __future__ import annotations

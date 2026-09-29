@@ -1,66 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║  TOON Intuition Engine — Motor Espectral de la Intuición Flash                ║
-║  Ubicación: app/wisdom/toon_intuition_engine.py                               ║
-║  Versión  : 2.2.0-Doctoral-Nested-Bures-Dirichlet-BB-Grassmann-Merkle         ║
-║  Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el   ║
-║            germen formal del primero de k+1)                                  ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/wisdom/toon_intuition_engine.py                                       ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / ATRACTOR ESPECTRAL FLASH            ║
+║ FUNCIÓN  : MOTOR ESPECTRAL DE LA INTUICIÓN FLASH Y CAMPO ATRACTOR EN HILBERT         ║
+║ VERSIÓN  : 8.0.0-Doctoral-Intuition-Engine-SpectralAttractor-Frobenius-A3            ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Formalización Categorial Doctoral (Funtor de Intuición Flash F)
-================================================================
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONIntuitionEngine` constituye el sustrato continuo de campo atractor dentro del 
+espacio de Hilbert de la Matriz Atómica de Conocimiento ($\mathcal{H}_{\mathrm{MAC}}$). 
+Su objetivo es proyectar instantáneamente las semillas de sabiduría cosechadas por el 
+Soberano del Cultivo Cognitivo sobre la variedad de decisiones estables $\mathcal{M}_{\mathrm{decision}}$.
 
-Sea 𝓣_Ω el topos de haces con clasificador Ω₃ = { VETOED = 0 ≺ DEGRADED = 1 ≺ COHERENT = 2 }.
-El motor proyecta reflejos de intuición relámpago mediante el funtor:
+Sea $(\mathcal{H}_{\mathrm{MAC}}, \langle \cdot, \cdot \rangle)$ el espacio de Hilbert 
+complejo $n$-dimensional de densidad operacional:
 
-        F  :  M_n(ℂ) × Gr(r, n)  ──▶  IntuitiveFieldState
+    \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}}) = \left\{ \rho \in \mathcal{B}(\mathcal{H}_{\mathrm{MAC}}) \;\middle|\; \rho = \rho^\dagger, \, \rho \ge 0, \, \operatorname{Tr}(\rho) = 1 \right\}
 
-mediante la composición estrictamente asociativa de tres fases anidadas:
+El motor de intuición no resuelve la ecuación diferencial completa de Schrödinger o Lindblad,
+sino que efectúa una contracción relámpago basada en la distancia de Frobenius hacia la base 
+ortonormal de referencia de la variedad estable $U_{\mathrm{basis}} \in U(n)$:
 
-        F  =  Certify ∘ FlashPipeline ∘ Prepare
+    \Pi_{\mathcal{M}}(\rho) = U_{\mathrm{basis}} \left( U_{\mathrm{basis}}^\dagger \rho \right)
 
-donde el tipo de retorno del último método de la fase k es el dominio inalienable de la fase k+1.
+POSTULADOS Y FORMULACIÓN ESPECTRAL FLASH
+────────────────────────────────────────
+1. POSTULADO DE DISTANCIA GEODÉSICA DE FROBENIUS RELÁMPAGO:
+   Para toda matriz de densidad germinada $\rho_{\mathrm{germinated}}$, la desviación 
+   métrica con respecto al subespacio invariante de estabilidad se define por la norma:
 
-Estructura de Fases Anidadas e Invariantes
-===========================================
+       d_{\mathcal{M}}(\rho, \Pi_{\mathcal{M}}(\rho)) = \|\rho - \Pi_{\mathcal{M}}(\rho)\|_F = \sqrt{\operatorname{Tr}\left( (\rho - \Pi_{\mathcal{M}}(\rho))^\dagger (\rho - \Pi_{\mathcal{M}}(\rho)) \right)}
 
-FASE 1 — SUSTRATO GEOMÉTRICO (RETÍCULO, VARIEDAD Y GRASSMANNIANA)
-──────────────────────────────────────────────────────────────────────────
-  • HeytingOmega3: Retículo de Heyting completo Ω₃. Residuo a → b = ⊤ si a ≤ b, else b.
-    Satisface residuación (a ∧ c ≤ b ⇔ c ≤ (a → b)) y falla del tercio excluso en DEGRADED.
-  • DensityOperatorAlgebra: Operadores en 𝔇_n. Métrica geodésica de Bures d_B(ρ,σ) = √(2 − 2√F(ρ,σ)),
-    fidelidad de Uhlmann F(ρ,σ) = [Tr √(√ρ σ √ρ)]² y proyección afín no expansiva `sanitize`.
-  • SubspaceGeometry: Subespacio Gr(r, n) representado por B ∈ St(r, n) y proyector P = B B† = P² = P†.
-  • IntuitionFieldPreparation.prepare: Morfismo de hand-off FASE 1 ⟶ FASE 2. Construye `GeometricSeed`
-    con el atractor estático ρ_target = P ρ P / Tr(P ρ P) (último objeto/método de FASE-1).
+   La proyección se ejecuta en una ventana temporal ultra-reducida de latencia 
+   $\Delta \tau_{\mathrm{flash}} < 10\,\mu\mathrm{s}$.
 
-FASE 2 — DINÁMICA DE DIRICHLET, BURES Y SOLVER BARZILAI-BORWEIN
-──────────────────────────────────────────────────────────────────────────
-  • FlashDirichletFunctional: Funcional de energía de Dirichlet E[ρ] = ½ ‖ρ − P ρ P‖_F² con gradiente
-    ∇E|_T = (ρ − P ρ P) − (Tr(ρ − P ρ P)/n) I ∈ T_ρ 𝔇_n. Hessiano Lip_F(∇E) ≤ 1.
-  • BuresGeodesicMetric: Geodésica de Bures–Wasserstein γ(t) = [(1−t)I + t C] ρ [(1−t)I + t C].
-  • FlashAttractorSolver.descend: Minimización BB1/BB2 con salvaguardas de Armijo y proyección Higham:
-        BB1: η = ⟨s,s⟩/⟨s,y⟩,    BB2: η = ⟨s,y⟩/⟨y,y⟩.
-  • IntuitionFlashPipeline.synthesize: Compone descend + Bures + landscape, emitiendo `IntuitionTrajectoryBundle`
-    (último objeto/método de FASE-2).
+2. ENERGÍA DEL ATRACTOR Y PUREZA CUÁNTICA CONJUNTA:
+   Sea $\gamma(\rho) = \operatorname{Tr}(\rho^2)$ la pureza de von Neumann del estado. La 
+   energía del atractor de intuición $E_{\mathrm{attractor}}(\rho)$ penaliza los estados 
+   mixtos altamente entrópicos desalineados con la variedad:
 
-FASE 3 — ADJUDICACIÓN, CERTIFICACIÓN Y ORQUESTACIÓN
-──────────────────────────────────────────────────────────────────────────
-  • HeytingIntuitionAdjudicator.adjudicate: PRIMER MORFISMO DE FASE-3 (continúa `synthesize`).
-    Colapsa el bundle en Ω₃ mediante meets de ratios adimensionales:
-        local = decay ∧ grad ∧ target ∧ geom ∧ conv,
-        final = local ∧ external.
-  • IntuitiveFieldState: Certificado signed con trazabilidad SHA-256 encadenada (`phase_chain_sha256`).
-  • TOONIntuitionEngine: Orquestador soberano F₃ ∘ F₂ ∘ F₁.
+       E_{\mathrm{attractor}}(\rho) = \frac{d_{\mathcal{M}}(\rho, \Pi_{\mathcal{M}}(\rho))}{\gamma(\rho) + \varepsilon}
 
-Definición Granular de Invariantes y Axiomas
-=============================================
-  1. Métrica Geodésica de Bures: d_B(ρ, σ) = √(2 − 2√F(ρ, σ)) ∈ [0, √2] (cumple desigualdad triangular).
-  2. Suavidad de Dirichlet: Lip_F(∇E) ≤ 1 ⇒ paso estable η ∈ (0, 2).
-  3. Proyector Ortogonal de Grassmann: P² = P = P†, ‖P‖_op = 1.
-  4. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
-  5. Inyectividad Merkle: Cadena de custodia `phase_chain_sha256` inalienable por SHA-256.
+   Un estado de alta pureza ($\gamma \to 1.0$) alineado con la variedad ($d_{\mathcal{M}} \to 0$)
+   produce una energía atrayente casi nula ($E_{\mathrm{attractor}} \approx 0$).
+
+3. INVOLUCIÓN SOBRE EL TOPOS DE HEYTING ($\Omega_3$):
+   El veredicto del motor asigna una sección en el clasificador trivalente del topos de haces:
+
+       v(\rho) = \begin{cases}
+       \mathtt{COHERENT} & \text{si } d_{\mathcal{M}} \le 0.20 \quad \text{y} \quad \gamma(\rho) \ge 0.25, \\
+       \mathtt{DEGRADED} & \text{si } 0.20 < d_{\mathcal{M}} \le 0.45 \quad \text{o} \quad 0.20 \le \gamma(\rho) < 0.25, \\
+       \mathtt{VETOED}   & \text{si } d_{\mathcal{M}} > 0.45 \quad \text{o} \quad \gamma(\rho) < 0.20.
+       \end{cases}
+
+TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
+──────────────────────────────────────
+- Corazonada Instantánea de Bajo Costo Computacional: Evita ciclos analíticos prolongados, 
+  entregando una evaluación relámpago antes del vertido de concreto o la firma de orden de pago.
+- Respuesta en Milisegundo Cero: Previene la firma de adicionales presupuestales sospechosos 
+  mediante alertas instintivas con respaldo espectral.
+- Cadena de Custodia Inmutable: Generación síncrona del hash SHA-256 de procedencia para 
+  auditorías posteriores de la Contraloría y revisión pericial.
 """
 
 from __future__ import annotations

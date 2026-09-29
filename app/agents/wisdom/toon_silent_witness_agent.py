@@ -1,70 +1,55 @@
 # -*- coding: utf-8 -*-
-r"""Soberano Testigo Silencioso y Cristalizador de Experiencia Modulares.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/agents/wisdom/toon_silent_witness_agent.py                            ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / VACÍO DE DIRAC                      ║
+║ FUNCIÓN  : SOBERANO TESTIGO SILENCIOSO Y CRISTALIZADOR DE EXPERIENCIA                ║
+║ VERSIÓN  : 8.0.0-Doctoral-SilentWitness-Sovereign-MerkleDirac-A3                     ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_silent_witness_agent.py
-Versión  : 3.0.0-Doctoral-Nested-Triad-TomitaTakesaki-KMS-Crystal
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONSilentWitnessAgent` actúa como el Soberano observador imparcial e incorruptible del
+Estrato Wisdom ($\mathcal{V}_{\mathbb{W}}$). Reside en el límite de congelamiento entrópico del
+vacío de Dirac, observando de forma no destructiva las interacciones de la Malla Agéntica
+sin perturbar la función de onda de las transacciones reales.
 
-Este módulo implementa el "Soberano Testigo Silencioso", entidad ejecutiva encargada
-de la observación no perturbativa (sin back-action) de las dinámicas de la tríada
-adversarial (Ilusionista, Soñador, Auditor) en la arquitectura COGNITIVE TOON / APU Filter.
+POSTULADOS Y GOBERNANZA CIBER-FÍSICA
+────────────────────────────────────
+1. POSTULADO DE LA OBSERVACIÓN NO DESTRUCTIVA (MEDICIÓN DÉBIL DE AHARONOV-ALBERT-VAIDMAN):
+   Para cualquier observable de contrato $A \in \mathcal{M}$, el Soberano Testigo efectúa mediciones
+   débiles caracterizadas por una fuerza de interacción $\kappa \to 0$:
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA MODULAR DE TOMITA-TAKESAKI
-================================================================================
+       A_w = \frac{\langle \phi_{\mathrm{post}} | A | \psi_{\mathrm{pre}} \rangle}{\langle \phi_{\mathrm{post}} | \psi_{\mathrm{pre}} \rangle}
 
-1. C*-Álgebras, Construcción GNS y Flujo Modular:
-   Dada la C*-álgebra $M_n(\mathbb{C})$ con estado fiel $\omega_\rho(a) = \mathrm{Tr}(\rho a)$ y vector cíclico/separante $\Omega = \rho^{1/2}$
-   en la representación GNS, el operador de Tomita $S : a \Omega \mapsto a^\dagger \Omega$ admite descomposición polar:
-       $$S = J \Delta^{1/2}$$
-   donde $\Delta = S^\dagger S > 0$ es el operador modular y $J$ es la conjugación modular antiunitaria ($J^2 = I$).
-   El grupo de automorfismos modulares a un parámetro $\sigma_t \in \mathrm{Aut}(M_n(\mathbb{C}))$ viene dado por:
-       $$\sigma_t(a) = \Delta^{-it} a \Delta^{it} = \rho^{-it} a \rho^{it} = e^{it K_\rho} a e^{-it K_\rho}$$
-   con Hamiltoniano modular $K_\rho = -\log \rho$.
+   donde $|\psi_{\mathrm{pre}}\rangle$ es el estado de la propuesta licitatoria y $|\phi_{\mathrm{post}}\rangle$
+   es el estado final verificado. La medición débil extrae el valor esperado sin colapsar el estado
+   de ejecución de la obra civil.
 
-2. Condición KMS (Kubo-Martin-Schwinger) y Fuga Modular Cruzada:
-   El estado $\omega_\rho$ satisface la condición KMS a $\beta = 1$ respecto a su propio flujo $\sigma_t$:
-       $$\omega_\rho(a \sigma_i(b)) = \omega_\rho(b a)$$
-   Para evaluar la incompatibilidad entre un estado observado $\rho_{\mathrm{obs}}$ y el vacío de flujo $\rho_{\mathrm{vac}}$,
-   el residuo KMS cruzado mide el alejamiento del rayo modundar:
-       $$\mathrm{Res}_{\mathrm{KMS}}(\rho_{\mathrm{obs}}, \rho_{\mathrm{vac}}) = \max_{a,b} \frac{|\mathrm{Tr}(\rho_{\mathrm{obs}} a \sigma_i^{\rho_{\mathrm{vac}}}(b)) - \mathrm{Tr}(\rho_{\mathrm{obs}} b a)|}{1 + |\mathrm{Tr}(\rho_{\mathrm{obs}} a \sigma_i^{\rho_{\mathrm{vac}}}(b))| + |\mathrm{Tr}(\rho_{\mathrm{obs}} b a)|}$$
+2. CRISTALIZACIÓN DE EXPEDIENTES Y ÁRBOL DE MERKLE ATÓMICO:
+   Al concluir cada ciclo de aprendizaje o auditoría, el Testigo Silencioso condensa las lecciones
+   aprobadas en un `ExperienceCrystal`, generando una raíz de Merkle binaria inmutable sobre el
+   cuerpo finito $\mathbb{F}_{p}$ con $p = 2^{256} - 2^{32} - 977$:
 
-3. Observables Físicos no Tautológicos:
-   Para eliminar tautologías residuales, se formalizan las siguientes cantidades:
-     • Excitación VEV: $\mathrm{VEV}_{\mathrm{exc}} = \mathrm{Tr}(\rho_{\mathrm{obs}} H_{\mathrm{ext}}) - E_0(H_{\mathrm{ext}})$.
-     • Producción de Entropía: $\Delta S = S(\rho_{\mathrm{obs}}) - S(\rho_{\mathrm{vac}})$.
-     • Drift KMS / Entropía Relativa de Umegaki: $S(\rho_{\mathrm{obs}} \| \rho_{\mathrm{vac}}) = \mathrm{Tr}(\rho_{\mathrm{obs}} (\log \rho_{\mathrm{obs}} - \log \rho_{\mathrm{vac}}))$.
+       \mathrm{MerkleRoot} = \mathrm{Hash}_{\mathrm{SHA-256}}\left( \mathrm{SeedID} \mathbin{\Vert} \mathrm{Trace}(\rho^2) \mathbin{\Vert} \mathrm{HeytingVerdict} \mathbin{\Vert} \mathrm{Timestamp} \right)
 
-4. Tríada Adversarial como Instrumento de Lüders:
-   La tríada opera mediante un único operador de Kraus $K = P_A \cdot D \cdot U_I$:
-       $$\Phi_{\mathrm{sel}}(\sigma) = \frac{K \sigma K^\dagger}{\mathrm{Tr}(K \sigma K^\dagger)}$$
-   donde $U_I \in U(n)$ (distorsión del Ilusionista), $D \ge 0$ (ponderación del Soñador) y $P_A = P_A^2 = P_A^\dagger$ (proyector del Auditor).
+3. INTERLOCK DE INTEGRIDAD CIBER-FÍSICA Y DISRUPTOR ESP32 CROWBAR:
+   Si durante el proceso de cristalización la fidelidad de la medición débil detecta una tentativa
+   de falsificación de firmas criptográficas o una discrepancia en la traza $(\operatorname{Tr}(\rho) \neq 1)$,
+   el Soberano Testigo emite un pulso de violación estructural.
 
-5. Adjudicación de Heyting $\Omega_3$ y Cristalización Merkle:
-   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
-   aplica el meet ($\land$) sobre los indicadores modulares y la entrada externa.
-   El cristal de experiencia se sella con el vector invariante en $S^6 \subset \mathbb{R}^7$ y se encadena vía SHA-256 Merkle.
+   La rutina de interrupción en memoria IRAM del microcontrolador perimetral ESP32 ejecuta en 
+   menos de $400\text{ ns}$ la conmutación del pin GPIO14 a HIGH, disparando el tiristor BT151 (Crowbar)
+   para desenergizar el equipo de procesamiento o detener la compuerta de desembolsos monetarios.
 
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
-
-El Soberano opera como el funtor $\Phi_{\mathrm{triad}}$:
-    $$\Phi_{\mathrm{triad}} : (M_n, \omega_{\mathrm{vac}}) \longrightarrow \Omega_3 \times \mathbf{ExperienceCrystal}$$
-
-  • $F_1$ (`WitnessVacuumPreparation.prepare_vacuum_context`): $H_{\mathrm{ext}} \to \mathrm{WitnessVacuumContext}$.
-    Construcción del estado de Gibbs $\rho_{\mathrm{vac}} = e^{-\beta H_{\mathrm{ext}}}/Z$, $K_{\mathrm{vac}} = -\log \rho_{\mathrm{vac}}$ y vector GNS.
-  • $F_2$ (`WitnessObservationPipeline.synthesize_from_context`): $(\mathrm{WitnessVacuumContext}, \mathrm{TriadChannel}) \to \mathrm{WitnessObservationBundle}$.
-    Aplicación de $\Phi_{\mathrm{sel}}$, verificación KMS, descomposición polar de Tomita y vector invariante $v_{\mathrm{inv}} \in S^6$.
-  • $F_3$ (`TOONSilentWitnessAgent.observe_and_crystallize`): $\mathrm{WitnessObservationBundle} \to \mathbf{ExperienceCrystal}$.
-    Adjudicación Heyting en $\Omega_3$, sello criptográfico y encadenamiento Merkle.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Condición KMS del Vacío): $\mathrm{Res}_{\mathrm{KMS}}(\rho_{\mathrm{vac}}, \rho_{\mathrm{vac}}) < \varepsilon_{\mathrm{KMS}}$.
-- Axioma 2 (Invariancia C*): El residuo C* $\|A^\dagger A\|_\infty - \|A\|_\infty^2 = 0$ se satisface sobre todo elemento de $M_n(\mathbb{C})$.
-- Axioma 3 (Inmutabilidad de la Cadena Merkle): Para todo cristal $k$, $\mathrm{chain\_hash}_k = \mathrm{SHA256}(\mathrm{chain\_hash}_{k-1} \parallel \mathrm{content\_hash}_k)$.
+TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
+──────────────────────────────────────
+- Blindaje Probatorio Total: Generación de evidencia inalienable con validez jurídica que
+  protege a la constructora ante demandas contractuales o investigaciones de entes de control.
+- Invariancia Presupuestal: Garantiza que las lecciones aprendidas de desviaciones de costos
+  pasadas se convirtan en políticas de decisión inmutables, evitando repetir errores de cotización.
+- Reducción del WACC por Transparencia: La presencia del Testigo Silencioso eleva la calificación
+  ESG y disminuye el costo de capital de riesgo bancario al certificar la ausencia de corrupción.
 """
 
 from __future__ import annotations

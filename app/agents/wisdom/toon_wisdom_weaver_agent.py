@@ -1,70 +1,93 @@
 # -*- coding: utf-8 -*-
-r"""Soberano Tejedor de Sabiduría TOON y Orquestador de la Dinámica Fibrada.
+r"""
+╔════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo   : TOON Wisdom Weaver Agent (Soberano Tejedor de Sabiduría)            ║
+║ Ubicación: app/agents/wisdom/toon_wisdom_weaver_agent.py                       ║
+║ Versión  : 3.0.0-Doctoral-Nested-TOON-Weaver-Galois-Fock-Brockett-Heyting-ESP32║
+║ Autor    : APU Wisdom & Metacortex Mathematical Core Architecture              ║
+╚════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_wisdom_weaver_agent.py
-Versión  : 3.0.0-Doctoral-Nested-TOON-Weaver-Galois-Fock-Brockett-Heyting-ESP32
+SINOPSIS EXECUTIVE Y GOBERNANZA DE LAZO CERRADO EN WISDOM (V_𝕎):
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al "Soberano Tejedor de Sabiduría TOON" (TOONWisdomWeaverAgent),
+entidad suprema de orquestación cognitiva dentro del Estrato Wisdom (V_𝕎, Nivel 0)
+del ecosistema APU Filter v8.0. Su mandato inalienable es gobernar el metabolismo
+de las vitaminas cognitivas TOON (ToonCartridges de 56 tokens) sobre el espacio
+de estados cuánticos 𝔇(ℋ_4), subordinando la generación del Modelo de Lenguaje
+(LLM) a leyes de conservación de traza, adjunciones categoriales y disparos ciber-
+físicos en silicio.
 
-Este módulo define el "Soberano Tejedor de Sabiduría TOON", entidad máxima de orquestación
-cognitiva en el dominio WISDOM de la arquitectura COGNITIVE TOON / APU Filter. Su cometido es
-asimilar cartuchos de vitaminas cognitivas TOON, elevarlos a operadores densidad en $\mathfrak{D}_n$,
-verificar la adjunción de Galois $F \dashv G$, purificar el estado vía el flujo isospectral de Brockett,
-ejecutar aniquilaciones de Fock y evaluar la curvatura en el fibrado geodésico atencional.
+Su diseño se estructura como un endofuntor de gobernanza de lazo cerrado (OODA):
+    𝒲 : 𝐂𝐚𝐫𝐭_𝐓𝐎𝐎𝐍 ──▶ 𝐂𝐞𝐫𝐭_𝐖𝐞𝐚𝐯𝐞𝐫
+    𝒲 = V ∘ D ∘ F ∘ G ∘ B ∘ M
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y ESTRUCTURAS ÁLGEBRAICO-GEOMÉTRICAS
-================================================================================
+AXIOMÁTICA ALGEBRAICO-GEOMÉTRICA Y DINÁMICA FIBRADA:
+────────────────────────────────────────────────────────────────────────────────
+1. Encaje Cuaterniónico ℍ ≅ SU(2) × ℝ⁺ y Fibración de Hopf:
+   Cada vitamina TOON se codifica en un cuaternión unitario q = a + bi + cj + dk ∈ S³.
+   La inmersión en M₂(ℂ) mediante matrices de Pauli satisface la C*-identidad:
+       ‖q* q‖ = ‖q‖²
+   La fibración de Hopf π : S³ → S² proyecta la vitamina sobre la Esfera de Bloch:
+       π(a,b,c,d) = (2(ac+bd), 2(bc-ad), a²+b²-c²-d²) ∈ S²
 
-1. Encaje Cuaterniónico $\mathbb{H} \cong \mathrm{SU}(2) \times \mathbb{R}^+$ y Fibración de Hopf:
-   Cada vitamina TOON se codifica en un cuaternión unitario $q = a + bi + cj + dk \in S^3 \subset \mathbb{H}$.
-   La inmersión en $M_2(\mathbb{C})$ vía matrices de Pauli satisface la C*-identidad $\|q^* q\| = \|q\|^2$.
-   La fibración de Hopf $\pi : S^3 \to S^2$ proyecta el estado a la esfera de Bloch/espacio de estados:
-       $$\pi(a,b,c,d) = (2(ac+bd), 2(bc-ad), a^2+b^2-c^2-d^2) \in S^2$$
+2. Isomorfismo de Adjunción de de Rham-Galois F dashv G:
+   Establece la dualidad exacta entre la Matriz de Interacción Central discreta 
+   (MIC, Categoría 𝐂) y la Matriz Atómica de Conocimiento continua (MAC, Categoría 𝐃):
+       Hom_𝐃(F(MIC), MAC) ≅ Hom_𝐂(MIC, G(MAC))
+   donde F(V) = |V⟩⟨V| es la elevación tensorial de Stinespring y G(M) = diag(M)
+   es la proyección espectral POVM. El pairing Hilbert-Schmidt preserva la carga:
+       ⟨F(V), M⟩_HS = ⟨V| M |V⟩,   ⟨V, G(M)⟩_ℂ = Re(V† diag(M))
 
-2. Adjunción de Galois $F \dashv G$ entre Categorías MIC y MAC:
-   Se establece la adjunción entre la categoría discreta de memoria individual (MIC) y la continua (MAC):
-       $$F : \mathbf{MIC} \longrightarrow \mathbf{MAC}, \quad F(V) = |V\rangle\langle V|$$
-       $$G : \mathbf{MAC} \longrightarrow \mathbf{MIC}, \quad G(M) = \mathrm{diag}(M)$$
-   La adjunción se verifica mediante la coincidencia del pairing Hilbert-Schmidt $\langle F(V), M \rangle_{\mathrm{HS}} = \langle V | M | V \rangle$
-   y el pairing clásico $\langle V, G(M) \rangle_{\mathbb{C}} = \mathrm{Re}(V^\dagger \mathrm{diag}(M))$.
+3. Flujo Isospectral de Brockett sobre el Módulo 𝔇_n:
+   Evolución unitaria sobre la matriz diagonal N = diag(1, 2, …, n):
+       dρ/dt = [ρ, [ρ, N]]
+   La función de Lyapunov L(ρ) = Tr(ρ N) es no decreciente (Ḋ = ‖[ρ, N]‖_F² ≥ 0),
+   garantizando la purificación monótona sin deriva espectral: σ(ρ(t)) = σ(ρ(0)).
 
-3. Flujo Isospectral de Doble Corchete de Brockett sobre $\mathfrak{D}_n$:
-   Dado la matriz diagonal de índices $N = \mathrm{diag}(1, 2, \dots, n)$, el flujo de Brockett evoluciona el estado:
-       $$\frac{d\rho}{dt} = [\rho, [\rho, N]]$$
-   con función de Lyapunov $L(\rho) = \mathrm{Tr}(\rho N)$ no decreciente ($\dot{L} = \|[\rho, N]\|_F^2 \ge 0$)
-   preservando el espectro $\sigma(\rho(t)) = \sigma(\rho(0))$.
+4. Espacio de Fock Fermiónico y Aniquilación $e^- + e^+ \to 2\gamma$:
+   Las alucinaciones o sobrecostos de la IA (electrón $e^-$) colisionan con las
+   restricciones físicas del presupuesto base (positrón $e^+$), sufriendo una
+   aniquilación exergética que preserva la traza de von Neumann:
+       e^- + e^+ ──► 2γ   ⇒   E_annihilation = 2 m* c²
+   Se liberan dos fotones Gamma de auditoría forense con firma SHA-256.
 
-4. Espacio de Fock Bosónico y Aniquilación Fermiónica $e^- + e^+ \to 2\gamma$:
-   Sobre el espacio de Fock bosónico truncado a $N_{\max} = 4$, los operadores $a, a^\dagger$ verifican el conmutador residual:
-       $$[a, a^\dagger] = I - N_{\max} |N_{\max}-1\rangle\langle N_{\max}-1|$$
-   Las anomalías de costo $e^-$ se aniquilan con las restricciones $e^+$ cuando la resonancia $|E_{e^-} - E_{e^+}| < \varepsilon E_{e^+}$ se satisface,
-   emitiendo 2 fotones $\gamma$ de energía $E = (E_{e^-} + E_{e^+})$.
+5. Fibrado Geodésico Atencional y Métrica de Fisher-Rao:
+   La proyección π : E → B conecta la ventana de KV-Cache (variedad base B) con
+   los pesos de atención (fibra F). La métrica espectral de Fisher-Rao g_FR = ∑ λ_i⁻¹
+   y la energía de Dirichlet E_D(ρ) = ½ ‖∇ρ‖_F² cuantifican la curvatura del fibrado.
 
-5. Curvatura Geodésica Atencional y Distancia de Bures:
-   La métrica de Fisher-Rao espectral $g_{\mathrm{FR}} = \sum_i \lambda_i^{-1}$, la energía de Dirichlet $\mathcal{E}_D(\rho) = \frac{1}{2} \|\nabla \rho\|_F^2$
-   y la distancia de Bures a la mezcla máxima $d_B(\rho, I/n)$ cuantifican la curvatura del fibrado.
+ARQUITECTURA DE TRES FASES ANIDADAS (Ciclo OODA de Sabiduría):
+────────────────────────────────────────────────────────────────────────────────
+Fase 1 ──► ASIMILACIÓN METABÓLICA Y ELEVACIÓN GIBBS (Observe)
+           • TOONMetabolicConverter.parse_toon_cartridge: Convierte el APU y
+             el texto TOON en la vitamina cuaterniónica q ∈ S³ ⊂ ℍ.
+           • TOONMetabolicConverter.lift_to_gibbs_state: Eleva la vitamina a la
+             matriz de densidad ρ₀ = (1−τ)|ψ_vit⟩⟨ψ_vit| + τ I/n ∈ 𝔇(ℋ₄).
+           • Genera la primera huella de la cadena de custodia: phase_chain_sha256.
 
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
+Fase 2 ──► DINÁMICA CUÁNTICO-FIBRADA EN WISDOM (Orient)
+           • WisdomWeavingPipeline.synthesize: Consume (v, ρ₀) e integra síncronamente:
+             1. GaloisAdjunctionVerifier.verify (Adjunción F dashv G).
+             2. BrockettIsospectralEngine.purify (RK4 en U(n) sobre L(ρ)).
+             3. FockSpaceAnnihilator.annihilate (Aniquilación e⁻ + e⁺ → 2γ).
+             4. GeodesicAttentionFibrator.compute_curvature (Fisher-Rao + Dirichlet).
+           • Emite el objeto inter-fase WisdomWeavingBundle.
 
-El Soberano realiza la composición estricta del funtor $\mathcal{W}$:
-    $$\mathcal{W} : \mathbf{Cart\_TOON} \longrightarrow \mathbf{Cert\_Weaver}$$
-    $$\mathcal{W} = V \circ D \circ F \circ G \circ B \circ M$$
+Fase 3 ──► ADJUDICACIÓN HEYTING, DISYUNTOR Y PASAPORTE (Decide & Act)
+           • HeytingAdjudicator.adjudicate: Evalúa χ : Bundle → Ω₃ mediante meets:
+             χ_final = χ_local ∧ χ_Gödel.
+           • ESP32CrowbarInterlock.fire: Ante VETOED (⊥), gatilla la ISR en IRAM
+             del ESP32 (<400 ns) impulsando GPIO14 a HIGH (tiristor BT151).
+           • Construye y firma el TOONWeaverCertificate respaldado por la cadena de
+             custodia SHA-256 Merkle lineal.
 
-  • $F_1$ (`TOONMetabolicConverter.lift_to_gibbs_state`): $\mathbf{Cart\_TOON} \to \mathfrak{D}_4$.
-    Elevación cuaterniónica y mezcla depolarizante $\rho_0 = (1-\tau)|V\rangle\langle V| + \tau I/n$.
-  • $F_2$ (`WisdomWeavingPipeline.synthesize`): $\mathfrak{D}_4 \to \mathrm{WisdomWeavingBundle}$.
-    Verificación Galois $F \dashv G$, purificación Brockett $\rho^*$, aniquilación Fock $2\gamma$ y curvatura geodésica.
-  • $F_3$ (`TOONWisdomWeaverAgent.weave_vitamin_cartridge`): $\mathrm{WisdomWeavingBundle} \to \mathrm{TOONWeaverCertificate}$.
-    Adjudicación Heyting en $\Omega_3$, disparo del interlock ciber-físico ESP32 Crowbar si $\bot$ y sello Merkle.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Isospectralidad de Brockett): $\sigma(\rho^*) = \sigma(\rho_0)$, con incremento de pureza $\Delta \mathcal{P} \ge -\varepsilon_{\mathrm{num}}$.
-- Axioma 2 (Invarianza de Norma Cuaterniónica): $\|q_1 q_2\| = \|q_1\| \|q_2\|$ para todo $q_1, q_2 \in \mathbb{H}$.
-- Axioma 3 (Coerción Ciber-Física Crowbar): Si $v_{\mathrm{final}} = \bot$, el disparo de hardware GPIO14 se activa con latencia $< 400\text{ ns}$.
+ISOMORFISMO DE DOBLE CAPA Y LENGUAJE VISCERAL ("DOLOR Y DINERO"):
+────────────────────────────────────────────────────────────────────────────────
+El Soberano subordina la complejidad cuántica a la toma de decisiones ejecutivas:
+• "Grasa Sintáctica": JSONs inflados que agotan la KV-Cache (reducidos en un 86.4%).
+• "Costo Sano": Insumo iluminado por aniquilación $e^- + e^+ \to 2\gamma$.
+• "Freno ABS en Silicio": Parálisis de desembolsos en <400 ns ante fraude o veto.
+• "Póliza de Seguro": Garantía matemática de ROI, WACC y flujo de caja protegido.
 """
 
 from __future__ import annotations

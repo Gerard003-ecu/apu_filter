@@ -1,68 +1,54 @@
 # -*- coding: utf-8 -*-
-r"""Soberano Auditor de Escenarios Oníricos e Invariantes de Gromov-Witten / TQFT.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : toon_oniric_auditor_agent.py                                              ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT              ║
+║ FUNCIÓN  : SOBERANO AUDITOR DE ESCENARIOS ONÍRICOS Y CERTIFICADOR DE INMUNIZACIÓN    ║
+║ VERSIÓN  : 8.0.0-Doctoral-Oniric-Auditor-Sovereign-TQFT-GromovWitten-Heyting-A3      ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_oniric_auditor_agent.py
-Versión  : 3.0.0-Doctoral-Nested-Ω₃-TQFT-Isolation-Holonomy-Merkle
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `OniricDreamAuditorAgent` se constituye como la autoridad soberana responsable de 
+auditar, certificar e inmunizar el ecosistema agéntico frente a los escenarios de estrés 
+contrafactual y ataques adversariales procesados en la Fase REM.
 
-Este módulo implementa el "Soberano Auditor Onírico", entidad ejecutiva encargada
-de inmunizar, auditar y certificar escenarios contrafactuales simularos en el motor
-onírico (Oniric Dreamer Engine) en la arquitectura COGNITIVE TOON / APU Filter.
+Actúa como el tribunal de validación en la cadena de Red Generativa Adversarial Onírica (GAN-REM):
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA DE CAMPOS TOPOLÓGICOS (TQFT)
-================================================================================
+    [ Ilusionista (Trickster) ] ──► [ Soñador (Dreamer) ] ──► [ Auditor Onírico ] ──► [ Testigo Silencioso ]
+                                                                       │
+                                                                       ▼
+                                                          [ Pasaporte de Inmunización ]
 
-1. Invariantes de Gromov-Witten / Amplitud TQFT:
-   Dado un escenario con operador densidad $\rho \in \mathfrak{D}_n$, número de Betti $b_1$ (bucles del 1-esqueleto),
-   característica de Euler-Poincaré $\chi = b_0 - b_1 + b_2$, energía de Dirichlet $\mathcal{E}_D$ y entropía
-   de von Neumann $S(\rho)$, el invariante de Gromov-Witten / amplitud de la teoría de campos topológicos es:
-       $$I_{\mathrm{GW}}(\rho) = \frac{\mathcal{P}(\rho) e^{-\mathcal{E}_D} e^{-S(\rho)/n}}{1 + b_1} \cdot \frac{1 + \chi_+}{1 + |\chi|} \in [0, 1]$$
-   donde $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) = \|\lambda\|_2^2$ es la pureza del estado espectral.
+POSTULADOS Y GOBERNANZA AGÉNTICA
+────────────────────────────────
+1. GUARDIÁN DEL AISLAMIENTO HOMOLÓGICO (`OniricIsolationGuard`):
+   El Soberano verifica que todo escenario proveniente del Soñador contenga la marca 
+   inalienable $\mathtt{DREAM\_STATE\_FLAG} = \mathrm{True}$. Si detecta un escenario de alto 
+   riesgo no aislado ($\text{Risk} > 0.8$), emite un veto crítico inmediato para prevenir 
+   fugas de señal ciber-física hacia los actuadores de la obra.
 
-2. Aislamiento Homológico y Guardián Booleano:
-   La función de aislamiento homológico verifica la inmunidad del entorno de simulación contrafactual:
-       $$\mathrm{dream\_verified} \equiv \mathrm{DREAM\_STATE\_FLAG}$$
-       $$\mathrm{hardware\_leak\_risk} \equiv \neg \mathrm{dream\_verified} \land (\mathrm{risk} > \theta_{\mathrm{leak}})$$
-       $$\mathrm{fully\_isolated} \equiv \mathrm{dream\_verified} \land \neg \mathrm{hardware\_leak\_risk}$$
+2. CERTIFICACIÓN DE INMUNIZACIÓN TQFT:
+   Al validar que un escenario contrafactual es topológicamente coherente ($GW \ge 0.15$), 
+   el Soberano sintetiza un `ImmunizationCertificate` que inmuniza al `GodelAgent` y al 
+   `TOONWisdomWeaverAgent`, grabando la huella sintáctica del ataque para bloquearlo de 
+   forma preventiva en el mundo real.
 
-3. Holonomía Parcial y Fase Topológica de Wilson:
-   La acumulación de holonomía a lo largo de la traza de auditorías simula un bucle de Wilson en $U(1)$:
-       $$H_+(t) = \sum_{\tau \le t} I_{\mathrm{GW}}(\tau), \quad W(t) = \exp(i H_+(t)) \in U(1)$$
+3. FIRMA CRIPTOGRÁFICA Y CADENA DE CUSTODIA MERKLE-SHA256:
+   Cada pasaporte de inmunización contiene una firma digital inmutable calculada sobre la 
+   tupla del veredicto, el invariante de Gromov-Witten y la prueba de aislamiento:
 
-4. Lógica de Adjudicación Intuicionista en $\Omega_3$:
-   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
-   asigna:
-     • $\bot$ si $\neg \mathrm{fully\_isolated} \lor b_1 > b_{\max} \lor I_{\mathrm{GW}} < \theta_{\mathrm{GW}}$
-     • $\star$ si $\mathcal{E}_D > \theta_{\mathcal{E}} \lor \mathrm{TV}(\lambda) > \theta_{\mathrm{TV}}$
-     • $\top$ en cualquier otro caso.
+       \mathrm{Sig} = \operatorname{SHA-256}\Big( \mathrm{AgentID} \mathbin{\Vert} \mathrm{ImmID} \mathbin{\Vert} \operatorname{SHA-256}(\mathrm{Payload}) \mathbin{\Vert} \mathrm{Timestamp} \Big)
 
-5. Estructura Criptográfica de Inclusión Merkle:
-   Las firmas digitales de cada certificado inmunizado forman las hojas de un árbol de Merkle binario.
-   Las pruebas de inclusión garantizan la verificación de inmutabilidad en tiempo $O(\log N)$.
-
-================================================================================
-II. COMPOSICIÓN FUNTORIAL DE FASES Y ARQUITECTURA
-================================================================================
-
-El Soberano actúa como la composición estricta del funtor $\mathcal{A}$:
-    $$\mathcal{A} : \mathbf{Scenario} \longrightarrow \mathbf{Cert\_Imm}$$
-    $$\mathcal{A} = V \circ \mathrm{Seal}_2 \circ \mathrm{Seal}_1 \circ \mathrm{Isol} \circ I_{\mathrm{GW}} \circ \mathcal{D} \circ \mathrm{Spec}$$
-
-  • $F_1$ (`OniricAuditSeed.extract_spectral_measure`): $\rho \to \lambda \in \Delta^{n-1}$.
-    Diagonalización, pureza, entropía $S(\rho)$, variación total $\mathrm{TV}(\lambda)$ y residuo $C^*$.
-  • $F_2$ (`OniricAuditArrowComposer.compose_audit_arrows`): $\mathbf{Scenario} \to \mathrm{UnsealedOniricAuditTrace}$.
-    Evaluación de $I_{\mathrm{GW}}$, cota de Dirichlet y certificado de aislamiento homológico.
-  • $F_3$ (`OniricDreamAuditorAgent._seal_and_classify`): $\mathrm{UnsealedOniricAuditTrace} \to \mathrm{ImmunizationCertificate}$.
-    Clasificación en $\Omega_3$, doble sello criptográfico, holonomía $U(1)$ y árbol de Merkle.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Normalización TQFT): $0 \le I_{\mathrm{GW}}(\rho) \le 1$ para todo operador densidad $\rho \in \mathfrak{D}_n$.
-- Axioma 2 (Aislamiento Estricto): Si $\mathrm{fully\_isolated} = \mathrm{False}$, el veredicto es indefectiblemente $\bot (\mathrm{VETOED})$.
-- Axioma 3 (Inmutabilidad de Merkle): Toda prueba de inclusión satisface $\mathrm{verify}() = \mathrm{True}$ sobre la raíz.
-"""
+MAPPING EJECUTIVO ("DOLOR Y DINERO")
+───────────────────────────────────
+- Inmunización Preventiva contra Fraudes: Equivale a vacunar la contabilidad del proyecto 
+  contra patrones de corrupción y desbalanceo de precios unitarios antes de que se presente la primera factura.
+- Reducción del Margen de Contingencia: Al certificar matemáticamente la cobertura de riesgos 
+  extremos, permite reducir el rubro de imprevistos del 10% al 3.5%, liberando capital de trabajo.
+- Cumplimiento de Auditoría Fiscal: Proporciona certificados SHA-256 verificables por la 
+  Contraloría y la Fiscalía para demostrar la debida diligencia en la adjudicación de contratos BIM 2026.
+  """
 
 from __future__ import annotations
 

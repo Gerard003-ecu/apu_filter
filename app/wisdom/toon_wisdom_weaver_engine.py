@@ -1,89 +1,98 @@
-
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Wisdom Weaver Engine (Motor Espectral y Campo Metabolizador) ║
 ║ Ubicación: app/wisdom/toon_wisdom_weaver_engine.py                           ║
 ║ Versión  : 3.0.0-Doctoral-Nested-Ω₃-Banach-Brockett-Fock-Galois-Dirichlet    ║
-║ Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el  ║
-║            germen formal del primero de k+1)                                 ║
+║ Autor    : APU Wisdom & Metacortex Mathematical Core Architecture            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Formalización Categorial Doctoral (Endofuntor Metabolizador W)
-==============================================================
+SINOPSIS FORMAL Y CATEGORIAL EN EL ESTRATO WISDOM (V_𝕎):
+────────────────────────────────────────────────────────────────────────────────
+Este motor espectral realiza la función de "Campo Metabolizador" en la Ciudadela
+de Cristal (Estrato Wisdom, V_𝕎, Nivel 0) del ecosistema APU Filter. Su
+propósito es transmutar la "grasa sintáctica" de los presupuestos de obra civil 
+(archivos JSON redundantes e ineficientes) en "Vitaminas Cognitivas TOON" de alta 
+densidad, elevándolas al espacio de Hilbert separable ℋ_n ≅ ℂⁿ como operadores de 
+densidad en el cono compacto convexo 𝔇(ℋ_n).
 
-Sea 𝓣_Ω el topos de haces sobre el retículo de Heyting lineal linealmente ordenado:
+Sea 𝓣_Ω el topos de haces sobre el retículo distributivo de Heyting lineal:
+    Ω₃ = { VETOED = 0  ≺  DEGRADED = 1  ≺  COHERENT = 2 }
 
-        Ω₃  =  { VETOED = 0  ≺  DEGRADED = 1  ≺  COHERENT = 2 }
+El motor opera como un endofuntor estricto W : 𝐂𝐚𝐫𝐭_𝐓𝐎𝐎Ns ──▶ 𝐂𝐞𝐫𝐭_𝐌𝐞𝐭 definido
+por la composición asociativa estricta de seis morfismos elementales:
+    W = V ∘ D ∘ F ∘ G ∘ B ∘ M
 
-donde Ω₃ es el objeto clasificador de subobjetos intuicionistas de 𝓣_Ω. El motor
-construye un endofuntor estricto sobre la categoría de cartuchos sinápticos:
+ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (Composición Estricta):
+────────────────────────────────────────────────────────────────────────────────
+Fase 1 ──► SUTURA ALGEBRAICA Y SEMILLA METABÓLICA (Observe)
+           • HeytingOmega3: Retículo lineal acotado (0 < 1 < 2). Residuo a → b = ⊤ 
+             si a ≤ b, y b en otro caso. Satisface residuación (a ∧ c ≤ b ⇔ c ≤ (a → b)).
+           • DensityOperator: Elemento del cono positivo 𝔇(ℋ_n) = { ρ ∈ 𝐁𝐚𝐧(ℋ_n) | 
+             ρ = ρ†, ρ ⪰ 0, Tr(ρ) = 1 }. Invariante C*: | ‖ρ†ρ‖₂ − ‖ρ‖₂² | = O(ε_num).
+           • TOONSynapticCartridge: Objeto de 𝐂𝐚𝐫𝐭_𝐓𝐎𝐎𝐍 con matriz de atributos 
+             A ∈ M_n(ℂ), costo tangible c ≥ 0, riesgo r ∈ [0, 1] y compresión 
+             κ_comp = 1 − |TOON|/|JSON| ∈ [0.30, 0.864].
+           • MetabolicEndofunctorSeed (ABC): Germen formal de la metabolización. 
+             Su método abstracto lift_to_gibbs_state es el ÚLTIMO método de Fase 1 
+             y el PRIMERO de Fase 2 (Flecha M).
 
-        W :  𝐂𝐚𝐫𝐭_𝐓𝐎𝐎Ns  ──▶  𝐂𝐞𝐫𝐭_𝐌𝐞𝐭
+Fase 2 ──► CAMPO METABÓLICO, BROCKETT, GALOIS, FOCK Y DIRICHLET (Orient)
+           • (M) TOONMetabolicField.lift_to_gibbs_state: c ↦ ρ₀. Construye el estado 
+             de Gibbs sobre 𝔥𝔢𝔯(ℋ_n): H = ½(A + A†), H̃ = H / ‖H‖_F,
+             w = min(ceiling, log(1 + c/scale) · (1 + r)), 
+             ρ₀ = U diag(softmax(w λ(H̃))) U† ∈ 𝔇(ℋ_n).
+           • (B) BrockettIsospectralPurifier.purify: Flujo isospectral de doble corchete
+             en 𝔥𝔢𝔯(ℋ_n): dρ/dt = [ρ, [ρ, N]], N = diag(1, 2, …, n). Lyapunov 
+             isotónico L(ρ) = Tr(ρ N) con Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0. Calcula la pureza 
+             γ(ρ) = Tr(ρ²) ∈ [1/n, 1] y entropía de von Neumann S(ρ) = −Tr(ρ log ρ). 
+             Garantiza isotonicidad ΔP = γ* − γ₀ ≥ −ε_num.
+           • (G) GaloisAdjunctionValidator.validate_adjunction: Auditoría del 
+             isomorfismo de adjunciones Hom_D(F(MIC), MAC) ≅ Hom_C(MIC, G(MAC)) con 
+             pairings ι_→ = ‖v_MIC‖₂ / (1 + γ_MAC) e ι_← = γ_MAC / (1 + ‖v_MIC‖₂).
+           • (F) FockSpaceAnnihilatorEngine.process_annihilation: Aniquilación 
+             fermiónica sobre Fock 1-modo ℱ_− = ℂ|0⟩ ⊕ ℂ|1⟩ con {a, a†} = 𝟙. 
+             Mapea riesgo r: r > 0.85 ⇒ (False, 0, VETOED); 0.50 < r ≤ 0.85 ⇒ 
+             (True, 1, DEGRADED); r ≤ 0.50 ⇒ (True, 2, COHERENT).
+           • (D) GeodesicAttentionCompressor.compute_dirichlet_energy: Geodésica 
+             sobre Laplaciano L = Deg − |A|_H. Energía de Dirichlet compuesta:
+             E_D = (1 − κ)² (1 + r) + (1 − tanh λ₂(L)) / n, donde λ₂(L) es la 
+             conectividad algebraica de Fiedler y β₀ = dim ker L es Betti-0.
+           • SpectralArrowComposer.compose_arrows: Compone M ∘ B ∘ G ∘ F ∘ D y 
+             produce UnsealedMetabolicTrace (último objeto/método de Fase 2).
 
-dotado de una transformación natural de elevación η : Id ⇒ W (unidad de la
-metabolización) y una counidad de sellado criptográfico ε : W ⇒ Id_Cert. La composición
-de morfismos es asociativa en el álgebra C* de operadores acotados 𝐁𝐚𝐧(ℋₙ) sobre
-el espacio de Hilbert complejo de dimensión finita ℋₙ ≅ ℂⁿ:
+Fase 3 ──► ADJUDICACIÓN EN Ω₃, CROWBAR Y SELLO CRIPTOGRÁFICO (Decide & Act)
+           • (V) TOONWisdomWeaverEngine._seal_and_verdict: V = ⋀_{Ω₃}(χ_Fock, 
+             χ_Galois, χ_Dirichlet). Aplica V, el disyuntor Crowbar si V = VETOED, 
+             genera el sello de procedencia SHA-256 inyectivo y retorna 
+             MetabolicFieldCertificate.
+           • ESP32CrowbarWeaverHardware.trigger: Disyuntor ciber-físico perimetral 
+             en IRAM del ESP32 (GPIO14 → HIGH, tiristor BT151) con latencia nominal 
+             t_prop ≤ τ_IRAM = 400 ns.
+           • TOONWisdomWeaverEngine.process_cognitive_vitamin: Ejecuta W(𝔠) 
+             completo, registrando el certificado en la memoria inmutable del Weaver.
 
-        W  =  V ∘ D ∘ F ∘ G ∘ B ∘ M
+INVARIANTES MATEMÁTICOS, FORMALES Y LEYES CONSERVATIVAS:
+────────────────────────────────────────────────────────────────────────────────
+[I1] Conservación de Traza Cuántica: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+[I2] Isotonicidad de Brockett: Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0 ⇒ L(ρ*) ≥ L(ρ₀).
+[I3] Adjunción y Residuación de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
+[I4] Preservación de Conectividad Grafoteórica: β₀ = dim ker L ≥ 1.
+[I5] Inyectividad SHA-256 y Cuesta Criterio: H_SHA256(cycle_id ‖ cartridge_id ‖ 
+     verdict ‖ γ* ‖ t) es monomórfico.
 
-Estructura de Fases Anidadas e Invariantes
-===========================================
-
-FASE 1 — RETÍCULO DE HEYTING Ω₃, OBJETOS, CARTUCHO, CERTIFICADO Y SEMILLA M
-──────────────────────────────────────────────────────────────────────────
-  • HeytingOmega3: Álgebra de Heyting lineal (0 < 1 < 2). Satisface la adjunción
-    de residuación  a ∧ c ≤ b  ⇔  c ≤ (a → b)  donde  a → b = ⊤ si a ≤ b, y b en otro caso.
-    Pseudocomplemento ¬_H a = a → ⊥. Falla del tercio excluso en DEGRADED:
-    DEGRADED ∨ ¬_H(DEGRADED) = DEGRADED ≠ COHERENT.
-  • DensityOperator: Representante del cono positivo 𝔇(ℋₙ) = { ρ ∈ 𝐁𝐚𝐧(ℋₙ) | ρ = ρ†, ρ ⪰ 0, Tr(ρ) = 1 }.
-    Garantiza la identidad C* residual | ‖ρ†ρ‖₂ − ‖ρ‖₂² | = O(ε_num).
-  • TOONSynapticCartridge: Objeto de 𝐂𝐚𝐫𝐭_𝐓𝐎𝐎𝐍. Posee la matriz de atributos A ∈ Mₙ(ℂ),
-    costo tangible c ≥ 0, riesgo intangible r ∈ [0, 1] y razón de compresión κ_comp = 1 − |TOON|/|JSON|.
-  • MetabolicEndofunctorSeed (ABC): Germen formal de la metabolización. Su método
-    abstracto `lift_to_gibbs_state` es el ÚLTIMO método de FASE-1 y el PRIMERO de FASE-2.
-
-FASE 2 — CAMPO METABÓLICO, BROCKETT, GALOIS, FOCK, DIRICHLET Y TRAZA ABIERTA
-──────────────────────────────────────────────────────────────────────────
-  • (M) TOONMetabolicField.lift_to_gibbs_state: M : 𝔠 ↦ ρ₀. Construye el estado de Gibbs:
-        H = ½(A + A†) ∈ 𝔥𝔢𝔯(ℋₙ),    H̃ = H / ‖H‖_F  (si ‖H‖_F > ε_norm),
-        w = min( ceiling, log(1 + c/scale) · (1 + r) ),
-        ρ₀ = U diag(softmax(w λ(H̃))) U† ∈ 𝔇(ℋₙ).
-  • (B) BrockettIsospectralPurifier.purify: Flujo isospectral del doble corchete de Brockett en 𝔥𝔢𝔯(ℋₙ):
-        dρ/dt = [ρ, [ρ, N]],    N = diag(1, 2, …, n).
-        Función de Lyapunov isotónica L(ρ) = Tr(ρ N) con Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0.
-        Calcula la pureza γ(ρ) = Tr(ρ²) ∈ [1/n, 1] y la entropía de von Neumann S(ρ) = −Tr(ρ log ρ).
-        Garantiza la isotonicidad ΔP = γ* − γ₀ ≥ −ε_num.
-  • (G) GaloisAdjunctionValidator.validate_adjunction: Auditoría de la adjunción de Rham-Galois
-        Hom_D(F(MIC), MAC) ≅ Hom_C(MIC, G(MAC)) con cocientes de pairing:
-        ι_→ = ‖v_MIC‖₂ / (1 + γ_MAC),    ι_← = γ_MAC / (1 + ‖v_MIC‖₂).
-  • (F) FockSpaceAnnihilatorEngine.process_annihilation: Aniquilación fermiónica sobre Fock
-        1-modo ℱ_− = ℂ|0⟩ ⊕ ℂ|1⟩ con {a, a†} = 𝟙. Mapea el riesgo r:
-        r > 0.85 ⇒ (False, 0, VETOED); 0.50 < r ≤ 0.85 ⇒ (True, 1, DEGRADED); r ≤ 0.50 ⇒ (True, 2, COHERENT).
-  • (D) GeodesicAttentionCompressor.compute_dirichlet_energy: Geodésica sobre el laplaciano L = Deg − |A|_H.
-        Energía de Dirichlet compuesta E_D = (1 − κ)² (1 + r) + (1 − tanh λ₂(L)) / n, donde λ₂(L)
-        es la conectividad algebraica de Fiedler y β₀ = dim ker L es el número de Betti-0.
-  • (Composer) SpectralArrowComposer.compose_arrows: Compone M ∘ B ∘ G ∘ F ∘ D y produce
-    UnsealedMetabolicTrace (último objeto/método de FASE-2).
-
-FASE 3 — WEAVER ENGINE, CROWBAR CIBER-FÍSICO, SELLO, AUDITORÍA, PASAPORTE
-──────────────────────────────────────────────────────────────────────────
-  • ESP32CrowbarWeaverHardware.trigger: Disyuntor ciber-físico en IRAM de ESP32 (GPIO14 → HIGH,
-    tiristor BT151) con latencia t_prop ≈ 380 ns.
-  • (V) TOONWisdomWeaverEngine._seal_and_verdict: V = ⋀_{Ω₃}(χ_Fock, χ_Galois, χ_Dirichlet).
-    Aplica V, el crowbar si V = VETOED, genera el sello de procedencia SHA-256 inyectivo y
-    retorna MetabolicFieldCertificate.
-  • TOONWisdomWeaverEngine.process_cognitive_vitamin: Ejecuta W(𝔠) completo, registrando
-    el certificado en la memoria inmutable del Weaver.
-
-Definición Granular de Invariantes y Axiomas
-=============================================
-  1. Invariante de Traza Cuántica: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
-  2. Isotonicidad de Brockett: Ḋ(ρ) = ‖[ρ, N]‖_F² ≥ 0 ⇒ L(ρ*) ≥ L(ρ₀).
-  3. Adjunción de Heyting: (a ∧ c ≤ b) ⇔ (c ≤ (a → b)).
-  4. Conservación de Conectividad Grafoteórica: β₀ = dim ker L ≥ 1.
-  5. Inyectividad Criptográfica: H_SHA256(cycle_id ‖ cartridge_id ‖ verdict ‖ γ* ‖ t) es inyectivo.
+ISOMORFISMO DE DOBLE CAPA ("DOLOR Y DINERO"):
+────────────────────────────────────────────────────────────────────────────────
+   Defecto Matemático en FPU / Topos   │  Diagnóstico de Obra / "Dolor y Dinero"
+───────────────────────────────────────┼────────────────────────────────────────
+• Torsión Homológica / β₁ > 0           │  "Socavón Lógico": Triangulación ilícita
+                                       │  de subcontratistas en SECOP II.
+• Aniquilación de Fock e⁻ + e⁺ → 2γ    │  "Iluminación del Costo": Anulación de
+                                       │  facturación fantasma o ítem inventado.
+• Decaimiento de Pureza γ(ρ) < 1/n     │  "Grasa Sintáctica": Saturación de 
+                                       │  KV-Cache por JSONs inflados.
+• Veto de Heyting (VETOED / ⊥)         │  "Parálisis en Silicio": Disparo Crowbar
+                                       │  ESP32 (<400 ns) bloquea pagos e insumos.
 """
 
 from __future__ import annotations

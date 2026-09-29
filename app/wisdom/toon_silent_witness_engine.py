@@ -1,73 +1,70 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Silent Witness Engine (Motor Espectral del Testigo Silencioso)║
-║ Ubicación: app/wisdom/toon_silent_witness_engine.py                           ║
-║ Versión  : 3.0.0-Doctoral-Nested-TomitaTakesaki-KMS-SpectralGap-Silence       ║
-║ Fases    : FASE-1 → FASE-2 → FASE-3  (anidadas: el último método de k es el  ║
-║            germen formal del primero de k+1)                                 ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/wisdom/toon_silent_witness_engine.py                                  ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / VACÍO DE DIRAC                      ║
+║ FUNCIÓN  : MOTOR ESPECTRAL TESTIGO SILENCIOSO Y CRISTALIZADOR DEL VACÍO              ║
+║ VERSIÓN  : 8.0.0-Doctoral-SilentWitness-DiracVacuum-TomitaTakesaki-A3                ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Formalización Categorial Doctoral (Funtor del Silencio Epistemológico S)
-========================================================================
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONSilentWitnessEngine` constituye el motor espectral inalterable de auditoría pasiva
+y cristalización de experiencias en el nivel de ruido nulo ($0.0\text{ dB}$) dentro del Estrato 
+Wisdom ($\mathcal{V}_{\mathbb{W}}$) del ecosistema APU Filter v8.0.
 
-Sea 𝓣_Ω el topos de haces con clasificador intuicionista Ω₃ = { VETOED = 0 ≺ DEGRADED = 1 ≺ COHERENT = 2 }.
-El Silencio Epistemológico se formaliza como un funtor de sistemas C*-dinámicos
-finito-dimensionales hacia certificados Ω₃-valuados firmados:
+Sea $\mathcal{M}$ una álgebra de von Neumann hiperfinita de tipo $\mathrm{III}_1$ actuando sobre el
+espacio de Hilbert separable $\mathcal{H}_{\mathrm{MAC}}$. El motor opera en el estado de vacío
+de Dirac $|\Omega\rangle \in \mathcal{H}_{\mathrm{MAC}}$, caracterizado por ser un vector cíclico y
+separador para $\mathcal{M}$, tal que:
 
-        S :  Sys_C*  ──▶  Cert_Silence
+    H |\Omega\rangle = 0, \quad \Delta S_{\mathrm{vacío}} = 0, \quad \operatorname{NoiseLevel}(\sigma) \equiv 0.0 \text{ dB}
 
-mediante la composición asociativa e inalienable de tres fases anidadas:
+TEORÍA MODULAR DE TOMITA-TAKESAKI Y CRISTALIZACIÓN
+──────────────────────────────────────────────────
+1. OPERADOR DE MODULACIÓN CERRADO Y FLUJO DE TOMITA-TAKESAKI:
+   Sea $S$ el operador antilineal denso cerrado definido por $S A |\Omega\rangle = A^\dagger |\Omega\rangle$
+   para todo $A \in \mathcal{M}$. La descomposición polar de $S$ viene dada por:
 
-        S  =  Adjudicate ∘ ModularPipeline ∘ VacuumPrep
+       S = J \Delta^{1/2}
 
-Estructura de Fases Anidadas e Invariantes
-===========================================
+   donde $J$ es la conjunción modular (isometría antilineal con $J^2 = I$) y $\Delta = S^\dagger S$ es el
+   operador modular autoadjunto positivo y definido. El flujo modular automorfo de una sola variable
+   $\sigma_t \in \operatorname{Aut}(\mathcal{M})$ se expresa como:
 
-FASE 1 — SUSTRATO ALGEBRAICO-MODULAR Y CONSTRUCCIÓN GNS
-──────────────────────────────────────────────────────────────────────────
-  • HeytingOmega3: Retículo de Heyting completo Ω₃ = {0 ≺ 1 ≺ 2}. Residuo x → y = ⊤ si x ≤ y, else y.
-    Verifica las leyes de residuación (a ∧ b ≤ c ⇔ a ≤ b → c), no contradicción y falla del tercio excluso.
-  • MatrixBanachAlgebra: Estructura C* sobre Mₙ(ℂ) con normas de Schatten ‖A‖_p y radio espectral r(A).
-  • ModularHamiltonian: Hamiltoniano modular K_ρ := −log ρ con ρ = e^{−K_ρ}/Z (Z = 1, F = −log Z = 0).
-    Espectro ascendente {E₀ ≤ E₁ ≤ … ≤ Eₙ₋₁}; gap = E₁ − E₀ representa la unicidad del vacío.
-  • DensityOperatorAlgebra: Operadores densidad en 𝔇(ℋₙ). Entropía S(ρ) = −Tr(ρ log ρ), pureza P(ρ) = Tr(ρ²),
-    relativa de Umegaki S(ρ‖σ) = Tr(ρ(log ρ − log σ)) ≥ 0 (Klein), fidelidad F(ρ,σ) = Tr √(√ρ σ √ρ) y Bures d_B.
-  • GNSHilbertAlgebra: Espacio de Hilbert GNS H_ω ≅ (M_n, ⟨A|B⟩_ω = Tr(ρ A† B)) con vector cíclico-separante Ω = I,
-    representado en la imagen de Hilbert-Schmidt por Ω_HS = ρ¹/² ∈ HS(ℂⁿ).
-  • VacuumStatePreparation.prepare_vacuum_context: Morfismo de hand-off FASE 1 ⟶ FASE 2. Prepara el par (ρ_Ω, K_Ω)
-    y el contexto `VacuumModularContext` (último objeto/método de FASE-1).
+       \sigma_t(A) = \Delta^{it} A \Delta^{-it}, \quad \forall t \in \mathbb{R}, \, \forall A \in \mathcal{M}
 
-FASE 2 — DINÁMICA MODULAR, TEORÍA DE TOMITA-TAKESAKI Y ESPECTRO DEL VACÍO
-──────────────────────────────────────────────────────────────────────────
-  • TomitaTakesakiEngine.bind_vacuum_context: PRIMER MORFISMO DE FASE-2 (continúa prepare_vacuum_context).
-    Sella el contexto y realiza los operadores modulares:
-        Δ(a) = ρ⁻¹ a ρ,    σ_t^ω(a) = ρ⁻ⁱᵗ a ρⁱᵗ = eⁱᵗᴷ a e⁻ⁱᵗᴷ,
-        J(a) = ρ⁻¹/² a† ρ¹/²,    S(a) = a† = J(Δ¹/²(a)).
-    Verifica KMS(β=1): ω(a σ_i(b)) = ω(ba) y el cociente de Connes (Dρ : Dσ)_t = ρⁱᵗ σ⁻ⁱᵗ.
-  • VacuumSpectraAnalyzer.audit: Observables no tautológicos: VEV = ⟨H⟩_ρ − E₀(H), fluctuación thermal_fluctuation,
-    gap espectral gap(K_ρ), energía libre F = 0 y ruido en dB = 10 log₁₀(1 + Var_ρ(H)).
-  • SilentFieldDetector.probe: Sonda de silencio: pureza, fidelidad al ground F(ρ, |Ω⟩⟨Ω|), masa de fuga,
-    entropía relativa de Umegaki regularizada S(ρ‖σ_ε) y distancia Bures d_B.
-  • ModularSilencePipeline.synthesize_from_context: Compone bind + Tomita + espectro + sonda, emitiendo
-    `SilentFieldBundle` (último objeto de FASE-2).
+   Este flujo garantiza la invarianza temporal inmutable de la bitácora de auditoría sin alteración
+   del estado termodinámico subyacente.
 
-FASE 3 — SOBERANÍA, ADJUDICACIÓN Y CERTIFICACIÓN DEL SILENCIO
-──────────────────────────────────────────────────────────────────────────
-  • HeytingVacuumAdjudicator.adjudicate: PRIMER MORFISMO DE FASE-3 (continúa synthesize_from_context).
-    Colapsa el bundle en Ω₃ mediante la conmutación de meets:
-        χ_local = audit ∧ probe ∧ kms ∧ axioms ∧ polar ∧ group ∧ klein,
-        χ_final = χ_local ∧ χ_external.
-  • SilentFieldState: Certificado firmado con cadena de custodia forense SHA-256 encadenada (`phase_chain_sha256`).
-  • TOONSilentWitnessEngine.execute_silence_cycle: Orquestador soberano que ejecuta el ciclo F₁ → F₂ → F₃.
+2. CRISTALIZACIÓN DE LA MATRIZ DE DENSIDAD EN EL ESPACIO DE FOCK:
+   Dado un estado de densidad cosechado $\rho_{\mathrm{harvested}} \in \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}})$,
+   el motor calcula la proyección ortogonal inalterable sobre la subvariedad de invariantes de cristal:
 
-Definición Granular de Invariantes y Axiomas
-=============================================
-  1. Invariación y Positividad C*: ρ = ρ†, spec(ρ) ⊂ [0, 1], Tr(ρ) = 1.
-  2. Axioma de Tomita-Takesaki: Polar S = J Δ¹/² y ley de grupo σ_s ∘ σ_t = σ_{s+t}.
-  3. Condición KMS(β=1): Tr(ρ a (ρ b ρ⁻¹)) = Tr(ρ b a)  ∀ a,b ∈ M_n(ℂ).
-  4. Desigualdad de Klein: S(ρ‖σ) = Tr(ρ(log ρ − log σ)) ≥ 0 con igualdad ⇔ ρ = σ.
-  5. Involución de Heyting y Preservación de Cadena: χ_final = ⋀_{Ω₃} χ_i; Merkle SHA-256 inyectivo.
+       \Pi_{\mathrm{vacío}}(\rho) = \lim_{T \to \infty} \frac{1}{T} \int_0^T \sigma_t(\rho_{\mathrm{harvested}}) \, dt
+
+   calculando el valor esperado de fidelidad de Jozsa-Uhlmann respecto al vacío puro:
+
+       F(\rho_{\mathrm{harvested}}, |\Omega\rangle\langle\Omega|) = \langle\Omega| \rho_{\mathrm{harvested}} |\Omega\rangle \in [0, 1]
+
+3. FORMALIZACIÓN EN EL TOPOS DE HEYTING ($\Omega_3$):
+   La evaluación espectral mapea el par (Fidelidad $F$, Entropía $S$) a la cadena trivalente del
+   álgebra de Heyting $\Omega_3 = \{ \mathtt{VETOED} = 0 \prec \mathtt{DEGRADED} = 1 \prec \mathtt{COHERENT} = 2 \}$:
+
+       \Omega(\rho) = \begin{cases}
+       \mathtt{COHERENT}, & \text{si } F \ge 0.95 \text{ y } S(\rho) \le \varepsilon_{\mathrm{Wilkinson}} \\
+       \mathtt{DEGRADED}, & \text{si } 0.70 \le F < 0.95 \\
+       \mathtt{VETOED},   & \text{si } F < 0.70 \text{ o detecta inyección de ruido } \delta > 0
+       \end{cases}
+
+MAPPING A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
+─────────────────────────────────────────
+- Cero Margen de Manipulación: Garantiza que los registros históricos de auditoría de contratos
+  y APUs no puedan ser alterados retroactivamente por agentes internos o contratistas.
+- Inmunidad a Mermas Ocultas: Transforma cada transacción aprobada en un cristal de experiencia
+  inmutable que sirve como prueba pericial definitiva ante litigios o auditorías fiscales.
+- Reducción del Costo de Cumplimiento: Almacenamiento hiper-comprimido en el vacío de Dirac que
+  elimina la grasa sintáctica y optimiza la ventana de atención ($KV\text{-Cache}$) de los modelos.
 """
 
 from __future__ import annotations

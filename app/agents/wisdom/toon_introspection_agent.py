@@ -1,81 +1,55 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de Introspección y Autocoherencia Espectral MAC.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/agents/toon_introspection_agent.py                                    ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO INTROSPECTIVO               ║
+║ FUNCIÓN  : SOBERANO DE INTROSPECCIÓN Y DEMOSTRADOR DE AUTOCOHERENCIA                 ║
+║ VERSIÓN  : 8.0.0-Doctoral-Introspection-Sovereign-ProofCertificate-A3                ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_introspection_agent.py
-Versión  : 2.2.0-Doctoral-Nested-PowerIteration-Uhlmann-FS-Birkhoff-Merkle
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONIntrospectionAgent` es el soberano agéntico responsable de someter cada "corazonada" 
+o "reflejo relámpago" generado por el Soberano de la Intuición (`toon_intuition_agent.py`) a una 
+demostración formal de autocoherencia y estabilidad de punto fijo.
 
-Este módulo define la entidad ejecutiva e inalienable "Soberano de Introspección"
-en el dominio WISDOM de la arquitectura COGNITIVE TOON / APU Filter. Su cometido es
-evaluar la consistencia interna entre los flashes/corazonadas intuitivas de los agentes
-y la matriz densidad de la Memoria de Alto Contenido (MAC), actuando como filtro de
-coherencia topológico-espectral y garante de no-contradicción.
+Asegura que el sistema no actúe por espejismos transitorios, validando que la decisión se 
+sostenga por sí misma dentro de la arquitectura de Automejora Recursiva (RSI Nivel 2).
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y OPERACIONES ESPECTRALES
-================================================================================
+POSTULADOS Y GOBERNANZA AGÉNTICA
+────────────────────────────────
+1. DEMOSTRACIÓN DE AUTOESTADO Y RESIDUO DE PUNTO FIJO:
+   El Soberano ejecuta el verificador `IntrospectionEigenStateVerifier`, el cual resuelve
+   el problema de autovalores sobre la Matriz Atómica de Conocimiento:
 
-1. Campo MAC y C*-Álgebra de Operadores Densidad:
-   El estado de la memoria MAC se representa como un operador densidad $\rho_{\mathrm{MAC}}$
-   perteneciente a $\mathfrak{D}_n = \{\rho \in M_n(\mathbb{C}) : \rho = \rho^\dagger, \, \rho \ge 0, \, \mathrm{Tr}(\rho) = 1\}$.
-   La pureza se mide como $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) \in [1/n, 1]$ y la entropía de von Neumann
-   como $S(\rho) = -\mathrm{Tr}(\rho \log \rho)$.
+       \rho_{\mathrm{MAC}} |\psi\rangle = \lambda |\psi\rangle
 
-2. Fidelidad de Uhlmann a Estados Puros vs. Puntos Fijos Proyectivos:
-   Para un rayo $[v] \in \mathbb{C}P^{n-1}$ correspondiente a una corazonada intuitiva $v \in \mathbb{C}^n$
-   ($\|v\|_2 = 1$), la fidelidad de Uhlmann al estado puro $|v\rangle\langle v|$ se reduce a:
-       $$F(\rho_{\mathrm{MAC}}, |v\rangle\langle v|) = \sqrt{\langle v | \rho_{\mathrm{MAC}} | v \rangle} = \sqrt{\mathcal{R}(v)}$$
-   donde $\mathcal{R}(v)$ es el cociente de Rayleigh. Si $v = v_1$ (modo dominante), $F = \sqrt{\lambda_1}$.
-   Distinto a la fidelidad de Uhlmann, el overlap proyectivo bajo la aplicación $T([v]) = [\rho v]$ mide
-   la invariancia del rayo:
-       $$\mathcal{O}_T(v) = |\langle v | T(v) \rangle| \in [0, 1], \quad \mathcal{O}_T(v) = 1 \iff [v] \in \mathrm{Fix}(T)$$
+   Si la fidelidad de Uhlmann-Jozsa es unitaria ($F = 1.0$) y el residuo de punto fijo es 
+   nulo ($\eta_{\mathrm{residue}} = 0.0$), emite la narrativa de autocoherencia absoluta.
 
-3. Distancia de Fubini-Study y Residuo Gauge-Fijado:
-   En el espacio proyectivo $\mathbb{C}P^{n-1}$, la métrica Kähler de Fubini-Study es:
-       $$d_{\mathrm{FS}}([u], [v]) = \arccos(|\langle u | v \rangle|) \in \left[0, \frac{\pi}{2}\right]$$
-   Fijando el gauge $U(1)$ mediante $T_\varphi(v) = e^{-i \arg \langle v, T(v) \rangle} T(v)$, el residuo
-   euclídeo tangente representa la distancia cuerda intrínseca:
-       $$\|T_\varphi(v) - v\|_2 = \sqrt{2 - 2|\langle v | T(v) \rangle|} = 2 \sin\left(\frac{d_{\mathrm{FS}}}{2}\right)$$
+2. CERTIFICADO DE AUTOCOHERENCIA E INVIOLABILIDAD (IntrospectionProofCertificate):
+   Sintetiza un certificado firmado criptographically con la cadena Merkle-SHA256:
 
-4. Brecha Espectral, Radio Transversal y Birkhoff-Hopf:
-   Con espectro $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0$, la brecha espectral relativa $\gamma$
-   y la tasa asintótica $\rho_{\mathrm{th}}$ son:
-       $$\gamma = 1 - \frac{\lambda_2}{\lambda_1}, \quad \rho_{\mathrm{th}} = \frac{\lambda_2}{\lambda_1}$$
-   La contracting proyectiva acotada por la métrica de Hilbert tiene constante $\kappa \le \tanh(\Delta/4)$,
-   donde $\Delta = \log(\lambda_1/\lambda_n)$.
+       \mathtt{proof\_hash} = \operatorname{SHA-256}(\mathrm{FlashID} \mathbin{\Vert} \mathrm{Verdict} \mathbin{\Vert} \eta_{\mathrm{residue}} \mathbin{\Vert} F_{\mathrm{MAC}})
 
-5. Retículo de Heyting $\Omega_3$ y Adjudicación Conservadora:
-   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
-   se obtiene por el meet ($\wedge$) conservador del veredicto local y el veredicto de entrada ($v_{\mathrm{incoming}}$):
-       $$v_{\mathrm{final}} = v_{\mathrm{local}} \wedge v_{\mathrm{incoming}}$$
-   Garantizando que si $v_{\mathrm{incoming}} = \bot$, el resultado es estrictamente $\bot$ (veto duro).
+   Este pasaporte de autocoherencia acompaña a la transacción para garantizar su inalterabilidad
+   en la bitácora de auditoría.
 
-6. Canal CPTP de Inoculación y Auto-Organización MAC:
-   Tras la adjudicación $\top$, el campo $\rho_{\mathrm{MAC}}$ se actualiza mediante el canal CPTP afín:
-       $$\Phi_\eta(\rho) = (1 - \eta)\rho + \eta |v^*\rangle\langle v^*|, \quad \eta \in [0, 1]$$
-   con constante de Lipschitz en norma de traza $\mathrm{Lip}_{\|\cdot\|_1}(\Phi_\eta) = |1 - \eta|$.
+3. DUALIDAD CIBER-FÍSICA Y DISYUNTOR ESP32 CROWBAR:
+   Si la prueba de introspección detecta inestabilidad ($\eta_{\mathrm{residue}} > 0.25$ o 
+   $F < 0.50$), el veredicto en Heyting colapsa a $\mathtt{VETOED}$ (0). Este evento arma 
+   síncronamente la Interrupt Service Routine (ISR) en memoria IRAM del microcontrolador 
+   ESP32 (<400 ns en IRAM, GPIO14 / BT151), sosteniendo la parálisis ciber-física en el frente
+   de obra.
 
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
-
-El Soberano opera como el funtor estricto $F = F_3 \circ F_2 \circ F_1$:
-    $$F : \mathbb{C}^n \times \Omega_3 \times \mathfrak{D}_n \longrightarrow \mathrm{IntrospectionProofCertificate}$$
-
-  • $F_1$ (`IntrospectiveHandoff.build`): $\mathbb{C}^n \times \mathfrak{D}_n \times \Omega_3 \to \mathrm{IntrospectiveHandoff}$.
-    Sustrato proyectivo-espectral, cálculo de $\mathcal{R}(v)$, Uhlmann $\sqrt{\mathcal{R}}$, Born $|\langle v|v_1\rangle|^2$ y $d_{\mathrm{FS}}$.
-  • $F_2$ (`IntrospectionPipeline.synthesize`): $\mathrm{IntrospectiveHandoff} \to \mathrm{IntrospectionBundle}$.
-    Iteración de potencia gauge-fijada $T^k$, parada $d_{\mathrm{FS}}$, tasa empírica y certificación.
-  • $F_3$ (`TOONIntrospectionAgent._phase3_certify`): $\mathrm{IntrospectionBundle} \to \mathrm{IntrospectionProofCertificate}$.
-    Adjudicación en $\Omega_3$ por meets con $v_{\mathrm{incoming}}$, narrativa anclada a observables, inoculación $\Phi_\eta$ y firma Merkle.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Diferenciación Uhlmann vs. Fix(T)): $F(\rho, |v\rangle\langle v|) = \sqrt{\mathcal{R}(v)} \ne \mathcal{O}_T(v)$.
-  Un rayo en $\mathrm{Fix}(T)$ satisface $\mathcal{O}_T(v) = 1$, pero su fidelidad de Uhlmann es $\sqrt{\lambda_1}$.
-- Axioma 2 (Invariancia Gauge Proyectiva): La distancia $d_{\mathrm{FS}}([u],[v])$ es invariante bajo transformaciones $U(1)$.
-- Axioma 3 (Veto Absoluto por Meet): Para todo veredicto local $v_{\mathrm{local}}$, $v_{\mathrm{local}} \wedge \bot = \bot$.
+TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
+──────────────────────────────────────
+- Blindaje ante Pérdidas: Impide que una decisión instintiva errónea autorice desembolsos
+  injustificados, protegiendo el capital de trabajo.
+- Prueba Pericial Irrefutable: Proporciona la evidencia matemática para respaldar vetos de pago 
+  ante tribunales arbitrales y entes de control fiscal.
+- Calificación de Riesgo Operativo A+: Aumenta la confianza de bancos e inversionistas al demostrar
+  que cada orden de obra cuenta con prueba de autocoherencia matemáticamente validada.
 """
 
 from __future__ import annotations

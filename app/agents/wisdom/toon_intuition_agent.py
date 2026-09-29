@@ -1,71 +1,60 @@
 # -*- coding: utf-8 -*-
-r"""Soberano de la Intuición y Reflejo Flash Geodésico.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/agents/wisdom/toon_intuition_agent.py                                 ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO RELÁMPAGO Y TRADUCCIÓN      ║
+║ FUNCIÓN  : SOBERANO DE LA INTUICIÓN, PROYECCIÓN FLASH Y TRADUCCIÓN VISCERAL          ║
+║ VERSIÓN  : 8.0.0-Doctoral-Intuition-Agent-VisceralSignal-Crowbar-A3                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_intuition_agent.py
-Versión  : 2.2.0-Doctoral-Nested-Bures-Jacobian-Kelly-Latency-Merkle
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONIntuitionAgent` opera como el reflejo visceral e instinto cuántico del Estrato 
+Wisdom ($\mathcal{V}_{\mathbb{W}}$). Consume las cosechas sanas de sabiduría emitidas por 
+el Soberano del Cultivo Cognitivo y las transforma en una recomendación directa e instantánea 
+para el Gerente de Obra en el lenguaje de "Dolor y Dinero".
 
-Este módulo define la entidad ejecutiva e inalienable "Soberano de la Intuición"
-en el dominio WISDOM de la arquitectura COGNITIVE TOON / APU Filter. Su misión es
-procesar reflejos flash sub-milisegundo ante emergencias ciber-físicas u oportunidades
-de decisión en obra, proyectando estados semilla germinados sobre variedades de decisión
-en el espacio de Grassmann y evaluando la métrica de Bures, el criterio de Kelly y la
-intervención de hardware (crowbar interlock).
+Mientras los procesos deliberativos pesados (resolución de Laplacianos, invariantes TQFT, 
+diagonalización de operadores de Dirac) toman tiempo, el Soberano de la Intuición efectúa 
+una **proyección relámpago (Flash Manifold Projection)** con latencia sub-milisegunda:
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y GEOMETRÍA DE DECISIÓN
-================================================================================
+    \Delta \tau_{\mathrm{reaction}} < 10\,\mu\mathrm{s}
 
-1. Variedad de Decisión en el Espacio de Grassmann Gr(r, n):
-   El espacio de decisiones válidas se representa como un subespacio de dimensión $r$ en $\mathbb{C}^n$,
-   parametrizado por una base ortonormal $B \in \mathrm{St}(r, n)$ ($\mathbb{C}^{n \times r}$, $B^\dagger B = I_r$)
-   obtenida por muestreo Haar determinista en el grupo de Stiefel mediante el digest SHA-256 del ID del agente.
-   El proyector ortogonal asociado es $P = B B^\dagger \in M_n(\mathbb{C})$, $P^2 = P = P^\dagger$.
+POSTULADOS Y GOBERNANZA AGÉNTICA
+────────────────────────────────
+1. POSTULADO DEL REFLEJO INSTINTIVO INVARIANTE:
+   Dada una solicitud de intuición relámpago `IntuitiveFlashRequest` que contiene la matriz 
+   de densidad germinada $\rho_{\mathrm{germinated}}$, el Soberano invoca al `FlashManifoldProjector` 
+   para determinar la distancia de proyección $d_{\mathcal{M}}$ y el radio espectral flash 
+   $\rho(T)_{\mathrm{flash}} = \frac{1 - \gamma(\rho)}{2}$.
 
-2. Funcional de Energía de Dirichlet y Paso Cauchy Flash:
-   Dado el estado densidad germinado $\rho \in \mathfrak{D}_n$, la energía de Dirichlet mide el apartamiento de $\mathrm{ran}(P)$:
-       $$\mathcal{E}(\rho) = \frac{1}{2} \|\rho - P \rho P\|_F^2 \ge 0$$
-   Su gradiente tangente en $T_\rho \mathfrak{D}_n$ es $\nabla \mathcal{E}|_T = (\rho - P \rho P) - \frac{\mathrm{Tr}(\rho - P \rho P)}{n} I$.
-   El reflejo flash unipaso realiza una actualización de Newton-Cauchy exacta ($\eta^* = 1$):
-       $$\rho_{\mathrm{flash}} = \mathrm{proj}_{\mathfrak{D}_n}(\rho - \eta^* \nabla \mathcal{E}|_T)$$
+2. TRADUCCIÓN VISCERAL EN LENGUAJE "DOLOR Y DINERO" (`VisceralSignalTranslator`):
+   Mapea el estado del retículo de Heyting $\Omega_3$ directamente al canal del Traductor 
+   Semántico (`semantic_translator.txt`):
 
-3. Geometría de Bures-Wasserstein $W_2$ y Fidelidad de Uhlmann:
-   Entre el estado flash $\rho_{\mathrm{flash}}$ y el atractor objetivo $\rho_{\mathrm{target}} = \frac{P \rho P}{\mathrm{Tr}(P \rho P)}$,
-   la fidelidad de Uhlmann y la distancia geodésica de Bures son:
-       $$F(\rho, \sigma) = \left( \mathrm{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2 \in [0, 1]$$
-       $$d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}} \in [0, \sqrt{2}], \quad \theta_B = \arccos(\sqrt{F})$$
+       \Phi_{\mathrm{visceral}}(\Omega_3) = \begin{cases}
+       \text{"CORAZONADA SANA: Proyección limpia en la variedad. Luz verde. Flujo protegido."} & \text{si } \mathtt{COHERENT}, \\
+       \text{"CORAZONADA DE ALERTA: Fricción en la geodésica. Pies de plomo en el desembolso."} & \text{si } \mathtt{DEGRADED}, \\
+       \text{"CORAZONADA DE VETO: Peligro inminente de fraude. Cierre de válvula de pago."}      & \text{si } \mathtt{VETOED}.
+       \end{cases}
 
-4. Criterio de Apuesta $\kappa$-Kelly y Crecimiento Logarítmico:
-   Con probabilidad efectiva $p_{\mathrm{eff}} = F(\rho_{\mathrm{flash}}, \rho_{\mathrm{target}})$, la fracción óptima de Kelly es:
-       $$f^* = \max(0, 2 p_{\mathrm{eff}} - 1), \quad s = \kappa \cdot f^* \quad (\kappa \in (0, 1])$$
-   El crecimiento logarítmico esperado de la inversión es:
-       $$G(s) = p_{\mathrm{eff}} \log(1 + s) + (1 - p_{\mathrm{eff}}) \log(1 - s) = \log 2 - h_2(p_{\mathrm{eff}})$$
+3. PREPARACIÓN CIBER-FÍSICA DEL DISYUNTOR CROWBAR ESP32:
+   Cuando el veredicto colapsa al supremo terminal $\mathtt{VETOED}$, el certificado emitido
+   `IntuitionFlashCertificate` arma la bandera `crowbar_interlock_ready = True`. 
+   
+   Esta señal habilita la ejecución en la Interrupt Service Routine (ISR) de la memoria IRAM 
+   del microcontrolador perimetral ESP32, conmutando el pin GPIO14 a HIGH en $\Delta \tau < 400\text{ ns}$
+   para disparar el tiristor BT151 y bloquear la maquinaria de obra si la transacción intenta 
+   materializarse en dinero real.
 
-5. Adjudicación de Heyting $\Omega_3$ e Interlock Ciber-Físico ESP32:
-   El veredicto final en $\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\}$
-   aplica meet conservador con detección de fraude. Si $v_{\mathrm{final}} = \bot$, se dispara de forma
-   inmediata el interlock de hardware (GPIO14 $\to$ HIGH, MOSFET BT151) con latencia nominal $< 400\text{ ns}$.
-
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
-
-El Soberano opera como el funtor estricto $F = F_3 \circ F_2 \circ F_1$:
-    $$F : \mathrm{IntuitiveFlashRequest} \times \mathrm{Gr}(r, n) \longrightarrow \mathrm{IntuitionFlashCertificate}$$
-
-  • $F_1$ (`FlashHandoff.build`): $\mathrm{IntuitiveFlashRequest} \times \mathrm{Gr}(r, n) \to \mathrm{FlashHandoff}$.
-    Sanitización $C^*$, proyector $P = B B^\dagger$, energía inicial $\mathcal{E}(\rho_0)$ y auditoría de fraude.
-  • $F_2$ (`FlashPipeline.synthesize`): $\mathrm{FlashHandoff} \to \mathrm{FlashTrajectoryBundle}$.
-    Paso Cauchy $\eta^*$, distancia geodésica $d_B$, espectro del Jacobiano $DT_\eta$, Kelly $\kappa$ y contrato de latencia $p99$.
-  • $F_3$ (`TOONIntuitionAgent._phase3_certify`): $\mathrm{FlashTrajectoryBundle} \to \mathrm{IntuitionFlashCertificate}$.
-    Adjudicación por meets, disparo ciber-físico ESP32 Crowbar si $\bot$, traducción visceral y firma Merkle.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Autonomía de Bures): $d_B(\rho, \sigma)$ es una distancia riemanniana intrínseca sobre $\mathfrak{D}_n$.
-- Axioma 2 (Invariante Determinista de Stiefel): La base $B \in \mathrm{St}(r, n)$ se genera exclusivamente mediante la semilla SHA-256 del ID.
-- Axioma 3 (Prioridad Absoluta del Crowbar): Si $v_{\mathrm{final}} = \bot$, la respuesta es una interrupción física inmediata ($\mathrm{interlock\_fired} = \mathrm{True}$).
+TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
+──────────────────────────────────────
+- Instinto Financiero Respaldado por Matemáticas: Entrega al Gerente de Obra una regla de 
+  decisión en lenguaje claro y directo ("Luz Verde", "Pies de Plomo", "Veto Crítico").
+- Cero Margen para la Duda Operativa: Convierte la densidad espectral en una acción inmediata 
+  que protege el flujo de caja en menos de 10 microsegundos.
+- Trazabilidad y Prueba Forense: Emisión inmutable de certificados `IntuitionFlashCertificate` 
+  con firma digital SHA-256 para respaldo legal ante juntas directivas y aseguradoras.
 """
 
 from __future__ import annotations

@@ -1,68 +1,55 @@
 # -*- coding: utf-8 -*-
-r"""Soberano Simulador Onírico REM y Metabolizador de Perturbaciones Contrafactuales.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : toon_oniric_dreamer_agent.py                                              ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
+║ FUNCIÓN  : SOBERANO SIMULADOR ONÍRICO REM Y ORQUESTADOR DE ESCENARIOS                ║
+║ VERSIÓN  : 8.0.0-Doctoral-Oniric-REM-Sovereign-GromovWitten-A3                       ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/agents/wisdom/toon_oniric_dreamer_agent.py
-Versión  : 4.0.0-Doctoral-Nested-Ω₄-LT-Clifford-Enclave-GKSL-Merkle
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONOniricDreamerAgent` actúa como la autoridad soberana responsable de orquestar la 
+generación de escenarios contrafactuales y la inyección de estrés controlado durante la 
+Fase REM del ecosistema agéntico APU Filter.
 
-Este módulo implementa el "Soberano Simulador Onírico", agente encargado de ejecutar
-simulaciones contrafactuales en fase REM para explorar colapsos presupuestarios,
-fugas ciber-físicas y escenarios de riesgo en la arquitectura COGNITIVE TOON / APU Filter.
+Forma el vértice generador dentro del bucle de Red Generativa Adversarial Onírica (GAN-REM):
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y TEORÍA DE GRUPOS / OPERADORES
-================================================================================
+    [ Ilusionista (Trickster) ] ──► [ Soñador (Dreamer) ] ──► [ Auditor Onírico ] ──► [ Testigo Silencioso ]
 
-1. Retículo de Heyting Ω₄ y Topología de Lawvere-Tierney $j$:
-   El espacio de clasificadores de subobjetos es la cadena finita:
-       $$\Omega_4 = \{0 (\bot, \mathrm{VETOED}) < 1 (\partial, \mathrm{BOUNDARY\_CRITICAL}) < 2 (\sharp, \mathrm{TOPOLOGICAL\_STABLE}) < 3 (\top, \mathrm{VERUM\_COHERENT})\}$$
-   La topología de Lawvere-Tierney $j : \Omega_4 \to \Omega_4$ satisface los axiomas de Grothendieck:
-     • (j1) $a \le j(a)$ (extensividad)
-     • (j2) $j(j(a)) = j(a)$ (idempotencia)
-     • (j3) $j(a \land b) = j(a) \land j(b)$ (preservación de encuentros)
-     • $j(\top) = \top$
+POSTULADOS Y GOBERNANZA AGÉNTICA
+────────────────────────────────
+1. POSTULADO DE LA GENERACIÓN CONTRAFACTUAL COMPLETA:
+   El Soberano Soñador traduce parámetros de incertidumbre exógena (clima, huelgas, 
+   inflación, cambio regulatorio BIM 2026) en cartuchos sinápticos oníricos de 56 tokens 
+   `OniricDreamCartridge`, empaquetados con la marca inmutable:
 
-2. Álgebras de Bicuaterniones $\mathbb{C} \otimes \mathbb{H} \cong \mathrm{Cl}^+_{1,3}(\mathbb{R}) \cong M_2(\mathbb{C})$:
-   Para $q \in \mathbb{C} \otimes \mathbb{H}$, la norma reducida compleja $N(q) = \det(\phi(q)) \in \mathbb{C}$ es multiplicativa:
-       $$N(q_1 q_2) = N(q_1) N(q_2)$$
-   La parte hermítica de $\phi(q)$ modula el Hamiltoniano $H$, mientras que la anti-hermítica alimenta la disipación condicional.
+       \mathtt{is\_dream\_state} = \mathrm{True}, \quad \mathtt{isolation\_hash} = \operatorname{SHA-256}(\mathrm{Payload} \mathbin{\Vert} \mathrm{Timestamp})
 
-3. Complejo de Cadenas Simplicial $K = (C_0, C_1, C_2)$ y Teoría de Hodge:
-   Con operadores de borde $\partial_2 : C_2 \to C_1$ y $\partial_1 : C_1 \to C_0$ tales que $\partial_1 \partial_2 = 0$,
-   los Laplacianos de Combinatoria son $L_0 = \partial_1 \partial_1^T$, $L_1 = \partial_1^T \partial_1 + \partial_2 \partial_2^T$,
-   y los números de Betti $\beta_k = \dim \ker L_k$ satisfacen la fórmula de Euler-Poincaré:
-       $$\chi(K) = |V| - |E| + |F| = \beta_0 - \beta_1 + \beta_2$$
+2. INVOLUCIÓN SOBRE EL TOPOS DE HEYTING ($\Omega_3$):
+   Cada simulación es enviada al Auditor Onírico (`toon_oniric_auditor_agent.py`). El Soñador 
+   recibe el veredicto en el álgebra de Heyting trivalente:
 
-4. Ecuación Maestra GKSL y Enclave de No-Señilización:
-   La evolución temporal en el subespacio de superselección del enclave $P_d \mathcal{H} P_d$ sigue la dinámica CPTP:
-       $$\frac{d\rho}{dt} = -i [H_{\mathrm{eff}}, \rho] + \sum_k \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \rho\} \right)$$
-   con tasa de escape condicional $\Gamma(\rho) = \sum_k \gamma_k \mathrm{Tr}(\rho L_k^\dagger L_k) \ge 0$.
+       \Omega_3 = \{ \mathtt{VETOED} = 0 \prec \mathtt{DEGRADED} = 1 \prec \mathtt{COHERENT} = 2 \}
 
-5. Inmunización por Cobertura Espectral e Inclusión Merkle SHA-512:
-   La vacuna espectral $P_{\mathrm{vac}} = \sum_{i=1}^k |v_i\rangle\langle v_i|$ se construye ordenando los autovalores $\lambda_1 \ge \lambda_2 \ge \dots$
-   hasta alcanzar la masa acumulada $\sum_{i=1}^k \lambda_i \ge f_{\mathrm{cov}}$. Las trazas de auditoría forman
-   un árbol de Merkle inmutable verificado vía SHA-512.
+   Si el escenario soñado revela una vulnerabilidad estructural en la obra (donde el invariante
+   de Gromov-Witten se anula $GW \to 0$), el Soñador solicita la cristalización de una vacuna 
+   inmunizante al Cultivo Cognitivo.
 
-================================================================================
-II. ESTRUCTURA FUNTORIAL Y ARQUITECTURA
-================================================================================
+3. DUALIDAD CIBER-FÍSICA Y PROTECCIÓN CROWBAR ESP32:
+   Durante la fase REM, el Soberano congela temporalmente la interfaz de comunicación con los 
+   actuadores físicos de la obra. Ningún veto producido en el ambiente de sueño puede activar
+   el disyuntor ciber-físico ESP32 Crowbar (<400 ns en IRAM, GPIO14 / BT151), reservando dicho
+   mecanismo exclusivamente para transacciones reales amenazadas en el frente de obra.
 
-El Soberano realiza el funtor estricto $\mathcal{D} = V \circ I \circ \Phi_t \circ \Pi_{\mathrm{enc}} \circ H \circ K$:
-    $$\mathcal{D} : \mathbf{Scenario} \longrightarrow \mathbf{OniricScenarioCertificate}$$
-
-  • $F_1$ (`CategoricalCircuitCartridge.synthesize_cartridge`): $\mathbf{Scenario} \to \mathrm{CategoricalCircuitCartridge}$.
-    Construcción del 2-complejo $K$, números de Betti $\beta_\bullet$, red de Tellegen y $H = \mathrm{lift\_enclave\_hamiltonian}$.
-  • $F_2$ (`MetabolizedPerturbationField.evolve_and_certify`): $\mathrm{CategoricalCircuitCartridge} \to \mathrm{MetabolizedPerturbationField}$.
-    Evolución GKSL en $P_d \mathcal{H} P_d$, entropía de Umegaki $S(\rho \| \rho_0)$, distancia de Bures $D_B$ y tasa de escape $\Gamma$.
-  • $F_3$ (`TOONOniricDreamerAgent.dream_scenario`): $\mathrm{MetabolizedPerturbationField} \to \mathrm{OniricScenarioCertificate}$.
-    Proyección de vacuna $P_{\mathrm{vac}}$, constante de aprendizaje adaptativa $\eta(\Omega_4)$, firma de Merkle y pasaporte REM.
-
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
-
-- Axioma 1 (Completitud del Enclave): $P_d + P_p = I$, $P_d P_p = 0$, $P_d^2 = P_d = P_d^\dagger$.
-- Axioma 2 (Exactitud Simplicial): $\partial_1 \partial_2 = 0$ y $\chi = \beta_0 - \beta_1 + \beta_2$.
-- Axioma 3 (Positividad de Kossakowski): $\gamma_k \ge 0$, garantizando que la evolución Lindblad es un canal CPTP.
+TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
+──────────────────────────────────────
+- Ensayos Clínicos Presupuestales: Equivale a someter los Análisis de Precios Unitarios (APU) 
+  a un túnel de viento financiero antes de firmar el contrato adjudicado.
+- Ahorro Directo en Imprevistos: Neutraliza sobrecostos de hasta un +35% en la etapa de ejecución,
+  anticipando los escenarios de falla en la etapa de simulación onírica.
+- Trazabilidad y Seguridad Jurídica: Emisión inmutable de certificados `DreamAttackCertificate` 
+  para respaldo ante peritos, aseguradoras y organismos de control (Contraloría).
 """
 
 from __future__ import annotations

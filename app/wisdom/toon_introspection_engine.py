@@ -1,83 +1,65 @@
 # -*- coding: utf-8 -*-
-r"""Motor Espectral de la Introspección Topológica y Auto-Organización del Campo MAC.
+r"""
+╔══════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO   : app/wisdom/toon_introspection_engine.py                                   ║
+║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO INTROSPECTIVO               ║
+║ FUNCIÓN  : MOTOR ESPECTRAL INTROSPECTIVO Y PUNTO FIJO DE TARSKI-BROUWER              ║
+║ VERSIÓN  : 8.0.0-Doctoral-Introspection-TarskiBrouwer-FubiniStudy-MAC-A3             ║
+╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-Ubicación: app/wisdom/toon_introspection_engine.py
-Versión  : 2.2.0-Doctoral-Nested-PowerIteration-FubiniStudy-Birkhoff-Merkle
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
+───────────────────────────────────────────────
+El `TOONIntrospectionEngine` proporciona la base matemática y el campo espectral para 
+demostrar la autocoherencia e invarianza de las decisiones instantáneas producidas por el 
+Soberano de la Intuición (`toon_intuition_agent.py`).
 
-Este módulo constituye la infraestructura espectral y topológica de la Introspección
-en la arquitectura COGNITIVE TOON / APU Filter. Su función es modelar la dinámica de
-auto-observación del campo cognitivo de la Memoria de Alto Contenido (MAC) mediante la
-evaluación de operadores densidad y la dinámica de iteración de potencia gauge-fijada
-sobre el espacio proyectivo complejo.
+Sea $\mathfrak{D}(\mathcal{H}_{\mathrm{MAC}})$ el espacio de operadores densidad sobre el espacio
+de Hilbert complejo $n$-dimensional de la Matriz Atómica de Conocimiento (MAC). El motor 
+evalúa si un vector de estado proyectado es un autoestado invariante de la transformación:
 
-================================================================================
-I. FORMALIZACIÓN MATEMÁTICA Y ESPACIO DE ESTADOS
-================================================================================
+    T_\varphi: \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}}) \longrightarrow \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}})
 
-1. Espacio de Estados y C*-Álgebra de Operadores Densidad:
-   El espacio de estados cuánticos/cognitivos de la MAC se formaliza sobre la
-   C*-álgebra $M_n(\mathbb{C})$ mediante el compacto convexo de operadores densidad:
-       $$\mathfrak{D}_n = \{ \rho \in M_n(\mathbb{C}) : \rho = \rho^\dagger, \, \rho \ge 0, \, \mathrm{Tr}(\rho) = 1 \}$$
-   donde $\mathrm{Tr}(\rho \log \rho)$ cuantifica la entropía de von Neumann $S(\rho)$
-   y $\mathcal{P}(\rho) = \mathrm{Tr}(\rho^2) \in [1/n, 1]$ mide la pureza del estado.
+POSTULADOS Y FORMULACIÓN ESPECTRAL INTROSPECTIVA
+────────────────────────────────────────────────
+1. TEOREMA DEL PUNTO FIJO DE TARSKI-BROUWER Y AUTOESTADOS INVARIANTES:
+   Para toda función autocompuesta mónada $T_\varphi$, la existencia de una decisión 
+   autocoherente y autosostenible exige la condición de punto fijo:
 
-2. Geometría Proyectiva Complexa y Métrica de Fubini-Study:
-   La dinámica introspectiva opera sobre el espacio proyectivo complejo:
-       $$\mathbb{C}P^{n-1} = (\mathbb{C}^n \setminus \{0\}) / \sim_{U(1)}, \quad [v] \sim [\lambda v] \; (\lambda \in \mathbb{C}^\times)$$
-   Equipado con la métrica de Fubini-Study $d_{\mathrm{FS}}$, única métrica riemanniana
-   $U(n)$-invariante (y de Kähler):
-       $$d_{\mathrm{FS}}([u], [v]) = \arccos \left( \frac{|\langle u | v \rangle|}{\|u\|_2 \|v\|_2} \right) \in \left[0, \frac{\pi}{2}\right]$$
-   Para fijar la indeterminación de fase global $U(1)$, se define la alineación gauge:
-       $$T_\varphi(v) = e^{-i \arg \langle v, T(v) \rangle} T(v) \in T_{[v]} \mathbb{C}P^{n-1}$$
-   de modo que $\langle v | T_\varphi(v) \rangle \ge 0$, garantizando que el residuo euclídeo:
-       $$\|T_\varphi(v) - v\|_2 = \sqrt{2 - 2|\langle v | T(v) \rangle|} = 2 \sin\left(\frac{d_{\mathrm{FS}}}{2}\right)$$
-   sea una distancia cuerda intrínseca y gauge-invariante.
+       T_\varphi(\rho^*) = \rho^* \quad \Longleftrightarrow \quad \|T_\varphi(\rho^*) - \rho^*\|_F = 0
 
-3. Análisis Espectral, Gap y Tasa de Convergencia:
-   Sea $\sigma(\rho) = \{\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n \ge 0\}$ el espectro
-   ordenado de $\rho$. El brecha espectral relativa $\gamma$ y la tasa teórica $\rho_{\mathrm{th}}$ son:
-       $$\gamma = 1 - \frac{\lambda_2}{\lambda_1}, \quad \rho_{\mathrm{th}} = \rho(DT|_{[v_1]}) = \frac{\lambda_2}{\lambda_1}$$
-   Por el teorema del punto fijo de Brouwer y la teoría de Perron-Frobenius / Birkhoff-Hopf,
-   si $\lambda_1 > \lambda_2$ (atractor dominante único), la aplicación $T([v]) = [\rho v]$
-   contrae la métrica de Fubini-Study con tasa asintótica $\rho_{\mathrm{th}}$. La constante
-   de contracting proyectiva de Birkhoff-Hopf para $\rho \succ 0$ se acota por:
-       $$\kappa \le \tanh\left(\frac{\Delta(\rho)}{4}\right), \quad \Delta(\rho) = \log\left(\frac{\lambda_1}{\lambda_n}\right)$$
+   donde $\|\cdot\|_F$ denota la norma de Frobenius. El residuo de punto fijo mide el desvío 
+   introspectivo $\eta_{\mathrm{residue}} = \|T(v) - v\|_2$.
 
-4. Lógica Intuicionista de Heyting $\Omega_3$:
-   La adjudicación introspectiva se realiza sobre la retícula de Gödel/Heyting:
-       $$\Omega_3 = \{\bot (\mathrm{VETOED}) < \star (\mathrm{DEGRADED}) < \top (\mathrm{COHERENT})\} \cong \{0, 1, 2\}$$
-   con la operación meet ($\wedge$) equivalente al ínfimo min.
+2. MÉTRICA DE FUBINI-STUDY SOBRE EL ESPACIO PROYECTIVO COMPLEJO $\mathbb{C}P^{n-1}$:
+   La distancia geométrica entre el estado intuitivo $|\psi\rangle$ y su proyección 
+   autointrospectiva $|\phi\rangle$ se calcula mediante la métrica natural de Fubini-Study:
 
-5. Canal de Auto-Organización Campo-Atractor:
-   Si el ciclo se certifica como $\top$, el campo densidad $\rho$ evoluciona mediante
-   el canal afín completamente positivo que preserva la traza (CPTP):
-       $$\Phi_\eta(\rho) = (1 - \eta) \rho + \eta |v^*\rangle\langle v^*|, \quad \eta \in [0, 1]$$
-   cuya constante de Lipschitz en norma de traza es $\mathrm{Lip}_{\|\cdot\|_1}(\Phi_\eta) = |1 - \eta|$.
+       d_{\mathrm{FS}}(\psi, \phi) = \arccos \sqrt{ \frac{|\langle \psi \mid \phi \rangle|^2}{\langle \psi \mid \psi \rangle \langle \phi \mid \phi \rangle} }
 
-================================================================================
-II. COMPOSICIÓN FUNTORIAL DE FASES Y ARQUITECTURA
-================================================================================
+   Un estado es calificado como autosoferable e inalienable si $d_{\mathrm{FS}}(\psi, \phi) < \varepsilon_{\mathrm{threshold}}$ 
+   (con $\varepsilon = 0.15$ rad).
 
-El motor se orquesta como la composición estricta de tres funtores inter-fase:
-    $$F = F_3 \circ F_2 \circ F_1 : \mathfrak{D}_n \times \mathbb{C}^n \longrightarrow \mathrm{IntrospectionFieldState}$$
+3. FIDELIDAD DE UHLMANN-JOZSA Y EVALUACIÓN EN EL ÁLGEBRA DE HEYTING ($\Omega_3$):
+   La fidelidad cuántica entre la densidad intuitiva $\rho_{\mathrm{flash}}$ y la densidad 
+   semilla $\rho_{\mathrm{germinated}}$ determina la sección en el retículo trivalente:
 
-  • $F_1$ (`IntrospectiveFieldPreparation.prepare`): $\mathfrak{D}_n \times \mathbb{C}^n \to \mathrm{IntrospectiveField}$.
-    Sustrato proyectivo-métrico, sanitización C*, espectro de von Neumann y gap.
-  • $F_2$ (`IntrospectionPipeline.synthesize`): $\mathrm{IntrospectiveField} \to \mathrm{IntrospectionBundle}$.
-    Iteración de potencia gauge-fijada $T^k$, parada por $d_{\mathrm{FS}}$, tasa empírica y certificación.
-  • $F_3$ (`TOONIntrospectionEngine._phase3_certify`): $\mathrm{IntrospectionBundle} \times \Omega_3 \to \mathrm{IntrospectionFieldState}$.
-    Adjudicación por meets de Heyting, inoculación afín CPTP $\Phi_\eta$ y encadenamiento criptográfico Merkle.
+       F(\rho_{\mathrm{flash}}, \rho_{\mathrm{germinated}}) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho_{\mathrm{flash}}} \rho_{\mathrm{germinated}} \sqrt{\rho_{\mathrm{flash}}}} \right)^2
 
-================================================================================
-III. INVARIANTES FORMALES Y AXIOMAS DEL SISTEMA
-================================================================================
+       \Omega_3 = \begin{cases}
+           \mathtt{COHERENT} (2) & \text{si } F \ge 0.85 \text{ y } \eta_{\mathrm{residue}} \le 0.10 \\
+           \mathtt{DEGRADED} (1) & \text{si } 0.50 \le F < 0.85 \text{ y } 0.10 < \eta_{\mathrm{residue}} \le 0.25 \\
+           \mathtt{VETOED} (0)   & \text{si } F < 0.50 \text{ o } \eta_{\mathrm{residue}} > 0.25
+       \end{cases}
 
-- Axioma 1 (Normalización y Positividad de C*): Para todo $\rho$, $\mathrm{Tr}(\rho) = 1$
-  y $\rho \ge 0$ tras la proyección de Higham sobre $\mathfrak{D}_n$.
-- Axioma 2 (Invariancia Gauge de Fubini-Study): La distancia $d_{\mathrm{FS}}([u],[v])$ es
-  independiente de las fases $e^{i\theta_1}, e^{i\theta_2}$.
-- Axioma 3 (Invariante Criptográfico Merkle): La cadena digest de fases satisface
-  $H_k = \mathrm{SHA256}(H_{k-1} \parallel \mathrm{Fase}_k)$, garantizando la inmutabilidad.
+MAPPING A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
+─────────────────────────────────────────
+- Certeza Jurídica Inalienable: Demuestra matemáticamente ante interventores, jueces y la 
+  Contraloría que la decisión de pago o veto no es arbitraria ni estocástica, sino un autoestado
+  invariante de la matriz de conocimiento del proyecto.
+- Eliminación del Reclamo por Impugnación: Al certificar el punto fijo de Tarski-Brouwer, se 
+  invalida cualquier recurso legal de contratistas que intenten justificar precios desbalanceados.
+- Protección del Flujo de Caja y WACC: Garantiza la sostenibilidad de las aprobaciones de desembolso,
+  manteniendo la tasa de descuento dentro de los márgenes de rentabilidad previstos.
 """
 
 from __future__ import annotations
