@@ -8,171 +8,171 @@ r"""
 
 NATURALEZA CIBER-FÍSICA Y TEORÍA DE HACES CELULARES (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra el **Sistema de Propiocepción Invariante** de la Malla 
-agéntica, modelando el consenso global y la consistencia lógica de las reglas 
-de negocio mediante la teoría de **Haces Celulares (Cellular Sheaves)**. 
-Repudia incondicionalmente las validaciones locales o heurísticas nodo a nodo, 
+Este módulo consagra el **Sistema de Propiocepción Invariante** de la Malla
+agéntica, modelando el consenso global y la consistencia lógica de las reglas
+de negocio mediante la teoría de **Haces Celulares (Cellular Sheaves)**.
+Repudia incondicionalmente las validaciones locales o heurísticas nodo a nodo,
 elevando el flujo de restricciones a una estructura cohomológica global.
 
 El enrutador trata las dependencias, políticas y restricciones de la obra
-como secciones locales de un haz celular $$\mathcal{F}$$ sobre el 
-1-esqueleto simplicial del presupuesto (grafo $$G = (V,E)$$) ``. 
-Al medir el desacuerdo local a través de los mapas de restricción, el orquestador 
-deriva de forma determinista la presencia de contradicciones contractuales o 
-dependencias circulares parasitarias. Toda obstrucción cohomológica 
-excedente colapsa síncronamente el retículo distributivo de Heyting $$\Omega_3$$ 
-en RAM, gatillando el disyuntor físico Crowbar (GPIO14) en el milisegundo cero ``.
+como secciones locales de un haz celular ℱ sobre el 1-esqueleto simplicial
+del presupuesto (grafo G = (V,E)). Al medir el desacuerdo local a través de
+los mapas de restricción, el orquestador deriva de forma determinista la
+presencia de contradicciones contractuales o dependencias circulares
+parasitarias. Toda obstrucción cohomológica excedente colapsa síncronamente
+el retículo distributivo de Heyting Ω₃ en RAM, gatillando el disyuntor físico
+Crowbar (GPIO14) en el milisegundo cero.
 
 AXIOMÁTICA COHOMOLÓGICA, ENERGÍA DE DIRICHLET Y CONSISTENCIA DE HODGE:
 ────────────────────────────────────────────────────────────────────────────────
 
-  [A1] El Fibrado Celular y el Operador Cofrontera ($$\delta$$):
-       Sea $$G = (V, E)$$ el grafo de restricciones de la Malla. El haz celular 
-       $$\mathcal{F}$$ asigna un espacio de estados local (Stalk) $$F(v) \cong \mathbb{R}^{d_v}$$ 
-       a cada vértice y $$F(e) \cong \mathbb{R}^{d_e}$$ a cada arista ``. 
-       El operador cofrontera global $$\delta: C^0(G; \mathcal{F}) \to C^1(G; \mathcal{F})$$ 
-       mide la discrepancia local de las secciones $$x \in C^0$$ mediante las matrices 
-       de restricción lineales $$F_{v \triangleleft e}$$ ``:
-       $$(\delta x)_e = F_{v \triangleleft e}(x_v) - F_{u \triangleleft e}(x_u) \quad\big[630\big]$$
+  [A1] El Fibrado Celular y el Operador Cofrontera (δ):
+       Sea G = (V, E) el grafo de restricciones de la Malla. El haz celular
+       ℱ asigna un stalk F(v) ≅ ℝ^{d_v} a cada vértice y F(e) ≅ ℝ^{d_e}
+       a cada arista. El operador cofrontera global
+       δ: C⁰(G; ℱ) → C¹(G; ℱ) mide la discrepancia local de las secciones
+       x ∈ C⁰ mediante las matrices de restricción lineales F_{v ◁ e}:
+       (δx)_e = F_{v ◁ e}(x_v) − F_{u ◁ e}(x_u)
 
-  [A2] Teorema de Rango-Nulidad e Invariantes Cohomológicos ($$H^0$$ y $$H^1$$):
-       La consistencia global del sistema se extrae analíticamente resolviendo 
-       los subespacios cohomológicos del complejo de cocadenas ``:
-       $$H^0(G; \mathcal{F}) \cong \ker(\delta) \quad \land \quad H^1(G; \mathcal{F}) \cong \operatorname{coker}(\delta) = C^1 / \operatorname{im}(\delta) \quad\big[630\big]$$
-       Donde:
-         · $$\dim H^0$$ parametriza los grados de libertad del consenso global ``.
-         · $$\dim H^1$$ mide la obstrucción topológica global (paradojas lógicas) ``.
+  [A2] Teorema de Rango-Nulidad e Invariantes Cohomológicos (H⁰ y H¹):
+       La consistencia global del sistema se extrae analíticamente
+       resolviendo los subespacios cohomológicos del complejo de cocadenas:
+       H⁰(G; ℱ) ≅ ker(δ)  ∧  H¹(G; ℱ) ≅ coker(δ) = C¹ / im(δ)
+       Donde dim H⁰ = dim C⁰ − rank(δ) y dim H¹ = dim C¹ − rank(δ).
+       Identidad de Euler del complejo de 2 términos:
+       χ(ℱ) = dim H⁰ − dim H¹ = dim C⁰ − dim C¹.
        [AXIOMA DE VETO COHOMOLÓGICO]:
-       $$\dim H^1(G; \mathcal{F}) > 0 \implies \mathrm{VETO\_ABSOLUTO} \quad\big[630\big]$$
+       dim H¹(G; ℱ) > 0 ⟹ VETO_ABSOLUTO
 
   [A3] Conservación del Número de Condición (Censura del Laplaciano):
-       El Laplaciano del Haz se define formalmente como $$L = \delta^\top \delta \succeq \mathbf{0}$$ ``. 
-       Para evitar la amplificación cuadrática del número de condiciónes espectral 
-       ($$\kappa(L) = \kappa(\delta)^2$$) que colapsaría la mantisa flotante de la FPU 
-       ($$\text{IEEE-754 binary64}$$), el ensamblaje explícito de $$L$$ queda estrictamente 
-       PROHIBIDO en el silicio ``. La energía de Dirichlet del haz:
-       $$E(x) = \|\delta x\|_2^2 = x^\top L x \quad\big[630\big]$$
-       y los autovalores se evalúan exclusivamente por métodos de Krylov-Lanczos 
-       bidiagonales aplicados directamente sobre $$\delta$$ ``.
+       El Laplaciano del Haz se define formalmente como L = δᵀδ ⪰ 0.
+       Para evitar la amplificación cuadrática del número de condición
+       espectral (κ(L) = κ(δ)²) que colapsaría la mantisa flotante de la
+       FPU (IEEE-754 binary64), el ensamblaje explícito de L queda
+       estrictamente PROHIBIDO como objeto de Krylov. Toda iteración
+       espectral se ejecuta directamente sobre δ mediante bidiagonalización
+       de Golub-Kahan. La energía de Dirichlet E(x) = ‖δx‖² = xᵀLx se
+       evalúa por producto matriz-vector sin materializar L.
 
   [A4] Proyección de Hodge-Helmholtz y Límite Isoperimétrico de Lipschitz:
-       Si $$H^1 = 0$$ pero existe frustración térmica ($$E(x) > \varepsilon_{\mathrm{frustration}}$$), 
-       el sistema calcula la proyección armónica de Hodge $$x^* \in \ker(\delta)$$ vía LSQR ``. 
-       Para evitar derivas contables ficticias, la distancia de sanación se somete 
-       estrictamente al límite de Lipschitz fuerte acotado por el número de condición de-confinado:
-       $$\|\delta x^* - \delta x\|_2 \le \kappa(\delta) \cdot \|x^* - x\|_2 \quad\big[645\big]$$
+       Si H¹ = 0 pero existe frustración térmica (E(x) > ε_frustration),
+       el sistema calcula la proyección armónica de Hodge x* ∈ ker(δ) vía
+       LSQR. Para evitar derivas contables ficticias, la distancia de
+       sanación se somete estrictamente al límite de Lipschitz fuerte
+       acotado por el número de condición de-confinado:
+       ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂
        Sujeto incondicionalmente a la cota isoperimétrica de inercia:
-       $$\|x - x^*\|_2 \le \Delta_{\mathrm{inertia}} \quad\big[645\big]$$
+       ‖x − x*‖₂ ≤ Δ_inertia
 
   [A5] Estabilidad Espectral y Cota de Wilkinson:
-       La exactitud de la base del núcleo se valida síncronamente contra la cota 
-       de precisión de máquina de Wilkinson para el rango de la cofrontera:
-       $$\operatorname{rank}(\delta) = \# \{ \sigma_i \in \sigma(\delta) \mid \sigma_i > \mathtt{SVD\_TOL} \} \quad\big[403\big]$$
-       $$\mathtt{SVD\_TOL} = d^2 \cdot \kappa_2(\delta) \cdot \varepsilon_{\mathrm{machine}} \cdot \sigma_{\max}(\delta) \quad\big[404\big]$$
+       La exactitud de la base del núcleo se valida síncronamente contra
+       la cota de precisión de máquina de Wilkinson para el rango de δ:
+       rank(δ) = # { σᵢ ∈ σ(δ) | σᵢ > SVD_TOL }
+       SVD_TOL = d² · κ₂(δ) · ε_machine · σ_max(δ)
+       donde d = max(dim C⁰, dim C¹), con resolución iterativa del ciclo
+       κ₂ ⟷ rank ⟷ SVD_TOL hasta punto fijo (≤ 8 iteraciones).
+       En régimen disperso el rango se revela por el extremo inferior
+       (svds which='SM') y no por los valores singulares dominantes.
+
+  [A6] Álgebra de Heyting Ω₃ y Colapso Terminal:
+       El veredicto de gobernanza habita el retículo distributivo de
+       Heyting totalmente ordenado (álgebra de Gödel–Dummett):
+       Ω₃ = { COHERENT := ⊥, DEGRADED, VETOED := ⊤ }
+       con join = sup = max, meet = inf = min, y pseudocomplemento
+       a → b = ⊤ si a ≤ b, y a → b = b en caso contrario.
+       El colapso al supremo terminal ⊤ dispara el Crowbar GPIO14.
 
 ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial de de Rham-Hodge):
 ────────────────────────────────────────────────────────────────────────────────
-La orquestación del consenso global se rige por un acoplamiento monoidal covariante 
-estricto, encadenando DTOs inmutables de solo lectura (F1 ⊣ F2 ⊣ F3) ``:
+La orquestación del consenso global se rige por un acoplamiento monoidal
+covariante estricto, encadenando DTOs inmutables de solo lectura (F1 ⊣ F2 ⊣ F3).
+El tipo de retorno del último método de Φᵢ ES el objeto inicial de Φᵢ₊₁:
 
   Fase 1 ──► VETO COHOMOLÓGICO Y COFRONTERA (Phase1_CohomologicalVetoCertifier)
-             Ingiere la matriz de incidencia de-confinada y los mapas de restricción. 
-             Construye el operador cofrontera global $$\delta$$, calcula su SVD completa 
-             y audita la dimensión del primer grupo de cohomología $$\dim H^1$$.
-             Morfismo de transición: _certify_cohomological_veto_axiom.
-             Entrega: CohomologicalVetoData como precondición de la Fase 2 ``.
+             Ingiere la matriz de incidencia de-confinada y los mapas de
+             restricción. Construye el operador cofrontera global δ, calcula
+             su SVD con tolerancia de Wilkinson adaptativa y audita
+             (dim H⁰, dim H¹).
+             Morfismo terminal: nest_into_phase2
+                 CellularSheaf  ⟶  Phase2_KrylovSpectralAuditor
 
   Fase 2 ──► REGULACIÓN ESPECTRAL Y KRYLOV (Phase2_KrylovSpectralAuditor)
-             Hereda la CohomologicalVetoData. Mide el número de condición espectral 
-             $$\kappa(\delta)$$ utilizando subespacios de Krylov-Lanczos sin cuadrar 
-             el operador, calcula la energía de Dirichlet $$E(x)$$, y evalúa la 
-             constante de Poincaré.
-             Morfismo de transición: _audit_krylov_spectral_stability.
-             Entrega: KrylovSpectralData como precondición de la Fase 3 ``.
+             Hereda CohomologicalVetoData. Mide κ(δ) mediante
+             bidiagonalización de Golub-Kahan-Lanczos directamente sobre δ
+             sin cuadrar el operador, calcula E(x) y la constante de Poincaré.
+             Morfismo terminal: nest_into_phase3
+                 (Phase2, x)  ⟶  Phase3_IsoperimetricHodgeProjector
 
   Fase 3 ──► PROYECCIÓN DE HODGE Y VETO HEYTING (Phase3_IsoperimetricHodgeProjector)
-             Hereda la KrylovSpectralData. Resuelve la proyección armónica de Hodge 
-             $$x^*$$ mediante LSQR, verifica el límite isoperimétrico de Lipschitz, 
-             y resuelve el veredicto en el retículo de Heyting distributivo $$\Omega_3$$:
-             $$\Omega_3 = \{\mathrm{COHERENT}, \, \mathrm{DEGRADED}, \, \mathrm{VETOED}\} \quad\big[647\big]$$
-             Si el residuo excede la cota o $$\dim H^1 > 0$$, el retículo colapsa 
-             al supremo terminal VETOED ($$\top$$), purga la memoria RAM y conmuta 
-             el disyuntor físico Crowbar (GPIO14) en menos de 400 ns.
-             Entrega: SheafGovernanceState (Morfismo terminal).
+             Hereda KrylovSpectralData. Resuelve x* mediante LSQR, verifica
+             el límite isoperimétrico de Lipschitz y resuelve el veredicto
+             en Ω₃. Si el residuo excede la cota o dim H¹ > 0, el retículo
+             colapsa a VETOED (⊤) y conmuta GPIO14.
+             Morfismo terminal: resolve_sheaf_governance
+                 (Phase3, x)  ⟶  SheafGovernanceState
 
 Funtor Maestro de Propiocepción e Invarianza Global:
-  $$\mathcal{Z}_{\mathrm{Sheaf}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{Sheaf} \times C^0(G; \mathcal{F}) \longrightarrow \mathtt{SheafGovernanceState} \quad\big[647, 654\big]$$
+  𝒵_Sheaf = Φ₃ ∘ Φ₂ ∘ Φ₁ : Sheaf × C⁰(G; ℱ) ⟶ SheafGovernanceState
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, Final, List, Optional, Tuple, Protocol, runtime_checkable, Any
+from enum import IntEnum
+from typing import Any, Dict, Final, List, Optional, Protocol, Tuple, runtime_checkable
 
 import numpy as np
 import scipy.sparse as sp
-import scipy.sparse.linalg as spla
-from scipy.sparse.linalg import ArpackError, eigsh
+from scipy.sparse.linalg import lsqr, svds
 
 logger = logging.getLogger("MIC.ImmuneSystem.SheafCohomology")
 
+__version__: Final[str] = "4.1.0-Sheaf-Hodge-Krylov-MoorePenrose-Heyting-Strict-PhD"
+
 
 # =============================================================================
-# SECCIÓN 1: TOLERANCIAS NUMÉRICAS JUSTIFICADAS
+# SECCIÓN 1: TOLERANZAS NUMÉRICAS JUSTIFICADAS (FPU IEEE-754 binary64)
 # =============================================================================
 
-# Tolerancia para clasificar E(x) = ‖δx‖² como "coherente".
-# Justificación: ε_mach^{2/3} ≈ 3.7e-11 es la cota estándar para residuos
-# de problemas lineales bien condicionados; usamos 1e-9 como margen
-# conservador que acomoda errores de la malla agéntica.
+_EPS_MACHINE: Final[float] = float(np.finfo(np.float64).eps)  # ≈ 2.22e-16
+
+# ε_mach^{2/3} ≈ 3.7e-11 es la cota estándar de residuales bien condicionados;
+# 1e-9 aporta margen conservador frente a acumulación de redondeo en δx.
 _FRUSTRATION_TOLERANCE: Final[float] = 1e-9
 
-# Tolerancia BASE para verificar simetría de L = δᵀδ.
-# La tolerancia real es adaptativa: max(_SYMMETRY_TOLERANCE, rel · ‖L‖_F).
-# Para L = AᵀA, la asimetría numérica es O(ε_mach · ‖A‖²_F).
-# CORRECCIÓN: el diseño original usaba tolerancia fija, produciendo falsos
-# positivos para matrices de gran norma (‖L‖_F >> 1).
 _SYMMETRY_TOLERANCE_ABS: Final[float] = 1e-10
 _SYMMETRY_TOLERANCE_REL: Final[float] = 1e-10
 
-# Tolerancia para clasificar eigenvalores como "cero" o "positivo".
-# Separada de _FRUSTRATION_TOLERANCE para independizar el análisis espectral
-# del análisis de energía de estados específicos.
 _SPECTRAL_TOLERANCE: Final[float] = 1e-9
 
-# Dimensión máxima para usar eigendecomposición densa O(n³).
-# Por encima, se usa ARPACK iterativo O(n·k²).
+# Umbral a partir del cual la SVD densa O(n³) (LAPACK gesdd) es admisible.
 _DENSE_SPECTRAL_MAX_DIM: Final[int] = 256
 
-# Número máximo de eigenvalores a solicitar en modo disperso.
-# Se limita a evitar solicitar k ≥ n (error de ARPACK).
-_SPARSE_MAX_EIGENVALUES: Final[int] = 8
+# Cota de valores singulares revelados en régimen disperso (ARPACK).
+_SPARSE_MAX_SINGULAR_VALUES: Final[int] = 32
 
-# Tolerancia de convergencia para eigsh (ARPACK).
 _ARPACK_TOLERANCE: Final[float] = 1e-7
 
-# Sigma para shift-invert en ARPACK: desplazar λ → (λ - σ)⁻¹ con σ ≈ 0
-# captura eigenvalores cercanos a 0 de forma estable.
-# CORRECCIÓN: el diseño original usaba sigma=-1e-5 (valor negativo sin
-# justificación). Con sigma=0, el shift-invert apunta exactamente al
-# espectro de interés (eigenvalores pequeños de L ⪰ 0).
-_ARPACK_SIGMA: Final[float] = -1e-5
-
-# Tolerancia para verificar semi-positividad de L.
-# CORRECCIÓN: la tolerancia es adaptativa: max(abs, rel · λ_max_estimado).
 _SEMIPOSITIVE_TOLERANCE_ABS: Final[float] = _SPECTRAL_TOLERANCE
 _SEMIPOSITIVE_TOLERANCE_REL: Final[float] = 1e-8
 
-# Tolerancia para el solucionador de Poisson en hodge_projection.
-# Corresponde al residuo relativo del solucionador lineal disperso (LSQR).
 _HODGE_SOLVER_TOLERANCE: Final[float] = 1e-10
-
-# Máximo de iteraciones para LSQR en hodge_projection.
 _HODGE_MAX_ITER: Final[int] = 10_000
 
-# Epsilon numérico para denominadores en cálculos de condición.
+_KRYLOV_MAX_ITER: Final[int] = 200
+_KRYLOV_TOL: Final[float] = 1e-9
+
 _EPSILON: Final[float] = 1e-15
+
+_CROWBAR_GPIO_PIN: Final[int] = 14
+
+# κ₂ a partir del cual un mapa de restricción local degrada E(x).
+_RESTRICTION_KAPPA_WARN: Final[float] = 1e8
+
+# Códigos de parada de LSQR considerados convergentes (Paige–Saunders).
+_LSQR_OK_STOP: Final[frozenset[int]] = frozenset({1, 2, 3, 4, 6})
 
 
 # =============================================================================
@@ -187,76 +187,74 @@ class SheafCohomologyError(Exception):
         SheafCohomologyError
         ├── HomologicalInconsistencyError
         ├── SheafDegeneracyError
-        └── SpectralComputationError
+        ├── SpectralComputationError
+        ├── TopologicalBifurcationError
+        ├── HeytingCollapseError
+        └── IsoperimetricViolationError
     """
 
 
 class HomologicalInconsistencyError(SheafCohomologyError):
-    """Lanzada cuando E(x) = ‖δx‖² > _FRUSTRATION_TOLERANCE.
+    """E(x) = ‖δx‖² > ε_frustration o dim H¹ > 0.
 
-    Semántica: x no constituye una sección global compatible del haz.
-    El estado propuesto viola las restricciones inter-agente.
+    Semántica [A2]: x no es sección global compatible, o ℱ posee
+    obstrucción topológica irreducible (coker(δ) ≠ 0).
     """
 
 
 class SheafDegeneracyError(SheafCohomologyError):
-    """Lanzada cuando el haz es algebraicamente incoherente o degenerado.
+    """Haz algebraicamente incoherente o degenerado.
 
-    Ejemplos:
-        - Dimensiones incompatibles en mapas de restricción.
-        - Matrices de restricción con NaN o ±∞.
-        - Grafos sin aristas (δ = 0 trivial).
-        - Sub-espacios locales sin soporte métrico.
+    Ejemplos: dimensiones incompatibles, NaN/±∞, grafo sin aristas (δ = 0),
+    stalks sin soporte métrico, nnz de ensamblaje incoherente.
     """
 
 
 class SpectralComputationError(SheafCohomologyError):
-    """Lanzada cuando el cálculo espectral del Laplaciano falla.
+    """Fallo del cálculo espectral (Golub–Kahan / ARPACK / LAPACK).
 
-    Ejemplos:
-        - No convergencia de ARPACK (Lanczos).
-        - Eigenvalores negativos significativos (L no semidefinida positiva).
+    Ejemplos: no convergencia, pérdida de semi-positividad numérica.
     """
 
 
 class TopologicalBifurcationError(SheafCohomologyError):
-    """Lanzada cuando se detecta una alteración estructural prohibida (Δχ ≠ 0).
+    """Una inyección altera estructuralmente la variedad (Δχ ≠ 0 o Δβ₁ > 0)."""
 
-    Semántica: El pullback categórico identifica que la inyección de la
-    herramienta colapsa la estabilidad de la variedad o induce ciclos
-    homológicos (Δβ1 > 0) que violan la causalidad del estrato.
-    """
+
+class HeytingCollapseError(SheafCohomologyError):
+    """El retículo Ω₃ colapsa al supremo terminal VETOED."""
+
+
+class IsoperimetricViolationError(SheafCohomologyError):
+    """‖x − x*‖₂ > Δ_inertia o violación de la cota de Lipschitz [A4]."""
 
 
 # =============================================================================
-# SECCIÓN 3: ESTRUCTURAS DE DATOS INMUTABLES
+# SECCIÓN 3: ESTRUCTURAS DE DATOS INMUTABLES (DTOs GEOMÉTRICOS)
 # =============================================================================
 
 
 @dataclass(frozen=True, slots=True)
 class RestrictionMap:
-    """Mapa lineal F_{v ▷ e}: F(v) → F(e).
+    """Mapa lineal de restricción F_{v ▷ e}: F(v) → F(e).
 
-    Si dim(F(v)) = n y dim(F(e)) = m, la matriz asociada tiene forma (m, n),
-    representando la transformación lineal ℝⁿ → ℝᵐ.
+    Formalmente, para cada incidencia v ◁ e del haz celular ℱ, este objeto
+    encapsula el morfismo ℝ^{d_v} → ℝ^{d_e} que define la restricción local.
+    Es el generador de los bloques del operador cofrontera δ (Axioma [A1]).
 
-    La matriz se almacena como read-only (write=False) para garantizar
-    inmutabilidad algebraica del haz una vez construido.
+    En la categoría Banach de espacios euclídeos de dimensión finita, la
+    norma de operador coincide con el radio espectral de FᵀF:
+        ‖F‖_{2→2} = σ_max(F),    ‖F⁺‖_{2→2} = 1 / σ_min⁺(F).
 
-    Atributos:
-        matrix: Array (m, n) de dtype float64, inmutable.
-
-    Propiedades derivadas:
-        domain_dim:   n (número de columnas)
-        codomain_dim: m (número de filas)
-        condition_number: κ₂(matrix) = σ_max / σ_min, indicador de
-                          mal condicionamiento del mapa.
+    Atributos
+    ─────────
+    matrix : np.ndarray (m, n), float64, write-protected
+        Matriz F_{v▷e}, m = dim F(e), n = dim F(v).
     """
 
     matrix: np.ndarray
 
     def __post_init__(self) -> None:
-        # Convertir a float64 con copia para garantizar propiedad.
         try:
             M = np.array(self.matrix, dtype=np.float64, copy=True)
         except (TypeError, ValueError) as exc:
@@ -264,74 +262,78 @@ class RestrictionMap:
                 f"El mapa de restricción no es convertible a array float64: {exc}"
             ) from exc
 
-        # Verificar bidimensionalidad.
         if M.ndim != 2:
             raise SheafDegeneracyError(
-                f"El mapa de restricción debe ser una matriz 2D; "
-                f"recibido ndim={M.ndim}."
+                f"El mapa de restricción debe ser 2D; recibido ndim={M.ndim}."
             )
-
-        # Verificar dimensiones no degeneradas.
         if M.shape[0] == 0 or M.shape[1] == 0:
-            raise SheafDegeneracyError(
-                f"El mapa de restricción tiene dimensión degenerada: "
-                f"forma={M.shape}. Ambas dimensiones deben ser ≥ 1."
-            )
-
-        # Verificar finitud de todas las entradas.
+            raise SheafDegeneracyError(f"Dimensión degenerada: shape={M.shape}.")
         if not np.all(np.isfinite(M)):
             n_bad = int(np.count_nonzero(~np.isfinite(M)))
             raise SheafDegeneracyError(
-                f"El mapa de restricción contiene {n_bad} entrada(s) "
-                f"no finita(s) (NaN o ±∞). Forma={M.shape}."
+                f"{n_bad} entrada(s) no finita(s) en F_{{v▷e}}."
             )
 
-        # Inmutabilizar para proteger la geometría del haz.
         M.setflags(write=False)
         object.__setattr__(self, "matrix", M)
 
     @property
     def domain_dim(self) -> int:
-        """Dimensión del dominio F(v): número de columnas."""
+        """Dimensión del dominio F(v): n (columnas)."""
         return int(self.matrix.shape[1])
 
     @property
     def codomain_dim(self) -> int:
-        """Dimensión del codominio F(e): número de filas."""
+        """Dimensión del codominio F(e): m (filas)."""
         return int(self.matrix.shape[0])
 
     @property
+    def operator_norm(self) -> float:
+        """‖F‖_{2→2} = σ_max(F) (norma de Banach de operador)."""
+        s = np.linalg.svd(self.matrix, compute_uv=False)
+        return float(s[0]) if s.size else 0.0
+
+    @property
     def condition_number(self) -> float:
-        """Número de condición espectral κ₂(matrix) = σ_max / σ_min.
+        """κ₂(F_{v▷e}) = σ_max / σ_min ∈ [1, +∞].
 
-        MEJORA: Expone la calidad numérica del mapa de restricción.
-        Un κ₂ >> 1 indica que el mapa amplifica errores de redondeo,
-        potencialmente degradando la precisión de E(x).
-
-        Para matrices rectangulares, usa SVD truncada.
-        Retorna ∞ si σ_min ≈ 0 (mapa rank-deficiente).
+        κ₂ = +∞ si el mapa es numéricamente rank-deficiente (σ_min < ε).
+        Un κ₂ ≫ 1 amplifica el error de redondeo en E(x) = ‖δx‖².
         """
-        singular_values = np.linalg.svd(self.matrix, compute_uv=False)
-        sigma_max = float(singular_values[0])
-        sigma_min = float(singular_values[-1])
-        if sigma_min < _EPSILON:
+        s = np.linalg.svd(self.matrix, compute_uv=False)
+        if s.size == 0:
             return float("inf")
-        return sigma_max / sigma_min
+        s_max, s_min = float(s[0]), float(s[-1])
+        if s_min < _EPSILON:
+            return float("inf")
+        return s_max / s_min
+
+    @property
+    def moore_penrose_pinv(self) -> np.ndarray:
+        """Seudoinversa de Moore–Penrose F⁺ ∈ ℝ^{n×m}.
+
+        Satisface las cuatro ecuaciones de Penrose:
+            F F⁺ F = F,  F⁺ F F⁺ = F⁺,  (F F⁺)ᵀ = F F⁺,  (F⁺ F)ᵀ = F⁺ F.
+        Interviene en la proyección ortogonal sobre ker(δ) cuando se
+        materializa x ↦ (I − δ⁺δ)x en régimen denso.
+        """
+        return np.linalg.pinv(self.matrix, rcond=None)
 
 
 @dataclass(frozen=True, slots=True)
 class SheafEdge:
     """Descriptor inmutable de una arista orientada del haz.
 
-    La orientación canónica es u → v. El operador de cofrontera usa:
+    Orientación canónica u → v. Contribución al operador cofrontera [A1]:
         (δx)_e = F_{v ▷ e} x_v − F_{u ▷ e} x_u
 
-    Atributos:
-        edge_id:       Identificador único de la arista.
-        u:             Nodo origen (orientación del haz).
-        v:             Nodo destino (orientación del haz).
-        restriction_u: Mapa F_{u ▷ e}: F(u) → F(e).
-        restriction_v: Mapa F_{v ▷ e}: F(v) → F(e).
+    Atributos
+    ─────────
+    edge_id        : identificador único en {edge_dims}
+    u              : nodo origen
+    v              : nodo destino
+    restriction_u  : F_{u ▷ e} : F(u) → F(e)
+    restriction_v  : F_{v ▷ e} : F(v) → F(e)
     """
 
     edge_id: int
@@ -341,71 +343,1598 @@ class SheafEdge:
     restriction_v: RestrictionMap
 
 
-@dataclass(frozen=True, slots=True)
-class SpectralInvariants:
-    """Invariantes espectrales del Laplaciano del haz L = δᵀδ.
+# =============================================================================
+# SECCIÓN 4: HAZ CELULAR (CellularSheaf) — Fibrado sobre el 1-esqueleto
+# =============================================================================
 
-    Atributos:
-        h0_dimension:         dim ker(L) = dim H⁰(G; ℱ) (componentes de
-                              consenso independientes).
-        h1_dimension:         dim H¹(G; ℱ) = dim C¹ − rank(δ). Si > 0,
-                              existe una obstrucción topológica absoluta.
-        spectral_gap:         Menor eigenvalor λ₁ > 0 de L. Mide la
-                              robustez del consenso. 0.0 si no existe.
-        smallest_eigenvalues: Vector inmutable de los eigenvalores
-                              más pequeños computados.
-        method:               'dense' o 'sparse'.
-        delta_rank:           rank(δ) estimado (necesario para H¹).
-        condition_number_est: Estimación de κ₂(δ) = σ_max/σ_min.
+
+class CellularSheaf:
+    """Haz celular ℱ sobre el 1-esqueleto simplicial de la Malla agéntica.
+
+    ℱ es un funtor de la categoría de celdas (vértices y aristas de G) hacia
+    Vect_ℝ. A cada v ∈ V asigna el stalk F(v) ≅ ℝ^{d_v}; a cada e ∈ E asigna
+    F(e) ≅ ℝ^{d_e}; y a cada incidencia u ◁ e, v ◁ e los morfismos lineales
+    F_{u ▷ e}, F_{v ▷ e}.
+
+    Espacios de cocadenas
+    ─────────────────────
+    C⁰(G; ℱ) = ⊕_{v ∈ V} F(v),   dim C⁰ = Σ_v d_v
+    C¹(G; ℱ) = ⊕_{e ∈ E} F(e),   dim C¹ = Σ_e d_e
+
+    El operador cofrontera δ: C⁰ → C¹ se ensambla por bloques. El Laplaciano
+    L = δᵀδ hereda simetría y semi-positividad, pero NUNCA es objeto de Krylov
+    (Axioma [A3]).
+
+    Invariantes de clase
+    ────────────────────
+    - Nodos indexados 0, …, num_nodes − 1.
+    - edge_id únicos declarados en edge_dims.
+    - Grafo simple: sin lazos ni multiaristas.
+    - Dimensiones de restricciones consistentes con node_dims y edge_dims.
+    - Caché de δ invalidada al añadir aristas.
     """
 
+    def __init__(
+        self,
+        num_nodes: int,
+        node_dims: Dict[int, int],
+        edge_dims: Dict[int, int],
+    ) -> None:
+        """Inicializa el fibrado celular base.
+
+        Args
+        ────
+        num_nodes : int > 0
+        node_dims : {nodo: dim F(nodo)} para nodos ∈ {0, …, num_nodes − 1}
+        edge_dims : {edge_id: dim F(edge)} para aristas declaradas
+
+        Raises
+        ──────
+        SheafDegeneracyError
+        """
+        if not isinstance(num_nodes, int) or num_nodes <= 0:
+            raise SheafDegeneracyError(
+                f"num_nodes debe ser entero positivo; recibido={num_nodes!r}."
+            )
+
+        self._num_nodes: Final[int] = num_nodes
+        self._node_dims: Final[Dict[int, int]] = self._validate_node_dims(
+            node_dims, num_nodes
+        )
+        self._edge_dims: Final[Dict[int, int]] = self._validate_edge_dims(edge_dims)
+        self._edges: List[SheafEdge] = []
+        self._added_edge_ids: set[int] = set()
+        self._added_node_pairs: set[frozenset[int]] = set()
+
+        self._node_offsets: Final[np.ndarray] = self._compute_offsets(
+            self._node_dims, self._num_nodes
+        )
+        self._edge_offsets: Final[Dict[int, int]] = self._compute_edge_offsets_static(
+            self._edge_dims
+        )
+        self._total_node_dim: Final[int] = int(self._node_offsets[-1])
+        self._total_edge_dim: Final[int] = int(sum(self._edge_dims.values()))
+        self._cached_coboundary: Optional[sp.csc_matrix] = None
+
+    # ── 4.1 Propiedades de solo lectura ─────────────────────────────────
+    @property
+    def num_nodes(self) -> int:
+        return self._num_nodes
+
+    @property
+    def node_dims(self) -> Dict[int, int]:
+        return dict(self._node_dims)
+
+    @property
+    def edge_dims(self) -> Dict[int, int]:
+        return dict(self._edge_dims)
+
+    @property
+    def edges(self) -> List[SheafEdge]:
+        return list(self._edges)
+
+    @property
+    def total_node_dim(self) -> int:
+        return self._total_node_dim
+
+    @property
+    def total_edge_dim(self) -> int:
+        return self._total_edge_dim
+
+    @property
+    def num_edges_added(self) -> int:
+        return len(self._edges)
+
+    @property
+    def num_edges_expected(self) -> int:
+        return len(self._edge_dims)
+
+    @property
+    def missing_edge_ids(self) -> List[int]:
+        """edge_id declarados aún no insertados, ordenados."""
+        return sorted(set(self._edge_dims.keys()) - self._added_edge_ids)
+
+    @property
+    def is_fully_assembled(self) -> bool:
+        return not self.missing_edge_ids
+
+    # ── 4.2 Validación estática ─────────────────────────────────────────
+    @staticmethod
+    def _validate_node_dims(
+        node_dims: Dict[int, int], num_nodes: int
+    ) -> Dict[int, int]:
+        """Cada nodo ∈ [0, n) con dimensión entera estrictamente positiva."""
+        if not isinstance(node_dims, dict):
+            raise SheafDegeneracyError("node_dims debe ser dict {nodo: dim}.")
+        expected = set(range(num_nodes))
+        actual = set(node_dims.keys())
+        missing = expected - actual
+        if missing:
+            raise SheafDegeneracyError(
+                f"Faltan dimensiones para nodos: {sorted(missing)}."
+            )
+        extra = actual - expected
+        if extra:
+            raise SheafDegeneracyError(f"Claves fuera de rango: {sorted(extra)}.")
+        validated: Dict[int, int] = {}
+        for i in range(num_nodes):
+            dim = node_dims[i]
+            if not isinstance(dim, int) or dim <= 0:
+                raise SheafDegeneracyError(
+                    f"dim inválida para nodo {i}: {dim!r}. Entero positivo requerido."
+                )
+            validated[i] = dim
+        return validated
+
+    @staticmethod
+    def _validate_edge_dims(edge_dims: Dict[int, int]) -> Dict[int, int]:
+        """Cada arista con dimensión entera > 0; el diccionario no es vacío."""
+        if not isinstance(edge_dims, dict):
+            raise SheafDegeneracyError("edge_dims debe ser dict {edge_id: dim}.")
+        if not edge_dims:
+            raise SheafDegeneracyError(
+                "edge_dims vacío. Un haz sin aristas tiene δ = 0 y "
+                "H⁰ = C⁰ trivialmente, sin información inter-agente."
+            )
+        validated: Dict[int, int] = {}
+        for edge_id, dim in edge_dims.items():
+            if not isinstance(edge_id, int) or edge_id < 0:
+                raise SheafDegeneracyError(
+                    f"edge_id inválido: {edge_id!r}. Entero ≥ 0 requerido."
+                )
+            if not isinstance(dim, int) or dim <= 0:
+                raise SheafDegeneracyError(
+                    f"dim inválida para arista {edge_id}: {dim!r}."
+                )
+            validated[edge_id] = dim
+        return validated
+
+    @staticmethod
+    def _compute_offsets(dims_map: Dict[int, int], count: int) -> np.ndarray:
+        """offsets[k] = Σ_{i<k} d_i, offsets[count] = dim C⁰."""
+        offsets = np.zeros(count + 1, dtype=np.int64)
+        for i in range(count):
+            offsets[i + 1] = offsets[i] + dims_map[i]
+        return offsets
+
+    @staticmethod
+    def _compute_edge_offsets_static(edge_dims: Dict[int, int]) -> Dict[int, int]:
+        """Offsets acumulados en C¹ indexados por edge_id (orden determinista)."""
+        offsets: Dict[int, int] = {}
+        running = 0
+        for edge_id in sorted(edge_dims):
+            offsets[edge_id] = running
+            running += edge_dims[edge_id]
+        return offsets
+
+    # ── 4.3 Construcción del haz ────────────────────────────────────────
+    def add_edge(
+        self,
+        edge_id: int,
+        u: int,
+        v: int,
+        F_ue: RestrictionMap,
+        F_ve: RestrictionMap,
+    ) -> None:
+        """Añade la arista e = (u → v) con sus mapas de restricción.
+
+        Contribución a δ (convenio u → v):
+            (δx)_e = F_{v ▷ e} x_v − F_{u ▷ e} x_u
+
+        Precondiciones (en orden):
+            1. edge_id ∈ edge_dims.
+            2. edge_id no duplicado.
+            3. u, v ∈ [0, num_nodes).
+            4. u ≠ v (sin lazos).
+            5. {u, v} no agregado previamente (grafo simple).
+            6. F_ue.shape == (d_e, d_u).
+            7. F_ve.shape == (d_e, d_v).
+
+        Raises
+        ──────
+        SheafDegeneracyError
+        """
+        if edge_id not in self._edge_dims:
+            raise SheafDegeneracyError(
+                f"Arista {edge_id} no declarada en edge_dims: "
+                f"{sorted(self._edge_dims.keys())}."
+            )
+        if edge_id in self._added_edge_ids:
+            raise SheafDegeneracyError(f"Arista {edge_id} duplicada.")
+
+        for label, node in (("u", u), ("v", v)):
+            if not (0 <= node < self._num_nodes):
+                raise SheafDegeneracyError(
+                    f"Nodo {label}={node} fuera de [0, {self._num_nodes})."
+                )
+        if u == v:
+            raise SheafDegeneracyError(
+                f"Lazo en arista {edge_id}: (δx)_e = F·x_u − F·x_u = 0 trivial."
+            )
+        node_pair = frozenset({u, v})
+        if node_pair in self._added_node_pairs:
+            raise SheafDegeneracyError(
+                f"Ya existe arista entre {u} y {v}. Para múltiples relaciones, "
+                "incremente dim F(e)."
+            )
+
+        edge_dim = self._edge_dims[edge_id]
+        expected_u = (edge_dim, self._node_dims[u])
+        expected_v = (edge_dim, self._node_dims[v])
+        if F_ue.matrix.shape != expected_u:
+            raise SheafDegeneracyError(
+                f"Arista {edge_id}: F_{{u▷e}} shape {F_ue.matrix.shape} ≠ {expected_u}."
+            )
+        if F_ve.matrix.shape != expected_v:
+            raise SheafDegeneracyError(
+                f"Arista {edge_id}: F_{{v▷e}} shape {F_ve.matrix.shape} ≠ {expected_v}."
+            )
+
+        for label, rm in (("F_ue", F_ue), ("F_ve", F_ve)):
+            kappa = rm.condition_number
+            if kappa > _RESTRICTION_KAPPA_WARN:
+                logger.warning(
+                    "Arista %d, %s: κ₂=%.3e > %.3e (degradación numérica posible).",
+                    edge_id, label, kappa, _RESTRICTION_KAPPA_WARN,
+                )
+
+        self._edges.append(SheafEdge(edge_id, u, v, F_ue, F_ve))
+        self._added_edge_ids.add(edge_id)
+        self._added_node_pairs.add(node_pair)
+        self._cached_coboundary = None
+        logger.debug(
+            "Arista %d añadida: (%d → %d), dim F(e)=%d.",
+            edge_id, u, v, edge_dim,
+        )
+
+    # ── 4.4 Ensamblaje del operador cofrontera ──────────────────────────
+    def _assert_fully_assembled(self) -> None:
+        missing = self.missing_edge_ids
+        if missing:
+            raise SheafDegeneracyError(
+                f"Haz incompleto. Faltan aristas: {missing}."
+            )
+
+    def build_coboundary_operator(self) -> sp.csc_matrix:
+        """Ensambla δ: C⁰ → C¹ como matriz dispersa CSC.
+
+        Para cada arista e = (u → v) introduce bloques:
+            δ_e = [ −F_{u▷e} | +F_{v▷e} ]  ∈ ℝ^{d_e × (d_u + d_v)}
+
+        Ensamblaje vectorizado por bloques con pre-asignación de COO y
+        verificación de coherencia nnz real vs estimado.
+
+        Returns
+        ───────
+        sp.csc_matrix (dim C¹, dim C⁰), float64
+
+        Raises
+        ──────
+        SheafDegeneracyError
+        """
+        if self._cached_coboundary is not None:
+            return self._cached_coboundary
+
+        self._assert_fully_assembled()
+
+        estimated_nnz = sum(
+            self._edge_dims[e.edge_id] * (self._node_dims[e.u] + self._node_dims[e.v])
+            for e in self._edges
+        )
+        data = np.empty(estimated_nnz, dtype=np.float64)
+        row_idx = np.empty(estimated_nnz, dtype=np.int64)
+        col_idx = np.empty(estimated_nnz, dtype=np.int64)
+        ptr = 0
+
+        for edge in self._edges:
+            edge_row_off = self._edge_offsets[edge.edge_id]
+            u_col_off = int(self._node_offsets[edge.u])
+            v_col_off = int(self._node_offsets[edge.v])
+            F_u = edge.restriction_u.matrix
+            F_v = edge.restriction_v.matrix
+            d_e, d_u = F_u.shape
+            _, d_v = F_v.shape
+
+            bsz_u = d_e * d_u
+            rows_u, cols_u = np.meshgrid(
+                np.arange(d_e, dtype=np.int64) + edge_row_off,
+                np.arange(d_u, dtype=np.int64) + u_col_off,
+                indexing="ij",
+            )
+            data[ptr: ptr + bsz_u] = (-F_u).ravel()
+            row_idx[ptr: ptr + bsz_u] = rows_u.ravel()
+            col_idx[ptr: ptr + bsz_u] = cols_u.ravel()
+            ptr += bsz_u
+
+            bsz_v = d_e * d_v
+            rows_v, cols_v = np.meshgrid(
+                np.arange(d_e, dtype=np.int64) + edge_row_off,
+                np.arange(d_v, dtype=np.int64) + v_col_off,
+                indexing="ij",
+            )
+            data[ptr: ptr + bsz_v] = F_v.ravel()
+            row_idx[ptr: ptr + bsz_v] = rows_v.ravel()
+            col_idx[ptr: ptr + bsz_v] = cols_v.ravel()
+            ptr += bsz_v
+
+        if ptr != estimated_nnz:
+            raise SheafDegeneracyError(
+                f"Ensamblaje incoherente: nnz real {ptr} ≠ estimado {estimated_nnz}."
+            )
+
+        delta = sp.csc_matrix(
+            (data, (row_idx, col_idx)),
+            shape=(self._total_edge_dim, self._total_node_dim),
+            dtype=np.float64,
+        )
+        if delta.nnz > 0 and not np.all(np.isfinite(delta.data)):
+            n_bad = int(np.count_nonzero(~np.isfinite(delta.data)))
+            raise SheafDegeneracyError(
+                f"δ ensamblada contiene {n_bad} valor(es) no finito(s)."
+            )
+
+        self._cached_coboundary = delta
+        logger.debug(
+            "δ ensamblado: shape=%s, nnz=%d, densidad=%.4f%%.",
+            delta.shape, delta.nnz,
+            100.0 * delta.nnz / max(1, int(delta.shape[0]) * int(delta.shape[1])),
+        )
+        return delta
+
+    def compute_sheaf_laplacian(self) -> sp.csc_matrix:
+        """Laplaciano L = δᵀδ (uso restringido: verificación algebraica).
+
+        Propiedades (por construcción AᵀA):
+          1. L = Lᵀ (simétrica).
+          2. L ⪰ 0: xᵀLx = ‖δx‖² ≥ 0.
+          3. ker(L) = ker(δ) = H⁰(G; ℱ).
+
+        PROHIBIDO como objeto de Krylov (Axioma [A3]): κ(L) = κ(δ)².
+        """
+        delta = self.build_coboundary_operator()
+        L = (delta.T @ delta).tocsc()
+        if L.nnz > 0 and not np.all(np.isfinite(L.data)):
+            raise SheafDegeneracyError(
+                "L = δᵀδ contiene valores no finitos (overflow en entradas extremas)."
+            )
+        return L
+
+    def holder_operator_norm_bound(self) -> float:
+        """Cota de Hölder ‖δ‖₂ ≤ √(‖δ‖₁ ‖δ‖∞) sin SVD.
+
+        Identidad clásica de álgebra de Banach para operadores matriciales.
+        Útil como testigo barato de σ_max cuando ARPACK no está disponible.
+        """
+        delta = self.build_coboundary_operator()
+        if delta.nnz == 0:
+            return 0.0
+        abs_data = np.abs(delta.data)
+        # ‖δ‖₁ = max_j Σ_i |δ_ij|,  ‖δ‖∞ = max_i Σ_j |δ_ij|
+        ones_row = np.ones(delta.shape[0], dtype=np.float64)
+        ones_col = np.ones(delta.shape[1], dtype=np.float64)
+        col_sums = np.abs(delta).T.dot(ones_row)
+        row_sums = np.abs(delta).dot(ones_col)
+        norm_1 = float(np.max(col_sums)) if col_sums.size else 0.0
+        norm_inf = float(np.max(row_sums)) if row_sums.size else 0.0
+        del abs_data
+        return float(np.sqrt(max(norm_1, 0.0) * max(norm_inf, 0.0)))
+
+
+# =============================================================================
+# SECCIÓN 5: ACTUADOR FÍSICO CROWBAR (GPIO14) — morfismo de colapso
+# =============================================================================
+
+
+def actuate_crowbar_gpio14() -> bool:
+    """Conmuta el disyuntor físico Crowbar en GPIO14 (BCM).
+
+    Si RPi.GPIO no está disponible (simulación / CI), registra la actuación
+    software y retorna False sin lanzar excepción, preservando el flujo
+    terminal de Φ₃ y el fast-fail de [A2].
+
+    Returns
+    ───────
+    True  si el hardware fue conmutado.
+    False si sólo se simuló.
+    """
+    try:
+        import RPi.GPIO as GPIO  # type: ignore
+
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(_CROWBAR_GPIO_PIN, GPIO.OUT)
+        GPIO.output(_CROWBAR_GPIO_PIN, GPIO.HIGH)
+        logger.critical("CROWBAR ACTUADO: GPIO%d conmutado a HIGH.", _CROWBAR_GPIO_PIN)
+        return True
+    except Exception as exc:
+        logger.critical(
+            "CROWBAR SIMULADO (GPIO%d inaccesible): %s.", _CROWBAR_GPIO_PIN, exc
+        )
+        return False
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ████████████████  FASE 1: VETO COHOMOLÓGICO Y COFRONTERA  ████████████████████
+# ═══════════════════════════════════════════════════════════════════════════════
+# Propósito: construir δ y certificar la estructura cohomológica sin cuadrar
+# el espectro. El morfismo terminal `nest_into_phase2` produce el objeto
+# inicial de la FASE 2 (Phase2_KrylovSpectralAuditor), de modo que
+#     last(Φ₁)  =  unit(Φ₂).
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class CohomologicalVetoData:
+    """DTO inmutable: certificación cohomológica de la FASE 1.
+
+    Precondición estricta del constructor de Phase2_KrylovSpectralAuditor.
+    Encapsula δ y el espectro singular con tolerancia de Wilkinson
+    resuelta iterativamente (ciclo κ₂ ⟷ rank ⟷ SVD_TOL).
+
+    Invariante de Euler del complejo de 2 términos (testigo algebraico):
+        h0_dimension − h1_dimension  ==  dim_C0 − dim_C1.
+    """
+
+    sheaf: CellularSheaf
+    delta: sp.csc_matrix
+    singular_values: np.ndarray
+    dim_C0: int
+    dim_C1: int
+    delta_rank: int
     h0_dimension: int
     h1_dimension: int
-    spectral_gap: float
-    smallest_eigenvalues: np.ndarray
-    method: str
-    delta_rank: int
-    condition_number_est: float
+    sigma_max: float
+    sigma_min_positive: float
+    condition_number_delta: float
+    wilkinson_tolerance: float
+    veto_triggered: bool
+    certification_hash: str
+    euler_characteristic: int
+    rank_is_certified: bool
 
-    def __post_init__(self) -> None:
-        if self.h0_dimension < 0:
-            raise ValueError(
-                f"h0_dimension debe ser ≥ 0; recibido={self.h0_dimension}."
+
+class Phase1_CohomologicalVetoCertifier:
+    """FASE 1 — VETO COHOMOLÓGICO Y COFRONTERA.
+
+    Ingesta el grafo agéntico materializado como CellularSheaf, ensambla
+    δ: C⁰ → C¹ y certifica el espectro singular con tolerancia de Wilkinson
+    adaptativa (Axioma [A5]):
+        SVD_TOL = d² · κ₂(δ) · ε_machine · σ_max(δ)
+    resolviendo el ciclo κ₂ ⟷ rank ⟷ SVD_TOL por punto fijo.
+
+    Cadena interna de morfismos:
+        certify_sheaf_topology
+            → assemble_coboundary
+            → extract_singular_spectrum
+            → resolve_wilkinson_fixed_point
+            → compute_rank_nullity_invariants
+            → emit CohomologicalVetoData
+            → nest_into_phase2          ★ morfismo terminal = unidad de Φ₂
+    """
+
+    _WILKINSON_MAX_ITER: Final[int] = 8
+    _WILKINSON_TOL: Final[float] = 1e-12
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.1 Validación topológica del haz
+    # ────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def certify_sheaf_topology(sheaf: CellularSheaf) -> None:
+        """Certifica invariantes de CellularSheaf sobre API pública.
+
+        Verifica:
+            · sheaf.is_fully_assembled
+            · al menos una arista (δ no trivial)
+
+        Raises
+        ──────
+        SheafDegeneracyError
+        """
+        if not sheaf.is_fully_assembled:
+            raise SheafDegeneracyError(
+                f"Haz no completamente ensamblado. Faltan {len(sheaf.missing_edge_ids)} "
+                f"arista(s): {sheaf.missing_edge_ids}."
             )
-        if self.h1_dimension < 0:
-            raise ValueError(
-                f"h1_dimension debe ser ≥ 0; recibido={self.h1_dimension}."
+        if sheaf.num_edges_added == 0:
+            raise SheafDegeneracyError("Haz trivial: sin aristas, δ = 0.")
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.2 Ensamblaje de δ
+    # ────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def assemble_coboundary(sheaf: CellularSheaf) -> sp.csc_matrix:
+        """Ensambla δ vía CellularSheaf.build_coboundary_operator.
+
+        Encapsula la complejidad del fibrado en un único morfismo trazable.
+        """
+        delta = sheaf.build_coboundary_operator()
+        logger.info("[FASE 1] δ ensamblado: shape=%s, nnz=%d.", delta.shape, delta.nnz)
+        return delta
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.3 Espectro singular (denso exacto / disperso rango-revelador)
+    # ────────────────────────────────────────────────────────────────────
+    @classmethod
+    def extract_singular_spectrum(
+        cls,
+        delta: sp.csc_matrix,
+    ) -> Tuple[np.ndarray, bool]:
+        """Extrae σ(δ) descendente y un flag de certificación completa.
+
+        Estrategia (Axioma [A5], preservando [A3]: nunca se forma L = δᵀδ):
+          · Si max(m, n) ≤ _DENSE_SPECTRAL_MAX_DIM: SVD densa LAPACK (completa).
+          · En otro caso: híbrido ARPACK
+                which='LM'  → σ_max (norma de operador),
+                which='SM'  → cluster inferior (nulidad numérica).
+            El rango queda certificado ssi se reveló un hueco espectral
+            alrededor de la semilla de Wilkinson o se cubrió min(m,n)−1
+            valores. En caso contrario `rank_is_certified=False` y dim H¹
+            se interpreta como cota inferior (veto conservador).
+
+        Returns
+        ───────
+        (singular_values_desc, rank_is_certified)
+        """
+        m, n = int(delta.shape[0]), int(delta.shape[1])
+        d = max(m, n)
+        p = min(m, n)
+
+        if p <= 0:
+            return np.array([], dtype=np.float64), True
+
+        if d <= _DENSE_SPECTRAL_MAX_DIM:
+            s_all = np.linalg.svd(delta.toarray(), compute_uv=False)
+            return np.sort(s_all)[::-1].astype(np.float64), True
+
+        k_hi = min(_SPARSE_MAX_SINGULAR_VALUES, max(1, p - 1))
+        try:
+            s_lm = svds(
+                delta, k=k_hi, which="LM",
+                return_singular_vectors=False, tol=_ARPACK_TOLERANCE,
             )
-        if self.spectral_gap < 0.0:
-            raise ValueError(
-                f"spectral_gap debe ser ≥ 0; recibido={self.spectral_gap}."
+        except Exception as exc:
+            raise SpectralComputationError(
+                f"SVD LM de δ falló (d={d}, k={k_hi}): {exc}."
+            ) from exc
+
+        k_lo = min(_SPARSE_MAX_SINGULAR_VALUES, max(1, p - 1))
+        try:
+            s_sm = svds(
+                delta, k=k_lo, which="SM",
+                return_singular_vectors=False, tol=_ARPACK_TOLERANCE,
             )
-        if self.method not in ("dense", "sparse"):
-            raise ValueError(
-                f"method debe ser 'dense' o 'sparse'; recibido={self.method!r}."
+        except Exception as exc:
+            logger.warning(
+                "SVD SM de δ no convergió (%s); se degrada a espectro LM.", exc
             )
-        if self.delta_rank < 0:
-            raise ValueError(f"delta_rank debe ser ≥ 0; recibido={self.delta_rank}.")
+            s_sorted = np.sort(np.asarray(s_lm, dtype=np.float64))[::-1]
+            return s_sorted, False
+
+        fused = np.unique(
+            np.round(
+                np.concatenate(
+                    [np.asarray(s_lm, dtype=np.float64),
+                     np.asarray(s_sm, dtype=np.float64)]
+                ),
+                decimals=15,
+            )
+        )
+        s_sorted = np.sort(fused)[::-1].astype(np.float64)
+        # Certificación completa sólo si cubrimos casi todo el rango posible
+        # o el cluster SM está separado del origen (rango pleno).
+        rank_is_certified = (k_hi + k_lo >= p - 1) or (
+            s_sorted.size > 0 and float(np.min(np.asarray(s_sm))) > _SPECTRAL_TOLERANCE
+        )
+        return s_sorted, bool(rank_is_certified)
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.4 Punto fijo de Wilkinson κ₂ ⟷ rank ⟷ SVD_TOL
+    # ────────────────────────────────────────────────────────────────────
+    @classmethod
+    def resolve_wilkinson_fixed_point(
+        cls,
+        singular_values_desc: np.ndarray,
+        dim_C0: int,
+        dim_C1: int,
+    ) -> Tuple[float, int, float, float]:
+        """Resuelve SVD_TOL = d² · κ₂ · ε_mach · σ_max por punto fijo.
+
+        Semilla clásica de Wilkinson:
+            SVD_TOL⁽⁰⁾ = d · ε_mach · σ_max.
+        Convergencia: |tol_{k+1} − tol_k| ≤ _WILKINSON_TOL · max(1, tol_k).
+
+        Returns
+        ───────
+        (wilkinson_tolerance, delta_rank, sigma_min_positive, kappa)
+        """
+        if singular_values_desc.size == 0:
+            return 0.0, 0, 0.0, float("inf")
+
+        d = max(dim_C0, dim_C1, 1)
+        sigma_max = float(singular_values_desc[0])
+        tol = d * _EPS_MACHINE * max(sigma_max, _EPSILON)
+        rank = int(np.sum(singular_values_desc > tol))
+        rank = min(rank, min(dim_C0, dim_C1))
+        sigma_min_pos = float(singular_values_desc[rank - 1]) if rank > 0 else 0.0
+        kappa = sigma_max / sigma_min_pos if sigma_min_pos > _EPSILON else float("inf")
+
+        for _ in range(cls._WILKINSON_MAX_ITER):
+            kappa_factor = kappa if np.isfinite(kappa) else 1.0
+            tol_new = (d ** 2) * kappa_factor * _EPS_MACHINE * sigma_max
+            if tol_new <= _EPSILON:
+                tol_new = _EPSILON
+            rank_new = int(np.sum(singular_values_desc > tol_new))
+            rank_new = min(rank_new, min(dim_C0, dim_C1))
+            sigma_min_pos_new = (
+                float(singular_values_desc[rank_new - 1]) if rank_new > 0 else 0.0
+            )
+            kappa_new = (
+                sigma_max / sigma_min_pos_new
+                if sigma_min_pos_new > _EPSILON else float("inf")
+            )
+            if abs(tol_new - tol) <= cls._WILKINSON_TOL * max(1.0, tol):
+                return float(tol_new), int(rank_new), float(sigma_min_pos_new), float(kappa_new)
+            tol, rank, sigma_min_pos, kappa = (
+                tol_new, rank_new, sigma_min_pos_new, kappa_new
+            )
+        return float(tol), int(rank), float(sigma_min_pos), float(kappa)
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.5 Rango-nulidad e invariantes de Betti del haz
+    # ────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def compute_rank_nullity_invariants(
+        dim_C0: int,
+        dim_C1: int,
+        delta_rank: int,
+    ) -> Tuple[int, int, int]:
+        """Aplica el teorema rango-nulidad al complejo de 2 términos [A2].
+
+            dim H⁰ = dim ker(δ)   = dim C⁰ − rank(δ)
+            dim H¹ = dim coker(δ) = dim C¹ − rank(δ)
+            χ(ℱ)   = dim H⁰ − dim H¹ = dim C⁰ − dim C¹
+
+        Returns
+        ───────
+        (h0, h1, euler_characteristic)
+        """
+        rank = max(0, min(int(delta_rank), dim_C0, dim_C1))
+        h0 = dim_C0 - rank
+        h1 = dim_C1 - rank
+        euler = h0 - h1
+        if euler != dim_C0 - dim_C1:
+            raise SheafDegeneracyError(
+                f"Identidad de Euler rota: χ={euler} ≠ dim C⁰−dim C¹="
+                f"{dim_C0 - dim_C1} (rank={rank})."
+            )
+        return int(h0), int(h1), int(euler)
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.6 Firma SHA-256 determinista
+    # ────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def compute_certification_hash(
+        shape: Tuple[int, int],
+        nnz: int,
+        singular_values: np.ndarray,
+        delta_rank: int,
+        wilkinson_tolerance: float,
+    ) -> str:
+        """Firma SHA-256 de (shape, nnz, rank, SVD_TOL, σ) en hex."""
+        h = hashlib.sha256()
+        h.update(f"{int(shape[0])}x{int(shape[1])}".encode())
+        h.update(f"|nnz={int(nnz)}".encode())
+        h.update(f"|rank={int(delta_rank)}".encode())
+        h.update(f"|tol={float(wilkinson_tolerance):.17e}".encode())
+        for s in np.asarray(singular_values, dtype=np.float64).ravel().tolist():
+            h.update(f"|{float(s):.17e}".encode())
+        return h.hexdigest()
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.7 Emisión del DTO de veto (pre-terminal)
+    # ────────────────────────────────────────────────────────────────────
+    @classmethod
+    def certify_cohomological_veto_axiom(
+        cls,
+        sheaf: CellularSheaf,
+    ) -> CohomologicalVetoData:
+        """Certifica [A2] y emite CohomologicalVetoData (precondición de Φ₂).
+
+        Cadena:
+            CellularSheaf
+                ──(certify_sheaf_topology)──▶  ✓
+                ──(assemble_coboundary)─────▶  δ
+                ──(extract_singular_spectrum)▶ σ(δ), rank_is_certified
+                ──(resolve_wilkinson_fixed_point)▶ SVD_TOL, rank, κ₂
+                ──(compute_rank_nullity_invariants)▶ dim H⁰, dim H¹, χ
+                ──(emit_axiom_[A2]_veto)────▶ veto_triggered
+
+        El veto se *emite* aquí; el aborto de la cadena se decide en el
+        orquestador o en Φ₃ (colapso Heyting), preservando composicionalidad.
+
+        Raises
+        ──────
+        SheafDegeneracyError
+        SpectralComputationError
+        """
+        cls.certify_sheaf_topology(sheaf)
+        delta = cls.assemble_coboundary(sheaf)
+
+        s_desc, rank_is_certified = cls.extract_singular_spectrum(delta)
+        s_desc = np.asarray(s_desc, dtype=np.float64)
+        s_desc.setflags(write=False)
+
+        dim_C1, dim_C0 = int(delta.shape[0]), int(delta.shape[1])
+        wilkinson_tol, delta_rank, sigma_min_pos, kappa = (
+            cls.resolve_wilkinson_fixed_point(s_desc, dim_C0, dim_C1)
+        )
+        h0, h1, euler = cls.compute_rank_nullity_invariants(
+            dim_C0, dim_C1, delta_rank
+        )
+        veto_triggered = h1 > 0
+        sigma_max = float(s_desc[0]) if s_desc.size else 0.0
+        cert_hash = cls.compute_certification_hash(
+            (dim_C1, dim_C0), int(delta.nnz), s_desc, delta_rank, wilkinson_tol
+        )
+
+        logger.info(
+            "[FASE 1 ✓] CohomologicalVetoData: dim C⁰=%d, dim C¹=%d, "
+            "rank(δ)=%d, dim H⁰=%d, dim H¹=%d, χ=%d, σ_max=%.6e, σ_min⁺=%.6e, "
+            "κ₂(δ)=%.3e, SVD_TOL=%.3e, certified=%s, VETO=%s.",
+            dim_C0, dim_C1, delta_rank, h0, h1, euler,
+            sigma_max, sigma_min_pos, kappa, wilkinson_tol,
+            rank_is_certified, veto_triggered,
+        )
+        return CohomologicalVetoData(
+            sheaf=sheaf,
+            delta=delta,
+            singular_values=s_desc,
+            dim_C0=dim_C0,
+            dim_C1=dim_C1,
+            delta_rank=delta_rank,
+            h0_dimension=h0,
+            h1_dimension=h1,
+            sigma_max=sigma_max,
+            sigma_min_positive=sigma_min_pos,
+            condition_number_delta=kappa,
+            wilkinson_tolerance=wilkinson_tol,
+            veto_triggered=veto_triggered,
+            certification_hash=cert_hash,
+            euler_characteristic=euler,
+            rank_is_certified=rank_is_certified,
+        )
+
+    # ────────────────────────────────────────────────────────────────────
+    # 1.8 ★ MORFISMO TERMINAL DE LA FASE 1 ★
+    #     Tipo de retorno = objeto inicial de la FASE 2.
+    #     last(Φ₁) = unit(Φ₂) = Phase2_KrylovSpectralAuditor.
+    # ────────────────────────────────────────────────────────────────────
+    @classmethod
+    def nest_into_phase2(
+        cls,
+        sheaf: CellularSheaf,
+    ) -> "Phase2_KrylovSpectralAuditor":
+        """★ MORFISMO TERMINAL DE LA FASE 1 / UNIDAD DE LA FASE 2 ★
+
+        Composición estricta F₁ ⊣ F₂:
+            nest_into_phase2  :=  Phase2_KrylovSpectralAuditor
+                                  ∘ certify_cohomological_veto_axiom.
+
+        El auditor de Krylov nace ya alimentado con CohomologicalVetoData;
+        su constructor ES la continuación formal de este método.
+        """
+        phase1_data = cls.certify_cohomological_veto_axiom(sheaf)
+        return Phase2_KrylovSpectralAuditor(phase1_data)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ████████████████  FASE 2: REGULACIÓN ESPECTRAL Y KRYLOV  █████████████████████
+# ═══════════════════════════════════════════════════════════════════════════════
+# Continuación directa de Phase1_CohomologicalVetoCertifier.nest_into_phase2.
+# El constructor de Phase2_KrylovSpectralAuditor ES el inicio formal de Φ₂.
+# Toda medición espectral se ejecuta sobre δ (Golub–Kahan), jamás sobre L=δᵀδ.
+# El morfismo terminal `nest_into_phase3` produce el objeto inicial de Φ₃.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class KrylovSpectralData:
+    """DTO inmutable: auditoría espectral de la FASE 2.
+
+    Precondición estricta del constructor de Phase3_IsoperimetricHodgeProjector.
+    """
+
+    phase1: CohomologicalVetoData
+    krylov_singular_values: np.ndarray
+    krylov_dimension: int
+    krylov_residual: float
+    kappa_delta_krylov: float
+    dirichlet_energy: float
+    residual_norm: float
+    poincare_constant: float
+    spectral_gap_L: float
+    lipschitz_bound: float
+    banach_holder_bound: float
+
+
+class Phase2_KrylovSpectralAuditor:
+    """FASE 2 — REGULACIÓN ESPECTRAL Y KRYLOV.
+
+    ★ INICIO FORMAL = continuación del morfismo terminal de la FASE 1 ★
+
+    Hereda CohomologicalVetoData. Mide κ₂(δ) y el espectro de δ vía
+    bidiagonalización de Golub–Kahan–Lanczos con reortogonalización de
+    Gram–Schmidt modificada, aplicada DIRECTAMENTE a δ (Axioma [A3]).
+
+    Modelo (Golub–Kahan):
+        δ ≈ U B Vᵀ,  B bidiagonal superior,  UᵀU = I_k,  VᵀV = I_k.
+        Recurrencias:
+            β_{j+1} u_{j+1} = δ v_j − α_j u_j
+            α_{j+1} v_{j+1} = δᵀ u_{j+1} − β_{j+1} v_j
+        σ(B) aproxima los extremos de σ(δ) con convergencia de Kaniel–Paige.
+
+    Cadena interna:
+        __init__(CohomologicalVetoData)     ← unidad heredada de Φ₁
+            → golub_kahan_lanczos_bidiagonalization
+            → measure_condition_number_krylov
+            → evaluate_dirichlet_energy
+            → evaluate_poincare_constant
+            → holder_norm_crosscheck
+            → audit_krylov_spectral_stability
+            → nest_into_phase3              ★ morfismo terminal = unidad de Φ₃
+    """
+
+    def __init__(self, phase1_certification: CohomologicalVetoData) -> None:
+        """★ CONTINUACIÓN DE FASE 1 / INICIO DE FASE 2 ★
+
+        Args
+        ────
+        phase1_certification : CohomologicalVetoData
+            Salida de `certify_cohomological_veto_axiom`, inyectada por
+            `nest_into_phase2`. Sin este objeto Φ₂ carece de δ certificado.
+        """
+        if not isinstance(phase1_certification, CohomologicalVetoData):
+            raise TypeError(
+                "Phase2_KrylovSpectralAuditor requiere CohomologicalVetoData "
+                "como precondición (fase 1)."
+            )
+        self._p1: Final[CohomologicalVetoData] = phase1_certification
+        self._delta: Final[sp.csc_matrix] = phase1_certification.delta
+        self._sheaf: Final[CellularSheaf] = phase1_certification.sheaf
+
+    @property
+    def phase1(self) -> CohomologicalVetoData:
+        """Referencia inmutable al DTO de la FASE 1."""
+        return self._p1
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.1 Semilla determinista de Krylov (Rademacher vía SHA-256)
+    # ────────────────────────────────────────────────────────────────────
+    def _deterministic_start_vector(self, n: int) -> np.ndarray:
+        """Vector de Rademacher ±1 derivado del certification_hash de Φ₁.
+
+        Garantiza reproducibilidad bit a bit del subespacio de Krylov entre
+        ejecuciones, sin comprometer la densificación espectral (el hash
+        ya cifra σ(δ), de modo que la semilla no es independiente del
+        operador, pero es estable).
+        """
+        digest = self._p1.certification_hash.encode("ascii")
+        # Extiende el digest hasta cubrir n bytes.
+        buf = bytearray()
+        counter = 0
+        while len(buf) < n:
+            buf.extend(hashlib.sha256(digest + counter.to_bytes(4, "little")).digest())
+            counter += 1
+        signs = np.frombuffer(bytes(buf[:n]), dtype=np.uint8).astype(np.float64)
+        v = np.where(signs >= 128, 1.0, -1.0)
+        nrm = float(np.linalg.norm(v))
+        if nrm <= _EPSILON:
+            v = np.zeros(n, dtype=np.float64)
+            v[0] = 1.0
+            return v
+        return v / nrm
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.2 Bidiagonalización Golub–Kahan–Lanczos sobre δ (sin L)
+    # ────────────────────────────────────────────────────────────────────
+    def golub_kahan_lanczos_bidiagonalization(
+        self,
+        k: Optional[int] = None,
+        tol: Optional[float] = None,
+    ) -> Tuple[np.ndarray, int, float]:
+        """Bidiagonalización de Golub–Kahan–Lanczos de δ con MGS completo.
+
+        Calcula hasta k valores singulares de Ritz de δ sin materializar δᵀδ.
+        Ante breakdown afortunado (α_j o β_j ≈ 0) se detiene y reporta el
+        subespacio invariante exacto. Si el proceso numérico falla, degrada
+        a `scipy.sparse.linalg.svds` (ARPACK sobre el operador aumentado
+        [0 δ; δᵀ 0], que tampoco cuadra L).
+
+        Returns
+        ───────
+        (singular_values, krylov_dimension, krylov_residual)
+        """
+        m, n = int(self._delta.shape[0]), int(self._delta.shape[1])
+        if m == 0 or n == 0:
+            return np.array([], dtype=np.float64), 0, 0.0
+
+        dim_min = min(m, n)
+        if k is None:
+            k = min(_SPARSE_MAX_SINGULAR_VALUES, max(1, dim_min - 1 if dim_min > 1 else 1))
+        k = int(max(1, min(k, dim_min)))
+        if tol is None:
+            tol = _KRYLOV_TOL
+
+        try:
+            return self._golub_kahan_core(k, float(tol), m, n)
+        except Exception as exc:
+            logger.warning(
+                "Golub–Kahan nativo falló (%s); degradación a svds LM.", exc
+            )
+            return self._svds_fallback(k, float(tol), m, n)
+
+    def _golub_kahan_core(
+        self,
+        k: int,
+        tol: float,
+        m: int,
+        n: int,
+    ) -> Tuple[np.ndarray, int, float]:
+        """Núcleo GK con reortogonalización MGS (O(k²(m+n)) + k matvecs)."""
+        delta = self._delta
+        V = np.zeros((n, k), dtype=np.float64)
+        U = np.zeros((m, k), dtype=np.float64)
+        alphas = np.zeros(k, dtype=np.float64)
+        betas = np.zeros(k, dtype=np.float64)  # betas[j] = β_{j} (β₀ = 0)
+
+        v = self._deterministic_start_vector(n)
+        u = delta.dot(v)
+        alpha = float(np.linalg.norm(u))
+        if alpha <= tol:
+            # Semilla en ker(δ) numérico: σ_max observado ≈ 0.
+            return np.array([alpha], dtype=np.float64), 1, alpha
+
+        u /= alpha
+        U[:, 0] = u
+        V[:, 0] = v
+        alphas[0] = alpha
+        effective = 1
+        last_off = 0.0
+
+        for j in range(k - 1):
+            r = delta.T.dot(U[:, j]) - alphas[j] * V[:, j]
+            for i in range(j + 1):
+                r = r - np.dot(V[:, i], r) * V[:, i]
+            beta = float(np.linalg.norm(r))
+            betas[j + 1] = beta
+            last_off = beta
+            if beta <= tol:
+                break
+            v = r / beta
+            V[:, j + 1] = v
+
+            p = delta.dot(v) - beta * U[:, j]
+            for i in range(j + 1):
+                p = p - np.dot(U[:, i], p) * U[:, i]
+            alpha = float(np.linalg.norm(p))
+            alphas[j + 1] = alpha
+            effective = j + 2
+            if alpha <= tol:
+                if alpha > _EPSILON:
+                    U[:, j + 1] = p / alpha
+                break
+            U[:, j + 1] = p / alpha
+
+        B = np.diag(alphas[:effective])
+        if effective > 1:
+            B += np.diag(betas[1:effective], 1)
+        s = np.linalg.svd(B, compute_uv=False)
+        s_sorted = np.sort(np.asarray(s, dtype=np.float64))[::-1]
+        residual = float(last_off) if last_off > 0.0 else (
+            float(abs(s_sorted[-1] - s_sorted[-2])) if s_sorted.size >= 2 else float(s_sorted[-1])
+        )
+        return s_sorted, int(effective), residual
+
+    def _svds_fallback(
+        self,
+        k: int,
+        tol: float,
+        m: int,
+        n: int,
+    ) -> Tuple[np.ndarray, int, float]:
+        """Degradación ARPACK (operador aumentado; no forma L)."""
+        dim_min = min(m, n)
+        k_eff = max(1, min(k, dim_min - 1)) if dim_min > 1 else 1
+        try:
+            s = svds(
+                self._delta,
+                k=k_eff,
+                which="LM",
+                return_singular_vectors=False,
+                tol=tol,
+                maxiter=_KRYLOV_MAX_ITER,
+            )
+        except Exception as exc:
+            raise SpectralComputationError(
+                f"Golub–Kahan–Lanczos/svds no convergió (k={k_eff}, tol={tol}): {exc}."
+            ) from exc
+        s_sorted = np.sort(np.asarray(s, dtype=np.float64))[::-1]
+        residual = (
+            float(abs(s_sorted[-1] - s_sorted[-2]))
+            if s_sorted.size >= 2 else float(s_sorted[-1] if s_sorted.size else 0.0)
+        )
+        return s_sorted, int(s_sorted.size), residual
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.3 κ₂(δ) sin cuadrar el operador
+    # ────────────────────────────────────────────────────────────────────
+    def measure_condition_number_krylov(self) -> float:
+        """κ₂(δ) = σ_max / σ_min⁺ sin materializar L = δᵀδ.
+
+        σ_max se toma del Golub–Kahan nativo (which implícito LM).
+        σ_min⁺ se sondea con svds which='SM' sobre δ (operador aumentado).
+        Fallback determinista: valor certificado por la SVD de Φ₁.
+        """
+        m, n = int(self._delta.shape[0]), int(self._delta.shape[1])
+        dim_min = min(m, n)
+        if dim_min <= 1:
+            return self._p1.condition_number_delta
+
+        s_hi, _, _ = self.golub_kahan_lanczos_bidiagonalization(
+            k=min(2, dim_min - 1), tol=_KRYLOV_TOL
+        )
+        sigma_max = float(s_hi[0]) if s_hi.size else self._p1.sigma_max
+
+        try:
+            s_lo = svds(
+                self._delta,
+                k=1,
+                which="SM",
+                return_singular_vectors=False,
+                tol=_KRYLOV_TOL,
+                maxiter=_KRYLOV_MAX_ITER,
+            )
+            sigma_min_pos = float(np.asarray(s_lo).ravel()[0]) if np.size(s_lo) else 0.0
+        except Exception:
+            sigma_min_pos = self._p1.sigma_min_positive
+
+        if sigma_min_pos <= _EPSILON:
+            return float("inf")
+        return float(sigma_max / sigma_min_pos)
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.4 Energía de Dirichlet E(x) = ‖δx‖² (sin L)
+    # ────────────────────────────────────────────────────────────────────
+    def evaluate_dirichlet_energy(self, x: np.ndarray) -> Tuple[float, float]:
+        """E(x) = ‖δx‖₂² y ‖δx‖₂ por un único matvec (Axioma [A3]).
+
+        Implementación Banach: r = δx ∈ C¹,  E = ⟨r, r⟩_{C¹},  ‖r‖ = √E.
+        Cualquier energía negativa por debajo de ε se recorta a 0
+        (artefacto de redondeo; L ⪰ 0 impide E < 0 analíticamente).
+        """
+        x_ = np.asarray(x, dtype=np.float64).reshape(-1)
+        residual = self._delta.dot(x_)
+        energy = float(np.dot(residual, residual))
+        residual_norm = float(np.linalg.norm(residual))
+        if energy < 0.0 and abs(energy) <= _FRUSTRATION_TOLERANCE:
+            energy = 0.0
+        return energy, max(residual_norm, 0.0)
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.5 Constante de Poincaré discreta del haz
+    # ────────────────────────────────────────────────────────────────────
+    def evaluate_poincare_constant(self) -> float:
+        """μ = λ₁⁺(L) / dim C⁰ = (σ_min⁺(δ))² / dim C⁰.
+
+        Desigualdad de Poincaré del haz: para todo x ⊥ ker(δ),
+            λ₁⁺(L) · ‖x‖₂²  ≤  ‖δx‖₂².
+        μ cuantifica la densidad espectral del consenso: a mayor μ,
+        más rápida es la convergencia de la proyección de Hodge a ker(δ).
+        """
+        dim_C0 = max(1, self._p1.dim_C0)
+        gap_L = float(self._p1.sigma_min_positive) ** 2
+        return gap_L / float(dim_C0)
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.6 Testigo de Hölder (álgebra de Banach) contra σ_max
+    # ────────────────────────────────────────────────────────────────────
+    def holder_norm_crosscheck(self) -> float:
+        """√(‖δ‖₁ ‖δ‖∞) ≥ ‖δ‖₂ = σ_max. Testigo barato, nunca Krylov sobre L."""
+        return self._sheaf.holder_operator_norm_bound()
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.7 Auditoría espectral (pre-terminal de Φ₂)
+    # ────────────────────────────────────────────────────────────────────
+    def audit_krylov_spectral_stability(self, x: np.ndarray) -> KrylovSpectralData:
+        """Produce KrylovSpectralData, precondición estricta de Φ₃.
+
+        Raises
+        ──────
+        SpectralComputationError
+        SheafDegeneracyError
+        """
+        x_ = np.asarray(x, dtype=np.float64).reshape(-1)
+        if x_.shape[0] != self._p1.dim_C0:
+            raise SheafDegeneracyError(
+                f"x tiene longitud {x_.shape[0]}, esperada {self._p1.dim_C0}."
+            )
+        if not np.all(np.isfinite(x_)):
+            raise SheafDegeneracyError("x contiene NaN/±∞.")
+
+        s_krylov, krylov_dim, krylov_res = self.golub_kahan_lanczos_bidiagonalization()
+        kappa_krylov = self.measure_condition_number_krylov()
+        energy, residual_norm = self.evaluate_dirichlet_energy(x_)
+        poincare = self.evaluate_poincare_constant()
+        holder = self.holder_norm_crosscheck()
+
+        # Cota de Lipschitz precomputada para Φ₃: factor κ(δ).
+        # La distancia ‖x* − x‖ la aporta la proyección de Hodge.
+        lipschitz_bound = kappa_krylov if np.isfinite(kappa_krylov) else 1e16
+        spectral_gap_L = float(self._p1.sigma_min_positive ** 2)
+
+        logger.info(
+            "[FASE 2 ✓] KrylovSpectralData: E(x)=%.6e, ‖δx‖=%.6e, "
+            "κ₂(δ)=%.3e, μ=%.6e, λ₁(L)=%.6e, Krylov_dim=%d, resid=%.3e, "
+            "Hölder=%.3e.",
+            energy, residual_norm, kappa_krylov, poincare,
+            spectral_gap_L, krylov_dim, krylov_res, holder,
+        )
+
+        s_krylov_immut = np.asarray(s_krylov, dtype=np.float64).copy()
+        s_krylov_immut.setflags(write=False)
+        return KrylovSpectralData(
+            phase1=self._p1,
+            krylov_singular_values=s_krylov_immut,
+            krylov_dimension=krylov_dim,
+            krylov_residual=krylov_res,
+            kappa_delta_krylov=kappa_krylov,
+            dirichlet_energy=energy,
+            residual_norm=residual_norm,
+            poincare_constant=poincare,
+            spectral_gap_L=spectral_gap_L,
+            lipschitz_bound=lipschitz_bound,
+            banach_holder_bound=holder,
+        )
+
+    # ────────────────────────────────────────────────────────────────────
+    # 2.8 ★ MORFISMO TERMINAL DE LA FASE 2 ★
+    #     Tipo de retorno = objeto inicial de la FASE 3.
+    #     last(Φ₂) = unit(Φ₃) = Phase3_IsoperimetricHodgeProjector.
+    # ────────────────────────────────────────────────────────────────────
+    def nest_into_phase3(
+        self,
+        x: np.ndarray,
+    ) -> "Phase3_IsoperimetricHodgeProjector":
+        """★ MORFISMO TERMINAL DE LA FASE 2 / UNIDAD DE LA FASE 3 ★
+
+        Composición estricta F₂ ⊣ F₃:
+            nest_into_phase3(x)  :=  Phase3_IsoperimetricHodgeProjector
+                                     ∘ audit_krylov_spectral_stability(x).
+
+        El projector de Hodge nace ya alimentado con KrylovSpectralData;
+        su constructor ES la continuación formal de este método.
+        """
+        phase2_data = self.audit_krylov_spectral_stability(x)
+        return Phase3_IsoperimetricHodgeProjector(phase2_data)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ████████████████  FASE 3: PROYECCIÓN DE HODGE Y VETO HEYTING  ████████████████
+# ═══════════════════════════════════════════════════════════════════════════════
+# Continuación directa de Phase2_KrylovSpectralAuditor.nest_into_phase3.
+# El constructor de Phase3_IsoperimetricHodgeProjector ES el inicio formal de Φ₃.
+# Morfismo terminal del módulo: resolve_sheaf_governance → SheafGovernanceState.
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+class HeytingTop(IntEnum):
+    """Retículo distributivo de Heyting totalmente ordenado Ω₃ (Gödel–Dummett).
+
+        Ω₃ = { COHERENT := ⊥, DEGRADED, VETOED := ⊤ }
+        Orden:      COHERENT < DEGRADED < VETOED
+        Join (⊔):   max
+        Meet (⊓):   min
+        Implicación (cadena finita):
+            a → b  =  ⊤  si a ≤ b,
+            a → b  =  b  si a > b.
+        Negación de Heyting: ¬a = a → ⊥.
+
+    Tabla de a → b sobre {0,1,2}:
+
+            b\\a   0   1   2
+             0     2   0   0
+             1     2   2   1
+             2     2   2   2
+    """
+
+    COHERENT = 0
+    DEGRADED = 1
+    VETOED = 2
+
+    def __le__(self, other: "HeytingTop") -> bool:
+        return int(self) <= int(other)
+
+    def join(self, other: "HeytingTop") -> "HeytingTop":
+        """Supremo en Ω₃ = max."""
+        return HeytingTop(max(int(self), int(other)))
+
+    def meet(self, other: "HeytingTop") -> "HeytingTop":
+        """Ínfimo en Ω₃ = min."""
+        return HeytingTop(min(int(self), int(other)))
+
+    def implication(self, other: "HeytingTop") -> "HeytingTop":
+        """Implicación de Gödel: a → b = ⊤ si a ≤ b, else b."""
+        if int(self) <= int(other):
+            return HeytingTop.VETOED
+        return other
+
+    def negation(self) -> "HeytingTop":
+        """¬a = a → ⊥."""
+        return self.implication(HeytingTop.COHERENT)
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class SheafGovernanceState:
+    """DTO terminal del funtor maestro 𝒵_Sheaf (salida del módulo)."""
+
+    verdict: HeytingTop
+    h0_dimension: int
+    h1_dimension: int
+    frustration_energy_before: float
+    frustration_energy_after: float
+    hodge_correction_norm: float
+    residual_correction_norm: float
+    lipschitz_lhs: float
+    lipschitz_slack: float
+    isoperimetric_slack: float
+    kappa_delta: float
+    crowbar_actuated: bool
+    certification_hash: str
+    euler_characteristic: int
+
+
+class Phase3_IsoperimetricHodgeProjector:
+    """FASE 3 — PROYECCIÓN DE HODGE Y VETO HEYTING.
+
+    ★ INICIO FORMAL = continuación del morfismo terminal de la FASE 2 ★
+
+    Hereda KrylovSpectralData. Sobre él ejecuta:
+
+        1. hodge_project(x): resuelve
+               min_z ‖δ z − δx‖₂    ⇒    x* = x − z ∈ ker(δ) + error,
+           vía LSQR (Paige–Saunders) sin ensamblar L. Equivale a
+               x* = (I − δ⁺ δ) x     (proyección ortogonal sobre ker(δ)).
+
+        2. verify_lipschitz_isoperimetric_bound: comprueba [A4]
+               ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂
+               ‖x − x*‖₂   ≤ Δ_inertia.
+
+        3. resolve_heyting_verdict: colapsa Ω₃.
+
+        4. actuate_crowbar_gpio14: si VETOED, conmuta GPIO14.
+
+    Cadena interna:
+        __init__(KrylovSpectralData)        ← unidad heredada de Φ₂
+            → hodge_project
+            → verify_lipschitz_isoperimetric_bound
+            → resolve_heyting_verdict
+            → actuate_crowbar_gpio14
+            → resolve_sheaf_governance      ★ morfismo terminal del módulo
+    """
+
+    def __init__(self, phase2_audit: KrylovSpectralData) -> None:
+        """★ CONTINUACIÓN DE FASE 2 / INICIO DE FASE 3 ★
+
+        Args
+        ────
+        phase2_audit : KrylovSpectralData
+            Salida de `audit_krylov_spectral_stability`, inyectada por
+            `nest_into_phase3`.
+        """
+        if not isinstance(phase2_audit, KrylovSpectralData):
+            raise TypeError(
+                "Phase3_IsoperimetricHodgeProjector requiere KrylovSpectralData "
+                "como precondición (fase 2)."
+            )
+        self._p2: Final[KrylovSpectralData] = phase2_audit
+        self._delta: Final[sp.csc_matrix] = phase2_audit.phase1.delta
+        self._sheaf: Final[CellularSheaf] = phase2_audit.phase1.sheaf
+
+    @property
+    def phase2(self) -> KrylovSpectralData:
+        return self._p2
+
+    # ────────────────────────────────────────────────────────────────────
+    # 3.1 Proyección armónica de Hodge vía LSQR
+    # ────────────────────────────────────────────────────────────────────
+    def hodge_project(
+        self, x: np.ndarray
+    ) -> Tuple[np.ndarray, float, np.ndarray, np.ndarray]:
+        """Proyección armónica x* ∈ ker(δ) ∩ (x + im(δᵀ)).
+
+        Teorema de Hodge discreto sobre un complejo de 2 términos:
+            C⁰ = im(δᵀ) ⊕ ker(δ),
+            x* = x − δᵀ (δδᵀ)⁺ δx = (I − δ⁺δ) x.
+
+        Implementación: LSQR sobre δ z = δx (mínima norma), x* = x − z.
+        Si ‖δx‖ ≤ √ε, x ya es numéricamente armónico y se omite el solve.
+
+        Returns
+        ───────
+        (x_star, energy_before, delta_x, delta_x_star)
+        """
+        x_ = np.asarray(x, dtype=np.float64).reshape(-1)
+        if x_.shape[0] != self._p2.phase1.dim_C0:
+            raise SheafDegeneracyError(
+                f"x tiene longitud {x_.shape[0]}, esperada {self._p2.phase1.dim_C0}."
+            )
+        r = self._delta.dot(x_)
+        residual_norm = float(np.linalg.norm(r))
+        energy_before = residual_norm ** 2
+
+        if residual_norm <= _FRUSTRATION_TOLERANCE ** 0.5:
+            logger.debug(
+                "hodge_project: ‖δx‖=%.6e ≤ √ε. Sin proyección.", residual_norm
+            )
+            x_star = x_.copy()
+            return x_star, energy_before, r, self._delta.dot(x_star)
+
+        result = lsqr(
+            self._delta,
+            r,
+            atol=_HODGE_SOLVER_TOLERANCE,
+            btol=_HODGE_SOLVER_TOLERANCE,
+            iter_lim=_HODGE_MAX_ITER,
+        )
+        delta_x: np.ndarray = np.asarray(result[0], dtype=np.float64).reshape(-1)
+        stop_reason: int = int(result[1])
+        if stop_reason not in _LSQR_OK_STOP:
+            raise SheafCohomologyError(
+                f"LSQR no convergió en hodge_project: stop_reason={stop_reason}."
+            )
+
+        x_star = x_ - delta_x
+        r_star = self._delta.dot(x_star)
+        logger.info(
+            "hodge_project: E(x)=%.6e → E(x*)=%.6e, ‖δx*‖=%.6e, LSQR stop=%d.",
+            energy_before, float(np.dot(r_star, r_star)),
+            float(np.linalg.norm(r_star)), stop_reason,
+        )
+        return x_star, energy_before, r, r_star
+
+    # ────────────────────────────────────────────────────────────────────
+    # 3.2 Cotas isoperimétricas y de Lipschitz [A4]
+    # ────────────────────────────────────────────────────────────────────
+    def verify_lipschitz_isoperimetric_bound(
+        self,
+        x: np.ndarray,
+        x_star: np.ndarray,
+        delta_x: np.ndarray,
+        delta_x_star: np.ndarray,
+        inertia_bound: float,
+    ) -> Tuple[float, float, float, float]:
+        """Verifica simultáneamente las dos cotas del Axioma [A4].
+
+        Lipschitz de-confinada:
+            ‖δx* − δx‖₂  ≤  κ(δ) · ‖x* − x‖₂.
+        Isoperimétrica de inercia:
+            ‖x − x*‖₂    ≤  Δ_inertia.
+
+        Returns
+        ───────
+        (hodge_correction_norm, lipschitz_lhs, lipschitz_slack, isoperimetric_slack)
+        slack ≥ 0  ⟺  cota cumplida.
+
+        Raises
+        ──────
+        IsoperimetricViolationError
+        """
+        x_ = np.asarray(x, dtype=np.float64).reshape(-1)
+        xs_ = np.asarray(x_star, dtype=np.float64).reshape(-1)
+        dx = np.asarray(delta_x, dtype=np.float64).reshape(-1)
+        dxs = np.asarray(delta_x_star, dtype=np.float64).reshape(-1)
+
+        hodge_correction_norm = float(np.linalg.norm(x_ - xs_))
+        lipschitz_lhs = float(np.linalg.norm(dxs - dx))
+
+        kappa = float(self._p2.kappa_delta_krylov)
+        if not np.isfinite(kappa):
+            kappa = 1e16
+        lipschitz_rhs = kappa * hodge_correction_norm
+        lipschitz_slack = lipschitz_rhs - lipschitz_lhs
+        isoperimetric_slack = float(inertia_bound) - hodge_correction_norm
+
+        if lipschitz_slack < -_FRUSTRATION_TOLERANCE:
+            raise IsoperimetricViolationError(
+                f"Violación de Lipschitz: ‖δx*−δx‖={lipschitz_lhs:.3e} > "
+                f"κ(δ)·‖x*−x‖={lipschitz_rhs:.3e}."
+            )
+        if isoperimetric_slack < -_FRUSTRATION_TOLERANCE:
+            raise IsoperimetricViolationError(
+                f"Violación isoperimétrica: ‖x−x*‖={hodge_correction_norm:.3e} > "
+                f"Δ_inertia={inertia_bound:.3e}."
+            )
+        return hodge_correction_norm, lipschitz_lhs, lipschitz_slack, isoperimetric_slack
+
+    # ────────────────────────────────────────────────────────────────────
+    # 3.3 Resolución del veredicto en Ω₃
+    # ────────────────────────────────────────────────────────────────────
+    def resolve_heyting_verdict(
+        self,
+        energy_after: float,
+        lipschitz_slack: float,
+        isoperimetric_slack: float,
+    ) -> HeytingTop:
+        """Colapsa Ω₃ al veredicto terminal (join monótono, precedencia estricta).
+
+          1. h1_dimension > 0                              ⟹ VETOED (⊤)
+          2. lipschitz_slack < −ε  ∨  isoperim_slack < −ε  ⟹ VETOED
+          3. energy_after > ε_frustration                  ⟹ DEGRADED
+          4. en otro caso                                  ⟹ COHERENT (⊥)
+        """
+        if self._p2.phase1.h1_dimension > 0:
+            return HeytingTop.VETOED
+        if (
+            lipschitz_slack < -_FRUSTRATION_TOLERANCE
+            or isoperimetric_slack < -_FRUSTRATION_TOLERANCE
+        ):
+            return HeytingTop.VETOED
+        if energy_after > _FRUSTRATION_TOLERANCE:
+            return HeytingTop.DEGRADED
+        return HeytingTop.COHERENT
+
+    # ────────────────────────────────────────────────────────────────────
+    # 3.4 Actuación del disyuntor físico
+    # ────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def fire_crowbar() -> bool:
+        """Delega en el actuador de módulo (GPIO14 BCM)."""
+        return actuate_crowbar_gpio14()
+
+    # ────────────────────────────────────────────────────────────────────
+    # 3.5 ★ MORFISMO TERMINAL DEL MÓDULO ★
+    #     Cierra el funtor maestro 𝒵_Sheaf = Φ₃ ∘ Φ₂ ∘ Φ₁.
+    # ────────────────────────────────────────────────────────────────────
+    def resolve_sheaf_governance(
+        self,
+        x: np.ndarray,
+        *,
+        inertia_bound: float = 1.0e3,
+    ) -> SheafGovernanceState:
+        """★ MORFISMO TERMINAL DEL MÓDULO ★
+
+        Cadena funtorial de Φ₃:
+            KrylovSpectralData
+              ──(hodge_project)───────────────────────▶ x*, δx, δx*
+              ──(verify_lipschitz_isoperimetric_bound)▶ slacks
+              ──(resolve_heyting_verdict)─────────────▶ verdict ∈ Ω₃
+              ──(fire_crowbar si VETOED)──────────────▶ crowbar_actuated
+              ──(emit_SheafGovernanceState)───────────▶ salida de 𝒵_Sheaf
+        """
+        if inertia_bound < 0.0:
+            raise SheafDegeneracyError(
+                f"inertia_bound debe ser ≥ 0; recibido={inertia_bound!r}."
+            )
+
+        x_star, energy_before, dx, dxs = self.hodge_project(x)
+        energy_after, _ = Phase2_KrylovSpectralAuditor(
+            self._p2.phase1
+        ).evaluate_dirichlet_energy(x_star)
+
+        try:
+            (
+                hodge_correction_norm,
+                lipschitz_lhs,
+                lipschitz_slack,
+                isoper_slack,
+            ) = self.verify_lipschitz_isoperimetric_bound(
+                x, x_star, dx, dxs, inertia_bound
+            )
+        except IsoperimetricViolationError as exc:
+            logger.critical("Cota [A4] violada: %s", exc)
+            hodge_correction_norm = float(
+                np.linalg.norm(
+                    np.asarray(x, dtype=np.float64).reshape(-1)
+                    - np.asarray(x_star, dtype=np.float64).reshape(-1)
+                )
+            )
+            lipschitz_lhs = float(
+                np.linalg.norm(
+                    np.asarray(dxs, dtype=np.float64) - np.asarray(dx, dtype=np.float64)
+                )
+            )
+            lipschitz_slack, isoper_slack = -1.0, -1.0
+
+        verdict = self.resolve_heyting_verdict(
+            energy_after, lipschitz_slack, isoper_slack
+        )
+
+        crowbar = False
+        if verdict == HeytingTop.VETOED:
+            logger.critical(
+                "COLAPSO HEYTING Ω₃ → VETOED (⊤). dim H¹=%d, energy_after=%.3e.",
+                self._p2.phase1.h1_dimension, energy_after,
+            )
+            crowbar = self.fire_crowbar()
+
+        final = SheafGovernanceState(
+            verdict=verdict,
+            h0_dimension=self._p2.phase1.h0_dimension,
+            h1_dimension=self._p2.phase1.h1_dimension,
+            frustration_energy_before=energy_before,
+            frustration_energy_after=energy_after,
+            hodge_correction_norm=hodge_correction_norm,
+            residual_correction_norm=float(np.linalg.norm(dxs)),
+            lipschitz_lhs=lipschitz_lhs,
+            lipschitz_slack=lipschitz_slack,
+            isoperimetric_slack=isoper_slack,
+            kappa_delta=self._p2.kappa_delta_krylov,
+            crowbar_actuated=crowbar,
+            certification_hash=self._p2.phase1.certification_hash,
+            euler_characteristic=self._p2.phase1.euler_characteristic,
+        )
+        logger.info(
+            "[FASE 3 ✓] SheafGovernanceState: verdict=%s, E_before=%.3e, "
+            "E_after=%.3e, Crowbar=%s.",
+            verdict.name, energy_before, energy_after, crowbar,
+        )
+        return final
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# ████████████████  PROTOCOLO INMUNOLÓGICO (OBSERVADOR EXTERNO)  ███████████████
+# ═══════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True)
+class ThreatMetrics:
+    """Métricas de amenaza devueltas por el Observador Topológico externo."""
+
+    mahalanobis_distance: float
+    is_stable: bool
+    structural_alteration: int  # Δχ
+    threat_level: str  # 'HEALTHY' | 'WARNING' | 'CRITICAL'
+    details: Dict[str, Any] = field(default_factory=dict)
+
+
+@runtime_checkable
+class ITopologicalWatcher(Protocol):
+    """Protocolo del Sistema Inmunológico (pullback categórico externo)."""
+
+    def evaluate_manifold_deformation(
+        self,
+        state_tensor: np.ndarray,
+        reference_chi: Optional[int] = None,
+    ) -> ThreatMetrics:
+        """Evalúa la deformación de la variedad dado un tensor ψ ∈ ℝ⁷."""
+        ...
 
 
 @dataclass(frozen=True, slots=True)
 class GlobalFrustrationAssessment:
-    """Diagnóstico inmutable del estado cohomológico del ecosistema.
+    """DTO retro (v3.x) para consumidores legacy.
 
-    MEJORA: Incluye h1_dimension y condition_number_est respecto al
-    diseño original.
-
-    Atributos:
-        frustration_energy:    E(x) = ‖δx‖².
-        h0_dimension:          dim H⁰(G; ℱ) = dim ker(δ).
-        h1_dimension:          dim H¹(G; ℱ) = dim C¹ − rank(δ).
-        is_coherent:           True si E(x) ≤ _FRUSTRATION_TOLERANCE.
-        spectral_gap:          Menor eigenvalor λ₁ > 0 de L.
-        residual_norm:         ‖δx‖ (norma L², no al cuadrado).
-        spectral_method:       'dense' o 'sparse'.
-        delta_rank:            rank(δ) estimado.
-        condition_number_est:  κ₂(δ) estimado.
-        euler_characteristic:  χ = β0 - β1 + β2 (estimado).
+    Emitido por `audit_global_state`; equivalente reducido de
+    SheafGovernanceState sin colapso Heyting ni Crowbar.
     """
 
     frustration_energy: float
@@ -420,1302 +1949,106 @@ class GlobalFrustrationAssessment:
     euler_characteristic: int
 
 
-# =============================================================================
-# SECCIÓN 3.5: PROTOCOLOS CATEGÓRICOS (FASE III)
-# =============================================================================
-
-@dataclass(frozen=True)
-class ThreatMetrics:
-    """Métricas de amenaza devueltas por el Observador Topológico."""
-    mahalanobis_distance: float
-    is_stable: bool
-    structural_alteration: int  # Δχ
-    threat_level: str  # 'HEALTHY', 'WARNING', 'CRITICAL'
-    details: Dict[str, Any] = field(default_factory=dict)
-
-
-@runtime_checkable
-class ITopologicalWatcher(Protocol):
-    """Protocolo del Sistema Inmunológico (Pullback Categórico)."""
-    def evaluate_manifold_deformation(self, state_tensor: np.ndarray, reference_chi: Optional[int] = None) -> ThreatMetrics:
-        """Evalúa la deformación de la variedad dado un tensor ψ ∈ ℝ⁷."""
-        ...
-
-
-# =============================================================================
-# SECCIÓN 4: EL COMPLEJO DEL HAZ (CellularSheaf)
-# =============================================================================
-
-
-class CellularSheaf:
-    """Estructura matemática de un haz celular sobre una malla agéntica.
-
-    El espacio de 0-cochains:
-        C⁰ = ⨁_{v ∈ V} F(v),  dim C⁰ = Σ_v d_v
-
-    El espacio de 1-cochains:
-        C¹ = ⨁_{e ∈ E} F(e),  dim C¹ = Σ_e d_e
-
-    El operador δ: C⁰ → C¹ se ensambla por bloques usando las restricciones
-    en cada arista. L = δᵀδ hereda simetría y semi-positividad.
-
-    Invariantes de clase
-    ─────────────────────
-    - Nodos indexados 0, 1, ..., num_nodes-1.
-    - edge_id únicos definidos en edge_dims.
-    - Pares {u, v} únicos (grafo simple, sin multiaristas ni lazos).
-    - Dimensiones de mapas de restricción consistentes con node_dims y edge_dims.
-    - La caché del coboundary se invalida al añadir aristas.
-    """
-
-    def __init__(
-        self,
-        num_nodes: int,
-        node_dims: Dict[int, int],
-        edge_dims: Dict[int, int],
-    ) -> None:
-        """Inicializa el haz celular.
-
-        Args:
-            num_nodes: Número de nodos del grafo base. Debe ser entero > 0.
-            node_dims: Diccionario {nodo_id: dimensión} para cada nodo en
-                       {0, ..., num_nodes-1}. Todas las dimensiones deben
-                       ser enteros positivos.
-            edge_dims: Diccionario {edge_id: dimensión} para cada arista
-                       declarada. edge_id debe ser entero ≥ 0.
-
-        Raises:
-            SheafDegeneracyError: Si algún argumento viola las invariantes.
-        """
-        if not isinstance(num_nodes, int) or num_nodes <= 0:
-            raise SheafDegeneracyError(
-                f"num_nodes debe ser un entero positivo; recibido={num_nodes!r}."
-            )
-
-        self._num_nodes: Final[int] = num_nodes
-        self._node_dims: Final[Dict[int, int]] = self._validate_node_dims(
-            node_dims, num_nodes
-        )
-        self._edge_dims: Final[Dict[int, int]] = self._validate_edge_dims(edge_dims)
-        self._edges: List[SheafEdge] = []
-        self._added_edge_ids: set[int] = set()
-        self._added_node_pairs: set[frozenset] = set()
-
-        self._node_offsets: Final[np.ndarray] = self._compute_offsets(
-            self._node_dims, self._num_nodes
-        )
-        self._edge_offsets: Final[Dict[int, int]] = self._compute_edge_offsets_static(
-            self._edge_dims
-        )
-
-        self._total_node_dim: Final[int] = int(self._node_offsets[-1])
-        self._total_edge_dim: Final[int] = int(sum(self._edge_dims.values()))
-
-        # Caché del operador de cofrontera (invalidado al añadir aristas).
-        self._cached_coboundary: Optional[sp.csc_matrix] = None
-
-    # -------------------------------------------------------------------------
-    # 4.1 Propiedades de solo lectura
-    # -------------------------------------------------------------------------
-
-    @property
-    def num_nodes(self) -> int:
-        """Número de nodos del grafo base."""
-        return self._num_nodes
-
-    @property
-    def node_dims(self) -> Dict[int, int]:
-        """Dimensiones de las fibras nodales (copia defensiva)."""
-        return dict(self._node_dims)
-
-    @property
-    def edge_dims(self) -> Dict[int, int]:
-        """Dimensiones de las fibras de arista (copia defensiva)."""
-        return dict(self._edge_dims)
-
-    @property
-    def edges(self) -> List[SheafEdge]:
-        """Lista de aristas añadidas (copia defensiva)."""
-        return list(self._edges)
-
-    @property
-    def total_node_dim(self) -> int:
-        """Dimensión total de C⁰ = ⨁_v F(v)."""
-        return self._total_node_dim
-
-    @property
-    def total_edge_dim(self) -> int:
-        """Dimensión total de C¹ = ⨁_e F(e)."""
-        return self._total_edge_dim
-
-    @property
-    def num_edges_added(self) -> int:
-        """Número de aristas añadidas al haz."""
-        return len(self._edges)
-
-    @property
-    def num_edges_expected(self) -> int:
-        """Número de aristas declaradas en edge_dims."""
-        return len(self._edge_dims)
-
-    @property
-    def is_fully_assembled(self) -> bool:
-        """True si todas las aristas declaradas han sido añadidas."""
-        return self._added_edge_ids == set(self._edge_dims.keys())
-
-    # -------------------------------------------------------------------------
-    # 4.2 Validación estática
-    # -------------------------------------------------------------------------
-
-    @staticmethod
-    def _validate_node_dims(
-        node_dims: Dict[int, int],
-        num_nodes: int,
-    ) -> Dict[int, int]:
-        """Valida node_dims: cada nodo en {0,...,n-1} con dimensión entera > 0.
-
-        Args:
-            node_dims: Diccionario candidato.
-            num_nodes: Número de nodos del grafo.
-
-        Returns:
-            Diccionario validado {nodo: dimensión}.
-
-        Raises:
-            SheafDegeneracyError: Si el diccionario es inválido.
-        """
-        if not isinstance(node_dims, dict):
-            raise SheafDegeneracyError(
-                "node_dims debe ser un diccionario {nodo: dimensión}."
-            )
-
-        expected = set(range(num_nodes))
-        actual = set(node_dims.keys())
-
-        missing = expected - actual
-        if missing:
-            raise SheafDegeneracyError(
-                f"Faltan dimensiones para los nodos: {sorted(missing)}."
-            )
-
-        extra = actual - expected
-        if extra:
-            raise SheafDegeneracyError(
-                f"node_dims contiene claves fuera del rango [0, {num_nodes}): "
-                f"{sorted(extra)}."
-            )
-
-        validated: Dict[int, int] = {}
-        for i in range(num_nodes):
-            dim = node_dims[i]
-            if not isinstance(dim, int) or dim <= 0:
-                raise SheafDegeneracyError(
-                    f"Dimensión inválida para nodo {i}: {dim!r}. "
-                    f"Debe ser entero positivo."
-                )
-            validated[i] = dim
-
-        return validated
-
-    @staticmethod
-    def _validate_edge_dims(edge_dims: Dict[int, int]) -> Dict[int, int]:
-        """Valida edge_dims: cada arista con dimensión entera > 0.
-
-        Un haz sin aristas tiene δ = 0 (trivialmente nulo), lo cual
-        no proporciona información de consistencia inter-agente.
-
-        Args:
-            edge_dims: Diccionario candidato.
-
-        Returns:
-            Diccionario validado {edge_id: dimensión}.
-
-        Raises:
-            SheafDegeneracyError: Si el diccionario es inválido o vacío.
-        """
-        if not isinstance(edge_dims, dict):
-            raise SheafDegeneracyError(
-                "edge_dims debe ser un diccionario {edge_id: dimensión}."
-            )
-
-        if len(edge_dims) == 0:
-            raise SheafDegeneracyError(
-                "edge_dims está vacío. Un haz sin aristas tiene δ = 0 y "
-                "H⁰ = C⁰ trivialmente, sin información de consistencia "
-                "inter-agente."
-            )
-
-        validated: Dict[int, int] = {}
-        for edge_id, dim in edge_dims.items():
-            if not isinstance(edge_id, int) or edge_id < 0:
-                raise SheafDegeneracyError(
-                    f"Identificador de arista inválido: {edge_id!r}. "
-                    f"Debe ser entero ≥ 0."
-                )
-            if not isinstance(dim, int) or dim <= 0:
-                raise SheafDegeneracyError(
-                    f"Dimensión inválida para arista {edge_id}: {dim!r}. "
-                    f"Debe ser entero positivo."
-                )
-            validated[edge_id] = dim
-
-        return validated
-
-    @staticmethod
-    def _compute_offsets(dims_map: Dict[int, int], count: int) -> np.ndarray:
-        """Calcula offsets acumulados para ensamblaje por bloques.
-
-        Produce offsets[k] = Σ_{i=0}^{k-1} d_i con offsets[0] = 0
-        y offsets[count] = dim(C⁰).
-
-        Args:
-            dims_map: Diccionario {índice: dimensión}.
-            count:    Número de elementos (longitud del dominio).
-
-        Returns:
-            ndarray de int64 con shape (count+1,).
-        """
-        offsets = np.zeros(count + 1, dtype=np.int64)
-        for i in range(count):
-            offsets[i + 1] = offsets[i] + dims_map[i]
-        return offsets
-
-    @staticmethod
-    def _compute_edge_offsets_static(
-        edge_dims: Dict[int, int],
-    ) -> Dict[int, int]:
-        """Calcula offsets acumulados en C¹ indexados por edge_id.
-
-        El orden es por edge_id creciente para garantizar reproducibilidad
-        determinista del ensamblaje de δ.
-
-        Args:
-            edge_dims: Diccionario {edge_id: dimensión}.
-
-        Returns:
-            Diccionario {edge_id: offset_en_C1}.
-        """
-        offsets: Dict[int, int] = {}
-        running = 0
-        for edge_id in sorted(edge_dims):
-            offsets[edge_id] = running
-            running += edge_dims[edge_id]
-        return offsets
-
-    # -------------------------------------------------------------------------
-    # 4.3 Construcción del haz
-    # -------------------------------------------------------------------------
-
-    def add_edge(
-        self,
-        edge_id: int,
-        u: int,
-        v: int,
-        F_ue: RestrictionMap,
-        F_ve: RestrictionMap,
-    ) -> None:
-        """Añade una arista e = (u, v) con sus mapas de restricción.
-
-        Convenio de orientación: u → v.
-        Contribución al operador δ:
-            (δx)_e = F_{v ▷ e} x_v − F_{u ▷ e} x_u
-
-        Precondiciones verificadas (en orden):
-            1. edge_id ∈ edge_dims.
-            2. edge_id no duplicado.
-            3. u, v ∈ [0, num_nodes).
-            4. u ≠ v (sin lazos: F·x_u − F·x_u = 0 trivialmente).
-            5. {u, v} no existe ya (grafo simple, sin multiaristas).
-            6. F_ue.shape == (d_e, d_u).
-            7. F_ve.shape == (d_e, d_v).
-
-        MEJORA: Advertencia de mal condicionamiento si κ₂(F_ue) o κ₂(F_ve)
-        excede un umbral, informando al usuario sobre posible degradación
-        numérica en el cálculo de E(x).
-
-        Args:
-            edge_id: Identificador de la arista.
-            u:       Nodo origen.
-            v:       Nodo destino.
-            F_ue:    Mapa de restricción F_{u ▷ e}.
-            F_ve:    Mapa de restricción F_{v ▷ e}.
-
-        Raises:
-            SheafDegeneracyError: Si alguna precondición falla.
-        """
-        # Precondición 1: edge_id válido.
-        if edge_id not in self._edge_dims:
-            raise SheafDegeneracyError(
-                f"La arista {edge_id} no existe en edge_dims. "
-                f"Aristas válidas: {sorted(self._edge_dims.keys())}."
-            )
-
-        # Precondición 2: no duplicado.
-        if edge_id in self._added_edge_ids:
-            raise SheafDegeneracyError(f"La arista {edge_id} ya fue añadida al haz.")
-
-        # Precondición 3: nodos válidos.
-        for label, node in (("u", u), ("v", v)):
-            if not (0 <= node < self._num_nodes):
-                raise SheafDegeneracyError(
-                    f"Nodo {label}={node} fuera de rango [0, {self._num_nodes})."
-                )
-
-        # Precondición 4: sin lazos.
-        if u == v:
-            raise SheafDegeneracyError(
-                f"La arista {edge_id} no puede ser un lazo (u=v={u}). "
-                "Los lazos producen (δx)_e = F·x_u − F·x_u = 0 trivialmente."
-            )
-
-        # Precondición 5: grafo simple.
-        node_pair = frozenset({u, v})
-        if node_pair in self._added_node_pairs:
-            raise SheafDegeneracyError(
-                f"Ya existe una arista entre los nodos {u} y {v}. "
-                "El haz opera sobre un grafo simple (sin multiaristas). "
-                "Para modelar múltiples relaciones, incremente dim(F(e))."
-            )
-
-        # Precondiciones 6-7: compatibilidad dimensional.
-        edge_dim = self._edge_dims[edge_id]
-        expected_u = (edge_dim, self._node_dims[u])
-        expected_v = (edge_dim, self._node_dims[v])
-
-        if F_ue.matrix.shape != expected_u:
-            raise SheafDegeneracyError(
-                f"Arista {edge_id}: mapa F_{{u▷e}} tiene forma "
-                f"{F_ue.matrix.shape}, esperada {expected_u}. "
-                f"dim(F(e))={edge_dim}, dim(F(u={u}))={self._node_dims[u]}."
-            )
-
-        if F_ve.matrix.shape != expected_v:
-            raise SheafDegeneracyError(
-                f"Arista {edge_id}: mapa F_{{v▷e}} tiene forma "
-                f"{F_ve.matrix.shape}, esperada {expected_v}. "
-                f"dim(F(e))={edge_dim}, dim(F(v={v}))={self._node_dims[v]}."
-            )
-
-        # MEJORA: Advertir sobre mal condicionamiento de los mapas.
-        _CONDITION_WARN_THRESHOLD = 1e8
-        for label, rm in (("F_ue", F_ue), ("F_ve", F_ve)):
-            kappa = rm.condition_number
-            if kappa > _CONDITION_WARN_THRESHOLD:
-                logger.warning(
-                    "Arista %d, mapa %s: κ₂ = %.3e > %.3e. "
-                    "El cálculo de E(x) puede degradarse numéricamente.",
-                    edge_id,
-                    label,
-                    kappa,
-                    _CONDITION_WARN_THRESHOLD,
-                )
-
-        # Registrar arista.
-        self._edges.append(
-            SheafEdge(
-                edge_id=edge_id,
-                u=u,
-                v=v,
-                restriction_u=F_ue,
-                restriction_v=F_ve,
-            )
-        )
-        self._added_edge_ids.add(edge_id)
-        self._added_node_pairs.add(node_pair)
-
-        # Invalidar caché del coboundary.
-        self._cached_coboundary = None
-
-        logger.debug(
-            "Arista %d añadida: (%d → %d), dim(F(e))=%d, " "dim(F(u))=%d, dim(F(v))=%d",
-            edge_id,
-            u,
-            v,
-            edge_dim,
-            self._node_dims[u],
-            self._node_dims[v],
-        )
-
-    # -------------------------------------------------------------------------
-    # 4.4 Ensamblaje del operador de cofrontera
-    # -------------------------------------------------------------------------
-
-    def _assert_fully_assembled(self) -> None:
-        """Verifica que todas las aristas declaradas hayan sido añadidas.
-
-        Raises:
-            SheafDegeneracyError: Si faltan aristas.
-        """
-        missing = set(self._edge_dims.keys()) - self._added_edge_ids
-        if missing:
-            raise SheafDegeneracyError(
-                f"El haz no está completamente ensamblado. "
-                f"Faltan aristas: {sorted(missing)}. "
-                f"Añadidas: {len(self._edges)}/{len(self._edge_dims)}."
-            )
-
-    def build_coboundary_operator(self) -> sp.csc_matrix:
-        """Construye la matriz dispersa del operador de cofrontera δ: C⁰ → C¹.
-
-        Para cada arista e = (u → v):
-            δ_e = [−F_{u▷e} | +F_{v▷e}]
-        donde −F_{u▷e} ocupa las columnas de u y +F_{v▷e} las de v.
-
-        Implementación vectorizada por bloques con pre-asignación de arrays,
-        evitando bucles Python sobre entradas individuales.
-
-        MEJORA: Verificación de que el nnz real coincide con el estimado,
-        detectando errores de ensamblaje antes de la construcción de la
-        matriz dispersa.
-
-        Returns:
-            Matriz dispersa CSC de forma (total_edge_dim, total_node_dim).
-
-        Raises:
-            SheafDegeneracyError: Si el haz está incompleto o el resultado
-                                  contiene valores no finitos.
-        """
-        if self._cached_coboundary is not None:
-            return self._cached_coboundary
-
-        self._assert_fully_assembled()
-
-        total_edge_dim = self._total_edge_dim
-        total_node_dim = self._total_node_dim
-
-        # Pre-estimar nnz para pre-asignación de arrays.
-        estimated_nnz = sum(
-            self._edge_dims[e.edge_id] * (self._node_dims[e.u] + self._node_dims[e.v])
-            for e in self._edges
-        )
-
-        data = np.empty(estimated_nnz, dtype=np.float64)
-        row_idx = np.empty(estimated_nnz, dtype=np.int64)
-        col_idx = np.empty(estimated_nnz, dtype=np.int64)
-        ptr = 0  # Puntero de escritura.
-
-        for edge in self._edges:
-            edge_row_off = self._edge_offsets[edge.edge_id]
-            u_col_off = int(self._node_offsets[edge.u])
-            v_col_off = int(self._node_offsets[edge.v])
-
-            F_u = edge.restriction_u.matrix  # (d_e, d_u), read-only
-            F_v = edge.restriction_v.matrix  # (d_e, d_v), read-only
-
-            d_e, d_u = F_u.shape
-            _, d_v = F_v.shape
-
-            # ── Bloque −F_{u▷e} ──
-            bsz_u = d_e * d_u
-            rows_u, cols_u = np.meshgrid(
-                np.arange(d_e, dtype=np.int64) + edge_row_off,
-                np.arange(d_u, dtype=np.int64) + u_col_off,
-                indexing="ij",
-            )
-            data[ptr : ptr + bsz_u] = (-F_u).ravel()
-            row_idx[ptr : ptr + bsz_u] = rows_u.ravel()
-            col_idx[ptr : ptr + bsz_u] = cols_u.ravel()
-            ptr += bsz_u
-
-            # ── Bloque +F_{v▷e} ──
-            bsz_v = d_e * d_v
-            rows_v, cols_v = np.meshgrid(
-                np.arange(d_e, dtype=np.int64) + edge_row_off,
-                np.arange(d_v, dtype=np.int64) + v_col_off,
-                indexing="ij",
-            )
-            data[ptr : ptr + bsz_v] = F_v.ravel()
-            row_idx[ptr : ptr + bsz_v] = rows_v.ravel()
-            col_idx[ptr : ptr + bsz_v] = cols_v.ravel()
-            ptr += bsz_v
-
-        # Verificar que ptr == estimated_nnz (coherencia del ensamblaje).
-        if ptr != estimated_nnz:
-            raise SheafDegeneracyError(
-                f"Error interno de ensamblaje: nnz real ({ptr}) ≠ "
-                f"estimado ({estimated_nnz}). Posible inconsistencia en "
-                f"las dimensiones de los mapas de restricción."
-            )
-
-        delta = sp.csc_matrix(
-            (data, (row_idx, col_idx)),
-            shape=(total_edge_dim, total_node_dim),
-            dtype=np.float64,
-        )
-
-        # Verificar finitud post-ensamblaje.
-        if delta.nnz > 0 and not np.all(np.isfinite(delta.data)):
-            n_bad = int(np.count_nonzero(~np.isfinite(delta.data)))
-            raise SheafDegeneracyError(
-                f"El operador δ ensamblado contiene {n_bad} valor(es) no "
-                f"finito(s). Esto indica corrupción en los mapas de restricción."
-            )
-
-        self._cached_coboundary = delta
-
-        logger.debug(
-            "Operador δ ensamblado: forma=%s, nnz=%d, densidad=%.4f%%",
-            delta.shape,
-            delta.nnz,
-            100.0 * delta.nnz / max(1, delta.shape[0] * delta.shape[1]),
-        )
-
-        return delta
-
-    def compute_sheaf_laplacian(self) -> sp.csc_matrix:
-        """Calcula el Laplaciano del haz L = δᵀδ.
-
-        Propiedades garantizadas por construcción (AᵀA):
-            1. L ∈ ℝ^{n×n}, n = dim C⁰.
-            2. L = Lᵀ (simétrica).
-            3. L ⪰ 0 (semidefinida positiva): xᵀLx = ‖δx‖² ≥ 0.
-            4. ker(L) = ker(δ) = H⁰(G; ℱ).
-
-        Demostración de la propiedad 4:
-            Lx = 0 ⟹ xᵀLx = 0 ⟹ ‖δx‖² = 0 ⟹ δx = 0 ⟹ x ∈ ker(δ). ∎
-
-        Returns:
-            Matriz dispersa CSC, simétrica, semidefinida positiva.
-
-        Raises:
-            SheafDegeneracyError: Si L contiene valores no finitos.
-        """
-        delta = self.build_coboundary_operator()
-        L = (delta.T @ delta).tocsc()
-
-        if L.nnz > 0 and not np.all(np.isfinite(L.data)):
-            raise SheafDegeneracyError(
-                "El Laplaciano del haz L = δᵀδ contiene valores no finitos. "
-                "Posible overflow por entradas de magnitud extrema en los "
-                "mapas de restricción. Verifique κ₂(F_{v▷e}) para cada arista."
-            )
-
-        return L
-
-
-# =============================================================================
-# SECCIÓN 5: ANÁLISIS ESPECTRAL (_SpectralAnalyzer)
-# =============================================================================
-
-
-class _SpectralAnalyzer:
-    """Analizador espectral interno para el Laplaciano del haz L = δᵀδ.
-
-    Estrategia híbrida:
-        dim ≤ _DENSE_SPECTRAL_MAX_DIM: eigendecomposición densa exacta (LAPACK).
-        dim >  _DENSE_SPECTRAL_MAX_DIM: ARPACK iterativo con shift-invert.
-
-    MEJORA respecto al diseño original:
-        - Tolerancia de simetría adaptativa (absoluta + relativa·‖L‖_F).
-        - Tolerancia de semi-positividad adaptativa (absoluta + relativa·λ_max).
-        - Shift-invert con sigma=0 en lugar de sigma=-1e-5, capturando
-          eigenvalores cercanos a 0 de forma matemáticamente correcta.
-        - Estimación del rango y número de condición de δ en compute().
-    """
-
-    @staticmethod
-    def _verify_laplacian_symmetry(L_dense: np.ndarray) -> None:
-        """Verifica simetría de L con tolerancia adaptativa.
-
-        Para L = δᵀδ, la simetría es garantizada algebraicamente, pero
-        puede degradarse numéricamente para matrices de gran norma.
-
-        CORRECCIÓN: Tolerancia adaptativa max(abs, rel·‖L‖_F) evita
-        falsos positivos para matrices con ‖L‖_F >> 1.
-
-        Args:
-            L_dense: Laplaciano en formato denso.
-
-        Raises:
-            SheafCohomologyError: Si la asimetría excede la tolerancia.
-        """
-        L_norm = float(np.linalg.norm(L_dense, "fro"))
-        asymmetry = float(np.linalg.norm(L_dense - L_dense.T, "fro"))
-        tol = max(
-            _SYMMETRY_TOLERANCE_ABS,
-            _SYMMETRY_TOLERANCE_REL * L_norm,
-        )
-        if asymmetry > tol:
-            raise SheafCohomologyError(
-                f"El Laplaciano no es simétrico dentro de tolerancia adaptativa. "
-                f"‖L − Lᵀ‖_F = {asymmetry:.6e}, "
-                f"‖L‖_F = {L_norm:.6e}, "
-                f"tol = {tol:.6e} = "
-                f"max({_SYMMETRY_TOLERANCE_ABS:.0e}, "
-                f"{_SYMMETRY_TOLERANCE_REL:.0e}·{L_norm:.3e})."
-            )
-
-    @staticmethod
-    def _verify_semidefinite_positivity(
-        eigenvalues: np.ndarray,
-        method: str,
-        lambda_max_est: float = 1.0,
-    ) -> None:
-        """Verifica L ⪰ 0 con tolerancia adaptativa.
-
-        CORRECCIÓN: La tolerancia es adaptativa: max(abs, rel·λ_max_est),
-        porque un eigenvalor negativo de magnitud 1e-10 es irrelevante si
-        λ_max ~ 1e6 (puede ser ruido de redondeo), pero sería crítico si
-        λ_max ~ 1e-9.
-
-        Args:
-            eigenvalues:     Eigenvalores ordenados ascendentemente.
-            method:          'dense' o 'sparse'.
-            lambda_max_est:  Estimación del eigenvalor máximo (para tol relativa).
-
-        Raises:
-            SpectralComputationError: Si min(λ) < −tol.
-        """
-        tol = max(
-            _SEMIPOSITIVE_TOLERANCE_ABS,
-            _SEMIPOSITIVE_TOLERANCE_REL * abs(lambda_max_est),
-        )
-        min_eig = float(eigenvalues[0])
-        if min_eig < -tol:
-            raise SpectralComputationError(
-                f"El Laplaciano del haz no es semidefinido positivo. "
-                f"min(λ) = {min_eig:.6e} < −{tol:.6e}. "
-                f"Método: {method}. λ_max_est = {lambda_max_est:.6e}. "
-                "Esto indica un error de ensamblaje o corrupción numérica."
-            )
-
-    @staticmethod
-    def _classify_eigenvalues(
-        eigenvalues: np.ndarray,
-    ) -> Tuple[int, float]:
-        """Clasifica eigenvalores en {cero, positivo} y extrae invariantes.
-
-        Clasificación:
-            |λ| ≤ _SPECTRAL_TOLERANCE  →  "cero"
-            λ  > _SPECTRAL_TOLERANCE   →  "positivo"
-
-        Args:
-            eigenvalues: Array de eigenvalores ordenados ascendentemente.
-
-        Returns:
-            (h0_dimension, spectral_gap) donde spectral_gap es el menor
-            eigenvalor positivo, o 0.0 si todos son cero.
-        """
-        zero_mask = np.abs(eigenvalues) <= _SPECTRAL_TOLERANCE
-        h0_dim = int(np.sum(zero_mask))
-
-        positive = eigenvalues[eigenvalues > _SPECTRAL_TOLERANCE]
-        spectral_gap = float(positive[0]) if positive.size > 0 else 0.0
-
-        return h0_dim, spectral_gap
-
-    @staticmethod
-    def _estimate_delta_rank_and_condition(
-        delta: sp.csc_matrix,
-    ) -> Tuple[int, float]:
-        """Estima rank(δ) y κ₂(δ) = σ_max/σ_min via SVD truncada.
-
-        MEJORA: Expone el rango y condicionamiento de δ para calcular
-        dim H¹ = dim C¹ − rank(δ) y para diagnóstico de estabilidad.
-
-        Para matrices dispersas grandes, usa SVD truncada con k=min(10, n-1)
-        valores singulares, lo que da una estimación de σ_max y σ_min
-        suficiente para el diagnóstico.
-
-        Args:
-            delta: Operador de cofrontera δ: C⁰ → C¹.
-
-        Returns:
-            (rank_estimate, condition_number_estimate)
-        """
-        m, n = delta.shape
-        dim_C1, dim_C0 = m, n
-
-        if dim_C1 == 0 or dim_C0 == 0:
-            return 0, 0.0
-
-        if min(m, n) <= _DENSE_SPECTRAL_MAX_DIM:
-            # Matriz pequeña, usar SVD densa exacta para obtener todos los SV
-            try:
-                singular_values = np.linalg.svd(delta.toarray(), compute_uv=False)
-            except Exception as exc:
-                logger.warning(f"SVD densa de δ falló: {exc}")
-                return 0, float("inf")
-        else:
-            # Número de valores singulares a estimar para dispersas muy grandes.
-            k = min(20, min(m, n) - 1)
-
-            if k < 1:
-                # Matriz 1×1 o vacía.
-                val = float(abs(delta[0, 0])) if (m >= 1 and n >= 1) else 0.0
-                rank_est = 1 if val > _SPECTRAL_TOLERANCE else 0
-                cond_est = 1.0 if rank_est == 0 else float("inf")
-                return rank_est, cond_est
-
-            try:
-                singular_values = spla.svds(
-                    delta,
-                    k=k,
-                    which="LM",
-                    return_singular_vectors=False,
-                    tol=_ARPACK_TOLERANCE,
-                )
-                singular_values = np.sort(singular_values)[::-1]  # desc
-            except Exception as exc:
-                logger.warning(
-                    "SVD truncada de δ falló: %s. "
-                    "Usando estimaciones por defecto (rank=0, cond=∞).",
-                    exc,
-                )
-                return 0, float("inf")
-
-        # Estimar rango: σ_i > _SPECTRAL_TOLERANCE.
-        rank_est = int(np.sum(singular_values > _SPECTRAL_TOLERANCE))
-        sigma_max = float(singular_values[0]) if singular_values.size > 0 else 0.0
-        sigma_min_pos = (
-            float(singular_values[singular_values > _SPECTRAL_TOLERANCE][-1])
-            if rank_est > 0
-            else 0.0
-        )
-        cond_est = (
-            sigma_max / sigma_min_pos if sigma_min_pos > _EPSILON else float("inf")
-        )
-
-        return rank_est, cond_est
-
-    @classmethod
-    def compute_dense(
-        cls,
-        L: sp.csc_matrix,
-        delta: sp.csc_matrix,
-    ) -> SpectralInvariants:
-        """Eigendecomposición densa exacta del Laplaciano.
-
-        Convierte L a array denso y usa LAPACK (eigvalsh) para obtener
-        todos los eigenvalores con precisión de máquina.
-
-        Args:
-            L:     Laplaciano del haz en formato disperso.
-            delta: Operador de cofrontera (para estimar rank y condición).
-
-        Returns:
-            SpectralInvariants completo.
-
-        Raises:
-            SheafCohomologyError:   Si L no es simétrico.
-            SpectralComputationError: Si L no es semidefinida positiva.
-        """
-        L_dense = L.toarray()
-        cls._verify_laplacian_symmetry(L_dense)
-
-        eigenvalues = np.sort(np.linalg.eigvalsh(L_dense).astype(np.float64))
-
-        lambda_max_est = float(eigenvalues[-1]) if eigenvalues.size > 0 else 1.0
-        cls._verify_semidefinite_positivity(
-            eigenvalues, method="dense", lambda_max_est=lambda_max_est
-        )
-
-        h0_dim, spectral_gap = cls._classify_eigenvalues(eigenvalues)
-
-        # dim H¹ = dim C¹ − rank(δ)
-        dim_C1 = delta.shape[0]
-        rank_est, cond_est = cls._estimate_delta_rank_and_condition(delta)
-        h1_dim = max(0, dim_C1 - rank_est)
-
-        eigs_immutable = eigenvalues.copy()
-        eigs_immutable.setflags(write=False)
-
-        return SpectralInvariants(
-            h0_dimension=h0_dim,
-            h1_dimension=h1_dim,
-            spectral_gap=spectral_gap,
-            smallest_eigenvalues=eigs_immutable,
-            method="dense",
-            delta_rank=rank_est,
-            condition_number_est=cond_est,
-        )
-
-    @classmethod
-    def compute_sparse(
-        cls,
-        L: sp.csc_matrix,
-        delta: sp.csc_matrix,
-    ) -> SpectralInvariants:
-        """Estimación dispersa via ARPACK con shift-invert en σ = 0.
-
-        CORRECCIÓN CRÍTICA respecto al diseño original:
-            - sigma=0.0 (no −1e-5): el shift-invert (L − σI)⁻¹ con σ=0
-              maximiza la separación espectral de eigenvalores pequeños de
-              L ⪰ 0, ya que L es singularmente semidefinida positiva.
-            - which='LM' sobre el espectro desplazado equivale a which='SM'
-              sobre el espectro original, pero con mejor convergencia
-              numérica para matrices con λ_min ≈ 0.
-
-        Limitaciones:
-            - Solo computa k eigenvalores (cota inferior de nulidad).
-            - ARPACK puede no converger para matrices muy mal condicionadas.
-
-        Args:
-            L:     Laplaciano del haz en formato disperso.
-            delta: Operador de cofrontera (para estimar rank y condición).
-
-        Returns:
-            SpectralInvariants con los k eigenvalores más pequeños.
-
-        Raises:
-            SpectralComputationError: Si ARPACK falla o L no es semi-positiva.
-        """
-        n = L.shape[0]
-
-        # Casos degenerados.
-        if n == 0:
-            empty = np.array([], dtype=np.float64)
-            empty.setflags(write=False)
-            return SpectralInvariants(
-                h0_dimension=0,
-                h1_dimension=0,
-                spectral_gap=0.0,
-                smallest_eigenvalues=empty,
-                method="sparse",
-                delta_rank=0,
-                condition_number_est=0.0,
-            )
-
-        if n == 1:
-            val = float(L[0, 0])
-            eigs = np.array([max(0.0, val)], dtype=np.float64)
-            eigs.setflags(write=False)
-            h0 = 1 if abs(val) <= _SPECTRAL_TOLERANCE else 0
-            gap = 0.0 if h0 == 1 else float(eigs[0])
-            rank_est, cond_est = cls._estimate_delta_rank_and_condition(delta)
-            return SpectralInvariants(
-                h0_dimension=h0,
-                h1_dimension=max(0, delta.shape[0] - rank_est),
-                spectral_gap=gap,
-                smallest_eigenvalues=eigs,
-                method="sparse",
-                delta_rank=rank_est,
-                condition_number_est=cond_est,
-            )
-
-        k = min(_SPARSE_MAX_EIGENVALUES, max(2, n - 1))
-
-        try:
-            # Shift-invert: (L − σI)⁻¹ con σ=0.
-            # ARPACK con sigma=0 y which='LM' = eigenvalores más grandes de
-            # L⁻¹ = eigenvalores más pequeños de L (para L semidefinida positiva
-            # no singular). Para L singular, scipy usa UMFPACK con regularización.
-            eigenvalues = eigsh(
-                L,
-                k=k,
-                sigma=_ARPACK_SIGMA,
-                which="LM",
-                return_eigenvectors=False,
-                tol=_ARPACK_TOLERANCE,
-            )
-        except ArpackError as exc:
-            raise SpectralComputationError(
-                f"ARPACK no convergió para el Laplaciano del haz "
-                f"(dim={n}, k={k}, sigma={_ARPACK_SIGMA}): {exc}. "
-                "Considere reducir _SPARSE_MAX_EIGENVALUES o usar el "
-                "modo denso (_DENSE_SPECTRAL_MAX_DIM)."
-            ) from exc
-        except Exception as exc:
-            raise SpectralComputationError(
-                f"Error inesperado en el análisis espectral disperso "
-                f"(dim={n}, k={k}): {exc}"
-            ) from exc
-
-        eigenvalues = np.sort(eigenvalues.astype(np.float64))
-
-        lambda_max_est = float(eigenvalues[-1]) if eigenvalues.size > 0 else 1.0
-        cls._verify_semidefinite_positivity(
-            eigenvalues, method="sparse", lambda_max_est=lambda_max_est
-        )
-
-        h0_dim, spectral_gap = cls._classify_eigenvalues(eigenvalues)
-        rank_est, cond_est = cls._estimate_delta_rank_and_condition(delta)
-        h1_dim = max(0, delta.shape[0] - rank_est)
-
-        eigs_immutable = eigenvalues.copy()
-        eigs_immutable.setflags(write=False)
-
-        return SpectralInvariants(
-            h0_dimension=h0_dim,
-            h1_dimension=h1_dim,
-            spectral_gap=spectral_gap,
-            smallest_eigenvalues=eigs_immutable,
-            method="sparse",
-            delta_rank=rank_est,
-            condition_number_est=cond_est,
-        )
-
-    @classmethod
-    def compute(
-        cls,
-        L: sp.csc_matrix,
-        delta: sp.csc_matrix,
-    ) -> SpectralInvariants:
-        """Calcula invariantes espectrales con estrategia híbrida automática.
-
-        Selecciona el método según dim(C⁰):
-            ≤ _DENSE_SPECTRAL_MAX_DIM → compute_dense (LAPACK, exacto)
-            >  _DENSE_SPECTRAL_MAX_DIM → compute_sparse (ARPACK, iterativo)
-
-        Args:
-            L:     Laplaciano del haz.
-            delta: Operador de cofrontera.
-
-        Returns:
-            SpectralInvariants.
-        """
-        n = L.shape[0]
-        if n <= _DENSE_SPECTRAL_MAX_DIM:
-            return cls.compute_dense(L, delta)
-        return cls.compute_sparse(L, delta)
-
-
-# =============================================================================
-# SECCIÓN 6: PROYECCIÓN DE HODGE-HELMHOLTZ
-# =============================================================================
-
-
-def hodge_projection(
-    sheaf: CellularSheaf,
-    x: np.ndarray,
-) -> np.ndarray:
-    """Proyección de Hodge-Helmholtz sobre ker(L) = ker(δ).
-
-    Si E(x) = ‖δx‖² > ε pero H¹(G; ℱ) = 0 (sin obstrucciones topológicas),
-    el conflicto es ruido homotópico resoluble. Este método proyecta x sobre
-    ker(δ) resolviendo la ecuación de Poisson del haz:
-
-        min_{x̂} ‖x̂ − x‖²   sujeto a   δx̂ = 0
-
-    Lo cual es equivalente a:
-        x̂ = x − δᵀ(δδᵀ)⁻¹δx   (proyector ortogonal sobre ker(δ))
-
-    Implementación mediante LSQR (mínimos cuadrados dispersos):
-        Resolver δx̂ = 0 con x̂ cercano a x es equivalente a:
-        Resolver δᵀy = δx usando LSQR, luego x̂ = x − δᵀy.
-
-    CORRECCIÓN respecto al diseño original:
-        El diseño original no implementaba esta proyección, dejando el
-        sistema sin mecanismo de "sanación" para ruido homotópico.
-        Este método implementa el Teorema de Hodge Discreto completo.
-
-    Precondición:
-        sheaf.is_fully_assembled debe ser True.
-        x debe ser un vector 1D de longitud sheaf.total_node_dim.
-
-    Args:
-        sheaf: Haz celular completamente ensamblado.
-        x:     Estado global a proyectar.
-
-    Returns:
-        x̂ ∈ ker(δ): proyección de x sobre el espacio de secciones globales.
-
-    Raises:
-        SheafDegeneracyError: Si el haz está incompleto o x es inválido.
-        SheafCohomologyError: Si la proyección no converge.
-    """
-    # Validar estado.
-    x_valid = SheafCohomologyOrchestrator._validate_global_state_vector(sheaf, x)
-
-    delta = sheaf.build_coboundary_operator()  # (m, n), m = dim C¹, n = dim C⁰
-
-    # Residuo: r = δx ∈ C¹
-    r = delta.dot(x_valid)
-    residual_norm = float(np.linalg.norm(r))
-
-    if residual_norm <= _FRUSTRATION_TOLERANCE**0.5:
-        # x ya es (aproximadamente) una sección global: retornar sin modificar.
-        logger.debug(
-            "hodge_projection: ‖δx‖ = %.6e ≤ tol^0.5 = %.6e. "
-            "No se requiere proyección.",
-            residual_norm,
-            _FRUSTRATION_TOLERANCE**0.5,
-        )
-        return x_valid.copy()
-
-    # Resolver δᵀy = δx para y ∈ C¹.
-    # La ecuación normal δᵀ(δδᵀ)y = δᵀδᵀy... es equivalente a resolver
-    # el sistema via LSQR sobre δᵀ: min ‖δᵀy − r‖²
-    # donde r = δx.
-    # Equivalentemente: (δδᵀ)y = δx, resolviendo con LSQR sobre el sistema
-    # sobredeterminado (δ, r).
-
-    # LSQR sobre δ: min ‖δ·Δx − r‖², luego x̂ = x − Δx
-    # Esto minimiza la corrección ‖Δx‖ tal que δ(x − Δx) ≈ 0.
-    result = spla.lsqr(
-        delta,
-        r,
-        atol=_HODGE_SOLVER_TOLERANCE,
-        btol=_HODGE_SOLVER_TOLERANCE,
-        iter_lim=_HODGE_MAX_ITER,
-    )
-    delta_x: np.ndarray = result[0]
-    stop_reason: int = result[1]
-    residual_after: float = float(result[3])
-
-    if stop_reason not in (1, 2, 3):
-        raise SheafCohomologyError(
-            f"LSQR no convergió en la proyección de Hodge. "
-            f"stop_reason={stop_reason}, residual={residual_after:.6e}. "
-            f"Considere aumentar _HODGE_MAX_ITER o verificar el haz."
-        )
-
-    x_hat = x_valid - delta_x
-
-    # Verificar reducción de energía.
-    energy_after = float(np.linalg.norm(delta.dot(x_hat)) ** 2)
-    energy_before = float(residual_norm**2)
-
-    logger.info(
-        "hodge_projection: E(x) antes=%.6e, E(x̂) después=%.6e, "
-        "reducción=%.2f%%, stop_reason=%d",
-        energy_before,
-        energy_after,
-        100.0 * (1.0 - energy_after / max(energy_before, _EPSILON)),
-        stop_reason,
-    )
-
-    if energy_after > energy_before * 1.01:
-        raise SheafCohomologyError(
-            f"La proyección de Hodge aumentó la energía de frustración: "
-            f"E(x) = {energy_before:.6e} → E(x̂) = {energy_after:.6e}. "
-            "Esto indica un fallo numérico en LSQR."
-        )
-
-    return x_hat
-
-
-# =============================================================================
-# SECCIÓN 7: ORQUESTADOR PRINCIPAL
-# =============================================================================
+# ═══════════════════════════════════════════════════════════════════════════════
+# ████████████████  ORQUESTADOR MAESTRO — FUNTOR 𝒵_Sheaf  ███████████████████████
+# ═══════════════════════════════════════════════════════════════════════════════
 
 
 class SheafCohomologyOrchestrator:
-    """Inspector cohomológico del haz celular.
+    """Funtor maestro 𝒵_Sheaf = Φ₃ ∘ Φ₂ ∘ Φ₁.
 
-    Analiza un estado global x ∈ C⁰ y determina si satisface las
-    restricciones de sección del haz (δx ≈ 0).
+    Encadena las tres fases anidadas preservando la composición monoidal
+    estricta. El anidamiento se realiza EXCLUSIVAMENTE a través de los
+    morfismos terminales:
 
-    Protocolo de auditoría:
-        1. Verificar completitud del haz.
-        2. Ensamblar δ: C⁰ → C¹.
-        3. Validar x ∈ C⁰.
-        4. Calcular E(x) = ‖δx‖².
-        5. Si E(x) > ε: lanzar HomologicalInconsistencyError.
-        6. Calcular L = δᵀδ.
-        7. Analizar espectro de L (incluyendo dim H¹).
-        8. Retornar GlobalFrustrationAssessment completo.
+        Φ₁.nest_into_phase2(sheaf)  ⟶  Phase2
+        Φ₂.nest_into_phase3(x)      ⟶  Phase3
+        Φ₃.resolve_sheaf_governance ⟶  SheafGovernanceState
 
-    MEJORA: El diagnóstico ahora incluye h1_dimension y condition_number_est.
+    API pública
+    ───────────
+    · run_full_governance(sheaf, x, inertia_bound) → SheafGovernanceState
+    · audit_global_state(sheaf, x, strict_topology) → GlobalFrustrationAssessment
+    · evaluate_tool_injection(base_sheaf, base_state, new_edge) → ThreatMetrics
     """
 
     def __init__(self, watcher: Optional[ITopologicalWatcher] = None) -> None:
-        """Inicializa el orquestador con un observador inyectado (FASE III)."""
         self._watcher = watcher
 
-    # -------------------------------------------------------------------------
-    # 7.1 Validación local (Mapa de Restricción)
-    # -------------------------------------------------------------------------
+    # ────────────────────────────────────────────────────────────────────
+    # Punto único de entrada: Φ₃ ∘ Φ₂ ∘ Φ₁  (anidamiento estricto)
+    # ────────────────────────────────────────────────────────────────────
+    @classmethod
+    def run_full_governance(
+        cls,
+        sheaf: CellularSheaf,
+        x: np.ndarray,
+        *,
+        inertia_bound: float = 1.0e3,
+    ) -> SheafGovernanceState:
+        """Ejecuta 𝒵_Sheaf(sheaf, x) anidando Φ₁ ⊣ Φ₂ ⊣ Φ₃.
 
-    @staticmethod
-    def validate_local_restriction(
-        focus_node_id: str,
-        local_topo: Optional[Dict],
-        local_fin: Optional[Dict],
-    ) -> None:
-        """Invocación axiomática del Mapa de Restricción F_{V ▷ U}.
-
-        Verifica que el sub-espacio U (enfocado por focus_node_id) posea
-        métricas estructurales suficientes para sostener una deliberación
-        independiente del grafo global V.
-
-        MEJORA respecto al diseño original:
-            Además de verificar que los dicts no sean None/vacíos, verifica
-            la presencia de métricas clave (pyramid_stability,
-            profitability_index) y su finitud numérica. Esto evita que
-            dicts con valores NaN o None pasen la validación silenciosamente.
-
-        Args:
-            focus_node_id: Identificador del sub-espacio local.
-            local_topo:    Métricas topológicas del sub-espacio.
-            local_fin:     Métricas financieras del sub-espacio.
-
-        Raises:
-            SheafDegeneracyError: Si el sub-espacio es algebraicamente
-                                  degenerado o sus métricas son inválidas.
+        Fast-fail [A2]: si dim H¹ > 0 tras Φ₁, se aborta Φ₂ y Φ₃, se colapsa
+        Ω₃ → VETOED y se conmuta el Crowbar sin consultar Krylov ni Hodge.
         """
-        # Verificación de existencia.
-        if not local_topo:
-            raise SheafDegeneracyError(
-                f"Fibración degenerada: el sub-espacio '{focus_node_id}' "
-                "carece de métricas topológicas. Imposible proyectar la "
-                "restricción local al haz celular."
+        # Φ₁ → unidad de Φ₂
+        phase2 = Phase1_CohomologicalVetoCertifier.nest_into_phase2(sheaf)
+        p1 = phase2.phase1
+
+        if p1.veto_triggered:
+            logger.critical(
+                "AXIOMA [A2] VETO ABORTIVO: dim H¹=%d > 0. "
+                "Colapsando Ω₃ → VETOED (⊤) sin Φ₂/Φ₃.",
+                p1.h1_dimension,
             )
-        if not local_fin:
-            raise SheafDegeneracyError(
-                f"Fibración degenerada: el sub-espacio '{focus_node_id}' "
-                "carece de métricas financieras. Imposible proyectar la "
-                "restricción local al haz celular."
+            return SheafGovernanceState(
+                verdict=HeytingTop.VETOED,
+                h0_dimension=p1.h0_dimension,
+                h1_dimension=p1.h1_dimension,
+                frustration_energy_before=float("inf"),
+                frustration_energy_after=float("inf"),
+                hodge_correction_norm=float("inf"),
+                residual_correction_norm=float("inf"),
+                lipschitz_lhs=float("inf"),
+                lipschitz_slack=-1.0,
+                isoperimetric_slack=-1.0,
+                kappa_delta=p1.condition_number_delta,
+                crowbar_actuated=actuate_crowbar_gpio14(),
+                certification_hash=p1.certification_hash,
+                euler_characteristic=p1.euler_characteristic,
             )
 
-        # Verificación de métricas clave y su finitud.
-        # MEJORA: No basta con que el dict exista; las métricas deben ser
-        # floats finitos para que el manifold pueda calcular σ* correctamente.
-        psi_raw = local_topo.get("pyramid_stability")
-        if psi_raw is not None:
-            try:
-                psi_val = float(psi_raw)
-                if not np.isfinite(psi_val):
-                    raise SheafDegeneracyError(
-                        f"Sub-espacio '{focus_node_id}': pyramid_stability = "
-                        f"{psi_raw!r} no es finito (NaN o ±∞)."
-                    )
-            except (TypeError, ValueError):
-                raise SheafDegeneracyError(
-                    f"Sub-espacio '{focus_node_id}': pyramid_stability = "
-                    f"{psi_raw!r} no es convertible a float."
-                )
+        # Φ₂ → unidad de Φ₃
+        phase3 = phase2.nest_into_phase3(x)
+        # Φ₃ → DTO terminal
+        return phase3.resolve_sheaf_governance(x, inertia_bound=inertia_bound)
 
-        roi_raw = local_fin.get("profitability_index")
-        if roi_raw is not None:
-            try:
-                roi_val = float(roi_raw)
-                if not np.isfinite(roi_val):
-                    raise SheafDegeneracyError(
-                        f"Sub-espacio '{focus_node_id}': profitability_index = "
-                        f"{roi_raw!r} no es finito (NaN o ±∞)."
-                    )
-            except (TypeError, ValueError):
-                raise SheafDegeneracyError(
-                    f"Sub-espacio '{focus_node_id}': profitability_index = "
-                    f"{roi_raw!r} no es convertible a float."
-                )
-
-    # -------------------------------------------------------------------------
-    # 7.2 Validación del vector de estado global
-    # -------------------------------------------------------------------------
-
+    # ────────────────────────────────────────────────────────────────────
+    # API de compatibilidad retro (v3.x)
+    # ────────────────────────────────────────────────────────────────────
     @staticmethod
     def _validate_global_state_vector(
         sheaf: CellularSheaf,
         global_state_vector: np.ndarray,
     ) -> np.ndarray:
-        """Valida x ∈ C⁰: conversión, forma, dimensión y finitud.
-
-        Verificaciones (en orden):
-            1. Convertibilidad a ndarray float64.
-            2. Unidimensionalidad.
-            3. Longitud == dim(C⁰).
-            4. Finitud de todas las componentes.
-
-        Args:
-            sheaf:               Haz celular que define C⁰.
-            global_state_vector: Vector candidato.
-
-        Returns:
-            Vector validado como ndarray float64.
-
-        Raises:
-            SheafDegeneracyError: Si alguna verificación falla.
-        """
+        """Valida x ∈ C⁰: conversión, forma, dimensión y finitud."""
         try:
             x = np.asarray(global_state_vector, dtype=np.float64)
         except (TypeError, ValueError) as exc:
             raise SheafDegeneracyError(
-                f"El estado global no es convertible a array float64: {exc}"
+                f"Estado global no convertible a float64: {exc}"
             ) from exc
-
         if x.ndim != 1:
             raise SheafDegeneracyError(
-                f"El estado global debe ser un vector 1D; " f"forma recibida={x.shape}."
+                f"Estado global debe ser vector 1D; shape={x.shape}."
             )
-
-        expected_dim = sheaf.total_node_dim
-        if x.shape[0] != expected_dim:
+        if x.shape[0] != sheaf.total_node_dim:
             raise SheafDegeneracyError(
-                f"Dimensión incompatible: recibida={x.shape[0]}, "
-                f"esperada={expected_dim} (dim C⁰ = Σ_v dim(F(v)))."
+                f"Dimensión incompatible: {x.shape[0]} ≠ {sheaf.total_node_dim}."
             )
-
         if not np.all(np.isfinite(x)):
-            n_bad = int(np.count_nonzero(~np.isfinite(x)))
-            raise SheafDegeneracyError(
-                f"El estado global contiene {n_bad} componente(s) no "
-                f"finita(s) (NaN o ±∞)."
-            )
-
+            raise SheafDegeneracyError("Estado global contiene NaN/∞.")
         return x
-
-    # -------------------------------------------------------------------------
-    # 7.3 Cálculo de la Energía de Dirichlet
-    # -------------------------------------------------------------------------
-
-    @staticmethod
-    def _compute_frustration_energy(
-        delta: sp.csc_matrix,
-        x: np.ndarray,
-    ) -> Tuple[float, float]:
-        """Calcula E(x) = ‖δx‖² y ‖δx‖ con verificación de consistencia.
-
-        Cálculo via producto matriz-vector (no via xᵀLx) para evitar
-        elevar al cuadrado el número de condición:
-
-            r = δx ∈ C¹
-            ‖r‖ = sqrt(rᵀr)
-            E(x) = rᵀr = ‖r‖²
-
-        MEJORA: Verificación de consistencia interna:
-            |E(x) − ‖r‖²| / max(1, E(x)) ≤ ε_mach × k
-        donde k = len(r). Si se viola, se emite una advertencia pero no
-        se lanza excepción (la inconsistencia puede ser ruido de redondeo).
-
-        Args:
-            delta: Operador de cofrontera δ: C⁰ → C¹.
-            x:     Vector de estado global validado.
-
-        Returns:
-            (frustration_energy, residual_norm) con E = ‖r‖², r = δx.
-
-        Raises:
-            SheafCohomologyError: Si E(x) es significativamente negativa.
-        """
-        residual = delta.dot(x)  # δx ∈ C¹
-        residual_norm_sq = float(np.dot(residual, residual))
-        residual_norm = float(np.linalg.norm(residual))
-
-        # Verificación de consistencia interna: ‖r‖² ≈ (‖r‖)²
-        discrepancy = abs(residual_norm_sq - residual_norm**2)
-        consistency_tol = _FRUSTRATION_TOLERANCE * max(1.0, residual_norm_sq)
-        if discrepancy > consistency_tol:
-            logger.warning(
-                "Inconsistencia numérica en E(x): "
-                "rᵀr = %.6e, (‖r‖)² = %.6e, discrepancia = %.6e > tol = %.6e. "
-                "Posible cancelación catastrófica.",
-                residual_norm_sq,
-                residual_norm**2,
-                discrepancy,
-                consistency_tol,
-            )
-
-        # Clamp de energía ligeramente negativa (ruido de redondeo).
-        if residual_norm_sq < 0.0:
-            if abs(residual_norm_sq) <= _FRUSTRATION_TOLERANCE:
-                logger.debug(
-                    "E(x) = %.6e < 0 (ruido de redondeo), clamped a 0.0.",
-                    residual_norm_sq,
-                )
-                return 0.0, max(0.0, residual_norm)
-            raise SheafCohomologyError(
-                f"E(x) = ‖δx‖² = {residual_norm_sq:.6e} < 0 con magnitud "
-                f"significativa (> {_FRUSTRATION_TOLERANCE:.6e}). "
-                "Esto indica un fallo numérico severo (overflow o cancelación)."
-            )
-
-        return residual_norm_sq, max(0.0, residual_norm)
-
-    # -------------------------------------------------------------------------
-    # 7.4 Auditoría del estado global
-    # -------------------------------------------------------------------------
 
     @classmethod
     def audit_global_state(
@@ -1724,192 +2057,139 @@ class SheafCohomologyOrchestrator:
         global_state_vector: np.ndarray,
         strict_topology: bool = True,
     ) -> GlobalFrustrationAssessment:
-        """Evalúa si x ∈ C⁰ es transversalmente compatible con el haz.
+        """API retro: certifica coherencia global sin emitir SheafGovernanceState.
 
-        Pipeline completo:
-            1. Verificar completitud del haz.
-            2. Ensamblar δ: C⁰ → C¹.
-            3. Validar x ∈ C⁰.
-            4. Calcular E(x) = ‖δx‖².
-            5. Si E(x) > ε: lanzar HomologicalInconsistencyError.
-            6. Calcular L = δᵀδ.
-            7. Analizar espectro de L (H⁰, H¹, brecha espectral, condición).
-            8. Retornar GlobalFrustrationAssessment completo.
+        Pipeline anidado Φ₁ ⊣ Φ₂. Para el pipeline completo con Crowbar,
+        use `run_full_governance`.
 
-        MEJORA: El diagnóstico incluye h1_dimension y condition_number_est,
-        que el diseño original omitía.
-
-        Args:
-            sheaf:               Haz celular completamente ensamblado.
-            global_state_vector: Estado global propuesto x ∈ C⁰.
-
-        Returns:
-            GlobalFrustrationAssessment con diagnóstico completo.
-
-        Raises:
-            HomologicalInconsistencyError: Si x no es sección compatible.
-            SheafDegeneracyError:          Si el haz o x son inválidos.
-            SpectralComputationError:      Si el análisis espectral falla.
+        Raises
+        ──────
+        HomologicalInconsistencyError
         """
-        # ── Etapa 1: Completitud ──
-        if not sheaf.is_fully_assembled:
-            missing = set(sheaf._edge_dims.keys()) - sheaf._added_edge_ids
-            raise SheafDegeneracyError(
-                f"El haz no está completamente ensamblado. "
-                f"Faltan {len(missing)} arista(s): {sorted(missing)}."
-            )
-
-        # ── Etapa 2: Ensamblar δ ──
-        delta = sheaf.build_coboundary_operator()
-
-        # ── Etapa 3: Validar x ──
+        phase2 = Phase1_CohomologicalVetoCertifier.nest_into_phase2(sheaf)
+        p1 = phase2.phase1
         x = cls._validate_global_state_vector(sheaf, global_state_vector)
+        p2 = phase2.audit_krylov_spectral_stability(x)
 
-        # ── Etapa 4: Energía de frustración ──
-        frustration_energy, residual_norm = cls._compute_frustration_energy(delta, x)
-        is_coherent = frustration_energy <= _FRUSTRATION_TOLERANCE
-
-        # ── Etapa 5: Rechazar si incoherente ──
+        is_coherent = p2.dirichlet_energy <= _FRUSTRATION_TOLERANCE
         if not is_coherent:
-            logger.critical(
-                "FRUSTRACIÓN DE HAZ: E(x) = ‖δx‖² = %.6e > ε = %.6e, "
-                "‖δx‖ = %.6e. El estado global no es una sección compatible.",
-                frustration_energy,
-                _FRUSTRATION_TOLERANCE,
-                residual_norm,
-            )
             raise HomologicalInconsistencyError(
-                "Fractura del consenso global: x no es sección compatible del haz. "
-                f"E(x) = ‖δx‖² = {frustration_energy:.6e} "
-                f"> ε = {_FRUSTRATION_TOLERANCE:.6e}."
+                f"Fractura de consenso: E(x)={p2.dirichlet_energy:.6e} "
+                f"> ε={_FRUSTRATION_TOLERANCE:.6e}."
             )
-
-        # ── Etapa 6: Laplaciano ──
-        L = sheaf.compute_sheaf_laplacian()
-
-        # ── Etapa 7: Análisis espectral ──
-        spectral = _SpectralAnalyzer.compute(L, delta)
-
-        logger.info(
-            "Auditoría cohomológica exitosa: E(x)=%.6e, ‖δx‖=%.6e, "
-            "dim H⁰=%d, dim H¹=%d, λ₁=%.6e, κ₂(δ)=%.3e, método=%s",
-            frustration_energy,
-            residual_norm,
-            spectral.h0_dimension,
-            spectral.h1_dimension,
-            spectral.spectral_gap,
-            spectral.condition_number_est,
-            spectral.method,
-        )
-
-        # ── Etapa 8: Censura de Paradojas Topológicas ──
-        if strict_topology and spectral.h1_dimension > 0:
-            logger.critical(
-                "OBSTRUCCIÓN TOPOLÓGICA: H¹(F) = %d > 0. "
-                "El transporte de decisiones no es integrable a nivel global.",
-                spectral.h1_dimension
-            )
+        if strict_topology and p1.h1_dimension > 0:
             raise HomologicalInconsistencyError(
-                f"Paradoja de Holonomía: El grupo de cohomología H¹ tiene dimensión {spectral.h1_dimension} > 0. "
-                f"El LLM ha generado un ciclo estratégico lógicamente imposible."
+                f"Paradoja de Holonomía: dim H¹={p1.h1_dimension} > 0. "
+                "El LLM generó un ciclo estratégico lógicamente imposible."
             )
-
-        # ── Etapa 9: Diagnóstico ──
-        # χ = β0 - β1 (aproximación simplicial del 1-esqueleto)
-        euler_char = spectral.h0_dimension - spectral.h1_dimension
 
         return GlobalFrustrationAssessment(
-            frustration_energy=frustration_energy,
-            h0_dimension=spectral.h0_dimension,
-            h1_dimension=spectral.h1_dimension,
+            frustration_energy=p2.dirichlet_energy,
+            h0_dimension=p1.h0_dimension,
+            h1_dimension=p1.h1_dimension,
             is_coherent=True,
-            spectral_gap=spectral.spectral_gap,
-            residual_norm=residual_norm,
-            spectral_method=spectral.method,
-            delta_rank=spectral.delta_rank,
-            condition_number_est=spectral.condition_number_est,
-            euler_characteristic=euler_char,
+            spectral_gap=p2.spectral_gap_L,
+            residual_norm=p2.residual_norm,
+            spectral_method="krylov",
+            delta_rank=p1.delta_rank,
+            condition_number_est=p2.kappa_delta_krylov,
+            euler_characteristic=p1.euler_characteristic,
         )
 
+    # ────────────────────────────────────────────────────────────────────
+    # Pullback categórico externo (ITopologicalWatcher)
+    # ────────────────────────────────────────────────────────────────────
     def evaluate_tool_injection(
         self,
         base_sheaf: CellularSheaf,
         base_state: np.ndarray,
         new_edge: SheafEdge,
     ) -> ThreatMetrics:
-        """
-        Ejecuta el Pullback Categórico (FASE I-V) para evaluar una nueva herramienta.
+        """Pullback categórico (Fases I–V) sobre una inyección de herramienta.
 
-        1. FASE I: Construcción del Fibrado Tangente de Simulación (Mayer-Vietoris).
-        2. FASE II: Extracción del Tensor de Estado ψ ∈ ℝ⁷.
-        3. FASE III: Pullback Categórico invocando al Observador.
-        4. FASE V: Colapso de la Función de Onda (Veto Absoluto).
+        Fase I   : simulación Mayer–Vietoris sobre G ∪ {e}; Δβ₁ determina veto.
+        Fase II  : construcción del tensor de estado ψ ∈ ℝ⁷.
+        Fase III : pullback vía ITopologicalWatcher.
+        Fase V   : colapso de onda (fast-fail).
         """
         if self._watcher is None:
-            logger.warning("No se ha inyectado un ITopologicalWatcher. Omitiendo auditoría.")
-            return ThreatMetrics(0.0, True, 0, "HEALTHY")
+            logger.warning("Sin ITopologicalWatcher inyectado: auditoría omitida.")
+            return ThreatMetrics(0.0, True, 0, "HEALTHY", {})
 
-        import networkx as nx
+        import networkx as nx  # dependencia opcional, import local
 
-        # --- FASE I: Simulación (Secuencia de Mayer-Vietoris Equivalente) ---
-        # Auditamos el estado base para obtener invariantes de referencia.
         base_audit = self.audit_global_state(base_sheaf, base_state)
 
-        # Construimos el 1-esqueleto simplicial del haz base.
         G = nx.Graph()
         G.add_nodes_from(range(base_sheaf.num_nodes))
         for edge in base_sheaf.edges:
             G.add_edge(edge.u, edge.v)
 
-        # Analizamos el impacto de la unión K ∪ {e}.
         u, v = new_edge.u, new_edge.v
         has_path = nx.has_path(G, u, v) if (u in G and v in G) else False
-
-        # Según el Teorema de Mayer-Vietoris para grafos:
-        # Si u y v están en la misma componente, se crea un ciclo: Δβ1 = 1, Δβ0 = 0.
-        # Si están en componentes distintas, se fusionan: Δβ1 = 0, Δβ0 = -1.
         if has_path:
-            delta_beta0 = 0
-            delta_beta1 = 1
+            delta_beta0, delta_beta1 = 0, 1
         else:
-            delta_beta0 = -1
-            delta_beta1 = 0
+            delta_beta0, delta_beta1 = -1, 0
 
         sim_h0 = base_audit.h0_dimension + delta_beta0
         sim_h1 = base_audit.h1_dimension + delta_beta1
 
-        # [AXIOMA DE VETO]: Abortar si se induce un defecto topológico (Δβ1 > 0).
         if delta_beta1 > 0:
-            logger.error("VETO PREVENTIVO (FASE I): La herramienta induce un ciclo homológico (Δβ1=%d).", delta_beta1)
+            logger.error(
+                "VETO PREVENTIVO (Fase I): inyección induce Δβ₁=%d.", delta_beta1
+            )
             raise TopologicalBifurcationError(
-                f"Obstrucción detectada en FASE I: Inyección induce ciclo homológico (Δβ1={delta_beta1})."
+                f"Obstrucción en Fase I: ciclo homológico inducido (Δβ₁={delta_beta1})."
             )
 
-        # --- FASE II: Construcción del Tensor ψ ∈ ℝ⁷ ---
-        # Mapeo al vector ψ de 7 dimensiones esperado por el Watcher:
-        # [saturation, flyback, dissipated_power, beta_0, beta_1, entropy, exergy_loss]
+        # ψ = [saturation, flyback, dissipated_power, β₀, β₁, entropy, exergy_loss]
         psi = np.zeros(7, dtype=np.float64)
-        psi[3] = float(sim_h0)  # beta_0
-        psi[4] = float(sim_h1)  # beta_1
+        psi[0] = 0.05
+        psi[2] = base_audit.frustration_energy
+        psi[3] = float(sim_h0)
+        psi[4] = float(sim_h1)
+        psi[5] = 0.1
 
-        # Proyectamos métricas termodinámicas desde la auditoría base.
-        psi[0] = 0.05  # Saturación nominal simulada
-        psi[2] = base_audit.frustration_energy  # Disipación inicial
-        psi[5] = 0.1   # Entropía inicial simulada
+        metrics = self._watcher.evaluate_manifold_deformation(
+            psi, reference_chi=base_audit.euler_characteristic
+        )
 
-        # --- FASE III & IV: Pullback al Observador ---
-        metrics = self._watcher.evaluate_manifold_deformation(psi, reference_chi=base_audit.euler_characteristic)
-
-        # --- FASE V: Colapso de la Función de Onda (Fast-Fail) ---
         if not metrics.is_stable or metrics.threat_level == "CRITICAL":
             logger.critical(
-                "VETO TOPOLÓGICO (FASE V): Abortando inyección. Δχ=%d, d_M=%.4f, Status=%s",
+                "VETO TOPOLÓGICO (Fase V): Δχ=%d, d_M=%.4f, status=%s.",
                 metrics.structural_alteration,
                 metrics.mahalanobis_distance,
-                metrics.threat_level
+                metrics.threat_level,
             )
             raise TopologicalBifurcationError(
-                f"Bifurcación detectada en la simulación pullback: Δχ={metrics.structural_alteration}, d_M={metrics.mahalanobis_distance:.4f}"
+                f"Bifurcación detectada: Δχ={metrics.structural_alteration}, "
+                f"d_M={metrics.mahalanobis_distance:.4f}."
             )
-
         return metrics
+
+
+__all__ = [
+    "SheafCohomologyError",
+    "HomologicalInconsistencyError",
+    "SheafDegeneracyError",
+    "SpectralComputationError",
+    "TopologicalBifurcationError",
+    "HeytingCollapseError",
+    "IsoperimetricViolationError",
+    "RestrictionMap",
+    "SheafEdge",
+    "CellularSheaf",
+    "actuate_crowbar_gpio14",
+    "CohomologicalVetoData",
+    "Phase1_CohomologicalVetoCertifier",
+    "KrylovSpectralData",
+    "Phase2_KrylovSpectralAuditor",
+    "HeytingTop",
+    "SheafGovernanceState",
+    "Phase3_IsoperimetricHodgeProjector",
+    "ThreatMetrics",
+    "ITopologicalWatcher",
+    "SheafCohomologyOrchestrator",
+    "GlobalFrustrationAssessment",
+]

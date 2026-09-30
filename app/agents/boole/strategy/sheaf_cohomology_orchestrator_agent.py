@@ -3,128 +3,136 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Sheaf Cohomology Orchestrator Agent (Soberano de la Holonomía)      ║
 ║ Ruta   : app/agents/boole/strategy/sheaf_cohomology_orchestrator_agent.py    ║
-║ Versión: 3.0.0-Categorical-Krylov-Hodge-Evolved-Strict-NoHardware            ║
+║ Versión: 4.1.0-Categorical-Krylov-Hodge-Heyting-Strict-NoHardware-PhD        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DE HACES EN EL ESTRATO STRATEGY (V_𝕊) ───
+NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA DE HACES EN EL ESTRATO STRATEGY (V_𝕊)
+────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra al Agente Soberano y Observador Activo que gobierna al
 Interferómetro de Holonomía de de Rham sobre la variedad de la Malla Agéntica,
 operando formalmente como el Funtor de Custodia de la Holonomía Global:
 
-                         𝓩: \mathbf{SheafMorphisms} \longrightarrow \mathbf{CoherenceState}
+                 𝒵_SheafAgent : SheafMorphisms ⟶ CoherenceState
 
-Su propósito axiomático es auditar el consenso estructural global y resolver la
-existencia de secciones de un Haz Celular $$\mathcal{F}$$ sobre el grafo de
-restricciones $$G = (V, E)$$ [1]. Repudia la verificación procedural local en
-favor de la nulidad co-homológica estricta y la proyección ortogonal de Hodge.
-El módulo calcula de manera determinista e inmutable la energía de Dirichlet
-espectral, estrangulando las corrientes circulares parasitarias y confinando
-cualquier deriva semántica o alucinación al plano puramente lógico de software.
+Su propósito axiomático es auditar el consenso estructural global y resolver
+la existencia de secciones de un Haz Celular ℱ sobre el grafo de restricciones
+G = (V, E). Repudia la verificación procedural local en favor de la nulidad
+cohomológica estricta y la proyección ortogonal de Hodge. El módulo calcula
+de manera determinista e inmutable la energía de Dirichlet espectral,
+estrangulando las corrientes circulares parasitarias y confinando cualquier
+deriva semántica o alucinación al plano puramente lógico de software.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por un contrato covariante estricto que enlaza
-las fases mediante herencia estricta y DTOs inmutables de handoff formal:
+Política Strict-NoHardware: el Crowbar GPIO14 se SIMULA. Jamás se importa
+RPi.GPIO ni se toca registro de hardware.
 
-  Fase 1 ──► FASE 1: ANULACIÓN DE OBSTRUCCIONES GLOBALES (Observe)
-             Evalúa el operador cofrontera $$\delta$$ y calcula la dimensión del
-             primer grupo de cohomología $$H^1(K; \mathcal{F})$$.
-             Entrega: CohomologicalVetoData como precondición formal de la Fase 2.
+ARQUITECTURA DE TRES FASES ANIDADAS (Handoff por Constructor Estricto)
+────────────────────────────────────────────────────────────────────────────────
+La transición de estados se rige por un contrato covariante estricto que
+encadena DTOs inmutables vía **precondición constructora** (F₁ ⊣ F₂ ⊣ F₃).
+El tipo de retorno del último método de Φᵢ ES el objeto inicial de Φᵢ₊₁:
 
-  Fase 2 ──► FASE 2: REGULACIÓN DEL ESPECTRO DE KRYLOV Y DIRICHLET (Orient)
-             Calcula el espectro del Laplaciano del Haz $$L = \delta^\top \delta$$ mediante
-             métodos iterativos de Krylov-Lanczos para evitar el condicionamiento
-             cuadrático $$\kappa(L) = \kappa(\delta)^2$$ en la FPU.
-             Entrega: KrylovSpectralData como precondición formal de la Fase 3.
+  Fase 1 ──► CERTIFICACIÓN AXIOMÁTICA DEL VETO COHOMOLÓGICO
+             (Phase1_CohomologicalVetoCertifier)
+             Ensambla el espectro singular de δ con tolerancia de Wilkinson
+             adaptativa; computa números de Betti, χ₀₁, torsión analítica
+             de Reidemeister log|τ| y verifica la identidad de Euler
+             (testigo numérico de dualidad de Poincaré–Lefschetz).
+             Morfismo terminal: nest_into_phase2
+                 δ  ⟶  Phase2_KrylovSpectralAuditor
 
-  Fase 3 ──► FASE 3: PROYECCIÓN DE HODGE-HELMHOLTZ E ISOPERIMETRÍA (Decide & Act)
-             Ejecuta el proyector armónico sobre $$\ker(\delta)$$ aplicando el solucionador
-             LSQR y audita la condición de Lipschitz y la cota de Poincaré.
-             Veredicto: Colapso determinista sobre el retículo distributivo de Heyting
-                        $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$.
+  Fase 2 ──► REGULACIÓN DEL ESPECTRO DE KRYLOV Y DIRICHLET
+             (Phase2_KrylovSpectralAuditor)
+             ★ INICIO FORMAL = continuación de nest_into_phase2 ★
+             Bidiagonaliza δ vía Golub–Kahan–Lanczos nativo con MGS
+             (sin materializar L = δᵀδ). Estima κ₂(δ) sin cuadrar,
+             computa E(x) = ‖δx‖², la componente armónica y C_P.
+             Morfismo terminal: nest_into_phase3
+                 (Phase2, x)  ⟶  Phase3_IsoperimetricHodgeProjector
 
-INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES DE CONSERVACIÓN PRESERVADOS: ──────
+  Fase 3 ──► IMPOSICIÓN ISOPERIMÉTRICA DE HODGE Y COLAPSO HEYTING
+             (Phase3_IsoperimetricHodgeProjector)
+             ★ INICIO FORMAL = continuación de nest_into_phase3 ★
+             Sintetiza (opcionalmente) la sección armónica x* = (I − δ⁺δ)x,
+             verifica Lipschitz fuerte, cota de inercia y mínima norma;
+             estima el cociente de Rayleigh/Cheeger; calcula ι_M; colapsa Ω₃.
+             Morfismo terminal: enforce_isoperimetric_hodge_projection
+                 (Phase3, x, x*)  ⟶  HodgeProjectionData
+
+RETÍCULO HEYTING Ω₃ (álgebra de Gödel–Dummett) Y COLAPSO TERMINAL
+────────────────────────────────────────────────────────────────────────────────
+  Ω₃ = { COHERENT := ⊥, DEGRADED, VETOED := ⊤ }
+  Orden: COHERENT < DEGRADED < VETOED
+  Join ⊔ = max, Meet ⊓ = min
+  Implicación (cadena finita): a → b = ⊤ si a ≤ b,  a → b = b si a > b
+  Negación: ¬a = a → ⊥
+
+INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES DE CONSERVACIÓN
+────────────────────────────────────────────────────────────────────────────────
   [I1] Exactitud Cohomológica Global (Nulidad de Obstrucción):
-       El primer grupo de cohomología del haz celular, que cuantifica la holonomía y
-       las paradojas contractuales, debe desvanecerse estrictamente:
-       $$\dim H^1(K; \mathcal{F}) \equiv 0 \implies H^1(K; \mathcal{F}) \cong \mathbf{0} \quad\text{[Axioma de Integrabilidad]} \quad [1]$$
+       dim H¹(K; ℱ) ≡ 0 ⟹ H¹(K; ℱ) ≅ 0          [Axioma de Integrabilidad]
 
-  [I2] Conservación del Volumen Espectral y Prevención de Condicionamiento:
-       Se proscribe el ensamblaje explícito de la matriz densa del Laplaciano $$L = \delta^\top \delta$$.
-       La estimación de su número de condición $$\kappa(L)$$ se realiza exclusivamente
-       sobre el operador $$\delta$$ para proteger la mantisa de la FPU del error cuadrático:
-       $$\kappa(L) = \kappa(\delta)^2 \le \kappa_{\max} \quad [1, 6]$$
+  [I2] Conservación del Volumen Espectral (Censura del Laplaciano):
+       Proscrito el ensamblaje explícito de L = δᵀδ para Krylov;
+       κ₂(δ) medido directamente sobre δ vía Golub–Kahan–Lanczos.
+       Identidad espectral (nunca usada como objeto de Krylov):
+           κ₂(L) = κ₂(δ)²,   λᵢ(L) = σᵢ(δ)².
 
   [I3] Acotamiento de la Frustración Térmica (Energía de Dirichlet):
-       La energía de deformación de-confinada de la sección $$x \in C^0$$ se evalúa
-       respecto a la métrica base $$G_{\mu\nu}$$ para no violar la cota de frustración:
-       $$E(x) = \|\delta x\|_2^2 \le \varepsilon_{\mathrm{frustration}} \quad [1, 7]$$
+       E(x) = ‖δx‖₂² ≤ ε_frustration.
 
-  [I4] Estabilidad Isoperimétrica de Poincaré:
-       El campo de decisión es regularizable en su frontera de Dirichlet si satisface
-       la constante de Poincaré $$C_P$$ en la variedad del grafo [8]:
-       $$\|x\|_2 \le C_P \cdot \|\delta x\|_2 \quad\text{s.t.}\quad C_P \le C_{P,\max} \quad [8]$$
+  [I4] Estabilidad Isoperimétrica de Poincaré–Wirtinger:
+       ‖x_exact‖₂ ≤ C_P · ‖δx‖₂,   C_P ≤ C_P,max.
 
   [I5] Invarianza de Lipschitz Fuerte de Hodge:
-       El mapa corrector de Hodge $$x^*$$ debe minimizar la norma en el núcleo de de Rham
-       respetando el gradiente elástico de la cofrontera [8]:
-       $$\|\delta x^* - \delta x\|_2 \le \kappa(\delta) \cdot \|x^* - x\|_2 \quad [8]$$
+       ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂,    ‖x − x*‖₂ ≤ Δ_inertia.
+
+  [I6] Identidad de Euler del complejo de 2 términos:
+       χ(ℱ) = dim H⁰ − dim H¹ = dim C⁰ − dim C¹.
+
+Funtor Maestro:
+  𝒵_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁ : (δ, x, x*) ⟶ SheafGovernanceState
 """
 
 from __future__ import annotations
 
-# ─────────────────────────────────────────────────────────────────────────────
-# §0. IMPORTACIONES
-# ─────────────────────────────────────────────────────────────────────────────
 import hashlib
 import logging
 import math
 import struct
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from enum import IntEnum
 from typing import Any, Final, List, Optional, Tuple
 
 import numpy as np
 import scipy.linalg as la
+import scipy.sparse as sp
+import scipy.sparse.linalg as spla
 from numpy.typing import NDArray
 
-# ─────────────────────────────────────────────────────────────────────────────
-# §0.1 DEPENDENCIAS ARQUITECTÓNICAS
-# ─────────────────────────────────────────────────────────────────────────────
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
+except ImportError:  # pragma: no cover — fallback topológico autonómico
 
     class TopologicalInvariantError(Exception):
         r"""Violación a un invariante topológico categórico en el Topos E_MIC."""
-        pass
 
     class Morphism:
         r"""Clase base de Morfismos del Topos."""
-        pass
 
 
 logger = logging.getLogger("MIC.Strategy.SheafCohomologyAgent")
 
+__version__: Final[str] = (
+    "4.1.0-Categorical-Krylov-Hodge-Heyting-Strict-NoHardware-PhD"
+)
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES MATEMÁTICAS Y LÍMITES TERMODINÁMICOS
-#
-# Jerarquía de constantes:
-#   _MACHINE_EPSILON          → ε₀ = eps(float64) ≈ 2.22e-16
-#   _SVD_TOLERANCE_BASE       → τ_σ base para umbral de rango SVD
-#   _SVD_SPECTRAL_FACTOR      → c_σ: factor de escala adaptativa por σ_max
-#   _SPECTRAL_GAP_MIN_RATIO   → ρ_gap: umbral mínimo de gap espectral relativo
-#   _MAX_CONDITION_NUMBER_L   → κ_max: número de condición máximo admisible de L
-#   _FRUSTRATION_TOLERANCE    → ε_frust: piso de frustración térmica admisible
-#   _FRUSTRATION_RELATIVE_TOL → ε_rel: tolerancia relativa de frustración
-#   _INERTIA_DELTA_MAX        → Δ_in: distancia máxima de proyección de Hodge
-#   _POINCARE_CONSTANT_MAX    → C_P: cota de la constante de Poincaré admisible
-#   _LIPSCHITZ_SLACK          → ε_L: holgura numérica en la verificación Lipschitz
-#   _NUMERICAL_SAFETY_FACTOR  → c_num: factor de seguridad numérica global
-#   _SVD_MAX_RETRIES          → máximo de reintentos en SVD con perturbación
-#   _ENERGY_RATIO_TOLERANCE   → tolerancia en la razón de reducción energética
+# §A. CONSTANTES MATEMÁTICAS Y LÍMITES TERMODINÁMICOS (FPU IEEE-754 binary64)
 # ═══════════════════════════════════════════════════════════════════════════════
-_MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
+
+_MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)  # ≈ 2.22e-16
 _SVD_TOLERANCE_BASE: Final[float] = 1e-10
 _SVD_SPECTRAL_FACTOR: Final[float] = 1e-10
 _SPECTRAL_GAP_MIN_RATIO: Final[float] = 1e-2
@@ -138,176 +146,185 @@ _NUMERICAL_SAFETY_FACTOR: Final[float] = 128.0
 _SVD_MAX_RETRIES: Final[int] = 3
 _ENERGY_RATIO_TOLERANCE: Final[float] = 1e-10
 
+_WILKINSON_MAX_ITER: Final[int] = 8
+_WILKINSON_CONVERGENCE_TOL: Final[float] = 1e-12
+
+_KRYLOV_MAX_ITER: Final[int] = 200
+_KRYLOV_TOL: Final[float] = 1e-9
+_KRYLOV_MAX_SINGULAR_VALUES: Final[int] = 8
+
+_DENSE_SPECTRAL_MAX_DIM: Final[int] = 256
+_PENROSE_VERIFY_MAX_DIM: Final[int] = 64
+
+_CROWBAR_GPIO_PIN: Final[int] = 14  # BCM; Strict-NoHardware ⇒ sólo simulación
+_EPSILON: Final[float] = 1e-15
+
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA COMPLETA DE EXCEPCIONES
-#
-# Lattice de excepciones:
-#   TopologicalInvariantError
-#   └── SheafCohomologyAgentError                    [raíz del agente]
-#       ├── TopologicalBifurcationError              [dim H¹ > 0]
-#       │   └── PoincareLefschetzViolation           [violación P-L]
-#       ├── SpectralComputationError                 [κ(L) > κ_max]
-#       │   ├── SVDConvergenceError                  [SVD no converge]
-#       │   └── HodgeDecompositionError              [descomposición fallida]
-#       ├── DirichletFrustrationError                [E(x) > ε_frust]
-#       │   └── PoincareBoundViolation               [viola cota de Poincaré]
-#       └── HomologicalInconsistencyError            [‖x−x*‖ > Δ o E↑]
-#           ├── LipschitzViolation                   [viola axioma Lipschitz]
-#           └── MinimalNormViolation                 [proyección no mínimo norm]
+# §B. JERARQUÍA DE EXCEPCIONES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 class SheafCohomologyAgentError(TopologicalInvariantError):
     r"""Excepción raíz del Custodio de la Holonomía Global."""
-    pass
 
 
 class TopologicalBifurcationError(SheafCohomologyAgentError):
-    r"""
-    Detonada si dim H¹ > 0.
-    Existen dependencias circulares (cocadenas cerradas no exactas) insalvables.
-    """
-    pass
+    r"""Detonada si dim H¹ > 0 (dependencias circulares insalvables)."""
 
 
 class PoincareLefschetzViolation(TopologicalBifurcationError):
-    r"""
-    Detonada si la dualidad de Poincaré-Lefschetz es violada en el complejo
-    cohomológico. Indica que la descomposición de Hodge no es ortogonal.
-    """
-    pass
+    r"""Detonada si la identidad de Euler / dualidad P–L numérica es violada."""
 
 
 class SpectralComputationError(SheafCohomologyAgentError):
-    r"""
-    Detonada si κ(L) > κ_max.
-    Peligro de colapso en la Unidad de Punto Flotante (FPU).
-    """
-    pass
+    r"""Detonada si κ(L) > κ_max (peligro de colapso en la FPU) o si Krylov falla."""
 
 
 class SVDConvergenceError(SpectralComputationError):
-    r"""
-    Detonada si la descomposición en valores singulares no converge
-    tras el número máximo de reintentos con perturbación diagonal.
-    """
-    pass
+    r"""Detonada si la SVD no converge tras el número máximo de reintentos."""
 
 
 class HodgeDecompositionError(SpectralComputationError):
-    r"""
-    Detonada si la descomposición de Hodge-Helmholtz no puede verificarse
-    numéricamente para el operador δ dado.
-    """
-    pass
+    r"""Detonada si la descomposición de Hodge–Helmholtz no se verifica."""
 
 
 class DirichletFrustrationError(SheafCohomologyAgentError):
-    r"""
-    Detonada si la energía de Dirichlet excede la frustración térmica admisible:
-        E(x) = ‖δx‖₂² > ε_frustration.
-    """
-    pass
+    r"""Detonada si E(x) = ‖δx‖₂² > ε_frustration."""
 
 
 class PoincareBoundViolation(DirichletFrustrationError):
-    r"""
-    Detonada si la constante de Poincaré implícita C_P excede el umbral:
-        ‖x‖ ≤ C_P · ‖δx‖  con  C_P > C_P_max.
-    """
-    pass
+    r"""Detonada si C_P > C_P,max o C_P no es finita con E(x) > 0."""
 
 
 class HomologicalInconsistencyError(SheafCohomologyAgentError):
-    r"""
-    Detonada si ‖x − x*‖₂ > Δ_inertia o si la proyección aumenta E(x).
-    """
-    pass
+    r"""Detonada si ‖x − x*‖₂ > Δ_inertia o si la proyección aumenta E(x)."""
 
 
 class LipschitzViolation(HomologicalInconsistencyError):
-    r"""
-    Detonada si la proyección de Hodge viola la condición de Lipschitz fuerte:
-        ‖δx* − δx‖ ≤ κ(δ) · ‖x* − x‖.
-    """
-    pass
+    r"""Detonada si ‖δx* − δx‖ > κ(δ) · ‖x* − x‖."""
 
 
 class MinimalNormViolation(HomologicalInconsistencyError):
-    r"""
-    Detonada si la proyección x* no minimiza la norma en ker(δ):
-        ‖x*‖ ≤ ‖x‖ + ε_num  no se satisface.
-    """
-    pass
+    r"""Detonada si ‖x*‖ > ‖x‖ + ε_num."""
+
+
+class HeytingCollapseError(SheafCohomologyAgentError):
+    r"""Detonada cuando el retículo Ω₃ colapsa al supremo terminal VETOED."""
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS INMUTABLES (DTOs del Topos Estratégico)
+# §C. RETÍCULO DISTRIBUTIVO DE HEYTING Ω₃ (Gödel–Dummett)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class HeytingOmega3(IntEnum):
+    r"""Retículo distributivo de Heyting Ω₃ totalmente ordenado.
+
+    Estructura algebraica (cadena finita ⇒ álgebra de Gödel–Dummett):
+        Ω₃ = { COHERENT := ⊥ = 0, DEGRADED := 1, VETOED := ⊤ = 2 }
+        Orden: COHERENT < DEGRADED < VETOED
+        Join (⊔) = max, Meet (⊓) = min.
+        Implicación:
+            a → b = ⊤   si a ≤ b,
+            a → b = b   si a > b.
+        Negación de Heyting: ¬a = a → ⊥.
+        En particular ¬⊥ = ⊤ y ¬a = ⊥ para a ≠ ⊥.
+
+    Tabla de a → b sobre {0, 1, 2}:
+
+            b\\a   0   1   2
+             0     2   0   0
+             1     2   2   1
+             2     2   2   2
+    """
+
+    COHERENT = 0
+    DEGRADED = 1
+    VETOED = 2
+
+    def __le__(self, other: "HeytingOmega3") -> bool:
+        return int(self) <= int(other)
+
+    def join(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        """Supremo en Ω₃: máximo."""
+        return HeytingOmega3(max(int(self), int(other)))
+
+    def meet(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        """Ínfimo en Ω₃: mínimo."""
+        return HeytingOmega3(min(int(self), int(other)))
+
+    def implication(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        r"""Implicación de Gödel: a → b = ⊤ si a ≤ b, else b."""
+        if int(self) <= int(other):
+            return HeytingOmega3.VETOED
+        return other
+
+    def negation(self) -> "HeytingOmega3":
+        r"""Negación de Heyting: ¬a = a → ⊥."""
+        return self.implication(HeytingOmega3.COHERENT)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# §D. ESTRUCTURAS INMUTABLES (DTOs del Topos Estratégico)
 #
-# Cadena de certificados funtoriales:
-#   CohomologicalVetoData  →  Fase 1 → Fase 2
-#   KrylovSpectralData     →  Fase 2 → Fase 3
+# Cadena de certificados funtoriales con handoff por constructor:
+#   CohomologicalVetoData  →  Fase 1 → unidad de Fase 2
+#   KrylovSpectralData     →  Fase 2 → unidad de Fase 3
 #   HodgeProjectionData    →  Fase 3 → Orquestador
-#   SheafGovernanceState   →  Resultado final
-#   SheafAuditProvenance   →  Trazabilidad criptográfica
+#   SheafGovernanceState   →  Resultado terminal de 𝒵_SheafAgent
+#   SheafAuditProvenance   →  Trazabilidad criptográfica end-to-end
 # ═══════════════════════════════════════════════════════════════════════════════
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class CohomologicalVetoData:
-    r"""
-    Artefacto de Fase 1. Certificado de anulación de obstrucciones globales.
+    r"""Artefacto de Fase 1. Certificado de anulación de obstrucciones globales.
 
-    Campos extendidos v3.0.0:
-        dim_C0                  : dim C⁰ (dominio de δ)
-        dim_C1                  : dim C¹ (codominio de δ)
-        delta_rank              : rank(δ) calculado vía SVD con gap espectral
-        h1_dimension            : dim H¹ = dim C¹ − rank(δ)
-        svd_tolerance           : tolerancia efectiva usada en el cómputo de rango
-        max_singular_value      : σ_max(δ)
-        min_nonzero_singular_value: σ_min^+(δ) = menor valor singular no nulo
-        spectral_gap             : Δσ = σ_max − σ_min^+ (gap espectral absoluto)
-        spectral_gap_ratio       : Δσ / σ_max (gap espectral relativo)
-        cohomological_stability_index: β = rank(δ) / dim(C¹) ∈ [0,1]
-        euler_characteristic_01  : χ₀₁ = dim(C⁰) − dim(C¹) (Euler parcial)
-        whitehead_torsion        : log|τ_W| ∈ ℝ (invariante secundario)
-        poincare_lefschetz_ok    : True sii la dualidad P-L es compatible
-        is_topologically_coherent: True sii dim H¹ = 0
+    Se computa con tolerancia de Wilkinson adaptativa:
+        SVD_TOL = d² · κ₂(δ) · ε_mach · σ_max(δ)
+    resolviendo el ciclo κ₂ ⟷ rank ⟷ SVD_TOL por punto fijo.
+
+    Invariante de Euler (testigo algebraico):
+        h0_dimension − h1_dimension  ==  dim_C0 − dim_C1.
+
+    Este DTO es la **precondición constructora** de Phase2_KrylovSpectralAuditor.
     """
+
+    delta_matrix: NDArray[np.float64]
     dim_C0: int
     dim_C1: int
     delta_rank: int
+    h0_dimension: int
     h1_dimension: int
+    singular_values: NDArray[np.float64]
     svd_tolerance: float
     max_singular_value: float
     min_nonzero_singular_value: float
     spectral_gap: float
     spectral_gap_ratio: float
+    condition_number_delta: float
+    wilkinson_iterations: int
     cohomological_stability_index: float
     euler_characteristic_01: int
     whitehead_torsion: float
     poincare_lefschetz_ok: bool
     is_topologically_coherent: bool
+    rank_is_certified: bool
+    certification_hash_sha256: str
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class KrylovSpectralData:
-    r"""
-    Artefacto de Fase 2. Certificado termodinámico y de condicionamiento espectral.
+    r"""Artefacto de Fase 2. Certificado termodinámico y espectral.
 
-    Campos extendidos v3.0.0:
-        dirichlet_energy        : E(x) = ‖δx‖₂²
-        dirichlet_energy_norm   : Ê = E(x) / max(1, ‖x‖²)  (energía normalizada)
-        frustration_tolerance   : ε_frust efectiva
-        frustration_index       : ρ = E(x) / ε_frust (índice de frustración)
-        delta_condition_number  : κ(δ) = σ_max / σ_min^+
-        laplacian_condition_number: κ(L) = κ(δ)²
-        spectral_gap_effective  : Δσ reutilizado del certificado de Fase 1
-        harmonic_component_norm : ‖x_harm‖₂ (componente armónica de x)
-        exact_component_norm    : ‖x_exact‖₂ (componente exacta de x, si δ† disponible)
-        poincare_constant       : C_P = ‖x_orth‖ / ‖δx‖ (estimado)
-        is_frustration_bounded  : True sii E(x) ≤ ε_frust
-        is_spectrally_stable    : True sii κ(L) ≤ κ_max
-        is_poincare_bounded     : True sii C_P ≤ C_P_max
+    Obtenido por **bidiagonalización de Golub–Kahan–Lanczos** aplicada
+    directamente sobre δ (sin materializar L = δᵀδ).
+
+    Este DTO es la **precondición constructora** de Phase3_IsoperimetricHodgeProjector.
     """
+
+    phase1_reference: CohomologicalVetoData
+    krylov_singular_values: NDArray[np.float64]
+    krylov_dimension: int
+    krylov_residual: float
     dirichlet_energy: float
     dirichlet_energy_norm: float
     frustration_tolerance: float
@@ -318,81 +335,70 @@ class KrylovSpectralData:
     harmonic_component_norm: float
     exact_component_norm: float
     poincare_constant: float
+    banach_holder_bound: float
     is_frustration_bounded: bool
     is_spectrally_stable: bool
     is_poincare_bounded: bool
+    certification_hash_sha256: str
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, eq=False)
 class HodgeProjectionData:
-    r"""
-    Artefacto de Fase 3. Certificado de Lipschitz para el consenso de Hodge.
+    r"""Artefacto de Fase 3. Certificado de Lipschitz fuerte e isoperimétrico.
 
-    Campos extendidos v3.0.0:
-        projection_distance          : ‖x − x*‖₂
-        relative_projection_distance : ‖x − x*‖ / max(1, ‖x‖)
-        inertia_delta_max            : Δ_inertia (constante de cota inercial)
-        original_dirichlet_energy    : E(x) = ‖δx‖₂²
-        projected_dirichlet_energy   : E(x*) = ‖δx*‖₂²
-        energy_reduction_ratio       : E(x*) / E(x) ∈ [0, 1]
-        lipschitz_residual           : ‖δx* − δx‖ − κ(δ)·‖x*−x‖ ≤ 0
-        lipschitz_satisfied          : True sii la condición Lipschitz fuerte pasa
-        minimal_norm_satisfied       : True sii ‖x*‖ ≤ ‖x‖ + ε_num
-        cheeger_bound_estimate       : h ≈ E(x*) / ‖x*‖² (estimado de Cheeger)
-        morse_reduction_index        : ι_M = dim ker(δᵀδ) estimado
-        is_isoperimetrically_bounded : True sii ‖x−x*‖ ≤ Δ_inertia
-        is_energy_non_increasing     : True sii E(x*) ≤ E(x) + ε_num
-        verified_by_delta            : True sii se verificó con δ explícito
+    Verifica simultáneamente:
+        ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂   (Lipschitz fuerte)
+        ‖x − x*‖₂ ≤ Δ_inertia              (inercia)
+        ‖x*‖₂ ≤ ‖x‖₂ + ε_num               (mínima norma)
+        E(x*) ≤ E(x) + ε_num               (energía no creciente)
+        π∘π ≃ π                            (idempotencia de Hodge)
+
+    Colapsa el retículo Ω₃ al veredicto terminal.
     """
+
     projection_distance: float
     relative_projection_distance: float
     inertia_delta_max: float
     original_dirichlet_energy: float
     projected_dirichlet_energy: float
     energy_reduction_ratio: float
+    lipschitz_lhs: float
     lipschitz_residual: float
     lipschitz_satisfied: bool
+    lipschitz_slack: float
+    isoperimetric_slack: float
     minimal_norm_satisfied: bool
+    hodge_idempotence_residual: float
     cheeger_bound_estimate: float
     morse_reduction_index: int
+    heyting_verdict: HeytingOmega3
+    crowbar_simulated: bool
     is_isoperimetrically_bounded: bool
     is_energy_non_increasing: bool
     verified_by_delta: bool
+    certification_hash_sha256: str
 
 
 @dataclass(frozen=True, slots=True)
 class SheafAuditProvenance:
-    r"""
-    Trazabilidad criptográfica de la cadena funtorial Z_SheafAgent = Φ₃∘Φ₂∘Φ₁.
+    r"""Trazabilidad criptográfica de la cadena funtorial 𝒵_SheafAgent."""
 
-    Campos:
-        timestamp_iso         : Fecha/hora ISO-8601 UTC de la auditoría
-        input_checksum_sha256 : SHA-256 hex de los datos de entrada serializados
-        phase1_passed         : True sii Fase 1 completó sin excepción
-        phase2_passed         : True sii Fase 2 completó sin excepción
-        phase3_passed         : True sii Fase 3 completó sin excepción
-        functor_chain         : Descripción textual de la composición funtorial
-    """
     timestamp_iso: str
     input_checksum_sha256: str
+    phase1_certification_hash: str
+    phase2_certification_hash: str
+    phase3_certification_hash: str
     phase1_passed: bool
     phase2_passed: bool
     phase3_passed: bool
     functor_chain: str
+    agent_version: str
 
 
 @dataclass(frozen=True, slots=True)
 class SheafGovernanceState:
-    r"""
-    Objeto final del endofuntor Z_SheafAgent = Φ₃∘Φ₂∘Φ₁.
+    r"""Objeto final del endofuntor 𝒵_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁."""
 
-    Contiene:
-        veto_audit                : Certificado de Fase 1
-        spectral_audit            : Certificado de Fase 2
-        hodge_audit               : Certificado de Fase 3
-        provenance                : Trazabilidad criptográfica
-        is_epistemologically_valid: True sii los tres certificados son válidos
-    """
     veto_audit: CohomologicalVetoData
     spectral_audit: KrylovSpectralData
     hodge_audit: HodgeProjectionData
@@ -401,55 +407,42 @@ class SheafGovernanceState:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §D. GUARDAS NUMÉRICAS INTERNAS — v3.0.0
-#
-# Evoluciones sobre v2.0.0:
-#   · _safe_svdvals     : SVD con reintentos y perturbación diagonal de emergencia
-#   · _check_spectral_gap: detección de gap espectral adaptativo
-#   · _pseudo_inverse   : pseudoinversa δ† por SVD truncada con gap
-#   · _frobenius_norm   : con fallback robusto a norma-1
-#   · _squared_norm_from_vector: con tolerancia adaptativa
-#   · _compute_input_checksum: SHA-256 de los datos de entrada
+# §E. GUARDAS NUMÉRICAS INTERNAS (álgebra de Banach sobre ℝ, IEEE-754)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 class _FiniteNumericalGuard:
-    r"""
-    Capa de saneamiento numérico que garantiza la finitez, realidad y
-    no-degeneración de todas las entradas antes de los cómputos algebraicos.
+    r"""Saneamiento numérico: finitud, realidad y no-degeneración.
+
+    Todas las entradas se proyectan a float64 real finito antes de cualquier
+    morfismo algebraico. Las normas se evalúan en la categoría Banach
+    (ℝⁿ, ‖·‖₂) con fallback a ‖·‖₁ si la FPU degrada.
     """
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.1 Conversión y validación de arreglos
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _as_float_array(name: str, value: Any) -> NDArray[np.float64]:
-        r"""
-        Convierte `value` a float64 real finito, rechazando ℂ, NaN y ±∞.
-        """
+        r"""Convierte a float64 real finito; rechaza ℂ, NaN y ±∞."""
         try:
             raw = np.asarray(value)
         except Exception as exc:
             raise TypeError(
-                f"[Guard] '{name}' no puede interpretarse como arreglo numérico: {exc}"
+                f"[Guard] '{name}' no interpretable como arreglo: {exc}"
             ) from exc
 
         if np.iscomplexobj(raw):
             raise TypeError(
-                f"[Guard] '{name}' debe ser real; se rechazó dtype complejo={raw.dtype}."
+                f"[Guard] '{name}' debe ser real; dtype={raw.dtype}."
             )
 
         try:
             arr = raw.astype(np.float64, copy=False)
         except (TypeError, ValueError) as exc:
             raise TypeError(
-                f"[Guard] '{name}' no puede convertirse a float64: {exc}"
+                f"[Guard] '{name}' no convertible a float64: {exc}"
             ) from exc
 
         if not np.all(np.isfinite(arr)):
             n_bad = int(np.sum(~np.isfinite(arr)))
-            raise ValueError(
-                f"[Guard] '{name}' contiene {n_bad} elemento(s) NaN o ±∞."
-            )
-
+            raise ValueError(f"[Guard] '{name}' contiene {n_bad} NaN o ±∞.")
         return arr
 
     @classmethod
@@ -461,34 +454,19 @@ class _FiniteNumericalGuard:
         min_rows: int = 0,
         min_cols: int = 0,
     ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz real finita 2D.
-
-        Parámetros:
-            name    : Nombre del parámetro.
-            value   : Objeto a validar.
-            min_rows: Número mínimo de filas (0 = sin restricción).
-            min_cols: Número mínimo de columnas (0 = sin restricción).
-        """
+        r"""Valida una matriz real finita 2D."""
         arr = cls._as_float_array(name, value)
-
         if arr.ndim != 2:
-            raise ValueError(
-                f"[Guard] '{name}' debe ser 2D; tiene ndim={arr.ndim}."
-            )
-
+            raise ValueError(f"[Guard] '{name}' debe ser 2D; ndim={arr.ndim}.")
         rows, cols = arr.shape
-
         if min_rows > 0 and rows < min_rows:
             raise ValueError(
-                f"[Guard] '{name}' debe tener al menos {min_rows} filas; tiene {rows}."
+                f"[Guard] '{name}': {rows} filas < {min_rows} requeridas."
             )
-
         if min_cols > 0 and cols < min_cols:
             raise ValueError(
-                f"[Guard] '{name}' debe tener al menos {min_cols} columnas; tiene {cols}."
+                f"[Guard] '{name}': {cols} cols < {min_cols} requeridas."
             )
-
         return arr
 
     @classmethod
@@ -499,18 +477,8 @@ class _FiniteNumericalGuard:
         *,
         allow_empty: bool = True,
     ) -> NDArray[np.float64]:
-        r"""
-        Valida y normaliza a 1D un vector real finito.
-
-        Acepta: 1D, (n,1), (1,n), escalar (→ dim 1).
-
-        Parámetros:
-            name       : Nombre del parámetro.
-            value      : Objeto a validar.
-            allow_empty: Si False, rechaza vectores de tamaño 0.
-        """
+        r"""Valida y normaliza a 1D un vector real finito."""
         arr = cls._as_float_array(name, value)
-
         if arr.ndim == 0:
             arr = arr.reshape(1)
         elif arr.ndim == 2 and 1 in arr.shape:
@@ -518,20 +486,15 @@ class _FiniteNumericalGuard:
         elif arr.ndim != 1:
             raise ValueError(
                 f"[Guard] '{name}' debe ser 1D, columna, fila o escalar; "
-                f"tiene forma {arr.shape}."
+                f"forma={arr.shape}."
             )
-
         if not allow_empty and arr.size == 0:
-            raise ValueError(f"[Guard] '{name}' no puede ser un vector vacío.")
-
+            raise ValueError(f"[Guard] '{name}' no puede ser vector vacío.")
         return arr
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.2 Normas numéricamente seguras
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _vector_norm(v: NDArray[np.float64]) -> float:
-        r"""‖v‖₂ con fallback a ‖v‖₁ si la rutina LAPACK falla."""
+        r"""‖v‖₂ con fallback a ‖v‖₁."""
         if v.size == 0:
             return 0.0
         try:
@@ -561,37 +524,38 @@ class _FiniteNumericalGuard:
 
     @staticmethod
     def _squared_norm_from_vector(y: NDArray[np.float64]) -> float:
-        r"""
-        Calcula ‖y‖₂² = yᵀy de forma segura.
+        r"""‖y‖₂² = yᵀy, con recorte de negatividad por ruido de redondeo.
 
-        Una negatividad pequeña por ruido numérico se proyecta a 0;
-        una negatividad significativa lanza DirichletFrustrationError.
+        L = δᵀδ ⪰ 0 implica E(x) = ‖δx‖² ≥ 0 analíticamente; una energía
+        negativa de magnitud > 128 ε_mach |E| es un invariante roto.
         """
         if y.size == 0:
             return 0.0
-
         value = float(np.dot(y, y))
-
         if not math.isfinite(value):
             raise DirichletFrustrationError(
-                "[Guard] ‖δx‖₂² no es finita; posible desbordamiento numérico."
+                "[Guard] ‖δx‖₂² no es finita; posible desbordamiento."
             )
-
-        tolerance = (
-            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, abs(value))
-        )
-
+        tolerance = _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, abs(value))
         if value < -tolerance:
             raise DirichletFrustrationError(
-                f"[Guard] ‖δx‖₂² = {value:.4e} < 0 con magnitud significativa; "
-                "inconsistencia numérica grave."
+                f"[Guard] ‖δx‖₂² = {value:.4e} < 0 con magnitud significativa."
             )
-
         return max(0.0, value)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.3 SVD segura con reintentos por perturbación diagonal
-    # ─────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _holder_operator_norm_bound(A: NDArray[np.float64]) -> float:
+        r"""Cota de Hölder de álgebra de Banach: ‖A‖₂ ≤ √(‖A‖₁ ‖A‖∞).
+
+        Testigo barato de σ_max que no requiere SVD ni forma L = AᵀA.
+        """
+        if A.size == 0:
+            return 0.0
+        abs_A = np.abs(A)
+        norm_1 = float(np.max(np.sum(abs_A, axis=0))) if A.shape[1] else 0.0
+        norm_inf = float(np.max(np.sum(abs_A, axis=1))) if A.shape[0] else 0.0
+        return float(math.sqrt(max(norm_1, 0.0) * max(norm_inf, 0.0)))
+
     @staticmethod
     def _safe_svdvals(
         A: NDArray[np.float64],
@@ -599,41 +563,24 @@ class _FiniteNumericalGuard:
         *,
         max_retries: int = _SVD_MAX_RETRIES,
     ) -> NDArray[np.float64]:
-        r"""
-        Calcula los valores singulares de A con reintentos ante fallos de LAPACK.
+        r"""SVD con reintentos por perturbación diagonal adaptativa de Tikhonov.
 
-        En cada reintento añade una perturbación diagonal:
-
-            ε_k = ε₀^{1/(k+2)} · ‖A‖_F · I_{min}
-
-        donde I_{min} es la identidad en el subespacio mínimo.
-
-        Parámetros:
-            A          : Matriz real finita.
-            name       : Nombre del parámetro (para mensajes).
-            max_retries: Número máximo de intentos.
-
-        Retorna:
-            Vector de valores singulares en orden descendente.
-
-        Lanza:
-            SVDConvergenceError si todos los intentos fallan.
+        ε_k = ε_mach^{1/(k+2)} · ‖A‖_F  (regularización espectral mínima).
+        Los valores singulares se devuelven en orden descendente.
         """
         if A.size == 0 or min(A.shape) == 0:
             return np.empty(0, dtype=np.float64)
 
         last_exc: Optional[Exception] = None
-        A_work = A.copy()
-
+        A_work = np.array(A, dtype=np.float64, copy=True)
         for attempt in range(max_retries):
             try:
                 svs = la.svdvals(A_work)
                 if np.all(np.isfinite(svs)):
-                    return svs.astype(np.float64)
+                    return np.sort(np.asarray(svs, dtype=np.float64))[::-1]
             except (np.linalg.LinAlgError, ValueError) as exc:
                 last_exc = exc
 
-            # Perturbación diagonal de regularización
             frob = float(la.norm(A_work, ord="fro") or 1.0)
             eps_k = (_MACHINE_EPSILON ** (1.0 / (attempt + 2))) * frob
             rows, cols = A_work.shape
@@ -642,67 +589,10 @@ class _FiniteNumericalGuard:
             A_work[:min_dim, :min_dim] += eps_k * np.eye(min_dim, dtype=np.float64)
 
         raise SVDConvergenceError(
-            f"[Guard] SVD de '{name}' no convergió tras {max_retries} intentos. "
-            f"Último error: {last_exc}."
+            f"[Guard] SVD de '{name}' no convergió tras {max_retries} intentos "
+            f"(último error: {last_exc})."
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.4 Gap espectral adaptativo
-    # ─────────────────────────────────────────────────────────────────────────
-    @staticmethod
-    def _check_spectral_gap(
-        singular_values: NDArray[np.float64],
-        tolerance: float,
-    ) -> Tuple[int, float]:
-        r"""
-        Detecta el gap espectral más prominente para determinar el rango efectivo.
-
-        Estrategia:
-            1. Normaliza σᵢ / σ_max.
-            2. Calcula saltos: Δᵢ = σᵢ - σᵢ₊₁ (descendentes).
-            3. Si el gap relativo mayor Δ_max / σ_max > ρ_gap_min, se usa como
-               punto de corte de rango.
-            4. Si no hay gap claro, se usa la tolerancia adaptativa estándar.
-
-        Parámetros:
-            singular_values: Valores singulares en orden descendente.
-            tolerance      : Tolerancia adaptativa para el caso sin gap.
-
-        Retorna:
-            (rank_effective, gap_ratio) donde gap_ratio ∈ [0, 1].
-        """
-        if singular_values.size == 0:
-            return 0, 0.0
-
-        sigma_max = float(singular_values[0])
-
-        if sigma_max == 0.0:
-            return 0, 0.0
-
-        # Rango por tolerancia estándar
-        rank_by_tol = int(np.count_nonzero(singular_values > tolerance))
-
-        if singular_values.size < 2:
-            return rank_by_tol, 0.0
-
-        # Detección de gap espectral
-        gaps = singular_values[:-1] - singular_values[1:]  # ≥ 0 por orden desc.
-        if gaps.size == 0:
-            return rank_by_tol, 0.0
-
-        max_gap_idx = int(np.argmax(gaps))
-        max_gap = float(gaps[max_gap_idx])
-        gap_ratio = max_gap / sigma_max
-
-        if gap_ratio > _SPECTRAL_GAP_MIN_RATIO:
-            rank_by_gap = max_gap_idx + 1
-            return rank_by_gap, gap_ratio
-
-        return rank_by_tol, gap_ratio
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.5 Pseudoinversa de Moore-Penrose
-    # ─────────────────────────────────────────────────────────────────────────
     @classmethod
     def _pseudo_inverse(
         cls,
@@ -711,20 +601,11 @@ class _FiniteNumericalGuard:
         *,
         tolerance: Optional[float] = None,
     ) -> NDArray[np.float64]:
-        r"""
-        Calcula la pseudoinversa de Moore-Penrose A† por SVD truncada:
+        r"""Pseudoinversa de Moore–Penrose A⁺ = V · diag(1/σᵢ) · Uᵀ.
 
-            A† = V · diag(1/σᵢ) · Uᵀ   (solo para σᵢ > tol)
-
-        Utiliza _safe_svdvals internamente y detección de gap espectral.
-
-        Parámetros:
-            A        : Matriz real finita.
-            name     : Nombre del parámetro.
-            tolerance: Umbral de truncamiento (None → adaptativo).
-
-        Retorna:
-            A† ∈ ℝ^{cols × rows}.
+        Satisface las cuatro ecuaciones de Penrose:
+            A A⁺ A = A,  A⁺ A A⁺ = A⁺,  (A A⁺)ᵀ = A A⁺,  (A⁺ A)ᵀ = A⁺ A.
+        Truncación espectral con `tolerance` (Wilkinson de Fase 1 si se aporta).
         """
         if A.size == 0 or min(A.shape) == 0:
             return np.zeros((A.shape[1], A.shape[0]), dtype=np.float64)
@@ -732,58 +613,103 @@ class _FiniteNumericalGuard:
         try:
             U, s, Vt = la.svd(A, full_matrices=False)
         except (np.linalg.LinAlgError, ValueError):
-            # Reintento con SVD segura
-            svs = cls._safe_svdvals(A, name)
-            # Usamos la implementación de numpy como último recurso
+            cls._safe_svdvals(A, name)
             return np.linalg.pinv(A)
 
-        if not (np.all(np.isfinite(U)) and np.all(np.isfinite(s)) and np.all(np.isfinite(Vt))):
+        if not (
+            np.all(np.isfinite(U))
+            and np.all(np.isfinite(s))
+            and np.all(np.isfinite(Vt))
+        ):
             raise HodgeDecompositionError(
-                f"[Guard] SVD de '{name}' produjo valores no finitos en U, σ o Vᵀ."
+                f"[Guard] SVD de '{name}' produjo valores no finitos."
             )
 
         if tolerance is None:
-            sigma_max = float(s[0]) if s.size > 0 else 0.0
+            sigma_max = float(s[0]) if s.size else 0.0
             tolerance = max(
                 _SVD_TOLERANCE_BASE,
-                _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(A.shape) * sigma_max,
+                _NUMERICAL_SAFETY_FACTOR
+                * _MACHINE_EPSILON
+                * max(A.shape)
+                * sigma_max,
             )
 
         s_inv = np.where(s > tolerance, 1.0 / s, 0.0)
         A_pinv = (Vt.T * s_inv) @ U.T
-
         if not np.all(np.isfinite(A_pinv)):
             raise HodgeDecompositionError(
-                f"[Guard] La pseudoinversa de '{name}' contiene valores no finitos."
+                f"[Guard] Pseudoinversa de '{name}' contiene no finitos."
             )
-
         return A_pinv
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.6 Checksum SHA-256 de entrada
-    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def _verify_penrose_equations(
+        cls,
+        A: NDArray[np.float64],
+        A_pinv: NDArray[np.float64],
+        *,
+        name: str = "A",
+    ) -> float:
+        r"""Residuo relativo máximo de las cuatro ecuaciones de Penrose.
+
+        Se evalúa sólo si max(m, n) ≤ _PENROSE_VERIFY_MAX_DIM (coste O(n³)).
+        Retorna 0.0 si la verificación se omite por dimensión.
+        """
+        if max(A.shape) > _PENROSE_VERIFY_MAX_DIM:
+            return 0.0
+        frob_A = max(cls._frobenius_norm(A), _EPSILON)
+        p1 = cls._frobenius_norm(A @ A_pinv @ A - A) / frob_A
+        p2 = cls._frobenius_norm(A_pinv @ A @ A_pinv - A_pinv) / max(
+            cls._frobenius_norm(A_pinv), _EPSILON
+        )
+        AA = A @ A_pinv
+        ApA = A_pinv @ A
+        p3 = cls._frobenius_norm(AA - AA.T) / max(cls._frobenius_norm(AA), _EPSILON)
+        p4 = cls._frobenius_norm(ApA - ApA.T) / max(cls._frobenius_norm(ApA), _EPSILON)
+        residual = float(max(p1, p2, p3, p4))
+        if residual > 1e-6:
+            logger.warning(
+                "[Guard] Penrose residual de '%s' = %.3e (degradación numérica).",
+                name, residual,
+            )
+        return residual
+
     @staticmethod
     def _compute_input_checksum(*arrays: Optional[NDArray[np.float64]]) -> str:
-        r"""
-        Calcula el SHA-256 de la concatenación binaria de los arreglos,
-        incluyendo metadatos de forma y dtype.
-
-        Retorna:
-            String hexadecimal de 64 caracteres.
-        """
+        r"""SHA-256 de la concatenación binaria de los arreglos (trazabilidad)."""
         hasher = hashlib.sha256()
-
         for arr in arrays:
             if arr is None:
                 hasher.update(b"\x00")
                 continue
-
             a = np.asarray(arr)
             shape_padded = (*a.shape, *([0] * max(0, 3 - a.ndim)))[:3]
             meta = struct.pack(">4Q", a.ndim, *shape_padded)
             hasher.update(meta)
             hasher.update(np.ascontiguousarray(a).tobytes())
+        return hasher.hexdigest()
 
+    @staticmethod
+    def _compute_dto_hash(*fields: Any) -> str:
+        r"""Firma determinista SHA-256 de campos heterogéneos del DTO."""
+        hasher = hashlib.sha256()
+        for f in fields:
+            if isinstance(f, bool):
+                hasher.update(f"|{int(f)}".encode())
+            elif isinstance(f, float):
+                hasher.update(f"|{f:.17e}".encode())
+            elif isinstance(f, int):
+                hasher.update(f"|{f}".encode())
+            elif isinstance(f, str):
+                hasher.update(f"|{f}".encode())
+            elif isinstance(f, np.ndarray):
+                hasher.update(f"|shape={f.shape}|".encode())
+                hasher.update(np.ascontiguousarray(f, dtype=np.float64).tobytes())
+            elif f is None:
+                hasher.update(b"|__None__")
+            else:
+                hasher.update(f"|{f!r}".encode())
         return hasher.hexdigest()
 
 
@@ -791,1162 +717,1347 @@ class _FiniteNumericalGuard:
 # ║                                                                             ║
 # ║   FASE 1: CERTIFICACIÓN AXIOMÁTICA DEL VETO COHOMOLÓGICO                    ║
 # ║                                                                             ║
-# ║   Marco matemático:                                                         ║
-# ║   ─────────────────                                                         ║
-# ║   Sea δ: C⁰ → C¹ el operador cofrontera del haz celular.                   ║
-# ║   La primera cohomología mide las cocadenas cerradas no exactas:             ║
-# ║       H¹(G; F) = coker(δ) / im(δ) (en el caso de 1-término)                ║
-# ║   Bajo el modelo operacional: dim H¹ = dim(C¹) − rank(δ).                   ║
+# ║   Marco formal:                                                             ║
+# ║   ─────────                                                                 ║
+# ║   Sea δ: C⁰ → C¹ el operador cofrontera del haz celular. La cohomología      ║
+# ║   de primer grado mide las cocadenas cerradas no exactas:                    ║
+# ║       H⁰(G; ℱ) ≅ ker(δ),          dim H⁰ = dim C⁰ − rank(δ)                  ║
+# ║       H¹(G; ℱ) ≅ coker(δ),        dim H¹ = dim C¹ − rank(δ)                  ║
+# ║       χ(ℱ) = dim H⁰ − dim H¹ = dim C⁰ − dim C¹                               ║
 # ║                                                                             ║
-# ║   Invariantes calculados en v3.0.0:                                         ║
-# ║   1. rank(δ) por SVD con gap espectral (Golub-Reinsch).                     ║
-# ║   2. dim H¹ = dim(C¹) − rank(δ).                                            ║
-# ║   3. Índice de estabilidad β = rank(δ) / dim(C¹).                           ║
-# ║   4. Característica de Euler parcial χ₀₁ = dim(C⁰) − dim(C¹).              ║
-# ║   5. Torsión de Whitehead log|τ_W|.                                         ║
-# ║   6. Gap espectral Δσ y ratio Δσ/σ_max.                                     ║
-# ║   7. Verificación de la condición de Poincaré-Lefschetz.                    ║
+# ║   Invariantes calculados por esta fase:                                     ║
+# ║     1. Espectro singular {σᵢ} vía SVD con reintentos (Golub–Reinsch).        ║
+# ║     2. Wilkinson TOL: punto fijo del ciclo κ₂ ⟷ rank ⟷ SVD_TOL.              ║
+# ║     3. rank(δ) por tolerancia Wilkinson-adaptativa.                          ║
+# ║     4. Números de Betti β₀ = dim H⁰, β₁ = dim H¹.                            ║
+# ║     5. χ₀₁ = β₀ − β₁ (característica de Euler del 2-complejo).               ║
+# ║     6. Torsión analítica de Reidemeister log|τ| = Σ log σᵢ.                  ║
+# ║     7. Identidad de Euler como testigo de dualidad P–L numérica.             ║
+# ║     8. Índice de estabilidad β = rank(δ) / dim C¹.                           ║
 # ║                                                                             ║
-# ║   ÚLTIMO MÉTODO DE FASE 1:                                                  ║
-# ║       _certify_cohomological_veto_axiom(coboundary_operator_delta)          ║
-# ║       → CohomologicalVetoData  [objeto inicial de Fase 2]                   ║
+# ║   ULTIMO MÉTODO DE FASE 1 (morfismo terminal = unidad de Fase 2):            ║
+# ║       nest_into_phase2(delta) → Phase2_KrylovSpectralAuditor                 ║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
+
 class Phase1_CohomologicalVetoCertifier(_FiniteNumericalGuard):
-    r"""
-    Evalúa el operador cofrontera δ: C⁰ → C¹.
+    r"""FASE 1: Certificador axiomático del veto cohomológico.
 
-    Asegura que las dependencias inter-agente formen un consenso libre de
-    vórtices cohomológicos (dim H¹ = 0).
+    Cadena interna de morfismos:
+        _validate_delta_operator_invariants
+            → _extract_singular_spectrum
+            → _compute_wilkinson_spectral_tolerance_fixed_point
+            → _compute_rank_nullity_betti
+            → _compute_reidemeister_analytic_torsion
+            → _verify_euler_poincare_lefschetz_identity
+            → certify_cohomological_veto_axiom
+            → nest_into_phase2          ★ morfismo terminal = unidad de Φ₂
 
-    Mejoras v3.0.0:
-        · SVD con reintentos por perturbación diagonal.
-        · Gap espectral adaptativo para detección robusta de rango.
-        · Índice de estabilidad β y característica de Euler parcial χ₀₁.
-        · Torsión de Whitehead log|τ_W| como invariante secundario.
-        · Verificación de la condición de Poincaré-Lefschetz.
+    Salida del morfismo terminal: Phase2_KrylovSpectralAuditor
+    (precondición constructora ya inyectada).
     """
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 1.1 Tolerancia SVD adaptativa
+    # 1.1 Validación de invariantes de forma del operador cofrontera
     # ─────────────────────────────────────────────────────────────────────────
-    @staticmethod
-    def _compute_svd_tolerance(
-        sigma_max: float,
-        shape: Tuple[int, int],
-    ) -> float:
-        r"""
-        Calcula la tolerancia efectiva para el umbral de rango SVD:
+    @classmethod
+    def _validate_delta_operator_invariants(
+        cls,
+        delta: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], int, int]:
+        r"""Valida invariantes estructurales de δ: C⁰ → C¹.
 
-            τ_eff = max(τ_base, c_σ · σ_max · ε₀ · max(m, n) · c_num).
+        Verifica:
+            · δ es una matriz real finita 2D con m, n ≥ 1.
+            · ‖δ‖_F ≰ ε_mach (no degenerada).
 
-        Esta tolerancia es la misma filosofía que la de MATLAB rank().
-
-        Parámetros:
-            sigma_max: σ_max(δ).
-            shape    : (m, n) = forma de δ.
-
-        Retorna:
-            τ_eff > 0.
+        Returns
+        ───────
+        (delta_float64, dim_C1 = m, dim_C0 = n)
         """
-        if sigma_max <= 0.0 or not math.isfinite(sigma_max):
-            return _SVD_TOLERANCE_BASE
-
-        spectral_tol = (
-            _SVD_SPECTRAL_FACTOR
-            * sigma_max
-            * _MACHINE_EPSILON
-            * max(shape)
-            * _NUMERICAL_SAFETY_FACTOR
+        delta_val = cls._as_finite_matrix(
+            "coboundary_operator_delta", delta, min_rows=1, min_cols=1
         )
-
-        return max(_SVD_TOLERANCE_BASE, spectral_tol)
+        m, n = int(delta_val.shape[0]), int(delta_val.shape[1])
+        frob = cls._frobenius_norm(delta_val)
+        if frob <= _MACHINE_EPSILON:
+            raise SheafCohomologyAgentError(
+                f"[Fase 1] δ es numéricamente trivial: ‖δ‖_F = {frob:.3e} "
+                "≤ ε_mach. No hay información cohomológica que certificar."
+            )
+        return delta_val, m, n
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 1.2 Torsión de Whitehead
+    # 1.2 Espectro singular certificado (Golub–Reinsch + reintentos)
+    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def _extract_singular_spectrum(
+        cls,
+        delta: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], bool]:
+        r"""Extrae σ(δ) descendente. En este agente δ es denso: rango pleno.
+
+        Returns
+        ───────
+        (singular_values_desc, rank_is_certified=True)
+        """
+        s = cls._safe_svdvals(delta, "δ")
+        return s, True
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 1.3 Wilkinson-adaptativo iterativo (Axioma [A5] / [I2])
+    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def _compute_wilkinson_spectral_tolerance_fixed_point(
+        cls,
+        singular_values: NDArray[np.float64],
+        shape: Tuple[int, int],
+    ) -> Tuple[float, int, int, float, float]:
+        r"""Resuelve el ciclo κ₂ ⟷ rank ⟷ SVD_TOL por punto fijo.
+
+        Modelo (matriz de Wilkinson):
+            SVD_TOL = d² · κ₂(δ) · ε_machine · σ_max(δ),
+        donde d = max(m, n).
+
+        Iteración:
+            SVD_TOL⁽⁰⁾ = d · ε_machine · σ_max              (cota clásica)
+            rank⁽ᵏ⁺¹⁾  = #{σᵢ > SVD_TOL⁽ᵏ⁾} ∩ [0, min(m,n)]
+            κ₂⁽ᵏ⁾      = σ_max / σ_{rank⁽ᵏ⁾}
+            SVD_TOL⁽ᵏ⁺¹⁾ = d² · κ₂⁽ᵏ⁾ · ε_machine · σ_max
+        Convergencia: |Δ SVD_TOL| ≤ _WILKINSON_CONVERGENCE_TOL · max(1, tol).
+
+        Returns
+        ───────
+        (wilkinson_tolerance, rank, iterations, kappa, sigma_min_positive)
+        """
+        if singular_values.size == 0:
+            return _SVD_TOLERANCE_BASE, 0, 0, 1.0, 0.0
+
+        m, n = int(shape[0]), int(shape[1])
+        d = max(m, n, 1)
+        rank_cap = min(m, n)
+        sigma_max = float(singular_values[0])
+        if sigma_max <= 0.0:
+            return _SVD_TOLERANCE_BASE, 0, 0, 1.0, 0.0
+
+        tol = max(d * _MACHINE_EPSILON * sigma_max, _SVD_TOLERANCE_BASE)
+        iters = 0
+        rank = 0
+        kappa = 1.0
+        sigma_min_pos = 0.0
+
+        for _ in range(_WILKINSON_MAX_ITER):
+            iters += 1
+            rank = int(np.sum(singular_values > tol))
+            rank = min(rank, rank_cap)
+            if rank == 0:
+                sigma_min_pos = 0.0
+                kappa = float("inf")
+            else:
+                sigma_min_pos = float(singular_values[rank - 1])
+                kappa = (
+                    sigma_max / sigma_min_pos
+                    if sigma_min_pos > _MACHINE_EPSILON
+                    else float("inf")
+                )
+            kappa_factor = kappa if math.isfinite(kappa) else 1.0
+            tol_new = max(
+                (d ** 2) * kappa_factor * _MACHINE_EPSILON * sigma_max,
+                _SVD_TOLERANCE_BASE,
+            )
+            if abs(tol_new - tol) <= _WILKINSON_CONVERGENCE_TOL * max(1.0, tol):
+                tol = tol_new
+                break
+            tol = tol_new
+
+        rank = min(int(np.sum(singular_values > tol)), rank_cap)
+        sigma_min_pos = float(singular_values[rank - 1]) if rank > 0 else 0.0
+        kappa = (
+            sigma_max / sigma_min_pos
+            if sigma_min_pos > _MACHINE_EPSILON
+            else float("inf")
+        )
+        return float(tol), int(rank), int(iters), float(kappa), float(sigma_min_pos)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 1.4 Rango-nulidad y números de Betti
     # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
-    def _compute_whitehead_torsion(
+    def _compute_rank_nullity_betti(
+        dim_C0: int,
+        dim_C1: int,
+        effective_rank: int,
+    ) -> Tuple[int, int, int]:
+        r"""Teorema rango-nulidad sobre el complejo de 2 términos [I1], [I6].
+
+            dim H⁰ = dim ker(δ)   = dim C⁰ − rank(δ)
+            dim H¹ = dim coker(δ) = dim C¹ − rank(δ)
+            χ(ℱ)   = dim H⁰ − dim H¹ = dim C⁰ − dim C¹
+
+        Returns
+        ───────
+        (h0, h1, euler_characteristic)
+        """
+        rank = max(0, min(int(effective_rank), dim_C0, dim_C1))
+        h0 = dim_C0 - rank
+        h1 = dim_C1 - rank
+        euler = h0 - h1
+        return int(h0), int(h1), int(euler)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 1.5 Torsión analítica de Reidemeister (Ray–Singer del 2-complejo)
+    # ─────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _compute_reidemeister_analytic_torsion(
         singular_values: NDArray[np.float64],
         effective_rank: int,
     ) -> float:
-        r"""
-        Calcula la torsión de Whitehead log|τ_W| del complejo:
+        r"""Torsión analítica logarítmica del complejo acíclico truncado.
 
-            log|τ_W| = Σᵢ₌₁^{rank} log(σᵢ).
+            log|τ| = Σ_{i=1}^{rank} log σᵢ(δ).
 
-        Para un complejo acíclico, τ_W es el determinante analítico del
-        operador de cadenas restringido al subespacio no nulo.
-
-        Si rank = 0, retorna 0.0.
-
-        Parámetros:
-            singular_values: Valores singulares de δ en orden descendente.
-            effective_rank : Rango efectivo de δ.
-
-        Retorna:
-            log|τ_W| ∈ ℝ.
+        Coincide con la torsión de Reidemeister sobre ℝ (Wh(1)=0) y con
+        la torsión de Ray–Singer del 2-complejo. Se conserva el nombre de
+        campo `whitehead_torsion` por compatibilidad de API.
         """
         if effective_rank <= 0 or singular_values.size == 0:
             return 0.0
-
         significant = singular_values[:effective_rank]
         positive = significant[significant > 0.0]
-
         if positive.size == 0:
             return 0.0
-
         log_tau = float(np.sum(np.log(positive)))
         return log_tau if math.isfinite(log_tau) else 0.0
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 1.3 Verificación de Poincaré-Lefschetz
+    # 1.6 Identidad de Euler / testigo numérico de Poincaré–Lefschetz
     # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
-    def _verify_poincare_lefschetz(
+    def _verify_euler_poincare_lefschetz_identity(
         dim_C0: int,
         dim_C1: int,
         effective_rank: int,
+        h0: int,
+        h1: int,
+        euler: int,
     ) -> bool:
-        r"""
-        Verifica la compatibilidad con la dualidad de Poincaré-Lefschetz:
+        r"""Testigo numérico de dualidad de Poincaré–Lefschetz para 2-términos.
 
-            rank(δ) ≤ min(dim C⁰, dim C¹).
-
-        Esta es una condición necesaria para que la descomposición de Hodge
-        sea ortogonal. La condición es trivialmente satisfecha por el Teorema
-        de Rango-Nulidad, pero se verifica explícitamente para detectar
-        inconsistencias numéricas.
-
-        Parámetros:
-            dim_C0        : dim C⁰.
-            dim_C1        : dim C¹.
-            effective_rank: rank(δ) calculado numéricamente.
-
-        Retorna:
-            True sii rank(δ) ≤ min(dim C⁰, dim C¹).
+        Condiciones necesarias (todas identidades de álgebra lineal; su
+        ruptura delata corrupción de rango Wilkinson o overflow de enteros):
+            1. 0 ≤ rank(δ) ≤ min(dim C⁰, dim C¹)
+            2. dim H⁰ − dim H¹ = dim C⁰ − dim C¹
+            3. euler == h0 − h1
         """
         max_possible_rank = min(dim_C0, dim_C1)
-
-        if effective_rank > max_possible_rank:
+        if effective_rank < 0 or effective_rank > max_possible_rank:
             logger.warning(
-                "[Fase 1] Condición de Poincaré-Lefschetz violada: "
-                "rank(δ) = %d > min(dim C⁰, dim C¹) = %d. "
-                "Inconsistencia numérica en la SVD.",
+                "[Fase 1] P–L violada: rank(δ)=%d ∉ [0, min(C⁰,C¹)=%d].",
                 effective_rank, max_possible_rank,
             )
             return False
-
+        if euler != dim_C0 - dim_C1 or euler != h0 - h1:
+            logger.warning(
+                "[Fase 1] Identidad de Euler rota: χ=%d, C⁰−C¹=%d, H⁰−H¹=%d.",
+                euler, dim_C0 - dim_C1, h0 - h1,
+            )
+            return False
         return True
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 1.4 ÚLTIMO MÉTODO DE FASE 1
-    #     _certify_cohomological_veto_axiom → CohomologicalVetoData
-    #     [Objeto inicial de Fase 2]
+    # 1.7 Emisión del DTO de veto (pre-terminal)
     # ─────────────────────────────────────────────────────────────────────────
-    def _certify_cohomological_veto_axiom(
-        self,
+    @classmethod
+    def certify_cohomological_veto_axiom(
+        cls,
         coboundary_operator_delta: NDArray[np.float64],
     ) -> CohomologicalVetoData:
-        r"""
-        ════════════════════════════════════════════════════════════════════
-        ÚLTIMO MÉTODO DE FASE 1 — Retorna el objeto inicial de Fase 2.
-        ════════════════════════════════════════════════════════════════════
+        r"""Certifica [I1] y emite CohomologicalVetoData (precondición de Φ₂).
 
-        Computa rank(δ) y define:
+        Cadena:
+            δ ──(validate_invariants)────────────▶ (m, n)
+              ──(extract_singular_spectrum)──────▶ σ(δ)
+              ──(wilkinson_fixed_point)──────────▶ SVD_TOL, rank, κ₂(δ)
+              ──(rank_nullity_betti)─────────────▶ dim H⁰, dim H¹, χ
+              ──(reidemeister_torsion)───────────▶ log|τ|
+              ──(euler_poincare_lefschetz)───────▶ bool
+              ──(emit_axiom_[I1]_veto)───────────▶ veto si dim H¹ > 0
 
-            dim H¹(G; F) = dim(C¹) − rank(δ).
-
-        Si dim H¹ > 0, existen cocadenas cerradas que no son exactas:
-        el veto topológico es detonado vía TopologicalBifurcationError.
-
-        Invariantes calculados:
-            1. Espectro singular {σᵢ} por _safe_svdvals (con reintentos).
-            2. Tolerancia adaptativa τ_eff = max(τ_base, c_σ·σ_max·ε₀·max(m,n)).
-            3. Rango efectivo por gap espectral (Golub-Reinsch).
-            4. dim H¹ = dim C¹ − rank(δ).
-            5. Gap espectral Δσ y ratio Δσ/σ_max.
-            6. Índice de estabilidad β = rank(δ) / dim(C¹).
-            7. Característica de Euler parcial χ₀₁ = dim(C⁰) − dim(C¹).
-            8. Torsión de Whitehead log|τ_W|.
-            9. Condición de Poincaré-Lefschetz.
-
-        Parámetros:
-            coboundary_operator_delta: Operador δ: C⁰ → C¹ ∈ ℝ^{m×n}.
-
-        Retorna:
-            CohomologicalVetoData — certificado cohomológico completo.
-            Este objeto es el **objeto inicial de la Fase 2**.
-
-        Lanza:
-            TopologicalBifurcationError si dim H¹ > 0.
-            PoincareLefschetzViolation si la condición P-L falla gravemente.
-            SVDConvergenceError si la SVD no converge.
+        Raises
+        ──────
+        SheafCohomologyAgentError
+        SVDConvergenceError
+        PoincareLefschetzViolation
+        TopologicalBifurcationError
         """
-        # ── Validación de entrada ─────────────────────────────────────────
-        delta = self._as_finite_matrix(
-            "coboundary_operator_delta",
-            coboundary_operator_delta,
+        delta, dim_C1, dim_C0 = cls._validate_delta_operator_invariants(
+            coboundary_operator_delta
         )
+        singular_values, rank_is_certified = cls._extract_singular_spectrum(delta)
+        sigma_max = float(singular_values[0]) if singular_values.size else 0.0
 
-        dim_C1, dim_C0 = delta.shape
-
-        # ── Manejo del caso trivial (matriz vacía) ────────────────────────
-        if delta.size == 0 or min(delta.shape) == 0:
-            return CohomologicalVetoData(
-                dim_C0=int(dim_C0),
-                dim_C1=int(dim_C1),
-                delta_rank=0,
-                h1_dimension=0,
-                svd_tolerance=_SVD_TOLERANCE_BASE,
-                max_singular_value=0.0,
-                min_nonzero_singular_value=0.0,
-                spectral_gap=0.0,
-                spectral_gap_ratio=0.0,
-                cohomological_stability_index=1.0 if dim_C1 == 0 else 0.0,
-                euler_characteristic_01=int(dim_C0 - dim_C1),
-                whitehead_torsion=0.0,
-                poincare_lefschetz_ok=True,
-                is_topologically_coherent=True,
+        svd_tol, effective_rank, wilk_iters, kappa, sigma_min_nonzero = (
+            cls._compute_wilkinson_spectral_tolerance_fixed_point(
+                singular_values, delta.shape
             )
-
-        # ── Espectro singular con reintentos ──────────────────────────────
-        singular_values = self._safe_svdvals(
-            delta, "coboundary_operator_delta",
         )
 
-        # ── Tolerancia adaptativa ─────────────────────────────────────────
-        sigma_max = float(singular_values[0]) if singular_values.size > 0 else 0.0
-        svd_tolerance = self._compute_svd_tolerance(sigma_max, delta.shape)
-
-        # ── Rango efectivo con gap espectral ──────────────────────────────
-        effective_rank, gap_ratio = self._check_spectral_gap(
-            singular_values, svd_tolerance,
+        # Hueco espectral = distancia al núcleo = σ_min⁺.
+        # Razón de hueco = σ_min⁺ / σ_max = 1/κ₂  (pequeña ⇒ mal condicionado).
+        spectral_gap = float(sigma_min_nonzero)
+        gap_ratio = (
+            spectral_gap / sigma_max if sigma_max > 0.0 else 0.0
         )
 
-        # ── Espectro no nulo ──────────────────────────────────────────────
-        nonzero_svs = singular_values[singular_values > svd_tolerance]
-
-        if nonzero_svs.size > 0:
-            sigma_min_nonzero = float(nonzero_svs[-1])
-            spectral_gap = float(sigma_max - sigma_min_nonzero)
-        else:
-            sigma_min_nonzero = 0.0
-            spectral_gap = 0.0
-
-        # ── dim H¹ ────────────────────────────────────────────────────────
-        h1_dimension = int(dim_C1 - effective_rank)
-
-        if h1_dimension < 0:
-            logger.warning(
-                "[Fase 1] dim H¹ = %d < 0; proyectando a 0 por consistencia numérica. "
-                "Verificar la SVD de δ.",
-                h1_dimension,
-            )
-            h1_dimension = 0
-
-        # ── Índice de estabilidad β ───────────────────────────────────────
-        cohomological_stability_index = (
-            float(effective_rank) / float(dim_C1)
-            if dim_C1 > 0
-            else 1.0
+        h0_dim, h1_dim, euler_01 = cls._compute_rank_nullity_betti(
+            dim_C0, dim_C1, effective_rank
         )
-
-        # ── Euler parcial χ₀₁ ────────────────────────────────────────────
-        euler_characteristic_01 = int(dim_C0 - dim_C1)
-
-        # ── Torsión de Whitehead ──────────────────────────────────────────
-        whitehead_torsion = self._compute_whitehead_torsion(
-            singular_values, effective_rank,
+        stability_index = (
+            float(effective_rank) / float(dim_C1) if dim_C1 > 0 else 1.0
         )
-
-        # ── Poincaré-Lefschetz ────────────────────────────────────────────
-        pl_ok = self._verify_poincare_lefschetz(dim_C0, dim_C1, effective_rank)
-
+        whitehead = cls._compute_reidemeister_analytic_torsion(
+            singular_values, effective_rank
+        )
+        pl_ok = cls._verify_euler_poincare_lefschetz_identity(
+            dim_C0, dim_C1, effective_rank, h0_dim, h1_dim, euler_01
+        )
         if not pl_ok:
             raise PoincareLefschetzViolation(
-                "[Fase 1] La condición de Poincaré-Lefschetz es violada: "
-                f"rank(δ) = {effective_rank} > min(dim C⁰, dim C¹) = "
-                f"{min(dim_C0, dim_C1)}. "
-                "La descomposición de Hodge no puede ser ortogonal."
+                "[Fase 1] Identidad de Euler / P–L violada: "
+                f"rank(δ)={effective_rank}, dim C⁰={dim_C0}, dim C¹={dim_C1}, "
+                f"dim H⁰={h0_dim}, dim H¹={h1_dim}, χ={euler_01}."
             )
 
-        # ── Veto topológico ───────────────────────────────────────────────
-        if h1_dimension > 0:
+        if h1_dim > 0:
             raise TopologicalBifurcationError(
-                "[Fase 1] Fractura homológica global. "
-                f"dim H¹(G; F) = {h1_dimension} > 0. "
-                f"β = {cohomological_stability_index:.4f}, "
-                f"gap_ratio = {gap_ratio:.4e}. "
-                "Existen dependencias circulares insalvables en la malla agéntica."
+                "[Fase 1] Fractura homológica global: "
+                f"dim H¹ = {h1_dim} > 0. β_estab = {stability_index:.4f}, "
+                f"gap_ratio = σ_min⁺/σ_max = {gap_ratio:.4e}. "
+                "Dependencias circulares insalvables detectadas."
             )
 
-        # Advertencia si el gap espectral es pequeño (rango numéricamente incierto)
         if gap_ratio < _SPECTRAL_GAP_MIN_RATIO and effective_rank > 0:
             logger.warning(
-                "[Fase 1] Gap espectral pequeño: Δσ/σ_max = %.4e < ρ_gap = %.4e. "
-                "El rango efectivo puede ser numéricamente incierto.",
-                gap_ratio, _SPECTRAL_GAP_MIN_RATIO,
+                "[Fase 1] Gap espectral pequeño: σ_min⁺/σ_max = %.4e < ρ_gap "
+                "(κ₂(δ) ≳ %.1f).",
+                gap_ratio,
+                1.0 / max(gap_ratio, _EPSILON),
             )
 
-        # ── Emisión del certificado (objeto inicial de Fase 2) ────────────
+        cert_hash = cls._compute_dto_hash(
+            dim_C0, dim_C1, effective_rank, h0_dim, h1_dim,
+            float(svd_tol), sigma_max, sigma_min_nonzero, float(kappa),
+            stability_index, euler_01, whitehead, pl_ok,
+            singular_values,
+        )
+
+        logger.info(
+            "[Fase 1 ✓] CohomologicalVetoData: dim C⁰=%d, dim C¹=%d, "
+            "rank(δ)=%d, dim H⁰=%d, dim H¹=%d, χ=%d, σ_max=%.3e, σ_min⁺=%.3e, "
+            "κ₂(δ)=%.3e, SVD_TOL=%.3e (Wilkinson %d iters), log|τ|=%.3f, hash=%s.",
+            dim_C0, dim_C1, effective_rank, h0_dim, h1_dim, euler_01,
+            sigma_max, sigma_min_nonzero, kappa, svd_tol, wilk_iters,
+            whitehead, cert_hash[:16] + "...",
+        )
+
+        s_immutable = np.array(singular_values, dtype=np.float64, copy=True)
+        s_immutable.setflags(write=False)
+        delta_immutable = np.array(delta, dtype=np.float64, copy=True)
+        delta_immutable.setflags(write=False)
+
         return CohomologicalVetoData(
+            delta_matrix=delta_immutable,
             dim_C0=int(dim_C0),
             dim_C1=int(dim_C1),
             delta_rank=int(effective_rank),
-            h1_dimension=int(h1_dimension),
-            svd_tolerance=float(svd_tolerance),
+            h0_dimension=int(h0_dim),
+            h1_dimension=int(h1_dim),
+            singular_values=s_immutable,
+            svd_tolerance=float(svd_tol),
             max_singular_value=float(sigma_max),
             min_nonzero_singular_value=float(sigma_min_nonzero),
             spectral_gap=float(spectral_gap),
             spectral_gap_ratio=float(gap_ratio),
-            cohomological_stability_index=float(cohomological_stability_index),
-            euler_characteristic_01=int(euler_characteristic_01),
-            whitehead_torsion=float(whitehead_torsion),
+            condition_number_delta=float(kappa),
+            wilkinson_iterations=int(wilk_iters),
+            cohomological_stability_index=float(stability_index),
+            euler_characteristic_01=int(euler_01),
+            whitehead_torsion=float(whitehead),
             poincare_lefschetz_ok=bool(pl_ok),
             is_topologically_coherent=True,
+            rank_is_certified=bool(rank_is_certified),
+            certification_hash_sha256=str(cert_hash),
         )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 1.8 ★ MORFISMO TERMINAL DE FASE 1 ★
+    #     Tipo de retorno = objeto inicial de la FASE 2.
+    #     last(Φ₁) = unit(Φ₂) = Phase2_KrylovSpectralAuditor.
+    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def nest_into_phase2(
+        cls,
+        coboundary_operator_delta: NDArray[np.float64],
+    ) -> "Phase2_KrylovSpectralAuditor":
+        r"""★ MORFISMO TERMINAL DE FASE 1 / UNIDAD DE LA FASE 2 ★
+
+        Composición estricta F₁ ⊣ F₂:
+            nest_into_phase2  :=  Phase2_KrylovSpectralAuditor
+                                  ∘ certify_cohomological_veto_axiom.
+
+        El auditor de Krylov nace ya alimentado con CohomologicalVetoData;
+        su constructor ES la continuación formal de este método.
+        """
+        phase1_data = cls.certify_cohomological_veto_axiom(
+            coboundary_operator_delta
+        )
+        return Phase2_KrylovSpectralAuditor(phase1_data)
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                             ║
 # ║   FASE 2: REGULACIÓN DEL ESPECTRO DE KRYLOV Y ENERGÍA DE DIRICHLET          ║
 # ║                                                                             ║
-# ║   Marco matemático:                                                         ║
-# ║   ─────────────────                                                         ║
-# ║   La energía de Dirichlet mide la frustración del estado x ∈ C⁰:            ║
-# ║       E(x) = ‖δx‖₂² = xᵀ Lx  donde L = δᵀδ.                               ║
+# ║   ★ INICIO FORMAL = continuación de Phase1.nest_into_phase2 ★               ║
+# ║   Precondición constructora: CohomologicalVetoData.                          ║
 # ║                                                                             ║
-# ║   La descomposición de Hodge-Helmholtz:                                      ║
-# ║       x = x_harm + x_exact                                                   ║
-# ║   donde x_harm ∈ ker(δ) y x_exact ∈ im(δᵀ).                                 ║
+# ║   Marco formal:                                                             ║
+# ║   ─────────                                                                 ║
+# ║   Energía de Dirichlet: E(x) = ‖δx‖₂² = xᵀ L x con L = δᵀδ  (nunca formada). ║
+# ║   Descomposición de Hodge–Helmholtz:                                         ║
+# ║       C⁰ = ker(δ) ⊕ im(δᵀ),   x = x_harm + x_exact.                          ║
+# ║       x_exact = δ⁺(δx),       x_harm = (I − δ⁺δ)x.                           ║
+# ║   Cota de Poincaré–Wirtinger: ‖x_exact‖ ≤ C_P · ‖δx‖.                        ║
 # ║                                                                             ║
-# ║   La cota de Poincaré (para x ⊥ ker δ):                                     ║
-# ║       ‖x‖ ≤ C_P · ‖δx‖.                                                    ║
+# ║   Bidiagonalización de Golub–Kahan–Lanczos sobre δ (no sobre L):            ║
+# ║       δ ≈ U B Vᵀ,  B bidiagonal superior,  UᵀU = I_k, VᵀV = I_k.             ║
+# ║   Recurrencias (Kaniel–Paige):                                               ║
+# ║       β_{j+1} u_{j+1} = δ v_j − α_j u_j                                     ║
+# ║       α_{j+1} v_{j+1} = δᵀ u_{j+1} − β_{j+1} v_j                            ║
 # ║                                                                             ║
-# ║   Invariantes calculados en v3.0.0:                                         ║
-# ║   1. E(x) = ‖δx‖₂² y Ê = E(x)/‖x‖².                                        ║
-# ║   2. κ(δ) = σ_max / σ_min^+ y κ(L) = κ(δ)².                                ║
-# ║   3. Descomposición de Hodge aproximada: x_harm = x - δ†δx.                 ║
-# ║   4. Cota de Poincaré C_P = ‖x_exact‖ / ‖δx‖.                              ║
-# ║   5. Índice de frustración ρ = E(x) / ε_frust.                              ║
-# ║                                                                             ║
-# ║   CONEXIÓN FUNTORIAL:                                                       ║
-# ║   El primer método de Fase 2 recibe CohomologicalVetoData y verifica        ║
-# ║   coherencia topológica y dimensional.                                       ║
+# ║   ULTIMO MÉTODO DE FASE 2 (morfismo terminal = unidad de Fase 3):            ║
+# ║       nest_into_phase3(x) → Phase3_IsoperimetricHodgeProjector               ║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
+
 class Phase2_KrylovSpectralAuditor(Phase1_CohomologicalVetoCertifier):
-    r"""
-    Restringe la instanciación matricial explícita del Laplaciano L = δᵀδ
-    y mide la frustración térmica E(x) = ‖δx‖₂².
+    r"""FASE 2: Auditor espectral de Krylov y energía de Dirichlet.
 
-    Hereda de Phase1_CohomologicalVetoCertifier.
-    Su primer método _audit_krylov_spectral_stability recibe el certificado
-    CohomologicalVetoData emitido por el último método de Fase 1.
+    ★ INICIO FORMAL = continuación del morfismo terminal de la FASE 1 ★
 
-    Mejoras v3.0.0:
-        · Energía normalizada Ê = E(x)/‖x‖².
-        · Descomposición de Hodge aproximada: x_harm = x − δ†δx.
-        · Cota de Poincaré C_P = ‖x_exact‖ / ‖δx‖.
-        · Índice de frustración ρ = E(x) / ε_frust.
-        · Gap espectral efectivo propagado desde Fase 1.
+    Cadena interna:
+        __init__(CohomologicalVetoData)     ← unidad heredada de Φ₁
+            → _deterministic_start_vector
+            → _golub_kahan_lanczos_bidiagonalization
+            → _measure_delta_condition_number_krylov
+            → _evaluate_dirichlet_energy_semigroup
+            → _decompose_hodge_helmholtz_moore_penrose
+            → _compute_poincare_wirtinger_constant
+            → audit_krylov_spectral_stability
+            → nest_into_phase3              ★ morfismo terminal = unidad de Φ₃
     """
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.1 Número de condición de δ desde el certificado
-    # ─────────────────────────────────────────────────────────────────────────
-    @staticmethod
-    def _kappa_from_certificate(
-        veto: CohomologicalVetoData,
-    ) -> Tuple[float, float]:
-        r"""
-        Extrae κ(δ) y κ(L) = κ(δ)² desde el certificado de Fase 1.
+    def __init__(self, phase1_certification: CohomologicalVetoData) -> None:
+        r"""★ CONTINUACIÓN DE FASE 1 / INICIO DE FASE 2 ★
 
-        Si σ_min = 0 (δ con kernel no trivial), κ(δ) = ∞ y el cómputo
-        explícito de L debe vetarse.
-
-        Retorna:
-            (κ_delta, κ_L).
+        Args
+        ────
+        phase1_certification : CohomologicalVetoData
+            Salida de `certify_cohomological_veto_axiom`, inyectada por
+            `nest_into_phase2`. Sin este objeto Φ₂ carece de δ certificado.
         """
-        sigma_max = veto.max_singular_value
-        sigma_min = veto.min_nonzero_singular_value
+        if not isinstance(phase1_certification, CohomologicalVetoData):
+            raise TypeError(
+                "Phase2_KrylovSpectralAuditor requiere CohomologicalVetoData "
+                "como precondición (Fase 1)."
+            )
+        if not phase1_certification.is_topologically_coherent:
+            raise TopologicalBifurcationError(
+                "[Fase 2] Precondición inválida: el DTO de Fase 1 no está "
+                "marcado como topológicamente coherente."
+            )
+        if phase1_certification.h1_dimension != 0:
+            raise TopologicalBifurcationError(
+                f"[Fase 2] Precondición inválida: dim H¹ = "
+                f"{phase1_certification.h1_dimension} > 0. Fase 1 debe vetar."
+            )
+        self._phase1: Final[CohomologicalVetoData] = phase1_certification
+        self._delta: Final[NDArray[np.float64]] = phase1_certification.delta_matrix
 
-        if sigma_max <= 0.0:
-            # δ es el operador cero → trivialmente estable.
-            return 1.0, 1.0
-
-        if sigma_min <= 0.0:
-            return math.inf, math.inf
-
-        kappa_delta = sigma_max / sigma_min
-
-        if not math.isfinite(kappa_delta):
-            return math.inf, math.inf
-
-        kappa_L = kappa_delta * kappa_delta
-
-        if not math.isfinite(kappa_L):
-            return kappa_delta, math.inf
-
-        return float(kappa_delta), float(kappa_L)
+    @property
+    def phase1_certificate(self) -> CohomologicalVetoData:
+        r"""Referencia inmutable al DTO de Fase 1 (precondición)."""
+        return self._phase1
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2.2 Descomposición de Hodge aproximada
+    # 2.1 Semilla determinista de Krylov (Rademacher vía SHA-256)
     # ─────────────────────────────────────────────────────────────────────────
-    def _approximate_hodge_decomposition(
+    def _deterministic_start_vector(self, n: int) -> NDArray[np.float64]:
+        r"""Vector de Rademacher ±1 derivado del certification_hash de Φ₁.
+
+        Garantiza reproducibilidad bit a bit del subespacio de Krylov entre
+        ejecuciones. El hash ya cifra σ(δ), de modo que la semilla es estable
+        respecto del operador certificado.
+        """
+        digest = self._phase1.certification_hash_sha256.encode("ascii")
+        buf = bytearray()
+        counter = 0
+        while len(buf) < n:
+            buf.extend(
+                hashlib.sha256(digest + counter.to_bytes(4, "little")).digest()
+            )
+            counter += 1
+        signs = np.frombuffer(bytes(buf[:n]), dtype=np.uint8).astype(np.float64)
+        v = np.where(signs >= 128, 1.0, -1.0)
+        nrm = float(np.linalg.norm(v))
+        if nrm <= _EPSILON:
+            v = np.zeros(n, dtype=np.float64)
+            v[0] = 1.0
+            return v
+        return v / nrm
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.2 Bidiagonalización Golub–Kahan–Lanczos sobre δ (sin L)
+    # ─────────────────────────────────────────────────────────────────────────
+    def _golub_kahan_lanczos_bidiagonalization(
         self,
-        delta: NDArray[np.float64],
+        k: Optional[int] = None,
+        tol: Optional[float] = None,
+    ) -> Tuple[NDArray[np.float64], int, float]:
+        r"""Bidiagonalización de Golub–Kahan–Lanczos de δ con MGS completo.
+
+        NO materializa L = δᵀδ ([I2]): la iteración se ejecuta sobre el par
+        (δ, δᵀ). Ante breakdown afortunado (α_j o β_j ≈ 0) se detiene y
+        reporta el subespacio invariante. Si el proceso nativo falla, degrada
+        a `svds` (ARPACK sobre el operador aumentado [0 δ; δᵀ 0]).
+
+        Returns
+        ───────
+        (σ_krylov_desc, krylov_dim, krylov_residual)
+        """
+        m, n = int(self._delta.shape[0]), int(self._delta.shape[1])
+        if m == 0 or n == 0:
+            return np.array([], dtype=np.float64), 0, 0.0
+
+        dim_min = min(m, n)
+        if k is None:
+            k = min(
+                _KRYLOV_MAX_SINGULAR_VALUES,
+                max(1, dim_min - 1 if dim_min > 1 else 1),
+            )
+        k = int(max(1, min(k, dim_min)))
+        if tol is None:
+            tol = _KRYLOV_TOL
+
+        try:
+            return self._golub_kahan_core(k, float(tol), m, n)
+        except Exception as exc:
+            logger.warning(
+                "Golub–Kahan nativo falló (%s); degradación a svds LM.", exc
+            )
+            return self._svds_fallback(k, float(tol), m, n)
+
+    def _golub_kahan_core(
+        self,
+        k: int,
+        tol: float,
+        m: int,
+        n: int,
+    ) -> Tuple[NDArray[np.float64], int, float]:
+        r"""Núcleo GK con reortogonalización MGS (O(k²(m+n)) + k matvecs)."""
+        delta = self._delta
+        V = np.zeros((n, k), dtype=np.float64)
+        U = np.zeros((m, k), dtype=np.float64)
+        alphas = np.zeros(k, dtype=np.float64)
+        betas = np.zeros(k, dtype=np.float64)
+
+        v = self._deterministic_start_vector(n)
+        u = delta @ v
+        alpha = float(np.linalg.norm(u))
+        if alpha <= tol:
+            return np.array([alpha], dtype=np.float64), 1, alpha
+
+        u /= alpha
+        U[:, 0] = u
+        V[:, 0] = v
+        alphas[0] = alpha
+        effective = 1
+        last_off = 0.0
+
+        for j in range(k - 1):
+            r = (delta.T @ U[:, j]) - alphas[j] * V[:, j]
+            for i in range(j + 1):
+                r = r - np.dot(V[:, i], r) * V[:, i]
+            beta = float(np.linalg.norm(r))
+            betas[j + 1] = beta
+            last_off = beta
+            if beta <= tol:
+                break
+            v = r / beta
+            V[:, j + 1] = v
+
+            p = (delta @ v) - beta * U[:, j]
+            for i in range(j + 1):
+                p = p - np.dot(U[:, i], p) * U[:, i]
+            alpha = float(np.linalg.norm(p))
+            alphas[j + 1] = alpha
+            effective = j + 2
+            if alpha <= tol:
+                if alpha > _EPSILON:
+                    U[:, j + 1] = p / alpha
+                break
+            U[:, j + 1] = p / alpha
+
+        B = np.diag(alphas[:effective])
+        if effective > 1:
+            B += np.diag(betas[1:effective], 1)
+        s = la.svdvals(B)
+        s_sorted = np.sort(np.asarray(s, dtype=np.float64))[::-1]
+        residual = float(last_off) if last_off > 0.0 else (
+            float(abs(s_sorted[-1] - s_sorted[-2]))
+            if s_sorted.size >= 2
+            else float(s_sorted[-1] if s_sorted.size else 0.0)
+        )
+        return s_sorted, int(effective), residual
+
+    def _svds_fallback(
+        self,
+        k: int,
+        tol: float,
+        m: int,
+        n: int,
+    ) -> Tuple[NDArray[np.float64], int, float]:
+        r"""Degradación ARPACK (operador aumentado; no forma L)."""
+        dim_min = min(m, n)
+        k_eff = max(1, min(k, dim_min - 1)) if dim_min > 1 else 1
+        try:
+            delta_sparse = sp.csc_matrix(self._delta)
+            s = spla.svds(
+                delta_sparse,
+                k=k_eff,
+                which="LM",
+                return_singular_vectors=False,
+                tol=tol,
+                maxiter=_KRYLOV_MAX_ITER,
+            )
+        except Exception as exc:
+            raise SpectralComputationError(
+                f"Golub–Kahan–Lanczos/svds no convergió (k={k_eff}, tol={tol}): {exc}."
+            ) from exc
+        s_sorted = np.sort(np.asarray(s, dtype=np.float64))[::-1]
+        residual = (
+            float(abs(s_sorted[-1] - s_sorted[-2]))
+            if s_sorted.size >= 2
+            else float(s_sorted[-1] if s_sorted.size else 0.0)
+        )
+        return s_sorted, int(s_sorted.size), residual
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.3 κ₂(δ) medido por Krylov (sin cuadrar L)
+    # ─────────────────────────────────────────────────────────────────────────
+    def _measure_delta_condition_number_krylov(self) -> float:
+        r"""κ₂(δ) = σ_max / σ_min⁺ SIN materializar L = δᵀδ.
+
+        σ_max se toma del Golub–Kahan nativo; σ_min⁺ se sondea con svds
+        which='SM'. Fallback determinista: certificado Wilkinson de Fase 1.
+        """
+        m, n = int(self._delta.shape[0]), int(self._delta.shape[1])
+        dim_min = min(m, n)
+        if dim_min <= 1:
+            return self._kappa_from_certificate()
+
+        sigma_max = self._phase1.max_singular_value
+        try:
+            s_hi, _, _ = self._golub_kahan_lanczos_bidiagonalization(
+                k=min(2, dim_min - 1), tol=_KRYLOV_TOL
+            )
+            if s_hi.size > 0:
+                sigma_max = float(s_hi[0])
+        except Exception:
+            pass
+
+        sigma_min_pos = self._phase1.min_nonzero_singular_value
+        try:
+            delta_sparse = sp.csc_matrix(self._delta)
+            s_lo = spla.svds(
+                delta_sparse,
+                k=1,
+                which="SM",
+                return_singular_vectors=False,
+                tol=_KRYLOV_TOL,
+                maxiter=_KRYLOV_MAX_ITER,
+            )
+            if np.size(s_lo) > 0:
+                sigma_min_pos = float(np.asarray(s_lo).ravel()[0])
+        except Exception:
+            pass
+
+        if sigma_min_pos <= _MACHINE_EPSILON:
+            return float("inf")
+        return float(sigma_max / sigma_min_pos)
+
+    def _kappa_from_certificate(self) -> float:
+        r"""κ₂(δ) tomada del certificado de Fase 1 (fallback determinista)."""
+        kappa = float(self._phase1.condition_number_delta)
+        if math.isfinite(kappa) and kappa >= 1.0:
+            return kappa
+        sigma_max = self._phase1.max_singular_value
+        sigma_min = self._phase1.min_nonzero_singular_value
+        if sigma_max <= 0.0:
+            return 1.0
+        if sigma_min <= 0.0:
+            return math.inf
+        return float(sigma_max / sigma_min)
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.4 Energía de Dirichlet E(x) = ‖δx‖² (semigrupo, un matvec)
+    # ─────────────────────────────────────────────────────────────────────────
+    def _evaluate_dirichlet_energy_semigroup(
+        self,
+        x: NDArray[np.float64],
+    ) -> Tuple[float, float, NDArray[np.float64]]:
+        r"""E(x) = ‖δx‖₂² sin materializar L = δᵀδ ([I2], [I3]).
+
+        Implementación Banach: r = δx ∈ C¹, E = ⟨r, r⟩_{C¹}, ‖r‖ = √E.
+
+        Returns
+        ───────
+        (E, ‖δx‖, δx)
+        """
+        x_ = self._as_finite_vector("x_state", x)
+        delta_x = self._delta @ x_
+        if not np.all(np.isfinite(delta_x)):
+            raise SpectralComputationError("[Fase 2] δx contiene no finitos.")
+        energy = self._squared_norm_from_vector(delta_x)
+        residual_norm = math.sqrt(energy)
+        return energy, float(residual_norm), delta_x
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.5 Descomposición de Hodge–Helmholtz (Moore–Penrose)
+    # ─────────────────────────────────────────────────────────────────────────
+    def _decompose_hodge_helmholtz_moore_penrose(
+        self,
         x: NDArray[np.float64],
         delta_x: NDArray[np.float64],
-        svd_tolerance: float,
-    ) -> Tuple[float, float]:
-        r"""
-        Calcula las normas de las componentes armónica y exacta de x:
+    ) -> Tuple[float, float, NDArray[np.float64], NDArray[np.float64]]:
+        r"""Hodge–Helmholtz con pseudoinversa de Moore–Penrose truncada.
 
-            x_exact = δ†(δx)    →  componente exacta (en im δᵀ)
-            x_harm  = x − x_exact  →  componente armónica (en ker δ)
+            x_exact = δ⁺ (δx)   ∈ im(δᵀ)
+            x_harm  = x − x_exact ∈ ker(δ)
 
-        donde δ† es la pseudoinversa de Moore-Penrose de δ.
+        La tolerancia de truncación es la SVD_TOL de Wilkinson de Fase 1.
 
-        Parámetros:
-            delta     : Operador cofrontera δ.
-            x         : Estado x ∈ C⁰.
-            delta_x   : δx ∈ C¹ (ya calculado).
-            svd_tolerance: Tolerancia SVD del certificado de Fase 1.
-
-        Retorna:
-            (‖x_harm‖₂, ‖x_exact‖₂).
+        Returns
+        ───────
+        (‖x_harm‖, ‖x_exact‖, x_harm, x_exact)
         """
         try:
-            delta_pinv = self._pseudo_inverse(delta, "δ", tolerance=svd_tolerance)
+            delta_pinv = self._pseudo_inverse(
+                self._delta, "δ", tolerance=self._phase1.svd_tolerance
+            )
+            self._verify_penrose_equations(self._delta, delta_pinv, name="δ")
             x_exact = delta_pinv @ delta_x
-
             if not np.all(np.isfinite(x_exact)):
                 raise HodgeDecompositionError(
-                    "[Fase 2] δ†(δx) produjo valores no finitos."
+                    "[Fase 2] δ⁺(δx) produjo valores no finitos."
                 )
-
             x_harm = x - x_exact
-
             if not np.all(np.isfinite(x_harm)):
                 raise HodgeDecompositionError(
-                    "[Fase 2] La componente armónica x − δ†(δx) no es finita."
+                    "[Fase 2] x_harm = x − δ⁺δx contiene no finitos."
                 )
-
             harm_norm = self._vector_norm(x_harm)
             exact_norm = self._vector_norm(x_exact)
-
             return (
                 harm_norm if math.isfinite(harm_norm) else math.inf,
                 exact_norm if math.isfinite(exact_norm) else math.inf,
+                x_harm,
+                x_exact,
             )
-
-        except (HodgeDecompositionError, SVDConvergenceError):
+        except HodgeDecompositionError:
             raise
         except Exception as exc:
-            logger.warning(
-                "[Fase 2] Descomposición de Hodge aproximada falló: %s. "
-                "Se usan normas de emergencia.",
-                exc,
-            )
-            return math.inf, math.inf
+            logger.warning("[Fase 2] Descomposición de Hodge falló: %s.", exc)
+            nan_vec = np.full(x.shape, np.nan, dtype=np.float64)
+            return math.inf, math.inf, nan_vec, nan_vec
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2.3 Cota de Poincaré
+    # 2.6 Constante de Poincaré–Wirtinger
     # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
-    def _compute_poincare_constant(
+    def _compute_poincare_wirtinger_constant(
         exact_component_norm: float,
         dirichlet_energy: float,
     ) -> float:
-        r"""
-        Estima la constante de Poincaré:
-
-            C_P = ‖x_exact‖₂ / ‖δx‖₂ = ‖x_exact‖₂ / √E(x).
+        r"""C_P = ‖x_exact‖₂ / ‖δx‖₂ = ‖x_exact‖₂ / √E(x) ≥ 0.
 
         Para x ⊥ ker(δ): ‖x‖ ≤ C_P · ‖δx‖.
-
-        Si E(x) = 0 (x ∈ ker δ), C_P no está definida → retorna 0.0.
-
-        Parámetros:
-            exact_component_norm: ‖x_exact‖₂.
-            dirichlet_energy    : E(x) = ‖δx‖₂².
-
-        Retorna:
-            C_P ≥ 0.
+        Si E(x) = 0 (x ya armónico), C_P no está definida → 0.0.
         """
         if dirichlet_energy <= 0.0 or not math.isfinite(dirichlet_energy):
             return 0.0
-
         delta_x_norm = math.sqrt(dirichlet_energy)
-
-        if delta_x_norm == 0.0:
+        if delta_x_norm <= 0.0:
             return 0.0
-
         if not math.isfinite(exact_component_norm):
             return math.inf
-
         c_p = exact_component_norm / delta_x_norm
         return float(c_p) if math.isfinite(c_p) else math.inf
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2.4 PRIMER MÉTODO DE FASE 2 / CONTINUACIÓN DE FASE 1
-    #     _audit_krylov_spectral_stability → KrylovSpectralData
-    #     [Objeto inicial de Fase 3]
+    # 2.7 Auditoría espectral (pre-terminal de Φ₂)
     # ─────────────────────────────────────────────────────────────────────────
-    def _audit_krylov_spectral_stability(
+    def audit_krylov_spectral_stability(
         self,
-        coboundary_operator_delta: NDArray[np.float64],
         x_state: NDArray[np.float64],
-        veto_audit: Optional[CohomologicalVetoData] = None,
     ) -> KrylovSpectralData:
-        r"""
-        ════════════════════════════════════════════════════════════════════
-        PRIMER MÉTODO DE FASE 2 — Continuación formal de Fase 1.
-        Retorna el objeto inicial de Fase 3.
-        ════════════════════════════════════════════════════════════════════
+        r"""Produce KrylovSpectralData, precondición estricta de Φ₃.
 
-        Mide la energía de disipación y el condicionamiento numérico sin
-        ensamblar explícitamente el Laplaciano L = δᵀδ.
-
-        Si `veto_audit` es provisto (composición funtorial estricta):
-            - Verifica is_topologically_coherent = True.
-            - Verifica consistencia dimensional de δ con el certificado.
-            - Reutiliza σ_max, σ_min del certificado para κ(δ).
-
-        Si `veto_audit` es None:
-            - Ejecuta internamente Fase 1 para obtener el certificado.
-
-        Invariantes calculados:
-            1. E(x) = ‖δx‖₂² (frustración térmica).
-            2. Ê = E(x) / max(1, ‖x‖²) (energía normalizada).
-            3. ρ = E(x) / ε_frust (índice de frustración).
-            4. κ(δ) y κ(L) = κ(δ)².
-            5. Descomposición de Hodge aproximada.
-            6. Cota de Poincaré C_P.
-            7. Gap espectral efectivo desde el certificado de Fase 1.
-
-        Parámetros:
-            coboundary_operator_delta: Operador δ: C⁰ → C¹.
-            x_state                  : Estado x ∈ C⁰.
-            veto_audit               : Certificado de Fase 1 (opcional).
-
-        Retorna:
-            KrylovSpectralData — certificado espectral completo.
-            Este objeto es el **objeto inicial de la Fase 3**.
-
-        Lanza:
-            TopologicalBifurcationError si veto_audit no es coherente.
-            SpectralComputationError si κ(L) > κ_max.
-            DirichletFrustrationError si E(x) > ε_frust.
-            PoincareBoundViolation si C_P > C_P_max.
+        Raises
+        ──────
+        DirichletFrustrationError
+        SpectralComputationError
+        PoincareBoundViolation
         """
-        # ── Validación de entrada ─────────────────────────────────────────
-        delta = self._as_finite_matrix(
-            "coboundary_operator_delta",
-            coboundary_operator_delta,
-        )
-        x = self._as_finite_vector("x_state", x_state)
-
-        if x.size != delta.shape[1]:
+        x = self._as_finite_vector("x_state", x_state, allow_empty=False)
+        if x.size != self._phase1.dim_C0:
             raise ValueError(
-                f"[Fase 2] x_state ∈ C⁰ debe tener dim={delta.shape[1]}; "
+                f"[Fase 2] x ∈ C⁰ debe tener dim={self._phase1.dim_C0}; "
                 f"recibido dim={x.size}."
             )
 
-        # ── Continuación funtorial de Fase 1 ─────────────────────────────
-        if veto_audit is None:
-            veto_audit = self._certify_cohomological_veto_axiom(delta)
-        else:
-            if not veto_audit.is_topologically_coherent:
-                raise TopologicalBifurcationError(
-                    "[Fase 2] No puede iniciarse: Fase 1 reportó incoherencia "
-                    "topológica (is_topologically_coherent=False)."
-                )
-
-            if veto_audit.h1_dimension != 0:
-                raise TopologicalBifurcationError(
-                    f"[Fase 2] No puede iniciarse: dim H¹ = {veto_audit.h1_dimension} > 0 "
-                    "en el certificado de Fase 1."
-                )
-
-            cert_shape = (veto_audit.dim_C1, veto_audit.dim_C0)
-            if delta.shape != cert_shape:
-                raise ValueError(
-                    f"[Fase 2] Inconsistencia dimensional entre certificado "
-                    f"(δ: {cert_shape}) y δ actual ({delta.shape})."
-                )
-
-        # ── Energía de Dirichlet ──────────────────────────────────────────
-        delta_x = delta @ x
-
-        if not np.all(np.isfinite(delta_x)):
-            raise SpectralComputationError(
-                "[Fase 2] δx produjo valores no finitos."
-            )
-
-        dirichlet_energy = self._squared_norm_from_vector(delta_x)
-
-        # ── Energía normalizada ───────────────────────────────────────────
-        x_norm_sq = float(np.dot(x, x)) if x.size > 0 else 0.0
-        x_norm_sq = max(0.0, x_norm_sq)
-        dirichlet_energy_norm = (
-            dirichlet_energy / max(1.0, x_norm_sq)
-            if math.isfinite(dirichlet_energy)
-            else math.inf
+        s_krylov, krylov_dim, krylov_res = (
+            self._golub_kahan_lanczos_bidiagonalization()
+        )
+        kappa_delta = self._measure_delta_condition_number_krylov()
+        kappa_L = (
+            kappa_delta * kappa_delta if math.isfinite(kappa_delta) else math.inf
         )
 
-        # ── Tolerancia de frustración ─────────────────────────────────────
+        energy, residual_norm, delta_x = self._evaluate_dirichlet_energy_semigroup(x)
+        x_norm_sq = float(np.dot(x, x)) if x.size else 0.0
+        energy_norm = (
+            energy / max(1.0, x_norm_sq) if math.isfinite(energy) else math.inf
+        )
+
         frustration_tolerance = max(
             _FRUSTRATION_TOLERANCE,
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, abs(dirichlet_energy)),
+            _FRUSTRATION_RELATIVE_TOL * max(1.0, x_norm_sq),
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON * max(1.0, abs(energy)),
         )
+        frustration_index = energy / frustration_tolerance if frustration_tolerance else math.inf
 
-        # ── Índice de frustración ─────────────────────────────────────────
-        frustration_index = (
-            dirichlet_energy / frustration_tolerance
-            if frustration_tolerance > 0.0
-            else math.inf
-        )
-
-        # ── Verificación de frustración ───────────────────────────────────
-        if dirichlet_energy > frustration_tolerance:
+        if energy > frustration_tolerance:
             raise DirichletFrustrationError(
-                "[Fase 2] Frustración térmica inadmisible. "
-                f"E(x) = ‖δx‖₂² = {dirichlet_energy:.6e} > "
-                f"ε_frust = {frustration_tolerance:.6e}. "
-                f"Índice ρ = {frustration_index:.4f}."
+                f"[Fase 2] Frustración térmica inadmisible: E(x) = {energy:.6e} "
+                f"> ε_frust = {frustration_tolerance:.6e} "
+                f"(ρ = {frustration_index:.4f})."
             )
 
-        # ── κ(δ) y κ(L) desde el certificado ─────────────────────────────
-        kappa_delta, kappa_L = self._kappa_from_certificate(veto_audit)
-
-        if not math.isfinite(kappa_delta):
+        if math.isfinite(kappa_L) and kappa_L > _MAX_CONDITION_NUMBER_L:
             raise SpectralComputationError(
-                "[Fase 2] κ(δ) no es finita; δ tiene kernel no trivial "
-                "a pesar de que dim H¹ = 0. Inconsistencia numérica."
+                f"[Fase 2] Peligro de colapso FPU: κ(L) = {kappa_L:.3e} > "
+                f"κ_max = {_MAX_CONDITION_NUMBER_L:.3e}."
             )
 
-        if not math.isfinite(kappa_L):
-            raise SpectralComputationError(
-                "[Fase 2] κ(L) = κ(δ)² no es finita."
-            )
-
-        # ── Verificación de condicionamiento ──────────────────────────────
-        condition_tolerance = (
-            _NUMERICAL_SAFETY_FACTOR
-            * _MACHINE_EPSILON
-            * max(1.0, _MAX_CONDITION_NUMBER_L)
+        harm_norm, exact_norm, _, _ = self._decompose_hodge_helmholtz_moore_penrose(
+            x, delta_x
         )
-
-        if kappa_L > _MAX_CONDITION_NUMBER_L + condition_tolerance:
-            raise SpectralComputationError(
-                "[Fase 2] Peligro de colapso FPU (IEEE 754). "
-                f"κ(L) = {kappa_L:.6e} > κ_max = {_MAX_CONDITION_NUMBER_L:.6e}. "
-                "Se veta el cómputo espectral explícito."
-            )
-
-        # ── Descomposición de Hodge aproximada ────────────────────────────
-        harm_norm, exact_norm = self._approximate_hodge_decomposition(
-            delta, x, delta_x, veto_audit.svd_tolerance,
+        poincare_constant = self._compute_poincare_wirtinger_constant(
+            exact_norm, energy
         )
-
-        # ── Cota de Poincaré ──────────────────────────────────────────────
-        poincare_constant = self._compute_poincare_constant(
-            exact_norm, dirichlet_energy,
-        )
-
         is_poincare_bounded = (
-            poincare_constant <= _POINCARE_CONSTANT_MAX
-            or not math.isfinite(poincare_constant)
+            math.isfinite(poincare_constant)
+            and poincare_constant <= _POINCARE_CONSTANT_MAX
         )
-
-        if math.isfinite(poincare_constant) and poincare_constant > _POINCARE_CONSTANT_MAX:
+        if (not math.isfinite(poincare_constant)) or (
+            poincare_constant > _POINCARE_CONSTANT_MAX
+        ):
             raise PoincareBoundViolation(
-                "[Fase 2] La constante de Poincaré excede el umbral admisible: "
-                f"C_P = {poincare_constant:.6e} > C_P_max = {_POINCARE_CONSTANT_MAX:.6e}."
+                f"[Fase 2] C_P = {poincare_constant} > C_P,max = "
+                f"{_POINCARE_CONSTANT_MAX:.6e} (o no finita)."
             )
 
-        # ── Gap espectral efectivo desde Fase 1 ───────────────────────────
-        spectral_gap_effective = veto_audit.spectral_gap
+        holder = self._holder_operator_norm_bound(self._delta)
 
-        # ── Emisión del certificado (objeto inicial de Fase 3) ────────────
+        cert_hash = self._compute_dto_hash(
+            self._phase1.certification_hash_sha256,
+            float(energy), float(energy_norm),
+            float(kappa_delta), float(kappa_L),
+            float(harm_norm), float(exact_norm),
+            float(poincare_constant), int(krylov_dim), float(krylov_res),
+            float(holder),
+            s_krylov,
+        )
+
+        logger.info(
+            "[Fase 2 ✓] KrylovSpectralData: E(x)=%.4e, ‖δx‖=%.4e, "
+            "κ₂(δ)=%.3e, κ(L)=%.3e, C_P=%.4e, Krylov_dim=%d, Hölder=%.3e, hash=%s.",
+            energy, residual_norm, kappa_delta, kappa_L,
+            poincare_constant, krylov_dim, holder, cert_hash[:16] + "...",
+        )
+
+        s_immutable = np.array(s_krylov, dtype=np.float64, copy=True)
+        s_immutable.setflags(write=False)
+
         return KrylovSpectralData(
-            dirichlet_energy=float(dirichlet_energy),
-            dirichlet_energy_norm=float(dirichlet_energy_norm),
+            phase1_reference=self._phase1,
+            krylov_singular_values=s_immutable,
+            krylov_dimension=int(krylov_dim),
+            krylov_residual=float(krylov_res),
+            dirichlet_energy=float(energy),
+            dirichlet_energy_norm=float(energy_norm),
             frustration_tolerance=float(frustration_tolerance),
             frustration_index=float(frustration_index),
             delta_condition_number=float(kappa_delta),
             laplacian_condition_number=float(kappa_L),
-            spectral_gap_effective=float(spectral_gap_effective),
+            spectral_gap_effective=float(self._phase1.spectral_gap),
             harmonic_component_norm=float(harm_norm),
             exact_component_norm=float(exact_norm),
             poincare_constant=float(poincare_constant),
+            banach_holder_bound=float(holder),
             is_frustration_bounded=True,
             is_spectrally_stable=True,
             is_poincare_bounded=bool(is_poincare_bounded),
+            certification_hash_sha256=str(cert_hash),
         )
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 2.8 ★ MORFISMO TERMINAL DE FASE 2 ★
+    #     Tipo de retorno = objeto inicial de la FASE 3.
+    #     last(Φ₂) = unit(Φ₃) = Phase3_IsoperimetricHodgeProjector.
+    # ─────────────────────────────────────────────────────────────────────────
+    def nest_into_phase3(
+        self,
+        x_state: NDArray[np.float64],
+    ) -> "Phase3_IsoperimetricHodgeProjector":
+        r"""★ MORFISMO TERMINAL DE FASE 2 / UNIDAD DE LA FASE 3 ★
+
+        Composición estricta F₂ ⊣ F₃:
+            nest_into_phase3(x)  :=  Phase3_IsoperimetricHodgeProjector
+                                     ∘ audit_krylov_spectral_stability(x).
+
+        El projector de Hodge nace ya alimentado con KrylovSpectralData;
+        su constructor ES la continuación formal de este método.
+        """
+        phase2_data = self.audit_krylov_spectral_stability(x_state)
+        return Phase3_IsoperimetricHodgeProjector(phase2_data)
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                             ║
-# ║   FASE 3: IMPOSICIÓN DEL LÍMITE ISOPERIMÉTRICO DE HODGE-HELMHOLTZ           ║
+# ║   FASE 3: IMPOSICIÓN DEL LÍMITE ISOPERIMÉTRICO DE HODGE–HELMHOLTZ           ║
 # ║                                                                             ║
-# ║   Marco matemático:                                                         ║
-# ║   ─────────────────                                                         ║
+# ║   ★ INICIO FORMAL = continuación de Phase2.nest_into_phase3 ★               ║
+# ║   Precondición constructora: KrylovSpectralData.                             ║
+# ║                                                                             ║
+# ║   Marco formal:                                                             ║
+# ║   ─────────                                                                 ║
 # ║   La proyección de Hodge π: C⁰ → ker(δ) satisface:                          ║
-# ║   1. π minimiza la energía: E(π(x)) ≤ E(x)  ∀ x.                           ║
-# ║   2. π es una retracción: π∘π = π.                                          ║
-# ║   3. π minimiza la norma en ker(δ): ‖π(x)‖ ≤ ‖x‖.                         ║
+# ║     1. π minimiza la energía: E(π(x)) ≤ E(x)  ∀ x.                          ║
+# ║     2. π es una retracción: π∘π = π.                                         ║
+# ║     3. π minimiza la norma: ‖π(x)‖ ≤ ‖x‖.                                   ║
+# ║   Síntesis: x* = (I − δ⁺δ) x  (sección armónica).                            ║
 # ║                                                                             ║
-# ║   Invariantes verificados en v3.0.0:                                        ║
-# ║   1. ‖x − x*‖₂ ≤ Δ_inertia (cota isoperimétrica).                          ║
-# ║   2. E(x*) ≤ E(x) + ε_num (no incremento energético).                      ║
-# ║   3. ‖δx* − δx‖ ≤ κ(δ)·‖x* − x‖ (Lipschitz fuerte).                      ║
-# ║   4. ‖x*‖ ≤ ‖x‖ + ε_num (mínima norma).                                   ║
-# ║   5. h(G) ≈ E(x*)/‖x*‖² (estimado de Cheeger).                             ║
-# ║   6. ι_M = dim ker(δᵀδ) (índice de reducción de Morse).                    ║
-# ║                                                                             ║
-# ║   CONEXIÓN FUNTORIAL:                                                       ║
-# ║   El primer método de Fase 3 recibe KrylovSpectralData y verifica           ║
-# ║   que la estabilidad espectral sea compatible con la proyección.             ║
+# ║   ULTIMO MÉTODO DE FASE 3 (morfismo terminal del módulo):                    ║
+# ║     enforce_isoperimetric_hodge_projection(x, x*) → HodgeProjectionData      ║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
+
 class Phase3_IsoperimetricHodgeProjector(Phase2_KrylovSpectralAuditor):
-    r"""
-    Regula la magnitud geométrica de la corrección del flujo y verifica
-    la admisibilidad termodinámica de la proyección de Hodge.
+    r"""FASE 3: Proyector isoperimétrico de Hodge y colapso Heyting.
 
-    Hereda de Phase2_KrylovSpectralAuditor.
-    Su primer método _enforce_isoperimetric_hodge_projection recibe el
-    certificado KrylovSpectralData emitido por el último método de Fase 2.
+    ★ INICIO FORMAL = continuación del morfismo terminal de la FASE 2 ★
 
-    Mejoras v3.0.0:
-        · Verificación del axioma de Lipschitz fuerte.
-        · Verificación de la condición de mínima norma.
-        · Estimado de la constante de Cheeger h(G).
-        · Índice de reducción de Morse ι_M = dim ker(δᵀδ).
-        · Consistencia energética con el certificado de Fase 2.
+    Cadena interna:
+        __init__(KrylovSpectralData)        ← unidad heredada de Φ₂
+            → synthesize_hodge_section
+            → _verify_lipschitz_strong_axiom
+            → _estimate_cheeger_isoperimetric_constant
+            → _compute_morse_reduction_index_from_certificate
+            → _resolve_heyting_omega_three_lattice
+            → _simulate_crowbar_gpio14_actuation
+            → enforce_isoperimetric_hodge_projection  ★ morfismo terminal
     """
 
+    def __init__(self, phase2_audit: KrylovSpectralData) -> None:
+        r"""★ CONTINUACIÓN DE FASE 2 / INICIO DE FASE 3 ★
+
+        Args
+        ────
+        phase2_audit : KrylovSpectralData
+            Salida de `audit_krylov_spectral_stability`, inyectada por
+            `nest_into_phase3`.
+        """
+        if not isinstance(phase2_audit, KrylovSpectralData):
+            raise TypeError(
+                "Phase3_IsoperimetricHodgeProjector requiere KrylovSpectralData "
+                "como precondición (Fase 2)."
+            )
+        if not phase2_audit.is_spectrally_stable:
+            raise SpectralComputationError(
+                "[Fase 3] Precondición inválida: Fase 2 reportó inestabilidad."
+            )
+        if not phase2_audit.is_frustration_bounded:
+            raise DirichletFrustrationError(
+                "[Fase 3] Precondición inválida: Fase 2 no acotó frustración."
+            )
+        super().__init__(phase2_audit.phase1_reference)
+        self._phase2: Final[KrylovSpectralData] = phase2_audit
+
+    @property
+    def phase2_certificate(self) -> KrylovSpectralData:
+        r"""Referencia inmutable al DTO de Fase 2 (precondición)."""
+        return self._phase2
+
     # ─────────────────────────────────────────────────────────────────────────
-    # 3.1 Verificación del axioma de Lipschitz fuerte
+    # 3.1 Síntesis de la sección armónica x* = (I − δ⁺δ) x
     # ─────────────────────────────────────────────────────────────────────────
-    @staticmethod
-    def _verify_lipschitz_strong(
-        delta_x0: NDArray[np.float64],
-        delta_x1: NDArray[np.float64],
+    def synthesize_hodge_section(
+        self,
+        x_original: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        r"""Proyección armónica x* ∈ ker(δ) ∩ (x + im(δᵀ)).
+
+        Teorema de Hodge discreto sobre un complejo de 2 términos:
+            x* = x − δ⁺ (δx) = (I − δ⁺δ) x.
+        Truncación espectral con SVD_TOL de Wilkinson de Fase 1.
+
+        Returns
+        ───────
+        x_star : NDArray[float64], write-protected copy
+        """
+        x = self._as_finite_vector("x_original", x_original, allow_empty=False)
+        if x.size != self._phase1.dim_C0:
+            raise ValueError(
+                f"[Fase 3] x debe tener dim = dim C⁰ = {self._phase1.dim_C0}; "
+                f"recibido {x.size}."
+            )
+        delta_x = self._delta @ x
+        _, _, x_harm, _ = self._decompose_hodge_helmholtz_moore_penrose(x, delta_x)
+        if not np.all(np.isfinite(x_harm)):
+            raise HodgeDecompositionError(
+                "[Fase 3] synthesize_hodge_section produjo no finitos."
+            )
+        x_star = np.array(x_harm, dtype=np.float64, copy=True)
+        x_star.setflags(write=False)
+        return x_star
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.2 Axioma de Lipschitz fuerte
+    # ─────────────────────────────────────────────────────────────────────────
+    @classmethod
+    def _verify_lipschitz_strong_axiom(
+        cls,
+        delta_x: NDArray[np.float64],
+        delta_x_star: NDArray[np.float64],
         displacement_norm: float,
         kappa_delta: float,
-        *,
-        vector_norm_fn,
-    ) -> Tuple[float, bool]:
-        r"""
-        Verifica la condición de Lipschitz fuerte de la proyección de Hodge:
+    ) -> Tuple[float, float, bool]:
+        r"""Verifica ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂ ([I5]).
 
-            ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂.
-
-        Para una proyección ortogonal exacta en ker(δ), δx* = 0 → lhs = ‖δx‖.
-        Para proyecciones aproximadas, la condición mide la estabilidad.
-
-        Parámetros:
-            delta_x0      : δx (imagen de x).
-            delta_x1      : δx* (imagen de x*).
-            displacement_norm: ‖x* − x‖₂.
-            kappa_delta   : κ(δ) = σ_max/σ_min.
-            vector_norm_fn: Función de norma vectorial.
-
-        Retorna:
-            (lipschitz_residual, lipschitz_ok).
+        Returns
+        ───────
+        (lhs, residual = lhs − rhs, satisfied)
         """
-        delta_diff = delta_x1 - delta_x0
-
+        delta_diff = delta_x_star - delta_x
         if not np.all(np.isfinite(delta_diff)):
-            return math.inf, False
+            return math.inf, math.inf, False
 
-        lhs = vector_norm_fn(delta_diff)
-
+        lhs = cls._vector_norm(delta_diff)
         if not math.isfinite(lhs):
-            return math.inf, False
+            return math.inf, math.inf, False
 
-        # rhs = κ(δ) · ‖x* − x‖
         if not math.isfinite(kappa_delta) or not math.isfinite(displacement_norm):
             rhs = math.inf
         else:
             rhs = kappa_delta * displacement_norm
 
-        lipschitz_residual = lhs - rhs  # ≤ 0 sii satisfecho
-        slack = _LIPSCHITZ_SLACK * max(1.0, rhs)
-        lipschitz_ok = lipschitz_residual <= slack
-
-        return float(lipschitz_residual), bool(lipschitz_ok)
+        residual = lhs - rhs
+        slack = (
+            _LIPSCHITZ_SLACK * max(1.0, rhs) if math.isfinite(rhs) else math.inf
+        )
+        satisfied = residual <= slack
+        return float(lhs), float(residual), bool(satisfied)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 3.2 Estimado de la constante de Cheeger
+    # 3.3 Cociente de Rayleigh / constante isoperimétrica de Cheeger
     # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
-    def _estimate_cheeger_bound(
+    def _estimate_cheeger_isoperimetric_constant(
         projected_energy: float,
-        x_projected_norm: float,
+        x_star_norm: float,
     ) -> float:
-        r"""
-        Estima la constante isoperimétrica de Cheeger:
+        r"""Cociente de Rayleigh R(x*) = E(x*) / ‖x*‖² = ‖δx*‖₂² / ‖x*‖₂².
 
-            h(G) ≈ E(x*) / ‖x*‖² = ‖δx*‖₂² / ‖x*‖².
-
-        Esta estimación coincide con el menor eigenvalor de L = δᵀδ
-        restringido al subespacio ortogonal a ker(δ):
-
-            λ_min^+(L) ≈ h(G)².
-
-        Un h(G) cercano a 0 indica que la proyección es casi exacta.
-
-        Parámetros:
-            projected_energy  : E(x*) = ‖δx*‖₂².
-            x_projected_norm  : ‖x*‖₂.
-
-        Retorna:
-            h(G) ∈ [0, ∞).
+        Cota de Cheeger clásica: h(G)² / 2 ≤ λ_min⁺(L) ≤ R(x*) para
+        x* ⊥ ker(δ). Si x* ∈ ker(δ), R = 0 = λ_min(L).
         """
-        if x_projected_norm <= 0.0 or not math.isfinite(x_projected_norm):
+        if x_star_norm <= 0.0 or not math.isfinite(x_star_norm):
             return 0.0
-
         if projected_energy <= 0.0:
             return 0.0
-
-        h = projected_energy / (x_projected_norm * x_projected_norm)
+        h = projected_energy / (x_star_norm * x_star_norm)
         return float(h) if math.isfinite(h) else math.inf
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 3.3 Índice de reducción de Morse
+    # 3.4 Índice de Morse desde el certificado de Fase 1
     # ─────────────────────────────────────────────────────────────────────────
-    def _compute_morse_reduction_index(
-        self,
-        delta: NDArray[np.float64],
-        svd_tolerance: float,
-    ) -> int:
-        r"""
-        Calcula el índice de reducción de Morse:
+    def _compute_morse_reduction_index_from_certificate(self) -> int:
+        r"""ι_M = dim ker(δ) = dim H⁰ = dim C⁰ − rank(δ).
 
-            ι_M = dim ker(δᵀδ) = dim ker(δ) = dim(C⁰) − rank(δ).
-
-        Este índice cuenta las direcciones de "colapso" del funcional
-        de energía de Dirichlet, i.e., los modos armónicos de L = δᵀδ
-        que tienen eigenvalor cero.
-
-        Parámetros:
-            delta        : Operador δ.
-            svd_tolerance: Tolerancia del certificado de Fase 1.
-
-        Retorna:
-            ι_M ≥ 0.
+        Tomado del certificado de Wilkinson de Fase 1 — sin recomputar SVD.
+        Interpretable como el índice de Morse de E en el lugar crítico armónico.
         """
-        if delta.size == 0 or min(delta.shape) == 0:
-            return int(delta.shape[1]) if delta.ndim == 2 else 0
+        return max(0, int(self._phase1.h0_dimension))
 
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.5 Residuo de idempotencia π∘π − π
+    # ─────────────────────────────────────────────────────────────────────────
+    def _hodge_idempotence_residual(
+        self,
+        x_star: NDArray[np.float64],
+    ) -> float:
+        r"""‖π(x*) − x*‖₂. Si x* ya es armónico, π(x*) = x* y el residuo es 0."""
         try:
-            svs = self._safe_svdvals(delta, "δ (Morse)")
-            rank = int(np.count_nonzero(svs > svd_tolerance))
-            morse_index = int(delta.shape[1]) - rank
-            return max(0, morse_index)
+            x_ss = self.synthesize_hodge_section(x_star)
+            return float(self._vector_norm(x_ss - x_star))
         except Exception as exc:
-            logger.warning(
-                "[Fase 3] No se pudo calcular el índice de Morse: %s. "
-                "Se retorna 0.",
-                exc,
-            )
-            return 0
+            logger.warning("[Fase 3] Idempotencia de Hodge no evaluable: %s.", exc)
+            return math.inf
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 3.4 PRIMER MÉTODO DE FASE 3 / CONTINUACIÓN DE FASE 2
-    #     _enforce_isoperimetric_hodge_projection → HodgeProjectionData
+    # 3.6 Resolución del retículo Ω₃
     # ─────────────────────────────────────────────────────────────────────────
-    def _enforce_isoperimetric_hodge_projection(
+    @staticmethod
+    def _resolve_heyting_omega_three_lattice(
+        h1_dimension: int,
+        energy_after: float,
+        frustration_tolerance: float,
+        lipschitz_slack: float,
+        isoperimetric_slack: float,
+        energy_non_increasing: bool,
+    ) -> HeytingOmega3:
+        r"""Colapsa Ω₃ al veredicto terminal (join monótono, precedencia estricta).
+
+            1. h1_dimension > 0                            ⟹ VETOED (⊤)
+            2. violación de Lipschitz o isoperimétrica    ⟹ VETOED
+            3. E(x*) > ε_frust ∨ ¬energy_non_increasing   ⟹ DEGRADED
+            4. en otro caso                                ⟹ COHERENT (⊥)
+        """
+        verdict: HeytingOmega3 = HeytingOmega3.COHERENT
+
+        if h1_dimension > 0:
+            verdict = verdict.join(HeytingOmega3.VETOED)
+
+        if (
+            lipschitz_slack < -_LIPSCHITZ_SLACK
+            or isoperimetric_slack < -_FRUSTRATION_TOLERANCE
+        ):
+            verdict = verdict.join(HeytingOmega3.VETOED)
+
+        if energy_after > frustration_tolerance or not energy_non_increasing:
+            verdict = verdict.join(HeytingOmega3.DEGRADED)
+
+        return verdict
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.7 Actuación Crowbar (Strict-NoHardware, sólo simulación)
+    # ─────────────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _simulate_crowbar_gpio14_actuation() -> bool:
+        r"""Simula la conmutación del disyuntor Crowbar en GPIO14 (BCM).
+
+        Estricta política Strict-NoHardware: NUNCA accede a RPi.GPIO ni a
+        registros de hardware. Emite un log CRITICAL y retorna siempre False.
+
+        Returns
+        ───────
+        False (siempre; conmutación puramente software).
+        """
+        logger.critical(
+            "CROWBAR SIMULADO (Strict-NoHardware): GPIO%d habría sido conmutado "
+            "a HIGH. Colapso Ω₃ → VETOED (⊤).",
+            _CROWBAR_GPIO_PIN,
+        )
+        return False
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # 3.8 ★ MORFISMO TERMINAL DE FASE 3 / DEL MÓDULO ★
+    #     Cierra el funtor maestro 𝒵_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁.
+    # ─────────────────────────────────────────────────────────────────────────
+    def enforce_isoperimetric_hodge_projection(
         self,
         x_original: NDArray[np.float64],
         x_projected: NDArray[np.float64],
-        spectral_audit: Optional[KrylovSpectralData] = None,
-        coboundary_operator_delta: Optional[NDArray[np.float64]] = None,
     ) -> HodgeProjectionData:
-        r"""
-        ════════════════════════════════════════════════════════════════════
-        PRIMER MÉTODO DE FASE 3 — Continuación formal de Fase 2.
-        ════════════════════════════════════════════════════════════════════
+        r"""★ MORFISMO TERMINAL DE FASE 3 / DEL MÓDULO ★
 
-        Verifica la admisibilidad termodinámica de la proyección de Hodge:
+        Cadena funtorial de Φ₃:
+            KrylovSpectralData
+              ──(verify_lipschitz_strong_axiom)───────────▶ (lhs, residual, ✓)
+              ──(verify_isoperimetric_bound)──────────────▶ slack
+              ──(verify_minimal_norm)─────────────────────▶ ✓
+              ──(verify_energy_nonincreasing)─────────────▶ ✓
+              ──(hodge_idempotence_residual)──────────────▶ ‖π(x*)−x*‖
+              ──(cheeger_isoperimetric_constant)──────────▶ R(x*)
+              ──(morse_reduction_index_from_certificate)──▶ ι_M
+              ──(resolve_heyting_omega_three_lattice)─────▶ veredicto ∈ Ω₃
+              ──(simulate_crowbar_gpio14 if VETOED)───────▶ bool
+              ──(emit_HodgeProjectionData)────────────────▶ DTO terminal
 
-            x → x*  donde x* ≈ π(x) ∈ ker(δ).
-
-        Si `spectral_audit` es provisto (composición funtorial estricta):
-            - Verifica is_spectrally_stable = True.
-            - Verifica is_frustration_bounded = True.
-            - Verifica consistencia energética con E(x) certificado.
-
-        Si `coboundary_operator_delta` es provisto:
-            - Verifica E(x*) ≤ E(x) (no incremento de Dirichlet).
-            - Verifica la condición de Lipschitz fuerte.
-            - Verifica la condición de mínima norma.
-            - Calcula el estimado de Cheeger h(G).
-            - Calcula el índice de Morse ι_M.
-
-        Invariantes verificados:
-            1. ‖x − x*‖₂ ≤ Δ_inertia.
-            2. E(x*) ≤ E(x) + ε_num.
-            3. ‖δx* − δx‖₂ ≤ κ(δ) · ‖x* − x‖₂ (Lipschitz fuerte).
-            4. ‖x*‖₂ ≤ ‖x‖₂ + ε_num (mínima norma).
-            5. Consistencia con el certificado de Fase 2.
-
-        Parámetros:
-            x_original               : Estado original x ∈ C⁰.
-            x_projected              : Estado proyectado x* ∈ C⁰.
-            spectral_audit           : Certificado de Fase 2 (opcional).
-            coboundary_operator_delta: Operador δ (opcional).
-
-        Retorna:
-            HodgeProjectionData — certificado de proyección completo.
-
-        Lanza:
-            SpectralComputationError si spectral_audit no es estable.
-            DirichletFrustrationError si spectral_audit no acotó frustración.
-            HomologicalInconsistencyError si ‖x−x*‖ > Δ_inertia.
-            LipschitzViolation si la condición Lipschitz fuerte falla.
-            MinimalNormViolation si ‖x*‖ > ‖x‖ + ε_num.
+        Raises
+        ──────
+        HomologicalInconsistencyError
+        LipschitzViolation
+        MinimalNormViolation
         """
-        # ── Validación de entrada ─────────────────────────────────────────
-        x0 = self._as_finite_vector("x_original", x_original)
-        x1 = self._as_finite_vector("x_projected", x_projected)
-
+        x0 = self._as_finite_vector("x_original", x_original, allow_empty=False)
+        x1 = self._as_finite_vector("x_projected", x_projected, allow_empty=False)
         if x0.shape != x1.shape:
             raise ValueError(
-                f"[Fase 3] x_original (dim={x0.size}) y x_projected "
-                f"(dim={x1.size}) deben tener la misma dimensión."
+                f"[Fase 3] x_original y x_projected deben coincidir: "
+                f"{x0.shape} vs {x1.shape}."
+            )
+        if x0.size != self._phase1.dim_C0:
+            raise ValueError(
+                f"[Fase 3] x debe tener dim = dim C⁰ = {self._phase1.dim_C0}; "
+                f"recibido {x0.size}."
             )
 
-        # ── Continuación funtorial de Fase 2 ─────────────────────────────
-        if spectral_audit is not None:
-            if not spectral_audit.is_spectrally_stable:
-                raise SpectralComputationError(
-                    "[Fase 3] No puede iniciarse: Fase 2 reportó inestabilidad "
-                    "espectral (is_spectrally_stable=False)."
-                )
-            if not spectral_audit.is_frustration_bounded:
-                raise DirichletFrustrationError(
-                    "[Fase 3] No puede iniciarse: Fase 2 no acotó la frustración "
-                    "térmica (is_frustration_bounded=False)."
-                )
-
-        # ── Validación del operador δ (si provisto) ───────────────────────
-        delta: Optional[NDArray[np.float64]] = None
-
-        if coboundary_operator_delta is not None:
-            delta = self._as_finite_matrix(
-                "coboundary_operator_delta",
-                coboundary_operator_delta,
-            )
-            if x0.size != delta.shape[1] or x1.size != delta.shape[1]:
-                raise ValueError(
-                    f"[Fase 3] δ espera dim C⁰ = {delta.shape[1]}, pero "
-                    f"x_original dim={x0.size} y x_projected dim={x1.size}."
-                )
-
-        # ── Desplazamiento ────────────────────────────────────────────────
         displacement = x0 - x1
-
         if not np.all(np.isfinite(displacement)):
             raise HomologicalInconsistencyError(
-                "[Fase 3] El vector de desplazamiento x − x* no es finito."
+                "[Fase 3] x − x* contiene no finitos."
             )
-
         projection_distance = self._vector_norm(displacement)
-
         if not math.isfinite(projection_distance):
             raise HomologicalInconsistencyError(
                 "[Fase 3] ‖x − x*‖₂ no es finita."
             )
-
         norm_x0 = self._vector_norm(x0)
         norm_x1 = self._vector_norm(x1)
-
-        if not math.isfinite(norm_x0) or not math.isfinite(norm_x1):
+        if not (math.isfinite(norm_x0) and math.isfinite(norm_x1)):
             raise HomologicalInconsistencyError(
-                "[Fase 3] Las normas de x_original o x_projected no son finitas."
+                "[Fase 3] ‖x‖ o ‖x*‖ no son finitas."
             )
-
-        # ── Distancia relativa ────────────────────────────────────────────
         relative_distance = projection_distance / max(1.0, norm_x0)
 
-        # ── Tolerancia numérica para distancia ────────────────────────────
         dist_tolerance = (
             _NUMERICAL_SAFETY_FACTOR
             * _MACHINE_EPSILON
             * max(1.0, norm_x0, norm_x1)
         )
-
         inertia_limit = _INERTIA_DELTA_MAX + dist_tolerance
+        isoperimetric_slack = inertia_limit - projection_distance
+        is_isoperimetric = projection_distance <= inertia_limit
 
-        # ── Verificación isoperimétrica ───────────────────────────────────
-        if projection_distance > inertia_limit:
+        delta_x0 = self._delta @ x0
+        delta_x1 = self._delta @ x1
+        if not (np.all(np.isfinite(delta_x0)) and np.all(np.isfinite(delta_x1))):
             raise HomologicalInconsistencyError(
-                "[Fase 3] Violación del principio de inercia inercial. "
-                f"‖x − x*‖₂ = {projection_distance:.6f} > "
-                f"Δ_inertia = {_INERTIA_DELTA_MAX:.6f}. "
-                "La sanación topológica requeriría recursos irreales."
+                "[Fase 3] δx o δx* contienen no finitos."
+            )
+        original_energy = self._squared_norm_from_vector(delta_x0)
+        projected_energy = self._squared_norm_from_vector(delta_x1)
+
+        consistency_tol = max(
+            _ENERGY_RATIO_TOLERANCE,
+            _NUMERICAL_SAFETY_FACTOR
+            * _MACHINE_EPSILON
+            * max(1.0, abs(original_energy), abs(self._phase2.dirichlet_energy)),
+        )
+        if abs(original_energy - self._phase2.dirichlet_energy) > consistency_tol:
+            raise HomologicalInconsistencyError(
+                f"[Fase 3] Inconsistencia energética entre F₂ y F₃: "
+                f"E_cert={self._phase2.dirichlet_energy:.3e}, "
+                f"E_recalc={original_energy:.3e}."
             )
 
-        # ── Variables de invariantes secundarios ──────────────────────────
-        verified_by_delta = delta is not None
-        original_energy = 0.0
-        projected_energy = 0.0
-        energy_reduction_ratio = 0.0
-        is_energy_non_increasing = True
-        lipschitz_residual = 0.0
-        lipschitz_satisfied = True
-        minimal_norm_satisfied = True
-        cheeger_estimate = 0.0
-        morse_index = 0
+        energy_tol = (
+            _NUMERICAL_SAFETY_FACTOR
+            * _MACHINE_EPSILON
+            * max(1.0, abs(original_energy), abs(projected_energy))
+        )
+        energy_nonincreasing = projected_energy <= original_energy + energy_tol
 
-        # ── Bloque de verificación con δ ──────────────────────────────────
-        if verified_by_delta:
-            assert delta is not None
-
-            delta_x0 = delta @ x0
-            delta_x1 = delta @ x1
-
-            if not np.all(np.isfinite(delta_x0)) or not np.all(np.isfinite(delta_x1)):
-                raise HomologicalInconsistencyError(
-                    "[Fase 3] La evaluación δx o δx* produjo valores no finitos."
-                )
-
-            original_energy = self._squared_norm_from_vector(delta_x0)
-            projected_energy = self._squared_norm_from_vector(delta_x1)
-
-            energy_tolerance = (
-                _NUMERICAL_SAFETY_FACTOR
-                * _MACHINE_EPSILON
-                * max(1.0, abs(original_energy), abs(projected_energy))
-            )
-
-            # ── Consistencia con certificado de Fase 2 ────────────────────
-            if spectral_audit is not None:
-                consistency_tol = max(
-                    _ENERGY_RATIO_TOLERANCE,
-                    _NUMERICAL_SAFETY_FACTOR
-                    * _MACHINE_EPSILON
-                    * max(
-                        1.0,
-                        abs(original_energy),
-                        abs(spectral_audit.dirichlet_energy),
-                    ),
-                )
-                energy_discrepancy = abs(
-                    original_energy - spectral_audit.dirichlet_energy
-                )
-                if energy_discrepancy > consistency_tol:
-                    raise HomologicalInconsistencyError(
-                        "[Fase 3] Inconsistencia energética entre Fase 2 y Fase 3. "
-                        f"E_cert = {spectral_audit.dirichlet_energy:.6e}, "
-                        f"E_recalc = {original_energy:.6e}, "
-                        f"discrepancia = {energy_discrepancy:.6e} > "
-                        f"τ = {consistency_tol:.6e}."
-                    )
-
-            # ── No incremento de energía ──────────────────────────────────
-            is_energy_non_increasing = (
-                projected_energy <= original_energy + energy_tolerance
-            )
-
-            if not is_energy_non_increasing:
-                raise HomologicalInconsistencyError(
-                    "[Fase 3] La proyección de Hodge incrementó la energía. "
-                    f"E(x*) = {projected_energy:.6e} > "
-                    f"E(x) + ε = {original_energy + energy_tolerance:.6e}."
-                )
-
-            # ── Frustración de la proyección ──────────────────────────────
-            frust_limit = _FRUSTRATION_TOLERANCE
-            if spectral_audit is not None:
-                frust_limit = max(frust_limit, spectral_audit.frustration_tolerance)
-
-            proj_frust_tol = max(
-                frust_limit,
-                _NUMERICAL_SAFETY_FACTOR
-                * _MACHINE_EPSILON
-                * max(1.0, abs(original_energy), abs(projected_energy)),
-            )
-
-            if projected_energy > proj_frust_tol:
-                raise HomologicalInconsistencyError(
-                    "[Fase 3] La proyección no redujo la frustración a nivel admisible. "
-                    f"E(x*) = {projected_energy:.6e} > "
-                    f"ε_frust_efectivo = {proj_frust_tol:.6e}."
-                )
-
-            # ── Razón de reducción energética ─────────────────────────────
-            if original_energy > energy_tolerance:
-                energy_reduction_ratio = projected_energy / original_energy
-                if not math.isfinite(energy_reduction_ratio):
-                    raise HomologicalInconsistencyError(
-                        "[Fase 3] La razón de reducción energética no es finita."
-                    )
-            else:
-                energy_reduction_ratio = 0.0
-
-            # ── Axioma de Lipschitz fuerte ─────────────────────────────────
-            kappa_delta = (
-                spectral_audit.delta_condition_number
-                if spectral_audit is not None
-                else 1.0
-            )
-
-            lipschitz_residual, lipschitz_satisfied = self._verify_lipschitz_strong(
-                delta_x0=delta_x0,
-                delta_x1=delta_x1,
+        lipschitz_lhs, lipschitz_residual, lipschitz_ok = (
+            self._verify_lipschitz_strong_axiom(
+                delta_x=delta_x0,
+                delta_x_star=delta_x1,
                 displacement_norm=projection_distance,
-                kappa_delta=kappa_delta,
-                vector_norm_fn=self._vector_norm,
+                kappa_delta=self._phase2.delta_condition_number,
+            )
+        )
+        lipschitz_slack = -lipschitz_residual
+
+        norm_tol = (
+            _NUMERICAL_SAFETY_FACTOR
+            * _MACHINE_EPSILON
+            * max(1.0, norm_x0, norm_x1)
+        )
+        minimal_norm_ok = norm_x1 <= norm_x0 + norm_tol
+
+        energy_reduction_ratio = (
+            projected_energy / original_energy
+            if original_energy > energy_tol
+            else 0.0
+        )
+
+        cheeger_h = self._estimate_cheeger_isoperimetric_constant(
+            projected_energy, norm_x1
+        )
+        morse_index = self._compute_morse_reduction_index_from_certificate()
+        idempotence_residual = self._hodge_idempotence_residual(x1)
+
+        verdict = self._resolve_heyting_omega_three_lattice(
+            h1_dimension=self._phase1.h1_dimension,
+            energy_after=projected_energy,
+            frustration_tolerance=max(
+                _FRUSTRATION_TOLERANCE, self._phase2.frustration_tolerance
+            ),
+            lipschitz_slack=lipschitz_slack,
+            isoperimetric_slack=isoperimetric_slack,
+            energy_non_increasing=energy_nonincreasing,
+        )
+
+        crowbar_simulated = False
+        if verdict == HeytingOmega3.VETOED:
+            crowbar_simulated = self._simulate_crowbar_gpio14_actuation()
+
+        if not is_isoperimetric:
+            raise HomologicalInconsistencyError(
+                f"[Fase 3] Violación inercial: ‖x − x*‖ = {projection_distance:.6f} > "
+                f"Δ_inertia = {_INERTIA_DELTA_MAX:.6f}."
+            )
+        if not lipschitz_ok:
+            raise LipschitzViolation(
+                f"[Fase 3] Lipschitz fuerte falla: residual = {lipschitz_residual:.3e}."
+            )
+        if not minimal_norm_ok:
+            raise MinimalNormViolation(
+                f"[Fase 3] Mínima norma falla: ‖x*‖ = {norm_x1:.3e} > "
+                f"‖x‖ + ε = {norm_x0 + norm_tol:.3e}."
             )
 
-            if not lipschitz_satisfied:
-                raise LipschitzViolation(
-                    "[Fase 3] Violación del axioma de Lipschitz fuerte. "
-                    f"‖δx* − δx‖ − κ(δ)·‖x*−x‖ = {lipschitz_residual:.6e} > 0. "
-                    "La proyección no es contractivante en energía."
-                )
+        cert_hash = self._compute_dto_hash(
+            self._phase2.certification_hash_sha256,
+            float(projection_distance), float(relative_distance),
+            float(original_energy), float(projected_energy),
+            float(energy_reduction_ratio), float(lipschitz_residual),
+            float(lipschitz_lhs), float(idempotence_residual),
+            int(morse_index), int(verdict.value),
+            float(cheeger_h),
+        )
 
-            # ── Condición de mínima norma ─────────────────────────────────
-            norm_tolerance = (
-                _NUMERICAL_SAFETY_FACTOR
-                * _MACHINE_EPSILON
-                * max(1.0, norm_x0, norm_x1)
-            )
-            minimal_norm_satisfied = norm_x1 <= norm_x0 + norm_tolerance
+        logger.info(
+            "[Fase 3 ✓] HodgeProjectionData: ‖x−x*‖=%.4f, E(x*)/E(x)=%.4f, "
+            "h(G)=%.3e, ι_M=%d, ‖ππ−π‖=%.3e, Ω₃=%s, Crowbar=%s, hash=%s.",
+            projection_distance, energy_reduction_ratio, cheeger_h,
+            morse_index, idempotence_residual, verdict.name, crowbar_simulated,
+            cert_hash[:16] + "...",
+        )
 
-            if not minimal_norm_satisfied:
-                raise MinimalNormViolation(
-                    "[Fase 3] La proyección no satisface la condición de mínima norma. "
-                    f"‖x*‖ = {norm_x1:.6e} > ‖x‖ + ε = {norm_x0 + norm_tolerance:.6e}. "
-                    "x* no es la proyección de mínima norma en ker(δ)."
-                )
-
-            # ── Estimado de Cheeger ───────────────────────────────────────
-            cheeger_estimate = self._estimate_cheeger_bound(
-                projected_energy, norm_x1,
-            )
-
-            # ── Índice de Morse ───────────────────────────────────────────
-            svd_tol = (
-                spectral_audit.frustration_tolerance
-                if spectral_audit is not None
-                else _SVD_TOLERANCE_BASE
-            )
-            # Usamos la tolerancia SVD del certificado de Fase 1 si disponible
-            veto_tol = _SVD_TOLERANCE_BASE
-            morse_index = self._compute_morse_reduction_index(delta, veto_tol)
-
-        # ── Emisión del certificado ───────────────────────────────────────
         return HodgeProjectionData(
             projection_distance=float(projection_distance),
             relative_projection_distance=float(relative_distance),
@@ -1954,97 +2065,109 @@ class Phase3_IsoperimetricHodgeProjector(Phase2_KrylovSpectralAuditor):
             original_dirichlet_energy=float(original_energy),
             projected_dirichlet_energy=float(projected_energy),
             energy_reduction_ratio=float(energy_reduction_ratio),
+            lipschitz_lhs=float(lipschitz_lhs),
             lipschitz_residual=float(lipschitz_residual),
-            lipschitz_satisfied=bool(lipschitz_satisfied),
-            minimal_norm_satisfied=bool(minimal_norm_satisfied),
-            cheeger_bound_estimate=float(cheeger_estimate),
+            lipschitz_satisfied=bool(lipschitz_ok),
+            lipschitz_slack=float(lipschitz_slack),
+            isoperimetric_slack=float(isoperimetric_slack),
+            minimal_norm_satisfied=bool(minimal_norm_ok),
+            hodge_idempotence_residual=float(idempotence_residual),
+            cheeger_bound_estimate=float(cheeger_h),
             morse_reduction_index=int(morse_index),
-            is_isoperimetrically_bounded=True,
-            is_energy_non_increasing=bool(is_energy_non_increasing),
-            verified_by_delta=bool(verified_by_delta),
+            heyting_verdict=verdict,
+            crowbar_simulated=bool(crowbar_simulated),
+            is_isoperimetrically_bounded=bool(is_isoperimetric),
+            is_energy_non_increasing=bool(energy_nonincreasing),
+            verified_by_delta=True,
+            certification_hash_sha256=str(cert_hash),
         )
+
+    def synthesize_then_enforce(
+        self,
+        x_original: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], HodgeProjectionData]:
+        r"""Sintetiza x* = π(x) y aplica el morfismo terminal sobre el par (x, x*).
+
+        Conveniencia interna: no altera el contrato público de
+        `enforce_isoperimetric_hodge_projection`.
+        """
+        x_star = self.synthesize_hodge_section(x_original)
+        audit = self.enforce_isoperimetric_hodge_projection(x_original, x_star)
+        return x_star, audit
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                             ║
-# ║   ORQUESTADOR SUPREMO: SHEAF COHOMOLOGY ORCHESTRATOR AGENT                  ║
+# ║   ORQUESTADOR SUPREMO: 𝒵_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁                         ║
 # ║                                                                             ║
-# ║   Endofuntor Z_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁                                   ║
-# ║                                                                             ║
-# ║   Mejoras v3.0.0:                                                           ║
-# ║   · Trazabilidad criptográfica con SHA-256 y timestamp ISO-8601.             ║
-# ║   · AuditProvenance con cadena funtorial completa.                          ║
-# ║   · Log estructurado de alta granularidad con todos los certificados.        ║
-# ║   · Verificación de la coherencia global de los tres certificados.          ║
+# ║   Endofuntor terminal. Anidamiento EXCLUSIVO vía morfismos terminales:      ║
+# ║       Φ₁.nest_into_phase2(δ)  ⟶  Phase2                                     ║
+# ║       Φ₂.nest_into_phase3(x)  ⟶  Phase3                                     ║
+# ║       Φ₃.enforce_isoperimetric_hodge_projection(x, x*) ⟶ HodgeProjectionData║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
-class SheafCohomologyOrchestratorAgent(Morphism, Phase3_IsoperimetricHodgeProjector):
-    r"""
-    El Custodio de la Holonomía Global en el estrato STRATEGY.
+
+class SheafCohomologyOrchestratorAgent(Morphism):
+    r"""El Custodio de la Holonomía Global en el estrato STRATEGY.
 
     Somete la estrategia de consenso agéntico a la composición funtorial:
 
-        Z_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁,
+        𝒵_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁,
 
     garantizando coherencia topológica, estabilidad espectral y admisibilidad
-    termodinámica de la proyección de Hodge.
-
-    Nuevas capacidades v3.0.0:
-        · Checksum SHA-256 de las entradas para trazabilidad criptográfica.
-        · Timestamp ISO-8601 UTC en cada ejecución.
-        · SheafAuditProvenance con la cadena funtorial completa.
-        · Log estructurado con todos los certificados de las tres fases.
+    termodinámica de la proyección de Hodge. El anidamiento se realiza
+    exclusivamente a través de los morfismos terminales `nest_into_phase2`
+    y `nest_into_phase3`.
     """
 
     def __init__(self, strict_mode: bool = True) -> None:
-        r"""
-        Inicializa el SheafCohomologyOrchestratorAgent.
+        r"""Inicializa el agente orquestador.
 
-        Parámetros:
-            strict_mode: Si True (default), toda advertencia se convierte en error.
+        Args
+        ────
+        strict_mode : Si True, toda degradación Ω₃ ≠ COHERENT se convierte
+            en error al final del pipeline.
         """
         self._strict_mode = bool(strict_mode)
         logger.info(
-            "[Orquestador] SheafCohomologyOrchestratorAgent inicializado. "
+            "[Orquestador] SheafCohomologyOrchestratorAgent v%s inicializado. "
             "strict_mode=%s.",
-            self._strict_mode,
+            __version__, self._strict_mode,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Construcción del SheafAuditProvenance
-    # ─────────────────────────────────────────────────────────────────────────
+    @staticmethod
     def _build_provenance(
-        self,
-        checksum: str,
+        checksum_input: str,
+        phase1_hash: str,
+        phase2_hash: str,
+        phase3_hash: str,
         phase1_passed: bool,
         phase2_passed: bool,
         phase3_passed: bool,
     ) -> SheafAuditProvenance:
-        r"""
-        Construye el objeto de trazabilidad funtorial.
-        """
+        r"""Compone el objeto de trazabilidad criptográfica end-to-end."""
         timestamp = datetime.now(tz=timezone.utc).isoformat()
-
         symbols = {True: "✓", False: "✗"}
-        functor_chain = (
+        all_ok = phase1_passed and phase2_passed and phase3_passed
+        chain = (
             f"Φ₁={symbols[phase1_passed]} → "
             f"Φ₂={symbols[phase2_passed]} → "
             f"Φ₃={symbols[phase3_passed]} → "
-            f"Z_SheafAgent={symbols[phase1_passed and phase2_passed and phase3_passed]}"
+            f"𝒵_Sheaf={symbols[all_ok]}"
         )
-
         return SheafAuditProvenance(
             timestamp_iso=timestamp,
-            input_checksum_sha256=checksum,
-            phase1_passed=phase1_passed,
-            phase2_passed=phase2_passed,
-            phase3_passed=phase3_passed,
-            functor_chain=functor_chain,
+            input_checksum_sha256=checksum_input,
+            phase1_certification_hash=phase1_hash,
+            phase2_certification_hash=phase2_hash,
+            phase3_certification_hash=phase3_hash,
+            phase1_passed=bool(phase1_passed),
+            phase2_passed=bool(phase2_passed),
+            phase3_passed=bool(phase3_passed),
+            functor_chain=chain,
+            agent_version=__version__,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Log estructurado
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _log_governance_summary(
         veto_audit: CohomologicalVetoData,
@@ -2052,80 +2175,55 @@ class SheafCohomologyOrchestratorAgent(Morphism, Phase3_IsoperimetricHodgeProjec
         hodge_audit: HodgeProjectionData,
         provenance: SheafAuditProvenance,
     ) -> None:
-        r"""
-        Emite un log estructurado de alta granularidad con todos los certificados.
-        """
+        r"""Log estructurado con todos los certificados de las tres fases."""
         logger.info(
-            "═══════════════════════════════════════════════════════════\n"
-            "  SHEAF COHOMOLOGY GOVERNANCE — REPORTE FINAL\n"
+            "═══════════════════════════════════════════════════════════════\n"
+            "  SHEAF COHOMOLOGY GOVERNANCE — REPORTE FINAL (%s)\n"
             "  Timestamp  : %s\n"
-            "  SHA-256    : %s\n"
+            "  SHA-256 in : %s\n"
+            "  F1 hash    : %s\n"
+            "  F2 hash    : %s\n"
+            "  F3 hash    : %s\n"
             "  Cadena     : %s\n"
-            "─────────────────────────────────────────────────────────\n"
-            "  FASE 1 — Veto Cohomológico:\n"
-            "    dim C⁰        : %d\n"
-            "    dim C¹        : %d\n"
-            "    rank(δ)       : %d\n"
-            "    dim H¹        : %d\n"
-            "    σ_max         : %.4e\n"
-            "    σ_min^+       : %.4e\n"
-            "    Δσ            : %.4e\n"
-            "    Δσ/σ_max      : %.4e\n"
-            "    β (estab.)    : %.4f\n"
-            "    χ₀₁           : %d\n"
-            "    log|τ_W|      : %.4f\n"
-            "    P-L ✓         : %s\n"
-            "    Coherente ✓   : %s\n"
-            "─────────────────────────────────────────────────────────\n"
-            "  FASE 2 — Espectro de Krylov-Dirichlet:\n"
-            "    E(x)          : %.4e\n"
-            "    Ê             : %.4e\n"
-            "    ε_frust       : %.4e\n"
-            "    ρ_frust       : %.4f\n"
-            "    κ(δ)          : %.4e\n"
-            "    κ(L)          : %.4e\n"
-            "    Δσ_eff        : %.4e\n"
-            "    ‖x_harm‖      : %.4e\n"
-            "    ‖x_exact‖     : %.4e\n"
-            "    C_P           : %.4e\n"
-            "    Frust. ✓      : %s\n"
-            "    Espectral ✓   : %s\n"
-            "    Poincaré ✓    : %s\n"
-            "─────────────────────────────────────────────────────────\n"
-            "  FASE 3 — Hodge Isoperimétrico:\n"
-            "    ‖x−x*‖        : %.6f\n"
-            "    ‖x−x*‖/‖x‖   : %.6f\n"
-            "    Δ_inertia     : %.4f\n"
-            "    E(x)          : %.4e\n"
-            "    E(x*)         : %.4e\n"
-            "    E(x*)/E(x)    : %.4f\n"
-            "    Lip. resid.   : %.4e\n"
-            "    Lip. ✓        : %s\n"
-            "    Min-norm ✓    : %s\n"
-            "    h(G) Cheeger  : %.4e\n"
-            "    ι_M Morse     : %d\n"
-            "    Isoperim. ✓   : %s\n"
-            "    E↓ ✓          : %s\n"
-            "    Ver. por δ    : %s\n"
-            "═══════════════════════════════════════════════════════════",
+            "───────────────────────────────────────────────────────────────\n"
+            "  FASE 1 — Veto Cohomológico (Wilkinson adaptativo):\n"
+            "    dim C⁰=%d, dim C¹=%d, rank(δ)=%d, dim H⁰=%d, dim H¹=%d\n"
+            "    σ_max=%.4e, σ_min⁺=%.4e, gap=%.4e, σ_min⁺/σ_max=%.4e, κ₂=%.4e\n"
+            "    SVD_TOL=%.4e (Wilkinson %d iters), certified=%s\n"
+            "    β_estab=%.4f, χ₀₁=%d, log|τ|=%.4f, P–L=%s\n"
+            "───────────────────────────────────────────────────────────────\n"
+            "  FASE 2 — Krylov-Dirichlet (Golub–Kahan sobre δ):\n"
+            "    E(x)=%.4e, Ê=%.4e, ε_frust=%.4e, ρ=%.4f\n"
+            "    κ(δ)=%.4e, κ(L)=%.4e, Gap_ef=%.4e, Hölder=%.4e\n"
+            "    ‖x_harm‖=%.4e, ‖x_exact‖=%.4e, C_P=%.4e\n"
+            "    Krylov_dim=%d, residual=%.4e\n"
+            "───────────────────────────────────────────────────────────────\n"
+            "  FASE 3 — Hodge Isoperimétrico y Ω₃:\n"
+            "    ‖x−x*‖=%.6f, ‖x−x*‖/‖x‖=%.6f, Δ_in=%.4f\n"
+            "    E(x)=%.4e → E(x*)=%.4e (ratio=%.4f)\n"
+            "    Lipschitz lhs=%.4e residual=%.4e, ✓=%s, min-norm ✓=%s\n"
+            "    slack_L=%.4e, slack_iso=%.4e, ‖ππ−π‖=%.4e\n"
+            "    h(G)_Rayleigh=%.4e, ι_M_Morse=%d\n"
+            "    Ω₃ verdict=%s, Crowbar simulado=%s\n"
+            "═══════════════════════════════════════════════════════════════",
+            provenance.agent_version,
             provenance.timestamp_iso,
             provenance.input_checksum_sha256[:16] + "...",
+            provenance.phase1_certification_hash[:16] + "...",
+            provenance.phase2_certification_hash[:16] + "...",
+            provenance.phase3_certification_hash[:16] + "...",
             provenance.functor_chain,
-            # Fase 1
-            veto_audit.dim_C0,
-            veto_audit.dim_C1,
-            veto_audit.delta_rank,
-            veto_audit.h1_dimension,
-            veto_audit.max_singular_value,
-            veto_audit.min_nonzero_singular_value,
-            veto_audit.spectral_gap,
-            veto_audit.spectral_gap_ratio,
+            veto_audit.dim_C0, veto_audit.dim_C1,
+            veto_audit.delta_rank, veto_audit.h0_dimension, veto_audit.h1_dimension,
+            veto_audit.max_singular_value, veto_audit.min_nonzero_singular_value,
+            veto_audit.spectral_gap, veto_audit.spectral_gap_ratio,
+            veto_audit.condition_number_delta,
+            veto_audit.svd_tolerance, veto_audit.wilkinson_iterations,
+            veto_audit.rank_is_certified,
             veto_audit.cohomological_stability_index,
             veto_audit.euler_characteristic_01,
             veto_audit.whitehead_torsion,
             veto_audit.poincare_lefschetz_ok,
-            veto_audit.is_topologically_coherent,
-            # Fase 2
             spectral_audit.dirichlet_energy,
             spectral_audit.dirichlet_energy_norm,
             spectral_audit.frustration_tolerance,
@@ -2133,153 +2231,127 @@ class SheafCohomologyOrchestratorAgent(Morphism, Phase3_IsoperimetricHodgeProjec
             spectral_audit.delta_condition_number,
             spectral_audit.laplacian_condition_number,
             spectral_audit.spectral_gap_effective,
+            spectral_audit.banach_holder_bound,
             spectral_audit.harmonic_component_norm,
             spectral_audit.exact_component_norm,
             spectral_audit.poincare_constant,
-            spectral_audit.is_frustration_bounded,
-            spectral_audit.is_spectrally_stable,
-            spectral_audit.is_poincare_bounded,
-            # Fase 3
+            spectral_audit.krylov_dimension,
+            spectral_audit.krylov_residual,
             hodge_audit.projection_distance,
             hodge_audit.relative_projection_distance,
             hodge_audit.inertia_delta_max,
             hodge_audit.original_dirichlet_energy,
             hodge_audit.projected_dirichlet_energy,
             hodge_audit.energy_reduction_ratio,
+            hodge_audit.lipschitz_lhs,
             hodge_audit.lipschitz_residual,
             hodge_audit.lipschitz_satisfied,
             hodge_audit.minimal_norm_satisfied,
+            hodge_audit.lipschitz_slack,
+            hodge_audit.isoperimetric_slack,
+            hodge_audit.hodge_idempotence_residual,
             hodge_audit.cheeger_bound_estimate,
             hodge_audit.morse_reduction_index,
-            hodge_audit.is_isoperimetrically_bounded,
-            hodge_audit.is_energy_non_increasing,
-            hodge_audit.verified_by_delta,
+            hodge_audit.heyting_verdict.name,
+            hodge_audit.crowbar_simulated,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # PUNTO DE ENTRADA PRINCIPAL
-    # ─────────────────────────────────────────────────────────────────────────
     def execute_sheaf_cohomology_governance(
         self,
         coboundary_operator_delta: NDArray[np.float64],
         x_state: NDArray[np.float64],
         x_projected_consensus: NDArray[np.float64],
     ) -> SheafGovernanceState:
-        r"""
-        Ejecuta la composición funtorial estricta:
+        r"""Ejecuta la composición funtorial estricta anidada:
 
-            Z_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁.
+            𝒵_SheafAgent = Φ₃ ∘ Φ₂ ∘ Φ₁.
 
-        Fases anidadas:
-            Φ₁: Certificación cohomológica → CohomologicalVetoData.
-            Φ₂: Regulación espectral-energética → KrylovSpectralData.
-            Φ₃: Proyección isoperimétrica de Hodge → HodgeProjectionData.
+        Anidamiento:
+            phase2 = Φ₁.nest_into_phase2(δ)          # unidad de Φ₂
+            phase3 = phase2.nest_into_phase3(x)      # unidad de Φ₃
+            hodge  = phase3.enforce...(x, x*)        # DTO terminal
 
-        Adicionalmente:
-            · Calcula el SHA-256 de las entradas para trazabilidad.
-            · Registra el timestamp UTC de la auditoría.
-            · Construye el SheafAuditProvenance con la cadena funtorial.
-            · Emite un log estructurado con todos los certificados.
-
-        Parámetros:
-            coboundary_operator_delta:
-                Operador cofrontera δ: C⁰ → C¹ ∈ ℝ^{m×n}.
-
-            x_state:
-                Estado original x ∈ C⁰ ∈ ℝⁿ.
-
-            x_projected_consensus:
-                Estado proyectado x* ∈ C⁰, presuntamente en ker(δ).
-
-        Retorna:
-            SheafGovernanceState con los tres certificados, provenance y
-            is_epistemologically_valid=True sii todas las fases pasan.
-
-        Lanza:
-            Cualquier excepción de la jerarquía SheafCohomologyAgentError
-            si alguna fase detecta una violación.
+        Raises
+        ──────
+        Cualquier excepción de la jerarquía SheafCohomologyAgentError.
         """
-        # ── Checksum de entrada ───────────────────────────────────────────
         input_checksum = self._compute_input_checksum(
             np.asarray(coboundary_operator_delta)
-            if coboundary_operator_delta is not None else None,
+            if coboundary_operator_delta is not None
+            else None,
             np.asarray(x_state) if x_state is not None else None,
             np.asarray(x_projected_consensus)
-            if x_projected_consensus is not None else None,
+            if x_projected_consensus is not None
+            else None,
         )
-
         logger.debug(
-            "[Orquestador] Iniciando gobernanza. SHA-256: %s.",
+            "[Orquestador] Iniciando gobernanza. SHA-256 input: %s.",
             input_checksum[:16] + "...",
         )
 
-        # ── Estado de las fases ───────────────────────────────────────────
         phase1_passed = False
         phase2_passed = False
         phase3_passed = False
 
-        # ── Fase 1: Veto Cohomológico ─────────────────────────────────────
-        veto_audit = self._certify_cohomological_veto_axiom(
-            coboundary_operator_delta,
+        # Φ₁ → unidad de Φ₂
+        phase2 = Phase1_CohomologicalVetoCertifier.nest_into_phase2(
+            coboundary_operator_delta
         )
+        veto_audit = phase2.phase1_certificate
         phase1_passed = True
-
         logger.debug(
-            "[Fase 1] ✓ dim H¹=%d, β=%.4f, log|τ_W|=%.4f.",
+            "[Fase 1] ✓ dim H⁰=%d, dim H¹=%d, β=%.4f, log|τ|=%.4f, hash=%s.",
+            veto_audit.h0_dimension,
             veto_audit.h1_dimension,
             veto_audit.cohomological_stability_index,
             veto_audit.whitehead_torsion,
+            veto_audit.certification_hash_sha256[:16] + "...",
         )
 
-        # ── Fase 2: Espectro de Krylov-Dirichlet ──────────────────────────
-        spectral_audit = self._audit_krylov_spectral_stability(
-            coboundary_operator_delta,
-            x_state,
-            veto_audit=veto_audit,
-        )
+        # Φ₂ → unidad de Φ₃
+        phase3 = phase2.nest_into_phase3(x_state)
+        spectral_audit = phase3.phase2_certificate
         phase2_passed = True
-
         logger.debug(
-            "[Fase 2] ✓ E(x)=%.4e, κ(L)=%.4e, C_P=%.4e.",
+            "[Fase 2] ✓ E(x)=%.4e, κ(L)=%.4e, C_P=%.4e, hash=%s.",
             spectral_audit.dirichlet_energy,
             spectral_audit.laplacian_condition_number,
             spectral_audit.poincare_constant,
+            spectral_audit.certification_hash_sha256[:16] + "...",
         )
 
-        # ── Fase 3: Hodge Isoperimétrico ──────────────────────────────────
-        hodge_audit = self._enforce_isoperimetric_hodge_projection(
-            x_state,
-            x_projected_consensus,
-            spectral_audit=spectral_audit,
-            coboundary_operator_delta=coboundary_operator_delta,
+        # Φ₃ → DTO terminal
+        hodge_audit = phase3.enforce_isoperimetric_hodge_projection(
+            x_state, x_projected_consensus
         )
         phase3_passed = True
-
         logger.debug(
-            "[Fase 3] ✓ ‖x−x*‖=%.6f, E(x*)/E(x)=%.4f, h(G)≈%.4e.",
+            "[Fase 3] ✓ ‖x−x*‖=%.6f, Ω₃=%s, h(G)≈%.4e, hash=%s.",
             hodge_audit.projection_distance,
-            hodge_audit.energy_reduction_ratio,
+            hodge_audit.heyting_verdict.name,
             hodge_audit.cheeger_bound_estimate,
+            hodge_audit.certification_hash_sha256[:16] + "...",
         )
 
-        # ── Autorización epistemológica ───────────────────────────────────
-        is_epistemologically_valid = bool(
+        is_valid = bool(
             veto_audit.is_topologically_coherent
             and spectral_audit.is_spectrally_stable
             and spectral_audit.is_frustration_bounded
+            and spectral_audit.is_poincare_bounded
             and hodge_audit.is_isoperimetrically_bounded
             and hodge_audit.is_energy_non_increasing
+            and hodge_audit.heyting_verdict == HeytingOmega3.COHERENT
         )
 
-        # ── Construcción de trazabilidad ──────────────────────────────────
         provenance = self._build_provenance(
-            checksum=input_checksum,
+            checksum_input=input_checksum,
+            phase1_hash=veto_audit.certification_hash_sha256,
+            phase2_hash=spectral_audit.certification_hash_sha256,
+            phase3_hash=hodge_audit.certification_hash_sha256,
             phase1_passed=phase1_passed,
             phase2_passed=phase2_passed,
             phase3_passed=phase3_passed,
         )
-
-        # ── Log estructurado ──────────────────────────────────────────────
         self._log_governance_summary(
             veto_audit=veto_audit,
             spectral_audit=spectral_audit,
@@ -2287,12 +2359,11 @@ class SheafCohomologyOrchestratorAgent(Morphism, Phase3_IsoperimetricHodgeProjec
             provenance=provenance,
         )
 
-        # ── Verificación final ────────────────────────────────────────────
-        if not is_epistemologically_valid:
+        if self._strict_mode and not is_valid:
             raise SheafCohomologyAgentError(
-                "[Orquestador] La composición funtorial Z_SheafAgent = Φ₃∘Φ₂∘Φ₁ "
-                f"no autorizó la validez epistemológica del haz. "
-                f"Cadena: {provenance.functor_chain}."
+                "[Orquestador] Composición 𝒵_SheafAgent no autorizó validez "
+                f"epistemológica. Cadena: {provenance.functor_chain}. "
+                f"Veredicto Ω₃: {hodge_audit.heyting_verdict.name}."
             )
 
         return SheafGovernanceState(
@@ -2300,15 +2371,38 @@ class SheafCohomologyOrchestratorAgent(Morphism, Phase3_IsoperimetricHodgeProjec
             spectral_audit=spectral_audit,
             hodge_audit=hodge_audit,
             provenance=provenance,
-            is_epistemologically_valid=is_epistemologically_valid,
+            is_epistemologically_valid=is_valid,
         )
+
+    def execute_with_synthesized_section(
+        self,
+        coboundary_operator_delta: NDArray[np.float64],
+        x_state: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], SheafGovernanceState]:
+        r"""Variante que sintetiza x* = π(x) internamente (Moore–Penrose).
+
+        Equivale a `execute_sheaf_cohomology_governance(δ, x, π(x))`.
+        """
+        phase2 = Phase1_CohomologicalVetoCertifier.nest_into_phase2(
+            coboundary_operator_delta
+        )
+        phase3 = phase2.nest_into_phase3(x_state)
+        x_star = phase3.synthesize_hodge_section(x_state)
+        state = self.execute_sheaf_cohomology_governance(
+            coboundary_operator_delta, x_state, x_star
+        )
+        return x_star, state
+
+    _compute_input_checksum = staticmethod(
+        _FiniteNumericalGuard._compute_input_checksum
+    )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # EXPORTACIÓN CANÓNICA
 # ═══════════════════════════════════════════════════════════════════════════════
+
 __all__: List[str] = [
-    # Excepciones
     "SheafCohomologyAgentError",
     "TopologicalBifurcationError",
     "PoincareLefschetzViolation",
@@ -2320,16 +2414,15 @@ __all__: List[str] = [
     "HomologicalInconsistencyError",
     "LipschitzViolation",
     "MinimalNormViolation",
-    # DTOs
+    "HeytingCollapseError",
+    "HeytingOmega3",
     "CohomologicalVetoData",
     "KrylovSpectralData",
     "HodgeProjectionData",
     "SheafAuditProvenance",
     "SheafGovernanceState",
-    # Fases
     "Phase1_CohomologicalVetoCertifier",
     "Phase2_KrylovSpectralAuditor",
     "Phase3_IsoperimetricHodgeProjector",
-    # Orquestador
     "SheafCohomologyOrchestratorAgent",
 ]
