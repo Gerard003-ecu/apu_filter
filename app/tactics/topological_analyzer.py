@@ -8,7 +8,7 @@ r"""
 
 NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO TACTICS (V_𝕋) ───
 Este módulo materializa al Operador de Observabilidad Funtorial y motor de
-Análisis Topológico de Datos (TDA) de la Malla Agéntica [1]. Formaliza el análisis
+Análisis Topológico de Datos (TDA) de la Malla Agéntica. Formaliza el análisis
 de consistencia estructural de los flujos de información del sistema mediante la
 construcción de un funtor covariante estricto:
 
