@@ -1,14 +1,15 @@
+
 # -*- coding: utf-8 -*-
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║  Módulo : Financial Engine (Oráculo Estocástico y Funtor de Medida Financiera)           ║
 ║  Ruta   : app/strategy/financial_engine.py                                               ║
-║  Versión: 5.0.0-Stochastic-Thermodynamic-Measure-Strict                                  ║
+║  Versión: 4.0.0-Stochastic-Thermodynamic-Measure-Strict                                  ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
 ║  NATURALEZA CIBER-FÍSICA Y CÁLCULO ESTOCÁSTICO (Rigor Doctoral):                         ║
 ║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor opera en el Estrato STRATEGY (Nivel 1). Aniquila el paradigma           ║
+║  Este endofuntor opera en el Estrato STRATEGY (Nivel 1). Metaboliza el paradigma         ║
 ║  ingenuo de la contabilidad determinista estática, elevando el presupuesto de obra a     ║
 ║  un ensamble microcanónico dentro de un Espacio de Fase continuo. Transforma las         ║
 ║  magnitudes escalares fijas en variables estocásticas, sometiendo el proyecto a la       ║
