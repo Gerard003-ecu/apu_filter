@@ -6,44 +6,36 @@ r"""
 ║ Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA
-──────────
-Morfismo categórico φ : (intención táctica × PoincareEngineSeed) → InterconnectionState
-que **no reescribe** el foso `flux_condenser.py`. Habla el contrato 7.1:
+MARCO MATEMÁTICO Y TEÓRICO RIGUROSO DE INTERCONEXIÓN DE DIRAC
+─────────────────────────────────────────────────────────────
+1. Estructuras de Dirac y Subespacios de Interconexión:
+   Dado el espacio de estados $x \in \mathcal{M} \cong \mathbb{R}^n$, con esfuerzos $e \in E = T^*\mathcal{M}$ y flujos $f \in F = T\mathcal{M}$, se define la estructura de Dirac $\mathcal{D} \subset F \times E$ maximofóbica e isótropa respecto a la forma bilineal simétrica acoplada $\langle (f_1, e_1), (f_2, e_2) \rangle_+ = \langle e_1, f_2 \rangle + \langle e_2, f_1 \rangle$.
+   En la formulación Port-Hamiltoniana, la dinámica satisface $\dot{x} = (J - R)\nabla H(x) + g u$ y $y = g^{\top} \nabla H(x)$, donde $J \in \mathfrak{so}(n)$ y $R \in \operatorname{Sym}^+(n)$.
 
-    PHS:     ẋ = (J−R)∇H + g u,   y = gᵀ ∇H,   H = ½ xᵀ K x
-    Hodge:   D = ε ★₁ E,  H = μ⁻¹ ★₂ B,  δ₂ = ★₁⁻¹ ∂₂ ★₂     (inmutable)
-    Casimir: Cᵀ g = 0;  no regular δD ni armónicos
-    Control: u = seed.control_input  (aplicado, post-músculo)
-    Energía: Lyapunov = H_em;  E = H_em + T S  (1ª ley, no almacenamiento)
-    Paso:    punto medio implícito (gradiente discreto); Yee aparte
+2. Fases Anidadas de la Aduana Causal:
+   • Fase $\phi_1$ (Matching y Power-Shaping):
+     Resuelve el problema de alineación algebraica $(J_d - R_d)\nabla H_d = (J - R)\nabla H + g \alpha$.
+     Construye la terminación de puerto $u = -K y + u_{\text{ff}}$ manteniendo inmunidad sobre los invariantes de Casimir $C^{\top} g = 0$.
+     Último método de $\phi_1$: `Phase1_IDAPBC_PoincareSolver.compute_port_termination(...) -> PortTermination`.
 
-Tres fases anidadas
-───────────────────
-φ₁  Matching / power-shaping sobre el PHS de la semilla.
-    α ∈ ℝᵐ es el esfuerzo de puerto, no una impedancia de onda.
-    Último método: compute_port_termination(...) → PortTermination.
+   • Fase $\phi_2$ (Dispersión de Puerto y Geometría Adaptativa):
+     Calcula la matriz de dispersión (scattering) $\Gamma = (K - Z_0^{-1})(K + Z_0^{-1})^{-1}$ respecto de la impedancia característica física $Z_0 = \sqrt{\mu/\varepsilon}$ sin alterar los operadores de Hodge $\star_k$.
+     Determina la velocidad de onda del medio $c = \frac{1}{\sqrt{\varepsilon \mu}}$.
+     Último método de $\phi_2$: `Phase2_PortScattering.compute_causal_speed(...) -> CausalSpeed`.
 
-φ₂  Scattering de la terminación respecto de Z₀ *física* (ε,μ de la semilla).
-    No retoca ★. Maupertuis solo si se aporta escisión T+V explícita.
-    Último método: compute_causal_speed(...) → CausalSpeed.
+   • Fase $\phi_3$ (Gobernanza Causal y Cono de Estabilidad Spectal):
+     Evalúa el paso de integración seguro $\Delta t$ garantizando estabilidad según la norma logarítmica $\mu_2(A) = \lambda_{\max}\left(\frac{A + A^{\top}}{2}\right)$ para el integrador de punto medio implícito, o la condición CFL $\Delta t < \frac{2}{c \sqrt{\rho(\Delta_1)}}$ en reticulados Yee.
+     Último método de $\phi_3$: `Phase3_CFLGovernor.synthesize_interconnection_state(...) -> InterconnectionState`.
 
-φ₃  Cono causal: μ₂(A) (punto medio) y, si hay Δ₁ DEC, CFL de Yee.
-    Último método: synthesize_interconnection_state(...) → InterconnectionState.
-
-Invariantes (I1..I8) — semántica 7.1
-────────────────────────────────────
-I1 Dirac:      J, J_d ∈ 𝔰𝔬(n).
-I2 Rayleigh:   R, R_d ∈ Sym⁺(n).
-I3 Lyapunov:   Ḣ_d = −∇H_dᵀ R_d ∇H_d + ∇H_dᵀ (f_d − gα)
-               (el residuo de matching *entra* en el balance).
-I4 Herglotz:   solo si se provee χ(ω); tensores estáticos ⇒ N/A, no tautología.
-I5 CFL:        Yee: Δt < 2 / (c √ρ(Δ₁));  midpoint: A-estable si μ₂(A)≤0.
-I6 Equilibrio: ∇H_d(x*) = 0  (asignable),  *no* ∇H_d = ∇H.
-I7 La Salle:   asintótica módulo ker J  (Casimirs).
-I8 Jacobi:     f_M = 2(E−V) solo con T+V; jamás escala c.
-
-Veto: veredicto VETOED + excepción tipada + crowbar (u=0, dt→dt_min, R_inj máx).
+3. Invariantes de Control y Preservación Geométrico-Topológica (I1-I8):
+   I1 (Dirac): $J, J_d \in \mathfrak{so}(n)$.
+   I2 (Rayleigh): $R, R_d \in \operatorname{Sym}^+(n)$.
+   I3 (Lyapunov): $\dot{H}_d = -\nabla H_d^{\top} R_d \nabla H_d + \nabla H_d^{\top} (f_d - g \alpha) \le 0$.
+   I4 (Herglotz): Consistencia disipativa para tensores de terminación dinámica.
+   I5 (CFL / Transitorio): A-estabilidad con acotamiento de la norma logarítmica transitoria $\mu_2(A)$.
+   I6 (Asignabilidad de Equilibrio): $\nabla H_d(x^*) = 0$.
+   I7 (La Salle): Estabilidad asintótica módulo la variedad de Casimirs $\ker J$.
+   I8 (Jacobi-Maupertuis): Métrica conforme de Jacobi aplicable exclusivamente bajo descomposición canónica $T + V$.
 """
 from __future__ import annotations
 
