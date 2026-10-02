@@ -6140,19 +6140,3 @@ class DataFluxCondenser:
         }
         return self.physics.unified_snapshot(metadata=metadata, dt_audit=self._physics_dt)
 
-
-# ═══════════════════════════════════════════════════════════════════════════════════════
-# FIN FASE 3 — PIPELINE 7.1 CERRADO
-# ═══════════════════════════════════════════════════════════════════════════════════════
-#
-# DataFluxCondenser.synthesize_final_unified_state() cierra el contrato:
-#
-#   1. control_applied = u de Fase 2 (no PI de lotes, no músculo reaplicado).
-#   2. Integrador PHS = punto medio implícito; RLC standalone usa Hosea–Shampine
-#      si se pide tr_bdf2. RK4 no se declara estructura-preservante.
-#   3. Lyapunov = H_em;  E = H_em + T S es 1ª ley, no almacenamiento.
-#   4. Clausius discreto auditado (residual, σ). Shannon de lotes va en info_*.
-#   5. Atlas explícito: no se lee [D,B] como [Q,λ].
-#   6. Maxwell solo si se inyecta el lattice de Fase 1; nunca K₆.
-#   7. Casimirs intocables; schema_version 7.1.0; Hodge inmutable.
-#
