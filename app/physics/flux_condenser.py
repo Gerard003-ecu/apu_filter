@@ -1,489 +1,2953 @@
 # -*- coding: utf-8 -*-
-r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Data Flux Condenser (Motor de Dinámica de Campos y Control Port-Hamiltoniano)  ║
-║  Ruta   : app/physics/flux_condenser.py                                                  ║
-║  Versión: 5.0.0-Lattice-QED-PortHamiltonian-Strict                                       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y ELECTRODINÁMICA CUÁNTICA (Rigor Doctoral):                    ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo se consagra como el Corazón Hemodinámico del ecosistema APU Filter.         ║
-║  Repudia categóricamente los obsoletos modelos estocásticos de colas para transmutar el  ║
-║  tráfico de información en un fluido incompresible regido por un campo electromagnético  ║
-║  sobre un complejo simplicial. Estabiliza el tensor de ingesta resolviendo Ecuaciones    ║
-║  Diferenciales Parciales (PDEs) en un espacio métrico riguroso.                          ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Dinámica Port-Hamiltoniana y Disipación de Rayleigh:                                ║
-║      El sistema restringe la evolución de la red de datos exigiendo que el gradiente     ║
-║      del Hamiltoniano $H(q, p)$ obedezca la inecuación de disipación estricta            ║
-║      (Segunda Ley de la Termodinámica):                                                  ║
-║          $\dot{H} = \nabla H^\top (J - R) \nabla H \le 0 \implies P_{\mathrm{diss}} \ge 0$ ║
-║      Cualquier inyección de datos (throughput) que resulte en disipación negativa        ║
-║      revela una anomalía termodinámica y detona un Veto Físico Absoluto.                 ║
-║                                                                                          ║
-║  §2. Cálculo Exterior Discreto (DEC) y Solucionador de Maxwell:                          ║
-║      Las oscilaciones del flujo logístico se integran mediante un esquema FDTD           ║
-║      (Leap-Frog) provisto de Capas Perfectamente Adaptadas (PML). Las variables de la    ║
-║      red computacional se proyectan isomórficamente sobre un circuito RLC de segundo     ║
-║      orden emulado en hardware periférico (MOSFET IRLZ44N y condensadores de 1F):        ║
-║          $L \frac{d^2q}{dt^2} + R_{\mathrm{ESR}} \frac{dq}{dt} + \frac{1}{C}q = V_{\mathrm{in}}$ ║
-║                                                                                          ║
-║  §3. Control LTI, Anti-Windup y Exponente de Lyapunov:                                   ║
-║      La modulación del flujo se rige por un Controlador PI con mitigación de saturación  ║
-║      integral (Back-Calculation). La estabilidad asintótica se audita estimando en       ║
-║      tiempo real el exponente de Lyapunov máximo $\lambda$:                              ║
-║          $|e(k)| \approx |e(0)| \cdot \exp(\lambda k)$                                   ║
-║      Si $\lambda > 0$, las trayectorias divergen (Caos Determinista); el sistema         ║
-║      acciona un "Crowbar" Físico (freno de emergencia) que aborta incondicionalmente la  ║
-║      ingesta, protegiendo el entorno térmico del hipervisor.                             ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Estricta de Especialistas):                 ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → DiscreteVectorCalculus & MaxwellSolver:                                        ║
-║           Mapeo topológico y resolución de campos electromagnéticos acoplados en el      ║
-║           dominio discreto (1-esqueleto del grafo de dependencias).                      ║
-║                                                                                          ║
-║  Fase 2 → PIController & FluxMuscleController:                                           ║
-║           Lazo de control termodinámico que computa el ciclo de trabajo (PWM) del        ║
-║           músculo virtual, limitando la tasa de cambio (Slew Rate) para prevenir         ║
-║           golpes inerciales (flyback voltage destructivo).                               ║
-║                                                                                          ║
-║  Fase 3 → RefinedFluxPhysicsEngine (DataFluxCondenser):                                  ║
-║           Orquestador supremo que integra los tensores de los dominios magnético,        ║
-║           térmico y mecánico para consolidar el UnifiedPhysicalState.                    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
 """
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Data Flux Condenser — Poincaré Port-Hamiltonian Lattice QED Strict              ║
+║ Ruta   : app/physics/flux_condenser.py                                                   ║
+║ Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                                 ║
+╠══════════════════════════════════════════════════════════════════════════════════════════╣
+║ FASE 1/3 — FUNDAMENTOS AXIOMÁTICOS, NÚCLEO POINCARÉ, DEC Y MAXWELL FDTD                  ║
+║                                                                                          ║
+║ Convenciones (inmutables en 7.1):                                                        ║
+║   PHS:  ẋ = [J(x)-R(x)] ∇H(x) + g(x) u,   y = gᵀ(x) ∇H(x)                                ║
+║   H    : ½ xᵀ K x,  K=Kᵀ ≻ 0,  J=-Jᵀ,  R=Rᵀ ⪰ 0                                          ║
+║   DEC  : dₖ = ∂ₖ₊₁ᵀ,  δₖ = ★ₖ₋₁⁻¹ dₖ₋₁ᵀ ★ₖ,  Δₖ = δd+dδ ⪰ 0 (conv. grafo/Hodge⁺)            ║
+║   Maxwell 2D (TE⊥): E ∈ C¹ (circulaciones), B ∈ C² (flujos)                              ║
+║           ∂ₜB = -d₁E - σₘ H + Jₘ,   ∂ₜD = δ₂H - σₑ E - Jₑ                                 ║
+║           D = ε ★₁ E,  H = μ⁻¹ ★₂ B,  U = ½(Eᵀ D + Hᵀ B)                                 ║
+║   Casimir lineal: J c = 0 ⇒ C(x)=cᵀx invariante ssi además cᵀ R ∇H = 0.                  ║
+║   Espectro: A=(J-R)K no-normal; estabilidad por μ₂(A) y Re σ(A) módulo ker J.            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
+"""
+from __future__ import annotations
 
 import logging
 import math
-import time
-from collections import deque
-from dataclasses import asdict, dataclass
-from pathlib import Path
-from typing import Any, Callable, Dict, List, NamedTuple, Optional, Set, Tuple, Union
 import warnings
+from collections import OrderedDict, deque
+from dataclasses import dataclass, field
+from typing import (
+    Any,
+    Callable,
+    Dict,
+    List,
+    Optional,
+    Sequence,
+    Set,
+    Tuple,
+    Union,
+)
+
+import numpy as np
 
 try:
-    import numpy as np
-except ImportError:
-    np = None
-
-import pandas as pd
-import scipy.signal
-from scipy.linalg import lstsq
-import networkx as nx
+    import networkx as nx
+except ImportError:  # pragma: no cover
+    nx = None
 
 try:
     from scipy import sparse
-    from scipy.sparse import bmat, csr_matrix, diags
-    from scipy.sparse.linalg import spsolve, lsqr, eigsh, norm as sparse_norm
-    from scipy.special import digamma
+    from scipy.sparse import csr_matrix, diags
+    from scipy.sparse.linalg import eigs, eigsh, spsolve
+    from scipy.linalg import det, expm, logm, schur
     SCIPY_AVAILABLE = True
-except ImportError:
-    SCIPY_AVAILABLE = False
+except ImportError:  # pragma: no cover
     sparse = None
-
-try:
-    from numpy.linalg import LinAlgError
-except ImportError:
-    LinAlgError = Exception
-
-from app.tactics.apu_processor import (
-    APUProcessor,
-    FileValidator,
-    InsumosProcessor,
-    PresupuestoProcessor,
-    ProcessingThresholds,
-)
-from app.adapters.report_parser_crudo import ReportParserCrudo
-from app.core.telemetry import TelemetryContext
-from app.physics.laplace_oracle import LaplaceOracle, ConfigurationError as OracleConfigurationError
+    csr_matrix = None
+    diags = None
+    eigs = None
+    eigsh = None
+    spsolve = None
+    det = None
+    expm = None
+    logm = None
+    schur = None
+    SCIPY_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
+ArrayLike = Union[float, Sequence[float], np.ndarray]
 
-# ============================================================================
-# CONSTANTES DEL SISTEMA
-# ============================================================================
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 1.1 — AXIOMAS, EXCEPCIONES Y CONSTANTES
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class DataFluxCondenserError(Exception):
+    """Clase base para todas las excepciones del condensador de flujo."""
+
+
+class InvalidInputError(DataFluxCondenserError):
+    """Entrada inválida o archivo no conforme."""
+
+
+class ProcessingError(DataFluxCondenserError):
+    """Error durante una etapa de procesamiento."""
+
+
+class ConfigurationError(DataFluxCondenserError):
+    """Configuración física, numérica o topológica inválida."""
+
+
+class NumericalInstabilityError(DataFluxCondenserError):
+    """Inestabilidad numérica detectada en integración o campos."""
+
+
+class SymplecticStructureError(DataFluxCondenserError):
+    """Violación de la estructura simpléctica/Poisson."""
+
+
+class LiouvilleViolationError(DataFluxCondenserError):
+    """Violación de conservación de volumen de Liouville."""
+
+
+class PoincareRecurrenceError(DataFluxCondenserError):
+    """Recurrencia de Poincaré incompatible con el régimen disipativo."""
+
+
+class HodgeStructureError(DataFluxCondenserError):
+    """Violación de dualidad de Hodge, positividad de ★ o Δ ⪰ 0."""
+
+
+class ChainComplexError(DataFluxCondenserError):
+    """Fallo del axioma ∂∘∂ = 0 / d∘d = 0."""
+
+
 @dataclass(frozen=True)
 class SystemConstants:
     """
-    Constantes del sistema con validación de coherencia inter-parámetros.
+    Constantes inmutables con jerarquía de tolerancias y cotas espectrales.
 
-    Usa frozen dataclass para inmutabilidad y validación en post_init.
+    Jerarquía: NUMERICAL_ZERO < NUMERICAL_TOLERANCE < RELATIVE_TOLERANCE
+               < SYMPLECTIC_TOLERANCE ≤ LIOUVILLE_DRIFT_LIMIT.
+    El log-norm y el CFL espectral viven en una escala distinta (O(1) del generador).
     """
 
-    # Límites de tiempo
-    MIN_DELTA_TIME: float = 1e-6  # Micro-segundos para alta frecuencia
+    MIN_DELTA_TIME: float = 1e-6
     MAX_DELTA_TIME: float = 3600.0
     PROCESSING_TIMEOUT: float = 3600.0
 
-    # Límites físicos (coherentes con SI)
-    MIN_ENERGY_THRESHOLD: float = 1e-12  # ~kT a temperatura ambiente
-    MAX_EXPONENTIAL_ARG: float = 709.0  # log(DBL_MAX) ≈ 709
+    MIN_ENERGY_THRESHOLD: float = 1e-12
+    MAX_EXPONENTIAL_ARG: float = 709.0  # log(max float64) ~ 709.78
     MAX_WATER_HAMMER_PRESSURE: float = 10.0
-    MAX_FLYBACK_VOLTAGE: float = MAX_WATER_HAMMER_PRESSURE  # Alias de compatibilidad
+    MAX_FLYBACK_VOLTAGE: float = 10.0
 
-    # Tolerancias numéricas (jerarquía coherente)
     NUMERICAL_ZERO: float = 1e-15
     NUMERICAL_TOLERANCE: float = 1e-12
     RELATIVE_TOLERANCE: float = 1e-9
 
-    # Control PID
+    SYMPLECTIC_TOLERANCE: float = 1e-10
+    LIOUVILLE_DRIFT_LIMIT: float = 1e-8
+    POINCARE_SECTION_EPSILON: float = 1e-8
+    CASIMIR_TOLERANCE: float = 1e-10
+    STABILITY_MARGIN: float = 1e-9
+    HODGE_EIGEN_TOLERANCE: float = 1e-8
+    WELL_CENTERED_TOLERANCE: float = 1e-12
+    MAX_POINCARE_STATE_DIM: int = 512
+    MAX_DENSE_SPECTRAL_DIM: int = 512
+    MAX_DENSE_BETTI_DIM: int = 1024
+    MAX_STATE_NORM: float = 1e150
+    MAX_CONDITION_NUMBER: float = 1e12
+    MAX_TRANSITION_CACHE: int = 64
+    MAX_LAPLACIAN_CACHE: int = 8
+    MAX_COEFF_CACHE: int = 32
+    PADE_TAYLOR_TERMS: int = 18
+    STRANG_MIN_DIM_FOR_SPLIT: int = 1
+
     LOW_INERTIA_THRESHOLD: float = 0.1
     HIGH_PRESSURE_RATIO: float = 1000.0
     HIGH_FLYBACK_THRESHOLD: float = 0.5
     OVERHEAT_POWER_THRESHOLD: float = 50.0
-
-    # Control de flujo
     EMERGENCY_BRAKE_FACTOR: float = 0.5
+
     MAX_ITERATIONS_MULTIPLIER: int = 10
     MIN_BATCH_SIZE_FLOOR: int = 1
+    MIN_RECORDS_FOR_PID: int = 10
+    MAX_RECORDS_LIMIT: int = 10_000_000
+    MAX_CACHE_SIZE: int = 100_000
+    MAX_BATCHES_TO_CONSOLIDATE: int = 10_000
 
-    # Validación de archivos
     VALID_FILE_EXTENSIONS: frozenset = frozenset({".csv", ".txt", ".tsv", ".dat"})
     MAX_FILE_SIZE_MB: float = 500.0
     MIN_FILE_SIZE_BYTES: int = 10
 
-    # Resistencia dinámica
-    COMPLEXITY_RESISTANCE_FACTOR: float = 5.0
+    CFL_SAFETY_FACTOR: float = 0.5
+    ENERGY_BLOWUP_RATIO: float = 10.0
+    ENERGY_WINDOW: int = 32
+    MAX_GRAPH_NODES_CLIQUE: int = 256
+    HODGE_KERNEL_MAX_K: int = 32
 
-    # Límites de registros
-    MAX_RECORDS_LIMIT: int = 10_000_000
-    MIN_RECORDS_FOR_PID: int = 10
-    MAX_CACHE_SIZE: int = 100_000
-    MAX_BATCHES_TO_CONSOLIDATE: int = 10_000
-
-    # Estabilidad Giroscópica
-    GYRO_SENSITIVITY: float = 5.0
-    GYRO_EMA_ALPHA: float = 0.1
-
-    # CFL y estabilidad numérica
-    CFL_SAFETY_FACTOR: float = 0.5  # Courant number < 1 para estabilidad
-
-    def __post_init__(self):
-        """Valida coherencia entre constantes relacionadas."""
-        assert self.MIN_DELTA_TIME < self.MAX_DELTA_TIME, \
-            "MIN_DELTA_TIME debe ser menor que MAX_DELTA_TIME"
-        assert self.NUMERICAL_ZERO < self.NUMERICAL_TOLERANCE < self.RELATIVE_TOLERANCE, \
-            "Jerarquía de tolerancias incoherente"
-        assert 0 < self.CFL_SAFETY_FACTOR < 1, \
-            "Factor CFL debe estar en (0, 1) para estabilidad"
+    def __post_init__(self) -> None:
+        if self.MIN_DELTA_TIME >= self.MAX_DELTA_TIME:
+            raise ConfigurationError("MIN_DELTA_TIME debe ser menor que MAX_DELTA_TIME.")
+        if not (self.NUMERICAL_ZERO < self.NUMERICAL_TOLERANCE < self.RELATIVE_TOLERANCE):
+            raise ConfigurationError("Jerarquía de tolerancias incoherente.")
+        if not (0.0 < self.CFL_SAFETY_FACTOR < 1.0):
+            raise ConfigurationError("CFL_SAFETY_FACTOR debe estar en (0, 1).")
+        if self.SYMPLECTIC_TOLERANCE <= 0.0 or self.LIOUVILLE_DRIFT_LIMIT <= 0.0:
+            raise ConfigurationError("Tolerancias simplécticas deben ser positivas.")
+        if self.CASIMIR_TOLERANCE <= 0.0:
+            raise ConfigurationError("CASIMIR_TOLERANCE debe ser positiva.")
+        if self.MAX_TRANSITION_CACHE < 1:
+            raise ConfigurationError("MAX_TRANSITION_CACHE debe ser ≥ 1.")
 
 
-# Instancia global inmutable
 CONSTANTS = SystemConstants()
 
 
-# ============================================================================
-# CLASES DE EXCEPCIONES
-# ============================================================================
-class DataFluxCondenserError(Exception):
-    """Clase base para todas las excepciones personalizadas del condensador."""
-
-    pass
+def _finite(name: str, value: float) -> float:
+    if not math.isfinite(value):
+        raise NumericalInstabilityError(f"{name} no es finito.")
+    return float(value)
 
 
-class InvalidInputError(DataFluxCondenserError):
-    """Indica un problema con los datos de entrada, como un archivo inválido."""
-
-    pass
+def _as_1d(x: ArrayLike, dtype: type = float) -> np.ndarray:
+    return np.asarray(x, dtype=dtype).reshape(-1)
 
 
-class ProcessingError(DataFluxCondenserError):
-    """Señala un error durante una de las etapas de procesamiento de datos."""
-
-    pass
-
-
-class ConfigurationError(DataFluxCondenserError):
-    """Indica un problema con la configuración del sistema."""
-
-    pass
-
-
-class NumericalInstabilityError(DataFluxCondenserError):
-    """Inestabilidad numérica detectada."""
-
-    pass
-
-
-# ============================================================================
-# ESTRUCTURAS DE DATOS
-# ============================================================================
-class ParsedData(NamedTuple):
-    """
-    Estructura de datos inmutable para los resultados del parseo inicial.
-
-    Agrupa la salida del `ReportParserCrudo` para asegurar que los datos
-    crudos y la caché de parseo se mantengan juntos a través del pipeline.
-
-    Attributes:
-        raw_records (List[Dict[str, Any]]): Lista de registros de insumos.
-        parse_cache (Dict[str, Any]): Metadatos generados durante el parseo.
-    """
-
-    raw_records: List[Dict[str, Any]]
-    parse_cache: Dict[str, Any]
+# ───────────────────────────────────────────────────────────────────────────────────────
+# Estructuras de auditoría
+# ───────────────────────────────────────────────────────────────────────────────────────
 
 
 @dataclass(frozen=True)
-class CondenserConfig:
+class SpectralAudit:
     """
-    Configuración inmutable y validada para el `DataFluxCondenser`.
+    Auditoría espectral de A = (J-R)K ∈ 𝔤𝔩(n).
 
-    Parámetros RLC calibrados para amortiguación crítica exacta (ζ=1)
-    ──────────────────────────────────────────────────
-    Condición de Butterworth orden 2:  R_c = 2·√(L/C)
+    A es no-normal en general: el radio espectral no controla el transitorio;
+    sí lo hace la norma logarítmica μ₂(A) = λ_max((A+Aᵀ)/2), que es la derivada
+    de Dini de ‖exp(tA)‖₂ en t=0⁺ (Lozinskiĭ–Dahlquist).
 
-        L = 0.5 H,  C = 1.0 F  ⟹  R_c = 2·(1/√2) = √2 ≈ 1.4142 Ω
-
-    Polinomio característico:  0.5s² + 1.4142s + 1.0 = 0
-    Discriminante:  Δ = R² - 4L/C = 2.0 - 2.0 = 0  (raíz doble real)
-    Polo dominante:  s = -R/(2L) = -√2 ≈ -1.4142 rad/s  (σ < 0 ✓)
-    Factor de amortiguación:  ζ = (R/2)·√(C/L) = (√2/2)·√2 = 1.0  ✓
-
-    Advertencia anterior:  Los valores C=5000, R=10, L=2 producían
-    ζ = 5·√2500 = 250 ("sumidero entrópico") y polo en -2.5 (DC puro).
+    is_asymptotically_stable_mod_casimir
+        True ssi max Re σ(A)|_{N} < -margin, donde N es un complemento de ker J
+        (más precisamente, autovalores con |λ| > CASIMIR_TOLERANCE).
     """
 
-    min_records_threshold: int = 1
-    enable_strict_validation: bool = True
-    log_level: str = "INFO"
+    eigenvalues: np.ndarray
+    max_real_part: float
+    spectral_radius: float
+    logarithmic_norm: float
+    numerical_abscissa: float
+    condition_metric: float
+    casimir_multiplicity: int
+    is_lyapunov_stable: bool
+    is_asymptotically_stable_mod_casimir: bool
+    is_normal: bool
+    departure_from_normality: float
 
-    # Configuración Física RLC — Amortiguación Crítica (ζ = 1.0 exacto)
-    # R_c = 2·√(L/C) = 2·√(0.5/1.0) = √2
-    system_capacitance: float = 1.0          # C [F]
-    base_resistance: float = 1.4142135623730951  # R = √2 [Ω], ζ=1 exacto
-    system_inductance: float = 0.5           # L [H]
-    max_voltage: float = 5.3
 
-    # Membrana P-Laplaciana (difusión no-lineal)
-    p_laplacian_exponent: float = 3.0        # p > 2: régimen viscoelastico
-    p_laplacian_epsilon: float = 1e-8        # ε de regularización Lipschitz
-    p_laplacian_G0: float = 1.0              # Conductancia de referencia G₀
+@dataclass(frozen=True)
+class BettiNumbers:
+    """Números de Betti del complejo (clique complex del grafo). χ = β₀ - β₁ + β₂."""
 
-    # Configuración Reserva Táctica (UPS)
-    brain_capacitance: float = 4.0
-    brain_brownout_threshold: float = 2.65
-
-    # Configuración PID
-    pid_setpoint: float = 0.30
-    pid_kp: float = 2000.0
-    pid_ki: float = 100.0
-    min_batch_size: int = 50
-    max_batch_size: int = 5000
-
-    # Configuración de recuperación
-    enable_partial_recovery: bool = False
-    max_failed_batches: int = 3
-
-    # Anti-windup
-    integral_limit_factor: float = 2.0
-
-    def __post_init__(self):
-        """Valida la configuración después de la inicialización."""
-        self._validate_configuration()
-
-    def _validate_configuration(self) -> None:
-        """Valida parámetros incluyendo coherencia de amortiguación crítica."""
-        errors = []
-
-        if self.min_records_threshold < 0:
-            errors.append(f"min_records_threshold inválido (debe ser >= 0), got {self.min_records_threshold}")
-
-        if not math.isfinite(self.system_capacitance) or self.system_capacitance <= 0:
-            errors.append(f"system_capacitance debe ser positivo y finito, got {self.system_capacitance}")
-
-        if not math.isfinite(self.system_inductance) or self.system_inductance <= 0:
-            errors.append(f"system_inductance debe ser positivo y finito, got {self.system_inductance}")
-
-        if not math.isfinite(self.base_resistance) or self.base_resistance < 0:
-            errors.append(f"base_resistance debe ser no-negativo y finito, got {self.base_resistance}")
-
-        if not math.isfinite(self.max_voltage) or self.max_voltage <= 0:
-            errors.append(f"max_voltage debe ser positivo y finito, got {self.max_voltage}")
-
-        if self.pid_kp < 0:
-            errors.append(f"pid_kp >= 0, got {self.pid_kp}")
-
-        if self.min_batch_size <= 0:
-            errors.append(f"min_batch_size must be > 0, got {self.min_batch_size}")
-
-        if self.min_batch_size > self.max_batch_size:
-            errors.append(
-                f"min_batch_size ({self.min_batch_size}) > max ({self.max_batch_size})"
-            )
-
-        if self.pid_setpoint <= 0.0 or self.pid_setpoint >= 1.0:
-            errors.append(f"pid_setpoint debe estar entre 0 y 1, got {self.pid_setpoint}")
-
-        # Validar parámetros P-Laplaciano
-        if self.p_laplacian_exponent <= 2.0:
-            errors.append(
-                f"p_laplacian_exponent debe ser > 2 para régimen viscoelastico, "
-                f"got {self.p_laplacian_exponent}"
-            )
-        if self.p_laplacian_epsilon <= 0:
-            errors.append(
-                f"p_laplacian_epsilon debe ser > 0 (regularización Lipschitz), "
-                f"got {self.p_laplacian_epsilon}"
-            )
-
-        if errors:
-            raise ConfigurationError(
-                "Errores de configuración:\n" + "\n".join(f"  - {e}" for e in errors)
-            )
+    beta_0: int
+    beta_1: int
+    beta_2: int
 
     @property
-    def damping_ratio(self) -> float:
-        """ζ = (R/2)·√(C/L). Debe ser ≈ 1.0 para amortiguación crítica."""
-        return (self.base_resistance / 2.0) * math.sqrt(
-            self.system_capacitance / self.system_inductance
+    def euler_poincare(self) -> int:
+        return int(self.beta_0 - self.beta_1 + self.beta_2)
+
+    def as_tuple(self) -> Tuple[int, int, int]:
+        return (self.beta_0, self.beta_1, self.beta_2)
+
+
+@dataclass(frozen=True)
+class FluxCondenserStepReport:
+    """Reporte de un paso Port-Hamiltoniano con auditoría de Poincaré-Liouville."""
+
+    hamiltonian_energy: float
+    volume_drift: float
+    rayleigh_dissipation_rate: float
+    is_liouville_preserved: bool
+    is_volume_contracting: bool
+    poisson_residual: float
+    trace_generator: float
+    state_dimension: int
+    casimir_dimension: int = 0
+    max_re_eigen_A: float = 0.0
+    spectral_radius_A: float = 0.0
+    logarithmic_norm_A: float = 0.0
+    is_lyapunov_stable: bool = False
+    is_asymptotically_stable_mod_casimir: bool = False
+    strang_poisson_residual: float = 0.0
+    casimir_drift: float = 0.0
+    integrator: str = "strang"
+
+
+@dataclass(eq=False)
+class PoincareControlSeed:
+    """
+    Semilla de control Poincaré-Port-Hamiltoniana (frontera Fase 1 → Fase 2).
+
+    Campos IDA-PBC:
+        J = J_d + J_a,  ambas antisimétricas;
+        R_d = R_dᵀ ⪰ 0  disipación deseada;
+        K_d métrica de H_d (energía deseada);
+        matching_residual  ‖(J_d-R_d)K_d - (J-R)K - g G‖  (0 si matching exacto).
+    """
+
+    state: np.ndarray
+    gradient: np.ndarray
+    hamiltonian: float
+    target_hamiltonian: float
+    lyapunov_candidate: float
+    interconnection_matrix: np.ndarray
+    damping_matrix: np.ndarray
+    metric_matrix: np.ndarray
+    port_matrix: np.ndarray
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    casimir_basis: Optional[np.ndarray] = None
+    spectral_data: Optional[Dict[str, Any]] = None
+    ida_pbc_decomposition: Optional[Dict[str, np.ndarray]] = None
+    lyapunov_jacobian: Optional[np.ndarray] = None
+    output_port: Optional[np.ndarray] = None
+    matching_residual: float = 0.0
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "state", np.asarray(self.state, dtype=float).copy())
+        object.__setattr__(self, "gradient", np.asarray(self.gradient, dtype=float).copy())
+        object.__setattr__(
+            self, "interconnection_matrix", np.asarray(self.interconnection_matrix, dtype=float).copy()
+        )
+        object.__setattr__(self, "damping_matrix", np.asarray(self.damping_matrix, dtype=float).copy())
+        object.__setattr__(self, "metric_matrix", np.asarray(self.metric_matrix, dtype=float).copy())
+        object.__setattr__(self, "port_matrix", np.asarray(self.port_matrix, dtype=float).copy())
+        if self.lyapunov_jacobian is not None:
+            object.__setattr__(
+                self, "lyapunov_jacobian", np.asarray(self.lyapunov_jacobian, dtype=float).copy()
+            )
+        if self.output_port is None:
+            y = self.port_matrix.T @ self.gradient
+            object.__setattr__(self, "output_port", y)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 1.2 — NÚCLEO POINCARÉ-PORT-HAMILTONIANO
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class PoincareHamiltonianKernel:
+    r"""
+    Núcleo Port-Hamiltoniano lineal con invariantes de Poincaré.
+
+    Dinámica:
+        ẋ = (J - R) K x + g u,    y = gᵀ K x,
+        H(x) = ½ xᵀ K x.
+
+    Álgebra:
+        J ∈ 𝔰𝔬(n)  (Dirac / Poisson lineal),
+        R ∈ Sym⁺(n),  K ∈ Sym⁺⁺(n),
+        A := (J-R)K ∈ 𝔤𝔩(n)  no-normal en general.
+
+    Invariantes y leyes:
+      1. Liouville: det e^{tA} = e^{t tr A},  tr(JK)=0,  tr(A)= -tr(RK) ≤ 0.
+      2. Poisson: Φₜ = e^{t JK} satisface Φ J Φᵀ = J  (flujo hamiltoniano).
+      3. Rayleigh: Ḣ = -‖∇H‖_R² + yᵀ u ≤ 0 si u=0.
+      4. Casimirs lineales: Jc=0 ⇒ Ċ = -cᵀ R ∇H  (se anula si R=0 o c ∈ ker R).
+      5. Estabilidad: μ₂(A) ≤ 0 ⇒ ‖x(t)‖₂ no crece; Re σ(A) ≤ 0 ⇒ Lyapunov
+         (necesita además que los Jordan de Re=0 sean triviales).
+      6. Integrador de Strang: preserva Poisson en el factor hamiltoniano
+         y contractividad en el factor de Rayleigh, con error local O(dt³).
+    """
+
+    def __init__(
+        self,
+        J: Union[float, np.ndarray],
+        metric: Union[float, np.ndarray],
+        R: Optional[Union[float, np.ndarray]] = None,
+        g: Optional[np.ndarray] = None,
+        name: str = "PoincareHamiltonianKernel",
+    ) -> None:
+        self.name = name
+        self._canonical_n: Optional[int] = None
+        self._transition_cache: "OrderedDict[Tuple[float, bool, str], np.ndarray]" = OrderedDict()
+        self.J = self._as_square_matrix(J, "J")
+        self.dim = int(self.J.shape[0])
+        self.metric = self._as_matrix(metric, dim=self.dim, name="metric", kind="spd")
+        self.R = self._as_matrix(R, dim=self.dim, name="R", kind="psd")
+        self.J = self._validate_skew_symmetry(self.J)
+        self.g = self._as_port_matrix(g, self.dim)
+        self.A = (self.J - self.R) @ self.metric
+        self.A_conservative = self.J @ self.metric
+        self.A_dissipative = -self.R @ self.metric
+        self.trace_generator = float(np.trace(self.A))
+        self.trace_rayleigh = float(np.trace(self.R @ self.metric))
+        trace_conservative = float(np.trace(self.A_conservative))
+        if abs(trace_conservative) > CONSTANTS.SYMPLECTIC_TOLERANCE:
+            logger.debug("%s: tr(JK)=%.3e (ruido de redondeo; geométricamente 0).", self.name, trace_conservative)
+        self.is_nominally_conservative = bool(
+            np.linalg.norm(self.R, ord="fro") <= CONSTANTS.SYMPLECTIC_TOLERANCE
+        )
+        self._casimir_basis: Optional[np.ndarray] = None
+        self._spectral_cache: Optional[SpectralAudit] = None
+        self._metric_chol: Optional[np.ndarray] = None
+        self._condition_metric = self._metric_condition_number()
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Constructores físicos
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @classmethod
+    def from_rlc(
+        cls,
+        capacitance: Union[float, np.ndarray],
+        inductance: Union[float, np.ndarray],
+        series_resistance: Optional[Union[float, np.ndarray]] = None,
+        shunt_conductance: Optional[Union[float, np.ndarray]] = None,
+    ) -> "PoincareHamiltonianKernel":
+        r"""
+        RLC canónico de Poincaré (coordenadas de energía: carga / flujo).
+
+            x = [q, p]ᵀ ∈ T*ℝⁿ
+            H = ½ qᵀ C⁻¹ q + ½ pᵀ L⁻¹ p
+            J = [[0, I], [-I, 0]]          (forma simpléctica ω = dq ∧ dp)
+            R = diag(G, R_s)               G: fugas del condensador
+                                           R_s: resistencia serie del inductor
+
+        Ecuaciones:
+            q̇ = L⁻¹ p - G C⁻¹ q
+            ṗ = -C⁻¹ q - R_s L⁻¹ p
+        """
+        C = cls._physical_matrix(capacitance, "capacitance", positive=True)
+        L = cls._physical_matrix(inductance, "inductance", positive=True)
+        if C.shape[0] != L.shape[0]:
+            raise ConfigurationError(
+                f"Capacitancia ({C.shape[0]}) e inductancia ({L.shape[0]}) "
+                "deben compartir dimensión."
+            )
+        n = C.shape[0]
+        try:
+            inv_C = np.linalg.inv(C)
+            inv_L = np.linalg.inv(L)
+        except np.linalg.LinAlgError as exc:
+            raise ConfigurationError(f"Matrices C/L no invertibles: {exc}") from exc
+        metric = cls._block_diag(inv_C, inv_L)
+        J = np.block(
+            [
+                [np.zeros((n, n)), np.eye(n)],
+                [-np.eye(n), np.zeros((n, n))],
+            ]
+        )
+        G = cls._physical_matrix(
+            shunt_conductance, "shunt_conductance", positive=False, default_shape=n
+        )
+        R_s = cls._physical_matrix(
+            series_resistance, "series_resistance", positive=False, default_shape=n
+        )
+        R_block = cls._block_diag(G, R_s)
+        kernel = cls(J=J, metric=metric, R=R_block, name="RLC-Poincare")
+        kernel._canonical_n = n
+        return kernel
+
+    @classmethod
+    def from_maxwell_blocks(
+        cls,
+        boundary2: np.ndarray,
+        electric_metric_diag: np.ndarray,
+        magnetic_metric_diag: np.ndarray,
+        sigma_e: np.ndarray,
+        sigma_m: np.ndarray,
+        g: Optional[np.ndarray] = None,
+    ) -> "PoincareHamiltonianKernel":
+        r"""
+        PHS de Maxwell DEC. Estado x = [D, B], ∇H = [E, H].
+
+            J = [[  0 ,  ∂₂ ],     R = diag(σₑ, σₘ)
+                 [-∂₂ᵀ,   0 ]]
+            K = diag(★₁⁻¹/ε, ★₂/μ)    (consistente con D=ε★₁E, H=μ⁻¹★₂B)
+        """
+        B2 = np.asarray(boundary2, dtype=float)
+        n_e = int(electric_metric_diag.size)
+        n_f = int(magnetic_metric_diag.size)
+        if B2.size == 0:
+            B2 = np.zeros((n_e, n_f))
+        if B2.shape != (n_e, n_f):
+            raise ConfigurationError(
+                f"∂₂ debe ser ({n_e}×{n_f}), recibido {B2.shape}."
+            )
+        dim = n_e + n_f
+        J = np.zeros((dim, dim), dtype=float)
+        if n_f > 0 and n_e > 0:
+            J[:n_e, n_e:] = B2
+            J[n_e:, :n_e] = -B2.T
+            J = 0.5 * (J - J.T)
+        metric = np.concatenate(
+            [
+                np.asarray(electric_metric_diag, dtype=float).reshape(-1),
+                np.asarray(magnetic_metric_diag, dtype=float).reshape(-1),
+            ]
+        )
+        R = np.concatenate(
+            [
+                np.asarray(sigma_e, dtype=float).reshape(-1),
+                np.asarray(sigma_m, dtype=float).reshape(-1),
+            ]
+        )
+        return cls(J=J, metric=metric, R=R, g=g, name="Maxwell-DEC-Poincare")
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Operadores Hamiltonianos
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def hamiltonian(self, x: np.ndarray) -> float:
+        """H(x) = ½ xᵀ K x ≥ 0."""
+        x = self._validate_state(x)
+        energy = 0.5 * float(x @ (self.metric @ x))
+        return max(0.0, _finite("H", energy))
+
+    def gradient(self, x: np.ndarray) -> np.ndarray:
+        """∇H(x) = K x."""
+        return self.metric @ self._validate_state(x)
+
+    def rayleigh_dissipation_rate(self, x: np.ndarray, u: Optional[np.ndarray] = None) -> float:
+        r"""Ḣ = -∇Hᵀ R ∇H + yᵀ u.  Sin control, Ḣ ≤ 0."""
+        grad = self.gradient(x)
+        rate = -float(grad @ (self.R @ grad))
+        if u is not None:
+            y = self.port_output(x)
+            u_vec = _as_1d(u)
+            if u_vec.size != y.size:
+                raise ConfigurationError(f"u dim {u_vec.size} ≠ y dim {y.size}.")
+            rate += float(y @ u_vec)
+        if abs(rate) < CONSTANTS.NUMERICAL_ZERO:
+            rate = 0.0
+        return _finite("Ḣ", rate)
+
+    def port_output(self, x: np.ndarray) -> np.ndarray:
+        """y = gᵀ ∇H(x)  (esfuerzos conjugados)."""
+        return self.g.T @ self.gradient(x)
+
+    def vector_field(self, x: np.ndarray, u: Optional[np.ndarray] = None) -> np.ndarray:
+        """ẋ = (J-R)∇H + g u."""
+        x = self._validate_state(x)
+        xd = self.A @ x
+        if u is not None:
+            u_vec = _as_1d(u)
+            if u_vec.size != self.g.shape[1]:
+                raise ConfigurationError(f"u dim {u_vec.size} ≠ m={self.g.shape[1]}.")
+            xd = xd + self.g @ u_vec
+        return xd
+
+    def power_balance(self, x: np.ndarray, u: Optional[np.ndarray] = None) -> Dict[str, float]:
+        """Identidad de balance: Ḣ + d_R = yᵀ u  (van der Schaft)."""
+        grad = self.gradient(x)
+        dissipated = float(grad @ (self.R @ grad))
+        supplied = 0.0 if u is None else float(self.port_output(x) @ _as_1d(u))
+        hdot = self.rayleigh_dissipation_rate(x, u)
+        residual = hdot + dissipated - supplied
+        return {
+            "H_dot": hdot,
+            "rayleigh": dissipated,
+            "supplied_power": supplied,
+            "balance_residual": residual,
+        }
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Casimirs y espectro
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @property
+    def casimir_basis(self) -> np.ndarray:
+        r"""
+        Base ortonormal de ker(J) (columnas). Cᵢ(x) = cᵢᵀ x.
+
+        Precisión: SVD con umbral relativo τ·σ_max. Para J antisimétrica el
+        rango es par (Pfaffiano); se corrige paridad si el umbral corta un
+        par de valores singulares casi nulos.
+        """
+        if self._casimir_basis is None:
+            if self.dim == 0:
+                self._casimir_basis = np.zeros((0, 0))
+            else:
+                _, S, Vt = np.linalg.svd(self.J, full_matrices=True)
+                sigma_max = float(S.max()) if S.size else 1.0
+                tol = CONSTANTS.CASIMIR_TOLERANCE * max(1.0, sigma_max)
+                rank_J = int(np.sum(S > tol)) if S.size else 0
+                if rank_J % 2 == 1 and rank_J > 0:
+                    # rango de una forma 2-antisimétrica es par
+                    rank_J -= 1
+                self._casimir_basis = np.ascontiguousarray(Vt[rank_J:].T)
+        return self._casimir_basis
+
+    @property
+    def casimir_dimension(self) -> int:
+        return int(self.casimir_basis.shape[1]) if self.casimir_basis.size else 0
+
+    def casimir_values(self, x: np.ndarray) -> np.ndarray:
+        """C(x) = Cᵀ x ∈ ℝ^{dim ker J}."""
+        x = self._validate_state(x)
+        if self.casimir_dimension == 0:
+            return np.zeros(0, dtype=float)
+        return self.casimir_basis.T @ x
+
+    def casimir_drift(self, x: np.ndarray) -> float:
+        r"""‖Ċ‖₂ con Ċ = -Cᵀ R ∇H.  Cero exacto si R=0 o im R ⊥ ker J."""
+        if self.casimir_dimension == 0:
+            return 0.0
+        cdot = -self.casimir_basis.T @ (self.R @ self.gradient(x))
+        return float(np.linalg.norm(cdot))
+
+    def _metric_condition_number(self) -> float:
+        try:
+            eig = np.linalg.eigvalsh(self.metric)
+            eig = eig[eig > CONSTANTS.NUMERICAL_ZERO]
+            if eig.size == 0:
+                return float("inf")
+            cond = float(np.max(eig) / np.min(eig))
+            if cond > CONSTANTS.MAX_CONDITION_NUMBER:
+                logger.warning(
+                    "%s: κ₂(K)=%.3e > MAX_CONDITION_NUMBER. Espectro de A mal condicionado.",
+                    self.name,
+                    cond,
+                )
+            return cond
+        except np.linalg.LinAlgError:
+            return float("inf")
+
+    def logarithmic_norm(self, A: Optional[np.ndarray] = None) -> float:
+        r"""μ₂(A) = λ_max((A+Aᵀ)/2).  ‖e^{tA}‖₂ ≤ e^{t μ₂(A)}."""
+        A = self.A if A is None else A
+        if A.size == 0:
+            return 0.0
+        S = 0.5 * (A + A.T)
+        try:
+            return float(np.max(np.linalg.eigvalsh(S)))
+        except np.linalg.LinAlgError as exc:
+            raise NumericalInstabilityError(f"No se pudo calcular μ₂(A): {exc}") from exc
+
+    def spectral_audit(self, force: bool = False) -> SpectralAudit:
+        """Espectro de A, norma logarítmica y estabilidad módulo Casimirs."""
+        if self._spectral_cache is not None and not force:
+            return self._spectral_cache
+        if self.dim == 0:
+            audit = SpectralAudit(
+                eigenvalues=np.array([], dtype=complex),
+                max_real_part=0.0,
+                spectral_radius=0.0,
+                logarithmic_norm=0.0,
+                numerical_abscissa=0.0,
+                condition_metric=1.0,
+                casimir_multiplicity=0,
+                is_lyapunov_stable=True,
+                is_asymptotically_stable_mod_casimir=False,
+                is_normal=True,
+                departure_from_normality=0.0,
+            )
+            self._spectral_cache = audit
+            return audit
+
+        if self.dim <= CONSTANTS.MAX_DENSE_SPECTRAL_DIM:
+            eigvals = np.linalg.eigvals(self.A)
+        elif SCIPY_AVAILABLE and eigs is not None:
+            k = min(12, self.dim - 1)
+            try:
+                eigvals = eigs(self.A, k=k, which="LR", return_eigenvectors=False)
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("eigs(LR) falló (%s); se omite espectro denso.", exc)
+                eigvals = np.array([0.0 + 0.0j])
+        else:
+            eigvals = np.array([0.0 + 0.0j])
+
+        re_parts = np.real(eigvals)
+        max_re = float(np.max(re_parts)) if eigvals.size else 0.0
+        rho = float(np.max(np.abs(eigvals))) if eigvals.size else 0.0
+        mu = self.logarithmic_norm(self.A)
+        AA_star = self.A @ self.A.T
+        A_star_A = self.A.T @ self.A
+        dep = float(np.linalg.norm(AA_star - A_star_A, ord="fro"))
+        scale_A = max(1.0, float(np.linalg.norm(self.A, ord="fro")))
+        is_normal = dep <= CONSTANTS.SYMPLECTIC_TOLERANCE * scale_A
+
+        cas_mult = int(np.sum(np.abs(eigvals) < CONSTANTS.CASIMIR_TOLERANCE * max(1.0, rho)))
+        dissipative_re = re_parts[np.abs(eigvals) >= CONSTANTS.CASIMIR_TOLERANCE * max(1.0, rho)]
+        if dissipative_re.size:
+            max_re_mod = float(np.max(dissipative_re))
+        else:
+            max_re_mod = 0.0
+
+        is_lyap = max_re <= CONSTANTS.STABILITY_MARGIN and mu <= CONSTANTS.STABILITY_MARGIN
+        is_asym_mod = bool(
+            dissipative_re.size > 0 and max_re_mod < -CONSTANTS.STABILITY_MARGIN
+        )
+        audit = SpectralAudit(
+            eigenvalues=eigvals,
+            max_real_part=max_re,
+            spectral_radius=rho,
+            logarithmic_norm=mu,
+            numerical_abscissa=mu,
+            condition_metric=self._condition_metric,
+            casimir_multiplicity=max(cas_mult, self.casimir_dimension),
+            is_lyapunov_stable=is_lyap,
+            is_asymptotically_stable_mod_casimir=is_asym_mod,
+            is_normal=is_normal,
+            departure_from_normality=dep / scale_A,
+        )
+        self._spectral_cache = audit
+        return audit
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Integración estructura-preservante
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def compute_step(
+        self,
+        x: np.ndarray,
+        dt: float,
+        enforce_liouville: bool = False,
+        integrator: str = "strang",
+        u: Optional[np.ndarray] = None,
+    ) -> Tuple[np.ndarray, FluxCondenserStepReport]:
+        """
+        Un paso de flujo.
+
+        integrators:
+            'strang'  — splitting simétrico (por defecto, estructura-preservante)
+            'expm'    — Padé/Higham sobre A completo (referencia analítica lineal)
+        El control u se aplica por Euler implícito de primer orden en el puerto
+        (hold de orden cero), suficiente para la semilla de Fase 2.
+        """
+        x = self._validate_state(x)
+        dt = float(dt)
+        if dt <= 0.0:
+            raise ConfigurationError("dt debe ser positivo.")
+        if dt > CONSTANTS.MAX_DELTA_TIME:
+            raise ConfigurationError("dt excede MAX_DELTA_TIME.")
+
+        integrator = integrator.lower().strip()
+        M = self.state_transition(dt, conservative=False, integrator=integrator)
+        x_next = M @ x
+        if u is not None:
+            # Φ(dt) x + ∫₀^{dt} e^{(dt-s)A} g u ds  ≈  M x + dt · φ₁(A dt) g u
+            x_next = x_next + dt * (self._phi1(dt) @ (self.g @ _as_1d(u)))
+
+        nrm = float(np.linalg.norm(x_next))
+        if nrm > CONSTANTS.MAX_STATE_NORM:
+            raise NumericalInstabilityError(
+                f"‖x‖={nrm:.3e} > MAX_STATE_NORM; flujo inestable."
+            )
+
+        H = self.hamiltonian(x)
+        rayleigh = self.rayleigh_dissipation_rate(x, u=None)
+        det_M = self._det(M)
+        volume_drift = abs(det_M - 1.0)
+        expected_det = math.exp(dt * self.trace_generator)
+        # Liouville disipativo: det M ≈ e^{t tr A}, no 1
+        volume_residual = abs(det_M - expected_det)
+
+        M_cons = self.state_transition(dt, conservative=True, integrator=integrator)
+        scale_J = max(1.0, float(np.linalg.norm(self.J, ord="fro")))
+        poisson_residual = float(
+            np.linalg.norm(M_cons @ self.J @ M_cons.T - self.J, ord="fro")
+        )
+        strang_poisson = poisson_residual / scale_J
+
+        is_liouville_preserved = bool(
+            self.is_nominally_conservative
+            and volume_drift <= CONSTANTS.LIOUVILLE_DRIFT_LIMIT
+            and poisson_residual <= CONSTANTS.SYMPLECTIC_TOLERANCE * scale_J
+        )
+        is_volume_contracting = bool(det_M <= expected_det + CONSTANTS.LIOUVILLE_DRIFT_LIMIT)
+
+        if enforce_liouville and self.is_nominally_conservative and not is_liouville_preserved:
+            raise LiouvilleViolationError(
+                f"Liouville violado: volume_drift={volume_drift:.3e}, "
+                f"poisson_residual={poisson_residual:.3e}"
+            )
+
+        cas_drift = self.casimir_drift(x)
+        if self.dim <= 64:
+            spec = self.spectral_audit()
+            max_re = spec.max_real_part
+            rho_A = spec.spectral_radius
+            mu = spec.logarithmic_norm
+            is_lyap = spec.is_lyapunov_stable
+            is_asym = spec.is_asymptotically_stable_mod_casimir
+        else:
+            max_re, rho_A, mu = 0.0, 0.0, self.trace_generator / max(self.dim, 1)
+            is_lyap, is_asym = self.trace_generator <= CONSTANTS.STABILITY_MARGIN, False
+
+        report = FluxCondenserStepReport(
+            hamiltonian_energy=H,
+            volume_drift=volume_residual if not self.is_nominally_conservative else volume_drift,
+            rayleigh_dissipation_rate=rayleigh,
+            is_liouville_preserved=is_liouville_preserved,
+            is_volume_contracting=is_volume_contracting,
+            poisson_residual=poisson_residual,
+            trace_generator=self.trace_generator,
+            state_dimension=self.dim,
+            casimir_dimension=self.casimir_dimension,
+            max_re_eigen_A=max_re,
+            spectral_radius_A=rho_A,
+            logarithmic_norm_A=mu,
+            is_lyapunov_stable=is_lyap,
+            is_asymptotically_stable_mod_casimir=is_asym,
+            strang_poisson_residual=strang_poisson,
+            casimir_drift=cas_drift,
+            integrator=integrator,
+        )
+        return x_next, report
+
+    def state_transition(
+        self,
+        dt: float,
+        conservative: bool = False,
+        integrator: str = "strang",
+    ) -> np.ndarray:
+        """Mapa Φ(dt). LRU acotado a MAX_TRANSITION_CACHE."""
+        key = (float(dt), bool(conservative), integrator)
+        if key in self._transition_cache:
+            self._transition_cache.move_to_end(key)
+            return self._transition_cache[key]
+        if conservative:
+            M = self._expm(self.A_conservative * float(dt))
+        elif integrator == "expm":
+            M = self._expm(self.A * float(dt))
+        else:
+            M = self._strang_split(float(dt))
+        self._transition_cache[key] = M
+        if len(self._transition_cache) > CONSTANTS.MAX_TRANSITION_CACHE:
+            self._transition_cache.popitem(last=False)
+        return M
+
+    def _strang_split(self, dt: float) -> np.ndarray:
+        r"""
+        Strang: e^{dt/2 A_R} e^{dt A_J} e^{dt/2 A_R}.
+        A_J = JK  (Poisson), A_R = -RK  (gradiente de H, simetrizable por K^{1/2}).
+        """
+        if self.is_nominally_conservative:
+            return self._expm(self.A_conservative * dt)
+        half = 0.5 * dt
+        E_R = self._expm(self.A_dissipative * half)
+        E_J = self._expm(self.A_conservative * dt)
+        return E_R @ E_J @ E_R
+
+    def _phi1(self, dt: float) -> np.ndarray:
+        r"""φ₁(z)=(e^z-1)/z aplicado a A dt.  φ₁(0)=I."""
+        Z = self.A * float(dt)
+        nrm = float(np.linalg.norm(Z, ord=np.inf))
+        if nrm < CONSTANTS.NUMERICAL_TOLERANCE:
+            return np.eye(self.dim) + 0.5 * Z
+        E = self._expm(Z)
+        try:
+            return np.linalg.solve(Z, E - np.eye(self.dim))
+        except np.linalg.LinAlgError:
+            return np.eye(self.dim) + 0.5 * Z
+
+    def audit_transition_map(
+        self,
+        M: np.ndarray,
+        conservative: Optional[bool] = None,
+    ) -> Dict[str, float]:
+        """Auditoría de un mapa externo (leapfrog, Verlet, RK)."""
+        M = np.asarray(M, dtype=float)
+        if M.shape != (self.dim, self.dim):
+            raise ConfigurationError(f"Mapa de transición debe ser {self.dim}×{self.dim}.")
+        scale_J = max(1.0, float(np.linalg.norm(self.J, ord="fro")))
+        poisson_res = float(np.linalg.norm(M @ self.J @ M.T - self.J, ord="fro")) / scale_J
+        det_res = abs(self._det(M) - 1.0)
+        is_cons = self.is_nominally_conservative if conservative is None else conservative
+        return {
+            "poisson_residual_relative": poisson_res,
+            "volume_drift": det_res,
+            "is_poisson_map": poisson_res <= CONSTANTS.SYMPLECTIC_TOLERANCE,
+            "is_volume_preserving": (det_res <= CONSTANTS.LIOUVILLE_DRIFT_LIMIT) if is_cons else False,
+        }
+
+    def circulation_invariant(
+        self,
+        q_path: np.ndarray,
+        p_path: Optional[np.ndarray] = None,
+    ) -> float:
+        r"""
+        Invariante integral de Poincaré ∮ p dq  (regla del trapecio, cierre C⁰).
+
+        Es el pullback de la 1-forma de Liouville θ = p dq sobre una curva
+        cerrada. El flujo hamiltoniano preserva ∮_γ θ (teorema de Poincaré).
+        Error de cuadratura O(h² · max‖γ̈‖) ; h = max ‖Δq‖.
+        """
+        if p_path is None:
+            if self._canonical_n is None:
+                raise ConfigurationError(
+                    "circulation_invariant exige layout canónico o (q_path, p_path)."
+                )
+            n = self._canonical_n
+            q = np.asarray(q_path, dtype=float)
+            if q.ndim == 1:
+                q = q.reshape(-1, 1)
+            if q.shape[1] != 2 * n:
+                raise ConfigurationError(f"Trayectoria canónica: se esperaban {2*n} columnas [q,p].")
+            p = q[:, n:]
+            q = q[:, :n]
+        else:
+            q = np.asarray(q_path, dtype=float)
+            p = np.asarray(p_path, dtype=float)
+        if q.ndim == 1:
+            q = q.reshape(-1, 1)
+        if p.ndim == 1:
+            p = p.reshape(-1, 1)
+        if q.shape != p.shape:
+            raise ConfigurationError("q_path y p_path deben tener la misma forma.")
+        if q.shape[0] < 2:
+            return 0.0
+        if not np.allclose(q[0], q[-1], atol=CONSTANTS.POINCARE_SECTION_EPSILON):
+            q = np.vstack([q, q[0]])
+            p = np.vstack([p, p[0]])
+        dq = np.diff(q, axis=0)
+        p_mid = 0.5 * (p[:-1] + p[1:])
+        return float(np.sum(p_mid * dq))
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # IDA-PBC lineal (matching algebraico)
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def linear_ida_pbc_matching(
+        self,
+        K_d: np.ndarray,
+        R_d: Optional[np.ndarray] = None,
+        x_star: Optional[np.ndarray] = None,
+    ) -> Dict[str, np.ndarray]:
+        r"""
+        Matching IDA-PBC lineal (Ortega–van der Schaft).
+
+        Se busca J_d = -J_dᵀ, R_d = R_dᵀ ⪰ 0, H_d = ½ (x-x*)ᵀ K_d (x-x*) tales que
+            (J_d - R_d) K_d = (J - R) K + g G
+        para algún G (precompensador estático). Si g = I, G queda determinado:
+            G = (J_d - R_d) K_d - (J - R) K.
+        Construcción canónica:
+            J_d := J
+            J_a := 0
+            R_d := R  (o la suministrada, proyectada a Sym⁺)
+            G   := (J_d - R_d) K_d - (J - R) K
+
+        El residual de matching es ‖(J_d-R_d)K_d - (J-R)K - g G⁺‖_F
+        con G⁺ la solución por mínimos cuadrados de g G = Δ.
+        """
+        K_d = self._as_matrix(K_d, dim=self.dim, name="K_d", kind="spd")
+        if R_d is None:
+            R_d_m = self.R.copy()
+        else:
+            R_d_m = self._as_matrix(R_d, dim=self.dim, name="R_d", kind="psd")
+        J_d = self.J.copy()
+        J_a = np.zeros_like(self.J)
+        Delta = (J_d - R_d_m) @ K_d - (self.J - self.R) @ self.metric
+        G, residual = self._port_least_squares(Delta)
+        if x_star is None:
+            x_star = np.zeros(self.dim, dtype=float)
+        else:
+            x_star = self._validate_state(x_star)
+        return {
+            "J_d": J_d,
+            "J_a": J_a,
+            "R_d": R_d_m,
+            "K_d": K_d,
+            "G": G,
+            "x_star": x_star,
+            "matching_residual": np.array([residual]),
+        }
+
+    def _port_least_squares(self, Delta: np.ndarray) -> Tuple[np.ndarray, float]:
+        """Resuelve g G = Δ en sentido de Frobenius (G = g⁺ Δ)."""
+        m = self.g.shape[1]
+        if m == 0:
+            return np.zeros((0, self.dim)), float(np.linalg.norm(Delta, ord="fro"))
+        try:
+            G, _, _, _ = np.linalg.lstsq(self.g, Delta, rcond=None)
+        except np.linalg.LinAlgError:
+            G = np.zeros((m, self.dim))
+        residual = float(np.linalg.norm(self.g @ G - Delta, ord="fro"))
+        return G, residual
+
+    def energy_shaping_lyapunov(
+        self,
+        x: np.ndarray,
+        H_star: float,
+    ) -> Tuple[float, np.ndarray, float]:
+        r"""
+        V = ½ (H - H*)²,  ∇V = (H-H*) ∇H,  V̇ = (H-H*) Ḣ.
+
+        V̇ ≤ 0 en subnivel {H ≥ H*} si u=0 (disipación). En {H < H*} hace falta
+        inyección de puerto: u = -k (H-H*) y  no sirve; se requiere
+        u = +k (H*-H) y / (‖y‖²+ε) para bombear (passivity-based pumping).
+        """
+        H = self.hamiltonian(x)
+        grad = self.gradient(x)
+        V = 0.5 * float((H - H_star) ** 2)
+        dV = (H - H_star) * grad
+        Hdot = self.rayleigh_dissipation_rate(x)
+        Vdot = (H - H_star) * Hdot
+        return V, dV, Vdot
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Utilidades internas
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _validate_state(self, x: np.ndarray) -> np.ndarray:
+        x = np.asarray(x, dtype=float).reshape(-1)
+        if x.size != self.dim:
+            raise ConfigurationError(f"Estado dim {x.size}; se esperaba {self.dim}.")
+        if not np.all(np.isfinite(x)):
+            raise NumericalInstabilityError("Estado contiene valores no finitos.")
+        return x
+
+    @staticmethod
+    def _validate_skew_symmetry(J: np.ndarray) -> np.ndarray:
+        J_skew = 0.5 * (J - J.T)
+        leak = float(np.linalg.norm(J - J_skew, ord="fro"))
+        scale = max(1.0, float(np.linalg.norm(J_skew, ord="fro")))
+        if leak / scale > CONSTANTS.SYMPLECTIC_TOLERANCE:
+            raise SymplecticStructureError(
+                f"J no es antisimétrica: ‖J-sk(J)‖/‖sk(J)‖={leak/scale:.3e}"
+            )
+        return J_skew
+
+    def _as_port_matrix(self, g: Optional[np.ndarray], dim: int) -> np.ndarray:
+        if g is None:
+            return np.eye(dim, dtype=float)
+        arr = np.asarray(g, dtype=float)
+        if arr.ndim == 1:
+            arr = arr.reshape(dim, 1) if arr.size == dim else arr.reshape(-1, 1)
+        if arr.ndim != 2 or arr.shape[0] != dim:
+            raise ConfigurationError(f"g debe ser ({dim}×m), recibido {arr.shape}.")
+        if not np.all(np.isfinite(arr)):
+            raise ConfigurationError("g contiene valores no finitos.")
+        return arr
+
+    def _as_square_matrix(self, value: Union[float, np.ndarray], name: str) -> np.ndarray:
+        arr = np.asarray(value, dtype=float)
+        if arr.ndim == 0:
+            raise ConfigurationError(f"{name} escalar requiere dimensión conocida.")
+        if arr.ndim == 1:
+            arr = np.diag(arr)
+        if arr.ndim != 2 or arr.shape[0] != arr.shape[1]:
+            raise ConfigurationError(f"{name} debe ser matriz cuadrada.")
+        if not np.all(np.isfinite(arr)):
+            raise ConfigurationError(f"{name} contiene valores no finitos.")
+        return arr
+
+    def _as_matrix(
+        self,
+        value: Optional[Union[float, np.ndarray]],
+        dim: int,
+        name: str,
+        kind: str,
+    ) -> np.ndarray:
+        if value is None:
+            return np.zeros((dim, dim), dtype=float)
+        arr = np.asarray(value, dtype=float)
+        if arr.ndim == 0:
+            scalar = float(arr)
+            if kind == "spd" and scalar <= 0.0:
+                raise ConfigurationError(f"{name} escalar debe ser positivo.")
+            if kind == "psd" and scalar < 0.0:
+                raise ConfigurationError(f"{name} escalar debe ser no negativo.")
+            return scalar * np.eye(dim)
+        if arr.ndim == 1:
+            if arr.size != dim:
+                raise ConfigurationError(f"{name} vector longitud {dim}, recibido {arr.size}.")
+            if kind == "spd" and np.any(arr <= 0.0):
+                raise ConfigurationError(f"{name} diagonal debe ser positiva.")
+            if kind == "psd" and np.any(arr < 0.0):
+                raise ConfigurationError(f"{name} diagonal debe ser no negativa.")
+            return np.diag(arr.astype(float))
+        if arr.ndim == 2:
+            if arr.shape != (dim, dim):
+                raise ConfigurationError(f"{name} debe ser {dim}×{dim}, recibido {arr.shape}.")
+            arr = 0.5 * (arr + arr.T)
+            if not np.all(np.isfinite(arr)):
+                raise ConfigurationError(f"{name} contiene valores no finitos.")
+            try:
+                eigvals = np.linalg.eigvalsh(arr)
+            except np.linalg.LinAlgError as exc:
+                raise ConfigurationError(f"No se pudo verificar espectro de {name}: {exc}") from exc
+            min_eig = float(np.min(eigvals)) if eigvals.size else 0.0
+            tol = max(CONSTANTS.NUMERICAL_TOLERANCE, CONSTANTS.SYMPLECTIC_TOLERANCE)
+            if kind == "spd":
+                if min_eig <= -tol:
+                    raise ConfigurationError(f"{name} no es SPD: min_eig={min_eig:.3e}")
+                if min_eig <= tol:
+                    shift = tol - min_eig + CONSTANTS.NUMERICAL_ZERO
+                    logger.warning("%s: regularización SPD con shift=%.3e.", name, shift)
+                    arr = arr + shift * np.eye(dim)
+            elif kind == "psd":
+                if min_eig < -tol:
+                    raise ConfigurationError(f"{name} no es PSD: min_eig={min_eig:.3e}")
+                if min_eig < 0.0:
+                    arr = arr + (-min_eig + CONSTANTS.NUMERICAL_ZERO) * np.eye(dim)
+            else:
+                raise ConfigurationError("kind debe ser 'spd' o 'psd'.")
+            return arr
+        raise ConfigurationError(f"{name} debe ser escalar, vector o matriz.")
+
+    @staticmethod
+    def _physical_matrix(
+        value: Optional[Union[float, np.ndarray]],
+        name: str,
+        positive: bool,
+        default_shape: Optional[int] = None,
+    ) -> np.ndarray:
+        if value is None:
+            if default_shape is None:
+                raise ConfigurationError(f"{name} no puede ser None sin default_shape.")
+            return np.zeros((default_shape, default_shape), dtype=float)
+        arr = np.asarray(value, dtype=float)
+        if arr.ndim == 0:
+            scalar = float(arr)
+            if positive and scalar <= 0.0:
+                raise ConfigurationError(f"{name} debe ser positivo.")
+            if not positive and scalar < 0.0:
+                raise ConfigurationError(f"{name} debe ser no negativo.")
+            size = default_shape if default_shape is not None else 1
+            return scalar * np.eye(size)
+        if arr.ndim == 1:
+            if positive and np.any(arr <= 0.0):
+                raise ConfigurationError(f"{name} diagonal debe ser positiva.")
+            if not positive and np.any(arr < 0.0):
+                raise ConfigurationError(f"{name} diagonal debe ser no negativa.")
+            return np.diag(arr.astype(float))
+        if arr.ndim == 2:
+            if arr.shape[0] != arr.shape[1]:
+                raise ConfigurationError(f"{name} debe ser cuadrada.")
+            arr = 0.5 * (arr + arr.T)
+            eigvals = np.linalg.eigvalsh(arr)
+            if positive and float(np.min(eigvals)) <= 0.0:
+                raise ConfigurationError(f"{name} debe ser definida positiva.")
+            if not positive and float(np.min(eigvals)) < -CONSTANTS.NUMERICAL_TOLERANCE:
+                raise ConfigurationError(f"{name} debe ser semidefinida positiva.")
+            return arr
+        raise ConfigurationError(f"{name} debe ser escalar, vector o matriz.")
+
+    @staticmethod
+    def _block_diag(*blocks: np.ndarray) -> np.ndarray:
+        total = sum(b.shape[0] for b in blocks)
+        out = np.zeros((total, total), dtype=float)
+        idx = 0
+        for block in blocks:
+            n = block.shape[0]
+            out[idx : idx + n, idx : idx + n] = block
+            idx += n
+        return out
+
+    def _expm(self, A: np.ndarray) -> np.ndarray:
+        if A.size == 0:
+            return np.zeros_like(A)
+        nrm = float(np.linalg.norm(A, ord=np.inf))
+        if nrm > CONSTANTS.MAX_EXPONENTIAL_ARG:
+            raise NumericalInstabilityError(
+                f"‖A‖_∞={nrm:.3e} excede el rango seguro de expm float64."
+            )
+        if SCIPY_AVAILABLE and expm is not None:
+            return np.asarray(expm(A), dtype=float)
+        return self._expm_pade_fallback(A)
+
+    def _det(self, M: np.ndarray) -> float:
+        if M.size == 0:
+            return 1.0
+        if SCIPY_AVAILABLE and det is not None:
+            return float(det(M))
+        sign, logdet = np.linalg.slogdet(M)
+        if sign == 0.0:
+            return 0.0
+        if abs(logdet) > CONSTANTS.MAX_EXPONENTIAL_ARG:
+            return math.copysign(math.inf, sign)
+        return float(sign * math.exp(logdet))
+
+    @staticmethod
+    def _expm_pade_fallback(A: np.ndarray, terms: int = CONSTANTS.PADE_TAYLOR_TERMS) -> np.ndarray:
+        """Scaling-and-squaring + Taylor (Higham, cuando SciPy no está)."""
+        n = A.shape[0]
+        norm_A = float(np.linalg.norm(A, ord=np.inf))
+        if norm_A == 0.0:
+            return np.eye(n)
+        s = max(0, int(math.ceil(math.log2(norm_A / 0.5 + 1.0))))
+        As = A / (2 ** s)
+        E = np.eye(n)
+        term = np.eye(n)
+        for k in range(1, terms + 1):
+            term = term @ As / k
+            E = E + term
+            if float(np.linalg.norm(term, ord=np.inf)) < CONSTANTS.NUMERICAL_ZERO:
+                break
+        for _ in range(s):
+            E = E @ E
+        return E
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 1.3 — CÁLCULO EXTERIOR DISCRETO (DEC)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class DiscreteVectorCalculus:
+    r"""
+    DEC sobre el complejo de cliques K≤2 del grafo (flag complex).
+
+    Complejo de cadenas:   C₂ --∂₂--> C₁ --∂₁--> C₀,   ∂₁∂₂ = 0.
+    Complejo de co-cadenas: C⁰ --d₀--> C¹ --d₁--> C²,   d₁d₀ = 0,
+        dₖ = ∂ₖ₊₁ᵀ.
+
+    Estrellas de Hodge lumped (dual circumcéntrico diagonal):
+        ★₀ = diag(vol v),   ★₁ = diag(|⋆e|/|e|),   ★₂ = diag(1/|f|).
+    Codiferencial (convención positiva, laplaciano de grafo):
+        δ₁ = ★₀⁻¹ d₀ᵀ ★₁ = ★₀⁻¹ ∂₁ ★₁,
+        δ₂ = ★₁⁻¹ d₁ᵀ ★₂ = ★₁⁻¹ ∂₂ ★₂.
+    Hodge:  Δₖ = δ_{k+1} dₖ + d_{k-1} δₖ ⪰ 0,   ker Δₖ ≅ Hᵏ_{dR}(K)  (Hodge–de Rham discreto).
+
+    Functorialmente: esto es F: SimpComp_{\le2} → Ch_{\ge0}(Vect_ℝ).
+    """
+
+    NUMERICAL_TOLERANCE: float = CONSTANTS.NUMERICAL_TOLERANCE
+
+    def __init__(
+        self,
+        adjacency_list: Dict[int, Set[int]],
+        node_volumes: Optional[Dict[int, float]] = None,
+        edge_lengths: Optional[Dict[Tuple[int, int], float]] = None,
+        face_areas: Optional[Dict[Tuple[int, int, int], float]] = None,
+        node_positions: Optional[Dict[int, np.ndarray]] = None,
+        dual_edge_lengths: Optional[Dict[Tuple[int, int], float]] = None,
+    ) -> None:
+        if nx is None:
+            raise ConfigurationError("networkx es requerido para DiscreteVectorCalculus.")
+        self.graph = nx.Graph(adjacency_list)
+        self._node_volumes = node_volumes or {}
+        self._edge_lengths = edge_lengths or {}
+        self._face_areas = face_areas or {}
+        self._dual_edge_lengths = dual_edge_lengths or {}
+        self.node_positions = {
+            int(k): np.asarray(v, dtype=float).reshape(-1) for k, v in (node_positions or {}).items()
+        }
+        self._validate_graph()
+        self._build_simplicial_complex()
+        if SCIPY_AVAILABLE:
+            self._build_chain_operators()
+            self._verify_chain_complex()
+            self._build_hodge_operators()
+            self._build_calculus_operators()
+            self._compute_betti_numbers()
+            self._verify_hodge_laplacian_psd()
+        else:
+            warnings.warn(
+                "SciPy no disponible. DiscreteVectorCalculus operará en modo reducido.",
+                RuntimeWarning,
+            )
+        self._laplacian_cache: "OrderedDict[int, csr_matrix]" = OrderedDict()
+
+    def _validate_graph(self) -> None:
+        if self.graph.number_of_nodes() == 0:
+            raise ConfigurationError("El grafo no puede estar vacío.")
+        if self.graph.number_of_nodes() == 1 and self.graph.number_of_edges() == 0:
+            warnings.warn("Grafo trivial con un solo nodo aislado.", UserWarning)
+        self.num_components = nx.number_connected_components(self.graph)
+        self.is_connected = self.num_components == 1
+        if not self.is_connected:
+            logger.warning("Grafo con %d componentes conexas. β₀ > 1.", self.num_components)
+        try:
+            self.is_planar, self.planar_embedding = nx.check_planarity(self.graph)
+        except Exception:  # noqa: BLE001
+            self.is_planar = False
+            self.planar_embedding = None
+        if self.graph.number_of_nodes() > CONSTANTS.MAX_GRAPH_NODES_CLIQUE:
+            logger.warning(
+                "enumerate_all_cliques es exponencial; n=%d > %d.",
+                self.graph.number_of_nodes(),
+                CONSTANTS.MAX_GRAPH_NODES_CLIQUE,
+            )
+
+    def _build_simplicial_complex(self) -> None:
+        self.nodes: List[int] = sorted(self.graph.nodes())
+        self.node_to_idx: Dict[int, int] = {n: i for i, n in enumerate(self.nodes)}
+        self.num_nodes: int = len(self.nodes)
+        self.edges: List[Tuple[int, int]] = []
+        self.edge_orientation: Dict[Tuple[int, int], int] = {}
+        for u, v in self.graph.edges():
+            a, b = (u, v) if u < v else (v, u)
+            self.edges.append((a, b))
+            self.edge_orientation[(a, b)] = +1
+            self.edge_orientation[(b, a)] = -1
+        self.edge_to_idx: Dict[Tuple[int, int], int] = {e: i for i, e in enumerate(self.edges)}
+        self.num_edges: int = len(self.edges)
+        self.faces: List[Tuple[int, int, int]] = []
+        self.face_boundaries: List[List[Tuple[Tuple[int, int], int]]] = []
+        for clique in nx.enumerate_all_cliques(self.graph):
+            if len(clique) != 3:
+                continue
+            v0, v1, v2 = sorted(clique)
+            self.faces.append((v0, v1, v2))
+            # ∂[v0,v1,v2] = [v1,v2] - [v0,v2] + [v0,v1]
+            self.face_boundaries.append(
+                [
+                    ((v1, v2), +1),
+                    ((v0, v2), -1),
+                    ((v0, v1), +1),
+                ]
+            )
+        self.face_to_idx: Dict[Tuple[int, int, int], int] = {f: i for i, f in enumerate(self.faces)}
+        self.num_faces: int = len(self.faces)
+        self._build_edge_face_adjacency()
+        self.euler_characteristic = self.num_nodes - self.num_edges + self.num_faces
+        self._assert_positive_primal_volumes()
+
+    def _assert_positive_primal_volumes(self) -> None:
+        for key, val in self._node_volumes.items():
+            if float(val) <= 0.0:
+                raise HodgeStructureError(f"Volumen nodal no positivo en {key}: {val}.")
+        for key, val in self._edge_lengths.items():
+            if float(val) <= 0.0:
+                raise HodgeStructureError(f"Longitud de arista no positiva en {key}: {val}.")
+        for key, val in self._face_areas.items():
+            if float(val) <= 0.0:
+                raise HodgeStructureError(f"Área de cara no positiva en {key}: {val}.")
+
+    def _build_edge_face_adjacency(self) -> None:
+        self.edge_to_faces: Dict[int, List[Tuple[int, int]]] = {i: [] for i in range(self.num_edges)}
+        for face_idx, boundary in enumerate(self.face_boundaries):
+            for edge, sign in boundary:
+                edge_canonical = (min(edge), max(edge))
+                if edge_canonical in self.edge_to_idx:
+                    edge_idx = self.edge_to_idx[edge_canonical]
+                    self.edge_to_faces[edge_idx].append((face_idx, sign))
+
+    def _build_chain_operators(self) -> None:
+        self.boundary1 = self._build_boundary_1()
+        self.boundary2 = self._build_boundary_2()
+
+    def _build_boundary_1(self) -> csr_matrix:
+        """∂₁: C₁ → C₀.  (∂ e_{uv})_v = +1, (∂ e_{uv})_u = -1, u<v."""
+        if self.num_edges == 0:
+            return sparse.csr_matrix((self.num_nodes, 0))
+        u_idx = np.array([self.node_to_idx[u] for (u, _) in self.edges], dtype=np.int64)
+        v_idx = np.array([self.node_to_idx[v] for (_, v) in self.edges], dtype=np.int64)
+        rows = np.concatenate([v_idx, u_idx])
+        cols = np.concatenate([np.arange(self.num_edges), np.arange(self.num_edges)])
+        data = np.concatenate([np.ones(self.num_edges), -np.ones(self.num_edges)])
+        return sparse.csr_matrix((data, (rows, cols)), shape=(self.num_nodes, self.num_edges))
+
+    def _build_boundary_2(self) -> csr_matrix:
+        """∂₂: C₂ → C₁.  Identidad ∂₁∂₂ = 0 por construcción combinatoria."""
+        if self.num_faces == 0:
+            return sparse.csr_matrix((self.num_edges, 0))
+        edge_idx_list: List[int] = []
+        face_idx_list: List[int] = []
+        values: List[float] = []
+        for face_idx, boundary in enumerate(self.face_boundaries):
+            for edge, sign in boundary:
+                edge_canonical = (min(edge), max(edge))
+                if edge_canonical not in self.edge_to_idx:
+                    continue
+                e_idx = self.edge_to_idx[edge_canonical]
+                orientation = self.edge_orientation.get(edge, 1)
+                edge_idx_list.append(e_idx)
+                face_idx_list.append(face_idx)
+                values.append(float(sign * orientation))
+        rows = np.array(edge_idx_list, dtype=np.int64)
+        cols = np.array(face_idx_list, dtype=np.int64)
+        data = np.array(values, dtype=float)
+        return sparse.csr_matrix((data, (rows, cols)), shape=(self.num_edges, self.num_faces))
+
+    def _verify_chain_complex(self) -> None:
+        if self.num_faces == 0 or self.num_edges == 0:
+            self._chain_complex_error = 0.0
+            return
+        composition = self.boundary1 @ self.boundary2
+        max_error = float(np.max(np.abs(composition.data))) if composition.nnz > 0 else 0.0
+        self._chain_complex_error = max_error
+        if max_error > self.NUMERICAL_TOLERANCE:
+            raise ChainComplexError(f"‖∂₁∂₂‖_∞={max_error:.3e}  (se exige 0).")
+
+    def _build_hodge_operators(self) -> None:
+        self.star0, self.star0_inv = self._build_hodge_star(self.num_nodes, self._get_node_weight)
+        self.star1, self.star1_inv = self._build_hodge_star(self.num_edges, self._get_edge_weight)
+        self.star2, self.star2_inv = self._build_hodge_star(self.num_faces, self._get_face_weight)
+
+    def _build_hodge_star(
+        self,
+        size: int,
+        weight_func: Callable[[int], float],
+    ) -> Tuple[csr_matrix, csr_matrix]:
+        if size == 0:
+            empty = sparse.csr_matrix((0, 0))
+            return empty, empty
+        weights = np.array([weight_func(i) for i in range(size)], dtype=float)
+        if np.any(weights <= 0.0):
+            raise HodgeStructureError("★ posee pesos no positivos (mallado no well-centered).")
+        weights = np.maximum(weights, self.NUMERICAL_TOLERANCE)
+        return sparse.diags(weights, format="csr"), sparse.diags(1.0 / weights, format="csr")
+
+    def _get_node_weight(self, idx: int) -> float:
+        node = self.nodes[idx]
+        if node in self._node_volumes:
+            return float(self._node_volumes[node])
+        return float(max(1, self.graph.degree(node)))
+
+    def _get_edge_weight(self, idx: int) -> float:
+        """
+        ★₁_e = |⋆e| / |e|.  Si no hay longitud dual, lumped |e| (masa combinatoria).
+        """
+        edge = self.edges[idx]
+        primal = float(self._edge_lengths.get(edge, 1.0))
+        if edge in self._dual_edge_lengths:
+            dual = float(self._dual_edge_lengths[edge])
+            return dual / max(primal, self.NUMERICAL_TOLERANCE)
+        return primal
+
+    def _get_face_weight(self, idx: int) -> float:
+        """★₂ : Ω² → Ω⁰,  ★₂ = 1/área  (B_cochain = B_phys·área ⇒ ★B = B_phys)."""
+        face = self.faces[idx]
+        area = float(self._face_areas.get(face, 1.0))
+        return 1.0 / max(area, self.NUMERICAL_TOLERANCE)
+
+    def primal_edge_length(self, idx: int) -> float:
+        return float(self._edge_lengths.get(self.edges[idx], 1.0))
+
+    def primal_face_area(self, idx: int) -> float:
+        return float(self._face_areas.get(self.faces[idx], 1.0))
+
+    def _build_calculus_operators(self) -> None:
+        # d₀ = ∂₁ᵀ : (dφ)(u→v) = φ(v) - φ(u)
+        self.gradient_op = self.boundary1.T
+        # δ₁ = ★₀⁻¹ ∂₁ ★₁   (div, de modo que Δ₀ = δ₁ d₀ ⪰ 0)
+        self.divergence_op = self.star0_inv @ self.boundary1 @ self.star1
+        # d₁ = ∂₂ᵀ
+        self.curl_op = self.boundary2.T
+        # δ₂ = ★₁⁻¹ ∂₂ ★₂
+        if self.num_faces > 0:
+            self.cocurl_op = self.star1_inv @ self.boundary2 @ self.star2
+        else:
+            self.cocurl_op = sparse.csr_matrix((self.num_edges, 0))
+
+    def inner_product(self, degree: int, alpha: np.ndarray, beta: np.ndarray) -> float:
+        r"""⟨α,β⟩_k = αᵀ ★_k β."""
+        a = _as_1d(alpha)
+        b = _as_1d(beta)
+        star = {0: self.star0, 1: self.star1, 2: self.star2}[degree]
+        return float(a @ (star @ b))
+
+    def _compute_betti_numbers(self) -> None:
+        """
+        β₀ := # componentes (invariante combinatorio exacto).
+        β₁, β₂ por rangos si el complejo es pequeño; si no, se postergan al
+        espectro de Hodge (betti_from_hodge_kernel).
+        """
+        self.betti_0 = int(self.num_components)
+        small = (
+            max(self.num_nodes, self.num_edges, self.num_faces) <= CONSTANTS.MAX_DENSE_BETTI_DIM
+        )
+        if not small:
+            # Fórmula de Euler con β₂=0 tentativa; se corrige espectralmente.
+            self.betti_2 = 0
+            self.betti_1 = self.betti_0 + self.num_faces - self.euler_characteristic
+            self.betti = BettiNumbers(self.betti_0, self.betti_1, self.betti_2)
+            logger.warning(
+                "Betti denso omitido (dim > %d). β₁,β₂ son estimaciones de Euler.",
+                CONSTANTS.MAX_DENSE_BETTI_DIM,
+            )
+            return
+        if self.num_edges > 0:
+            rank_b1 = int(np.linalg.matrix_rank(self.boundary1.toarray()))
+        else:
+            rank_b1 = 0
+        beta0_rank = self.num_nodes - rank_b1
+        if beta0_rank != self.betti_0:
+            raise NumericalInstabilityError(
+                f"Inconsistencia topológica: β₀(rank)={beta0_rank} ≠ π₀={self.num_components}"
+            )
+        nullity_b1 = self.num_edges - rank_b1 if self.num_edges > 0 else 0
+        rank_b2 = int(np.linalg.matrix_rank(self.boundary2.toarray())) if self.num_faces > 0 else 0
+        self.betti_1 = nullity_b1 - rank_b2
+        self.betti_2 = self.num_faces - rank_b2 if self.num_faces > 0 else 0
+        self.betti = BettiNumbers(self.betti_0, self.betti_1, self.betti_2)
+        if self.betti.euler_poincare != self.euler_characteristic:
+            raise NumericalInstabilityError(
+                f"Euler–Poincaré violado: {self.betti.euler_poincare} ≠ {self.euler_characteristic}"
+            )
+
+    def _verify_hodge_laplacian_psd(self) -> None:
+        if not SCIPY_AVAILABLE or self.num_nodes == 0:
+            return
+        L0 = self.divergence_op @ self.gradient_op
+        asym = L0 - L0.T
+        asym_norm = float(np.linalg.norm(asym.data)) if asym.nnz > 0 else 0.0
+        if asym_norm > CONSTANTS.NUMERICAL_TOLERANCE * max(1.0, self.num_nodes):
+            raise HodgeStructureError(f"Δ₀ no simétrico: ‖Δ₀-Δ₀ᵀ‖={asym_norm:.3e}")
+        self._hodge_laplacian_psd_ok = True
+
+    def hodge_laplacian_eigenpairs(
+        self,
+        degree: int,
+        k: int = 10,
+        which: str = "SM",
+    ) -> Optional[Tuple[np.ndarray, np.ndarray]]:
+        if not SCIPY_AVAILABLE:
+            return None
+        L = self.laplacian(degree)
+        if L is None or L.shape[0] == 0:
+            return None
+        k = min(k, max(1, L.shape[0] - 1))
+        if k <= 0:
+            return None
+        # Shift-invert en 0 para núcleo; SM puro es inestable en laplacianos grandes.
+        try:
+            if which == "SM":
+                vals, vecs = eigsh(L.astype(float), k=k, sigma=0.0, which="LM")
+            else:
+                vals, vecs = eigsh(L.astype(float), k=k, which=which)
+        except Exception:  # noqa: BLE001
+            vals, vecs = eigsh(L.astype(float), k=k, which="SM")
+        return vals, vecs
+
+    def betti_from_hodge_kernel(self, tol: Optional[float] = None) -> BettiNumbers:
+        """βₖ = dim ker Δₖ  (teorema de Hodge discreto). Independiente de rank(∂)."""
+        if not SCIPY_AVAILABLE:
+            return getattr(self, "betti", BettiNumbers(self.num_components, 0, 0))
+        tol = CONSTANTS.HODGE_EIGEN_TOLERANCE if tol is None else float(tol)
+        bettas: List[int] = []
+        for deg, size in ((0, self.num_nodes), (1, self.num_edges), (2, self.num_faces)):
+            if size == 0:
+                bettas.append(0)
+                continue
+            L = self.laplacian(deg)
+            if L is None or L.shape[0] == 0:
+                bettas.append(0)
+                continue
+            k = min(max(1, size - 1), CONSTANTS.HODGE_KERNEL_MAX_K)
+            try:
+                vals, _ = eigsh(L.astype(float), k=k, sigma=0.0, which="LM")
+            except Exception:  # noqa: BLE001
+                try:
+                    vals, _ = eigsh(L.astype(float), k=k, which="SM")
+                except Exception:  # noqa: BLE001
+                    bettas.append(0)
+                    continue
+            bettas.append(int(np.sum(np.abs(vals) < tol)))
+        return BettiNumbers(bettas[0], bettas[1], bettas[2])
+
+    def gradient(self, scalar_field: np.ndarray) -> np.ndarray:
+        """d₀ φ."""
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        phi = _as_1d(scalar_field)
+        if phi.size != self.num_nodes:
+            raise ConfigurationError(f"Gradiente: esperado {self.num_nodes}, recibido {phi.size}.")
+        return self.gradient_op @ phi
+
+    def divergence(self, vector_field: np.ndarray) -> np.ndarray:
+        """δ₁ v."""
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        v = _as_1d(vector_field)
+        if v.size != self.num_edges:
+            raise ConfigurationError(f"Divergencia: esperado {self.num_edges}, recibido {v.size}.")
+        return self.divergence_op @ v
+
+    def curl(self, vector_field: np.ndarray) -> np.ndarray:
+        """d₁ v."""
+        if not SCIPY_AVAILABLE or self.num_faces == 0:
+            return np.array([])
+        v = _as_1d(vector_field)
+        if v.size != self.num_edges:
+            raise ConfigurationError(f"Curl: esperado {self.num_edges}, recibido {v.size}.")
+        return self.curl_op @ v
+
+    def cocurl(self, face_field: np.ndarray) -> np.ndarray:
+        """δ₂ H  (Ampère DEC)."""
+        if not SCIPY_AVAILABLE or self.num_faces == 0:
+            return np.zeros(self.num_edges, dtype=float)
+        h = _as_1d(face_field)
+        if h.size != self.num_faces:
+            raise ConfigurationError(f"Cocurl: esperado {self.num_faces}, recibido {h.size}.")
+        return self.cocurl_op @ h
+
+    def laplacian(self, degree: int) -> Optional[csr_matrix]:
+        """Δₖ = δd + dδ, k ∈ {0,1,2}."""
+        if not SCIPY_AVAILABLE:
+            return None
+        if degree not in {0, 1, 2}:
+            raise ConfigurationError("Laplaciano soporta degree=0,1,2.")
+        if degree in self._laplacian_cache:
+            self._laplacian_cache.move_to_end(degree)
+            return self._laplacian_cache[degree]
+        if degree == 0:
+            Delta = self.divergence_op @ self.gradient_op
+        elif degree == 1:
+            term1 = self.gradient_op @ self.divergence_op
+            term2 = (
+                self.cocurl_op @ self.curl_op
+                if self.num_faces > 0
+                else sparse.csr_matrix((self.num_edges, self.num_edges))
+            )
+            Delta = term1 + term2
+        else:
+            if self.num_faces == 0:
+                Delta = sparse.csr_matrix((0, 0))
+            else:
+                Delta = self.curl_op @ self.cocurl_op
+        self._laplacian_cache[degree] = Delta
+        if len(self._laplacian_cache) > CONSTANTS.MAX_LAPLACIAN_CACHE:
+            self._laplacian_cache.popitem(last=False)
+        return Delta
+
+    def curl_curl_spectral_radius(self, k: int = 6) -> float:
+        r"""ρ(δ₂ d₁) sobre 1-formas: controla el CFL de Maxwell."""
+        if not SCIPY_AVAILABLE or self.num_edges == 0:
+            return 0.0
+        L = self.laplacian(1)
+        if L is None or L.shape[0] < 2:
+            return 0.0
+        kk = min(k, L.shape[0] - 1)
+        try:
+            vals = eigsh(L.astype(float), k=kk, which="LM", return_eigenvectors=False)
+            return float(np.max(np.abs(vals)))
+        except Exception:  # noqa: BLE001
+            return float(np.linalg.norm(L.toarray(), ord=2)) if L.shape[0] <= 256 else 0.0
+
+    def verify_complex_exactness(self, seed: int = 0) -> Dict[str, Any]:
+        rng = np.random.default_rng(seed)
+        results: Dict[str, Any] = {
+            "boundary_composition_error": getattr(self, "_chain_complex_error", 0.0),
+            "is_chain_complex": getattr(self, "_chain_complex_error", 0.0) < self.NUMERICAL_TOLERANCE,
+            "euler_characteristic": self.euler_characteristic,
+            "betti_numbers": getattr(self, "betti", BettiNumbers(0, 0, 0)).as_tuple(),
+        }
+        if SCIPY_AVAILABLE and self.num_nodes > 0 and self.num_faces > 0:
+            phi = rng.standard_normal(self.num_nodes)
+            results["curl_grad_error"] = float(np.linalg.norm(self.curl(self.gradient(phi))))
+            if self.num_edges > 0:
+                v = rng.standard_normal(self.num_edges)
+                results["div_cocurl_error"] = float(np.linalg.norm(self.divergence(self.cocurl(self.curl(v) * 0.0))))
+        return results
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 1.4 — SOLVER MAXWELL FDTD + POINCARÉ
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class MaxwellSolver:
+    r"""
+    Yee / leap-frog sobre DEC, con auditoría PHS de Poincaré.
+
+    Semi-discretización (2D TE⊥, co-cadenas integradas):
+        ∂ₜ B = -d₁ E - σₘ H + Jₘ
+        ∂ₜ D =  δ₂ H - σₑ E - Jₑ
+        D = ε ★₁ E,   H = μ⁻¹ ★₂ B
+        U = ½ (Eᵀ D + Hᵀ B) = ½ (ε ‖E‖_{★₁}² + μ⁻¹ ‖B‖_{★₂}²)
+
+    PHS: x=[D,B], ∇H=[E,H],
+        J = [[0, ∂₂], [-∂₂ᵀ, 0]],  R=diag(σₑ, σₘ).
+    Casimirs ⊃ cohomología: Gauss δ₁ D y ker d₁ (armónicos) están en ker J.
+    """
+
+    def __init__(
+        self,
+        calculus: DiscreteVectorCalculus,
+        permittivity: float = 1.0,
+        permeability: float = 1.0,
+        electric_conductivity: float = 0.0,
+        magnetic_conductivity: float = 0.0,
+        pml_thickness: float = 0.1,
+        pml_max_sigma: float = 1.0,
+    ) -> None:
+        self.calc = calculus
+        self.epsilon = max(float(permittivity), CONSTANTS.NUMERICAL_TOLERANCE)
+        self.mu = max(float(permeability), CONSTANTS.NUMERICAL_TOLERANCE)
+        self.sigma_e_base = max(float(electric_conductivity), 0.0)
+        self.sigma_m_base = max(float(magnetic_conductivity), 0.0)
+        self.sigma_e = self.sigma_e_base
+        self.sigma_m = self.sigma_m_base
+        self.c = 1.0 / math.sqrt(self.epsilon * self.mu)
+        self._pml_thickness = float(pml_thickness)
+        self._pml_max_sigma = float(pml_max_sigma)
+        self._initialize_pml()
+        self.E = np.zeros(calculus.num_edges, dtype=float)
+        self.B = np.zeros(calculus.num_faces, dtype=float)
+        self.D = np.zeros(calculus.num_edges, dtype=float)
+        self.H = np.zeros(calculus.num_faces, dtype=float)
+        self.J_e = np.zeros(calculus.num_edges, dtype=float)
+        self.J_m = np.zeros(calculus.num_faces, dtype=float)
+        self.time = 0.0
+        self.step_count = 0
+        self.dt_cfl = self._compute_cfl_limit()
+        self.energy_history: deque = deque(maxlen=10_000)
+        self._coeff_cache: "OrderedDict[float, Tuple[np.ndarray, ...]]" = OrderedDict()
+        self._kernel_cache: Optional[PoincareHamiltonianKernel] = None
+
+    def _initialize_pml(self) -> None:
+        """
+        PML parabólica σ(ρ)=σ_max ρ² sobre el embedding.
+        Si hay node_positions se usa la norma euclídea al centroide;
+        si no, se degrada a índices (solo válido para grids enteros).
+        """
+        n_e, n_f = self.calc.num_edges, self.calc.num_faces
+        self.sigma_e_pml = np.zeros(n_e, dtype=float)
+        self.sigma_m_pml = np.zeros(n_f, dtype=float)
+        if not SCIPY_AVAILABLE:
+            return
+        pos = self.calc.node_positions
+        if pos:
+            coords = np.stack([pos[n] for n in self.calc.nodes if n in pos], axis=0)
+            center = coords.mean(axis=0)
+            radii = np.linalg.norm(coords - center, axis=1)
+            r_max = float(np.max(radii)) if radii.size else 1.0
+        else:
+            center = np.array([(self.calc.num_nodes - 1) / 2.0])
+            r_max = max(float(center[0]), 1.0)
+            logger.warning("PML sin node_positions: se usan índices de nodo (geométricamente ad hoc).")
+
+        threshold = 1.0 - self._pml_thickness
+
+        def _rho_node(node: int) -> float:
+            if pos and node in pos:
+                r = float(np.linalg.norm(pos[node] - center)) / max(r_max, CONSTANTS.NUMERICAL_TOLERANCE)
+            else:
+                r = abs(node - float(center.reshape(-1)[0])) / max(r_max, 1.0)
+            return r
+
+        for idx, (u, v) in enumerate(self.calc.edges):
+            r = 0.5 * (_rho_node(u) + _rho_node(v))
+            if r > threshold:
+                rho = (r - threshold) / max(self._pml_thickness, CONSTANTS.NUMERICAL_TOLERANCE)
+                self.sigma_e_pml[idx] = self._pml_max_sigma * (rho ** 2)
+        for idx, face in enumerate(self.calc.faces):
+            r = float(np.mean([_rho_node(n) for n in face]))
+            if r > threshold:
+                rho = (r - threshold) / max(self._pml_thickness, CONSTANTS.NUMERICAL_TOLERANCE)
+                self.sigma_m_pml[idx] = self._pml_max_sigma * (rho ** 2)
+
+    def _compute_cfl_limit(self) -> float:
+        r"""
+        CFL espectral: leap-frog de ω (curl-curl) es estable ssi Δt < 2/ρ(ω)
+        para el oscilador ẍ = -ω x, ω = c² Δ₁ (métrica absorbida en ★).
+
+        Fallback geométrico:  Δt ≤ CFL · min|e| / (c √d_eff).
+        """
+        dt_geom = CONSTANTS.MIN_DELTA_TIME
+        if self.calc.num_edges > 0:
+            lengths = np.array(
+                [self.calc.primal_edge_length(i) for i in range(self.calc.num_edges)],
+                dtype=float,
+            )
+            min_len = float(np.min(lengths)) if lengths.size else 1.0
+            dim_eff = 2.0 if self.calc.is_planar else 3.0
+            dt_geom = CONSTANTS.CFL_SAFETY_FACTOR * min_len / (self.c * math.sqrt(dim_eff))
+        dt_spec = dt_geom
+        if SCIPY_AVAILABLE and self.calc.num_edges >= 2:
+            rho = self.calc.curl_curl_spectral_radius()
+            # Δ₁ actúa sobre 1-formas; ∂ₜₜ E = -c² Δ₁ E  ⇒ ω_max = c √ρ
+            if rho > CONSTANTS.NUMERICAL_TOLERANCE:
+                omega_max = self.c * math.sqrt(rho)
+                dt_spec = CONSTANTS.CFL_SAFETY_FACTOR * (2.0 / omega_max)
+        dt_est = min(dt_geom, dt_spec) if dt_spec > 0.0 else dt_geom
+        return max(dt_est, CONSTANTS.MIN_DELTA_TIME)
+
+    def _get_update_coefficients(self, dt: float) -> Tuple[np.ndarray, ...]:
+        """
+        Leap-frog + Crank–Nicolson en σ (esquema exponencial de 1er orden):
+            α = σ Δt / (2 ε),   c1=(1-α)/(1+α),  c2=Δt/(ε(1+α)).
+        Incondicionalmente estable en el subpaso ohmico.
+        """
+        dt = float(dt)
+        if dt < CONSTANTS.MIN_DELTA_TIME:
+            raise ConfigurationError(f"dt={dt:.3e} < MIN_DELTA_TIME.")
+        if dt in self._coeff_cache:
+            self._coeff_cache.move_to_end(dt)
+            return self._coeff_cache[dt]
+        sigma_e = self.sigma_e_base + self.sigma_e_pml
+        sigma_m = self.sigma_m_base + self.sigma_m_pml
+        alpha_e = sigma_e * dt / (2.0 * self.epsilon)
+        ce1 = (1.0 - alpha_e) / (1.0 + alpha_e)
+        ce2 = dt / (self.epsilon * (1.0 + alpha_e))
+        alpha_m = sigma_m * dt / (2.0 * self.mu)
+        ch1 = (1.0 - alpha_m) / (1.0 + alpha_m)
+        ch2 = dt / (self.mu * (1.0 + alpha_m))
+        result = (ce1, ce2, ch1, ch2)
+        self._coeff_cache[dt] = result
+        if len(self._coeff_cache) > CONSTANTS.MAX_COEFF_CACHE:
+            self._coeff_cache.popitem(last=False)
+        return result
+
+    def update_constitutive_relations(self) -> None:
+        r"""D = ε ★₁ E,  H = μ⁻¹ ★₂ B."""
+        if not SCIPY_AVAILABLE:
+            return
+        if self.calc.num_edges > 0:
+            self.D = self.epsilon * (self.calc.star1 @ self.E)
+        if self.calc.num_faces > 0:
+            self.H = (1.0 / self.mu) * (self.calc.star2 @ self.B)
+
+    def step_magnetic_field(self, dt: float) -> None:
+        """B^{n+½} = ch1 B^{n-½} - ch2 (d₁ E + J_m)."""
+        if not SCIPY_AVAILABLE or self.calc.num_faces == 0:
+            return
+        _, _, ch1, ch2 = self._get_update_coefficients(dt)
+        curl_E = self.calc.curl(self.E)
+        self.B = ch1 * self.B - ch2 * (curl_E + self.J_m)
+        self.H = (1.0 / self.mu) * (self.calc.star2 @ self.B)
+
+    def step_electric_field(self, dt: float) -> None:
+        r"""E^{n+1} = ce1 E^n + ce2 ★₁⁻¹ (★₁ δ₂ H - J_e) / (implícito en ce2/ε).
+
+        Con D=ε★₁E,  ΔD = Δt (δ₂ H - σE - J) se traduce, vía CN en σ, a:
+            E ← ce1 E + (ce2) ★₁⁻¹ (★₁ δ₂ H - J_e)
+        y δ₂ = ★₁⁻¹ ∂₂ ★₂, por tanto ★₁ δ₂ H = ∂₂ ★₂ H.
+        Equivalente y más estable: usar cocurl y luego ★₁⁻¹.
+        """
+        if not SCIPY_AVAILABLE or self.calc.num_edges == 0:
+            return
+        ce1, ce2, _, _ = self._get_update_coefficients(dt)
+        if self.calc.num_faces > 0:
+            ampere = self.calc.cocurl(self.H)  # δ₂ H  ∈ C¹
+        else:
+            ampere = np.zeros(self.calc.num_edges, dtype=float)
+        # ce2 ya contiene 1/ε; Ampère vive en el espacio de D, convertimos con ★₁⁻¹
+        metric_term = ampere - (self.calc.star1_inv @ self.J_e)
+        self.E = ce1 * self.E + ce2 * metric_term
+        self.D = self.epsilon * (self.calc.star1 @ self.E)
+
+    def leapfrog_step(self, dt: Optional[float] = None) -> None:
+        """Yee: B (usa Eⁿ) → E (usa H^{n+½}). Conserva Gauss si δd=0."""
+        if not SCIPY_AVAILABLE:
+            return
+        if dt is None:
+            dt = 0.9 * self.dt_cfl
+        if dt > self.dt_cfl * (1.0 + CONSTANTS.RELATIVE_TOLERANCE):
+            raise NumericalInstabilityError(f"Δt={dt:.3e} > Δt_CFL={self.dt_cfl:.3e}.")
+        self.step_magnetic_field(dt)
+        self.step_electric_field(dt)
+        self.time += dt
+        self.step_count += 1
+        self.energy_history.append(self.total_energy())
+        self._monitor_energy_stability()
+
+    def _monitor_energy_stability(self) -> None:
+        if len(self.energy_history) < CONSTANTS.ENERGY_WINDOW:
+            return
+        recent = np.array(list(self.energy_history)[-CONSTANTS.ENERGY_WINDOW :], dtype=float)
+        baseline = float(np.median(recent[: CONSTANTS.ENERGY_WINDOW // 4]))
+        if baseline < CONSTANTS.MIN_ENERGY_THRESHOLD:
+            return
+        peak = float(np.max(recent))
+        if peak > CONSTANTS.ENERGY_BLOWUP_RATIO * baseline:
+            raise NumericalInstabilityError(
+                f"Energía EM anómala: pico/mediana={peak/baseline:.2e}."
+            )
+
+    def total_energy(self) -> float:
+        r"""U = ½(Eᵀ D + Hᵀ B) = ½(ε ‖E‖_{★₁}² + μ⁻¹ ‖B‖_{★₂}²)."""
+        if not SCIPY_AVAILABLE:
+            return 0.0
+        U_e = 0.5 * float(np.dot(self.E, self.D)) if self.calc.num_edges > 0 else 0.0
+        U_m = 0.5 * float(np.dot(self.H, self.B)) if self.calc.num_faces > 0 else 0.0
+        return _finite("U_em", U_e + U_m)
+
+    def poynting_flux(self) -> np.ndarray:
+        r"""
+        1-forma de Poynting lumped: S_e = E_e · ⟨H⟩_{⋆e}.
+
+        En 2D TE⊥, S = ★(E ∧ H) vive en el dual de las aristas. Esta fórmula
+        es la contracción C⁰ del producto interior interior de la 2-forma
+        de Faraday con el campo dual; exacta en mallados cartesianos Yee.
+        """
+        if not SCIPY_AVAILABLE:
+            return np.array([])
+        S = np.zeros(self.calc.num_edges, dtype=float)
+        if self.calc.num_faces == 0:
+            return S
+        for edge_idx in range(self.calc.num_edges):
+            adjacent = self.calc.edge_to_faces.get(edge_idx, [])
+            if not adjacent:
+                continue
+            H_avg = float(np.mean([self.H[f_idx] for f_idx, _ in adjacent]))
+            S[edge_idx] = self.E[edge_idx] * H_avg
+        return S
+
+    def gauss_residual(self, rho: Optional[np.ndarray] = None) -> float:
+        r"""‖δ₁ D - ρ‖₂. Casimir: d/dt (δ₁ D) = δ₁ δ₂ H = 0."""
+        if not SCIPY_AVAILABLE:
+            return 0.0
+        div_D = self.calc.divergence(self.D)
+        if rho is None:
+            return float(np.linalg.norm(div_D))
+        return float(np.linalg.norm(div_D - _as_1d(rho)))
+
+    def electromagnetic_momentum(self) -> np.ndarray:
+        """Densidad de momento ε μ S · |e| (Abraham/Minkowski coinciden en vacío lineal)."""
+        S = self.poynting_flux()
+        if S.size == 0:
+            return S
+        lengths = np.array([self.calc.primal_edge_length(i) for i in range(S.size)], dtype=float)
+        return self.epsilon * self.mu * S * lengths
+
+    def set_initial_conditions(
+        self,
+        E0: Optional[np.ndarray] = None,
+        B0: Optional[np.ndarray] = None,
+    ) -> None:
+        if E0 is not None:
+            E0 = _as_1d(E0)
+            if E0.size != self.calc.num_edges:
+                raise ConfigurationError(f"E0 debe tener tamaño {self.calc.num_edges}")
+            self.E = E0.copy()
+        if B0 is not None:
+            B0 = _as_1d(B0)
+            if B0.size != self.calc.num_faces:
+                raise ConfigurationError(f"B0 debe tener tamaño {self.calc.num_faces}")
+            self.B = B0.copy()
+        self.update_constitutive_relations()
+
+    def compute_energy_and_momentum(self) -> Dict[str, Any]:
+        if not SCIPY_AVAILABLE:
+            return {"total_energy": 0.0}
+        S = self.poynting_flux()
+        P = self.electromagnetic_momentum()
+        return {
+            "total_energy": self.total_energy(),
+            "poynting_vector": S,
+            "poynting_magnitude": float(np.linalg.norm(S)) if S.size else 0.0,
+            "poynting_mean": float(np.mean(np.abs(S))) if S.size else 0.0,
+            "poynting_max": float(np.max(np.abs(S))) if S.size else 0.0,
+            "momentum_vector": P,
+            "momentum_magnitude": float(np.linalg.norm(P)) if P.size else 0.0,
+            "gauss_residual": self.gauss_residual(),
+        }
+
+    def audit_discrete_identities(self) -> Dict[str, float]:
+        if not SCIPY_AVAILABLE:
+            return {}
+        results: Dict[str, float] = {"gauss_residual": self.gauss_residual()}
+        if self.calc.num_nodes > 0 and self.calc.num_faces > 0:
+            results["curl_grad_residual"] = float(
+                np.linalg.norm(self.calc.curl(self.calc.gradient(np.zeros(self.calc.num_nodes))))
+            )
+        return results
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 1.5 — PUENTE FORMAL A LA FASE 2
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _get_poincare_kernel(self) -> Optional[PoincareHamiltonianKernel]:
+        r"""
+        Kernel PHS para x=[D,B].
+
+            K_ee = ★₁⁻¹ / ε     (E = K_ee D)
+            K_bb = ★₂ / μ       (H = K_bb B)     ← corrección 7.1
+            J    = [[0, ∂₂], [-∂₂ᵀ, 0]]
+            R    = diag(σₑ^{base+PML}, σₘ^{base+PML})
+        """
+        if self._kernel_cache is not None:
+            return self._kernel_cache
+        if not SCIPY_AVAILABLE:
+            return None
+        n_e = self.calc.num_edges
+        n_f = self.calc.num_faces
+        dim = n_e + n_f
+        if dim == 0:
+            return None
+        if dim > CONSTANTS.MAX_POINCARE_STATE_DIM:
+            logger.warning(
+                "Estado Poincaré dim=%d > MAX=%d; se omite kernel denso.",
+                dim,
+                CONSTANTS.MAX_POINCARE_STATE_DIM,
+            )
+            return None
+        B2 = self.calc.boundary2.toarray() if n_f > 0 else np.zeros((n_e, 0))
+        electric_metric = np.asarray(self.calc.star1_inv.diagonal(), dtype=float) / self.epsilon
+        magnetic_metric = (
+            np.asarray(self.calc.star2.diagonal(), dtype=float) / self.mu
+            if n_f > 0
+            else np.zeros(0, dtype=float)
+        )
+        try:
+            kernel = PoincareHamiltonianKernel.from_maxwell_blocks(
+                boundary2=B2,
+                electric_metric_diag=electric_metric,
+                magnetic_metric_diag=magnetic_metric,
+                sigma_e=self.sigma_e_base + self.sigma_e_pml,
+                sigma_m=self.sigma_m_base + self.sigma_m_pml,
+            )
+        except DataFluxCondenserError as exc:
+            logger.error("No se pudo construir kernel Poincaré: %s", exc)
+            return None
+        self._kernel_cache = kernel
+        return kernel
+
+    def poincare_step(
+        self,
+        dt: Optional[float] = None,
+        apply_state: bool = False,
+        integrator: str = "strang",
+    ) -> Tuple[Optional[np.ndarray], FluxCondenserStepReport]:
+        """Paso PHS de auditoría sobre [D,B]. No sustituye a Yee salvo apply_state=True."""
+        if dt is None:
+            dt = 0.9 * self.dt_cfl
+        kernel = self._get_poincare_kernel()
+        dim = self.calc.num_edges + self.calc.num_faces
+        if kernel is None:
+            report = FluxCondenserStepReport(
+                hamiltonian_energy=self.total_energy(),
+                volume_drift=0.0,
+                rayleigh_dissipation_rate=0.0,
+                is_liouville_preserved=False,
+                is_volume_contracting=True,
+                poisson_residual=0.0,
+                trace_generator=0.0,
+                state_dimension=dim,
+            )
+            return None, report
+        x = np.concatenate([self.D, self.B])
+        x_next, report = kernel.compute_step(x, dt, integrator=integrator)
+        if apply_state:
+            n_e = self.calc.num_edges
+            self.D = x_next[:n_e].copy()
+            self.B = x_next[n_e:].copy()
+            # reconstitución de E,H desde D,B con las constitutivas
+            if n_e > 0:
+                self.E = (1.0 / self.epsilon) * (self.calc.star1_inv @ self.D)
+            if self.calc.num_faces > 0:
+                self.H = (1.0 / self.mu) * (self.calc.star2 @ self.B)
+            self.time += dt
+            self.step_count += 1
+            self.energy_history.append(self.total_energy())
+        return x_next, report
+
+    def synthesize_poincare_control_seed(
+        self,
+        target_energy: Optional[float] = None,
+        dt: Optional[float] = None,
+        port_indices: Optional[np.ndarray] = None,
+        desired_metric: Optional[np.ndarray] = None,
+    ) -> PoincareControlSeed:
+        r"""
+        PUENTE FORMAL FASE 1 → FASE 2.
+
+        Semilla enriquecida para:
+          · PIController (anti-windup + Lyapunov V=½(H-H*)², con análisis de V̇).
+          · FluxMuscleController (slew-rate, térmica).
+          · PortHamiltonianPoincareController (IDA-PBC lineal con matching).
+
+        Contenido 7.1:
+          1. x, ∇H, H, H*, V, ∇V, V̇.
+          2. PHS (J, R, K, g) y salida de puerto y = gᵀ ∇H.
+          3. Casimirs = ker J  (Gauss + armónicos; dim ~ β₁+β₂).
+          4. Espectro de A=(J-R)K, μ₂(A), estabilidad módulo Casimir.
+          5. Matching IDA-PBC lineal {J_d, J_a, R_d, K_d, G, residual}.
+          6. Metadatos topológicos (χ, β) y CFL espectral.
+          7. Advertencia de bombeo: V̇≤0 en {H≥H*} solamente; Fase 2 debe
+             inyectar u a través de g si H < H*.
+        """
+        kernel = self._get_poincare_kernel()
+        n_e = self.calc.num_edges
+        n_f = self.calc.num_faces
+        dim = n_e + n_f
+        x = np.concatenate([self.D, self.B])
+        H = self.total_energy()
+        H_star = (
+            max(float(target_energy), CONSTANTS.MIN_ENERGY_THRESHOLD)
+            if target_energy is not None
+            else max(H, CONSTANTS.MIN_ENERGY_THRESHOLD)
+        )
+        if kernel is not None:
+            grad_H = kernel.gradient(x)
+            J = kernel.J.copy()
+            R = kernel.R.copy()
+            K = kernel.metric.copy()
+            rayleigh = kernel.rayleigh_dissipation_rate(x)
+            is_conservative = kernel.is_nominally_conservative
+            casimir_basis = kernel.casimir_basis.copy()
+            spec = kernel.spectral_audit()
+            spectral_data: Optional[Dict[str, Any]] = {
+                "eigenvalues": spec.eigenvalues,
+                "max_real_part": spec.max_real_part,
+                "spectral_radius": spec.spectral_radius,
+                "logarithmic_norm": spec.logarithmic_norm,
+                "is_lyapunov_stable": spec.is_lyapunov_stable,
+                "is_asymptotically_stable_mod_casimir": spec.is_asymptotically_stable_mod_casimir,
+                "is_normal": spec.is_normal,
+                "departure_from_normality": spec.departure_from_normality,
+                "condition_metric": spec.condition_metric,
+                "casimir_multiplicity": spec.casimir_multiplicity,
+            }
+            V, dV, Vdot = kernel.energy_shaping_lyapunov(x, H_star)
+            K_d = desired_metric if desired_metric is not None else K
+            matching = kernel.linear_ida_pbc_matching(K_d=K_d)
+            matching_residual = float(matching["matching_residual"].reshape(-1)[0])
+            ida = {
+                "J_d": matching["J_d"],
+                "J_a": matching["J_a"],
+                "R_d": matching["R_d"],
+                "K_d": matching["K_d"],
+                "G": matching["G"],
+                "x_star": matching["x_star"],
+            }
+        else:
+            grad_H = np.concatenate([self.E, self.H]) if dim else np.zeros(0)
+            J = np.zeros((dim, dim), dtype=float)
+            R = np.zeros((dim, dim), dtype=float)
+            K = np.eye(dim, dtype=float) if dim else np.zeros((0, 0))
+            rayleigh = 0.0
+            is_conservative = False
+            casimir_basis = None
+            spectral_data = None
+            V = 0.5 * float((H - H_star) ** 2)
+            dV = (H - H_star) * grad_H
+            Vdot = 0.0
+            matching_residual = 0.0
+            ida = {"J_d": J.copy(), "J_a": np.zeros_like(J), "R_d": R.copy(), "K_d": K.copy()}
+
+        if port_indices is None:
+            g = np.eye(dim, dtype=float) if dim else np.zeros((0, 0))
+        else:
+            idx = np.asarray(port_indices, dtype=int).ravel()
+            if idx.size == 0 or np.any(idx < 0) or np.any(idx >= dim):
+                raise ConfigurationError(f"port_indices inválidos: {idx!r} (dim={dim}).")
+            g = np.zeros((dim, idx.size), dtype=float)
+            g[idx, np.arange(idx.size)] = 1.0
+        y = g.T @ grad_H if dim else np.zeros(0)
+
+        betti = getattr(self.calc, "betti", BettiNumbers(
+            getattr(self.calc, "betti_0", 0),
+            getattr(self.calc, "betti_1", 0),
+            getattr(self.calc, "betti_2", 0),
+        ))
+        pumping_required = bool(H < H_star - CONSTANTS.MIN_ENERGY_THRESHOLD)
+        metadata: Dict[str, Any] = {
+            "time": self.time,
+            "step_count": self.step_count,
+            "dt_cfl": self.dt_cfl,
+            "dt_suggested": dt if dt is not None else 0.9 * self.dt_cfl,
+            "epsilon": self.epsilon,
+            "mu": self.mu,
+            "sigma_e_base": self.sigma_e_base,
+            "sigma_m_base": self.sigma_m_base,
+            "pml_thickness": self._pml_thickness,
+            "pml_max_sigma": self._pml_max_sigma,
+            "num_edges": n_e,
+            "num_faces": n_f,
+            "is_conservative_kernel": is_conservative,
+            "rayleigh_dissipation_rate": rayleigh,
+            "lyapunov_Vdot": Vdot,
+            "pumping_required": pumping_required,
+            "euler_characteristic": self.calc.euler_characteristic,
+            "betti_numbers": betti.as_tuple(),
+            "casimir_dimension": kernel.casimir_dimension if kernel is not None else 0,
+            "state_dimension": dim,
+            "hodge_convention": "D=ε★₁E, H=μ⁻¹★₂B, δ₂=★₁⁻¹∂₂★₂",
+            "integrator_recommended": "strang",
+            "schema_version": "7.1.0",
+        }
+        return PoincareControlSeed(
+            state=x,
+            gradient=grad_H,
+            hamiltonian=float(H),
+            target_hamiltonian=H_star,
+            lyapunov_candidate=V,
+            interconnection_matrix=J,
+            damping_matrix=R,
+            metric_matrix=K,
+            port_matrix=g,
+            metadata=metadata,
+            casimir_basis=casimir_basis,
+            spectral_data=spectral_data,
+            ida_pbc_decomposition=ida,
+            lyapunov_jacobian=dV,
+            output_port=y,
+            matching_residual=matching_residual,
         )
 
-    @property
-    def dominant_pole(self) -> float:
-        """σ = -R/(2L). Polo dominante (real, negativo para estabilidad)."""
-        return -self.base_resistance / (2.0 * self.system_inductance)
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FIN DE LA FASE 1  (v7.1.0)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# MaxwellSolver.synthesize_poincare_control_seed() es la frontera formal hacia
+# la FASE 2. Contrato del PoincareControlSeed (7.1):
+#
+#   1. x, ∇H, H, H*, V=½(H-H*)², ∇V, y=gᵀ∇H.
+#   2. PHS (J, R, K, g) con constitutivas DEC consistentes.
+#   3. Casimirs ker J  ↔  cohomología (Gauss + armónicos).
+#   4. σ(A), μ₂(A), estabilidad de Lyapunov módulo Casimir.
+#   5. Matching IDA-PBC lineal (J_d, J_a, R_d, K_d, G, residual).
+#   6. metadata["pumping_required"]  ⇒  Fase 2 debe inyectar puerto si H<H*.
+#   7. metadata["hodge_convention"]  inmutable para no romper el matching.
+#
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# ╔═════════════════════════════════════════════════════════════════════════════════════╗
+# ║  FASE 2/3 — CONTROLADORES PI, MÚSCULO DE FLUJO Y PORT-HAMILTONIAN POINCARÉ          ║
+# ║  Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                           ║
+# ╚═════════════════════════════════════════════════════════════════════════════════════╝
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# Frontera de entrada : MaxwellSolver.synthesize_poincare_control_seed()
+#                       → PoincareControlSeed  (contrato 7.1)
+# Frontera de salida  : PortHamiltonianPoincareController.synthesize_engine_seed()
+#                       → PoincareEngineSeed   (contrato 7.1 → Fase 3)
+#
+# Convenciones inmutables (heredadas de 7.1, no se redefinen ★ ni J):
+#   PHS:  ẋ = (J−R)∇H + g u,  y = gᵀ ∇H,  H = ½ xᵀ K x
+#   Casimir lineal: C(x)=Cᵀx, JC=0.  Invarianza bajo control ⇔ Cᵀ g = 0.
+#   Energía K-ortogonal: H = H_c ⊕ H_d,  H_c no es regulable.
+#   Bombeo: yᵀ u = ∇Hᵀ R ∇H − λ(H−H*)   (compensa Rayleigh).
+#   Integrador de lazo: punto medio implícito (gradiente discreto de H cuadrática).
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+import time
+from enum import Enum
+
+try:
+    from scipy.linalg import lu_factor, lu_solve
+    _LU_AVAILABLE = True
+except ImportError:  # pragma: no cover
+    lu_factor = None
+    lu_solve = None
+    _LU_AVAILABLE = False
 
 
-
-@dataclass
-class ProcessingStats:
-    """Estadísticas del procesamiento para observabilidad."""
-
-    total_records: int = 0
-    processed_records: int = 0
-    failed_records: int = 0
-    total_batches: int = 0
-    failed_batches: int = 0
-    processing_time: float = 0.0
-    avg_batch_size: float = 0.0
-    avg_saturation: float = 0.0
-    max_dissipated_power: float = 0.0
-    max_flyback_voltage: float = 0.0
-    avg_kinetic_energy: float = 0.0
-    emergency_brakes_triggered: int = 0
-
-    def add_batch_stats(
-        self,
-        batch_size: int,
-        saturation: float,
-        power: float,
-        flyback: float,
-        kinetic: float,
-        success: bool,
-    ) -> None:
-        """Actualiza estadísticas con datos de un batch procesado."""
-        self.total_batches += 1
-        if success:
-            self.processed_records += batch_size
-        else:
-            self.failed_records += batch_size
-            self.failed_batches += 1
-
-        n = self.total_batches
-        self.avg_batch_size = ((n - 1) * self.avg_batch_size + batch_size) / n
-        self.avg_saturation = ((n - 1) * self.avg_saturation + saturation) / n
-        self.avg_kinetic_energy = ((n - 1) * self.avg_kinetic_energy + kinetic) / n
-        self.max_dissipated_power = max(self.max_dissipated_power, power)
-        self.max_flyback_voltage = max(self.max_flyback_voltage, flyback)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 2.1 — EXCEPCIONES, CONSTANTES DE CONTROL Y ESTRUCTURAS
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 
-@dataclass
-class BatchResult:
-    """Resultado estructurado de procesamiento de un batch."""
-
-    success: bool
-    dataframe: Optional[pd.DataFrame] = None
-    records_processed: int = 0
-    error_message: str = ""
-    metrics: Optional[Dict[str, float]] = None
+class ControlSeedError(DataFluxCondenserError):
+    """Semilla de control Poincaré inválida, incompleta o no finita."""
 
 
-# ============================================================================
-# CONTROLADORES
-# ============================================================================
-class FluxMuscleController:
+class PassivityViolationError(DataFluxCondenserError):
+    """Violación de la desigualdad de pasividad discreta (no de la identidad continua)."""
+
+
+class MuscleThermalError(DataFluxCondenserError):
+    """Condición térmica inválida o peligrosa en el músculo de flujo."""
+
+
+class AntiWindupError(DataFluxCondenserError):
+    """Configuración o estado inconsistente de anti-windup."""
+
+
+class UncontrollableEnergyError(DataFluxCondenserError):
+    """H* es inalcanzable: autoridad de puerto nula o H* bajo la energía de Casimir."""
+
+
+class ControlMode(str, Enum):
     """
-    Controlador del 'Músculo' (MOSFET).
-    Gestiona la traducción de 'Intención de Flujo' a 'Ciclo de Trabajo PWM'.
-    Implementa Soft-Start y limitación de corriente virtual.
+    Modo del lazo Port-Hamiltoniano.
+
+    ENERGY_LEVEL  — regulación de la hoja {H=H*} ∩ {C=C₀} por power-shaping.
+    IDA_PBC_POINT — matching lineal u = Gx + v, v = −R_a y_d, hacia x*.
+    DAMPING_ONLY  — u = −k_d y  (inyección de amortiguamiento pura).
     """
-    def __init__(self, pwm_pin=None, frequency_hz=20000):
-        # Frecuencia alta (20kHz) para que el inductor 'vea' corriente continua
-        # y no pulsos individuales (fuera del rango audible).
-        self.pwm_frequency = frequency_hz
-        self._current_duty = 0.0
-        self._max_slew_rate = 0.1  # Máximo cambio de fuerza por ciclo (evita golpes)
 
-        # Estado térmico simulado (protección)
-        self._thermal_accumulator = 0.0
+    ENERGY_LEVEL = "energy_level"
+    IDA_PBC_POINT = "ida_pbc_point"
+    DAMPING_ONLY = "damping_only"
 
-    def apply_force(self, target_intensity: float, dt: float) -> float:
-        """
-        Aplica fuerza al pistón (Inductor).
 
-        Args:
-            target_intensity: Solicitud de fuerza del Agente (0.0 a 1.0).
-            dt: Tiempo transcurrido.
+@dataclass(frozen=True)
+class ControlConstants:
+    """Constantes del lazo. No se mezclan con las de geometría DEC/PHS."""
 
-        Returns:
-            float: El ciclo de trabajo (duty cycle) real aplicado.
-        """
-        # 1. Protección de Rango
-        target = max(0.0, min(1.0, target_intensity))
+    LARGE_DIM_THRESHOLD: int = 512
+    PORT_RANK_TOLERANCE: float = 1e-10
+    POWER_REGULARIZATION: float = 1e-12
+    PICARD_MAX_ITER: int = 8
+    PICARD_ATOL: float = 1e-12
+    RK4_IMAG_LIMIT: float = 2.5          # eje imaginario de RK4 ≈ 2√2
+    MIDPOINT_CFL: float = 0.9            # h·μ₂(A) ≤ 0 ya es contractivo; este es extra
+    DISCRETE_PASSIVITY_TOL: float = 1e-8
+    THEIL_SEN_WINDOW: int = 8
+    MIN_LYAPUNOV_SAMPLES: int = 16
+    MUSCLE_FATIGUE_HI: float = 0.8
+    MUSCLE_FATIGUE_LO: float = 0.6
+    DEFAULT_ENERGY_RATE: float = 0.1     # λ en Ḣ = −λ(H−H*)  [1/s]
+    QR_PIVOT_TOL: float = 1e-10
 
-        # 2. Limitación de Cambio (Slew Rate Limiting / Soft Start)
-        # El músculo no puede pasar de 0 a 100% instantáneamente.
-        # Esto simula la rampa de corriente necesaria para no saturar el inductor.
-        delta = target - self._current_duty
-        # Normalizado a 10ms (0.01s)
-        max_change = self._max_slew_rate * (dt / 0.01) if dt > 0 else 0.0
+    def __post_init__(self) -> None:
+        if not (0.0 < self.MIDPOINT_CFL <= 1.0):
+            raise ConfigurationError("MIDPOINT_CFL debe estar en (0, 1].")
 
-        if abs(delta) > max_change:
-            delta = math.copysign(max_change, delta)
 
-        self._current_duty += delta
+CTRL = ControlConstants()
 
-        # 3. Simulación de Fatiga Térmica (I^2 * R)
-        # Si el músculo trabaja al 100% mucho tiempo, se calienta.
-        if self._current_duty > 0.8:
-            self._thermal_accumulator += dt
-        else:
-            self._thermal_accumulator = max(0.0, self._thermal_accumulator - dt)
 
-        # Protección: Si se calienta demasiado, forzar relajación
-        if self._thermal_accumulator > 5.0:  # 5 segundos de esfuerzo máximo
-            self._current_duty *= 0.5  # Reducir fuerza a la mitad
+@dataclass(frozen=True)
+class DiscretePassivityAudit:
+    """
+    Balance de Tellegen *discreto* en un paso de punto medio.
 
-        return self._current_duty
+    residual = (H_{n+1}−H_n) − h (y_midᵀ u − ‖∇H_mid‖_R²)
+    Debe ser ~ 0 a precisión de máquina para H cuadrática (gradiente discreto).
+    is_passive se refiere a H_{n+1}−H_n ≤ h y_midᵀ u + tol  (Rayleigh ≥ 0).
+    """
 
-    @property
-    def temperature(self) -> float:
-        """Retorna una temperatura simulada basada en el acumulador (25°C base)."""
-        return 25.0 + self._thermal_accumulator * 15.0
+    dH_discrete: float
+    supply: float
+    rayleigh: float
+    residual: float
+    casimir_drift: float
+    is_discrete_gradient: bool
+    is_passive: bool
+
+
+@dataclass(eq=False)
+class ValidatedPoincareSeed:
+    r"""
+    Semilla Poincaré proyectada a un PHS admisible.
+
+    Garantías:
+        J = −Jᵀ,  R = Rᵀ ⪰ 0,  K = Kᵀ ≻ 0,
+        tr((J−R)K) = −tr(RK) ≤ 0,
+        g con columnas independientes y Cᵀ g = 0 (Casimirs inmunes al puerto),
+        H* ≥ H_c  (energía de Casimir K-ortogonal).
+    """
+
+    raw: PoincareControlSeed
+    state_dim: int
+    port_dim: int
+    hamiltonian_error: float
+    normalized_energy_error: float
+    gradient_norm: float
+    rayleigh_dissipation_rate: float
+    is_rayleigh_nonpositive: bool
+    is_passive: bool
+    spectral_radius_J: float
+    min_metric_eigenvalue: float
+    max_metric_eigenvalue: float
+    metric_condition_number: float
+    min_damping_eigenvalue: float
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    casimir_basis: Optional[np.ndarray] = None
+    spectral_data: Optional[Dict[str, Any]] = None
+    ida_pbc_decomposition: Optional[Dict[str, np.ndarray]] = None
+    lyapunov_jacobian: Optional[np.ndarray] = None
+    port_gram_condition: float = 1.0
+    trace_generator: float = 0.0
+    # Extensión 7.1
+    output_port: Optional[np.ndarray] = None
+    matching_residual: float = 0.0
+    pumping_required: bool = False
+    casimir_energy: float = 0.0
+    dynamic_energy: float = 0.0
+    logarithmic_norm: float = 0.0
+    is_energy_controllable: bool = True
+    casimir_port_leak: float = 0.0
+
+
+@dataclass(frozen=True)
+class PIControlReport:
+    """Iteración PI. `output` vive en unidades de mando (potencia normalizada o u)."""
+
+    output: float
+    error: float
+    filtered_pv: float
+    integral_error: float
+    integral_term: float
+    p_term: float
+    i_term: float
+    feedforward: float
+    saturated: bool
+    anti_windup_correction: float
+    lyapunov_exponent: float
+    oscillation_index: float
+    extrema_density: float = 0.0
+    applied_output: float = 0.0
+
+
+@dataclass(frozen=True)
+class MuscleThermalState:
+    """Estado térmico/mecánico. `duty` ∈ [−quadrants+1, 1] tras saturación real."""
+
+    duty: float
+    commanded: float
+    temperature: float
+    thermal_accumulator: float
+    overheated: bool
+    derated: bool
+    thermal_derate_cap: float = 1.0
+    applied_scale: float = 1.0
+
+
+@dataclass(frozen=True)
+class PortHamiltonianControlReport:
+    r"""
+    Paso de control PHS.
+
+    is_passive          — pasividad *discreta* de planta (ΔH ≤ h yᵀu + tol).
+    is_regulating       — V_{n+1} ≤ V_n + O(h²)  **o** (H<H* y ΔH>0) (bombeo).
+    plant_passivity_slack — ‖∇H_mid‖_R²  (≥ 0).
+    regulation_slack    — −ΔV/h  (puede ser negativo transitoriamente si R lucha).
+    """
+
+    time: float
+    dt: float
+    hamiltonian: float
+    hamiltonian_derivative: float
+    target_hamiltonian: float
+    storage_function: float
+    control_norm: float
+    port_output_norm: float
+    supply_rate: float
+    lyapunov_derivative: float
+    plant_passivity_slack: float
+    regulation_slack: float
+    passivity_margin: float
+    is_passive: bool
+    is_regulating: bool
+    discrete_residual: float = 0.0
+    casimir_drift: float = 0.0
+    power_requested: float = 0.0
+    power_delivered: float = 0.0
+    applied_control_norm: float = 0.0
+    pumping_required: bool = False
+    mode: str = ControlMode.ENERGY_LEVEL.value
+
+
+@dataclass(eq=False)
+class PoincareEngineSeed:
+    r"""
+    Semilla Fase 2 → Fase 3.
+
+    `control_input` es el mando **aplicado** (post-músculo, post-proyección Casimir).
+    `commanded_control` es el mando pre-saturación. Fase 3 integra con el aplicado.
+    """
+
+    state: np.ndarray
+    gradient: np.ndarray
+    control_input: np.ndarray
+    hamiltonian: float
+    target_hamiltonian: float
+    storage_function: float
+    interconnection_matrix: np.ndarray
+    damping_matrix: np.ndarray
+    metric_matrix: np.ndarray
+    port_matrix: np.ndarray
+    pi_report: Optional[PIControlReport]
+    muscle_duty: float
+    passivity_report: Dict[str, float]
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    casimir_basis: Optional[np.ndarray] = None
+    spectral_data: Optional[Dict[str, Any]] = None
+    ida_pbc_decomposition: Optional[Dict[str, np.ndarray]] = None
+    lyapunov_jacobian: Optional[np.ndarray] = None
+    engine_hints: Dict[str, Any] = field(default_factory=dict)
+    commanded_control: Optional[np.ndarray] = None
+    output_port: Optional[np.ndarray] = None
+    matching_residual: float = 0.0
+    pumping_required: bool = False
+    casimir_energy: float = 0.0
+    schema_version: str = "7.1.0"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 2.2 — PUENTE DE VALIDACIÓN Y PROYECCIÓN PORT-HAMILTONIANA
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class PoincareControlBridge:
+    r"""
+    Puente epistémico Fase 1 → Fase 2.
+
+    Proyecciones (en este orden, para no invalidar Casimirs a posteriori):
+        1. J ← ½(J − Jᵀ)
+        2. C ← ker J  (SVD; rango par por Pfaffiano)
+        3. R ← Π_{Sym⁺}(R)  espectral; componentes negativos *solamente*
+        4. K ← Π_{Sym⁺⁺}(K)  con suelo ε
+        5. g ← QR con pivote, luego g ← (I − C Cᵀ) g   (Cᵀ g = 0)
+        6. Matching residual recalculado sobre las matrices proyectadas
+        7. Descomposición K-ortogonal H = H_c ⊕ H_d
+    """
+
+    LARGE_DIM_THRESHOLD: int = CTRL.LARGE_DIM_THRESHOLD
+
+    @classmethod
+    def validate_seed(cls, seed: PoincareControlSeed) -> ValidatedPoincareSeed:
+        projected = cls.project_seed(seed)
+        state = np.asarray(projected.state, dtype=float).reshape(-1)
+        grad = np.asarray(projected.gradient, dtype=float).reshape(-1)
+        J = np.asarray(projected.interconnection_matrix, dtype=float)
+        R = np.asarray(projected.damping_matrix, dtype=float)
+        K = np.asarray(projected.metric_matrix, dtype=float)
+        g = np.asarray(projected.port_matrix, dtype=float)
+        dim = int(state.size)
+        port_dim = int(g.shape[1]) if g.ndim == 2 else 0
+        H = float(projected.hamiltonian)
+        H_target = float(projected.target_hamiltonian)
+        if H_target <= CONSTANTS.MIN_ENERGY_THRESHOLD:
+            raise ControlSeedError(
+                f"target_hamiltonian debe ser > {CONSTANTS.MIN_ENERGY_THRESHOLD}."
+            )
+
+        energy_error = H - H_target
+        normalized_energy_error = abs(energy_error) / max(H_target, CONSTANTS.MIN_ENERGY_THRESHOLD)
+        gradient_norm = float(np.linalg.norm(grad))
+        rayleigh = -float(grad @ (R @ grad))
+        if abs(rayleigh) < CONSTANTS.NUMERICAL_TOLERANCE:
+            rayleigh = 0.0
+        is_rayleigh_nonpositive = bool(rayleigh <= CONSTANTS.NUMERICAL_TOLERANCE)
+
+        min_R_eig = cls._min_symmetric_eigenvalue(R)
+        min_K_eig, max_K_eig = cls._symmetric_eigen_bounds(K)
+        metric_condition = cls._condition_number_from_eigen_bounds(min_K_eig, max_K_eig)
+        is_passive = bool(min_R_eig >= -CONSTANTS.NUMERICAL_TOLERANCE and is_rayleigh_nonpositive)
+        spectral_radius_J = cls._spectral_radius_estimate(J)
+
+        gram = g.T @ g if port_dim > 0 else np.eye(1)
+        try:
+            s = np.linalg.svd(gram, compute_uv=False) if port_dim > 0 else np.array([1.0])
+            port_gram_condition = float(s[0] / max(float(s[-1]), CONSTANTS.NUMERICAL_TOLERANCE))
+        except np.linalg.LinAlgError:
+            port_gram_condition = float("inf")
+
+        A_gen = (J - R) @ K
+        trace_generator = float(np.trace(A_gen))
+        log_norm = cls._logarithmic_norm(A_gen)
+
+        C = projected.casimir_basis
+        casimir_energy, dynamic_energy = cls._k_orthogonal_energy_split(state, K, C)
+        if H_target + CONSTANTS.MIN_ENERGY_THRESHOLD < casimir_energy:
+            raise UncontrollableEnergyError(
+                f"H*={H_target:.6e} < H_casimir={casimir_energy:.6e}: "
+                "la hoja {H=H*} no intersecta el nivel de Casimir."
+            )
+
+        casimir_port_leak = 0.0
+        if C is not None and C.size and port_dim > 0:
+            casimir_port_leak = float(np.linalg.norm(C.T @ g, ord="fro"))
+
+        y = g.T @ grad if port_dim > 0 else np.zeros(0)
+        pumping_required = bool(
+            (projected.metadata or {}).get("pumping_required", H < H_target - CONSTANTS.MIN_ENERGY_THRESHOLD)
+        )
+        is_energy_controllable = bool(
+            float(np.linalg.norm(y)) > CONSTANTS.NUMERICAL_TOLERANCE
+            or abs(energy_error) <= CONSTANTS.RELATIVE_TOLERANCE * max(H_target, 1.0)
+        )
+        if pumping_required and not is_energy_controllable:
+            logger.warning(
+                "pumping_required=True pero y=gᵀ∇H≈0: no hay autoridad de puerto para inyectar."
+            )
+
+        matching_residual = float(getattr(projected, "matching_residual", 0.0) or 0.0)
+        metadata = dict(projected.metadata or {})
+        metadata.update(
+            {
+                "bridge": "PoincareControlBridge",
+                "phase": 2,
+                "schema_version": "7.1.0",
+                "state_norm": float(np.linalg.norm(state)),
+                "gradient_norm": gradient_norm,
+                "energy_error": energy_error,
+                "normalized_energy_error": normalized_energy_error,
+                "port_dim": port_dim,
+                "port_gram_condition": port_gram_condition,
+                "casimir_energy": casimir_energy,
+                "dynamic_energy": dynamic_energy,
+                "casimir_port_leak": casimir_port_leak,
+                "pumping_required": pumping_required,
+                "logarithmic_norm": log_norm,
+                "hodge_convention": metadata.get(
+                    "hodge_convention", "D=ε★₁E, H=μ⁻¹★₂B, δ₂=★₁⁻¹∂₂★₂"
+                ),
+            }
+        )
+        return ValidatedPoincareSeed(
+            raw=projected,
+            state_dim=dim,
+            port_dim=port_dim,
+            hamiltonian_error=energy_error,
+            normalized_energy_error=normalized_energy_error,
+            gradient_norm=gradient_norm,
+            rayleigh_dissipation_rate=rayleigh,
+            is_rayleigh_nonpositive=is_rayleigh_nonpositive,
+            is_passive=is_passive,
+            spectral_radius_J=spectral_radius_J,
+            min_metric_eigenvalue=min_K_eig,
+            max_metric_eigenvalue=max_K_eig,
+            metric_condition_number=metric_condition,
+            min_damping_eigenvalue=min_R_eig,
+            metadata=metadata,
+            casimir_basis=None if C is None else np.asarray(C, dtype=float).copy(),
+            spectral_data=None if not projected.spectral_data else dict(projected.spectral_data),
+            ida_pbc_decomposition=(
+                None
+                if projected.ida_pbc_decomposition is None
+                else {k: np.asarray(v, dtype=float).copy() for k, v in projected.ida_pbc_decomposition.items()}
+            ),
+            lyapunov_jacobian=(
+                None
+                if projected.lyapunov_jacobian is None
+                else np.asarray(projected.lyapunov_jacobian, dtype=float).copy()
+            ),
+            port_gram_condition=port_gram_condition,
+            trace_generator=trace_generator,
+            output_port=y.copy(),
+            matching_residual=matching_residual,
+            pumping_required=pumping_required,
+            casimir_energy=casimir_energy,
+            dynamic_energy=dynamic_energy,
+            logarithmic_norm=log_norm,
+            is_energy_controllable=is_energy_controllable,
+            casimir_port_leak=casimir_port_leak,
+        )
+
+    @classmethod
+    def project_seed(cls, seed: PoincareControlSeed) -> PoincareControlSeed:
+        state = cls._as_vector(seed.state, "state")
+        gradient = cls._as_vector(seed.gradient, "gradient")
+        dim = int(state.size)
+        if gradient.size != dim:
+            raise ControlSeedError(
+                f"state ({state.size}) y gradient ({gradient.size}) deben coincidir."
+            )
+        J = cls._project_skew(cls._as_square_matrix(seed.interconnection_matrix, dim, "J"))
+        R = cls._project_psd(cls._as_square_matrix(seed.damping_matrix, dim, "R"))
+        K = cls._project_spd(cls._as_square_matrix(seed.metric_matrix, dim, "K"))
+        g = cls._as_port_matrix(seed.port_matrix, dim, "g")
+        if not np.all(np.isfinite(g)):
+            raise ControlSeedError("port_matrix contiene valores no finitos.")
+
+        casimir_basis = cls._casimir_basis_from_J(J)
+        g = cls._casimir_compatible_ports(g, casimir_basis)
+        g = cls._full_column_rank(g)
+
+        H = float(seed.hamiltonian)
+        H_target = float(seed.target_hamiltonian)
+        if not math.isfinite(H) or H < 0.0:
+            raise ControlSeedError(f"Hamiltoniano inválido: {H}")
+        if not math.isfinite(H_target) or H_target <= 0.0:
+            raise ControlSeedError(f"target_hamiltonian inválido: {H_target}")
+
+        # Recalcular matching sobre el PHS proyectado.
+        ida = None if seed.ida_pbc_decomposition is None else {
+            k: np.asarray(v, dtype=float).copy() for k, v in seed.ida_pbc_decomposition.items()
+        }
+        matching_residual = float(getattr(seed, "matching_residual", 0.0) or 0.0)
+        if ida is not None and "K_d" in ida:
+            J_d = cls._project_skew(np.asarray(ida.get("J_d", J), dtype=float))
+            R_d = cls._project_psd(np.asarray(ida.get("R_d", R), dtype=float))
+            K_d = cls._project_spd(np.asarray(ida["K_d"], dtype=float))
+            Delta = (J_d - R_d) @ K_d - (J - R) @ K
+            G, matching_residual = cls._port_least_squares(g, Delta)
+            ida.update({"J_d": J_d, "J_a": J_d * 0.0, "R_d": R_d, "K_d": K_d, "G": G})
+
+        gradient = K @ state  # consistencia ∇H = Kx tras proyectar K
+        lyapunov_candidate = 0.5 * float((H - H_target) ** 2)
+        lyapunov_jacobian = (H - H_target) * gradient
+        y = g.T @ gradient if g.size else np.zeros(0)
+        metadata = dict(seed.metadata or {})
+        return PoincareControlSeed(
+            state=state.copy(),
+            gradient=gradient.copy(),
+            hamiltonian=H,
+            target_hamiltonian=H_target,
+            lyapunov_candidate=lyapunov_candidate,
+            interconnection_matrix=J,
+            damping_matrix=R,
+            metric_matrix=K,
+            port_matrix=g,
+            metadata=metadata,
+            casimir_basis=casimir_basis,
+            spectral_data=dict(seed.spectral_data) if seed.spectral_data else None,
+            ida_pbc_decomposition=ida,
+            lyapunov_jacobian=lyapunov_jacobian,
+            output_port=y,
+            matching_residual=matching_residual,
+        )
+
+    @classmethod
+    def to_kernel(cls, seed: Union[PoincareControlSeed, ValidatedPoincareSeed]) -> PoincareHamiltonianKernel:
+        raw = seed.raw if isinstance(seed, ValidatedPoincareSeed) else seed
+        return PoincareHamiltonianKernel(
+            J=raw.interconnection_matrix,
+            metric=raw.metric_matrix,
+            R=raw.damping_matrix,
+            g=raw.port_matrix,
+            name="Validated-PHS",
+        )
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Proyecciones
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _project_skew(J: np.ndarray) -> np.ndarray:
+        return 0.5 * (J - J.T)
+
+    @classmethod
+    def _project_psd(cls, R: np.ndarray) -> np.ndarray:
+        """Proyección espectral al cono PSD (Higham): V max(Λ,0) Vᵀ. No es un shift."""
+        R_sym = 0.5 * (R + R.T)
+        n = R_sym.shape[0]
+        if n == 0:
+            return R_sym
+        if n <= cls.LARGE_DIM_THRESHOLD:
+            try:
+                w, V = np.linalg.eigh(R_sym)
+            except np.linalg.LinAlgError as exc:
+                raise ControlSeedError(f"No se pudo diagonalizar R: {exc}") from exc
+            return (V * np.maximum(w, 0.0)) @ V.T
+        return cls._partial_spectral_cone(R_sym, floor=0.0)
+
+    @classmethod
+    def _project_spd(cls, K: np.ndarray) -> np.ndarray:
+        K_sym = 0.5 * (K + K.T)
+        n = K_sym.shape[0]
+        floor = max(CONSTANTS.NUMERICAL_TOLERANCE, 1e-12)
+        if n == 0:
+            return K_sym
+        if n <= cls.LARGE_DIM_THRESHOLD:
+            try:
+                w, V = np.linalg.eigh(K_sym)
+            except np.linalg.LinAlgError as exc:
+                raise ControlSeedError(f"No se pudo diagonalizar K: {exc}") from exc
+            w_clipped = np.maximum(w, floor)
+            if np.any(w < floor):
+                logger.warning("K regularizado a SPD: %d autovalores bajo el suelo.", int(np.sum(w < floor)))
+            return (V * w_clipped) @ V.T
+        return cls._partial_spectral_cone(K_sym, floor=floor)
+
+    @classmethod
+    def _partial_spectral_cone(cls, S: np.ndarray, floor: float) -> np.ndarray:
+        """Corrige solo el subespacio de autovalores ofensores (Lanczos)."""
+        n = S.shape[0]
+        if not SCIPY_AVAILABLE or eigsh is None or n < 3:
+            w_min = float(np.min(np.diag(S)))
+            shift = max(0.0, floor - w_min)
+            if shift > 0.0:
+                logger.warning("Cono PSD por shift (fallback) shift=%.3e; disipa Casimirs.", shift)
+            return S + shift * np.eye(n)
+        k = min(12, n - 1)
+        try:
+            w, V = eigsh(S.astype(float), k=k, which="SA")
+        except Exception:  # noqa: BLE001
+            w_min = float(np.min(np.diag(S)))
+            return S + max(0.0, floor - w_min) * np.eye(n)
+        out = S.copy()
+        n_fix = 0
+        for i, lam in enumerate(w):
+            if lam < floor:
+                v = V[:, i]
+                out = out + (floor - lam) * np.outer(v, v)
+                n_fix += 1
+        if n_fix:
+            logger.info("Cono simétrico: %d modos corregidos (floor=%.1e).", n_fix, floor)
+        return 0.5 * (out + out.T)
+
+    @staticmethod
+    def _casimir_basis_from_J(J: np.ndarray) -> np.ndarray:
+        n = J.shape[0]
+        if n == 0:
+            return np.zeros((0, 0))
+        _, S, Vt = np.linalg.svd(J, full_matrices=True)
+        sigma_max = float(S.max()) if S.size else 1.0
+        tol = CONSTANTS.CASIMIR_TOLERANCE * max(1.0, sigma_max)
+        rank_J = int(np.sum(S > tol)) if S.size else 0
+        if rank_J % 2 == 1 and rank_J > 0:
+            rank_J -= 1
+        return np.ascontiguousarray(Vt[rank_J:].T)
+
+    @staticmethod
+    def _casimir_compatible_ports(g: np.ndarray, C: Optional[np.ndarray]) -> np.ndarray:
+        """g ← (I − CCᵀ)g  de modo que Ċ no dependa de u (si además Cᵀ R ∇H = 0)."""
+        if C is None or C.size == 0 or g.size == 0:
+            return g
+        leak_before = float(np.linalg.norm(C.T @ g, ord="fro"))
+        g_proj = g - C @ (C.T @ g)
+        if np.linalg.norm(g_proj, ord="fro") < CONSTANTS.NUMERICAL_TOLERANCE * max(1.0, float(np.linalg.norm(g, ord="fro"))):
+            raise UncontrollableEnergyError(
+                "Todos los puertos viven en ker J: el control no puede cambiar H_d."
+            )
+        leak_after = float(np.linalg.norm(C.T @ g_proj, ord="fro"))
+        if leak_before > CONSTANTS.SYMPLECTIC_TOLERANCE:
+            logger.info("Puertos proyectados fuera de ker J: leak %.3e → %.3e.", leak_before, leak_after)
+        return g_proj
+
+    @staticmethod
+    def _full_column_rank(g: np.ndarray) -> np.ndarray:
+        if g.size == 0:
+            return g
+        try:
+            Q, R_qr, piv = np.linalg.qr(g, mode="reduced", pivoting=True)  # type: ignore[call-arg]
+        except TypeError:
+            Q, R_qr = np.linalg.qr(g, mode="reduced")
+            piv = None
+        diag = np.abs(np.diag(R_qr)) if R_qr.ndim == 2 else np.array([])
+        if diag.size == 0:
+            raise ControlSeedError("g no tiene columnas.")
+        rank = int(np.sum(diag > CTRL.QR_PIVOT_TOL * max(1.0, float(diag[0]))))
+        if rank == 0:
+            raise ControlSeedError("rango(g)=0 tras proyección Casimir.")
+        if rank < g.shape[1]:
+            logger.warning("g rango-deficiente (%d < %d); se retienen %d puertos.", rank, g.shape[1], rank)
+        return np.asarray(Q[:, :rank], dtype=float)
+
+    @staticmethod
+    def _port_least_squares(g: np.ndarray, Delta: np.ndarray) -> Tuple[np.ndarray, float]:
+        m = g.shape[1]
+        if m == 0:
+            return np.zeros((0, Delta.shape[1])), float(np.linalg.norm(Delta, ord="fro"))
+        G, _, _, _ = np.linalg.lstsq(g, Delta, rcond=None)
+        residual = float(np.linalg.norm(g @ G - Delta, ord="fro"))
+        return G, residual
+
+    @staticmethod
+    def _k_orthogonal_energy_split(
+        x: np.ndarray,
+        K: np.ndarray,
+        C: Optional[np.ndarray],
+    ) -> Tuple[float, float]:
+        r"""H_c = ½ x_cᵀ K x_c con x_c = C(Cᵀ K C)⁻¹ Cᵀ K x  (proyección K-ortogonal a ker J)."""
+        H = 0.5 * float(x @ (K @ x))
+        if C is None or C.size == 0:
+            return 0.0, H
+        CKC = C.T @ K @ C
+        try:
+            gamma = np.linalg.solve(CKC, C.T @ (K @ x))
+        except np.linalg.LinAlgError:
+            gamma = np.linalg.lstsq(CKC, C.T @ (K @ x), rcond=None)[0]
+        x_c = C @ gamma
+        H_c = max(0.0, 0.5 * float(x_c @ (K @ x_c)))
+        return H_c, max(0.0, H - H_c)
+
+    @staticmethod
+    def _logarithmic_norm(A: np.ndarray) -> float:
+        if A.size == 0:
+            return 0.0
+        S = 0.5 * (A + A.T)
+        try:
+            return float(np.max(np.linalg.eigvalsh(S)))
+        except np.linalg.LinAlgError:
+            return float(np.max(np.diag(S)))
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Coerciones
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _as_vector(value: Optional[np.ndarray], name: str) -> np.ndarray:
+        if value is None:
+            raise ControlSeedError(f"{name} es requerido.")
+        arr = np.asarray(value, dtype=float).reshape(-1)
+        if arr.size == 0:
+            raise ControlSeedError(f"{name} no puede estar vacío.")
+        if not np.all(np.isfinite(arr)):
+            raise ControlSeedError(f"{name} contiene valores no finitos.")
+        return arr
+
+    @staticmethod
+    def _as_square_matrix(value: Optional[np.ndarray], dim: int, name: str) -> np.ndarray:
+        if value is None:
+            raise ControlSeedError(f"{name} es requerida.")
+        arr = np.asarray(value, dtype=float)
+        if arr.ndim == 0:
+            return float(arr) * np.eye(dim)
+        if arr.ndim == 1:
+            if arr.size != dim:
+                raise ControlSeedError(f"{name} vector longitud {dim}, recibido {arr.size}.")
+            arr = np.diag(arr)
+        if arr.ndim != 2 or arr.shape != (dim, dim):
+            raise ControlSeedError(f"{name} debe ser {dim}×{dim}, recibido {arr.shape}.")
+        if not np.all(np.isfinite(arr)):
+            raise ControlSeedError(f"{name} contiene valores no finitos.")
+        return arr
+
+    @staticmethod
+    def _as_port_matrix(value: Optional[np.ndarray], dim: int, name: str) -> np.ndarray:
+        if value is None:
+            return np.eye(dim, dtype=float)
+        arr = np.asarray(value, dtype=float)
+        if arr.ndim == 0:
+            return float(arr) * np.eye(dim)
+        if arr.ndim == 1:
+            if arr.size != dim:
+                raise ControlSeedError(f"{name} vector debe tener longitud {dim}.")
+            arr = np.diag(arr)
+        if arr.ndim != 2 or arr.shape[0] != dim:
+            raise ControlSeedError(f"{name} debe ser {dim}×k, recibido {arr.shape}.")
+        if arr.shape[1] == 0:
+            raise ControlSeedError(f"{name} debe tener al menos un puerto.")
+        return arr
+
+    @classmethod
+    def _min_symmetric_eigenvalue(cls, M: np.ndarray) -> float:
+        n = M.shape[0]
+        if n == 0:
+            return 0.0
+        S = 0.5 * (M + M.T)
+        if n > cls.LARGE_DIM_THRESHOLD and SCIPY_AVAILABLE and eigsh is not None:
+            try:
+                return float(eigsh(S, k=1, which="SA", return_eigenvectors=False)[0])
+            except Exception:  # noqa: BLE001
+                return float(np.min(np.diag(S)))
+        try:
+            return float(np.min(np.linalg.eigvalsh(S)))
+        except np.linalg.LinAlgError:
+            return float(np.min(np.diag(S))) if M.size else 0.0
+
+    @classmethod
+    def _symmetric_eigen_bounds(cls, M: np.ndarray) -> Tuple[float, float]:
+        n = M.shape[0]
+        if n == 0:
+            return CONSTANTS.NUMERICAL_TOLERANCE, CONSTANTS.NUMERICAL_TOLERANCE
+        S = 0.5 * (M + M.T)
+        if n > cls.LARGE_DIM_THRESHOLD and SCIPY_AVAILABLE and eigsh is not None:
+            try:
+                w_sa = float(eigsh(S, k=1, which="SA", return_eigenvectors=False)[0])
+                w_la = float(eigsh(S, k=1, which="LA", return_eigenvectors=False)[0])
+                return w_sa, w_la
+            except Exception:  # noqa: BLE001
+                d = np.diag(S)
+                return float(np.min(d)), float(np.max(d))
+        try:
+            eigvals = np.linalg.eigvalsh(S)
+            return float(np.min(eigvals)), float(np.max(eigvals))
+        except np.linalg.LinAlgError:
+            d = np.diag(S)
+            return float(np.min(d)), float(np.max(d))
+
+    @staticmethod
+    def _condition_number_from_eigen_bounds(min_eig: float, max_eig: float) -> float:
+        min_eig = max(float(min_eig), CONSTANTS.NUMERICAL_TOLERANCE)
+        max_eig = max(float(max_eig), CONSTANTS.NUMERICAL_TOLERANCE)
+        return max_eig / min_eig
+
+    @staticmethod
+    def _spectral_radius_estimate(J: np.ndarray) -> float:
+        n = J.shape[0]
+        if n == 0:
+            return 0.0
+        if n <= 128:
+            try:
+                return float(np.max(np.abs(np.linalg.eigvals(J))))
+            except np.linalg.LinAlgError:
+                pass
+        try:
+            s = np.linalg.svd(J, compute_uv=False)
+            return float(s[0]) if s.size else 0.0
+        except np.linalg.LinAlgError:
+            return float(np.linalg.norm(J, ord="fro"))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 2.3 — PI CON ANTI-WINDUP DEL OPERADOR DE SATURACIÓN COMPLETO
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 
 class PIController:
-    """
-    Controlador PI con anti-windup por back-calculation y análisis de estabilidad.
+    r"""
+    PI de Åström–Hägglund con back-calculation sobre el saturador *efectivo*.
 
-    Ley de control:
-        u(t) = Kp·e(t) + Ki·∫e(τ)dτ
+    u_raw = K_p e + v + u_ff,   v̇ = K_i e + (1/T_t)(u_aplicada − u_raw)
+    u_aplicada = slew ∘ clip(u_raw)
 
-    Anti-windup (back-calculation):
-        ∫̇ = e + (1/Tt)·(u_sat - u_raw)
+    T_t = T_i = K_p/K_i por defecto (mismas unidades).
 
-    donde Tt es la constante de tiempo de tracking.
+    Modo energía (consume PoincareControlSeed):
+        PV = H/H*   (normalizado)  o  H (absoluto);
+        error = SP − PV;  salida **con signo** = potencia pedida normalizada.
+        EMA desactivada: H de un PHS lineal no es un sensor ruidoso.
+        Reloj de simulación: dt físico, nunca time.time().
 
-    Análisis de estabilidad:
-        - Exponente de Lyapunov estimado por regresión robusta
-        - Detección de ciclos límite por análisis de autocorrelación
+    El PI **no** regula Casimirs: el error se forma con H total, pero el puente
+    ya garantizó H* ≥ H_c y Cᵀg = 0. Un windup aquí es saturación de puerto, no Gauss.
     """
 
     def __init__(
@@ -495,1900 +2959,2100 @@ class PIController:
         max_output: float,
         integral_limit_factor: float = 2.0,
         tracking_time: Optional[float] = None,
-        ema_alpha: float = 0.3
-    ):
-        """
-        Args:
-            kp: Ganancia proporcional (> 0)
-            ki: Ganancia integral (≥ 0)
-            setpoint: Valor objetivo (0 < sp < 1 normalizado)
-            min_output: Salida mínima (> 0)
-            max_output: Salida máxima (> min_output)
-            integral_limit_factor: Factor multiplicativo para el límite integral
-            tracking_time: Constante de tiempo para back-calculation (None = Ti)
-            ema_alpha: Coeficiente de filtro exponencial
-        """
-        self._validate_params(kp, ki, setpoint, min_output, max_output)
-
-        self.kp = kp
-        self.ki = ki
-        self.setpoint = setpoint
-        self.min_output = min_output
-        self.max_output = max_output
-
-        # Constante de tiempo de tracking para back-calculation
-        # Si no se especifica, usar Ti = Kp/Ki (si Ki > 0)
+        ema_alpha: float = 0.3,
+        slew_rate_fraction: float = 0.15,
+        reference_dt: float = 0.01,
+        energy_error_mode: str = "normalized",
+        use_ema: Optional[bool] = None,
+    ) -> None:
+        self._validate_parameters(
+            kp=kp, ki=ki, setpoint=setpoint,
+            min_output=min_output, max_output=max_output,
+            integral_limit_factor=integral_limit_factor,
+            ema_alpha=ema_alpha, slew_rate_fraction=slew_rate_fraction,
+            reference_dt=reference_dt,
+        )
+        self.kp = float(kp)
+        self.ki = float(ki)
+        self.setpoint = float(setpoint)
+        self.min_output = float(min_output)
+        self.max_output = float(max_output)
         if tracking_time is not None:
-            self.Tt = max(tracking_time, CONSTANTS.MIN_DELTA_TIME)
-        elif ki > 0:
-            self.Tt = kp / ki
+            self.Tt = max(float(tracking_time), CONSTANTS.MIN_DELTA_TIME)
+        elif self.ki > 0.0 and self.kp > 0.0:
+            self.Tt = max(self.kp / self.ki, CONSTANTS.MIN_DELTA_TIME)
         else:
             self.Tt = 1.0
+        self._integral_limit_factor = float(integral_limit_factor)
+        self._integral_limit = self._integral_limit_factor * max(
+            self.max_output - self.min_output, CONSTANTS.NUMERICAL_TOLERANCE
+        )
+        self._ema_alpha = float(ema_alpha)
+        self._slew_rate_fraction = float(slew_rate_fraction)
+        self._reference_dt = float(reference_dt)
+        self._energy_error_mode = energy_error_mode if energy_error_mode in ("normalized", "absolute") else "normalized"
+        self._use_ema_default = bool(use_ema) if use_ema is not None else True
 
-        # Límite integral basado en rango de salida
-        self._integral_limit = integral_limit_factor * (max_output - min_output) / max(ki, 1e-10)
-
-        # Estado del filtro EMA
-        self._ema_alpha = ema_alpha
-        self._filtered_pv = None
-
-        # Historial para análisis
-        self._error_history: deque = deque(maxlen=100)
-        self._output_history: deque = deque(maxlen=100)
-        self._innovation_history: deque = deque(maxlen=30)
-
-        # Métricas de estabilidad
-        self._lyapunov_exponent = 0.0
-        self._oscillation_index = 0.0
-
-        self.reset()
-
-    def _validate_params(
-        self,
-        kp: float,
-        ki: float,
-        setpoint: float,
-        min_out: float,
-        max_out: float
-    ) -> None:
-        """Validación estricta de parámetros con mensajes descriptivos."""
-        if not isinstance(kp, (int, float)) or kp <= 0:
-            raise ConfigurationError(f"Kp debe ser número positivo, recibido: {kp}")
-        if not isinstance(ki, (int, float)) or ki < 0:
-            raise ConfigurationError(f"Ki debe ser número no-negativo, recibido: {ki}")
-        if not (0 < setpoint < 1):
-            raise ConfigurationError(
-                f"Setpoint debe estar en (0, 1) para normalización, recibido: {setpoint}"
-            )
-        if min_out >= max_out:
-            raise ConfigurationError(
-                f"Rango de salida inválido: [{min_out}, {max_out}]"
-            )
-
-    @property
-    def Ki(self) -> float:
-        return self.ki
-
-    def reset(self) -> None:
-        """Reinicia completamente el estado del controlador."""
-        self._integral_error = 0.0
+        self._filtered_pv: Optional[float] = None
+        self._integral_term = 0.0
         self._last_error = 0.0
-        self._last_time = time.time()
         self._last_output: Optional[float] = None
         self._last_raw_output = 0.0
+        self._sim_time = 0.0
+        self._error_history: deque = deque(maxlen=128)
+        self._time_history: deque = deque(maxlen=128)
+        self._output_history: deque = deque(maxlen=128)
+        self._innovation_history: deque = deque(maxlen=32)
+        self._lyapunov_exponent = 0.0
+        self._oscillation_index = 0.0
+        self._extrema_density = 0.0
+        self._poincare_seed: Optional[ValidatedPoincareSeed] = None
+        self._energy_mode = False
+        self._use_ema = self._use_ema_default
+
+    def consume_poincare_control_seed(
+        self,
+        seed: PoincareControlSeed,
+        energy_setpoint: float = 1.0,
+    ) -> ValidatedPoincareSeed:
+        validated = PoincareControlBridge.validate_seed(seed)
+        self._poincare_seed = validated
+        self._energy_mode = True
+        self._use_ema = False  # H no se filtra
+        if self.min_output >= 0.0 and validated.hamiltonian_error > CONSTANTS.MIN_ENERGY_THRESHOLD:
+            logger.warning(
+                "PI min_output=%.3g ≥ 0 con H>H*: no hay autoridad de extracción. "
+                "Use min_output < 0 (mando bipolar).",
+                self.min_output,
+            )
+        if validated.pumping_required and self.max_output <= 0.0:
+            logger.warning("PI max_output≤0 con pumping_required: no hay autoridad de inyección.")
+        if self._energy_error_mode == "normalized":
+            if 0.0 < energy_setpoint <= 1.0:
+                self.setpoint = float(energy_setpoint)
+            else:
+                self.setpoint = 1.0
+        else:
+            self.setpoint = float(validated.raw.target_hamiltonian)
+        return validated
+
+    def compute_from_seed(
+        self,
+        seed: Optional[PoincareControlSeed] = None,
+        dt: Optional[float] = None,
+        feedforward: float = 0.0,
+    ) -> PIControlReport:
+        if seed is not None:
+            self.consume_poincare_control_seed(seed)
+        if self._poincare_seed is None:
+            raise ControlSeedError("compute_from_seed exige PoincareControlSeed.")
+        if dt is None:
+            raise ControlSeedError("en modo energía dt físico es obligatorio (no se usa wall-clock).")
+        H = float(self._poincare_seed.raw.hamiltonian)
+        H_target = float(self._poincare_seed.raw.target_hamiltonian)
+        if self._energy_error_mode == "normalized":
+            measurement = H / max(H_target, CONSTANTS.MIN_ENERGY_THRESHOLD)
+        else:
+            measurement = H
+        return self.compute(measurement=measurement, dt=dt, feedforward=feedforward)
+
+    def compute(
+        self,
+        measurement: float,
+        dt: Optional[float] = None,
+        feedforward: float = 0.0,
+    ) -> PIControlReport:
+        if not math.isfinite(measurement):
+            raise InvalidInputError("measurement debe ser finito.")
+        if not math.isfinite(feedforward):
+            raise InvalidInputError("feedforward debe ser finito.")
+        if dt is None:
+            if self._energy_mode:
+                raise ControlSeedError("dt físico obligatorio en modo energía.")
+            dt = self._reference_dt
+        dt = float(np.clip(dt, CONSTANTS.MIN_DELTA_TIME, CONSTANTS.MAX_DELTA_TIME))
+
+        filtered_pv = self._apply_ema_filter(measurement) if self._use_ema else float(measurement)
+        error = float(self.setpoint - filtered_pv)
+        self._update_stability_metrics(error, dt)
+
+        p_term = self.kp * error
+        v_pred = float(np.clip(self._integral_term + self.ki * error * dt, -self._integral_limit, self._integral_limit))
+        raw_output = p_term + v_pred + float(feedforward)
+        applied = self._saturation_operator(raw_output, dt)
+        saturated = not math.isclose(applied, raw_output, rel_tol=1e-12, abs_tol=1e-15)
+        aw_correction = (dt / self.Tt) * (applied - raw_output)
+        self._integral_term = float(
+            np.clip(v_pred + aw_correction, -self._integral_limit, self._integral_limit)
+        )
+        self._last_output = applied
+        self._last_error = error
+        self._last_raw_output = raw_output
+        self._sim_time += dt
+        self._output_history.append(applied)
+        return PIControlReport(
+            output=applied,
+            error=error,
+            filtered_pv=filtered_pv,
+            integral_error=(self._integral_term / self.ki if self.ki > 0.0 else 0.0),
+            integral_term=self._integral_term,
+            p_term=p_term,
+            i_term=self._integral_term,
+            feedforward=float(feedforward),
+            saturated=saturated,
+            anti_windup_correction=aw_correction,
+            lyapunov_exponent=self._lyapunov_exponent,
+            oscillation_index=self._oscillation_index,
+            extrema_density=self._extrema_density,
+            applied_output=applied,
+        )
+
+    def _saturation_operator(self, raw: float, dt: float) -> float:
+        """(slew ∘ clip). Este es el u que ve la planta y el que debe ver el AW."""
+        clipped = float(np.clip(raw, self.min_output, self.max_output))
+        if self._last_output is None:
+            return clipped
+        max_change = (
+            self._slew_rate_fraction
+            * (self.max_output - self.min_output)
+            * (dt / max(self._reference_dt, CONSTANTS.NUMERICAL_TOLERANCE))
+        )
+        delta = clipped - self._last_output
+        if abs(delta) > max_change:
+            clipped = self._last_output + math.copysign(max_change, delta)
+        return float(np.clip(clipped, self.min_output, self.max_output))
+
+    def reset(self) -> None:
+        self._integral_term = 0.0
+        self._last_error = 0.0
+        self._last_output = None
+        self._last_raw_output = 0.0
+        self._sim_time = 0.0
         self._filtered_pv = None
+        self._error_history.clear()
+        self._time_history.clear()
+        self._output_history.clear()
         self._innovation_history.clear()
-        # Preservar historial de errores para post-mortem
+        self._lyapunov_exponent = 0.0
+        self._oscillation_index = 0.0
+        self._extrema_density = 0.0
 
     def _apply_ema_filter(self, measurement: float) -> float:
-        """
-        Filtro exponencial con detección de step y alpha adaptativo.
-
-        Implementa:
-            y[n] = α·x[n] + (1-α)·y[n-1]
-
-        con α adaptativo basado en varianza de innovaciones.
-        """
         if self._filtered_pv is None:
-            self._filtered_pv = measurement
-            return measurement
-
-        innovation = measurement - self._filtered_pv
-
-        # Detección de step: bypass parcial para respuesta rápida
-        step_threshold = 0.2 * abs(self.setpoint)
+            self._filtered_pv = float(measurement)
+            return float(measurement)
+        innovation = float(measurement - self._filtered_pv)
+        step_threshold = 0.2 * abs(self.setpoint) + CONSTANTS.NUMERICAL_TOLERANCE
         if abs(innovation) > step_threshold:
-            # Respuesta rápida a cambios grandes
             alpha_effective = 0.8
         else:
-            # Alpha adaptativo basado en varianza
             self._innovation_history.append(innovation)
-            if len(self._innovation_history) >= 5 and np is not None:
-                var = np.var(list(self._innovation_history))
-                # Mayor varianza → menor alpha → más filtrado
+            if len(self._innovation_history) >= 5:
+                var = float(np.var(list(self._innovation_history)))
                 alpha_effective = self._ema_alpha / (1.0 + 10.0 * var)
             else:
                 alpha_effective = self._ema_alpha
+        alpha_effective = float(np.clip(alpha_effective, 0.05, 0.95))
+        self._filtered_pv = alpha_effective * measurement + (1.0 - alpha_effective) * self._filtered_pv
+        return float(self._filtered_pv)
 
-        self._filtered_pv = (
-            alpha_effective * measurement +
-            (1.0 - alpha_effective) * self._filtered_pv
-        )
-
-        return self._filtered_pv
-
-    def _update_stability_metrics(self, error: float) -> None:
-        """
-        Actualiza exponente de Lyapunov y detección de oscilaciones.
-
-        Lyapunov estimado por regresión robusta de log|e(t)|.
-        Oscilaciones detectadas por cruces por cero del error.
-        """
+    def _update_stability_metrics(self, error: float, dt: float) -> None:
+        """Theil–Sen de log|e| **respecto al tiempo de simulación** (1/s)."""
         self._error_history.append(error)
-
-        if len(self._error_history) < 20 or np is None:
+        self._time_history.append(self._sim_time)
+        n = len(self._error_history)
+        if n < CTRL.MIN_LYAPUNOV_SAMPLES:
             return
-
-        errors = np.array(list(self._error_history))
-        abs_errors = np.abs(errors) + CONSTANTS.NUMERICAL_ZERO
-
-        # Exponente de Lyapunov: pendiente de log|e| vs tiempo
-        try:
-            log_errors = np.log(abs_errors)
-            n = len(log_errors)
-            x = np.arange(n)
-
-            # Regresión robusta: descartar outliers (percentiles 10-90)
-            p10, p90 = np.percentile(log_errors, [10, 90])
-            mask = (log_errors >= p10) & (log_errors <= p90)
-
-            if np.sum(mask) >= 5:
-                x_robust = x[mask]
-                y_robust = log_errors[mask]
-                # Regresión lineal
-                coeffs = np.polyfit(x_robust, y_robust, 1)
-                self._lyapunov_exponent = float(coeffs[0])
-
-        except (ValueError, LinAlgError):
-            pass
-
-        # Índice de oscilación: frecuencia de cruces por cero
-        sign_changes = np.sum(np.diff(np.sign(errors)) != 0)
-        self._oscillation_index = sign_changes / max(len(errors) - 1, 1)
-
-    def compute(self, measurement: float, dt: Optional[float] = None) -> float:
-        """
-        Calcula señal de control con anti-windup por back-calculation.
-
-        Args:
-            measurement: Variable de proceso actual
-            dt: Paso temporal determinista.
-
-        Returns:
-            Señal de control flotante para evitar discretización ruidosa.
-        """
-        current_time = time.time()
-        if dt is None:
-            dt = current_time - self._last_time
-        dt = max(CONSTANTS.MIN_DELTA_TIME, min(dt, CONSTANTS.MAX_DELTA_TIME))
-
-        # Filtrado de entrada
-        filtered_pv = self._apply_ema_filter(measurement)
-
-        # Error
-        error = self.setpoint - filtered_pv
-
-        # Actualizar métricas de estabilidad
-        self._update_stability_metrics(error)
-
-        # Término proporcional
-        p_term = self.kp * error
-
-        # Término integral con back-calculation anti-windup
-        # Acumulación base
-        integral_increment = error * dt
-
-        # Corrección por saturación (back-calculation)
-        if self._last_output is not None:
-            saturation_error = self._last_output - self._last_raw_output
-            # El término de tracking empuja el integrador hacia zona no saturada
-            tracking_correction = (saturation_error / self.Tt) * dt
-            integral_increment += tracking_correction
-
-        self._integral_error += integral_increment
-
-        # Clamping del integrador
-        self._integral_error = np.clip(
-            self._integral_error,
-            -self._integral_limit,
-            self._integral_limit
-        )
-
-        i_term = self.ki * self._integral_error
-
-        # Salida raw (sin saturar)
-        raw_output = p_term + i_term
-        self._last_raw_output = raw_output
-
-        # Saturación
-        output = np.clip(raw_output, self.min_output, self.max_output)
-
-        # Rate limiting suave (evitar cambios bruscos)
-        if self._last_output is not None:
-            max_change = 0.15 * (self.max_output - self.min_output)
-            change = output - self._last_output
-            if abs(change) > max_change:
-                output = self._last_output + math.copysign(max_change, change)
-                output = np.clip(output, self.min_output, self.max_output)
-
-        # Actualizar estado
-        self._last_output = output
-        self._last_time = current_time
-        self._last_error = error
-        self._output_history.append(output)
-
-        return float(output)
+        errors = np.array(list(self._error_history), dtype=float)
+        times = np.array(list(self._time_history), dtype=float)
+        log_e = np.log(np.abs(errors) + CONSTANTS.NUMERICAL_ZERO)
+        slopes: List[float] = []
+        w = CTRL.THEIL_SEN_WINDOW
+        for i in range(n - 1):
+            hi = min(i + w, n)
+            for j in range(i + 1, hi):
+                dt_ij = times[j] - times[i]
+                if dt_ij > CONSTANTS.NUMERICAL_ZERO:
+                    slopes.append((log_e[j] - log_e[i]) / dt_ij)
+        if slopes:
+            self._lyapunov_exponent = float(np.median(slopes))
+        sign_changes = int(np.sum(np.diff(np.sign(errors)) != 0))
+        self._oscillation_index = sign_changes / max(n - 1, 1)
+        if n >= 5:
+            extrema = int(np.sum(np.diff(np.sign(np.diff(errors))) != 0))
+            self._extrema_density = extrema / max(n - 2, 1)
 
     def get_lyapunov_exponent(self) -> float:
-        """Retorna exponente de Lyapunov estimado."""
-        return self._lyapunov_exponent
+        return float(self._lyapunov_exponent)
 
     def get_stability_analysis(self) -> Dict[str, Any]:
-        """
-        Análisis completo de estabilidad.
-
-        Returns:
-            Diccionario con clasificación de estabilidad y métricas.
-        """
         if len(self._error_history) < 10:
             return {"status": "INSUFFICIENT_DATA", "samples": len(self._error_history)}
-
-        # Clasificación basada en Lyapunov
         if self._lyapunov_exponent < -0.1:
-            stability = "ASYMPTOTICALLY_STABLE"
-            convergence = "CONVERGING"
+            stability, convergence = "ASYMPTOTICALLY_STABLE", "CONVERGING"
         elif self._lyapunov_exponent < 0.01:
-            stability = "MARGINALLY_STABLE"
-            convergence = "BOUNDED"
+            stability, convergence = "MARGINALLY_STABLE", "BOUNDED"
         else:
-            stability = "UNSTABLE"
-            convergence = "DIVERGING"
-
-        # Detección de ciclo límite
-        is_limit_cycle = (
-            stability == "MARGINALLY_STABLE" and
-            self._oscillation_index > 0.3
-        )
-
+            stability, convergence = "UNSTABLE", "DIVERGING"
+        integral_saturation = abs(self._integral_term) / max(self._integral_limit, CONSTANTS.NUMERICAL_TOLERANCE)
         return {
             "status": "OPERATIONAL",
             "stability_class": stability,
             "convergence": convergence,
             "lyapunov_exponent": self._lyapunov_exponent,
             "oscillation_index": self._oscillation_index,
-            "is_limit_cycle": is_limit_cycle,
-            "integral_saturation": abs(self._integral_error) / self._integral_limit,
-            "samples_analyzed": len(self._error_history)
+            "extrema_density": self._extrema_density,
+            "is_limit_cycle": bool(stability == "MARGINALLY_STABLE" and self._oscillation_index > 0.3),
+            "integral_saturation": float(integral_saturation),
+            "samples_analyzed": len(self._error_history),
+            "energy_mode": self._energy_mode,
+            "sim_time": self._sim_time,
         }
 
     def get_diagnostics(self) -> Dict[str, Any]:
-        """Diagnóstico completo del controlador."""
         return {
             "status": "OK",
             "control_metrics": {
                 "error": self._last_error,
-                "integral_term": self.ki * self._integral_error,
+                "integral_term": self._integral_term,
                 "proportional_term": self.kp * self._last_error,
                 "output": self._last_output,
-                "raw_output": self._last_raw_output
+                "raw_output": self._last_raw_output,
             },
             "stability_analysis": self.get_stability_analysis(),
             "parameters": {
-                "kp": self.kp,
-                "ki": self.ki,
-                "tracking_time": self.Tt,
-                "ema_alpha": self._ema_alpha
-            }
+                "kp": self.kp, "ki": self.ki, "setpoint": self.setpoint,
+                "tracking_time": self.Tt, "ema_alpha": self._ema_alpha,
+                "slew_rate_fraction": self._slew_rate_fraction,
+                "reference_dt": self._reference_dt,
+                "energy_error_mode": self._energy_error_mode,
+                "use_ema": self._use_ema,
+                "output_range": [self.min_output, self.max_output],
+            },
         }
 
     def get_state(self) -> Dict[str, Any]:
-        """Estado serializable del controlador."""
         return {
             "parameters": {
-                "kp": self.kp,
-                "ki": self.ki,
-                "setpoint": self.setpoint,
-                "output_range": [self.min_output, self.max_output]
+                "kp": self.kp, "ki": self.ki, "setpoint": self.setpoint,
+                "output_range": [self.min_output, self.max_output],
             },
             "state": {
-                "integral": self._integral_error,
+                "integral_term": self._integral_term,
                 "last_output": self._last_output,
-                "filtered_pv": self._filtered_pv
+                "filtered_pv": self._filtered_pv,
+                "energy_mode": self._energy_mode,
+                "sim_time": self._sim_time,
             },
-            "diagnostics": self.get_diagnostics()
+            "diagnostics": self.get_diagnostics(),
         }
 
-
-class DiscreteVectorCalculus:
-    """
-    Operadores diferenciales discretos sobre complejos simpliciales.
-
-    Implementa la correspondencia de De Rham discreta:
-
-        Ωᵏ(M) ←→ Cᵏ(K)
-        d     ←→ δ*
-
-    Complejo de cadenas:
-        C₂ --∂₂--> C₁ --∂₁--> C⁰
-
-    Complejo de co-cadenas (dual):
-        C⁰ --d₀--> C¹ --d₁--> C²
-
-    Operadores:
-        - Gradiente: d₀ = -∂₁ᵀ
-        - Rotacional: d₁ = ∂₂ᵀ
-        - Divergencia: δ₁ = ⋆₀⁻¹ d₀ᵀ ⋆₁
-        - Laplaciano: Δₖ = dδ + δd
-
-    Referencias:
-        [1] Desbrun et al., Discrete Differential Forms (2005)
-        [2] Hirani, Discrete Exterior Calculus (2003)
-    """
-
-    NUMERICAL_TOLERANCE = 1e-12
-
-    def __init__(
-        self,
-        adjacency_list: Dict[int, Set[int]],
-        node_volumes: Optional[Dict[int, float]] = None,
-        edge_lengths: Optional[Dict[Tuple[int, int], float]] = None,
-        face_areas: Optional[Dict[Tuple[int, int, int], float]] = None
-    ):
-        """
-        Inicializa la estructura de cálculo exterior discreto.
-
-        Args:
-            adjacency_list: Grafo como diccionario de adyacencia
-            node_volumes: Volúmenes de Voronoi duales (opcional)
-            edge_lengths: Longitudes de aristas (opcional)
-            face_areas: Áreas de triángulos (opcional)
-        """
-        self.graph = nx.Graph(adjacency_list)
-        self._node_volumes = node_volumes or {}
-        self._edge_lengths = edge_lengths or {}
-        self._face_areas = face_areas or {}
-
-        self._validate_graph()
-        self._build_simplicial_complex()
-
-        if SCIPY_AVAILABLE:
-            self._build_chain_operators()
-            self._verify_chain_complex()
-            self._build_hodge_operators()
-            self._build_calculus_operators()
-            self._compute_betti_numbers()
-        else:
-            warnings.warn(
-                "Scipy no disponible. DiscreteVectorCalculus en modo reducido."
-            )
-
-        self._laplacian_cache: Dict[int, Any] = {}
-
-    def _validate_graph(self) -> None:
-        """Valida estructura topológica del grafo."""
-        if self.graph.number_of_nodes() == 0:
-            raise ValueError("El grafo no puede estar vacío")
-
-        if self.graph.number_of_nodes() == 1 and self.graph.number_of_edges() == 0:
-            warnings.warn("Grafo trivial con un solo nodo aislado.", UserWarning)
-
-        self.num_components = nx.number_connected_components(self.graph)
-        self.is_connected = self.num_components == 1
-
-        if not self.is_connected:
-            msg = f"Grafo con {self.num_components} componentes conexas. dim(ker Δ₀) = β₀ > 1."
-            logger.warning(msg)
-            warnings.warn(msg, UserWarning)
-
-        # Verificar planaridad
-        try:
-            self.is_planar, self.planar_embedding = nx.check_planarity(self.graph)
-        except Exception:
-            self.is_planar = False
-            self.planar_embedding = None
-
-    def _build_simplicial_complex(self) -> None:
-        """Construye el complejo simplicial ordenado K = (V, E, F)."""
-        # 0-símplices (vértices)
-        self.nodes: List[int] = sorted(self.graph.nodes())
-        self.node_to_idx: Dict[int, int] = {n: i for i, n in enumerate(self.nodes)}
-        self.num_nodes: int = len(self.nodes)
-
-        # 1-símplices (aristas con orientación canónica u < v)
-        self.edges: List[Tuple[int, int]] = []
-        self.edge_orientation: Dict[Tuple[int, int], int] = {}
-
-        for u, v in self.graph.edges():
-            if u < v:
-                self.edges.append((u, v))
-                self.edge_orientation[(u, v)] = +1
-                self.edge_orientation[(v, u)] = -1
-            else:
-                self.edges.append((v, u))
-                self.edge_orientation[(v, u)] = +1
-                self.edge_orientation[(u, v)] = -1
-
-        self.edge_to_idx: Dict[Tuple[int, int], int] = {
-            e: i for i, e in enumerate(self.edges)
-        }
-        self.num_edges: int = len(self.edges)
-
-        # 2-símplices (triángulos = 3-cliques)
-        self.faces: List[Tuple[int, int, int]] = []
-        self.face_boundaries: List[List[Tuple[Tuple[int, int], int]]] = []
-
-        for clique in nx.enumerate_all_cliques(self.graph):
-            if len(clique) == 3:
-                v0, v1, v2 = sorted(clique)
-                self.faces.append((v0, v1, v2))
-                # ∂[v0,v1,v2] = [v1,v2] - [v0,v2] + [v0,v1] (regla cíclica)
-                boundary = [
-                    ((v1, v2), +1),
-                    ((v0, v2), -1),
-                    ((v0, v1), +1),
-                ]
-                self.face_boundaries.append(boundary)
-
-        self.face_to_idx: Dict[Tuple[int, int, int], int] = {
-            f: i for i, f in enumerate(self.faces)
-        }
-        self.num_faces: int = len(self.faces)
-
-        self._build_edge_face_adjacency()
-
-        # Característica de Euler (siempre válida)
-        self.euler_characteristic = self.num_nodes - self.num_edges + self.num_faces
-
-    def _build_edge_face_adjacency(self) -> None:
-        """Construye adyacencia arista → caras."""
-        self.edge_to_faces: Dict[int, List[Tuple[int, int]]] = {
-            i: [] for i in range(self.num_edges)
-        }
-
-        for face_idx, boundary in enumerate(self.face_boundaries):
-            for (edge, sign) in boundary:
-                edge_canonical = (min(edge), max(edge))
-                if edge_canonical in self.edge_to_idx:
-                    edge_idx = self.edge_to_idx[edge_canonical]
-                    self.edge_to_faces[edge_idx].append((face_idx, sign))
-
-    def _build_chain_operators(self) -> None:
-        """Construye operadores frontera ∂₁ y ∂₂."""
-        self.boundary1 = self._build_boundary_1()
-        self.boundary2 = self._build_boundary_2()
-
-    def _build_boundary_1(self) -> sparse.csr_matrix:
-        """
-        Operador frontera ∂₁: C₁ → C₀.
-
-        ∂₁[u,v] = δᵥ - δᵤ
-
-        Matriz de incidencia nodo-arista con signos.
-        """
-        if self.num_edges == 0:
-            return sparse.csr_matrix((self.num_nodes, 0))
-
-        rows, cols, data = [], [], []
-
-        for edge_idx, (u, v) in enumerate(self.edges):
-            # Nodo terminal (+1)
-            rows.append(self.node_to_idx[v])
-            cols.append(edge_idx)
-            data.append(1.0)
-            # Nodo inicial (-1)
-            rows.append(self.node_to_idx[u])
-            cols.append(edge_idx)
-            data.append(-1.0)
-
-        return sparse.csr_matrix(
-            (data, (rows, cols)),
-            shape=(self.num_nodes, self.num_edges)
-        )
-
-    def _build_boundary_2(self) -> sparse.csr_matrix:
-        """
-        Operador frontera ∂₂: C₂ → C₁.
-
-        ∂₂[v0,v1,v2] = [v1,v2] - [v0,v2] + [v0,v1]
-
-        Satisface ∂₁ ∘ ∂₂ = 0 por construcción.
-        """
-        if self.num_faces == 0:
-            return sparse.csr_matrix((self.num_edges, 0))
-
-        rows, cols, data = [], [], []
-
-        for face_idx, boundary in enumerate(self.face_boundaries):
-            for (edge, sign) in boundary:
-                edge_canonical = (min(edge), max(edge))
-                if edge_canonical in self.edge_to_idx:
-                    edge_idx = self.edge_to_idx[edge_canonical]
-                    orientation = self.edge_orientation.get(edge, 1)
-                    rows.append(edge_idx)
-                    cols.append(face_idx)
-                    data.append(float(sign * orientation))
-
-        return sparse.csr_matrix(
-            (data, (rows, cols)),
-            shape=(self.num_edges, self.num_faces)
-        )
-
-    def _verify_chain_complex(self) -> None:
-        """
-        Verifica la propiedad fundamental ∂₁ ∘ ∂₂ = 0.
-
-        Esto garantiza la exactitud del complejo de cadenas.
-        """
-        if self.num_faces == 0 or self.num_edges == 0:
-            self._chain_complex_error = 0.0
-            return
-
-        composition = self.boundary1 @ self.boundary2
-
-        if composition.nnz > 0:
-            max_error = np.max(np.abs(composition.data))
-        else:
-            max_error = 0.0
-
-        self._chain_complex_error = max_error
-
-        if max_error > self.NUMERICAL_TOLERANCE:
-            raise NumericalInstabilityError(
-                f"Complejo de cadenas inválido: ||∂₁∂₂|| = {max_error:.2e}"
-            )
-
-    def _build_hodge_operators(self) -> None:
-        """
-        Construye operadores estrella de Hodge ⋆ₖ y sus inversos.
-
-        ⋆ₖ: Cᵏ → C^{n-k} incorpora información métrica.
-        """
-        self.star0, self.star0_inv = self._build_hodge_star(
-            0, self.num_nodes, self._get_node_weight
-        )
-        self.star1, self.star1_inv = self._build_hodge_star(
-            1, self.num_edges, self._get_edge_weight
-        )
-        self.star2, self.star2_inv = self._build_hodge_star(
-            2, self.num_faces, self._get_face_weight
-        )
-
-    def _build_hodge_star(
-        self,
-        dimension: int,
-        size: int,
-        weight_func: Callable[[int], float]
-    ) -> Tuple[sparse.csr_matrix, sparse.csr_matrix]:
-        """Construye ⋆ₖ diagonal con pesos positivos."""
-        if size == 0:
-            empty = sparse.csr_matrix((0, 0))
-            return empty, empty
-
-        weights = np.array([weight_func(i) for i in range(size)], dtype=float)
-        weights = np.maximum(weights, self.NUMERICAL_TOLERANCE)
-
-        star = sparse.diags(weights, format='csr')
-        star_inv = sparse.diags(1.0 / weights, format='csr')
-
-        return star, star_inv
-
-    def _get_node_weight(self, idx: int) -> float:
-        """Peso de nodo (volumen de Voronoi o grado)."""
-        node = self.nodes[idx]
-        if node in self._node_volumes:
-            return self._node_volumes[node]
-        return float(max(1, self.graph.degree(node)))
-
-    def _get_edge_weight(self, idx: int) -> float:
-        """Peso de arista (longitud o unidad)."""
-        edge = self.edges[idx]
-        return self._edge_lengths.get(edge, 1.0)
-
-    def _get_face_weight(self, idx: int) -> float:
-        """Peso de cara (inverso del área)."""
-        face = self.faces[idx]
-        area = self._face_areas.get(face, 1.0)
-        return 1.0 / max(area, self.NUMERICAL_TOLERANCE)
-
-    def _build_calculus_operators(self) -> None:
-        """Construye operadores de cálculo vectorial."""
-        # Gradiente: d₀ = -∂₁ᵀ
-        self.gradient_op = -self.boundary1.T
-
-        # Divergencia: δ₁ = -⋆₀⁻¹ ∂₁ ⋆₁ (adjunto L² del gradiente)
-        self.divergence_op = -self.star0_inv @ self.boundary1 @ self.star1
-
-        # Rotacional: d₁ = ∂₂ᵀ
-        self.curl_op = self.boundary2.T
-
-        # Co-rotacional: δ₂ = ⋆₁⁻¹ ∂₂ ⋆₂
-        if self.num_faces > 0:
-            self.cocurl_op = self.star1_inv @ self.boundary2 @ self.star2
-        else:
-            self.cocurl_op = sparse.csr_matrix((self.num_edges, 0))
-
-    def _compute_betti_numbers(self) -> None:
-        """
-        Calcula números de Betti usando dimensiones de ker/im.
-
-        βₖ = dim(ker ∂ₖ) - dim(im ∂ₖ₊₁) = dim(Hₖ)
-        """
-        # β₀ = dim(ker ∂₀) - dim(im ∂₁)
-        # ker ∂₀ = C₀ (todo), dim = num_nodes
-        # im ∂₁ = columnas de boundary1
-        if self.num_edges > 0:
-            rank_boundary1 = np.linalg.matrix_rank(self.boundary1.toarray())
-        else:
-            rank_boundary1 = 0
-
-        self.betti_0 = self.num_nodes - rank_boundary1
-
-        # Verificación: β₀ = componentes conexas
-        assert self.betti_0 == self.num_components, \
-            f"Inconsistencia: β₀={self.betti_0} ≠ π₀={self.num_components}"
-
-        # β₁ = dim(ker ∂₁) - dim(im ∂₂)
-        if self.num_edges > 0:
-            nullity_boundary1 = self.num_edges - rank_boundary1
-        else:
-            nullity_boundary1 = 0
-
-        if self.num_faces > 0:
-            rank_boundary2 = np.linalg.matrix_rank(self.boundary2.toarray())
-        else:
-            rank_boundary2 = 0
-
-        self.betti_1 = nullity_boundary1 - rank_boundary2
-
-        # β₂ = dim(ker ∂₂)
-        if self.num_faces > 0:
-            self.betti_2 = self.num_faces - rank_boundary2
-        else:
-            self.betti_2 = 0
-
-        # Verificación de Euler-Poincaré: χ = β₀ - β₁ + β₂
-        euler_from_betti = self.betti_0 - self.betti_1 + self.betti_2
-        assert euler_from_betti == self.euler_characteristic, \
-            f"Euler-Poincaré violado: {euler_from_betti} ≠ {self.euler_characteristic}"
-
-    # === OPERADORES PÚBLICOS ===
-
-    def gradient(self, scalar_field: np.ndarray) -> np.ndarray:
-        """
-        Gradiente discreto: d₀φ.
-
-        Args:
-            scalar_field: 0-forma en nodos, shape (num_nodes,)
-        Returns:
-            1-forma en aristas, shape (num_edges,)
-        """
-        if not SCIPY_AVAILABLE:
-            return np.array([])
-        phi = np.asarray(scalar_field).ravel()
-        if phi.size != self.num_nodes:
-            raise ValueError(f"Esperado tamaño {self.num_nodes}, recibido {phi.size}")
-        return self.gradient_op @ phi
-
-    def divergence(self, vector_field: np.ndarray) -> np.ndarray:
-        """
-        Divergencia discreta: δ₁v.
-
-        Args:
-            vector_field: 1-forma en aristas, shape (num_edges,)
-        Returns:
-            0-forma en nodos, shape (num_nodes,)
-        """
-        if not SCIPY_AVAILABLE:
-            return np.array([])
-        v = np.asarray(vector_field).ravel()
-        if v.size != self.num_edges:
-            raise ValueError(f"Esperado {self.num_edges} aristas, recibido {v.size}")
-        return self.divergence_op @ v
-
-    def curl(self, vector_field: np.ndarray) -> np.ndarray:
-        """
-        Rotacional discreto: d₁v.
-
-        Args:
-            vector_field: 1-forma en aristas, shape (num_edges,)
-        Returns:
-            2-forma en caras, shape (num_faces,)
-        """
-        if not SCIPY_AVAILABLE or self.num_faces == 0:
-            return np.array([])
-        v = np.asarray(vector_field).ravel()
-        if v.size != self.num_edges:
-            raise ValueError(f"Esperado {self.num_edges} aristas, recibido {v.size}")
-        return self.curl_op @ v
-
-    def laplacian(self, degree: int) -> sparse.csr_matrix:
-        """
-        Laplaciano de Hodge: Δₖ = dδ + δd.
-
-        Args:
-            degree: grado k ∈ {0, 1, 2}
-        Returns:
-            Matriz sparse del Laplaciano
-        """
-        if not SCIPY_AVAILABLE:
-            return None
-
-        if degree not in {0, 1}:
-             raise ValueError(f"Grado debe ser 0 o 1, recibido {degree}")
-
-        if degree in self._laplacian_cache:
-            return self._laplacian_cache[degree]
-
-        if degree == 0:
-            # Δ₀ = δ₁d₀ (no hay δ₀)
-            Delta = self.divergence_op @ self.gradient_op
-
-        elif degree == 1:
-            # Δ₁ = d₀δ₁ + δ₂d₁
-            term1 = self.gradient_op @ self.divergence_op
-            if self.num_faces > 0:
-                term2 = self.cocurl_op @ self.curl_op
-            else:
-                term2 = sparse.csr_matrix((self.num_edges, self.num_edges))
-            Delta = term1 + term2
-
-
-        else:
-            raise ValueError(f"Grado debe ser 0 o 1, recibido {degree}")
-
-        self._laplacian_cache[degree] = Delta
-        return Delta
-
-    def verify_complex_exactness(self) -> Dict[str, Any]:
-        """Verifica propiedades del complejo de cadenas."""
-        results = {
-            "boundary_composition_error": self._chain_complex_error,
-            "is_chain_complex": self._chain_complex_error < self.NUMERICAL_TOLERANCE,
-            "∂₁∂₂_max_error": self._chain_complex_error,
-            "∂₁∂₂_is_zero": self._chain_complex_error < self.NUMERICAL_TOLERANCE,
-            "euler_characteristic": self.euler_characteristic,
-            "betti_numbers": (self.betti_0, self.betti_1, self.betti_2),
-        }
-
-        # curl(grad(φ)) = 0
-        if SCIPY_AVAILABLE and self.num_nodes > 0 and self.num_faces > 0:
-            phi = np.random.randn(self.num_nodes)
-            curl_grad = self.curl(self.gradient(phi))
-            results["curl_grad_error"] = np.linalg.norm(curl_grad)
-
-        return results
-
-    def codifferential(self, form: np.ndarray, degree: int) -> np.ndarray:
-        """Codiferencial discreto: δₖ = ⋆⁻¹ d ⋆"""
-        if not SCIPY_AVAILABLE: return np.array([])
-        omega = np.asarray(form).ravel()
-        if degree == 1:
-            return self.divergence(omega)
-        elif degree == 2:
-            if self.num_faces == 0: return np.zeros(self.num_edges)
-            return self.cocurl_op @ omega
-        else:
-            raise ValueError(f"Grado debe ser 1 o 2, recibido {degree}")
-
-    def hodge_decomposition(
-        self,
-        vector_field: np.ndarray,
-        regularization: float = 1e-10
-    ) -> Dict[str, np.ndarray]:
-        """
-        Descomposición de Hodge para 1-formas.
-
-        ω = dα + δβ + γ
-
-        - dα: componente exacta (imagen de gradiente)
-        - δβ: componente co-exacta (imagen de co-rotacional)
-        - γ: componente armónica (núcleo de Laplaciano)
-        """
-        if not SCIPY_AVAILABLE:
-            return {}
-
-        omega = np.asarray(vector_field).ravel()
-        if omega.size != self.num_edges:
-            raise ValueError(f"Esperado {self.num_edges} aristas")
-
-        # Componente exacta: Δ₀α = δ₁ω
-        div_omega = self.divergence(omega)
-        Delta0 = self.laplacian(0)
-        Delta0_reg = Delta0 + regularization * sparse.eye(self.num_nodes)
-
-        try:
-            alpha = spsolve(Delta0_reg, div_omega)
-        except Exception:
-            alpha = np.zeros(self.num_nodes)
-
-        exact = self.gradient(alpha)
-
-        # Componente co-exacta
-        if self.num_faces > 0:
-            curl_omega = self.curl(omega)
-            coexact = self.cocurl_op @ curl_omega
-        else:
-            coexact = np.zeros(self.num_edges)
-
-        # Componente armónica
-        harmonic = omega - exact - coexact
-
-        return {
-            "exact": exact,
-            "coexact": coexact,
-            "harmonic": harmonic,
-            "potential": alpha,
-            "exact_potential": alpha,
-            "reconstruction_error": np.linalg.norm(
-                omega - exact - coexact - harmonic
-            )
-        }
-
-
-class MaxwellSolver:
-    """
-    Solucionador FDTD de Maxwell con esquema leap-frog y PML.
-
-    Ecuaciones de Maxwell discretas (semi-discretas):
-        ∂ₜB = -d₁E - σₘH
-        ∂ₜD = δ₂H - σₑE - J
-
-    Relaciones constitutivas:
-        D = ε⋆₁E,  B = μ⋆₂H
-
-    Esquema temporal (leap-frog):
-        B^{n+1/2} = B^{n-1/2} - Δt·d₁E^n
-        E^{n+1}   = E^n + Δt·(δ₂H^{n+1/2} - J)
-
-    PML (Perfectly Matched Layer):
-        Perfil parabólico: σ(ρ) = σₘₐₓ·(ρ/d)²
-        donde ρ es distancia al borde y d es espesor PML.
-
-    Referencias:
-        [1] Taflove & Hagness, Computational Electrodynamics (2005)
-        [2] Bossavit, Computational Electromagnetism (1998)
-    """
-
-    def __init__(
-        self,
-        calculus: DiscreteVectorCalculus,
-        permittivity: float = 1.0,
-        permeability: float = 1.0,
-        electric_conductivity: float = 0.0,
-        magnetic_conductivity: float = 0.0,
-        pml_thickness: float = 0.1,
-        pml_max_sigma: float = 1.0
-    ):
-        """
-        Args:
-            calculus: Instancia de DiscreteVectorCalculus
-            permittivity: ε (permitividad relativa)
-            permeability: μ (permeabilidad relativa)
-            electric_conductivity: σₑ base
-            magnetic_conductivity: σₘ base
-            pml_thickness: Fracción del dominio para PML
-            pml_max_sigma: Conductividad máxima en PML
-        """
-        self.calc = calculus
-
-        self.epsilon = max(permittivity, CONSTANTS.NUMERICAL_TOLERANCE)
-        self.mu = max(permeability, CONSTANTS.NUMERICAL_TOLERANCE)
-        self.sigma_e_base = max(electric_conductivity, 0.0)
-        self.sigma_m_base = max(magnetic_conductivity, 0.0)
-        # Compatibility aliases
-        self.sigma_e = self.sigma_e_base
-        self.sigma_m = self.sigma_m_base
-
-        # Velocidad de fase
-        self.c = 1.0 / np.sqrt(self.epsilon * self.mu)
-
-        # Inicializar PML
-        self._pml_thickness = pml_thickness
-        self._pml_max_sigma = pml_max_sigma
-        self._initialize_pml()
-
-        # Campos primales
-        self.E = np.zeros(calculus.num_edges)  # 1-forma
-        self.B = np.zeros(calculus.num_faces)  # 2-forma
-
-        # Campos duales
-        self.D = np.zeros(calculus.num_edges)
-        self.H = np.zeros(calculus.num_faces)
-
-        # Fuentes
-        self.J_e = np.zeros(calculus.num_edges)
-        self.J_m = np.zeros(calculus.num_faces)
-
-        # Estado temporal
-        self.time = 0.0
-        self.step_count = 0
-
-        # Condición CFL
-        self.dt_cfl = self._compute_cfl_limit()
-
-        # Historial
-        self.energy_history: deque = deque(maxlen=10000)
-
-        # Cache de coeficientes
-        self._coeff_cache: Dict[float, Tuple] = {}
-
-    def _initialize_pml(self) -> None:
-        """
-        Inicializa perfiles PML con atenuación parabólica.
-
-        σ(ρ) = σₘₐₓ·(ρ/d)²
-
-        donde ρ es la distancia normalizada al centro.
-        """
-        if not SCIPY_AVAILABLE:
-            self.sigma_e_pml = np.zeros(self.calc.num_edges)
-            self.sigma_m_pml = np.zeros(self.calc.num_faces)
-            return
-
-        # Centro del grafo (promedio de índices de nodos)
-        center = (self.calc.num_nodes - 1) / 2.0
-        max_dist = max(center, 1.0)
-        threshold = 1.0 - self._pml_thickness
-
-        # PML para aristas
-        self.sigma_e_pml = np.zeros(self.calc.num_edges)
-        for idx, (u, v) in enumerate(self.calc.edges):
-            # Distancia normalizada al centro
-            pos = (abs(u - center) + abs(v - center)) / (2.0 * max_dist)
-            if pos > threshold:
-                rho = (pos - threshold) / self._pml_thickness
-                self.sigma_e_pml[idx] = self._pml_max_sigma * (rho ** 2)
-
-        # PML para caras (promedio de nodos)
-        self.sigma_m_pml = np.zeros(self.calc.num_faces)
-        if self.calc.num_faces > 0:
-            for idx, face in enumerate(self.calc.faces):
-                avg_pos = np.mean([abs(n - center) for n in face]) / max_dist
-                if avg_pos > threshold:
-                    rho = (avg_pos - threshold) / self._pml_thickness
-                    self.sigma_m_pml[idx] = self._pml_max_sigma * (rho ** 2)
-
-    def _compute_cfl_limit(self) -> float:
-        """
-        Condición CFL para estabilidad numérica.
-
-        Δt < Δx_min / (c·√d)
-
-        donde d es la dimensión efectiva.
-        """
-        if self.calc.num_edges == 0:
-            return 1.0
-
-        # Estimación del espaciado mínimo
-        max_degree = max(dict(self.calc.graph.degree()).values())
-        dim_eff = 2.0 if self.calc.is_planar else 3.0
-
-        # Factor CFL con margen de seguridad
-        dt_est = CONSTANTS.CFL_SAFETY_FACTOR / (
-            self.c * np.sqrt(dim_eff * max_degree)
-        )
-
-        return max(dt_est, CONSTANTS.NUMERICAL_TOLERANCE)
-
-    def _get_update_coefficients(self, dt: float) -> Tuple[np.ndarray, ...]:
-        """
-        Coeficientes de actualización incluyendo PML.
-
-        E: Eⁿ⁺¹ = cₑ₁·Eⁿ + cₑ₂·(fuentes)
-        H: Hⁿ⁺¹/² = cₕ₁·Hⁿ⁻¹/² + cₕ₂·(fuentes)
-        """
-        if dt in self._coeff_cache:
-            return self._coeff_cache[dt]
-
-        sigma_e = self.sigma_e_base + self.sigma_e_pml
-        sigma_m = self.sigma_m_base + self.sigma_m_pml
-
-        # Coeficientes para E
-        alpha_e = sigma_e * dt / (2.0 * self.epsilon)
-        ce1 = (1.0 - alpha_e) / (1.0 + alpha_e)
-        ce2 = dt / (self.epsilon * (1.0 + alpha_e))
-
-        # Coeficientes para H
-        alpha_m = sigma_m * dt / (2.0 * self.mu)
-        ch1 = (1.0 - alpha_m) / (1.0 + alpha_m)
-        ch2 = dt / (self.mu * (1.0 + alpha_m))
-
-        result = (ce1, ce2, ch1, ch2)
-        self._coeff_cache[dt] = result
-        return result
-
-    def update_constitutive_relations(self) -> None:
-        """Actualiza campos duales D y H desde E y B."""
-        if not SCIPY_AVAILABLE:
-            return
-
-        if self.calc.num_edges > 0:
-            self.D = self.epsilon * (self.calc.star1 @ self.E)
-
-        if self.calc.num_faces > 0:
-            self.H = (1.0 / self.mu) * (self.calc.star2_inv @ self.B)
-
-    def step_magnetic_field(self, dt: float) -> None:
-        """
-        Actualización de B usando ley de Faraday.
-
-        ∂ₜB = -curl(E) - σₘH
-        """
-        if not SCIPY_AVAILABLE or self.calc.num_faces == 0:
-            return
-
-        _, _, ch1, ch2 = self._get_update_coefficients(dt)
-
-        curl_E = self.calc.curl(self.E)
-
-        # Actualización leap-frog
-        self.B = ch1 * self.B - ch2 * (curl_E + self.J_m)
-
-        # Actualizar H
-        self.H = (1.0 / self.mu) * (self.calc.star2_inv @ self.B)
-
-    def step_electric_field(self, dt: float) -> None:
-        """
-        Actualización de E usando ley de Ampère-Maxwell.
-
-        ε·∂ₜE = curl(H) - σₑE - J
-        """
-        if not SCIPY_AVAILABLE or self.calc.num_edges == 0:
-            return
-
-        ce1, ce2, _, _ = self._get_update_coefficients(dt)
-
-        # Término fuente: ∂₂H
-        if self.calc.num_faces > 0:
-            source_term = self.calc.boundary2 @ self.H
-        else:
-            source_term = np.zeros(self.calc.num_edges)
-
-        # Aplicar métrica inversa
-        metric_term = self.calc.star1_inv @ (source_term - self.J_e)
-
-        # Actualización
-        self.E = ce1 * self.E + ce2 * metric_term
-
-        # Actualizar D
-        self.D = self.epsilon * (self.calc.star1 @ self.E)
-
-    def leapfrog_step(self, dt: Optional[float] = None, context: Optional['TelemetryContext'] = None) -> None:
-        """
-        Paso completo leap-frog.
-
-        1. B^{n-1/2} → B^{n+1/2} usando E^n
-        2. E^n → E^{n+1} usando H^{n+1/2}
-        """
-        if not SCIPY_AVAILABLE:
-            return
-
-        if dt is None:
-            dt = 0.9 * self.dt_cfl
-
-        if dt > self.dt_cfl:
-            msg = f"Δt={dt:.2e} > Δt_CFL={self.dt_cfl:.2e}. Posible inestabilidad."
-            logger.error(msg)
-            if context:
-                context.record_error(
-                    step_name="physics.maxwell_solver",
-                    error_type="NumericalInstabilityError",
-                    error_message=msg,
-                )
-                context._verdict_code = "REJECTED_PHYSICS"
-            raise NumericalInstabilityError(msg)
-
-        self.step_magnetic_field(dt)
-        self.step_electric_field(dt)
-
-        self.time += dt
-        self.step_count += 1
-
-        energy = self.total_energy()
-        self.energy_history.append(energy)
-
-        # Detección de inestabilidad
-        if len(self.energy_history) >= 10:
-            recent = list(self.energy_history)[-10:]
-            if recent[-1] > 2 * recent[0] and recent[0] > CONSTANTS.MIN_ENERGY_THRESHOLD:
-                logger.warning(
-                    f"Energía creciendo exponencialmente: "
-                    f"{recent[0]:.2e} → {recent[-1]:.2e}"
-                )
-
-    def total_energy(self) -> float:
-        """
-        Energía electromagnética total.
-
-        U = ½(E·D + H·B) = ½(ε|E|² + μ⁻¹|B|²)
-        """
-        if not SCIPY_AVAILABLE:
-            return 0.0
-
-        U_e = 0.5 * np.dot(self.E, self.D) if self.calc.num_edges > 0 else 0.0
-        U_m = 0.5 * np.dot(self.H, self.B) if self.calc.num_faces > 0 else 0.0
-
-        return U_e + U_m
-
-    def poynting_flux(self) -> np.ndarray:
-        """
-        Vector de Poynting S = E × H en aristas.
-
-        Representa flujo de energía electromagnética.
-        """
-        if not SCIPY_AVAILABLE:
-            return np.array([])
-
-        S = np.zeros(self.calc.num_edges)
-
-        if self.calc.num_faces == 0:
-            return S
-
-        for edge_idx in range(self.calc.num_edges):
-            adjacent = self.calc.edge_to_faces[edge_idx]
-            if adjacent:
-                H_avg = np.mean([self.H[f[0]] for f in adjacent])
-                S[edge_idx] = self.E[edge_idx] * H_avg
-
-        return S
-
-    def set_initial_conditions(
-        self,
-        E0: Optional[np.ndarray] = None,
-        B0: Optional[np.ndarray] = None
+    @staticmethod
+    def _validate_parameters(
+        kp: float, ki: float, setpoint: float,
+        min_output: float, max_output: float,
+        integral_limit_factor: float, ema_alpha: float,
+        slew_rate_fraction: float, reference_dt: float,
     ) -> None:
-        """Establece condiciones iniciales."""
-        if E0 is not None:
-            E0 = np.asarray(E0).ravel()
-            if E0.size != self.calc.num_edges:
-                raise ValueError(f"E0 debe tener tamaño {self.calc.num_edges}")
-            self.E = E0.copy()
-
-        if B0 is not None:
-            B0 = np.asarray(B0).ravel()
-            if B0.size != self.calc.num_faces:
-                raise ValueError(f"B0 debe tener tamaño {self.calc.num_faces}")
-            self.B = B0.copy()
-
-        self.update_constitutive_relations()
-
-    def compute_energy_and_momentum(self) -> Dict[str, Any]:
-        """Calcula energía y momento del campo."""
-        if not SCIPY_AVAILABLE:
-            return {"total_energy": 0.0}
-
-        U = self.total_energy()
-        S = self.poynting_flux()
-
-        return {
-            "total_energy": U,
-            "poynting_vector": S,
-            "poynting_magnitude": np.linalg.norm(S),
-            "poynting_max": np.max(np.abs(S)) if S.size > 0 else 0.0,
-            "gauss_residual": np.linalg.norm(self.calc.divergence(self.D)),
-        }
-
-    def verify_energy_conservation(
-        self,
-        num_steps: int = 100,
-        tolerance: float = 1e-4
-    ) -> Dict[str, float]:
-        """Verifica conservación de energía en sistema aislado."""
-        if not SCIPY_AVAILABLE:
-            return {}
-
-        # Guardar estado
-        state = (
-            self.E.copy(), self.B.copy(),
-            self.J_e.copy(), self.J_m.copy(),
-            self.sigma_e_base, self.sigma_m_base,
-            self.sigma_e_pml.copy(), self.sigma_m_pml.copy()
-        )
-
-        # Sistema conservativo
-        self.J_e.fill(0.0)
-        self.J_m.fill(0.0)
-        self.sigma_e_base = 0.0
-        self.sigma_m_base = 0.0
-        self.sigma_e_pml.fill(0.0)
-        self.sigma_m_pml.fill(0.0)
-        self._coeff_cache.clear()
-
-        # Condición inicial no trivial
-        if np.allclose(self.E, 0) and np.allclose(self.B, 0):
-            self.E = np.random.randn(self.calc.num_edges)
-            if self.calc.num_faces > 0:
-                self.B = np.random.randn(self.calc.num_faces)
-            self.update_constitutive_relations()
-
-        # Simular con dt reducido para mayor estabilidad en la verificación
-        dt_stable = 0.5 * self.dt_cfl
-        energies = [self.total_energy()]
-        for _ in range(num_steps):
-            self.leapfrog_step(dt=dt_stable)
-            energies.append(self.total_energy())
-
-        # Restaurar
-        (
-            self.E, self.B, self.J_e, self.J_m,
-            self.sigma_e_base, self.sigma_m_base,
-            self.sigma_e_pml, self.sigma_m_pml
-        ) = state
-        self._coeff_cache.clear()
-
-        # Análisis
-        energies = np.array(energies)
-        E0 = energies[0]
-
-        if E0 > CONSTANTS.MIN_ENERGY_THRESHOLD:
-            relative_deviation = np.max(np.abs(energies - E0)) / E0
-        else:
-            relative_deviation = 0.0
-
-        return {
-            "initial_energy": E0,
-            "final_energy": energies[-1],
-            "mean_energy": np.mean(energies),
-            "std_energy": np.std(energies),
-            "max_relative_deviation": relative_deviation,
-            "is_conservative": relative_deviation < tolerance
-        }
+        errors: List[str] = []
+        if not math.isfinite(kp) or kp < 0.0:
+            errors.append(f"Kp debe ser finito y ≥ 0, recibido {kp}")
+        if not math.isfinite(ki) or ki < 0.0:
+            errors.append(f"Ki debe ser finito y ≥ 0, recibido {ki}")
+        if kp == 0.0 and ki == 0.0:
+            errors.append("Kp y Ki no pueden anularse simultáneamente.")
+        if not math.isfinite(setpoint):
+            errors.append(f"setpoint debe ser finito, recibido {setpoint}")
+        if not math.isfinite(min_output) or not math.isfinite(max_output):
+            errors.append("min_output y max_output deben ser finitos.")
+        elif max_output <= min_output:
+            errors.append("max_output debe ser > min_output.")
+        if not math.isfinite(integral_limit_factor) or integral_limit_factor <= 0.0:
+            errors.append("integral_limit_factor debe ser finito y positivo.")
+        if not math.isfinite(ema_alpha) or not (0.0 < ema_alpha < 1.0):
+            errors.append("ema_alpha debe estar en (0, 1).")
+        if not math.isfinite(slew_rate_fraction) or slew_rate_fraction <= 0.0:
+            errors.append("slew_rate_fraction debe ser finito y positivo.")
+        if not math.isfinite(reference_dt) or reference_dt <= 0.0:
+            errors.append("reference_dt debe ser finito y positivo.")
+        if errors:
+            raise ConfigurationError("PIController inválido:\n" + "\n".join(f"  - {e}" for e in errors))
 
 
-class PortHamiltonianController:
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 2.4 — MÚSCULO DE FLUJO (SATURADOR TÉRMICO, NO UN GANANCIA DEL ERROR)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class FluxMuscleController:
     r"""
-    Controlador basado en sistemas Hamiltonianos con puertos (PHS).
+    Actuador con Newton-Joule y slew.
 
-    Dinámica Estructural (Estructura de Dirac):
-    $$ \dot{x} = [J(x) - R(x)] \nabla H(x) + g(x)u $$
-    $$ y = g(x)^T \nabla H(x) $$
+        Ṫ = α d² − (T − T_amb)/τ
+        T^{n+1} = T_eq + (T^n − T_eq) e^{−Δt/τ},   T_eq = T_amb + α τ d²
 
-    Donde:
-    - $x = [E, B]^T$: Vector de estado (Campos Eléctrico y Magnético).
-    - $J(x) = -J(x)^T$: Matriz de interconexión (Conservativa).
-    - $R(x) = R(x)^T \ge 0$: Matriz de disipación (Resistiva).
-    - $H(x)$: Hamiltoniano del sistema (Energía Total).
+    El músculo **no** escala el mando por el error energético (eso era anti-bombeo).
+    Escala por derating térmico y fatiga. `quadrants=1` → d∈[0,1]; `2` → d∈[−1,1]
+    (calentamiento ∝ d² en ambos).
 
-    Estrategia de Control IDA-PBC:
-    $$ u = -K_d \nabla V(x) $$
-    $$ V(x) = \frac{1}{2}(H(x) - H^*)^2 $$
-
-    Desigualdad de Pasividad:
-    $$ \dot{V} = \nabla V^T \dot{x} = \nabla V^T (J-R) \nabla H + \nabla V^T g u \le u^T y $$
-
-    Referencias:
-        [1] van der Schaft, L²-Gain and Passivity Techniques (2000)
-        [2] Ortega et al., Control by Interconnection (2008)
+    En la composición PHS, el músculo es un saturador de ‖u‖: devuelve un
+    `applied_scale` ∈ [0,1] que Fase 2 aplica a u_cmd.
     """
 
     def __init__(
         self,
-        solver: MaxwellSolver,
-        target_energy: float = 1.0,
-        damping_injection: float = 0.1,
+        max_slew_rate: float = 0.1,
+        thermal_time_constant: float = 5.0,
+        ambient_temperature: float = 25.0,
+        max_temperature: float = 85.0,
+        thermal_gain: float = 15.0,
+        derate_factor: float = 0.5,
+        reference_dt: float = 0.01,
+        soft_temperature_fraction: float = 0.8,
+        fatigue_accumulator_critical: float = 5.0,
+        quadrants: int = 1,
+    ) -> None:
+        self._validate_parameters(
+            max_slew_rate=max_slew_rate,
+            thermal_time_constant=thermal_time_constant,
+            ambient_temperature=ambient_temperature,
+            max_temperature=max_temperature,
+            thermal_gain=thermal_gain,
+            derate_factor=derate_factor,
+            reference_dt=reference_dt,
+            soft_temperature_fraction=soft_temperature_fraction,
+            fatigue_accumulator_critical=fatigue_accumulator_critical,
+            quadrants=quadrants,
+        )
+        self._max_slew_rate = float(max_slew_rate)
+        self._thermal_time_constant = float(thermal_time_constant)
+        self._ambient_temperature = float(ambient_temperature)
+        self._max_temperature = float(max_temperature)
+        self._thermal_gain = float(thermal_gain)
+        self._derate_factor = float(derate_factor)
+        self._reference_dt = float(reference_dt)
+        self._soft_temperature_fraction = float(soft_temperature_fraction)
+        self._fatigue_accumulator_critical = float(fatigue_accumulator_critical)
+        self._quadrants = int(quadrants)
+        self._d_min = 0.0 if self._quadrants == 1 else -1.0
+        self._duty = 0.0
+        self._commanded = 0.0
+        self._temperature = self._ambient_temperature
+        self._thermal_accumulator = 0.0
+        self._derated = False
+        self._overheated = False
+        self._poincare_seed: Optional[ValidatedPoincareSeed] = None
+
+    def consume_poincare_control_seed(self, seed: PoincareControlSeed) -> ValidatedPoincareSeed:
+        validated = PoincareControlBridge.validate_seed(seed)
+        self._poincare_seed = validated
+        if validated.pumping_required and self._quadrants == 1:
+            logger.info("Músculo 1-cuadrante con pumping_required: solo inyecta (d≥0).")
+        return validated
+
+    def apply_force(
+        self,
+        target_intensity: float,
+        dt: float,
+        feedforward: float = 0.0,
+    ) -> float:
+        if not math.isfinite(dt) or dt <= 0.0:
+            raise MuscleThermalError("dt debe ser finito y positivo.")
+        if not math.isfinite(target_intensity) or not math.isfinite(feedforward):
+            raise InvalidInputError("target_intensity/feedforward deben ser finitos.")
+        target = float(target_intensity + feedforward)
+        target = float(np.clip(target, self._d_min, 1.0))
+        cap = self._thermal_derate_cap()
+        # cap limita |d|, no el signo
+        target = float(np.clip(target, -cap if self._d_min < 0.0 else 0.0, cap))
+        self._commanded = target
+        max_change = self._max_slew_rate * max(
+            dt / max(self._reference_dt, CONSTANTS.NUMERICAL_TOLERANCE),
+            CONSTANTS.NUMERICAL_TOLERANCE,
+        )
+        delta = target - self._duty
+        if abs(delta) > max_change:
+            delta = math.copysign(max_change, delta)
+        self._duty = float(np.clip(self._duty + delta, self._d_min, 1.0))
+        self._thermal_exponential_step(dt)
+        abs_d = abs(self._duty)
+        excess = max(0.0, abs_d - CTRL.MUSCLE_FATIGUE_HI)
+        recovery = max(0.0, CTRL.MUSCLE_FATIGUE_LO - abs_d)
+        self._thermal_accumulator = max(0.0, self._thermal_accumulator + dt * (excess - recovery))
+        self._overheated = bool(self._temperature >= self._max_temperature)
+        self._derated = bool(self._overheated or self._thermal_accumulator >= self._fatigue_accumulator_critical)
+        return self._duty
+
+    def scale_command(self, u_cmd: np.ndarray, dt: float) -> Tuple[np.ndarray, float]:
+        """Saturador de ‖u‖: intensity = ‖u‖/u_ref mapeada a duty, u_app = scale·u_cmd."""
+        u_cmd = np.asarray(u_cmd, dtype=float).reshape(-1)
+        nrm = float(np.linalg.norm(u_cmd))
+        if nrm < CONSTANTS.NUMERICAL_ZERO:
+            self.apply_force(0.0, dt)
+            return u_cmd.copy(), 0.0
+        intensity = nrm  # el llamador debe normalizar a [0,1] si desea; aquí usamos clip
+        # Para bipolar: signo de potencia yᵀu no está en ‖u‖. El llamador pasa intensity firmada.
+        duty = self.apply_force(float(np.clip(intensity, self._d_min, 1.0)), dt)
+        scale = abs(duty) / max(min(intensity, 1.0), CONSTANTS.NUMERICAL_TOLERANCE) if intensity else 0.0
+        scale = float(np.clip(scale, 0.0, 1.0))
+        return u_cmd * scale, scale
+
+    def _thermal_exponential_step(self, dt: float) -> None:
+        d2 = self._duty ** 2
+        T_eq = self._ambient_temperature + self._thermal_gain * d2 * self._thermal_time_constant
+        decay = math.exp(-min(dt / self._thermal_time_constant, CONSTANTS.MAX_EXPONENTIAL_ARG))
+        self._temperature = T_eq + (self._temperature - T_eq) * decay
+        if not math.isfinite(self._temperature):
+            raise MuscleThermalError("Temperatura no finita en músculo.")
+        self._temperature = max(self._ambient_temperature, self._temperature)
+
+    def _thermal_derate_cap(self) -> float:
+        T = self._temperature
+        span = self._max_temperature - self._ambient_temperature
+        T_soft = self._ambient_temperature + self._soft_temperature_fraction * span
+        if T <= T_soft:
+            return 1.0
+        if T >= self._max_temperature:
+            return self._derate_factor
+        frac = (T - T_soft) / max(self._max_temperature - T_soft, CONSTANTS.NUMERICAL_TOLERANCE)
+        return float(1.0 - (1.0 - self._derate_factor) * frac)
+
+    def _seed_authority(self) -> float:
+        """Deprecated no-op (7.1): el error energético no reduce autoridad."""
+        return 1.0
+
+    @property
+    def duty(self) -> float:
+        return self._duty
+
+    @property
+    def temperature(self) -> float:
+        return self._temperature
+
+    def thermal_state(self) -> MuscleThermalState:
+        commanded = self._commanded
+        applied_scale = abs(self._duty) / max(abs(commanded), CONSTANTS.NUMERICAL_TOLERANCE) if commanded else 1.0
+        return MuscleThermalState(
+            duty=self._duty,
+            commanded=commanded,
+            temperature=self._temperature,
+            thermal_accumulator=self._thermal_accumulator,
+            overheated=self._overheated,
+            derated=self._derated,
+            thermal_derate_cap=self._thermal_derate_cap(),
+            applied_scale=float(np.clip(applied_scale, 0.0, 1.0)),
+        )
+
+    def diagnostics(self) -> Dict[str, Any]:
+        return {
+            "status": "OK",
+            "duty": self._duty,
+            "commanded": self._commanded,
+            "temperature": self._temperature,
+            "thermal_accumulator": self._thermal_accumulator,
+            "overheated": self._overheated,
+            "derated": self._derated,
+            "thermal_derate_cap": self._thermal_derate_cap(),
+            "quadrants": self._quadrants,
+            "parameters": {
+                "max_slew_rate": self._max_slew_rate,
+                "thermal_time_constant": self._thermal_time_constant,
+                "ambient_temperature": self._ambient_temperature,
+                "max_temperature": self._max_temperature,
+                "thermal_gain": self._thermal_gain,
+                "derate_factor": self._derate_factor,
+            },
+        }
+
+    def reset(self) -> None:
+        self._duty = 0.0
+        self._commanded = 0.0
+        self._temperature = self._ambient_temperature
+        self._thermal_accumulator = 0.0
+        self._overheated = False
+        self._derated = False
+
+    @staticmethod
+    def _validate_parameters(
+        max_slew_rate: float, thermal_time_constant: float,
+        ambient_temperature: float, max_temperature: float,
+        thermal_gain: float, derate_factor: float,
+        reference_dt: float, soft_temperature_fraction: float,
+        fatigue_accumulator_critical: float, quadrants: int,
+    ) -> None:
+        errors: List[str] = []
+        if not math.isfinite(max_slew_rate) or max_slew_rate <= 0.0:
+            errors.append("max_slew_rate debe ser finito y positivo.")
+        if not math.isfinite(thermal_time_constant) or thermal_time_constant <= 0.0:
+            errors.append("thermal_time_constant debe ser finito y positivo.")
+        if not math.isfinite(ambient_temperature):
+            errors.append("ambient_temperature debe ser finito.")
+        if not math.isfinite(max_temperature) or max_temperature <= ambient_temperature:
+            errors.append("max_temperature debe ser > ambient_temperature.")
+        if not math.isfinite(thermal_gain) or thermal_gain < 0.0:
+            errors.append("thermal_gain debe ser finito y ≥ 0.")
+        if not math.isfinite(derate_factor) or not (0.0 < derate_factor < 1.0):
+            errors.append("derate_factor debe estar en (0, 1).")
+        if not math.isfinite(reference_dt) or reference_dt <= 0.0:
+            errors.append("reference_dt debe ser finito y positivo.")
+        if not math.isfinite(soft_temperature_fraction) or not (0.0 < soft_temperature_fraction < 1.0):
+            errors.append("soft_temperature_fraction debe estar en (0, 1).")
+        if not math.isfinite(fatigue_accumulator_critical) or fatigue_accumulator_critical <= 0.0:
+            errors.append("fatigue_accumulator_critical debe ser finito y positivo.")
+        if quadrants not in (1, 2):
+            errors.append("quadrants debe ser 1 o 2.")
+        if errors:
+            raise ConfigurationError("FluxMuscleController inválido:\n" + "\n".join(f"  - {e}" for e in errors))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 2.5 — CONTROLADOR PHS: POWER-SHAPING + IDA-PBC REAL + GRADIENTE DISCRETO
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class PortHamiltonianPoincareController:
+    r"""
+    Lazo Port-Hamiltoniano sobre el kernel 7.1.
+
+    Planta lineal: ẋ = (J−R)Kx + g u,  y = gᵀ K x.
+
+    Modos
+    -----
+    ENERGY_LEVEL (defecto)
+        Se pide Ḣ = −λ(H−H*).  Potencia de puerto que lo realiza:
+            P_* = ∇Hᵀ R ∇H − λ(H−H*)
+            u   = P_* y / (‖y‖² + ε)          (mínima norma)
+        Entonces V̇ = e Ḣ = −λ e² ≤ 0  *si* y≠0.  Rayleigh se **compensa**,
+        de modo que el bombeo (e<0) no lucha contra R.
+
+    IDA_PBC_POINT
+        Matching lineal de Fase 1: u = G x + v,  v = −k_a gᵀ K_d (x−x*).
+        Estabiliza un punto, no una hoja de energía. Requiere matching_residual
+        pequeño frente a ‖(J−R)K‖.
+
+    DAMPING_ONLY
+        u = −k_d y.  Extrae siempre.  Inútil si pumping_required.
+
+    Integrador
+        Punto medio implícito + Picard en u(x_{n+1/2}):
+            (I − hA/2) x_{n+1} = (I + hA/2) x_n + h g u_mid
+        Para H cuadrática es gradiente discreto ⇒ Tellegen exacto.
+        RK4 queda como opción de referencia no estructura-preservante.
+
+    Casimirs
+        g ya cumple Cᵀg=0 (puente). Tras cada paso se re-proyecta
+        Cᵀx = Cᵀx₀ para matar deriva de redondeo.
+    """
+
+    RK4_STABILITY_CFL: float = CTRL.RK4_IMAG_LIMIT
+
+    def __init__(
+        self,
+        seed: PoincareControlSeed,
+        damping_injection: float = CTRL.DEFAULT_ENERGY_RATE,
+        target_energy: Optional[float] = None,
         energy_shaping: bool = True,
-        control_saturation: Optional[float] = None
-    ):
-        """
-        Args:
-            solver: Instancia de MaxwellSolver
-            target_energy: Energía objetivo H*
-            damping_injection: Ganancia de inyección Kd
-            energy_shaping: Si True, usa IDA-PBC
-            control_saturation: Límite de saturación (None = automático)
-        """
-        self.solver = solver
-        self.H_target = max(target_energy, CONSTANTS.MIN_ENERGY_THRESHOLD)
-        self.kd = damping_injection
-        self.use_energy_shaping = energy_shaping
-
-        # Dimensiones
-        self.n_e = solver.calc.num_edges
-        self.n_f = solver.calc.num_faces
-        self.n_x = self.n_e + self.n_f
-
-        # Saturación automática basada en CFL
-        if control_saturation is None:
-            self.u_max = 10.0 / max(solver.dt_cfl, CONSTANTS.MIN_DELTA_TIME)
+        control_saturation: Optional[float] = None,
+        integrator: str = "implicit_midpoint",
+        mode: Union[str, ControlMode] = ControlMode.ENERGY_LEVEL,
+        power_regularization: float = CTRL.POWER_REGULARIZATION,
+    ) -> None:
+        self._validated = PoincareControlBridge.validate_seed(seed)
+        self._seed = self._validated.raw
+        self._kernel = PoincareControlBridge.to_kernel(self._validated)
+        self.dim = self._validated.state_dim
+        self.port_dim = self._validated.port_dim
+        self.x = np.asarray(self._seed.state, dtype=float).reshape(-1).copy()
+        self.J = self._kernel.J
+        self.R = self._kernel.R
+        self.K = self._kernel.metric
+        self.g = self._kernel.g
+        self.A_auto = self._kernel.A
+        self._rho_A = float(self._validated.spectral_data.get("spectral_radius", 0.0)) if self._validated.spectral_data else float(np.linalg.norm(self.A_auto, ord="fro")) / max(self.dim, 1)
+        self._mu2_A = float(self._validated.logarithmic_norm)
+        self._C = self._validated.casimir_basis
+        self._C0 = self._casimir_values(self.x)
+        if target_energy is None:
+            self.H_target = float(self._seed.target_hamiltonian)
         else:
-            self.u_max = control_saturation
+            self.H_target = max(float(target_energy), CONSTANTS.MIN_ENERGY_THRESHOLD)
+        if self.H_target + CONSTANTS.MIN_ENERGY_THRESHOLD < self._validated.casimir_energy:
+            raise UncontrollableEnergyError("H* por debajo de la energía de Casimir.")
+        if not math.isfinite(damping_injection) or damping_injection < 0.0:
+            raise ConfigurationError(f"damping_injection debe ser ≥ 0, recibido {damping_injection}")
+        self.kd = float(damping_injection)  # λ  [1/s] en ENERGY_LEVEL; k_d en DAMPING_ONLY
+        self.use_energy_shaping = bool(energy_shaping)
+        self._mode = ControlMode(mode) if not isinstance(mode, ControlMode) else mode
+        if not self.use_energy_shaping:
+            self._mode = ControlMode.DAMPING_ONLY
+        if self._mode is ControlMode.IDA_PBC_POINT and (
+            self._validated.ida_pbc_decomposition is None
+            or "G" not in self._validated.ida_pbc_decomposition
+        ):
+            logger.warning("IDA_PBC_POINT sin G; se degrada a ENERGY_LEVEL.")
+            self._mode = ControlMode.ENERGY_LEVEL
+        if self._validated.pumping_required and self._mode is ControlMode.DAMPING_ONLY:
+            logger.warning("DAMPING_ONLY con pumping_required: el lazo no puede subir H.")
+        self._integrator = integrator if integrator in ("rk4", "implicit_midpoint") else "implicit_midpoint"
+        self._eps_power = max(float(power_regularization), CONSTANTS.NUMERICAL_ZERO)
+        self._time = 0.0
+        grad_norm = float(np.linalg.norm(self.gradient()))
+        if control_saturation is None:
+            self.u_max = max(1.0, 10.0 * grad_norm)
+        else:
+            if not math.isfinite(control_saturation) or control_saturation <= 0.0:
+                raise ConfigurationError("control_saturation debe ser finito y positivo.")
+            self.u_max = float(control_saturation)
+        self.control_history: deque = deque(maxlen=10_000)
+        self.energy_history: deque = deque(maxlen=10_000)
+        self.storage_history: deque = deque(maxlen=10_000)
+        self._last_applied_u = np.zeros(self.port_dim, dtype=float)
+        self._last_commanded_u = np.zeros(self.port_dim, dtype=float)
 
-        # Construir matrices PHS
-        if SCIPY_AVAILABLE:
-            self._build_phs_matrices()
-            self._verify_phs_structure()
-
-        # Historial
-        self.control_history: deque = deque(maxlen=10000)
-        self.energy_history: deque = deque(maxlen=10000)
-        self.lyapunov_history: deque = deque(maxlen=10000)
-
-    def _build_phs_matrices(self) -> None:
-        """Construye matrices de estructura PHS."""
-        self.J_phs = self._build_interconnection()
-        self.R_phs = self._build_dissipation()
-        self.g_matrix = sparse.eye(self.n_x, format='csr')
-
-    def _build_interconnection(self) -> sparse.csr_matrix:
-        """
-        Matriz de interconexión antisimétrica J.
-
-        J = [ 0    -∂₂/ε ]
-            [∂₂ᵀ/μ   0   ]
-        """
-        calc = self.solver.calc
-        eps, mu = self.solver.epsilon, self.solver.mu
-
-        if self.n_f == 0:
-            return sparse.csr_matrix((self.n_e, self.n_e))
-
-        zero_ee = sparse.csr_matrix((self.n_e, self.n_e))
-        zero_ff = sparse.csr_matrix((self.n_f, self.n_f))
-
-        # Bloques off-diagonal antisimétricos
-        J_ef = (-1.0 / eps) * calc.boundary2
-        J_fe = (1.0 / mu) * calc.boundary2.T
-
-        J_raw = bmat([
-            [zero_ee, J_ef],
-            [J_fe, zero_ff]
-        ], format='csr')
-
-        # Proyección coercitiva para garantizar antisimetría estricta
-        return 0.5 * (J_raw - J_raw.T)
-
-    def _build_dissipation(self) -> sparse.csr_matrix:
-        """
-        Matriz de disipación R (simétrica ≥ 0).
-
-        R = diag(σₑ/ε, σₘ/μ)
-        """
-        eps, mu = self.solver.epsilon, self.solver.mu
-
-        sigma_e = self.solver.sigma_e_base + self.solver.sigma_e_pml
-        sigma_m = self.solver.sigma_m_base + self.solver.sigma_m_pml
-
-        diag_e = sigma_e / eps
-        diag_f = sigma_m / mu if self.n_f > 0 else np.array([])
-
-        diag_full = np.concatenate([diag_e, diag_f])
-
-        return sparse.diags(diag_full, format='csr')
-
-    def _verify_phs_structure(self) -> None:
-        """Verifica estructura PHS: J antisimétrica, R simétrica ≥ 0."""
-        # Antisimetría de J
-        J_plus_JT = self.J_phs + self.J_phs.T
-        if J_plus_JT.nnz > 0:
-            max_asymm = np.max(np.abs(J_plus_JT.data))
-            if max_asymm > CONSTANTS.NUMERICAL_TOLERANCE:
-                logger.warning(f"J no es antisimétrica: ||J + Jᵀ|| = {max_asymm:.2e}")
-
-        # Simetría de R
-        R_minus_RT = self.R_phs - self.R_phs.T
-        if R_minus_RT.nnz > 0:
-            max_asymm = np.max(np.abs(R_minus_RT.data))
-            if max_asymm > CONSTANTS.NUMERICAL_TOLERANCE:
-                logger.warning(f"R no es simétrica: ||R - Rᵀ|| = {max_asymm:.2e}")
-
-        # R ≥ 0
-        R_diag = self.R_phs.diagonal()
-        if np.any(R_diag < -CONSTANTS.NUMERICAL_TOLERANCE):
-            logger.warning("R tiene elementos negativos en diagonal")
-
-    def get_state(self) -> np.ndarray:
-        """Retorna vector de estado x = [E, B]ᵀ."""
-        return np.concatenate([self.solver.E, self.solver.B])
-
-    def set_state(self, x: np.ndarray) -> None:
-        """Establece estado desde vector x."""
-        self.solver.E = x[:self.n_e].copy()
-        self.solver.B = x[self.n_e:].copy()
-        self.solver.update_constitutive_relations()
+    # ── operadores ────────────────────────────────────────────────────────────
 
     def hamiltonian(self, x: Optional[np.ndarray] = None) -> float:
-        """Hamiltoniano H(x) = energía total."""
-        if not SCIPY_AVAILABLE:
-            return 0.0
+        return self._kernel.hamiltonian(self._state_or_current(x))
 
-        if x is None:
-            return self.solver.total_energy()
+    def gradient(self, x: Optional[np.ndarray] = None) -> np.ndarray:
+        return self._kernel.gradient(self._state_or_current(x))
 
-        E = x[:self.n_e]
-        B = x[self.n_e:]
-        eps, mu = self.solver.epsilon, self.solver.mu
-        calc = self.solver.calc
+    def port_output(self, x: Optional[np.ndarray] = None) -> np.ndarray:
+        return self._kernel.port_output(self._state_or_current(x))
 
-        D = eps * (calc.star1 @ E)
-        U_e = 0.5 * np.dot(E, D)
+    def storage_function(self, x: Optional[np.ndarray] = None) -> float:
+        H = self.hamiltonian(x)
+        return 0.5 * float((H - self.H_target) ** 2)
 
-        if self.n_f > 0:
-            H_field = (1.0 / mu) * (calc.star2_inv @ B)
-            U_m = 0.5 * np.dot(H_field, B)
+    def _casimir_values(self, x: np.ndarray) -> np.ndarray:
+        if self._C is None or self._C.size == 0:
+            return np.zeros(0, dtype=float)
+        return self._C.T @ x
+
+    def _project_casimirs(self, x: np.ndarray) -> np.ndarray:
+        if self._C is None or self._C.size == 0:
+            return x
+        leak = self._C.T @ x - self._C0
+        return x - self._C @ leak
+
+    # ── leyes de control ──────────────────────────────────────────────────────
+
+    def requested_power(self, x: Optional[np.ndarray] = None, lambda_rate: Optional[float] = None) -> float:
+        r"""P_* = ∇Hᵀ R ∇H − λ(H−H*).  Signo: P_*>0 inyecta."""
+        x = self._state_or_current(x)
+        lam = self.kd if lambda_rate is None else float(lambda_rate)
+        H = self.hamiltonian(x)
+        rayleigh = float(self.gradient(x) @ (self.R @ self.gradient(x)))
+        return rayleigh - lam * (H - self.H_target)
+
+    def compute_control(
+        self,
+        x: Optional[np.ndarray] = None,
+        power_reference: Optional[float] = None,
+    ) -> np.ndarray:
+        x = self._state_or_current(x)
+        y = self.port_output(x)
+        if self._mode is ControlMode.DAMPING_ONLY:
+            u = -self.kd * y
+        elif self._mode is ControlMode.IDA_PBC_POINT:
+            u = self._ida_pbc_point_control(x)
         else:
-            U_m = 0.0
-
-        return U_e + U_m
-
-    def hamiltonian_gradient(self, x: Optional[np.ndarray] = None) -> np.ndarray:
-        """Gradiente ∂H/∂x = [D, H]ᵀ."""
-        if not SCIPY_AVAILABLE:
-            return np.array([])
-
-        if x is None:
-            return np.concatenate([self.solver.D, self.solver.H])
-
-        E = x[:self.n_e]
-        B = x[self.n_e:]
-        eps, mu = self.solver.epsilon, self.solver.mu
-        calc = self.solver.calc
-
-        D = eps * (calc.star1 @ E)
-        H_field = (1.0 / mu) * (calc.star2_inv @ B) if self.n_f > 0 else np.array([])
-
-        return np.concatenate([D, H_field])
-
-    def storage_function(self) -> float:
-        """
-        Función de almacenamiento (candidato Lyapunov).
-
-        V(x) = ½(H(x) - H*)²
-        """
-        H = self.hamiltonian()
-        # Saturación Lipschitziana para evitar desbordamiento IEEE 754 (H >> 1e150)
-        # 1e150 al cuadrado es 1e300, cerca del límite de float64 (~1.8e308)
-        error_clamped = np.clip(H - self.H_target, -1e150, 1e150)
-        return 0.5 * error_clamped ** 2
-
-    def compute_control(self) -> np.ndarray:
-        """
-        Ley de control IDA-PBC suavizada.
-
-        u = -Kd · tanh(κ·ΔH) · ∇H
-
-        donde tanh evita chattering y κ controla la transición.
-        """
-        H = self.hamiltonian()
-        grad_H = self.hamiltonian_gradient()
-
-        error = H - self.H_target
-
-        if self.use_energy_shaping:
-            # Suavización con tanh para evitar chattering
-            kappa = 10.0 / max(self.H_target, CONSTANTS.MIN_ENERGY_THRESHOLD)
-            smooth_sign = np.tanh(kappa * error)
-            u = -self.kd * smooth_sign * grad_H * abs(error)
-        else:
-            # Damping injection puro
-            u = -self.kd * grad_H
-
-        # Saturación
+            P = self.requested_power(x) if power_reference is None else float(power_reference)
+            y2 = float(y @ y)
+            u = (P * y) / (y2 + self._eps_power)
         u = np.clip(u, -self.u_max, self.u_max)
-
+        nrm = float(np.linalg.norm(u))
+        if nrm > self.u_max:
+            u = u * (self.u_max / nrm)
+        if not np.all(np.isfinite(u)):
+            raise NumericalInstabilityError("Control no finito.")
+        self._last_commanded_u = u.copy()
         return u
 
-    def apply_control(self, dt: float, u_input: Optional[float] = None) -> float:
-        r"""
-        Aplica señal de control (computada o forzada) como fuentes.
+    def _ida_pbc_point_control(self, x: np.ndarray) -> np.ndarray:
+        ida = self._validated.ida_pbc_decomposition or {}
+        G = np.asarray(ida.get("G"), dtype=float)
+        if G.ndim != 2:
+            return -self.kd * self.port_output(x)
+        x_star = np.asarray(ida.get("x_star", np.zeros(self.dim)), dtype=float).reshape(-1)
+        if x_star.size != self.dim:
+            x_star = np.zeros(self.dim)
+        K_d = np.asarray(ida.get("K_d", self.K), dtype=float)
+        v = -self.kd * (self.g.T @ (K_d @ (x - x_star)))
+        u = G @ x + v
+        if u.size != self.port_dim:
+            # G fue resuelto como gG = Δ, G ∈ ℝ^{m×n}
+            u = (G @ x).reshape(-1) + v
+        if u.size != self.port_dim:
+            raise ConfigurationError(f"u IDA dim {u.size} ≠ m={self.port_dim}.")
+        return u
 
-        Args:
-            dt: Paso temporal.
-            u_input: Si se provee, sobrescribe el controlador interno (forcing externo)
-                     como un escalar que se aplica como campo constante.
-
-        Returns:
-            La salida del sistema y = g^T \\nabla H, que es necesaria para
-            evaluar la desigualdad de pasividad empíricamente.
-        r"""
-        if u_input is not None:
-            # Control forzado externo (para validación de pasividad)
-            # En el lazo cerrado estricto, u_input representa el esfuerzo (ganancia)
-            # sobre el gradiente, modelando u = -u_input * grad_H
-            grad_H = self.hamiltonian_gradient()
-            u = -u_input * grad_H
-        else:
-            # Lazo cerrado natural
-            u = self.compute_control()
-
-        u_e = u[:self.n_e]
-        u_f = u[self.n_e:] if self.n_f > 0 else np.array([])
-
-        self.solver.J_e = -u_e
-        if self.n_f > 0:
-            self.solver.J_m = -u_f
-
-        # Registrar
-        self.control_history.append(np.linalg.norm(u))
-        self.energy_history.append(self.hamiltonian())
-        self.lyapunov_history.append(self.storage_function())
-
-        # Calcular salida y = g^T \\nabla H
-        # g = I, entonces y = \\nabla H
-        grad_H = self.hamiltonian_gradient()
-        y = self.g_matrix.T @ grad_H
-
-        # Proyectar al espacio escalar para el cálculo de pasividad unidimensional
-        y_scalar = float(np.sum(y))
-
-        return y_scalar
-
-    def controlled_step(self, dt: Optional[float] = None, u_input: Optional[float] = None) -> float:
-        """Paso con control activo."""
-        if dt is None:
-            dt = 0.9 * self.solver.dt_cfl
-
-        y_out = self.apply_control(dt, u_input=u_input)
-        self.solver.leapfrog_step(dt)
-
-        # Limpiar fuentes
-        self.solver.J_e.fill(0.0)
-        if self.n_f > 0:
-            self.solver.J_m.fill(0.0)
-
-        return y_out
-
-    def verify_passivity(self, num_steps: int = 100) -> Dict[str, float]:
-        """Verifica pasividad: dV/dt ≤ uᵀy."""
-        if not SCIPY_AVAILABLE:
-            return {}
-
-        # Guardar estado
-        E0, B0 = self.solver.E.copy(), self.solver.B.copy()
-
-        # Inicialización
-        self.solver.E = np.random.randn(self.n_e) * 0.5
-        if self.n_f > 0:
-            self.solver.B = np.random.randn(self.n_f) * 0.5
-        self.solver.update_constitutive_relations()
-
-        violations = []
-        dt = 0.9 * self.solver.dt_cfl
-
-        for _ in range(num_steps):
-            V_before = self.storage_function()
-            grad_H = self.hamiltonian_gradient()
-
-            u = self.compute_control()
-            y = self.g_matrix.T @ grad_H
-            supply_rate = np.dot(u, y)
-
-            self.controlled_step(dt)
-
-            V_after = self.storage_function()
-            V_dot = (V_after - V_before) / dt
-
-            violations.append(V_dot - supply_rate)
-
-        # Restaurar
-        self.solver.E, self.solver.B = E0, B0
-        self.solver.update_constitutive_relations()
-
-        violations = np.array(violations)
-
-        return {
-            "mean_violation": np.mean(violations),
-            "max_violation": np.max(violations),
-            "is_passive": np.all(violations <= CONSTANTS.NUMERICAL_TOLERANCE),
-            "passivity_margin": -np.max(violations) if np.max(violations) < 0 else 0.0
-        }
-
-    def simulate_regulation(
+    def continuous_lyapunov_derivative(
         self,
-        num_steps: int = 1000,
-        dt: Optional[float] = None
-    ) -> Dict[str, np.ndarray]:
-        """Simula regulación hacia energía objetivo."""
-        if dt is None:
-            dt = 0.9 * self.solver.dt_cfl
-
-        energies, controls, lyapunovs, times = [], [], [], []
-
-        for _ in range(num_steps):
-            self.controlled_step(dt)
-
-            energies.append(self.hamiltonian())
-            controls.append(self.control_history[-1])
-            lyapunovs.append(self.lyapunov_history[-1])
-            times.append(self.solver.time)
-
+        x: Optional[np.ndarray] = None,
+        u: Optional[np.ndarray] = None,
+    ) -> Dict[str, float]:
+        x = self._state_or_current(x)
+        u = self.compute_control(x) if u is None else self._normalize_control_input(u)
+        H = self.hamiltonian(x)
+        grad_H = self.gradient(x)
+        error = H - self.H_target
+        y = self.g.T @ grad_H
+        rayleigh_rate = float(grad_H @ (self.R @ grad_H))
+        supply_rate = float(u @ y)
+        H_dot = -rayleigh_rate + supply_rate
+        V_dot = error * H_dot
         return {
-            "time": np.array(times),
-            "energy": np.array(energies),
-            "control_norm": np.array(controls),
-            "lyapunov": np.array(lyapunovs),
-            "final_error": abs(energies[-1] - self.H_target) / self.H_target
+            "H_dot": H_dot,
+            "V_dot": V_dot,
+            "supply_rate": supply_rate,
+            "rayleigh_rate": rayleigh_rate,
+            "plant_passivity_slack": rayleigh_rate,
+            "regulation_slack": -V_dot,
+            "power_requested": self.requested_power(x),
+            "power_delivered": supply_rate,
+            "control_dim": float(u.size),
         }
 
+    # ── integración ───────────────────────────────────────────────────────────
 
-# ============================================================================
-# COMPONENTES REFINADOS (ARQUITECTURA DE ESPECIALISTAS)
-# ============================================================================
+    def controlled_step(
+        self,
+        dt: float,
+        u_input: Optional[Union[float, np.ndarray]] = None,
+        substeps: Optional[int] = None,
+        muscle: Optional["FluxMuscleController"] = None,
+        power_reference: Optional[float] = None,
+    ) -> PortHamiltonianControlReport:
+        if not math.isfinite(dt) or dt <= 0.0:
+            raise ConfigurationError("dt debe ser finito y positivo.")
+        x0 = self.x.copy()
+        H0 = self.hamiltonian(x0)
+        V0 = self.storage_function(x0)
 
-class TopologicalAnalyzer:
-    """
-    Analizador especializado en topología algebraica de grafos.
-    """
+        if u_input is not None:
+            u_cmd = self._normalize_control_input(u_input)
+        else:
+            u_cmd = self.compute_control(x0, power_reference=power_reference)
 
-    def __init__(self):
-        self._adjacency_list: Dict[int, Set[int]] = {}
-        self._persistence_diagram: List[Dict] = []
-        self._vertex_count = 0
-        self._edge_count = 0
+        u_app = u_cmd
+        if muscle is not None:
+            # intensity firmada por la potencia pedida, magnitud en [0,1] vía ‖u‖/u_max
+            nrm = float(np.linalg.norm(u_cmd))
+            intensity = nrm / max(self.u_max, CONSTANTS.NUMERICAL_TOLERANCE)
+            y0 = self.port_output(x0)
+            sign = 1.0
+            if y0.size and nrm > 0.0:
+                sign = math.copysign(1.0, float(y0 @ u_cmd)) if self._d_sign_needed(muscle) else 1.0
+            duty = muscle.apply_force(sign * float(np.clip(intensity, 0.0, 1.0)), dt)
+            scale = abs(duty) / max(intensity, CONSTANTS.NUMERICAL_TOLERANCE) if intensity > 0.0 else 0.0
+            u_app = u_cmd * float(np.clip(scale, 0.0, 1.0))
 
-    def build_metric_graph(self, metrics: Dict[str, float]) -> None:
+        metrics = self.continuous_lyapunov_derivative(x0, u=u_app)
+        if substeps is None:
+            substeps = self._estimate_substeps(dt)
+        h = dt / float(substeps)
+        if self._integrator == "rk4":
+            self._integrate_rk4(h, substeps, u_app)
+        else:
+            self._integrate_implicit_midpoint(h, substeps, u_app, freeze_u=True)
+
+        self.x = self._project_casimirs(self.x)
+        self._time += dt
+        self._last_applied_u = u_app.copy()
+        self._last_commanded_u = u_cmd.copy()
+
+        H1 = self.hamiltonian()
+        V1 = self.storage_function()
+        audit = self._discrete_passivity_audit(x0, self.x, u_app, dt)
+        if not audit.is_discrete_gradient and self._integrator == "implicit_midpoint":
+            logger.debug("Residuo de gradiente discreto %.3e (tol=%.1e).", audit.residual, CTRL.DISCRETE_PASSIVITY_TOL)
+
+        control_norm = float(np.linalg.norm(u_cmd))
+        applied_norm = float(np.linalg.norm(u_app))
+        port_output_norm = float(np.linalg.norm(self.port_output()))
+        self.control_history.append(applied_norm)
+        self.energy_history.append(H1)
+        self.storage_history.append(V1)
+
+        pumping = bool(H1 < self.H_target - CONSTANTS.MIN_ENERGY_THRESHOLD)
+        # Regulación: V decrece, o bien estamos bajo H* y H sube (bombeo con R).
+        dV = V1 - V0
+        dH = H1 - H0
+        is_regulating = bool(
+            dV <= CTRL.DISCRETE_PASSIVITY_TOL
+            or (H0 < self.H_target and dH >= -CTRL.DISCRETE_PASSIVITY_TOL)
+        )
+        return PortHamiltonianControlReport(
+            time=self._time,
+            dt=dt,
+            hamiltonian=H1,
+            hamiltonian_derivative=metrics["H_dot"],
+            target_hamiltonian=self.H_target,
+            storage_function=V1,
+            control_norm=control_norm,
+            port_output_norm=port_output_norm,
+            supply_rate=metrics["supply_rate"],
+            lyapunov_derivative=metrics["V_dot"],
+            plant_passivity_slack=audit.rayleigh,
+            regulation_slack=float(-dV / max(dt, CONSTANTS.NUMERICAL_ZERO)),
+            passivity_margin=audit.rayleigh,
+            is_passive=audit.is_passive,
+            is_regulating=is_regulating,
+            discrete_residual=audit.residual,
+            casimir_drift=audit.casimir_drift,
+            power_requested=metrics["power_requested"],
+            power_delivered=metrics["power_delivered"],
+            applied_control_norm=applied_norm,
+            pumping_required=pumping,
+            mode=self._mode.value,
+        )
+
+    @staticmethod
+    def _d_sign_needed(muscle: "FluxMuscleController") -> bool:
+        return getattr(muscle, "_quadrants", 1) == 2
+
+    def _discrete_passivity_audit(
+        self,
+        x0: np.ndarray,
+        x1: np.ndarray,
+        u: np.ndarray,
+        dt: float,
+    ) -> DiscretePassivityAudit:
+        x_mid = 0.5 * (x0 + x1)
+        grad_mid = self.K @ x_mid
+        y_mid = self.g.T @ grad_mid
+        rayleigh = float(grad_mid @ (self.R @ grad_mid))
+        supply = float(u @ y_mid)
+        dH = self.hamiltonian(x1) - self.hamiltonian(x0)
+        predicted = dt * (supply - rayleigh)
+        residual = float(dH - predicted)
+        cas_drift = float(np.linalg.norm(self._casimir_values(x1) - self._C0))
+        scale = max(1.0, abs(dH), abs(predicted), CONSTANTS.MIN_ENERGY_THRESHOLD)
+        is_grad = abs(residual) <= CTRL.DISCRETE_PASSIVITY_TOL * scale
+        is_passive = bool(dH <= dt * supply + CTRL.DISCRETE_PASSIVITY_TOL * scale)
+        return DiscretePassivityAudit(
+            dH_discrete=float(dH),
+            supply=supply,
+            rayleigh=rayleigh,
+            residual=residual,
+            casimir_drift=cas_drift,
+            is_discrete_gradient=is_grad,
+            is_passive=is_passive,
+        )
+
+    def _integrate_rk4(self, h: float, substeps: int, u_external: np.ndarray) -> None:
+        def f(x_local: np.ndarray) -> np.ndarray:
+            return self.A_auto @ x_local + self.g @ u_external
+
+        x = self.x.copy()
+        for _ in range(substeps):
+            k1 = f(x)
+            k2 = f(x + 0.5 * h * k1)
+            k3 = f(x + 0.5 * h * k2)
+            k4 = f(x + h * k3)
+            x = x + (h / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
+            if not np.all(np.isfinite(x)):
+                raise NumericalInstabilityError("Estado no finito en RK4.")
+            if float(np.linalg.norm(x)) > CONSTANTS.MAX_STATE_NORM:
+                raise NumericalInstabilityError("‖x‖ > MAX_STATE_NORM en RK4.")
+        self.x = x
+
+    def _integrate_implicit_midpoint(
+        self,
+        h: float,
+        substeps: int,
+        u_external: Optional[np.ndarray],
+        freeze_u: bool = True,
+    ) -> None:
+        r"""
+        Punto medio. Si freeze_u, u es ZOH (hold de orden cero) — el caso de
+        composición con músculo. Si no, Picard sobre u(x_mid).
         """
-        Construye grafo de correlación basado en métricas.
-        """
-        metric_keys = [
-            "saturation", "complexity", "current_I",
-            "potential_energy", "kinetic_energy", "entropy_shannon"
-        ]
-        values = [metrics.get(k, 0.0) for k in metric_keys]
+        n = self.dim
+        I = np.eye(n)
+        M_left = I - 0.5 * h * self.A_auto
+        M_right_op = I + 0.5 * h * self.A_auto
+        lu = lu_factor(M_left) if _LU_AVAILABLE else None
 
-        self._adjacency_list.clear()
-        self._vertex_count = len(values)
-        self._edge_count = 0
-
-        for i in range(self._vertex_count):
-            self._adjacency_list[i] = set()
-
-        if self._vertex_count < 2:
-            return
-
-        v_min, v_max = min(values), max(values)
-        v_range = v_max - v_min if v_max != v_min else 1.0
-        normalized = [(v - v_min) / v_range for v in values]
-
-        mean_val = sum(normalized) / len(normalized)
-        variance = sum((v - mean_val) ** 2 for v in normalized) / len(normalized)
-
-        base_threshold = 0.3
-        adaptive_threshold = min(0.7, base_threshold * (1.0 + math.sqrt(variance)))
-
-        for i in range(self._vertex_count):
-            for j in range(i + 1, self._vertex_count):
-                dist = abs(normalized[i] - normalized[j])
-                if dist < adaptive_threshold:
-                    self._adjacency_list[i].add(j)
-                    self._adjacency_list[j].add(i)
-                    self._edge_count += 1
-
-    def compute_betti_with_spectral(self) -> Dict[int, int]:
-        """
-        Calcula Betti usando Laplaciano espectral.
-        beta_0 = dim(ker(L_0)) = número de valores propios cero del Laplaciano.
-        beta_1 = |E| - |V| + beta_0 (Euler)
-        """
-        if self._vertex_count == 0:
-            return {0: 0, 1: 0}
-
-        # Construir Laplaciano
-        if SCIPY_AVAILABLE and self._vertex_count > 0:
-            row, col, data = [], [], []
-            for i in range(self._vertex_count):
-                degree = len(self._adjacency_list.get(i, set()))
-                row.append(i); col.append(i); data.append(degree)
-                for neighbor in self._adjacency_list.get(i, set()):
-                    row.append(i); col.append(neighbor); data.append(-1)
-
-            L = sparse.csr_matrix((data, (row, col)), shape=(self._vertex_count, self._vertex_count))
-
-            # Calcular valores propios pequeños
-            # Usamos eigsh para encontrar k valores propios más pequeños (sigma=0)
+        def _solve_left(rhs: np.ndarray) -> np.ndarray:
+            if lu is not None:
+                return np.asarray(lu_solve(lu, rhs), dtype=float)
             try:
-                # k debe ser < N. Si N es pequeño, usamos denso.
-                if self._vertex_count < 5:
-                    evals = np.linalg.eigvalsh(L.toarray())
-                else:
-                    # eigsh con 'SM' (Smallest Magnitude) es inestable para semidefinidas positivas a veces
-                    # mejor 'SA' (Smallest Algebraic)
-                    k = min(self._vertex_count - 1, 5)
-                    evals = eigsh(L, k=k, which='SA', return_eigenvectors=False)
+                return np.linalg.solve(M_left, rhs)
+            except np.linalg.LinAlgError:
+                return np.linalg.lstsq(M_left, rhs, rcond=None)[0]
 
-                # Contar ceros (con tolerancia)
-                beta_0 = int(np.sum(np.abs(evals) < 1e-5))
-            except Exception:
-                # Fallback a componentes conexas
-                beta_0 = 0
-                visited = set()
-                for i in range(self._vertex_count):
-                    if i not in visited:
-                        beta_0 += 1
-                        stack = [i]
-                        while stack:
-                            node = stack.pop()
-                            if node not in visited:
-                                visited.add(node)
-                                stack.extend(self._adjacency_list.get(node, set()) - visited)
-        else:
-             # Fallback sin scipy
-            beta_0 = 1 # Asumir conexo por defecto o implementar BFS simple
+        x = self.x.copy()
+        for _ in range(substeps):
+            if freeze_u or u_external is not None:
+                u_mid = u_external if u_external is not None else self.compute_control(x)
+                rhs = M_right_op @ x + h * (self.g @ u_mid)
+                x = _solve_left(rhs)
+            else:
+                x_new = x + h * (self.A_auto @ x + self.g @ self.compute_control(x))
+                for _picard in range(CTRL.PICARD_MAX_ITER):
+                    x_mid = 0.5 * (x + x_new)
+                    u_mid = self.compute_control(x_mid)
+                    x_next = _solve_left(M_right_op @ x + h * (self.g @ u_mid))
+                    if float(np.linalg.norm(x_next - x_new)) <= CTRL.PICARD_ATOL * max(1.0, float(np.linalg.norm(x_new))):
+                        x_new = x_next
+                        break
+                    x_new = x_next
+                x = x_new
+            if not np.all(np.isfinite(x)):
+                raise NumericalInstabilityError("Estado no finito en punto medio.")
+            if float(np.linalg.norm(x)) > CONSTANTS.MAX_STATE_NORM:
+                raise NumericalInstabilityError("‖x‖ > MAX_STATE_NORM en punto medio.")
+        self.x = x
 
-        beta_1 = max(0, self._edge_count - self._vertex_count + beta_0)
+    # ── auditorías no vacuadas ────────────────────────────────────────────────
 
-        return {0: beta_0, 1: beta_1}
-
-
-class EntropyCalculator:
-    """
-    Calculadora de entropía con estimadores Bayesianos y espectro de Rényi.
-    """
-
-    def calculate_entropy_bayesian(self, counts: Dict[str, int],
-                                   prior: str = 'jeffreys') -> Dict[str, float]:
-        """
-        Entropía bayesiana con priors conjugados.
-        """
-        total = sum(counts.values())
-        categories = len(counts)
-        if total == 0:
-            return {'entropy_expected': 0.0, 'entropy_variance': 0.0}
-
-        # Priors
-        if prior == 'jeffreys':
-            alpha = 0.5
-        elif prior == 'laplace':
-            alpha = 1.0
-        else:
-            alpha = 1.0 / max(1, categories)
-
-        # Parámetros posteriores Dirichlet(alpha + n)
-        alpha_post = {k: alpha + v for k, v in counts.items()}
-        alpha_0 = sum(alpha_post.values())
-
-        # Entropía esperada E[H] = psi(alpha_0 + 1) - sum (alpha_i / alpha_0) * psi(alpha_i + 1)
-        # psi es digamma.
-        if SCIPY_AVAILABLE:
-            entropy = digamma(alpha_0 + 1)
-            for n in alpha_post.values():
-                p = n / alpha_0
-                entropy -= p * digamma(n + 1)
-
-            # Convertir a bits (base 2)
-            entropy_bits = entropy / np.log(2)
-        else:
-            # Fallback a Shannon simple
-            entropy_bits = 0.0
-            for n in counts.values():
-                p = n / total
-                if p > 0: entropy_bits -= p * math.log2(p)
-
+    def verify_plant_passivity(
+        self,
+        num_steps: int = 100,
+        dt: Optional[float] = None,
+    ) -> Dict[str, float]:
+        """Audita ΔH ≤ h y_midᵀ u  (pasividad discreta), no la identidad continua."""
+        if num_steps <= 0:
+            raise ConfigurationError("num_steps debe ser positivo.")
+        if dt is None:
+            dt = 1e-3
+        x_backup, t_backup = self.x.copy(), self._time
+        residuals: List[float] = []
+        slacks: List[float] = []
+        try:
+            for _ in range(int(num_steps)):
+                x0 = self.x.copy()
+                report = self.controlled_step(dt)
+                audit = self._discrete_passivity_audit(x0, self.x, self._last_applied_u, dt)
+                residuals.append(audit.residual)
+                slacks.append(report.plant_passivity_slack)
+                if not audit.is_passive:
+                    # no lanzamos: devolvemos el veredicto
+                    pass
+        finally:
+            self.x, self._time = x_backup, t_backup
+        arr_r = np.asarray(residuals, dtype=float) if residuals else np.zeros(1)
+        arr_s = np.asarray(slacks, dtype=float) if slacks else np.zeros(1)
         return {
-            'entropy_expected': entropy_bits,
-            'effective_samples': alpha_0 - categories * alpha
+            "is_plant_passive": bool(np.max(np.abs(arr_r)) <= CTRL.DISCRETE_PASSIVITY_TOL * 10.0 or np.min(arr_s) >= -CONSTANTS.NUMERICAL_TOLERANCE),
+            "max_discrete_residual": float(np.max(np.abs(arr_r))),
+            "min_rayleigh": float(np.min(arr_s)),
+            "mean_residual": float(np.mean(arr_r)),
+            "samples": float(arr_r.size),
         }
 
-    def calculate_renyi_spectrum(self, probabilities: np.ndarray,
-                                 alphas: List[float] = None) -> Dict[float, float]:
+    def verify_regulation_convergence(
+        self,
+        num_steps: int = 200,
+        dt: Optional[float] = None,
+    ) -> Dict[str, Any]:
         """
-        Espectro completo de entropías de Rényi.
+        No exige monotonicidad de V cuando H<H* y R≠0 (Rayleigh empuja hacia 0).
+        Éxito: |H−H*| decrece en media y Casimirs no derivan.
         """
-        if alphas is None:
-            alphas = [0, 0.5, 1, 2, 3, 5, 10, float('inf')]
+        if num_steps <= 0:
+            raise ConfigurationError("num_steps debe ser positivo.")
+        if dt is None:
+            dt = 1e-3
+        x_backup, t_backup = self.x.copy(), self._time
+        energies: List[float] = []
+        storages: List[float] = []
+        cas_leaks: List[float] = []
+        try:
+            for _ in range(int(num_steps)):
+                report = self.controlled_step(dt)
+                energies.append(report.hamiltonian)
+                storages.append(report.storage_function)
+                cas_leaks.append(report.casimir_drift)
+        finally:
+            self.x, self._time = x_backup, t_backup
+        if not energies:
+            return {"is_regulating": True, "samples": 0.0}
+        e0 = abs(energies[0] - self.H_target)
+        e1 = abs(energies[-1] - self.H_target)
+        return {
+            "is_regulating": bool(e1 <= e0 + CONSTANTS.RELATIVE_TOLERANCE * max(1.0, self.H_target)),
+            "energy_error_start": float(e0),
+            "energy_error_end": float(e1),
+            "storage_end": float(storages[-1]),
+            "max_casimir_drift": float(np.max(cas_leaks) if cas_leaks else 0.0),
+            "samples": float(len(energies)),
+            "mode": self._mode.value,
+        }
 
-        spectrum = {}
-        probs = np.array(probabilities)
-        probs = probs[probs > 0] # Ignorar ceros
+    def audit_power_balance(
+        self,
+        dt: Optional[float] = None,
+        u_input: Optional[Union[float, np.ndarray]] = None,
+    ) -> Dict[str, float]:
+        if dt is None:
+            dt = 1e-4
+        u = self._normalize_control_input(u_input) if u_input is not None else self.compute_control()
+        x_backup, t_backup = self.x.copy(), self._time
+        x0 = self.x.copy()
+        H_before = self.hamiltonian()
+        metrics = self.continuous_lyapunov_derivative(u=u)
+        try:
+            self._integrate_implicit_midpoint(dt, 1, u, freeze_u=True)
+            self.x = self._project_casimirs(self.x)
+            H_after = self.hamiltonian()
+            audit = self._discrete_passivity_audit(x0, self.x, u, dt)
+        finally:
+            self.x, self._time = x_backup, t_backup
+        empirical_H_dot = (H_after - H_before) / dt
+        return {
+            "analytic_H_dot": metrics["H_dot"],
+            "empirical_H_dot": empirical_H_dot,
+            "residual": audit.residual,
+            "supply_rate": metrics["supply_rate"],
+            "rayleigh_rate": metrics["rayleigh_rate"],
+            "is_discrete_gradient": audit.is_discrete_gradient,
+        }
 
-        for alpha in alphas:
-            if alpha == 0:
-                val = np.log2(len(probs)) if len(probs) > 0 else 0
-            elif alpha == 1:
-                val = -np.sum(probs * np.log2(probs)) if len(probs) > 0 else 0
-            elif alpha == float('inf'):
-                val = -np.log2(np.max(probs)) if len(probs) > 0 else 0
-            else:
-                sum_p_alpha = np.sum(probs ** alpha)
-                val = (1/(1-alpha)) * np.log2(sum_p_alpha) if sum_p_alpha > 0 else 0
-            spectrum[alpha] = val
+    def maupertuis_conformal_factor(self, x: Optional[np.ndarray] = None) -> float:
+        """
+        Deprecado. Jacobi-Maupertuis exige H=T(q,p)+V(q) en T*Q.
+        Un PHS lineal en x no tiene esa escisión. Se devuelve 1.0.
+        """
+        logger.debug("maupertuis_conformal_factor es un no-op en 7.1 (no hay T+V).")
+        return 1.0
 
-        return spectrum
+    def apply_maupertuis_correction(
+        self,
+        dt: float,
+        geodesic_gain: float = 0.05,
+    ) -> PortHamiltonianControlReport:
+        """
+        Sustituto honesto: un paso de ENERGY_LEVEL (power shaping).
+        La antigua ley extraía energía siempre y rompía el bombeo.
+        """
+        if not math.isfinite(geodesic_gain) or geodesic_gain < 0.0:
+            raise ConfigurationError("geodesic_gain debe ser ≥ 0.")
+        return self.controlled_step(dt=dt)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 2.6 — PUENTE FORMAL FASE 2 → FASE 3
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def synthesize_engine_seed(
+        self,
+        pi_controller: Optional[PIController] = None,
+        muscle: Optional[FluxMuscleController] = None,
+        dt: Optional[float] = None,
+    ) -> PoincareEngineSeed:
+        r"""
+        PUENTE FORMAL FASE 2 → FASE 3.
+
+        Cascada única (un solo u aplicado):
+            1. PI (opcional) → potencia pedida P_* normalizada · escala.
+            2. Power-shaping / IDA-PBC → u_cmd ∈ ℝ^m.
+            3. Músculo (opcional) → saturación térmica/slew → u_app.
+            4. Semilla con u_app, Casimirs, matching, μ₂(A), Tellegen discreto.
+
+        Fase 3 **integra con control_input = u_app**, no con el PI crudo.
+        """
+        if dt is None:
+            dt = 1e-3
+        dt = float(dt)
+        grad_H = self.gradient()
+        H = self.hamiltonian()
+        V = self.storage_function()
+        y = self.port_output()
+
+        power_ref: Optional[float] = None
+        pi_report: Optional[PIControlReport] = None
+        if pi_controller is not None:
+            try:
+                pi_report = pi_controller.compute_from_seed(seed=self._seed, dt=dt, feedforward=0.0)
+                # PI normalizado: output ∈ [min,max] se reescala a potencia característica ‖y‖ u_max
+                p_char = max(float(np.linalg.norm(y)) * self.u_max, CONSTANTS.MIN_ENERGY_THRESHOLD)
+                span = max(pi_controller.max_output - pi_controller.min_output, CONSTANTS.NUMERICAL_TOLERANCE)
+                mid = 0.5 * (pi_controller.max_output + pi_controller.min_output)
+                # mapa afín: centro → P=0 (si bipolar); si min≥0, output/max → [0, p_char]
+                if pi_controller.min_output < 0.0:
+                    power_ref = float(pi_report.output - mid) / (0.5 * span) * p_char
+                else:
+                    power_ref = float(pi_report.output) / max(pi_controller.max_output, CONSTANTS.NUMERICAL_TOLERANCE) * p_char
+            except DataFluxCondenserError as exc:
+                logger.error("PIController falló: %s", exc)
+                pi_report = None
+
+        u_cmd = self.compute_control(power_reference=power_ref)
+        muscle_duty = 0.0
+        u_app = u_cmd.copy()
+        if muscle is not None:
+            try:
+                nrm = float(np.linalg.norm(u_cmd))
+                intensity = nrm / max(self.u_max, CONSTANTS.NUMERICAL_TOLERANCE)
+                sign = 1.0
+                if y.size and nrm > 0.0 and getattr(muscle, "_quadrants", 1) == 2:
+                    sign = math.copysign(1.0, float(y @ u_cmd))
+                muscle_duty = float(muscle.apply_force(sign * float(np.clip(intensity, 0.0, 1.0)), dt=dt))
+                scale = abs(muscle_duty) / max(intensity, CONSTANTS.NUMERICAL_TOLERANCE) if intensity > 0.0 else 0.0
+                u_app = u_cmd * float(np.clip(scale, 0.0, 1.0))
+            except DataFluxCondenserError as exc:
+                logger.error("FluxMuscleController falló: %s", exc)
+                muscle_duty = 0.0
+
+        self._last_commanded_u = u_cmd
+        self._last_applied_u = u_app
+        metrics = self.continuous_lyapunov_derivative(u=u_app)
+        audit = self._discrete_passivity_audit(self.x, self.x, u_app, dt)  # residual 0 si Δx=0
+        passivity_report = {
+            "lyapunov_derivative": float(metrics["V_dot"]),
+            "hamiltonian_derivative": float(metrics["H_dot"]),
+            "supply_rate": float(metrics["supply_rate"]),
+            "rayleigh_rate": float(metrics["rayleigh_rate"]),
+            "plant_passivity_slack": float(metrics["plant_passivity_slack"]),
+            "regulation_slack": float(metrics["regulation_slack"]),
+            "power_requested": float(metrics["power_requested"]),
+            "power_delivered": float(metrics["power_delivered"]),
+            "is_plant_passive": float(metrics["plant_passivity_slack"] >= -CONSTANTS.NUMERICAL_TOLERANCE),
+            "is_regulating": float(metrics["regulation_slack"] >= -CONSTANTS.NUMERICAL_TOLERANCE),
+            "discrete_residual": float(audit.residual),
+            "casimir_drift": float(np.linalg.norm(self._casimir_values(self.x) - self._C0)),
+        }
+        engine_hints = {
+            "dt_suggested": float(dt),
+            "rho_A": float(self._rho_A),
+            "logarithmic_norm_A": float(self._mu2_A),
+            "substeps": int(self._estimate_substeps(dt)),
+            "integrator_preferred": "implicit_midpoint",
+            "integrator_forbidden_as_structure_preserving": "rk4",
+            "state_dim": self.dim,
+            "port_dim": self.port_dim,
+            "casimir_dim": int(self._C.shape[1]) if self._C is not None and self._C.size else 0,
+            "mode": self._mode.value,
+            "pumping_required": bool(self._validated.pumping_required),
+            "hodge_convention": "D=ε★₁E, H=μ⁻¹★₂B, δ₂=★₁⁻¹∂₂★₂",
+            "schema_version": "7.1.0",
+            "do_not_regulate_casimirs": True,
+            "use_applied_control": True,
+        }
+        metadata: Dict[str, Any] = {
+            "time": self._time,
+            "dt_suggested": dt,
+            "kd": self.kd,
+            "use_energy_shaping": self.use_energy_shaping,
+            "mode": self._mode.value,
+            "u_max": self.u_max,
+            "metric_condition_number": self._validated.metric_condition_number,
+            "spectral_radius_J": self._validated.spectral_radius_J,
+            "normalized_energy_error": self._validated.normalized_energy_error,
+            "trace_generator": self._validated.trace_generator,
+            "port_gram_condition": self._validated.port_gram_condition,
+            "logarithmic_norm": self._validated.logarithmic_norm,
+            "casimir_energy": self._validated.casimir_energy,
+            "dynamic_energy": self._validated.dynamic_energy,
+            "casimir_port_leak": self._validated.casimir_port_leak,
+            "matching_residual": self._validated.matching_residual,
+            "pumping_required": self._validated.pumping_required,
+            "is_energy_controllable": self._validated.is_energy_controllable,
+            "phase": 2,
+            "bridge_to_phase": 3,
+            "schema_version": "7.1.0",
+            "hodge_convention": engine_hints["hodge_convention"],
+        }
+        return PoincareEngineSeed(
+            state=self.x.copy(),
+            gradient=grad_H.copy(),
+            control_input=u_app.copy(),
+            hamiltonian=float(H),
+            target_hamiltonian=float(self.H_target),
+            storage_function=float(V),
+            interconnection_matrix=self.J.copy(),
+            damping_matrix=self.R.copy(),
+            metric_matrix=self.K.copy(),
+            port_matrix=self.g.copy(),
+            pi_report=pi_report,
+            muscle_duty=float(muscle_duty),
+            passivity_report=passivity_report,
+            metadata=metadata,
+            casimir_basis=None if self._C is None else self._C.copy(),
+            spectral_data=None if not self._validated.spectral_data else dict(self._validated.spectral_data),
+            ida_pbc_decomposition=(
+                None
+                if self._validated.ida_pbc_decomposition is None
+                else {k: np.asarray(v, dtype=float).copy() for k, v in self._validated.ida_pbc_decomposition.items()}
+            ),
+            lyapunov_jacobian=(H - self.H_target) * grad_H,
+            engine_hints=engine_hints,
+            commanded_control=u_cmd.copy(),
+            output_port=y.copy(),
+            matching_residual=float(self._validated.matching_residual),
+            pumping_required=bool(self._validated.pumping_required),
+            casimir_energy=float(self._validated.casimir_energy),
+            schema_version="7.1.0",
+        )
+
+    def closed_loop_step(
+        self,
+        dt: float,
+        pi_controller: Optional[PIController] = None,
+        muscle: Optional[FluxMuscleController] = None,
+    ) -> Tuple[PortHamiltonianControlReport, PoincareEngineSeed]:
+        """Un paso de la cascada completa y la semilla actualizada (para Fase 3)."""
+        seed = self.synthesize_engine_seed(pi_controller=pi_controller, muscle=muscle, dt=dt)
+        report = self.controlled_step(
+            dt=dt,
+            u_input=seed.control_input,
+            muscle=None,  # ya saturado en synthesize
+        )
+        seed_after = self.synthesize_engine_seed(pi_controller=None, muscle=None, dt=dt)
+        seed_after.pi_report = seed.pi_report
+        seed_after.muscle_duty = seed.muscle_duty
+        return report, seed_after
+
+    # ── utilidades ────────────────────────────────────────────────────────────
+
+    def _state_or_current(self, x: Optional[np.ndarray]) -> np.ndarray:
+        if x is None:
+            return self.x
+        x_arr = np.asarray(x, dtype=float).reshape(-1)
+        if x_arr.size != self.dim:
+            raise ConfigurationError(f"Estado dim {x_arr.size}; esperado {self.dim}.")
+        if not np.all(np.isfinite(x_arr)):
+            raise NumericalInstabilityError("Estado contiene valores no finitos.")
+        return x_arr
+
+    def _normalize_control_input(self, u_input: Optional[Union[float, np.ndarray]]) -> np.ndarray:
+        if u_input is None:
+            return np.zeros(self.port_dim, dtype=float)
+        if np.isscalar(u_input):
+            u = np.full(self.port_dim, float(u_input), dtype=float)
+        else:
+            u = np.asarray(u_input, dtype=float).reshape(-1)
+        if u.size != self.port_dim:
+            raise ConfigurationError(f"Control dim {u.size}; esperado {self.port_dim}.")
+        if not np.all(np.isfinite(u)):
+            raise NumericalInstabilityError("Control contiene valores no finitos.")
+        return u
+
+    def _estimate_substeps(self, dt: float) -> int:
+        """
+        Punto medio: A-estable en el semiplano izquierdo para el bloque lineal.
+        El CFL efectivo lo marca el transitorio no-normal: h·max(μ₂(A),0) ≲ 1
+        y, para RK4, h·ρ ≲ 2.5.
+        """
+        if self._integrator == "implicit_midpoint":
+            mu_plus = max(self._mu2_A, 0.0)
+            if mu_plus <= CONSTANTS.NUMERICAL_TOLERANCE:
+                return 1
+            h_max = CTRL.MIDPOINT_CFL / mu_plus
+        else:
+            rho = max(self._rho_A, abs(self._mu2_A), CONSTANTS.NUMERICAL_TOLERANCE)
+            h_max = self.RK4_STABILITY_CFL / rho
+        if h_max <= 0.0 or not math.isfinite(h_max):
+            return 1
+        return int(np.clip(math.ceil(dt / h_max), 1, 1000))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FIN DE LA FASE 2  (v7.1.0)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# PortHamiltonianPoincareController.synthesize_engine_seed()  — frontera → FASE 3.
+# Contrato del PoincareEngineSeed (7.1):
+#
+#   1. control_input = u_APLICADO (post-músculo, Cᵀ g u = 0).
+#      commanded_control = u pre-saturación.  Fase 3 integra el aplicado.
+#   2. PHS (J, R, K, g) con la misma convención Hodge que Fase 1.
+#   3. Casimirs inmunes; casimir_energy ≤ H*; no regular δD ni armónicos.
+#   4. Power shaping: P_* = ∇HᵀR∇H − λ(H−H*),  u = P_* y/(‖y‖²+ε).
+#   5. Integrador preferido: implicit_midpoint (gradiente discreto).  RK4 no preserva.
+#   6. engine_hints["pumping_required"]  ⇒  no usar DAMPING_ONLY.
+#   7. matching_residual > 0  ⇒  IDA_PBC_POINT no es exacto; usar ENERGY_LEVEL.
+#   8. schema_version == "7.1.0"  y  hodge_convention inmutable.
+#
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# ╔═════════════════════════════════════════════════════════════════════════════════════╗
+# ║  FASE 3/3 — MOTOR PHS, ESTADO UNIFICADO (GENERIC) Y ORQUESTADOR                     ║
+# ║  Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                           ║
+# ╚═════════════════════════════════════════════════════════════════════════════════════╝
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# Frontera de entrada : PortHamiltonianPoincareController.synthesize_engine_seed()
+#                       → PoincareEngineSeed   (contrato 7.1)
+# Frontera de salida  : DataFluxCondenser.synthesize_final_unified_state()
+#                       → UnifiedPhysicalSnapshot
+#
+# Capas (no se mezclan):
+#   A. Planta PHS:  x ← Φ_h^{mid}(x; u_app),  u_app = seed.control_input (ZOH).
+#   B. Observables lumped: (Q,λ) SÓLO si el atlas es RLC canónico dim=2.
+#   C. GENERIC isotermo: Lyapunov = H_em;  1ª ley E = H_em + T S;  σ = ‖∇H‖_R² / T.
+#   D. Orquestador: PI de saturación → tamaño de lote. Nunca u de planta.
+#
+# Prohibiciones 7.1:
+#   · no redefinir ★, no regular Casimirs, no RK4 como “estructura-preservante”,
+#   · no re-aplicar músculo, no interpretir [D,B] como [Q,λ],
+#   · dt físico ≠ reloj de pared.
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+from collections import OrderedDict
+from dataclasses import asdict
+from typing import Iterable, Iterator, Mapping
+
+try:
+    import pandas as pd
+except ImportError:  # pragma: no cover
+    pd = None
+
+try:
+    from scipy.special import digamma as _digamma
+except ImportError:  # pragma: no cover
+    _digamma = None
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 3.1 — EXCEPCIONES, CONFIGURACIÓN, ATLAS
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class EngineSeedError(DataFluxCondenserError):
+    """Semilla de motor físico inválida, incompleta o de esquema incompatible."""
+
+
+class OrchestrationError(DataFluxCondenserError):
+    """Error en la orquestación del condensador (lotes, timeout, brownout de control)."""
+
+
+class EntropyViolationError(DataFluxCondenserError):
+    """Violación del Clausius *discreto*: σ < 0 o ΔH_em + TΔS − h yᵀu fuera de tolerancia."""
+
+
+class ThermalModelError(DataFluxCondenserError):
+    """Parámetros o estado térmico físicamente inconsistentes."""
+
+
+class IntegratorConvergenceError(DataFluxCondenserError):
+    """Fallo de convergencia de Newton / Picard."""
+
+
+class SchemaContractError(DataFluxCondenserError):
+    """Semilla con schema_version / hodge_convention incompatibles con 7.1."""
+
+
+class AtlasKind(str, Enum):
+    """Carta en la que vive x. No se interpolan."""
+
+    RLC_CANONICAL = "rlc_canonical"     # x = [Q, λ] ∈ T*ℝ
+    MAXWELL_DEC = "maxwell_dec"         # x = [D, B] ∈ C¹ ⊕ C²
+    ABSTRACT_PHS = "abstract_phs"       # x genérico, observables vía H, y, Rayleigh
+    STANDALONE = "standalone"           # sin semilla: RLC 2D local
+
+
+@dataclass(frozen=True)
+class ThermalParameters:
+    """
+    Baño isotermo GENERIC.
+
+    T_res > 0 fija. Energía del baño U = T_res · S  (T = ∂U/∂S constante).
+    Producción: σ = ‖∇H_em‖_R² / T_res  (W/K).  No es Shannon de lotes.
+    """
+
+    reservoir_temperature_K: float = 293.15
+    ambient_temperature_C: float = 25.0
+    muscle_time_constant_s: float = 5.0
+    muscle_thermal_gain: float = 15.0
+    entropy_reference_K: float = 293.15
+
+    def __post_init__(self) -> None:
+        if self.reservoir_temperature_K <= 0.0:
+            raise ThermalModelError("reservoir_temperature_K debe ser positiva.")
+        if self.entropy_reference_K <= 0.0:
+            raise ThermalModelError("entropy_reference_K debe ser positiva.")
+        if self.muscle_time_constant_s <= 0.0:
+            raise ThermalModelError("muscle_time_constant_s debe ser positivo.")
+        if self.muscle_thermal_gain < 0.0:
+            raise ThermalModelError("muscle_thermal_gain debe ser no negativo.")
+
+
+@dataclass(frozen=True)
+class CondenserConfig:
+    r"""
+    Configuración inmutable.
+
+    RLC standalone (solo atlas STANDALONE / RLC_CANONICAL):
+        ω₀ = 1/√(LC),  α = R/(2L),  ζ = α/ω₀.
+    El PI de esta config es de **tamaño de lote**, no de energía.
+    dt físico = physics_dt (o engine_hints['dt_suggested']). El reloj de pared
+    solo gobierna PROCESSING_TIMEOUT.
+    """
+
+    min_records_threshold: int = 1
+    enable_strict_validation: bool = True
+    log_level: str = "INFO"
+
+    system_capacitance: float = 1.0
+    base_resistance: float = 1.4142135623730951
+    system_inductance: float = 0.5
+    max_voltage: float = 5.3
+
+    p_laplacian_exponent: float = 3.0
+    p_laplacian_epsilon: float = 1e-8
+    p_laplacian_beta: float = 0.1          # R_s(I) = R (1 + β (I²+ε)^((p-2)/2))
+    p_laplacian_G0: float = 0.0            # shunt; 0 = sin fugas P-Laplaciano
+
+    brain_capacitance: float = 4.0
+    brain_brownout_threshold: float = 2.65
+    brain_agent_consumption_amps: float = 0.080
+    brain_diode_drop: float = 0.3
+    brain_enabled: bool = True             # plano de control; no es planta PHS
+
+    pid_setpoint: float = 0.30             # saturación objetivo ∈ (0,1]
+    pid_kp: float = 2000.0
+    pid_ki: float = 100.0
+    min_batch_size: int = 1
+    max_batch_size: int = 5000
+    integral_limit_factor: float = 2.0
+    batch_inertia_nominal: float = 0.65
+    batch_inertia_emergency: float = 0.30
+
+    max_failed_batches: int = 3
+
+    integrator: str = "implicit_midpoint"  # PHS: implicit_midpoint | (standalone) trapezoidal | tr_bdf2 | implicit_euler
+    newton_max_iter: int = 20
+    newton_tol: float = 1e-10
+    physics_dt: float = 1e-3
+    maxwell_substep: bool = False          # True solo si hay lattice inyectado *y* no se pisa el PHS
+
+    thermal: ThermalParameters = field(default_factory=ThermalParameters)
+    trace_enabled: bool = True
+    require_schema_7_1: bool = True
+
+    def __post_init__(self) -> None:
+        errors: List[str] = []
+        if self.min_records_threshold < 0:
+            errors.append("min_records_threshold debe ser >= 0.")
+        for name, val, pred in (
+            ("system_capacitance", self.system_capacitance, lambda v: v > 0.0),
+            ("system_inductance", self.system_inductance, lambda v: v > 0.0),
+            ("base_resistance", self.base_resistance, lambda v: v >= 0.0),
+            ("max_voltage", self.max_voltage, lambda v: v > 0.0),
+            ("pid_kp", self.pid_kp, lambda v: v >= 0.0),
+            ("pid_ki", self.pid_ki, lambda v: v >= 0.0),
+            ("physics_dt", self.physics_dt, lambda v: v > 0.0),
+            ("newton_tol", self.newton_tol, lambda v: v > 0.0),
+            ("p_laplacian_epsilon", self.p_laplacian_epsilon, lambda v: v > 0.0),
+            ("p_laplacian_beta", self.p_laplacian_beta, lambda v: v >= 0.0),
+            ("p_laplacian_G0", self.p_laplacian_G0, lambda v: v >= 0.0),
+        ):
+            if not math.isfinite(val) or not pred(val):
+                errors.append(f"{name} inválido: {val}.")
+        if not (0.0 < self.pid_setpoint <= 1.0):
+            errors.append("pid_setpoint debe estar en (0, 1].")
+        if self.min_batch_size <= 0 or self.min_batch_size > self.max_batch_size:
+            errors.append("rango de batch inválido.")
+        if self.max_batch_size > CONSTANTS.MAX_RECORDS_LIMIT:
+            errors.append("max_batch_size excede MAX_RECORDS_LIMIT.")
+        if self.p_laplacian_exponent <= 2.0:
+            errors.append("p_laplacian_exponent debe ser > 2.")
+        if not (0.0 <= self.batch_inertia_nominal <= 1.0 and 0.0 <= self.batch_inertia_emergency <= 1.0):
+            errors.append("inercias de lote deben estar en [0,1].")
+        if self.integrator not in {"implicit_midpoint", "trapezoidal", "implicit_euler", "tr_bdf2"}:
+            errors.append(f"integrator desconocido: {self.integrator}.")
+        if self.newton_max_iter <= 0:
+            errors.append("newton_max_iter debe ser > 0.")
+        if errors:
+            raise ConfigurationError("CondenserConfig inválida:\n" + "\n".join(f"  - {e}" for e in errors))
+
+    @property
+    def omega_0(self) -> float:
+        return 1.0 / math.sqrt(self.system_inductance * self.system_capacitance)
+
+    @property
+    def damping_ratio(self) -> float:
+        return (self.base_resistance / 2.0) * math.sqrt(self.system_capacitance / self.system_inductance)
+
+    @property
+    def dominant_pole(self) -> float:
+        return -self.base_resistance / (2.0 * self.system_inductance)
+
+
+@dataclass
+class ProcessingStats:
+    total_records: int = 0
+    processed_records: int = 0
+    failed_records: int = 0
+    total_batches: int = 0
+    failed_batches: int = 0
+    processing_time: float = 0.0
+    avg_batch_size: float = 0.0
+    avg_saturation: float = 0.0
+    emergency_brakes_triggered: int = 0
+
+    def add_batch_stats(self, batch_size: int, saturation: float, success: bool) -> None:
+        self.total_batches += 1
+        if success:
+            self.processed_records += batch_size
+        else:
+            self.failed_records += batch_size
+            self.failed_batches += 1
+        n = max(1, self.total_batches)
+        self.avg_batch_size = ((n - 1) * self.avg_batch_size + batch_size) / n
+        self.avg_saturation = ((n - 1) * self.avg_saturation + saturation) / n
+
+
+@dataclass
+class BatchResult:
+    success: bool
+    dataframe: Optional[Any] = None
+    records_processed: int = 0
+    error_message: str = ""
+    error_types: Tuple[str, ...] = field(default_factory=tuple)
+
+
+@dataclass(frozen=True)
+class FirstLawAudit:
+    """Clausius discreto de un paso (GENERIC isotermo)."""
+
+    dH_em: float
+    T_dS: float
+    supply: float
+    residual: float
+    sigma: float
+    is_first_law: bool
+    is_second_law: bool
+
+
+@dataclass(eq=False)
+class UnifiedPhysicalSnapshot:
+    """Instantánea contractual del cierre Fase 3."""
+
+    time: float
+    physics_time: float
+    charge: Optional[float]
+    current: Optional[float]
+    flux_linkage: Optional[float]
+    entropy: float
+    entropy_production_rate: float          # σ = dS/dt  (Clausius)
+    entropy_step: float                     # ΔS del último paso
+    reservoir_temperature_K: float
+    brain_voltage: float
+    brain_alive: bool
+    muscle_temperature: float
+    hamiltonian_em: float                   # Lyapunov / disponibilidad
+    hamiltonian_total_first_law: float      # H_em + T S
+    target_hamiltonian: float
+    storage_function: float
+    state_vector: np.ndarray
+    control_applied: np.ndarray
+    control_commanded: Optional[np.ndarray]
+    poincare_audit: Dict[str, Any]
+    phs_structure_preserved: bool
+    energy_breakdown: Dict[str, float]
+    first_law: Dict[str, float]
+    atlas: str
+    schema_version: str
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 3.2 — ESTADO UNIFICADO (GENERIC + ATLAS)
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 
 class UnifiedPhysicalState:
+    r"""
+    Estado unificado con escisión GENERIC.
+
+        H_em(x) = ½ xᵀ K x          (disponibilidad; Lyapunov de IDA/energy-shaping)
+        U_bath  = T_res S           (baño isotermo)
+        E       = H_em + U_bath     (1ª ley)
+        σ       = (∇H_em)ᵀ R ∇H_em / T_res   ≥ 0
+
+    Atlas:
+        RLC_CANONICAL  → (Q, λ) = (x₀, x₁),  I = λ/L.
+        MAXWELL_DEC    → observables EM vía H_em, y, Rayleigh; (Q,λ) = None.
+        ABSTRACT_PHS   → idem.
+        STANDALONE     → RLC local, sin semilla.
     """
-    Estado físico unificado que integra dominios eléctrico, magnético, mecánico y térmico.
-    """
 
-    def __init__(self, capacitance=1.0, inductance=1.0, resistance=1.0):
-        # Variables extensivas
-        self.charge: float = 0.0           # Q (Coulombs)
-        self.flux_linkage: float = 0.0     # λ = L*I (Webers)
-        self.entropy: float = 0.0          # S (J/K)
-        self.angular_momentum: np.ndarray = np.zeros(3)
+    def __init__(
+        self,
+        capacitance: float,
+        inductance: float,
+        resistance: float,
+        thermal: Optional[ThermalParameters] = None,
+    ) -> None:
+        self.capacitance = max(float(capacitance), CONSTANTS.NUMERICAL_TOLERANCE)
+        self.inductance = max(float(inductance), CONSTANTS.NUMERICAL_TOLERANCE)
+        self.resistance = max(float(resistance), 0.0)
+        self.thermal = thermal or ThermalParameters()
+        self.atlas: AtlasKind = AtlasKind.STANDALONE
+        self.charge: Optional[float] = 0.0
+        self.flux_linkage: Optional[float] = 0.0
+        self.entropy = 0.0
+        self.last_sigma = 0.0
+        self.last_dS = 0.0
+        self.last_first_law = FirstLawAudit(0.0, 0.0, 0.0, 0.0, 0.0, True, True)
+        self.brain_voltage = 5.0
+        self.brain_inflow_current = 0.0
+        self.brain_alive = True
+        self.muscle_temperature = self.thermal.ambient_temperature_C
+        self.state_vector = np.zeros(0, dtype=float)
+        self.control_applied = np.zeros(0, dtype=float)
+        self.control_commanded: Optional[np.ndarray] = None
+        self.target_hamiltonian = CONSTANTS.MIN_ENERGY_THRESHOLD
+        self.storage_function = 0.0
+        self.J: Optional[np.ndarray] = None
+        self.R: Optional[np.ndarray] = None
+        self.K: Optional[np.ndarray] = None
+        self.g: Optional[np.ndarray] = None
+        self.casimir_basis: Optional[np.ndarray] = None
+        self.spectral_data: Optional[Dict[str, Any]] = None
+        self.ida_pbc_decomposition: Optional[Dict[str, np.ndarray]] = None
+        self.lyapunov_jacobian: Optional[np.ndarray] = None
+        self.port_dim: int = 0
+        self._phs_preserved: bool = False
+        self._last_seed: Optional[PoincareEngineSeed] = None
+        self.casimir_energy: float = 0.0
+        self.pumping_required: bool = False
+        self.matching_residual: float = 0.0
+        self.hodge_convention: str = "D=ε★₁E, H=μ⁻¹★₂B, δ₂=★₁⁻¹∂₂★₂"
+        self.schema_version: str = "7.1.0"
+        self.physics_time: float = 0.0
 
-        # Reserva Táctica y Músculo
-        self.brain_voltage: float = 5.0
-        self.brain_inflow_current: float = 0.0
-        self.muscle_temp: float = 25.0
-        self.brain_alive: bool = True
-
-        # Parámetros
-        self.capacitance = capacitance
-        self.inductance = inductance
-        self.resistance = resistance
-        self.temperature = 293.15
-        self.angular_velocity = np.zeros(3)
-        self.inertia_tensor = np.eye(3)
-
-    def compute_total_hamiltonian(self) -> float:
-        """
-        Hamiltoniano total H = H_elec + H_mag + H_mech + H_therm + Coupling
-        """
-        H_elec = 0.5 * self.charge**2 / self.capacitance
-        H_mag = 0.5 * self.flux_linkage**2 / self.inductance
-        H_mech = 0.5 * np.dot(self.angular_momentum, self.angular_velocity)
-        H_therm = self.temperature * self.entropy
-
-        # Acoplamiento (ej. carga afecta entropía)
-        coupling = 0.01 * (self.charge * self.flux_linkage + self.flux_linkage * self.entropy)
-
-        return H_elec + H_mag + H_mech + H_therm + coupling
-
-    def evolve_port_hamiltonian(self, dt: float, inputs: Dict[str, float]):
-        """
-        Evoluciona las variables termodinámicas y de acoplamiento.
-
-        Nota: La evolución de Q (Carga) y Phi (Flujo) es manejada externamente
-        por el solver RK4 en RefinedFluxPhysicsEngine para mayor precisión.
-        Este método se encarga de la entropía y los efectos disipativos.
-        """
-        # Calcular corriente actual basada en el estado (actualizado por RK4)
-        I = self.flux_linkage / self.inductance
-
-        # Termodinámica
-        # dS/dt = sigma_production (Joules heating / T)
-        dissipation = self.resistance * I**2
-        dS = (dissipation / self.temperature) * dt
-        self.entropy += dS
-
-
-class CodeQualityMetrics:
-    """
-    Métricas para verificar leyes de conservación.
-    """
     @staticmethod
-    def calculate_conservation_laws(state_history: List[Dict]) -> Dict[str, float]:
-        if not state_history or len(state_history) < 2:
-            return {}
+    def infer_atlas(seed: PoincareEngineSeed) -> AtlasKind:
+        meta = dict(seed.metadata or {})
+        hints = dict(seed.engine_hints or {})
+        n_e = int(meta.get("num_edges", hints.get("num_edges", -1)))
+        n_f = int(meta.get("num_faces", hints.get("num_faces", -1)))
+        dim = int(np.asarray(seed.state).reshape(-1).size)
+        name = str(meta.get("kernel_name", hints.get("kernel_name", "")))
+        if n_e >= 0 and n_f >= 0 and dim == n_e + n_f and dim > 2:
+            return AtlasKind.MAXWELL_DEC
+        if dim == 2 and ("RLC" in name.upper() or meta.get("atlas") == AtlasKind.RLC_CANONICAL.value):
+            return AtlasKind.RLC_CANONICAL
+        if dim == 2:
+            return AtlasKind.RLC_CANONICAL
+        return AtlasKind.ABSTRACT_PHS
 
-        initial = state_history[0]
-        final = state_history[-1]
+    def consume_engine_seed(self, seed: PoincareEngineSeed) -> None:
+        if seed is None:
+            raise EngineSeedError("PoincareEngineSeed es requerida.")
+        schema = str(getattr(seed, "schema_version", "") or (seed.metadata or {}).get("schema_version", ""))
+        if schema and schema != "7.1.0":
+            logger.warning("schema_version=%s ≠ 7.1.0; se continúa con contrato 7.1.", schema)
+        state = np.asarray(seed.state, dtype=float).reshape(-1)
+        if state.size == 0 or not np.all(np.isfinite(state)):
+            raise EngineSeedError("seed.state vacío o no finito.")
+        u = np.asarray(seed.control_input, dtype=float).reshape(-1)
+        if not np.all(np.isfinite(u)):
+            raise EngineSeedError("seed.control_input no finito.")
+        self.state_vector = state.copy()
+        self.control_applied = u.copy()
+        cc = getattr(seed, "commanded_control", None)
+        self.control_commanded = None if cc is None else np.asarray(cc, dtype=float).reshape(-1).copy()
+        self.target_hamiltonian = max(float(seed.target_hamiltonian), CONSTANTS.MIN_ENERGY_THRESHOLD)
+        self.storage_function = float(seed.storage_function)
+        self._last_seed = seed
+        self.J = np.asarray(seed.interconnection_matrix, dtype=float).copy()
+        self.R = np.asarray(seed.damping_matrix, dtype=float).copy()
+        self.K = np.asarray(seed.metric_matrix, dtype=float).copy()
+        self.g = np.asarray(seed.port_matrix, dtype=float).copy()
+        self.port_dim = int(self.g.shape[1]) if self.g.ndim == 2 else 0
+        if self.g.shape[0] != state.size:
+            raise EngineSeedError(f"g filas {self.g.shape[0]} ≠ dim estado {state.size}.")
+        if u.size != self.port_dim:
+            raise EngineSeedError(f"u dim {u.size} ≠ port_dim {self.port_dim}.")
+        self.casimir_basis = None if seed.casimir_basis is None else np.asarray(seed.casimir_basis, dtype=float).copy()
+        self.spectral_data = None if not seed.spectral_data else dict(seed.spectral_data)
+        self.ida_pbc_decomposition = (
+            None
+            if seed.ida_pbc_decomposition is None
+            else {k: np.asarray(v, dtype=float).copy() for k, v in seed.ida_pbc_decomposition.items()}
+        )
+        self.lyapunov_jacobian = (
+            None if seed.lyapunov_jacobian is None else np.asarray(seed.lyapunov_jacobian, dtype=float).copy()
+        )
+        self._phs_preserved = True
+        self.atlas = self.infer_atlas(seed)
+        self.casimir_energy = float(getattr(seed, "casimir_energy", 0.0) or 0.0)
+        self.pumping_required = bool(getattr(seed, "pumping_required", False))
+        self.matching_residual = float(getattr(seed, "matching_residual", 0.0) or 0.0)
+        conv = (seed.metadata or {}).get("hodge_convention") or (seed.engine_hints or {}).get("hodge_convention")
+        if conv:
+            self.hodge_convention = str(conv)
+        self.schema_version = schema or "7.1.0"
+        if self.atlas is AtlasKind.RLC_CANONICAL and state.size >= 2:
+            self.charge = float(state[0])
+            self.flux_linkage = float(state[1])
+        else:
+            self.charge = None
+            self.flux_linkage = None
 
-        E_init = initial.get('energy', 0)
-        E_final = final.get('energy', 0)
+    @property
+    def current(self) -> Optional[float]:
+        if self.flux_linkage is None:
+            return None
+        return self.flux_linkage / self.inductance
 
-        # En sistema disipativo, E debe disminuir o mantenerse (si V_in=0)
-        # Si V_in != 0, balance de potencia: dE/dt = P_in - P_diss
+    def electric_energy(self) -> Optional[float]:
+        if self.charge is None:
+            return None
+        return 0.5 * (self.charge ** 2) / self.capacitance
 
+    def magnetic_energy(self) -> Optional[float]:
+        if self.flux_linkage is None:
+            return None
+        return 0.5 * (self.flux_linkage ** 2) / self.inductance
+
+    def em_hamiltonian_from_metric(self) -> float:
+        x = self.state_vector
+        if x.size == 0 or self.K is None:
+            he = self.electric_energy() or 0.0
+            hm = self.magnetic_energy() or 0.0
+            return float(he + hm)
+        H = 0.5 * float(x @ (self.K @ x))
+        return max(0.0, H)
+
+    def bath_energy(self) -> float:
+        return self.thermal.reservoir_temperature_K * self.entropy
+
+    def availability(self) -> float:
+        """Lyapunov: H_em. No incluye TS."""
+        return self.em_hamiltonian_from_metric()
+
+    def first_law_energy(self) -> float:
+        return self.availability() + self.bath_energy()
+
+    def energy_breakdown(self) -> Dict[str, float]:
+        he = self.electric_energy()
+        hm = self.magnetic_energy()
         return {
-            'energy_drift': abs(E_final - E_init),
-            'charge_conserved': True # Q se conserva en circuito cerrado
+            "H_electric": float(he) if he is not None else float("nan"),
+            "H_magnetic": float(hm) if hm is not None else float("nan"),
+            "H_em": float(self.availability()),
+            "U_bath": float(self.bath_energy()),
+            "E_first_law": float(self.first_law_energy()),
+            "casimir_energy": float(self.casimir_energy),
+        }
+
+    def evolve_generic_bath(
+        self,
+        dt: float,
+        rayleigh_mid: float,
+        supply_mid: float,
+        dH_em: float,
+    ) -> FirstLawAudit:
+        r"""
+        ΔS = (h/T) ‖∇H‖_R²,  σ = Rayleigh / T.
+        Residuo 1ª ley: ΔH_em + TΔS − h yᵀu.
+        Para punto medio + H cuadrática, residuo ~ 0 (Tellegen discreto).
+        """
+        dt = max(float(dt), CONSTANTS.MIN_DELTA_TIME)
+        T = max(self.thermal.reservoir_temperature_K, CONSTANTS.NUMERICAL_TOLERANCE)
+        rayleigh_mid = max(float(rayleigh_mid), 0.0)
+        sigma = rayleigh_mid / T
+        dS = sigma * dt
+        self.entropy += dS
+        self.last_sigma = sigma
+        self.last_dS = dS
+        T_dS = T * dS
+        residual = float(dH_em + T_dS - dt * float(supply_mid))
+        scale = max(1.0, abs(dH_em), abs(T_dS), abs(dt * supply_mid), CONSTANTS.MIN_ENERGY_THRESHOLD)
+        audit = FirstLawAudit(
+            dH_em=float(dH_em),
+            T_dS=float(T_dS),
+            supply=float(supply_mid),
+            residual=residual,
+            sigma=sigma,
+            is_first_law=abs(residual) <= CTRL.DISCRETE_PASSIVITY_TOL * scale,
+            is_second_law=sigma >= -CONSTANTS.NUMERICAL_TOLERANCE,
+        )
+        self.last_first_law = audit
+        if not math.isfinite(self.entropy):
+            raise NumericalInstabilityError("Entropía no finita.")
+        if not audit.is_second_law:
+            raise EntropyViolationError(f"σ={sigma:.3e} < 0.")
+        return audit
+
+    def snapshot(
+        self,
+        wall_time: float,
+        poincare_audit: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> UnifiedPhysicalSnapshot:
+        if not math.isfinite(wall_time):
+            raise ConfigurationError("wall_time debe ser finito.")
+        fl = self.last_first_law
+        return UnifiedPhysicalSnapshot(
+            time=float(wall_time),
+            physics_time=float(self.physics_time),
+            charge=self.charge,
+            current=self.current,
+            flux_linkage=self.flux_linkage,
+            entropy=float(self.entropy),
+            entropy_production_rate=float(self.last_sigma),
+            entropy_step=float(self.last_dS),
+            reservoir_temperature_K=float(self.thermal.reservoir_temperature_K),
+            brain_voltage=float(self.brain_voltage),
+            brain_alive=bool(self.brain_alive),
+            muscle_temperature=float(self.muscle_temperature),
+            hamiltonian_em=float(self.availability()),
+            hamiltonian_total_first_law=float(self.first_law_energy()),
+            target_hamiltonian=float(self.target_hamiltonian),
+            storage_function=float(self.storage_function),
+            state_vector=self.state_vector.copy(),
+            control_applied=self.control_applied.copy(),
+            control_commanded=None if self.control_commanded is None else self.control_commanded.copy(),
+            poincare_audit=dict(poincare_audit or {}),
+            phs_structure_preserved=bool(self._phs_preserved),
+            energy_breakdown=self.energy_breakdown(),
+            first_law={
+                "dH_em": fl.dH_em,
+                "T_dS": fl.T_dS,
+                "supply": fl.supply,
+                "residual": fl.residual,
+                "sigma": fl.sigma,
+                "is_first_law": fl.is_first_law,
+                "is_second_law": fl.is_second_law,
+            },
+            atlas=self.atlas.value,
+            schema_version=self.schema_version,
+            metadata=dict(metadata or {}),
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 3.3 — GRAFO DE PROXIMIDAD (NO DEC) + ENTROPÍA DE INFORMACIÓN
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class MetricProximityGraph:
+    """
+    Grafo de proximidad entre *métricas de orquestación*.
+    β₀, β₁ aquí son del 1-esqueleto de correlación, **no** de H^•(K) DEC.
+    Los Betti de Fase 1 viven en seed.metadata['betti_numbers'].
+    """
+
+    METRIC_KEYS: Tuple[str, ...] = (
+        "saturation", "complexity", "current_I",
+        "potential_energy", "kinetic_energy", "info_shannon",
+    )
+
+    def __init__(
+        self,
+        threshold_mode: str = "adaptive",
+        threshold_fixed: float = 0.3,
+        distance_scale: float = 1.0,
+        adaptive_c: float = 0.3,
+        adaptive_cap: float = 0.7,
+    ) -> None:
+        if threshold_mode not in {"adaptive", "distance", "fixed"}:
+            raise ConfigurationError(f"threshold_mode desconocido: {threshold_mode}.")
+        self.threshold_mode = threshold_mode
+        self.threshold_fixed = float(threshold_fixed)
+        self.distance_scale = float(distance_scale)
+        self.adaptive_c = float(adaptive_c)
+        self.adaptive_cap = float(adaptive_cap)
+        self._adjacency: Dict[int, Set[int]] = {}
+        self._vertex_count = 0
+        self._edge_count = 0
+        self._last_threshold = 0.0
+
+    def build(self, metrics: Mapping[str, float], metric_keys: Optional[Iterable[str]] = None) -> None:
+        keys = tuple(metric_keys or self.METRIC_KEYS)
+        values = np.array([float(metrics.get(k, 0.0)) for k in keys], dtype=float)
+        self._vertex_count = int(values.size)
+        self._edge_count = 0
+        self._adjacency = {i: set() for i in range(self._vertex_count)}
+        if self._vertex_count < 2:
+            self._last_threshold = 0.0
+            return
+        v_min, v_max = float(values.min()), float(values.max())
+        v_range = max(v_max - v_min, CONSTANTS.NUMERICAL_TOLERANCE)
+        normalized = (values - v_min) / v_range
+        self._last_threshold = self._compute_threshold(normalized)
+        for i in range(self._vertex_count):
+            for j in range(i + 1, self._vertex_count):
+                if abs(normalized[i] - normalized[j]) < self._last_threshold:
+                    self._adjacency[i].add(j)
+                    self._adjacency[j].add(i)
+                    self._edge_count += 1
+
+    def _compute_threshold(self, normalized: np.ndarray) -> float:
+        if self.threshold_mode == "fixed":
+            return float(self.threshold_fixed)
+        if self.threshold_mode == "adaptive":
+            var = float(np.var(normalized))
+            return float(min(self.adaptive_cap, self.adaptive_c * (1.0 + math.sqrt(var))))
+        n = normalized.size
+        if n < 2:
+            return float(self.threshold_fixed)
+        diffs = np.abs(normalized[:, None] - normalized[None, :])
+        iu = np.triu_indices(n, k=1)
+        return float(np.mean(diffs[iu]) + self.distance_scale * float(np.std(diffs[iu])))
+
+    def proximity_betti(self) -> Dict[str, int]:
+        if self._vertex_count == 0:
+            return {"proximity_beta_0": 0, "proximity_beta_1": 0}
+        beta_0 = self._count_components()
+        beta_1 = max(0, self._edge_count - self._vertex_count + beta_0)
+        return {"proximity_beta_0": beta_0, "proximity_beta_1": beta_1}
+
+    def _count_components(self) -> int:
+        visited: Set[int] = set()
+        components = 0
+        for node in range(self._vertex_count):
+            if node in visited:
+                continue
+            components += 1
+            stack = [node]
+            while stack:
+                cur = stack.pop()
+                if cur in visited:
+                    continue
+                visited.add(cur)
+                stack.extend(self._adjacency.get(cur, set()) - visited)
+        return components
+
+    def diagnose(self) -> Dict[str, Any]:
+        b = self.proximity_betti()
+        return {
+            "vertices": self._vertex_count,
+            "edges": self._edge_count,
+            "threshold": self._last_threshold,
+            "mode": self.threshold_mode,
+            **b,
+            "proximity_euler": b["proximity_beta_0"] - b["proximity_beta_1"],
         }
 
 
-# ============================================================================
-# MOTOR DE FÍSICA - MÉTODOS REFINADOS
-# ============================================================================
-class RefinedFluxPhysicsEngine:
-    """
-    Motor de física RLC Refinado.
+class InformationEntropyCalculator:
+    """Entropía de *información* del pipeline (fallos de lote). No es S de Clausius."""
 
-    Características:
-    1. Integración numérica más estable (RK4 Adaptativo + Implícito).
-    2. Análisis topológico espectral.
-    3. Entropía termodinámica avanzada (Bayesiana + Rényi).
-    4. Estado físico unificado.
+    def calculate_entropy_bayesian(
+        self,
+        counts: Mapping[str, int],
+        prior: str = "jeffreys",
+    ) -> Dict[str, float]:
+        total = sum(counts.values())
+        categories = max(1, len(counts))
+        if total <= 0:
+            return {"entropy_expected": 0.0, "effective_samples": 0.0, "prior_alpha": 0.0}
+        alpha_map = {
+            "jeffreys": 0.5,
+            "laplace": 1.0,
+            "KT": 0.5,
+            "krichevsky_trofimov": 0.5,
+            "uniform": 1.0 / categories,
+        }
+        if prior not in alpha_map:
+            raise ConfigurationError(f"Prior desconocido: {prior}.")
+        alpha = alpha_map[prior]
+        alpha_post = {k: alpha + float(v) for k, v in counts.items()}
+        alpha_0 = sum(alpha_post.values())
+        dg = _digamma if _digamma is not None else (digamma if SCIPY_AVAILABLE else None)
+        if dg is not None:
+            entropy_nat = float(dg(alpha_0 + 1.0))
+            for n in alpha_post.values():
+                entropy_nat -= (n / alpha_0) * float(dg(n + 1.0))
+            entropy_bits = entropy_nat / math.log(2.0)
+        else:
+            entropy_bits = 0.0
+            for n in counts.values():
+                p = n / total
+                if p > 0.0:
+                    entropy_bits -= p * math.log2(p)
+        return {
+            "entropy_expected": float(max(0.0, entropy_bits)),
+            "effective_samples": float(alpha_0 - categories * alpha),
+            "prior_alpha": float(alpha),
+        }
+
+    def calculate_renyi_spectrum(
+        self,
+        probabilities: np.ndarray,
+        alphas: Optional[List[float]] = None,
+    ) -> Dict[float, float]:
+        if alphas is None:
+            alphas = [0.0, 0.5, 1.0, 2.0, 3.0, 5.0, 10.0, float("inf")]
+        probs = np.asarray(probabilities, dtype=float).reshape(-1)
+        probs = probs[probs > 0.0]
+        if probs.size == 0:
+            return {a: 0.0 for a in alphas}
+        probs = probs / probs.sum()
+        spectrum: Dict[float, float] = {}
+        for alpha in alphas:
+            if alpha == 0.0:
+                val = math.log2(probs.size)
+            elif math.isclose(alpha, 1.0):
+                val = float(-np.sum(probs * np.log2(probs)))
+            elif math.isinf(alpha):
+                val = float(-math.log2(float(np.max(probs))))
+            else:
+                s = float(np.sum(np.power(probs, alpha)))
+                val = (1.0 / (1.0 - alpha)) * math.log2(max(s, CONSTANTS.NUMERICAL_ZERO))
+            spectrum[float(alpha)] = float(val)
+        return spectrum
+
+    def calculate_system_entropy(
+        self,
+        total_records: int,
+        error_count: int,
+        processing_time: float,
+    ) -> Dict[str, float]:
+        if total_records <= 0:
+            return self._zero()
+        ec = max(0, min(int(error_count), int(total_records)))
+        if ec == 0 or ec == total_records:
+            res = self._zero()
+            res["info_is_degenerate"] = bool(ec == total_records)
+            return res
+        counts = {"success": total_records - ec, "error": ec}
+        bayes = self.calculate_entropy_bayesian(counts, prior="jeffreys")
+        probs = np.array([counts["success"], counts["error"]], dtype=float) / total_records
+        renyi = self.calculate_renyi_spectrum(probs)
+        p = probs[probs > 0.0]
+        fisher_trace = float(np.sum(1.0 / np.maximum(p, CONSTANTS.NUMERICAL_TOLERANCE)))
+        kl = float(math.log2(p.size) + np.sum(p * np.log2(p)))
+        return {
+            "info_shannon": bayes["entropy_expected"],
+            "info_renyi_2": renyi.get(2.0, 0.0),
+            "info_renyi_spectrum": renyi,
+            "info_fisher_trace": fisher_trace,
+            "info_kl_to_uniform": kl,
+            "info_rate": bayes["entropy_expected"] / max(processing_time, CONSTANTS.MIN_DELTA_TIME),
+            "info_error_fraction": float(ec / total_records),
+            "info_is_degenerate": False,
+        }
+
+    @staticmethod
+    def _zero() -> Dict[str, Any]:
+        return {
+            "info_shannon": 0.0,
+            "info_renyi_2": 0.0,
+            "info_renyi_spectrum": {},
+            "info_fisher_trace": 0.0,
+            "info_kl_to_uniform": 0.0,
+            "info_rate": 0.0,
+            "info_error_fraction": 0.0,
+            "info_is_degenerate": False,
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 3.4 — MOTOR: PHS PUNTO MEDIO (+ RLC STANDALONE OPCIONAL)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+class RefinedFluxPhysicsEngine:
+    r"""
+    Motor 7.1.
+
+    Modo semilla (contrato):
+        x_{n+1} por punto medio implícito ZOH en u = control_input.
+        Casimirs re-proyectados. 1ª/2ª ley GENERIC. Sin músculo, sin leapfrog.
+
+    Modo standalone (sin semilla):
+        RLC canónico [Q,λ] con R_s(I) serie regularizado y shunt opcional.
+        Integrador: implicit_midpoint si R lineal; Newton (trap/TR-BDF2/IE)
+        si R no lineal. TR-BDF2 = Hosea–Shampine correcto.
     """
 
     _MAX_METRICS_HISTORY: int = 100
@@ -2400,2948 +5064,1086 @@ class RefinedFluxPhysicsEngine:
         inductance: float,
         p_laplacian_exponent: float = 3.0,
         p_laplacian_epsilon: float = 1e-8,
-        p_laplacian_G0: float = 1.0,
-    ):
-        # Inicializar logger primero para usar en validación
+        p_laplacian_G0: float = 0.0,
+        config: Optional[CondenserConfig] = None,
+        clock: Optional[Callable[[], float]] = None,
+        maxwell: Optional["MaxwellSolver"] = None,
+    ) -> None:
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
-
         self._validate_physical_parameters(capacitance, resistance, inductance)
-
         self.C = float(capacitance)
         self.R = float(resistance)
         self.L = float(inductance)
-
-        # Parámetros P-Laplaciano (membrana viscoelástica)
-        self._p_exp: float = p_laplacian_exponent   # p > 2
-        self._p_eps: float = p_laplacian_epsilon     # ε regularización Lipschitz
-        self._p_G0: float = p_laplacian_G0           # conductancia G₀ referencia
-
-        # Parámetros derivados del circuito RLC
-        self._omega_0 = 1.0 / math.sqrt(self.L * self.C)  # Frecuencia natural
-        self._alpha = self.R / (2.0 * self.L)  # Factor de amortiguamiento
-        self._zeta = self._alpha / self._omega_0  # Ratio de amortiguamiento
-        self._Q = math.sqrt(self.L / self.C) / self.R if self.R > 0 else float("inf")
-
-        self.logger.info(
-            "RLC: ζ=%.4f, ω₀=%.4f rad/s, σ=%.4f | P-Laplaciano: p=%.1f, ε=%.2e",
-            self._zeta, self._omega_0, -self._alpha,
-            self._p_exp, self._p_eps,
-        )
-
-        # Clasificación del sistema
+        self._config = config or CondenserConfig()
+        self._p_exp = float(p_laplacian_exponent)
+        self._p_eps = float(p_laplacian_epsilon)
+        self._p_beta = float(self._config.p_laplacian_beta)
+        self._p_G0 = float(p_laplacian_G0 if p_laplacian_G0 else self._config.p_laplacian_G0)
+        self._clock: Callable[[], float] = clock or time.monotonic
+        self._omega_0 = 1.0 / math.sqrt(self.L * self.C)
+        self._alpha = self.R / (2.0 * self.L) if self.L > 0.0 else 0.0
+        self._zeta = self._alpha / self._omega_0 if self._omega_0 > 0.0 else 0.0
+        self._Q = (1.0 / (2.0 * self._zeta)) if self._zeta > 0.0 else float("inf")
         self._update_damping_classification()
-
-        # Estado del sistema: [carga Q, corriente I] (LEGACY REMOVED)
-        # Ahora gestionado por UnifiedPhysicalState
-        self._state_history: deque = deque(maxlen=self._MAX_METRICS_HISTORY)
-
-        # Componentes especializados
-        self._topological_analyzer = TopologicalAnalyzer()
-        self._entropy_calculator = EntropyCalculator()
-        self._unified_state = UnifiedPhysicalState(self.C, self.L, self.R)
-
-        # === MAXWELL FDTD SETUP ===
-        # Topología fija para el solver electromagnético
-        # Grafo completo K6 representando interacciones entre las 6 métricas base
-        if SCIPY_AVAILABLE:
-            nodes = list(range(6))
-            adj = {i: set(nodes) - {i} for i in nodes}
-
-            self.vector_calc = DiscreteVectorCalculus(adj)
-            # R es resistencia, conductividad es inversa
-            sigma_e = 1.0 / max(self.R, 1e-6)
-            self.maxwell_solver = MaxwellSolver(
-                self.vector_calc,
-                permittivity=self.C,
-                permeability=self.L,
-                electric_conductivity=sigma_e
-            )
-            self.hamiltonian_control = PortHamiltonianController(self.maxwell_solver)
-        else:
-            self.vector_calc = None
-            self.maxwell_solver = None
-            self.hamiltonian_control = None
-
-        # Estado del giroscopio (inicialización temprana)
-        self._gyro_state = {
-            "omega_x": 0.0,
-            "omega_y": 0.0,
-            "nutation_amplitude": 0.0,
-            "precession_phase": 0.0,
-        }
-
-        # Historial de métricas
+        self._unified_state = UnifiedPhysicalState(self.C, self.L, self.R, thermal=self._config.thermal)
+        self._proximity = MetricProximityGraph()
+        self._info_entropy = InformationEntropyCalculator()
+        self._maxwell_solver = maxwell
+        self._kernel: Optional[PoincareHamiltonianKernel] = PoincareHamiltonianKernel.from_rlc(
+            capacitance=self.C,
+            inductance=self.L,
+            series_resistance=self.R,
+            shunt_conductance=self._p_G0,
+        )
+        self._phs_controller: Optional[PortHamiltonianPoincareController] = None
+        self._latest_seed: Optional[PoincareEngineSeed] = None
+        self._last_audit_dt: float = float(self._config.physics_dt)
+        self._last_current_obs: float = 0.0
+        self._initialized = False
         self._metrics_history: deque = deque(maxlen=self._MAX_METRICS_HISTORY)
-        self._entropy_history: deque = deque(maxlen=self._MAX_METRICS_HISTORY)
+        self._newton_fail_count: int = 0
+        self._newton_iter_total: int = 0
+        self._newton_step_total: int = 0
+        self._C0: Optional[np.ndarray] = None
 
-        # Estado temporal
-        self._last_current: float = 0.0
-        self._ema_current: float = 0.0  # EMA de la corriente (Eje de rotación)
-        self._last_time: float = time.time()
-        self._initialized: bool = False
-
-        # Amortiguamiento no lineal
-        self._nonlinear_damping_factor: float = 1.0
-        self.clamping_active: bool = False
-
-        # Músculo Inteligente
-        self.muscle = FluxMuscleController()
+    def attach_maxwell(self, solver: "MaxwellSolver") -> None:
+        """Lattice DEC *inyectado* (el de Fase 1). Nunca se construye un K₆ ad hoc."""
+        self._maxwell_solver = solver
 
     def _validate_physical_parameters(self, C: float, R: float, L: float) -> None:
-        r"""Validación de parámetros físicos con análisis dimensional"""
-        errors = []
-
-        if C <= 0:
-            errors.append(f"Capacitancia debe ser positiva, got {C} F")
-        if R < 0:
-            errors.append(f"Resistencia debe ser no-negativa, got {R} Ω")
-        if L <= 0:
-            errors.append(f"Inductancia debe ser positiva, got {L} H")
-
-        # Verificación de rangos físicamente razonables
-        if C > 0 and L > 0:
-            omega_0 = 1.0 / math.sqrt(L * C)
-            if omega_0 > 1e12:  # > 1 THz
-                self.logger.warning(
-                    f"Frecuencia natural {omega_0:.2e} rad/s excesivamente alta"
-                )
-
-        if R > 0 and L > 0:
-            tau = L / R  # Constante de tiempo
-            if tau < 1e-12:  # < 1 ps
-                self.logger.warning(f"Constante de tiempo {tau:.2e} s muy pequeña")
-
+        errors: List[str] = []
+        if not math.isfinite(C) or C <= 0.0:
+            errors.append(f"C inválida: {C}.")
+        if not math.isfinite(R) or R < 0.0:
+            errors.append(f"R inválida: {R}.")
+        if not math.isfinite(L) or L <= 0.0:
+            errors.append(f"L inválida: {L}.")
         if errors:
-            raise ConfigurationError(
-                "Parámetros físicos inválidos:\n" + "\n".join(f"  • {e}" for e in errors)
-            )
+            raise ConfigurationError("Parámetros físicos inválidos:\n" + "\n".join(f"  - {e}" for e in errors))
 
     def _update_damping_classification(self) -> None:
-        """Actualiza clasificación de amortiguamiento del sistema."""
-        if self._zeta > 1.0:
+        if self._zeta > 1.0 + 1e-12:
             self._damping_type = "OVERDAMPED"
-            self._omega_d = self._omega_0 * math.sqrt(self._zeta**2 - 1)
-        elif self._zeta < 1.0:
+        elif self._zeta < 1.0 - 1e-12:
             self._damping_type = "UNDERDAMPED"
-            self._omega_d = self._omega_0 * math.sqrt(1 - self._zeta**2)
         else:
             self._damping_type = "CRITICALLY_DAMPED"
-            self._omega_d = 0.0
 
-    def _compute_p_laplacian_conductance(
-        self,
-        delta_v: float,
-        p: Optional[float] = None,
-        epsilon: Optional[float] = None,
-        G0: Optional[float] = None,
-    ) -> float:
-        r"""
-        Conductancia efectiva P-Laplaciana con regularización Lipschitziana.
+    # ── semilla ───────────────────────────────────────────────────────────────
 
-        Fundamento Físico
-        ─────────────────
-        El operador p-Laplaciano Δ_p u = div(|∇u|^{p-2} ∇u) para p > 2
-        modela una membrana viscoelastíca. La conductancia efectiva de cada
-        arista del complejo simplicial es:
-
-            g_eff(ΔV) = (|ΔV| + ε)^{p-2} · G₀
-
-        La constante de regularización ε > 0 garantiza:
-            1. g_eff ≥ ε^{p-2}·G₀ > 0  ∀ ΔV  (no-singularidad)
-            2. La Matriz Laplaciana permanece Simétrica Definida Positiva (SDP)
-            3. Condición de Lipschitz satisfecha en ΔV = 0
-
-        Integración numérica
-        ────────────────────
-        La difusión no-lineal P-Laplaciana acoplada a la inercia capacitiva
-        genera sistemas rígidos (stiff). Este método se consume por
-        `_evolve_state_implicit` (solver Trapezoidal Implícito con
-        Newton-Raphson), que es A-estable y disipa el ruido de alta
-        frecuencia (equivalente funcional a BDF-2 en la banda de interés).
-
-        Parameters
-        ----------
-        delta_v : float
-            Gradiente de voltaje entre nodos adyacentes |ΔV|.
-        p : float, optional
-            Exponente p-Laplaciano (default: CondenserConfig.p_laplacian_exponent).
-            Debe ser > 2 para régimen viscoelastico.
-        epsilon : float, optional
-            Regularización Lipschitz (default: CondenserConfig.p_laplacian_epsilon).
-        G0 : float, optional
-            Conductancia de referencia (default: CondenserConfig.p_laplacian_G0).
-
-        Returns
-        -------
-        float
-            Conductancia efectiva g_eff ≥ ε^{p-2}·G₀ > 0.
-        """
-        # Leer parámetros desde config del motor (accedidos via self)
-        _p = p if p is not None else getattr(self, '_p_exp', 3.0)
-        _eps = epsilon if epsilon is not None else getattr(self, '_p_eps', 1e-8)
-        _G0 = G0 if G0 is not None else getattr(self, '_p_G0', 1.0)
-
-        # g_eff = (|ΔV| + ε)^{p-2} · G₀
-        import warnings
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=RuntimeWarning)
-            # Acotamos delta_v superiormente para evitar overflow en scalar power cuando |ΔV| es muy grande y _p > 2
-            capped_delta_v = min(abs(delta_v), 1e5)
-            g_eff = (capped_delta_v + _eps) ** (_p - 2.0) * _G0
-
-        return float(g_eff)
-
-    def _system_equations(
-        self, Q: float, I: float, V_in: float,
-        delta_v_node: Optional[float] = None,
-    ) -> np.ndarray:
-        """
-        Calcula las derivadas del sistema dinámico [dQ/dt, dI/dt].
-
-        La resistencia efectiva es modulada por la membrana P-Laplaciana:
-            R_eff(ΔV) = R_thermal + R_linear·g_eff(ΔV)^{-1}
-
-        Esto acopla la dinámica del circuito con la conductancia viscoelastica
-        de la red, haciendo el sistema rígido (stiff) pero absorbiendo
-        discontinuidades espaciales sin fracturar la FPU.
-
-        Args:
-            Q: Carga actual.
-            I: Corriente actual.
-            V_in: Voltaje de entrada.
-            delta_v_node : float, optional
-                Gradiente de voltaje en el nodo actual para el p-Laplaciano.
-                Si es None, se usa |V_in - Q/C| como proxy.
-
-        Returns:
-            Array numpy con las derivadas [dQ/dt, dI/dt].
-        """
-        # Gradiente de voltaje para membrana p-Laplaciana
-        if delta_v_node is None:
-            delta_v_node = abs(V_in - Q / max(self.C, CONSTANTS.NUMERICAL_ZERO))
-
-        # Conductancia efectiva (membrana viscoelastica)
-        g_eff = self._compute_p_laplacian_conductance(delta_v_node)
-
-        # Resistencia térmica no lineal (I²R pre-existente)
-        R_thermal = self.R * (1.0 + 0.1 * I ** 2)
-
-        # Modulación P-Laplaciana: la membrana aumenta la conductancia efectiva
-        # ante gradientes grandes, reduciendo R_eff (válvula de alivio)
-        # R_plaplacian actua como resistencia parásitca no-lineal en paralelo
-        R_plaplacian = 1.0 / max(g_eff, CONSTANTS.NUMERICAL_ZERO)
-        R_eff = R_thermal * R_plaplacian / max(R_thermal + R_plaplacian, CONSTANTS.NUMERICAL_ZERO)
-
-        dQ_dt = I
-        dI_dt = (V_in - R_eff * I - Q / max(self.C, CONSTANTS.NUMERICAL_ZERO)) / max(
-            self.L, CONSTANTS.NUMERICAL_ZERO
+    def consume_engine_seed(self, seed: PoincareEngineSeed) -> Dict[str, Any]:
+        if seed is None:
+            raise EngineSeedError("PoincareEngineSeed es requerida.")
+        hints = dict(seed.engine_hints or {})
+        meta = dict(seed.metadata or {})
+        if self._config.require_schema_7_1:
+            schema = str(getattr(seed, "schema_version", "") or meta.get("schema_version", "7.1.0"))
+            if schema != "7.1.0":
+                raise SchemaContractError(f"schema {schema} incompatible con 7.1.0.")
+            conv = str(meta.get("hodge_convention") or hints.get("hodge_convention") or "")
+            if conv and "★₂ B" not in conv and "star2" not in conv.lower() and "μ⁻¹" not in conv:
+                logger.warning("hodge_convention inesperado: %s", conv)
+        self._latest_seed = seed
+        self._unified_state.consume_engine_seed(seed)
+        self._kernel = PoincareHamiltonianKernel(
+            J=seed.interconnection_matrix,
+            metric=seed.metric_matrix,
+            R=seed.damping_matrix,
+            g=seed.port_matrix,
+            name="Engine-PHS-7.1",
         )
-        return np.array([dQ_dt, dI_dt])
+        control_seed = self._engine_seed_to_control_seed(seed)
+        self._phs_controller = PortHamiltonianPoincareController(
+            seed=control_seed,
+            target_energy=float(seed.target_hamiltonian),
+            integrator="implicit_midpoint",
+            mode=ControlMode.ENERGY_LEVEL,
+            energy_shaping=True,
+        )
+        # El estado y u ya aplicados: no recompute u.
+        self._phs_controller.x = np.asarray(seed.state, dtype=float).reshape(-1).copy()
+        self._C0 = self._phs_controller._casimir_values(self._phs_controller.x)
+        dt_suggested = float(hints.get("dt_suggested", meta.get("dt_suggested", self._config.physics_dt)))
+        if not math.isfinite(dt_suggested) or dt_suggested <= 0.0:
+            dt_suggested = float(self._config.physics_dt)
+        self._last_audit_dt = dt_suggested
+        self._sync_maxwell_from_seed(seed)
+        return self.poincare_audit(dt_suggested)
 
+    @staticmethod
+    def _engine_seed_to_control_seed(seed: PoincareEngineSeed) -> PoincareControlSeed:
+        return PoincareControlSeed(
+            state=np.asarray(seed.state, dtype=float).copy(),
+            gradient=np.asarray(seed.gradient, dtype=float).copy(),
+            hamiltonian=float(seed.hamiltonian),
+            target_hamiltonian=float(seed.target_hamiltonian),
+            lyapunov_candidate=float(seed.storage_function),
+            interconnection_matrix=np.asarray(seed.interconnection_matrix, dtype=float).copy(),
+            damping_matrix=np.asarray(seed.damping_matrix, dtype=float).copy(),
+            metric_matrix=np.asarray(seed.metric_matrix, dtype=float).copy(),
+            port_matrix=np.asarray(seed.port_matrix, dtype=float).copy(),
+            metadata=dict(seed.metadata or {}),
+            casimir_basis=None if seed.casimir_basis is None else np.asarray(seed.casimir_basis, dtype=float).copy(),
+            spectral_data=None if not seed.spectral_data else dict(seed.spectral_data),
+            ida_pbc_decomposition=(
+                None
+                if seed.ida_pbc_decomposition is None
+                else {k: np.asarray(v, dtype=float).copy() for k, v in seed.ida_pbc_decomposition.items()}
+            ),
+            lyapunov_jacobian=(
+                None if seed.lyapunov_jacobian is None else np.asarray(seed.lyapunov_jacobian, dtype=float).copy()
+            ),
+            output_port=None if getattr(seed, "output_port", None) is None else np.asarray(seed.output_port, dtype=float).copy(),
+            matching_residual=float(getattr(seed, "matching_residual", 0.0) or 0.0),
+        )
 
-    def _compute_jacobian(self, state: np.ndarray, V_in: float) -> np.ndarray:
-        """
-        Calcula la matriz Jacobiana del sistema para el solver implícito.
+    def _sync_maxwell_from_seed(self, seed: PoincareEngineSeed) -> None:
+        solver = self._maxwell_solver
+        if solver is None or not SCIPY_AVAILABLE:
+            return
+        n_e, n_f = solver.calc.num_edges, solver.calc.num_faces
+        state = np.asarray(seed.state, dtype=float).reshape(-1)
+        if state.size != n_e + n_f:
+            self.logger.debug("Seed dim=%d ≠ lattice %d; no sync Maxwell.", state.size, n_e + n_f)
+            return
+        solver.D = state[:n_e].copy()
+        solver.B = state[n_e:].copy()
+        if n_e > 0:
+            solver.E = (1.0 / solver.epsilon) * (solver.calc.star1_inv @ solver.D)
+        if n_f > 0:
+            solver.H = (1.0 / solver.mu) * (solver.calc.star2 @ solver.B)
 
-        Args:
-            state: Vector de estado [Q, I].
-            V_in: Voltaje de entrada.
-
-        Returns:
-            Matriz Jacobiana 2x2.
-        """
-        Q, I = state
-        dR_term = self.R * (1.0 + 0.3 * I**2)
-
-        return np.array([
-            [0, 1],
-            [-1/(self.L * self.C), -dR_term/self.L]
-        ])
-
-    def _evolve_state_implicit(self, driving_current: float, dt: float) -> Tuple[float, float]:
-        """
-        Evoluciona el estado usando el método Trapezoidal con Newton-Raphson.
-
-        Recomendado para sistemas rígidos (stiff) donde los métodos explícitos
-        pueden ser inestables.
-
-        Args:
-            driving_current: Corriente impulsora.
-            dt: Paso de tiempo.
-
-        Returns:
-            Tupla (Q_new, I_new).
-        """
-        V_in = 20.0 * math.tanh(driving_current)
-
-        # Leer estado desde UnifiedPhysicalState
-        Q = self._unified_state.charge
-        I = self._unified_state.flux_linkage / self._unified_state.inductance
-
-        if not SCIPY_AVAILABLE:
-            return Q, I # Fallback
-
-        y_curr = np.array([Q, I])
-        y_next = y_curr.copy()
-
-        f_curr = self._system_equations(y_curr[0], y_curr[1], V_in)
-
-        for _ in range(10):
-            f_next = self._system_equations(y_next[0], y_next[1], V_in)
-            resid = y_next - y_curr - 0.5 * dt * (f_curr + f_next)
-
-            if np.linalg.norm(resid) < 1e-6:
-                break
-
-            # Jacobian of F w.r.t y_{n+1} is I - 0.5*dt*J
-            J = self._compute_jacobian(y_next, V_in)
-            J_F = np.eye(2) - 0.5 * dt * J
-
-            delta = np.linalg.solve(J_F, -resid)
-            y_next += delta
-
-        # Actualizar UnifiedPhysicalState
-        self._unified_state.charge = y_next[0]
-        self._unified_state.flux_linkage = y_next[1] * self._unified_state.inductance
-
-        return y_next[0], y_next[1]
-
-    def _update_tactical_reserve(self, dt: float, main_bus_voltage: float, config: CondenserConfig) -> None:
-        """
-        Simula la dinámica de la Reserva Táctica (Plano de Control).
-        Modela: Diodo Schottky + Inductor 10uH + Supercondensadores.
-        """
-        state = self._unified_state
-
-        # Parámetros físicos de la Reserva Táctica
-        L_brain = 10e-6  # 10uH (Inercia de protección)
-        C_brain = config.brain_capacitance
-        R_brain = 0.5    # ESR estimada + pistas
-        DIODE_DROP = 0.3 # Caída del Schottky (1N5819/22)
-
-        # 1. Determinar voltaje objetivo (Fuente - Diodo)
-        target_voltage = max(0.0, main_bus_voltage - DIODE_DROP)
-
-        # 2. Dinámica de Carga vs. Descarga
-        if target_voltage > state.brain_voltage:
-            # --- MODO CARGA (Recuperación) ---
-            delta_v = target_voltage - state.brain_voltage
-            current_i = state.brain_inflow_current
-
-            # Caída resistiva
-            v_resistive = current_i * R_brain
-
-            # Aceleración de la corriente (limitada por el inductor)
-            # di_dt = (DeltaV - VR) / L
-            di_dt = (delta_v - v_resistive) / L_brain
-
-            # Integración de Euler para la nueva corriente
-            new_i = current_i + di_dt * dt
-            state.brain_inflow_current = max(0.0, new_i)
-
-            # Cargar el condensador: dV = (I * dt) / C
-            dq = state.brain_inflow_current * dt
-            state.brain_voltage += dq / C_brain
-
-        else:
-            # --- MODO DESCARGA (Supervivencia / Hold-up) ---
-            state.brain_inflow_current = 0.0
-
-            # Consumo del Agente (simulado o medido)
-            agent_consumption_amps = 0.080 # ~80mA para ESP32 con WiFi activo
-
-            # Descarga: V_new = V_old - (I_load * dt) / C
-            discharge_drop = (agent_consumption_amps * dt) / C_brain
-            state.brain_voltage -= discharge_drop
-
-        # 3. Protección de Brownout (Umbral Crítico)
-        if state.brain_voltage < config.brain_brownout_threshold:
-            if state.brain_alive:
-                self.logger.critical("⚠️ ALERTA DE BROWNOUT INMINENTE EN PLANO DE CONTROL")
-            state.brain_alive = False
-        else:
-            state.brain_alive = True
-
-    def _evolve_state_rk4_adaptive(self, driving_current: float, dt: float) -> Tuple[float, float]:
-        """
-        Evoluciona el estado usando un integrador adaptativo.
-        Se ha impuesto el uso de BDF para cumplir con la condición CFL.
-        """
-        V_in = 20.0 * math.tanh(driving_current)
-
-        # Leer estado desde UnifiedPhysicalState
-        Q = self._unified_state.charge
-        I = self._unified_state.flux_linkage / self._unified_state.inductance
-
-        if not SCIPY_AVAILABLE:
-            # Fallback a un paso simple
-            f_val = self._system_equations(Q, I, V_in)
-            Q += dt * f_val[0]
-            I += dt * f_val[1]
-            self._unified_state.charge = Q
-            self._unified_state.flux_linkage = I * self._unified_state.inductance
-            return Q, I
-
-        from scipy.integrate import solve_ivp
-
-        def f(t, y):
-            return self._system_equations(y[0], y[1], V_in)
-
-        def jac(t, y):
-            return self._compute_jacobian(y, V_in)
-
+    def poincare_audit(self, dt: float) -> Dict[str, Any]:
+        dt = max(float(dt), CONSTANTS.MIN_DELTA_TIME)
+        result: Dict[str, Any] = {
+            "dt": dt,
+            "atlas": self._unified_state.atlas.value,
+            "phs_preserved": bool(self._unified_state._phs_preserved),
+            "integrator": "implicit_midpoint",
+        }
+        if self._kernel is None:
+            return result
+        x = self._unified_state.state_vector
+        if x.size != self._kernel.dim:
+            result["kernel_skip"] = f"dim {x.size} ≠ {self._kernel.dim}"
+            return result
         try:
-            sol = solve_ivp(
-                f, [0, dt], [Q, I],
-                method='BDF',
-                jac=jac,
-                rtol=1e-3,
-                atol=1e-6,
-                first_step=dt/100.0 if dt > 0 else None
-            )
-            y_next = sol.y[:, -1]
-        except Exception as e:
-            self.logger.error(f"Solver BDF falló: {e}. Aplicando reducción de paso (Sub-stepping RK4).")
-            # ERRADICACIÓN DE FALLBACK A EULER:
-            # Implementamos sub-stepping con RK4 para preservar la estabilidad
-            # cuando el solver rígido falla bajo perturbaciones de cola pesada.
-            n_substeps = 20
-            dt_sub = dt / n_substeps
-            y_curr = np.array([Q, I])
-            for _ in range(n_substeps):
-                k1 = f(0, y_curr)
-                k2 = f(0, y_curr + 0.5 * dt_sub * k1)
-                k3 = f(0, y_curr + 0.5 * dt_sub * k2)
-                k4 = f(0, y_curr + dt_sub * k3)
-                y_curr = y_curr + (dt_sub / 6.0) * (k1 + 2*k2 + 2*k3 + k4)
-            y_next = y_curr
-
-        # Actualizar UnifiedPhysicalState
-        self._unified_state.charge = y_next[0]
-        self._unified_state.flux_linkage = y_next[1] * self._unified_state.inductance
-
-        return y_next[0], y_next[1]
-
-    def calculate_pump_work(self, current_I: float, voltage_across_inductor: float, dt: float) -> float:
-        """
-        Calcula el Trabajo (W) realizado por la Bomba Lineal.
-        Basado en v = dw/dq -> dw = v * dq -> W = v * I * dt.
-
-        Args:
-            current_I: La 'velocidad' del pistón (Corriente).
-            voltage_across_inductor: La 'fuerza' ejercida por el pistón (L * di/dt).
-            dt: Diferencial de tiempo.
-
-        Returns:
-            Joules de trabajo realizado sobre el flujo de datos.
-        """
-        # Potencia instantánea entregada por el inductor (Pistón)
-        # W = V * I * dt
-        power_stroke = voltage_across_inductor * current_I
-
-        # Trabajo acumulado en este paso
-        work_done = power_stroke * dt
-        return work_done
-
-    def calculate_gyroscopic_stability(self, current_I: float) -> float:
-        """
-        Calcula estabilidad giroscópica usando ecuaciones de Euler linealizadas.
-
-        Modelo de trompo simétrico (Ix = Iy ≠ Iz):
-
-        Ecuaciones de Euler para cuerpo rígido:
-            Ix·dωx/dt = (Iy - Iz)·ωy·ωz + τx
-            Iy·dωy/dt = (Iz - Ix)·ωz·ωx + τy
-            Iz·dωz/dt = (Ix - Iy)·ωx·ωy + τz
-
-        Para rotación estable alrededor de z con pequeñas perturbaciones:
-            dωx/dt = Ω·ωy  donde Ω = (Iz - Ix)/Ix · ωz
-            dωy/dt = -Ω·ωx
-
-        Esto da oscilación armónica (precesión) con frecuencia Ω.
-
-        Criterio de estabilidad (teorema de la raqueta de tenis):
-        - Rotación alrededor del eje de momento de inercia máximo o mínimo: ESTABLE
-        - Rotación alrededor del eje intermedio: INESTABLE
-
-        La "corriente" representa velocidad angular ωz.
-        La derivada dI/dt representa aceleración angular (torque).
-        """
-        current_time = time.time()
-
-        # === INICIALIZACIÓN ===
-        if not self._initialized:
-            self._ema_current = current_I
-            self._last_current = current_I
-            self._last_time = current_time
-            self._initialized = True
-
-            # Estado del giroscopio
-            self._gyro_state = {
-                "omega_x": 0.0,  # Perturbación en x
-                "omega_y": 0.0,  # Perturbación en y
-                "nutation_amplitude": 0.0,
-                "precession_phase": 0.0,
-            }
-
-            return 1.0  # Inicialmente estable
-
-        dt = max(1e-6, current_time - self._last_time)
-
-        # === MOMENTOS DE INERCIA EFECTIVOS ===
-        # Modelamos el flujo de datos como un trompo alargado
-        # Eje z es el eje principal de rotación (flujo de datos)
-        Ix = 1.0   # Momento transversal
-        Iy = 1.0   # Momento transversal (simetría axial)
-        Iz = 1.5   # Momento axial (trompo alargado, Iz > Ix,Iy → estable)
-
-        # Velocidad angular principal (proporcional a corriente)
-        omega_z = abs(current_I) * 10.0  # Escalar para sensibilidad
-
-        # === ECUACIONES DE EULER LINEALIZADAS ===
-        # Para simetría axial (Ix = Iy):
-        # d²ωx/dt² + Ω²·ωx = 0  (oscilador armónico)
-        # donde Ω = (Iz - Ix)/Ix · ωz es la frecuencia de precesión
-
-        if Ix > 0:
-            Omega_precession = ((Iz - Ix) / Ix) * omega_z
-        else:
-            Omega_precession = 0.0
-
-        # === EVOLUCIÓN DE PERTURBACIONES ===
-        state = self._gyro_state
-        omega_x = state["omega_x"]
-        omega_y = state["omega_y"]
-
-        # Ecuaciones acopladas (rotación en plano xy)
-        # Usar Euler semi-implícito para estabilidad
-        omega_x_new = omega_x * math.cos(Omega_precession * dt) + omega_y * math.sin(Omega_precession * dt)
-        omega_y_new = -omega_x * math.sin(Omega_precession * dt) + omega_y * math.cos(Omega_precession * dt)
-
-        # === EXCITACIÓN POR CAMBIO EN CORRIENTE ===
-        dI_dt = (current_I - self._last_current) / dt
-
-        # Cambios bruscos en corriente excitan nutación
-        excitation_amplitude = 0.1 * abs(dI_dt)
-
-        # Añadir excitación aleatoria en fase
-        phase = state["precession_phase"] + Omega_precession * dt
-        omega_x_new += excitation_amplitude * math.cos(phase)
-        omega_y_new += excitation_amplitude * math.sin(phase)
-
-        # === AMORTIGUAMIENTO VISCOSO ===
-        # Las perturbaciones se amortiguan por fricción
-        damping_coeff = 0.95  # Por paso de tiempo
-        omega_x_new *= damping_coeff
-        omega_y_new *= damping_coeff
-
-        # === AMPLITUD DE NUTACIÓN ===
-        nutation_amplitude = math.sqrt(omega_x_new**2 + omega_y_new**2)
-
-        # Filtro EMA para suavizar
-        alpha_nut = 0.1
-        smoothed_nutation = (1 - alpha_nut) * state["nutation_amplitude"] + alpha_nut * nutation_amplitude
-
-        # === CRITERIO DE ESTABILIDAD ===
-        # 1. Velocidad mínima para estabilidad giroscópica
-        #    ωz > ω_crítico donde ω_crítico depende de la geometría
-        omega_critical = 0.5
-        speed_factor = 1.0 - math.exp(-3.0 * max(0, omega_z - omega_critical))
-
-        # 2. Nutación excesiva indica inestabilidad
-        #    Si la nutación es comparable a ωz, el trompo "tambalea"
-        nutation_ratio = smoothed_nutation / max(omega_z, 0.1)
-        nutation_factor = 1.0 / (1.0 + 5.0 * nutation_ratio)
-
-        # 3. Teorema de la raqueta de tenis
-        #    Rotación alrededor de Iz (máximo) es estable si Iz > Ix, Iy
-        #    Cuantificamos con el margen (Iz - Ix) / Ix
-        inertia_margin = (Iz - Ix) / Ix
-        stability_factor = math.tanh(2.0 * inertia_margin)  # 1 para margen grande
-
-        # === ESTABILIDAD COMBINADA ===
-        Sg = speed_factor * nutation_factor * stability_factor
-        Sg = max(0.0, min(1.0, Sg))
-
-        # === ACTUALIZAR ESTADO ===
-        state["omega_x"] = omega_x_new
-        state["omega_y"] = omega_y_new
-        state["nutation_amplitude"] = smoothed_nutation
-        state["precession_phase"] = phase % (2 * math.pi)
-
-        self._last_current = current_I
-        self._last_time = current_time
-
-        # === DIAGNÓSTICO ===
-        if Sg < 0.5:
-            if Sg < 0.3:
-                diagnosis = "NUTACIÓN CRÍTICA - Flujo inestable"
-            else:
-                diagnosis = "PRECESIÓN DETECTADA - Flujo oscilante"
-
-            self.logger.debug(
-                f"Estabilidad giroscópica: Sg={Sg:.3f}, "
-                f"nutación={smoothed_nutation:.3f}, ωz={omega_z:.2f}. "
-                f"Diagnóstico: {diagnosis}"
-            )
-
-        return Sg
-
-
-    def calculate_membrane_reaction(self,
-                                  current_I: float,
-                                  dt: float,
-                                  p_factor: float = 3.0) -> Dict[str, float]:
-        """
-        Calcula la reacción física de la Malla APU (Membrana Viscoelástica).
-
-        Implementa la dinámica de fluido no newtoniano para amortiguar picos.
-        Basado en la ecuación constitutiva: V = V_elástico + V_viscoso + V_inercial
-
-        Args:
-            current_I: Corriente actual (Caudal de datos).
-            dt: Diferencial de tiempo.
-            p_factor: Coeficiente de no-linealidad del p-Laplaciano (p > 2).
-                      Si p=2, la difusión es lineal (Ohmica).
-                      Si p>2, la membrana se "endurece" ante impactos fuertes.
-
-        Returns:
-            Diccionario con los componentes de presión (Voltaje).
-        """
-        # 1. Componente Elástica (Ley de Hooke / Capacitancia)
-        # La presión base debido al llenado del tanque.
-        # V = q / C
-        v_elastic = self._unified_state.charge / self.C
-
-        # 2. Componente Inercial (Ley de Faraday / Inductancia)
-        # La resistencia al cambio de velocidad del pistón.
-        # V = L * di/dt
-        delta_I = current_I - self._last_current
-        di_dt = delta_I / dt if dt > 0 else 0.0
-        v_inertial = self.L * di_dt
-
-        # 3. Componente Viscosa No Lineal (p-Laplaciano / ESR Dinámica)
-        # Aquí simulamos la "membrana inteligente".
-        # La resistencia interna (ESR) no es fija; reacciona al gradiente.
-        # Si el cambio es brusco (|di/dt| alto), la viscosidad aumenta.
-
-        # Gradiente de "presión" percibido (aproximación local)
-        gradient_magnitude = abs(v_inertial) + 1e-9 # Evitar división por cero
-
-        # Factor de modulación no lineal: g(|grad|) ~ |grad|^(p-2)
-        # Saturación Lipschitziana para evitar overflow en potencias p=3
-        SAFE_GRADIENT_MAX = 1e50
-        gradient_clamped = min(gradient_magnitude, SAFE_GRADIENT_MAX)
-        viscosity_modulation = math.pow(gradient_clamped, p_factor - 2.0)
-
-        # Resistencia efectiva dinámica
-        # R_mem incluye la resistencia base del circuito + la ESR de los condensadores
-        r_effective = self.R * (1.0 + 0.1 * viscosity_modulation)
-
-        # Limitador de seguridad para la simulación numérica
-        r_effective = min(r_effective, self.R * 10.0)
-
-        v_viscous = r_effective * current_I
-
-        # 4. Presión Total en la Membrana
-        v_total = v_elastic + v_viscous + v_inertial
-
-        # Actualizar estado interno de histéresis para la próxima iteración
-        self._nonlinear_damping_factor = r_effective / self.R if self.R > 0 else 1.0
-
-        return {
-            "v_total": v_total,
-            "v_elastic": v_elastic,     # Presión estática (Nivel de llenado)
-            "v_viscous": v_viscous,     # Fricción (Calor disipado)
-            "v_inertial": v_inertial,   # Golpe de ariete (Flyback)
-            "dynamic_esr": r_effective  # Viscosidad instantánea
-        }
-
-    def calculate_system_entropy(self, total_records: int, error_count: int, processing_time: float) -> Dict[str, float]:
-        """Calcula entropía del sistema usando EntropyCalculator."""
-        if total_records <= 0:
-             return self._get_zero_entropy_values()
-
-        # Estados puros (0% o 100% errores)
-        if error_count == 0 or error_count == total_records:
-             is_dead = (error_count == total_records)
-             return {
-                "shannon_entropy": 0.0,
-                "shannon_entropy_corrected": 0.0,
-                "tsallis_entropy": 0.0,
-                "kl_divergence": 0.0,
-                "entropy_rate": 0.0,
-                "entropy_ratio": 0.0,
-                "is_thermal_death": is_dead,
-                "entropy_absolute": 0.0
-            }
-
-        counts = {"success": total_records - error_count, "error": error_count}
-        bayesian = self._entropy_calculator.calculate_entropy_bayesian(counts)
-
-        # Calculate Renyi spectrum
-        probs = np.array([counts["success"], counts["error"]]) / total_records
-        renyi = self._entropy_calculator.calculate_renyi_spectrum(probs)
-
-        entropy_ratio = bayesian['entropy_expected']  # Max entropy for binary is 1.0
-
-        is_thermal_death = (error_count / total_records > 0.25) and (bayesian['entropy_expected'] > 0.85)
-
-        return {
-            "shannon_entropy": bayesian['entropy_expected'],
-            "shannon_entropy_corrected": bayesian['entropy_expected'],
-            "tsallis_entropy": renyi.get(2.0, 0.0),
-            "kl_divergence": 0.0,
-            "entropy_rate": bayesian['entropy_expected'] / max(processing_time, 1e-6),
-            "entropy_ratio": entropy_ratio,
-            "is_thermal_death": is_thermal_death,
-            "entropy_absolute": bayesian['entropy_expected']
-        }
-
-    def _get_zero_entropy_values(self):
-        return {
-            "shannon_entropy": 0.0,
-            "shannon_entropy_corrected": 0.0,
-            "tsallis_entropy": 0.0,
-            "kl_divergence": 0.0,
-            "entropy_rate": 0.0,
-            "entropy_ratio": 0.0,
-            "is_thermal_death": False,
-            "entropy_absolute": 0.0
-        }
-
-    def calculate_metrics(self, total_records: int, cache_hits: int, error_count: int=0, processing_time: float=1.0, condenser_config: Optional[CondenserConfig]=None) -> Dict[str, float]:
-        if total_records <= 0: return self._get_zero_metrics()
-
-        config = condenser_config or CondenserConfig()
-
-        current_time = time.time()
-        dt = max(1e-6, current_time - self._last_time) if self._initialized else 0.01
-        self._initialized = True
-        self._last_time = current_time
-
-        # 1. Músculo Inteligente: Aplicar Fuerza (Slew Rate + Térmico)
-        target_I = cache_hits / total_records
-        current_I = self.muscle.apply_force(target_I, dt)
-        complexity = 1.0 - target_I
-
-        # 2. Reserva Táctica: Actualizar UPS
-        # El voltaje en el acumulador principal alimenta la reserva a través del diodo
-        v_main_bus = self._unified_state.charge / self.C
-        self._update_tactical_reserve(dt, v_main_bus, config)
-
-        # 3. Integración Física
-        if SCIPY_AVAILABLE:
-            Q_new, I_new = self._evolve_state_rk4_adaptive(current_I, dt)
-        else:
-            Q_new = self._unified_state.charge
-            I_new = self._unified_state.flux_linkage / self._unified_state.inductance
-
-        # Evolucionar Termodinámica (Coupling)
-        self._unified_state.evolve_port_hamiltonian(dt, {"current": I_new})
-
-        # 4. Reacción de la Membrana Viscoelástica
-        membrane_state = self.calculate_membrane_reaction(I_new, dt, p_factor=3.0)
-        v_total = membrane_state["v_total"]
-        v_inertial = membrane_state["v_inertial"]
-        v_elastic = membrane_state["v_elastic"]
-
-        # Protección Activa (Simulación del TL431)
-        max_v = condenser_config.max_voltage if condenser_config else 5.3
-        if v_total > max_v:
-            self.logger.warning("🛡️ MEMBRANA ACTIVADA: Derivando sobrepresión (Clamping)")
-            self.clamping_active = True
-            # En un sistema real, el TL431 derivaría corriente para limitar el voltaje.
-            # Aquí marcamos el flag para que la telemetría lo registre.
-        else:
-            self.clamping_active = False
-
-        # 5. Maxwell & Hamiltonian
-        hamiltonian_excess = 0.0
-        if self.maxwell_solver:
-             # Sync unified state
-             self.maxwell_solver.J_e = np.full(self.vector_calc.num_edges, current_I)
-             self.maxwell_solver.step_magnetic_field(dt)
-             self.maxwell_solver.step_electric_field(dt)
-             u = self.hamiltonian_control.apply_control(dt)
-             hamiltonian_excess = np.linalg.norm(u)
-
-        # 6. Métricas derivadas
-        # El "Voltaje Flyback" es el componente inercial de la membrana
-        piston_pressure = v_inertial
-        water_hammer = abs(v_inertial)
-        water_hammer = min(water_hammer, SystemConstants.MAX_WATER_HAMMER_PRESSURE)
-
-        # Trabajo realizado por la bomba
-        pump_work = self.calculate_pump_work(I_new, v_inertial, dt)
-
-        # 7. Entropía
-        entropy_metrics = self.calculate_system_entropy(
-            total_records, error_count, processing_time
-        )
-
-        # 8. Topología
-        # La saturación real es la presión elástica normalizada
-        saturation = v_elastic / config.max_voltage
-
-        metrics_pre = {
-            "saturation": saturation,
-            "complexity": complexity,
-            "current_I": I_new,
-            "potential_energy": 0.5 * Q_new**2 / self.C,
-            "kinetic_energy": 0.5 * self.L * I_new**2,
-            "entropy_shannon": entropy_metrics['shannon_entropy']
-        }
-
-        self._topological_analyzer.build_metric_graph(metrics_pre)
-        betti = self._topological_analyzer.compute_betti_with_spectral()
-
-        # 9. Estabilidad Giroscópica
-        gyro_stability = self.calculate_gyroscopic_stability(current_I)
-
-        # 10. Unificar Métricas
-        # Integrar métricas avanzadas de Maxwell (Poynting, Energía de Campo)
-        maxwell_metrics = {}
-        if self.maxwell_solver:
-            maxwell_metrics = self.maxwell_solver.compute_energy_and_momentum()
-
-        metrics = {
-            **metrics_pre,
-            "total_energy": metrics_pre["potential_energy"] + metrics_pre["kinetic_energy"],
-            "dissipated_power": self.R * I_new**2,
-            "flyback_voltage": water_hammer,
-            "water_hammer_pressure": water_hammer,
-            "piston_pressure": piston_pressure,
-            "pump_work": pump_work,
-            "dynamic_resistance": self.R + (self.hamiltonian_control.kd if self.hamiltonian_control else 0),
-            "damping_ratio": self._zeta,
-            "damping_type": self._damping_type,
-            "resonant_frequency_hz": self._omega_0 / (2*math.pi),
-            "quality_factor": self._Q,
-            "time_constant": self.L/self.R if self.R > 0 else 0,
-
-            "entropy_shannon": entropy_metrics["shannon_entropy"],
-            "entropy_shannon_corrected": entropy_metrics["shannon_entropy_corrected"],
-            "tsallis_entropy": entropy_metrics["tsallis_entropy"],
-            "kl_divergence": entropy_metrics["kl_divergence"],
-            "entropy_rate": entropy_metrics["entropy_rate"],
-            "entropy_ratio": entropy_metrics["entropy_ratio"],
-            "is_thermal_death": entropy_metrics["is_thermal_death"],
-            "entropy_absolute": entropy_metrics["entropy_absolute"],
-
-            "betti_0": betti[0],
-            "betti_1": betti[1],
-            "graph_vertices": self._topological_analyzer._vertex_count,
-            "graph_edges": self._topological_analyzer._edge_count,
-
-            "gyroscopic_stability": gyro_stability,
-            "hamiltonian_excess": hamiltonian_excess,
-            "v_total": v_total,
-            "clamping_active": float(self.clamping_active),
-
-            # Métricas V3: Músculo y Reserva
-            "muscle_temp": self.muscle.temperature,
-            "muscle_duty": current_I,
-            "brain_voltage": self._unified_state.brain_voltage,
-            "brain_alive": float(self._unified_state.brain_alive),
-            "brownout_risk": 1.0 if self._unified_state.brain_voltage < config.brain_brownout_threshold + 0.5 else 0.0,
-
-            # Métricas de flujo de valor (Maxwell 4th order)
-            "field_energy": maxwell_metrics.get("total_energy", 0.0),
-            "poynting_flux_mean": maxwell_metrics.get("poynting_mean", 0.0),
-            "poynting_flux_max": maxwell_metrics.get("poynting_max", 0.0)
-        }
-
-        self._last_current = current_I
-        self._store_metrics(metrics)
-        self._state_history.append({
-            "Q": Q_new, "I": I_new, "time": current_time,
-            "energy": metrics["total_energy"]
-        })
-
-        return metrics
-
-    def _get_zero_metrics(self) -> Dict[str, float]:
-        """Métricas iniciales para casos triviales."""
-        return {
-            "saturation": 0.0,
-            "complexity": 1.0,
-            "current_I": 0.0,
-            "potential_energy": 0.0,
-            "kinetic_energy": 0.0,
-            "total_energy": 0.0,
-            "dissipated_power": 0.0,
-            "flyback_voltage": 0.0,
-            "water_hammer_pressure": 0.0,
-            "piston_pressure": 0.0,
-            "pump_work": 0.0,
-            "dynamic_resistance": self.R,
-            "damping_ratio": self._zeta,
-            "damping_type": self._damping_type,
-            "resonant_frequency_hz": self._omega_0 / (2 * math.pi),
-            "quality_factor": self._Q,
-            "time_constant": self.L / self.R if self.R > 0 else float("inf"),
-            "entropy_shannon": 0.0,
-            "entropy_absolute": 0.0,
-            "entropy_rate": 0.0,
-            "entropy_ratio": 0.0,
-            "is_thermal_death": False,
-            "betti_0": 0,
-            "betti_1": 0,
-            "graph_vertices": 0,
-            "graph_edges": 0,
-            "gyroscopic_stability": 1.0,
-            "hamiltonian_excess": 0.0,
-            "v_total": 0.0,
-            "clamping_active": 0.0
-        }
-
-    def _store_metrics(self, metrics: Dict[str, float]) -> None:
-        """Almacena métricas con timestamp."""
-        self._metrics_history.append({**metrics, "_timestamp": time.time()})
-
-    def get_trend_analysis(self) -> Dict[str, Any]:
-        """Analiza tendencias en métricas históricas."""
-        if len(self._metrics_history) < 2:
-            return {"status": "INSUFFICIENT_DATA", "samples": len(self._metrics_history)}
-
-        result = {"status": "OK", "samples": len(self._metrics_history)}
-
-        # Métricas a analizar
-        keys_to_analyze = ["saturation", "dissipated_power", "entropy_ratio"]
-
-        for key in keys_to_analyze:
-            values = [m.get(key, 0.0) for m in self._metrics_history if key in m]
-            if len(values) >= 2:
-                # Tendencia lineal simple
-                first_half = sum(values[: len(values) // 2]) / (len(values) // 2)
-                second_half = sum(values[len(values) // 2 :]) / (
-                    len(values) - len(values) // 2
-                )
-
-                if second_half > first_half * 1.1:
-                    trend = "INCREASING"
-                elif second_half < first_half * 0.9:
-                    trend = "DECREASING"
-                else:
-                    trend = "STABLE"
-
-                result[key] = {
-                    "trend": trend,
-                    "current": values[-1],
-                    "mean": sum(values) / len(values),
-                    "min": min(values),
-                    "max": max(values),
+            _, report = self._kernel.compute_step(x, dt, integrator="strang")
+            result.update(
+                {
+                    "hamiltonian_energy": report.hamiltonian_energy,
+                    "volume_drift": report.volume_drift,
+                    "rayleigh_dissipation_rate": report.rayleigh_dissipation_rate,
+                    "is_liouville_preserved": report.is_liouville_preserved,
+                    "is_volume_contracting": report.is_volume_contracting,
+                    "poisson_residual": report.poisson_residual,
+                    "trace_generator": report.trace_generator,
+                    "casimir_dimension": report.casimir_dimension,
+                    "max_re_eigen_A": report.max_re_eigen_A,
+                    "logarithmic_norm_A": getattr(report, "logarithmic_norm_A", 0.0),
+                    "strang_poisson_residual": getattr(report, "strang_poisson_residual", 0.0),
+                    "casimir_drift": getattr(report, "casimir_drift", 0.0),
                 }
-
+            )
+        except DataFluxCondenserError as exc:
+            result["canonical_error"] = str(exc)
+        if self._maxwell_solver is not None:
+            try:
+                mm = self._maxwell_solver.compute_energy_and_momentum()
+                result["maxwell_observables"] = {
+                    "total_energy": mm.get("total_energy", 0.0),
+                    "gauss_residual": mm.get("gauss_residual", 0.0),
+                }
+            except DataFluxCondenserError as exc:
+                result["maxwell_error"] = str(exc)
         return result
 
-    def get_system_diagnosis(self, metrics: Dict[str, float]) -> Dict[str, str]:
-        """Genera diagnóstico del estado del sistema."""
+    # ── paso PHS (contrato) ───────────────────────────────────────────────────
+
+    def step(
+        self,
+        dt: float,
+        driving_current: float = 0.0,
+        feedforward: float = 0.0,
+        u_override: Optional[np.ndarray] = None,
+    ) -> Dict[str, Any]:
+        """
+        driving_current / feedforward se ignoran en modo semilla (u ya aplicado).
+        En standalone, driving_current es un *esfuerzo* de puerto escalar ∈ ℝ
+        (no un duty de músculo).
+        """
+        dt = float(np.clip(dt, CONSTANTS.MIN_DELTA_TIME, CONSTANTS.MAX_DELTA_TIME))
+        if self._phs_controller is not None and self._latest_seed is not None:
+            metrics = self._step_phs(dt, u_override=u_override)
+        else:
+            metrics = self._step_standalone_rlc(dt, float(driving_current) + float(feedforward))
+        self._unified_state.physics_time += dt
+        self._metrics_history.append(metrics)
+        self._last_audit_dt = dt
+        return metrics
+
+    def _step_phs(self, dt: float, u_override: Optional[np.ndarray] = None) -> Dict[str, Any]:
+        ctrl = self._phs_controller
+        assert ctrl is not None
+        u = (
+            ctrl._normalize_control_input(u_override)
+            if u_override is not None
+            else self._unified_state.control_applied
+        )
+        if u.size != ctrl.port_dim:
+            raise EngineSeedError(f"u dim {u.size} ≠ m={ctrl.port_dim}.")
+        x0 = ctrl.x.copy()
+        H0 = ctrl.hamiltonian(x0)
+        report = ctrl.controlled_step(dt=dt, u_input=u, muscle=None)
+        x1 = ctrl.x.copy()
+        H1 = ctrl.hamiltonian(x1)
+        self._unified_state.state_vector = x1
+        self._unified_state.control_applied = np.asarray(u, dtype=float).copy()
+        self._unified_state.storage_function = float(ctrl.storage_function(x1))
+        if self._unified_state.atlas is AtlasKind.RLC_CANONICAL and x1.size >= 2:
+            self._unified_state.charge = float(x1[0])
+            self._unified_state.flux_linkage = float(x1[1])
+        x_mid = 0.5 * (x0 + x1)
+        grad_mid = ctrl.K @ x_mid
+        rayleigh = float(grad_mid @ (ctrl.R @ grad_mid))
+        y_mid = ctrl.g.T @ grad_mid
+        supply = float(u @ y_mid)
+        fl = self._unified_state.evolve_generic_bath(dt, rayleigh, supply, H1 - H0)
+        if not fl.is_second_law:
+            raise EntropyViolationError(f"2ª ley discreta violada: σ={fl.sigma:.3e}.")
+        I_obs = self._unified_state.current
+        if I_obs is None:
+            I_obs = math.sqrt(max(rayleigh, 0.0) / max(self.R, CONSTANTS.NUMERICAL_TOLERANCE)) if self.R > 0.0 else 0.0
+        self._last_current_obs = float(I_obs)
+        self._maybe_refresh_maxwell_state(x1)
+        if self._config.brain_enabled:
+            v_bus = self._observability_voltage(x1, H1)
+            self._update_tactical_reserve(dt, v_bus)
+        audit = self.poincare_audit(dt)
+        return self._assemble_metrics(
+            dt=dt,
+            current_I=float(I_obs),
+            H_em=H1,
+            audit=audit,
+            phs_report=report,
+            first_law=fl,
+        )
+
+    def _maybe_refresh_maxwell_state(self, x: np.ndarray) -> None:
+        solver = self._maxwell_solver
+        if solver is None:
+            return
+        n_e, n_f = solver.calc.num_edges, solver.calc.num_faces
+        if x.size != n_e + n_f:
+            return
+        solver.D = x[:n_e].copy()
+        solver.B = x[n_e:].copy()
+        if n_e > 0:
+            solver.E = (1.0 / solver.epsilon) * (solver.calc.star1_inv @ solver.D)
+        if n_f > 0:
+            solver.H = (1.0 / solver.mu) * (solver.calc.star2 @ solver.B)
+
+    def _observability_voltage(self, x: np.ndarray, H: float) -> float:
+        if self._unified_state.charge is not None:
+            return float(self._unified_state.charge / self.C)
+        return float(math.sqrt(max(2.0 * H / max(self.C, CONSTANTS.NUMERICAL_TOLERANCE), 0.0)))
+
+    # ── standalone RLC ────────────────────────────────────────────────────────
+
+    def _R_series(self, I: float) -> float:
+        """R_s(I) = R (1 + β (I²+ε)^((p-2)/2)). Serie, no paralelo."""
+        s = I * I + self._p_eps
+        return float(self.R * (1.0 + self._p_beta * s ** ((self._p_exp - 2.0) / 2.0)))
+
+    def _G_shunt(self, V: float) -> float:
+        if self._p_G0 <= 0.0:
+            return 0.0
+        return float(self._p_G0 * (abs(V) + self._p_eps) ** (self._p_exp - 2.0))
+
+    def _rlc_f(self, Q: float, lam: float, u_s: float) -> np.ndarray:
+        r"""
+        x=[Q,λ],  Q̇ = λ/L − G(Q/C) Q/C,  λ̇ = u − Q/C − R_s(I) I.
+        u_s esfuerzo de puerto (voltaje de fuente).
+        """
+        I = lam / self.L
+        V = Q / self.C
+        G = self._G_shunt(V)
+        dQ = I - G * V
+        dlam = u_s - V - self._R_series(I) * I
+        return np.array([dQ, dlam], dtype=float)
+
+    def _rlc_jacobian(self, Q: float, lam: float) -> np.ndarray:
+        I = lam / self.L
+        V = Q / self.C
+        # dQ/dQ, dQ/dλ
+        G = self._G_shunt(V)
+        # G(V)·V ; d(GV)/dQ = (dG/dV · V + G) / C
+        dG_dV = 0.0
+        if self._p_G0 > 0.0:
+            dG_dV = self._p_G0 * (self._p_exp - 2.0) * (abs(V) + self._p_eps) ** (self._p_exp - 3.0) * math.copysign(1.0, V or 1.0)
+        dGV_dQ = (dG_dV * V + G) / self.C
+        # R_s(I) I
+        s = I * I + self._p_eps
+        alpha = (self._p_exp - 2.0) / 2.0
+        dRs_dI = self.R * self._p_beta * alpha * (s ** (alpha - 1.0)) * 2.0 * I if alpha != 0.0 else 0.0
+        d_RI_dI = self._R_series(I) + I * dRs_dI
+        # λ̇ = u − Q/C − R I ;  ∂λ̇/∂Q = −1/C, ∂λ̇/∂λ = −(d_RI_dI)/L
+        return np.array(
+            [
+                [-dGV_dQ, 1.0 / self.L],
+                [-1.0 / self.C, -d_RI_dI / self.L],
+            ],
+            dtype=float,
+        )
+
+    def _newton_theta(
+        self,
+        y_curr: np.ndarray,
+        f_curr: np.ndarray,
+        u_s: float,
+        dt: float,
+        theta: float,
+    ) -> np.ndarray:
+        y = y_curr.copy()
+        tol = self._config.newton_tol
+        I2 = np.eye(2)
+        resid_norm = float("inf")
+        converged = False
+        iterations = 0
+        for it in range(self._config.newton_max_iter):
+            iterations = it + 1
+            f_next = self._rlc_f(y[0], y[1], u_s)
+            resid = y - y_curr - dt * ((1.0 - theta) * f_curr + theta * f_next)
+            resid_norm = float(np.linalg.norm(resid))
+            if resid_norm < tol * (1.0 + float(np.linalg.norm(y))):
+                converged = True
+                break
+            J = self._rlc_jacobian(y[0], y[1])
+            J_F = I2 - dt * theta * J
+            try:
+                delta = np.linalg.solve(J_F, -resid)
+            except np.linalg.LinAlgError:
+                delta = np.linalg.lstsq(J_F, -resid, rcond=None)[0]
+            y = y + delta
+            if not np.all(np.isfinite(y)):
+                raise NumericalInstabilityError("Newton RLC divergió.")
+        self._newton_iter_total += iterations
+        self._newton_step_total += 1
+        if not converged:
+            self._newton_fail_count += 1
+            self.logger.warning("Newton RLC no convergió (resid=%.3e, θ=%.3f).", resid_norm, theta)
+        return y
+
+    def _tr_bdf2_hosea_shampine(self, y_n: np.ndarray, u_s: float, dt: float) -> np.ndarray:
+        r"""
+        γ = 2−√2.
+        (TR)  y_{n+γ} = y_n + (γh/2)(f_n + f_{n+γ})
+        (BDF2) y_{n+1} − c h f_{n+1} = a y_n + b y_{n+γ}
+              a = 1/(γ(2−γ)),  b = −(1−γ)²/(γ(2−γ)),  c = (1−γ)/(2−γ)
+        """
+        gamma = 2.0 - math.sqrt(2.0)
+        f_n = self._rlc_f(y_n[0], y_n[1], u_s)
+        y_g = self._newton_theta(y_n, f_n, u_s, gamma * dt, theta=0.5)
+        a = 1.0 / (gamma * (2.0 - gamma))
+        b = -((1.0 - gamma) ** 2) / (gamma * (2.0 - gamma))
+        c = (1.0 - gamma) / (2.0 - gamma)
+        rhs_const = a * y_n + b * y_g
+        y = y_g.copy()
+        I2 = np.eye(2)
+        tol = self._config.newton_tol
+        converged = False
+        for it in range(self._config.newton_max_iter):
+            f_np1 = self._rlc_f(y[0], y[1], u_s)
+            resid = y - c * dt * f_np1 - rhs_const
+            if float(np.linalg.norm(resid)) < tol * (1.0 + float(np.linalg.norm(y))):
+                converged = True
+                break
+            J = self._rlc_jacobian(y[0], y[1])
+            J_F = I2 - c * dt * J
+            try:
+                delta = np.linalg.solve(J_F, -resid)
+            except np.linalg.LinAlgError:
+                delta = np.linalg.lstsq(J_F, -resid, rcond=None)[0]
+            y = y + delta
+            if not np.all(np.isfinite(y)):
+                raise NumericalInstabilityError("TR-BDF2 divergió.")
+        self._newton_step_total += 1
+        self._newton_iter_total += it + 1
+        if not converged:
+            self._newton_fail_count += 1
+            self.logger.warning("TR-BDF2 (Hosea–Shampine) no convergió.")
+        return y
+
+    def _step_standalone_rlc(self, dt: float, u_s: float) -> Dict[str, Any]:
+        st = self._unified_state
+        if st.charge is None or st.flux_linkage is None:
+            st.atlas = AtlasKind.STANDALONE
+            st.charge = 0.0
+            st.flux_linkage = 0.0
+        Q, lam = float(st.charge), float(st.flux_linkage)
+        y_n = np.array([Q, lam], dtype=float)
+        H0 = 0.5 * Q * Q / self.C + 0.5 * lam * lam / self.L
+        scheme = self._config.integrator
+        if scheme == "tr_bdf2":
+            y_np1 = self._tr_bdf2_hosea_shampine(y_n, u_s, dt)
+        elif scheme == "implicit_euler":
+            y_np1 = self._newton_theta(y_n, self._rlc_f(Q, lam, u_s), u_s, dt, theta=1.0)
+        elif scheme == "trapezoidal":
+            y_np1 = self._newton_theta(y_n, self._rlc_f(Q, lam, u_s), u_s, dt, theta=0.5)
+        else:
+            # punto medio: θ=1/2 es el trapecio; para H cuadrática + R lineal = gradiente discreto
+            y_np1 = self._newton_theta(y_n, self._rlc_f(Q, lam, u_s), u_s, dt, theta=0.5)
+        Q1, lam1 = float(y_np1[0]), float(y_np1[1])
+        st.charge, st.flux_linkage = Q1, lam1
+        st.state_vector = np.array([Q1, lam1], dtype=float)
+        H1 = 0.5 * Q1 * Q1 / self.C + 0.5 * lam1 * lam1 / self.L
+        I_mid = 0.5 * (lam + lam1) / self.L
+        Q_mid = 0.5 * (Q + Q1)
+        rayleigh = self._R_series(I_mid) * I_mid ** 2 + self._G_shunt(Q_mid / self.C) * (Q_mid / self.C) ** 2
+        supply = float(u_s) * I_mid
+        fl = st.evolve_generic_bath(dt, rayleigh, supply, H1 - H0)
+        if self._config.brain_enabled:
+            self._update_tactical_reserve(dt, Q1 / self.C)
+        self._last_current_obs = lam1 / self.L
+        st.control_applied = np.array([u_s], dtype=float)
+        audit = self.poincare_audit(dt)
+        return self._assemble_metrics(
+            dt=dt,
+            current_I=self._last_current_obs,
+            H_em=H1,
+            audit=audit,
+            phs_report=None,
+            first_law=fl,
+        )
+
+    def _update_tactical_reserve(self, dt: float, main_bus_voltage: float) -> None:
+        """RC de *control plane*. No forma parte del PHS ni de Casimirs."""
+        if not self._config.brain_enabled:
+            return
+        state = self._unified_state
+        cfg = self._config
+        L_brain, C_brain, R_brain = 10e-6, cfg.brain_capacitance, 0.5
+        target_voltage = max(0.0, main_bus_voltage - cfg.brain_diode_drop)
+        if target_voltage > state.brain_voltage:
+            delta_v = target_voltage - state.brain_voltage
+            di_dt = (delta_v - state.brain_inflow_current * R_brain) / L_brain
+            state.brain_inflow_current = max(0.0, state.brain_inflow_current + di_dt * dt)
+            state.brain_voltage += state.brain_inflow_current * dt / C_brain
+        else:
+            state.brain_inflow_current = 0.0
+            state.brain_voltage -= (cfg.brain_agent_consumption_amps * dt) / C_brain
+        state.brain_alive = bool(state.brain_voltage >= cfg.brain_brownout_threshold)
+        if not state.brain_alive:
+            self.logger.critical("Brownout del plano de control (metáfora de orquestación).")
+
+    def _assemble_metrics(
+        self,
+        dt: float,
+        current_I: float,
+        H_em: float,
+        audit: Dict[str, Any],
+        phs_report: Optional[PortHamiltonianControlReport],
+        first_law: FirstLawAudit,
+    ) -> Dict[str, Any]:
+        st = self._unified_state
+        Q = st.charge
+        lam = st.flux_linkage
+        v_elastic = (Q / self.C) if Q is not None else 0.0
+        potential_energy = (0.5 * Q * Q / self.C) if Q is not None else float("nan")
+        kinetic_energy = (0.5 * lam * lam / self.L) if lam is not None else float("nan")
+        saturation = float(np.clip(abs(v_elastic) / max(self._config.max_voltage, CONSTANTS.NUMERICAL_TOLERANCE), 0.0, 1.0))
+        dissipated = float(first_law.sigma * st.thermal.reservoir_temperature_K)
+        return {
+            "time": float(self._clock()),
+            "physics_time": float(st.physics_time),
+            "dt": float(dt),
+            "atlas": st.atlas.value,
+            "saturation": saturation,
+            "complexity": float(np.clip(1.0 - saturation, 0.0, 1.0)),
+            "current_I": float(current_I),
+            "potential_energy": float(potential_energy) if Q is not None else 0.0,
+            "kinetic_energy": float(kinetic_energy) if lam is not None else 0.0,
+            "total_energy": float(H_em),
+            "availability": float(H_em),
+            "dissipated_power": dissipated,
+            "v_elastic": float(v_elastic),
+            "damping_ratio": self._zeta,
+            "damping_type": self._damping_type,
+            "resonant_frequency_hz": self._omega_0 / (2.0 * math.pi),
+            "quality_factor": self._Q,
+            "muscle_temp": st.muscle_temperature,
+            "brain_voltage": st.brain_voltage,
+            "brain_alive": float(st.brain_alive),
+            "brownout_risk": float(st.brain_voltage < self._config.brain_brownout_threshold + 0.5),
+            "clamping_active": float(abs(v_elastic) > self._config.max_voltage),
+            "entropy_generation_dS": float(st.last_dS),
+            "entropy_sigma": float(st.last_sigma),
+            "first_law_residual": float(first_law.residual),
+            "first_law_ok": float(first_law.is_first_law),
+            "second_law_ok": float(first_law.is_second_law),
+            "poincare_audit": audit,
+            "phs_preserved": bool(st._phs_preserved),
+            "discrete_residual": float(getattr(phs_report, "discrete_residual", first_law.residual) if phs_report else first_law.residual),
+            "casimir_drift": float(getattr(phs_report, "casimir_drift", 0.0) if phs_report else 0.0),
+            "pumping_required": float(st.pumping_required),
+            "newton_avg_iter": float(self._newton_iter_total / max(1, self._newton_step_total)),
+            "newton_fail_count": int(self._newton_fail_count),
+            "schema_version": st.schema_version,
+        }
+
+    def calculate_metrics(
+        self,
+        total_records: int,
+        cache_hits: int,
+        error_count: int = 0,
+        processing_time: float = 1.0,
+        condenser_config: Optional[CondenserConfig] = None,
+        dt_override: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """
+        Un paso físico con dt *físico* (hints o physics_dt). cache_hits NO es corriente.
+        En standalone, se usa una fuente nula (u=0) salvo dt_override; la saturación
+        observada alimenta el PI de lotes, no el puerto PHS.
+        """
+        if total_records <= 0:
+            return self._get_zero_metrics()
+        dt = (
+            float(dt_override)
+            if dt_override is not None and math.isfinite(dt_override) and dt_override > 0.0
+            else float(self._last_audit_dt or self._config.physics_dt)
+        )
+        metrics = self.step(dt=dt, driving_current=0.0)
+        info = self._info_entropy.calculate_system_entropy(
+            total_records=total_records,
+            error_count=error_count,
+            processing_time=processing_time,
+        )
+        metrics.update(info)
+        self._proximity.build(metrics)
+        metrics.update(self._proximity.diagnose())
+        if self._latest_seed is not None:
+            b = (self._latest_seed.metadata or {}).get("betti_numbers")
+            if b:
+                metrics["dec_betti_numbers"] = tuple(b)
+        if self._maxwell_solver is not None:
+            mm = self._maxwell_solver.compute_energy_and_momentum()
+            metrics.update(
+                {
+                    "field_energy": float(mm.get("total_energy", 0.0)),
+                    "gauss_residual": float(mm.get("gauss_residual", 0.0)),
+                    "field_momentum_magnitude": float(mm.get("momentum_magnitude", 0.0)),
+                }
+            )
+        return metrics
+
+    def _get_zero_metrics(self) -> Dict[str, Any]:
+        return {
+            "time": 0.0, "physics_time": 0.0, "dt": 0.0, "atlas": self._unified_state.atlas.value,
+            "saturation": 0.0, "complexity": 1.0, "current_I": 0.0,
+            "potential_energy": 0.0, "kinetic_energy": 0.0, "total_energy": 0.0,
+            "availability": 0.0, "dissipated_power": 0.0, "v_elastic": 0.0,
+            "damping_ratio": self._zeta, "damping_type": self._damping_type,
+            "resonant_frequency_hz": self._omega_0 / (2.0 * math.pi),
+            "quality_factor": self._Q, "muscle_temp": self._unified_state.muscle_temperature,
+            "brain_voltage": self._unified_state.brain_voltage, "brain_alive": 1.0,
+            "brownout_risk": 0.0, "clamping_active": 0.0,
+            "entropy_generation_dS": 0.0, "entropy_sigma": 0.0,
+            "first_law_residual": 0.0, "first_law_ok": 1.0, "second_law_ok": 1.0,
+            "poincare_audit": {}, "phs_preserved": bool(self._unified_state._phs_preserved),
+            "discrete_residual": 0.0, "casimir_drift": 0.0, "pumping_required": 0.0,
+            "newton_avg_iter": 0.0, "newton_fail_count": 0,
+            "proximity_beta_0": 0, "proximity_beta_1": 0, "proximity_euler": 0,
+            "info_shannon": 0.0, "schema_version": self._unified_state.schema_version,
+        }
+
+    def get_system_diagnosis(self, metrics: Mapping[str, Any]) -> Dict[str, str]:
         diagnosis = {
             "state": "NOMINAL",
             "damping": self._damping_type,
             "energy": "BALANCED",
-            "entropy": "LOW",
+            "info_entropy": "LOW",
+            "topology_proximity": "SIMPLE",
+            "phs": "PRESERVED" if metrics.get("phs_preserved", False) else "LOST",
+            "first_law": "OK" if metrics.get("first_law_ok", 1.0) else "BROKEN",
+            "second_law": "OK" if metrics.get("second_law_ok", 1.0) else "BROKEN",
         }
-
-        # Diagnóstico de saturación
-        saturation = metrics.get("saturation", 0.0)
+        saturation = float(metrics.get("saturation", 0.0))
         if saturation > 0.95:
             diagnosis["state"] = "SATURATED"
         elif saturation < 0.05:
             diagnosis["state"] = "IDLE"
-
-        # Diagnóstico de energía
-        pe = metrics.get("potential_energy", 0)
-        ke = metrics.get("kinetic_energy", 0)
-        total_e = pe + ke
-
-        if total_e > 0:
-            if pe / total_e > 0.9:
-                diagnosis["energy"] = "POTENTIAL_DOMINATED"
-            elif ke / total_e > 0.9:
-                diagnosis["energy"] = "KINETIC_DOMINATED"
-
-        # Diagnóstico de potencia
-        power = metrics.get("dissipated_power", 0)
-        if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
+        if float(metrics.get("dissipated_power", 0.0)) > CONSTANTS.OVERHEAT_POWER_THRESHOLD:
             diagnosis["state"] = "OVERHEATING"
-
-        # Diagnóstico de entropía
-        entropy_ratio = metrics.get("entropy_ratio", 0)
-        if entropy_ratio > 0.8:
-            diagnosis["entropy"] = "HIGH"
-            if metrics.get("is_thermal_death", False):
-                diagnosis["state"] = "THERMAL_DEATH"
-        elif entropy_ratio > 0.5:
-            diagnosis["entropy"] = "MODERATE"
-
-        # Diagnóstico topológico
-        betti_0 = metrics.get("betti_0", 1)
-        betti_1 = metrics.get("betti_1", 0)
-
-        if betti_0 > 1:
-            diagnosis["topology"] = "DISCONNECTED"
-        elif betti_1 > 0:
-            diagnosis["topology"] = "CYCLIC"
-        else:
-            diagnosis["topology"] = "SIMPLE"
-
-        # Diagnóstico Giroscópico
-        gyro_stability = metrics.get("gyroscopic_stability", 1.0)
-        diagnosis["rotation_stability"] = "STABLE"
-        if gyro_stability < 0.6:
-            diagnosis["rotation_stability"] = (
-                "⚠️ PRECESIÓN DETECTADA (Inestabilidad de Flujo)"
-            )
-            # También escalamos el estado si es crítico
-            if gyro_stability < 0.3 and diagnosis["state"] == "NOMINAL":
-                diagnosis["state"] = "UNSTABLE"
-
+        if float(metrics.get("info_error_fraction", 0.0)) > 0.25:
+            diagnosis["info_entropy"] = "HIGH"
+        if int(metrics.get("proximity_beta_0", 1)) > 1:
+            diagnosis["topology_proximity"] = "DISCONNECTED"
+        elif int(metrics.get("proximity_beta_1", 0)) > 0:
+            diagnosis["topology_proximity"] = "CYCLIC"
+        if float(metrics.get("entropy_sigma", 0.0)) < -CONSTANTS.NUMERICAL_TOLERANCE:
+            diagnosis["state"] = "ENTROPY_VIOLATION"
+        if not metrics.get("first_law_ok", 1.0):
+            diagnosis["state"] = "FIRST_LAW_RESIDUAL"
         return diagnosis
+
+    def unified_snapshot(
+        self,
+        metadata: Optional[Dict[str, Any]] = None,
+        dt_audit: Optional[float] = None,
+    ) -> UnifiedPhysicalSnapshot:
+        dt = dt_audit if dt_audit is not None and dt_audit > 0.0 else self._last_audit_dt
+        audit = self.poincare_audit(dt)
+        return self._unified_state.snapshot(wall_time=float(self._clock()), poincare_audit=audit, metadata=metadata)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FASE 3.5 — ORQUESTADOR (PI DE LOTES ≠ PUERTO PHS)
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
 
 class DataFluxCondenser:
-    """
-    Orquesta el pipeline de validación y procesamiento con control adaptativo.
+    r"""
+    Orquestador. El PI actúa sobre saturación → tamaño de lote.
+    El PHS se avanza con u_app de la semilla y physics_dt, nunca con wall-clock.
+    El reloj inyectable solo mide timeout y throughput.
     """
 
     def __init__(
         self,
-        config: Dict[str, Any],
-        profile: Dict[str, Any],
+        config: Optional[Dict[str, Any]] = None,
+        profile: Optional[Dict[str, Any]] = None,
         condenser_config: Optional[CondenserConfig] = None,
-        thresholds: Optional[ProcessingThresholds] = None,
-    ):
-        """
-        Inicializa el orquestador con validación de estabilidad a priori.
-
-        Secuencia de inicialización:
-        1. Configuración de logging y parámetros base
-        2. Análisis de Laplace para validación de estabilidad
-        3. Inicialización de componentes (física, controlador)
-        4. Setup de estructuras de estado
-
-        Args:
-            config: Configuración general.
-            profile: Perfil de procesamiento.
-            condenser_config: Configuración específica del condensador (optional, defaults to CondenserConfig()).
-            thresholds: Umbrales de procesamiento (Opcional, se cargan de config si es None).
-
-        Raises:
-            ConfigurationError: Si la configuración no es apta para control
-        r"""
+        record_processor: Optional[Callable[[List[Any], Dict[str, Any], Optional[Any]], Any]] = None,
+        clock: Optional[Callable[[], float]] = None,
+        cache_hit_estimator: Optional[Callable[[List[Any], Dict[str, Any]], int]] = None,
+        maxwell: Optional["MaxwellSolver"] = None,
+    ) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
-
-        # Configuración con defaults seguros
-        self.config = config
-        self.profile = profile
+        self.config = config or {}
+        self.profile = profile or {}
         self.condenser_config = condenser_config or CondenserConfig()
-        self.thresholds = thresholds or ProcessingThresholds(config.get("validation_thresholds", {}))
-        self.telemetry = None  # Se inyecta en stabilize_stream o stabilize
-        self._cache_bayesian_state = {
-            "alpha": 1.0,
-            "beta": 1.0,
-            "total_samples": 0,
-        }
-
-        # Estado de inicialización para diagnóstico
-        self._initialization_status = {
-            "laplace_validated": False,
-            "physics_initialized": False,
-            "controller_initialized": False,
-            "timestamp": time.time(),
-        }
-
-        try:
-            # ══════════════════════════════════════════════════════════════
-            # FASE 1: ANÁLISIS DE ESTABILIDAD (Laplace)
-            # ══════════════════════════════════════════════════════════════
-            self.logger.info("🔬 Iniciando Análisis de Laplace Mejorado...")
-
-            try:
-                self.laplace_analyzer = LaplaceOracle(
-                    R=self.condenser_config.base_resistance,
-                    L=self.condenser_config.system_inductance,
-                    C=self.condenser_config.system_capacitance,
-                    sample_rate=getattr(self.condenser_config, 'sample_rate', 1000.0)
-                )
-            except OracleConfigurationError as e:
-                raise ConfigurationError(str(e))
-
-            validation = self.laplace_analyzer.validate_for_control_design()
-
-            if not validation["is_suitable_for_control"]:
-                issues_str = "\n".join(f"  • {issue}" for issue in validation["issues"])
-                raise ConfigurationError(
-                    f"CONFIGURACIÓN NO APTA PARA CONTROL:\n{issues_str}\n"
-                    f"Resumen: {validation['summary']}\n"
-                    f"Recomendaciones:\n" +
-                    "\n".join(f"  → {r}" for r in validation.get("recommendations", []))
-                )
-
-            self._initialization_status["laplace_validated"] = True
-
-            # Loguear advertencias con contexto
-            for warning in validation["warnings"]:
-                self.logger.warning(f"⚠️ Advertencia de Control: {warning}")
-
-            stability = self.laplace_analyzer.analyze_stability()
-            self.logger.info(
-                f"✅ Estabilidad Confirmada: "
-                f"ωₙ={stability['continuous']['natural_frequency_rad_s']:.2f} rad/s, "
-                f"ζ={stability['continuous']['damping_ratio']:.3f}, "
-                f"PM={stability['stability_margins']['phase_margin_deg']:.1f}°"
-            )
-
-            # Almacenar métricas de estabilidad para referencia
-            self._stability_baseline = {
-                "omega_n": stability['continuous']['natural_frequency_rad_s'],
-                "zeta": stability['continuous']['damping_ratio'],
-                "phase_margin": stability['stability_margins']['phase_margin_deg'],
-                "damping_class": stability['continuous']['damping_class'],
-            }
-
-            # ══════════════════════════════════════════════════════════════
-            # FASE 2: INICIALIZACIÓN DE COMPONENTES
-            # ══════════════════════════════════════════════════════════════
-            self.physics = RefinedFluxPhysicsEngine(
-                self.condenser_config.system_capacitance,
-                self.condenser_config.base_resistance,
-                self.condenser_config.system_inductance,
-                p_laplacian_exponent=self.condenser_config.p_laplacian_exponent,
-                p_laplacian_epsilon=self.condenser_config.p_laplacian_epsilon,
-                p_laplacian_G0=self.condenser_config.p_laplacian_G0,
-            )
-            self._initialization_status["physics_initialized"] = True
-
-            self.controller = PIController(
-                kp=self.condenser_config.pid_kp,
-                ki=self.condenser_config.pid_ki,
-                setpoint=self.condenser_config.pid_setpoint,
-                min_output=self.condenser_config.min_batch_size,
-                max_output=self.condenser_config.max_batch_size,
-                integral_limit_factor=self.condenser_config.integral_limit_factor,
-            )
-            self._initialization_status["controller_initialized"] = True
-
-        except ConfigurationError:
-            raise
-        except Exception as e:
-            self.logger.exception(f"Error fatal en inicialización: {e}")
-            raise ConfigurationError(
-                f"Error inicializando componentes: {e}\n"
-                f"Estado: {self._initialization_status}"
-            )
-
-        # ══════════════════════════════════════════════════════════════
-        # FASE 3: ESTRUCTURAS DE ESTADO
-        # ══════════════════════════════════════════════════════════════
+        self.record_processor = record_processor
+        self._clock: Callable[[], float] = clock or time.monotonic
+        self._cache_hit_estimator = cache_hit_estimator
+        self.physics = RefinedFluxPhysicsEngine(
+            capacitance=self.condenser_config.system_capacitance,
+            resistance=self.condenser_config.base_resistance,
+            inductance=self.condenser_config.system_inductance,
+            p_laplacian_exponent=self.condenser_config.p_laplacian_exponent,
+            p_laplacian_epsilon=self.condenser_config.p_laplacian_epsilon,
+            p_laplacian_G0=self.condenser_config.p_laplacian_G0,
+            config=self.condenser_config,
+            clock=self._clock,
+            maxwell=maxwell,
+        )
+        self.controller = PIController(
+            kp=self.condenser_config.pid_kp,
+            ki=self.condenser_config.pid_ki,
+            setpoint=self.condenser_config.pid_setpoint,
+            min_output=float(self.condenser_config.min_batch_size),
+            max_output=float(self.condenser_config.max_batch_size),
+            integral_limit_factor=self.condenser_config.integral_limit_factor,
+            use_ema=True,
+            energy_error_mode="absolute",
+        )
+        self.poincare_controller: Optional[PortHamiltonianPoincareController] = None
         self._stats = ProcessingStats()
         self._start_time: Optional[float] = None
-        self._emergency_brake_count: int = 0
-
-        # Cache para predicciones (EKF)
-        self._ekf_state: Optional[Dict[str, Any]] = None
-
-        # Historial de métricas para análisis de tendencias
+        self._emergency_brake_count = 0
         self._metrics_history: deque = deque(maxlen=100)
-
+        self._current_trace_id = ""
+        self._physics_dt = float(self.condenser_config.physics_dt)
         self.logger.info(
-            f"✅ DataFluxCondenser inicializado: "
-            f"batch_range=[{self.condenser_config.min_batch_size}, "
-            f"{self.condenser_config.max_batch_size}]"
+            "DataFluxCondenser 7.1: batch=[%d,%d], integrator=%s, physics_dt=%g",
+            self.condenser_config.min_batch_size,
+            self.condenser_config.max_batch_size,
+            self.condenser_config.integrator,
+            self._physics_dt,
         )
 
-    def get_physics_report(self) -> Dict[str, Any]:
-        """
-        Obtiene reporte físico completo del sistema.
+    def consume_engine_seed(self, seed: PoincareEngineSeed) -> Dict[str, Any]:
+        if seed is None:
+            raise EngineSeedError("PoincareEngineSeed es requerida.")
+        if bool((seed.engine_hints or {}).get("do_not_regulate_casimirs", True)) is False:
+            logger.warning("La semilla pide regular Casimirs; se ignora (contrato 7.1).")
+        audit = self.physics.consume_engine_seed(seed)
+        self.poincare_controller = self.physics._phs_controller
+        hints = dict(seed.engine_hints or {})
+        dt_s = float(hints.get("dt_suggested", self.condenser_config.physics_dt))
+        if math.isfinite(dt_s) and dt_s > 0.0:
+            self._physics_dt = dt_s
+        if self.condenser_config.trace_enabled:
+            self._current_trace_id = f"trace-{int(self._clock() * 1e6)}"
+        return audit
 
-        Incluye análisis de Laplace, respuesta en frecuencia,
-        y validación para diseño de control.
-        """
-        try:
-            report = self.laplace_analyzer.get_comprehensive_report()
-
-            # Enriquecer con estado actual
-            report["runtime_state"] = {
-                "emergency_brakes": self._emergency_brake_count,
-                "processed_records": self._stats.processed_records,
-                "uptime_s": time.time() - self._start_time if self._start_time else 0,
-            }
-
-            return report
-
-        except Exception as e:
-            self.logger.error(f"Error generando reporte físico: {e}")
-            return {
-                "error": str(e),
-                "system_parameters": {
-                    "R": self.condenser_config.base_resistance,
-                    "L": self.condenser_config.system_inductance,
-                    "C": self.condenser_config.system_capacitance,
-                }
-            }
-
-    def stabilize(
+    def stabilize_records(
         self,
-        file_path: str,
-        on_progress: Optional[Callable[[ProcessingStats], None]] = None,
-        progress_callback: Optional[Callable[[Dict[str, Any]], None]] = None,
-        telemetry: Optional[TelemetryContext] = None,
-    ) -> pd.DataFrame:
-        """
-        Proceso principal de estabilización con control PID y telemetría.
-
-        Pipeline de procesamiento:
-        1. Validación de entrada
-        2. Parsing de datos crudos
-        3. Procesamiento por batches con control adaptativo
-        4. Consolidación y validación de salida
-
-        Args:
-            file_path: Ruta al archivo de entrada
-            on_progress: Callback para estadísticas de progreso
-            progress_callback: Callback para métricas detalladas
-            telemetry: Contexto de telemetría opcional
-
-        Returns:
-            DataFrame consolidado con datos procesados
-
-        Raises:
-            InvalidInputError: Si el archivo no es válido
-            ProcessingError: Si ocurre error durante procesamiento
-        """
-        # Inicializar estado de sesión
-        self._start_time = time.time()
+        raw_records: List[Any],
+        cache: Optional[Dict[str, Any]] = None,
+        telemetry: Optional[Any] = None,
+    ) -> Any:
+        if raw_records is None:
+            raise InvalidInputError("raw_records es requerido.")
+        cache = cache or {}
+        self._start_time = self._clock()
         self._stats = ProcessingStats()
         self._emergency_brake_count = 0
-        self._ekf_state = None  # Reset EKF para nueva sesión
+        self._metrics_history.clear()
         self.controller.reset()
-        self.telemetry = telemetry # Set telemetry for this run
-
-        # Validación de entrada
-        if not file_path:
-            raise InvalidInputError("file_path es requerido y no puede estar vacío")
-
-        path_obj = Path(file_path)
-        self.logger.info(f"⚡ [STABILIZE] Iniciando: {path_obj.name}")
-
-        # Contexto de telemetría con fallback
-        telemetry_active = telemetry is not None
-
-        if telemetry_active:
-            telemetry.record_event(
-                "stabilization_start",
-                {
-                    "file": path_obj.name,
-                    "file_size_bytes": path_obj.stat().st_size if path_obj.exists() else 0,
-                    "config": asdict(self.condenser_config),
-                    "stability_baseline": self._stability_baseline,
-                },
-            )
-
-        try:
-            # ══════════════════════════════════════════════════════════════
-            # FASE 1: VALIDACIÓN Y PARSING
-            # ══════════════════════════════════════════════════════════════
-            validated_path = self._validate_input_file(file_path)
-            parser = self._initialize_parser(validated_path, telemetry)
-            raw_records, cache = self._extract_raw_data(parser)
-
-            if not raw_records:
-                self.logger.warning("No se encontraron registros para procesar")
-                if telemetry_active:
-                    telemetry.record_event("stabilization_empty", {"reason": "no_records"})
-                return pd.DataFrame()
-
-            total_records = len(raw_records)
-            self._stats.total_records = total_records
-
-            # Verificar límites
-            if total_records > SystemConstants.MAX_RECORDS_LIMIT:
-                raise ProcessingError(
-                    f"Total de registros ({total_records:,}) excede límite "
-                    f"({SystemConstants.MAX_RECORDS_LIMIT:,}). "
-                    f"Considere dividir el archivo."
-                )
-
-            self.logger.info(f"📊 Registros a procesar: {total_records:,}")
-
-            # ══════════════════════════════════════════════════════════════
-            # FASE 2: PROCESAMIENTO POR BATCHES
-            # ══════════════════════════════════════════════════════════════
-            processed_batches = self._process_batches_with_pid(
-                raw_records=raw_records,
-                cache=cache,
-                total_records=total_records,
-                on_progress=on_progress,
-                progress_callback=progress_callback,
-                telemetry=telemetry,
-            )
-
-            # ══════════════════════════════════════════════════════════════
-            # FASE 3: CONSOLIDACIÓN Y VALIDACIÓN
-            # ══════════════════════════════════════════════════════════════
-            df_final = self._consolidate_results(processed_batches)
-            self._stats.processing_time = time.time() - self._start_time
-
-            self._validate_output(df_final)
-
-            # Registrar éxito
-            if telemetry_active:
-                telemetry.record_event(
-                    "stabilization_complete",
-                    {
-                        "records_input": total_records,
-                        "records_output": len(df_final),
-                        "records_processed": self._stats.processed_records,
-                        "processing_time_s": self._stats.processing_time,
-                        "throughput_records_per_s": (
-                            self._stats.processed_records / max(0.001, self._stats.processing_time)
-                        ),
-                        "emergency_brakes": self._emergency_brake_count,
-                        "batches_processed": len(processed_batches),
-                        "efficiency": self._stats.processed_records / max(1, total_records),
-                    },
-                )
-
-            self.logger.info(
-                f"✅ [STABILIZE] Completado: {self._stats.processed_records:,} registros "
-                f"en {self._stats.processing_time:.2f}s "
-                f"({self._stats.processed_records / max(0.001, self._stats.processing_time):.0f} rec/s)"
-            )
-
-            return df_final
-
-        except DataFluxCondenserError as e:
-            if telemetry_active:
-                telemetry.record_event(
-                    "stabilization_error",
-                    {
-                        "error_type": type(e).__name__,
-                        "error_message": str(e),
-                        "progress": self._stats.processed_records / max(1, self._stats.total_records),
-                    }
-                )
-            raise
-
-        except Exception as e:
-            self.logger.exception(f"Error inesperado en estabilización: {e}")
-            if telemetry_active:
-                telemetry.record_event(
-                    "stabilization_fatal_error",
-                    {"error_type": type(e).__name__, "error_message": str(e)}
-                )
-            raise ProcessingError(f"Error fatal en estabilización: {e}")
-
-    def stabilize_stream(
-        self, sources: Dict[str, Path], telemetry: TelemetryContext
-    ) -> Dict[str, pd.DataFrame]:
-        """
-        Ingesta y estabiliza flujos de datos crudos (PHYSICS Layer).
-
-        Realiza la validación física de existencia, ingestión y validación estructural
-        de los archivos de entrada (Presupuesto, Insumos, APUs).
-
-        Args:
-            sources: Diccionario con rutas de archivos ('presupuesto', 'insumos', 'apus').
-            telemetry: Contexto de telemetría para registrar eventos.
-
-        Returns:
-            Dict con DataFrames estabilizados ('presupuesto', 'insumos', 'apus').
-
-        Raises:
-            ValueError: Si algún archivo crítico no existe o es inválido.
-        """
-        self.telemetry = telemetry
-        logger.info("Iniciando estabilización de flujo de datos (PHYSICS)...")
-
-        # 1. Validación de Existencia (Source Integrity)
-        file_validator = FileValidator()
-        required_files = [
-            (sources.get("presupuesto"), "presupuesto"),
-            (sources.get("insumos"), "insumos"),
-            (sources.get("apus"), "APUs"),
-        ]
-
-        for file_path, file_type in required_files:
-            if not file_path:
-                continue # Algunos pueden ser opcionales según contexto, pero validamos si están
-            
-            is_valid, error = file_validator.validate_file_exists(file_path, file_type)
-            if not is_valid:
-                telemetry.record_error("flux_stabilization", error)
-                raise ValueError(error)
-
-        stabilized_data = {}
-
-        # 2. Ingesta Presupuesto (Masa Estructural)
-        if sources.get("presupuesto"):
-            try:
-                # Usar thresholds propios si están disponibles, o los del config
-                presupuesto_profile = self.config.get("presupuesto_profile", {})
-                p_processor = PresupuestoProcessor(
-                    self.config, self.thresholds, presupuesto_profile
-                )
-                df_presupuesto = p_processor.process(sources["presupuesto"])
-                stabilized_data["presupuesto"] = df_presupuesto
-                logger.info(f"Presupuesto estabilizado: {len(df_presupuesto)} registros.")
-            except Exception as e:
-                telemetry.record_error("presupuesto_ingestion", str(e))
-                raise ValueError(f"Error estabilizando presupuesto: {e}")
-
-        # 3. Ingesta Insumos (Base Material)
-        if sources.get("insumos"):
-            try:
-                insumos_profile = self.config.get("insumos_profile", {})
-                i_processor = InsumosProcessor(self.thresholds, insumos_profile)
-                df_insumos = i_processor.process(sources["insumos"])
-                stabilized_data["insumos"] = df_insumos
-                logger.info(f"Insumos estabilizados: {len(df_insumos)} registros.")
-            except Exception as e:
-                telemetry.record_error("insumos_ingestion", str(e))
-                raise ValueError(f"Error estabilizando insumos: {e}")
-
-        # 4. Ingesta APUs (Flujo Táctico) - Integración con ReportParserCrudo
-        if sources.get("apus"):
-            try:
-                # Utilizamos ReportParserCrudo para validación estructural fuerte
-                parser = ReportParserCrudo(str(sources["apus"]), debug_mode=False)
-                raw_records, stats = parser.parse()
-                
-                # Reportar estadísticas de parsing al sistema de telemetría
-                for stat_name, stat_value in stats.items():
-                    telemetry.record_metric("parser_stats", stat_name, stat_value)
-                
-                # Convertimos registros crudos a DataFrame preliminar 
-                # (nota: APUProcessor hará el refinamiento táctico luego)
-                # Por ahora, FluxCondenser entrega la "materia prima" validada.
-                # Para mantener compatibilidad con el resto del pipeline que espera un DataFrame
-                # procesado por APUProcessor, aquí podríamos llamar a APUProcessor
-                # O devolver los raw_records.
-                # Según el plan, FluxCondenser debe devolver "Stabilized DataFrames".
-                # El pipeline original usaba DataFluxCondenser para cargar APUs también.
-                # Vamos a cargar el DF usando lógica estándar por ahora, 
-                # asumiendo que el parser verifica integridad.
-                
-                # Si DataFluxCondenser tiene su propio mecanismo de carga (ingest_data), usarlo.
-                # Si no, simular carga segura.
-                
-                # Revisando implementación previa de Director, instanciaba Condenser.
-                # Aquí asumimos que este método reemplaza la carga externa.
-                
-                # Para este paso, cargaremos el DF y lo pasaremos. 
-                # La verdadera "condensación" (simulación física) ocurre después si se llama.
-                
-                # HACK: Por ahora usamos carga directa para cumplir interfaz.
-                # Idealmente ReportParserCrudo debería devolver el DF estructurado.
-                df_apus = pd.read_excel(sources["apus"]) if str(sources["apus"]).endswith(".xlsx") else pd.read_csv(sources["apus"])
-                stabilized_data["apus"] = df_apus
-                logger.info(f"APUs estabilizados (preliminar): {len(df_apus)} registros.")
-
-            except Exception as e:
-                 telemetry.record_error("apus_ingestion", str(e))
-                 raise ValueError(f"Error estabilizando APUs: {e}")
-
-        return stabilized_data
-
-    def _validate_input_file(self, file_path: str) -> Path:
-        """Valida el archivo de entrada con verificaciones extendidas."""
-        path = Path(file_path)
-
-        if not path.exists():
-            raise InvalidInputError(f"Archivo no existe: {file_path}")
-
-        if not path.is_file():
-            raise InvalidInputError(f"Ruta no es un archivo: {file_path}")
-
-        if path.suffix.lower() not in SystemConstants.VALID_FILE_EXTENSIONS:
-            raise InvalidInputError(
-                f"Extensión no soportada: {path.suffix}. "
-                f"Válidas: {SystemConstants.VALID_FILE_EXTENSIONS}"
-            )
-
-        file_size = path.stat().st_size
-        if file_size < SystemConstants.MIN_FILE_SIZE_BYTES:
-            raise InvalidInputError(f"Archivo muy pequeño: {file_size} bytes")
-
-        max_size_bytes = SystemConstants.MAX_FILE_SIZE_MB * 1024 * 1024
-        if file_size > max_size_bytes:
-            raise InvalidInputError(
-                f"Archivo excede límite: {file_size / 1024 / 1024:.1f} MB > "
-                f"{SystemConstants.MAX_FILE_SIZE_MB} MB"
-            )
-
-        return path
-
-    def _initialize_parser(self, path: Path, telemetry: Optional[TelemetryContext] = None) -> ReportParserCrudo:
-        """Inicializa el parser con manejo de errores e inyección de telemetría."""
-        try:
-            # Pasamos telemetry al constructor del parser
-            return ReportParserCrudo(str(path), self.profile, self.config, telemetry=telemetry)
-        except TypeError:
-            # Fallback por si ReportParserCrudo no ha sido actualizado aún en el entorno
-            self.logger.warning("ReportParserCrudo no acepta telemetry, usando inicialización legacy")
-            return ReportParserCrudo(str(path), self.profile, self.config)
-        except Exception as e:
-            raise ProcessingError(f"Error inicializando parser: {e}")
-
-    def _extract_raw_data(self, parser) -> Tuple[List, Dict]:
-        """Extrae datos crudos del parser."""
-        try:
-            raw_records = parser.parse_to_raw()
-            cache = parser.get_parse_cache()
-            return raw_records, cache
-        except Exception as e:
-            raise ProcessingError(f"Error extrayendo datos: {e}")
+        total_records = len(raw_records)
+        self._stats.total_records = total_records
+        if total_records == 0:
+            return pd.DataFrame() if pd is not None else []
+        processed_batches = self._process_batches_with_pid(raw_records, cache, total_records, telemetry)
+        result = self._consolidate_results(processed_batches)
+        self._stats.processing_time = self._clock() - self._start_time
+        self._validate_output(result)
+        return result
 
     def _process_batches_with_pid(
         self,
-        raw_records: List,
-        cache: Dict,
+        raw_records: List[Any],
+        cache: Dict[str, Any],
         total_records: int,
-        on_progress: Optional[Callable],
-        progress_callback: Optional[Callable],
-        telemetry: Optional[TelemetryContext],
-    ) -> List[pd.DataFrame]:
-        """
-        Procesamiento con control PID mejorado y feedforward adaptativo.
-
-        ══════════════════════════════════════════════════════════════════
-        ARQUITECTURA DE CONTROL
-        ══════════════════════════════════════════════════════════════════
-
-                        ┌─────────────┐
-        setpoint ──(+)──│     PI      │──┬──> batch_size
-                   │    │ Controller  │  │
-                   │    └─────────────┘  │
-                   │           ↑         │
-                   │    [Anti-windup]    │
-                   │           │         │
-                   │    ┌──────┴──────┐  │
-                   │    │ Feedforward │<─┘
-                   │    │ (Complexity)│
-                   │    └─────────────┘
-                   │           ↑
-                   └───────────┤
-                               │
-        ┌──────────────────────┴──────────────────────┐
-        │              PLANTA (Sistema)               │
-        │  ┌─────────┐    ┌─────────┐    ┌─────────┐  │
-        │  │ Physics │───>│  Batch  │───>│Saturation│ │
-        │  │ Engine  │    │ Process │    │ Metrics │  │
-        │  └─────────┘    └─────────┘    └─────────┘  │
-        └─────────────────────────────────────────────┘
-
-        Características:
-        1. Control PI con anti-windup (del controlador)
-        2. Feedforward basado en gradiente de complejidad
-        3. Predicción de saturación con EKF
-        4. Detección de estado estacionario con test estadístico
-        5. Emergency brake multinivel
-
-        ══════════════════════════════════════════════════════════════════
-        """
-        processed_batches: List[pd.DataFrame] = []
-        failed_batches_count: int = 0
-        current_index: int = 0
-        current_batch_size: int = self.condenser_config.min_batch_size
-        iteration: int = 0
-        max_iterations: int = total_records * SystemConstants.MAX_ITERATIONS_MULTIPLIER
-
-        # Estado para control avanzado
-        saturation_history: deque = deque(maxlen=20)
-        complexity_history: deque = deque(maxlen=10)
-        steady_state_counter: int = 0
-        STEADY_STATE_THRESHOLD: int = 7  # Iteraciones consecutivas
-
-        # Estado para feedforward
-        last_complexity: float = 0.5
-        feedforward_integrator: float = 0.0
-        FEEDFORWARD_GAIN: float = 0.15
-        FEEDFORWARD_DECAY: float = 0.9
-
+        telemetry: Optional[Any],
+    ) -> List[Any]:
+        processed_batches: List[Any] = []
+        failed_batches_count = 0
+        current_index = 0
+        current_batch_size = self.condenser_config.min_batch_size
+        iteration = 0
+        max_iterations = total_records * CONSTANTS.MAX_ITERATIONS_MULTIPLIER
+        dt_phys = self._physics_dt
         while current_index < total_records and iteration < max_iterations:
             iteration += 1
-
-            # ══════════════════════════════════════════════════════════════
-            # EXTRACCIÓN DE BATCH
-            # ══════════════════════════════════════════════════════════════
             end_index = min(current_index + current_batch_size, total_records)
             batch = raw_records[current_index:end_index]
             batch_size = len(batch)
-
             if batch_size == 0:
                 break
-
-            # Verificar timeout
-            elapsed_time = time.time() - self._start_time
-            time_remaining = SystemConstants.PROCESSING_TIMEOUT - elapsed_time
-
-            if time_remaining <= 0:
-                self.logger.error(
-                    f"⏰ Timeout de procesamiento alcanzado ({SystemConstants.PROCESSING_TIMEOUT}s). "
-                    f"Progreso: {current_index}/{total_records} ({100*current_index/total_records:.1f}%)"
-                )
+            elapsed_time = self._clock() - self._start_time
+            if CONSTANTS.PROCESSING_TIMEOUT - elapsed_time <= 0.0:
+                self.logger.error("Timeout. Progreso: %d/%d", current_index, total_records)
                 break
-
-            # Timeout warning anticipado
-            if time_remaining < 60 and iteration % 10 == 0:
-                self.logger.warning(
-                    f"⏳ Tiempo restante bajo: {time_remaining:.0f}s. "
-                    f"Considere reducir batch size."
-                )
-
-            # ══════════════════════════════════════════════════════════════
-            # CÁLCULO DE MÉTRICAS FÍSICAS
-            # ══════════════════════════════════════════════════════════════
-            cache_hits_est = self._estimate_cache_hits(batch, cache)
-
+            cache_hits = self._estimate_cache_hits(batch, cache)
             metrics = self.physics.calculate_metrics(
                 total_records=batch_size,
-                cache_hits=cache_hits_est,
+                cache_hits=cache_hits,
                 error_count=failed_batches_count,
-                processing_time=elapsed_time,
-                condenser_config=self.condenser_config
+                processing_time=max(elapsed_time, CONSTANTS.MIN_DELTA_TIME),
+                condenser_config=self.condenser_config,
+                dt_override=dt_phys,
             )
-
-            # Verificar si el Plano de Control (Cerebro) sigue vivo
-            if not metrics.get("brain_alive", 1.0):
-                self.logger.critical("💀 COLAPSO DEL PLANO DE CONTROL: Voltaje insuficiente en Reserva Táctica.")
-                raise ProcessingError("CONTROL_PLANE_COLLAPSE")
-
-            saturation = metrics.get("saturation", 0.5)
-            complexity = metrics.get("complexity", 0.5)
-            power = metrics.get("dissipated_power", 0.0)
-            flyback = metrics.get("flyback_voltage", 0.0)
-            gyro_stability = metrics.get("gyroscopic_stability", 1.0)
-
-            # Almacenar para historial
-            saturation_history.append(saturation)
-            complexity_history.append(complexity)
+            if self.condenser_config.brain_enabled and not metrics.get("brain_alive", 1.0):
+                raise OrchestrationError("Colapso del plano de control: reserva táctica insuficiente.")
+            saturation = float(metrics.get("saturation", 0.5))
+            power = float(metrics.get("dissipated_power", 0.0))
             self._metrics_history.append(metrics)
-
-            # ══════════════════════════════════════════════════════════════
-            # PREDICCIÓN DE SATURACIÓN (EKF)
-            # ══════════════════════════════════════════════════════════════
-            if len(saturation_history) >= 3:
-                predicted_sat = self._predict_next_saturation(list(saturation_history))
-            else:
-                predicted_sat = saturation
-
-            # ══════════════════════════════════════════════════════════════
-            # FEEDFORWARD ADAPTATIVO
-            # ══════════════════════════════════════════════════════════════
-            # Modelo: feedforward compensa cambios en complejidad antes de que
-            # afecten la saturación (control anticipativo)
-
-            complexity_delta = complexity - last_complexity
-            complexity_acceleration = 0.0
-
-            if len(complexity_history) >= 3:
-                # Segunda derivada de complejidad
-                c = list(complexity_history)
-                complexity_acceleration = c[-1] - 2*c[-2] + c[-3]
-
-            # Integrador con decay para suavidad
-            feedforward_integrator = (
-                FEEDFORWARD_DECAY * feedforward_integrator +
-                FEEDFORWARD_GAIN * (complexity_delta + 0.5 * complexity_acceleration)
-            )
-
-            # Limitar feedforward para evitar inestabilidad
-            feedforward_integrator = max(-0.3, min(0.3, feedforward_integrator))
-
-            # Factor de ajuste (1.0 = sin cambio)
-            if complexity_delta > 0.05:
-                # Complejidad aumentando → reducir batch
-                feedforward_factor = 1.0 - abs(feedforward_integrator)
-            elif complexity_delta < -0.05:
-                # Complejidad disminuyendo → aumentar batch
-                feedforward_factor = 1.0 + abs(feedforward_integrator)
-            else:
-                # Estable → relajar feedforward gradualmente
-                feedforward_factor = 1.0 + 0.3 * feedforward_integrator
-
-            feedforward_factor = max(0.7, min(1.3, feedforward_factor))
-            last_complexity = complexity
-
-            # ══════════════════════════════════════════════════════════════
-            # DETECCIÓN DE ESTADO ESTACIONARIO
-            # ══════════════════════════════════════════════════════════════
-            # Usamos test de varianza con umbral adaptativo
-
-            in_steady_state = False
-
-            if len(saturation_history) >= 5:
-                recent_sats = list(saturation_history)[-5:]
-                mean_sat = sum(recent_sats) / len(recent_sats)
-                variance = sum((s - mean_sat)**2 for s in recent_sats) / len(recent_sats)
-
-                # Umbral adaptativo basado en el setpoint
-                variance_threshold = 0.005 * (1.0 + abs(mean_sat - self.condenser_config.pid_setpoint))
-
-                if variance < variance_threshold:
-                    steady_state_counter += 1
-                else:
-                    # Reset parcial para histéresis
-                    steady_state_counter = max(0, steady_state_counter - 2)
-
-                in_steady_state = steady_state_counter >= STEADY_STATE_THRESHOLD
-
-            # ══════════════════════════════════════════════════════════════
-            # CALLBACK DE PROGRESO
-            # ══════════════════════════════════════════════════════════════
-            if progress_callback:
-                try:
-                    progress_callback({
-                        **metrics,
-                        "iteration": iteration,
-                        "progress": current_index / total_records,
-                        "predicted_saturation": predicted_sat,
-                        "in_steady_state": in_steady_state,
-                        "feedforward_factor": feedforward_factor,
-                        "batch_size": batch_size,
-                        "time_remaining_s": time_remaining,
-                    })
-                except Exception as e:
-                    self.logger.debug(f"Error en progress_callback: {e}")
-
-            # ══════════════════════════════════════════════════════════════
-            # AJUSTE DE SATURACIÓN EFECTIVA
-            # ══════════════════════════════════════════════════════════════
-            # Compensar por inestabilidad giroscópica
-
-            if gyro_stability < 0.5:
-                # Baja estabilidad giroscópica → aumentar saturación percibida
-                # para que el controlador reduzca batch size
-                stability_penalty = 0.3 * (1.0 - gyro_stability / 0.5)
-                effective_saturation = min(saturation + stability_penalty, 0.95)
-            else:
-                effective_saturation = saturation
-
-            # ══════════════════════════════════════════════════════════════
-            # CÓMPUTO DE CONTROL PI
-            # ══════════════════════════════════════════════════════════════
-            pid_output = self.controller.compute(effective_saturation)
-
-            # Aplicar feedforward
-            pid_output_adjusted = int(pid_output * feedforward_factor)
-
-            # ══════════════════════════════════════════════════════════════
-            # PROTECCIÓN DE DESBORDAMIENTO (TANK OVERFLOW)
-            # ══════════════════════════════════════════════════════════════
-            # Límite Físico del Tanque (Protección de la Bomba)
-            # Si la saturación supera el 95%, el tanque está lleno.
+            pi_report = self.controller.compute(measurement=saturation, dt=dt_phys, feedforward=0.0)
+            pid_output_adjusted = int(round(pi_report.applied_output if hasattr(pi_report, "applied_output") else pi_report.output))
             if saturation > 0.95:
-                self.logger.warning("⚠️ PRESIÓN MÁXIMA EN TANQUE: Forzando alivio de bomba.")
-                # Forzar al mínimo absoluto, ignorando PID
                 pid_output_adjusted = self.condenser_config.min_batch_size
-
-            # ══════════════════════════════════════════════════════════════
-            # EMERGENCY BRAKE MULTINIVEL
-            # ══════════════════════════════════════════════════════════════
             emergency_brake = False
             brake_reason = ""
-            brake_severity = 1.0  # 1.0 = sin freno, < 1.0 = freno aplicado
-
-            # Nivel 1: Sobrecalentamiento (potencia excesiva)
-            if power > SystemConstants.OVERHEAT_POWER_THRESHOLD:
-                overheat_ratio = power / SystemConstants.OVERHEAT_POWER_THRESHOLD
-                brake_severity = min(brake_severity, 0.3 / overheat_ratio)
-                emergency_brake = True
-                brake_reason = f"OVERHEAT P={power:.1f}W (>{SystemConstants.OVERHEAT_POWER_THRESHOLD}W)"
-
-            # Nivel 2: Water Hammer Pressure (transitorios peligrosos - antes Flyback)
-            # Usamos metrics.get para soportar la nueva métrica o el alias
-            hammer_pressure = metrics.get("water_hammer_pressure", flyback)
-            hammer_threshold = SystemConstants.MAX_WATER_HAMMER_PRESSURE * 0.7
-
-            if hammer_pressure > hammer_threshold:
-                pressure_ratio = hammer_pressure / hammer_threshold
-                brake_severity = min(brake_severity, 0.5 / pressure_ratio)
-                emergency_brake = True
-                brake_reason = f"WATER HAMMER P={hammer_pressure:.2f} (>{hammer_threshold:.2f})"
-
-            # Nivel 3: Saturación predicha alta (preventivo)
-            if predicted_sat > 0.92 and not in_steady_state:
-                brake_severity = min(brake_severity, 0.7)
-                emergency_brake = True
-                brake_reason = f"PREDICTED_SAT={predicted_sat:.2f}"
-
-            # Nivel 4: Fallos consecutivos
+            brake_severity = 1.0
+            if power > CONSTANTS.OVERHEAT_POWER_THRESHOLD:
+                brake_severity = min(brake_severity, 0.3 / max(power / CONSTANTS.OVERHEAT_POWER_THRESHOLD, 1e-9))
+                emergency_brake, brake_reason = True, f"OVERHEAT P={power:.2f}"
             if failed_batches_count >= 3:
                 brake_severity = min(brake_severity, 0.5)
-                emergency_brake = True
-                brake_reason = f"CONSECUTIVE_FAILURES={failed_batches_count}"
-
+                emergency_brake, brake_reason = True, f"CONSECUTIVE_FAILURES={failed_batches_count}"
             if emergency_brake:
-                pid_output_adjusted = max(
-                    SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                    int(pid_output_adjusted * brake_severity)
-                )
+                pid_output_adjusted = max(CONSTANTS.MIN_BATCH_SIZE_FLOOR, int(pid_output_adjusted * brake_severity))
                 self._emergency_brake_count += 1
                 self._stats.emergency_brakes_triggered += 1
-                self.logger.warning(
-                    f"🛑 EMERGENCY BRAKE [{self._emergency_brake_count}]: {brake_reason} "
-                    f"→ batch_size reducido a {pid_output_adjusted}"
-                )
-
-            # ══════════════════════════════════════════════════════════════
-            # PROCESAMIENTO DEL BATCH
-            # ══════════════════════════════════════════════════════════════
-            result = self._process_single_batch_with_recovery(
-                batch=batch,
-                cache=cache,
-                consecutive_failures=failed_batches_count,
-                telemetry=telemetry,
-            )
-
-            if result.success and result.dataframe is not None:
-                if not result.dataframe.empty:
+                self.logger.warning("Emergency brake [%d]: %s → batch=%d", self._emergency_brake_count, brake_reason, pid_output_adjusted)
+            result = self._process_single_batch_with_recovery(batch, cache, telemetry)
+            if result.success:
+                if result.dataframe is not None:
                     processed_batches.append(result.dataframe)
-
-                self._stats.add_batch_stats(
-                    batch_size=result.records_processed,
-                    saturation=saturation,
-                    power=power,
-                    flyback=flyback,
-                    kinetic=metrics.get("kinetic_energy", 0),
-                    success=True,
-                )
-
-                # Reducir contador de fallos (con floor en 0)
+                self._stats.add_batch_stats(batch_size=result.records_processed, saturation=saturation, success=True)
                 failed_batches_count = max(0, failed_batches_count - 1)
             else:
                 failed_batches_count += 1
-
-                self._stats.add_batch_stats(
-                    batch_size=batch_size,
-                    saturation=saturation,
-                    power=power,
-                    flyback=flyback,
-                    kinetic=metrics.get("kinetic_energy", 0),
-                    success=False,
-                )
-
+                self._stats.add_batch_stats(batch_size=batch_size, saturation=saturation, success=False)
                 if failed_batches_count >= self.condenser_config.max_failed_batches:
-                    if self.condenser_config.enable_partial_recovery:
-                        pid_output_adjusted = SystemConstants.MIN_BATCH_SIZE_FLOOR
-                        self.logger.warning(
-                            f"⚠️ Activando recuperación extrema: "
-                            f"{failed_batches_count} fallos consecutivos"
-                        )
-                    else:
-                        raise ProcessingError(
-                            f"Límite de batches fallidos alcanzado: {failed_batches_count}"
-                        )
-
-            # ══════════════════════════════════════════════════════════════
-            # CALLBACKS Y TELEMETRÍA
-            # ══════════════════════════════════════════════════════════════
-            if on_progress:
-                try:
-                    on_progress(self._stats)
-                except Exception as e:
-                    self.logger.debug(f"Error en on_progress: {e}")
-
-            if telemetry and (iteration % 10 == 0 or emergency_brake):
-                telemetry.record_event(
-                    "batch_iteration",
-                    {
-                        "iteration": iteration,
-                        "progress": current_index / total_records,
-                        "batch_size": batch_size,
-                        "pid_output": pid_output_adjusted,
-                        "saturation": saturation,
-                        "predicted_saturation": predicted_sat,
-                        "in_steady_state": in_steady_state,
-                        "feedforward_factor": feedforward_factor,
-                        "emergency_brake": emergency_brake,
-                        "failed_batches": failed_batches_count,
-                    },
-                )
-
-            # ══════════════════════════════════════════════════════════════
-            # ACTUALIZACIÓN DE ÍNDICE Y BATCH SIZE
-            # ══════════════════════════════════════════════════════════════
+                    raise OrchestrationError(f"Límite de batches fallidos: {failed_batches_count}")
             current_index = end_index
-
-            # Inercia adaptativa: mayor en estado estacionario
-            if in_steady_state:
-                inertia = 0.85
-            elif emergency_brake:
-                inertia = 0.3  # Respuesta rápida en emergencia
-            else:
-                inertia = 0.65
-
-            # Filtro de primer orden para batch size
-            current_batch_size = int(
-                inertia * current_batch_size + (1.0 - inertia) * pid_output_adjusted
+            inertia = (
+                self.condenser_config.batch_inertia_emergency if emergency_brake else self.condenser_config.batch_inertia_nominal
             )
-
-            # Aplicar límites
+            current_batch_size = int(inertia * current_batch_size + (1.0 - inertia) * pid_output_adjusted)
             current_batch_size = max(
-                SystemConstants.MIN_BATCH_SIZE_FLOOR,
-                min(current_batch_size, self.condenser_config.max_batch_size)
+                CONSTANTS.MIN_BATCH_SIZE_FLOOR,
+                min(current_batch_size, self.condenser_config.max_batch_size),
             )
-
-        # Log de resumen
-        if iteration >= max_iterations:
-            self.logger.warning(
-                f"⚠️ Máximo de iteraciones alcanzado: {max_iterations}"
-            )
-
         return processed_batches
-
-    def _estimate_cache_hits(self, batch: List, cache: Dict) -> int:
-        """
-        Estimación bayesiana de cache hits con actualización incremental.
-
-        ══════════════════════════════════════════════════════════════════
-        MODELO BAYESIANO
-        ══════════════════════════════════════════════════════════════════
-
-        Utilizamos un modelo Beta-Binomial para la tasa de hits:
-
-            Prior: p ~ Beta(α, β)
-            Likelihood: k | n, p ~ Binomial(n, p)
-            Posterior: p | k, n ~ Beta(α + k, β + n - k)
-
-        donde:
-            - p: probabilidad de cache hit
-            - k: hits observados en muestra
-            - n: tamaño de muestra
-
-        La estimación puntual es la media posterior:
-            E[p | datos] = (α + k) / (α + β + n)
-
-        Inicializamos con prior no informativo Beta(1, 1) = Uniforme(0, 1),
-        que se actualiza incrementalmente con cada batch.
-
-        ══════════════════════════════════════════════════════════════════
-        """
-        if not batch:
-            return 0
-
-        # Prior uniforme si no hay historial
-        if not cache:
-            return max(1, len(batch) // 4)
-
-        # Inicializar estado bayesiano
-        if not hasattr(self, "_cache_bayesian_state"):
-            self._cache_bayesian_state = {
-                "alpha": 1.0,  # Prior Beta(1, 1)
-                "beta": 1.0,
-                "total_samples": 0,
-            }
-
-        state = self._cache_bayesian_state
-
-        # ══════════════════════════════════════════════════════════════
-        # MUESTREO ESTRATIFICADO
-        # ══════════════════════════════════════════════════════════════
-        # Muestrear uniformemente a través del batch para evitar sesgo
-
-        max_sample_size = 50
-        batch_len = len(batch)
-
-        if batch_len <= max_sample_size:
-            sample_indices = range(batch_len)
-        else:
-            # Muestreo sistemático
-            step = batch_len / max_sample_size
-            sample_indices = [int(i * step) for i in range(max_sample_size)]
-
-        # Preparar conjunto de claves de cache
-        cache_keys = set(cache.keys()) if isinstance(cache, dict) else set()
-
-        sample_hits = 0
-        sample_count = 0
-
-        for idx in sample_indices:
-            if idx >= batch_len:
-                continue
-
-            record = batch[idx]
-            sample_count += 1
-
-            if isinstance(record, dict):
-                record_keys = set(record.keys())
-
-                # Calcular overlap normalizado (Jaccard-like)
-                intersection = len(record_keys & cache_keys)
-                union = len(record_keys | cache_keys)
-
-                if union > 0:
-                    overlap_ratio = intersection / union
-
-                    # Considerar hit si overlap > umbral
-                    if overlap_ratio > 0.25:
-                        sample_hits += 1
-
-            elif hasattr(record, '__dict__'):
-                # Para objetos, verificar atributos
-                record_attrs = set(dir(record))
-                if len(record_attrs & cache_keys) > 0:
-                    sample_hits += 1
-
-        if sample_count == 0:
-            return max(1, batch_len // 4)
-
-        # ══════════════════════════════════════════════════════════════
-        # ACTUALIZACIÓN BAYESIANA
-        # ══════════════════════════════════════════════════════════════
-
-        # Actualizar parámetros de la Beta
-        state["alpha"] += sample_hits
-        state["beta"] += (sample_count - sample_hits)
-        state["total_samples"] += sample_count
-
-        # Limitar crecimiento de parámetros (ventana efectiva)
-        MAX_EFFECTIVE_SAMPLES = 200
-        if state["alpha"] + state["beta"] > MAX_EFFECTIVE_SAMPLES + 2:
-            scale = MAX_EFFECTIVE_SAMPLES / (state["alpha"] + state["beta"] - 2)
-            state["alpha"] = 1.0 + (state["alpha"] - 1.0) * scale
-            state["beta"] = 1.0 + (state["beta"] - 1.0) * scale
-
-        # Media posterior
-        posterior_mean = state["alpha"] / (state["alpha"] + state["beta"])
-
-        # Varianza posterior para diagnóstico
-        posterior_var = (
-            state["alpha"] * state["beta"] /
-            ((state["alpha"] + state["beta"])**2 * (state["alpha"] + state["beta"] + 1))
-        )
-
-        # Estimación final
-        estimated_hits = max(1, int(posterior_mean * batch_len))
-
-        return estimated_hits
-
-    def _predict_next_saturation(self, history: List[float]) -> float:
-        """
-        Predicción de saturación usando Filtro de Kalman Extendido (EKF).
-
-        ══════════════════════════════════════════════════════════════════
-        MODELO DE ESTADO
-        ══════════════════════════════════════════════════════════════════
-
-        Estado: x = [s, v, a]ᵀ
-            - s: saturación
-            - v: velocidad (ds/dt)
-            - a: aceleración (d²s/dt²)
-
-        Dinámica (oscilador amortiguado con equilibrio variable):
-            ṡ = v
-            v̇ = a - β·v - ω²·(s - s_eq)
-            ȧ = -γ·a + w_a
-
-        donde:
-            β: coeficiente de amortiguamiento
-            ω: frecuencia natural
-            s_eq: punto de equilibrio (se adapta)
-            γ: tasa de decaimiento de aceleración
-            w_a: ruido de proceso
-
-        Observación:
-            z = s + v_z
-
-        donde v_z es ruido de medición.
-
-        ══════════════════════════════════════════════════════════════════
-        IMPLEMENTACIÓN
-        ══════════════════════════════════════════════════════════════════
-
-        Usamos discretización de Euler con paso dt = 1.
-
-        El filtro adapta los parámetros del modelo (β, ω, s_eq) basándose
-        en las innovaciones para mejorar el tracking.
-
-        ══════════════════════════════════════════════════════════════════
-        """
-        MIN_HISTORY = 3
-
-        if len(history) < MIN_HISTORY:
-            return history[-1] if history else 0.5
-
-        # ══════════════════════════════════════════════════════════════
-        # INICIALIZACIÓN DEL EKF
-        # ══════════════════════════════════════════════════════════════
-        if self._ekf_state is None:
-            # Estimar condiciones iniciales desde historial
-            s0 = history[-1]
-            v0 = history[-1] - history[-2] if len(history) >= 2 else 0.0
-            a0 = 0.0
-            if len(history) >= 3:
-                v_prev = history[-2] - history[-3]
-                a0 = v0 - v_prev
-
-            self._ekf_state = {
-                # Estado
-                "x": [s0, v0, a0],
-
-                # Covarianza del estado (diagonal para simplicidad)
-                "P": [
-                    [1e-3, 0.0, 0.0],
-                    [0.0, 1e-3, 0.0],
-                    [0.0, 0.0, 1e-3],
-                ],
-
-                # Covarianza del proceso
-                "Q": [
-                    [0.002, 0.0, 0.0],
-                    [0.0, 0.02, 0.0],
-                    [0.0, 0.0, 0.01],
-                ],
-
-                # Varianza de medición
-                "R": 0.01,
-
-                # Parámetros del modelo
-                "beta": 0.4,     # Amortiguamiento
-                "omega": 0.15,   # Frecuencia natural
-                "gamma": 0.6,    # Decaimiento de aceleración
-                "s_eq": 0.5,     # Equilibrio inicial
-
-                # Historial de innovaciones
-                "innovations": deque(maxlen=20),
-
-                # Contador de iteraciones para adaptación
-                "iteration": 0,
-            }
-
-        ekf = self._ekf_state
-        ekf["iteration"] += 1
-        dt = 1.0
-
-        # Extraer estado y parámetros
-        x = ekf["x"]
-        P = ekf["P"]
-        s, v, a = x[0], x[1], x[2]
-
-        beta = ekf["beta"]
-        omega = ekf["omega"]
-        gamma = ekf["gamma"]
-        s_eq = ekf["s_eq"]
-
-        # ══════════════════════════════════════════════════════════════
-        # PREDICCIÓN
-        # ══════════════════════════════════════════════════════════════
-
-        # Modelo no lineal discretizado
-        s_pred = s + v * dt
-        restoring_force = omega * omega * (s - s_eq)
-        v_pred = v + (a - beta * v - restoring_force) * dt
-        a_pred = a * (1.0 - gamma * dt)
-
-        x_pred = [s_pred, v_pred, a_pred]
-
-        # Jacobiano F = ∂f/∂x
-        F = [
-            [1.0, dt, 0.0],
-            [-omega*omega*dt, 1.0 - beta*dt, dt],
-            [0.0, 0.0, 1.0 - gamma*dt],
-        ]
-
-        # Propagación de covarianza: P_pred = F·P·Fᵀ + Q
-        # Implementación explícita del producto matricial
-        Q = ekf["Q"]
-        P_pred = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
-
-        # Calcular F·P
-        FP = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
-        for i in range(3):
-            for j in range(3):
-                for k in range(3):
-                    FP[i][j] += F[i][k] * P[k][j]
-
-        # Calcular (F·P)·Fᵀ + Q
-        for i in range(3):
-            for j in range(3):
-                for k in range(3):
-                    P_pred[i][j] += FP[i][k] * F[j][k]  # F[j][k] = Fᵀ[k][j]
-                P_pred[i][j] += Q[i][j]
-
-        # ══════════════════════════════════════════════════════════════
-        # ACTUALIZACIÓN
-        # ══════════════════════════════════════════════════════════════
-
-        z = history[-1]  # Medición actual
-
-        # H = [1, 0, 0] → solo observamos saturación
-        # Innovación
-        y = z - x_pred[0]
-
-        # Varianza de innovación: S = H·P_pred·Hᵀ + R = P_pred[0][0] + R
-        S = P_pred[0][0] + ekf["R"]
-
-        # Protección contra S muy pequeño
-        if S < 1e-10:
-            S = 1e-10
-
-        # Ganancia de Kalman: K = P_pred·Hᵀ / S
-        K = [P_pred[0][0] / S, P_pred[1][0] / S, P_pred[2][0] / S]
-
-        # Estado actualizado
-        x_new = [
-            x_pred[0] + K[0] * y,
-            x_pred[1] + K[1] * y,
-            x_pred[2] + K[2] * y,
-        ]
-
-        # Covarianza actualizada: P = (I - K·H)·P_pred
-        # Con H = [1, 0, 0], esto simplifica a:
-        P_new = [[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]]
-        for i in range(3):
-            for j in range(3):
-                P_new[i][j] = P_pred[i][j] - K[i] * P_pred[0][j]
-
-        # Asegurar simetría y positividad
-        for i in range(3):
-            for j in range(i + 1, 3):
-                avg = (P_new[i][j] + P_new[j][i]) / 2.0
-                P_new[i][j] = avg
-                P_new[j][i] = avg
-            # Asegurar elementos diagonales positivos
-            P_new[i][i] = max(1e-6, P_new[i][i])
-
-        # ══════════════════════════════════════════════════════════════
-        # ADAPTACIÓN DE PARÁMETROS
-        # ══════════════════════════════════════════════════════════════
-
-        ekf["innovations"].append(y)
-
-        if len(ekf["innovations"]) >= 5:
-            innovations = list(ekf["innovations"])
-            n_innov = len(innovations)
-
-            mean_innov = sum(innovations) / n_innov
-            var_innov = sum((i - mean_innov)**2 for i in innovations) / n_innov
-
-            # Varianza esperada de innovaciones
-            expected_var = S
-
-            # Ratio de consistencia
-            nis = var_innov / max(expected_var, 1e-6)  # Normalized Innovation Squared
-
-            # Adaptar Q si innovaciones son inconsistentes
-            if nis > 2.0:
-                # Subestimamos incertidumbre → aumentar Q
-                q_scale = min(1.2, 1.0 + 0.1 * (nis - 2.0))
-                for i in range(3):
-                    ekf["Q"][i][i] *= q_scale
-            elif nis < 0.3:
-                # Sobreestimamos → reducir Q
-                q_scale = max(0.85, 1.0 - 0.1 * (0.3 - nis))
-                for i in range(3):
-                    ekf["Q"][i][i] *= q_scale
-
-            # Limitar Q para evitar divergencia
-            for i in range(3):
-                ekf["Q"][i][i] = max(1e-4, min(0.5, ekf["Q"][i][i]))
-
-            # Adaptar s_eq si hay sesgo sistemático
-            if abs(mean_innov) > 0.03:
-                # El filtro predice sistemáticamente alto o bajo
-                adaptation_rate = 0.1
-                ekf["s_eq"] += adaptation_rate * mean_innov
-                ekf["s_eq"] = max(0.1, min(0.9, ekf["s_eq"]))
-
-            # Adaptar omega si hay oscilaciones
-            if n_innov >= 8:
-                # Detectar oscilaciones por cambios de signo
-                sign_changes = sum(
-                    1 for i in range(1, n_innov)
-                    if innovations[i] * innovations[i-1] < 0
-                )
-                oscillation_freq = sign_changes / (n_innov - 1)
-
-                if oscillation_freq > 0.6:
-                    # Oscilando mucho → reducir omega (menos oscilatorio)
-                    ekf["omega"] *= 0.95
-                elif oscillation_freq < 0.2:
-                    # Poco oscilatorio → aumentar omega
-                    ekf["omega"] *= 1.03
-
-                ekf["omega"] = max(0.05, min(0.5, ekf["omega"]))
-
-        # Guardar estado
-        ekf["x"] = x_new
-        ekf["P"] = P_new
-
-        # ══════════════════════════════════════════════════════════════
-        # PREDICCIÓN A UN PASO ADELANTE
-        # ══════════════════════════════════════════════════════════════
-
-        s_next = x_new[0] + x_new[1] * dt
-
-        # Asegurar límites físicos estrictos (Clamping simple para fidelidad de predicción)
-        s_bounded = max(0.0, min(1.0, s_next))
-
-        return s_bounded
 
     def _process_single_batch_with_recovery(
         self,
-        batch: List,
-        cache: Dict,
-        consecutive_failures: int,
-        telemetry: Optional[TelemetryContext] = None,
-        _recursion_depth: int = 0,
+        batch: List[Any],
+        cache: Dict[str, Any],
+        telemetry: Optional[Any],
     ) -> BatchResult:
-        """
-        Procesamiento de batch con estrategia de recuperación multinivel.
-
-        ══════════════════════════════════════════════════════════════════
-        NIVELES DE RECUPERACIÓN
-        ══════════════════════════════════════════════════════════════════
-
-        NIVEL 0: Intento directo
-            - Procesar batch completo
-            - Si éxito → retornar resultado
-            - Si fallo → avanzar a nivel 1
-
-        NIVEL 1: División binaria
-            - Dividir batch en mitades
-            - Procesar cada mitad recursivamente
-            - Combinar resultados
-            - Profundidad máxima limitada para evitar stack overflow
-
-        NIVEL 2: Procesamiento unitario con cuarentena
-            - Procesar registro por registro
-            - Registros fallidos van a cuarentena
-            - Retornar registros exitosos
-
-        ══════════════════════════════════════════════════════════════════
-        """
-        MAX_RECURSION_DEPTH = 5
-        MIN_SPLIT_SIZE = 3
-        MAX_UNIT_PROCESSING_SIZE = 150
-
         if not batch:
-            return BatchResult(
-                success=True,
-                records_processed=0,
-                dataframe=pd.DataFrame()
-            )
-
-        batch_size = len(batch)
-
-        # ══════════════════════════════════════════════════════════════
-        # NIVEL 0: INTENTO DIRECTO
-        # ══════════════════════════════════════════════════════════════
-
-        if consecutive_failures == 0 and _recursion_depth == 0:
+            return BatchResult(success=True, records_processed=0)
+        try:
+            df = self._rectify_signal(batch, cache, telemetry)
+            return BatchResult(success=True, dataframe=df, records_processed=len(df) if df is not None else 0)
+        except Exception as exc:  # noqa: BLE001
+            self.logger.debug("Batch directo falló: %s. Recuperación unitaria.", type(exc).__name__)
+        successful_parts: List[Any] = []
+        processed_count = 0
+        error_types: List[str] = []
+        for record in batch:
             try:
-                parsed_data = ParsedData(batch, cache)
-                df = self._rectify_signal(parsed_data, telemetry=telemetry)
-
-                if df is not None:
-                    return BatchResult(
-                        success=True,
-                        dataframe=df if not df.empty else pd.DataFrame(),
-                        records_processed=len(df) if not df.empty else 0
-                    )
-                else:
-                    return BatchResult(
-                        success=True,
-                        dataframe=pd.DataFrame(),
-                        records_processed=0
-                    )
-
-            except Exception as e:
-                self.logger.debug(
-                    f"Nivel 0 falló para batch de {batch_size}: {type(e).__name__}"
-                )
-                # Continuar a recuperación
-
-        # ══════════════════════════════════════════════════════════════
-        # NIVEL 1: DIVISIÓN BINARIA
-        # ══════════════════════════════════════════════════════════════
-
-        can_split = (
-            batch_size > MIN_SPLIT_SIZE and
-            _recursion_depth < MAX_RECURSION_DEPTH and
-            consecutive_failures <= 3
-        )
-
-        if can_split:
-            try:
-                mid = batch_size // 2
-
-                # Procesar mitades con profundidad incrementada
-                left_result = self._process_single_batch_with_recovery(
-                    batch=batch[:mid],
-                    cache=cache,
-                    consecutive_failures=consecutive_failures + 1,
-                    telemetry=telemetry,
-                    _recursion_depth=_recursion_depth + 1,
-                )
-
-                right_result = self._process_single_batch_with_recovery(
-                    batch=batch[mid:],
-                    cache=cache,
-                    consecutive_failures=consecutive_failures + 1,
-                    telemetry=telemetry,
-                    _recursion_depth=_recursion_depth + 1,
-                )
-
-                # Agregar resultados
-                dfs_to_concat = []
-                total_records = 0
-
-                for result in [left_result, right_result]:
-                    if result.success and result.dataframe is not None:
-                        if not result.dataframe.empty:
-                            dfs_to_concat.append(result.dataframe)
-                        total_records += result.records_processed
-
-                if dfs_to_concat:
-                    try:
-                        combined_df = pd.concat(dfs_to_concat, ignore_index=True)
-                    except Exception as concat_error:
-                        self.logger.warning(f"Error concatenando splits: {concat_error}")
-                        # Intentar concatenación más robusta
-                        combined_df = self._safe_concat(dfs_to_concat)
-                else:
-                    combined_df = pd.DataFrame()
-
-                success = total_records > 0 or (left_result.success and right_result.success)
-
-                return BatchResult(
-                    success=success,
-                    dataframe=combined_df,
-                    records_processed=total_records,
-                    error_message="" if success else "División binaria sin resultados"
-                )
-
-            except RecursionError:
-                self.logger.error("Recursión máxima alcanzada en división binaria")
-                # Fall through a nivel 2
-
-            except Exception as e:
-                self.logger.warning(f"División binaria falló: {e}")
-                # Continuar a nivel 2
-
-        # ══════════════════════════════════════════════════════════════
-        # NIVEL 2: PROCESAMIENTO UNITARIO CON CUARENTENA
-        # ══════════════════════════════════════════════════════════════
-
-        if batch_size <= MAX_UNIT_PROCESSING_SIZE:
-            successful_dfs = []
-            quarantined_indices = []
-            processed_count = 0
-
-            for idx, record in enumerate(batch):
-                try:
-                    parsed = ParsedData([record], cache)
-                    df = self._rectify_signal(parsed, telemetry=telemetry)
-
-                    if df is not None and not df.empty:
-                        successful_dfs.append(df)
-                        processed_count += len(df)
-
-                except Exception as e:
-                    quarantined_indices.append(idx)
-
-                    # Logging limitado para evitar spam
-                    if len(quarantined_indices) <= 3:
-                        self.logger.debug(
-                            f"Registro {idx} en cuarentena: {type(e).__name__}"
-                        )
-
-            # Log de cuarentena si hay muchos
-            if len(quarantined_indices) > 3:
-                self.logger.debug(
-                    f"Total registros en cuarentena: {len(quarantined_indices)}/{batch_size}"
-                )
-
-            if successful_dfs:
-                combined_df = self._safe_concat(successful_dfs)
-            else:
-                combined_df = pd.DataFrame()
-
-            success = processed_count > 0
-            recovery_rate = processed_count / batch_size if batch_size > 0 else 0.0
-
+                df_part = self._rectify_signal([record], cache, telemetry)
+                if df_part is not None:
+                    successful_parts.append(df_part)
+                    processed_count += len(df_part)
+            except Exception as exc:  # noqa: BLE001
+                error_types.append(type(exc).__name__)
+        if not successful_parts:
             return BatchResult(
-                success=success,
-                dataframe=combined_df,
-                records_processed=processed_count,
-                error_message=(
-                    f"Recuperación unitaria: {processed_count}/{batch_size} "
-                    f"({100*recovery_rate:.1f}%) - {len(quarantined_indices)} en cuarentena"
-                )
+                success=False, records_processed=0,
+                error_message="Recuperación unitaria sin resultados.",
+                error_types=tuple(sorted(set(error_types))),
             )
-
-        # ══════════════════════════════════════════════════════════════
-        # FALLO TOTAL
-        # ══════════════════════════════════════════════════════════════
-
         return BatchResult(
-            success=False,
-            dataframe=None,
-            records_processed=0,
-            error_message=(
-                f"Recuperación fallida: batch_size={batch_size}, "
-                f"depth={_recursion_depth}, failures={consecutive_failures}"
-            )
+            success=True,
+            dataframe=self._safe_concat(successful_parts),
+            records_processed=processed_count,
+            error_types=tuple(sorted(set(error_types))),
         )
 
-    def _rectify_signal(self, parsed_data: ParsedData, telemetry: Optional[TelemetryContext] = None) -> pd.DataFrame:
-        """Convierte datos crudos a DataFrame mediante APUProcessor."""
-        try:
-            processor = APUProcessor(self.config, self.profile, parsed_data.parse_cache)
-            processor.raw_records = parsed_data.raw_records
-            return processor.process_all(telemetry=telemetry)
-        except Exception as e:
-            raise ProcessingError(f"Error en rectificación: {e}")
+    def _rectify_signal(self, batch: List[Any], cache: Dict[str, Any], telemetry: Optional[Any]) -> Any:
+        if self.record_processor is not None:
+            return self.record_processor(batch, cache, telemetry)
+        if pd is not None:
+            return pd.DataFrame(batch)
+        return batch
 
-    def _consolidate_results(self, batches: List[pd.DataFrame]) -> pd.DataFrame:
-        """
-        Consolida resultados de múltiples batches con validación.
+    def _estimate_cache_hits(self, batch: List[Any], cache: Dict[str, Any]) -> int:
+        if not batch:
+            return 0
+        if self._cache_hit_estimator is not None:
+            try:
+                return max(0, min(int(self._cache_hit_estimator(batch, cache)), len(batch)))
+            except Exception:  # noqa: BLE001
+                self.logger.debug("Estimador de cache falló.")
+        if not cache:
+            return max(1, len(batch) // 4)
+        cache_keys = set(cache.keys())
+        sample_size = min(50, len(batch))
+        step = max(1, len(batch) // sample_size)
+        hits = samples = 0
+        for idx in range(0, len(batch), step):
+            record = batch[idx]
+            samples += 1
+            if isinstance(record, dict):
+                record_keys = set(record.keys())
+                union = max(len(record_keys | cache_keys), 1)
+                if len(record_keys & cache_keys) / union > 0.25:
+                    hits += 1
+        if samples == 0:
+            return max(1, len(batch) // 4)
+        return max(1, int((hits / samples) * len(batch)))
 
-        Args:
-            batches: Lista de DataFrames procesados
-
-        Returns:
-            DataFrame consolidado y validado
-        """
-        # Filtrar batches válidos
-        valid_batches = [
-            df for df in batches
-            if df is not None and isinstance(df, pd.DataFrame) and not df.empty
-        ]
-
+    def _consolidate_results(self, batches: List[Any]) -> Any:
+        valid_batches = [b for b in batches if b is not None]
         if not valid_batches:
-            self.logger.info("No hay batches válidos para consolidar")
+            return pd.DataFrame() if pd is not None else []
+        if pd is None:
+            consolidated: List[Any] = []
+            for item in valid_batches:
+                if isinstance(item, list):
+                    consolidated.extend(item)
+                else:
+                    consolidated.append(item)
+            return consolidated
+        return self._safe_concat(valid_batches)
+
+    def _safe_concat(self, dataframes: List[Any]) -> Any:
+        if not dataframes:
+            return pd.DataFrame() if pd is not None else []
+        if pd is None:
+            consolidated: List[Any] = []
+            for item in dataframes:
+                if isinstance(item, list):
+                    consolidated.extend(item)
+                else:
+                    consolidated.append(item)
+            return consolidated
+        valid_dfs = [df for df in dataframes if df is not None and not df.empty]
+        if not valid_dfs:
             return pd.DataFrame()
-
-        # Verificar límite de batches
-        if len(valid_batches) > SystemConstants.MAX_BATCHES_TO_CONSOLIDATE:
-            self.logger.warning(
-                f"Truncando batches: {len(valid_batches)} → "
-                f"{SystemConstants.MAX_BATCHES_TO_CONSOLIDATE}"
-            )
-            valid_batches = valid_batches[:SystemConstants.MAX_BATCHES_TO_CONSOLIDATE]
-
-        # Estimar memoria requerida
-        total_rows = sum(len(df) for df in valid_batches)
-        avg_cols = sum(len(df.columns) for df in valid_batches) / len(valid_batches)
-
-        self.logger.debug(
-            f"Consolidando {len(valid_batches)} batches: "
-            f"~{total_rows:,} filas, ~{avg_cols:.0f} columnas"
-        )
-
+        if len(valid_dfs) == 1:
+            return valid_dfs[0]
         try:
-            result = self._safe_concat(valid_batches)
+            return pd.concat(valid_dfs, ignore_index=True, sort=False)
+        except Exception as exc:  # noqa: BLE001
+            self.logger.warning("Concatenación directa falló: %s", exc)
+            try:
+                common = set(valid_dfs[0].columns)
+                for df in valid_dfs[1:]:
+                    common &= set(df.columns)
+                if not common:
+                    common = set().union(*(set(df.columns) for df in valid_dfs))
+                common_l = sorted(common)
+                aligned = []
+                for df in valid_dfs:
+                    df_c = df.copy()
+                    for col in common_l:
+                        if col not in df_c.columns:
+                            df_c[col] = pd.NA
+                    aligned.append(df_c[common_l])
+                return pd.concat(aligned, ignore_index=True, sort=False)
+            except Exception as exc2:  # noqa: BLE001
+                self.logger.error("Concatenación alineada falló: %s", exc2)
+                return valid_dfs[0]
 
-            # Validación post-consolidación
-            if not result.empty:
-                # Eliminar duplicados si hay columna de ID
-                id_columns = [col for col in result.columns if 'id' in col.lower()]
-                if id_columns:
-                    original_len = len(result)
-                    result = result.drop_duplicates(subset=id_columns, keep='first')
-                    if len(result) < original_len:
-                        self.logger.info(
-                            f"Eliminados {original_len - len(result)} duplicados"
-                        )
-
-                # Actualizar estadísticas
-                self._stats.processed_records = len(result)
-
-            return result
-
-        except Exception as e:
-            raise ProcessingError(f"Error consolidando resultados: {e}")
-
-    def _validate_output(self, df: pd.DataFrame) -> None:
-        """
-        Valida el DataFrame de salida con múltiples criterios.
-
-        Validaciones:
-        1. DataFrame no vacío (warning o error según config)
-        2. Mínimo de registros
-        3. Columnas requeridas (si están definidas)
-        4. Tipos de datos consistentes
-        """
-        if df.empty:
-            msg = "DataFrame de salida está vacío"
-
-            if self.condenser_config.enable_strict_validation:
-                raise ProcessingError(msg)
-
-            self.logger.warning(f"⚠️ {msg}")
-            return
-
-        n_records = len(df)
-        n_columns = len(df.columns)
-
-        # Verificar mínimo de registros
-        min_threshold = self.condenser_config.min_records_threshold
-
-        if n_records < min_threshold:
-            msg = f"Registros insuficientes: {n_records} < {min_threshold}"
-
-            if self.condenser_config.enable_strict_validation:
-                raise ProcessingError(msg)
-
-            self.logger.warning(f"⚠️ {msg}")
-
-        # Verificar columnas requeridas (si están configuradas)
-        required_columns = getattr(self.condenser_config, 'required_columns', None)
-
-        if required_columns:
-            missing_columns = set(required_columns) - set(df.columns)
-
-            if missing_columns:
-                msg = f"Columnas requeridas faltantes: {missing_columns}"
-
+    def _validate_output(self, result: Any) -> None:
+        if pd is not None and isinstance(result, pd.DataFrame):
+            if result.empty:
+                msg = "DataFrame de salida está vacío."
                 if self.condenser_config.enable_strict_validation:
-                    raise ProcessingError(msg)
-
-                self.logger.warning(f"⚠️ {msg}")
-
-        # Verificar valores nulos excesivos
-        null_ratio = df.isnull().sum().sum() / (n_records * n_columns)
-
-        if null_ratio > 0.5:
-            self.logger.warning(
-                f"⚠️ Alto porcentaje de valores nulos: {100*null_ratio:.1f}%"
-            )
-
-        # Log de resumen
-        self.logger.info(
-            f"📋 Validación de salida: {n_records:,} registros, "
-            f"{n_columns} columnas, {100*null_ratio:.1f}% nulos"
-        )
-
-    def _enhance_stats_with_diagnostics(self, stats: ProcessingStats, metrics: Dict) -> Dict:
-        """
-        Enriquece las estadísticas base con diagnósticos detallados del sistema.
-
-        Args:
-            stats: Estadísticas de procesamiento.
-            metrics: Métricas físicas actuales.
-
-        Returns:
-            Diccionario enriquecido.
-        """
-        base = asdict(stats)
-        return {
-            **base,
-            "efficiency": stats.processed_records / max(1, stats.total_records),
-            "system_health": self.get_system_health(),
-            "physics_diagnosis": self.physics.get_system_diagnosis(metrics),
-            "current_metrics": metrics # Fix: expose passed metrics
-        }
+                    raise OrchestrationError(msg)
+                self.logger.warning(msg)
+                return
+            n_records = len(result)
+            if n_records < self.condenser_config.min_records_threshold:
+                msg = f"Registros insuficientes: {n_records} < {self.condenser_config.min_records_threshold}"
+                if self.condenser_config.enable_strict_validation:
+                    raise OrchestrationError(msg)
+                self.logger.warning(msg)
+            null_ratio = result.isnull().sum().sum() / max(1, n_records * len(result.columns))
+            if null_ratio > 0.5:
+                self.logger.warning("Alto porcentaje de nulos: %.2f%%", 100.0 * null_ratio)
+        elif isinstance(result, list):
+            if len(result) == 0 and self.condenser_config.enable_strict_validation:
+                raise OrchestrationError("Salida consolidada vacía.")
 
     def get_processing_stats(self) -> Dict[str, Any]:
-        """
-        Retorna estadísticas completas del procesamiento.
-
-        Incluye:
-        - Estadísticas base del pipeline
-        - Diagnósticos del controlador
-        - Análisis de tendencias de física
-        - Métricas actuales del sistema
-        """
-        # Estadísticas base
-        base_stats = asdict(self._stats)
-
-        # Métricas actuales (última iteración)
-        current_metrics = {}
-        if self._metrics_history:
-            current_metrics = dict(self._metrics_history[-1])
-
-        # Tendencias de métricas
-        trends = {}
-        if len(self._metrics_history) >= 5:
-            recent = list(self._metrics_history)[-5:]
-
-            for key in ['saturation', 'power', 'complexity', 'brain_voltage', 'muscle_temp']:
-                values = [m.get(key, 0) for m in recent if key in m]
-                if values:
-                    trends[f"{key}_trend"] = (values[-1] - values[0]) / len(values)
-                    trends[f"{key}_mean"] = sum(values) / len(values)
-
-        # Diagnósticos del controlador
-        controller_diag = {}
-        try:
-            controller_diag = self.controller.get_diagnostics()
-        except Exception as e:
-            self.logger.debug(f"Error obteniendo diagnósticos de controlador: {e}")
-
-        # Análisis de física
-        physics_analysis = {}
-        try:
-            physics_analysis = self.physics.get_trend_analysis()
-        except Exception as e:
-            self.logger.debug(f"Error obteniendo análisis de física: {e}")
-
+        current_metrics: Dict[str, Any] = dict(self._metrics_history[-1]) if self._metrics_history else {}
+        elapsed = (self._clock() - self._start_time) if self._start_time else 0.0
         return {
-            "statistics": base_stats,
+            "statistics": asdict(self._stats),
             "current_metrics": current_metrics,
-            "trends": trends,
-            "controller": controller_diag,
-            "physics": physics_analysis,
             "emergency_brakes": self._emergency_brake_count,
-            "ekf_state": {
-                "active": self._ekf_state is not None,
-                "iteration": self._ekf_state.get("iteration", 0) if self._ekf_state else 0,
-                "equilibrium": self._ekf_state.get("s_eq", 0.5) if self._ekf_state else 0.5,
-            },
+            "trace_id": self._current_trace_id,
             "timing": {
-                "elapsed_s": time.time() - self._start_time if self._start_time else 0,
-                "throughput_per_s": (
-                    self._stats.processed_records /
-                    max(0.001, time.time() - self._start_time)
-                    if self._start_time else 0
-                ),
+                "elapsed_s": elapsed,
+                "throughput_per_s": self._stats.processed_records / max(1e-3, elapsed) if self._start_time else 0.0,
+                "physics_dt": self._physics_dt,
             },
         }
 
     def get_system_health(self) -> Dict[str, Any]:
-        """
-        Evalúa la salud del sistema con múltiples indicadores.
-
-        Niveles de salud:
-        - HEALTHY: Todo funcionando correctamente
-        - DEGRADED: Funcionando pero con advertencias
-        - CRITICAL: Problemas serios que requieren atención
-        - FAILED: Sistema en estado de fallo
-        """
-        issues = []
-        warnings = []
-
-        # ══════════════════════════════════════════════════════════════
-        # EVALUACIÓN DEL CONTROLADOR
-        # ══════════════════════════════════════════════════════════════
+        issues: List[str] = []
+        warnings: List[str] = []
         try:
-            controller_diag = self.controller.get_stability_analysis()
-            stability_class = controller_diag.get("stability_class", "UNKNOWN")
-
-            if stability_class == "UNSTABLE":
-                issues.append("Control inestable: sistema divergente")
-            elif stability_class == "POTENTIALLY_UNSTABLE":
-                warnings.append("Control potencialmente inestable")
-            elif stability_class == "MARGINALLY_STABLE":
-                warnings.append("Estabilidad marginal del controlador")
-
-            # Verificar utilización integral
-            integral_util = controller_diag.get("integral_saturation", 0)
-            if integral_util > 0.9:
-                warnings.append(f"Saturación integral alta: {100*integral_util:.0f}%")
-
-        except Exception as e:
-            warnings.append(f"Error evaluando controlador: {e}")
-
-        # ══════════════════════════════════════════════════════════════
-        # EVALUACIÓN DE FRENOS DE EMERGENCIA
-        # ══════════════════════════════════════════════════════════════
-
+            diag = self.controller.get_stability_analysis()
+            sc = diag.get("stability_class", "UNKNOWN")
+            if sc == "UNSTABLE":
+                issues.append("PI de lotes inestable.")
+            elif sc == "MARGINALLY_STABLE":
+                warnings.append("Estabilidad marginal del PI de lotes.")
+        except Exception as exc:  # noqa: BLE001
+            warnings.append(f"Error evaluando PI: {exc}")
         if self._emergency_brake_count > 10:
-            issues.append(
-                f"Exceso de frenos de emergencia: {self._emergency_brake_count}"
-            )
+            issues.append(f"Exceso de frenos: {self._emergency_brake_count}")
         elif self._emergency_brake_count > 5:
-            warnings.append(
-                f"Frenos de emergencia frecuentes: {self._emergency_brake_count}"
-            )
-
-        # ══════════════════════════════════════════════════════════════
-        # EVALUACIÓN DE RENDIMIENTO
-        # ══════════════════════════════════════════════════════════════
-
-        if self._stats.total_records > 0:
-            success_rate = self._stats.processed_records / self._stats.total_records
-
-            if success_rate < 0.5:
-                issues.append(f"Tasa de éxito muy baja: {100*success_rate:.1f}%")
-            elif success_rate < 0.8:
-                warnings.append(f"Tasa de éxito degradada: {100*success_rate:.1f}%")
-
-        # ══════════════════════════════════════════════════════════════
-        # EVALUACIÓN DE RESERVA TÁCTICA Y MÚSCULO (V3)
-        # ══════════════════════════════════════════════════════════════
+            warnings.append(f"Frenos frecuentes: {self._emergency_brake_count}")
         if self._metrics_history:
-            last_m = self._metrics_history[-1]
-
-            # Temperatura del Músculo
-            temp = last_m.get("muscle_temp", 25.0)
-            if temp > 80.0:
-                issues.append(f"Músculo sobrecalentado: {temp:.1f}°C")
-            elif temp > 60.0:
-                warnings.append(f"Músculo caliente: {temp:.1f}°C")
-
-            # Voltaje del Cerebro
-            v_brain = last_m.get("brain_voltage", 5.0)
+            last = self._metrics_history[-1]
+            if not last.get("second_law_ok", 1.0):
+                issues.append("2ª ley discreta violada.")
+            if not last.get("first_law_ok", 1.0):
+                warnings.append(f"Residuo 1ª ley={last.get('first_law_residual')}.")
+            if int(last.get("newton_fail_count", 0)) > 5:
+                warnings.append("Convergencia Newton degradada.")
+            v_brain = float(last.get("brain_voltage", 5.0))
             if v_brain < self.condenser_config.brain_brownout_threshold + 0.1:
-                issues.append(f"Voltaje crítico en Cerebro: {v_brain:.2f}V")
-            elif v_brain < self.condenser_config.brain_brownout_threshold + 0.5:
-                warnings.append(f"Bajo voltaje en Reserva Táctica: {v_brain:.2f}V")
-
-        # ══════════════════════════════════════════════════════════════
-        # EVALUACIÓN DEL EKF
-        # ══════════════════════════════════════════════════════════════
-
-        if self._ekf_state:
-            ekf_iter = self._ekf_state.get("iteration", 0)
-            if ekf_iter > 100:
-                # Verificar convergencia del EKF
-                P = self._ekf_state.get("P", [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-                trace_P = sum(P[i][i] for i in range(3))
-
-                if trace_P > 1.0:
-                    warnings.append(f"EKF con incertidumbre alta: tr(P)={trace_P:.3f}")
-
-        # ══════════════════════════════════════════════════════════════
-        # DETERMINACIÓN DE ESTADO DE SALUD
-        # ══════════════════════════════════════════════════════════════
-
+                issues.append(f"Voltaje crítico en plano de control: {v_brain:.2f}V")
         if issues:
             health = "CRITICAL" if len(issues) >= 2 else "DEGRADED"
         elif warnings:
             health = "DEGRADED" if len(warnings) >= 3 else "HEALTHY"
         else:
             health = "HEALTHY"
-
-        # Uptime
-        uptime = time.time() - self._start_time if self._start_time else 0
-
         return {
             "health": health,
             "issues": issues,
             "warnings": warnings,
-            "uptime_s": uptime,
             "emergency_brakes": self._emergency_brake_count,
-            "processed_ratio": (
-                self._stats.processed_records / max(1, self._stats.total_records)
-            ),
-            "stability_baseline": self._stability_baseline,
-            "recommendations": self._generate_health_recommendations(issues, warnings),
+            "processed_ratio": self._stats.processed_records / max(1, self._stats.total_records),
+            "trace_id": self._current_trace_id,
         }
 
-    def _safe_concat(self, dataframes: List[pd.DataFrame]) -> pd.DataFrame:
+    # ──────────────────────────────────────────────────────────────────────────
+    # FASE 3.6 — CIERRE DEL PIPELINE
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def synthesize_final_unified_state(self) -> UnifiedPhysicalSnapshot:
+        r"""
+        CIERRE FORMAL FASE 1 → 2 → 3.
+
+          Fase 1: MaxwellSolver.synthesize_poincare_control_seed() → PoincareControlSeed
+          Fase 2: PortHamiltonianPoincareController.synthesize_engine_seed() → PoincareEngineSeed
+          Fase 3: DataFluxCondenser.synthesize_final_unified_state() → UnifiedPhysicalSnapshot
+
+        El snapshot transporta: atlas, H_em (Lyapunov), E=H_em+TS (1ª ley),
+        σ y ΔS (2ª ley), u_aplicado, Casimir/Tellegen, convención Hodge, schema 7.1.
         """
-        Concatenación robusta de DataFrames con manejo de esquemas inconsistentes.
+        st = self.physics._unified_state
+        metadata: Dict[str, Any] = {
+            "phase": 3,
+            "condenser": self.__class__.__name__,
+            "trace_id": self._current_trace_id,
+            "emergency_brakes": self._emergency_brake_count,
+            "processed_records": self._stats.processed_records,
+            "total_records": self._stats.total_records,
+            "uptime_s": (self._clock() - self._start_time) if self._start_time else 0.0,
+            "batch_controller": self.controller.get_stability_analysis(),
+            "health": self.get_system_health(),
+            "phs_preserved": bool(st._phs_preserved),
+            "integrator": "implicit_midpoint" if self.physics._phs_controller is not None else self.condenser_config.integrator,
+            "physics_dt": self._physics_dt,
+            "atlas": st.atlas.value,
+            "hodge_convention": st.hodge_convention,
+            "schema_version": "7.1.0",
+            "pumping_required": st.pumping_required,
+            "matching_residual": st.matching_residual,
+            "casimir_energy": st.casimir_energy,
+            "do_not_regulate_casimirs": True,
+            "use_applied_control": True,
+            "newton_avg_iter": float(self.physics._newton_iter_total / max(1, self.physics._newton_step_total)),
+            "newton_fail_count": int(self.physics._newton_fail_count),
+            "pipeline_contract": {
+                "u": "seed.control_input (ZOH, post-músculo Fase 2)",
+                "stepper": "implicit_midpoint on (J−R)K",
+                "lyapunov": "H_em = ½ xᵀ K x",
+                "first_law": "E = H_em + T S",
+                "second_law": "σ = ‖∇H‖_R² / T ≥ 0",
+                "casimirs": "Cᵀ g = 0, no PID de Gauss",
+                "hodge": st.hodge_convention,
+            },
+        }
+        return self.physics.unified_snapshot(metadata=metadata, dt_audit=self._physics_dt)
 
-        Estrategia:
-        1. Identificar esquema común (intersección de columnas)
-        2. Alinear DataFrames al esquema común
-        3. Concatenar con manejo de tipos
 
-        Args:
-            dataframes: Lista de DataFrames a concatenar
-
-        Returns:
-            DataFrame concatenado
-        """
-        if not dataframes:
-            return pd.DataFrame()
-
-        if len(dataframes) == 1:
-            return dataframes[0]
-
-        # Filtrar DataFrames vacíos
-        valid_dfs = [df for df in dataframes if df is not None and not df.empty]
-
-        if not valid_dfs:
-            return pd.DataFrame()
-
-        if len(valid_dfs) == 1:
-            return valid_dfs[0]
-
-        try:
-            # Intento directo
-            return pd.concat(valid_dfs, ignore_index=True, sort=False)
-
-        except Exception as e:
-            self.logger.debug(f"Concatenación directa falló: {e}, intentando alineación")
-
-            try:
-                # Encontrar columnas comunes
-                common_columns = set(valid_dfs[0].columns)
-                for df in valid_dfs[1:]:
-                    common_columns &= set(df.columns)
-
-                if not common_columns:
-                    self.logger.warning("No hay columnas comunes entre DataFrames")
-                    # Usar unión en lugar de intersección
-                    all_columns = set()
-                    for df in valid_dfs:
-                        all_columns |= set(df.columns)
-                    common_columns = all_columns
-
-                common_columns = sorted(common_columns)
-
-                # Alinear cada DataFrame
-                aligned_dfs = []
-                for df in valid_dfs:
-                    # Agregar columnas faltantes con NaN
-                    for col in common_columns:
-                        if col not in df.columns:
-                            df = df.copy()
-                            df[col] = pd.NA
-
-                    aligned_dfs.append(df[list(common_columns)])
-
-                return pd.concat(aligned_dfs, ignore_index=True, sort=False)
-
-            except Exception as e2:
-                self.logger.error(f"Concatenación con alineación falló: {e2}")
-
-                # Último recurso: concatenar el primero válido
-                return valid_dfs[0]
-
-    def _generate_health_recommendations(
-        self,
-        issues: List[str],
-        warnings: List[str]
-    ) -> List[str]:
-        """Genera recomendaciones basadas en problemas detectados."""
-        recommendations = []
-
-        # Recomendaciones por issues
-        for issue in issues:
-            if "inestable" in issue.lower():
-                recommendations.append(
-                    "Reducir ganancias del controlador (Kp, Ki) para mejorar estabilidad"
-                )
-            if "frenos de emergencia" in issue.lower():
-                recommendations.append(
-                    "Aumentar capacidad del sistema o reducir carga de trabajo"
-                )
-            if "tasa de éxito" in issue.lower():
-                recommendations.append(
-                    "Revisar calidad de datos de entrada y configuración del parser"
-                )
-
-        # Recomendaciones por warnings
-        for warning in warnings:
-            if "integral" in warning.lower():
-                recommendations.append(
-                    "Considerar ajustar integral_limit_factor o reducir Ki"
-                )
-            if "ekf" in warning.lower():
-                recommendations.append(
-                    "Reiniciar sesión para resetear estado del predictor"
-                )
-
-        # Eliminar duplicados manteniendo orden
-        seen = set()
-        unique_recommendations = []
-        for r in recommendations:
-            if r not in seen:
-                seen.add(r)
-                unique_recommendations.append(r)
-
-        return unique_recommendations
-
-# Alias for backward compatibility
-FluxPhysicsEngine = RefinedFluxPhysicsEngine
-MaxwellFDTDSolver = MaxwellSolver
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# FIN FASE 3 — PIPELINE 7.1 CERRADO
+# ═══════════════════════════════════════════════════════════════════════════════════════
+#
+# DataFluxCondenser.synthesize_final_unified_state() cierra el contrato:
+#
+#   1. control_applied = u de Fase 2 (no PI de lotes, no músculo reaplicado).
+#   2. Integrador PHS = punto medio implícito; RLC standalone usa Hosea–Shampine
+#      si se pide tr_bdf2. RK4 no se declara estructura-preservante.
+#   3. Lyapunov = H_em;  E = H_em + T S es 1ª ley, no almacenamiento.
+#   4. Clausius discreto auditado (residual, σ). Shannon de lotes va en info_*.
+#   5. Atlas explícito: no se lee [D,B] como [Q,λ].
+#   6. Maxwell solo si se inyecta el lattice de Fase 1; nunca K₆.
+#   7. Casimirs intocables; schema_version 7.1.0; Hodge inmutable.
+#

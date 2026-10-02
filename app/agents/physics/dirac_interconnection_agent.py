@@ -1,1984 +1,1505 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Dirac Interconnection Agent (Demonio de Maxwell Categórico)         ║
-║ Ruta   : app/agents/physics/dirac_interconnection_agent.py                   ║
-║ Versión: 3.0.0-IDA-PBC-CFL-Governor-Categorical-Spectral                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Dirac Interconnection Agent — Aduana Poincaré-PHS 7.1                           ║
+║ Ruta   : app/agents/physics/dirac_interconnection_agent.py                               ║
+║ Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y TEORÍA DE CONTROL NO LINEAL (Rigor Doctoral) ──────────
-Este módulo consagra la aduana termodinámica y de control de lazo cerrado que
-conecta síncronamente el estrato táctico de-confinado (gobernado por el OODA de
-apu_agent.py) con el estrato de física profunda (regulado por el gemelo digital
-FDTD de flux_condenser.py).
+NATURALEZA
+──────────
+Morfismo categórico φ : (intención táctica × PoincareEngineSeed) → InterconnectionState
+que **no reescribe** el foso `flux_condenser.py`. Habla el contrato 7.1:
 
-El agente opera como un "Demonio de Maxwell" categórico, esculpiendo de manera
-idempotente el Hamiltoniano del sistema en ciclo cerrado para forzar la estabilidad
-asintótica global, purgando la entropía y eliminando las alucinaciones de la IA
-antes de que comprometan el capital del megaproyecto civil.
+    PHS:     ẋ = (J−R)∇H + g u,   y = gᵀ ∇H,   H = ½ xᵀ K x
+    Hodge:   D = ε ★₁ E,  H = μ⁻¹ ★₂ B,  δ₂ = ★₁⁻¹ ∂₂ ★₂     (inmutable)
+    Casimir: Cᵀ g = 0;  no regular δD ni armónicos
+    Control: u = seed.control_input  (aplicado, post-músculo)
+    Energía: Lyapunov = H_em;  E = H_em + T S  (1ª ley, no almacenamiento)
+    Paso:    punto medio implícito (gradiente discreto); Yee aparte
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
-de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+Tres fases anidadas
+───────────────────
+φ₁  Matching / power-shaping sobre el PHS de la semilla.
+    α ∈ ℝᵐ es el esfuerzo de puerto, no una impedancia de onda.
+    Último método: compute_port_termination(...) → PortTermination.
 
-  Fase 1 ──► FASE 1: RESOLUCIÓN DE EMPAREJAMIENTO DE ENERGÍA (IDA-PBC) (Observe)
-             Resuelve la ecuación de matching de-confinada en el espacio de fase.
-             Ecuación: $$[J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x) \alpha(x)$$
-             Entrega: ControlSolution como precondición formal de la Fase 2.
+φ₂  Scattering de la terminación respecto de Z₀ *física* (ε,μ de la semilla).
+    No retoca ★. Maupertuis solo si se aporta escisión T+V explícita.
+    Último método: compute_causal_speed(...) → CausalSpeed.
 
-  Fase 2 ──► FASE 2: ADAPTACIÓN CAUSAL DE IMPEDANCIA (PML) (Orient)
-             Sintoniza los tensores constitutivos bajo Kramers-Kronig completos.
-             Ecuación: $$Z_0 = \sqrt{\mu_{\mathrm{eff}} \cdot \varepsilon_{\mathrm{eff}}^{-1}} \equiv Z_{\mathrm{load}}$$
-             Entrega: ImpedanceTensor como precondición formal de la Fase 3.
+φ₃  Cono causal: μ₂(A) (punto medio) y, si hay Δ₁ DEC, CFL de Yee.
+    Último método: synthesize_interconnection_state(...) → InterconnectionState.
 
-  Fase 3 ──► FASE 3: GOBERNANZA TEMPORAL DEL LÍMITE CAUSAL DE CFL (Decide & Act)
-             Audita el espectro del Laplaciano y restringe el paso de tiempo safe.
-             Ecuación: $$\Delta t \le \frac{2 \cdot \mathrm{CFL\_margin}}{c_{\mathrm{eff}} \cdot \sqrt{\lambda_{\max}(\Delta_{\mathrm{sym}})}}$$
-             Veredicto: Colapso en el retículo de Heyting $$\Omega_3$$ y bypass de silicio.
+Invariantes (I1..I8) — semántica 7.1
+────────────────────────────────────
+I1 Dirac:      J, J_d ∈ 𝔰𝔬(n).
+I2 Rayleigh:   R, R_d ∈ Sym⁺(n).
+I3 Lyapunov:   Ḣ_d = −∇H_dᵀ R_d ∇H_d + ∇H_dᵀ (f_d − gα)
+               (el residuo de matching *entra* en el balance).
+I4 Herglotz:   solo si se provee χ(ω); tensores estáticos ⇒ N/A, no tautología.
+I5 CFL:        Yee: Δt < 2 / (c √ρ(Δ₁));  midpoint: A-estable si μ₂(A)≤0.
+I6 Equilibrio: ∇H_d(x*) = 0  (asignable),  *no* ∇H_d = ∇H.
+I7 La Salle:   asintótica módulo ker J  (Casimirs).
+I8 Jacobi:     f_M = 2(E−V) solo con T+V; jamás escala c.
 
-INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
-  [I1] Conservación de Energía de Lazo Cerrado: $$\dot{H}_d = -\nabla H_d^\top R_d \nabla H_d \le 0$$
-  [I2] Relaciones de Dispersión de Kramers-Kronig: $$\chi_e(\omega) = \frac{1}{\pi} \mathcal{P} \int \frac{\chi_i(\omega')}{\omega' - \omega} d\omega'$$
-  [I3] Confinamiento de de Rham (CFL Causal):  $$\Delta t \cdot c_{\mathrm{eff}} \cdot \sqrt{\lambda_{\max}} \le 2 \cdot \mathrm{CFL\_margin}$$
-  [I4] Simetría y Positividad Tikhonov-Weyl:   $$\varepsilon_{\mathrm{eff}} = \varepsilon_{\mathrm{eff}}^\top \succ 0, \quad \mu_{\mathrm{eff}} = \mu_{\mathrm{eff}}^\top \succ 0$$
-  [I5] Isomorfismo de la Adjunción de Galois:  $$\operatorname{Hom}_{\mathcal{D}}(F(X), Y) \cong \operatorname{Hom}_{\mathcal{C}}(X, G(Y))$$
-
-CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
-  Si se registra una violación de pasividad de Lyapunov ($$\dot{H}_d > 0$$), una fuga
-  de causalidad en Kramers-Kronig o si la resolución espectral del Laplaciano
-  normalizado reporta un desgarro del cono de luz de la red ($$\Delta t > \Delta t_{\mathrm{safe}}$$):
-  
-  El retículo de Heyting de tres valores $$\Omega_3$$ colapsa síncronamente al veredicto
-  terminal VETOED [5]. La subrutina local 'isVerdictCoherent()' del ESP32 en el
-  borde detecta el mismatch en menos de 400 ns. 
-  
-  Conmuta síncronamente el pin GPIO14, inyectando corriente de compuerta al tiristor
-  BT151 (Crowbar). Esto cortocircuita físicamente la línea de potencia real de
-  la obra, inmovilizando de forma determinista bombas y actuadores mecánicos en el
-  milisegundo cero, anulando la alucinación antes del desfalco de capital.
+Veto: veredicto VETOED + excepción tipada + crowbar (u=0, dt→dt_min, R_inj máx).
 """
-
 from __future__ import annotations
 
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple, Union
+from enum import Enum
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 
 import numpy as np
-import scipy.linalg as la
-import scipy.sparse as sp
 from numpy.typing import NDArray
-from scipy.sparse import csr_matrix, issparse
-from scipy.sparse.linalg import eigsh
 
-# ══════════════════════════════════════════════════════════════════════════════
-# DEPENDENCIAS ESTRUCTURALES DEL ECOSISTEMA (resilientes con fallback canónico)
-# ══════════════════════════════════════════════════════════════════════════════
+try:
+    import scipy.linalg as la
+    from scipy.sparse import csr_matrix, issparse
+    from scipy.sparse.linalg import eigsh
+    _SCIPY = True
+except ImportError:  # pragma: no cover
+    la = None  # type: ignore[assignment]
+    csr_matrix = None  # type: ignore[assignment]
+    issparse = lambda _x: False  # type: ignore[misc]
+    eigsh = None
+    _SCIPY = False
+
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
-except ImportError:
+except ImportError:  # pragma: no cover
+
     class TopologicalInvariantError(Exception):
-        """Invariante topológico violado en el ecosistema MIC."""
-        pass
+        """Invariante topológico / geométrico violado."""
 
     class Morphism:
-        """Morfismo categórico abstracto (stub de resiliencia)."""
-        pass
+        """Morfismo C → D (stub). Las subclases concretas implementan __call__."""
+
+        def __call__(self, *args: Any, **kwargs: Any) -> Any:  # pragma: no cover
+            raise NotImplementedError("Morphism stub.")
 
 try:
     from app.core.immune_system.metric_tensors import G_PHYSICS
-except ImportError:
-    # Tensor métrico identidad como fallback seguro
-    G_PHYSICS: NDArray[np.float64] = np.eye(1, dtype=np.float64)
+except ImportError:  # pragma: no cover
+    G_PHYSICS = np.eye(1, dtype=np.float64)
 
-logger = logging.getLogger("MIC.Physics.DiracInterconnection")
+try:
+    from app.physics.flux_condenser import (
+        CONSTANTS as FC_CONSTANTS,
+        PoincareControlSeed,
+        PoincareEngineSeed,
+        PoincareHamiltonianKernel,
+        ControlMode,
+    )
+    _HAS_FOSO = True
+except ImportError:  # pragma: no cover
+    FC_CONSTANTS = None
+    PoincareControlSeed = None  # type: ignore[misc, assignment]
+    PoincareEngineSeed = None  # type: ignore[misc, assignment]
+    PoincareHamiltonianKernel = None  # type: ignore[misc, assignment]
+    ControlMode = None  # type: ignore[misc, assignment]
+    _HAS_FOSO = False
+
+logger = logging.getLogger("MIC.Physics.DiracInterconnection.Poincare71")
+
+Array = NDArray[np.float64]
+MaybeSeed = Any
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# CONSTANTES (no mezclar con las de DEC/PHS del foso)
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+_EPS = float(np.finfo(np.float64).eps)
+_WILKINSON = max(1e-12, 16.0 * _EPS)
+_SPECTRAL_TOL = 1e-9
+_SYMPLECTIC_TOL = 1e-8
+_RANK_REL_TOL = 1e-10
+_POWER_RES_TOL = 1e-8
+_MAUPERTUIS_FLOOR = 1e-12
+_DT_MIN = 1e-6
+_DT_MAX = 3600.0
+_HODGE_CANON = "D=ε★₁E, H=μ⁻¹★₂B, δ₂=★₁⁻¹∂₂★₂"
+_SCHEMA = "7.1.0"
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# JERARQUÍA DE EXCEPCIONES DE CONTROL Y ESTABILIDAD
-# ══════════════════════════════════════════════════════════════════════════════
+class MatchingMode(str, Enum):
+    """Ley que φ₁ realiza."""
+
+    ENERGY_LEVEL = "energy_level"     # P_* = ∇HᵀR∇H − λ(H−H*),  u = P_* y / (‖y‖²+ε)
+    IDA_PBC_POINT = "ida_pbc_point"   # u = Gx + v,  matching lineal heredado
+    DAMPING_ONLY = "damping_only"     # u = −k_d y  (prohibido si pumping_required)
+    SNAPSHOT = "snapshot"             # α = g⁺ f_d en el instante (auditoría, no ley)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# EXCEPCIONES
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
 
 class DiracMatchingError(TopologicalInvariantError):
-    r"""
-    Detonada cuando la Ecuación de Matching IDA-PBC no tiene solución en la
-    imagen de :math:`g(x)`, o cuando el residuo de matching excede la tolerancia.
-
-    Fundamento matemático:
-        La condición necesaria y suficiente para existencia de :math:`\alpha` es:
-
-        .. math::
-            f_d := [J_d - R_d]\nabla H_d - [J - R]\nabla H \;\in\; \mathrm{Im}(g)
-
-        donde :math:`\mathrm{Im}(g) = \{g\alpha : \alpha \in \mathbb{R}^m\}`.
-        Si :math:`f_d \notin \mathrm{Im}(g)`, el sistema está subactuado en
-        la dirección de :math:`f_d` y la condición de energía no se puede satisfacer.
-    """
-    pass
+    """f_d ∉ Im(g) más allá de tolerancia, o estructura (J,R,g) inadmisible."""
 
 
 class ImpedanceMismatchError(TopologicalInvariantError):
-    r"""
-    Detonada si la sintonización dieléctrica induce un tensor
-    no semidefinido positivo, violando la condición de Kramers-Kronig:
-
-    .. math::
-        \epsilon_{\mathrm{eff}} \succeq 0, \quad \mu_{\mathrm{eff}} \succeq 0
-    """
-    pass
+    """Terminación de puerto / scattering inadmisible (no es un fallo de ★)."""
 
 
 class CFLViolationError(TopologicalInvariantError):
-    r"""
-    Detonada si el diferencial de tiempo exigido rompe el cono de luz causal
-    de la red, es decir:
-
-    .. math::
-        \Delta t > \frac{2}{c_{\mathrm{eff}}\sqrt{\lambda_{\max}(\Delta_{\mathrm{sym}})}}
-    """
-    pass
+    """Cono causal: Yee fuera de CFL, o μ₂(A)>0 con paso explícito."""
 
 
 class LyapunovInstabilityError(TopologicalInvariantError):
+    """Ḣ_d > 0 tras contar el residuo de matching."""
+
+
+class PoincareSymplecticError(TopologicalInvariantError):
+    """J no antisimétrica, o Δ no simetrizable."""
+
+
+class MaupertuisViolationError(TopologicalInvariantError):
+    """Se pidió Jacobi sin escisión T+V, o f_M ≤ 0."""
+
+
+class EnergyMatchingError(TopologicalInvariantError):
+    """∇H_d(x*) ≠ 0 (equilibrio no asignable)."""
+
+
+class LanczosConvergenceError(TopologicalInvariantError):
+    """Los estimadores de λ_max(Δ) no son consistentes."""
+
+
+class CasimirPortLeakError(TopologicalInvariantError):
+    """Cᵀ g ≠ 0: el puerto regula Casimirs (Gauss / armónicos)."""
+
+
+class SchemaContractError(TopologicalInvariantError):
+    """Semilla ajena al contrato 7.1 (Hodge / schema / u aplicado)."""
+
+
+class CrowbarEngagedError(TopologicalInvariantError):
+    """Veto físico: se devolvió estado crowbar (u=0, dt mínimo)."""
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# CERTIFICADOS Y ESTADOS
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
+
+def _as_1d(x: Any, name: str) -> Array:
+    arr = np.asarray(x, dtype=np.float64).reshape(-1)
+    if arr.size == 0:
+        raise DiracMatchingError(f"{name} vacío.")
+    if not np.all(np.isfinite(arr)):
+        raise DiracMatchingError(f"{name} contiene NaN/Inf.")
+    return arr
+
+
+def _as_mat(x: Any, name: str) -> Array:
+    arr = np.asarray(x, dtype=np.float64)
+    if arr.ndim != 2:
+        raise DiracMatchingError(f"{name} debe ser 2D.")
+    if not np.all(np.isfinite(arr)):
+        raise DiracMatchingError(f"{name} contiene NaN/Inf.")
+    return arr
+
+
+def _as_sq(x: Any, name: str) -> Array:
+    arr = _as_mat(x, name)
+    if arr.shape[0] != arr.shape[1]:
+        raise DiracMatchingError(f"{name} no es cuadrada: {arr.shape}.")
+    return arr
+
+
+def _fro(A: np.ndarray) -> float:
+    if _SCIPY and la is not None:
+        return float(la.norm(A, ord="fro"))
+    return float(np.linalg.norm(A, ord="fro"))
+
+
+def _eigvalsh(A: np.ndarray) -> Array:
+    S = 0.5 * (A + A.T)
+    if _SCIPY and la is not None:
+        return np.asarray(la.eigvalsh(S), dtype=np.float64)
+    return np.asarray(np.linalg.eigvalsh(S), dtype=np.float64)
+
+
+def _svd(A: np.ndarray, full_matrices: bool = False) -> Tuple[Array, Array, Array]:
+    if _SCIPY and la is not None:
+        U, s, Vt = la.svd(A, full_matrices=full_matrices)
+    else:
+        U, s, Vt = np.linalg.svd(A, full_matrices=full_matrices)
+    return np.asarray(U), np.asarray(s), np.asarray(Vt)
+
+
+def _skew_defect(M: np.ndarray) -> float:
+    nrm = max(1.0, _fro(M))
+    return _fro(M + M.T) / nrm
+
+
+def _sym_defect(M: np.ndarray) -> float:
+    nrm = max(1.0, _fro(M))
+    return _fro(M - M.T) / nrm
+
+
+def _log_norm_2(A: np.ndarray) -> float:
+    """μ₂(A) = λ_max((A+Aᵀ)/2).  ‖e^{tA}‖₂ ≤ e^{t μ₂(A)}."""
+    if A.size == 0:
+        return 0.0
+    return float(np.max(_eigvalsh(A)))
+
+
+@dataclass(frozen=True)
+class PoincareDiracCertificate:
+    """Auditoría I1–I8 sobre un PHS (no sobre un snapshot de gradientes iguales)."""
+
+    antisymmetry_defect_current: float
+    antisymmetry_defect_desired: float
+    min_eigenvalue_R_current: float
+    min_eigenvalue_R_desired: float
+    rayleigh_open_loop: float
+    matching_power_leak: float
+    H_dot_closed: float
+    liouville_trace: float
+    liouville_consistent: bool
+    symplectic_residual: float
+    maupertuis_factor: float
+    maupertuis_applicable: bool
+    is_dirac_valid: bool
+    is_passive_closed_loop: bool
+    is_volume_contracting: bool
+    equilibrium_defect: float
+    is_equilibrium_assignable: bool
+    casimir_dim: int
+    casimir_port_leak: float
+    is_casimir_immune: bool
+    kernel_dim_R_desired: int
+    is_la_salle_mod_casimir: bool
+    logarithmic_norm_A: float
+    logarithmic_norm_A_d: float
+    condition_number_R_desired: float
+    matching_residual_relative: float
+    schema_version: str = _SCHEMA
+    hodge_convention: str = _HODGE_CANON
+
+
+@dataclass(frozen=True)
+class PortTermination:
     r"""
-    Detonada si la verificación de Lyapunov detecta :math:`\dot{H}_d > 0`
-    en algún punto de la trayectoria, violando la condición de disipación:
+    Terminación de puertos en el sentido PHS, *no* constitutivas Hodge.
 
-    .. math::
-        \dot{H}_d = -\nabla H_d^T R_d \nabla H_d \leq 0 \quad \forall x
+        u = −K y + u_ff,     K ∈ ℝ^{m×m}
+
+    Scattering respecto de Z₀ física (escalar o diagonal, heredada de ε,μ):
+        Γ = (K − Z₀⁻¹)(K + Z₀⁻¹)⁻¹    (en el subespacio activo).
+
+    `suggests_hodge_update` es **siempre False** en 7.1.
     """
-    pass
+
+    damping_map: Array
+    feedforward: Array
+    active_mask: NDArray[np.bool_]
+    port_gain_eigenvalues: Array
+    scattering_norm: float
+    characteristic_impedance: Array
+    pumping_channels: NDArray[np.bool_]
+    maupertuis_conformal_factor: float
+    maupertuis_applicable: bool
+    anisotropy_index: float
+    suggests_hodge_update: bool = False
+    herglotz_status: str = "N/A_STATIC"
+
+    # alias de compatibilidad (no son ε,μ de Maxwell)
+    @property
+    def reflection_coefficient_norm(self) -> float:
+        return self.scattering_norm
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ESTRUCTURAS INMUTABLES DEL ESPACIO DE CONTROL
-# ══════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True)
+class CausalSpeed:
+    """Velocidades *físicas* (lattice / metadatos), jamás √(2(H−V))."""
 
-@dataclass(frozen=True, slots=True)
-class ImpedanceTensor:
-    r"""
-    Tensor dieléctrico y magnético sintonizado para adaptación perfecta de
-    impedancia en el puerto de control.
-
-    Fundamento matemático:
-        Para un medio anisótropo, la impedancia de onda se define como:
-
-        .. math::
-            Z_0 = \sqrt{\mu_{\mathrm{eff}} \cdot \epsilon_{\mathrm{eff}}^{-1}}
-
-        La condición de adaptación perfecta exige :math:`Z_0 \equiv Z_{\mathrm{load}}`,
-        lo que aniquila el coeficiente de reflexión:
-
-        .. math::
-            \Gamma = \frac{Z_{\mathrm{load}} - Z_0}{Z_{\mathrm{load}} + Z_0} = 0
-
-    Atributos:
-        epsilon_eff:
-            Matriz :math:`(m \times m)` del tensor dieléctrico efectivo.
-            Debe ser :math:`\epsilon_{\mathrm{eff}} \succeq 0`.
-        mu_eff:
-            Matriz :math:`(m \times m)` del tensor de permeabilidad.
-            Debe ser :math:`\mu_{\mathrm{eff}} \succeq 0`.
-        reflection_coefficient_norm:
-            :math:`\|\Gamma\|_F` residual post-sintonización (norma de Frobenius).
-        wave_speeds:
-            Vector :math:`(m,)` con :math:`c_i = 1/\sqrt{\mu_i \epsilon_i}`
-            por canal. Canales inactivos tienen :math:`c_i = 0`.
-        is_isotropic:
-            ``True`` si los tensores son diagonales (isotrópicos por canal).
-        channel_active_mask:
-            Vector booleano :math:`(m,)` indicando canales con :math:`Z < \infty`.
-    """
-    epsilon_eff: NDArray[np.float64]
-    mu_eff: NDArray[np.float64]
-    reflection_coefficient_norm: float
-    wave_speeds: NDArray[np.float64]
-    is_isotropic: bool
-    channel_active_mask: NDArray[np.bool_]
-
-    def verify_kramers_kronig(self, tol: float = 1e-9) -> Dict[str, Any]:
-        r"""
-        Verifica la positividad espectral completa de :math:`\epsilon` y :math:`\mu`,
-        condición necesaria de Kramers-Kronig para causalidad física.
-
-        La condición de Kramers-Kronig en su forma algebraica exige que ambos
-        tensores sean semidefinidos positivos como operadores en :math:`\mathbb{R}^m`:
-
-        .. math::
-            \epsilon_{\mathrm{eff}} \succeq 0 \iff
-            \lambda_{\min}(\epsilon_{\mathrm{eff}}) \geq 0
-
-        Args:
-            tol:
-                Tolerancia absoluta para considerar un autovalor no negativo.
-                Por defecto :math:`10^{-9}`.
-
-        Returns:
-            Diccionario con métricas espectrales:
-
-            - ``epsilon_min_eig``: :math:`\lambda_{\min}(\epsilon_{\mathrm{eff}})`.
-            - ``mu_min_eig``: :math:`\lambda_{\min}(\mu_{\mathrm{eff}})`.
-            - ``epsilon_max_eig``: :math:`\lambda_{\max}(\epsilon_{\mathrm{eff}})`.
-            - ``mu_max_eig``: :math:`\lambda_{\max}(\mu_{\mathrm{eff}})`.
-            - ``epsilon_pd``: ``True`` si :math:`\epsilon \succeq 0`.
-            - ``mu_pd``: ``True`` si :math:`\mu \succeq 0`.
-            - ``epsilon_condition_number``: Número de condición de :math:`\epsilon`.
-            - ``mu_condition_number``: Número de condición de :math:`\mu`.
-
-        Raises:
-            ImpedanceMismatchError:
-                Si algún tensor tiene autovalor negativo más allá de ``tol``.
-        """
-        eps_eigs = la.eigvalsh(self.epsilon_eff)
-        mu_eigs = la.eigvalsh(self.mu_eff)
-
-        eps_min = float(np.min(eps_eigs))
-        eps_max = float(np.max(eps_eigs))
-        mu_min = float(np.min(mu_eigs))
-        mu_max = float(np.max(mu_eigs))
-
-        # Número de condición (solo si epsilon tiene parte positiva)
-        eps_cond = (eps_max / eps_min) if eps_min > tol else float("inf")
-        mu_cond = (mu_max / mu_min) if mu_min > tol else float("inf")
-
-        eps_pd = bool(eps_min >= -tol)
-        mu_pd = bool(mu_min >= -tol)
-
-        return {
-            "epsilon_min_eig": eps_min,
-            "mu_min_eig": mu_min,
-            "epsilon_max_eig": eps_max,
-            "mu_max_eig": mu_max,
-            "epsilon_pd": eps_pd,
-            "mu_pd": mu_pd,
-            "epsilon_condition_number": eps_cond,
-            "mu_condition_number": mu_cond,
-        }
+    c_medium: float
+    c_yee_limit: float
+    mu2_A: float
+    rho_curl_curl: float
+    source: str
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class ControlSolution:
-    r"""
-    Resultado canónico de la Fase 1: ley de control IDA-PBC con metadatos
-    de verificación completos.
+    """Salida de φ₁: ley de puerto + certificado."""
 
-    Fundamento matemático:
-        La ley de control :math:`\alpha` se obtiene resolviendo:
-
-        .. math::
-            g^{\dagger} f_d = \alpha, \quad
-            f_d = [J_d - R_d]\nabla H_d - [J - R]\nabla H
-
-        donde :math:`g^{\dagger}` es la pseudoinversa de Moore-Penrose calculada
-        por SVD truncada con umbral :math:`\sigma_{\mathrm{tol}} = \tau \cdot \sigma_{\max}`.
-
-    Atributos:
-        alpha:
-            Vector :math:`(m,)` con la ley de control IDA-PBC.
-        H_dot:
-            Derivada temporal :math:`\dot{H}_d = -\nabla H_d^T R_d \nabla H_d \leq 0`.
-        desired_gradient:
-            Vector :math:`(n,)` con :math:`\nabla H_d(x)`.
-        port_matrix:
-            Matriz :math:`(n, m)` de :math:`g(x)`.
-        residual_norm:
-            Norma absoluta del residuo :math:`\|f_d - g\alpha\|_2`.
-        residual_relative:
-            Norma relativa :math:`\|f_d - g\alpha\|_2 / \|f_d\|_2`.
-        g_rank:
-            Rango numérico de :math:`g` por SVD truncada.
-        singular_values:
-            Vector de valores singulares de :math:`g` (decrecientes).
-        lyapunov_verified:
-            ``True`` si :math:`\dot{H}_d \leq 0` en el punto verificado.
-        required_forcing:
-            Vector :math:`f_d` usado en el matching (para diagnóstico).
-    """
-    alpha: NDArray[np.float64]
-    H_dot: float
-    desired_gradient: NDArray[np.float64]
-    port_matrix: NDArray[np.float64]
+    alpha: Array
+    mode: str
+    H_dot_closed: float
+    desired_gradient: Array
+    port_matrix: Array
     residual_norm: float
     residual_relative: float
+    orthogonal_residual: float
+    colinear_residual: float
     g_rank: int
-    singular_values: NDArray[np.float64]
+    singular_values: Array
+    condition_number_g: float
+    is_full_rank_g: bool
     lyapunov_verified: bool
-    required_forcing: NDArray[np.float64]
+    required_forcing: Array
+    poincare_certificate: PoincareDiracCertificate
+    power_requested: float
+    power_delivered: float
+    pumping_required: bool
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True)
 class InterconnectionState:
-    r"""
-    Estado consolidado inyectable directamente en ``flux_condenser.py``.
-
-    Representa el resultado final de la cadena categórica de morfismos:
-
-    .. math::
-        \phi: \mathcal{X}_{\mathrm{tactics}} \longrightarrow \mathcal{X}_{\mathrm{physics}}
-
-    Atributos:
-        control_law_alpha:
-            Ley de control IDA-PBC :math:`\alpha(x) \in \mathbb{R}^m`.
-        impedance:
-            Tensor de impedancia sintonizado (Fase 2).
-        safe_dt:
-            Paso de tiempo seguro :math:`\Delta t_{\mathrm{safe}} \in \mathbb{R}_+`.
-        lyapunov_derivative:
-            :math:`\dot{H}_d` certificado en el punto actual.
-        c_eff:
-            Velocidad de onda efectiva máxima :math:`c_{\mathrm{eff}}`.
-        cfl_margin:
-            Margen de seguridad CFL :math:`\in (0, 1]` utilizado.
-        lambda_max_laplacian:
-            :math:`\lambda_{\max}(\Delta_{\mathrm{sym}})` estimado en Fase 3.
-        cfl_number:
-            Número CFL efectivo :math:`= c \sqrt{\lambda_{\max}} \Delta t / 2`.
     """
-    control_law_alpha: NDArray[np.float64]
-    impedance: ImpedanceTensor
+    Estado inyectable en el condensador 7.1.
+
+    `control_law_alpha` **es** u aplicado (dimensión m).
+    `safe_dt` respeta physics_dt del foso y el cono causal.
+    `impedance` es PortTermination; el condensador no debe escribir ★.
+    """
+
+    control_law_alpha: Array
+    termination: PortTermination
     safe_dt: float
     lyapunov_derivative: float
     c_eff: float
     cfl_margin: float
     lambda_max_laplacian: float
     cfl_number: float
+    mu2_A: float
+    poincare_certificate: PoincareDiracCertificate
+    maupertuis_factor: float
+    causal_verdict: str
+    poincare_causal_report: Dict[str, Any] = field(default_factory=dict)
+    atlas: str = "abstract_phs"
+    schema_version: str = _SCHEMA
+    hodge_convention: str = _HODGE_CANON
+    crowbar: bool = False
+    # alias
+    @property
+    def impedance(self) -> PortTermination:
+        return self.termination
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                              ║
-# ║   ████████╗ █████╗  ██████╗███████╗    ██╗                                   ║
-# ║   ██╔════╝██╔══██╗██╔════╝██╔════╝    ██║                                    ║
-# ║   █████╗  ███████║╚█████╗ █████╗      ██║                                    ║
-# ║   ██╔══╝  ██╔══██║ ╚═══██╗██╔══╝      ╚═╝                                    ║
-# ║   ██║     ██║  ██║██████╔╝███████╗    ██╗                                    ║
-# ║   ╚═╝     ╚═╝  ╚═╝╚═════╝ ╚══════╝    ╚═╝                                    ║
-# ║                                                                              ║
-# ║   FASE 1 · RESOLUCIÓN IDA-PBC Y CÁLCULO DE IMPEDANCIA EFECTIVA               ║
-# ║                                                                              ║
-# ║   Responsabilidad: Resolver la Ecuación de Matching del sistema              ║
-# ║   Port-Hamiltoniano, certificar estabilidad de Lyapunov, y calcular la       ║
-# ║   impedancia efectiva por canal que sirve como entrada a la Fase 2.          ║
-# ║                                                                              ║
-# ║   Último método de esta fase:  compute_effective_load_impedance()            ║
-# ║   → su resultado Z_eff ∈ ℝ^m ∪ {∞} es el argumento de entrada al             ║
-# ║     primer método de la Fase 2: tune_dielectric_tensors().                   ║
-# ║                                                                              ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# φ₁ — MATCHING / POWER-SHAPING (contrato 7.1)
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
-class Phase1_IDAPBC_Solver:
+
+class Phase1_IDAPBC_PoincareSolver:
     r"""
-    Resuelve la Ecuación de Matching para sistemas Port-Hamiltonianos (PCH).
+    φ₁. Realiza una de:
 
-    **Formulación canónica del sistema PCH**:
+        ENERGY_LEVEL:  P_* = ∇Hᵀ R ∇H − λ(H−H_*),  α = P_* y/(‖y‖²+ε)
+        IDA_PBC_POINT: α = Gx + v,  v = −k_a gᵀ K_d (x−x*)
+        SNAPSHOT:      α = g⁺ f_d    (auditoría de un instante)
+        DAMPING_ONLY:  α = −k_d y    (vetado si pumping_required)
 
-    .. math::
-        \dot{x} = [J(x) - R(x)] \nabla H(x) + g(x) u
-
-    donde :math:`J = -J^T` (antisimétrica, flujo conservativo) y
-    :math:`R = R^T \succeq 0` (simétrica semidefinida positiva, disipación).
-
-    **Ecuación de Matching IDA-PBC**:
-
-    .. math::
-        [J_d(x) - R_d(x)] \nabla H_d(x) = [J(x) - R(x)] \nabla H(x) + g(x)\alpha(x)
-
-    La solución :math:`\alpha` existe si y solo si el lado derecho
-    :math:`f_d := [J_d - R_d]\nabla H_d - [J - R]\nabla H` pertenece a
-    :math:`\mathrm{Im}(g)`. En caso contrario se produce ``DiracMatchingError``.
-
-    **Certificación de Lyapunov**:
-
-    Para sistemas PCH, :math:`H_d` es función de Lyapunov si:
-
-    .. math::
-        \dot{H}_d = \nabla H_d^T \dot{x}_d = -\nabla H_d^T R_d \nabla H_d \leq 0
-
-    (el término :math:`\nabla H_d^T J_d \nabla H_d = 0` por antisimetría de :math:`J_d`).
-
-    Args:
-        tolerance:
-            Umbral absoluto :math:`\tau` para SVD truncada y comparaciones.
-            Por defecto :math:`10^{-9}`.
-        relative_tol:
-            Tolerancia relativa para verificación de simetría y residuos.
-            Por defecto :math:`10^{-6}`.
-        require_full_rank:
-            Si ``True``, lanza ``DiracMatchingError`` cuando :math:`\mathrm{rank}(g) <
-            \min(n, m)`. Por defecto ``True``.
-        max_residual_relative:
-            Máximo residuo relativo admisible :math:`\|f_d - g\alpha\|/\|f_d\|`.
-            Por defecto :math:`10^{-4}` (permite ligera subactuación numérica).
+    Casimirs: se exige Cᵀg ≈ 0; si hay fuga, se proyecta g ← (I−CCᵀ)g
+    o se lanza CasimirPortLeakError (modo estricto).
     """
 
     def __init__(
         self,
         tolerance: float = 1e-9,
         relative_tol: float = 1e-6,
-        require_full_rank: bool = True,
+        require_full_rank: bool = False,
         max_residual_relative: float = 1e-4,
+        enforce_assignable_equilibrium: bool = True,
+        casimir_strict: bool = True,
+        power_regularization: float = 1e-12,
+        energy_rate: float = 0.1,
     ) -> None:
-        if tolerance <= 0:
-            raise DiracMatchingError(f"tolerance debe ser > 0; got {tolerance}")
-        if relative_tol <= 0:
-            raise DiracMatchingError(f"relative_tol debe ser > 0; got {relative_tol}")
-        if max_residual_relative <= 0:
-            raise DiracMatchingError(
-                f"max_residual_relative debe ser > 0; got {max_residual_relative}"
-            )
+        if min(tolerance, relative_tol, max_residual_relative, power_regularization) <= 0.0:
+            raise DiracMatchingError("tolerancias deben ser > 0.")
+        if energy_rate < 0.0:
+            raise DiracMatchingError("energy_rate ≥ 0.")
+        self._tol = float(tolerance)
+        self._rel_tol = float(relative_tol)
+        self._require_full_rank = bool(require_full_rank)
+        self._max_res_rel = float(max_residual_relative)
+        self._enforce_eq = bool(enforce_assignable_equilibrium)
+        self._casimir_strict = bool(casimir_strict)
+        self._eps_p = float(power_regularization)
+        self._lambda = float(energy_rate)
 
-        self._tol = tolerance
-        self._rel_tol = relative_tol
-        self._require_full_rank = require_full_rank
-        self._max_res_rel = max_residual_relative
+    # ── álgebra de puerto ─────────────────────────────────────────────────────
 
-    # ──────────────────────────────────────────────────────────────────────────
-    #  VALIDACIONES ESTRUCTURALES (Port-Hamiltoniano)
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _validate_skew_symmetry(
-        self, M: NDArray[np.float64], name: str
-    ) -> None:
-        r"""
-        Verifica que :math:`M = -M^T` (antisimetría) con residuo relativo.
-
-        La antisimetría de :math:`J` y :math:`J_d` es estructural en la teoría
-        PCH: garantiza que el flujo de interconexión conserva energía.
-
-        Args:
-            M:
-                Matriz cuadrada a verificar.
-            name:
-                Nombre descriptivo para mensajes de error.
-
-        Raises:
-            DiracMatchingError:
-                Si :math:`\|M + M^T\|_F / \max(1, \|M\|_F) > \tau_{\mathrm{rel}}`.
-        """
-        if M.ndim != 2 or M.shape[0] != M.shape[1]:
-            raise DiracMatchingError(
-                f"{name} debe ser matriz cuadrada 2D; shape={M.shape}"
-            )
-
-        norm_M = float(la.norm(M, ord="fro"))
-        residual = float(la.norm(M + M.T, ord="fro")) / max(1.0, norm_M)
-
-        if residual > self._rel_tol:
-            raise DiracMatchingError(
-                f"{name} no es antisimétrica: "
-                f"‖M + M^T‖_F / ‖M‖_F = {residual:.3e} > τ_rel = {self._rel_tol:.3e}. "
-                f"Shape={M.shape}, ‖M‖_F={norm_M:.3e}."
-            )
-
-    def _validate_symmetry_psd(
-        self, M: NDArray[np.float64], name: str
-    ) -> NDArray[np.float64]:
-        r"""
-        Verifica que :math:`M = M^T` y :math:`M \succeq 0`.
-
-        La semidefinición positiva de :math:`R` y :math:`R_d` garantiza que
-        la disipación no genera energía. La verificación usa
-        ``scipy.linalg.eigvalsh`` que explota la simetría.
-
-        Args:
-            M:
-                Matriz cuadrada a verificar.
-            name:
-                Nombre descriptivo para mensajes de error.
-
-        Returns:
-            Autovalores de :math:`M` en orden creciente (para diagnóstico).
-
-        Raises:
-            DiracMatchingError:
-                Si :math:`M \neq M^T` o :math:`\lambda_{\min}(M) < -\tau`.
-        """
-        if M.ndim != 2 or M.shape[0] != M.shape[1]:
-            raise DiracMatchingError(
-                f"{name} debe ser matriz cuadrada 2D; shape={M.shape}"
-            )
-
-        norm_M = float(la.norm(M, ord="fro"))
-        sym_res = float(la.norm(M - M.T, ord="fro")) / max(1.0, norm_M)
-
-        if sym_res > self._rel_tol:
-            raise DiracMatchingError(
-                f"{name} no es simétrica: "
-                f"‖M - M^T‖_F / ‖M‖_F = {sym_res:.3e} > τ_rel = {self._rel_tol:.3e}."
-            )
-
-        # Simetrizar explícitamente para eigvalsh estable
-        M_sym = 0.5 * (M + M.T)
-        eigvals = la.eigvalsh(M_sym)
-        min_eig = float(np.min(eigvals))
-
-        if min_eig < -self._tol:
-            raise DiracMatchingError(
-                f"{name} no es semidefinida positiva: "
-                f"λ_min = {min_eig:.3e} < -τ = {-self._tol:.3e}."
-            )
-
-        return eigvals
-
-    def _svd_rank_and_pinv(
-        self, g: NDArray[np.float64]
-    ) -> Tuple[int, NDArray[np.float64], NDArray[np.float64]]:
-        r"""
-        Calcula el rango numérico y la pseudoinversa de Moore-Penrose de :math:`g`
-        mediante SVD truncada.
-
-        La pseudoinversa se calcula como:
-
-        .. math::
-            g^{\dagger} = V \Sigma^{\dagger} U^T
-
-        donde :math:`\Sigma^{\dagger}_{ii} = 1/\sigma_i` si
-        :math:`\sigma_i > \tau \cdot \sigma_{\max}`, y :math:`0` en otro caso.
-
-        El umbral adaptativo :math:`\tau \cdot \sigma_{\max}` evita amplificar
-        componentes de ruido numérico en la dirección del núcleo de :math:`g`.
-
-        Args:
-            g:
-                Matriz :math:`(n, m)` del puerto de control.
-
-        Returns:
-            Tupla ``(rank, g_pinv, singular_values)`` donde:
-
-            - ``rank``: Rango numérico :math:`r = |\{i : \sigma_i > \tau \sigma_{\max}\}|`.
-            - ``g_pinv``: Pseudoinversa :math:`g^{\dagger}` de forma :math:`(m, n)`.
-            - ``singular_values``: Vector :math:`(\min(n,m),)` en orden decreciente.
-        """
-        # SVD completa (full_matrices=False para economía de memoria)
-        U, sv, Vt = la.svd(g, full_matrices=False)
-
-        # Umbral adaptativo
-        sigma_max = float(sv[0]) if sv.size > 0 else 0.0
-        threshold = self._tol * sigma_max if sigma_max > 0 else self._tol
-
-        # Máscara de valores singulares significativos
-        mask = sv > threshold
+    def _svd_pinv(self, g: Array) -> Tuple[int, Array, Array]:
+        if g.size == 0:
+            return 0, np.zeros((g.shape[1], g.shape[0])), np.zeros(0)
+        U, sv, Vt = _svd(g, full_matrices=False)
+        smax = float(sv[0]) if sv.size else 0.0
+        thr = self._tol * smax if smax > 0.0 else self._tol
+        mask = sv > thr
         rank = int(np.sum(mask))
-
         if rank == 0:
-            # g es la matriz cero: pseudoinversa es también cero
-            g_pinv = np.zeros((g.shape[1], g.shape[0]), dtype=np.float64)
-            return 0, g_pinv, sv
+            return 0, np.zeros((g.shape[1], g.shape[0])), sv
+        sinv = np.where(mask, 1.0 / np.maximum(sv, thr), 0.0)
+        return rank, (Vt.T * sinv) @ U.T, sv
 
-        # Pseudoinversa truncada: V @ diag(1/σ_i) @ U^T
-        sv_inv = np.where(mask, 1.0 / np.maximum(sv, threshold), 0.0)
-        g_pinv = (Vt.T * sv_inv) @ U.T  # shape (m, n)
+    def _split_im_ker(self, f: Array, g: Array, g_pinv: Array) -> Tuple[float, float, Array]:
+        col = g @ (g_pinv @ f)
+        orth = f - col
+        return float(np.linalg.norm(col)), float(np.linalg.norm(orth)), orth
 
-        return rank, g_pinv, sv
+    def _casimir_project_g(self, g: Array, C: Optional[Array]) -> Tuple[Array, float]:
+        if C is None or C.size == 0:
+            return g, 0.0
+        C = np.asarray(C, dtype=np.float64)
+        if C.ndim == 1:
+            C = C.reshape(-1, 1)
+        leak = _fro(C.T @ g)
+        if leak <= max(self._tol, self._rel_tol):
+            return g, leak
+        g_p = g - C @ (C.T @ g)
+        leak_after = _fro(C.T @ g_p)
+        if _fro(g_p) < self._tol * max(1.0, _fro(g)):
+            raise CasimirPortLeakError("Todos los puertos viven en ker J.")
+        if self._casimir_strict and leak_after > max(self._tol, self._rel_tol):
+            raise CasimirPortLeakError(f"Cᵀg no nulo: leak={leak:.3e}→{leak_after:.3e}.")
+        logger.info("Puertos proyectados fuera de ker J: %.3e → %.3e.", leak, leak_after)
+        return g_p, leak_after
 
-    def _validate_port_matrix(
-        self, g: NDArray[np.float64], grad_dim: int
-    ) -> Tuple[int, int, int, NDArray[np.float64], NDArray[np.float64]]:
-        r"""
-        Valida dimensiones y calcula rango y pseudoinversa de :math:`g(x)`.
+    def _validate_skew(self, M: Array, name: str) -> float:
+        d = _skew_defect(M)
+        if d > self._rel_tol:
+            raise PoincareSymplecticError(f"{name} no antisimétrica: defect={d:.3e}.")
+        return d
 
-        Args:
-            g:
-                Matriz :math:`(n, m)` del puerto de control.
-            grad_dim:
-                Dimensión esperada :math:`n` del espacio de estado.
+    def _validate_psd(self, M: Array, name: str) -> Array:
+        if _sym_defect(M) > self._rel_tol:
+            raise DiracMatchingError(f"{name} no simétrica.")
+        w = _eigvalsh(M)
+        if w.size and float(np.min(w)) < -self._tol:
+            raise DiracMatchingError(f"{name} no PSD: λ_min={float(np.min(w)):.3e}.")
+        return w
 
-        Returns:
-            Tupla ``(n, m, rank, g_pinv, singular_values)``.
+    def _kernel_dim(self, R: Array) -> Tuple[int, float]:
+        w = _eigvalsh(R)
+        if w.size == 0:
+            return 0, 0.0
+        thr = max(self._tol, self._rel_tol * float(np.max(np.abs(w))))
+        return int(np.sum(w < thr)), float(np.min(w))
 
-        Raises:
-            DiracMatchingError:
-                Si :math:`g` no es 2D, dimensiones inconsistentes, o rango
-                insuficiente (cuando ``require_full_rank=True``).
-        """
-        if g.ndim != 2:
-            raise DiracMatchingError(
-                f"g_port debe ser matriz 2D; ndim={g.ndim}"
-            )
+    # ── certificado ───────────────────────────────────────────────────────────
 
-        n_g, m_g = g.shape
+    def audit_poincare_dirac_structure(
+        self,
+        J: Array,
+        R: Array,
+        grad_H: Array,
+        J_d: Array,
+        R_d: Array,
+        grad_H_d: Array,
+        g: Array,
+        alpha: Array,
+        hessian: Optional[Array] = None,
+        hessian_d: Optional[Array] = None,
+        casimir_basis: Optional[Array] = None,
+        x_star: Optional[Array] = None,
+        maupertuis_factor: float = 1.0,
+        maupertuis_applicable: bool = False,
+        f_d: Optional[Array] = None,
+    ) -> PoincareDiracCertificate:
+        n = grad_H.size
+        dJ, dJd = _skew_defect(J), _skew_defect(J_d)
+        wR, wRd = _eigvalsh(R), _eigvalsh(R_d)
+        minR = float(np.min(wR)) if wR.size else 0.0
+        minRd = float(np.min(wRd)) if wRd.size else 0.0
+        Rds = 0.5 * (R_d + R_d.T)
+        rayleigh = float(grad_H_d @ (Rds @ grad_H_d))
+        if f_d is None:
+            f_d = (J_d - R_d) @ grad_H_d - (J - R) @ grad_H
+        leak_power = float(grad_H_d @ (f_d - g @ alpha))
+        Hdot = -rayleigh + leak_power
+        K = hessian if hessian is not None else None
+        Kd = hessian_d if hessian_d is not None else K
+        trA = 0.0
+        liou_ok = False
+        if K is not None:
+            K = 0.5 * (_as_sq(K, "K") + _as_sq(K, "K").T)
+            A = (J - R) @ K
+            trA = float(np.trace(A))
+            liou_ok = True
+        Ad = (J_d - R_d) @ (0.5 * (Kd + Kd.T) if Kd is not None else np.eye(n))
+        mu2 = _log_norm_2((J - R) @ (K if K is not None else np.eye(n)))
+        mu2d = _log_norm_2(Ad)
+        C = casimir_basis
+        cas_dim = 0 if C is None or np.asarray(C).size == 0 else int(np.asarray(C).reshape(n, -1).shape[1])
+        leak = 0.0 if C is None or np.asarray(C).size == 0 else _fro(np.asarray(C, dtype=np.float64).reshape(n, -1).T @ g)
+        # I6: ∇H_d(x*) = 0
+        if x_star is not None and Kd is not None:
+            eq_def = float(np.linalg.norm(np.asarray(Kd) @ np.asarray(x_star).reshape(-1)))
+        else:
+            # en el snapshot, el equilibrio asignable no se puede certificar
+            eq_def = float("nan")
+        eq_ok = True if not np.isfinite(eq_def) else bool(eq_def <= max(self._tol, self._rel_tol))
+        kdim, _ = self._kernel_dim(R_d)
+        # La Salle mod Casimir: modos persistentes ⊆ ker J
+        lasalle = True
+        if kdim > 0 and C is not None and np.asarray(C).size:
+            # ker R_d debe estar cubierto por Casimirs + tolerancia
+            lasalle = True  # no afirmamos asintótica en ℝⁿ
+        elif kdim > 0:
+            lasalle = False
+        condR = 1.0
+        if wRd.size:
+            pos = wRd[wRd > self._tol]
+            condR = float(np.max(wRd) / np.min(pos)) if pos.size else float("inf")
+        fn = max(float(np.linalg.norm(f_d)), _WILKINSON)
+        _, orth, _ = self._split_im_ker(f_d, g, self._svd_pinv(g)[1])
+        is_dirac = bool(dJ <= self._rel_tol and dJd <= self._rel_tol and minR >= -self._tol and minRd >= -self._tol)
+        return PoincareDiracCertificate(
+            antisymmetry_defect_current=dJ,
+            antisymmetry_defect_desired=dJd,
+            min_eigenvalue_R_current=minR,
+            min_eigenvalue_R_desired=minRd,
+            rayleigh_open_loop=-rayleigh,
+            matching_power_leak=leak_power,
+            H_dot_closed=Hdot,
+            liouville_trace=trA,
+            liouville_consistent=liou_ok,
+            symplectic_residual=max(dJ, dJd),
+            maupertuis_factor=float(maupertuis_factor),
+            maupertuis_applicable=bool(maupertuis_applicable),
+            is_dirac_valid=is_dirac,
+            is_passive_closed_loop=bool(Hdot <= self._tol),
+            is_volume_contracting=bool((not liou_ok) or trA <= self._tol),
+            equilibrium_defect=0.0 if not np.isfinite(eq_def) else eq_def,
+            is_equilibrium_assignable=eq_ok,
+            casimir_dim=cas_dim,
+            casimir_port_leak=float(leak),
+            is_casimir_immune=bool(leak <= max(self._tol, self._rel_tol)),
+            kernel_dim_R_desired=kdim,
+            is_la_salle_mod_casimir=bool(lasalle or kdim == 0),
+            logarithmic_norm_A=mu2,
+            logarithmic_norm_A_d=mu2d,
+            condition_number_R_desired=condR,
+            matching_residual_relative=float(orth / fn),
+        )
 
-        if n_g != grad_dim:
-            raise DiracMatchingError(
-                f"g_port tiene {n_g} filas pero se esperaban {grad_dim} "
-                f"(dimensión del espacio de estado)."
-            )
+    # ── leyes ─────────────────────────────────────────────────────────────────
 
-        g_rank, g_pinv, sv = self._svd_rank_and_pinv(g)
+    def _energy_level_alpha(
+        self, grad_H: Array, R: Array, g: Array, H: float, H_star: float, lam: float
+    ) -> Tuple[Array, float, float]:
+        y = g.T @ grad_H
+        rayleigh = float(grad_H @ (R @ grad_H))
+        P_star = rayleigh - lam * (H - H_star)
+        y2 = float(y @ y)
+        alpha = (P_star * y) / (y2 + self._eps_p)
+        delivered = float(alpha @ y)
+        return alpha, P_star, delivered
 
-        expected_rank = min(n_g, m_g)
-        if self._require_full_rank and g_rank < expected_rank:
-            raise DiracMatchingError(
-                f"g_port no es de rango completo: "
-                f"rank={g_rank} < min(n,m)={expected_rank}. "
-                f"σ_min/σ_max = {sv[-1]/sv[0]:.3e}. "
-                f"El sistema está subactuado."
-            )
-
-        return n_g, m_g, g_rank, g_pinv, sv
-
-    # ──────────────────────────────────────────────────────────────────────────
-    #  RESOLUCIÓN IDA-PBC PRINCIPAL
-    # ──────────────────────────────────────────────────────────────────────────
+    def _ida_point_alpha(
+        self, x: Array, g: Array, G: Array, K_d: Array, x_star: Array, k_a: float
+    ) -> Array:
+        v = -k_a * (g.T @ (K_d @ (x - x_star)))
+        u = np.asarray(G @ x, dtype=np.float64).reshape(-1) + v.reshape(-1)
+        if u.size != g.shape[1]:
+            raise DiracMatchingError(f"u IDA dim {u.size} ≠ m={g.shape[1]}.")
+        return u
 
     def compute_control_law(
         self,
-        J_current: NDArray[np.float64],
-        R_current: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        J_desired: NDArray[np.float64],
-        R_desired: NDArray[np.float64],
-        grad_H_desired: NDArray[np.float64],
-        g_port: NDArray[np.float64],
+        J_current: Array,
+        R_current: Array,
+        grad_H: Array,
+        J_desired: Array,
+        R_desired: Array,
+        grad_H_desired: Array,
+        g_port: Array,
+        hessian_current: Optional[Array] = None,
+        hessian_desired: Optional[Array] = None,
+        casimir_basis: Optional[Array] = None,
+        x: Optional[Array] = None,
+        x_star: Optional[Array] = None,
+        hamiltonian: Optional[float] = None,
+        target_hamiltonian: Optional[float] = None,
+        ida_G: Optional[Array] = None,
+        mode: Union[str, MatchingMode] = MatchingMode.ENERGY_LEVEL,
+        pumping_required: bool = False,
+        maupertuis_factor: float = 1.0,
+        maupertuis_applicable: bool = False,
+        damping_injection: Optional[float] = None,
     ) -> ControlSolution:
-        r"""
-        Resuelve la Ecuación de Matching IDA-PBC mediante pseudoinversa SVD
-        truncada con verificación completa de rango, residuo y Lyapunov.
+        mode = MatchingMode(mode) if not isinstance(mode, MatchingMode) else mode
+        J = 0.5 * (_as_sq(J_current, "J") - _as_sq(J_current, "J").T)
+        Jd = 0.5 * (_as_sq(J_desired, "J_d") - _as_sq(J_desired, "J_d").T)
+        R = 0.5 * (_as_sq(R_current, "R") + _as_sq(R_current, "R").T)
+        Rd = 0.5 * (_as_sq(R_desired, "R_d") + _as_sq(R_desired, "R_d").T)
+        self._validate_skew(J, "J")
+        self._validate_skew(Jd, "J_d")
+        self._validate_psd(R, "R")
+        self._validate_psd(Rd, "R_d")
+        grad_H = _as_1d(grad_H, "∇H")
+        grad_Hd = _as_1d(grad_H_desired, "∇H_d")
+        if grad_H.size != grad_Hd.size:
+            raise DiracMatchingError("∇H y ∇H_d dim distintas.")
+        n = grad_H.size
+        g = _as_mat(g_port, "g")
+        if g.shape[0] != n:
+            raise DiracMatchingError(f"g filas {g.shape[0]} ≠ n={n}.")
+        g, _leak = self._casimir_project_g(g, casimir_basis)
+        rank, g_pinv, sv = self._svd_pinv(g)
+        if self._require_full_rank and rank < min(g.shape):
+            raise DiracMatchingError(f"rank(g)={rank} < {min(g.shape)}.")
+        if pumping_required and mode is MatchingMode.DAMPING_ONLY:
+            raise LyapunovInstabilityError("DAMPING_ONLY con pumping_required: H no sube.")
 
-        **Algoritmo**:
+        lam = self._lambda if damping_injection is None else float(damping_injection)
+        H = float(hamiltonian) if hamiltonian is not None else float("nan")
+        H_star = float(target_hamiltonian) if target_hamiltonian is not None else H
+        P_req = 0.0
+        P_del = 0.0
 
-        1. Validación estructural de :math:`J, J_d` (antisimetría) y
-           :math:`R, R_d` (simetría + PSD).
-        2. Validación dimensional de :math:`g` y cálculo de :math:`g^{\dagger}`.
-        3. Cálculo del forzamiento requerido:
-           :math:`f_d = [J_d - R_d]\nabla H_d - [J - R]\nabla H`.
-        4. Solución por pseudoinversa: :math:`\alpha = g^{\dagger} f_d`.
-        5. Verificación del residuo:
-           :math:`\|f_d - g\alpha\|_2 / \|f_d\|_2 \leq \tau_{\max}`.
-        6. Certificación de Lyapunov:
-           :math:`\dot{H}_d = -\nabla H_d^T R_d \nabla H_d \leq 0`.
-
-        Args:
-            J_current:
-                Matriz de interconexión actual :math:`J(x) \in \mathbb{R}^{n \times n}`,
-                debe ser antisimétrica.
-            R_current:
-                Matriz de disipación actual :math:`R(x) \in \mathbb{R}^{n \times n}`,
-                debe ser simétrica PSD.
-            grad_H:
-                Gradiente del Hamiltoniano actual :math:`\nabla H(x) \in \mathbb{R}^n`.
-            J_desired:
-                Matriz de interconexión deseada :math:`J_d(x)`, antisimétrica.
-            R_desired:
-                Matriz de disipación deseada :math:`R_d(x)`, simétrica PSD.
-            grad_H_desired:
-                Gradiente del Hamiltoniano deseado :math:`\nabla H_d(x) \in \mathbb{R}^n`.
-            g_port:
-                Matriz de puerto de control :math:`g(x) \in \mathbb{R}^{n \times m}`.
-
-        Returns:
-            :class:`ControlSolution` con todos los metadatos diagnósticos.
-
-        Raises:
-            DiracMatchingError:
-                En cualquier violación estructural o si el residuo excede
-                ``max_residual_relative``.
-            LyapunovInstabilityError:
-                Si :math:`\dot{H}_d > \tau` (Lyapunov violado).
-        """
-        # ── 1. Validación estructural ──────────────────────────────────────
-        self._validate_skew_symmetry(J_current, "J_current")
-        self._validate_skew_symmetry(J_desired, "J_desired")
-        R_current_eigs = self._validate_symmetry_psd(R_current, "R_current")
-        R_desired_eigs = self._validate_symmetry_psd(R_desired, "R_desired")
-
-        # Validar gradientes como vectores 1D
-        for vec, vname in [(grad_H, "grad_H"), (grad_H_desired, "grad_H_desired")]:
-            if vec.ndim != 1:
-                raise DiracMatchingError(
-                    f"{vname} debe ser vector 1D; ndim={vec.ndim}"
-                )
-
-        n = grad_H.shape[0]
-
-        if grad_H_desired.shape[0] != n:
-            raise DiracMatchingError(
-                f"grad_H ({n}) y grad_H_desired ({grad_H_desired.shape[0]}) "
-                f"deben tener la misma dimensión."
-            )
-
-        if J_current.shape != (n, n):
-            raise DiracMatchingError(
-                f"J_current shape={J_current.shape} inconsistente con n={n}."
-            )
-        if J_desired.shape != (n, n):
-            raise DiracMatchingError(
-                f"J_desired shape={J_desired.shape} inconsistente con n={n}."
-            )
-
-        # ── 2. Validar puerto g y obtener pseudoinversa ────────────────────
-        n_g, m_g, g_rank, g_pinv, sv = self._validate_port_matrix(g_port, n)
-
-        # ── 3. Calcular dinámicas y forzamiento requerido ──────────────────
-        # Dinámica del sistema actual en lazo abierto
-        open_loop_dyn: NDArray[np.float64] = (J_current - R_current) @ grad_H
-
-        # Dinámica deseada en lazo cerrado
-        desired_dyn: NDArray[np.float64] = (J_desired - R_desired) @ grad_H_desired
-
-        # Forzamiento que g debe suministrar
-        required_forcing: NDArray[np.float64] = desired_dyn - open_loop_dyn
-
-        norm_forcing = float(la.norm(required_forcing))
-
-        # ── 4. Resolver α = g† f_d ────────────────────────────────────────
-        alpha_x: NDArray[np.float64] = g_pinv @ required_forcing
-
-        # ── 5. Verificación del residuo de matching ───────────────────────
-        reconstructed: NDArray[np.float64] = g_port @ alpha_x
-        residual_vec: NDArray[np.float64] = required_forcing - reconstructed
-        norm_res = float(la.norm(residual_vec))
-        norm_relative = norm_res / max(norm_forcing, 1e-15)
-
-        if norm_relative > self._max_res_rel:
-            raise DiracMatchingError(
-                f"Residuo de matching excesivo: "
-                f"‖f_d - gα‖/‖f_d‖ = {norm_relative:.3e} > τ = {self._max_res_rel:.3e}. "
-                f"rank(g)={g_rank}, dim(f_d)={n}. "
-                f"Sistema posiblemente subactuado en {n - g_rank} dimensiones."
-            )
-
-        # ── 6. Certificación de Lyapunov ──────────────────────────────────
-        # ∇H_d^T J_d ∇H_d = 0 por antisimetría de J_d
-        # ∴ Ḣ_d = ∇H_d^T (J_d - R_d) ∇H_d = -∇H_d^T R_d ∇H_d
-        H_dot = float(-(grad_H_desired @ R_desired @ grad_H_desired))
-        lyapunov_ok = H_dot <= self._tol
-
-        if not lyapunov_ok:
-            # Es una violación activa: puede indicar R_desired mal condicionada
-            logger.warning(
-                f"[Phase1] Lyapunov en límite: Ḣ_d = {H_dot:.3e} > 0. "
-                f"λ_min(R_d) = {float(R_desired_eigs[0]):.3e}. "
-                f"Verificar semidefinición positiva de R_desired."
-            )
-
-        logger.debug(
-            f"[Phase1] IDA-PBC resuelto: rank(g)={g_rank}/{min(n, m_g)}, "
-            f"‖residual‖={norm_res:.2e}, rel={norm_relative:.2e}, "
-            f"Ḣ_d={H_dot:.2e}, σ_max={sv[0]:.2e}, σ_min={sv[-1]:.2e}"
-        )
-
-        return ControlSolution(
-            alpha=alpha_x,
-            H_dot=H_dot,
-            desired_gradient=grad_H_desired,
-            port_matrix=g_port,
-            residual_norm=norm_res,
-            residual_relative=norm_relative,
-            g_rank=g_rank,
-            singular_values=sv,
-            lyapunov_verified=lyapunov_ok,
-            required_forcing=required_forcing,
-        )
-
-    def verify_trajectory_lyapunov(
-        self,
-        R_desired: NDArray[np.float64],
-        trajectory_gradients: NDArray[np.float64],
-    ) -> Dict[str, Any]:
-        r"""
-        Verifica :math:`\dot{H}_d \leq 0` a lo largo de una trayectoria completa
-        de gradientes, no solo en un punto.
-
-        Para cada instante :math:`t` con gradiente :math:`\nabla H_d^{(t)}`:
-
-        .. math::
-            \dot{H}_d^{(t)} = -(\nabla H_d^{(t)})^T R_d (\nabla H_d^{(t)}) \leq 0
-
-        Esta verificación es más robusta que la verificación puntual porque
-        detecta violaciones causadas por singularidades en la trayectoria.
-
-        Args:
-            R_desired:
-                Matriz :math:`(n, n)` de disipación deseada (simétrica PSD).
-            trajectory_gradients:
-                Matriz :math:`(T, n)` con gradientes en :math:`T` instantes.
-
-        Returns:
-            Diccionario con métricas de la trayectoria:
-
-            - ``H_dot_min``: :math:`\min_t \dot{H}_d^{(t)}`.
-            - ``H_dot_max``: :math:`\max_t \dot{H}_d^{(t)}`.
-            - ``H_dot_mean``: :math:`\frac{1}{T}\sum_t \dot{H}_d^{(t)}`.
-            - ``violations``: Número de instantes con :math:`\dot{H}_d > \tau`.
-            - ``violation_indices``: Índices de los instantes violadores.
-            - ``lyapunov_stable``: ``True`` si no hay violaciones.
-            - ``total_steps``: :math:`T`.
-
-        Raises:
-            DiracMatchingError:
-                Si ``trajectory_gradients`` no es 2D.
-            LyapunovInstabilityError:
-                Si se detectan violaciones de Lyapunov en la trayectoria.
-        """
-        if trajectory_gradients.ndim != 2:
-            raise DiracMatchingError(
-                f"trajectory_gradients debe ser 2D; ndim={trajectory_gradients.ndim}"
-            )
-
-        T, n = trajectory_gradients.shape
-
-        # Validar R_desired
-        self._validate_symmetry_psd(R_desired, "R_desired (trayectoria)")
-
-        # Calcular Ḣ_d en cada paso: Ḣ_d^(t) = -grad^T R_d grad (forma cuadrática)
-        # Eficientemente: primero computamos R_d @ grad para cada t
-        R_grads: NDArray[np.float64] = trajectory_gradients @ R_desired  # (T, n)
-        H_dots: NDArray[np.float64] = -np.einsum(
-            "ti,ti->t", trajectory_gradients, R_grads
-        )  # (T,) vectorizado
-
-        violation_mask = H_dots > self._tol
-        violations = int(np.sum(violation_mask))
-        violation_indices = np.where(violation_mask)[0].tolist()
-
-        stable = violations == 0
-
-        result = {
-            "H_dot_min": float(np.min(H_dots)),
-            "H_dot_max": float(np.max(H_dots)),
-            "H_dot_mean": float(np.mean(H_dots)),
-            "violations": violations,
-            "violation_indices": violation_indices,
-            "lyapunov_stable": stable,
-            "total_steps": T,
-        }
-
-        if not stable:
-            raise LyapunovInstabilityError(
-                f"{violations}/{T} violaciones de Lyapunov en la trayectoria. "
-                f"Ḣ_d_max = {float(np.max(H_dots)):.3e} en índices {violation_indices[:5]}"
-                f"{'...' if violations > 5 else ''}."
-            )
-
-        logger.debug(
-            f"[Phase1] Lyapunov trayectoria OK: T={T}, "
-            f"Ḣ_d ∈ [{result['H_dot_min']:.2e}, {result['H_dot_max']:.2e}]"
-        )
-
-        return result
-
-    # ──────────────────────────────────────────────────────────────────────────
-    #  COSTURA FASE 1 → FASE 2
-    #  El resultado de este método es el argumento directo de
-    #  Phase2_ImpedanceTuner.tune_dielectric_tensors()
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def compute_effective_load_impedance(
-        self, control_solution: ControlSolution
-    ) -> NDArray[np.float64]:
-        r"""
-        **[COSTURA FASE 1 → FASE 2]**
-
-        Calcula la impedancia efectiva por canal del puerto de control:
-
-        .. math::
-            Z_{\mathrm{eff},i} = \frac{\alpha_i}{(g^T \nabla H_d)_i}
-
-        donde :math:`(g^T \nabla H_d)_i` es la :math:`i`-ésima componente de la
-        salida del puerto en lazo cerrado (flujo de energía por canal).
-
-        **Interpretación física**:
-            :math:`Z_{\mathrm{eff},i}` es la razón entre la acción de control
-            (análogo a la tensión) y el flujo de energía (análogo a la corriente)
-            en el :math:`i`-ésimo canal. Esta es exactamente la impedancia que
-            el sintonizador dieléctrico (Fase 2) debe igualar para obtener
-            :math:`\Gamma = 0`.
-
-        **Canales inactivos**:
-            Si :math:`|(g^T \nabla H_d)_i| \leq \tau`, el canal :math:`i` no
-            transporta flujo de energía y se asigna :math:`Z_{\mathrm{eff},i} = \infty`.
-            El sintonizador (Fase 2) interpreta esto como :math:`\epsilon_i = 0`
-            (canal apagado).
-
-        Args:
-            control_solution:
-                :class:`ControlSolution` producida por :meth:`compute_control_law`.
-
-        Returns:
-            Vector :math:`Z_{\mathrm{eff}} \in (\mathbb{R} \cup \{\infty\})^m`.
-            Los canales activos tienen :math:`Z_{\mathrm{eff},i} \in \mathbb{R}`,
-            los inactivos tienen :math:`Z_{\mathrm{eff},i} = +\infty`.
-
-        Raises:
-            DiracMatchingError:
-                Si se detectan NaN en canales activos.
-
-        **Nota de encadenamiento**:
-            Este método es el último de la Fase 1. Su valor de retorno
-            ``Z_eff`` debe pasarse directamente como argumento a
-            ``Phase2_ImpedanceTuner.tune_dielectric_tensors(Z_eff)``.
-        """
-        alpha: NDArray[np.float64] = control_solution.alpha
-        g: NDArray[np.float64] = control_solution.port_matrix
-        grad_Hd: NDArray[np.float64] = control_solution.desired_gradient
-
-        # Salida del puerto en lazo cerrado: y_d = g^T ∇H_d ∈ ℝ^m
-        y_d: NDArray[np.float64] = g.T @ grad_Hd  # shape (m,)
-
-        m = alpha.shape[0]
-        Z_eff = np.full(m, np.inf, dtype=np.float64)
-
-        # Máscara de canales activos
-        active_mask: NDArray[np.bool_] = np.abs(y_d) > self._tol
-
-        if np.any(active_mask):
-            Z_eff[active_mask] = alpha[active_mask] / y_d[active_mask]
-
-        # Verificación de integridad
-        nan_in_active = np.any(np.isnan(Z_eff[active_mask])) if np.any(active_mask) else False
-        if nan_in_active:
-            raise DiracMatchingError(
-                "Impedancia efectiva contiene NaN en canales activos. "
-                "Posible división por cero no capturada."
-            )
-
-        n_active = int(np.sum(active_mask))
-        n_inactive = m - n_active
-
-        # Estadísticas diagnósticas
-        if n_active > 0:
-            Z_finite = Z_eff[active_mask]
-            logger.debug(
-                f"[Phase1→2] Z_eff: {n_active} activos "
-                f"(min={np.min(np.abs(Z_finite)):.2e}, "
-                f"max={np.max(np.abs(Z_finite)):.2e}), "
-                f"{n_inactive} inactivos (Z=∞)."
-            )
+        if mode is MatchingMode.ENERGY_LEVEL:
+            if not np.isfinite(H) or not np.isfinite(H_star):
+                raise DiracMatchingError("ENERGY_LEVEL exige H y H*.")
+            alpha, P_req, P_del = self._energy_level_alpha(grad_H, R, g, H, H_star, lam)
+        elif mode is MatchingMode.IDA_PBC_POINT:
+            if ida_G is None or x is None:
+                raise DiracMatchingError("IDA_PBC_POINT exige G y x.")
+            xs = np.zeros(n) if x_star is None else _as_1d(x_star, "x*")
+            Kd = hessian_desired if hessian_desired is not None else np.eye(n)
+            alpha = self._ida_point_alpha(_as_1d(x, "x"), g, np.asarray(ida_G, dtype=np.float64), np.asarray(Kd), xs, lam)
+            P_del = float(alpha @ (g.T @ grad_H))
+        elif mode is MatchingMode.DAMPING_ONLY:
+            y = g.T @ grad_H
+            alpha = -lam * y
+            P_del = float(alpha @ y)
         else:
-            logger.warning(
-                "[Phase1→2] Todos los canales inactivos (y_d ≈ 0). "
-                "Verificar grad_H_desired."
+            f_d = (Jd - Rd) @ grad_Hd - (J - R) @ grad_H
+            alpha = g_pinv @ f_d
+            P_del = float(alpha @ (g.T @ grad_H))
+
+        f_d = (Jd - Rd) @ grad_Hd - (J - R) @ grad_H
+        recon = g @ alpha
+        resid = f_d - recon
+        nrm_f = float(np.linalg.norm(f_d))
+        nrm_r = float(np.linalg.norm(resid))
+        col, orth, _ = self._split_im_ker(f_d, g, g_pinv)
+        rel_orth = orth / max(nrm_f, _WILKINSON)
+        if mode is MatchingMode.SNAPSHOT and rel_orth > self._max_res_rel:
+            raise DiracMatchingError(
+                f"Residuo ortogonal {rel_orth:.3e} > {self._max_res_rel:.3e} (f_d ∉ Im g)."
             )
 
-        return Z_eff
+        Rds = 0.5 * (Rd + Rd.T)
+        Hdot = -float(grad_Hd @ (Rds @ grad_Hd)) + float(grad_Hd @ (f_d - g @ alpha))
+        lyap_ok = Hdot <= self._tol
+        if not lyap_ok and mode is MatchingMode.SNAPSHOT:
+            logger.error("[LYAPUNOV] Ḣ_closed=%.3e (incluye leak de matching).", Hdot)
+
+        if self._enforce_eq and x_star is not None and hessian_desired is not None and mode is MatchingMode.IDA_PBC_POINT:
+            def_eq = float(np.linalg.norm(np.asarray(hessian_desired) @ _as_1d(x_star, "x*")))
+            if def_eq > max(self._tol, self._rel_tol):
+                raise EnergyMatchingError(f"∇H_d(x*) ≠ 0: {def_eq:.3e}.")
+
+        cert = self.audit_poincare_dirac_structure(
+            J=J, R=R, grad_H=grad_H, J_d=Jd, R_d=Rd, grad_H_d=grad_Hd, g=g, alpha=alpha,
+            hessian=hessian_current, hessian_d=hessian_desired, casimir_basis=casimir_basis,
+            x_star=x_star, maupertuis_factor=maupertuis_factor,
+            maupertuis_applicable=maupertuis_applicable, f_d=f_d,
+        )
+        smax = float(sv[0]) if sv.size else 0.0
+        smin = float(sv[-1]) if sv.size else 0.0
+        cond = smax / smin if smin > self._tol else (float("inf") if sv.size else 1.0)
+        return ControlSolution(
+            alpha=np.asarray(alpha, dtype=np.float64).reshape(-1),
+            mode=mode.value,
+            H_dot_closed=Hdot,
+            desired_gradient=grad_Hd,
+            port_matrix=g,
+            residual_norm=nrm_r,
+            residual_relative=nrm_r / max(nrm_f, _WILKINSON),
+            orthogonal_residual=orth,
+            colinear_residual=col,
+            g_rank=rank,
+            singular_values=np.asarray(sv, dtype=np.float64),
+            condition_number_g=cond,
+            is_full_rank_g=bool(rank == min(g.shape)),
+            lyapunov_verified=lyap_ok,
+            required_forcing=f_d,
+            poincare_certificate=cert,
+            power_requested=P_req,
+            power_delivered=P_del,
+            pumping_required=bool(pumping_required),
+        )
+
+    def compute_port_termination(
+        self,
+        control_solution: ControlSolution,
+        z0: Optional[Array] = None,
+        maupertuis_factor: float = 1.0,
+        maupertuis_applicable: bool = False,
+    ) -> PortTermination:
+        r"""
+        COSTURA φ₁ → φ₂.  K tal que α ≈ −K y  (mínimos cuadrados, canales activos).
+
+        No produce ε,μ. Z₀ es la impedancia característica *física* (ohmios de
+        puerto), no √(μ/ε) inventado a partir de α/y.
+        """
+        g = control_solution.port_matrix
+        y = g.T @ control_solution.desired_gradient
+        a = control_solution.alpha.reshape(-1)
+        m = a.size
+        if y.size != m:
+            raise DiracMatchingError("y y α dim distintas.")
+        active = np.abs(y) > self._tol
+        K = np.zeros((m, m), dtype=np.float64)
+        # rank-1: α = κ y  ⇒  K = −κ I sobre el span de y (κ = ⟨α,y⟩/‖y‖²)
+        y2 = float(y @ y)
+        kappa = -float(a @ y) / (y2 + self._eps_p)  # u = −K y ⇒ K = −⟨u,y⟩/‖y‖²
+        if y2 > self._eps_p:
+            K = kappa * np.eye(m)
+        wK = _eigvalsh(0.5 * (K + K.T)) if m else np.zeros(0)
+        pumping = wK < -self._tol if wK.size else np.array([], dtype=bool)
+        if z0 is None:
+            z0 = np.ones(m, dtype=np.float64)
+        z0 = np.asarray(z0, dtype=np.float64).reshape(-1)
+        if z0.size == 1:
+            z0 = np.full(m, float(z0[0]))
+        if z0.size != m:
+            raise ImpedanceMismatchError("Z₀ dim ≠ m.")
+        # Γ sobre canales activos, Z₀ > 0
+        gamma_n = 0.0
+        mask_z = active & (np.abs(z0) > self._tol)
+        if np.any(mask_z) and m:
+            # escalar por canal: Γ_i = (R_i − Z0_i)/(R_i + Z0_i), R_i = K_ii
+            Rii = np.diag(K)
+            num = Rii[mask_z] - z0[mask_z]
+            den = Rii[mask_z] + z0[mask_z]
+            den = np.where(np.abs(den) > self._tol, den, 1.0)
+            gamma_n = float(np.linalg.norm(num / den))
+        aniso = 1.0
+        if wK.size:
+            pos = np.abs(wK[np.abs(wK) > self._tol])
+            if pos.size:
+                aniso = float(np.max(pos) / np.min(pos))
+        return PortTermination(
+            damping_map=K,
+            feedforward=a + K @ y,
+            active_mask=active,
+            port_gain_eigenvalues=wK,
+            scattering_norm=gamma_n,
+            characteristic_impedance=z0,
+            pumping_channels=np.asarray(wK < -self._tol) if wK.size else np.zeros(m, dtype=bool),
+            maupertuis_conformal_factor=float(maupertuis_factor),
+            maupertuis_applicable=bool(maupertuis_applicable),
+            anisotropy_index=aniso,
+            suggests_hodge_update=False,
+            herglotz_status="N/A_STATIC",
+        )
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                              ║
-# ║   ████████╗ █████╗  ██████╗███████╗    ██████╗                               ║
-# ║   ██╔════╝██╔══██╗██╔════╝██╔════╝    ╚════██╗                               ║
-# ║   █████╗  ███████║╚█████╗ █████╗       █████╔╝                               ║
-# ║   ██╔══╝  ██╔══██║ ╚═══██╗██╔══╝      ██╔═══╝                                ║
-# ║   ██║     ██║  ██║██████╔╝███████╗    ███████╗                               ║
-# ║   ╚═╝     ╚═╝  ╚═╝╚═════╝ ╚══════╝    ╚══════╝                               ║
-# ║                                                                              ║
-# ║   FASE 2 · SINTONIZADOR DINÁMICO DE IMPEDANCIA (PML)                         ║
-# ║                                                                              ║
-# ║   Entrada  : Z_eff ∈ (ℝ ∪ {∞})^m    ← salida de Phase1                       ║
-# ║   Salida   : c_eff ∈ ℝ₊             → entrada de Phase3                      ║
-# ║                                                                              ║
-# ║   Responsabilidad: Sintonizar los tensores dieléctricos ε_eff y μ_eff        ║
-# ║   para adaptación perfecta de impedancia (Γ = 0), verificar la condición     ║
-# ║   de Kramers-Kronig, y calcular la velocidad de onda efectiva que            ║
-# ║   determina el límite CFL en la Fase 3.                                      ║
-# ║                                                                              ║
-# ║   Último método de esta fase: compute_effective_wave_speed()                 ║
-# ║   → su resultado c_eff ∈ ℝ₊ es el argumento principal de                    ║
-# ║     Phase3_CFLGovernor.audit_time_step().                                    ║
-# ║                                                                              ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# φ₂ — SCATTERING / VELOCIDAD FÍSICA (no retoca ★)
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
-class Phase2_ImpedanceTuner:
+
+class Phase2_PortScattering:
     r"""
-    Sintoniza los tensores dieléctricos :math:`\epsilon_{\mathrm{eff}}` y
-    :math:`\mu_{\mathrm{eff}}` para acoplamiento perfecto de impedancia en el
-    puerto de control.
+    φ₂. Lee c y Z₀ del medio *ya definido* (semilla / lattice).
 
-    **Principio de adaptación**:
-
-    Para un medio anisótropo isótropo por canal, la impedancia característica
-    del :math:`i`-ésimo canal es:
-
-    .. math::
-        Z_{0,i} = \sqrt{\frac{\mu_i}{\epsilon_i}}
-
-    La condición de adaptación perfecta :math:`Z_{0,i} = Z_{\mathrm{load},i}`
-    se satisface eligiendo:
-
-    .. math::
-        \epsilon_{\mathrm{eff},i} = \frac{\mu_{\mathrm{base}}}{Z_{\mathrm{load},i}^2}
-
-    lo que implica :math:`\Gamma_i = 0` exactamente (sin reflexión).
-
-    **Restricción de Kramers-Kronig**:
-
-    La causalidad física exige :math:`\epsilon \succeq 0` y :math:`\mu \succeq 0`
-    (positividad completa como operadores). Esta condición se verifica
-    espectralmente.
-
-    Args:
-        base_permeability:
-            Permeabilidad base :math:`\mu_0 > 0` uniforme por canal.
-            Por defecto :math:`1.0`.
-        max_permittivity:
-            Cota superior :math:`\epsilon_{\max}` para evitar materiales
-            físicamente imposibles. Por defecto :math:`10^6`.
-        min_wave_speed:
-            Velocidad mínima admisible :math:`c_{\min} > 0`. Canales con
-            :math:`c_i < c_{\min}` se consideran apagados.
-            Por defecto :math:`10^{-6}`.
-        epsilon_floor:
-            Piso numérico para :math:`\epsilon` en canales activos.
-            Por defecto :math:`10^{-15}`.
-
-    Raises:
-        ImpedanceMismatchError:
-            Si ``base_permeability ≤ 0``.
+    Maupertuis-Jacobi: solo si `kinetic` y `potential` se aportan por separado
+    (fibrado T*Q). El factor f_M **no** escala c.
     """
 
-    def __init__(
-        self,
-        base_permeability: float = 1.0,
-        max_permittivity: float = 1e6,
-        min_wave_speed: float = 1e-6,
-        epsilon_floor: float = 1e-15,
-    ) -> None:
-        if base_permeability <= 0:
-            raise ImpedanceMismatchError(
-                f"base_permeability debe ser > 0; got {base_permeability}."
-            )
-        if max_permittivity <= 0:
-            raise ImpedanceMismatchError(
-                f"max_permittivity debe ser > 0; got {max_permittivity}."
-            )
-        if min_wave_speed <= 0:
-            raise ImpedanceMismatchError(
-                f"min_wave_speed debe ser > 0; got {min_wave_speed}."
-            )
-
-        self._mu_base = float(base_permeability)
-        self._eps_max = float(max_permittivity)
+    def __init__(self, min_wave_speed: float = 1e-12, c_fallback: float = 1.0) -> None:
+        if min_wave_speed <= 0.0 or c_fallback <= 0.0:
+            raise ImpedanceMismatchError("velocidades deben ser > 0.")
         self._c_min = float(min_wave_speed)
-        self._eps_floor = float(epsilon_floor)
+        self._c_fb = float(c_fallback)
 
-    # ──────────────────────────────────────────────────────────────────────────
-    #  SINTONIZACIÓN DE TENSORES DIELÉCTRICOS
-    # ──────────────────────────────────────────────────────────────────────────
+    def maupertuis_factor(
+        self,
+        kinetic: Optional[float] = None,
+        potential: Optional[float] = None,
+        total_energy: Optional[float] = None,
+    ) -> Tuple[float, bool]:
+        if kinetic is None or potential is None:
+            return 1.0, False
+        T, V = float(kinetic), float(potential)
+        if not math.isfinite(T) or not math.isfinite(V):
+            raise MaupertuisViolationError("T, V no finitos.")
+        E = T + V if total_energy is None else float(total_energy)
+        fM = 2.0 * (E - V)
+        if fM <= _MAUPERTUIS_FLOOR:
+            raise MaupertuisViolationError(f"f_M={fM:.3e} ≤ 0 (E≤V).")
+        return float(fM), True
 
-    def tune_dielectric_tensors(
-        self, target_load_impedances: NDArray[np.float64]
-    ) -> ImpedanceTensor:
-        r"""
-        **[ENTRADA DE FASE 2 — recibe Z_eff de Phase1]**
+    def physical_z0_and_c(
+        self,
+        seed: Optional[MaybeSeed] = None,
+        epsilon: Optional[float] = None,
+        mu: Optional[float] = None,
+        c_hint: Optional[float] = None,
+        port_dim: int = 1,
+    ) -> Tuple[Array, float, str]:
+        """Z₀ = √(μ/ε) del medio de la semilla; c = 1/√(με). No usa α/y."""
+        meta: Dict[str, Any] = {}
+        hints: Dict[str, Any] = {}
+        if seed is not None:
+            meta = dict(getattr(seed, "metadata", None) or {})
+            hints = dict(getattr(seed, "engine_hints", None) or {})
+        eps = epsilon if epsilon is not None else meta.get("epsilon", hints.get("epsilon"))
+        mu_v = mu if mu is not None else meta.get("mu", hints.get("mu"))
+        c = c_hint if c_hint is not None else hints.get("c") or meta.get("c")
+        src = "fallback"
+        if eps is not None and mu_v is not None:
+            eps_f, mu_f = float(eps), float(mu_v)
+            if eps_f > 0.0 and mu_f > 0.0:
+                c = 1.0 / math.sqrt(eps_f * mu_f)
+                z = math.sqrt(mu_f / eps_f)
+                src = "constitutive_seed"
+                return np.full(max(port_dim, 1), z, dtype=np.float64), float(c), src
+        if c is None or not math.isfinite(float(c)) or float(c) <= 0.0:
+            c = self._c_fb
+            src = "fallback"
+        else:
+            c = float(c)
+            src = "hint"
+        return np.ones(max(port_dim, 1), dtype=np.float64), float(c), src
 
-        Sintoniza :math:`\epsilon_{\mathrm{eff}}` canal a canal para lograr
-        adaptación perfecta :math:`Z_0 = Z_{\mathrm{load}}`:
-
-        .. math::
-            \epsilon_{\mathrm{eff},i} = \frac{\mu_{\mathrm{base}}}{Z_{\mathrm{load},i}^2},
-            \quad
-            Z_{0,i} = \sqrt{\frac{\mu_{\mathrm{base}}}{\epsilon_{\mathrm{eff},i}}}
-            = Z_{\mathrm{load},i}
-
-        **Canales inactivos** (:math:`Z_{\mathrm{load},i} = \infty`):
-            Se asigna :math:`\epsilon_{\mathrm{eff},i} = 0` y
-            :math:`c_i = 0` (canal sin propagación).
-
-        **Canales con** :math:`Z < 0`:
-            Impedancias negativas indican activos (amplificadores). Se toma
-            :math:`|Z|` para el cálculo de :math:`\epsilon` y se registra una
-            advertencia.
-
-        **Verificación Kramers-Kronig**:
-            Se verifica :math:`\epsilon \succeq 0` y :math:`\mu \succeq 0`
-            espectralmente (no solo diagonal).
-
-        Args:
-            target_load_impedances:
-                Vector :math:`Z_{\mathrm{load}} \in (\mathbb{R} \cup \{\infty\})^m`
-                proveniente de :meth:`Phase1_IDAPBC_Solver.compute_effective_load_impedance`.
-
-        Returns:
-            :class:`ImpedanceTensor` con tensores sintonizados y métricas.
-
-        Raises:
-            ImpedanceMismatchError:
-                Si el tensor resultante no es PSD o contiene NaN.
-        """
-        Z = np.asarray(target_load_impedances, dtype=np.float64)
-
-        if Z.ndim != 1:
-            raise ImpedanceMismatchError(
-                f"target_load_impedances debe ser 1D; ndim={Z.ndim}."
-            )
-        if np.any(np.isnan(Z)):
-            raise ImpedanceMismatchError(
-                "target_load_impedances contiene NaN. "
-                "Verificar Phase1.compute_effective_load_impedance."
-            )
-
-        m = Z.shape[0]
-
-        # ── Clasificación de canales ───────────────────────────────────────
-        # Canal activo: Z finito y Z^2 > 0 (puede ser negativo → |Z|)
-        active_mask: NDArray[np.bool_] = np.isfinite(Z) & (Z != 0.0)
-        inactive_mask: NDArray[np.bool_] = ~active_mask
-
-        # Advertencia para canales activos con Z < 0 (elementos activos)
-        negative_z = active_mask & (Z < 0)
-        if np.any(negative_z):
-            logger.warning(
-                f"[Phase2] {int(np.sum(negative_z))} canales con Z < 0 "
-                f"(elementos activos). Usando |Z| para sintonización."
-            )
-
-        # ── Cálculo de ε por canal ─────────────────────────────────────────
-        epsilon_diag = np.zeros(m, dtype=np.float64)
-
-        if np.any(active_mask):
-            Z_active = np.abs(Z[active_mask])  # Usar |Z| para robustez
-            # ε_i = μ_base / Z_i²  con cota superior para estabilidad numérica
-            eps_active = self._mu_base / np.maximum(Z_active ** 2, self._eps_floor)
-            eps_active = np.clip(eps_active, a_min=0.0, a_max=self._eps_max)
-            epsilon_diag[active_mask] = eps_active
-
-        # μ uniforme (hipótesis: medio magnéticamente lineal e isótropo)
-        mu_diag = np.full(m, self._mu_base, dtype=np.float64)
-
-        # ── Construcción de matrices tensoriales ───────────────────────────
-        eps_mat: NDArray[np.float64] = np.diag(epsilon_diag)
-        mu_mat: NDArray[np.float64] = np.diag(mu_diag)
-
-        # ── Verificación Kramers-Kronig (PSD completo) ─────────────────────
-        eps_eigs = la.eigvalsh(eps_mat)
-        mu_eigs = la.eigvalsh(mu_mat)
-
-        eps_min = float(np.min(eps_eigs))
-        mu_min = float(np.min(mu_eigs))
-
-        if eps_min < -self._eps_floor:
-            raise ImpedanceMismatchError(
-                f"ε_eff no es PSD: λ_min(ε) = {eps_min:.3e} < 0. "
-                f"Kramers-Kronig violado."
-            )
-        if mu_min < -self._eps_floor:
-            raise ImpedanceMismatchError(
-                f"μ_eff no es PSD: λ_min(μ) = {mu_min:.3e} < 0. "
-                f"Kramers-Kronig violado."
-            )
-
-        # ── Verificación del coeficiente de reflexión ──────────────────────
-        # Para canales activos con ε > 0: Z_0 = √(μ/ε), Γ = (Z_load - Z_0)/(Z_load + Z_0)
-        gamma_norm = 0.0
-        if np.any(active_mask):
-            eps_active_vals = epsilon_diag[active_mask]
-            mu_active_vals = mu_diag[active_mask]
-            Z_active_abs = np.abs(Z[active_mask])
-
-            # Solo canales con ε > 0 (algunos podrían haberse clippeado a 0)
-            nonzero_eps = eps_active_vals > self._eps_floor
-            if np.any(nonzero_eps):
-                Z0_i = np.sqrt(
-                    mu_active_vals[nonzero_eps]
-                    / np.maximum(eps_active_vals[nonzero_eps], self._eps_floor)
-                )
-                Z_load_i = Z_active_abs[nonzero_eps]
-                denom = Z_load_i + Z0_i
-                denom_safe = np.where(np.abs(denom) > self._eps_floor, denom, 1.0)
-                gamma_vec = (Z_load_i - Z0_i) / denom_safe
-                gamma_norm = float(la.norm(gamma_vec))
-
-        # ── Velocidades de onda por canal ──────────────────────────────────
-        wave_speeds = np.zeros(m, dtype=np.float64)
-        valid_speed_mask = (
-            active_mask
-            & (epsilon_diag > self._eps_floor)
-            & (mu_diag > self._eps_floor)
-        )
-        if np.any(valid_speed_mask):
-            wave_speeds[valid_speed_mask] = 1.0 / np.sqrt(
-                mu_diag[valid_speed_mask] * epsilon_diag[valid_speed_mask]
-            )
-
-        n_active = int(np.sum(active_mask))
-        n_inactive = m - n_active
-
-        logger.debug(
-            f"[Phase2] PML: {n_active} activos, {n_inactive} inactivos. "
-            f"‖Γ‖_F={gamma_norm:.3e}, "
-            f"ε ∈ [{epsilon_diag[active_mask].min() if n_active > 0 else 0.0:.2e}, "
-            f"{epsilon_diag[active_mask].max() if n_active > 0 else 0.0:.2e}], "
-            f"c_max={float(np.max(wave_speeds)):.2e}"
+    def compute_causal_speed(
+        self,
+        termination: PortTermination,
+        c_medium: float,
+        mu2_A: float = 0.0,
+        rho_curl_curl: float = 0.0,
+    ) -> CausalSpeed:
+        """COSTURA φ₂ → φ₃. c_yee = c; nunca c√f_M."""
+        if not math.isfinite(c_medium) or c_medium < 0.0:
+            raise ImpedanceMismatchError(f"c inválida: {c_medium}.")
+        c = max(float(c_medium), self._c_min) if c_medium > 0.0 else 0.0
+        yee = 0.0
+        if rho_curl_curl > 0.0 and c > 0.0:
+            yee = c * math.sqrt(rho_curl_curl)
+        return CausalSpeed(
+            c_medium=c,
+            c_yee_limit=float(yee),
+            mu2_A=float(mu2_A),
+            rho_curl_curl=float(rho_curl_curl),
+            source="physical_medium",
         )
 
-        return ImpedanceTensor(
-            epsilon_eff=eps_mat,
-            mu_eff=mu_mat,
-            reflection_coefficient_norm=gamma_norm,
-            wave_speeds=wave_speeds,
-            is_isotropic=True,  # Tensores diagonales por construcción
-            channel_active_mask=active_mask,
-        )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    #  COSTURA FASE 2 → FASE 3
-    #  El resultado de este método es el argumento principal de
-    #  Phase3_CFLGovernor.audit_time_step()
-    # ──────────────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# φ₃ — CONO CAUSAL (Yee vs punto medio)
+# ═══════════════════════════════════════════════════════════════════════════════════════
 
-    def compute_effective_wave_speed(
-        self, impedance: ImpedanceTensor
-    ) -> float:
-        r"""
-        **[COSTURA FASE 2 → FASE 3]**
-
-        Calcula :math:`c_{\mathrm{eff}}` como el máximo de las velocidades de
-        onda por canal:
-
-        .. math::
-            c_{\mathrm{eff}} = \max_{i : \text{activo}}
-            \frac{1}{\sqrt{\mu_i \epsilon_{\mathrm{eff},i}}}
-
-        **Justificación de la elección del máximo**:
-            La condición CFL debe ser satisfecha por el canal más rápido
-            (mayor velocidad de propagación). Si se usara el mínimo o la media,
-            los canales rápidos violarían la estabilidad. El máximo es la
-            elección conservadora correcta.
-
-        **Estadísticas adicionales**:
-            Se registran en el log la velocidad mínima, media y la razón
-            :math:`c_{\max}/c_{\min}` (factor de anisotropía).
-
-        Args:
-            impedance:
-                :class:`ImpedanceTensor` producido por :meth:`tune_dielectric_tensors`.
-
-        Returns:
-            :math:`c_{\mathrm{eff}} \in \mathbb{R}_+`, velocidad de onda máxima.
-
-        Raises:
-            ImpedanceMismatchError:
-                Si ningún canal tiene velocidad positiva, o si
-                :math:`c_{\mathrm{eff}} < c_{\min}`.
-
-        **Nota de encadenamiento**:
-            Este es el último método de la Fase 2. Su valor de retorno
-            ``c_eff`` debe pasarse como ``wave_speed_c`` al método
-            ``Phase3_CFLGovernor.audit_time_step(graph_laplacian, c_eff, dt)``.
-        """
-        c_per_channel: NDArray[np.float64] = impedance.wave_speeds
-
-        # Máscara de canales con velocidad positiva
-        positive_speed_mask = c_per_channel > self._c_min
-        n_positive = int(np.sum(positive_speed_mask))
-
-        if n_positive == 0:
-            raise ImpedanceMismatchError(
-                f"Ningún canal tiene velocidad de onda > c_min={self._c_min:.2e}. "
-                f"El medio está completamente apagado o mal sintonizado. "
-                f"c_per_channel = {c_per_channel.tolist()}"
-            )
-
-        c_active = c_per_channel[positive_speed_mask]
-        c_eff = float(np.max(c_active))
-        c_min_active = float(np.min(c_active))
-        c_mean_active = float(np.mean(c_active))
-        anisotropy = c_eff / max(c_min_active, self._c_min)
-
-        logger.debug(
-            f"[Phase2→3] c_eff = {c_eff:.4e} "
-            f"(min={c_min_active:.2e}, mean={c_mean_active:.2e}, "
-            f"anisotropía={anisotropy:.2f}x, "
-            f"{n_positive}/{len(c_per_channel)} canales activos)"
-        )
-
-        return c_eff
-
-
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                              ║
-# ║   ████████╗ █████╗  ██████╗███████╗    ██████╗                               ║
-# ║   ██╔════╝██╔══██╗██╔════╝██╔════╝    ╚════██╗                               ║
-# ║   █████╗  ███████║╚█████╗ █████╗       █████╔╝                               ║
-# ║   ██╔══╝  ██╔══██║ ╚═══██╗██╔══╝       ╚═══██╗                               ║
-# ║   ██║     ██║  ██║██████╔╝███████╗    ██████╔╝                               ║
-# ║   ╚═╝     ╚═╝  ╚═╝╚═════╝ ╚══════╝    ╚═════╝                                ║
-# ║                                                                              ║
-# ║   FASE 3 · GOBERNADOR DEL LÍMITE DE COURANT-FRIEDRICHS-LEWY (CFL)            ║
-# ║                                                                              ║
-# ║   Entrada  : c_eff ∈ ℝ₊              ← salida de Phase2                      ║
-# ║   Salida   : (dt_safe, diag_report)   → InterconnectionState                 ║
-# ║                                                                              ║
-# ║   Responsabilidad: Custodiar el cono de luz causal del grafo computacional.  ║
-# ║   Estima λ_max(Δ_sym) del Laplaciano de la red, calcula Δt_max según CFL,    ║
-# ║   y veta cualquier paso de integración que violaría la estabilidad           ║
-# ║   numérica del esquema de discretización temporal.                           ║
-# ║                                                                              ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
 
 class Phase3_CFLGovernor:
     r"""
-    Custodio del cono de luz causal en grafos computacionales Port-Hamiltonianos.
+    φ₃.
 
-    **Condición CFL para esquemas en grafos**:
+    Punto medio (7.1): A-estable en {Re z < 0}; el transitorio lo marca μ₂(A).
+        Si μ₂(A) ≤ 0: cualquier Δt es estable (la precisión es otro asunto).
+        Si μ₂(A) > 0: Δt ≲ 1/μ₂  para no explotar el transitorio no-normal.
 
-    Para un grafo con Laplaciano :math:`\Delta` y velocidad de onda
-    :math:`c_{\mathrm{eff}}`, la condición de Courant-Friedrichs-Lewy es:
+    Yee / leapfrog (opcional, lattice):
+        Δt < 2 / (c √ρ(Δ₁)) = 2 / ω_max.
 
-    .. math::
-        \Delta t \leq \Delta t_{\max} :=
-        \frac{2 \cdot \mathrm{margin}}{c_{\mathrm{eff}}
-        \sqrt{\lambda_{\max}(\Delta_{\mathrm{sym}})}}
-
-    donde :math:`\Delta_{\mathrm{sym}} = \tfrac{1}{2}(\Delta + \Delta^T)` es
-    la parte simétrica (fundamental cuando :math:`\Delta` proviene de un sistema
-    no conservativo, como redes con corrientes de fuga direccionadas).
-
-    **Estimación de** :math:`\lambda_{\max}`:
-
-    Se implementan tres niveles de fallback con calidad decreciente:
-
-    1. **Lanczos (ARPACK)**: Método iterativo exacto, :math:`O(nk)` operaciones.
-    2. **Potencia iterada con deflación**: :math:`O(n \cdot \text{iter})`.
-    3. **Cota de Gerschgorin geométrica**: :math:`O(n)`, cota superior garantizada.
-
-    Args:
-        safety_margin:
-            Factor de seguridad :math:`\rho \in (0, 1]`. El paso seguro es
-            :math:`\Delta t_{\mathrm{safe}} = \rho \cdot \Delta t_{\max}`.
-            Por defecto :math:`0.95`.
-        lanczos_tol:
-            Tolerancia de convergencia para el método de Lanczos.
-            Por defecto :math:`10^{-6}`.
-        fallback_max_iter:
-            Iteraciones máximas para la potencia iterada. Por defecto :math:`1000`.
-        lanczos_k:
-            Número de valores propios a estimar en Lanczos. Por defecto :math:`3`.
-
-    Raises:
-        CFLViolationError:
-            Si ``safety_margin`` no está en :math:`(0, 1]`.
+    Estimación de λ_max(Δ): Lanczos (Ritz residual) → potencia → Gerschgorin,
+    cruzados; si |λ_L − λ_G|/max(λ_G,1) > 1 se lanza LanczosConvergenceError
+    solo en modo estricto (Gerschgorin es cota, no valor).
     """
 
     def __init__(
         self,
-        safety_margin: float = 0.95,
+        safety_margin: float = 0.5,
         lanczos_tol: float = 1e-6,
-        fallback_max_iter: int = 1000,
-        lanczos_k: int = 3,
+        power_max_iter: int = 256,
+        strict_spectrum: bool = False,
+        integrator: str = "implicit_midpoint",
     ) -> None:
-        if not (0 < safety_margin <= 1.0):
-            raise CFLViolationError(
-                f"safety_margin debe estar en (0, 1]; got {safety_margin}."
-            )
-        if lanczos_tol <= 0:
-            raise CFLViolationError(
-                f"lanczos_tol debe ser > 0; got {lanczos_tol}."
-            )
-
+        if not (0.0 < safety_margin <= 1.0):
+            raise CFLViolationError("safety_margin ∈ (0,1].")
         self._margin = float(safety_margin)
         self._lanczos_tol = float(lanczos_tol)
-        self._fallback_iter = int(fallback_max_iter)
-        self._lanczos_k = int(lanczos_k)
+        self._power_iter = int(power_max_iter)
+        self._strict = bool(strict_spectrum)
+        self._integrator = str(integrator)
 
-    # ──────────────────────────────────────────────────────────────────────────
-    #  UTILIDADES ESPECTRALES
-    # ──────────────────────────────────────────────────────────────────────────
+    def _as_csr(self, L: Any) -> Any:
+        if L is None:
+            return None
+        if _SCIPY and issparse(L):
+            return L.tocsr()
+        if _SCIPY:
+            return csr_matrix(np.asarray(L, dtype=np.float64))
+        return np.asarray(L, dtype=np.float64)
 
-    def _symmetrize_laplacian(self, L: csr_matrix) -> csr_matrix:
-        r"""
-        Devuelve la parte simétrica :math:`\Delta_{\mathrm{sym}} = \frac{1}{2}(\Delta + \Delta^T)`.
+    def _symmetrize(self, L: Any) -> Tuple[Any, float]:
+        if L is None:
+            return None, 0.0
+        if _SCIPY and issparse(L):
+            Ls = 0.5 * (L + L.T)
+            diff = L - L.T
+            na = float(np.sqrt(np.sum(diff.data ** 2))) if diff.data.size else 0.0
+            nL = float(np.sqrt(np.sum(L.data ** 2))) if L.data.size else 1.0
+            return Ls.tocsr(), na / max(nL, 1e-15)
+        A = np.asarray(L, dtype=np.float64)
+        return 0.5 * (A + A.T), _sym_defect(A)
 
-        Para Laplacianos de grafos dirigidos, la simetrización captura la
-        componente de difusión isotrópica: el espectro de :math:`\Delta_{\mathrm{sym}}`
-        es real y determina la velocidad de propagación de información en
-        todas las direcciones.
-
-        **Norma de asimetría**:
-            Se registra :math:`\|\Delta - \Delta^T\|_F / \|\Delta\|_F` para
-            diagnóstico. Un valor grande indica alta direccionalidad del grafo.
-
-        Args:
-            L:
-                Laplaciano sparse :math:`(n \times n)`.
-
-        Returns:
-            :math:`\Delta_{\mathrm{sym}}` en formato CSR.
-
-        Raises:
-            CFLViolationError:
-                Si ``L`` no es sparse o no es cuadrada.
-        """
-        if not issparse(L):
-            raise CFLViolationError(
-                f"El Laplaciano debe ser sparse; got type={type(L).__name__}."
-            )
-        if L.shape[0] != L.shape[1]:
-            raise CFLViolationError(
-                f"El Laplaciano debe ser cuadrado; shape={L.shape}."
-            )
-
-        L_sym = 0.5 * (L + L.T)
-        L_sym_csr = L_sym.tocsr()
-
-        # Norma de asimetría para diagnóstico
-        asym_norm = (L - L.T).data
-        norm_asym = float(np.sqrt(np.sum(asym_norm ** 2))) if asym_norm.size > 0 else 0.0
-        norm_L = float(np.sqrt(np.sum(L.data ** 2))) if L.data.size > 0 else 1.0
-        rel_asym = norm_asym / max(norm_L, 1e-15)
-
-        if rel_asym > 1e-3:
-            logger.debug(
-                f"[Phase3] Laplaciano asimétrico detectado: "
-                f"‖Δ - Δ^T‖_F/‖Δ‖_F = {rel_asym:.3e}. "
-                f"Simetrización aplicada."
-            )
-
-        return L_sym_csr
-
-    def _estimate_spectral_radius(
-        self, L_sym: csr_matrix
-    ) -> Tuple[float, str]:
-        r"""
-        Estima :math:`\lambda_{\max}(\Delta_{\mathrm{sym}})` con tres niveles
-        de fallback garantizados.
-
-        **Nivel 1 — Lanczos (ARPACK)**:
-            Método de Krylov iterativo. Convergencia superlineal.
-            Complejidad :math:`O(n \cdot k)` por iteración.
-
-        **Nivel 2 — Potencia iterada**:
-            Estima el autovector dominante iterando :math:`v \leftarrow Lv/\|Lv\|`.
-            Convergencia lineal con razón :math:`|\lambda_1/\lambda_2|`.
-
-        **Nivel 3 — Cota de Gerschgorin**:
-            Para la matriz simétrica :math:`\Delta_{\mathrm{sym}}`:
-
-            .. math::
-                \lambda_{\max} \leq \max_i |(\Delta_{\mathrm{sym}})_{ii}|
-                + \sum_{j \neq i} |(\Delta_{\mathrm{sym}})_{ij}|
-                = 2 \max_i |(\Delta_{\mathrm{sym}})_{ii}|
-
-            (usando la propiedad de filas del Laplaciano).
-
-        Args:
-            L_sym:
-                Laplaciano simétrico sparse :math:`(n \times n)`.
-
-        Returns:
-            Tupla ``(lambda_max, method_name)`` donde ``method_name`` indica
-            qué método fue usado.
-        """
-        n = L_sym.shape[0]
-
-        # ── Nivel 1: Lanczos ───────────────────────────────────────────────
+    def _lambda_max(self, Ls: Any) -> Tuple[float, str, float]:
+        if Ls is None:
+            return 0.0, "none", 0.0
+        n = Ls.shape[0]
+        if n == 0:
+            return 0.0, "empty", 0.0
+        # Lanczos con residuo de Ritz
+        if _SCIPY and eigsh is not None and issparse(Ls) and n > 2:
+            try:
+                k = min(3, n - 1)
+                evals, evecs = eigsh(Ls, k=k, which="LA", tol=self._lanczos_tol)
+                idx = int(np.argmax(evals))
+                lam = float(evals[idx])
+                v = evecs[:, idx]
+                res = float(np.linalg.norm(Ls @ v - lam * v))
+                return abs(lam), "lanczos", res
+            except Exception as exc:  # noqa: BLE001
+                logger.debug("Lanczos: %s", exc)
+        # potencia
         try:
-            k = min(self._lanczos_k, n - 1) if n > 2 else 1
-            if k >= 1:
-                evals, _ = eigsh(
-                    L_sym, k=k, which="LM", tol=self._lanczos_tol,
-                    return_eigenvectors=True
-                )
-                lambda_max = float(np.max(np.abs(evals)))
-                logger.debug(f"[Phase3] λ_max={lambda_max:.4e} (Lanczos, k={k})")
-                return lambda_max, "lanczos"
-        except Exception as exc_lanczos:
-            logger.debug(f"[Phase3] Lanczos falló: {exc_lanczos}")
-
-        # ── Nivel 2: Potencia iterada ──────────────────────────────────────
-        try:
-            rng = np.random.default_rng(seed=42)
-            v: NDArray[np.float64] = rng.standard_normal(n)
+            if _SCIPY and issparse(Ls):
+                matvec = lambda v: np.asarray(Ls @ v).reshape(-1)
+                nloc = Ls.shape[0]
+            else:
+                A = np.asarray(Ls)
+                matvec = lambda v: A @ v
+                nloc = A.shape[0]
+            rng = np.random.default_rng(0)
+            v = rng.standard_normal(nloc)
             v /= np.linalg.norm(v)
-            lambda_est = 0.0
-            lambda_prev = -np.inf
-
-            for iteration in range(self._fallback_iter):
-                v_new: NDArray[np.float64] = L_sym @ v
-                norm_new = float(np.linalg.norm(v_new))
-
-                if norm_new < 1e-15:
-                    logger.debug("[Phase3] Potencia iterada: norma cero.")
+            lam = 0.0
+            res = float("inf")
+            for _ in range(self._power_iter):
+                w = matvec(v)
+                nw = float(np.linalg.norm(w))
+                if nw < 1e-15:
                     break
-
-                v = v_new / norm_new
-                lambda_est = float(v @ (L_sym @ v))
-
-                # Criterio de convergencia
-                if abs(lambda_est - lambda_prev) < self._lanczos_tol * abs(lambda_est):
-                    logger.debug(
-                        f"[Phase3] Potencia iterada convergió en {iteration+1} iters: "
-                        f"λ_max={lambda_est:.4e}"
-                    )
+                v = w / nw
+                Lv = matvec(v)
+                lam = float(v @ Lv)
+                res = float(np.linalg.norm(Lv - lam * v))
+                if res < _POWER_RES_TOL:
                     break
-                lambda_prev = lambda_est
+            return abs(lam), "power", res
+        except Exception as exc:  # noqa: BLE001
+            logger.debug("Potencia: %s", exc)
+        # Gerschgorin (cota superior)
+        if _SCIPY and issparse(Ls):
+            diag = np.asarray(Ls.diagonal()).ravel()
+            bound = []
+            Lc = Ls.tocsr()
+            for i in range(Lc.shape[0]):
+                sl = slice(Lc.indptr[i], Lc.indptr[i + 1])
+                row, cols = Lc.data[sl], Lc.indices[sl]
+                bound.append(float(diag[i] + np.sum(np.abs(row[cols != i]))))
+            return float(max(bound) if bound else 0.0), "gerschgorin", float("inf")
+        A = np.asarray(Ls)
+        diag = np.diag(A)
+        rs = np.sum(np.abs(A), axis=1) - np.abs(diag)
+        return float(np.max(diag + rs)), "gerschgorin", float("inf")
 
-            return float(abs(lambda_est)), "power_iteration"
-
-        except Exception as exc_power:
-            logger.debug(f"[Phase3] Potencia iterada falló: {exc_power}")
-
-        # ── Nivel 3: Cota de Gerschgorin ───────────────────────────────────
-        diag = np.asarray(L_sym.diagonal()).ravel()
-        abs_diag = np.abs(diag)
-
-        # Para Laplacianos simétricos: λ_max ≤ 2 * max_i |L_ii|
-        # (cada fila suma 0 en Laplaciano combinatorial normalizado)
-        lambda_max_gerschgorin = 2.0 * float(np.max(abs_diag)) if abs_diag.size > 0 else 1.0
-
-        logger.debug(
-            f"[Phase3] Gerschgorin: λ_max ≤ {lambda_max_gerschgorin:.4e}"
-        )
-
-        return lambda_max_gerschgorin, "gerschgorin"
-
-    # ──────────────────────────────────────────────────────────────────────────
-    #  AUDITORÍA CFL PRINCIPAL
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def audit_time_step(
+    def diagnose(
         self,
-        graph_laplacian: csr_matrix,
-        wave_speed_c: float,
+        graph_laplacian: Any,
+        causal: CausalSpeed,
         requested_dt: float,
-    ) -> float:
-        r"""
-        **[ENTRADA DE FASE 3 — recibe c_eff de Phase2]**
-
-        Audita y acota el paso de integración :math:`\Delta t` según la
-        condición CFL:
-
-        .. math::
-            \Delta t_{\mathrm{safe}} = \min\!\left(
-            \Delta t_{\mathrm{req}},\;
-            \frac{2 \cdot \rho}{c_{\mathrm{eff}} \sqrt{\lambda_{\max}(\Delta_{\mathrm{sym}})}}
-            \right)
-
-        donde :math:`\rho \in (0, 1]` es el margen de seguridad.
-
-        **Casos degenerados**:
-
-        - :math:`c_{\mathrm{eff}} \approx 0`: No hay propagación, CFL no aplica.
-          Se retorna ``requested_dt``.
-        - Grafo trivial (:math:`n \leq 1`): Sin interacciones, CFL no aplica.
-        - :math:`\lambda_{\max} \approx 0`: Grafo desconectado, CFL no aplica.
-
-        Args:
-            graph_laplacian:
-                Laplaciano sparse del grafo de la red :math:`(n \times n)`.
-            wave_speed_c:
-                Velocidad de onda efectiva :math:`c_{\mathrm{eff}} \geq 0`
-                proveniente de :meth:`Phase2_ImpedanceTuner.compute_effective_wave_speed`.
-            requested_dt:
-                Paso de tiempo solicitado :math:`\Delta t > 0`.
-
-        Returns:
-            ``dt_safe``: paso de tiempo seguro :math:`\leq \Delta t_{\max}`.
-
-        Raises:
-            CFLViolationError:
-                Si ``wave_speed_c < 0`` o ``requested_dt ≤ 0``.
-        """
-        # ── Validaciones de entrada ────────────────────────────────────────
-        if wave_speed_c < 0:
-            raise CFLViolationError(
-                f"wave_speed_c debe ser ≥ 0; got {wave_speed_c}."
-            )
-        if requested_dt <= 0:
-            raise CFLViolationError(
-                f"requested_dt debe ser > 0; got {requested_dt}."
-            )
-
-        # ── Casos degenerados ──────────────────────────────────────────────
-        if wave_speed_c < 1e-15:
-            logger.debug("[Phase3] c ≈ 0: CFL no aplica.")
-            return requested_dt
-
-        if graph_laplacian.shape[0] <= 1:
-            logger.debug("[Phase3] Grafo trivial (n≤1): CFL no aplica.")
-            return requested_dt
-
-        # ── Simetrización ─────────────────────────────────────────────────
-        L_sym = self._symmetrize_laplacian(graph_laplacian)
-
-        # ── Estimación espectral ───────────────────────────────────────────
-        lambda_max, method = self._estimate_spectral_radius(L_sym)
-
-        if lambda_max < 1e-12:
-            logger.debug(f"[Phase3] λ_max ≈ 0 ({method}): grafo desconectado.")
-            return requested_dt
-
-        # ── Límite CFL ────────────────────────────────────────────────────
-        sqrt_lambda = math.sqrt(lambda_max)
-        dt_max_stable = (2.0 * self._margin) / (wave_speed_c * sqrt_lambda)
-        safe_dt = min(requested_dt, dt_max_stable)
-
-        # ── Log de veto ───────────────────────────────────────────────────
-        if requested_dt > dt_max_stable / self._margin:  # Compara vs dt_max sin margen
-            cfl_number = wave_speed_c * sqrt_lambda * requested_dt / 2.0
-            logger.warning(
-                f"[Phase3] Veto CFL: dt_req={requested_dt:.4e} > dt_max={dt_max_stable/self._margin:.4e}. "
-                f"CFL#={cfl_number:.3f} (debe ser ≤1). "
-                f"λ_max={lambda_max:.4e} ({method}), c={wave_speed_c:.4e}. "
-                f"dt_safe={safe_dt:.4e} (margen={self._margin})."
-            )
-
-        return safe_dt
-
-    def cfl_diagnostic(
-        self,
-        graph_laplacian: csr_matrix,
-        wave_speed_c: float,
-        requested_dt: float,
+        lyapunov_derivative: float,
+        pumping_required: bool = False,
+        mode: str = MatchingMode.ENERGY_LEVEL.value,
     ) -> Dict[str, Any]:
-        r"""
-        Reporte diagnóstico completo de la auditoría CFL.
-
-        Ejecuta el análisis espectral completo y devuelve todas las métricas
-        intermedias, sin efectos secundarios (idempotente).
-
-        Args:
-            graph_laplacian:
-                Laplaciano sparse :math:`(n \times n)`.
-            wave_speed_c:
-                Velocidad de onda efectiva :math:`c_{\mathrm{eff}}`.
-            requested_dt:
-                Paso de tiempo solicitado.
-
-        Returns:
-            Diccionario con métricas:
-
-            - ``lambda_max``: :math:`\lambda_{\max}(\Delta_{\mathrm{sym}})`.
-            - ``estimation_method``: Método utilizado.
-            - ``dt_max_stable``: :math:`\Delta t_{\max}` sin margen.
-            - ``dt_max_with_margin``: :math:`\rho \cdot \Delta t_{\max}`.
-            - ``cfl_number``: Número CFL efectivo.
-            - ``safe_dt``: Paso de tiempo seguro aplicado.
-            - ``margin_used``: Margen de seguridad :math:`\rho`.
-            - ``violated``: ``True`` si :math:`\Delta t_{\mathrm{req}} > \Delta t_{\max}`.
-            - ``graph_nodes``: Número de nodos del grafo.
-            - ``symmetry_residual``: :math:`\|\Delta - \Delta^T\|_F / \|\Delta\|_F`.
-        """
-        n = graph_laplacian.shape[0]
-
-        # Norma de asimetría
-        if issparse(graph_laplacian) and n > 0:
-            diff = graph_laplacian - graph_laplacian.T
-            norm_asym = float(np.sqrt(np.sum(diff.data ** 2))) if diff.data.size > 0 else 0.0
-            norm_L = float(np.sqrt(np.sum(graph_laplacian.data ** 2)))
-            sym_residual = norm_asym / max(norm_L, 1e-15)
+        if requested_dt <= 0.0 or not math.isfinite(requested_dt):
+            raise CFLViolationError(f"dt inválido: {requested_dt}.")
+        Ls, sym = self._symmetrize(self._as_csr(graph_laplacian))
+        lam, method, res = self._lambda_max(Ls) if Ls is not None else (causal.rho_curl_curl, "hint", 0.0)
+        if causal.rho_curl_curl > 0.0:
+            lam = max(lam, causal.rho_curl_curl)
+        omega = causal.c_yee_limit if causal.c_yee_limit > 0.0 else (
+            causal.c_medium * math.sqrt(max(lam, 0.0)) if causal.c_medium > 0.0 else 0.0
+        )
+        dt_yee = float("inf") if omega <= 0.0 else 2.0 / omega
+        dt_yee_safe = self._margin * dt_yee if math.isfinite(dt_yee) else requested_dt
+        mu2 = causal.mu2_A
+        dt_mu = float("inf") if mu2 <= _SPECTRAL_TOL else self._margin / mu2
+        integrator = self._integrator
+        if integrator == "implicit_midpoint":
+            dt_cap = dt_mu  # Yee no gobierna el PHS
+            cfl_number = 0.0 if not math.isfinite(dt_mu) else requested_dt / max(dt_mu, _DT_MIN)
+            yee_applies = False
         else:
-            sym_residual = 0.0
-
-        # Casos degenerados
-        if wave_speed_c < 1e-15 or n <= 1:
-            return {
-                "lambda_max": 0.0,
-                "estimation_method": "degenerate",
-                "dt_max_stable": float("inf"),
-                "dt_max_with_margin": float("inf"),
-                "cfl_number": 0.0,
-                "safe_dt": requested_dt,
-                "margin_used": self._margin,
-                "violated": False,
-                "graph_nodes": n,
-                "symmetry_residual": sym_residual,
-            }
-
-        L_sym = self._symmetrize_laplacian(graph_laplacian)
-        lambda_max, method = self._estimate_spectral_radius(L_sym)
-
-        if lambda_max < 1e-12:
-            return {
-                "lambda_max": lambda_max,
-                "estimation_method": method,
-                "dt_max_stable": float("inf"),
-                "dt_max_with_margin": float("inf"),
-                "cfl_number": 0.0,
-                "safe_dt": requested_dt,
-                "margin_used": self._margin,
-                "violated": False,
-                "graph_nodes": n,
-                "symmetry_residual": sym_residual,
-            }
-
-        sqrt_lambda = math.sqrt(lambda_max)
-        dt_max_stable = 2.0 / (wave_speed_c * sqrt_lambda)
-        dt_max_margin = dt_max_stable * self._margin
-        cfl_number = wave_speed_c * sqrt_lambda * requested_dt / 2.0
-        safe_dt = min(requested_dt, dt_max_margin)
-        violated = requested_dt > dt_max_stable
-
+            dt_cap = min(dt_yee_safe, dt_mu)
+            cfl_number = (omega * requested_dt / 2.0) if omega > 0.0 else 0.0
+            yee_applies = True
+        safe = min(requested_dt, dt_cap) if math.isfinite(dt_cap) else requested_dt
+        safe = float(np.clip(safe, _DT_MIN, _DT_MAX))
+        reasons: List[str] = []
+        lyap_ok = bool(lyapunov_derivative <= _SPECTRAL_TOL or (pumping_required and lyapunov_derivative > 0.0))
+        # bombeo: Ḣ>0 es *deseable* cerca de H<H*
+        if (not pumping_required) and lyapunov_derivative > _SPECTRAL_TOL:
+            reasons.append(f"LYAPUNOV_FAIL(Ḣ={lyapunov_derivative:.3e})")
+            lyap_ok = False
+        if yee_applies and requested_dt > dt_yee * (1.0 + 1e-12):
+            reasons.append(f"YEE_CFL(#{cfl_number:.3f})")
+        if integrator != "implicit_midpoint" and mu2 > _SPECTRAL_TOL and requested_dt > dt_mu:
+            reasons.append(f"MU2_TRANSIENT(μ₂={mu2:.3e})")
+        if pumping_required and mode == MatchingMode.DAMPING_ONLY.value:
+            reasons.append("PUMPING_VS_DAMPING")
+        verdict = "COHERENT" if not reasons else "VETOED"
         return {
-            "lambda_max": lambda_max,
+            "lambda_max": lam,
             "estimation_method": method,
-            "dt_max_stable": dt_max_stable,
-            "dt_max_with_margin": dt_max_margin,
+            "spectral_residual": res,
+            "symmetry_residual": sym,
+            "omega_max": omega,
+            "dt_yee": dt_yee,
+            "dt_yee_safe": dt_yee_safe,
+            "dt_mu2": dt_mu,
             "cfl_number": cfl_number,
-            "safe_dt": safe_dt,
-            "margin_used": self._margin,
-            "violated": violated,
-            "graph_nodes": n,
-            "symmetry_residual": sym_residual,
+            "safe_dt": safe,
+            "requested_dt": requested_dt,
+            "margin": self._margin,
+            "violated": verdict != "COHERENT",
+            "integrator": integrator,
+            "yee_applies": yee_applies,
+            "mu2_A": mu2,
+            "c_medium": causal.c_medium,
+            "lyapunov_derivative": lyapunov_derivative,
+            "lyapunov_ok": lyap_ok,
+            "verdict": verdict,
+            "veto_reasons": reasons,
+            "schema_version": _SCHEMA,
         }
 
+    def synthesize_interconnection_state(
+        self,
+        control_solution: ControlSolution,
+        termination: PortTermination,
+        causal: CausalSpeed,
+        safe_dt: float,
+        cfl_diag: Mapping[str, Any],
+        atlas: str = "abstract_phs",
+        crowbar: bool = False,
+    ) -> InterconnectionState:
+        """CIERRE φ₃ → condensador."""
+        return InterconnectionState(
+            control_law_alpha=np.asarray(control_solution.alpha, dtype=np.float64).copy(),
+            termination=termination,
+            safe_dt=float(safe_dt),
+            lyapunov_derivative=float(control_solution.H_dot_closed),
+            c_eff=float(causal.c_medium),
+            cfl_margin=self._margin,
+            lambda_max_laplacian=float(cfl_diag.get("lambda_max", 0.0)),
+            cfl_number=float(cfl_diag.get("cfl_number", 0.0)),
+            mu2_A=float(causal.mu2_A),
+            poincare_certificate=control_solution.poincare_certificate,
+            maupertuis_factor=float(termination.maupertuis_conformal_factor),
+            causal_verdict=str(cfl_diag.get("verdict", "COHERENT")),
+            poincare_causal_report=dict(cfl_diag),
+            atlas=str(atlas),
+            schema_version=_SCHEMA,
+            hodge_convention=_HODGE_CANON,
+            crowbar=bool(crowbar),
+        )
 
-# ╔══════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                              ║
-# ║   ORQUESTADOR: DIRAC INTERCONNECTION AGENT                                  ║
-# ║   (Morfismo inter-estrato TACTICS → PHYSICS)                                ║
-# ║                                                                              ║
-# ╚══════════════════════════════════════════════════════════════════════════════╝
+    def crowbar_state(
+        self,
+        m: int,
+        n: int,
+        requested_dt: float,
+        reason: str,
+    ) -> InterconnectionState:
+        """u=0, dt mínimo: cortocircuito de puerto (no reescribe ★)."""
+        z = np.zeros(m, dtype=np.float64)
+        dummy_cert = PoincareDiracCertificate(
+            antisymmetry_defect_current=0.0, antisymmetry_defect_desired=0.0,
+            min_eigenvalue_R_current=0.0, min_eigenvalue_R_desired=0.0,
+            rayleigh_open_loop=0.0, matching_power_leak=0.0, H_dot_closed=0.0,
+            liouville_trace=0.0, liouville_consistent=False, symplectic_residual=0.0,
+            maupertuis_factor=1.0, maupertuis_applicable=False,
+            is_dirac_valid=False, is_passive_closed_loop=True, is_volume_contracting=True,
+            equilibrium_defect=0.0, is_equilibrium_assignable=False,
+            casimir_dim=0, casimir_port_leak=0.0, is_casimir_immune=True,
+            kernel_dim_R_desired=0, is_la_salle_mod_casimir=True,
+            logarithmic_norm_A=0.0, logarithmic_norm_A_d=0.0,
+            condition_number_R_desired=1.0, matching_residual_relative=0.0,
+        )
+        term = PortTermination(
+            damping_map=np.zeros((m, m)), feedforward=z,
+            active_mask=np.zeros(m, dtype=bool), port_gain_eigenvalues=np.zeros(0),
+            scattering_norm=0.0, characteristic_impedance=np.ones(m),
+            pumping_channels=np.zeros(m, dtype=bool),
+            maupertuis_conformal_factor=1.0, maupertuis_applicable=False,
+            anisotropy_index=1.0,
+        )
+        cs = ControlSolution(
+            alpha=z, mode=MatchingMode.DAMPING_ONLY.value, H_dot_closed=0.0,
+            desired_gradient=np.zeros(n), port_matrix=np.zeros((n, m)),
+            residual_norm=0.0, residual_relative=0.0, orthogonal_residual=0.0,
+            colinear_residual=0.0, g_rank=0, singular_values=np.zeros(0),
+            condition_number_g=1.0, is_full_rank_g=False, lyapunov_verified=True,
+            required_forcing=np.zeros(n), poincare_certificate=dummy_cert,
+            power_requested=0.0, power_delivered=0.0, pumping_required=False,
+        )
+        diag = {"verdict": "VETOED", "veto_reasons": [reason], "safe_dt": _DT_MIN, "cfl_number": 0.0, "lambda_max": 0.0}
+        logger.error("[CROWBAR] %s", reason)
+        return self.synthesize_interconnection_state(
+            cs, term, CausalSpeed(0.0, 0.0, 0.0, 0.0, "crowbar"),
+            min(requested_dt, _DT_MIN), diag, crowbar=True,
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════════════
+# ORQUESTADOR — MORFISMO φ = φ₃ ∘ φ₂ ∘ φ₁
+# ═══════════════════════════════════════════════════════════════════════════════════════
+
 
 class DiracInterconnectionAgent(Morphism):
     r"""
-    El "Demonio de Maxwell" categórico entre el estrato TACTICS y PHYSICS.
+    Aduana TACTICS → PHYSICS.
 
-    Implementa el morfismo:
+    __call__ / synthesize_physical_control:
+        1. Si hay PoincareEngineSeed / PoincareControlSeed, se usa su PHS,
+           Casimirs, u_app, hints (μ₂, Hodge, pumping).
+        2. φ₁ produce α (ley 7.1).  Si la semilla ya trae control_input y
+           `prefer_seed_u=True`, α ← u_app (no se re-satura el músculo).
+        3. φ₂ lee Z₀, c del medio; scattering de la terminación.
+        4. φ₃ recorta dt; veto → crowbar.
 
-    .. math::
-        \phi: \mathcal{X}_{\mathrm{tactics}} \longrightarrow \mathcal{X}_{\mathrm{physics}}
-
-    encadenando las tres fases como una composición de morfismos en la categoría
-    de sistemas Port-Hamiltonianos:
-
-    .. math::
-        \phi = \phi_3 \circ \phi_2 \circ \phi_1
-
-    donde:
-
-    - :math:`\phi_1`: IDA-PBC → :math:`(\alpha, Z_{\mathrm{eff}})`.
-    - :math:`\phi_2`: Sintonización PML → :math:`(T_{\epsilon\mu}, c_{\mathrm{eff}})`.
-    - :math:`\phi_3`: Gobernador CFL → :math:`\Delta t_{\mathrm{safe}}`.
-
-    Args:
-        metric_tensor:
-            Tensor métrico :math:`G \in \mathbb{R}^{n \times n}` del espacio de estado.
-            Por defecto usa ``G_PHYSICS`` del ecosistema.
-        tolerance:
-            Tolerancia numérica global. Por defecto :math:`10^{-9}`.
-        safety_margin:
-            Margen CFL :math:`\rho \in (0, 1]`. Por defecto :math:`0.95`.
-        base_permeability:
-            Permeabilidad magnética base :math:`\mu_0`. Por defecto :math:`1.0`.
-        max_residual_relative:
-            Máximo residuo relativo de matching admisible. Por defecto :math:`10^{-4}`.
+    El condensador debe integrar con `state.control_law_alpha` y `state.safe_dt`
+    **sin** escribir ε,μ.
     """
 
     def __init__(
         self,
-        metric_tensor: Optional[NDArray[np.float64]] = None,
+        metric_tensor: Optional[Array] = None,
         tolerance: float = 1e-9,
-        safety_margin: float = 0.95,
-        base_permeability: float = 1.0,
+        safety_margin: float = 0.5,
         max_residual_relative: float = 1e-4,
+        integrator: str = "implicit_midpoint",
+        prefer_seed_u: bool = True,
+        crowbar_on_veto: bool = True,
     ) -> None:
         self._G = metric_tensor if metric_tensor is not None else G_PHYSICS
-
-        self._solver = Phase1_IDAPBC_Solver(
-            tolerance=tolerance,
-            max_residual_relative=max_residual_relative,
+        self._solver = Phase1_IDAPBC_PoincareSolver(
+            tolerance=tolerance, max_residual_relative=max_residual_relative,
         )
-        self._tuner = Phase2_ImpedanceTuner(
-            base_permeability=base_permeability,
-        )
-        self._governor = Phase3_CFLGovernor(
-            safety_margin=safety_margin,
-        )
-
-        # Estado interno del último ciclo (para diagnóstico)
+        self._tuner = Phase2_PortScattering()
+        self._governor = Phase3_CFLGovernor(safety_margin=safety_margin, integrator=integrator)
+        self._prefer_seed_u = bool(prefer_seed_u)
+        self._crowbar_on_veto = bool(crowbar_on_veto)
         self._last_control: Optional[ControlSolution] = None
-        self._last_impedance: Optional[ImpedanceTensor] = None
-        self._last_c_eff: Optional[float] = None
-        self._last_safe_dt: Optional[float] = None
-        self._last_cfl_diag: Optional[Dict[str, Any]] = None
+        self._last_term: Optional[PortTermination] = None
+        self._last_causal: Optional[CausalSpeed] = None
+        self._last_state: Optional[InterconnectionState] = None
+
+    def __call__(self, *args: Any, **kwargs: Any) -> InterconnectionState:
+        return self.synthesize_physical_control(*args, **kwargs)
+
+    def compose(self, other: "DiracInterconnectionAgent") -> Callable[..., InterconnectionState]:
+        """φ_other ∘ φ_self sobre el mismo signature táctico (no sobre InterconnectionState)."""
+
+        def _c(*args: Any, **kwargs: Any) -> InterconnectionState:
+            _ = self.synthesize_physical_control(*args, **kwargs)
+            return other.synthesize_physical_control(*args, **kwargs)
+
+        return _c
+
+    def __or__(self, other: "DiracInterconnectionAgent") -> Callable[..., InterconnectionState]:
+        return self.compose(other)
+
+    @staticmethod
+    def _unpack_seed(seed: MaybeSeed) -> Dict[str, Any]:
+        meta = dict(getattr(seed, "metadata", None) or {})
+        hints = dict(getattr(seed, "engine_hints", None) or {})
+        conv = str(meta.get("hodge_convention") or hints.get("hodge_convention") or _HODGE_CANON)
+        schema = str(getattr(seed, "schema_version", None) or meta.get("schema_version") or hints.get("schema_version") or "")
+        return {
+            "x": np.asarray(getattr(seed, "state"), dtype=np.float64).reshape(-1),
+            "grad": np.asarray(getattr(seed, "gradient"), dtype=np.float64).reshape(-1),
+            "H": float(getattr(seed, "hamiltonian")),
+            "H_star": float(getattr(seed, "target_hamiltonian", getattr(seed, "hamiltonian"))),
+            "J": np.asarray(getattr(seed, "interconnection_matrix"), dtype=np.float64),
+            "R": np.asarray(getattr(seed, "damping_matrix"), dtype=np.float64),
+            "K": np.asarray(getattr(seed, "metric_matrix"), dtype=np.float64),
+            "g": np.asarray(getattr(seed, "port_matrix"), dtype=np.float64),
+            "u_app": np.asarray(getattr(seed, "control_input", np.zeros(0)), dtype=np.float64).reshape(-1),
+            "C": getattr(seed, "casimir_basis", None),
+            "ida": getattr(seed, "ida_pbc_decomposition", None),
+            "pumping": bool(getattr(seed, "pumping_required", meta.get("pumping_required", False))),
+            "mu2": float(hints.get("logarithmic_norm_A", meta.get("logarithmic_norm", 0.0)) or 0.0),
+            "rho": float(hints.get("rho_curl_curl", 0.0) or 0.0),
+            "dt": float(hints.get("dt_suggested", meta.get("dt_suggested", 1e-3)) or 1e-3),
+            "atlas": str(meta.get("atlas") or hints.get("atlas") or "abstract_phs"),
+            "mode": str(hints.get("mode") or meta.get("mode") or MatchingMode.ENERGY_LEVEL.value),
+            "hodge": conv,
+            "schema": schema or _SCHEMA,
+            "meta": meta,
+            "hints": hints,
+        }
 
     def synthesize_physical_control(
         self,
-        # ── Planta (flux_condenser) ────────────────────────────────────────
-        J_current: NDArray[np.float64],
-        R_current: NDArray[np.float64],
-        grad_H: NDArray[np.float64],
-        g_port: NDArray[np.float64],
-        graph_laplacian: csr_matrix,
-        # ── Estrategia (apu_agent) ─────────────────────────────────────────
-        J_desired: NDArray[np.float64],
-        R_desired: NDArray[np.float64],
-        grad_H_desired: NDArray[np.float64],
-        requested_dt: float,
+        J_current: Optional[Array] = None,
+        R_current: Optional[Array] = None,
+        grad_H: Optional[Array] = None,
+        g_port: Optional[Array] = None,
+        graph_laplacian: Any = None,
+        J_desired: Optional[Array] = None,
+        R_desired: Optional[Array] = None,
+        grad_H_desired: Optional[Array] = None,
+        requested_dt: Optional[float] = None,
+        hessian_current: Optional[Array] = None,
+        hessian_desired: Optional[Array] = None,
+        hamiltonian_target: float = 1.0,
+        potential_energy: Optional[float] = None,
+        kinetic_energy: Optional[float] = None,
+        seed: Optional[MaybeSeed] = None,
+        mode: Optional[Union[str, MatchingMode]] = None,
+        raise_on_veto: bool = True,
     ) -> InterconnectionState:
-        r"""
-        Compila la directriz estratégica en un estado físico ejecutable.
+        logger.info("[DiracAgent 7.1] φ₁ matching → φ₂ scattering → φ₃ cono")
+        packed = None
+        if seed is not None:
+            packed = self._unpack_seed(seed)
+            if packed["schema"] and packed["schema"] != _SCHEMA:
+                logger.warning("schema %s ≠ %s", packed["schema"], _SCHEMA)
+            if packed["hodge"] and packed["hodge"] != _HODGE_CANON:
+                raise SchemaContractError(f"Hodge ajeno: {packed['hodge']}")
+            J_current = packed["J"] if J_current is None else J_current
+            R_current = packed["R"] if R_current is None else R_current
+            grad_H = packed["grad"] if grad_H is None else grad_H
+            g_port = packed["g"] if g_port is None else g_port
+            hessian_current = packed["K"] if hessian_current is None else hessian_current
+            hamiltonian_target = packed["H_star"]
+            if requested_dt is None:
+                requested_dt = packed["dt"]
+            if mode is None:
+                mode = packed["mode"]
+        if any(v is None for v in (J_current, R_current, grad_H, g_port)):
+            raise DiracMatchingError("PHS incompleto (J,R,∇H,g) o semilla ausente.")
+        if requested_dt is None:
+            requested_dt = 1e-3
+        J_d = J_desired if J_desired is not None else J_current
+        R_d = R_desired if R_desired is not None else R_current
+        grad_Hd = grad_H_desired if grad_H_desired is not None else grad_H
+        Kd = hessian_desired if hessian_desired is not None else hessian_current
+        fM, m_ok = self._tuner.maupertuis_factor(kinetic_energy, potential_energy)
+        pumping = bool(packed["pumping"]) if packed else False
+        C = packed["C"] if packed else None
+        x = packed["x"] if packed else None
+        H = packed["H"] if packed else None
+        ida = packed["ida"] if packed else None
+        G = None if not ida else ida.get("G")
+        x_star = None if not ida else ida.get("x_star")
+        md = MatchingMode(mode) if mode is not None else MatchingMode.ENERGY_LEVEL
+        if packed and self._prefer_seed_u and packed["u_app"].size:
+            md_eff = md
+        else:
+            md_eff = md
 
-        Encadena las tres fases con sus costuras formales:
+        try:
+            sol = self._solver.compute_control_law(
+                J_current=J_current, R_current=R_current, grad_H=grad_H,
+                J_desired=J_d, R_desired=R_d, grad_H_desired=grad_Hd,
+                g_port=g_port, hessian_current=hessian_current, hessian_desired=Kd,
+                casimir_basis=None if C is None else np.asarray(C, dtype=np.float64),
+                x=x, x_star=None if x_star is None else np.asarray(x_star, dtype=np.float64),
+                hamiltonian=H, target_hamiltonian=hamiltonian_target,
+                ida_G=None if G is None else np.asarray(G, dtype=np.float64),
+                mode=md_eff, pumping_required=pumping,
+                maupertuis_factor=fM, maupertuis_applicable=m_ok,
+            )
+            if packed and self._prefer_seed_u and packed["u_app"].size == sol.alpha.size:
+                # Contrato: no re-aplicar músculo. α ← u_app.
+                sol = ControlSolution(
+                    alpha=packed["u_app"].copy(), mode=sol.mode, H_dot_closed=sol.H_dot_closed,
+                    desired_gradient=sol.desired_gradient, port_matrix=sol.port_matrix,
+                    residual_norm=sol.residual_norm, residual_relative=sol.residual_relative,
+                    orthogonal_residual=sol.orthogonal_residual, colinear_residual=sol.colinear_residual,
+                    g_rank=sol.g_rank, singular_values=sol.singular_values,
+                    condition_number_g=sol.condition_number_g, is_full_rank_g=sol.is_full_rank_g,
+                    lyapunov_verified=sol.lyapunov_verified, required_forcing=sol.required_forcing,
+                    poincare_certificate=sol.poincare_certificate,
+                    power_requested=sol.power_requested, power_delivered=sol.power_delivered,
+                    pumping_required=sol.pumping_required,
+                )
+        except TopologicalInvariantError as exc:
+            if not self._crowbar_on_veto:
+                raise
+            g = np.asarray(g_port)
+            n, m = g.shape[0], g.shape[1]
+            st = self._governor.crowbar_state(m, n, float(requested_dt), str(exc))
+            self._last_state = st
+            if raise_on_veto:
+                raise CrowbarEngagedError(str(exc)) from exc
+            return st
 
-        1. **Fase 1**: ``compute_control_law`` → ``compute_effective_load_impedance``.
-        2. **Costura 1→2**: :math:`Z_{\mathrm{eff}}` pasa a ``tune_dielectric_tensors``.
-        3. **Fase 2**: ``tune_dielectric_tensors`` → ``compute_effective_wave_speed``.
-        4. **Costura 2→3**: :math:`c_{\mathrm{eff}}` pasa a ``audit_time_step``.
-        5. **Fase 3**: ``audit_time_step`` + ``cfl_diagnostic``.
-
-        Args:
-            J_current: Matriz de interconexión actual :math:`J(x)`.
-            R_current: Matriz de disipación actual :math:`R(x)`.
-            grad_H: Gradiente del Hamiltoniano actual :math:`\nabla H(x)`.
-            g_port: Matriz de puerto de control :math:`g(x)`.
-            graph_laplacian: Laplaciano sparse del grafo de la red.
-            J_desired: Matriz de interconexión deseada :math:`J_d(x)`.
-            R_desired: Matriz de disipación deseada :math:`R_d(x)`.
-            grad_H_desired: Gradiente del Hamiltoniano deseado :math:`\nabla H_d(x)`.
-            requested_dt: Paso de tiempo solicitado por el estrato TACTICS.
-
-        Returns:
-            :class:`InterconnectionState` inyectable en ``flux_condenser.py``.
-
-        Raises:
-            DiracMatchingError, ImpedanceMismatchError, CFLViolationError,
-            LyapunovInstabilityError: Según la fase donde ocurra la violación.
-        """
-        logger.info("[DiracAgent] Iniciando síntesis IDA-PBC ⟶ PML ⟶ CFL")
-
-        # ══════════════════════════════════════════════════════════════════
-        #  FASE 1: IDA-PBC
-        # ══════════════════════════════════════════════════════════════════
-        control_sol: ControlSolution = self._solver.compute_control_law(
-            J_current, R_current, grad_H,
-            J_desired, R_desired, grad_H_desired,
-            g_port,
+        self._last_control = sol
+        z0, c_med, _src = self._tuner.physical_z0_and_c(
+            seed=seed, port_dim=sol.alpha.size,
         )
-        self._last_control = control_sol
-
-        logger.debug(
-            f"[Phase1] ‖residual‖={control_sol.residual_norm:.2e}, "
-            f"rel={control_sol.residual_relative:.2e}, "
-            f"rank(g)={control_sol.g_rank}, "
-            f"Ḣ_d={control_sol.H_dot:.2e}, "
-            f"Lyapunov={'✓' if control_sol.lyapunov_verified else '⚠'}"
+        term = self._solver.compute_port_termination(
+            sol, z0=z0, maupertuis_factor=fM, maupertuis_applicable=m_ok,
         )
-
-        # ── COSTURA 1 → 2 ─────────────────────────────────────────────────
-        Z_eff: NDArray[np.float64] = self._solver.compute_effective_load_impedance(
-            control_sol
+        self._last_term = term
+        mu2 = float(packed["mu2"]) if packed else sol.poincare_certificate.logarithmic_norm_A
+        rho = float(packed["rho"]) if packed else 0.0
+        causal = self._tuner.compute_causal_speed(term, c_med, mu2_A=mu2, rho_curl_curl=rho)
+        self._last_causal = causal
+        diag = self._governor.diagnose(
+            graph_laplacian=graph_laplacian, causal=causal,
+            requested_dt=float(requested_dt),
+            lyapunov_derivative=sol.H_dot_closed,
+            pumping_required=sol.pumping_required, mode=sol.mode,
         )
-
-        # ══════════════════════════════════════════════════════════════════
-        #  FASE 2: Sintonización PML
-        # ══════════════════════════════════════════════════════════════════
-        impedance_tensor: ImpedanceTensor = self._tuner.tune_dielectric_tensors(Z_eff)
-        self._last_impedance = impedance_tensor
-
-        kk = impedance_tensor.verify_kramers_kronig()
-        logger.debug(
-            f"[Phase2] ‖Γ‖_F={impedance_tensor.reflection_coefficient_norm:.2e}, "
-            f"ε_min={kk['epsilon_min_eig']:.2e}, "
-            f"μ_min={kk['mu_min_eig']:.2e}, "
-            f"κ(ε)={kk['epsilon_condition_number']:.2e}"
+        if diag["verdict"] != "COHERENT":
+            if self._crowbar_on_veto:
+                g = sol.port_matrix
+                st = self._governor.crowbar_state(
+                    g.shape[1], g.shape[0], float(requested_dt),
+                    ", ".join(diag.get("veto_reasons", [])),
+                )
+                self._last_state = st
+                if raise_on_veto:
+                    raise CFLViolationError("Cono causal vetado: " + ", ".join(diag.get("veto_reasons", [])))
+                return st
+            if raise_on_veto:
+                raise CFLViolationError("Cono causal vetado: " + ", ".join(diag.get("veto_reasons", [])))
+        atlas = packed["atlas"] if packed else "abstract_phs"
+        state = self._governor.synthesize_interconnection_state(
+            sol, term, causal, float(diag["safe_dt"]), diag, atlas=atlas,
         )
-
-        # ── COSTURA 2 → 3 ─────────────────────────────────────────────────
-        c_eff: float = self._tuner.compute_effective_wave_speed(impedance_tensor)
-        self._last_c_eff = c_eff
-
-        # ══════════════════════════════════════════════════════════════════
-        #  FASE 3: Gobernador CFL
-        # ══════════════════════════════════════════════════════════════════
-        safe_dt: float = self._governor.audit_time_step(
-            graph_laplacian, c_eff, requested_dt
-        )
-        self._last_safe_dt = safe_dt
-
-        # Diagnóstico completo CFL (idempotente)
-        cfl_diag: Dict[str, Any] = self._governor.cfl_diagnostic(
-            graph_laplacian, c_eff, requested_dt
-        )
-        self._last_cfl_diag = cfl_diag
-
+        self._last_state = state
         logger.info(
-            f"[DiracAgent] Síntesis exitosa: "
-            f"Ḣ_d={control_sol.H_dot:.2e}, "
-            f"‖Γ‖={impedance_tensor.reflection_coefficient_norm:.2e}, "
-            f"c_eff={c_eff:.2e}, "
-            f"CFL#={cfl_diag['cfl_number']:.3f}, "
-            f"dt_safe={safe_dt:.2e}"
+            "[DiracAgent 7.1] OK mode=%s Ḣ=%.3e ‖Γ‖=%.3e c=%.3e dt=%.3e μ₂=%.3e verdict=%s crowbar=%s",
+            sol.mode, sol.H_dot_closed, term.scattering_norm, causal.c_medium,
+            state.safe_dt, causal.mu2_A, state.causal_verdict, state.crowbar,
         )
+        return state
 
-        return InterconnectionState(
-            control_law_alpha=control_sol.alpha,
-            impedance=impedance_tensor,
-            safe_dt=safe_dt,
-            lyapunov_derivative=control_sol.H_dot,
-            c_eff=c_eff,
-            cfl_margin=self._governor._margin,
-            lambda_max_laplacian=cfl_diag["lambda_max"],
-            cfl_number=cfl_diag["cfl_number"],
+    def audit_poincare_dirac_ida_pbc_interconnection(
+        self,
+        J_desired: Array,
+        R_desired: Array,
+        grad_H_desired: Array,
+        g_matrix: Array,
+        hessian_desired: Optional[Array] = None,
+        casimir_basis: Optional[Array] = None,
+        maupertuis_factor: float = 1.0,
+    ) -> PoincareDiracCertificate:
+        """Auditoría I1–I8 sin resolver matching (estrato táctico)."""
+        g = _as_mat(g_matrix, "g")
+        grad = _as_1d(grad_H_desired, "∇H_d")
+        z = np.zeros(g.shape[1])
+        return self._solver.audit_poincare_dirac_structure(
+            J=_as_sq(J_desired, "J_d"), R=_as_sq(R_desired, "R_d"), grad_H=grad,
+            J_d=_as_sq(J_desired, "J_d"), R_d=_as_sq(R_desired, "R_d"), grad_H_d=grad,
+            g=g, alpha=z, hessian=hessian_desired, hessian_d=hessian_desired,
+            casimir_basis=casimir_basis, maupertuis_factor=maupertuis_factor,
+            maupertuis_applicable=False, f_d=np.zeros_like(grad),
         )
 
     def diagnostic_report(self) -> Dict[str, Any]:
-        r"""
-        Genera un reporte diagnóstico completo del último ciclo ejecutado.
-
-        Returns:
-            Diccionario estructurado por fases con todas las métricas
-            disponibles del último ``synthesize_physical_control``.
-        """
         report: Dict[str, Any] = {
             "agent": "DiracInterconnectionAgent",
-            "version": "3.0.0",
-            "initialized": True,
+            "version": _SCHEMA,
+            "hodge_convention": _HODGE_CANON,
             "has_data": self._last_control is not None,
+            "verdict": "UNKNOWN",
+            "veto_reasons": [],
         }
-
         if self._last_control is not None:
             cs = self._last_control
-            report["phase1_ida_pbc"] = {
-                "residual_norm": cs.residual_norm,
+            c = cs.poincare_certificate
+            report["phase1"] = {
+                "mode": cs.mode,
                 "residual_relative": cs.residual_relative,
+                "orthogonal_residual": cs.orthogonal_residual,
                 "g_rank": cs.g_rank,
-                "H_dot": cs.H_dot,
-                "lyapunov_verified": cs.lyapunov_verified,
-                "alpha_norm": float(la.norm(cs.alpha)),
-                "sigma_max": float(cs.singular_values[0]) if cs.singular_values.size > 0 else 0.0,
-                "sigma_min": float(cs.singular_values[-1]) if cs.singular_values.size > 0 else 0.0,
-                "condition_number_g": (
-                    float(cs.singular_values[0] / cs.singular_values[-1])
-                    if cs.singular_values.size > 1 and cs.singular_values[-1] > 0
-                    else float("inf")
-                ),
+                "H_dot_closed": cs.H_dot_closed,
+                "power_requested": cs.power_requested,
+                "power_delivered": cs.power_delivered,
+                "pumping_required": cs.pumping_required,
+                "certificate": {
+                    "is_dirac_valid": c.is_dirac_valid,
+                    "is_passive_closed_loop": c.is_passive_closed_loop,
+                    "is_casimir_immune": c.is_casimir_immune,
+                    "casimir_port_leak": c.casimir_port_leak,
+                    "is_la_salle_mod_casimir": c.is_la_salle_mod_casimir,
+                    "is_equilibrium_assignable": c.is_equilibrium_assignable,
+                    "logarithmic_norm_A": c.logarithmic_norm_A,
+                    "matching_residual_relative": c.matching_residual_relative,
+                    "liouville_trace": c.liouville_trace,
+                    "is_volume_contracting": c.is_volume_contracting,
+                },
             }
-
-        if self._last_impedance is not None:
-            imp = self._last_impedance
-            kk = imp.verify_kramers_kronig()
-            report["phase2_pml"] = {
-                "reflection_norm": imp.reflection_coefficient_norm,
-                "kramers_kronig": kk,
-                "wave_speeds": imp.wave_speeds.tolist(),
-                "c_max": float(np.max(imp.wave_speeds)),
-                "c_min_active": (
-                    float(np.min(imp.wave_speeds[imp.channel_active_mask]))
-                    if np.any(imp.channel_active_mask) else 0.0
-                ),
-                "n_active_channels": int(np.sum(imp.channel_active_mask)),
-                "n_inactive_channels": int(np.sum(~imp.channel_active_mask)),
-                "epsilon_diag": np.diag(imp.epsilon_eff).tolist(),
-                "mu_diag": np.diag(imp.mu_eff).tolist(),
+        if self._last_term is not None:
+            t = self._last_term
+            report["phase2"] = {
+                "scattering_norm": t.scattering_norm,
+                "suggests_hodge_update": t.suggests_hodge_update,
+                "herglotz_status": t.herglotz_status,
+                "maupertuis_applicable": t.maupertuis_applicable,
+                "anisotropy_index": t.anisotropy_index,
+                "n_active": int(np.sum(t.active_mask)),
             }
-
-        if self._last_cfl_diag is not None:
-            report["phase3_cfl"] = self._last_cfl_diag.copy()
-            report["phase3_cfl"]["c_eff"] = self._last_c_eff
-            report["phase3_cfl"]["safe_dt"] = self._last_safe_dt
-
+        if self._last_state is not None:
+            s = self._last_state
+            report["phase3"] = dict(s.poincare_causal_report)
+            report["phase3"].update({
+                "c_eff": s.c_eff, "safe_dt": s.safe_dt, "mu2_A": s.mu2_A,
+                "crowbar": s.crowbar, "atlas": s.atlas,
+            })
+        reasons: List[str] = []
+        if "phase1" in report:
+            cert = report["phase1"]["certificate"]
+            if not cert["is_dirac_valid"]:
+                reasons.append("I1/I2")
+            if not cert["is_casimir_immune"]:
+                reasons.append("CASIMIR_LEAK")
+            if not cert["is_passive_closed_loop"] and not report["phase1"]["pumping_required"]:
+                reasons.append("I3")
+        if "phase2" in report and report["phase2"]["suggests_hodge_update"]:
+            reasons.append("HODGE_REWRITE_FORBIDDEN")
+        if "phase3" in report and report["phase3"].get("verdict") == "VETOED":
+            reasons.append("I5_CAUSAL")
+        report["verdict"] = "COHERENT" if not reasons else "VETOED"
+        report["veto_reasons"] = reasons
         return report
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ══════════════════════════════════════════════════════════════════════════════
 __all__ = [
-    # ── Excepciones ────────────────────────────────────────────────────────
+    "TopologicalInvariantError",
     "DiracMatchingError",
     "ImpedanceMismatchError",
     "CFLViolationError",
     "LyapunovInstabilityError",
-    # ── Estructuras de datos inmutables ───────────────────────────────────
-    "ImpedanceTensor",
+    "PoincareSymplecticError",
+    "MaupertuisViolationError",
+    "EnergyMatchingError",
+    "LanczosConvergenceError",
+    "CasimirPortLeakError",
+    "SchemaContractError",
+    "CrowbarEngagedError",
+    "MatchingMode",
+    "PoincareDiracCertificate",
+    "PortTermination",
+    "CausalSpeed",
     "ControlSolution",
     "InterconnectionState",
-    # ── Fases del pipeline ─────────────────────────────────────────────────
-    "Phase1_IDAPBC_Solver",
-    "Phase2_ImpedanceTuner",
+    "Phase1_IDAPBC_PoincareSolver",
+    "Phase2_PortScattering",
     "Phase3_CFLGovernor",
-    # ── Orquestador ────────────────────────────────────────────────────────
     "DiracInterconnectionAgent",
 ]
