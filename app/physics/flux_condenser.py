@@ -39,14 +39,19 @@ from __future__ import annotations
 
 import logging
 import math
+import time
 import warnings
 from collections import OrderedDict, deque
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
+from enum import Enum
 from typing import (
     Any,
     Callable,
     Dict,
+    Iterable,
+    Iterator,
     List,
+    Mapping,
     Optional,
     Sequence,
     Set,
@@ -62,11 +67,17 @@ except ImportError:  # pragma: no cover
     nx = None
 
 try:
+    import pandas as pd
+except ImportError:  # pragma: no cover
+    pd = None
+
+try:
     from scipy import sparse
     from scipy.sparse import csr_matrix, diags
     from scipy.sparse.linalg import eigs, eigsh, spsolve
-    from scipy.linalg import det, expm, logm, schur
+    from scipy.linalg import det, expm, logm, schur, lu_factor, lu_solve
     SCIPY_AVAILABLE = True
+    _LU_AVAILABLE = True
 except ImportError:  # pragma: no cover
     sparse = None
     csr_matrix = None
@@ -78,7 +89,15 @@ except ImportError:  # pragma: no cover
     expm = None
     logm = None
     schur = None
+    lu_factor = None
+    lu_solve = None
     SCIPY_AVAILABLE = False
+    _LU_AVAILABLE = False
+
+try:
+    from scipy.special import digamma as _digamma
+except ImportError:  # pragma: no cover
+    _digamma = None
 
 logger = logging.getLogger(__name__)
 
@@ -2207,18 +2226,6 @@ class MaxwellSolver:
 #   Integrador de lazo: punto medio implícito (gradiente discreto de H cuadrática).
 # ═══════════════════════════════════════════════════════════════════════════════════════
 
-import time
-from enum import Enum
-
-try:
-    from scipy.linalg import lu_factor, lu_solve
-    _LU_AVAILABLE = True
-except ImportError:  # pragma: no cover
-    lu_factor = None
-    lu_solve = None
-    _LU_AVAILABLE = False
-
-
 # ═══════════════════════════════════════════════════════════════════════════════════════
 # FASE 2.1 — EXCEPCIONES, CONSTANTES DE CONTROL Y ESTRUCTURAS
 # ═══════════════════════════════════════════════════════════════════════════════════════
@@ -4306,21 +4313,6 @@ class PortHamiltonianPoincareController:
 #   · no re-aplicar músculo, no interpretir [D,B] como [Q,λ],
 #   · dt físico ≠ reloj de pared.
 # ═══════════════════════════════════════════════════════════════════════════════════════
-
-from collections import OrderedDict
-from dataclasses import asdict
-from typing import Iterable, Iterator, Mapping
-
-try:
-    import pandas as pd
-except ImportError:  # pragma: no cover
-    pd = None
-
-try:
-    from scipy.special import digamma as _digamma
-except ImportError:  # pragma: no cover
-    _digamma = None
-
 
 # ═══════════════════════════════════════════════════════════════════════════════════════
 # FASE 3.1 — EXCEPCIONES, CONFIGURACIÓN, ATLAS
