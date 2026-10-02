@@ -1,22 +1,39 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Data Flux Condenser — Poincaré Port-Hamiltonian Lattice QED Strict              ║
 ║ Ruta   : app/physics/flux_condenser.py                                                   ║
 ║ Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                                 ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║ FASE 1/3 — FUNDAMENTOS AXIOMÁTICOS, NÚCLEO POINCARÉ, DEC Y MAXWELL FDTD                  ║
-║                                                                                          ║
-║ Convenciones (inmutables en 7.1):                                                        ║
-║   PHS:  ẋ = [J(x)-R(x)] ∇H(x) + g(x) u,   y = gᵀ(x) ∇H(x)                                ║
-║   H    : ½ xᵀ K x,  K=Kᵀ ≻ 0,  J=-Jᵀ,  R=Rᵀ ⪰ 0                                          ║
-║   DEC  : dₖ = ∂ₖ₊₁ᵀ,  δₖ = ★ₖ₋₁⁻¹ dₖ₋₁ᵀ ★ₖ,  Δₖ = δd+dδ ⪰ 0 (conv. grafo/Hodge⁺)            ║
-║   Maxwell 2D (TE⊥): E ∈ C¹ (circulaciones), B ∈ C² (flujos)                              ║
-║           ∂ₜB = -d₁E - σₘ H + Jₘ,   ∂ₜD = δ₂H - σₑ E - Jₑ                                 ║
-║           D = ε ★₁ E,  H = μ⁻¹ ★₂ B,  U = ½(Eᵀ D + Hᵀ B)                                 ║
-║   Casimir lineal: J c = 0 ⇒ C(x)=cᵀx invariante ssi además cᵀ R ∇H = 0.                  ║
-║   Espectro: A=(J-R)K no-normal; estabilidad por μ₂(A) y Re σ(A) módulo ker J.            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+
+MARCO MATEMÁTICO Y FÍSICO RIGUROSO
+───────────────────────────────────
+1. Estructura Port-Hamiltoniana (PHS) sobre Variedades Diferenciables:
+   Espacio de estados $x \in \mathcal{M} \cong \mathbb{R}^n$.
+   Hamiltoniano cuadrático $H(x) = \frac{1}{2} x^{\top} K x$, con métrica $K = K^{\top} \succ 0$ ($K \in \operatorname{Sym}^{++}(n)$).
+   Tensor de interconexión $J(x) \in \mathfrak{so}(n)$ ($J = -J^{\top}$), disipación $R(x) = R(x)^{\top} \succeq 0$ ($R \in \operatorname{Sym}^+(n)$).
+   Ecuación de estado: $\dot{x} = [J(x) - R(x)] \nabla H(x) + g(x) u$,  salida conjugada: $y = g(x)^{\top} \nabla H(x)$.
+   Tasa de disipación de Rayleigh: $\dot{H} = -\nabla H^{\top} R \nabla H + y^{\top} u \le 0$ para $u = 0$.
+   Invariantes de Casimir lineales: $C(x) = C^{\top} x \in \ker J$, satisfaciendo $\dot{C} = -C^{\top} R \nabla H = 0$ cuando $R=0$ o $\operatorname{im} R \perp \ker J$.
+   Análisis espectral no-normal de $A = (J - R)K \in \mathfrak{gl}(n)$: norma logarítmica $\mu_2(A) = \lambda_{\max}\left(\frac{A + A^{\top}}{2}\right)$ que rige la cota transitoria $\|e^{tA}\|_2 \le e^{t \mu_2(A)}$.
+
+2. Cálculo Exterior Discreto (DEC) y Electrodinámica de Maxwell (2D TE$\perp$):
+   Complejo simplicial primario $\mathcal{K}_{\le 2}$ con complejo de cadenas $C_2 \xrightarrow{\partial_2} C_1 \xrightarrow{\partial_1} C_0$, cumpliendo $\partial_1 \circ \partial_2 = 0$.
+   Operadores de codiferencial $d_k = \partial_{k+1}^{\top}$ con $d_1 \circ d_0 = 0$.
+   Estrellas de Hodge concentradas (diagonal dual circumcéntrico):
+     $\star_0 = \operatorname{diag}(\operatorname{vol}(v))$, $\star_1 = \operatorname{diag}(|\star e|/|e|)$, $\star_2 = \operatorname{diag}(1/|f|)$.
+   Codiferencial discreto: $\delta_1 = \star_0^{-1} d_0^{\top} \star_1 = \star_0^{-1} \partial_1 \star_1$, $\delta_2 = \star_1^{-1} d_1^{\top} \star_2 = \star_1^{-1} \partial_2 \star_2$.
+   Laplaciano de Hodge-de Rham: $\Delta_k = \delta_{k+1} d_k + d_{k-1} \delta_k \succeq 0$, con $\ker \Delta_k \cong H^k_{\text{dR}}(\mathcal{K})$.
+   Maxwell discreto: $\partial_t B = -d_1 E - \sigma_m H + J_m$, $\partial_t D = \delta_2 H - \sigma_e E - J_e$, constitutivas $D = \varepsilon \star_1 E$ y $H = \mu^{-1} \star_2 B$.
+   Densidad de flujo de Poynting discreto: $S_e = E_e \cdot \langle H \rangle_{\star e}$ y momento electromagnético $P = \varepsilon \mu S |e|$.
+
+3. Arquitectura de Fases Anidadas y Continuidad Formal:
+   • FASE 1: Fundamentos Axiomáticos, Núcleo Poincaré, Complejo DEC y Maxwell FDTD.
+     Frontera formal de salida: `MaxwellSolver.synthesize_poincare_control_seed(...) -> PoincareControlSeed`.
+   • FASE 2: Controladores Port-Hamiltonianos, Matching IDA-PBC lineal, Funciones de Lyapunov de Formación de Energía $V = \frac{1}{2}(H - H^*)^2$ y Músculo Térmico de Flujo.
+     Frontera formal de salida: `PortHamiltonianPoincareController.synthesize_engine_seed(...) -> PoincareEngineSeed`.
+   • FASE 3: Integración Termodinámica GENERIC ($E = H_{\text{em}} + T S$, producción de entropía $\sigma = \frac{\|\nabla H\|_R^2}{T} \ge 0$), Grafo de Proximidad Métrica, Entropía de Información y Orquestador de Lotes.
+     Frontera formal de cierre: `DataFluxCondenser.synthesize_final_unified_state(...) -> UnifiedPhysicalSnapshot`.
 """
 from __future__ import annotations
 
