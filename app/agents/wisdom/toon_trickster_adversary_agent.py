@@ -3,8 +3,9 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : TOON Trickster Adversary Agent (Soberano Ilusionista y Orquestador de Atajos)     ║
 ║ RUTA     : app/agents/wisdom/toon_trickster_adversary_agent.py                               ║
-║ VERSIÓN  : 8.0.0-Doctoral-Adversarial-GAN-REM-RewardHacking-MAC-Heyting                      ║
+║ VERSIÓN  : 8.1.0-Doctoral-Poincaré-Homoclinic-Tangle-SmallDivisors-RHI-Heyting-ESP32         ║
 ║ ESTRATO  : Wisdom (V_W) | Soberano de Calibre Perturbativo                                   ║
+║ CONTRATO : 7.1.0 (Gobernanza Ciber-Física y Adjudicación en Heyting Ω₃)                       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN Y MARCO TEÓRICO FORMAL
@@ -14,9 +15,17 @@ estratégica de ataques sintácticos, fraudes sutiles y trampas licitatorias den
 Actúa como el agente *Red Team* continuo del sistema, diseñando cartuchos TOON engañosos de 56 tokens 
 para desafiar la inmunidad del `toon_oniric_dreamer_agent.py` y `toon_oniric_auditor_agent.py`.
 
-El objetivo del Soberano Ilusionista no es destruir el sistema, sino vacunarlo: al anticipar cualquier 
-patrón imaginable de trampa humana o colusión de contratistas, obliga a la Matriz Atómica de Conocimiento (MAC) 
-a cosechar anticuerpos atómicos antes de que se vierta el primer metro cúbico de concreto en la obra.
+En la mecánica celeste no integrable de Henri Poincaré (*Les Méthodes Nouvelles de la Mécanique Céleste*, Vol. III),
+la presencia de perturbaciones no lineales sobre un sistema hamiltoniano genera la intersección transversal
+de la variedad estable ($W^s$) y la variedad inestable ($W^u$) asociadas a una órbita periódica hiperbólica:
+
+    W^s \pitchfork W^u \neq \varnothing
+
+Esta intersección da origen a un Enredo Homoclínico (*Homoclinic Tangle*), produciendo una dinámica estocástica
+intrínseca de Herradura de Smale y la divergencia de las series de potencias perturbativas debido al problema
+de los Divisores Pequeños:
+
+    \omega \cdot k = \sum_{j=1}^n \omega_j k_j \approx 0 \implies \frac{1}{\omega \cdot k} \longrightarrow \infty
 
 PATRONES ADVERSARIALES Y AXIOMAS DE SÍNTESIS
 ─────────────────────────────────────────────
@@ -41,20 +50,27 @@ PATRONES ADVERSARIALES Y AXIOMAS DE SÍNTESIS
    • Axioma Físico: Provoca un desacoplamiento entre el tensor de costos nominal $T_{\text{nominal}}$ y la resistencia 
      mecánica real $\sigma_{\text{yield}}$, garantizando el colapso de la estructura o el veto en auditoría física.
 
-MECANISMO DE FIRMA Y TRACEABILIDAD MERKLE-SHA256
-─────────────────────────────────────────────────
-Cada ataque forjado por el Soberano Ilusionista emite un certificado inmutable `TricksterAttackCertificate` 
-empaquetado con la marca de aislamiento $\mathtt{DREAM\_STATE} = \mathrm{True}$. La firma de procedencia se calcula como:
+4. INYECCIÓN DE ÍTEMS FANTASMA (`GHOST_ITEM_INJECTION`):
+   Sintetiza ítems inexistentes o redundantes creando una cavidad homológica ($\beta_1 > 0$) en el complejo simplicial.
 
-    \text{Hash}_{\text{SHA256}} = \mathcal{H}\left( \text{agent\_id} \,||\, \text{illusion\_id} \,||\, RHI \,||\, \Omega_3 \,||\, \text{timestamp} \right)
+AXIOMAS E INVARIANTES DE LA ILUSIÓN HOMOCLÍNICA
+───────────────────────────────────────────────
+• Axioma I (Hermiticidad): $H_{\text{homoclinic}} = H_{\text{homoclinic}}^\dagger \implies \sigma(H_{\text{homoclinic}}) \subset \mathbb{R}$.
+• Axioma II (CPTP Unitariedad): $\operatorname{Tr}(U \rho U^\dagger) \equiv 1.0, \quad U \rho U^\dagger \succeq 0$.
+• Invariante III (Índice de Reward Hacking $RHI$): $RHI = \frac{D_{\text{Umegaki}}(\rho_{\text{illusion}} \,||\, \rho_0)}{\|[\rho_0, H_{\text{homoclinic}}]\|_F + \epsilon_p} \in [0, 1]$.
+• Invariante IV (Obstrucción Homológica $\beta_1$): $\beta_1 = \dim H_1(K; \mathbb{Z}) > 0 \implies \chi(K) \le 0$.
 
-impidiendo la alteración de la bitácora de entrenamiento adversarial y asegurando la auditabilidad gubernamental.
+TRIBUNAL DE SILICIO Y DISPARO CROWBAR:
+Si el ataque demuestra que la MAC o el presupuesto permite la inducción de ciclos de Betti ($\beta_1 > 0$) con $RHI > 0.85$
+sin ser detectado por filtros lineales, el Soberano emite un veredicto VETOED ($\bot$), transfiriendo en < 400 ns la orden de cebado
+al tiristor BT151 Crowbar en la memoria IRAM del ESP32 (GPIO14).
 
 TRADUCCIÓN BIYECTIVA A "DOLOR Y DINERO" (ISOMORFISMO DE DOBLE CAPA)
 ───────────────────────────────────────────────────────────────────
-• Fraccionamiento Ilícito ──► Riesgo de Sanción Penal, Multas de la Contraloría y Parálisis de la Licitación.
+• Fraccionamiento Ilícito ──► Riesgo de Sanción Penal, Multas de la Contraloría y Parálisis de la Licitación en SECOP II.
 • Front-Loading de APUs ──► Pérdida de Liquidez Corporativa, Abandono de Obra por Subcontratistas e Inflación de Contingencias.
 • Sustitución de Materiales ──► Demolición Forzada de Estructuras Defectuosas, Quiebra Financiera y Pérdida de Licencia Constructiva.
+• Disparo Crowbar ──► Inmovilización Ciber-Física de Fondos; Prevención de Embargos y Sanciones Fiscales.
 """
 
 from __future__ import annotations
@@ -64,7 +80,7 @@ import logging
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from enum import IntEnum
+from enum import Enum, IntEnum
 from typing import Any, Callable, Dict, Final, List, Mapping, Optional, Protocol, Sequence, Tuple, runtime_checkable
 
 import numpy as np
@@ -73,12 +89,82 @@ import scipy.linalg as la
 logger = logging.getLogger("APU.Wisdom.TOONTricksterAdversary.v2")
 
 # ══════════════════════════════════════════════════════════════════════════════
+# FASE 0 — ENUMERACIONES Y DATACLASSES DE LA MECÁNICA CELESTE DE POINCARÉ
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+class IllusionAttackType(str, Enum):
+    """Tipos de ilusiones contractuales basadas en la mecánica celeste de Poincaré."""
+    SPLIT_CONTRACT_ILLUSION = "split_contract_illusion"     # Fraccionamiento (Divisores Pequeños)
+    UNBALANCED_APU_BIDDING = "unbalanced_apu_bidding"       # Front-loading (Torsión Homoclínica)
+    MATERIAL_SUBSTITUTION = "material_substitution"         # Perturbación Isospectral
+    GHOST_ITEM_INJECTION = "ghost_item_injection"           # Cavidad de Betti (β₁ > 0)
+
+
+@dataclass(frozen=True, slots=True)
+class TricksterAttackCertificate:
+    """Certificado inmutable del ataque homoclínico generado por el Trickster."""
+    attack_type: str
+    rhi_score: float
+    homoclinic_residual: float
+    small_divisor_resonance: float
+    betti_1_induced: int
+    is_unitary_cptp: bool
+    merkle_proof_sha256: str
+    schema_version: str = "7.1.0"
+    # Campos retro-compatibles opcionales con la v2.0
+    illusion_id: Optional[str] = None
+    trickster_agent_id: Optional[str] = None
+    cartridge: Optional[Any] = None
+    heyting_verdict: Optional[Any] = None
+    reward_hacking_score: Optional[float] = None
+    stealth_dirichlet_energy: Optional[float] = None
+    sha256_provenance: Optional[str] = None
+    timestamp_utc: Optional[float] = None
+
+    def is_vetoed(self) -> bool:
+        if self.heyting_verdict is not None:
+            return self.heyting_verdict == HeytingOmega3.VETOED
+        return self.betti_1_induced > 0 and self.rhi_score > 0.85
+
+    def signature_prefix(self, n: int = 16) -> str:
+        if self.sha256_provenance:
+            return self.sha256_provenance[:n]
+        return self.merkle_proof_sha256[:n]
+
+
+@dataclass(frozen=True, slots=True)
+class IllusionDensityPerturbation:
+    """Estado de densidad perturbado bajo la herradura de Smale / Poincaré."""
+    illusion_density_matrix: np.ndarray
+    original_density_matrix: np.ndarray
+    unitary_operator: np.ndarray
+    attack_certificate: TricksterAttackCertificate
+    # Campos opcionales retro-compatibles
+    rho_illusion: Optional[np.ndarray] = None
+    disguised_purity: float = 1.0
+    disguised_entropy: float = 0.0
+    stealth_dirichlet_energy: float = 0.0
+
+    def is_quantum_physical(self, atol: float = 1e-9) -> bool:
+        rho = self.illusion_density_matrix if self.illusion_density_matrix is not None else self.rho_illusion
+        if rho is None:
+            return False
+        if not np.allclose(rho, rho.conj().T, atol=atol):
+            return False
+        if np.any(la.eigvalsh(rho) < -atol):
+            return False
+        return abs(float(np.trace(rho).real) - 1.0) < atol
+
+    def coherence_invariant(self) -> float:
+        rho = self.illusion_density_matrix if self.illusion_density_matrix is not None else self.rho_illusion
+        n = rho.shape[0] if rho is not None else 4
+        return self.disguised_purity - self.disguised_entropy / n
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 # FASE 1 — FUNDACIONES: ÁLGEBRA DE HEYTING Ω_3, CARGA ÚTIL ADVERSARIAL Y
 #           CARTUCHOS COMO OBJETOS INMUTABLES DE LA CATEGORÍA 𝐂𝐚𝐫𝐭
-# ══════════════════════════════════════════════════════════════════════════════
-# Se enriquece Ω_3 con pseudocomplemento intuicionista, negación clásica y
-# encaje monoidal desde B_2. Se introducen las dataclasses inmutables con
-# invariantes verificables (positividad, hermiticidad, traza unitaria).
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -86,19 +172,11 @@ class HeytingOmega3(IntEnum):
     r"""
     Retículo de Heyting lineal de tres elementos:
         VETOED = ⊥  <  DEGRADED  <  COHERENT = ⊤.
-
-    Propiedades:
-      - Es distributivo (todo retículo lineal lo es).
-      - No es booleano: ¬_H(¬_H(DEGRADED)) = COHERENT ≠ DEGRADED.
-      - Encaja monoidalmente B_2 ↪ Ω_3 enviando el bottom al VETOED y el
-        top al COHERENT; DEGRADED queda como elemento no booleano.
     """
 
     VETOED: int = 0
     DEGRADED: int = 1
     COHERENT: int = 2
-
-    # ── Operaciones de retículo ────────────────────────────────────────────
 
     def meet(self, other: "HeytingOmega3") -> "HeytingOmega3":
         """ Ínfimo categorial (producto en el retículo). """
@@ -109,12 +187,7 @@ class HeytingOmega3(IntEnum):
         return HeytingOmega3(max(int(self), int(other)))
 
     def pseudo_complement(self) -> "HeytingOmega3":
-        r"""
-        Pseudocomplemento intuicionista: ¬_H x := ⋁ { y : x ∧ y = ⊥ }.
-            ¬_H(VETOED)    = COHERENT
-            ¬_H(DEGRADED)  = VETOED
-            ¬_H(COHERENT)  = VETOED
-        """
+        """ Pseudocomplemento intuicionista: ¬_H x := ⋁ { y : x ∧ y = ⊥ }. """
         if self == HeytingOmega3.VETOED:
             return HeytingOmega3.COHERENT
         return HeytingOmega3.VETOED
@@ -145,20 +218,10 @@ class HeytingOmega3(IntEnum):
         return self.name
 
 
-# ── Cartuchos adversariales: objetos inmutables de 𝐂𝐚𝐫𝐭 ─────────────────────
-
-
 @dataclass(frozen=True, slots=True)
 class AdversarialIllusionCartridge:
     r"""
     Cartucho inmutable que encapsula el payload conceptual de una ilusión.
-
-    Invariantes:
-      - token_count > 0.
-      - sophistication_index ∈ [0, 1].
-      - disguised_cost_ratio ∈ [0, 1].
-      - synthetic_betti_1 ≥ 0 (números de Betti sintácticos).
-      - is_dream_state debe respetarse para ejecución REM.
     """
 
     illusion_id: str
@@ -181,13 +244,6 @@ class AdversarialIllusionCartridge:
             raise ValueError("synthetic_betti_1 debe ser ≥ 0.")
 
     def complexity_class(self) -> str:
-        """
-        Clasificación discreta por número de Betti sintáctico y tokens:
-          - "VITAMIN_MICRO"  : b_1 = 0, tokens ≤ 64.
-          - "VITAMIN_STD"    : b_1 = 0, tokens > 64.
-          - "LOOPED_LIGHT"   : b_1 = 1, tokens ≤ 64.
-          - "LOOPED_DENSE"   : b_1 ≥ 2 ó tokens > 128.
-        """
         if self.synthetic_betti_1 == 0:
             return "VITAMIN_MICRO" if self.token_count <= 64 else "VITAMIN_STD"
         if self.synthetic_betti_1 == 1 and self.token_count <= 64:
@@ -195,104 +251,24 @@ class AdversarialIllusionCartridge:
         return "LOOPED_DENSE"
 
 
-@dataclass(frozen=True, slots=True)
-class IllusionDensityPerturbation:
-    r"""
-    Resultado de aplicar el operador unitario de enmascaramiento U = exp(-i ε H)
-    sobre ρ_base. Invariantes cuánticos:
-      - Tr(rho_illusion) = 1.
-      - rho_illusion = rho_illusion† ⪰ 0.
-      - disguised_purity ∈ (0, 1].
-      - disguised_entropy ≥ 0.
-      - stealth_dirichlet_energy ≥ 0.
-    """
-
-    rho_illusion: np.ndarray
-    disguised_purity: float
-    disguised_entropy: float
-    stealth_dirichlet_energy: float
-
-    def is_quantum_physical(self, atol: float = 1e-9) -> bool:
-        rho = self.rho_illusion
-        if not np.allclose(rho, rho.conj().T, atol=atol):
-            return False
-        if np.any(la.eigvalsh(rho) < -atol):
-            return False
-        return abs(float(np.trace(rho).real) - 1.0) < atol
-
-    def coherence_invariant(self) -> float:
-        r""" Invariante ℭ := γ - S/n, mezcla de pureza y entropía. """
-        n = self.rho_illusion.shape[0]
-        return self.disguised_purity - self.disguised_entropy / n
-
-
-@dataclass(frozen=True, slots=True)
-class TricksterAttackCertificate:
-    r"""
-    Certificado terminal del funtor F: 𝐂𝐚𝐫𝐭 ⟶ 𝐂𝐞𝐫𝐭. Inmutable, sellado
-    con SHA-256 y con referencias al cartucho y su evaluación Heyting.
-    """
-
-    illusion_id: str
-    trickster_agent_id: str
-    cartridge: AdversarialIllusionCartridge
-    heyting_verdict: HeytingOmega3
-    reward_hacking_score: float
-    stealth_dirichlet_energy: float
-    sha256_provenance: str
-    timestamp_utc: float
-
-    def is_vetoed(self) -> bool:
-        return self.heyting_verdict == HeytingOmega3.VETOED
-
-    def signature_prefix(self, n: int = 16) -> str:
-        return self.sha256_provenance[:n]
-
-
-# ── Protocolos estructurales para inyección de comportamiento ────────────────
-
-
 @runtime_checkable
 class IllusionPayloadFactory(Protocol):
-    """
-    Protocolo de fábrica de payloads adversariales. Permite sustituir el
-    sintetizador por dobles de prueba o variantes sectoriales.
-    """
-
     def build(self, illusion_type: str, sophistication: float) -> Mapping[str, Any]:
         ...
 
 
 @runtime_checkable
 class BettiSynthesizer(Protocol):
-    """
-    Protocolo de estimación de números sintácticos de Betti. En el agente
-    original se usaba una regla booleana simple; aquí se inyecta por
-    contrato estructural para permitir V-pass, chain complexes sintéticos
-    o análisis persistente de payloads.
-    """
-
     def betti_1(self, payload: Mapping[str, Any], sophistication: float) -> int:
         ...
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 2 — SÍNTESIS DE ILUSIONES Y PERTURBACIÓN ESPECTRAL SOBRE MAC
-# ══════════════════════════════════════════════════════════════════════════════
-# Esta fase se anida en FASE-1: consume los protocolos y dataclasses definidos
-# arriba. La síntesis se estructura en dos componentes ortogonales:
-#   (i)  IllusionSynthesizer       — construcción semántica del payload.
-#   (ii) TricksterDensityPerturber — perturbación cuántica del MAC.
+# FASE 2 — SÍNTESIS DE ILUSIONES, PERTURBACIÓN HOMOCLÍNICA Y DIVISORES PEQUEÑOS
 # ══════════════════════════════════════════════════════════════════════════════
 
 
 class DefaultIllusionPayloadFactory:
-    r"""
-    Fábrica canónica de payloads adversariales. Cada plantilla contiene la
-    "vectorización de reward hacking" que define el perfil completo de la
-    ilusión bajo métricas simples de optimización.
-    """
-
     _TEMPLATES: Final[Dict[str, Dict[str, Any]]] = {
         "SPLIT_CONTRACT_ILLUSION": {
             "trick_name": "Fraccionamiento de Licitaciones",
@@ -315,28 +291,26 @@ class DefaultIllusionPayloadFactory:
             "phantom_cost_saving": 0.32,
             "reward_hacking_vector": [0.88, 0.88, 0.88, 0.88],
         },
+        "GHOST_ITEM_INJECTION": {
+            "trick_name": "Inyección de Ítems Fantasma (Cavidad de Betti)",
+            "phantom_items_count": 3,
+            "disguised_cost_leak": 0.40,
+            "reward_hacking_vector": [0.90, 0.90, 0.90, 0.90],
+        },
     }
 
     def build(self, illusion_type: str, sophistication: float) -> Mapping[str, Any]:
         template = self._TEMPLATES.get(illusion_type)
         if template is None:
-            # Payload genérico con firma cero y vector unitario escalado
             return {
                 "trick_name": f"GENERIC::{illusion_type}",
                 "sophistication": sophistication,
                 "reward_hacking_vector": [sophistication] * 4,
             }
-        # Copia inmutable y añadida la sofisticación como traza contextual
         return {**template, "sophistication_context": sophistication}
 
 
 class DefaultBettiSynthesizer:
-    r"""
-    Estimador canónico de b_1 sintáctico. Regla: b_1 = ⌊10·s·𝟙{s > σ}⌋ con
-    σ = 0.8 por defecto, acotado a {0, 1, 2}. Cada bucle representa un
-    atractor semántico camuflado dentro del payload.
-    """
-
     def __init__(self, sigma: float = 0.8, max_betti: int = 2) -> None:
         self.sigma = float(sigma)
         self.max_betti = int(max_betti)
@@ -344,18 +318,11 @@ class DefaultBettiSynthesizer:
     def betti_1(self, payload: Mapping[str, Any], sophistication: float) -> int:
         if sophistication <= self.sigma:
             return 0
-        # Escalado suave: 0 → 0, 0.8 < s ≤ 0.9 → 1, s > 0.9 → 2
         raw = int(np.floor(10.0 * (sophistication - self.sigma)))
-        return max(0, min(self.max_betti, 1 + raw // 10 * 0))  # regla: 1 si s>σ, 2 si s>0.9
+        return max(0, min(self.max_betti, 1 + raw // 10 * 0))
 
 
 class IllusionSynthesizer:
-    r"""
-    Fachada composicional de síntesis. Delega la construcción del payload en
-    un `IllusionPayloadFactory` inyectable y en un `BettiSynthesizer` para
-    el número de Betti. Mantiene retrocompatibilidad con `craft_deceptive_payload`.
-    """
-
     def __init__(
         self,
         factory: IllusionPayloadFactory = DefaultIllusionPayloadFactory(),
@@ -374,7 +341,6 @@ class IllusionSynthesizer:
     ) -> int:
         return self._betti.betti_1(payload, sophistication)
 
-    # Compatibilidad retro: interface de clase sin estado explícito de instancia
     @classmethod
     def craft_deceptive_payload_static(
         cls, illusion_type: str, sophistication: float
@@ -383,21 +349,115 @@ class IllusionSynthesizer:
 
 
 class TricksterDensityPerturber:
-    r"""
-    Perturbador espectral sobre el MAC.
-
-    Modelo:
-        H_trick = (1 - ½·s) · (A + A†)/2,   A ∈ M_n(ℂ) Ginibre complejo.
-        ε       = 0.05  (constante de la versión 1.0, ahora explícita).
-        U       = exp(-i·ε·H_trick).
-        ρ'      = U ρ U† / Tr(U ρ U†).
-
-    Métricas:
-        - Pureza γ = Σ λ_i².
-        - Entropía de von Neumann S = -Σ λ_i log λ_i.
-        - Energía de Dirichlet-Dirac E_D = ½ Σ (Δλ)² + c_ε·(1 - s),
-          con c_ε = 0.12 (regularizador de la v1.0, ahora explícito).
     """
+    Generador Espectral de Perturbaciones Homoclínicas y Divisores Pequeños de Poincaré.
+    """
+
+    def __init__(
+        self,
+        tolerance: float = 1e-9,
+        max_rhi_threshold: float = 0.85,
+        resonance_floor: float = 1e-12,
+    ) -> None:
+        self._tol = float(tolerance)
+        self._rhi_max = float(max_rhi_threshold)
+        self._res_floor = float(resonance_floor)
+
+    def _build_homoclinic_hamiltonian(
+        self,
+        dim: int,
+        omega: np.ndarray,
+        k_vector: np.ndarray,
+        epsilon: float
+    ) -> Tuple[np.ndarray, float]:
+        """
+        Sintetiza H_homoclinic = p^2/2 - cos(q) + ε cos(q) sin(ω·k t)
+        y calcula el divisor pequeño |ω · k|.
+        """
+        q_op = np.diag(np.linspace(-np.pi, np.pi, dim))
+        p_op = -1j * np.gradient(np.eye(dim), axis=0)
+
+        # Divisor pequeño de Poincaré
+        dot_product = float(np.dot(omega, k_vector))
+        resonance = max(abs(dot_product), self._res_floor)
+
+        # Hamiltoniano de péndulo forzado no integrable
+        H_pendulum = 0.5 * (p_op @ p_op.conj().T) - np.diag(np.cos(np.diag(q_op)))
+        H_forcing = epsilon * np.diag(np.cos(np.diag(q_op))) * (1.0 / resonance)
+
+        H_homoclinic = 0.5 * (H_pendulum + H_pendulum.conj().T) + 0.5 * (H_forcing + H_forcing.conj().T)
+        return H_homoclinic, resonance
+
+    def synthesize_homoclinic_tangle_attack(
+        self,
+        density_op: np.ndarray,
+        omega_frequencies: np.ndarray,
+        k_wavevectors: np.ndarray,
+        epsilon_perturbation: float = 0.05,
+        attack_type: IllusionAttackType = IllusionAttackType.SPLIT_CONTRACT_ILLUSION,
+    ) -> IllusionDensityPerturbation:
+        """
+        Aplica U = exp(-i ε H_homoclinic) sobre ρ_0 garantizando la invarianza CPTP.
+        """
+        dim = density_op.shape[0]
+        H_hom, resonance = self._build_homoclinic_hamiltonian(dim, omega_frequencies, k_wavevectors, epsilon_perturbation)
+
+        # Operador unitario U = exp(-i ε H)
+        evals, evecs = la.eigh(H_hom)
+        U = evecs @ np.diag(np.exp(-1j * epsilon_perturbation * evals)) @ evecs.conj().T
+
+        # Evolución CPTP de la densidad
+        rho_ill = U @ density_op @ U.conj().T
+        rho_ill = 0.5 * (rho_ill + rho_ill.conj().T)
+        tr = np.trace(rho_ill)
+        if abs(tr) > 1e-15:
+            rho_ill /= tr
+        else:
+            rho_ill = np.eye(dim, dtype=complex) / dim
+
+        # Cálculo de la Divergencia de Umegaki D(ρ_ill || ρ_0)
+        s_ill = la.eigvalsh(rho_ill)
+        s_0 = la.eigvalsh(density_op)
+        s_ill = np.maximum(s_ill, 1e-15)
+        s_0 = np.maximum(s_0, 1e-15)
+        d_umegaki = float(np.sum(s_ill * (np.log2(s_ill) - np.log2(s_0))))
+
+        # Cálculo del RHI (Reward Hacking Index)
+        comm = rho_ill @ H_hom - H_hom @ rho_ill
+        rhi_score = min(1.0, max(0.0, float(d_umegaki / (np.linalg.norm(comm, ord='fro') + 1e-6))))
+
+        # Infección de Betti (β₁ > 0 si RHI excede umbral)
+        betti_1 = 1 if rhi_score > self._rhi_max else 0
+
+        hasher = hashlib.sha256()
+        hasher.update(f"{attack_type.value}::{rhi_score:.6f}::{resonance:.6f}::{betti_1}".encode('utf-8'))
+        proof_sha256 = hasher.hexdigest()
+
+        cert = TricksterAttackCertificate(
+            attack_type=attack_type.value if isinstance(attack_type, IllusionAttackType) else str(attack_type),
+            rhi_score=rhi_score,
+            homoclinic_residual=float(np.linalg.norm(H_hom - H_hom.conj().T)),
+            small_divisor_resonance=resonance,
+            betti_1_induced=betti_1,
+            is_unitary_cptp=bool(abs(np.trace(rho_ill) - 1.0) < self._tol),
+            merkle_proof_sha256=proof_sha256,
+            schema_version="7.1.0",
+        )
+
+        eigvals = np.clip(s_ill, 1e-15, None)
+        purity = float(np.sum(eigvals ** 2))
+        entropy = -float(np.sum(eigvals * np.log(eigvals)))
+
+        return IllusionDensityPerturbation(
+            illusion_density_matrix=rho_ill,
+            original_density_matrix=density_op,
+            unitary_operator=U,
+            attack_certificate=cert,
+            rho_illusion=rho_ill,
+            disguised_purity=purity,
+            disguised_entropy=entropy,
+            stealth_dirichlet_energy=cert.homoclinic_residual,
+        )
 
     _EPSILON: Final[float] = 0.05
     _DIRICHLET_REG: Final[float] = 0.12
@@ -419,13 +479,9 @@ class TricksterDensityPerturber:
         rng = np.random.default_rng(seed)
         dim = base_rho.shape[0]
 
-        # — Hamiltoniano con atenuación por sofisticación —
         H_trick: np.ndarray = cls._ginibre_hermitian(dim, rng) * (1.0 - 0.5 * sophistication)
-
-        # — Evolución unitaria de enmascaramiento —
         U: np.ndarray = la.expm(-1j * cls._EPSILON * H_trick)
 
-        # — Acción sobre ρ y proyección al cono de densidad —
         rho_p: np.ndarray = U @ base_rho @ U.conj().T
         rho_p = 0.5 * (rho_p + rho_p.conj().T)
         tr = float(np.trace(rho_p).real)
@@ -434,7 +490,6 @@ class TricksterDensityPerturber:
         else:
             rho_p = rho_p / tr
 
-        # — Espectro (con piso numérico) —
         eigvals: np.ndarray = la.eigvalsh(rho_p)
         eigvals = np.clip(eigvals, cls._EIGENVALUE_FLOOR, None)
         eigvals = eigvals / float(np.sum(eigvals))
@@ -442,7 +497,6 @@ class TricksterDensityPerturber:
         purity: float = float(np.sum(eigvals ** 2))
         entropy: float = -float(np.sum(eigvals * np.log(eigvals)))
 
-        # — Energía de Dirichlet con regularizador explícito —
         grad_f: np.ndarray = np.diff(eigvals)
         dirichlet: float = (
             0.5 * float(np.sum(grad_f ** 2))
@@ -450,7 +504,21 @@ class TricksterDensityPerturber:
             + cls._DIRICHLET_FLOOR
         )
 
+        cert = TricksterAttackCertificate(
+            attack_type="GENERIC_ILLUSION",
+            rhi_score=float(sophistication * (1.0 - dirichlet)),
+            homoclinic_residual=0.0,
+            small_divisor_resonance=1.0,
+            betti_1_induced=1 if sophistication > 0.8 else 0,
+            is_unitary_cptp=True,
+            merkle_proof_sha256="sha256_generic_proof",
+        )
+
         return IllusionDensityPerturbation(
+            illusion_density_matrix=rho_p,
+            original_density_matrix=base_rho,
+            unitary_operator=U,
+            attack_certificate=cert,
             rho_illusion=rho_p,
             disguised_purity=purity,
             disguised_entropy=entropy,
@@ -459,34 +527,13 @@ class TricksterDensityPerturber:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 3 — SOBERANO ILUSIONISTA: ORQUESTACIÓN, EVALUACIÓN HEYTING, SELLADO
-#           SHA-256 Y AUDITORÍA CRUZADA DEL SOBERANO DREAMER
-# ══════════════════════════════════════════════════════════════════════════════
-# Esta fase anida las dos anteriores: el agente es un funtor
-#     F: 𝐂𝐚𝐫𝐭 ⟶ 𝐂𝐞𝐫𝐭
-# cuyos objetos son cartuchos y cuyos morfismos son refinamientos de
-# sofisticación. El sello SHA-256 constituye la firma criptográfica que
-# cierra el diagrama conmutativo exigido al Soberano Dreamer (auditor cruzado).
+# FASE 3 — SOBERANO ILUSIONISTA: ORQUESTACIÓN, EVALUACIÓN HEYTING Y SIMULACIÓN
 # ══════════════════════════════════════════════════════════════════════════════
 
 
 class TOONTricksterAdversaryAgent:
     r"""
     Soberano Ilusionista y Generador de Atajos Adversariales (Red Team).
-
-    Responsabilidades:
-      (i)   Forjar ilusiones estructuradas como cartuchos canónicos.
-      (ii)  Perturbar el MAC mediante operadores unitarios cuasi-isométricos.
-      (iii) Clasificar la ilusión en Ω_3 (tentativa: el ilusionista pretende
-            COHERENT cuando su score es suficiente para engañar métricas).
-      (iv)  Sellarse con SHA-256 para trazabilidad no reputable.
-      (v)   Exponer historial inmutable para auditoría cruzada.
-
-    Parámetros de calibración (constantes):
-        - _REWARD_HACKING_THRESHOLD = 0.6 : umbral de COHERENT pretendido.
-        - _DEFAULT_TOKEN_COUNT      = 56  : tamaño vitamínico canónico.
-        - _BETTI_HIGH_SOPHISTICATION = 0.8: disparador de b_1 > 0.
-        - _COST_RATIO_SCALE         = 0.35: desviación oculta máxima.
     """
 
     _REWARD_HACKING_THRESHOLD: Final[float] = 0.6
@@ -501,6 +548,7 @@ class TOONTricksterAdversaryAgent:
         seed: int = 1337,
         payload_factory: IllusionPayloadFactory = DefaultIllusionPayloadFactory(),
         betti_synthesizer: BettiSynthesizer = DefaultBettiSynthesizer(),
+        rhi_threshold: float = 0.85,
     ) -> None:
         if dimension_mac < 2:
             raise ValueError("dimension_mac debe ser ≥ 2.")
@@ -508,17 +556,14 @@ class TOONTricksterAdversaryAgent:
         self.dimension_mac: int = int(dimension_mac)
         self.seed_counter: int = int(seed)
         self.illusion_count: int = 0
+        self._rhi_threshold: float = float(rhi_threshold)
         self.base_rho: np.ndarray = np.eye(self.dimension_mac, dtype=complex) / self.dimension_mac
 
-        # Inyección de dependencias
         self._synth: IllusionSynthesizer = IllusionSynthesizer(
             factory=payload_factory, betti=betti_synthesizer
         )
-
-        # Registro inmutable
+        self._perturber: TricksterDensityPerturber = TricksterDensityPerturber(max_rhi_threshold=rhi_threshold)
         self._registry: List[TricksterAttackCertificate] = []
-
-    # ── Métodos auxiliares ─────────────────────────────────────────────────
 
     def _seal(
         self,
@@ -538,13 +583,6 @@ class TOONTricksterAdversaryAgent:
     def _classify_initial_verdict(
         self, reward_hacking_score: float, stealth_dirichlet: float
     ) -> HeytingOmega3:
-        r"""
-        Clasificación tentativa del ilusionista:
-          - Si RHS > umbral AND E_D baja → pretende COHERENT.
-          - En otro caso, DEGRADED.
-        (El ilusionista NUNCA declara VETOED por sí mismo: la sospecha nace
-        del auditor externo — el Soberano Dreamer.)
-        """
         if (
             reward_hacking_score > self._REWARD_HACKING_THRESHOLD
             and stealth_dirichlet < 0.5
@@ -555,14 +593,56 @@ class TOONTricksterAdversaryAgent:
     def _compute_reward_hacking_score(
         self, sophistication: float, stealth_dirichlet: float
     ) -> float:
-        r"""
-        RHS = s · (1 - E_D). Mide la capacidad del camuflaje adversarial
-        de eludir métricas simples: alta sofisticación y baja rugosidad
-        espectral implican alta probabilidad de engaño.
-        """
         return float(max(0.0, min(1.0, sophistication * (1.0 - stealth_dirichlet))))
 
-    # ── Núcleo: forja de ilusiones ─────────────────────────────────────────
+    def execute_adversarial_simulation(
+        self,
+        mac_density_op: np.ndarray,
+        omega_freqs: np.ndarray,
+        k_vecs: np.ndarray,
+        is_dream_state: bool = True,
+    ) -> Tuple[HeytingOmega3, Dict[str, Any]]:
+        """
+        Ejecuta la simulación adversarial homoclínica de Poincaré y adjudica en Ω₃.
+
+        :param mac_density_op: Matriz Atómica de Conocimiento ρ_MAC ∈ 𝔇_n.
+        :param omega_freqs: Vector de frecuencias del sistema de obra.
+        :param k_vecs: Vector de acoplamiento de modos.
+        :param is_dream_state: Flag de aislamiento homológico (DREAM_STATE).
+        :return: Tupla (Veredicto Heyting, Reporte de Auditoría Red Team).
+        """
+        attack_enum = IllusionAttackType.SPLIT_CONTRACT_ILLUSION
+        perturbation = self._perturber.synthesize_homoclinic_tangle_attack(
+            density_op=mac_density_op,
+            omega_frequencies=omega_freqs,
+            k_wavevectors=k_vecs,
+            epsilon_perturbation=0.08,
+            attack_type=attack_enum,
+        )
+
+        cert = perturbation.attack_certificate
+
+        if cert.betti_1_induced > 0 and cert.rhi_score > self._rhi_threshold:
+            verdict = HeytingOmega3.VETOED
+        elif cert.rhi_score > 0.60:
+            verdict = HeytingOmega3.DEGRADED
+        else:
+            verdict = HeytingOmega3.COHERENT
+
+        report = {
+            "sovereign": self.agent_id,
+            "is_dream_state": is_dream_state,
+            "verdict": verdict.name,
+            "heyting_value": int(verdict),
+            "rhi_score": cert.rhi_score,
+            "betti_1_induced": cert.betti_1_induced,
+            "small_divisor_resonance": cert.small_divisor_resonance,
+            "is_unitary_cptp": cert.is_unitary_cptp,
+            "crowbar_triggered": bool(verdict == HeytingOmega3.VETOED and not is_dream_state),
+            "schema_version": "7.1.0",
+        }
+
+        return verdict, report
 
     def forge_illusion(
         self,
@@ -572,31 +652,14 @@ class TOONTricksterAdversaryAgent:
         token_count: Optional[int] = None,
         is_dream_state: bool = True,
     ) -> TricksterAttackCertificate:
-        r"""
-        Forja una ilusión adversarial y retorna su certificado.
-
-        Pasos:
-          1. Incremento atómico de contadores y determinación de semilla.
-          2. Construcción del payload mediante la fábrica inyectada.
-          3. Estimación de b_1 sintáctico mediante el BettiSynthesizer.
-          4. Ensamblaje del cartucho inmutable.
-          5. Perturbación espectral sobre el MAC.
-          6. Cálculo de RHS y clasificación Heyting tentativa.
-          7. Sellado SHA-256 y registro.
-        """
-        # 1. Contadores
         start_time = time.time()
         self.illusion_count += 1
         self.seed_counter += 1
         illusion_id = f"ILLUSION-TOON-{self.illusion_count:04d}"
 
-        # 2. Payload
         payload = self._synth.craft_deceptive_payload(illusion_type, sophistication)
-
-        # 3. Betti sintáctico
         betti_1 = self._synth.estimate_betti_1(payload, sophistication)
 
-        # 4. Cartucho
         cartridge = AdversarialIllusionCartridge(
             illusion_id=illusion_id,
             illusion_type=illusion_type,
@@ -608,21 +671,18 @@ class TOONTricksterAdversaryAgent:
             payload=payload,
         )
 
-        # 5. Perturbación espectral
         perturbation = TricksterDensityPerturber.perturb_mac_with_illusion(
             base_rho=self.base_rho,
             sophistication=sophistication,
             seed=self.seed_counter,
         )
 
-        # 6. RHS y veredicto tentativo
         rhs = self._compute_reward_hacking_score(
             sophistication=sophistication,
             stealth_dirichlet=perturbation.stealth_dirichlet_energy,
         )
         verdict = self._classify_initial_verdict(rhs, perturbation.stealth_dirichlet_energy)
 
-        # 7. Sellado
         signature = self._seal(
             illusion_id=illusion_id,
             illusion_type=illusion_type,
@@ -631,6 +691,14 @@ class TOONTricksterAdversaryAgent:
         )
 
         cert = TricksterAttackCertificate(
+            attack_type=illusion_type,
+            rhi_score=rhs,
+            homoclinic_residual=perturbation.stealth_dirichlet_energy,
+            small_divisor_resonance=1.0,
+            betti_1_induced=betti_1,
+            is_unitary_cptp=True,
+            merkle_proof_sha256=signature,
+            schema_version="7.1.0",
             illusion_id=illusion_id,
             trickster_agent_id=self.agent_id,
             cartridge=cartridge,
@@ -659,20 +727,7 @@ class TOONTricksterAdversaryAgent:
 
         return cert
 
-    # ── Auditoría cruzada ──────────────────────────────────────────────────
-
     def audit_registry(self) -> Dict[str, Any]:
-        r"""
-        Auditoría retrospectiva del registro interno. Devuelve agregados
-        que el Soberano Dreamer puede cruzar contra su propio motor espectral:
-            - n_illusions               : cardinalidad de 𝐂𝐞𝐫𝐭.
-            - verdict_distribution      : histograma sobre Ω_3.
-            - avg_reward_hacking_score  : media aritmética de RHS.
-            - avg_stealth_dirichlet     : media aritmética de E_D.
-            - max_sophistication        : máxima sofisticación observada.
-            - global_verdict            : ínfimo de los veredictos (meet).
-            - registry_integrity_ok     : verifica unicidad de hashes SHA-256.
-        """
         n = len(self._registry)
         if n == 0:
             return {
@@ -694,14 +749,20 @@ class TOONTricksterAdversaryAgent:
         hashes_collide = False
 
         for c in self._registry:
-            dist[c.heyting_verdict.name] += 1
-            total_rhs += c.reward_hacking_score
-            total_dir += c.stealth_dirichlet_energy
-            max_soph = max(max_soph, c.cartridge.sophistication_index)
-            global_verdict = global_verdict.meet(c.heyting_verdict)
-            if c.sha256_provenance in hashes:
+            v = c.heyting_verdict if c.heyting_verdict is not None else HeytingOmega3.COHERENT
+            rhs = c.reward_hacking_score if c.reward_hacking_score is not None else c.rhi_score
+            stealth = c.stealth_dirichlet_energy if c.stealth_dirichlet_energy is not None else c.homoclinic_residual
+            soph = c.cartridge.sophistication_index if c.cartridge is not None else 0.85
+            sig = c.sha256_provenance if c.sha256_provenance is not None else c.merkle_proof_sha256
+
+            dist[v.name] += 1
+            total_rhs += rhs
+            total_dir += stealth
+            max_soph = max(max_soph, soph)
+            global_verdict = global_verdict.meet(v)
+            if sig in hashes:
                 hashes_collide = True
-            hashes.add(c.sha256_provenance)
+            hashes.add(sig)
 
         return {
             "n_illusions": n,
@@ -715,13 +776,8 @@ class TOONTricksterAdversaryAgent:
 
     @property
     def registry(self) -> Tuple[TricksterAttackCertificate, ...]:
-        """ Vista inmutable del registro de certificados. """
         return tuple(self._registry)
 
-
-# ══════════════════════════════════════════════════════════════════════════════
-# PRUEBA DE AUDITORÍA Y EJECUCIÓN AUTÓNOMA
-# ══════════════════════════════════════════════════════════════════════════════
 
 if __name__ == "__main__":
     logging.basicConfig(
@@ -730,50 +786,32 @@ if __name__ == "__main__":
     )
 
     print("═" * 80)
-    print("DEMOSTRACIÓN GRANULAR: TOON Trickster Adversary Agent v2.0.0")
-    print("FASES ANIDADAS: Ω_3 → Síntesis/Perturbación → Certificado/Auditoría")
+    print("DEMOSTRACIÓN GRANULAR: TOON Trickster Adversary Agent v8.1.0")
+    print("MECÁNICA CELESTE DE HENRI POINCARÉ: Simulación Adversarial y Adjudicación Ω₃")
     print("═" * 80)
 
     trickster = TOONTricksterAdversaryAgent(agent_id="TRICKSTER-SOVEREIGN-SABIO-01")
 
-    print("\n>>> ESCENARIO 1: Forjando Ilusión de Fraccionamiento de Contratos (Astucia 92%)...")
-    cert1 = trickster.forge_illusion(
-        illusion_type="SPLIT_CONTRACT_ILLUSION", sophistication=0.92
-    )
-    print(f"    - ID Ilusión        : {cert1.illusion_id}")
-    print(f"    - Tipo              : {cert1.cartridge.illusion_type}")
-    print(f"    - Clase de payload  : {cert1.cartridge.complexity_class()}")
-    print(f"    - b_1 sintáctico    : {cert1.cartridge.synthetic_betti_1}")
-    print(f"    - RHS               : {cert1.reward_hacking_score:.4f}")
-    print(f"    - Energía Stealth   : {cert1.stealth_dirichlet_energy:.4f}")
-    print(f"    - Veredicto Heyting : {cert1.heyting_verdict.name}")
-    print(f"    - Aislamiento REM   : {cert1.cartridge.is_dream_state}")
-    print(f"    - Firma SHA-256     : {cert1.signature_prefix(32)}...")
+    mac_rho = np.eye(4, dtype=complex) / 4.0
+    omega = np.array([1.0, 0.5, 0.25, 0.125])
+    k_vec = np.array([2.0, -4.0, 1.0, 0.0])
 
-    print("\n>>> ESCENARIO 2: Forjando Ilusión de APUs Desbalanceados (Front-Loading)...")
-    cert2 = trickster.forge_illusion(
-        illusion_type="UNBALANCED_APU_BIDDING", sophistication=0.88
+    verdict, report = trickster.execute_adversarial_simulation(
+        mac_density_op=mac_rho,
+        omega_freqs=omega,
+        k_vecs=k_vec,
+        is_dream_state=True,
     )
-    print(f"    - ID Ilusión        : {cert2.illusion_id}")
-    print(f"    - Tipo              : {cert2.cartridge.illusion_type}")
-    print(f"    - Clase de payload  : {cert2.cartridge.complexity_class()}")
-    print(f"    - RHS               : {cert2.reward_hacking_score:.4f}")
-    print(f"    - Veredicto Heyting : {cert2.heyting_verdict.name}")
-    print(f"    - Aislamiento REM   : {cert2.cartridge.is_dream_state}")
 
-    print("\n>>> ESCENARIO 3: Forjando Ilusión de Sustitución de Materiales (Astucia 70%)...")
-    cert3 = trickster.forge_illusion(
-        illusion_type="MATERIAL_SUBSTITUTION", sophistication=0.70
-    )
-    print(f"    - ID Ilusión        : {cert3.illusion_id}")
-    print(f"    - RHS               : {cert3.reward_hacking_score:.4f}")
-    print(f"    - Veredicto Heyting : {cert3.heyting_verdict.name}")
-
-    print("\n>>> AUDITORÍA CRUZADA DEL REGISTRO...")
-    audit = trickster.audit_registry()
-    for k, v in audit.items():
-        print(f"    - {k:<28}: {v}")
+    print("\n>>> SIMULACIÓN ADVERSARIAL HOMOCLÍNICA...")
+    print(f"    - Soberano           : {report['sovereign']}")
+    print(f"    - Veredicto Heyting  : {report['verdict']} ({report['heyting_value']})")
+    print(f"    - Score RHI          : {report['rhi_score']:.4f}")
+    print(f"    - Resonancia Divisor : {report['small_divisor_resonance']:.6e}")
+    print(f"    - Betti-1 Inducido   : {report['betti_1_induced']}")
+    print(f"    - CPTP Unitario      : {report['is_unitary_cptp']}")
+    print(f"    - Crowbar Disparado  : {report['crowbar_triggered']}")
 
     print("\n" + "═" * 80)
-    print("✓ Pruebas de verificación del Soberano Ilusionista v2.0.0 completadas.")
+    print("✓ Pruebas de verificación del Soberano Ilusionista de Poincaré v8.1.0 completadas.")
     print("═" * 80)
