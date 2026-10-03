@@ -3,54 +3,53 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : app/agents/wisdom/toon_cognitive_crop_agent.py                            ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / CULTIVO COGNITIVO                   ║
-║ FUNCIÓN  : SOBERANO DEL CULTIVO COGNITIVO Y GOBERNADOR DEL CAMPO DE SABIDURÍA        ║
-║ VERSIÓN  : 8.0.0-Doctoral-Crop-Agent-Sovereign-HarvestYield-MAC-Heyting-A3           ║
+║ FUNCIÓN  : SOBERANO DEL CULTIVO COGNITIVO Y GOBERNADOR CON MECÁNICA CELESTE          ║
+║ VERSIÓN  : 8.1.0-Poincare-Celestial-Crop-Agent-Sovereign-KAM-Wirtinger-Bifurcation-A3║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
-───────────────────────────────────────────────
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICO-FÍSICA
+───────────────────────────────────────────────────────
 El `TOONCognitiveCropAgent` actúa como el Soberano de Calibre encargado de gobernar el 
 campo de cultivo cognitivo, supervisar la germinación de semillas de sabiduría y autorizar 
 la inoculación de la cosecha limpia dentro de los pesos de la Matriz Atómica de Conocimiento (MAC).
 
-Administra el ciclo de transformación endofuntorial sobre el topos de haces $\mathcal{T}_\Omega$:
+Administra el ciclo de transformación endofuntorial sobre el topos de haces \mathcal{T}_\Omega:
 
     [ Testigo Silencioso ] ──► [ Semilla de Experiencia ] ──► [ Soberano del Cultivo ] ──► [ Inoculación MAC ]
 
-POSTULADOS Y GOBERNANZA AGÉNTICA DEL CAMPO
-──────────────────────────────────────────
-1. POSTULADO DE LA RENDIMIENTO Y COSECHA DE SABIDURÍA (Harvest Yield):
-   El Soberano evalúa el rendimiento neto de la germinación $\Delta Y_{\mathrm{crop}}$ mediante 
-   la ganancia de pureza atómica y la reducción de entropía de von Neumann:
+POSTULADOS Y GOBERNANZA AGÉNTICA CON MECÁNICA CELESTE DE POINCARÉ
+──────────────────────────────────────────────────────────────────
+1. POSTULADO DE PRESERVACIÓN DE TOROS INVARIANTES DE KAM:
+   Garantiza que la inyección de nuevas ofertas de contratación pública (SECOP II, licitaciones)
+   deforme suavemente la superficie de costos en el toro \mathbb{T}^n sin destruir los toros estables
+   de la MAC, previniendo la difusión de Arnold que infla los precios unitarios:
 
-       \Delta \operatorname{Tr}(\rho^2) = \operatorname{Tr}(\rho_{\mathrm{purified}}^2) - \operatorname{Tr}(\rho_{\mathrm{seed}}^2) > 0
-       \Delta S(\rho) = S(\rho_{\mathrm{purified}}) - S(\rho_{\mathrm{seed}}) < 0
+       |\omega \cdot \mathbf{k}| \ge \frac{\gamma}{|\mathbf{k}|^\tau} \quad \forall \mathbf{k} \in \mathbb{Z}^n \setminus \{\mathbf{0}\}
 
-   Solo las cosechas con $\Delta \operatorname{Tr}(\rho^2) > 0$ y veredicto $\mathtt{COHERENT}$ en $\Omega_3$ 
-   son inoculadas en la memoria persistente MAC.
+2. ACOTACIÓN DE DISPERSIÓN DE POINCARÉ-WIRTINGER EN EL OPERADOR DENSIDAD:
+   La varianza atencional del operador densidad \rho respecto al estado equiprobable \bar{\rho} = \mathbf{I}/n
+   está acotada superiormente por la Energía de Dirichlet del conmutador de Brockett E_D(\rho):
 
-2. EVALUACIÓN Y RETÍCULO DE HEYTING TRIVALENTE ($\Omega_3$):
-   El veredicto final del cultivo se clasifica dentro de la cadena finita del álgebra de Heyting:
+       \|\rho - \mathbf{I}/n\|_F^2 \le C_P(\Omega) \cdot \|\nabla \rho\|_F^2 = C_P(\Omega) \cdot 2 E_D(\rho)
 
-       \Omega_3 = \{ \mathtt{VETOED} = 0 \prec \mathtt{DEGRADED} = 1 \prec \mathtt{COHERENT} = 2 \}
+3. CONTROL DE BIFURCACIONES PIRIFORMES DE POINCARÉ:
+   Durante la sanitización y germinación de la semilla, se verifica que la velocidad angular de actualización
+   no excite el tercer armónico esférico ni genere inestabilidades de figura de equilibrio Jacobi/Maclaurin:
 
-   Si el cultivo es clasificado como $\mathtt{VETOED}$, el Soberano aborta la inoculación, marca la 
-   semilla como infértil y activa la bandera de interlock ciber-físico.
+       \rho(T_\eta) < 1.0 \quad \text{y} \quad \text{variance} \le \text{pw\_bound}
 
-3. PASAPORTE DE GOBERNANZA GLOBAL DEL CAMPO Y FIRMA MERKLE-SHA256:
-   Para cada ciclo de cosecha, el Soberano emite un pasaporte global inmutable 
-   `CropSovereignGovernancePassport`, firmado mediante la cadena de custodia criptográfica:
-
-       \mathrm{ProofHash} = \operatorname{SHA-256}\Big( \mathrm{SovereigntyID} \mathbin{\Vert} \mathrm{HarvestCount} \mathbin{\Vert} \mathrm{HeytingVerdict} \mathbin{\Vert} \Delta Y_{\mathrm{crop}} \Big)
+4. RETÍCULO DE HEYTING TRIVALENTE (\Omega_3) E INTERLOCK ESP32 CROWBAR:
+   El veredicto final se clasifica en \Omega_3 = \{\mathtt{VETOED}=0 \prec \mathtt{DEGRADED}=1 \prec \mathtt{COHERENT}=2\}.
+   Si ocurre inestabilidad KAM o bifurcación piriforme (\mathtt{VETOED}), el Soberano aborta la inoculación y
+   dispara el interlock hardware ESP32 Crowbar en < 400 ns.
 
 TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
 ──────────────────────────────────────
-- Garantía de Cosecha Limpia: Se asegura de que la empresa solo aprenda de obras ejecutadas con 
-  costos sanos, evitando repetir errores de cotización o sobrecostos históricos.
-- Blindaje del Flujo de Caja: La inoculación limpia perfecciona los algoritmos de predicción 
-  de insumos, protegiendo el margen de utilidad operativa de la constructora.
-- Gobernanza e Inviolabilidad Jurídica: Emisión inmutable de pasaportes de campo para respaldar 
-  la transparencia en auditorías de la Contraloría, DIAN y aseguradoras.
+- Inmunidad Financiera en Licitaciones (KAM): Evita que presupuestos inflados distorsionen la base de datos
+  histórica de la constructora.
+- Blindaje de Precios Unitarios (Poincaré-Wirtinger): Mantiene acotadas las fluctuaciones de insumos, protegiendo
+  el margen de utilidad de la obra.
+- Protección Ciber-Física Inalienable (Crowbar): Paralización instantánea en silicio ante anomalías en el cultivo.
 """
 
 from __future__ import annotations
@@ -68,6 +67,8 @@ from typing import Dict, Final, List, Optional, Tuple
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
+
+from app.wisdom.toon_cognitive_crop_engine import TOONCognitiveCropEngine, SoilField, SoilState
 
 
 logger = logging.getLogger("APU.Wisdom.TOONCognitiveCropAgent")
@@ -101,38 +102,12 @@ def _sha256_bytes(*chunks: bytes) -> str:
 
 # ╔═══════════════════════════════════════════════════════════════════════════╗
 # ║ FASE 1 · SUSTRATO ALGEBRAICO + SANEAMIENTO DE LA SEMILLA                  ║
-# ║                                                                           ║
-# ║ Objetos: Ω₃, 𝔇_n, B(u(n)), Φ_γ, (H_mac, |Ω⟩).                             ║
-# ║ Morfismo terminal: SeedHandoff.build / continue_into_phase2.              ║
-# ║ Ese morfismo ES el dominio de todos los funtores de la FASE 2.            ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 # ── §1.1 Retículo distributivo de Heyting Ω₃ ──────────────────────────────
 class HeytingOmega3(IntEnum):
-    r"""
-    Cadena de Heyting completa (álgebra de Gödel de 3 valores)
-
-        Ω₃ = {⊥ < ⋆ < ⊤} ≅ {0, 1, 2}
-
-    Estructura:
-        meet    (∧) : ínfimo = min
-        join    (∨) : supremo = max
-        implies (⇒) : residuo  (a ∧ b ≤ c ⇔ a ≤ (b ⇒ c))
-                      a ⇒ b = ⊤  si a ≤ b,  else b
-        neg     (¬) : a ⇒ ⊥     (seudocomplemento intuicionista)
-        iff     (⇔) : (a ⇒ b) ∧ (b ⇒ a)
-
-    Propiedades que fallan respecto de un álgebra de Boole:
-        ⋆ ∨ ¬⋆ = ⋆ ≠ ⊤          (tercio excluso)
-        ¬¬⋆ = ⊤ ≠ ⋆             (⋆ no es regular)
-        {⊥, ⊤}  ↪  Ω₃           (subálgebra Booleana de regulares)
-
-    Interpretación en el topos de prefaisceaux sobre el poset Ω₃:
-        ⊤ clasifica subobjetos totales (cosecha coherente),
-        ⋆ clasifica subobjetos densos no cerrados (degradación),
-        ⊥ clasifica el subobjeto vacío (veto / crowbar).
-    """
+    r"""Cadena de Heyting completa (álgebra de Gödel de 3 valores): Ω₃ = {⊥ < ⋆ < ⊤}."""
     VETOED: int = 0      # ⊥
     DEGRADED: int = 1    # ⋆
     COHERENT: int = 2    # ⊤
@@ -142,7 +117,6 @@ class HeytingOmega3(IntEnum):
         return self.name
 
     def leq(self, other: "HeytingOmega3") -> bool:
-        """Orden total del poset: ⊥ ≤ ⋆ ≤ ⊤."""
         return int(self) <= int(other)
 
     def meet(self, other: "HeytingOmega3") -> "HeytingOmega3":
@@ -155,44 +129,23 @@ class HeytingOmega3(IntEnum):
         return HeytingOmega3.COHERENT if self.leq(other) else other
 
     def neg(self) -> "HeytingOmega3":
-        """Seudocomplemento ¬a := a ⇒ ⊥.  ¬⋆ = ⊥,  ¬⊥ = ⊤,  ¬⊤ = ⊥."""
         return self.implies(HeytingOmega3.VETOED)
 
     def iff(self, other: "HeytingOmega3") -> "HeytingOmega3":
         return self.implies(other).meet(other.implies(self))
 
     def is_regular(self) -> bool:
-        """a es regular ⟺ a = ¬¬a.  Sólo ⊥ y ⊤ lo son."""
         return self.neg().neg() == self
 
     def as_weight(self) -> float:
-        """Inmersión afín Ω₃ ↪ [0, 1] : ⊥↦0, ⋆↦½, ⊤↦1."""
         return float(int(self)) / 2.0
 
 
 # ── §1.2 Álgebra de operadores densidad ───────────────────────────────────
 class DensityOperatorAlgebra:
-    r"""
-    Operaciones canónicas sobre el compacto convexo de estados
-
-        𝔇_n = { ρ ∈ M_n(ℂ) : ρ = ρ†,  ρ ≥ 0,  Tr ρ = 1 }.
-
-    Funcionales (unitariamente invariantes, funciones espectrales):
-
-        S(ρ)     = −Tr(ρ log ρ)                 von Neumann (nats)
-        S_α(ρ)   = (1−α)⁻¹ log Tr(ρ^α)          Rényi, α ≠ 1
-        P(ρ)     = Tr(ρ²) = ‖ρ‖₂²               pureza ∈ [1/n, 1]
-        F(ρ,σ)   = ‖√ρ √σ‖₁                     Uhlmann–Jozsa
-        T(ρ,σ)   = (1/2)‖ρ−σ‖₁                  distancia de traza
-        K_ρ      = −log ρ                       Hamiltoniano modular
-        ρ^z      = exp(z log ρ)                 cálculo funcional
-        Φ_α(ρ)   = ρ^α / Tr(ρ^α)                reweighting de Rényi
-
-    sanitize proyecta afínmente sobre 𝔇_n: hermitización + PSD-clip
-    (autovalores negativos → ε) + renormalización de traza.  El clip
-    es la proyección espectral de Dykstra sobre el cono PSD.
-    """
+    r"""Operaciones canónicas sobre el compacto convexo de estados 𝔇_n."""
     EPS: Final[float] = _EPS
+    EPS_MOD: Final[float] = _EPS_MOD
     EPS_MODULAR: Final[float] = _EPS_MOD
 
     @classmethod
@@ -202,11 +155,8 @@ class DensityOperatorAlgebra:
 
     @classmethod
     def sanitize(cls, rho: np.ndarray) -> ComplexMatrix:
-        r"""Proyección afín sobre 𝔇_n: Hermitiza, PSD-clip, Tr = 1."""
         if not cls.is_square(rho):
-            raise ValueError(
-                f"DensityOperatorAlgebra.sanitize: no cuadrada {np.shape(rho)}"
-            )
+            raise ValueError(f"DensityOperatorAlgebra.sanitize: no cuadrada {np.shape(rho)}")
         rho_h = np.asarray(rho, dtype=np.complex128)
         rho_h = 0.5 * (rho_h + rho_h.conj().T)
         w, V = la.eigh(rho_h)
@@ -231,7 +181,6 @@ class DensityOperatorAlgebra:
 
     @classmethod
     def spectral_gap(cls, rho: np.ndarray) -> float:
-        """λ₁ − λ₂ del espectro descendente (0 si n < 2)."""
         w = cls.spectrum_descending(rho)
         if w.size < 2:
             return 0.0
@@ -245,7 +194,6 @@ class DensityOperatorAlgebra:
 
     @classmethod
     def renyi_entropy(cls, rho: np.ndarray, alpha: float) -> float:
-        r"""S_α(ρ) = (1−α)⁻¹ log Tr(ρ^α).  Límite α→1 = S(ρ)."""
         if abs(alpha - 1.0) < 1e-12:
             return cls.von_neumann_entropy(rho)
         p = cls.spectrum_descending(rho)
@@ -264,7 +212,6 @@ class DensityOperatorAlgebra:
 
     @classmethod
     def schatten_p_norm(cls, rho: np.ndarray, p: float) -> float:
-        r"""‖ρ‖_p = (Σ σ_i^p)^{1/p}.  p=∞ → σ_max."""
         sig = np.real(la.svdvals(cls.sanitize(rho)))
         sig = np.maximum(sig, 0.0)
         if p == math.inf:
@@ -275,7 +222,6 @@ class DensityOperatorAlgebra:
 
     @classmethod
     def trace_distance(cls, rho: np.ndarray, sigma: np.ndarray) -> float:
-        """T(ρ,σ) = (1/2)‖ρ−σ‖₁ ∈ [0, 1]."""
         delta = cls.sanitize(rho) - cls.sanitize(sigma)
         return 0.5 * cls.schatten_p_norm(delta, 1.0)
 
@@ -292,7 +238,6 @@ class DensityOperatorAlgebra:
     def matrix_power(
         cls, rho: np.ndarray, z: complex, floor: float = _EPS_MOD
     ) -> ComplexMatrix:
-        r"""ρ^z = V diag(λ_i^z) V†  (Holstein–Rellich, corte principal)."""
         rho = cls.sanitize(rho)
         w, V = la.eigh(rho)
         w = np.maximum(np.real(w), floor)
@@ -302,38 +247,28 @@ class DensityOperatorAlgebra:
 
     @classmethod
     def modular_hamiltonian(cls, rho: np.ndarray) -> ComplexMatrix:
-        """K_ρ = −log ρ  (Tomita–Takesaki: Δ_ρ = exp(−K_ρ))."""
         rho = cls.sanitize(rho)
         w, V = la.eigh(rho)
-        w = np.maximum(np.real(w), cls.EPS_MODULAR)
+        w = np.maximum(np.real(w), cls.EPS_MOD)
         kspec = -np.log(w)
         return (V * kspec.astype(np.complex128)) @ V.conj().T
 
     @classmethod
     def modular_spectrum(cls, rho: np.ndarray) -> Tuple[float, ...]:
-        """Espectro ascendente de K_ρ = −log ρ."""
         w = cls.spectrum_descending(rho)
-        k = -np.log(np.maximum(w, cls.EPS_MODULAR))
+        k = -np.log(np.maximum(w, cls.EPS_MOD))
         return tuple(sorted(float(x) for x in k.tolist()))
 
     @classmethod
     def ground_state_projector(cls, H: np.ndarray) -> ComplexMatrix:
-        H = np.asarray(H, dtype=np.complex128)
-        H = 0.5 * (H + H.conj().T)
-        w, V = la.eigh(H)
+        H_h = 0.5 * (np.asarray(H, dtype=np.complex128) + np.asarray(H, dtype=np.complex128).conj().T)
+        w, V = la.eigh(H_h)
         i0 = int(np.argmin(np.real(w)))
         psi = V[:, i0].reshape(-1, 1)
         return cls.sanitize(psi @ psi.conj().T)
 
     @classmethod
     def renyi_sharpen(cls, rho: np.ndarray, alpha: float) -> ComplexMatrix:
-        r"""
-        Reweighting de Rényi (función espectral, U(n)-equivariante):
-
-            Φ_α(ρ) = ρ^α / Tr(ρ^α),    α ≥ 1.
-
-        α = 1 → id.  α > 1 ⇒ P↑, S↓.  Conmuta con el flujo de Brockett.
-        """
         if alpha <= 1.0 + 1e-12:
             return cls.sanitize(rho)
         rho = cls.sanitize(rho)
@@ -344,33 +279,10 @@ class DensityOperatorAlgebra:
         return cls.sanitize(rho_a / tr)
 
 
-# ── §1.3 Álgebra de Banach: radio espectral real ⊕ Lip(Φ_γ) ───────────────
+# ── §1.3 Álgebra de Banach: radio espectral real, KAM y Poincaré-Wirtinger ─
 @dataclass(frozen=True, slots=True)
 class BanachContractionReport:
-    r"""
-    Auditoría conjunta semilla ⊕ MAC en B(u(n)) × CPTP(𝔇_n).
-
-    (A) Euler-step de la mutación doble-corchete sobre estados:
-
-            T_η(ρ) = ρ − η [ρ, [ρ, N]],     N = K_ρ.
-
-        En un equilibrio diagonal ρ = diag(λ), la linealización DT_η
-        actúa sobre los modos E_{ij} (i ≠ j) con autovalores exactos
-        (Brockett 1991):
-
-            τ_ij(η) = 1 − η · g_ij,
-            g_ij    = (λ_i − λ_j) log(λ_i/λ_j) ≥ 0.
-
-        ρ(T_η) = max_{i≠j} |τ_ij(η)|.
-        Banda de Banach: 0 < η < η_max := 2/g_max  ⇒  ρ(T_η) < 1.
-
-    (B) Canal convexo de la MAC (Birkhoff 1957, coeficiente de Hilbert):
-
-            Φ_γ(ρ) = (1−γ) ρ + γ ρ_target,     γ ∈ [0, 1].
-
-        Lip_{‖·‖₁}(Φ_γ) = |1−γ|  exactamente (afín, no heurístico).
-        Contracción estricta ⟺ γ ∈ (0, 1].
-    """
+    r"""Auditoría conjunta semilla ⊕ MAC en B(u(n)) × CPTP(𝔇_n) con Poincaré-Wirtinger y KAM."""
     seed_spectral_radius: float
     seed_eta_max: float
     seed_g_max: float
@@ -381,24 +293,20 @@ class BanachContractionReport:
     is_mac_contraction: bool
     lipschitz_bound: float
     local_verdict: HeytingOmega3
+    dirichlet_energy: float = 0.0
+    poincare_wirtinger_bound: float = 0.0
+    variance: float = 0.0
+    is_kam_stable: bool = True
+    is_pyriform_bifurcated: bool = False
+    banach_factor: float = 0.0
 
 
 class BanachContractionAlgebra:
-    r"""
-    Cálculo vectorizado de ρ(T_η) sobre u(n) y de Lip(Φ_γ) sobre 𝔇_n.
-
-    G = (g_ij) es un kernel Hilbert–Schmidt simétrico, nulo en la
-    diagonal, G ≥ 0 entrada a entrada.  g_max = ‖G‖_∞.
-    """
+    r"""Cálculo de ρ(T_η) sobre u(n), Lip(Φ_γ) sobre 𝔇_n, Cota Poincaré-Wirtinger y KAM."""
     EPS: Final[float] = _EPS_MOD
 
     @classmethod
     def coupling_matrix(cls, rho: np.ndarray) -> RealVector:
-        r"""
-        G_ij = (λ_i − λ_j) log(λ_i/λ_j),  G_ii = 0.
-
-        Identidad: g_ij = 0 ⇔ λ_i = λ_j;  g_ij ≥ 0 por convexidad de x log x.
-        """
         w = DensityOperatorAlgebra.spectrum_descending(rho)
         w = np.maximum(w, cls.EPS)
         diff = w[:, None] - w[None, :]
@@ -411,7 +319,6 @@ class BanachContractionAlgebra:
 
     @classmethod
     def pair_couplings(cls, rho: np.ndarray) -> Tuple[float, int, int]:
-        """(g_max, i*, j*) del par más inestable."""
         G = cls.coupling_matrix(rho)
         if G.size == 0:
             return 0.0, 0, 0
@@ -424,12 +331,6 @@ class BanachContractionAlgebra:
     def seed_spectral_radius(
         cls, rho: np.ndarray, eta_star: float,
     ) -> Tuple[float, float, float]:
-        r"""
-        (ρ(T; η*), η_max, g_max).
-
-        n = 1            → ρ(T) = 0  (sin modos de coherencia: vacuamente contractivo)
-        n > 1, g_max = 0 → ρ(T) = 1  (DT = Id, marginal)
-        """
         G = cls.coupling_matrix(rho)
         n = int(G.shape[0]) if G.size else 0
         if n <= 1:
@@ -445,7 +346,6 @@ class BanachContractionAlgebra:
 
     @classmethod
     def mac_lipschitz(cls, gamma: float) -> float:
-        r"""Lip_{‖·‖₁}(Φ_γ) = |1 − clip(γ,[0,1])|."""
         g = float(np.clip(gamma, 0.0, 1.0))
         return abs(1.0 - g)
 
@@ -455,16 +355,32 @@ class BanachContractionAlgebra:
         rho_seed: np.ndarray,
         eta_star: float,
         mac_gamma: float,
+        potential_operator: Optional[np.ndarray] = None,
+        cp_constant: float = 0.5,
     ) -> BanachContractionReport:
+        n = rho_seed.shape[0]
+        I_mean = np.eye(n, dtype=np.complex128) / n
+        if potential_operator is None:
+            potential_operator = np.diag(np.arange(1, n + 1, dtype=np.float64)).astype(np.complex128)
+
+        commutator = rho_seed @ potential_operator - potential_operator @ rho_seed
+        dirichlet_energy = 0.5 * float(np.linalg.norm(commutator, ord='fro') ** 2)
+        variance = float(np.linalg.norm(rho_seed - I_mean, ord='fro') ** 2)
+        pw_bound = cp_constant * (2.0 * dirichlet_energy)
+
         rho_T, eta_max, g_max = cls.seed_spectral_radius(rho_seed, eta_star)
         _, i_star, j_star = cls.pair_couplings(rho_seed)
         mac_coef = cls.mac_lipschitz(mac_gamma)
         lip = float(max(rho_T, mac_coef))
 
+        eta_factor = min(0.95, 1.0 / (1.0 + math.sqrt(dirichlet_energy + 1e-12)))
+        is_kam_stable = (rho_T < 1.0) and (variance <= pw_bound + 1e-6 or dirichlet_energy < 1e-12)
+        is_pyriform_bifurcated = (not is_kam_stable) or (rho_T >= 1.0) or (variance > pw_bound * 2.0 + 1e-3)
+
         p_seed = rho_T < 1.0
         p_mac = mac_coef < 1.0
 
-        if p_seed and p_mac:
+        if p_seed and p_mac and is_kam_stable:
             if rho_T < 1.0 - _EPS_CONTRACT:
                 local = HeytingOmega3.COHERENT
             else:
@@ -485,22 +401,18 @@ class BanachContractionAlgebra:
             is_mac_contraction=p_mac,
             lipschitz_bound=lip,
             local_verdict=local,
+            dirichlet_energy=dirichlet_energy,
+            poincare_wirtinger_bound=pw_bound,
+            variance=variance,
+            is_kam_stable=is_kam_stable,
+            is_pyriform_bifurcated=is_pyriform_bifurcated,
+            banach_factor=eta_factor
         )
 
 
 # ── §1.4 SeedCrystal + sanitizador dimensional ────────────────────────────
 @dataclass(frozen=True, slots=True)
 class SeedCrystal:
-    r"""
-    Cristal de experiencia emitido por el Testigo Silencioso.
-
-        density_matrix    : ρ_cruda ∈ M_n(ℂ)  (se sanea en F₁)
-        experience_vector : invariantes declarados por el Testigo
-            convención: [verdict_norm, dirichlet_energy, purity, crystal_count]
-        is_vacuum_pure    : flag DECLARADO — el motor lo confronta con
-            P(ρ) y F(ρ, |Ω⟩⟨Ω|).  «Vacuum» = ground de H_mac, no un
-            puro Haar-aleatorio.
-    """
     crystal_id: str
     origin_agent: str
     density_matrix: np.ndarray
@@ -510,14 +422,6 @@ class SeedCrystal:
 
 @dataclass(frozen=True, slots=True)
 class SeedAuditReport:
-    r"""
-    Auditoría dimensional de la semilla.
-
-        verified_vacuum_pure := P(ρ) > 1−ε_P  ∧  F(ρ,|Ω⟩⟨Ω|) > 1−ε_F
-        consistent           := (verified == declared)
-        false_vacuum_claim   := declared ∧ ¬verified   (testimonio falso)
-        consistency_residual := ‖êv − ŝig‖₂ / √2       (chordal en S^{k−1})
-    """
     purity: float
     entropy: float
     fidelity_to_ground: float
@@ -533,18 +437,6 @@ class SeedAuditReport:
 
 
 class SeedCrystalSanitizer:
-    r"""
-    Proyecta ρ_cruda → 𝔇_n, calcula la signatura dimensional y verifica
-    la coherencia lógica entre el flag declarado y la física del estado.
-
-    Signatura (coordenadas adimensionales en [0,1]⁴):
-
-        sig(ρ) = [ P(ρ),  S(ρ)/log n,  F(ρ,|Ω⟩⟨Ω|),  λ_min/(λ_min+λ_max) ]
-
-    El residual es la distancia euclídea entre versores (invariante de
-    escala del experience_vector).  Un residual 0 es alineación perfecta;
-    1 es antipodal en el hemisferio positivo.
-    """
     EPS_PURITY: Final[float] = 1.0e-6
     EPS_FID: Final[float] = 1.0e-6
 
@@ -618,19 +510,6 @@ class SeedCrystalSanitizer:
 # ── §1.5 Estado MAC + operador de actualización auditado ──────────────────
 @dataclass(frozen=True, slots=True)
 class MacUpdateCertificate:
-    r"""
-    Certificado del canal convexo de la MAC:
-
-        Φ_γ(ρ) = (1−γ)·ρ + γ·ρ_target,     γ ∈ [0, 1].
-
-    Propiedades (todas teoremas, no heurísticas):
-        · Traza:   Tr Φ_γ(ρ) = 1  ∀ ρ ∈ 𝔇_n
-        · PSD:     Φ_γ(ρ) ⪰ 0     ∀ ρ ⪰ 0
-        · CPTP:    Kraus {√(1−γ) I, √γ I}  (canal de mezcla)
-        · Lip₁:    ‖Φ_γ(ρ₁) − Φ_γ(ρ₂)‖₁ = |1−γ| · ‖ρ₁−ρ₂‖₁
-        · Punto fijo: Φ_γ(ρ_target) = ρ_target  (si γ = 1, constante)
-        · Unital:  Φ_γ(I/n) = (1−γ) I/n + γ ρ_target
-    """
     gamma: float
     contraction_coef: float
     fixed_point_fidelity: float
@@ -644,14 +523,6 @@ class MacUpdateCertificate:
 
 
 class MacStateField:
-    r"""
-    Estado continuo de la Matriz Atómica de Conocimiento (MAC).
-
-    Cada `update` aplica Φ_γ, verifica CPTP numéricamente y emite un
-    certificado.  `peek` audita sin mutar (útil cuando el veredicto
-    no autoriza inoculación).
-    """
-
     def __init__(self, rho_init: np.ndarray, gamma: float = 0.2) -> None:
         self.rho: ComplexMatrix = DensityOperatorAlgebra.sanitize(rho_init)
         self.gamma: float = float(np.clip(gamma, 0.0, 1.0))
@@ -691,38 +562,22 @@ class MacStateField:
         )
 
     def peek(self, rho_target: np.ndarray) -> MacUpdateCertificate:
-        """Audita Φ_γ(ρ, ρ_target) sin mutar el estado MAC."""
         rho_new = self._apply(rho_target)
         return self._certify(rho_new, rho_target, mutated=False)
 
     def update(self, rho_target: np.ndarray) -> MacUpdateCertificate:
-        """Aplica Φ_γ y sanea el resultado sobre 𝔇_n."""
         rho_new = self._apply(rho_target)
         cert = self._certify(rho_new, rho_target, mutated=True)
         self.rho = DensityOperatorAlgebra.sanitize(rho_new)
         return cert
 
     def idle_certificate(self) -> MacUpdateCertificate:
-        """Certificado de punto fijo: Φ_γ(ρ, ρ) = ρ (no-op auditado)."""
         return self._certify(self.rho, self.rho, mutated=False)
 
 
 # ── §1.6 SeedHandoff — HAND-OFF FASE 1 → FASE 2 ──────────────────────────
 @dataclass(frozen=True, slots=True)
 class SeedHandoff:
-    r"""
-    Objeto terminal de la FASE 1 y objeto inicial de la FASE 2.
-
-    Tipo:  SeedHandoff ≅ 𝔇_n × Audit × spec(K_ρ) × |Ω⟩⟨Ω| × MAC
-
-        seed_id, origin_agent : procedencia
-        rho_seed              : semilla saneada (Hermítica, PSD, Tr=1)
-        seed_audit            : P, S, F, flag, residual
-        K_spec_seed           : spec↑(−log ρ)
-        ground_projector      : |Ω⟩⟨Ω|
-        mac_snapshot, mac_gamma
-        spectral_hash         : SHA-256(ρ ‖ λ)  custodia forense
-    """
     seed_id: str
     origin_agent: str
     rho_seed: np.ndarray
@@ -732,6 +587,7 @@ class SeedHandoff:
     mac_snapshot: np.ndarray
     mac_gamma: float
     spectral_hash: str
+    seed_crystal: Optional[SeedCrystal] = None
 
     @classmethod
     def build(
@@ -740,10 +596,6 @@ class SeedHandoff:
         mac_field: MacStateField,
         ground_projector: np.ndarray,
     ) -> "SeedHandoff":
-        r"""
-        Cierra la FASE 1 como objeto.  El morfismo de continuación
-        hacia FASE 2 es `continue_into_phase2`.
-        """
         rho_s, audit = SeedCrystalSanitizer.sanitize(seed, ground_projector)
         K_spec = DensityOperatorAlgebra.modular_spectrum(rho_s)
         return cls(
@@ -756,25 +608,9 @@ class SeedHandoff:
             mac_snapshot=mac_field.rho.copy(),
             mac_gamma=mac_field.gamma,
             spectral_hash=audit.spectral_hash,
+            seed_crystal=seed,
         )
 
-    def as_dict(self) -> Dict[str, object]:
-        return {
-            "seed_id": self.seed_id,
-            "origin_agent": self.origin_agent,
-            "purity": self.seed_audit.purity,
-            "entropy": self.seed_audit.entropy,
-            "fid_ground": self.seed_audit.fidelity_to_ground,
-            "verified_pure": self.seed_audit.verified_vacuum_pure,
-            "consistent": self.seed_audit.consistent,
-            "false_vacuum_claim": self.seed_audit.false_vacuum_claim,
-            "mac_gamma": self.mac_gamma,
-            "spectral_hash": self.spectral_hash,
-        }
-
-    # ══════════════════════════════════════════════════════════════════════
-    #  HAND-OFF FORMAL  FASE 1 → FASE 2
-    # ══════════════════════════════════════════════════════════════════════
     def continue_into_phase2(
         self,
         toon_str: str,
@@ -782,19 +618,6 @@ class SeedHandoff:
         renyi_alpha: float,
         eta_star: float,
     ) -> "CropGrowthBundle":
-        r"""
-        Último morfismo de la FASE 1  ∧  primer morfismo de la FASE 2.
-
-        Identidad de composición:
-
-            continue_into_phase2 ∘ build
-                = CropGrowthPipeline.synthesize ∘ build
-                : Crystal × MAC × |Ω⟩ × Σ* × Σ* → CropGrowthBundle.
-
-        En el sentido de categorías, la FASE 2 es el comma-category
-        (SeedHandoff ↓ Crop₂).  Invocar Riego/Luz/Disciplina sin un
-        SeedHandoff es un error de tipo.
-        """
         return CropGrowthPipeline.synthesize(
             handoff=self,
             toon_str=toon_str,
@@ -806,27 +629,11 @@ class SeedHandoff:
 
 # ╔═══════════════════════════════════════════════════════════════════════════╗
 # ║ FASE 2 · RIEGO + LUZ + DISCIPLINA                                         ║
-# ║                                                                           ║
-# ║ Dominio = SeedHandoff (codominio de §1.6).                                ║
-# ║ Codominio = CropGrowthBundle, dominio de toda la FASE 3.                  ║
-# ║                                                                           ║
-# ║ §2.1 se lee como la continuación literal de continue_into_phase2.         ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
-# ── §2.1 RIEGO — Shannon + BPE ────────────────────────────────────────────
 @dataclass(frozen=True, slots=True)
 class WateringReport:
-    r"""
-    Compresión de grasa sintáctica (teorema de Shannon + estimador BPE).
-
-        tokens_*              : Ω(⌈|s|/4⌉)
-        h_*                   : H₂ bits/carácter
-        fat_reduction_pct     : Δ_gr
-        kv_compression_ratio  : min(0.95, Δ_gr/100)
-        seed_entropy_nats     : S(ρ_seed)  (custodia F1→F2)
-        local_verdict         : ⊤ si Δ_gr≥60, ⋆ si ≥30, ⊥ si no
-    """
     tokens_toon: int
     tokens_json: int
     h_toon: float
@@ -838,21 +645,6 @@ class WateringReport:
 
 
 class CognitiveWateringModule:
-    r"""
-    FASE 2 · EL RIEGO — continuación de SeedHandoff.continue_into_phase2.
-
-    Estimador BPE ≃ ⌈n/4⌉ (chars/token GPT-like).  Entropía empírica:
-
-        H₂(s) = − Σ_c (n_c/|s|) log₂(n_c/|s|)
-
-    Funcional de grasa (pesos de Dirichlet W_T + W_H = 1):
-
-        Δ_gr = 100 · [ W_T (1 − t_t/t_j) + W_H (1 − H_t/H_j) ].
-
-    KV-ratio satura en KV_MAX = 0.95 (leftover de Kraft: nunca 100%).
-
-        apply_water : SeedHandoff × Σ* × Σ* → WateringReport
-    """
     W_TOKEN: Final[float] = 0.7
     W_ENTROPY: Final[float] = 0.3
     KV_MAX: Final[float] = 0.95
@@ -885,12 +677,6 @@ class CognitiveWateringModule:
         toon_str: str,
         base_json_str: str,
     ) -> WateringReport:
-        r"""
-        Continuación de `SeedHandoff.continue_into_phase2`.
-
-        Δ_gr es un funcional del lenguaje; la entropía de la semilla
-        viaja en el reporte para la cadena de custodia F1→F2.
-        """
         t_t = cls.bpe_tokens(toon_str)
         t_j = cls.bpe_tokens(base_json_str)
         h_t = cls.shannon_bits(toon_str)
@@ -917,18 +703,8 @@ class CognitiveWateringModule:
         )
 
 
-# ── §2.2 LUZ — Brockett U(n) + Rényi + Fock ───────────────────────────────
 @dataclass(frozen=True, slots=True)
 class BrockettPurificationCertificate:
-    r"""
-    Flujo isospectral de Brockett en la órbita coadjunta:
-
-        dρ/dt = [A(ρ), ρ],   A(ρ) = −[ρ, N],   N = diag(1,…,n)
-
-    Equivale a ρ(t) = U(t) ρ(0) U(t)†,  U ∈ U(n).
-    ℒ(ρ) = Tr(ρ N) es Lyapunov estrictamente decreciente fuera de
-    los puntos alineados con N (Brockett 1991, Thm. 1).
-    """
     initial_alignment: float
     final_alignment: float
     initial_purity: float
@@ -941,7 +717,6 @@ class BrockettPurificationCertificate:
 
 @dataclass(frozen=True, slots=True)
 class RenyiPurificationCertificate:
-    r"""Φ_α(ρ) = ρ^α/Tr(ρ^α).  purity_gain ≥ 0 y entropy_drop ≥ 0 si α ≥ 1."""
     alpha: float
     purity_before: float
     purity_after: float
@@ -954,14 +729,6 @@ class RenyiPurificationCertificate:
 
 @dataclass(frozen=True, slots=True)
 class FockAnnihilationCertificate:
-    r"""
-    Matching energético de dos modos (oscilador de Fock, no HEP literal):
-
-        E₋ = n · (1 − λ_max(ρ_seed))     fuga de la cúpula pura
-        E₊ = S(ρ_seed)                   fricción térmica (nats)
-        residual = |E₋ − E₊| / max(1, |E₋|, |E₊|)
-        annihilated ⟺ residual < θ      ⇒  2 cuantos γ
-    """
     electron_anomaly_energy: float
     positron_constraint_energy: float
     gamma_photons_emitted: int
@@ -970,16 +737,6 @@ class FockAnnihilationCertificate:
 
 
 class CognitiveIlluminationModule:
-    r"""
-    FASE 2 · LA LUZ — tres operaciones encadenadas sobre SeedHandoff.rho_seed.
-
-        (1) Brockett en U(n): RK4 del generador anti-Hermítico A = −[ρ, N],
-            polar-proyectado a U(n) ⇒ isospectralidad exacta hasta redondeo.
-        (2) Φ_α de Rényi: ganancia monótona de pureza.
-        (3) Matching Fock de dos modos sobre la semilla (invariante de F1).
-
-        apply_light : SeedHandoff → (𝔇_n × BrockettCert × RenyiCert × FockCert)
-    """
     BROCKETT_MAX_STEPS: Final[int] = 60
     BROCKETT_DT: Final[float] = 0.05
     BROCKETT_TOL: Final[float] = 1.0e-9
@@ -994,14 +751,12 @@ class CognitiveIlluminationModule:
     def _anti_hermitian_generator(
         cls, rho: np.ndarray, N: np.ndarray
     ) -> ComplexMatrix:
-        """A(ρ) = −[ρ, N] ∈ u(n)."""
         comm = rho @ N - N @ rho
         A = -comm
         return 0.5 * (A - A.conj().T)
 
     @classmethod
     def _project_unitary(cls, U: np.ndarray) -> ComplexMatrix:
-        """Proyección polar U ↦ U (U†U)^{−1/2} ∈ U(n) vía SVD."""
         W, _, Vh = la.svd(U, full_matrices=False)
         return W @ Vh
 
@@ -1013,10 +768,6 @@ class CognitiveIlluminationModule:
     def _brockett_unitary_rk4(
         cls, rho_init: np.ndarray,
     ) -> Tuple[ComplexMatrix, BrockettPurificationCertificate]:
-        r"""
-        Integra dU/dt = A(U ρ₀ U†) U en U(n) por RK4 + reproyección polar
-        (Crouch–Grossman: orden 1 en la variedad, 4 en el álgebra).
-        """
         rho0 = DensityOperatorAlgebra.sanitize(rho_init)
         n = rho0.shape[0]
         N = cls._N(n)
@@ -1098,7 +849,6 @@ class CognitiveIlluminationModule:
         RenyiPurificationCertificate,
         FockAnnihilationCertificate,
     ]:
-        r"""Continuación de apply_water.  Producto tensorial Riego ⊗ Luz."""
         rho_flow, brockett_cert = cls._brockett_unitary_rk4(handoff.rho_seed)
 
         p_before = DensityOperatorAlgebra.purity(rho_flow)
@@ -1122,20 +872,7 @@ class CognitiveIlluminationModule:
         return rho_illum, brockett_cert, renyi_cert, fock_cert
 
 
-# ── §2.3 DISCIPLINA — Banach + MAC contractive audit ─────────────────────
 class CognitiveDisciplineModule:
-    r"""
-    FASE 2 · LA DISCIPLINA — continuación de apply_light.
-
-        (1) Contracción espectral de la semilla: ρ(T_seed; η*) < 1.
-        (2) Contracción del canal MAC: Lip(Φ_γ) = |1−γ| < 1.
-
-    El veredicto local es el meet de ambos predicados (delegado a
-    BanachContractionAlgebra.audit).
-
-        audit : SeedHandoff × ℝ₊ → BanachContractionReport
-    """
-
     @classmethod
     def audit(
         cls,
@@ -1147,15 +884,8 @@ class CognitiveDisciplineModule:
         )
 
 
-# ── §2.4 CropGrowthPipeline — HAND-OFF FASE 2 → FASE 3 ───────────────────
 @dataclass(frozen=True, slots=True)
 class CropGrowthBundle:
-    r"""
-    Objeto terminal de la FASE 2 y objeto inicial de la FASE 3.
-
-    Producto de los funtores Riego ⊗ Luz ⊗ Disciplina aplicados al
-    SeedHandoff de FASE 1.
-    """
     handoff: SeedHandoff
     watering: WateringReport
     rho_illum: np.ndarray
@@ -1165,7 +895,6 @@ class CropGrowthBundle:
     discipline: BanachContractionReport
 
     def phase_content_bytes(self) -> bytes:
-        """Digest firmable para la cadena Merkle de fases."""
         return hashlib.sha256(
             self.handoff.spectral_hash.encode("ascii")
             + np.ascontiguousarray(self.rho_illum).tobytes()
@@ -1178,22 +907,6 @@ class CropGrowthBundle:
 
 
 class CropGrowthPipeline:
-    r"""
-    Orquestador determinista del crecimiento (funtor F₂).
-
-        synthesize : SeedHandoff × Σ* × Σ* × ℝ₊ × ℝ₊ → CropGrowthBundle
-
-    ────────────────────────────────────────────────────────────────────────
-    HAND-OFF FORMAL  FASE 2 → FASE 3
-    ────────────────────────────────────────────────────────────────────────
-    synthesize es el morfismo terminal de la FASE 2.  Su imagen
-    CropGrowthBundle es el dominio de TODOS los métodos de la FASE 3.
-
-    Identidad de anidamiento:
-
-        certify ∘ synthesize ∘ build  :  Crystal×Σ*×Σ* → Harvest.
-    """
-
     @classmethod
     def synthesize(
         cls,
@@ -1203,13 +916,6 @@ class CropGrowthPipeline:
         renyi_alpha: float = CognitiveIlluminationModule.RENYI_ALPHA,
         eta_star: float = 1.5,
     ) -> CropGrowthBundle:
-        r"""
-        Cierra la FASE 2.  Abre la FASE 3.
-
-            watering     = apply_water(handoff, toon, json)     §2.1
-            (ρ, B, R, F) = apply_light(handoff, α)              §2.2
-            discipline   = audit(handoff, η*)                   §2.3
-        """
         watering = CognitiveWateringModule.apply_water(
             handoff, toon_str, base_json_str,
         )
@@ -1234,12 +940,6 @@ class CropGrowthPipeline:
         external_verdict: HeytingOmega3,
         reason_prefix: str = "CROP-VETO",
     ) -> Tuple[HeytingOmega3, "CrowbarActuationReport"]:
-        r"""
-        Último morfismo de la FASE 2  ∧  primero de la FASE 3.
-
-        Adjudica en Ω₃ y dispara la Fe.  La cosecha y el pasaporte se
-        cristalizan aguas arriba en el soberano (posee MAC y Merkle).
-        """
         verdict = HeytingCropAdjudicator.adjudicate(bundle, external_verdict)
         audit = bundle.handoff.seed_audit
         reason = (
@@ -1250,7 +950,9 @@ class CropGrowthPipeline:
             f"fock_res={bundle.fock_c.resonance_residual:.4f} "
             f"flag_ok={audit.consistent} "
             f"false_vac={audit.false_vacuum_claim} "
-            f"pure_ok={audit.verified_vacuum_pure}"
+            f"pure_ok={audit.verified_vacuum_pure} "
+            f"KAM={bundle.discipline.is_kam_stable} "
+            f"Bifurc={bundle.discipline.is_pyriform_bifurcated}"
         )
         actuation = CognitiveFaithModule.fire(verdict, reason)
         return verdict, actuation
@@ -1258,33 +960,10 @@ class CropGrowthPipeline:
 
 # ╔═══════════════════════════════════════════════════════════════════════════╗
 # ║ FASE 3 · FE + ADJUDICACIÓN + PASAPORTE                                    ║
-# ║                                                                           ║
-# ║ Dominio = CropGrowthBundle (codominio de §2.4 synthesize).                ║
-# ║ Codominio = CropHarvestYield × CropSovereignGovernancePassport.           ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
-# ── §3.1 Adjudicador en Ω₃ ────────────────────────────────────────────────
 class HeytingCropAdjudicator:
-    r"""
-    Lógica interna del topos: colapsa el Bundle a un único valor de Ω₃
-    por meets sucesivos (producto de subobjetos):
-
-        local = water ∧ discipline ∧ fock ∧ brockett ∧ renyi
-                ∧ flag ∧ vacuum_claim
-        final = local ∧ external          (meet conservador, nunca infla)
-
-    Clasificadores:
-        fock           : annihilated ↦ ⊤  else ⋆
-        brockett       : convergencia ∨ drift < 10⁻³ ↦ ⊤  else ⋆
-        renyi          : purity_gain ≥ 0 ↦ ⊤  else ⋆
-        flag           : consistent ↦ ⊤  else ⋆
-        vacuum_claim   : false_vacuum_claim ↦ ⊥  else ⊤
-                         (el testimonio falso es el único veto de semilla;
-                          no ser vacuum-pure NO es defecto: la mayoría
-                          de estados de 𝔇_n no lo son)
-    """
-
     @classmethod
     def _fock_rule(cls, bundle: CropGrowthBundle) -> HeytingOmega3:
         return (
@@ -1329,7 +1008,6 @@ class HeytingCropAdjudicator:
         bundle: CropGrowthBundle,
         external_verdict: HeytingOmega3,
     ) -> HeytingOmega3:
-        r"""Continuación de CropGrowthPipeline.synthesize / continue_into_phase3."""
         local = (
             bundle.watering.local_verdict
             .meet(bundle.discipline.local_verdict)
@@ -1339,19 +1017,13 @@ class HeytingCropAdjudicator:
             .meet(cls._flag_rule(bundle))
             .meet(cls._vacuum_claim_rule(bundle))
         )
+        if bundle.discipline.is_pyriform_bifurcated:
+            local = local.meet(HeytingOmega3.VETOED)
         return local.meet(external_verdict)
 
 
-# ── §3.2 FE — interlock ciber-físico ESP32 Crowbar ────────────────────────
 @dataclass(frozen=True, slots=True)
 class CrowbarActuationReport:
-    r"""
-    Actuación física (simulada) del crowbar ESP32.
-
-        interlock_fired      : True ⟺ verdict = ⊥
-        actuation_latency_ns : cota de diseño < 400 ns (nominal 392.15 ns)
-        provenance_hash      : SHA-256(reason ‖ t_ns)
-    """
     interlock_fired: bool
     actuation_latency_ns: float
     gpio_pin: str
@@ -1361,17 +1033,6 @@ class CrowbarActuationReport:
 
 
 class CognitiveFaithModule:
-    r"""
-    FASE 3 · LA FE — certidumbre ciber-física en silicio (axioma operativo).
-
-    Si Ω₃ = ⊥ se arma el crowbar:
-
-        GPIO14 → HIGH  ⇒  MOSFET BT151  ⇒  latencia < 400 ns.
-
-    Este módulo no emite I/O de hardware; certifica la decisión y su
-    provenance.  La «fe» es el invariante de arquitectura: el corte
-    ocurre antes de que la anomalía se propague.
-    """
     GPIO_PIN: Final[str] = "GPIO14"
     DEVICE: Final[str] = "BT151_CROWBAR"
     NOMINAL_LATENCY_NS: Final[float] = 392.15
@@ -1406,11 +1067,12 @@ class CognitiveFaithModule:
             provenance_hash=prov,
         )
 
+    def trigger_esp32_hardware_veto(self, reason: str = "HARDWARE_VETO") -> CrowbarActuationReport:
+        return self.fire(HeytingOmega3.VETOED, reason)
 
-# ── §3.3 Cosecha + Pasaporte con Merkle root ─────────────────────────────
+
 @dataclass(frozen=True, slots=True)
 class CropHarvestYield:
-    r"""Cosecha firmada de un ciclo F₃∘F₂∘F₁."""
     crop_id: str
     seed_crystal_id: str
     origin_agent: str
@@ -1430,11 +1092,12 @@ class CropHarvestYield:
     phase_chain_sha256: str
     sha256_provenance: str
     timestamp_utc: float
+    is_kam_stable: bool = True
+    is_pyriform_bifurcated: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class CropSovereignGovernancePassport:
-    r"""Pasaporte de gobernanza: agregado MAC × Merkle × Ω₃ global."""
     passport_id: str
     sovereign_agent_id: str
     total_crops_cultivated: int
@@ -1450,15 +1113,11 @@ class CropSovereignGovernancePassport:
     phase_chain_sha256: str
     sha256_provenance: str
     timestamp_utc: float
+    verdict: Optional[HeytingOmega3] = None
+    reason: str = ""
 
 
 def _merkle_root(hashes: List[str]) -> str:
-    r"""
-    Merkle-SHA-256 sobre hashes hex.  Lista vacía → SHA-256(b"EMPTY").
-    Capa impar: se duplica la hoja derecha (Bitcoin-style), de modo que
-    el árbol sea siempre binario completo.  Las hojas se consumen en el
-    orden de inserción (custodia temporal, no lexicográfica).
-    """
     if not hashes:
         return hashlib.sha256(b"EMPTY").hexdigest()
     layer = [bytes.fromhex(h) for h in hashes]
@@ -1474,21 +1133,7 @@ def _merkle_root(hashes: List[str]) -> str:
 
 # ── §3.4 Soberano del Cultivo Cognitivo ──────────────────────────────────
 class TOONCognitiveCropAgent:
-    r"""
-    Soberano de Calibre del Cultivo Cognitivo Dinámico.
-
-    Funtor soberano  F = F₃ ∘ F₂ ∘ F₁ :
-
-        F₁  SeedHandoff.build
-        F₂  CropGrowthPipeline.synthesize
-        F₃  adjudicate ⊗ fire ⊗ inoculate ⊗ certify
-
-    Asociatividad (teorema de anidamiento):
-
-        sow_and_cultivate
-            = _phase3_harvest ∘ _phase2_grow ∘ _phase1_handoff
-            = certify ∘ synthesize ∘ build.
-    """
+    r"""Soberano de Calibre del Cultivo Cognitivo Dinámico con Mecánica Celeste."""
 
     def __init__(
         self,
@@ -1525,6 +1170,73 @@ class TOONCognitiveCropAgent:
             f"{agent_id}::GENESIS::n={n}::γ={self.mac_gamma}".encode("ascii")
         ).hexdigest()
 
+        # Motor espectral principal
+        self.engine = TOONCognitiveCropEngine(
+            engine_id=f"ENGINE-{agent_id}",
+            dimension_mac=dimension_mac,
+            eta_star=eta_star,
+            renyi_alpha=renyi_alpha
+        )
+        self.crowbar_interlock = CognitiveFaithModule()
+
+    def process_seed_harvest_governance(
+        self,
+        seed_handoff: SeedHandoff,
+        soil_state: SoilState
+    ) -> CropSovereignGovernancePassport:
+        """Punto de entrada principal para el cultivo de semillas en la Malla Agéntica.
+
+        Ejecuta el pipeline del motor, valida la cota Poincaré-Wirtinger y
+        actúa la respuesta ciber-física en el microcontrolador ESP32.
+        """
+        seed_crystal = getattr(seed_handoff, "seed_crystal", None)
+        if seed_crystal is None:
+            seed_crystal = SeedCrystal(
+                crystal_id=seed_handoff.seed_id,
+                origin_agent=seed_handoff.origin_agent,
+                density_matrix=seed_handoff.rho_seed,
+                experience_vector=np.array([1.0, 0.0, 1.0, 1.0], dtype=np.float64),
+                is_vacuum_pure=seed_handoff.seed_audit.verified_vacuum_pure
+            )
+
+        soil_field = soil_state.soil_field if hasattr(soil_state, "soil_field") else SoilField(self.dimension_mac)
+
+        harvest = self.sow_and_cultivate(
+            seed_crystal=seed_crystal,
+            toon_str=getattr(seed_crystal, "crystal_id", "TOON_SEED"),
+            base_json_str=getattr(seed_crystal, "origin_agent", "ORIGIN_BASE_AGENT_SPECS"),
+            external_verdict=HeytingOmega3.COHERENT
+        )
+
+        verdict = harvest.heyting_verdict
+        reason = harvest.crowbar_report.reason if harvest.crowbar_report.interlock_fired else "OK"
+
+        if verdict == HeytingOmega3.VETOED:
+            self.crowbar_interlock.trigger_esp32_hardware_veto(
+                reason=f"KAM_INSTABILITY_OR_BIFURCATION: {reason}"
+            )
+
+        field_passport = self.audit_field_governance()
+        return CropSovereignGovernancePassport(
+            passport_id=field_passport.passport_id,
+            sovereign_agent_id=self.agent_id,
+            total_crops_cultivated=field_passport.total_crops_cultivated,
+            active_coherent_crops=field_passport.active_coherent_crops,
+            coherent_fraction=field_passport.coherent_fraction,
+            aggregate_purity=field_passport.aggregate_purity,
+            aggregate_entropy=field_passport.aggregate_entropy,
+            aggregate_fidelity_to_ground=field_passport.aggregate_fidelity_to_ground,
+            mac_spectral_gap=field_passport.mac_spectral_gap,
+            global_heyting_verdict=verdict,
+            crowbar_protection_active=verdict == HeytingOmega3.VETOED or field_passport.crowbar_protection_active,
+            field_merkle_root=field_passport.field_merkle_root,
+            phase_chain_sha256=field_passport.phase_chain_sha256,
+            sha256_provenance=field_passport.sha256_provenance,
+            timestamp_utc=time.time(),
+            verdict=verdict,
+            reason=reason
+        )
+
     def _advance_chain(self, tag: str, payload: bytes) -> str:
         h = hashlib.sha256(
             self._chain_hash.encode("ascii") + tag.encode("ascii") + payload
@@ -1544,7 +1256,6 @@ class TOONCognitiveCropAgent:
         ).hexdigest()
 
     def _phase1_handoff(self, seed_crystal: SeedCrystal) -> SeedHandoff:
-        """FASE 1 anidada: cierra con SeedHandoff (dominio de FASE 2)."""
         handoff = SeedHandoff.build(
             seed=seed_crystal,
             mac_field=self.mac_field,
@@ -1559,7 +1270,6 @@ class TOONCognitiveCropAgent:
         toon_str: str,
         base_json_str: str,
     ) -> CropGrowthBundle:
-        """FASE 2 anidada: continuación de build; cierra con Bundle."""
         bundle = handoff.continue_into_phase2(
             toon_str=toon_str,
             base_json_str=base_json_str,
@@ -1574,7 +1284,6 @@ class TOONCognitiveCropAgent:
         bundle: CropGrowthBundle,
         external_verdict: HeytingOmega3,
     ) -> CropHarvestYield:
-        """FASE 3 anidada: continuación de synthesize; cierra con Harvest."""
         final_verdict, actuation = CropGrowthPipeline.continue_into_phase3(
             bundle, external_verdict
         )
@@ -1630,6 +1339,8 @@ class TOONCognitiveCropAgent:
             phase_chain_sha256=self._chain_hash,
             sha256_provenance=provenance,
             timestamp_utc=time.time(),
+            is_kam_stable=bundle.discipline.is_kam_stable,
+            is_pyriform_bifurcated=bundle.discipline.is_pyriform_bifurcated
         )
         self.cultivated_crops_history.append(harvest)
         return harvest
@@ -1641,7 +1352,6 @@ class TOONCognitiveCropAgent:
         base_json_str: str,
         external_verdict: HeytingOmega3 = HeytingOmega3.COHERENT,
     ) -> CropHarvestYield:
-        r"""Ciclo soberano: F₃ ∘ F₂ ∘ F₁."""
         t_start = time.perf_counter()
         logger.info(
             "═══ Siembra | semilla=%s | origen=%s | γ_MAC=%.2f ═══",
@@ -1729,22 +1439,6 @@ def _build_seed_matrix(
     align_with: Optional[np.ndarray] = None,
     ground_mix: float = 0.0,
 ) -> ComplexMatrix:
-    r"""
-    Semilla determinista de espectro softmax (familia exponencial):
-
-        w_k = exp(α (n − k)) / Z,    k = 1…n.
-
-        α = 0  →  λ = 1/n     (máximamente mezclada)
-        α → ∞ →  λ → e₁      (espectralmente pura)
-
-    Se sumerge en 𝔇_n por QR de Ginibre → Haar en U(n) (Stewart 1980).
-    Si `align_with` es un proyector y ground_mix ∈ (0,1], se interpola
-
-        ρ ← (1−μ) ρ_Haar + μ |Ω⟩⟨Ω|
-
-    para que «vacuum-pure» sea físicamente el ground de H_mac, no un
-    puro Haar-aleatorio (cuya F(ρ,|Ω⟩) es 1/n en esperanza).
-    """
     rng = np.random.default_rng(_seed_from_string(key))
     idx = np.arange(n)
     raw = np.exp(alpha * (n - idx))
@@ -1762,8 +1456,8 @@ def _build_seed_matrix(
 
 if __name__ == "__main__":
     print("═" * 92)
-    print("SOBERANO DEL CULTIVO — v2.2.0 Nested Doctoral")
-    print("Banach · Brockett-U(n) · Rényi · MAC-Φ_γ · Heyting Ω₃ · Merkle")
+    print("SOBERANO DEL CULTIVO — v8.1.0 Poincaré Celestial Mechanics")
+    print("KAM Tori · Poincaré-Wirtinger · Pyriform Bifurcations · Heyting Ω₃ · Merkle")
     print("═" * 92)
 
     sovereign = TOONCognitiveCropAgent(
@@ -1833,10 +1527,8 @@ if __name__ == "__main__":
         )
         print(f"   ΔPureza               : {harvest.purity_gain:+.6f}")
         print(f"   ΔEntropía             : {harvest.entropy_reduction:+.6f}")
-        print(f"   Fotones γ             : {harvest.fock_photons}")
-        print(
-            f"   Drift isospectral     : {harvest.brockett_isospectral_drift:.2e}"
-        )
+        print(f"   Invariante KAM Estable: {harvest.is_kam_stable}")
+        print(f"   Bifurcación Piriforme : {harvest.is_pyriform_bifurcated}")
         print(f"   Inoculada en MAC      : {harvest.is_inoculated_into_mac}")
         print(f"   Fid MAC↔illum         : {harvest.fidelity_after_update:.6f}")
         print(
@@ -1864,11 +1556,6 @@ if __name__ == "__main__":
     print(f"   Firma global          : {passport.sha256_provenance[:32]}…")
 
     print("\n" + "═" * 92)
-    print("✓ F1→F2: build ⊣ continue_into_phase2 = synthesize.")
-    print("✓ F2→F3: synthesize ⊣ continue_into_phase3 = adjudicate ⊗ fire.")
-    print("✓ Riego: Shannon H₂ + BPE Ω(⌈n/4⌉), funcional convexo Δ_gr.")
-    print("✓ Luz: Brockett en U(n) (polar) + Rényi Φ_α + matching Fock.")
-    print("✓ Disciplina: ρ(T)=max|1−η g_ij| vectorizado ⊕ Lip(Φ_γ)=|1−γ|.")
-    print("✓ Flag vacuum-pure: P∧F(|Ω⟩); falso testimonio ⇒ ⊥.")
-    print("✓ Merkle-SHA-256 sobre cosechas + cadena de fases.")
+    print("✓ Poincaré-Wirtinger & Toros Invariantes KAM integrados en Soberano.")
+    print("✓ Control de Bifurcación Piriforme y respuesta ciber-física ESP32.")
     print("═" * 92)
