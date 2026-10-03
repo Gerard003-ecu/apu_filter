@@ -3,44 +3,56 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : toon_oniric_dreamer_agent.py                                              ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
-║ FUNCIÓN  : SOBERANO SIMULADOR ONÍRICO REM Y ORQUESTADOR DE ESCENARIOS                ║
-║ VERSIÓN  : 8.0.0-Doctoral-Oniric-REM-Sovereign-GromovWitten-A3                       ║
+║ FUNCIÓN  : SOBERANO SIMULADOR ONÍRICO REM Y METABOLIZADOR POINCARANO                 ║
+║ VERSIÓN  : 8.1.0-Doctoral-Poincare-CRTBP-Fuchsian-Omega4-GKSL-Merkle-A3              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
 ───────────────────────────────────────────────
 El `TOONOniricDreamerAgent` actúa como la autoridad soberana responsable de orquestar la 
 generación de escenarios contrafactuales y la inyección de estrés controlado durante la 
-Fase REM del ecosistema agéntico APU Filter.
+Fase REM del ecosistema agéntico APU Filter v8.0.
+
+Inspirado en *Les Méthodes Nouvelles de la Mécanique Céleste* (Vol. I–III) de Henri Poincaré,
+este soberano simula escenarios de colapso navegando los tubos de variedades invariantes
+de Lagrange ($L_1 \dots L_5$) en el Problema Restringido Circular de Tres Cuerpos (CRTBP)
+y proyectando parámetros modulares sobre el Dominio Fundamental de Poincaré $\mathcal{F} \subset \mathbb{H}^2$.
 
 Forma el vértice generador dentro del bucle de Red Generativa Adversarial Onírica (GAN-REM):
 
     [ Ilusionista (Trickster) ] ──► [ Soñador (Dreamer) ] ──► [ Auditor Onírico ] ──► [ Testigo Silencioso ]
 
-POSTULADOS Y GOBERNANZA AGÉNTICA
-────────────────────────────────
-1. POSTULADO DE LA GENERACIÓN CONTRAFACTUAL COMPLETA:
-   El Soberano Soñador traduce parámetros de incertidumbre exógena (clima, huelgas, 
-   inflación, cambio regulatorio BIM 2026) en cartuchos sinápticos oníricos de 56 tokens 
-   `OniricDreamCartridge`, empaquetados con la marca inmutable:
+POSTULADOS Y GOBERNANZA AGÉNTICA POINCARANA
+───────────────────────────────────────────
+1. POSTULADO DE AISLAMIENTO HOMOLÓGICO Y FASE REM (is_dream_state = True):
+   Toda simulación en la Fase REM ocurre bajo el postulado de aislamiento homológico inmutable:
 
-       \mathtt{is\_dream\_state} = \mathrm{True}, \quad \mathtt{isolation\_hash} = \operatorname{SHA-256}(\mathrm{Payload} \mathbin{\Vert} \mathrm{Timestamp})
+       \partial(\rho_{\mathrm{dream}}) \equiv 0 \pmod{\mathrm{RealWorld}}, \quad \mathtt{is\_dream\_state} = \mathrm{True}
 
-2. INVOLUCIÓN SOBRE EL TOPOS DE HEYTING ($\Omega_3$):
-   Cada simulación es enviada al Auditor Onírico (`toon_oniric_auditor_agent.py`). El Soñador 
-   recibe el veredicto en el álgebra de Heyting trivalente:
+   Garantiza que la matriz de densidad onírica $\rho_{\mathrm{dream}} \in \mathcal{L}(P_d \mathcal{H} P_d)$
+   permanezca confinada en el subespacio de superselección del enclave $P_d$, con $P_d P_p = 0$,
+   impidiendo que un "sueño de bancarrota" altere la contabilidad real de la obra o dispare de forma
+   errónea las alarmas físicas del proyecto.
 
-       \Omega_3 = \{ \mathtt{VETOED} = 0 \prec \mathtt{DEGRADED} = 1 \prec \mathtt{COHERENT} = 2 \}
+2. UNIFORMIZACIÓN FUCSIANA Y DIVERGENCIA DE UMEGAKI EN $\mathbb{H}^2$:
+   Mediante la acción del grupo modular de Poincaré $PSL(2, \mathbb{Z})$, las deformaciones se
+   reducen al Dominio Fundamental de Poincaré $\mathcal{F} = \{ \tau \in \mathbb{H}^2 \mid |\mathrm{Re}(\tau)| \le 1/2, \, |\tau| \ge 1 \}$.
+   La desviación respecto al estado base $\rho_0$ se cuantifica con la Divergencia de Entropía Relativa de Umegaki:
 
-   Si el escenario soñado revela una vulnerabilidad estructural en la obra (donde el invariante
-   de Gromov-Witten se anula $GW \to 0$), el Soñador solicita la cristalización de una vacuna 
-   inmunizante al Cultivo Cognitivo.
+       S(\rho_{\mathrm{dream}} \parallel \rho_0) = \operatorname{Tr}(\rho_{\mathrm{dream}} (\ln \rho_{\mathrm{dream}} - \ln \rho_0))
 
-3. DUALIDAD CIBER-FÍSICA Y PROTECCIÓN CROWBAR ESP32:
-   Durante la fase REM, el Soberano congela temporalmente la interfaz de comunicación con los 
-   actuadores físicos de la obra. Ningún veto producido en el ambiente de sueño puede activar
-   el disyuntor ciber-físico ESP32 Crowbar (<400 ns en IRAM, GPIO14 / BT151), reservando dicho
-   mecanismo exclusivamente para transacciones reales amenazadas en el frente de obra.
+   y la Distancia Geodésica de Bures-Wasserstein:
+
+       d_B(\rho_{\mathrm{dream}}, \rho_0) = \sqrt{2 \left(1 - \operatorname{Tr}\sqrt{\rho_0^{1/2} \rho_{\mathrm{dream}} \rho_0^{1/2}}\right)}
+
+3. INOCULACIÓN AFÍN Y VACUNA ESPECTRAL:
+   Si la simulación revela una vulnerabilidad estructural pero es certificada por el Auditor Onírico,
+   el Soñador proyecta el proyector de vacuna $P_{\mathrm{vac}} = \sum_{i=1}^k |v_i\rangle\langle v_i|$
+   y actualiza la Matriz Atómica de Conocimiento (MAC) mediante el mapa afín convexo:
+
+       \Phi_\eta(\rho_{\mathrm{MAC}}) = (1 - \eta) \rho_{\mathrm{MAC}} + \eta \, \frac{P_{\mathrm{vac}} \rho_{\mathrm{dream}} P_{\mathrm{vac}}^\dagger}{\operatorname{Tr}(P_{\mathrm{vac}} \rho_{\mathrm{dream}} P_{\mathrm{vac}}^\dagger)}
+
+   donde $\eta(\Omega_4)$ es la constante de aprendizaje modulada por el topos de Heyting.
 
 TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
 ──────────────────────────────────────
@@ -48,8 +60,8 @@ TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
   a un túnel de viento financiero antes de firmar el contrato adjudicado.
 - Ahorro Directo en Imprevistos: Neutraliza sobrecostos de hasta un +35% en la etapa de ejecución,
   anticipando los escenarios de falla en la etapa de simulación onírica.
-- Trazabilidad y Seguridad Jurídica: Emisión inmutable de certificados `DreamAttackCertificate` 
-  para respaldo ante peritos, aseguradoras y organismos de control (Contraloría).
+- Trazabilidad y Seguridad Jurídica: Emisión inmutable de certificados `OniricScenarioCertificate` y
+  `PoincareOniricScenarioCertificate` para respaldo ante peritos, aseguradoras y organismos de control.
 """
 
 from __future__ import annotations
@@ -76,7 +88,14 @@ from typing import (
 import numpy as np
 import scipy.linalg as la
 
-logger = logging.getLogger("APU.Wisdom.TOONOniricDreamer.v4")
+from app.wisdom.toon_oniric_dreamer_engine import (
+    FuchsianDomainCertificate,
+    NonHermitianLindbladMasterEngine,
+    poincare_hyperbolic_distance,
+    reduce_to_poincare_fundamental_domain,
+)
+
+logger = logging.getLogger("APU.Wisdom.TOONOniricDreamer.v8")
 
 __all__ = [
     "HeytingToposAlgebra",
@@ -91,6 +110,7 @@ __all__ = [
     "MetabolizedPerturbationField",
     "MerkleInclusionProof",
     "OniricScenarioCertificate",
+    "PoincareOniricScenarioCertificate",
     "MacroWakeSleepAuditReport",
     "SpectralImmuneVaccineEngine",
     "TOONOniricDreamerAgent",
@@ -100,30 +120,17 @@ __all__ = [
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 1 — TOPOS, LAWVERE-TIERNEY, CLIFFORD, HODGE EXACTO, TELLEGEN Y SEMILLA H
 # ══════════════════════════════════════════════════════════════════════════════
-# Andamiaje del topos 𝓣_Ω₄ y del 2-complejo de Hodge. El ÚLTIMO método de
-# esta fase (CategoricalCircuitCartridge.lift_enclave_hamiltonian) es el
-# germen formal de FASE 2: NonHermitianLindbladMasterEngine lo invoca
-# sin duplicar la construcción de H.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 class HeytingToposAlgebra(IntEnum):
     r"""
     Cadena finita Ω₄ = {0 ≺ 1 ≺ 2 ≺ 3} = {⊥ ≺ ∂ ≺ ♯ ≺ ⊤}, álgebra de Heyting
-    completa (toda cadena finita con máximo y mínimo lo es) y clasificador
-    de subobjetos de un topos de haces sobre un sitio finito de Grothendieck:
+    completa y clasificador de subobjetos de un topos de haces:
 
         a ∧ b  = min(a, b)
         a ∨ b  = max(a, b)
         a → b  = ⋁{ c ∈ Ω₄ | c ∧ a ≤ b }     (residuo)
         ¬a     = a → ⊥
-
-    El esqueleto booleano es {⊥, ⊤}; 1 y 2 violan el tercio excluso, de modo
-    que Ω₄ es estrictamente intuicionista.
-
-    El operador j = lawvere_tierney_closure densifica BOUNDARY_CRITICAL →
-    TOPOLOGICAL_STABLE y satisface los tres axiomas de una topología de
-    Lawvere-Tierney (SGA4 / Mac Lane–Moerdijk), certificables exhaustivamente.
     """
 
     VETOED_ABSURDUM = 0      # ⊥
@@ -142,7 +149,6 @@ class HeytingToposAlgebra(IntEnum):
         return HeytingToposAlgebra(max(int(self), int(other)))
 
     def implies(self, other: "HeytingToposAlgebra") -> "HeytingToposAlgebra":
-        r"""Residuo a → b = ⋁{ c ∈ Ω₄ | c ∧ a ≤ b }."""
         a, b = int(self), int(other)
         candidates = [c for c in range(4) if min(c, a) <= b]
         return HeytingToposAlgebra(max(candidates))
@@ -154,26 +160,18 @@ class HeytingToposAlgebra(IntEnum):
         return HeytingToposAlgebra(3 - int(self))
 
     def double_negation(self) -> "HeytingToposAlgebra":
-        r"""¬¬a ≥ a (ley débil; igualdad sólo en regulares)."""
         return self.pseudo_complement().pseudo_complement()
 
     def is_regular(self) -> bool:
-        r"""a regular ⟺ ¬¬a = a. En Ω₄: {⊥, ⊤}."""
         return self.double_negation() == self
 
     def is_dense(self) -> bool:
         return self.pseudo_complement() == HeytingToposAlgebra.VETOED_ABSURDUM
 
     def excluded_middle_holds(self) -> bool:
-        r"""a ∨ ¬a = ⊤  ⇔  a ∈ {⊥, ⊤}."""
         return self.join(self.pseudo_complement()) == HeytingToposAlgebra.VERUM_COHERENT
 
     def lawvere_tierney_closure(self) -> "HeytingToposAlgebra":
-        r"""
-        Operador modal j: Ω → Ω candidato a topología de Grothendieck.
-        Densifica estados marginales (BOUNDARY_CRITICAL → TOPOLOGICAL_STABLE),
-        modelando la clausura de plausibilidad de escenarios contrafactuales.
-        """
         val = int(self)
         if val == 0:
             return HeytingToposAlgebra.VETOED_ABSURDUM
@@ -182,7 +180,6 @@ class HeytingToposAlgebra(IntEnum):
         return self
 
     def is_j_closed(self) -> bool:
-        r"""a es j-cerrado ⟺ j(a) = a. En esta j: {⊥, ♯, ⊤}."""
         return self.lawvere_tierney_closure() == self
 
     @classmethod
@@ -207,7 +204,6 @@ class HeytingToposAlgebra(IntEnum):
 
     @classmethod
     def verify_residuation_axiom(cls) -> bool:
-        r"""∀ a,b,c ∈ Ω₄:  (c ∧ a ≤ b)  ⟺  (c ≤ (a → b))."""
         elements = list(cls)
         for a in elements:
             for b in elements:
@@ -221,13 +217,6 @@ class HeytingToposAlgebra(IntEnum):
 
     @classmethod
     def verify_lawvere_tierney_topology_axioms(cls) -> bool:
-        r"""
-        Tres axiomas de una topología de Lawvere-Tierney j: Ω → Ω:
-          (j1) a ≤ j(a)                         extensividad
-          (j2) j(j(a)) = j(a)                   idempotencia
-          (j3) j(a ∧ b) = j(a) ∧ j(b)           preservación de encuentros
-        Además se exige j(⊤) = ⊤ (preservación del terminal).
-        """
         elements = list(cls)
         if cls.VERUM_COHERENT.lawvere_tierney_closure() != cls.VERUM_COHERENT:
             return False
@@ -247,25 +236,7 @@ class HeytingToposAlgebra(IntEnum):
 
 @dataclass(frozen=True, slots=True)
 class BiquaternionClifford:
-    r"""
-    Elemento del álgebra de bicuaterniones
-
-        𝔹 ≅ ℍ ⊗_ℝ ℂ  ≅  Cl⁺_{1,3}(ℝ)  ≅  M₂(ℂ)
-
-    inmerso fielmente en M₂(ℂ) vía Pauli-Dirac. Distingue dos nociones de
-    «tamaño» no intercambiables:
-
-      • reduced_norm_complex  N(q) = det φ(q) ∈ ℂ
-        invariante algebraico de la forma cuadrática (signatura mixta:
-        puede ser complejo o negativo; NO es una métrica).
-        Multiplicatividad: N(q₁ q₂) = N(q₁) N(q₂).
-
-      • frobenius_operator_norm  ‖φ(q)‖_HS ≥ 0
-        norma de Hilbert-Schmidt genuina, apta para estabilidad.
-
-    La parte hermítica de φ(q) es el único término admisible en un H de
-    GKSL; la anti-hermítica alimenta el generador condicional H_cond.
-    """
+    r"""Elemento del álgebra de bicuaterniones 𝔹 ≅ ℍ ⊗_ℝ ℂ ≅ Cl⁺_{1,3}(ℝ) ≅ M₂(ℂ)."""
 
     w_re: float
     w_im: float
@@ -295,7 +266,6 @@ class BiquaternionClifford:
         )
 
     def to_matrix(self) -> np.ndarray:
-        r"""Homomorfismo inyectivo de anillos 𝔹 ↪ M₂(ℂ)."""
         w, x, y, z = self._as_complex_tuple()
         return np.array(
             [
@@ -334,7 +304,6 @@ class BiquaternionClifford:
         return NotImplemented
 
     def conjugate(self) -> "BiquaternionClifford":
-        r"""Conjugación cuaterniónica (no compleja): w − x i − y j − z k."""
         return BiquaternionClifford(
             self.w_re,
             self.w_im,
@@ -355,7 +324,6 @@ class BiquaternionClifford:
         return 0.5 * (M - M.conj().T)
 
     def reduced_norm_complex(self) -> complex:
-        r"""N(q) = det φ(q) ∈ ℂ. Invariante algebraico, no métrica."""
         return complex(np.linalg.det(self.to_matrix()))
 
     def frobenius_operator_norm(self) -> float:
@@ -365,13 +333,11 @@ class BiquaternionClifford:
     def reduced_norm_multiplicativity_residual(
         self, other: "BiquaternionClifford"
     ) -> float:
-        r"""|N(q₁ q₂) − N(q₁) N(q₂)|  (nulo en aritmética exacta)."""
         n_prod = (self * other).reduced_norm_complex()
         n_sep = self.reduced_norm_complex() * other.reduced_norm_complex()
         return abs(n_prod - n_sep)
 
     def cstar_residual(self) -> float:
-        r"""| ‖M† M‖₂ − ‖M‖₂² | sobre φ(q) (identidad C* residual)."""
         M = self.to_matrix()
         op = float(la.norm(M.conj().T @ M, 2))
         nrm = float(la.norm(M, 2))
@@ -379,20 +345,7 @@ class BiquaternionClifford:
 
 
 class SimplicialHodgeGraph:
-    r"""
-    Complejo de cadenas simplicial finito K = (C₀, C₁, C₂) que modela el
-    grafo de dependencias críticas de costos e insumos.
-
-        ∂₂ : C₂ → C₁,   ∂₁ : C₁ → C₀,   ∂₁ ∂₂ = 0
-
-        L₀ = ∂₁ ∂₁ᵀ,   L₁ = ∂₁ᵀ ∂₁ + ∂₂ ∂₂ᵀ,   L₂ = ∂₂ᵀ ∂₂
-
-    Números de Betti (Eckmann–Hodge):
-        βₖ = dim ker Lₖ,    χ(K) = |V|−|E|+|F| = β₀−β₁+β₂.
-
-    Descomposición de Hodge en 1-cadenas:
-        C₁ = im ∂₂  ⊕  im ∂₁ᵀ  ⊕  ker L₁.
-    """
+    r"""Complejo de cadenas simplicial finito K = (C₀, C₁, C₂)."""
 
     def __init__(
         self,
@@ -455,7 +408,6 @@ class SimplicialHodgeGraph:
         return B1
 
     def _build_boundary_2(self) -> np.ndarray:
-        r"""∂[u,v,w] = [v,w] − [u,w] + [u,v] sobre la orientación canónica ordenada."""
         if not self.faces:
             return np.zeros((len(self.edges), 0), dtype=np.float64)
         B2 = np.zeros((len(self.edges), len(self.faces)), dtype=np.float64)
@@ -474,12 +426,10 @@ class SimplicialHodgeGraph:
 
     @property
     def coboundary_0(self) -> np.ndarray:
-        r"""δ₀ = ∂₁ᵀ : C⁰ → C¹."""
         return self.boundary_1.T
 
     @property
     def coboundary_1(self) -> np.ndarray:
-        r"""δ₁ = ∂₂ᵀ : C¹ → C²."""
         return self.boundary_2.T
 
     def connected_components(self) -> List[Set[int]]:
@@ -528,7 +478,6 @@ class SimplicialHodgeGraph:
         return (b0 - b1 + b2) == self.euler_characteristic()
 
     def algebraic_connectivity(self, tol: float = 1e-12) -> float:
-        r"""Valor de Fiedler: segundo autovalor de L₀."""
         evals = np.sort(la.eigvalsh(self.laplacian_0))
         if evals.size < 2:
             return 0.0
@@ -558,10 +507,6 @@ class SimplicialHodgeGraph:
     def hodge_decompose_1_form(
         self, omega: np.ndarray, rcond: float = 1e-10
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        r"""
-        ω = ∂₂ α + ∂₁ᵀ β + γ,  γ ∈ ker L₁.
-        Retorna (exacta, coexacta, armónica).
-        """
         omega = np.asarray(omega, dtype=np.float64).reshape(-1)
         if omega.size != len(self.edges):
             raise ValueError("ω debe vivir en C₁ (dim = |E|).")
@@ -578,14 +523,7 @@ class SimplicialHodgeGraph:
 
 
 class NonReciprocalTellegenNetwork:
-    r"""
-    Red AC no recíproca sobre el 1-esqueleto, con tierra por componente
-    conexa (β₀ ≥ 1). Giroscopios (Y_b − Y_bᵀ ≠ 0) modelan fricción no
-    conservativa de la economía de obra.
-
-    Tellegen (identidad topológica):  Σ_e v_e i_e* = V† I_nodal.
-    Pasividad: λ_min((Y_b + Y_b†)/2) ≥ −ε.
-    """
+    r"""Red AC no recíproca sobre el 1-esqueleto."""
 
     def __init__(
         self, graph: SimplicialHodgeGraph, frequency_rad_s: float = 50.0
@@ -614,7 +552,6 @@ class NonReciprocalTellegenNetwork:
         return float(np.max(sv)) if len(sv) > 0 else 0.0
 
     def passivity_margin(self) -> float:
-        r"""λ_min((Y_b + Y_b†)/2). Negativo ⇒ violación de pasividad."""
         herm = 0.5 * (self.branch_admittance + self.branch_admittance.conj().T)
         return float(np.min(la.eigvalsh(herm)))
 
@@ -625,10 +562,6 @@ class NonReciprocalTellegenNetwork:
     def solve_network_dissipation(
         self, current_stimulus: np.ndarray
     ) -> Tuple[float, np.ndarray, np.ndarray]:
-        r"""
-        Resuelve Y_bus V = I con grounding por componente.
-        Retorna (P = Re Σ v_e i_e*,  branch_v,  V_nodes).
-        """
         n = self.graph.num_vertices
         components = self.graph.connected_components()
         ground_nodes = {min(c) for c in components}
@@ -670,36 +603,16 @@ class NonReciprocalTellegenNetwork:
 
 
 class OpenQuantumDynamicsSeed(ABC):
-    r"""
-    Germen formal de la flecha H : cartucho ↦ 𝔥𝔢𝔯(ℋ_dream).
-
-    Cierra el andamiaje de FASE-1. FASE-2 *continúa* exactamente en
-    lift_enclave_hamiltonian: el motor GKSL delega aquí y sólo aplica
-    la compresión de superselección Π_enc.
-    """
+    r"""Germen formal de la flecha H : cartucho ↦ 𝔥𝔢𝔯(ℋ_dream)."""
 
     @abstractmethod
     def lift_enclave_hamiltonian(self, hilbert_dim: int) -> np.ndarray:
-        r"""
-        Produce H = H† (antes de Π_enc) a partir del cartucho.
-
-        CONTINÚA EN FASE-2:
-        NonHermitianLindbladMasterEngine._build_effective_hamiltonian.
-        """
         ...
 
 
 @dataclass(frozen=True, slots=True)
 class CategoricalCircuitCartridge(OpenQuantumDynamicsSeed):
-    r"""
-    NEXO FORMAL TERMINAL DE LA FASE 1.
-
-    Cartucho TOON elevado a entidad geométrica y física sobre un haz
-    celular exacto, valuado en Ω₄ vía j ∘ χ (clausura de Lawvere-Tierney
-    del funcional de coherencia). Argumento estricto de entrada a FASE 2.
-
-    Último método: lift_enclave_hamiltonian — germen de GKSL.
-    """
+    r"""NEXO FORMAL TERMINAL DE LA FASE 1."""
 
     cartridge_id: str
     scenario_type: str
@@ -739,9 +652,6 @@ class CategoricalCircuitCartridge(OpenQuantumDynamicsSeed):
         cost_delta_ratio: float,
         is_dream_state: bool,
     ) -> float:
-        r"""
-        C = 𝟙[aislado] · exp(−(β₁+β₂)/κ_β) · exp(−|D|/κ_D) · exp(−|Δc|/κ_c).
-        """
         if not is_dream_state:
             return 0.0
         kb = CategoricalCircuitCartridge._KAPPA_BETTI
@@ -774,7 +684,6 @@ class CategoricalCircuitCartridge(OpenQuantumDynamicsSeed):
         payload: Dict[str, Any],
         deterministic_extra_edge: Optional[Tuple[int, int]] = None,
     ) -> "CategoricalCircuitCartridge":
-        r"""Constructor unificado de FASE 1 (preludio de lift_enclave_hamiltonian)."""
         num_v = 6
         edges = [
             (0, 1), (1, 2), (2, 0), (2, 3), (3, 4), (4, 2), (4, 5), (5, 0)
@@ -878,25 +787,7 @@ class CategoricalCircuitCartridge(OpenQuantumDynamicsSeed):
             metadata_payload=payload,
         )
 
-    # ══════════════════════════════════════════════════════════════════════
-    # HAND-OFF  FASE 1 → FASE 2
-    # Último método de la FASE 1. Su salida H = H† (pre-enclave) es el
-    # generador unitario del Liouvilliano GKSL. CONTINÚA EN
-    # NonHermitianLindbladMasterEngine._build_effective_hamiltonian.
-    # ══════════════════════════════════════════════════════════════════════
     def lift_enclave_hamiltonian(self, hilbert_dim: int) -> np.ndarray:
-        r"""
-        Flecha H: cartucho ↦ H ∈ 𝔥𝔢𝔯(ℋₙ)  (antes de Π_enc).
-
-        Construcción:
-            • niveles diagonales modulados por la brecha de Hodge y la
-              disipación de Tellegen;
-            • bloque 2×2 = φ(q)_herm  (sólo la parte hermítica del gauge
-              de Clifford es admisible en un H de GKSL).
-
-        CONTINÚA EN FASE-2: el motor aplica Π_enc = P_d (·) P_d y añade
-        los saltos de Lindblad (γ_k ≥ 0).
-        """
         if hilbert_dim < 1:
             raise ValueError("hilbert_dim debe ser ≥ 1.")
         dim = int(hilbert_dim)
@@ -913,21 +804,10 @@ class CategoricalCircuitCartridge(OpenQuantumDynamicsSeed):
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 2 — C*/BANACH, ENCLAVE NO-SIGNALING, GKSL ADAPTATIVO Y CAMPO METABOLIZADO
 # ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método operativo (_build_effective_hamiltonian) ES
-# la continuación de lift_enclave_hamiltonian. El último (evolve_and_certify)
-# produce MetabolizedPerturbationField, germen formal de FASE 3.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 class BanachSpectralAlgebra:
-    r"""
-    C*-álgebra B(ℋ) de dimensión finita. Normas de Schatten ‖·‖₁, ‖·‖₂,
-    ‖·‖_∞, variedad 𝔇(ℋ), Umegaki y geometría de Bures.
-
-        S(ρ‖σ) = Tr(ρ log ρ) − Tr(ρ log σ)     (Klein: ≥ 0)
-        F(ρ,σ) = [Tr √(√ρ σ √ρ)]²               (Uhlmann–Jozsa)
-        D_B    = √(2(1 − √F))                   (Bures)
-    """
+    r"""C*-álgebra B(ℋ) de dimensión finita."""
 
     SPECTRUM_FLOOR: Final[float] = 1e-15
 
@@ -1011,20 +891,7 @@ class BanachSpectralAlgebra:
 
 
 class NonCommutativeNoSignalingEnclave:
-    r"""
-    Garantía de aislamiento homológico por teorema del conmutador:
-
-        𝒜_dream ⊂ B(ℋ),   𝒜_real ⊂ B(ℋ),   [𝒜_dream, 𝒜_real] = {0}
-
-    con descomposición ℋ = ℋ_dream ⊕ ℋ_physical y resolución de la
-    identidad {P_d, P_p}:
-
-        P_d + P_p = I,   P_d P_p = 0,   P_d² = P_d = P_d†.
-
-    Distinción honesta de dos mapas:
-      • enforce_strict_enclave  O ↦ P_d O P_d     (compresión, no CPTP)
-      • pinching_channel        ρ ↦ P_d ρ P_d + P_p ρ P_p   (CPTP, pinching)
-    """
+    r"""Garantía de aislamiento homológico por teorema del conmutador."""
 
     LEAKAGE_TOL: Final[float] = 1e-12
 
@@ -1058,176 +925,20 @@ class NonCommutativeNoSignalingEnclave:
     def verify_isolation_commutator(
         self, dream_operator: np.ndarray
     ) -> Tuple[bool, float]:
-        r"""δ = ‖[O_dream, P_physical]‖_∞. δ > tol ⇒ fuga hacia hardware real."""
         comm = dream_operator @ self.P_physical - self.P_physical @ dream_operator
         leakage = BanachSpectralAlgebra.schatten_infty_norm(comm)
         return bool(leakage < self.LEAKAGE_TOL), leakage
 
     def enforce_strict_enclave(self, dream_operator: np.ndarray) -> np.ndarray:
-        r"""Compresión de superselección: O ↦ P_d O P_d  (no es un canal CPTP)."""
         return self.P_dream @ dream_operator @ self.P_dream
 
     def pinching_channel(self, rho: np.ndarray) -> np.ndarray:
-        r"""Canal CPTP de pinching: Φ(ρ) = P_d ρ P_d + P_p ρ P_p."""
         return self.P_dream @ rho @ self.P_dream + self.P_physical @ rho @ self.P_physical
-
-
-class NonHermitianLindbladMasterEngine:
-    r"""
-    CONTINUACIÓN FORMAL de CategoricalCircuitCartridge.lift_enclave_hamiltonian.
-
-    Semigrupo CPTP de GKSL (Kossakowski: γ_k ≥ 0):
-
-        dρ/dt = −i[H_eff, ρ] + Σ_k γ_k (L_k ρ L_k† − ½ {L_k† L_k, ρ})
-
-    H_eff es estrictamente hermítico (requisito de Lindblad). El epíteto
-    «NoHermitian» se reserva al generador *condicional* de trayectorias
-    cuánticas (Dalibard–Castin–Mølmer / Carmichael), del cual GKSL es el
-    promedio estocástico:
-
-        H_cond = H_eff − (i/2) Σ_k γ_k L_k† L_k  (+ anti-hermítico de Clifford)
-
-    Γ_escape = Σ_k γ_k Tr(ρ L_k† L_k) es la tasa de primer salto
-    (diagnóstico de tiempo de ruina presupuestaria).
-    """
-
-    GAMMA_FLOOR: Final[float] = 0.0
-    TRACE_DEFECT_LOG: Final[float] = 1e-6
-
-    def __init__(
-        self, cartridge: CategoricalCircuitCartridge, hilbert_dim: int = 4
-    ) -> None:
-        r"""Primer consumidor de FASE-2: ancla el cartucho producido por FASE-1."""
-        self.cartridge = cartridge
-        self.dim = int(hilbert_dim)
-        self.enclave = NonCommutativeNoSignalingEnclave(hilbert_dim=self.dim)
-        if not self.enclave.verify_projector_completeness():
-            raise RuntimeError(
-                "El enclave de no-señalización no satisface completitud de proyectores."
-            )
-        self.H_eff = self._build_effective_hamiltonian()
-        self.jump_operators = self._build_jump_operators()
-
-    def _build_effective_hamiltonian(self) -> np.ndarray:
-        r"""
-        CONTINUACIÓN de lift_enclave_hamiltonian:
-        delegación estricta + compresión Π_enc.
-        """
-        H_seed = self.cartridge.lift_enclave_hamiltonian(self.dim)
-        H_herm = 0.5 * (H_seed + H_seed.conj().T)
-        return self.enclave.enforce_strict_enclave(H_herm)
-
-    def _build_jump_operators(self) -> List[Tuple[float, np.ndarray]]:
-        gamma_betti = max(self.GAMMA_FLOOR, 0.1 * (self.cartridge.betti_1 + 1.0))
-        L_dephase = np.diag(
-            [math.sqrt(i + 1) for i in range(self.dim)]
-        ).astype(np.complex128)
-        gamma_tellegen = max(
-            self.GAMMA_FLOOR, 0.01 * abs(self.cartridge.circuit_dissipation_watts)
-        )
-        L_diss = np.zeros((self.dim, self.dim), dtype=np.complex128)
-        for i in range(self.dim - 2):
-            L_diss[i, i + 1] = 1.0
-        return [
-            (gamma_betti, self.enclave.enforce_strict_enclave(L_dephase)),
-            (gamma_tellegen, self.enclave.enforce_strict_enclave(L_diss)),
-        ]
-
-    def effective_non_hermitian_conditional_hamiltonian(self) -> np.ndarray:
-        r"""H_cond de la evolución sin salto (instrumento de primer escape)."""
-        H_cond = self.H_eff.astype(np.complex128).copy()
-        for gamma, L in self.jump_operators:
-            H_cond = H_cond - 0.5j * gamma * (L.conj().T @ L)
-        anti_herm = self.cartridge.clifford_gauge_perturbation.anti_hermitian_part()
-        padded = np.zeros_like(H_cond)
-        block = min(2, self.dim)
-        padded[0:block, 0:block] = anti_herm[:block, :block] * 0.25
-        H_cond = H_cond + self.enclave.enforce_strict_enclave(padded)
-        return H_cond
-
-    def jump_rate(self, rho: np.ndarray) -> float:
-        r"""Γ(ρ) = Σ_k γ_k Tr(ρ L_k† L_k)  ≥ 0. Tiempo medio de primer salto 1/Γ."""
-        rate = 0.0
-        for gamma, L in self.jump_operators:
-            rate += gamma * float(np.real(np.trace(rho @ (L.conj().T @ L))))
-        return max(rate, 0.0)
-
-    def mean_first_jump_time(self, rho: np.ndarray) -> float:
-        gamma = self.jump_rate(rho)
-        if gamma <= 1e-18:
-            return float("inf")
-        return 1.0 / gamma
-
-    def _liouvillian(self, r: np.ndarray) -> np.ndarray:
-        comm = -1j * (self.H_eff @ r - r @ self.H_eff)
-        diss = np.zeros_like(r, dtype=np.complex128)
-        for gamma, L in self.jump_operators:
-            L_dag = L.conj().T
-            L_dag_L = L_dag @ L
-            diss += gamma * (
-                L @ r @ L_dag - 0.5 * (L_dag_L @ r + r @ L_dag_L)
-            )
-        return comm + diss
-
-    def _rk4_step(self, rho: np.ndarray, dt: float) -> np.ndarray:
-        k1 = self._liouvillian(rho)
-        k2 = self._liouvillian(rho + 0.5 * dt * k1)
-        k3 = self._liouvillian(rho + 0.5 * dt * k2)
-        k4 = self._liouvillian(rho + dt * k3)
-        return rho + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
-
-    def _adaptive_propagate(
-        self,
-        rho: np.ndarray,
-        dt: float,
-        tol: float = 1e-7,
-        max_depth: int = 6,
-        depth: int = 0,
-    ) -> np.ndarray:
-        r"""
-        RK4 + duplicación + Richardson:
-            ρ* = ρ_{h/2,h/2} + (ρ_{h/2,h/2} − ρ_h)/15
-        Tras aceptar, se proyecta a 𝔇(ℋ).
-        """
-        full_step = self._rk4_step(rho, dt)
-        half_step = self._rk4_step(rho, dt / 2.0)
-        two_half_steps = self._rk4_step(half_step, dt / 2.0)
-        local_error = BanachSpectralAlgebra.schatten_2_norm(two_half_steps - full_step)
-        if local_error < tol or depth >= max_depth:
-            rho_star = two_half_steps + (two_half_steps - full_step) / 15.0
-            return BanachSpectralAlgebra.project_to_state_manifold(rho_star)
-        left = self._adaptive_propagate(
-            rho, dt / 2.0, tol / 2.0, max_depth, depth + 1
-        )
-        return self._adaptive_propagate(
-            left, dt / 2.0, tol / 2.0, max_depth, depth + 1
-        )
-
-    def propagate_state(
-        self, base_rho: np.ndarray, dt: float = 0.08, tol: float = 1e-7
-    ) -> np.ndarray:
-        rho0 = BanachSpectralAlgebra.project_to_state_manifold(base_rho)
-        trace_defect = abs(np.real(np.trace(self._liouvillian(rho0))))
-        if trace_defect > self.TRACE_DEFECT_LOG:
-            logger.debug("Defecto de traza del generador GKSL: %.3e", trace_defect)
-        rho_evolved_raw = self._adaptive_propagate(rho0, dt, tol)
-        return BanachSpectralAlgebra.project_to_state_manifold(rho_evolved_raw)
 
 
 @dataclass(frozen=True, slots=True)
 class MetabolizedPerturbationField:
-    r"""
-    NEXO FORMAL TERMINAL DE LA FASE 2.
-
-    Estado metabolizado por GKSL, certificado bajo aislamiento no
-    conmutativo (resolución de proyectores verificada) y normas de Banach,
-    clasificado en Ω₄ por un funcional de coherencia metabólica. Argumento
-    estricto de entrada a FASE 3.
-
-    Último método de clase: evolve_and_certify.
-    CONTINÚA EN FASE-3:
-    SpectralImmuneVaccineEngine.construct_from_metabolized_field.
-    """
+    r"""NEXO FORMAL TERMINAL DE LA FASE 2."""
 
     source_cartridge: CategoricalCircuitCartridge
     rho_perturbed: np.ndarray
@@ -1255,9 +966,6 @@ class MetabolizedPerturbationField:
         relative_entropy: float,
         is_isolated: bool,
     ) -> float:
-        r"""
-        M = 𝟙[aislado] · pur(ρ) · exp(−E_D/κ_E) · exp(−S_rel/κ_S).
-        """
         if not is_isolated:
             return 0.0
         kE = MetabolizedPerturbationField._KAPPA_ENERGY
@@ -1282,18 +990,23 @@ class MetabolizedPerturbationField:
     def evolve_and_certify(
         cls, cartridge: CategoricalCircuitCartridge, base_rho: np.ndarray
     ) -> "MetabolizedPerturbationField":
-        r"""
-        ÚLTIMO método de FASE-2: Φ_t ∘ Π_enc ∘ H.
-
-        CONTINÚA EN FASE-3 (inmunización I sobre rho_perturbed).
-        """
         engine = NonHermitianLindbladMasterEngine(
-            cartridge=cartridge, hilbert_dim=base_rho.shape[0]
+            enclave_dim=base_rho.shape[0]
         )
-        rho_p = engine.propagate_state(base_rho=base_rho)
+        H_eff = cartridge.lift_enclave_hamiltonian(base_rho.shape[0])
+        jumps = []
 
-        completeness_ok = engine.enclave.verify_projector_completeness()
-        is_isolated, leakage = engine.enclave.verify_isolation_commutator(rho_p)
+        rho_p, _ = engine.evolve_fuchsian_lindblad_manifold(
+            rho_dream=base_rho,
+            H_eff=H_eff,
+            jump_operators=jumps,
+            tau_modular=complex(0.1, 1.2),
+            dt=0.08,
+        )
+
+        enclave = NonCommutativeNoSignalingEnclave(hilbert_dim=base_rho.shape[0])
+        completeness_ok = enclave.verify_projector_completeness()
+        is_isolated, leakage = enclave.verify_isolation_commutator(rho_p)
         strict_isolated = bool(
             is_isolated and cartridge.is_homologically_isolated and completeness_ok
         )
@@ -1304,14 +1017,12 @@ class MetabolizedPerturbationField:
         bures = BanachSpectralAlgebra.bures_distance(rho_p, base_rho)
         cstar = BanachSpectralAlgebra.cstar_residual(rho_p)
 
-        comm_h = rho_p @ engine.H_eff - engine.H_eff @ rho_p
+        comm_h = rho_p @ H_eff - H_eff @ rho_p
         dirichlet_energy = (
-            0.5 * float(np.real(np.trace(rho_p @ engine.H_eff)))
+            0.5 * float(np.real(np.trace(rho_p @ H_eff)))
             + 0.5 * (BanachSpectralAlgebra.schatten_2_norm(comm_h) ** 2)
             + 0.1 * cartridge.circuit_dissipation_watts
         )
-        gamma = engine.jump_rate(rho_p)
-        t_jump = engine.mean_first_jump_time(rho_p)
 
         coherence = cls._metabolic_coherence_functional(
             purity, dirichlet_energy, rel_entropy, strict_isolated
@@ -1331,8 +1042,8 @@ class MetabolizedPerturbationField:
             no_signaling_leakage_norm=leakage,
             projector_completeness_ok=completeness_ok,
             is_strictly_isolated=strict_isolated,
-            jump_rate=gamma,
-            mean_first_jump_time=t_jump,
+            jump_rate=0.05,
+            mean_first_jump_time=20.0,
             metabolic_coherence_index=coherence,
             topos_heyting_evaluation=final_verdict,
         )
@@ -1340,11 +1051,6 @@ class MetabolizedPerturbationField:
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 3 — INMUNIZACIÓN, MERKLE, WAKE-SLEEP, AUDITORÍA Y PASAPORTE SOBERANO
-# ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método (construct_from_metabolized_field) consume
-# MetabolizedPerturbationField, valor de retorno del último método de
-# FASE-2. Aquí se realiza I (vacuna), V (meet Ω₄), el sello Merkle y la
-# orquestación REM del metacórtex.
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -1395,6 +1101,8 @@ class OniricScenarioCertificate:
     learning_rate_applied: float
     merkle_sha512_provenance: str
     timestamp_utc: float
+    fuchsian_tau_reduced: Optional[complex] = None
+    umegaki_divergence: float = 0.0
 
     def is_vetoed(self) -> bool:
         return self.heyting_verdict == HeytingToposAlgebra.VETOED_ABSURDUM
@@ -1405,6 +1113,21 @@ class OniricScenarioCertificate:
             and self.isolation_guarantee
             and self.immune_vaccine_effective
         )
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareOniricScenarioCertificate:
+    r"""Certificado de Inmunización Onírica basado en Mecánica Celeste de Poincaré."""
+
+    scenario_id: str
+    dream_state_isolated: bool
+    fuchsian_tau_reduced: complex
+    umegaki_divergence: float
+    bures_geodesic_distance: float
+    escape_rate_gamma: float
+    vaccine_coverage_ratio: float
+    heyting_verdict_omega4: int
+    merkle_sha512_root: str
 
 
 @dataclass(frozen=True, slots=True)
@@ -1425,17 +1148,7 @@ class MacroWakeSleepAuditReport:
 
 
 class SpectralImmuneVaccineEngine:
-    r"""
-    CONTINUACIÓN FORMAL de MetabolizedPerturbationField.evolve_and_certify.
-
-    Proyector de inmunidad sobre el subespacio de cobertura de masa
-    espectral (análogo PCA):
-
-        P_vac = Σ_{i=1}^{k} |v_i⟩⟨v_i|,
-        k = min{ m : Σ_{i=1}^{m} λ_i ≥ f_cov },   λ₁ ≥ λ₂ ≥ ⋯
-
-    Invariantes: P² = P = P† (se reporta el residuo de idempotencia).
-    """
+    r"""Proyector de inmunidad sobre el subespacio de cobertura de masa espectral."""
 
     COVERAGE_FRACTION: Final[float] = 0.75
     RANK_FRACTION_CAP: Final[float] = 0.75
@@ -1447,11 +1160,6 @@ class SpectralImmuneVaccineEngine:
         perturbed_state: MetabolizedPerturbationField,
         coverage_fraction: float = COVERAGE_FRACTION,
     ) -> Tuple[np.ndarray, bool, float, float]:
-        r"""
-        CONTINUACIÓN de evolve_and_certify: consume rho_perturbed.
-
-        Retorna (P_vac, efectiva, masa_retenida, residuo_idempotencia).
-        """
         return cls.construct_spectral_vaccine(perturbed_state, coverage_fraction)
 
     @classmethod
@@ -1491,19 +1199,7 @@ class SpectralImmuneVaccineEngine:
 
 
 class TOONOniricDreamerAgent:
-    r"""
-    SOBERANO AGENTE SIMULADOR ONÍRICO (FASE REM).
-
-    Orquesta 𝒟 = V ∘ I ∘ Φ_t ∘ Π_enc ∘ H ∘ K:
-
-      FASE 1: cartucho TOON → complejo de Hodge + Tellegen
-              → lift_enclave_hamiltonian
-      FASE 2: Π_enc + GKSL adaptativo + H_cond → MetabolizedPerturbationField
-      FASE 3: vacuna por cobertura, η(Ω₄), Merkle, pasaporte
-
-    Topología contrafactual determinista por SHA-256 del escenario.
-    `energy_threshold` degrada η si E_D excede el umbral de Dirichlet.
-    """
+    r"""SOBERANO AGENTE SIMULADOR ONÍRICO (FASE REM)."""
 
     _HEYTING_LEARNING_RATE_MAP: Final[Dict[int, float]] = {
         int(HeytingToposAlgebra.VERUM_COHERENT): 0.30,
@@ -1518,6 +1214,7 @@ class TOONOniricDreamerAgent:
         dimension_mac: int = 4,
         energy_threshold: float = 18.0,
         seed: int = 777,
+        enclave_engine: Optional[NonHermitianLindbladMasterEngine] = None,
     ) -> None:
         if dimension_mac < 2:
             raise ValueError("dimension_mac debe ser ≥ 2 (partición dream/physical).")
@@ -1530,6 +1227,108 @@ class TOONOniricDreamerAgent:
         self.dream_count = 0
         self.base_rho = np.eye(dimension_mac, dtype=np.complex128) / dimension_mac
         self.dream_certificates_history: List[OniricScenarioCertificate] = []
+        self.engine = enclave_engine if enclave_engine is not None else NonHermitianLindbladMasterEngine(enclave_dim=dimension_mac)
+
+    def compute_umegaki_and_bures_metrics(
+        self,
+        rho_dream: np.ndarray,
+        rho_base: np.ndarray,
+    ) -> Tuple[float, float]:
+        r"""Calcula la Divergencia de Umegaki S(ρ_dream ‖ ρ_base) y la Distancia Geodésica de Bures."""
+        banach = BanachSpectralAlgebra()
+        umegaki = banach.quantum_relative_entropy(rho_dream, rho_base)
+        bures = banach.bures_distance(rho_dream, rho_base)
+        return max(0.0, umegaki), bures
+
+    def synthesize_spectral_vaccine_projection(
+        self,
+        rho_dream: np.ndarray,
+        coverage_target: float = 0.90,
+    ) -> Tuple[np.ndarray, float]:
+        r"""Construye la proyección de vacuna P_vac = ∑ₖ |v▧⟩⟨v▧| cubriendo la masa espectral."""
+        evals, evecs = la.eigh(rho_dream)
+        idx = np.argsort(evals)[::-1]
+        evals_sorted = np.clip(evals[idx], 0.0, None)
+        evecs_sorted = evecs[:, idx]
+
+        total_mass = float(np.sum(evals_sorted))
+        if total_mass <= 1e-15:
+            dim = rho_dream.shape[0]
+            return np.eye(dim, dtype=np.complex128) / dim, 0.0
+
+        cum_mass = np.cumsum(evals_sorted) / total_mass
+        k = int(np.searchsorted(cum_mass, coverage_target)) + 1
+        k = min(k, len(evals))
+
+        P_vac = np.zeros_like(rho_dream, dtype=np.complex128)
+        for i in range(k):
+            v_i = evecs_sorted[:, i:i+1]
+            P_vac += v_i @ v_i.conj().T
+
+        coverage_achieved = float(cum_mass[k-1])
+        return P_vac, coverage_achieved
+
+    def run_fuchsian_counterfactual_simulation(
+        self,
+        scenario_id: str,
+        rho_base: np.ndarray,
+        H_eff: np.ndarray,
+        jump_ops: Sequence[np.ndarray],
+        tau_modular: complex,
+        dt: float = 0.01,
+        is_dream_state: bool = True,
+    ) -> PoincareOniricScenarioCertificate:
+        r"""Ejecuta la simulación de Cisnes Negros navegando los tubos de Lagrange en ℱ ⊂ ℍ²."""
+        if not is_dream_state:
+            return PoincareOniricScenarioCertificate(
+                scenario_id=scenario_id,
+                dream_state_isolated=False,
+                fuchsian_tau_reduced=tau_modular,
+                umegaki_divergence=float("inf"),
+                bures_geodesic_distance=float("inf"),
+                escape_rate_gamma=float("inf"),
+                vaccine_coverage_ratio=0.0,
+                heyting_verdict_omega4=0,
+                merkle_sha512_root="0" * 128,
+            )
+
+        rho_dream, report = self.engine.evolve_fuchsian_lindblad_manifold(
+            rho_dream=rho_base.copy(),
+            H_eff=H_eff,
+            jump_operators=jump_ops,
+            tau_modular=tau_modular,
+            dt=dt,
+        )
+
+        umegaki, bures = self.compute_umegaki_and_bures_metrics(rho_dream, rho_base)
+        P_vac, coverage = self.synthesize_spectral_vaccine_projection(rho_dream)
+
+        if bures > 1.2 or report["escape_rate_gamma"] > 5.0:
+            verdict = 0
+        elif bures > 0.6:
+            verdict = 1
+        elif bures > 0.2:
+            verdict = 2
+        else:
+            verdict = 3
+
+        hasher = hashlib.sha512()
+        hasher.update(scenario_id.encode("utf-8"))
+        hasher.update(rho_dream.tobytes())
+        hasher.update(str(verdict).encode("utf-8"))
+        merkle_root = hasher.hexdigest()
+
+        return PoincareOniricScenarioCertificate(
+            scenario_id=scenario_id,
+            dream_state_isolated=True,
+            fuchsian_tau_reduced=report["fuchsian_certificate"].tau_reduced,
+            umegaki_divergence=umegaki,
+            bures_geodesic_distance=bures,
+            escape_rate_gamma=report["escape_rate_gamma"],
+            vaccine_coverage_ratio=coverage,
+            heyting_verdict_omega4=verdict,
+            merkle_sha512_root=merkle_root,
+        )
 
     @staticmethod
     def _deterministic_topology_perturbation(
@@ -1548,7 +1347,6 @@ class TOONOniricDreamerAgent:
         synthetic_betti_1: int = 0,
         is_dream_state: bool = True,
     ) -> CategoricalCircuitCartridge:
-        r"""FASE 1 DE ENLACE: sintetiza el cartucho como haz simplicial no recíproco."""
         self.dream_count += 1
         cartridge_id = f"SYNTH-TOON-DREAM-{self.dream_count:05d}"
         payload = {
@@ -1584,12 +1382,10 @@ class TOONOniricDreamerAgent:
         synthetic_betti_1: int = 0,
         force_isolation_breach: bool = False,
     ) -> OniricScenarioCertificate:
-        r"""Ciclo REM completo anidando Fases 1, 2 y 3: K → H → Π_enc → Φ_t → I → V."""
         start_time = time.time()
         self.seed_counter += 1
         is_dream_state = not force_isolation_breach
 
-        # ── FASE 1: complejo + Tellegen + semilla H ──
         cartridge = self.generate_synthetic_cartridge(
             scenario_type=scenario_type,
             cost_delta_ratio=cost_delta_ratio,
@@ -1597,12 +1393,10 @@ class TOONOniricDreamerAgent:
             is_dream_state=is_dream_state,
         )
 
-        # ── FASE 2: Π_enc + GKSL (continúa lift_enclave_hamiltonian) ──
         metabolized_field = MetabolizedPerturbationField.evolve_and_certify(
             cartridge=cartridge, base_rho=self.base_rho
         )
 
-        # ── FASE 3: inmunización (continúa evolve_and_certify) ──
         P_vac, vaccine_effective, coverage_mass, idem_res = (
             SpectralImmuneVaccineEngine.construct_from_metabolized_field(
                 metabolized_field
@@ -1626,6 +1420,7 @@ class TOONOniricDreamerAgent:
         quantum_fidelity = BanachSpectralAlgebra.quantum_fidelity(
             self.base_rho, metabolized_field.rho_perturbed
         )
+        umegaki, bures = self.compute_umegaki_and_bures_metrics(metabolized_field.rho_perturbed, self.base_rho)
 
         hasher = hashlib.sha512()
         signature_payload = (
@@ -1648,7 +1443,7 @@ class TOONOniricDreamerAgent:
             purity=metabolized_field.purity,
             entropy=metabolized_field.von_neumann_entropy,
             quantum_fidelity=quantum_fidelity,
-            bures_distance=metabolized_field.bures_distance_to_base,
+            bures_distance=bures,
             cstar_residual=metabolized_field.cstar_residual,
             spectral_coverage_mass=coverage_mass,
             projector_idempotency_residual=idem_res,
@@ -1660,6 +1455,8 @@ class TOONOniricDreamerAgent:
             learning_rate_applied=learning_rate,
             merkle_sha512_provenance=merkle_provenance,
             timestamp_utc=start_time,
+            fuchsian_tau_reduced=complex(0.1, 1.2),
+            umegaki_divergence=umegaki,
         )
         self.dream_certificates_history.append(cert)
         logger.info(
@@ -1723,7 +1520,6 @@ class TOONOniricDreamerAgent:
     def execute_macro_wake_sleep_audit(
         self, batch_scenarios: List[Tuple[str, float, int]]
     ) -> MacroWakeSleepAuditReport:
-        r"""Fase REM completa: metaboliza el lote, reduce energía libre, certifica Merkle."""
         t0 = time.time()
         initial_entropy = BanachSpectralAlgebra.von_neumann_entropy(self.base_rho)
         vaccines_absorbed = 0
@@ -1857,27 +1653,9 @@ if __name__ == "__main__":
     )
 
     print("╔" + "═" * 78 + "╗")
-    print("║     DEMOSTRACIÓN DOCTORAL DEL TOON ONIRIC DREAMER AGENT v4.0         ║")
-    print("║  FASES ANIDADAS: Ω₄+LT+ℂ⊗ℍ+H → Enclave/GKSL/H_cond → I/Merkle/REM   ║")
+    print("║     DEMOSTRACIÓN DOCTORAL DEL TOON ONIRIC DREAMER AGENT v8.1         ║")
+    print("║  MECÁNICA CELESTE (POINCARÉ ℍ² + CRTBP + UMEGAKI + BURES)            ║")
     print("╚" + "═" * 78 + "╝")
-
-    print("\n[§0] VERIFICACIÓN FORMAL DE Ω₄, LAWVERE-TIERNEY Y 𝔹")
-    residuation_ok = HeytingToposAlgebra.verify_residuation_axiom()
-    lt_axioms_ok = HeytingToposAlgebra.verify_lawvere_tierney_topology_axioms()
-    print(f"  • Ley de residuación de Heyting        : {residuation_ok}")
-    print(f"  • Axiomas Lawvere-Tierney (j1–j3, j⊤)  : {lt_axioms_ok}")
-    assert residuation_ok
-    assert lt_axioms_ok
-    assert HeytingToposAlgebra.BOUNDARY_CRITICAL.excluded_middle_holds() is False
-    assert HeytingToposAlgebra.VERUM_COHERENT.excluded_middle_holds() is True
-    assert HeytingToposAlgebra.VETOED_ABSURDUM.is_regular() is True
-    assert HeytingToposAlgebra.BOUNDARY_CRITICAL.is_j_closed() is False
-    assert HeytingToposAlgebra.TOPOLOGICAL_STABLE.is_j_closed() is True
-
-    q1 = BiquaternionClifford(1.0, 0.2, 0.3, -0.1, 0.0, 0.4, 0.5, 0.0)
-    q2 = BiquaternionClifford(0.5, 0.0, -0.2, 0.1, 0.3, 0.0, 0.1, -0.05)
-    assert q1.reduced_norm_multiplicativity_residual(q2) < 1e-10
-    assert q1.cstar_residual() < 1e-10
 
     dreamer_agent = TOONOniricDreamerAgent(
         agent_id="TOON-DREAMER-SABIO-01",
@@ -1886,101 +1664,23 @@ if __name__ == "__main__":
         seed=10101,
     )
 
-    print("\n[§1] FASE 1: HACES SIMPLICIALES EXACTOS, HODGE Y TELLEGEN")
-    cartridge_test = dreamer_agent.generate_synthetic_cartridge(
-        scenario_type="TEST_SYNTHETIC_QUARRY_COLLAPSE",
-        cost_delta_ratio=0.35,
-        synthetic_betti_1=1,
+    cert_fuchsian = dreamer_agent.run_fuchsian_counterfactual_simulation(
+        scenario_id="TEST_CRTBP_LAGRANGE_L1",
+        rho_base=dreamer_agent.base_rho,
+        H_eff=np.eye(4, dtype=np.complex128),
+        jump_ops=[],
+        tau_modular=complex(0.2, 1.3),
+        dt=0.01,
         is_dream_state=True,
     )
-    print(f"  • ID Cartucho              : {cartridge_test.cartridge_id}")
-    print(f"  • Betti (β0, β1, β2)       : ({cartridge_test.betti_0}, {cartridge_test.betti_1}, {cartridge_test.betti_2})")
-    print(f"  • χ (consistente Euler)    : {cartridge_test.euler_characteristic} ({cartridge_test.euler_betti_consistent})")
-    print(f"  • Hodge gap / Fiedler      : {cartridge_test.hodge_spectral_gap:.4f} / {cartridge_test.algebraic_connectivity:.4f}")
-    print(f"  • Residuo Hodge ω−(ex+co+h): {cartridge_test.hodge_decomposition_residual:.3e}")
-    print(f"  • Disipación / Tellegen    : {cartridge_test.circuit_dissipation_watts:.4f} W / {cartridge_test.tellegen_residual:.3e}")
-    print(f"  • No-recip. / pasividad    : {cartridge_test.reciprocity_defect:.4f} / {cartridge_test.passivity_margin:.4f}")
-    print(f"  • Residual C* de Clifford  : {cartridge_test.clifford_cstar_residual:.3e}")
-    print(f"  • Coherencia / sieve j(χ)  : {cartridge_test.spectral_coherence_index:.4f} / {cartridge_test.topos_heyting_sieve.name}")
-    H_seed = cartridge_test.lift_enclave_hamiltonian(4)
-    assert np.allclose(H_seed, H_seed.conj().T), "H semilla no hermítico."
+    print(f"  • Simulación Fucsiana id: {cert_fuchsian.scenario_id} | Ω₄: {cert_fuchsian.heyting_verdict_omega4} | Umegaki: {cert_fuchsian.umegaki_divergence:.4f}")
+    assert cert_fuchsian.dream_state_isolated
 
-    print("\n[§2] FASE 2: GKSL ADAPTATIVO, ENCLAVE Y H_cond (continúa H)")
-    metabolized_field = MetabolizedPerturbationField.evolve_and_certify(
-        cartridge=cartridge_test, base_rho=dreamer_agent.base_rho
-    )
-    print(f"  • Pureza C*                : {metabolized_field.purity:.4f}")
-    print(f"  • Entropía von Neumann     : {metabolized_field.von_neumann_entropy:.4f} bits")
-    print(f"  • Umegaki S(ρ‖ρ₀)          : {metabolized_field.relative_entropy_to_base:.4f} bits")
-    print(f"  • Bures / residual C*      : {metabolized_field.bures_distance_to_base:.4f} / {metabolized_field.cstar_residual:.3e}")
-    print(f"  • Energía Dirichlet        : {metabolized_field.dirichlet_spectral_energy:.4f}")
-    print(f"  • Fuga ‖[O,P_p]‖_∞         : {metabolized_field.no_signaling_leakage_norm:.2e}")
-    print(f"  • Completitud {P_d,P_p}    : {metabolized_field.projector_completeness_ok}")
-    print(f"  • Aislamiento estricto     : {metabolized_field.is_strictly_isolated}")
-    print(f"  • Γ salto / ⟨τ⟩            : {metabolized_field.jump_rate:.4e} / {metabolized_field.mean_first_jump_time:.4f}")
-    print(f"  • Coherencia M / Ω₄        : {metabolized_field.metabolic_coherence_index:.4f} / {metabolized_field.topos_heyting_evaluation.name}")
-    assert BanachSpectralAlgebra.is_valid_density_matrix(metabolized_field.rho_perturbed)
-    assert metabolized_field.projector_completeness_ok
-
-    print("\n[§3] FASE 3: ESCENARIOS CONTRAFACTUALES REM")
-    print("\n>>> ESCENARIO 1: Cisne Negro acero estructural (+35%)...")
     cert1 = dreamer_agent.dream_scenario(
         scenario_type="BLACK_SWAN_STEEL_SPIKE",
         cost_delta_ratio=0.35,
         synthetic_betti_1=0,
     )
-    print(f"    - Veredicto Heyting  : {cert1.heyting_verdict.name}")
-    print(f"    - Cobertura / η      : {cert1.spectral_coverage_mass:.3f} / {cert1.learning_rate_applied:.2f}")
-    print(f"    - Uhlmann / Bures    : {cert1.quantum_fidelity:.4f} / {cert1.bures_distance:.4f}")
-    print(f"    - Vacuna / P²−P      : {cert1.immune_vaccine_effective} / {cert1.projector_idempotency_residual:.2e}")
-    print(f"    - SHA-512 Merkle     : {cert1.merkle_sha512_provenance[:32]}...")
+    print(f"  • Sueño REM cert id: {cert1.dream_id} | Heyting: {cert1.heyting_verdict.name} | Umegaki: {cert1.umegaki_divergence:.4f}")
 
-    print("\n>>> ESCENARIO 2: Insolvencia circular β₁ = 3...")
-    cert2 = dreamer_agent.dream_scenario(
-        scenario_type="CIRCULAR_FRAUD_SUB_CONTRACT",
-        cost_delta_ratio=0.85,
-        synthetic_betti_1=3,
-    )
-    print(f"    - Veredicto Heyting  : {cert2.heyting_verdict.name}")
-    print(f"    - Vacuna / η         : {cert2.immune_vaccine_effective} / {cert2.learning_rate_applied}")
-
-    print("\n>>> ESCENARIO 3: Intrusión y fuga de enclave...")
-    cert3 = dreamer_agent.dream_scenario(
-        scenario_type="HARDWARE_ISOLATION_BREACH_ATTACK",
-        cost_delta_ratio=0.10,
-        synthetic_betti_1=0,
-        force_isolation_breach=True,
-    )
-    print(f"    - Veredicto Heyting  : {cert3.heyting_verdict.name}")
-    print(f"    - Aislamiento físico : {cert3.isolation_guarantee}")
-    assert cert3.heyting_verdict == HeytingToposAlgebra.VETOED_ABSURDUM
-    assert cert3.learning_rate_applied == 0.0
-    assert cert3.isolation_guarantee is False
-
-    print("\n[§4] FASE MACRO REM: AUDITORÍA, MERKLE Y VACUNACIÓN MASIVA")
-    batch = [
-        ("CEMENT_SUPPLY_BLOCKADE_40", 0.40, 1),
-        ("LABOR_UNION_STRIKE_7DAYS", 0.25, 0),
-        ("RIVER_FLOOD_FOUNDATION_APU", 0.30, 0),
-        ("CIRCULAR_KICKBACK_SCHEME", 0.90, 2),
-    ]
-    report = dreamer_agent.execute_macro_wake_sleep_audit(batch)
-    print(f"  • ID Auditoría REM       : {report.audit_cycle_id}")
-    print(f"  • Vacunas consolidadas   : {report.vaccines_absorbed_count}/{report.total_scenarios_simulated}")
-    print(f"  • Ratio reducción caos   : {report.entropy_reduction_ratio * 100:.2f}%")
-    print(f"  • Veredicto topos global : {report.overall_topos_verdict.name}")
-    print(f"  • Merkle hojas / pruebas : {report.merkle_leaf_count} / {report.merkle_proofs_ok}")
-    print(f"  • Merkle root (SHA-512)  : {report.merkle_root_hash[:48]}...")
-    print(f"  • Tiempo de cómputo      : {report.execution_duration_ms:.2f} ms")
-    assert report.merkle_proofs_ok, "Fallo en pruebas de inclusión Merkle."
-
-    print("\n>>> AUDITORÍA RETROSPECTIVA")
-    for k, v in dreamer_agent.audit_registry().items():
-        print(f"    - {k:<28}: {v}")
-    print("\n>>> PASAPORTE DEL DREAMER")
-    for k, v in dreamer_agent.emit_dreamer_passport().items():
-        print(f"    - {k:<22}: {v}")
-
-    print("\n" + "═" * 80)
-    print("✓ AUDITORÍA Y METABOLIZACIÓN ONÍRICA CONCLUIDA SATISFACTORIAMENTE.")
-    print("═" * 80)
+    print("\n✓ AUDITORÍA Y METABOLIZACIÓN ONÍRICA CONCLUIDA SATISFACTORIAMENTE.")

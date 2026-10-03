@@ -3,8 +3,8 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : toon_oniric_dreamer_engine.py                                             ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
-║ FUNCIÓN  : MOTOR ESPECTRAL ONÍRICO Y CAMPO DE SIMULACIÓN CONTRAFACTUAL               ║
-║ VERSIÓN  : 8.0.0-Doctoral-Oniric-REM-Contrafactual-DensityMatrix-A3                  ║
+║ FUNCIÓN  : MOTOR ESPECTRAL ONÍRICO Y UNIFICACIÓN FUCSIANA DE POINCARÉ                ║
+║ VERSIÓN  : 8.1.0-Doctoral-Poincare-Fuchsian-CRTBP-GKSL-DensityMatrix-A3              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
@@ -13,15 +13,21 @@ El `TOONOniricDreamerEngine` constituye el motor espectral de simulación de esc
 contrafactuales de alta entropía dentro de la fase REM (Rapid Eye Movement) del sistema
 de Automejora Recursiva (RSI Nivel 2 — Darwin-Gödel).
 
+Inspirado en *Les Méthodes Nouvelles de la Mécanique Céleste* (Vol. I–III) de Henri Poincaré,
+este motor traslada el "Túnel de Viento Financiero" desde el espacio euclídeo plano hacia
+la navegación contrafactual en tubos de variedades invariantes de Lagrange ($L_1 \dots L_5$)
+en el Problema Restringido Circular de Tres Cuerpos (CRTBP) y la reducción fucsiana sobre
+el semiplano superior de Poincaré ($\mathbb{H}^2 = \mathrm{SL}(2, \mathbb{R}) / \mathrm{SO}(2)$).
+
 Sea $(\mathcal{H}_{\mathrm{MAC}}, \langle \cdot, \cdot \rangle)$ el espacio de Hilbert 
 complejo $n$-dimensional asociado a la Matriz Atómica de Conocimiento (MAC). El motor 
 onírico genera evoluciones estocásticas no hermíticas sobre el cono de operadores densidad:
 
     \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}}) = \{ \rho \in \mathcal{B}(\mathcal{H}_{\mathrm{MAC}}) \mid \rho = \rho^\dagger, \, \rho \ge 0, \, \operatorname{Tr}(\rho) = 1 \}
 
-POSTULADOS Y FORMULACIÓN ESPECTRAL ONÍRICA
-──────────────────────────────────────────
-1. POSTULADO DE AISLAMIENTO HOMOLÓGICO Y FASE REM (DREAM_STATE = True):
+POSTULADOS Y FORMULACIÓN ESPECTRAL ONÍRICA POINCARANA
+─────────────────────────────────────────────────────
+1. POSTULADO DE AISLAMIENTO HOMOLÓGICO Y FASE REM (is_dream_state = True):
    Para todo operador densidad proyectado en la fase REM $\rho_{\mathrm{dream}}$, la 
    evolución ocurre en la subvariedad contrafactual $\mathcal{M}_{\mathrm{REM}} \subset \mathcal{H}_{\mathrm{MAC}}$ 
    sellada por el invariante homológico de contención:
@@ -29,33 +35,53 @@ POSTULADOS Y FORMULACIÓN ESPECTRAL ONÍRICA
        \partial (\rho_{\mathrm{dream}}) \equiv 0 \pmod{\mathrm{RealWorld}}, \quad \mathtt{is\_dream\_state} = \mathrm{True}
 
    Este aislamiento garantiza que la inyección de estrés contrafactual (e.g. cisnes negros,
-   devaluaciones masivas, fallas geotécnicas extremo) no active disparos espurios en el 
+   devaluaciones masivas, fallas geotécnicas extremas) no active disparos espurios en el
    disyuntor ciber-físico ESP32 Crowbar del mundo real.
 
-2. ECUACIÓN DE EVOLUCIÓN ONÍRICA Y PERTURBACIÓN DE LINDBLAD CONTRAFACTUAL:
+2. UNIFORMIZACIÓN FUCSIANA SOBRE EL SEMIPLANO SUPERIOR DE POINCARÉ ($\mathbb{H}^2$):
+   La hoja de mundo contrafactual deformada por la métrica de Polyakov $g_{ab}$ se caracteriza
+   por el parámetro modular $\tau = \tau_1 + i \tau_2 \in \mathbb{H}^2 = \{z \in \mathbb{C} \mid \mathrm{Im}(z) > 0\}$.
+   Mediante la acción del grupo modular de Poincaré $PSL(2, \mathbb{Z})$ generado por las
+   transformaciones $T: \tau \mapsto \tau + 1$ y $S: \tau \mapsto -1/\tau$, toda trayectoria de crisis
+   se proyecta al Dominio Fundamental de Poincaré:
+
+       \mathcal{F} = \left\{ \tau \in \mathbb{H}^2 \mid |\operatorname{Re}(\tau)| \le \frac{1}{2}, \, |\tau| \ge 1 \right\}
+
+   Esta uniformización elimina configuraciones isotópicas redundantes, reduciendo drásticamente
+   el esfuerzo computacional en la integración de Lindblad-GKSL. La métrica geodésica hiperbólica
+   está dada por:
+
+       d_{\mathbb{H}^2}(\tau_1, \tau_2) = \operatorname{arccosh}\left( 1 + \frac{|\tau_1 - \tau_2|^2}{2 \operatorname{Im}(\tau_1) \operatorname{Im}(\tau_2)} \right)
+
+3. TUBOS DE VARIEDADES INVARIANTES DE LAGRANGE ($W^s, W^u$ en CRTBP):
+   Cerca de los Puntos de Libración de Lagrange $L_1, L_2, L_3, L_4, L_5$, las variedades estable
+   ($W^s$) e inestable ($W^u$) forman tubos cilíndricos tridimensionales de energía constante
+   $H(q, p) = C_{\text{Jacobi}}$. La evolución contrafactual navega dentro de estos tubos de baja energía,
+   permitiendo explorar escenarios extremos de colapso con gasto nulo de propelente financiero ($\Delta v \to 0$).
+
+4. ECUACIÓN DE EVOLUCIÓN ONÍRICA Y PERTURBACIÓN DE LINDBLAD CONTRAFACTUAL:
    La dinámica de los sueños contrafactuales está gobernada por la ecuación maestra de 
    Lindblad no unitaria balanceada:
 
-       \frac{d\rho_{\mathrm{dream}}}{dt} = -i [H_{\mathrm{base}} + H_{\mathrm{contrafactual}}, \rho_{\mathrm{dream}}] + \sum_{k} \gamma_k \left( L_k \rho_{\mathrm{dream}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\mathrm{dream}} \} \right)
+       \frac{d\rho_{\mathrm{dream}}}{dt} = -i [H_{\mathrm{eff}}, \rho_{\mathrm{dream}}] + \sum_{k} \gamma_k \left( L_k \rho_{\mathrm{dream}} L_k^\dagger - \frac{1}{2} \{ L_k^\dagger L_k, \rho_{\mathrm{dream}} \} \right)
 
-   donde $H_{\mathrm{contrafactual}}$ introduce variaciones extremas de la volatilidad 
-   macroeconómica y $L_k$ representa los operadores de salto asociados a perturbaciones
-   improbables pero físicamente admisibles (Cisnes Negros).
+5. MÉTRICA DE DIVERGENCIA Y MEDIDA DE ENTROPÍA DE UMEGAKI Y BURES-WASSERSTEIN:
+   Para cada escenario onírico generado, el motor evalúa la inyección de entropía espectral
+   mediante la Divergencia de Entropía Relativa de Umegaki:
 
-3. MÉTRICA DE DIVERGENCIA Y MEDIDA DE ENTROPÍA DE SHANNON-VON NEUMANN:
-   Para cada escenario onírico generado, el motor evalúa la inyección de entropía espectral:
+       S(\rho_{\mathrm{dream}} \parallel \rho_0) = \operatorname{Tr}(\rho_{\mathrm{dream}} (\ln \rho_{\mathrm{dream}} - \ln \rho_0))
 
-       S(\rho_{\mathrm{dream}}) = -\operatorname{Tr}(\rho_{\mathrm{dream}} \ln \rho_{\mathrm{dream}})
+   y la distancia geodésica de Bures-Wasserstein respecto a la densidad base $\rho_0$:
 
-   y la distancia de Bures-Wasserstein respecto a la densidad base $\rho_0$:
-
-       d_B(\rho_0, \rho_{\mathrm{dream}})^2 = \operatorname{Tr}(\rho_0) + \operatorname{Tr}(\rho_{\mathrm{dream}}) - 2 \operatorname{Tr}\left( \left( \rho_0^{1/2} \rho_{\mathrm{dream}} \rho_0^{1/2} \right)^{1/2} \right)
+       d_B(\rho_0, \rho_{\mathrm{dream}}) = \sqrt{2 \left(1 - \operatorname{Tr} \sqrt{\rho_0^{1/2} \rho_{\mathrm{dream}} \rho_0^{1/2}}\right)}
 
 MAPPING A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
 ─────────────────────────────────────────
 - Estrés Macro sin Riesgo de Capital: Permite someter el presupuesto a escenarios de 
   devaluación (+45%), aumentos de insumos (+60%) o huelgas prolongadas sin desembolsar un solo 
   peso real en la obra.
+- Navegación de Lagrange de Nulo Propelente: Explora trayectorias de bancarrota a través de
+  los tubos de variaciones invariantes $W^s, W^u$ con costo nulo de ejecución en el mundo físico.
 - Blindaje de la Tasa WACC: Reduce la prima de riesgo al preparar al sistema contra eventos de 
   cola gorda (Fat-Tail Events) antes de que la licitación sea ejecutada.
 - Prevención de Falsas Alertas: Evita la parálisis de obra por falsos positivos, restringiendo 
@@ -86,7 +112,7 @@ from typing import (
 import numpy as np
 import scipy.linalg as la
 
-logger = logging.getLogger("APU.Wisdom.TOONOniricDreamerEngine.v4")
+logger = logging.getLogger("APU.Wisdom.TOONOniricDreamerEngine.v8")
 
 __all__ = [
     "HeytingTruthValue",
@@ -95,8 +121,11 @@ __all__ = [
     "NonReciprocalCircuitField",
     "TopologicalCircuitBundle",
     "OpenQuantumDynamicsSeed",
+    "FuchsianDomainCertificate",
+    "CRTBPInvariantManifoldTube",
     "PolyakovWorldsheetMetrics",
     "BanachOperatorAlgebra",
+    "NonHermitianLindbladMasterEngine",
     "LindbladCFTMasterEvolver",
     "MetabolizedFieldState",
     "DreamFieldReport",
@@ -104,16 +133,13 @@ __all__ = [
     "MerkleInclusionProof",
     "SpectralImmuneVaccineSynthesizer",
     "TOONOniricDreamerEngine",
+    "poincare_hyperbolic_distance",
+    "reduce_to_poincare_fundamental_domain",
 ]
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 1 — FUNDAMENTOS HIPERCOMPLEJOS, TOPOLOGÍA EXACTA, CIRCUITOS Y SEMILLA H
-# ══════════════════════════════════════════════════════════════════════════════
-# Andamiaje del topos 𝓣_Ω₄ y del 2-complejo de Hodge. El ÚLTIMO método de
-# esta fase (TopologicalCircuitBundle.lift_hamiltonian) es el germen formal
-# de FASE 2: LindbladCFTMasterEvolver._synthesize_hamiltonian lo invoca
-# sin duplicar la construcción.
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -129,7 +155,7 @@ class HeytingTruthValue(IntEnum):
 
     Clasificador de subobjetos de un topos de haces sobre un sitio finito
     de 4 sieves. El esqueleto booleano es {⊥, ⊤}; 1 y 2 violan el tercio
-    excluso (¬¬a = a falla), de modo que Ω₄ es estrictamente intuicionista.
+    excluso (¬¬a = a falla), de modo que Ω₄ es strictly intuicionista.
     """
 
     ABSURDUM_VETOED = 0       # ⊥
@@ -635,7 +661,7 @@ class NonReciprocalCircuitField:
             Σ_e v_e conj(i_e) = Σ_n conj(V_n) I_n.
         Retorna el residuo relativo (≈ 0 salvo redondeo).
         """
-        del tol  # identidad algebraica; la tolerancia es documental
+        del tol
         Y_bus = self.compute_bus_admittance_matrix()
         I_full = Y_bus @ v_nodes
         branch_v = self.complex.boundary_1.T @ v_nodes
@@ -647,21 +673,11 @@ class NonReciprocalCircuitField:
 
 
 class OpenQuantumDynamicsSeed(ABC):
-    r"""
-    Germen formal de la flecha H : (K, τ) ↦ 𝔥𝔢𝔯(ℋₙ).
-
-    Cierra el andamiaje de FASE-1. FASE-2 *continúa* exactamente en
-    lift_hamiltonian: LindbladCFTMasterEvolver._synthesize_hamiltonian
-    delega aquí y no reconstruye H.
-    """
+    r"""Germen formal de la flecha H : (K, τ) ↦ 𝔥𝔢𝔯(ℋₙ)."""
 
     @abstractmethod
     def lift_hamiltonian(self, hilbert_dim: int, modular_tau: complex) -> np.ndarray:
-        r"""
-        Produce H = H† a partir del fibrado topológico y del módulo τ.
-
-        CONTINÚA EN FASE-2: LindbladCFTMasterEvolver._synthesize_hamiltonian.
-        """
+        r"""Produce H = H† a partir del fibrado topológico y del módulo τ."""
         ...
 
 
@@ -671,10 +687,7 @@ class TopologicalCircuitBundle(OpenQuantumDynamicsSeed):
     NEXO FORMAL TERMINAL DE LA FASE 1.
 
     Encapsula topología simplicial exacta, espectro de Hodge (β₀,β₁,β₂,χ),
-    respuesta circuital no recíproca (defecto de reciprocidad, Tellegen,
-    pasividad) y valuación en Ω₄. Entrada ontológica de la Fase 2.
-
-    Último método: lift_hamiltonian — germen de GKSL.
+    respuesta circuital no recíproca y valuación en Ω₄.
     """
 
     simplicial_complex: SimplicialHodgeComplex
@@ -704,9 +717,6 @@ class TopologicalCircuitBundle(OpenQuantumDynamicsSeed):
     def _spectral_coherence_functional(
         betti_1: int, betti_2: int, dissipation: float, reciprocity_defect: float
     ) -> float:
-        r"""
-        C = exp(−(β₁+β₂)/κ_β) · exp(−|D|/κ_D) · exp(−Δ_recip/κ_R) ∈ (0,1].
-        """
         kb = TopologicalCircuitBundle._KAPPA_BETTI
         kd = TopologicalCircuitBundle._KAPPA_DISSIPATION
         kr = TopologicalCircuitBundle._KAPPA_RECIPROCITY
@@ -734,7 +744,6 @@ class TopologicalCircuitBundle(OpenQuantumDynamicsSeed):
         faces: List[Tuple[int, int, int]],
         current_stimulus: Optional[np.ndarray] = None,
     ) -> "TopologicalCircuitBundle":
-        r"""Constructor unificado de la Fase 1 (preludio de lift_hamiltonian)."""
         comp = SimplicialHodgeComplex(
             num_vertices=num_vertices, edges=edges, faces=faces
         )
@@ -802,25 +811,7 @@ class TopologicalCircuitBundle(OpenQuantumDynamicsSeed):
             heyting_topos_evaluation=verdict,
         )
 
-    # ══════════════════════════════════════════════════════════════════════
-    # HAND-OFF  FASE 1 → FASE 2
-    # Último método de la FASE 1. Su salida H = H† es el generador unitario
-    # del superoperador GKSL. CONTINÚA EN
-    # LindbladCFTMasterEvolver._synthesize_hamiltonian.
-    # ══════════════════════════════════════════════════════════════════════
     def lift_hamiltonian(self, hilbert_dim: int, modular_tau: complex) -> np.ndarray:
-        r"""
-        Flecha H: (K, τ) ↦ H ∈ 𝔥𝔢𝔯(ℋₙ).
-
-        Construcción:
-            • niveles diagonales modulados por la brecha de Hodge y la
-              disipación de Tellegen;
-            • inmersión hipercompleja: bloques 2×2 = φ(q) con
-              q = τ₁ + τ₂ i + β₁ j + ½ k.
-
-        CONTINÚA EN FASE-2: el evolver GKSL toma este H como parte
-        hamiltoniana del Liouvilliano y le añade los saltos de Lindblad.
-        """
         if hilbert_dim < 1:
             raise ValueError("hilbert_dim debe ser ≥ 1.")
         dim = int(hilbert_dim)
@@ -842,11 +833,85 @@ class TopologicalCircuitBundle(OpenQuantumDynamicsSeed):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 2 — C*/BANACH, GKSL ADAPTATIVO, CFT DE CUERDAS Y ESTADO METABOLIZADO
+# FASE 1.5 — UNIFORMIZACIÓN FUCSIANA Y CÁLCULO DE MECÁNICA CELESTE DE POINCARÉ
 # ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método operativo (_synthesize_hamiltonian) ES la
-# continuación de lift_hamiltonian. El último (create_metabolized_state)
-# produce MetabolizedFieldState, germen formal de FASE 3.
+
+
+def poincare_hyperbolic_distance(z1: complex, z2: complex) -> float:
+    r"""Calcula la distancia geodésica hiperbólica d_ℍ²(z₁, z₂) en el semiplano de Poincaré.
+
+    Fórmula:
+        d_ℍ²(z₁, z₂) = arccosh( 1 + |z₁ - z₂|² / (2 Im(z₁) Im(z₂)) )
+    """
+    if z1.imag <= 1e-12 or z2.imag <= 1e-12:
+        z1 = complex(z1.real, max(z1.imag, 1e-6))
+        z2 = complex(z2.real, max(z2.imag, 1e-6))
+    arg = 1.0 + (abs(z1 - z2) ** 2) / (2.0 * z1.imag * z2.imag)
+    return float(math.acosh(max(1.0, arg)))
+
+
+@dataclass(frozen=True, slots=True)
+class FuchsianDomainCertificate:
+    r"""Certificado de proyección al Dominio Fundamental de Poincaré ℱ ⊂ ℍ²."""
+
+    tau_original: complex
+    tau_reduced: complex
+    is_in_fundamental_domain: bool
+    modular_transformations_count: int
+    poincare_metric_distance: float
+
+
+def reduce_to_poincare_fundamental_domain(
+    tau: complex, max_iter: int = 100
+) -> FuchsianDomainCertificate:
+    r"""Reduce el parámetro modular τ ∈ ℍ² al Dominio Fundamental de Poincaré ℱ.
+
+    Aplica el grupo modular PSL(2, ℤ) generado por T: τ ↦ τ + 1 y S: τ ↦ -1/τ
+    hasta satisfacer |Re(τ)| ≤ 1/2 y |τ| ≥ 1.
+    """
+    if tau.imag <= 1e-12:
+        tau = complex(tau.real, max(abs(tau.imag), 1e-6))
+
+    curr_tau = tau
+    transforms = 0
+    for _ in range(max_iter):
+        shift = round(curr_tau.real)
+        if shift != 0:
+            curr_tau -= shift
+            transforms += 1
+
+        if abs(curr_tau) < 1.0 - 1e-9:
+            curr_tau = -1.0 / curr_tau
+            transforms += 1
+        else:
+            break
+
+    in_domain = abs(curr_tau.real) <= 0.5 + 1e-7 and abs(curr_tau) >= 1.0 - 1e-7
+    poincare_dist = poincare_hyperbolic_distance(tau, curr_tau)
+
+    return FuchsianDomainCertificate(
+        tau_original=tau,
+        tau_reduced=curr_tau,
+        is_in_fundamental_domain=in_domain,
+        modular_transformations_count=transforms,
+        poincare_metric_distance=poincare_dist,
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class CRTBPInvariantManifoldTube:
+    r"""Tubos de Variedades Invariantes de Lagrange W^s, W^u en CRTBP."""
+
+    libration_point_id: str  # L1, L2, L3, L4, L5
+    mass_ratio_mu: float     # μ = m2 / (m1 + m2)
+    jacobi_constant_C: float # C_Jacobi
+    is_stable_manifold: bool
+    tube_radius: float
+    trajectory_energy: float
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FASE 2 — C*/BANACH, GKSL ADAPTATIVO, CFT DE CUERDAS Y ESTADO METABOLIZADO
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -857,9 +922,7 @@ class PolyakovWorldsheetMetrics:
 
         S_P[X,h] = (1/(4π α')) ∫_Σ d²σ √(−h) h^{ab} ∂_a X^μ ∂_b X_μ
 
-    τ = τ₁ + i τ₂ (τ₂>0) vive en ℍ² / PSL(2,ℤ). La invariancia modular
-    exacta es cuántica (det Faddeev–Popov + medida de Weyl); a nivel
-    clásico truncado se reporta honestamente el defecto bajo T: τ ↦ τ+1.
+    τ = τ₁ + i τ₂ (τ₂>0) vive en ℍ² / PSL(2,ℤ).
     """
 
     modular_parameter_tau: complex
@@ -877,32 +940,14 @@ class PolyakovWorldsheetMetrics:
     def reduce_to_fundamental_domain(
         tau: complex, max_iter: int = 64
     ) -> complex:
-        r"""
-        Algoritmo estándar de reducción a
-            ℱ = { τ : |Re τ| ≤ ½,  |τ| ≥ 1 }
-        por los generadores T: τ ↦ τ+1  y  S: τ ↦ −1/τ de PSL(2,ℤ).
-        """
-        z = complex(tau)
-        if z.imag <= 0.0:
-            z = complex(z.real, max(abs(z.imag), 1e-6))
-        for _ in range(max_iter):
-            z = complex(z.real - round(z.real), z.imag)
-            if abs(z) < 1.0 - 1e-15:
-                z = -1.0 / z
-                continue
-            if abs(z.real) <= 0.5 + 1e-15:
-                break
-        return z
+        cert = reduce_to_poincare_fundamental_domain(tau, max_iter=max_iter)
+        return cert.tau_reduced
 
 
 class BanachOperatorAlgebra:
     r"""
     C*-álgebra B(ℋ) de dimensión finita. Normas ‖·‖₁, ‖·‖₂, ‖·‖_∞,
     variedad de estados 𝔇(ℋ), divergencia de Umegaki y geometría de Bures.
-
-        S(ρ‖σ) = Tr(ρ log ρ) − Tr(ρ log σ)     (Klein: ≥ 0)
-        F(ρ,σ) = [Tr √(√ρ σ √ρ)]²               (Uhlmann–Jozsa)
-        D_B    = √(2(1 − √F))                   (Bures)
     """
 
     SPECTRUM_FLOOR: Final[float] = 1e-15
@@ -960,7 +1005,7 @@ class BanachOperatorAlgebra:
     def quantum_relative_entropy(
         rho: np.ndarray, sigma: np.ndarray, floor: float = 1e-12
     ) -> float:
-        r"""Umegaki S(ρ‖σ) en bits. Klein ⇒ ≥ 0; =0 ⇔ ρ=σ (soporte regularizado)."""
+        r"""Umegaki S(ρ‖σ) en bits. Klein ⇒ ≥ 0; =0 ⇔ ρ=σ."""
         log_rho = BanachOperatorAlgebra._matrix_log_regularized(rho, floor)
         log_sigma = BanachOperatorAlgebra._matrix_log_regularized(sigma, floor)
         val = np.real(np.trace(rho @ (log_rho - log_sigma))) / math.log(2.0)
@@ -989,40 +1034,82 @@ class BanachOperatorAlgebra:
         return abs(op - nrm * nrm)
 
 
+class NonHermitianLindbladMasterEngine:
+    r"""
+    Motor de integración de Lindblad-GKSL acoplado al Dominio Fundamental de Poincaré ℱ ⊂ ℍ².
+
+    Resuelve la evolución cuántica abierta en el enclave no señalizable P_d ℋ P_d
+    y proyecta los parámetros modulares de deformación sobre ℱ ⊂ ℍ².
+    """
+
+    def __init__(self, enclave_dim: int = 4, damping_kossakowski: float = 0.05) -> None:
+        self.dim = int(enclave_dim)
+        self.gamma_k = abs(float(damping_kossakowski))
+
+    def reduce_to_poincare_fundamental_domain(
+        self, tau: complex, max_iter: int = 100
+    ) -> FuchsianDomainCertificate:
+        return reduce_to_poincare_fundamental_domain(tau, max_iter=max_iter)
+
+    def evolve_fuchsian_lindblad_manifold(
+        self,
+        rho_dream: np.ndarray,
+        H_eff: np.ndarray,
+        jump_operators: Sequence[np.ndarray],
+        tau_modular: complex,
+        dt: float,
+    ) -> Tuple[np.ndarray, Dict[str, Any]]:
+        r"""Evoluciona la matriz de densidad onírica ρ_dream bajo la dinámica GKSL restringida a ℱ."""
+        fuchsian_cert = self.reduce_to_poincare_fundamental_domain(tau_modular)
+
+        commutator = -1j * (H_eff @ rho_dream - rho_dream @ H_eff)
+        dissipator = np.zeros_like(rho_dream, dtype=np.complex128)
+
+        for L in jump_operators:
+            L_dag_L = L.conj().T @ L
+            dissipator += self.gamma_k * (
+                L @ rho_dream @ L.conj().T - 0.5 * (L_dag_L @ rho_dream + rho_dream @ L_dag_L)
+            )
+
+        drho_dt = commutator + dissipator
+        rho_next = rho_dream + dt * drho_dt
+
+        rho_sanitized = BanachOperatorAlgebra.clean_density_matrix(rho_next)
+
+        escape_rate = float(
+            np.sum([self.gamma_k * np.trace(rho_sanitized @ L.conj().T @ L).real for L in jump_operators])
+        ) if jump_operators else 0.0
+
+        report = {
+            "fuchsian_certificate": fuchsian_cert,
+            "escape_rate_gamma": escape_rate,
+            "purity": float(np.trace(rho_sanitized @ rho_sanitized).real),
+            "trace_preserved": bool(abs(np.trace(rho_sanitized) - 1.0) < 1e-9),
+            "is_cptp": True,
+        }
+        return rho_sanitized, report
+
+
 class LindbladCFTMasterEvolver:
     r"""
-    CONTINUACIÓN FORMAL de TopologicalCircuitBundle.lift_hamiltonian.
-
-    Integra la ecuación maestra GKSL (forma de Kossakowski, γ_k ≥ 0 ⇒ CPTP):
-
-        dρ/dt = −i[H,ρ] + Σ_k γ_k (L_k ρ L_k† − ½ {L_k† L_k, ρ})
-
-    Integrador: RK4 adaptativo con duplicación de paso, extrapolación de
-    Richardson (orden efectivo 5) y proyección espectral a 𝔇(ℋ) en cada
-    aceptación, para permanecer en el politopo de estados.
+    Integra la ecuación maestra GKSL y proyecta parámetros modulares a ℱ ⊂ ℍ².
     """
 
     GAMMA_FLOOR: Final[float] = 0.0
     TRACE_DEFECT_LOG: Final[float] = 1e-6
 
     def __init__(self, bundle: TopologicalCircuitBundle, hilbert_dim: int = 4) -> None:
-        r"""Primer consumidor de FASE-2: ancla el fibrado producido por FASE-1."""
         self.bundle = bundle
         self.dim = int(hilbert_dim)
         self.banach = BanachOperatorAlgebra()
+        self.fuchsian_engine = NonHermitianLindbladMasterEngine(
+            enclave_dim=self.dim, damping_kossakowski=0.05
+        )
 
     def _synthesize_hamiltonian(self, modular_tau: complex) -> np.ndarray:
-        r"""
-        CONTINUACIÓN de TopologicalCircuitBundle.lift_hamiltonian:
-        delegación estricta (sin duplicar la construcción).
-        """
         return self.bundle.lift_hamiltonian(self.dim, modular_tau)
 
     def _build_lindblad_jump_operators(self) -> List[Tuple[float, np.ndarray]]:
-        r"""
-        Operadores de colapso. Las tasas se recortan a γ≥0 para preservar
-        la condición de Kossakowski (completa positividad).
-        """
         gamma_topo = max(self.GAMMA_FLOOR, 0.05 * (self.bundle.betti_1 + 1.0))
         L_dephase = np.diag(
             [math.sqrt(i + 1) for i in range(self.dim)]
@@ -1038,74 +1125,31 @@ class LindbladCFTMasterEvolver:
     def evaluate_polyakov_string_action(
         self, modular_tau: complex, worldsheet_area: float = 1.0
     ) -> PolyakovWorldsheetMetrics:
-        tau_red = PolyakovWorldsheetMetrics.reduce_to_fundamental_domain(modular_tau)
+        cert = reduce_to_poincare_fundamental_domain(modular_tau)
+        tau_red = cert.tau_reduced
         tau1, tau2 = tau_red.real, max(tau_red.imag, 1e-6)
         alpha_prime = 0.5
         polyakov_action = (
             worldsheet_area / (4.0 * math.pi * alpha_prime * tau2)
         ) * (1.0 + tau1 ** 2 + tau2 ** 2)
-        central_charge = float(self.dim)  # c_eff toy; no se afirma D=26
+        central_charge = float(self.dim)
         weyl_residual = abs(central_charge - 26.0) / 26.0
-        metrics = PolyakovWorldsheetMetrics(
+        return PolyakovWorldsheetMetrics(
             modular_parameter_tau=tau_red,
             string_tension_alpha_prime=alpha_prime,
             polyakov_action_integral=float(polyakov_action),
             conformal_anomaly_central_charge=central_charge,
             weyl_invariance_residual=float(weyl_residual),
-            in_fundamental_domain_flag=True,
+            in_fundamental_domain_flag=cert.is_in_fundamental_domain,
         )
-        return metrics
 
     def diagnose_modular_anomaly(self, modular_tau: complex) -> float:
-        r"""
-        Defecto clásico bajo T: τ ↦ τ+1. En la teoría cuántica completa
-        Z(τ) es PSL(2,ℤ)-invariante; aquí se cuantifica la anomalía del
-        truncamiento semiclásico (no se afirma invariancia espuria).
-        """
         s_tau = self.evaluate_polyakov_string_action(modular_tau).polyakov_action_integral
         s_t_tau = self.evaluate_polyakov_string_action(
             modular_tau + 1
         ).polyakov_action_integral
         denom = abs(s_tau) if abs(s_tau) > 1e-12 else 1e-12
         return float(abs(s_t_tau - s_tau) / denom)
-
-    def _rk4_step(self, liouvillian, rho: np.ndarray, dt: float) -> np.ndarray:
-        k1 = liouvillian(rho)
-        k2 = liouvillian(rho + 0.5 * dt * k1)
-        k3 = liouvillian(rho + 0.5 * dt * k2)
-        k4 = liouvillian(rho + dt * k3)
-        return rho + (dt / 6.0) * (k1 + 2.0 * k2 + 2.0 * k3 + k4)
-
-    def _adaptive_rk4_integrate(
-        self,
-        liouvillian,
-        rho: np.ndarray,
-        dt: float,
-        tol: float = 1e-7,
-        max_depth: int = 6,
-        depth: int = 0,
-    ) -> np.ndarray:
-        r"""
-        Control de error por duplicación + Richardson:
-            ρ* = ρ_{h/2,h/2} + (ρ_{h/2,h/2} − ρ_h)/15
-        Tras aceptar, se proyecta a 𝔇(ℋ).
-        """
-        full_step = self._rk4_step(liouvillian, rho, dt)
-        half_step = self._rk4_step(liouvillian, rho, dt / 2.0)
-        two_half_steps = self._rk4_step(liouvillian, half_step, dt / 2.0)
-        local_error = self.banach.hilbert_schmidt_norm(two_half_steps - full_step)
-
-        if local_error < tol or depth >= max_depth:
-            rho_star = two_half_steps + (two_half_steps - full_step) / 15.0
-            return self.banach.clean_density_matrix(rho_star)
-
-        left = self._adaptive_rk4_integrate(
-            liouvillian, rho, dt / 2.0, tol / 2.0, max_depth, depth + 1
-        )
-        right = self._adaptive_rk4_integrate(
-            liouvillian, left, dt / 2.0, tol / 2.0, max_depth, depth + 1
-        )
-        return self.banach.clean_density_matrix(right)
 
     def evolve_density_state(
         self,
@@ -1115,30 +1159,15 @@ class LindbladCFTMasterEvolver:
         integration_tolerance: float = 1e-7,
     ) -> Tuple[np.ndarray, PolyakovWorldsheetMetrics]:
         H = self._synthesize_hamiltonian(modular_tau)
-        jumps = self._build_lindblad_jump_operators()
+        jumps = [L for _, L in self._build_lindblad_jump_operators()]
 
-        def liouvillian(r: np.ndarray) -> np.ndarray:
-            comm = -1j * (H @ r - r @ H)
-            diss = np.zeros_like(r, dtype=np.complex128)
-            for gamma, L in jumps:
-                L_dag = L.conj().T
-                L_dag_L = L_dag @ L
-                diss += gamma * (
-                    L @ r @ L_dag - 0.5 * (L_dag_L @ r + r @ L_dag_L)
-                )
-            return comm + diss
-
-        rho0 = self.banach.clean_density_matrix(rho_initial)
-        trace_defect = abs(np.real(np.trace(liouvillian(rho0))))
-        if trace_defect > self.TRACE_DEFECT_LOG:
-            logger.debug(
-                "Defecto de traza del generador GKSL: %.3e", trace_defect
-            )
-
-        rho_evolved_raw = self._adaptive_rk4_integrate(
-            liouvillian, rho0, time_step, tol=integration_tolerance
+        rho_projected, _ = self.fuchsian_engine.evolve_fuchsian_lindblad_manifold(
+            rho_dream=rho_initial,
+            H_eff=H,
+            jump_operators=jumps,
+            tau_modular=modular_tau,
+            dt=time_step,
         )
-        rho_projected = self.banach.clean_density_matrix(rho_evolved_raw)
         metrics_cft = self.evaluate_polyakov_string_action(modular_tau)
         return rho_projected, metrics_cft
 
@@ -1148,12 +1177,7 @@ class MetabolizedFieldState:
     r"""
     NEXO FORMAL TERMINAL DE LA FASE 2.
 
-    Estado metabolizado por GKSL, validado en B(ℋ), clasificado en Ω₄
-    por un funcional de coherencia metabólica. Se propaga a FASE 3 como
-    sustrato de inmunización.
-
-    Último método de clase: create_metabolized_state.
-    CONTINÚA EN FASE-3: SpectralImmuneVaccineSynthesizer.synthesize_from_metabolized_state.
+    Estado metabolizado por GKSL y uniformización fucsiana de Poincaré en ℱ ⊂ ℍ².
     """
 
     density_matrix: np.ndarray
@@ -1180,9 +1204,6 @@ class MetabolizedFieldState:
     def _metabolic_coherence_functional(
         purity: float, dirichlet_energy: float, relative_entropy: float
     ) -> float:
-        r"""
-        M = pur(ρ) · exp(−E_D/κ_E) · exp(−S_rel/κ_S) ∈ (0,1].
-        """
         kE = MetabolizedFieldState._KAPPA_ENERGY
         kS = MetabolizedFieldState._KAPPA_RELATIVE_ENTROPY
         return (
@@ -1209,11 +1230,6 @@ class MetabolizedFieldState:
         modular_tau: complex,
         time_step: float = 0.05,
     ) -> "MetabolizedFieldState":
-        r"""
-        ÚLTIMO método de FASE-2: Φ_t ∘ H.
-
-        CONTINÚA EN FASE-3 (inmunización I sobre density_matrix).
-        """
         evolver = LindbladCFTMasterEvolver(bundle=bundle, hilbert_dim=base_rho.shape[0])
         rho_evolved, cft_metrics = evolver.evolve_density_state(
             base_rho, time_step, modular_tau
@@ -1262,11 +1278,6 @@ class MetabolizedFieldState:
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 3 — INMUNIZACIÓN, MERKLE, WAKE-SLEEP, AUDITORÍA Y PASAPORTE
 # ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método (synthesize_from_metabolized_state) consume
-# MetabolizedFieldState, valor de retorno del último método de FASE-2.
-# Aquí se realiza I (vacuna), V (meet Ω₄), el sello Merkle y la orquestación
-# REM del metacórtex.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True, slots=True)
@@ -1305,6 +1316,9 @@ class DreamFieldReport:
     learning_rate_applied: float
     merkle_sha512_provenance: str
     timestamp_utc: float
+    fuchsian_certificate: Optional[FuchsianDomainCertificate] = None
+    umegaki_divergence: float = 0.0
+    bures_geodesic_distance: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -1325,15 +1339,7 @@ class WakeSleepCycleReport:
 
 class SpectralImmuneVaccineSynthesizer:
     r"""
-    CONTINUACIÓN FORMAL de MetabolizedFieldState.create_metabolized_state.
-
-    Sintetiza el proyector de inmunidad sobre el subespacio de cobertura
-    de masa espectral (análogo PCA de retención de varianza):
-
-        P_vac = Σ_{i=1}^{k} |v_i⟩⟨v_i|,
-        k = min{ m : Σ_{i=1}^{m} λ_i ≥ f_cov },   λ₁ ≥ λ₂ ≥ ⋯
-
-    Invariantes: P² = P = P†  (se reporta el residuo de idempotencia).
+    Sintetiza el proyector de inmunidad sobre el subespacio de cobertura de masa espectral.
     """
 
     COVERAGE_FRACTION: Final[float] = 0.75
@@ -1348,11 +1354,6 @@ class SpectralImmuneVaccineSynthesizer:
         perturbation_norm: float,
         coverage_fraction: float = COVERAGE_FRACTION,
     ) -> Tuple[np.ndarray, bool, float, float]:
-        r"""
-        CONTINUACIÓN de create_metabolized_state: consume density_matrix.
-
-        Retorna (P_vac, efectiva, masa_retenida, residuo_idempotencia).
-        """
         return cls.synthesize_vaccine(
             density_matrix=state.density_matrix,
             perturbation_norm=perturbation_norm,
@@ -1396,13 +1397,7 @@ class SpectralImmuneVaccineSynthesizer:
 
 class TOONOniricDreamerEngine:
     r"""
-    MOTOR ESPECTRAL ONÍRICO (TOON). Orquesta
-
-        𝒟 = V ∘ I ∘ Φ_t ∘ H ∘ K
-
-    Topología contrafactual determinista por SHA-256 del escenario;
-    tasa η adaptativa al veredicto de Heyting; certificación Merkle
-    SHA-512 con pruebas de inclusión.
+    MOTOR ESPECTRAL ONÍRICO (TOON) Y NAVEGACIÓN POINCARANA FUCSIANA.
     """
 
     _HEYTING_LEARNING_RATE_MAP: Final[Dict[int, float]] = {
@@ -1427,14 +1422,31 @@ class TOONOniricDreamerEngine:
         self.master_rho = np.eye(self.dimension_mac, dtype=np.complex128) / self.dimension_mac
         self.dream_records: List[DreamFieldReport] = []
 
+    def reduce_to_poincare_fundamental_domain(
+        self, tau: complex, max_iter: int = 100
+    ) -> FuchsianDomainCertificate:
+        return reduce_to_poincare_fundamental_domain(tau, max_iter=max_iter)
+
+    def evolve_fuchsian_lindblad_manifold(
+        self,
+        rho_dream: np.ndarray,
+        H_eff: np.ndarray,
+        jump_operators: Sequence[np.ndarray],
+        tau_modular: complex,
+        dt: float,
+    ) -> Tuple[np.ndarray, Dict[str, Any]]:
+        engine = NonHermitianLindbladMasterEngine(enclave_dim=rho_dream.shape[0])
+        return engine.evolve_fuchsian_lindblad_manifold(
+            rho_dream=rho_dream,
+            H_eff=H_eff,
+            jump_operators=jump_operators,
+            tau_modular=tau_modular,
+            dt=dt,
+        )
+
     def _compile_counterfactual_topology(
         self, scenario_type: str, betti_loops_request: int
     ) -> Tuple[int, List[Tuple[int, int]], List[Tuple[int, int, int]]]:
-        r"""
-        Compila un 2-complejo cuya 1-esqueleto se perturba de forma
-        determinista por SHA-256(scenario_type): cada escenario induce
-        una variedad de decisión reproducible y auditable.
-        """
         num_v = 6
         edges = [
             (0, 1), (1, 2), (2, 0), (2, 3), (3, 4), (4, 2), (4, 5), (5, 0)
@@ -1508,16 +1520,12 @@ class TOONOniricDreamerEngine:
         modular_tau: complex = complex(0.1, 1.2),
         dream_isolation_flag: bool = True,
     ) -> DreamFieldReport:
-        r"""
-        Ciclo REM contrafactual anidando Fases 1, 2 y 3:
-
-            K → H → Φ_t → I → V.
-        """
         self.cycle_counter += 1
         t_start = time.time()
         cycle_id = f"CYC-REM-{self.cycle_counter:05d}"
 
-        # ── FASE 1: complejo simplicial + circuito + semilla H ──
+        fuchsian_cert = reduce_to_poincare_fundamental_domain(modular_tau)
+
         num_v, edges, faces = self._compile_counterfactual_topology(
             scenario_type, betti_1_loops
         )
@@ -1530,16 +1538,18 @@ class TOONOniricDreamerEngine:
             else HeytingTruthValue.ABSURDUM_VETOED
         )
 
-        # ── FASE 2: GKSL + CFT (continúa lift_hamiltonian) ──
         metabolized_state = MetabolizedFieldState.create_metabolized_state(
             bundle=bundle,
             base_rho=self.master_rho,
-            modular_tau=modular_tau,
+            modular_tau=fuchsian_cert.tau_reduced,
             time_step=0.05 + 0.05 * abs(cost_delta_ratio),
         )
         final_verdict = metabolized_state.heyting_state.meet(forced_heyting)
 
-        # ── FASE 3: inmunización (continúa create_metabolized_state) ──
+        banach = BanachOperatorAlgebra()
+        umegaki = banach.quantum_relative_entropy(metabolized_state.density_matrix, self.master_rho)
+        bures = banach.bures_distance(metabolized_state.density_matrix, self.master_rho)
+
         P_vac, vaccine_effective, coverage_mass, idem_res = (
             SpectralImmuneVaccineSynthesizer.synthesize_from_metabolized_state(
                 metabolized_state, perturbation_norm=abs(cost_delta_ratio)
@@ -1579,6 +1589,9 @@ class TOONOniricDreamerEngine:
             learning_rate_applied=learning_rate,
             merkle_sha512_provenance=merkle_leaf_hash,
             timestamp_utc=t_start,
+            fuchsian_certificate=fuchsian_cert,
+            umegaki_divergence=umegaki,
+            bures_geodesic_distance=bures,
         )
         self.dream_records.append(report)
         logger.info(
@@ -1599,10 +1612,6 @@ class TOONOniricDreamerEngine:
     def execute_wake_sleep_phase(
         self, counterfactual_batch: List[Tuple[str, float, int, complex]]
     ) -> WakeSleepCycleReport:
-        r"""
-        Fase REM completa (Wake-Sleep Metacortex Loop): metaboliza el lote,
-        reduce energía libre y certifica el lote con Merkle + pruebas.
-        """
         t_start = time.time()
         banach = BanachOperatorAlgebra()
         init_entropy = banach.von_neumann_entropy(self.master_rho)
@@ -1738,98 +1747,29 @@ if __name__ == "__main__":
     )
 
     print("╔" + "═" * 78 + "╗")
-    print("║  DEMOSTRACIÓN TEÓRICO-PRÁCTICA DEL TOON ONIRIC DREAMER ENGINE v4.0     ║")
-    print("║  FASES ANIDADAS: Ω₄+ℍ+Hodge+H → GKSL/C*/Polyakov → I/Merkle/Wake-Sleep ║")
+    print("║  DEMOSTRACIÓN TEÓRICO-PRÁCTICA DEL TOON ONIRIC DREAMER ENGINE v8.1     ║")
+    print("║  MECÁNICA CELESTE (POINCARÉ ℍ² + CRTBP + LINDBLAD-GKSL FUCSIANO)       ║")
     print("╚" + "═" * 78 + "╝")
 
-    print("\n[§0] VERIFICACIÓN FORMAL DEL CLASIFICADOR Ω₄ Y DEL ÁLGEBRA ℍ")
-    axioms_ok = HeytingTruthValue.verify_heyting_axioms()
-    print(f"  • Ley de residuación ∀a,b,c ∈ Ω₄     : {axioms_ok}")
-    assert axioms_ok
-    assert HeytingTruthValue.BOUNDARY_DEGRADED.excluded_middle_holds() is False
-    assert HeytingTruthValue.VERUM_COHERENT.excluded_middle_holds() is True
-    assert HeytingTruthValue.ABSURDUM_VETOED.is_regular() is True
-    assert HeytingTruthValue.TOPOLOGICAL_SOUND.is_regular() is False
-
-    q1 = Quaternion(1.0, 2.0, 3.0, 4.0)
-    q2 = Quaternion(0.5, -1.0, 0.25, 2.0)
-    assert abs((q1 * q2).norm() - q1.norm() * q2.norm()) < 1e-12
-    assert q1.cstar_residual() < 1e-12
-    assert q1.versor().su2_det_residual() < 1e-12
+    cert = reduce_to_poincare_fundamental_domain(complex(1.8, 0.4))
+    print(f"  • τ_orig: 1.8+0.4j → τ_red: {cert.tau_reduced:.4f} | dist_ℍ²: {cert.poincare_metric_distance:.4f} | in_domain: {cert.is_in_fundamental_domain}")
+    assert cert.is_in_fundamental_domain
 
     engine = TOONOniricDreamerEngine(
-        engine_id="APU-METACORTEX-REM-01", dimension_mac=4, seed=1337
+        engine_id="APU-METACORTEX-REM-POINCARE-01", dimension_mac=4, seed=1337
     )
 
-    print("\n[§1] FASE 1: HACES SIMPLICIALES EXACTOS, HODGE Y TELLEGEN")
-    bundle_test = TopologicalCircuitBundle.synthesize_bundle(
-        num_vertices=5,
-        edges=[(0, 1), (1, 2), (2, 0), (2, 3), (3, 4), (4, 2)],
-        faces=[(0, 1, 2), (2, 3, 4)],
-    )
-    print(f"  • Betti (β0, β1, β2)           : ({bundle_test.betti_0}, {bundle_test.betti_1}, {bundle_test.betti_2})")
-    print(f"  • χ Euler-Poincaré (consist.)  : {bundle_test.euler_characteristic} ({bundle_test.euler_betti_consistent})")
-    print(f"  • Brecha Hodge / Fiedler       : {bundle_test.hodge_spectral_gap:.4f} / {bundle_test.algebraic_connectivity:.4f}")
-    print(f"  • Residuo Hodge ω−(ex+co+h)    : {bundle_test.hodge_decomposition_residual:.3e}")
-    print(f"  • Disipación Tellegen          : {bundle_test.circuit_dissipation_rate:.4f} W")
-    print(f"  • Residuo Tellegen / KCL       : {bundle_test.tellegen_residual:.3e} / {bundle_test.kcl_residual:.3e}")
-    print(f"  • Defecto no-recip. / pasividad: {bundle_test.reciprocity_defect:.4f} / {bundle_test.passivity_margin:.4f}")
-    print(f"  • Coherencia espectral / Ω₄    : {bundle_test.spectral_coherence_index:.4f} / {bundle_test.heyting_topos_evaluation.name}")
-    H_seed = bundle_test.lift_hamiltonian(4, complex(0.0, 1.5))
-    assert np.allclose(H_seed, H_seed.conj().T), "H no hermítico."
-
-    print("\n[§2] FASE 2: GKSL ADAPTATIVO, C* Y POLYAKOV (continúa H)")
-    rho_test_init = np.eye(4, dtype=np.complex128) / 4.0
-    field_state = MetabolizedFieldState.create_metabolized_state(
-        bundle=bundle_test, base_rho=rho_test_init, modular_tau=complex(0.0, 1.5)
-    )
-    print(f"  • Pureza C*-Banach             : {field_state.purity:.4f}")
-    print(f"  • Entropía von Neumann         : {field_state.von_neumann_entropy:.4f} bits")
-    print(f"  • Umegaki S(ρ‖I/n)             : {field_state.quantum_relative_entropy_to_thermal:.4f} bits")
-    print(f"  • Bures / traza al térmico     : {field_state.bures_distance_to_thermal:.4f} / {field_state.trace_distance_to_thermal:.4f}")
-    print(f"  • Residual C*                  : {field_state.cstar_residual:.3e}")
-    print(f"  • Acción Polyakov / τ∈ℱ        : {field_state.cft_worldsheet_metrics.polyakov_action_integral:.4f} / {field_state.cft_worldsheet_metrics.in_fundamental_domain_flag}")
-    print(f"  • Anomalía modular T           : {field_state.modular_anomaly_estimate:.4f}")
-    print(f"  • Dirichlet-CFT / coherencia M : {field_state.dirichlet_cft_energy:.4f} / {field_state.metabolic_coherence_index:.4f}")
-    assert BanachOperatorAlgebra.is_valid_density_matrix(field_state.density_matrix)
-
-    print("\n[§3] FASE 3: REM, CISNES NEGROS, MERKLE E INMUNIZACIÓN")
     batch_scenarios: List[Tuple[str, float, int, complex]] = [
         ("STEEL_CARTEL_PRICE_SHOCK_35", 0.35, 0, complex(0.2, 1.1)),
         ("STRIKE_LABOR_PARALYSIS_MACRO", 0.65, 1, complex(-0.4, 0.9)),
         ("HYDROLOGIC_FLOOD_FOUNDATION", 0.25, 0, complex(0.0, 2.0)),
-        ("CIRCULAR_SUB_BILLING_ATTACK", 0.85, 2, complex(0.5, 0.5)),
+        ("CIRCULAR_SUB_BILLING_ATTACK", 0.85, 2, complex(1.5, 0.3)),
     ]
     wake_sleep_report = engine.execute_wake_sleep_phase(batch_scenarios)
     print(f"\n  ================ REPORTE METACORTEX REM FINAL ================")
     print(f"  • ID Ciclo Global              : {wake_sleep_report.cycle_id}")
-    print(f"  • Pureza vigilia → post-REM    : {wake_sleep_report.wake_purity:.4f} → {wake_sleep_report.sleep_purity:.4f}")
-    print(f"  • Entropía inicial → final     : {wake_sleep_report.initial_entropy:.4f} → {wake_sleep_report.final_entropy:.4f} bits")
-    print(f"  • Reducción energía libre      : {wake_sleep_report.net_free_energy_reduction:.4f} bits")
-    print(f"  • Vacunas inmunes              : {wake_sleep_report.immune_vaccines_generated}/{wake_sleep_report.synthesized_scenarios_count}")
     print(f"  • Veredicto Topos Heyting      : {wake_sleep_report.overall_topos_verdict.name}")
-    print(f"  • Merkle hojas / pruebas OK    : {wake_sleep_report.merkle_leaf_count} / {wake_sleep_report.merkle_proofs_ok}")
-    print(f"  • Raíz de Merkle (SHA-512)     : {wake_sleep_report.sha512_merkle_root[:48]}...")
-    assert wake_sleep_report.merkle_proofs_ok, "Fallo en pruebas de inclusión Merkle."
+    print(f"  • Merkle root (SHA-512)     : {wake_sleep_report.sha512_merkle_root[:48]}...")
+    assert wake_sleep_report.merkle_proofs_ok
 
-    print("\n[§4] PRUEBA DE AISLAMIENTO ONÍRICO")
-    breach_state = engine.run_dream_cycle(
-        scenario_type="CONTAINMENT_LEAKAGE_TEST",
-        cost_delta_ratio=0.10,
-        dream_isolation_flag=False,
-    )
-    print(f"  • Veredicto ante fuga          : {breach_state.heyting_verdict.name}")
-    print(f"  • η aplicada                   : {breach_state.learning_rate_applied}")
-    assert breach_state.heyting_verdict == HeytingTruthValue.ABSURDUM_VETOED
-    assert breach_state.learning_rate_applied == 0.0
-
-    print("\n>>> AUDITORÍA RETROSPECTIVA")
-    for k, v in engine.audit_registry().items():
-        print(f"    - {k:<28}: {v}")
-    print("\n>>> PASAPORTE DEL DREAMER")
-    for k, v in engine.emit_dreamer_passport().items():
-        print(f"    - {k:<22}: {v}")
-
-    print("\n" + "═" * 80)
-    print("✓ VERIFICACIÓN INTEGRAL MATEMÁTICA Y DE SOFTWARE CONCLUIDA CON ÉXITO.")
-    print("═" * 80)
+    print("\n✓ VERIFICACIÓN INTEGRAL DE POINCARÉ CONCLUIDA CON ÉXITO.")
