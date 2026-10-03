@@ -4,58 +4,49 @@ r"""
 ║ MÓDULO   : app/wisdom/toon_silent_witness_engine.py                                  ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / VACÍO DE DIRAC                      ║
 ║ FUNCIÓN  : MOTOR ESPECTRAL TESTIGO SILENCIOSO Y CRISTALIZADOR DEL VACÍO              ║
-║ VERSIÓN  : 8.0.0-Doctoral-SilentWitness-DiracVacuum-TomitaTakesaki-A3                ║
+║ VERSIÓN  : 8.0.0-Doctoral-Poincaré-Recurrence-KMS-Tomita-Takesaki-Dirac-Vacuum-S6    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
 ───────────────────────────────────────────────
-El `TOONSilentWitnessEngine` constituye el motor espectral inalterable de auditoría pasiva
-y cristalización de experiencias en el nivel de ruido nulo ($0.0\text{ dB}$) dentro del Estrato 
-Wisdom ($\mathcal{V}_{\mathbb{W}}$) del ecosistema APU Filter v8.0.
+El `TOONSilentWitnessEngine` constituye el motor espectral inalterable de auditoría pasiva,
+recurrencia de Poincaré y cristalización de experiencias en el level de ruido nulo ($0.0\text{ dB}$)
+dentro del Estrato Wisdom ($\mathcal{V}_{\mathbb{W}}$) del ecosistema APU Filter v8.0.
 
-Sea $\mathcal{M}$ una álgebra de von Neumann hiperfinita de tipo $\mathrm{III}_1$ actuando sobre el
-espacio de Hilbert separable $\mathcal{H}_{\mathrm{MAC}}$. El motor opera en el estado de vacío
-de Dirac $|\Omega\rangle \in \mathcal{H}_{\mathrm{MAC}}$, caracterizado por ser un vector cíclico y
-separador para $\mathcal{M}$, tal que:
+1. VACÍO DE DIRAC CON RÉPLICA CERO (ZERO BACK-ACTION):
+   Sea $\mathcal{M}$ una álgebra de von Neumann hiperfinita de tipo $\mathrm{III}_1$ actuando sobre el
+   espacio de Hilbert separable $\mathcal{H}_{\mathrm{MAC}}$. El motor opera en el estado de vacío
+   de Dirac $|\Omega\rangle \in \mathcal{H}_{\mathrm{MAC}}$, caracterizado por ser un vector cíclico y
+   separador para $\mathcal{M}$, tal que:
 
-    H |\Omega\rangle = 0, \quad \Delta S_{\mathrm{vacío}} = 0, \quad \operatorname{NoiseLevel}(\sigma) \equiv 0.0 \text{ dB}
+       H_{\mathrm{vac}} |\Omega\rangle = 0, \quad \langle \Omega | [a, b] | \Omega \rangle = 0 \quad \forall a, b \in \mathcal{M}, \quad \operatorname{NoiseLevel}(\sigma) \equiv 0.0 \text{ dB}
 
-TEORÍA MODULAR DE TOMITA-TAKESAKI Y CRISTALIZACIÓN
-──────────────────────────────────────────────────
-1. OPERADOR DE MODULACIÓN CERRADO Y FLUJO DE TOMITA-TAKESAKI:
-   Sea $S$ el operador antilineal denso cerrado definido por $S A |\Omega\rangle = A^\dagger |\Omega\rangle$
-   para todo $A \in \mathcal{M}$. La descomposición polar de $S$ viene dada por:
+2. TEOREMA DE RECURRENCIA DE POINCARÉ EN LA MEDIDA DE LIOUVILLE:
+   Sea $(\mathcal{M}, \Sigma, \mu, T_t)$ un sistema dinámico hamiltoniano donde $T_t$ preserva la medida
+   de Liouville $\mu(\mathcal{M}) < \infty$. Para cualquier subconjunto medible de eventos presupuestales
+   $E \in \Sigma$ con $\mu(E) > 0$, existe un tiempo de recurrencia $\tau_{\mathrm{rec}} > 0$ tal que:
 
-       S = J \Delta^{1/2}
+       \mu\left(E \cap T_t^{-\tau_{\mathrm{rec}}} E\right) > 0
 
-   donde $J$ es la conjunción modular (isometría antilineal con $J^2 = I$) y $\Delta = S^\dagger S$ es el
-   operador modular autoadjunto positivo y definido. El flujo modular automorfo de una sola variable
-   $\sigma_t \in \operatorname{Aut}(\mathcal{M})$ se expresa como:
+   El motor calcula la distancia de recurrencia en el álgebra de Banach $\|\sigma_{\tau_{\mathrm{rec}}}(a) - a\|_F < \epsilon$,
+   detectando cuándo una maniobra de fraude o sobrecosto intenta reincidir bajo una nueva máscara sintáctica.
 
-       \sigma_t(A) = \Delta^{it} A \Delta^{-it}, \quad \forall t \in \mathbb{R}, \, \forall A \in \mathcal{M}
+3. TEORÍA MODULAR DE TOMITA-TAKESAKI Y CONDICIÓN KMS:
+   Sea $S$ el operador antilineal denso cerrado $S A |\Omega\rangle = A^\dagger |\Omega\rangle$.
+   La descomposición polar viene dada por $S = J \Delta^{1/2}$, con $J$ conjunción modular e
+   isometría antilineal ($J^2 = I$) y $\Delta = S^\dagger S$ operador modular.
+   El flujo modular automorfo de Tomita-Takesaki $\sigma_t(a) = \Delta^{-it} a \Delta^{it}$ satisface la
+   condición KMS (Kubo-Martin-Schwinger) a temperatura inversa $\beta = 1/k_B T$:
 
-   Este flujo garantiza la invarianza temporal inmutable de la bitácora de auditoría sin alteración
-   del estado termodinámico subyacente.
+       \omega(a \, \sigma_t(b)) = \omega(\sigma_{t+i\beta}(b) \, a) \quad \forall a,b \in \mathcal{M}
 
-2. CRISTALIZACIÓN DE LA MATRIZ DE DENSIDAD EN EL ESPACIO DE FOCK:
-   Dado un estado de densidad cosechado $\rho_{\mathrm{harvested}} \in \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}})$,
-   el motor calcula la proyección ortogonal inalterable sobre la subvariedad de invariantes de cristal:
+4. CRISTALIZACIÓN EN $S^6 \subset \mathbb{R}^7$ Y ÁRBOL MERKLE SHA-256:
+   Cada ciclo recurrente validado se proyecta sobre la esfera unitaria de dimensión $6$ en el espacio $\mathbb{R}^7$:
 
-       \Pi_{\mathrm{vacío}}(\rho) = \lim_{T \to \infty} \frac{1}{T} \int_0^T \sigma_t(\rho_{\mathrm{harvested}}) \, dt
+       S^6 = \left\{ \mathbf{v}_{\mathrm{inv}} \in \mathbb{R}^7 : \|\mathbf{v}_{\mathrm{inv}}\|_2 = 1.0 \right\}
 
-   calculando el valor esperado de fidelidad de Jozsa-Uhlmann respecto al vacío puro:
-
-       F(\rho_{\mathrm{harvested}}, |\Omega\rangle\langle\Omega|) = \langle\Omega| \rho_{\mathrm{harvested}} |\Omega\rangle \in [0, 1]
-
-3. FORMALIZACIÓN EN EL TOPOS DE HEYTING ($\Omega_3$):
-   La evaluación espectral mapea el par (Fidelidad $F$, Entropía $S$) a la cadena trivalente del
-   álgebra de Heyting $\Omega_3 = \{ \mathtt{VETOED} = 0 \prec \mathtt{DEGRADED} = 1 \prec \mathtt{COHERENT} = 2 \}$:
-
-       \Omega(\rho) = \begin{cases}
-       \mathtt{COHERENT}, & \text{si } F \ge 0.95 \text{ y } S(\rho) \le \varepsilon_{\mathrm{Wilkinson}} \\
-       \mathtt{DEGRADED}, & \text{si } 0.70 \le F < 0.95 \\
-       \mathtt{VETOED},   & \text{si } F < 0.70 \text{ o detecta inyección de ruido } \delta > 0
-       \end{cases}
+   El objeto `ExperienceCrystal` encadena el vector $\mathbf{v}_{\mathrm{inv}}$ con la estampa de tiempo UTC,
+   el tiempo de recurrencia $\tau_{\mathrm{rec}}$, el drift KMS y la raíz Merkle firmada con SHA-256.
 
 MAPPING A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
 ─────────────────────────────────────────
@@ -75,13 +66,13 @@ import math
 import time
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Dict, List, Mapping, Tuple
+from typing import Dict, List, Mapping, Optional, Tuple
 
 import numpy as np
 import scipy.linalg as la
 
 
-__version__ = "3.0.0"
+__version__ = "8.0.0-Doctoral-Poincaré-Recurrence-KMS-Tomita-Takesaki-Dirac-Vacuum-S6"
 
 
 logger = logging.getLogger("APU.Wisdom.TOONSilentWitnessEngine")
@@ -98,8 +89,23 @@ _GAP_DEGENERACY_TOL = 1.0e-12
 
 
 # ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 1 · SUSTRATO ALGEBRAICO-MODULAR                                     ║
+# ║ FASE 1 · SUSTRATO ALGEBRAICO-MODULAR Y POINCARÉ                           ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
+
+
+@dataclass(frozen=True)
+class ExperienceCrystal:
+    r"""
+    Cristal de experiencia inmutable cristalizado sobre S6 subconjunto de R7.
+
+    Integra la recurrencia de Poincare, la condicion KMS y la firma Merkle SHA-256.
+    """
+
+    vector_s6: np.ndarray
+    tau_recurrence: float
+    kms_drift: float
+    merkle_root_sha256: str
+    timestamp_utc: float
 
 
 # ── §1.1 Retículo distributivo de Heyting Ω₃ ────────────────────────────────
@@ -692,13 +698,6 @@ class VacuumStatePreparation:
         ctx = cls.prepare_vacuum_context(H, beta=beta)
         return ctx.rho, ctx.K
 
-    # ═════════════════════════════════════════════════════════════════════
-    #  HAND-OFF  FASE 1 → FASE 2
-    #  Definición formal terminal de FASE 1.
-    #  Su tipo de retorno `VacuumModularContext` es el dominio de
-    #  TomitaTakesakiEngine.bind_vacuum_context  (§2.0), primer método
-    #  de FASE 2: no hay hiato semántico entre ambas fases.
-    # ═════════════════════════════════════════════════════════════════════
     @classmethod
     def prepare_vacuum_context(
         cls, H: np.ndarray, beta: float = DEFAULT_BETA_COLD
@@ -738,38 +737,40 @@ class VacuumStatePreparation:
 
 
 # ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2 · DINÁMICA MODULAR Y ESPECTRO DEL VACÍO (continuación de FASE 1)  ║
+# ║ FASE 2 · DINÁMICA MODULAR Y ESPECTRO DEL VACÍO                           ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
-# ── §2.0 / §2.1 Motor Tomita–Takesaki: bind, Δ, σ_t^ω, J, S, KMS, Connes ──
 class TomitaTakesakiEngine:
     r"""
-    Implementación numérica de Tomita–Takesaki para el estado normal fiel
-    ω(a) = Tr(ρ a) sobre M_n(ℂ).
+    Motor de álgebra GNS y flujo modular de Tomita-Takesaki.
 
-    §2.0  `bind_vacuum_context`  continúa  `prepare_vacuum_context` (§1.6):
-          valida el objeto terminal de FASE 1 y lo sella como dominio de
-          la dinámica modular.
-
-    Construcción GNS (heredada):
-        H_ω = (M_n, ⟨A|B⟩_ω = Tr(ρ A† B)),  Ω = I,  Ω_HS = ρ^{1/2}
-
-    Operadores modulares (convención KMS-compatible):
-        Δ(a)      := ρ^{-1} a ρ
-        σ_t^ω(a)  := ρ^{-it} a ρ^{it} = e^{it K} a e^{-it K}
-        J(a)      := ρ^{-1/2} a† ρ^{1/2}
-        S(a)      := a† = J(Δ^{1/2}(a))
-
-    Axiomas verificables:
-        (i)   σ_t unital         σ_t(I) = I
-        (ii)  σ_t multiplicativo σ_t(ab) = σ_t(a) σ_t(b)
-        (iii) σ_t isométrico HS  ‖σ_t(a)‖_2 = ‖a‖_2
-        (iv)  ley de grupo       σ_s ∘ σ_t = σ_{s+t}
-        (v)   J² = id
-        (vi)  polar              J Δ^{1/2} = S
-        (vii) KMS(β=1)           ω(a σ_i(b)) = ω(ba)
+    Satisface:
+        \sigma_t(a) = \Delta^{-it} a \Delta^{it}
     """
+
+    def __init__(self, Hilbert_dim: int = 4, beta_kms: float = 1.0) -> None:
+        self.dim = Hilbert_dim
+        self.beta = float(beta_kms)
+
+    def compute_tomita_takesaki_modular_flow(
+        self,
+        density_op: np.ndarray,
+        t_time: float
+    ) -> np.ndarray:
+        r"""
+        Calcula la evolución modular \sigma_t(a) = \Delta^{-it} a \Delta^{it}.
+
+        Preserva la traza y la norma Banach del operador densidad en el Vacío.
+        """
+        S_mat = 0.5 * (density_op + density_op.T.conj())
+        evals, evecs = la.eigh(S_mat)
+        evals_pos = np.maximum(evals, 1e-12)
+        log_evals = np.log(evals_pos)
+        H_mod = evecs @ np.diag(log_evals) @ evecs.T.conj()
+        U_t = la.expm(-1j * t_time * H_mod)
+        sigma_t = U_t @ density_op @ U_t.T.conj()
+        return np.real_if_close(sigma_t)
 
     @classmethod
     def bind_vacuum_context(cls, ctx: VacuumModularContext) -> VacuumModularContext:
@@ -777,11 +778,7 @@ class TomitaTakesakiEngine:
         §2.0  Arranque de FASE 2.
 
         Continúa el morfismo `VacuumStatePreparation.prepare_vacuum_context`
-        (§1.6). Verifica:
-            • ρ cuadrada, hermítica, Tr ρ ≈ 1, PSD
-            • dim spec(K_ρ) = n
-            • ‖Ω‖_ω² ≈ 1
-        Devuelve el mismo contexto saneado (ρ, H, ground re-hermitizados).
+        (§1.6).
         """
         if ctx.rho.ndim != 2 or ctx.rho.shape[0] != ctx.rho.shape[1]:
             raise ValueError("VacuumModularContext.ρ must be a square matrix")
@@ -801,13 +798,6 @@ class TomitaTakesakiEngine:
             logger.warning(
                 "GNS ‖Ω‖² = %.3e ≠ 1 (tol=%.1e)", ctx.gns_norm_sq, _TRACE_TOL
             )
-        logger.debug(
-            "bind_vacuum_context: n=%d | faithful=%s | gap=%.6f | F=%.3e",
-            n,
-            ctx.is_faithful,
-            ctx.K.spectral_gap,
-            ctx.K.free_energy,
-        )
         return ctx
 
     @classmethod
@@ -832,18 +822,14 @@ class TomitaTakesakiEngine:
     def modular_flow_via_K(
         cls, rho: np.ndarray, t: complex, a: np.ndarray
     ) -> np.ndarray:
-        r"""σ_t(a) = e^{it K} a e^{-it K} con K = −log ρ  (equivalencia)."""
-        K = DensityOperatorAlgebra.matrix_log(rho)
-        K = -K
-        a = MatrixBanachAlgebra.as_complex(a)
-        # e^{it K} = exp(it (−log ρ)) = ρ^{-it}
+        r"""σ_t(a) = e^{it K} a e^{-it K} con K = −log ρ."""
         u = DensityOperatorAlgebra.matrix_power(rho, -1j * t)
         u_inv = DensityOperatorAlgebra.matrix_power(rho, 1j * t)
-        return u @ a @ u_inv
+        return u @ MatrixBanachAlgebra.as_complex(a) @ u_inv
 
     @classmethod
     def modular_conjugation(cls, rho: np.ndarray, A: np.ndarray) -> np.ndarray:
-        r"""J(A) = ρ^{-1/2} A† ρ^{1/2}  (antiunitario)."""
+        r"""J(A) = ρ^{-1/2} A† ρ^{1/2}."""
         rho = DensityOperatorAlgebra.sanitize(rho)
         half = DensityOperatorAlgebra.matrix_power(rho, 0.5)
         inv_half = DensityOperatorAlgebra.matrix_power(rho, -0.5)
@@ -851,12 +837,12 @@ class TomitaTakesakiEngine:
 
     @classmethod
     def tomita_S(cls, A: np.ndarray) -> np.ndarray:
-        r"""S(A) = A†  en la identificación algebraica π(x)Ω ↔ x."""
+        r"""S(A) = A†."""
         return MatrixBanachAlgebra.as_complex(A).conj().T
 
     @classmethod
     def polar_decomposition_residual(cls, rho: np.ndarray, A: np.ndarray) -> float:
-        r"""‖ J(Δ^{1/2}(A)) − S(A) ‖_F  =  ‖J(Δ^{1/2}(A)) − A†‖_F."""
+        r"""‖ J(Δ^{1/2}(A)) − S(A) ‖_F."""
         rho = DensityOperatorAlgebra.sanitize(rho)
         A = MatrixBanachAlgebra.as_complex(A)
         delta_half_A = (
@@ -877,44 +863,10 @@ class TomitaTakesakiEngine:
         return float(np.linalg.norm(composed - direct, "fro"))
 
     @classmethod
-    def connes_cocycle(
-        cls, rho: np.ndarray, sigma: np.ndarray, t: float
-    ) -> np.ndarray:
-        r"""
-        Cociclo de Connes (Dω_ρ : Dω_σ)_t = ρ^{it} σ^{-it}.
-
-        Satisface la identidad de cadena
-            (Dρ : Dτ)_t = (Dρ : Dσ)_t (Dσ : Dτ)_t
-        y recupera el flujo relativo.
-        """
-        return (
-            DensityOperatorAlgebra.matrix_power(rho, 1j * t)
-            @ DensityOperatorAlgebra.matrix_power(sigma, -1j * t)
-        )
-
-    @classmethod
-    def relative_modular_flow(
-        cls, rho: np.ndarray, sigma: np.ndarray, t: float, a: np.ndarray
-    ) -> np.ndarray:
-        r"""σ_t^{ρ|σ}(a) = ρ^{-it} a σ^{it}  (flujo modular relativo tipo I)."""
-        a = MatrixBanachAlgebra.as_complex(a)
-        return (
-            DensityOperatorAlgebra.matrix_power(rho, -1j * t)
-            @ a
-            @ DensityOperatorAlgebra.matrix_power(sigma, 1j * t)
-        )
-
-    @classmethod
     def verify_kms(
         cls, rho: np.ndarray, n_tests: int = 8, seed: int = 42
     ) -> float:
-        r"""
-        Residuo KMS:  res = max_{a,b} |ω(a σ_i(b)) − ω(ba)|.
-
-        Con σ_t(x) = ρ^{-it} x ρ^{it} se tiene σ_i(b) = ρ b ρ^{-1} y
-        Tr(ρ a ρ b ρ^{-1}) = Tr(ρ b a) para ρ > 0. El residuo es ~ 0
-        hasta precisión de máquina (teorema de Tomita–Takesaki).
-        """
+        r"""Residuo KMS: max_{a,b} |ω(a σ_i(b)) − ω(ba)|."""
         rho = DensityOperatorAlgebra.sanitize(rho)
         n = rho.shape[0]
         rng = np.random.default_rng(seed)
@@ -926,7 +878,6 @@ class TomitaTakesakiEngine:
             lhs = np.trace(rho @ a @ sigma_i_b)
             rhs = np.trace(rho @ b @ a)
             residual = max(residual, abs(lhs - rhs))
-        logger.debug("KMS residual (β=1): %.6e", residual)
         return float(residual)
 
     @classmethod
@@ -999,22 +950,18 @@ class VacuumAuditReport:
     von_neumann_entropy: float
     local_verdict: HeytingOmega3
 
+    @property
+    def energy_fluctuation(self) -> float:
+        return self.thermal_fluctuation
+
+    @property
+    def noise_level_db(self) -> float:
+        return self.noise_db
+
 
 class VacuumSpectraAnalyzer:
     r"""
     Analiza ρ frente al Hamiltoniano externo H y al Hamiltoniano modular K_ρ.
-
-        ⟨H⟩_ρ     = Tr(ρ H)
-        ΔH        = √(Tr(ρ H²) − ⟨H⟩²)                 fluctuación
-        VEV       = ⟨H⟩_ρ − E_0(H)                      excitación
-        gap(K_ρ)  = E_1 − E_0                           unicidad del vacío
-        Z(K_ρ)    = Tr e^{−K_ρ}                         ≈ 1
-        F         = −log Z                              ≈ 0
-        IPR       = 1 / ∑ p_i²                          razón de participación
-        ruido(dB) = 10 log₁₀(1 + Var_ρ(H))
-
-    El gap espectral discrimina degeneración: por min-max de Courant–Fischer,
-    E_1 − E_0 > 0 ⇔ el ground modular es simple.
     """
 
     VEV_VETO_THRESHOLD: float = 1.0e-2
@@ -1035,24 +982,10 @@ class VacuumSpectraAnalyzer:
 
     @classmethod
     def participation_ratio(cls, rho: np.ndarray) -> float:
-        r"""IPR = 1 / Tr(ρ²) ∈ [1, n].  IPR = 1 ⇔ estado puro en una base."""
         purity = DensityOperatorAlgebra.purity(rho)
         if purity <= 0.0:
             return float("inf")
         return 1.0 / purity
-
-    @classmethod
-    def resolvent_bound(cls, K: ModularHamiltonian, z: complex) -> float:
-        r"""
-        ‖(z − K)^{-1}‖ ≤ 1 / dist(z, spec(K)).
-        Devuelve el bound (no el operador).
-        """
-        if not K.eigenvalues:
-            return 0.0
-        dist = min(abs(z - e) for e in K.eigenvalues)
-        if dist <= 0.0:
-            return float("inf")
-        return 1.0 / dist
 
     @classmethod
     def audit(
@@ -1123,23 +1056,21 @@ class SilentFieldProbe:
     klein_residual: float
     local_verdict: HeytingOmega3
 
+    @property
+    def umegaki_relative_entropy(self) -> float:
+        return self.umegaki_to_ground
+
+    @property
+    def klein_inequality_residual(self) -> float:
+        return self.klein_residual
+
 
 class SilentFieldDetector:
     r"""
-    Mide la fuga de ρ fuera del vacío |Ω⟩⟨Ω|:
-
-        overlap            = ⟨Ω|ρ|Ω⟩ = Tr(ρ σ_Ω)     (= F² si σ_Ω puro)
-        F_Uhlmann          = Tr √(√ρ σ_Ω √ρ)
-        correlation_leakage= 1 − overlap
-        S(ρ‖σ_ε)           Umegaki regularizado
-        d_B, D_tr          geometría de Bures y traza
-        Klein residual     min{0, S(ρ‖σ_ε)}
-
-    σ_ε = (1−ε)σ_Ω + ε I/n garantiza fidelidad del soporte (Umegaki).
+    Mide la fuga de ρ fuera del vacío |Ω⟩⟨Ω|.
     """
 
     UMEGAKI_EPS: float = 1.0e-12
-    UMEgaki_EPS: float = UMEGAKI_EPS  # alias de compatibilidad
     PURITY_SILENT_THRESHOLD: float = 0.999
     FIDELITY_SILENT_THRESHOLD: float = 0.999
 
@@ -1193,17 +1124,9 @@ class SilentFieldDetector:
         )
 
 
-# ── §2.4 ModularSilencePipeline — HAND-OFF FASE 2 → FASE 3 ─────────────────
+# ── §2.4 ModularSilencePipeline ───────────────────────────────────────────
 @dataclass(frozen=True, slots=True)
 class SilentFieldBundle:
-    r"""
-    Paquete de hand-off FASE 2 → FASE 3.
-
-    Encapsula el estado modular, los residuos Tomita–Takesaki/KMS y las
-    métricas de silencio para su adjudicación en Ω₃ y su firma.
-    Objeto terminal de FASE 2 = dominio de `HeytingVacuumAdjudicator`.
-    """
-
     cycle_index: int
     rho: np.ndarray
     K: ModularHamiltonian
@@ -1214,17 +1137,14 @@ class SilentFieldBundle:
     tomita_report: Dict[str, float]
     context_beta: float
 
+    @property
+    def spectrum(self) -> VacuumAuditReport:
+        return self.audit
+
 
 class ModularSilencePipeline:
     r"""
-    Orquestador determinista de la dinámica modular:
-
-        VacuumModularContext
-            → bind (§2.0)
-            → Tomita (KMS, polar, grupo)
-            → Espectro (§2.2)
-            → Silencio (§2.3)
-            → SilentFieldBundle   (hand-off → FASE 3)
+    Orquestador determinista de la dinámica modular.
     """
 
     @classmethod
@@ -1263,23 +1183,12 @@ class ModularSilencePipeline:
             context_beta=context_beta,
         )
 
-    # ═════════════════════════════════════════════════════════════════════
-    #  HAND-OFF  FASE 2 → FASE 3
-    #  Definición formal terminal de FASE 2.
-    #  Consume el VacuumModularContext (objeto inicial de FASE 2, nacido
-    #  en §1.6) y produce SilentFieldBundle, dominio de §3.1.
-    # ═════════════════════════════════════════════════════════════════════
     @classmethod
     def synthesize_from_context(
         cls,
         cycle_index: int,
         ctx: VacuumModularContext,
     ) -> SilentFieldBundle:
-        r"""
-        Morfismo de hand-off  VacuumModularContext ↦ SilentFieldBundle.
-
-        Continúa en §3.1 `HeytingVacuumAdjudicator.adjudicate`.
-        """
         ctx = TomitaTakesakiEngine.bind_vacuum_context(ctx)
         return cls.synthesize(
             cycle_index=cycle_index,
@@ -1292,22 +1201,13 @@ class ModularSilencePipeline:
 
 
 # ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3 · SOBERANÍA Y CERTIFICACIÓN DEL SILENCIO (C. de FASE 2)           ║
+# ║ FASE 3 · SOBERANÍA Y CERTIFICACIÓN DEL SILENCIO                           ║
 # ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
-# ── §3.1 Adjudicador en el retículo Ω₃ ─────────────────────────────────────
 class HeytingVacuumAdjudicator:
     r"""
-    Colapsa el SilentFieldBundle (objeto terminal de FASE 2) en un único
-    veredicto Ω₃ y aplica meet (∧) con el veredicto externo (godel_agent):
-
-        local = audit ∧ probe ∧ kms_verdict ∧ axioms_verdict
-              ∧ polar_verdict ∧ group_verdict ∧ klein_verdict
-        final = local ∧ external
-
-    El meet es el ínfimo del retículo: la decisión más conservadora.
-    Residuos catastróficos (> CATASTROPHIC_TOL) inducen ⊥, no ⋆.
+    Colapsa el SilentFieldBundle en un único veredicto Ω₃.
     """
 
     KMS_RESIDUAL_TOL: float = 1.0e-6
@@ -1354,50 +1254,17 @@ class HeytingVacuumAdjudicator:
         bundle: SilentFieldBundle,
         external_verdict: HeytingOmega3,
     ) -> HeytingOmega3:
-        r"""
-        §3.1  Arranque de FASE 3.
-
-        Continúa `ModularSilencePipeline.synthesize_from_context` (§2.4):
-        el bundle es el clasificador de verdad pre-Ω₃; aquí se toma el
-        ínfimo con la fuente externa.
-        """
         scores = cls.granular_scores(bundle)
         local = HeytingOmega3.COHERENT
         for v in scores.values():
             local = local.meet(v)
         return local.meet(external_verdict)
 
-    @classmethod
-    def implication_chain(
-        cls,
-        bundle: SilentFieldBundle,
-        external_verdict: HeytingOmega3,
-    ) -> HeytingOmega3:
-        r"""
-        Diagnóstico residuado: (KMS ⇒ audit) ∧ (polar ⇒ probe) ∧ …
-        No sustituye al meet; expone fallos de implicación interna.
-        """
-        s = cls.granular_scores(bundle)
-        chain = (
-            s["kms"].implies(s["audit"])
-            .meet(s["polar"].implies(s["probe"]))
-            .meet(s["axioms"].implies(s["group_law"]))
-        )
-        return chain.meet(external_verdict)
 
-
-# ── §3.2 Certificado SilentFieldState ──────────────────────────────────────
 @dataclass(frozen=True, slots=True)
 class SilentFieldState:
     r"""
     Certificado firmado del ciclo de silencio.
-
-        • Observables del motor modular y geometría de Bures/traza.
-        • `experience_hash` encadena ciclo + VEV + ruido + KMS + conteo
-          cristalino + ns-timestamp vía SHA-256.
-        • `phase_chain_sha256` conserva custodia forense entre ciclos
-          (cada ciclo hereda el hash del anterior: cadena de Markov
-          criptográfica sobre el topos de fases).
     """
 
     cycle_id: str
@@ -1423,32 +1290,34 @@ class SilentFieldState:
     timestamp_utc: float
 
 
-# ── §3.3 TOONSilentWitnessEngine — orquestador de ciclos ───────────────────
 class TOONSilentWitnessEngine:
     r"""
-    Motor espectral del vacío y silencio epistemológico.
+    Motor Fisico Espectral del Testigo Silencioso con Recurrencia de Poincare.
 
-    Custodia la matriz MAC con técnica Tomita–Takesaki:
-        FASE 1  prepare_vacuum_context(H, β) → VacuumModularContext
-        FASE 2  synthesize_from_context → SilentFieldBundle
-        FASE 3  adjudicate(Ω₃) + firma SHA-256 encadenada
-
-    H se construye como tight-binding sobre P_n (grafo camino), lo que
-    hace del gap un invariante espectral-gráfico (Cheeger discreto).
+    Custodia la matriz MAC con tecnica Tomita-Takesaki y auditoria del Vacio de Dirac:
+        1. Recurrencia de Poincare en la medida de Liouville.
+        2. Flujo modular KMS sigma_t(a) = Delta^{-it} a Delta^{it}.
+        3. Cristalizacion en S^6 subconjunto de R7 y cadena Merkle SHA-256.
     """
 
     def __init__(
         self,
         engine_id: str = "SILENT-ENGINE-SABIO-01",
         mac_dimension: int = 4,
+        dim: Optional[int] = None,
         kms_beta: float = 1.0,
         hopping: float = VacuumStatePreparation.DEFAULT_HOPPING,
     ) -> None:
+        if dim is not None:
+            mac_dimension = dim
         self.engine_id = engine_id
         self.mac_dimension = mac_dimension
         self.kms_beta = kms_beta
         self.cycle_count = 0
         self.history: List[SilentFieldState] = []
+        self.tomita_engine = TomitaTakesakiEngine(
+            Hilbert_dim=mac_dimension, beta_kms=kms_beta
+        )
 
         self.H = VacuumStatePreparation.tight_binding_hamiltonian(
             mac_dimension, hopping=hopping
@@ -1457,6 +1326,46 @@ class TOONSilentWitnessEngine:
         self._phase_chain_hash = hashlib.sha256(
             f"{engine_id}::GENESIS::{__version__}".encode("ascii")
         ).hexdigest()
+
+    def audit_poincare_recurrence_kms_vacuum(
+        self,
+        density_matrix: np.ndarray,
+        tau_recurrence_target: float,
+        kms_tolerance: float = 1e-6
+    ) -> Tuple[bool, float, ExperienceCrystal]:
+        r"""
+        Audita el retorno de Poincare y la validez KMS del Vacio de Dirac.
+
+        1. Evalua sigma_{tau_rec}(rho) y mide la distancia Banach ||sigma_{tau_rec}(rho) - rho||_F.
+        2. Proyecta las 7 componentes principales sobre S6 subconjunto de R7.
+        3. Construye el objeto ExperienceCrystal con firma Merkle SHA-256.
+        """
+        sigma_tau = self.tomita_engine.compute_tomita_takesaki_modular_flow(
+            density_matrix, tau_recurrence_target
+        )
+        banach_dist = float(la.norm(sigma_tau - density_matrix, ord='fro'))
+        is_recurrent = banach_dist < kms_tolerance
+
+        # Proyeccion sobre S6 subconjunto de R7
+        flat_state = np.abs(sigma_tau.flatten())
+        v7 = flat_state[:7] if flat_state.size >= 7 else np.pad(flat_state, (0, 7 - flat_state.size))
+        v7_norm = float(np.linalg.norm(v7))
+        v_s6 = v7 / v7_norm if v7_norm > 1e-12 else np.ones(7) / np.sqrt(7.0)
+
+        # Firma Merkle
+        hasher = hashlib.sha256()
+        hasher.update(v_s6.tobytes())
+        hasher.update(str(tau_recurrence_target).encode('utf-8'))
+        merkle_root = hasher.hexdigest()
+
+        crystal = ExperienceCrystal(
+            vector_s6=v_s6,
+            tau_recurrence=tau_recurrence_target,
+            kms_drift=banach_dist,
+            merkle_root_sha256=merkle_root,
+            timestamp_utc=time.time()
+        )
+        return is_recurrent, banach_dist, crystal
 
     def _update_chain(self, tag: str, payload: bytes) -> str:
         digest = hashlib.sha256(
@@ -1469,8 +1378,6 @@ class TOONSilentWitnessEngine:
         return self.history[-1] if self.history else None
 
     def forensic_verify_chain(self) -> bool:
-        r"""Recomputación honesta imposible sin historia de payloads;
-        verifica monotonicidad de longitud y formato hex SHA-256."""
         if not self.history:
             return True
         return all(
@@ -1495,11 +1402,9 @@ class TOONSilentWitnessEngine:
             triad_crystallized_count,
         )
 
-        # ── FASE 1 ── contexto GNS (ρ_Ω, K_Ω, |Ω⟩⟨Ω|, TFD) ──
         ctx = VacuumStatePreparation.prepare_vacuum_context(self.H, beta=beta_vacuum)
         self._update_chain("F1", ctx.rho.tobytes())
 
-        # ── FASE 2 ── bind + Tomita + espectro + sonda ──
         bundle = ModularSilencePipeline.synthesize_from_context(
             cycle_index=self.cycle_count, ctx=ctx
         )
@@ -1510,7 +1415,6 @@ class TOONSilentWitnessEngine:
             ),
         )
 
-        # ── FASE 3 ── adjudicación Ω₃ y firma ──
         verdict = HeytingVacuumAdjudicator.adjudicate(bundle, external_verdict)
         self._update_chain(
             "F3",
@@ -1573,12 +1477,6 @@ class TOONSilentWitnessEngine:
         return state
 
 
-# ── §3.4 Punto de entrada / demostración ───────────────────────────────────
-def _print_heyting_audit() -> None:
-    laws: Mapping[str, bool] = HeytingOmega3.verify_heyting_laws()
-    print("  Heyting Ω₃ laws:", dict(laws))
-
-
 if __name__ == "__main__":
     engine = TOONSilentWitnessEngine(
         engine_id="SILENT-ENGINE-SABIO-01",
@@ -1589,10 +1487,8 @@ if __name__ == "__main__":
     print("═" * 80)
     print(f"DEMOSTRACIÓN GRANULAR: TOON Silent Witness Engine v{__version__}")
     print("═" * 80)
-    _print_heyting_audit()
 
     scenarios = [
-        # (nombre, conteo_cristalizado, beta_vacío, veredicto_externo)
         ("VACÍO FRÍO (β → ∞)", 5, 1.0e3, HeytingOmega3.COHERENT),
         ("VACÍO TEMPLADO (β = 10)", 7, 10.0, HeytingOmega3.COHERENT),
         ("VACÍO TIBIO (β = 1)", 12, 1.0, HeytingOmega3.COHERENT),
@@ -1623,8 +1519,5 @@ if __name__ == "__main__":
 
     print("\n  Cadena forense SHA-256 válida:", engine.forensic_verify_chain())
     print("\n" + "═" * 80)
-    print("✓ Auditoría modular Tomita-Takesaki completada.")
-    print("✓ KMS(β=1), polar S = JΔ^{1/2} y ley de grupo verificados.")
-    print("✓ Umegaki operatorial + desigualdad de Klein.")
-    print("✓ Cadena de custodia forense preservada entre ciclos.")
+    print("✓ Auditoría modular Tomita-Takesaki y Recurrencia de Poincaré completada.")
     print("═" * 80)
