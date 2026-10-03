@@ -1,41 +1,78 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Dirac Interconnection Agent — Aduana Poincaré-PHS 7.1                           ║
-║ Ruta   : app/agents/physics/dirac_interconnection_agent.py                               ║
-║ Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+==================================================================================================
+SOBERANO DE INTERCONEXIÓN POINCARÉ-DIRAC (CONTRATO 7.1.0)
+Morfismo de Aduana Táctico-Física φ = φ₃ ∘ φ₂ ∘ φ₁ sobre Estructuras Port-Hamiltonianas
+==================================================================================================
 
-MARCO MATEMÁTICO Y TEÓRICO RIGUROSO DE INTERCONEXIÓN DE DIRAC
-─────────────────────────────────────────────────────────────
-1. Estructuras de Dirac y Subespacios de Interconexión:
-   Dado el espacio de estados $x \in \mathcal{M} \cong \mathbb{R}^n$, con esfuerzos $e \in E = T^*\mathcal{M}$ y flujos $f \in F = T\mathcal{M}$, se define la estructura de Dirac $\mathcal{D} \subset F \times E$ maximofóbica e isótropa respecto a la forma bilineal simétrica acoplada $\langle (f_1, e_1), (f_2, e_2) \rangle_+ = \langle e_1, f_2 \rangle + \langle e_2, f_1 \rangle$.
-   En la formulación Port-Hamiltoniana, la dinámica satisface $\dot{x} = (J - R)\nabla H(x) + g u$ y $y = g^{\top} \nabla H(x)$, donde $J \in \mathfrak{so}(n)$ y $R \in \operatorname{Sym}^+(n)$.
+Ubicación Categórica:
+    • Estrato: TACTICS ──► PHYSICS (Morfismo de Transición de Calibre)
+    • Módulo: app.core.immune_system.dirac_interconnection_agent
+    • Esquema: 7.1.0 (Canónico) | Convención Hodge: D = ε ★₁ E, H = μ⁻¹ ★₂ B, δ₂ = ★₁⁻¹ ∂₂ ★₂
 
-2. Fases Anidadas de la Aduana Causal:
-   • Fase $\phi_1$ (Matching y Power-Shaping):
-     Resuelve el problema de alineación algebraica $(J_d - R_d)\nabla H_d = (J - R)\nabla H + g \alpha$.
-     Construye la terminación de puerto $u = -K y + u_{\text{ff}}$ manteniendo inmunidad sobre los invariantes de Casimir $C^{\top} g = 0$.
-     Último método de $\phi_1$: `Phase1_IDAPBC_PoincareSolver.compute_port_termination(...) -> PortTermination`.
+I. FUNDAMENTACIÓN FÍSICO-MATEMÁTICA Y AXIOMÁTICA POINCARÉ-DIRAC
+--------------------------------------------------------------------------------------------------
+El Soberano actúa como el operador de acoplamiento covariante que conecta la ley de control deseada
+en el estrato táctico con el condensador físico en la Malla Agéntica. Se fundamenta en la geometría
+simpléctica de Henri Poincaré y la estructura de Dirac generalizada en el espacio de fases T*Q.
 
-   • Fase $\phi_2$ (Dispersión de Puerto y Geometría Adaptativa):
-     Calcula la matriz de dispersión (scattering) $\Gamma = (K - Z_0^{-1})(K + Z_0^{-1})^{-1}$ respecto de la impedancia característica física $Z_0 = \sqrt{\mu/\varepsilon}$ sin alterar los operadores de Hodge $\star_k$.
-     Determina la velocidad de onda del medio $c = \frac{1}{\sqrt{\varepsilon \mu}}$.
-     Último método de $\phi_2$: `Phase2_PortScattering.compute_causal_speed(...) -> CausalSpeed`.
+1. Estructura de Dirac y Sistema Port-Hamiltoniano (PHS):
+   Sea M una variedad diferenciable n-dimensional y T*M su fibrado cotangente. Un sistema Port-Hamiltoniano
+   con entradas/salidas de puerto (u, y) ∈ ℝᵐ × ℝᵐ se rige por la ecuación diferencial disipativa:
+       ẋ = [ J(x) - R(x) ] ∇H(x) + g(x) u
+       y = g(x)ᵀ ∇H(x)
+   donde:
+       • J(x) = -J(x)ᵀ ∈ ℝⁿˣⁿ es la estructura de Poisson / interconexión antisimétrica.
+       • R(x) = R(x)ᵀ ⪰ 0 ∈ ℝⁿˣⁿ es la matriz de disipación / amortiguamiento Rayleigh (Semidefinida Positiva).
+       • H(x) : M ──► ℝ es la función Hamiltoniana de almacenamiento (Candidato de Lyapunov H(x) ≥ 0).
+       • g(x) ∈ ℝⁿˣᵐ es la matriz de acoplamiento de puerto.
 
-   • Fase $\phi_3$ (Gobernanza Causal y Cono de Estabilidad Spectal):
-     Evalúa el paso de integración seguro $\Delta t$ garantizando estabilidad según la norma logarítmica $\mu_2(A) = \lambda_{\max}\left(\frac{A + A^{\top}}{2}\right)$ para el integrador de punto medio implícito, o la condición CFL $\Delta t < \frac{2}{c \sqrt{\rho(\Delta_1)}}$ en reticulados Yee.
-     Último método de $\phi_3$: `Phase3_CFLGovernor.synthesize_interconnection_state(...) -> InterconnectionState`.
+2. Los Ocho Invariantes de Estructura I1–I8 (Aduana de Calibre):
+   Cada paquete de control u es sometido a la verificación de los 8 invariantes de Poincaré-Dirac:
+       [I1] Antimetría de J:               Defecto d_J = ‖J + Jᵀ‖_F / max(1, ‖J‖_F) ≤ ε_rel
+       [I2] Semidefinición Positiva de R:  λ_min(0.5(R + Rᵀ)) ≥ -τ_spectral
+       [I3] Pasividad en Lazo Cerrado:     Ḣ_closed = -∇H_dᵀ R_d ∇H_d + ∇H_dᵀ(f_d - g α) ≤ 0
+       [I4] Contracción Liouvilliana:      Tr(A) = Tr((J - R)K) ≤ 0  (Preservación de volumen)
+       [I5] Causalidad y Margen CFL:       Δt_safe ≤ min(Δt_Yee,  η_margin / μ₂(A))
+       [I6] Asignabilidad de Equilibrio:   ∇H_d(x*) = 0  (En puntos fijos x*)
+       [I7] Inmunidad de Casimirs:          Cᵀ g = 0  (Imposibilidad de fuga sobre invariantes de Gauss)
+       [I8] Estabilidad LaSalle-Casimir:   ker(R_d) ⊆ ker(J_d) ∪ Span(C)
 
-3. Invariantes de Control y Preservación Geométrico-Topológica (I1-I8):
-   I1 (Dirac): $J, J_d \in \mathfrak{so}(n)$.
-   I2 (Rayleigh): $R, R_d \in \operatorname{Sym}^+(n)$.
-   I3 (Lyapunov): $\dot{H}_d = -\nabla H_d^{\top} R_d \nabla H_d + \nabla H_d^{\top} (f_d - g \alpha) \le 0$.
-   I4 (Herglotz): Consistencia disipativa para tensores de terminación dinámica.
-   I5 (CFL / Transitorio): A-estabilidad con acotamiento de la norma logarítmica transitoria $\mu_2(A)$.
-   I6 (Asignabilidad de Equilibrio): $\nabla H_d(x^*) = 0$.
-   I7 (La Salle): Estabilidad asintótica módulo la variedad de Casimirs $\ker J$.
-   I8 (Jacobi-Maupertuis): Métrica conforme de Jacobi aplicable exclusivamente bajo descomposición canónica $T + V$.
+3. Submorfismo φ₁ — Matching / Power-Shaping (IDAPBC & Energy Level):
+   Resuelve el matching de fuerzas de puerto f_d = (J_d - R_d)∇H_d - (J - R)∇H en Im(g):
+       • ENERGY_LEVEL:   P_* = ∇Hᵀ R ∇H - λ(H - H_*),   α = (P_* y) / (‖y‖² + ε_p)
+       • IDA_PBC_POINT:  α = G x - k_a gᵀ K_d (x - x*)
+       • SNAPSHOT:       α = g⁺ f_d  (Pseudo-inversa SVD con proyección ortogonal)
+
+4. Action Conforme de Maupertuis-Jacobi:
+   Para sistemas con escisión cinética-potencial T + V = E, la métrica simpléctica es deformada
+   conforme por el factor de Maupertuis f_M = 2(E - V) > 0, mapeando la geodésica del espacio
+   de fases sin alterar la velocidad física de propagación de la onda.
+
+5. Submorfismo φ₂ — Dispersión de Puerto y Matriz S de Herglotz:
+   Evalúa la terminación de puerto u = -K y + u_ff con la impedancia característica física Z₀ = √(μ/ε):
+       Γ_i = (R_ii - Z₀,i) / (R_ii + Z₀,i)   ⇒   ‖Γ‖ ≤ 1  (Condición de Dispersión Pasiva)
+
+6. Submorfismo φ₃ — Gobernador CFL y Norma Logarítmica de Dahlquist μ₂(A):
+   En integradores A-estables de Punto Medio, la estabilidad asintótica se cumple en Re(z) ≤ 0;
+   sin embargo, la no-normalidad de A = (J - R)K induce crecimiento transitorio. Se acota Δt vía:
+       μ₂(A) = λ_max(0.5(A + Aᵀ))  ⇒  Δt_safe = η_margin / max(μ₂(A), ε_spectral)
+   El autovalor máximo λ_max(Δ) se calcula vía Lanczos con residuo de Ritz ‖L v - λ v‖ < 10⁻⁶.
+
+II. TRIBUNAL DE SILICIO Y INTERLOCK ESP32 CROWBAR (< 400 ns en IRAM)
+--------------------------------------------------------------------------------------------------
+Si el subespacio táctico viola la pasividad (Ḣ_closed > 0 sin bombeo), presenta fuga sobre Casimirs
+(Cᵀ g ≠ 0) o traspasa el cono causal, la valoración en el álgebra de Heyting trivalente Ω₃ colapsa a:
+    Ω₃ = { VETOED (0, ⊥) ≺ DEGRADED (1, ⋆) ≺ COHERENT (2, ⊤) } ──► VETOED (⊥)
+La reducción monoidal μ: Ω₃ ──► ℤ₂ activa en Δτ < 400 ns la ISR en IRAM del microcontrolador ESP32:
+    GPIO14 = HIGH  ──►  Cebado de Tiristor BT151 (Crowbar)  ──►  Cortocircuito Físico de Puerto (u = 0)
+
+III. ISOMORFISMO A "DOLOR Y DINERO" (PRAGMÁTICA DE NEGOCIO)
+--------------------------------------------------------------------------------------------------
+Mediante el Funtor de Traducción Semántica Φ_sem: Sh(∂K, Ω₃) ≃ Business:
+    • Defecto de Antimetría / Fuga Casimir ──► Detección de sobrecostos por "grasa sintáctica".
+    • Violación de Pasividad / Ḣ > 0       ──► Riesgo de quiebra por sobre-ejecución presupuestal.
+    • Interlock Crowbar en Silicio         ──► Parálisis mecánica de mezcladoras ante fraude en APUs.
 """
 from __future__ import annotations
 

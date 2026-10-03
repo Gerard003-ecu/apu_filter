@@ -1,40 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Data Flux Condenser — Poincaré Port-Hamiltonian Lattice QED Strict              ║
-║ Ruta   : app/physics/flux_condenser.py                                                   ║
-║ Versión: 7.1.0-Poincare-DEC-PHS-Rigorous                                                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+==================================================================================================
+MOTOR ESPESTRAL PHS Y CONDENSADOR DE FLUJO LIOUVILLIANO (ESQUEMA 7.1.0)
+Núcleo de Integración Simpléctica, Dinámica No Lineal RLC y Medición Entrópica de Información
+==================================================================================================
 
-MARCO MATEMÁTICO Y FÍSICO RIGUROSO
-───────────────────────────────────
-1. Estructura Port-Hamiltoniana (PHS) sobre Variedades Diferenciables:
-   Espacio de estados $x \in \mathcal{M} \cong \mathbb{R}^n$.
-   Hamiltoniano cuadrático $H(x) = \frac{1}{2} x^{\top} K x$, con métrica $K = K^{\top} \succ 0$ ($K \in \operatorname{Sym}^{++}(n)$).
-   Tensor de interconexión $J(x) \in \mathfrak{so}(n)$ ($J = -J^{\top}$), disipación $R(x) = R(x)^{\top} \succeq 0$ ($R \in \operatorname{Sym}^+(n)$).
-   Ecuación de estado: $\dot{x} = [J(x) - R(x)] \nabla H(x) + g(x) u$,  salida conjugada: $y = g(x)^{\top} \nabla H(x)$.
-   Tasa de disipación de Rayleigh: $\dot{H} = -\nabla H^{\top} R \nabla H + y^{\top} u \le 0$ para $u = 0$.
-   Invariantes de Casimir lineales: $C(x) = C^{\top} x \in \ker J$, satisfaciendo $\dot{C} = -C^{\top} R \nabla H = 0$ cuando $R=0$ o $\operatorname{im} R \perp \ker J$.
-   Análisis espectral no-normal de $A = (J - R)K \in \mathfrak{gl}(n)$: norma logarítmica $\mu_2(A) = \lambda_{\max}\left(\frac{A + A^{\top}}{2}\right)$ que rige la cota transitoria $\|e^{tA}\|_2 \le e^{t \mu_2(A)}$.
+Ubicación Categórica:
+    • Estrato: WISDOM (Nivel 0) / PHYSICS (Ejecutor Físico-Matemático)
+    • Módulo: app.physics.flux_condenser
+    • Esquema: 7.1.0 (Canónico) | Convención Hodge: D = ε ★₁ E, H = μ⁻¹ ★₂ B
 
-2. Cálculo Exterior Discreto (DEC) y Electrodinámica de Maxwell (2D TE$\perp$):
-   Complejo simplicial primario $\mathcal{K}_{\le 2}$ con complejo de cadenas $C_2 \xrightarrow{\partial_2} C_1 \xrightarrow{\partial_1} C_0$, cumpliendo $\partial_1 \circ \partial_2 = 0$.
-   Operadores de codiferencial $d_k = \partial_{k+1}^{\top}$ con $d_1 \circ d_0 = 0$.
-   Estrellas de Hodge concentradas (diagonal dual circumcéntrico):
-     $\star_0 = \operatorname{diag}(\operatorname{vol}(v))$, $\star_1 = \operatorname{diag}(|\star e|/|e|)$, $\star_2 = \operatorname{diag}(1/|f|)$.
-   Codiferencial discreto: $\delta_1 = \star_0^{-1} d_0^{\top} \star_1 = \star_0^{-1} \partial_1 \star_1$, $\delta_2 = \star_1^{-1} d_1^{\top} \star_2 = \star_1^{-1} \partial_2 \star_2$.
-   Laplaciano de Hodge-de Rham: $\Delta_k = \delta_{k+1} d_k + d_{k-1} \delta_k \succeq 0$, con $\ker \Delta_k \cong H^k_{\text{dR}}(\mathcal{K})$.
-   Maxwell discreto: $\partial_t B = -d_1 E - \sigma_m H + J_m$, $\partial_t D = \delta_2 H - \sigma_e E - J_e$, constitutivas $D = \varepsilon \star_1 E$ y $H = \mu^{-1} \star_2 B$.
-   Densidad de flujo de Poynting discreto: $S_e = E_e \cdot \langle H \rangle_{\star e}$ y momento electromagnético $P = \varepsilon \mu S |e|$.
+I. ARQUITECTURA FÍSICO-MATEMÁTICA Y LEYES TERMODINÁMICAS
+--------------------------------------------------------------------------------------------------
+El Condensador de Flujo actúa como el motor numérico de precisión de APU Filter. Simula la
+evolución temporal del operador de densidad y los estados PHS preservando las leyes de conservación
+de energía y la segunda ley de la termodinámica.
 
-3. Arquitectura de Fases Anidadas y Continuidad Formal:
-   • FASE 1: Fundamentos Axiomáticos, Núcleo Poincaré, Complejo DEC y Maxwell FDTD.
-     Frontera formal de salida: `MaxwellSolver.synthesize_poincare_control_seed(...) -> PoincareControlSeed`.
-   • FASE 2: Controladores Port-Hamiltonianos, Matching IDA-PBC lineal, Funciones de Lyapunov de Formación de Energía $V = \frac{1}{2}(H - H^*)^2$ y Músculo Térmico de Flujo.
-     Frontera formal de salida: `PortHamiltonianPoincareController.synthesize_engine_seed(...) -> PoincareEngineSeed`.
-   • FASE 3: Integración Termodinámica GENERIC ($E = H_{\text{em}} + T S$, producción de entropía $\sigma = \frac{\|\nabla H\|_R^2}{T} \ge 0$), Grafo de Proximidad Métrica, Entropía de Información y Orquestador de Lotes.
-     Frontera formal de cierre: `DataFluxCondenser.synthesize_final_unified_state(...) -> UnifiedPhysicalSnapshot`.
+1. Integración Simpléctica de Punto Medio y Strang Splitting:
+   La dinámica simpléctica ẋ = (J - R)∇H + g u se integra mediante la regla del Punto Medio
+   Implícito ZOH (Zero-Order Hold) o el esquema simétrico de Strang Splitting:
+       x_{n+1/2} = x_n + (Δt / 2) (J - R) K x_{n+1/2}
+       x_{n+1}   = x_n + Δt (J - R) K x_{n+1/2}
+   Garantiza conservación exactas del volumen de Liouville en el espacio de fases:
+       d/dt (Vol_Liouville) = Tr((J - R)K) ≤ 0
+
+2. Módulo No Lineal RLC y Solucionador TR-BDF2 (Hosea-Shampine):
+   Para componentes RLC con resistencia serie R_s(I) dependiente de la corriente y fuga shunt G(V):
+       R_s(I) = R_0 (1 + β (I² + ε)^((p-2)/2))
+       G(V)   = G_0 (|V| + ε)^(p-2)
+   El sistema resuelve la rigidez (stiffness) mediante el esquema TR-BDF2 de dos etapas:
+       Paso 1 (Trapezoidal γ = 2 - √2):   y_{n+γ} - (γ h / 2) f(y_{n+γ}) = y_n + (γ h / 2) f(y_n)
+       Paso 2 (BDF2 de 3 Puntos):          y_{n+1} - c h f(y_{n+1}) = a y_n + b y_{n+γ}
+   con coeficientes a = 1/(γ(2-γ)), b = -(1-γ)²/(γ(2-γ)), c = (1-γ)/(2-γ).
+
+3. Auditoría Termodinámica Finitaria (1ª y 2ª Ley):
+   En cada paso de integración, el motor verifica síncronamente el balance GENERIC:
+       • 1ª Ley (Conservación): ΔE = H_1 - H_0 + T_res ΔS = ∫ (uᵀ y - D_Rayleigh) dt
+       • 2ª Ley (Entropía):    σ = (∇Hᵀ R ∇H) / T_res ≥ 0  (Producción de Entropía PSD)
+   Si σ < -10⁻¹² (absorción entrópica no física), se dispara un `EntropyViolationError`.
+
+4. Espectrometría Entrópica de Rényi y Traza de Fisher:
+   Mide la degradación de la información de los lotes presupuestales mediante la familia de Rényi:
+       H_α(P) = (1 / (1 - α)) log₂ ∑_i p_i^α,   α ∈ {0, 0.5, 1, 2, 3, 5, 10, ∞}
+   y calcula la Traza de Información de Fisher Tr(I_Fisher) = ∑_i (1 / p_i) para auditar la
+   estabilidad de las distribuciones de costos de APUs.
+
+5. Grafo de Proximidad Métrica y Complejo Simplicial:
+   Construye un 1-complejo simplicial sobre las métricas operacionales mediante umbral adaptativo:
+       δ_th = c (1 + √(Var(v)))
+   Devuelve los números de Betti de proximidad (β₀ componentes conexas, β₁ ciclos parasitarios)
+   y la característica de Euler-Poincaré χ = β₀ - β₁.
+
+II. SEPARACIÓN DE PLANOS Y ORQUESTACIÓN CON CONTROLADOR PI
+--------------------------------------------------------------------------------------------------
+El controlador PI (DataFluxCondenser) actúa exclusivamente sobre el plano de orquestación, modulando
+el tamaño de lote (batch size) en función de la saturación elástica observada (S = |V_elastic| / V_max).
+El PHS de la física avanza de forma, estrictamente, desacoplada con el paso físico Δt_physics, evitando
+inyectar fuerzas de control ficticias sobre la matriz de densidad de la MAC.
+
+III. ISOMORFISMO Y VINCULACIÓN CIBER-FÍSICA ("DOLOR Y DINERO")
+--------------------------------------------------------------------------------------------------
+    • Violación de 2ª Ley (σ < 0) ──► Detección de manipulación fraudulenta en rendimiento de insumos.
+    • Ciclos de Proximidad (β₁ > 0) ──► Fugas por triangulación o dependencias circulares en APUs.
+    • Caída de Voltaje en Reserva ──► Riesgo de desbordamiento en el plano de control (Brownout).
+    • Veto de Integración           ──► Disparo del disyuntor Crowbar ESP32 (< 400 ns) para detener obra.
 """
+
 from __future__ import annotations
 
 import logging
