@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : toon_oniric_auditor_agent.py                                              ║
+║ MÓDULO   : app/agents/toon_oniric_auditor_agent.py                                   ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT              ║
 ║ FUNCIÓN  : SOBERANO AUDITOR DE ESCENARIOS ONÍRICOS Y CERTIFICADOR DE INMUNIZACIÓN    ║
 ║ VERSIÓN  : 8.1.0-Doctoral-Poincare-Lefschetz-TQFT-GromovWitten-Crowbar-Heyting-A3    ║
