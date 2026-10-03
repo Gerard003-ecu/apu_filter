@@ -4,7 +4,7 @@ r"""
 ║ MÓDULO   : app/wisdom/toon_intuition_engine.py                                       ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / ATRACTOR ESPECTRAL FLASH            ║
 ║ FUNCIÓN  : MOTOR ESPECTRAL DE LA INTUICIÓN FLASH Y CAMPO ATRACTOR EN HILBERT         ║
-║ VERSIÓN  : 8.0.0-Doctoral-Intuition-Engine-SpectralAttractor-Frobenius-A3            ║
+║ VERSIÓN  : 8.0.0-Doctoral-Poincaré-Intuition-Engine-SpectralAttractor-A3             ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
@@ -19,40 +19,40 @@ complejo $n$-dimensional de densidad operacional:
 
     \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}}) = \left\{ \rho \in \mathcal{B}(\mathcal{H}_{\mathrm{MAC}}) \;\middle|\; \rho = \rho^\dagger, \, \rho \ge 0, \, \operatorname{Tr}(\rho) = 1 \right\}
 
-El motor de intuición no resuelve la ecuación diferencial completa de Schrödinger o Lindblad,
-sino que efectúa una contracción relámpago basada en la distancia de Frobenius hacia la base 
-ortonormal de referencia de la variedad estable $U_{\mathrm{basis}} \in U(n)$:
-
-    \Pi_{\mathcal{M}}(\rho) = U_{\mathrm{basis}} \left( U_{\mathrm{basis}}^\dagger \rho \right)
+El motor de intuición integra los principios cualitativos de la Mecánica Celeste de
+Henri Poincaré (*Les Méthodes Nouvelles de la Mécanique Céleste*):
+Secciones de Retorno de Poincaré ($P: S \to S$), Concentración de Medida de Poincaré-Borel
+sobre Esferas $S^{n-1}(\sqrt{n})$, Métrica Geodésica de Bures-Wasserstein $d_B(\rho_1, \rho_2)$
+sobre el Grassmanniano $Gr(r,n)$, y modulación de asignación de capital por el Criterio de Kelly.
 
 POSTULADOS Y FORMULACIÓN ESPECTRAL FLASH
 ────────────────────────────────────────
-1. POSTULADO DE DISTANCIA GEODÉSICA DE FROBENIUS RELÁMPAGO:
-   Para toda matriz de densidad germinada $\rho_{\mathrm{germinated}}$, la desviación 
-   métrica con respecto al subespacio invariante de estabilidad se define por la norma:
+1. POSTULADO DE SECCIONES DE RETORNO DE POINCARÉ Y EXPONENTES DE LYAPUNOV DISCRETOS:
+   Para todo flujo continuo no integrable $\dot{x} = X(x)$ sobre la variedad de decisiones $\mathcal{M}$
+   y subvariedad transversal $S \subset \mathcal{M}$, la sección de retorno de Poincaré $P: S \to S$
+   asigna $P(x) = \phi_{\tau(x)}(x)$. El exponente de Lyapunov máximo de la sección de retorno:
 
-       d_{\mathcal{M}}(\rho, \Pi_{\mathcal{M}}(\rho)) = \|\rho - \Pi_{\mathcal{M}}(\rho)\|_F = \sqrt{\operatorname{Tr}\left( (\rho - \Pi_{\mathcal{M}}(\rho))^\dagger (\rho - \Pi_{\mathcal{M}}(\rho)) \right)}
+       \lambda_{\max}(P) = \lim_{k \to \infty} \frac{1}{k} \ln \left\| \frac{\partial P^k}{\partial x} \right\|
 
-   La proyección se ejecuta en una ventana temporal ultra-reducida de latencia 
-   $\Delta \tau_{\mathrm{flash}} < 10\,\mu\mathrm{s}$.
+   mide la divergencia de órbitas. Si $\lambda_{\max}(P) > 0$, la sección transversal del presupuesto
+   presenta caos local, anulando la fracción de apuesta de Kelly ($s \to 0$).
 
-2. ENERGÍA DEL ATRACTOR Y PUREZA CUÁNTICA CONJUNTA:
-   Sea $\gamma(\rho) = \operatorname{Tr}(\rho^2)$ la pureza de von Neumann del estado. La 
-   energía del atractor de intuición $E_{\mathrm{attractor}}(\rho)$ penaliza los estados 
-   mixtos altamente entrópicos desalineados con la variedad:
+2. POSTULADO DE CONCENTRACIÓN DE MEDIDA DE POINCARÉ-BOREL:
+   Las proyecciones relámpago sobre el Grassmanniano $Gr(r,n)$ mediante matriz isométrica $B \in St(r,n)$
+   preservan la geometría espectral de $\mathfrak{D}_n$ sin sesgos de muestreo cuando $n \to \infty$.
 
-       E_{\mathrm{attractor}}(\rho) = \frac{d_{\mathcal{M}}(\rho, \Pi_{\mathcal{M}}(\rho))}{\gamma(\rho) + \varepsilon}
+3. DISTANCIA GEODÉSICA DE BURES-WASSERSTEIN:
+   Para estados $\rho_1, \rho_2 \in \mathfrak{D}_n$, la distancia geodésica de Bures-Wasserstein se define por:
 
-   Un estado de alta pureza ($\gamma \to 1.0$) alineado con la variedad ($d_{\mathcal{M}} \to 0$)
-   produce una energía atrayente casi nula ($E_{\mathrm{attractor}} \approx 0$).
+       d_B(\rho_1, \rho_2) = \sqrt{2 \left( 1 - \operatorname{Tr}\left( \sqrt{\sqrt{\rho_1} \rho_2 \sqrt{\rho_1}} \right) \right)}
 
-3. INVOLUCIÓN SOBRE EL TOPOS DE HEYTING ($\Omega_3$):
-   El veredicto del motor asigna una sección en el clasificador trivalente del topos de haces:
+4. INVOLUCIÓN SOBRE EL TOPOS DE HEYTING ($\Omega_3$):
+   El veredicto asigna una sección en el clasificador trivalente del topos:
 
        v(\rho) = \begin{cases}
-       \mathtt{COHERENT} & \text{si } d_{\mathcal{M}} \le 0.20 \quad \text{y} \quad \gamma(\rho) \ge 0.25, \\
-       \mathtt{DEGRADED} & \text{si } 0.20 < d_{\mathcal{M}} \le 0.45 \quad \text{o} \quad 0.20 \le \gamma(\rho) < 0.25, \\
-       \mathtt{VETOED}   & \text{si } d_{\mathcal{M}} > 0.45 \quad \text{o} \quad \gamma(\rho) < 0.20.
+       \mathtt{COHERENT} & \text{si } \lambda_{\max}(P) \le 0 \quad \text{y} \quad d_B \le 0.05, \\
+       \mathtt{DEGRADED} & \text{si } d_B \le 0.15 \quad \text{o} \quad \text{alerta de fricción geodésica}, \\
+       \mathtt{VETOED}   & \text{si } \lambda_{\max}(P) > 0 \quad \text{o} \quad d_B > 0.15.
        \end{cases}
 
 TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
@@ -883,7 +883,189 @@ class FlashAttractorSolver:
         return rho, cert
 
 
-# ── §2.4 IntuitionFlashPipeline — HAND-OFF FASE 2 → FASE 3 ────────────────
+# ── §2.4 Secciones de Retorno de Poincaré y Asignación de Kelly ─────────
+@dataclass(frozen=True, slots=True)
+class KellyStakeReport:
+    r"""
+    Informe de asignación de capital según el criterio de Kelly modulado por Poincaré.
+
+    Atributos:
+        stake_fraction: Fracción óptima de apuesta s = κ f* ∈ [0, 1].
+        f_star: Fracción teórica de Kelly f* = (p(b+1) - 1) / b.
+        is_vetoed: Booleano indicando si la inversión fue vetada por caos o distorsión.
+        reason: Razón del veto ("COHERENT", "POINCARÉ_SECTION_DIVERGENCE", "BURES_DISTORTION", "NEGATIVE_EDGE").
+        p_eff: Probabilidad efectiva de éxito p_eff ∈ [0, 1].
+        log_growth: Tasa de crecimiento logarítmico esperado G(s) = p ln(1+s) + (1-p) ln(1-s).
+    """
+    stake_fraction: float
+    f_star: float
+    is_vetoed: bool
+    reason: str
+    p_eff: float = 0.5
+    log_growth: float = 0.0
+
+
+class FlashSpectralJacobian:
+    r"""
+    Jacobiano Espectral Relámpago con Sección de Retorno de Poincaré.
+
+    Evalúa la proyección de la matriz de densidad de entrada sobre la sección
+    transversal de Poincaré S en el Grassmanniano Gr(r,n).
+    Calcula los exponentes de Lyapunov discretos λ_max(P) y la distancia
+    geodésica de Bures-Wasserstein d_B(ρ_proj, ρ_MAC).
+
+    Definición Matemático-Física:
+    Dada la variedad de decisiones M y la subvariedad transversal S,
+    el operador de proyección ortogonal P_sub = B B† (donde B ∈ St(r,n))
+    extrae el subespacio principal mediante la concentración de medida de
+    Poincaré-Borel sobre esferas S^{n-1}(\sqrt{n}).
+
+    El exponente de Lyapunov máximo de la sección de retorno se calcula como:
+        λ_max(P) = ln( max( sv_max( P_sub (ρ - ρ_MAC) P_sub ), 10^{-12} ) )
+    """
+
+    def project_poincare_section_grassmannian(
+        self,
+        density_op: np.ndarray,
+        mac_equilibrium_op: np.ndarray,
+        subspace_rank: int = 2,
+        poincare_tolerance: float = 1e-6,
+        bures_threshold: float = 0.15,
+    ) -> Tuple[np.ndarray, float, float, bool]:
+        r"""
+        Proyecta la matriz de densidad sobre la sección de retorno de Poincaré en Gr(r,n).
+
+        Args:
+            density_op: Operador densidad incidente ρ ∈ D_n.
+            mac_equilibrium_op: Operador densidad de equilibrio ρ_MAC ∈ D_n.
+            subspace_rank: Dimensión r del subespacio en Gr(r,n).
+            poincare_tolerance: Umbral para el exponente de Lyapunov discreto (λ_max ≤ tol).
+            bures_threshold: Umbral máximo admisible de distancia Bures-Wasserstein.
+
+        Returns:
+            Tuple con (ρ_projected, d_bures, lyap_max, is_stable).
+        """
+        rho = DensityOperatorAlgebra.sanitize(density_op)
+        rho_mac = DensityOperatorAlgebra.sanitize(mac_equilibrium_op)
+        n = rho.shape[0]
+
+        # 1. Proyección ortogonal en Gr(r,n) por concentración Poincaré-Borel
+        r = int(np.clip(subspace_rank, 1, max(1, n - 1)))
+        evals, evecs = la.eigh(rho)
+        idx = np.argsort(evals)[::-1][:r]
+        B = evecs[:, idx]
+        P_sub = B @ B.conj().T
+        P_sub = 0.5 * (P_sub + P_sub.conj().T)
+
+        rho_proj_raw = P_sub @ rho @ P_sub
+        tr_proj = float(np.trace(rho_proj_raw).real)
+        if tr_proj < 1e-15:
+            rho_proj = np.eye(n, dtype=np.complex128) / n
+        else:
+            rho_proj = DensityOperatorAlgebra.sanitize(rho_proj_raw / tr_proj)
+
+        # 2. Métrica Geodésica de Bures-Wasserstein
+        d_bures = DensityOperatorAlgebra.bures_distance(rho_proj, rho_mac)
+
+        # 3. Exponente de Lyapunov Máximo de la Sección de Retorno
+        jac_map = P_sub @ (rho - rho_mac) @ P_sub
+        sv = la.svdvals(jac_map)
+        max_sv = float(sv[0]) if sv.size > 0 else 1e-12
+        lyap_max = float(math.log(max(max_sv, 1e-12)))
+
+        is_stable = bool(lyap_max <= poincare_tolerance and d_bures <= bures_threshold)
+        return rho_proj, float(d_bures), float(lyap_max), is_stable
+
+
+class KellyStakeCalculator:
+    r"""
+    Calculador de Asignación de Capital de Kelly Modulado por Invariantes de Poincaré.
+
+    Ajusta la fracción de apuesta óptima s = κ f* en la variedad de decisiones.
+    Aplica veto instantáneo (s = 0.0) si la sección de retorno de Poincaré
+    detecta caos local (λ_max(P) > 0) o distorsión geodésica Bures excesiva.
+
+    Formulación:
+        f* = (p(b + 1) - 1) / b
+        s = κ f* · Θ(λ_threshold - λ_max(P)) · Θ(bures_threshold - d_B)
+    """
+
+    DEFAULT_KAPPA: Final[float] = 0.25
+
+    def calculate_poincare_kelly_stake(
+        self,
+        success_probability: float,
+        win_loss_ratio: float,
+        lyap_max: float,
+        d_bures: float,
+        fractional_multiplier: float = 0.25,
+        bures_threshold: float = 0.15,
+        cost_risk: float = 0.0,
+    ) -> KellyStakeReport:
+        r"""Calcula la apuesta de Kelly modulada con veto de Lyapunov Poincarano."""
+        p = float(np.clip(success_probability, 0.0, 1.0))
+        b = float(win_loss_ratio)
+        kappa = float(np.clip(fractional_multiplier, 0.0, 1.0))
+
+        if b <= 0.0:
+            return KellyStakeReport(
+                stake_fraction=0.0,
+                f_star=0.0,
+                is_vetoed=True,
+                reason="INVALID_WIN_LOSS_RATIO",
+                p_eff=p,
+                log_growth=0.0,
+            )
+
+        if lyap_max > 0.0:
+            return KellyStakeReport(
+                stake_fraction=0.0,
+                f_star=0.0,
+                is_vetoed=True,
+                reason="POINCARE_SECTION_DIVERGENCE",
+                p_eff=p,
+                log_growth=0.0,
+            )
+
+        if d_bures > bures_threshold:
+            return KellyStakeReport(
+                stake_fraction=0.0,
+                f_star=0.0,
+                is_vetoed=True,
+                reason="BURES_DISTORTION",
+                p_eff=p,
+                log_growth=0.0,
+            )
+
+        f_star = (p * (b + 1.0) - 1.0) / b
+        if f_star <= 0.0:
+            return KellyStakeReport(
+                stake_fraction=0.0,
+                f_star=float(f_star),
+                is_vetoed=True,
+                reason="NEGATIVE_EDGE",
+                p_eff=p,
+                log_growth=0.0,
+            )
+
+        stake = float(np.clip(kappa * f_star, 0.0, 1.0))
+        growth = (
+            p * math.log(1.0 + stake) + (1.0 - p) * math.log(max(1e-15, 1.0 - stake))
+            if stake < 1.0
+            else 0.0
+        )
+
+        return KellyStakeReport(
+            stake_fraction=stake,
+            f_star=float(f_star),
+            is_vetoed=False,
+            reason="COHERENT",
+            p_eff=p,
+            log_growth=float(growth),
+        )
+
+
+# ── §2.5 IntuitionFlashPipeline — HAND-OFF FASE 2 → FASE 3 ────────────────
 @dataclass(frozen=True, slots=True)
 class IntuitionTrajectoryBundle:
     r"""
@@ -1123,19 +1305,19 @@ class IntuitiveFieldState:
 # ── §3.3 TOONIntuitionEngine — orquestador soberano ──────────────────────
 class TOONIntuitionEngine:
     r"""
-    Motor Espectral de la Intuición Relámpago.
+    Motor Espectral de la Intuición Relámpago y Secciones de Retorno de Poincaré.
 
-    Funtor soberano  F = F₃ ∘ F₂ ∘ F₁ :
+    Funtor soberano F = F₃ ∘ F₂ ∘ F₁ :
 
         F₁  IntuitionFieldPreparation.prepare
         F₂  GeometricSeed.continue_into_phase2 = synthesize
         F₃  continue_into_phase3 ⊗ certify
 
-    Asociatividad (teorema de anidamiento):
-
-        execute_intuitive_cycle
-            = _phase3_certify ∘ _phase2_flash ∘ _phase1_prepare
-            = certify ∘ synthesize ∘ prepare.
+    Mecánica Celeste de Poincaré:
+        - Proyección en Grassmanniano Gr(r,n) vía concentración Poincaré-Borel.
+        - Exponentes de Lyapunov discretos λ_max(P) sobre la sección de retorno.
+        - Métrica geodésica de Bures-Wasserstein d_B(ρ_proj, ρ_MAC).
+        - Asignación de capital Kelly s = κ f* modulada con veto de Lyapunov.
     """
 
     def __init__(
@@ -1159,10 +1341,59 @@ class TOONIntuitionEngine:
         self.max_descend_steps = int(max_descend_steps)
         self.tol = float(tol)
         self.cycle_count = 0
+        self.jacobian_solver = FlashSpectralJacobian()
+        self.kelly_calculator = KellyStakeCalculator()
         self._chain_hash = hashlib.sha256(
             f"{engine_id}::GENESIS::n={dimension_mac}::r={subspace_rank}::"
             f"basis={self.subspace.hash}".encode("ascii")
         ).hexdigest()
+
+    def process_poincare_intuitive_flash(
+        self,
+        density_op: np.ndarray,
+        mac_equilibrium_op: np.ndarray,
+        success_probability: float = 0.85,
+        win_loss_ratio: float = 2.0,
+        subspace_rank: Optional[int] = None,
+        poincare_tolerance: float = 1e-6,
+    ) -> Tuple[np.ndarray, float, float, KellyStakeReport, HeytingOmega3]:
+        r"""
+        Ejecuta la evaluación relámpago con Sección de Retorno de Poincaré y Apuesta de Kelly.
+
+        Args:
+            density_op: Matriz de densidad germinada incidente ρ ∈ D_n.
+            mac_equilibrium_op: Matriz de densidad de equilibrio de la MAC ρ_MAC ∈ D_n.
+            success_probability: Probabilidad de éxito p ∈ [0, 1].
+            win_loss_ratio: Razón de ganancia/pérdida b > 0.
+            subspace_rank: Rango r del subespacio en Gr(r,n).
+            poincare_tolerance: Umbral para el exponente de Lyapunov discreto.
+
+        Returns:
+            Tuple con (ρ_projected, d_bures, lyap_max, kelly_report, verdict).
+        """
+        r = subspace_rank if subspace_rank is not None else self.subspace.rank
+        rho_proj, d_bures, lyap_max, is_stable = self.jacobian_solver.project_poincare_section_grassmannian(
+            density_op=density_op,
+            mac_equilibrium_op=mac_equilibrium_op,
+            subspace_rank=r,
+            poincare_tolerance=poincare_tolerance,
+        )
+
+        kelly_report = self.kelly_calculator.calculate_poincare_kelly_stake(
+            success_probability=success_probability,
+            win_loss_ratio=win_loss_ratio,
+            lyap_max=lyap_max,
+            d_bures=d_bures,
+        )
+
+        if not is_stable or kelly_report.is_vetoed:
+            verdict = HeytingOmega3.VETOED
+        elif d_bures > 0.05:
+            verdict = HeytingOmega3.DEGRADED
+        else:
+            verdict = HeytingOmega3.COHERENT
+
+        return rho_proj, d_bures, lyap_max, kelly_report, verdict
 
     def _advance_chain(self, tag: str, payload: bytes) -> str:
         h = hashlib.sha256(
