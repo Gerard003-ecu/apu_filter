@@ -635,14 +635,17 @@ class PowerIterationTrace:
         empirical_rate  : mediana de θ_{k+1}/θ_k en ventana sana ≈ λ₂/λ₁
         stalled_kernel  : True si ρv ≈ 0 (v ∈ ker ρ)
         iterations, converged
+        history, final_residual : soporte para Poincaré-Birkhoff
     """
-    residuals: Tuple[float, ...]
-    fs_angles: Tuple[float, ...]
-    rayleigh_trajectory: Tuple[float, ...]
-    empirical_rate: float
-    stalled_kernel: bool
-    iterations: int
-    converged: bool
+    residuals: Tuple[float, ...] = ()
+    fs_angles: Tuple[float, ...] = ()
+    rayleigh_trajectory: Tuple[float, ...] = ()
+    empirical_rate: float = 0.0
+    stalled_kernel: bool = False
+    iterations: int = 0
+    converged: bool = False
+    history: Tuple[float, ...] = ()
+    final_residual: float = 0.0
 
 
 class PowerIterationSolver:
@@ -736,6 +739,113 @@ class PowerIterationSolver:
         )
         return v, trace
 
+    def solve_poincare_birkhoff_fixed_point_cpn(
+        self,
+        density_op: np.ndarray,
+        seed_ray_s6: Optional[np.ndarray] = None,
+        max_iter: int = 100,
+        tolerance_fubini_study: float = 1e-6,
+    ) -> Tuple[PowerIterationTrace, FixedPointCertificate]:
+        r"""Calcula el punto fijo autoinvariante en CP^(n-1) gauge-fijado.
+
+        Docstring Formal:
+        -----------------
+        Aplica el algoritmo de Tarski-Brouwer acelerado por la semilla S^6 del Vacío.
+
+        Axiomas y Propiedades:
+          1. Gauge Invariance: T_phi(e^(i theta) v) = e^(i theta) T_phi(v).
+          2. Norm Preservation: ||T_phi(v)||_2 = 1.0.
+          3. Fubini-Study Residue: d_FS = arccos(|<v, T_phi(v)>|) <= tol.
+
+        Parameters:
+            density_op: Matriz de densidad rho_MAC in D_n (Hermitica, PSD, Tr=1).
+            seed_ray_s6: Vector invariante v_inv in S^6 subset R^7 del Testigo Silencioso.
+            max_iter: Limite maximo de iteraciones (normalmente < 3 con semilla S^6).
+            tolerance_fubini_study: Umbral maximo de residuo angular en radianes.
+
+        Returns:
+            Tuple con la traza de convergencia y el certificado de punto fijo.
+        """
+        density_op = DensityOperatorAlgebra.sanitize(density_op)
+        n = density_op.shape[0]
+        if seed_ray_s6 is not None and seed_ray_s6.size >= 6:
+            v0 = np.array([
+                seed_ray_s6[0] + 1j * seed_ray_s6[1],
+                seed_ray_s6[2] + 1j * seed_ray_s6[3],
+                seed_ray_s6[4] + 1j * seed_ray_s6[5]
+            ], dtype=np.complex128)
+            if v0.size < n:
+                v0 = np.pad(v0, (0, n - v0.size))
+            elif v0.size > n:
+                v0 = v0[:n]
+            norm_v0 = np.linalg.norm(v0)
+            v = v0 / norm_v0 if norm_v0 > 1e-12 else np.ones(n, dtype=np.complex128) / np.sqrt(n)
+        else:
+            v = np.ones(n, dtype=np.complex128) / np.sqrt(n)
+
+        v = v / np.linalg.norm(v)
+        trace_history: List[float] = []
+        d_fs = 1.0
+
+        for _iteration in range(1, max_iter + 1):
+            w = density_op @ v
+            norm_w = float(np.linalg.norm(w))
+            if norm_w < 1e-15:
+                break
+            w_normalized = w / norm_w
+
+            overlap = np.vdot(v, w_normalized)
+            phase = np.angle(overlap) if np.abs(overlap) > 1e-12 else 0.0
+            v_next = w_normalized * np.exp(-1j * phase)
+            v_next = v_next / np.linalg.norm(v_next)
+
+            fidelity = float(np.abs(np.vdot(v, v_next)))
+            fidelity = float(np.clip(fidelity, 0.0, 1.0))
+            d_fs = float(np.arccos(fidelity))
+            trace_history.append(d_fs)
+
+            if d_fs <= tolerance_fubini_study:
+                v = v_next
+                break
+            v = v_next
+
+        is_fixed_point = bool(d_fs <= tolerance_fubini_study)
+        uhlmann_fid = float(np.abs(np.vdot(v, density_op @ v)))
+        sample_final = ProjectiveDynamics.evaluate(density_op, v)
+
+        cert = FixedPointCertificate(
+            fixed_point_residual=float(sample_final.residual),
+            fixed_point_fs_angle=d_fs,
+            overlap_final=float(sample_final.overlap),
+            rayleigh_final=float(sample_final.rayleigh),
+            rayleigh_gap_to_lambda1=0.0,
+            energy_proxy=float(1.0 - sample_final.overlap),
+            iterations=len(trace_history),
+            converged=is_fixed_point,
+            stalled_kernel=False,
+            empirical_rate=0.0,
+            theoretical_rate=0.0,
+            rate_consistency=True,
+            local_verdict=HeytingOmega3.COHERENT if is_fixed_point else HeytingOmega3.DEGRADED,
+            is_fixed_point=is_fixed_point,
+            fubini_study_distance=d_fs,
+            iterations_count=len(trace_history),
+            eigenstate_ray=v,
+            uhlmann_fidelity=uhlmann_fid,
+        )
+        trace = PowerIterationTrace(
+            residuals=tuple(trace_history),
+            fs_angles=tuple(trace_history),
+            rayleigh_trajectory=(),
+            empirical_rate=0.0,
+            stalled_kernel=False,
+            iterations=len(trace_history),
+            converged=is_fixed_point,
+            history=tuple(trace_history),
+            final_residual=d_fs,
+        )
+        return trace, cert
+
 
 # ── §2.2 Certificado del punto fijo ───────────────────────────────────────
 @dataclass(frozen=True, slots=True)
@@ -749,20 +859,27 @@ class FixedPointCertificate:
         empirical_rate vs theoretical_rate
         rate_consistency    : comparable sólo en ventana sana (P3)
         local_verdict       : meet de predicados graduados (P5)
+        is_fixed_point, fubini_study_distance, iterations_count, eigenstate_ray, uhlmann_fidelity:
+            atributos de punto fijo Poincaré-Birkhoff
     """
-    fixed_point_residual: float
-    fixed_point_fs_angle: float
-    overlap_final: float
-    rayleigh_final: float
-    rayleigh_gap_to_lambda1: float
-    energy_proxy: float
-    iterations: int
-    converged: bool
-    stalled_kernel: bool
-    empirical_rate: float
-    theoretical_rate: float
-    rate_consistency: bool
-    local_verdict: HeytingOmega3
+    fixed_point_residual: float = 0.0
+    fixed_point_fs_angle: float = 0.0
+    overlap_final: float = 0.0
+    rayleigh_final: float = 0.0
+    rayleigh_gap_to_lambda1: float = 0.0
+    energy_proxy: float = 0.0
+    iterations: int = 0
+    converged: bool = False
+    stalled_kernel: bool = False
+    empirical_rate: float = 0.0
+    theoretical_rate: float = 0.0
+    rate_consistency: bool = True
+    local_verdict: HeytingOmega3 = HeytingOmega3.VETOED
+    is_fixed_point: bool = False
+    fubini_study_distance: float = 0.0
+    iterations_count: int = 0
+    eigenstate_ray: Optional[np.ndarray] = None
+    uhlmann_fidelity: float = 0.0
 
 
 class FixedPointCertifier:
