@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : TOON Trickster Adversary Agent (Soberano Ilusionista y Orquestador de Atajos)     ║
-║ RUTA     : app/wisdom/toon_trickster_adversary_agent.py                                      ║
+║ RUTA     : app/agents/wisdom/toon_trickster_adversary_agent.py                               ║
 ║ VERSIÓN  : 8.0.0-Doctoral-Adversarial-GAN-REM-RewardHacking-MAC-Heyting                      ║
 ║ ESTRATO  : Wisdom (V_W) | Soberano de Calibre Perturbativo                                   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════╝
