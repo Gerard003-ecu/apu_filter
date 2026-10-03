@@ -4,7 +4,7 @@ r"""
 ║ MÓDULO   : app/agents/wisdom/toon_intuition_agent.py                                 ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO RELÁMPAGO Y TRADUCCIÓN      ║
 ║ FUNCIÓN  : SOBERANO DE LA INTUICIÓN, PROYECCIÓN FLASH Y TRADUCCIÓN VISCERAL          ║
-║ VERSIÓN  : 8.0.0-Doctoral-Intuition-Agent-VisceralSignal-Crowbar-A3                  ║
+║ VERSIÓN  : 8.0.0-Doctoral-Poincaré-Intuition-Agent-VisceralSignal-Crowbar-A3         ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
@@ -20,13 +20,19 @@ una **proyección relámpago (Flash Manifold Projection)** con latencia sub-mili
 
     \Delta \tau_{\mathrm{reaction}} < 10\,\mu\mathrm{s}
 
+Integra formalmente la **Mecánica Celeste y Topología Cualitativa de Henri Poincaré**
+(*Les Méthodes Nouvelles de la Mécanique Céleste*, *Analysis Situs*):
+Secciones de Retorno de Poincaré ($P: S \to S$), Exponentes de Lyapunov Discretos $\lambda_{\max}(P)$,
+Concentración de Medida de Poincaré-Borel sobre Esferas $S^{n-1}(\sqrt{n})$, Métrica Geodésica
+de Bures-Wasserstein $d_B(\rho_1, \rho_2)$ en el Grassmanniano $Gr(r,n)$, y Asignación de Criterio de Kelly.
+
 POSTULADOS Y GOBERNANZA AGÉNTICA
 ────────────────────────────────
 1. POSTULADO DEL REFLEJO INSTINTIVO INVARIANTE:
    Dada una solicitud de intuición relámpago `IntuitiveFlashRequest` que contiene la matriz 
-   de densidad germinada $\rho_{\mathrm{germinated}}$, el Soberano invoca al `FlashManifoldProjector` 
-   para determinar la distancia de proyección $d_{\mathcal{M}}$ y el radio espectral flash 
-   $\rho(T)_{\mathrm{flash}} = \frac{1 - \gamma(\rho)}{2}$.
+   de densidad germinada $\rho_{\mathrm{germinated}}$, el Soberano proyecta sobre la sección
+   de retorno de Poincaré en $Gr(r,n)$ para determinar la distancia de Bures-Wasserstein $d_B$
+   y el exponente de Lyapunov máximo $\lambda_{\max}(P)$.
 
 2. TRADUCCIÓN VISCERAL EN LENGUAJE "DOLOR Y DINERO" (`VisceralSignalTranslator`):
    Mapea el estado del retículo de Heyting $\Omega_3$ directamente al canal del Traductor 
@@ -754,7 +760,7 @@ class BuresGeodesicMetric:
         return DensityOperatorAlgebra.sanitize(S @ rho @ S.conj().T)
 
 
-# ── §2.3 Radio espectral del Jacobiano flash ──────────────────────────────
+# ── §2.3 Radio espectral del Jacobiano flash y Secciones de Poincaré ─────
 @dataclass(frozen=True, slots=True)
 class FlashJacobianSpectrum:
     r"""
@@ -781,12 +787,64 @@ class FlashJacobianSpectrum:
 
 class FlashSpectralJacobian:
     r"""
-    Auditoría analítica + sonda numérica del Jacobiano flash.
+    Auditoría analítica + sonda numérica del Jacobiano flash con Sección de Retorno de Poincaré.
 
     La sonda aplica DT_η a perturbaciones aleatorias del bloque P_⊥ y
     mide ‖DT(v)‖_F / ‖v‖_F ≈ |1−η| (testigo de la fórmula de bloques).
+    Evalúa la proyección sobre el Grassmanniano Gr(r,n) como una sección
+    de retorno de Poincaré S, calculando los exponentes de Lyapunov discretos
+    y la métrica geodésica de Bures-Wasserstein.
     """
     N_PROBES: Final[int] = 8
+
+    def project_poincare_section_grassmannian(
+        self,
+        density_op: np.ndarray,
+        mac_equilibrium_op: np.ndarray,
+        subspace_rank: int = 2,
+        poincare_tolerance: float = 1e-6,
+        bures_threshold: float = 0.15,
+    ) -> Tuple[np.ndarray, float, float, bool]:
+        r"""
+        Proyecta la matriz de densidad sobre la sección de retorno de Poincaré en Gr(r,n).
+
+        Args:
+            density_op: Operador densidad incidente ρ ∈ D_n.
+            mac_equilibrium_op: Operador densidad de equilibrio ρ_MAC ∈ D_n.
+            subspace_rank: Dimensión r del subespacio en Gr(r,n).
+            poincare_tolerance: Umbral para el exponente de Lyapunov discreto (λ_max ≤ tol).
+            bures_threshold: Umbral máximo admisible de distancia Bures-Wasserstein.
+
+        Returns:
+            Tuple con (ρ_projected, d_bures, lyap_max, is_stable).
+        """
+        rho = DensityOperatorAlgebra.sanitize(density_op)
+        rho_mac = DensityOperatorAlgebra.sanitize(mac_equilibrium_op)
+        n = rho.shape[0]
+
+        r = int(np.clip(subspace_rank, 1, max(1, n - 1)))
+        evals, evecs = la.eigh(rho)
+        idx = np.argsort(evals)[::-1][:r]
+        B = evecs[:, idx]
+        P_sub = B @ B.conj().T
+        P_sub = 0.5 * (P_sub + P_sub.conj().T)
+
+        rho_proj_raw = P_sub @ rho @ P_sub
+        tr_proj = float(np.trace(rho_proj_raw).real)
+        if tr_proj < 1e-15:
+            rho_proj = np.eye(n, dtype=np.complex128) / n
+        else:
+            rho_proj = DensityOperatorAlgebra.sanitize(rho_proj_raw / tr_proj)
+
+        d_bures = DensityOperatorAlgebra.bures_distance(rho_proj, rho_mac)
+
+        jac_map = P_sub @ (rho - rho_mac) @ P_sub
+        sv = la.svdvals(jac_map)
+        max_sv = float(sv[0]) if sv.size > 0 else 1e-12
+        lyap_max = float(math.log(max(max_sv, 1e-12)))
+
+        is_stable = bool(lyap_max <= poincare_tolerance and d_bures <= bures_threshold)
+        return rho_proj, float(d_bures), float(lyap_max), is_stable
 
     @classmethod
     def _dt_apply(cls, A: np.ndarray, P: np.ndarray, eta: float) -> ComplexMatrix:
@@ -849,7 +907,7 @@ class FlashSpectralJacobian:
         )
 
 
-# ── §2.4 Criterio de Kelly κ-fraccional ───────────────────────────────────
+# ── §2.4 Criterio de Kelly κ-fraccional Modulado por Poincaré ─────────────
 @dataclass(frozen=True, slots=True)
 class KellyStakeReport:
     r"""
@@ -931,6 +989,59 @@ class KellyStakeCalculator:
             is_no_bet=bool(no_bet),
             hedge_amount=hedge,
             local_verdict=local,
+        )
+
+    def calculate_poincare_kelly_stake(
+        self,
+        success_probability: float,
+        win_loss_ratio: float,
+        lyap_max: float,
+        d_bures: float,
+        fractional_multiplier: float = 0.25,
+        bures_threshold: float = 0.15,
+        cost_risk: float = 0.0,
+    ) -> KellyStakeReport:
+        r"""Calcula la apuesta de Kelly modulada con veto de Lyapunov Poincarano."""
+        if win_loss_ratio <= 0.0 or lyap_max > 0.0 or d_bures > bures_threshold:
+            return KellyStakeReport(
+                p_eff=float(np.clip(success_probability, 0.0, 1.0)),
+                kelly_full=0.0,
+                kappa=float(fractional_multiplier),
+                stake=0.0,
+                log_growth=0.0,
+                binary_entropy_nats=self.binary_entropy(success_probability),
+                is_no_bet=True,
+                hedge_amount=0.0,
+                local_verdict=HeytingOmega3.VETOED,
+            )
+
+        f_star = (success_probability * (win_loss_ratio + 1.0) - 1.0) / win_loss_ratio
+        if f_star <= 0.0:
+            return KellyStakeReport(
+                p_eff=float(np.clip(success_probability, 0.0, 1.0)),
+                kelly_full=float(f_star),
+                kappa=float(fractional_multiplier),
+                stake=0.0,
+                log_growth=0.0,
+                binary_entropy_nats=self.binary_entropy(success_probability),
+                is_no_bet=True,
+                hedge_amount=0.0,
+                local_verdict=HeytingOmega3.DEGRADED,
+            )
+
+        s_stake = float(fractional_multiplier * f_star)
+        growth = self.log_growth(success_probability, s_stake)
+        hedge = float(s_stake * max(0.0, cost_risk))
+        return KellyStakeReport(
+            p_eff=float(np.clip(success_probability, 0.0, 1.0)),
+            kelly_full=float(f_star),
+            kappa=float(fractional_multiplier),
+            stake=s_stake,
+            log_growth=growth,
+            binary_entropy_nats=self.binary_entropy(success_probability),
+            is_no_bet=False,
+            hedge_amount=hedge,
+            local_verdict=HeytingOmega3.COHERENT,
         )
 
 
@@ -1431,6 +1542,8 @@ class TOONIntuitionAgent:
         self.kelly_kappa = float(kelly_kappa)
         self.eta_star = float(eta_star)
         self.flash_count = 0
+        self.jacobian_solver = FlashSpectralJacobian()
+        self.kelly_calculator = KellyStakeCalculator()
 
         self.manifold = DecisionManifoldFactory.build(
             n=self.dimension_mac, rank=manifold_rank, key=agent_id,
@@ -1439,6 +1552,54 @@ class TOONIntuitionAgent:
             f"{agent_id}::GENESIS::n={dimension_mac}::r={manifold_rank}::"
             f"m={self.manifold.hash}".encode("ascii")
         ).hexdigest()
+
+    def process_poincare_intuitive_flash(
+        self,
+        request: IntuitiveFlashRequest,
+        mac_equilibrium_op: np.ndarray,
+        success_probability: float = 0.85,
+        win_loss_ratio: float = 2.0,
+    ) -> Tuple[IntuitionFlashCertificate, HeytingOmega3]:
+        r"""
+        Ejecuta el pipeline intuitivo relámpago con Sección de Retorno de Poincaré
+        y adjudicación en el retículo de Heyting Ω₃.
+
+        Args:
+            request: Solicitud de flash intuitivo.
+            mac_equilibrium_op: Operador densidad de equilibrio de la MAC ρ_MAC ∈ D_n.
+            success_probability: Probabilidad de éxito p ∈ [0, 1].
+            win_loss_ratio: Razón de ganancia/pérdida b > 0.
+
+        Returns:
+            Tuple con (cert: IntuitionFlashCertificate, verdict: HeytingOmega3).
+        """
+        rho_proj, d_bures, lyap_max, is_stable = self.jacobian_solver.project_poincare_section_grassmannian(
+            density_op=request.germinated_density_matrix,
+            mac_equilibrium_op=mac_equilibrium_op,
+            subspace_rank=self.manifold.rank,
+        )
+
+        cost_risk = float(request.site_context_payload.get("cost_risk_amount", 0.0) or 0.0)
+        has_fraud = bool(request.site_context_payload.get("has_critical_fraud", False))
+
+        kelly_report = self.kelly_calculator.calculate_poincare_kelly_stake(
+            success_probability=success_probability,
+            win_loss_ratio=win_loss_ratio,
+            lyap_max=lyap_max,
+            d_bures=d_bures,
+            fractional_multiplier=self.kelly_kappa,
+            cost_risk=cost_risk,
+        )
+
+        if not is_stable or kelly_report.is_no_bet or has_fraud:
+            verdict = HeytingOmega3.VETOED
+        elif d_bures > 0.05:
+            verdict = HeytingOmega3.DEGRADED
+        else:
+            verdict = HeytingOmega3.COHERENT
+
+        cert = self.synthesize_intuitive_flash(request, external_verdict=verdict)
+        return cert, verdict
 
     def _advance_chain(self, tag: str, payload: bytes) -> str:
         h = hashlib.sha256(
