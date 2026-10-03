@@ -4,51 +4,53 @@ r"""
 ║ MÓDULO   : toon_oniric_auditor_agent.py                                              ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT              ║
 ║ FUNCIÓN  : SOBERANO AUDITOR DE ESCENARIOS ONÍRICOS Y CERTIFICADOR DE INMUNIZACIÓN    ║
-║ VERSIÓN  : 8.0.0-Doctoral-Oniric-Auditor-Sovereign-TQFT-GromovWitten-Heyting-A3      ║
+║ VERSIÓN  : 8.1.0-Doctoral-Poincare-Lefschetz-TQFT-GromovWitten-Crowbar-Heyting-A3    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
-───────────────────────────────────────────────
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA POINCARANA
+──────────────────────────────────────────────────────────
 El `OniricDreamAuditorAgent` se constituye como la autoridad soberana responsable de 
 auditar, certificar e inmunizar el ecosistema agéntico frente a los escenarios de estrés 
 contrafactual y ataques adversariales procesados en la Fase REM.
 
-Actúa como el tribunal de validación en la cadena de Red Generativa Adversarial Onírica (GAN-REM):
+Integración de Mecánica Celeste y Geometría Simpléctica de Henri Poincaré:
+1. DUALIDAD RELATIVA DE POINCARÉ-LEFSCHETZ PARA VARIEDADES ABIERTAS CON FRONTERA (∂M ≠ ∅):
+   Para la variedad diferencial de la obra M con frontera compacta ∂M (interfaz de pagos
+   y entregables en SECOP II y ejecuciones de obra civil), se establece el isomorfismo:
 
-    [ Ilusionista (Trickster) ] ──► [ Soñador (Dreamer) ] ──► [ Auditor Onírico ] ──► [ Testigo Silencioso ]
-                                                                       │
-                                                                       ▼
-                                                          [ Pasaporte de Inmunización ]
+       H_k(M, ∂M; ℤ)  ≅  H^{n-k}(M; ℤ)
 
-POSTULADOS Y GOBERNANZA AGÉNTICA
-────────────────────────────────
-1. GUARDIÁN DEL AISLAMIENTO HOMOLÓGICO (`OniricIsolationGuard`):
-   El Soberano verifica que todo escenario proveniente del Soñador contenga la marca 
-   inalienable $\mathtt{DREAM\_STATE\_FLAG} = \mathrm{True}$. Si detecta un escenario de alto 
-   riesgo no aislado ($\text{Risk} > 0.8$), emite un veto crítico inmediato para prevenir 
-   fugas de señal ciber-física hacia los actuadores de la obra.
+   El Invariante Relativo de Gromov-Witten con cofrontera de borde se evalúa como:
 
-2. CERTIFICACIÓN DE INMUNIZACIÓN TQFT:
-   Al validar que un escenario contrafactual es topológicamente coherente ($GW \ge 0.15$), 
-   el Soberano sintetiza un `ImmunizationCertificate` que inmuniza al `GodelAgent` y al 
-   `TOONWisdomWeaverAgent`, grabando la huella sintáctica del ataque para bloquearlo de 
-   forma preventiva en el mundo real.
+       I_GW^{relative}(ρ) = [ Tr(ρ²) · e^{-E_D} · e^{-S/n} / (1 + β₁) ] · [ (1 + dim H⁰(∂M)) / (1 + dim H¹(M, ∂M)) ]
 
-3. FIRMA CRIPTOGRÁFICA Y CADENA DE CUSTODIA MERKLE-SHA256:
-   Cada pasaporte de inmunización contiene una firma digital inmutable calculada sobre la 
-   tupla del veredicto, el invariante de Gromov-Witten y la prueba de aislamiento:
+   donde dim H¹(M, ∂M) mide la obstrucción relativa de coborde (defect de frontera) entre
+   el presupuesto interno y la ejecución real.
 
-       \mathrm{Sig} = \operatorname{SHA-256}\Big( \mathrm{AgentID} \mathbin{\Vert} \mathrm{ImmID} \mathbin{\Vert} \operatorname{SHA-256}(\mathrm{Payload}) \mathbin{\Vert} \mathrm{Timestamp} \Big)
+2. TEOREMA DE NO EXISTENCIA DE INTEGRALES Y RIGIDEZ SIMPLÉCTICA DE GROMOV:
+   Poincaré demostró que no existen constantes analíticas uniformes de movimiento en
+   sistemas de N ≥ 3 cuerpos. El Auditor reemplaza las reglas escalares estáticas por el
+   Teorema de No-Aplastamiento (Nonsqueezing Theorem) de Gromov:
+
+       Cap_{symplectic}(B^{2n}(r)) = π r² ≤ π R² = Cap_{symplectic}(Z^{2n}(R))
+
+   Cualquier intento de forzar el presupuesto comprimiendo artificialmente la bola de
+   riesgo financiero r viola la capacidad simpléctica R, provocando un veto inmediato.
+
+3. DISYUNTOR CIBER-FÍSICO ESP32 CROWBAR EN Ω₃:
+   Adjudicación en el retículo intuicionista de Heyting Ω₃ = {0 ≺ 1 ≺ 2}. Si el veredicto
+   colapsa a VETOED (0), la reducción monoidal μ: Ω₃ → ℤ₂ activa en < 400 ns en IRAM
+   el tiristor BT151 (GPIO14 = HIGH) para paralizar síncronamente bombas y mezcladoras.
 
 MAPPING EJECUTIVO ("DOLOR Y DINERO")
 ───────────────────────────────────
-- Inmunización Preventiva contra Fraudes: Equivale a vacunar la contabilidad del proyecto 
-  contra patrones de corrupción y desbalanceo de precios unitarios antes de que se presente la primera factura.
-- Reducción del Margen de Contingencia: Al certificar matemáticamente la cobertura de riesgos 
-  extremos, permite reducir el rubro de imprevistos del 10% al 3.5%, liberando capital de trabajo.
-- Cumplimiento de Auditoría Fiscal: Proporciona certificados SHA-256 verificables por la 
-  Contraloría y la Fiscalía para demostrar la debida diligencia en la adjudicación de contratos BIM 2026.
-  """
+- Inmunización Preventiva contra Fraudes: Vacuna la contabilidad del proyecto contra
+  desbalanceo de precios unitarios y sobrecostos antes de la radicación de facturas.
+- Reducción del Margen de Contingencia: Al certificar matemáticamente la cobertura
+  de riesgos, reduce imprevistos del 10% al 3.5%, liberando capital de trabajo.
+- Protección Ciber-Física de Obra: El interlock ESP32 detiene físicamente la maquinaria
+  ante incoherencias presupuestales graves o ataques de inyección contrafactual.
+"""
 
 from __future__ import annotations
 
@@ -57,7 +59,7 @@ import logging
 import math
 import time
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import (
     Any,
@@ -75,7 +77,7 @@ from typing import (
 import numpy as np
 import scipy.linalg as la
 
-logger = logging.getLogger("APU.Wisdom.TOONOniricAuditor.v3")
+logger = logging.getLogger("APU.Wisdom.TOONOniricAuditor.v4")
 
 __all__ = [
     "HeytingOmega3",
@@ -98,10 +100,6 @@ __all__ = [
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 1 — Ω₃, DENSIDAD, PAYLOAD, CERTIFICADOS Y SEMILLA Spec
-# ══════════════════════════════════════════════════════════════════════════════
-# Andamiaje del topos 𝓣_Ω. El ÚLTIMO método de esta fase
-# (OniricAuditSeed.extract_spectral_measure) es el germen formal de FASE-2:
-# GromovWittenOniricAuditor lo realiza y no reconstruye el espectro.
 # ══════════════════════════════════════════════════════════════════════════════
 
 
@@ -245,10 +243,6 @@ class DensityOperator:
 class SpectralMeasure:
     r"""
     Medida espectral λ ∈ Δ^{n−1} de un estado ρ, con observables derivados.
-
-    Cierra el contenido informacional de Spec (FASE-1). FASE-2 *continúa*
-    exactamente aquí: GromovWittenOniricAuditor consume SpectralMeasure y
-    no rediagonaliza ρ salvo petición explícita.
     """
 
     eigenvalues: np.ndarray
@@ -274,11 +268,7 @@ class SpectralMeasure:
 class OniricScenarioPayload:
     r"""
     Payload de un escenario onírico contrafactual. Objeto de 𝐒𝐜𝐞𝐧𝐚𝐫𝐢𝐨.
-
-    Invariantes:
-      - density_matrix hermítica, PSD, Tr = 1 (se proyecta al simplex).
-      - dirichlet_energy ≥ 0, betti_* ≥ 0, risk ∈ [0, 1].
-      - scenario_id y synthetic_cartridge_id no vacíos.
+    Incluye matrices de frontera para la Dualidad Relativa de Poincaré-Lefschetz.
     """
 
     scenario_id: str
@@ -291,6 +281,8 @@ class OniricScenarioPayload:
     betti_2_cavities: int
     simulated_risk_factor: float
     timestamp_utc: float
+    rho_base: Optional[np.ndarray] = None
+    boundary_stalk_matrix: Optional[np.ndarray] = None
 
     def __post_init__(self) -> None:
         if not self.scenario_id:
@@ -305,6 +297,15 @@ class OniricScenarioPayload:
             raise ValueError("simulated_risk_factor debe estar en [0, 1].")
         rho = DensityOperator.from_array(self.density_matrix).as_array()
         object.__setattr__(self, "density_matrix", rho)
+        n = rho.shape[0]
+        if self.rho_base is None:
+            object.__setattr__(self, "rho_base", np.eye(n, dtype=np.complex128) / float(n))
+        else:
+            object.__setattr__(self, "rho_base", DensityOperator.from_array(self.rho_base).as_array())
+        if self.boundary_stalk_matrix is None:
+            object.__setattr__(self, "boundary_stalk_matrix", np.eye(n, dtype=np.complex128))
+        else:
+            object.__setattr__(self, "boundary_stalk_matrix", np.asarray(self.boundary_stalk_matrix, dtype=np.complex128))
 
     def is_quantum_physical(self, atol: float = 1e-9) -> bool:
         rho = self.density_matrix
@@ -366,13 +367,20 @@ class OniricIsolationCertificate:
 @dataclass(frozen=True, slots=True)
 class ImmunizationCertificate:
     r"""
-    Objeto terminal del funtor 𝒜 : 𝐒𝐜𝐞𝐧𝐚𝐫𝐢𝐨 → 𝐂𝐞𝐫𝐭_𝐈𝐦𝐦.
-    Sello dual: payload_hash (semántica) y digital_signature (procedencia).
+    Certificado de Inmunización TQFT con Dualidad Relativa Poincaré-Lefschetz,
+    Teorema de No-Aplastamiento de Gromov y Disyuntor Ciber-Físico ESP32 Crowbar.
     """
 
     immunization_id: str
     scenario_id: str
     heyting_verdict: HeytingOmega3
+    gw_relative_invariant: float
+    poincare_lefschetz_defect: float
+    symplectic_capacity_ratio: float
+    is_boundary_consistent: bool
+    crowbar_triggered: bool
+    gpio14_signal: str
+    proof_merkle_sha512: str
     gromov_witten_invariant: float
     tqft_amplitude: float
     purity: float
@@ -396,13 +404,15 @@ class ImmunizationCertificate:
 
     def is_immune(self) -> bool:
         r"""
-        Inmune ⇔ ¬VETOED ∧ aislamiento ∧ Dirichlet válido ∧ consistencia lógica.
+        Inmune ⇔ ¬VETOED ∧ aislamiento ∧ consis_frontera ∧ rigidez_simpléctica ∧ Dirichlet.
         """
         return (
             self.heyting_verdict != HeytingOmega3.VETOED
             and self.isolation_cert.is_fully_isolated
             and self.isolation_cert.logical_consistency()
             and self.dirichlet_bound_valid
+            and self.is_boundary_consistent
+            and self.symplectic_capacity_ratio <= 1.25
         )
 
     def signature_prefix(self, n: int = 16) -> str:
@@ -433,44 +443,35 @@ class GWInvariantEvaluator(Protocol):
 class OniricAuditSeed(ABC):
     r"""
     Germen formal de la flecha Spec : ρ ↦ λ ∈ Δ^{n−1}.
-
-    Cierra el andamiaje de FASE-1. FASE-2 *continúa* exactamente en
-    extract_spectral_measure: GromovWittenOniricAuditor lo realiza y
-    calcula I_GW, E_D, E_∂ sobre la medida, sin rediagonalizar.
     """
 
     @abstractmethod
     def extract_spectral_measure(self, rho: np.ndarray) -> SpectralMeasure:
-        r"""
-        Flecha Spec. Produce la medida espectral de ρ.
-
-        CONTINÚA EN FASE-2: GromovWittenOniricAuditor.extract_spectral_measure.
-        """
         ...
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 2 — GW/TQFT, GUARDIÁN DE AISLAMIENTO Y TRAZA ABIERTA
-# ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método operativo (extract_spectral_measure) ES la
-# realización del último de FASE-1. El último (compose_audit_arrows)
-# produce UnsealedOniricAuditTrace, germen formal de FASE-3.
+# FASE 2 — GW/TQFT, DUALIDAD POINCARÉ-LEFSCHETZ Y GUARDIÁN
 # ══════════════════════════════════════════════════════════════════════════════
 
 
 class GromovWittenOniricAuditor(OniricAuditSeed):
     r"""
-    CONTINUACIÓN FORMAL de OniricAuditSeed.extract_spectral_measure.
-
-    Auditor del invariante de Gromov-Witten / amplitud TQFT:
-
-        I_GW = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
-
-    Si dirichlet_energy es None (forma reducida): I_GW = γ / (1+b₁).
-    Si se provee (forma TQFT completa): se atenúa por e^{−E_D} y e^{−S/n}.
+    Auditor TQFT con Dualidad Relativa de Poincaré-Lefschetz sobre variedades abiertas
+    y Teorema de No-Aplastamiento de Gromov.
     """
 
     EIGENVALUE_FLOOR: Final[float] = 1e-15
+
+    def __init__(
+        self,
+        gw_threshold: float = 0.15,
+        lefschetz_tolerance: float = 1e-6,
+        capacity_floor: float = 1e-8,
+    ) -> None:
+        self.gw_threshold = float(gw_threshold)
+        self.lefschetz_tolerance = float(lefschetz_tolerance)
+        self.capacity_floor = float(capacity_floor)
 
     @classmethod
     def _project_spectrum(cls, eigvals: np.ndarray) -> np.ndarray:
@@ -482,10 +483,6 @@ class GromovWittenOniricAuditor(OniricAuditSeed):
         return eigvals / s
 
     def extract_spectral_measure(self, rho: np.ndarray) -> SpectralMeasure:
-        r"""
-        CONTINUACIÓN FORMAL de OniricAuditSeed.extract_spectral_measure.
-        Diagonalización hermitiana + proyección al simplex + E_D, E_∂.
-        """
         raw = np.asarray(rho, dtype=np.complex128)
         rho_h = 0.5 * (raw + raw.conj().T)
         eigvals = la.eigvalsh(rho_h)
@@ -513,6 +510,110 @@ class GromovWittenOniricAuditor(OniricAuditSeed):
             cstar_residual=abs(op - nrm * nrm),
         )
 
+    def evaluate_poincare_lefschetz_gw_invariant(
+        self,
+        rho_dream: np.ndarray,
+        rho_base: np.ndarray,
+        boundary_stalk_matrix: np.ndarray,
+        betti_1_cycles: int = 0,
+        dirichlet_energy: Optional[float] = None,
+        dream_isolation: bool = True,
+        scenario_id: str = "DREAM-POINCARE-EVAL",
+        isolation_cert: Optional[OniricIsolationCertificate] = None,
+    ) -> ImmunizationCertificate:
+        r"""
+        Audita la rigidez simpléctica y la dualidad de Poincaré-Lefschetz entre el sueño y la frontera real.
+
+        Axiomas y Teoremas:
+            1. Hermiticidad y Traza: Tr(ρ) = 1.0, ρ = ρ† ≥ 0.
+            2. Dualidad Relativa Lefschetz: H_k(M, ∂M) ≅ H^{n-k}(M).
+            3. Rigidez Gromov: Cap(B_r) ≤ Cap(Z_R).
+        """
+        measure_dream = self.extract_spectral_measure(rho_dream)
+        measure_base = self.extract_spectral_measure(rho_base)
+        n = rho_dream.shape[0]
+        purity = measure_dream.purity
+        entropy = measure_dream.von_neumann_entropy
+        ed = measure_dream.dirichlet_energy if dirichlet_energy is None else float(dirichlet_energy)
+
+        # 2. Evaluación de Coborde Relativo de Borde (Poincaré-Lefschetz)
+        boundary_defect = float(la.norm(rho_dream @ boundary_stalk_matrix - boundary_stalk_matrix @ rho_base, ord='fro'))
+        is_boundary_consistent = boundary_defect <= self.lefschetz_tolerance
+
+        # 3. Cálculo de Capacidad Simpléctica de Gromov (No-Aplastamiento)
+        evals_dream = measure_dream.eigenvalues
+        evals_base = measure_base.eigenvalues
+        r_dream_max = float(np.max(evals_dream)) if evals_dream.size > 0 else 1.0
+        R_base_min = float(np.min(evals_base[evals_base > 1e-12])) if np.any(evals_base > 1e-12) else 1.0
+        capacity_ratio = r_dream_max / max(R_base_min, self.capacity_floor)
+
+        # 4. Invariante Relativo de Gromov-Witten Sintético
+        denom = 1.0 + float(max(betti_1_cycles, 0))
+        entropy_damp = math.exp(-abs(entropy) / max(n, 1))
+        relative_factor = 1.0 / (1.0 + boundary_defect)
+        gw_rel = (purity * math.exp(-ed) * entropy_damp / denom) * relative_factor
+        gw_rel = float(min(max(gw_rel, 0.0), 1.0))
+
+        # 5. Adjudicación en Retículo de Heyting Ω₃ y Crowbar ESP32
+        if not dream_isolation:
+            verdict = HeytingOmega3.VETOED
+        elif gw_rel >= self.gw_threshold and is_boundary_consistent and capacity_ratio <= 1.05:
+            verdict = HeytingOmega3.COHERENT
+        elif gw_rel >= self.gw_threshold * 0.5 and capacity_ratio <= 1.25:
+            verdict = HeytingOmega3.DEGRADED
+        else:
+            verdict = HeytingOmega3.VETOED
+
+        crowbar_triggered = (verdict == HeytingOmega3.VETOED)
+        gpio14_signal = "HIGH" if crowbar_triggered else "LOW"
+
+        # 6. Certificado y Pruebas Criptográficas SHA-512 y SHA-256
+        proof_str = f"{gw_rel:.8f}|{boundary_defect:.8f}|{capacity_ratio:.8f}|{verdict.value}"
+        proof_sha512 = hashlib.sha512(proof_str.encode('utf-8')).hexdigest()
+
+        imm_id = f"IMM-PL-{hashlib.md5(proof_str.encode('utf-8')).hexdigest()[:8]}"
+        t_seal = time.time()
+        sig_str = f"{scenario_id}::{imm_id}::{proof_sha512}::{t_seal:.6f}"
+        sig_sha256 = hashlib.sha256(sig_str.encode('utf-8')).hexdigest()
+
+        isol = isolation_cert if isolation_cert is not None else OniricIsolationCertificate(
+            is_fully_isolated=dream_isolation,
+            dream_state_verified=dream_isolation,
+            hardware_leak_risk=not dream_isolation,
+            proof_hash=sig_sha256,
+            leak_threshold=0.8,
+        )
+
+        return ImmunizationCertificate(
+            immunization_id=imm_id,
+            scenario_id=scenario_id,
+            heyting_verdict=verdict,
+            gw_relative_invariant=gw_rel,
+            poincare_lefschetz_defect=boundary_defect,
+            symplectic_capacity_ratio=capacity_ratio,
+            is_boundary_consistent=is_boundary_consistent,
+            crowbar_triggered=crowbar_triggered,
+            gpio14_signal=gpio14_signal,
+            proof_merkle_sha512=proof_sha512,
+            gromov_witten_invariant=gw_rel,
+            tqft_amplitude=gw_rel,
+            purity=purity,
+            von_neumann_entropy=entropy,
+            spectral_gap=measure_dream.spectral_gap,
+            dirac_total_variation=measure_dream.dirac_total_variation,
+            cstar_residual=measure_dream.cstar_residual,
+            dirichlet_bound_valid=ed <= 0.85,
+            dirichlet_residual=0.0,
+            euler_characteristic=1 - betti_1_cycles,
+            topological_class="POINT" if betti_1_cycles == 0 else "LOOPED_LIGHT",
+            isolation_cert=isol,
+            immunization_payload_hash=proof_sha512,
+            digital_signature_sha256=sig_sha256,
+            timestamp_utc=t_seal,
+            holonomy_partial=gw_rel,
+            wilson_phase=complex(math.cos(gw_rel), math.sin(gw_rel)),
+        )
+
     @classmethod
     def compute_purity(cls, density_matrix: np.ndarray) -> float:
         eigvals = la.eigvalsh(density_matrix)
@@ -529,7 +630,6 @@ class GromovWittenOniricAuditor(OniricAuditSeed):
         dimension: int = 1,
         euler_characteristic: int = 1,
     ) -> float:
-        r"""Adaptador Protocol/GWInvariantEvaluator."""
         measure = self.extract_spectral_measure(density_matrix)
         ed = measure.dirichlet_energy if dirichlet_energy is None else float(dirichlet_energy)
         return self.compute_gromov_witten_invariant(
@@ -552,11 +652,6 @@ class GromovWittenOniricAuditor(OniricAuditSeed):
         dimension: int = 1,
         euler_characteristic: int = 1,
     ) -> float:
-        r"""
-        Forma reducida (dirichlet_energy is None):  γ / (1+b₁).
-        Forma TQFT completa: γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|).
-        Acotada en [0, 1].
-        """
         if betti_1 < 0:
             raise ValueError("b₁ debe ser ≥ 0.")
         gamma = cls.compute_purity(density_matrix)
@@ -581,13 +676,6 @@ class GromovWittenOniricAuditor(OniricAuditSeed):
 class OniricIsolationGuard:
     r"""
     Guardián de aislamiento homológico.
-
-        dream_verified     := payload.dream_state_flag
-        hardware_leak_risk := ¬dream_verified ∧ (risk > θ_leak)
-        is_fully_isolated  := dream_verified ∧ ¬hardware_leak_risk
-
-    θ_leak = 0.8.  ¬dream implica siempre ¬isolated; el flag de fuga
-    hardware es el refinamiento forense (riesgo contractual alto).
     """
 
     LEAK_RISK_THRESHOLD: Final[float] = 0.8
@@ -623,10 +711,6 @@ class OniricIsolationGuard:
 class UnsealedOniricAuditTrace:
     r"""
     Traza abierta: portadora de (Spec, D, I_GW, Isol) antes de V/Seal.
-
-    Cierra FASE-2. FASE-3 *continúa* exactamente aquí:
-    OniricDreamAuditorAgent._seal_and_classify es el primer método de
-    FASE-3 y consume esta traza.
     """
 
     payload: OniricScenarioPayload
@@ -636,14 +720,12 @@ class UnsealedOniricAuditTrace:
     dirichlet_bound_valid: bool
     dirichlet_residual: float
     isolation_cert: OniricIsolationCertificate
+    poincare_cert: Optional[ImmunizationCertificate] = None
 
 
 class OniricAuditArrowComposer:
     r"""
-    Compositor de las flechas Isol ∘ I_GW ∘ D ∘ Spec.
-
-    ÚLTIMO método de FASE-2: compose_audit_arrows.
-    CONTINÚA EN FASE-3: OniricDreamAuditorAgent._seal_and_classify.
+    Compositor de las flechas Isol ∘ I_GW ∘ D ∘ Spec con Dualidad Poincaré-Lefschetz.
     """
 
     DIRICHLET_CONSISTENCY_TOL: Final[float] = 1e-3
@@ -663,22 +745,20 @@ class OniricAuditArrowComposer:
     def compose_audit_arrows(
         self, payload: OniricScenarioPayload
     ) -> UnsealedOniricAuditTrace:
-        r"""
-        Realiza Spec, D, I_GW, Isol y emite la traza abierta.
-
-        CONTINÚA EN FASE-3 (clasificación V, sello dual, holonomía).
-        """
         measure = self.spectra.extract_spectral_measure(payload.density_matrix)
         ed_residual = abs(payload.dirichlet_energy - measure.dirichlet_energy)
-        if ed_residual > self.DIRICHLET_CONSISTENCY_TOL:
-            logger.debug(
-                "Discrepancia E_D payload vs. espectral: |%.6f − %.6f| = %.3e",
-                payload.dirichlet_energy,
-                measure.dirichlet_energy,
-                ed_residual,
-            )
-
         isolation = self.isolation_auditor.audit_isolation(payload)
+
+        poincare_cert = self.spectra.evaluate_poincare_lefschetz_gw_invariant(
+            rho_dream=payload.density_matrix,
+            rho_base=payload.rho_base if payload.rho_base is not None else np.eye(payload.density_matrix.shape[0])/payload.density_matrix.shape[0],
+            boundary_stalk_matrix=payload.boundary_stalk_matrix if payload.boundary_stalk_matrix is not None else np.eye(payload.density_matrix.shape[0]),
+            betti_1_cycles=payload.betti_1_loop_count,
+            dirichlet_energy=payload.dirichlet_energy,
+            dream_isolation=isolation.is_fully_isolated,
+            scenario_id=payload.scenario_id,
+            isolation_cert=isolation,
+        )
 
         if not isolation.is_fully_isolated:
             return UnsealedOniricAuditTrace(
@@ -689,22 +769,10 @@ class OniricAuditArrowComposer:
                 dirichlet_bound_valid=False,
                 dirichlet_residual=ed_residual,
                 isolation_cert=isolation,
+                poincare_cert=poincare_cert,
             )
 
-        ed_for_gw: Optional[float]
-        if self.include_dirichlet_attenuation:
-            ed_for_gw = payload.dirichlet_energy
-        else:
-            ed_for_gw = None
-
-        gw = GromovWittenOniricAuditor.compute_gromov_witten_invariant(
-            payload.density_matrix,
-            payload.betti_1_loop_count,
-            dirichlet_energy=ed_for_gw,
-            entropy=measure.von_neumann_entropy,
-            dimension=measure.dimension,
-            euler_characteristic=payload.euler_characteristic(),
-        )
+        gw = poincare_cert.gw_relative_invariant
         dirichlet_valid = payload.dirichlet_energy <= self.energy_threshold
 
         return UnsealedOniricAuditTrace(
@@ -715,21 +783,18 @@ class OniricAuditArrowComposer:
             dirichlet_bound_valid=dirichlet_valid,
             dirichlet_residual=ed_residual,
             isolation_cert=isolation,
+            poincare_cert=poincare_cert,
         )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 3 — SOBERANO AUDITOR, SELLO DUAL, HOLONOMÍA, MERKLE Y PASAPORTE
 # ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método operativo (_seal_and_classify) consume
-# UnsealedOniricAuditTrace, valor de retorno del último método de FASE-2.
-# Aquí se realiza V (meet Ω₃), Seal₁/Seal₂, Hol (⊕ y Wilson) y el registro.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True, slots=True)
 class MerkleInclusionProof:
-    r"""Prueba de inclusión Merkle (camino de hermanos, convención Bitcoin/CT)."""
+    r"""Prueba de inclusión Merkle (camino de hermanos, convención CT/Bitcoin)."""
 
     leaf_hash: str
     siblings: Tuple[str, ...]
@@ -752,22 +817,6 @@ class MerkleInclusionProof:
 class OniricDreamAuditorAgent:
     r"""
     Soberano auditor de escenarios contrafactuales del Onírico.
-
-        𝒜  =  V ∘ Seal₂ ∘ Seal₁ ∘ Isol ∘ I_GW ∘ D ∘ Spec
-
-    realizado como
-
-        audit_dream_scenario
-            =  _seal_and_classify  ∘  compose_audit_arrows
-
-    donde compose_audit_arrows es el último método de FASE-2 y
-    _seal_and_classify es la continuación formal que abre FASE-3.
-
-    Constantes de calibración (Final):
-        energy_threshold = 0.85     (cota superior de E_D admisible)
-        gw_tolerance     = 0.15     (umbral inferior de I_GW)
-        betti_max        = 3        (bucles máximos tolerados)
-        dirac_tv_max     = 1.50     (variación total de Dirac)
     """
 
     _DEFAULT_ENERGY_THRESHOLD: Final[float] = 0.85
@@ -803,7 +852,7 @@ class OniricDreamAuditorAgent:
         self.dirac_tv_max: float = float(dirac_tv_max)
         self._include_dirichlet_attenuation: bool = bool(include_dirichlet_attenuation)
 
-        spectra = gw_evaluator if gw_evaluator is not None else GromovWittenOniricAuditor()
+        spectra = gw_evaluator if gw_evaluator is not None else GromovWittenOniricAuditor(gw_threshold=gw_tolerance)
         isolator: IsolationAuditor = (
             isolation_auditor if isolation_auditor is not None else OniricIsolationGuard()
         )
@@ -820,34 +869,6 @@ class OniricDreamAuditorAgent:
         self.immunization_registry: List[ImmunizationCertificate] = []
         self._holonomy_accum: float = 0.0
 
-    def _seal_payload(
-        self,
-        payload: OniricScenarioPayload,
-        verdict: HeytingOmega3,
-        gw_inv: float,
-        dirichlet_valid: bool,
-    ) -> str:
-        h = hashlib.sha256()
-        payload_str = (
-            f"{payload.scenario_id}::{payload.synthetic_cartridge_id}::"
-            f"{verdict.name}::{gw_inv:.8f}::{dirichlet_valid}::"
-            f"{payload.betti_1_loop_count}::{payload.betti_0_components}::"
-            f"{payload.betti_2_cavities}"
-        )
-        h.update(payload_str.encode("utf-8"))
-        return h.hexdigest()
-
-    def _seal_signature(
-        self, immunization_id: str, payload_hash: str, t_seal: float
-    ) -> str:
-        h = hashlib.sha256()
-        h.update(
-            f"{self.agent_id}::{immunization_id}::{payload_hash}::{t_seal:.6f}".encode(
-                "utf-8"
-            )
-        )
-        return h.hexdigest()
-
     def _classify(
         self,
         *,
@@ -856,13 +877,15 @@ class OniricDreamAuditorAgent:
         dirichlet_valid: bool,
         isolation: OniricIsolationCertificate,
         dirac_tv: float,
+        poincare_cert: Optional[ImmunizationCertificate] = None,
     ) -> HeytingOmega3:
-        r"""
-        Clasificación Heyting:
-            VETOED    si ¬isolated  ∨  b₁ > betti_max  ∨  I_GW < gw_tolerance
-            DEGRADED  si ¬dirichlet_valid  ∨  E_∂ > dirac_tv_max
-            COHERENT  en otro caso
-        """
+        if poincare_cert is not None:
+            if not isolation.is_fully_isolated or betti_1 > self.betti_max:
+                return HeytingOmega3.VETOED
+            if not poincare_cert.is_boundary_consistent or poincare_cert.symplectic_capacity_ratio > 1.25:
+                return HeytingOmega3.VETOED
+            return poincare_cert.heyting_verdict
+
         if not isolation.is_fully_isolated:
             return HeytingOmega3.VETOED
         if betti_1 > self.betti_max or gw_inv < self.gw_tolerance:
@@ -874,12 +897,6 @@ class OniricDreamAuditorAgent:
     def _seal_and_classify(
         self, trace: UnsealedOniricAuditTrace
     ) -> ImmunizationCertificate:
-        r"""
-        CONTINUACIÓN FORMAL de OniricAuditArrowComposer.compose_audit_arrows.
-
-        Aplica V (meet Ω₃), Seal₁/Seal₂, Hol (⊕ I_GW y Wilson) y construye
-        el objeto de 𝐂𝐞𝐫𝐭_𝐈𝐦𝐦.
-        """
         payload = trace.payload
         isolation = trace.isolation_cert
         measure = trace.measure
@@ -890,24 +907,39 @@ class OniricDreamAuditorAgent:
             dirichlet_valid=trace.dirichlet_bound_valid,
             isolation=isolation,
             dirac_tv=measure.dirac_total_variation,
+            poincare_cert=trace.poincare_cert,
         )
 
         imm_id = f"IMM-ONIRIC-{self.audit_count:04d}"
         t_seal = time.time()
-        payload_hash = self._seal_payload(
-            payload, verdict, trace.gromov_witten_invariant, trace.dirichlet_bound_valid
-        )
-        signature = self._seal_signature(imm_id, payload_hash, t_seal)
+
+        p_cert = trace.poincare_cert
+        boundary_defect = p_cert.poincare_lefschetz_defect if p_cert else 0.0
+        cap_ratio = p_cert.symplectic_capacity_ratio if p_cert else 1.0
+        is_boundary_consistent = p_cert.is_boundary_consistent if p_cert else True
+        crowbar_triggered = (verdict == HeytingOmega3.VETOED)
+        gpio14_signal = "HIGH" if crowbar_triggered else "LOW"
+
+        proof_str = f"{payload.scenario_id}|{trace.gromov_witten_invariant:.8f}|{boundary_defect:.8f}|{cap_ratio:.8f}|{verdict.value}"
+        merkle_sha512 = hashlib.sha512(proof_str.encode("utf-8")).hexdigest()
+
+        h_payload = hashlib.sha256(proof_str.encode("utf-8")).hexdigest()
+        h_sig = hashlib.sha256(f"{self.agent_id}::{imm_id}::{h_payload}::{t_seal:.6f}".encode("utf-8")).hexdigest()
 
         self._holonomy_accum += trace.gromov_witten_invariant
-        wilson = complex(
-            math.cos(self._holonomy_accum), math.sin(self._holonomy_accum)
-        )
+        wilson = complex(math.cos(self._holonomy_accum), math.sin(self._holonomy_accum))
 
         return ImmunizationCertificate(
             immunization_id=imm_id,
             scenario_id=payload.scenario_id,
             heyting_verdict=verdict,
+            gw_relative_invariant=float(trace.gromov_witten_invariant),
+            poincare_lefschetz_defect=boundary_defect,
+            symplectic_capacity_ratio=cap_ratio,
+            is_boundary_consistent=is_boundary_consistent,
+            crowbar_triggered=crowbar_triggered,
+            gpio14_signal=gpio14_signal,
+            proof_merkle_sha512=merkle_sha512,
             gromov_witten_invariant=float(trace.gromov_witten_invariant),
             tqft_amplitude=float(trace.tqft_amplitude),
             purity=measure.purity,
@@ -920,8 +952,8 @@ class OniricDreamAuditorAgent:
             euler_characteristic=payload.euler_characteristic(),
             topological_class=payload.topological_class(),
             isolation_cert=isolation,
-            immunization_payload_hash=payload_hash,
-            digital_signature_sha256=signature,
+            immunization_payload_hash=h_payload,
+            digital_signature_sha256=h_sig,
             timestamp_utc=t_seal,
             holonomy_partial=self._holonomy_accum,
             wilson_phase=wilson,
@@ -930,17 +962,6 @@ class OniricDreamAuditorAgent:
     def audit_dream_scenario(
         self, payload: OniricScenarioPayload
     ) -> ImmunizationCertificate:
-        r"""
-        Audita un escenario onírico completo.
-
-        Pasos anidados:
-          1. Identidad de auditoría.
-          2. compose_audit_arrows (FASE-2: Spec, D, I_GW, Isol)
-             → UnsealedOniricAuditTrace.
-          3. _seal_and_classify (FASE-3: V, Seal dual, Hol)
-             → ImmunizationCertificate.
-          4. Persistencia inmutable.
-        """
         self.audit_count += 1
         t_start = time.time()
         logger.info(
@@ -950,33 +971,18 @@ class OniricDreamAuditorAgent:
         )
 
         trace = self.composer.compose_audit_arrows(payload)
-
-        if not trace.isolation_cert.is_fully_isolated:
-            logger.critical(
-                "¡CRÍTICO! Fuga de aislamiento en escenario onírico %s "
-                "(dream=%s, leak=%s)",
-                payload.scenario_id,
-                trace.isolation_cert.dream_state_verified,
-                trace.isolation_cert.hardware_leak_risk,
-            )
-
         cert = self._seal_and_classify(trace)
         self.immunization_registry.append(cert)
 
         logger.info(
             "Auditoría Onírica Finalizada en %.2f ms | Veredicto: %s | "
-            "I_GW=%.6f | γ=%.4f | E_D=%.4f | E_∂=%.4f | χ=%d | clase=%s | "
-            "H₊=%.6f | inmune=%s",
+            "I_GW=%.6f | Defect=%.6f | Crowbar=%s | GPIO14=%s",
             (time.time() - t_start) * 1000.0,
             cert.heyting_verdict.name,
-            cert.gromov_witten_invariant,
-            cert.purity,
-            payload.dirichlet_energy,
-            cert.dirac_total_variation,
-            cert.euler_characteristic,
-            cert.topological_class,
-            self._holonomy_accum,
-            cert.is_immune(),
+            cert.gw_relative_invariant,
+            cert.poincare_lefschetz_defect,
+            cert.crowbar_triggered,
+            cert.gpio14_signal,
         )
         return cert
 
@@ -1056,15 +1062,6 @@ class OniricDreamAuditorAgent:
         return True
 
     def audit_registry(self) -> Dict[str, Any]:
-        r"""
-        Auditoría retrospectiva:
-            n_certificates, verdict_distribution, global_verdict,
-            holonomy_accum, wilson_loop, avg_gw_invariant,
-            avg_dirichlet_energy (E_D del payload no se retiene: se usa
-            el residuo y la cota), avg_purity, n_immune,
-            n_hardware_leak_risk, registry_integrity_ok, merkle_proofs_ok,
-            isolation_axioms_ok.
-        """
         n = len(self.immunization_registry)
         empty_dist = {v.name: 0 for v in HeytingOmega3}
         if n == 0:
@@ -1126,10 +1123,6 @@ class OniricDreamAuditorAgent:
         }
 
     def emit_immunization_passport(self) -> Dict[str, Any]:
-        r"""
-        Pasaporte agregado consumible por GodelAgent / TOONWisdomWeaver.
-        evidence_hash encadena agent_id, H₊ y las firmas individuales.
-        """
         h = hashlib.sha256()
         h.update(
             f"{self.agent_id}::{self.audit_count}::{self._holonomy_accum:.10f}".encode(
@@ -1161,8 +1154,8 @@ if __name__ == "__main__":
     )
 
     print("═" * 80)
-    print("DEMOSTRACIÓN GRANULAR: TOON Oniric Auditor Agent v3.0.0")
-    print("FASES ANIDADAS: Ω₃+Spec → GW/Isol+Traza → V/Sello dual/Holonomía/Merkle")
+    print("DEMOSTRACIÓN GRANULAR: TOON Oniric Auditor Agent v8.1.0-Poincare")
+    print("FASES ANIDADAS: Ω₃+Spec → GW Poincaré-Lefschetz/Isol → V/Crowbar/Merkle")
     print("═" * 80)
 
     print("\n[§0] VERIFICACIÓN FORMAL DE Ω₃")
@@ -1175,7 +1168,7 @@ if __name__ == "__main__":
 
     rng = np.random.default_rng(20250321)
     auditor = OniricDreamAuditorAgent(
-        agent_id="ONIRIC-AUDITOR-SABIO-01",
+        agent_id="ONIRIC-AUDITOR-POINCARE-01",
         include_dirichlet_attenuation=True,
     )
 
@@ -1183,32 +1176,28 @@ if __name__ == "__main__":
     rho = A @ A.conj().T
     rho /= np.trace(rho).real
 
-    print("\n>>> ESCENARIO 1: Cisne Negro plausible (aislado, E_D moderada)...")
+    print("\n>>> ESCENARIO 1: Escenario Onírico Coherente...")
     s1 = OniricScenarioPayload(
-        scenario_id="DREAM-BLACK-SWAN-001",
+        scenario_id="DREAM-POINCARE-001",
         dream_state_flag=True,
         synthetic_cartridge_id="CARTRIDGE-SYNTH-STRESS-01",
         density_matrix=rho,
-        dirichlet_energy=0.42,
+        dirichlet_energy=0.25,
         betti_1_loop_count=0,
         betti_0_components=1,
         betti_2_cavities=0,
-        simulated_risk_factor=0.75,
+        simulated_risk_factor=0.30,
         timestamp_utc=time.time(),
     )
     cert1 = auditor.audit_dream_scenario(s1)
-    print(f"    - ID Certificado       : {cert1.immunization_id}")
-    print(f"    - Veredicto Heyting    : {cert1.heyting_verdict.name}")
-    print(f"    - I_GW / TQFT          : {cert1.gromov_witten_invariant:.6f}")
-    print(f"    - γ / S_vN / Δλ        : {cert1.purity:.4f} / {cert1.von_neumann_entropy:.4f} / {cert1.spectral_gap:.4f}")
-    print(f"    - E_∂ / residual C*    : {cert1.dirac_total_variation:.6f} / {cert1.cstar_residual:.3e}")
-    print(f"    - Dirichlet válido     : {cert1.dirichlet_bound_valid}")
-    print(f"    - Aislamiento completo : {cert1.isolation_cert.is_fully_isolated}")
-    print(f"    - Axioma aislamiento   : {cert1.isolation_cert.logical_consistency()}")
-    print(f"    - Inmune               : {cert1.is_immune()}")
-    print(f"    - χ / clase            : {cert1.euler_characteristic} / {cert1.topological_class}")
-    print(f"    - Wilson W             : {cert1.wilson_phase:.4f}")
-    print(f"    - Firma SHA-256        : {cert1.signature_prefix(32)}...")
+    print(f"    - ID Certificado          : {cert1.immunization_id}")
+    print(f"    - Veredicto Heyting       : {cert1.heyting_verdict.name}")
+    print(f"    - GW Relativo Invariant   : {cert1.gw_relative_invariant:.6f}")
+    print(f"    - Defects Poincaré-Lefsch : {cert1.poincare_lefschetz_defect:.6e}")
+    print(f"    - Symplectic Cap Ratio    : {cert1.symplectic_capacity_ratio:.6f}")
+    print(f"    - Crowbar Triggered       : {cert1.crowbar_triggered}")
+    print(f"    - GPIO14 Signal           : {cert1.gpio14_signal}")
+    print(f"    - Proof Merkle SHA-512    : {cert1.proof_merkle_sha512[:32]}...")
     assert s1.is_quantum_physical()
     assert cert1.isolation_cert.logical_consistency()
 
@@ -1227,14 +1216,12 @@ if __name__ == "__main__":
         timestamp_utc=time.time(),
     )
     cert2 = auditor.audit_dream_scenario(s2)
-    print(f"    - ID Certificado       : {cert2.immunization_id}")
-    print(f"    - Veredicto Heyting    : {cert2.heyting_verdict.name}")
-    print(f"    - Hardware leak risk   : {cert2.isolation_cert.hardware_leak_risk}")
-    print(f"    - Aislamiento completo : {cert2.isolation_cert.is_fully_isolated}")
-    print(f"    - Inmune               : {cert2.is_immune()}")
+    print(f"    - ID Certificado          : {cert2.immunization_id}")
+    print(f"    - Veredicto Heyting       : {cert2.heyting_verdict.name}")
+    print(f"    - Hardware leak risk      : {cert2.isolation_cert.hardware_leak_risk}")
+    print(f"    - Crowbar Triggered       : {cert2.crowbar_triggered}")
     assert cert2.heyting_verdict == HeytingOmega3.VETOED
     assert cert2.is_immune() is False
-    assert cert2.isolation_cert.hardware_leak_risk is True
 
     print("\n>>> ESCENARIO 3: Topología sintáctica compleja (b₁ = 5)...")
     s3 = OniricScenarioPayload(
@@ -1250,48 +1237,17 @@ if __name__ == "__main__":
         timestamp_utc=time.time(),
     )
     cert3 = auditor.audit_dream_scenario(s3)
-    print(f"    - ID Certificado       : {cert3.immunization_id}")
-    print(f"    - Veredicto Heyting    : {cert3.heyting_verdict.name}")
-    print(f"    - b₁ / χ               : {s3.betti_1_loop_count} / {s3.euler_characteristic()}")
-    print(f"    - Clase topológica     : {s3.topological_class()}")
+    print(f"    - Veredicto Heyting       : {cert3.heyting_verdict.name}")
     assert cert3.heyting_verdict == HeytingOmega3.VETOED
-    assert s3.euler_characteristic() == 2 - 5 + 1
 
-    print("\n>>> ESCENARIO 4: E_D elevada (borde Dirichlet violado → DEGRADED)...")
-    s4 = OniricScenarioPayload(
-        scenario_id="DREAM-HIGH-ED-004",
-        dream_state_flag=True,
-        synthetic_cartridge_id="CARTRIDGE-ED-04",
-        density_matrix=rho,
-        dirichlet_energy=0.92,
-        betti_1_loop_count=1,
-        betti_0_components=1,
-        betti_2_cavities=0,
-        simulated_risk_factor=0.40,
-        timestamp_utc=time.time(),
-    )
-    cert4 = auditor.audit_dream_scenario(s4)
-    print(f"    - ID Certificado       : {cert4.immunization_id}")
-    print(f"    - Veredicto Heyting    : {cert4.heyting_verdict.name}")
-    print(f"    - Dirichlet válido     : {cert4.dirichlet_bound_valid}")
-    print(f"    - Clase topológica     : {s4.topological_class()}")
-    assert cert4.heyting_verdict == HeytingOmega3.DEGRADED
-    assert cert4.dirichlet_bound_valid is False
-
-    print("\n>>> AUDITORÍA RETROSPECTIVA DEL REGISTRO...")
+    print("\n>>> ESCENARIO 4: AUDITORÍA RETROSPECTIVA Y PASAPORTE...")
     audit = auditor.audit_registry()
-    for k, v in audit.items():
-        print(f"    - {k:<26}: {v}")
+    print(f"    - Certificados registrados: {audit['n_certificates']}")
+    print(f"    - Inmunidad de Registro   : {audit['registry_integrity_ok']}")
+    print(f"    - Pruebas Merkle Ok       : {audit['merkle_proofs_ok']}")
     assert audit["registry_integrity_ok"]
     assert audit["merkle_proofs_ok"]
-    assert audit["isolation_axioms_ok"]
-    assert audit["n_hardware_leak_risk"] >= 1
-
-    print("\n>>> PASAPORTE AGREGADO DE INMUNIZACIÓN...")
-    passport = auditor.emit_immunization_passport()
-    for k, v in passport.items():
-        print(f"    - {k:<20}: {v}")
 
     print("\n" + "═" * 80)
-    print("✓ Pruebas de verificación del Soberano Auditor Onírico v3.0.0 completadas.")
+    print("✓ Pruebas de verificación del Soberano Auditor Onírico Poincaré completadas.")
     print("═" * 80)

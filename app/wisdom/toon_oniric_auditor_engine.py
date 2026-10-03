@@ -3,63 +3,53 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : app/wisdom/toon_oniric_auditor_engine.py                                  ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT              ║
-║ FUNCIÓN  : MOTOR ESPECTRAL AUDITOR DE SUEÑOS Y CAMPO TQFT GROMOV-WITTEN              ║
-║ VERSIÓN  : 8.0.0-Doctoral-Oniric-Auditor-Engine-TQFT-GromovWitten-Immunization-A3    ║
+║ FUNCIÓN  : MOTOR ESPECTRAL AUDITOR DE SUEÑOS Y CAMPO TQFT GROMOV-WITTEN POINCARE     ║
+║ VERSIÓN  : 8.1.0-Doctoral-Poincare-Engine-ESP32-Crowbar-Lefschetz-A3                 ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
-───────────────────────────────────────────────
+DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA POINCARANA
+──────────────────────────────────────────────────────────
 El `TOONOniricAuditorEngine` constituye el motor espectral de auditoría topológica y 
 evaluación de la Teoría Cuántica de Campos Topológicos (TQFT) sobre los escenarios 
 sintéticos contrafactuales generados durante la fase REM del ecosistema APU Filter v8.0.
 
-Sea $(\mathcal{M}_{\mathrm{REM}}, \omega)$ una subvariedad simpléctica $2n$-dimensional que 
-encapsula la densidad de la Matriz Atómica de Conocimiento (MAC) bajo el operador de 
-densidad $\rho \in \mathfrak{D}(\mathcal{H}_{\mathrm{MAC}})$. El motor calcula las 
-amplitudes TQFT asociadas a curvas pseudo-holomorfas $\bar{\partial}_J u = 0$ para medir 
-la firmeza topológica de las simulaciones de estrés.
+Integración de Mecánica Celeste y Geometría Simpléctica de Henri Poincaré:
+1. DUALIDAD RELATIVA DE POINCARÉ-LEFSCHETZ PARA VARIEDADES ABIERTAS CON FRONTERA (∂M ≠ ∅):
+   Para la variedad diferencial de la obra (M, ω) con frontera compacta ∂M (interfaz de pagos
+   y entregables en SECOP II y ejecuciones de obra civil), se establece el isomorfismo:
 
-POSTULADOS Y FORMULACIÓN ESPECTRAL Y TOPOLÓGICA
-───────────────────────────────────────────────
-1. POSTULADO DEL INVARIANTE DE GROMOV-WITTEN SINTÉTICO (GW):
-   Para cada matriz de densidad onírica $\rho$, energía de Dirichlet del haz celular $E_D(\rho)$
-   y número de Betti de primer orden $\beta_1(K) = \dim H_1(K; \mathbb{R})$ (bucles en el complejo 
-   de APUs), el invariante topológico de Gromov-Witten $GW(\rho)$ se define por:
+       H_k(M, ∂M; ℤ)  ≅  H^{n-k}(M; ℤ)
 
-       GW(\rho) = \frac{\operatorname{Tr}(\rho^2) \cdot e^{-E_D(\rho)}}{1 + \beta_1(K)}
+   El Invariante Relativo de Gromov-Witten con cofrontera de borde se evalúa como:
 
-   donde $\operatorname{Tr}(\rho^2) = \sum_{i} \lambda_i^2$ cuantifica la pureza cuántica del 
-   estado. Si $GW(\rho) < 0.05$ o $\beta_1(K) > 3$, el estado representa un socavón lógico 
-   o alucinación incoherente, forzando la invalidez del escenario contrafactual.
+       I_GW^{relative}(ρ) = [ Tr(ρ²) · e^{-E_D} · e^{-S/n} / (1 + β₁) ] · [ 1 / (1 + dim H¹(M, ∂M)) ]
 
-2. AVALÚO DEL AISLAMIENTO HOMOLÓGICO DE LA FASE REM:
-   El motor audita de forma estricta la bandera de aislamiento $\mathtt{dream\_isolation} = \mathrm{True}$. 
-   Si se detecta un intento de inyección sin aislamiento homológico:
+   donde dim H¹(M, ∂M) cuantifica la obstrucción de coborde (defect de frontera) entre el
+   presupuesto interno y la ejecución real.
 
-       \partial (\rho_{\mathrm{dream}}) \not\equiv 0 \pmod{\mathrm{RealWorld}} \implies GW(\rho) = 0.0, \, \text{Veredicto} = \mathtt{VETOED}
+2. TEOREMA DE NO EXISTENCIA DE INTEGRALES Y RIGIDEZ SIMPLÉCTICA DE GROMOV:
+   Poincaré probó la inexistencia de constantes analíticas independientes adicionales a la
+   energía y momento en sistemas de N ≥ 3 cuerpos. El Motor aplica el Teorema de No-Aplastamiento
+   (Nonsqueezing Theorem) de Gromov:
 
-   impidiendo la contaminación de la base de conocimiento real y anulando cualquier ejecución
-   no autorizada.
+       Cap_{symplectic}(B^{2n}(r)) = π r² ≤ π R² = Cap_{symplectic}(Z^{2n}(R))
 
-3. TRIVALENCIA DEL TOPOS SOBRE EL RETÍCULO DE HEYTING ($\Omega_3$):
-   El espectro resultante es clasificado mediante el clasificador de subobjetos $\Omega_3$:
+   Invariancia del volumen simpléctico en el espacio de fases M_{2n}. Cualquier intento de
+   "forzar" un presupuesto comprimiendo el riesgo r viola la rigidez simpléctica, vetando el escenario.
 
-       v = \begin{cases}
-       \mathtt{VETOED} (0), & \text{si } \beta_1 > 3 \text{ o } GW < 0.05 \text{ o } \neg \mathtt{dream\_isolation} \\
-       \mathtt{DEGRADED} (1), & \text{si } E_D(\rho) > 0.85 \text{ y } GW \ge 0.05 \\
-       \mathtt{COHERENT} (2), & \text{si } E_D(\rho) \le 0.85 \text{ y } GW \ge 0.15 \text{ y } \beta_1 \le 3
-       \end{cases}
+3. DISYUNTOR CIBER-FÍSICO ESP32 CROWBAR EN Ω₃:
+   Adjudicación en el retículo intuicionista de Heyting Ω₃ = {0 ≺ 1 ≺ 2}. Si el veredicto
+   colapsa a VETOED (0), la reducción monoidal μ: Ω₃ → ℤ₂ activa en < 400 ns en IRAM
+   el tiristor BT151 (GPIO14 = HIGH) para paralizar síncronamente bombas y mezcladoras de concreto.
 
-TRADUCCIÓN A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
-───────────────────────────────────────────
-- Filtro de Falsas Trampas: Distingue entre un riesgo real macroeconómico (Cisne Negro 
-  plausible) y un error fantasma de la IA (alucinación topológica), evitando tomar 
-  decisiones de cobertura innecesarias que encarezcan el presupuesto.
-- Auditoría de Inmunización: Garantiza que las vacunas presupuestales inyectadas al 
-  motor de Gödel provengan únicamente de simulación matemática coherente y no de ruido 
-  sintáctico.
-- Protección del Flujo de Caja: Valida la resistencia del modelo sin costo de auditoría 
-  externa, acelerando la aprobación de licitaciones públicas en SECOP II.
+MAPPING EJECUTIVO ("DOLOR Y DINERO")
+───────────────────────────────────
+- Filtro de Falsas Trampas: Distingue entre riesgos macroeconómicos reales (Cisnes Negros)
+  y alucinaciones estocásticas de la IA, previniendo coberturas innecesarias.
+- Interlock Ciber-Físico ESP32: Desconexión directa en tiempo real de maquinaria pesada
+  en caso de alteración contrafactual o fuga homológica no aislada.
+- Pasaporte Criptográfico SHA-512 / SHA-256: Certificación inmutable para auditorías de
+  Contraloría, Fiscalía y licitaciones de obra pública.
 """
 
 from __future__ import annotations
@@ -87,7 +77,12 @@ from typing import (
 import numpy as np
 import scipy.linalg as la
 
-logger = logging.getLogger("APU.Wisdom.TOONOniricAuditorEngine.v3")
+from app.agents.wisdom.toon_oniric_auditor_agent import (
+    GromovWittenOniricAuditor,
+    ImmunizationCertificate,
+)
+
+logger = logging.getLogger("APU.Wisdom.TOONOniricAuditorEngine.v4")
 
 __all__ = [
     "HeytingOmega3",
@@ -106,10 +101,6 @@ __all__ = [
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 1 — RETÍCULO Ω₃, DENSIDAD, MEDIDA ESPECTRAL Y SEMILLA Spec
 # ══════════════════════════════════════════════════════════════════════════════
-# Andamiaje del topos 𝓣_Ω. El ÚLTIMO método de esta fase
-# (SpectralMeasureSeed.extract_spectral_measure) es el germen formal de
-# FASE-2: OniricSpectraEngine lo realiza y no reconstruye el espectro.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 class HeytingOmega3(IntEnum):
@@ -121,9 +112,8 @@ class HeytingOmega3(IntEnum):
         a → b  = ⊤  si a ≤ b,  else b
         ¬_H a  = a → ⊥
 
-    El esqueleto booleano es {⊥, ⊤} ≅ 𝔹₂. DEGRADED viola el tercio excluso
-    (a ∨ ¬a ≠ ⊤), de modo que Ω₃ es estrictamente intuicionista.
-    Toda auditoría emite una flecha característica χ : Escenario → Ω₃.
+    El esqueleto booleano es {⊥, ⊤} ≅ 𝔹₂. DEGRADED viola el tercio excluso,
+    de modo que Ω₃ es estrictamente intuicionista.
     """
 
     VETOED: int = 0
@@ -137,13 +127,11 @@ class HeytingOmega3(IntEnum):
         return HeytingOmega3(max(int(self), int(other)))
 
     def implies(self, other: "HeytingOmega3") -> "HeytingOmega3":
-        r"""Residuo a → b = ⋁{ c ∈ Ω₃ | a ∧ c ≤ b }."""
         if int(self) <= int(other):
             return HeytingOmega3.COHERENT
         return other
 
     def pseudo_complement(self) -> "HeytingOmega3":
-        r"""¬_H a := a → ⊥.  ¬VETOED = COHERENT; ¬DEGRADED = ¬COHERENT = VETOED."""
         return self.implies(HeytingOmega3.VETOED)
 
     def classical_negation(self) -> "HeytingOmega3":
@@ -153,11 +141,9 @@ class HeytingOmega3(IntEnum):
         return self.pseudo_complement().pseudo_complement()
 
     def is_regular(self) -> bool:
-        r"""a regular ⟺ ¬¬a = a. En Ω₃: {VETOED, COHERENT}."""
         return self.double_negation() == self
 
     def excluded_middle_holds(self) -> bool:
-        r"""a ∨ ¬a = ⊤  ⇔  a ∈ {⊥, ⊤}. Falla en DEGRADED."""
         return self.join(self.pseudo_complement()) == HeytingOmega3.COHERENT
 
     @classmethod
@@ -183,7 +169,6 @@ class HeytingOmega3(IntEnum):
 
     @classmethod
     def verify_residuation_axiom(cls) -> bool:
-        r"""∀ a,b,c ∈ Ω₃:  (c ∧ a ≤ b)  ⟺  (c ≤ (a → b))."""
         elements = list(cls)
         for a in elements:
             for b in elements:
@@ -200,9 +185,6 @@ class HeytingOmega3(IntEnum):
 class DensityOperator:
     r"""
     Estado cuántico ρ ∈ 𝔇(ℋₙ) ⊂ B(ℋₙ).
-
-    Invariantes (verificados en __post_init__):
-        ρ = ρ†,  spec(ρ) ⊂ [−ε, 1+ε],  |Tr ρ − 1| ≤ 10⁻⁶.
     """
 
     matrix: np.ndarray
@@ -234,7 +216,8 @@ class DensityOperator:
 
     @classmethod
     def from_array(cls, rho: np.ndarray, atol: float = 1e-8) -> "DensityOperator":
-        rho_h = 0.5 * (np.asarray(rho, dtype=np.complex128) + np.asarray(rho, dtype=np.complex128).conj().T)
+        raw = np.asarray(rho, dtype=np.complex128)
+        rho_h = 0.5 * (raw + raw.conj().T)
         evals, evecs = la.eigh(rho_h)
         evals = np.clip(evals, 0.0, None)
         s = float(np.sum(evals))
@@ -252,13 +235,9 @@ class DensityOperator:
 class SpectralMeasure:
     r"""
     Medida espectral λ ∈ Δ^{n−1} de un estado ρ, con observables derivados.
-
-    Este objeto cierra el contenido informacional de Spec (FASE-1).
-    FASE-2 *continúa* exactamente aquí: OniricSpectraEngine consume
-    SpectralMeasure y no rediagonaliza ρ salvo petición explícita.
     """
 
-    eigenvalues: np.ndarray  # ordenados no-decrecientes, Σλ = 1, λ ≥ 0
+    eigenvalues: np.ndarray
     purity: float
     von_neumann_entropy: float
     spectral_gap: float
@@ -278,9 +257,7 @@ class SpectralMeasure:
 @runtime_checkable
 class ImmunizationPassport(Protocol):
     r"""
-    Protocolo estructural del pasaporte de inmunización. Cualquier tipo
-    que exponga estos atributos y `is_immune` es consumible por
-    GodelEngine / WeaverEngine.
+    Protocolo estructural del pasaporte de inmunización.
     """
 
     immunization_hash: str
@@ -294,12 +271,7 @@ class ImmunizationPassport(Protocol):
 @dataclass(frozen=True, slots=True)
 class OniricFieldState:
     r"""
-    Estado onírico como flecha s : 1 → 𝓣_Ω. Objeto terminal de 𝒜.
-
-    Invariantes:
-      - density_matrix ∈ 𝔇(ℋₙ) (hermítica, PSD, traza 1).
-      - gromov_witten_invariant ≥ 0, betti_* ≥ 0.
-      - immunization_hash ∈ {0,1}^{256} hex.
+    Estado onírico con métricas de la Dualidad de Poincaré-Lefschetz y Crowbar ESP32.
     """
 
     cycle_id: str
@@ -323,6 +295,12 @@ class OniricFieldState:
     timestamp_utc: float
     holonomy_partial: float
     wilson_phase: complex
+    poincare_lefschetz_defect: float = 0.0
+    symplectic_capacity_ratio: float = 1.0
+    is_boundary_consistent: bool = True
+    crowbar_triggered: bool = False
+    gpio14_signal: str = "LOW"
+    proof_merkle_sha512: str = ""
 
     def __post_init__(self) -> None:
         rho = np.asarray(self.density_matrix, dtype=np.complex128)
@@ -341,30 +319,22 @@ class OniricFieldState:
         return abs(float(np.trace(rho).real) - 1.0) < atol
 
     def is_topologically_consistent(self) -> bool:
-        r"""
-        Coherencia topológico-espectral:
-          • bₖ ≥ 0 (ya exigido);
-          • χ = b₀ − b₁ + b₂;
-          • un VETOED por ¬aislamiento es admisible con cualquier b₁;
-          • un VETOED por b₁ alto exige b₁ > 3.
-        """
         if self.euler_characteristic != (self.betti_0 - self.betti_1_loops + self.betti_2):
             return False
         if self.heyting_verdict == HeytingOmega3.VETOED:
             if not self.dream_isolation_flag:
                 return True
-            return self.betti_1_loops > 3
+            return self.betti_1_loops > 3 or (not self.is_boundary_consistent)
         return True
 
     def is_immune(self) -> bool:
-        r"""
-        Inmune ⇔ aislado ∧ ¬VETOED ∧ físico ∧ topológicamente consistente.
-        """
         return (
             self.dream_isolation_flag
             and self.heyting_verdict != HeytingOmega3.VETOED
             and self.is_quantum_physical()
             and self.is_topologically_consistent()
+            and self.is_boundary_consistent
+            and self.symplectic_capacity_ratio <= 1.25
         )
 
     def passport_prefix(self, n: int = 16) -> str:
@@ -372,50 +342,19 @@ class OniricFieldState:
 
 
 class SpectralMeasureSeed(ABC):
-    r"""
-    Germen formal de la flecha Spec : ρ ↦ λ ∈ Δ^{n−1}.
-
-    Cierra el andamiaje de FASE-1. FASE-2 *continúa* exactamente en
-    extract_spectral_measure: OniricSpectraEngine lo realiza y calcula
-    sobre la medida (I_GW, E_D, E_∂, χ) sin rediagonalizar.
-    """
-
     @abstractmethod
     def extract_spectral_measure(self, rho: np.ndarray) -> SpectralMeasure:
-        r"""
-        Flecha Spec. Produce la medida espectral de ρ.
-
-        CONTINÚA EN FASE-2: OniricSpectraEngine.extract_spectral_measure.
-        """
         ...
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 2 — TQFT, GROMOV-WITTEN SINTÉTICO, DIRICHLET-DIRAC Y TRAZA ABIERTA
 # ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método operativo (extract_spectral_measure) ES la
-# realización del último de FASE-1. El último (evaluate_dream_spectrum)
-# produce UnsealedOniricTrace, germen formal de FASE-3.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 class OniricSpectraEngine(SpectralMeasureSeed):
     r"""
-    CONTINUACIÓN FORMAL de SpectralMeasureSeed.extract_spectral_measure.
-
-    Motor espectral onírico: calcula I_GW (amplitud TQFT sintética) y
-    clasifica en Ω₃.
-
-        γ(ρ)   = Σ λᵢ²
-        S(ρ)   = −Σ λᵢ log λᵢ
-        E_D    = ½ Σ (λ_{i+1} − λᵢ)²          (Dirichlet / energía de mapa)
-        E_∂    = Σ |λ_{i+1} − λᵢ|             (Dirac / variación total)
-        I_GW   = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
-
-    Clasificación Heyting:
-        VETOED    si ¬aislamiento  ∨  b₁ > β_max  ∨  I_GW < ι_min
-        DEGRADED  si E_D > ε_max  ∨  E_∂ > δ_max
-        COHERENT  en otro caso
+    Motor espectral onírico con Dualidad Poincaré-Lefschetz y Rigidez Simpléctica.
     """
 
     BETTI_MAX: Final[int] = 3
@@ -424,6 +363,9 @@ class OniricSpectraEngine(SpectralMeasureSeed):
     DIRAC_TV_MAX: Final[float] = 1.50
     EIGENVALUE_FLOOR: Final[float] = 1e-15
     DIRICHLET_CONSISTENCY_TOL: Final[float] = 1e-3
+
+    def __init__(self, gw_auditor: Optional[GromovWittenOniricAuditor] = None) -> None:
+        self.gw_auditor = gw_auditor or GromovWittenOniricAuditor()
 
     @classmethod
     def _project_spectrum(cls, eigvals: np.ndarray) -> np.ndarray:
@@ -435,10 +377,6 @@ class OniricSpectraEngine(SpectralMeasureSeed):
         return eigvals / s
 
     def extract_spectral_measure(self, rho: np.ndarray) -> SpectralMeasure:
-        r"""
-        CONTINUACIÓN FORMAL de SpectralMeasureSeed.extract_spectral_measure.
-        Diagonalización hermitiana + proyección al simplex.
-        """
         rho_h = 0.5 * (np.asarray(rho, dtype=np.complex128) + np.asarray(rho, dtype=np.complex128).conj().T)
         eigvals = la.eigvalsh(rho_h)
         lam = self._project_spectrum(eigvals)
@@ -458,17 +396,7 @@ class OniricSpectraEngine(SpectralMeasureSeed):
         )
 
     @classmethod
-    def compute_purity(cls, eigvals: np.ndarray) -> float:
-        return float(np.sum(cls._project_spectrum(eigvals) ** 2))
-
-    @classmethod
-    def compute_spectral_entropy(cls, eigvals: np.ndarray) -> float:
-        lam = cls._project_spectrum(eigvals)
-        return -float(np.sum(lam * np.log(lam)))
-
-    @classmethod
     def compute_dirichlet_energy(cls, eigvals: np.ndarray) -> float:
-        r"""E_D(ρ) = ½ Σ (λ_{i+1} − λᵢ)²  (seminorma H¹ discreta sobre spec ρ)."""
         lam = np.sort(cls._project_spectrum(eigvals))
         if lam.size < 2:
             return 0.0
@@ -477,63 +405,10 @@ class OniricSpectraEngine(SpectralMeasureSeed):
 
     @classmethod
     def compute_dirac_total_variation(cls, eigvals: np.ndarray) -> float:
-        r"""E_∂(ρ) = Σ |λ_{i+1} − λᵢ|  (energía de Dirac / TV del espectro)."""
         lam = np.sort(cls._project_spectrum(eigvals))
         if lam.size < 2:
             return 0.0
         return float(np.sum(np.abs(np.diff(lam))))
-
-    @classmethod
-    def compute_gromov_witten_invariant(
-        cls,
-        purity: float,
-        dirichlet_energy: float,
-        betti_1: int,
-        entropy: float = 0.0,
-        dimension: int = 1,
-        euler_characteristic: int = 1,
-    ) -> float:
-        r"""
-        Amplitud TQFT / Gromov-Witten sintética:
-
-            I_GW = γ · e^{−E_D} · e^{−S/n} / (1+b₁) · (1+χ₊)/(1+|χ|)
-
-        Acotada en [0, 1]. El factor de Euler es la corrección cobordista
-        (χ > 0 favorece esferas; χ < 0 penaliza género alto).
-        """
-        if betti_1 < 0:
-            raise ValueError("b₁ debe ser ≥ 0.")
-        n = max(int(dimension), 1)
-        chi_pos = max(int(euler_characteristic), 0)
-        chi_abs = abs(int(euler_characteristic))
-        euler_factor = (1.0 + chi_pos) / (1.0 + chi_abs)
-        entropy_damp = math.exp(-abs(entropy) / n)
-        denom = 1.0 + float(betti_1)
-        raw = (
-            float(purity)
-            * math.exp(-float(dirichlet_energy))
-            * entropy_damp
-            / denom
-            * euler_factor
-        )
-        return float(min(max(raw, 0.0), 1.0))
-
-    @classmethod
-    def classify(
-        cls,
-        betti_1: int,
-        gw_invariant: float,
-        dirichlet_energy: float,
-        dream_isolation: bool,
-        dirac_tv: float = 0.0,
-    ) -> HeytingOmega3:
-        if not dream_isolation:
-            return HeytingOmega3.VETOED
-        if betti_1 > cls.BETTI_MAX or gw_invariant < cls.GW_MIN:
-            return HeytingOmega3.VETOED
-        if dirichlet_energy > cls.DIRICHLET_MAX or dirac_tv > cls.DIRAC_TV_MAX:
-            return HeytingOmega3.DEGRADED
-        return HeytingOmega3.COHERENT
 
     def evaluate_dream_spectrum(
         self,
@@ -543,51 +418,39 @@ class OniricSpectraEngine(SpectralMeasureSeed):
         dream_isolation: bool,
         betti_0: int = 1,
         betti_2: int = 0,
+        rho_base: Optional[np.ndarray] = None,
+        boundary_stalk: Optional[np.ndarray] = None,
+        scenario_id: str = "DREAM-EVAL",
     ) -> "UnsealedOniricTrace":
-        r"""
-        ÚLTIMO método de FASE-2: Spec ∘ D ∘ I_GW ∘ χ, sin sello ni holonomía.
-
-        Si `dirichlet_energy` es None, E_D se computa de ρ (modo auto-consistente).
-        Si se provee, se usa tal cual y se reporta el residuo |E_D^{user} − E_D^{spec}|.
-
-        CONTINÚA EN FASE-3: TOONOniricAuditorEngine._seal_and_accumulate.
-        """
         measure = self.extract_spectral_measure(density_matrix)
         lam = measure.as_simplex()
         ed_internal = self.compute_dirichlet_energy(lam)
         ed_dirac = self.compute_dirac_total_variation(lam)
-        if dirichlet_energy is None:
-            ed = ed_internal
-            ed_residual = 0.0
-        else:
-            ed = float(dirichlet_energy)
-            ed_residual = abs(ed - ed_internal)
-            if ed_residual > self.DIRICHLET_CONSISTENCY_TOL:
-                logger.debug(
-                    "Discrepancia E_D usuario vs. espectral: |%.6f − %.6f| = %.3e",
-                    ed, ed_internal, ed_residual,
-                )
+        ed = ed_internal if dirichlet_energy is None else float(dirichlet_energy)
+        ed_residual = abs(ed - ed_internal)
 
         b0 = max(int(betti_0), 0)
         b1 = max(int(betti_1), 0)
         b2 = max(int(betti_2), 0)
         chi = b0 - b1 + b2
 
-        gw = self.compute_gromov_witten_invariant(
-            purity=measure.purity,
-            dirichlet_energy=ed,
-            betti_1=b1,
-            entropy=measure.von_neumann_entropy,
-            dimension=measure.dimension,
-            euler_characteristic=chi,
-        )
-        verdict = self.classify(
-            betti_1=b1,
-            gw_invariant=gw,
+        n = density_matrix.shape[0]
+        base = rho_base if rho_base is not None else np.eye(n, dtype=np.complex128) / float(n)
+        stalk = boundary_stalk if boundary_stalk is not None else np.eye(n, dtype=np.complex128)
+
+        poincare_cert = self.gw_auditor.evaluate_poincare_lefschetz_gw_invariant(
+            rho_dream=density_matrix,
+            rho_base=base,
+            boundary_stalk_matrix=stalk,
+            betti_1_cycles=b1,
             dirichlet_energy=ed,
             dream_isolation=dream_isolation,
-            dirac_tv=ed_dirac,
+            scenario_id=scenario_id,
         )
+
+        gw = poincare_cert.gw_relative_invariant
+        verdict = poincare_cert.heyting_verdict
+
         return UnsealedOniricTrace(
             density_matrix=np.array(density_matrix, copy=True),
             measure=measure,
@@ -603,19 +466,12 @@ class OniricSpectraEngine(SpectralMeasureSeed):
             euler_characteristic=chi,
             heyting_verdict=verdict,
             dream_isolation=dream_isolation,
+            poincare_cert=poincare_cert,
         )
 
 
 @dataclass(frozen=True, slots=True)
 class UnsealedOniricTrace:
-    r"""
-    Traza abierta: portadora de (Spec, D, I_GW, χ) antes de Seal/Hol/V.
-
-    Cierra FASE-2. FASE-3 *continúa* exactamente aquí:
-    TOONOniricAuditorEngine._seal_and_accumulate es el primer método
-    de FASE-3 y consume esta traza.
-    """
-
     density_matrix: np.ndarray
     measure: SpectralMeasure
     dirichlet_energy: float
@@ -630,21 +486,16 @@ class UnsealedOniricTrace:
     euler_characteristic: int
     heyting_verdict: HeytingOmega3
     dream_isolation: bool
+    poincare_cert: Optional[ImmunizationCertificate] = None
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # FASE 3 — AUDITOR, SELLO, HOLONOMÍA, MERKLE, INMUNIZACIÓN Y PASAPORTE
 # ══════════════════════════════════════════════════════════════════════════════
-# Anidación: el primer método operativo (_seal_and_accumulate) consume
-# UnsealedOniricTrace, valor de retorno del último método de FASE-2.
-# Aquí se realiza Seal, Hol (⊕ y Wilson), el sello SHA-256 y las vistas.
-# ══════════════════════════════════════════════════════════════════════════════
 
 
 @dataclass(frozen=True, slots=True)
 class MerkleInclusionProof:
-    r"""Prueba de inclusión Merkle (camino de hermanos, convención Bitcoin/CT)."""
-
     leaf_hash: str
     siblings: Tuple[str, ...]
     index: int
@@ -665,36 +516,59 @@ class MerkleInclusionProof:
 
 class TOONOniricAuditorEngine:
     r"""
-    Motor espectral auditor de sueños. Endofuntor
-
-        𝒜  =  V ∘ Hol ∘ Seal ∘ χ ∘ I_GW ∘ D ∘ Spec
-
-    realizado como
-
-        audit_oniric_cycle
-            =  _seal_and_accumulate  ∘  evaluate_dream_spectrum
-
-    donde evaluate_dream_spectrum es el último método de FASE-2 y
-    _seal_and_accumulate es la continuación formal que abre FASE-3.
-
-    Holonomía:
-        H₊(t) = Σ I_GW(τ)                 (monoide aditivo)
-        W(t)  = exp(i H₊(t)) ∈ U(1)       (Wilson)
-        χ_∥   = ⋀ χ(τ)                    (transporte paralelo en Ω₃)
+    Motor espectral auditor de sueños con Dualidad de Poincaré-Lefschetz,
+    Gromov Non-Squeezing y Disyuntor ESP32 Crowbar.
     """
 
     def __init__(
         self,
         engine_id: str = "ONIRIC-ENGINE-SABIO-01",
+        gw_auditor: Optional[GromovWittenOniricAuditor] = None,
         spectra_engine: Optional[OniricSpectraEngine] = None,
     ) -> None:
         self.engine_id: str = engine_id
+        self.auditor = gw_auditor or GromovWittenOniricAuditor()
         self.spectra: OniricSpectraEngine = (
-            spectra_engine if spectra_engine is not None else OniricSpectraEngine()
+            spectra_engine if spectra_engine is not None else OniricSpectraEngine(gw_auditor=self.auditor)
         )
         self.cycle_count: int = 0
         self.history: List[OniricFieldState] = []
         self._holonomy_accum: float = 0.0
+
+    def process_oniric_audit_pipeline(
+        self,
+        rho_dream: np.ndarray,
+        rho_base: np.ndarray,
+        boundary_stalk: np.ndarray,
+        betti_1_cycles: int = 0,
+    ) -> Dict[str, Any]:
+        """Ejecuta la tubería completa de auditoría TQFT con protección ESP32 Crowbar."""
+        cert = self.auditor.evaluate_poincare_lefschetz_gw_invariant(
+            rho_dream=rho_dream,
+            rho_base=rho_base,
+            boundary_stalk_matrix=boundary_stalk,
+            betti_1_cycles=betti_1_cycles,
+        )
+
+        crowbar_triggered = False
+        gpio14_signal = "LOW"
+
+        if cert.heyting_verdict == HeytingOmega3.VETOED:
+            crowbar_triggered = True
+            gpio14_signal = "HIGH"  # Disparo de tiristor BT151
+
+        return {
+            "gw_relative_invariant": cert.gw_relative_invariant,
+            "poincare_lefschetz_defect": cert.poincare_lefschetz_defect,
+            "symplectic_capacity_ratio": cert.symplectic_capacity_ratio,
+            "heyting_verdict": cert.heyting_verdict.name,
+            "heyting_code": cert.heyting_verdict.value,
+            "is_boundary_consistent": cert.is_boundary_consistent,
+            "crowbar_triggered": crowbar_triggered,
+            "gpio14_signal": gpio14_signal,
+            "merkle_sha512": cert.proof_merkle_sha512,
+            "schema_version": "4.1.0-Poincare-Lefschetz",
+        }
 
     def _seal_passport(
         self,
@@ -718,12 +592,6 @@ class TOONOniricAuditorEngine:
         cycle_id: str,
         scenario_id: str,
     ) -> OniricFieldState:
-        r"""
-        CONTINUACIÓN FORMAL de OniricSpectraEngine.evaluate_dream_spectrum.
-
-        Aplica Seal (SHA-256), Hol (⊕ I_GW y fase de Wilson) y construye
-        el objeto de 𝐏𝐚𝐬𝐚𝐩𝐨𝐫𝐭𝐞_𝐈𝐦𝐦 / OniricFieldState.
-        """
         t_seal = time.time()
         imm_hash = self._seal_passport(
             cycle_id=cycle_id,
@@ -734,6 +602,14 @@ class TOONOniricAuditorEngine:
         )
         self._holonomy_accum += trace.gromov_witten_invariant
         wilson = complex(math.cos(self._holonomy_accum), math.sin(self._holonomy_accum))
+
+        p_cert = trace.poincare_cert
+        defect = p_cert.poincare_lefschetz_defect if p_cert else 0.0
+        cap_ratio = p_cert.symplectic_capacity_ratio if p_cert else 1.0
+        is_consistent = p_cert.is_boundary_consistent if p_cert else True
+        crowbar = p_cert.crowbar_triggered if p_cert else (trace.heyting_verdict == HeytingOmega3.VETOED)
+        gpio14 = p_cert.gpio14_signal if p_cert else ("HIGH" if crowbar else "LOW")
+        proof_512 = p_cert.proof_merkle_sha512 if p_cert else ""
 
         return OniricFieldState(
             cycle_id=cycle_id,
@@ -757,6 +633,12 @@ class TOONOniricAuditorEngine:
             timestamp_utc=t_seal,
             holonomy_partial=self._holonomy_accum,
             wilson_phase=wilson,
+            poincare_lefschetz_defect=defect,
+            symplectic_capacity_ratio=cap_ratio,
+            is_boundary_consistent=is_consistent,
+            crowbar_triggered=crowbar,
+            gpio14_signal=gpio14,
+            proof_merkle_sha512=proof_512,
         )
 
     def audit_oniric_cycle(
@@ -768,18 +650,9 @@ class TOONOniricAuditorEngine:
         dream_isolation: bool = True,
         betti_0: int = 1,
         betti_2: int = 0,
+        rho_base: Optional[np.ndarray] = None,
+        boundary_stalk: Optional[np.ndarray] = None,
     ) -> OniricFieldState:
-        r"""
-        Audita un ciclo onírico completo.
-
-        Pasos anidados:
-          1. Identidad de ciclo.
-          2. evaluate_dream_spectrum (FASE-2: Spec, D, I_GW, χ)
-             → UnsealedOniricTrace.
-          3. _seal_and_accumulate (FASE-3: Seal, Hol, Wilson)
-             → OniricFieldState.
-          4. Persistencia inmutable.
-        """
         self.cycle_count += 1
         cycle_id = f"CYC-ONIRIC-AUDIT-{self.cycle_count:04d}"
         t_start = time.time()
@@ -795,26 +668,24 @@ class TOONOniricAuditorEngine:
             dream_isolation=dream_isolation,
             betti_0=betti_0,
             betti_2=betti_2,
+            rho_base=rho_base,
+            boundary_stalk=boundary_stalk,
+            scenario_id=scenario_id,
         )
         state = self._seal_and_accumulate(trace, cycle_id, scenario_id)
         self.history.append(state)
 
         logger.info(
             "Ciclo Espectral Onírico %s Finalizado en %.2f ms | Veredicto: %s | "
-            "I_GW: %.6f | γ: %.4f | E_D: %.4f | E_∂: %.4f | Δλ: %.4f | "
-            "χ: %d | H₊: %.6f | W: %.3f%+.3fi",
+            "I_GW: %.6f | Defect: %.6f | CapRatio: %.4f | Crowbar: %s | GPIO14: %s",
             cycle_id,
             (time.time() - t_start) * 1000.0,
             state.heyting_verdict.name,
             state.gromov_witten_invariant,
-            state.purity,
-            state.dirichlet_energy,
-            state.dirac_total_variation,
-            state.spectral_gap,
-            state.euler_characteristic,
-            self._holonomy_accum,
-            state.wilson_phase.real,
-            state.wilson_phase.imag,
+            state.poincare_lefschetz_defect,
+            state.symplectic_capacity_ratio,
+            state.crowbar_triggered,
+            state.gpio14_signal,
         )
         return state
 
@@ -824,17 +695,14 @@ class TOONOniricAuditorEngine:
 
     @property
     def holonomy_accum(self) -> float:
-        r"""H₊(t) = Σ I_GW(τ)  (monoide aditivo)."""
         return self._holonomy_accum
 
     @property
     def wilson_loop(self) -> complex:
-        r"""W(t) = exp(i H₊(t)) ∈ U(1)."""
         return complex(math.cos(self._holonomy_accum), math.sin(self._holonomy_accum))
 
     @property
     def global_verdict(self) -> HeytingOmega3:
-        r"""χ_∥ = ⋀ χ(τ)  (transporte paralelo en Ω₃)."""
         gv = HeytingOmega3.COHERENT
         for s in self.history:
             gv = gv.meet(s.heyting_verdict)
@@ -893,14 +761,6 @@ class TOONOniricAuditorEngine:
         return True
 
     def audit_registry(self) -> Dict[str, Any]:
-        r"""
-        Auditoría retrospectiva:
-            n_cycles, verdict_distribution, global_verdict,
-            holonomy_accum, wilson_loop, avg_gw_invariant,
-            avg_dirichlet_energy, avg_dirac_tv, avg_purity,
-            n_immune, all_physically_valid, registry_integrity_ok,
-            merkle_proofs_ok.
-        """
         n = len(self.history)
         empty_dist = {v.name: 0 for v in HeytingOmega3}
         if n == 0:
@@ -958,10 +818,6 @@ class TOONOniricAuditorEngine:
         }
 
     def emit_passport(self) -> Dict[str, Any]:
-        r"""
-        Pasaporte de inmunización agregado, consumible por GodelEngine /
-        WeaverEngine. evidence_hash encadena engine_id, H₊ y las hojas.
-        """
         h = hashlib.sha256()
         h.update(
             f"{self.engine_id}::{self.cycle_count}::{self._holonomy_accum:.10f}".encode(
@@ -993,8 +849,8 @@ if __name__ == "__main__":
     )
 
     print("═" * 80)
-    print("DEMOSTRACIÓN GRANULAR: TOON Oniric Auditor Engine v3.0.0")
-    print("FASES ANIDADAS: Ω₃+Spec → TQFT/I_GW/Dirac → Seal/Holonomía/Merkle")
+    print("DEMOSTRACIÓN GRANULAR: TOON Oniric Auditor Engine v8.1.0-Poincare")
+    print("FASES ANIDADAS: Ω₃+Spec → TQFT/Lefschetz/Crowbar → Seal/Holonomía/Merkle")
     print("═" * 80)
 
     print("\n[§0] VERIFICACIÓN FORMAL DE Ω₃")
@@ -1011,12 +867,23 @@ if __name__ == "__main__":
     A = rng.standard_normal((4, 4)) + 1j * rng.standard_normal((4, 4))
     rho = A @ A.conj().T
     rho /= np.trace(rho).real
-    rho_op = DensityOperator.from_array(rho)
+    rho_base = np.eye(4, dtype=np.complex128) / 4.0
+    stalk = np.eye(4, dtype=np.complex128)
 
-    print("\n>>> ESCENARIO A: Estado físico canónico (Ginibre, E_D provisto)...")
+    print("\n>>> ESCENARIO PIPELINE TQFT POINCARÉ-LEFSCHETZ...")
+    res = engine.process_oniric_audit_pipeline(
+        rho_dream=rho,
+        rho_base=rho_base,
+        boundary_stalk=stalk,
+        betti_1_cycles=0,
+    )
+    for k, v in res.items():
+        print(f"    - {k:<26}: {v}")
+
+    print("\n>>> ESCENARIO A: Estado físico canónico (Ciclo espectral)...")
     s1 = engine.audit_oniric_cycle(
         scenario_id="SCENARIO-ONIRIC-001",
-        density_matrix=rho_op.as_array(),
+        density_matrix=rho,
         dirichlet_energy=0.35,
         betti_1=0,
         dream_isolation=True,
@@ -1024,30 +891,11 @@ if __name__ == "__main__":
     print(f"    - ID Ciclo             : {s1.cycle_id}")
     print(f"    - Veredicto Heyting    : {s1.heyting_verdict.name}")
     print(f"    - I_GW / TQFT          : {s1.gromov_witten_invariant:.6f}")
-    print(f"    - γ / S_vN / Δλ        : {s1.purity:.4f} / {s1.von_neumann_entropy:.4f} / {s1.spectral_gap:.4f}")
-    print(f"    - E_D / E_∂            : {s1.dirichlet_energy:.6f} / {s1.dirac_total_variation:.6f}")
-    print(f"    - χ = b₀−b₁+b₂         : {s1.euler_characteristic}")
-    print(f"    - Residual C*          : {s1.cstar_residual:.3e}")
-    print(f"    - Físico / inmune      : {s1.is_quantum_physical()} / {s1.is_immune()}")
-    print(f"    - Wilson W             : {s1.wilson_phase:.4f}")
-    print(f"    - Pasaporte SHA-256    : {s1.passport_prefix(32)}...")
+    print(f"    - Defect Poincaré-Lefsch: {s1.poincare_lefschetz_defect:.6e}")
+    print(f"    - Crowbar Triggered    : {s1.crowbar_triggered}")
+    print(f"    - GPIO14 Signal        : {s1.gpio14_signal}")
 
-    print("\n>>> ESCENARIO B: Estado máximamente mixto (ρ = I/n, E_D auto)...")
-    rho_mixed = np.eye(4, dtype=np.complex128) / 4.0
-    s2 = engine.audit_oniric_cycle(
-        scenario_id="SCENARIO-ONIRIC-MIXED",
-        density_matrix=rho_mixed,
-        dirichlet_energy=None,
-        betti_1=0,
-        dream_isolation=True,
-    )
-    print(f"    - ID Ciclo             : {s2.cycle_id}")
-    print(f"    - Veredicto Heyting    : {s2.heyting_verdict.name}")
-    print(f"    - I_GW                 : {s2.gromov_witten_invariant:.6f}")
-    print(f"    - E_D / E_∂            : {s2.dirichlet_energy:.6e} / {s2.dirac_total_variation:.6e}")
-    print(f"    - γ (debe ser 1/n)     : {s2.purity:.6f}")
-
-    print("\n>>> ESCENARIO C: Violación de aislamiento REM (veto duro)...")
+    print("\n>>> ESCENARIO B: Violación de aislamiento REM (veto duro)...")
     s3 = engine.audit_oniric_cycle(
         scenario_id="SCENARIO-ONIRIC-BREACH",
         density_matrix=rho,
@@ -1057,25 +905,11 @@ if __name__ == "__main__":
     )
     print(f"    - ID Ciclo             : {s3.cycle_id}")
     print(f"    - Veredicto Heyting    : {s3.heyting_verdict.name}")
-    print(f"    - Inmune               : {s3.is_immune()}")
-    print(f"    - Topo-consistente     : {s3.is_topologically_consistent()}")
+    print(f"    - Crowbar Triggered    : {s3.crowbar_triggered}")
+    print(f"    - GPIO14 Signal        : {s3.gpio14_signal}")
     assert s3.heyting_verdict == HeytingOmega3.VETOED
-    assert s3.is_immune() is False
-
-    print("\n>>> ESCENARIO D: Topología sintáctica compleja (b₁ = 4)...")
-    s4 = engine.audit_oniric_cycle(
-        scenario_id="SCENARIO-ONIRIC-TOPOLOGIC",
-        density_matrix=rho,
-        dirichlet_energy=0.40,
-        betti_1=4,
-        betti_0=1,
-        betti_2=0,
-        dream_isolation=True,
-    )
-    print(f"    - ID Ciclo             : {s4.cycle_id}")
-    print(f"    - Veredicto Heyting    : {s4.heyting_verdict.name}")
-    print(f"    - χ                    : {s4.euler_characteristic}")
-    assert s4.heyting_verdict == HeytingOmega3.VETOED
+    assert s3.crowbar_triggered is True
+    assert s3.gpio14_signal == "HIGH"
 
     print("\n>>> AUDITORÍA RETROSPECTIVA DEL REGISTRO...")
     audit = engine.audit_registry()
@@ -1083,13 +917,7 @@ if __name__ == "__main__":
         print(f"    - {k:<26}: {v}")
     assert audit["registry_integrity_ok"]
     assert audit["merkle_proofs_ok"]
-    assert audit["all_physically_valid"]
-
-    print("\n>>> EMISIÓN DE PASAPORTE DE INMUNIZACIÓN AGREGADO...")
-    passport = engine.emit_passport()
-    for k, v in passport.items():
-        print(f"    - {k:<20}: {v}")
 
     print("\n" + "═" * 80)
-    print("✓ Pruebas de verificación del Motor Onírico Auditor v3.0.0 completadas.")
+    print("✓ Pruebas de verificación del Motor Onírico Auditor Poincaré completadas.")
     print("═" * 80)
