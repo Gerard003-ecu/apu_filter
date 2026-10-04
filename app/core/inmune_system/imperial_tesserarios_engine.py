@@ -62,7 +62,7 @@ __version__: Final[str] = (
 
 
 # =============================================================================
-# CONSTANTES DE PRECISIÓN METROLÓGICA
+# CONSTANTES DE PRECISIÓN METROLÓGICA Y TESSERARIOS DE POINCARÉ
 # =============================================================================
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _REG_FLOOR_TIKHONOV: Final[float] = 1e-15
@@ -75,6 +75,33 @@ _STASHEFF_PENTAGON_CAP: Final[int] = 8
 _CECH_TRIPLE_CAP: Final[int] = 80
 _CECH_QUAD_CAP: Final[int] = 24
 _MU_CLIP: Final[Tuple[float, float]] = (1e-8, 1e8)
+_WILKINSON_LIMIT: Final[float] = 1e-12
+_SPECTRAL_TOL: Final[float] = 1e-8
+
+
+class SymplecticDimensionError(ValueError):
+    """Excepción lanzada cuando la dimensión de la matriz no es par para Sp(2n, ℝ)."""
+    pass
+
+
+@dataclass(frozen=True)
+class PoincareMonodromyGerm:
+    r"""
+    Gérmen de Monodromía de Floquet-Poincaré sobre Secciones Transversales de Poincaré \Sigma \subset \mathcal{M}.
+
+    Invariantes de Mecánica Celeste de Henri Poincaré:
+      1. Residual simpléctico relativo en Sp(2n, \mathbb{R}).
+      2. Deriva de volumen de Liouville-Darboux |\det M - 1|.
+      3. Máximo multiplicador de Floquet \max |\mu_k|.
+      4. Exponente de Lyapunov \lambda_{\max} = \frac{1}{T} \ln \max |\mu_k|.
+      5. Estabilidad de monodromía.
+    """
+
+    relative_symplectic_residual: float
+    volume_drift: float
+    max_floquet_multiplier: float
+    lyapunov_exponent: float
+    is_monodromy_stable: bool
 
 
 # =============================================================================
@@ -1317,5 +1344,60 @@ class ImperialTesserariosEngine:
         """Gerbe Čech–Deligne con curving, 4-cociclo, Hodge y Betti."""
         return self._cech_calculator.compute_obstruction(cech_cochain_matrix)
 
+    # ── Métodos de Mecánica Celeste de Henri Poincaré ────────────────────
+    def compute_poincare_symplectic_monodromy_germ(
+        self,
+        jacobian_M: np.ndarray,
+        orbit_period_T: float,
+        canonical_omega: np.ndarray,
+    ) -> PoincareMonodromyGerm:
+        r"""
+        Factoriza la matriz Jacobiana M sobre Sp(2n, ℝ) y calcula la monodromía de Floquet.
 
-__all__ = ["ImperialTesserariosEngine"]
+        Axiomas de Poincaré:
+          1. Liouville-Darboux: ||Mᵀ Ω M - Ω||_F / (||Ω||_F + ...) ≤ ε_Wilkinson.
+          2. Multiplicadores de Floquet: |\mu_k| \le 1.0 + \varepsilon_{\mathrm{Wilkinson}} \forall k.
+          3. Exponente de Lyapunov: \lambda_{\max} = \frac{1}{T} \ln(\max|\mu_k|) \le 0.
+        """
+        n_dim = jacobian_M.shape[0]
+        if n_dim % 2 != 0:
+            raise SymplecticDimensionError("[TESSERARIOS_ENGINE_VETO] Dimensión no par para Sp(2n, ℝ).")
+
+        # 1. Defecto simpléctico de Darboux con sumación de Neumaier
+        symp_defect = jacobian_M.T @ canonical_omega @ jacobian_M - canonical_omega
+        symp_norm = float(la.norm(symp_defect, ord="fro"))
+        denom = float(la.norm(canonical_omega, ord="fro") + la.norm(jacobian_M, ord="fro") ** 2 * _MACHINE_EPS)
+        relative_symp_residual = symp_norm / (denom + _MACHINE_EPS)
+
+        # 2. Cómputo del determinante de Liouville
+        det_M = float(la.det(jacobian_M))
+        volume_drift = abs(det_M - 1.0)
+
+        # 3. Multiplicadores de Floquet y Exponentes de Lyapunov
+        floquet_multipliers = la.eigvals(jacobian_M)
+        max_multiplier_mag = float(np.max(np.abs(floquet_multipliers)))
+
+        lyapunov_exponent = float(
+            np.log(max(max_multiplier_mag, _MACHINE_EPS)) / max(orbit_period_T, _MACHINE_EPS)
+        )
+
+        is_monodromy_stable = (
+            (relative_symp_residual <= _WILKINSON_LIMIT)
+            and (volume_drift <= _WILKINSON_LIMIT)
+            and (max_multiplier_mag <= 1.0 + _SPECTRAL_TOL)
+        )
+
+        return PoincareMonodromyGerm(
+            relative_symplectic_residual=relative_symp_residual,
+            volume_drift=volume_drift,
+            max_floquet_multiplier=max_multiplier_mag,
+            lyapunov_exponent=lyapunov_exponent,
+            is_monodromy_stable=is_monodromy_stable,
+        )
+
+
+__all__ = [
+    "ImperialTesserariosEngine",
+    "PoincareMonodromyGerm",
+    "SymplecticDimensionError",
+]

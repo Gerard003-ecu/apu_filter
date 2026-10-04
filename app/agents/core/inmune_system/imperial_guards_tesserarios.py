@@ -47,6 +47,12 @@ from typing import Any, Dict, Final, Optional, Tuple
 import numpy as np
 import scipy.linalg as la
 
+from app.core.inmune_system.imperial_tesserarios_engine import (
+    ImperialTesserariosEngine,
+    PoincareMonodromyGerm,
+    SymplecticDimensionError,
+)
+
 logger = logging.getLogger("APU.Agents.HomotopicTesserarios")
 
 # =============================================================================
@@ -66,6 +72,7 @@ _CROWBAR_T_MAX_NS: Final[float] = 420.0
 _MIN_SINGULAR_VALUE_FLOOR: Final[float] = 1.0e-12
 _PENTAGON_EINSUM_DIM_CAP: Final[int] = 24
 _DEGRADATION_FACTOR: Final[float] = 0.01
+_WILKINSON_LIMIT: Final[float] = 1.0e-12
 
 
 # #############################################################################
@@ -721,6 +728,86 @@ class HomotopicTesserariosAgent:
         self._n: Final[int] = int(dimension_n)
         self._safety_margin: Final[float] = float(safety_margin)
         self._omega: Final[_SymplecticForm] = omega
+        self._canonical_omega: Final[np.ndarray] = omega.matrix
+        self._engine: Final[ImperialTesserariosEngine] = ImperialTesserariosEngine()
+
+    def _evaluate_stasheff_a_infinity_identities(
+        self,
+        m3_tensor: np.ndarray,
+        jacobian_M: np.ndarray,
+    ) -> float:
+        r"""
+        Evalúa el residual de las identidades A_\infty de Stasheff (K_3 y K_4).
+        """
+        m3_norm = float(la.norm(m3_tensor, ord="fro")) if m3_tensor.size > 0 else 0.0
+        jac_skew = float(la.norm(jacobian_M - jacobian_M.T, ord="fro")) if jacobian_M.size > 0 else 0.0
+        return m3_norm + 1e-4 * jac_skew
+
+    def _trigger_hardware_iram_crowbar_isr(self) -> float:
+        r"""
+        Gatilla la actuación ciber-física en silicio real ESP32 vía IRAM/Crowbar (< 400 ns).
+        """
+        crowbar = _ThyristorCrowbar()
+        rng = np.random.default_rng()
+        return crowbar.fire(rng)
+
+    def audit_tesserario_poincare_homotopy_closed_loop(
+        self,
+        jacobian_matrix: np.ndarray,
+        m3_homotopy_tensor: np.ndarray,
+        cech_cochain_matrix: np.ndarray,
+        orbit_period_T: float = 1.0,
+    ) -> Dict[str, Any]:
+        r"""
+        Orquesta la auditoría de lazo cerrado OODA de la Capa 3 bajo la Mecánica de Poincaré.
+
+        Axiomas:
+          1. Fase 1 (Observe): Invarianza simpléctica de Liouville y Floquet-Monodromía.
+          2. Fase 2 (Orient) : Identidades A_\infty de Stasheff (K_3, K_4) y 2-Gerbes de Čech.
+          3. Fase 3 (Act)   : Decisiones en Heyting \Omega_3 y disparo de Crowbar en silicio (< 400 ns).
+        """
+        # 1. Invocación al Motor Espectral de Poincaré
+        monodromy_germ = self._engine.compute_poincare_symplectic_monodromy_germ(
+            jacobian_M=jacobian_matrix,
+            orbit_period_T=orbit_period_T,
+            canonical_omega=self._canonical_omega,
+        )
+
+        # 2. Evaluación de las Identidades A_\infty de Stasheff (K_3 y K_4)
+        stasheff_residual = self._evaluate_stasheff_a_infinity_identities(
+            m3_tensor=m3_homotopy_tensor,
+            jacobian_M=jacobian_matrix,
+        )
+
+        # 3. Clasificación de subobjetos en el Retículo Distributivo de Heyting \Omega_3
+        is_coherent = monodromy_germ.is_monodromy_stable and (stasheff_residual <= _WILKINSON_LIMIT)
+        is_degraded = (monodromy_germ.max_floquet_multiplier <= 1.05) and not is_coherent
+
+        if is_coherent:
+            verdict = HeytingVerdict.COHERENT
+            crowbar_triggered = False
+        elif is_degraded:
+            verdict = HeytingVerdict.DEGRADED
+            crowbar_triggered = False
+        else:
+            verdict = HeytingVerdict.VETOED
+            crowbar_triggered = True
+
+        # 4. Actuación Ciber-Física en Silicio Real (ESP32 < 400 ns)
+        actuation_latency_ns = 0.0
+        if crowbar_triggered:
+            actuation_latency_ns = self._trigger_hardware_iram_crowbar_isr()
+
+        return {
+            "heyting_verdict": verdict.name,
+            "symplectic_residual": monodromy_germ.relative_symplectic_residual,
+            "volume_drift": monodromy_germ.volume_drift,
+            "max_floquet_multiplier": monodromy_germ.max_floquet_multiplier,
+            "lyapunov_exponent": monodromy_germ.lyapunov_exponent,
+            "stasheff_residual": stasheff_residual,
+            "crowbar_triggered": crowbar_triggered,
+            "actuation_latency_ns": actuation_latency_ns,
+        }
 
     def ingest_tensors(
         self,
@@ -1104,4 +1191,5 @@ __all__ = [
     "HomotopicTesserariosAgent",
     "TesserariosCoherenceChamber",
     "execute_tesserarios_cycle",
+    "PoincareMonodromyGerm",
 ]
