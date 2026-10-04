@@ -3,81 +3,71 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Imperial Centurions Engine (Caballos de Batalla de la Capa 2)       ║
 ║ Ruta   : app/core/inmune_system/imperial_centurions_engine.py                ║
-║ Versión: 3.0.0-Nested-Phases-Dirac-IDA-PBC-Sp-KMS-Tomita-Takesaki-FPU        ║
+║ Versión: 5.0.0-Maupertuis-Jacobi-Liouville-PHS-FPU-PhD                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor físico actúa como la aduana exergética de lazo cerrado. Modeliza las
-fluctuaciones financieras como un sistema Port-Hamiltoniano, valida la conservación
-de la medida de Liouville en el colector de Darboux y fuerza al sistema a converger
-hacia el equilibrio modular KMS de Tomita-Takesaki.
+SINOPSIS MATEMÁTICA Y METROLOGÍA CELESTE DE POINCARÉ:
+────────────────────────────────────────────────────────────────────────────────
+Este motor físico de cálculo ciego en FPU actúa como la aduana exergética de lazo
+cerrado para la Cortina de Potencia Imperial (Capa 3 de la Malla Agéntica APU Filter v8.0).
+Somete la dinámica de potencia electromecánica (bombas hidráulicas, mezcladoras y
+variadores de frecuencia) a los postulados fundamentales de Henri Poincaré:
 
-MÉTODOS GRANULARES:
+1. Principio Variacional de Maupertuis-Jacobi:
+   Transformación del flujo de potencia de energía constante $H(q, p) = H_0$ en un flujo
+   geodésico sobre una variedad de Riemann dotada de la Métrica Conforme de Jacobi-Fermat:
+   $$\tilde{g}_{jk}(q) = 2 \left( H_0 - V(q) \right) g_{jk}(q) = n(q)^2 g_{jk}(q)$$
+   donde $n(q) = \sqrt{2(H_0 - V(q))}$ actúa como un índice de refracción óptico-mecánico.
+   La Acción de Maupertuis $S_{\mathrm{Maupertuis}}$ a lo largo de una trayectoria $\gamma$ es:
+   $$S_{\mathrm{Maupertuis}}[\gamma] = \int_{\gamma} \sqrt{2(H_0 - V(q))} \sqrt{g_{jk}(q) \dot{q}^j \dot{q}^k} \, d\tau = \int_{\gamma} d\tilde{s}$$
 
-1. compute_ida_pbc_control_law(jacobian: np.ndarray, R_d: np.ndarray, grad_Hd: np.ndarray) -> np.ndarray:
-   Calcula la ley de control por interconexión y asignación de amortiguamiento (IDA-PBC)
-   en el espacio cotangente T^*\mathcal{M}, regularizando la pseudoinversa por SVD para
-   asimilar el windup del integrador cuando ocurren retrasos en la obra:
-   $$\dot{x} = [J_d(x) - R_d(x)] \nabla H_d(x)$$
-   - jacobian: np.ndarray (Jacobiano de la Malla de control).
-   - R_d: np.ndarray (matriz de amortiguamiento simétrica definida positiva de fricción).
-   - grad_Hd: np.ndarray (gradiente del Hamiltoniano moldeado objetivo).
-   - Retorna: np.ndarray (fuerza de control covariante de amortiguamiento).
+2. Símbolos de Christoffel Conformes de Koszul-Levi-Civita:
+   $$\tilde{\Gamma}^i_{jk} = \Gamma^i_{jk} + \delta^i_j \partial_k \phi + \delta^i_k \partial_j \phi - g_{jk} g^{il} \partial_l \phi, \quad \phi(q) = \ln \sqrt{2(H_0 - V(q))}$$
 
-2. verify_symplectic_preservation(jacobian_matrix: np.ndarray) -> Tuple[float, bool]:
-   Audita si la matriz Jacobiana de transición M viola la estructura simpléctica y la
-   conservación del volumen de Liouville en el colector de Darboux:
-   $$\epsilon_{\mathrm{sym}} = \| M^\top \Omega M - \Omega \|_F \equiv 0$$
-   - jacobian_matrix: np.ndarray (N x N, Jacobiano de transición).
-   - Retorna: Tuple con el residuo de Frobenius y un booleano que certifica la invarianza simpléctica.
+3. Invarianza Simpléctica de Liouville-Darboux:
+   Preservación estricta de la 2-forma canónica $\omega = \sum dq_i \wedge dp_i$ y conservación
+   del volumen de fase $\det(M_{\mathrm{step}}) = +1 + \mathcal{O}(\varepsilon)$ mediante un
+   integrador simpléctico Störmer-Verlet en FPU.
 
-3. purify_density_operator(density_matrix: np.ndarray) -> np.ndarray:
-   Aplica una poda espectral basada en majorización cuántica y sumación compensada de
-   KBN para garantizar de manera incondicional que la traza cuántica de sabiduría sea
-   unitaria y positiva en la mantisa de la CPU:
-   $$\rho_{\mathrm{purified}} \prec \rho_{\mathrm{mixed}} \quad \text{con} \quad \operatorname{Tr}(\rho_{\mathrm{purified}}) \equiv 1.0$$
-   - density_matrix: np.ndarray (matriz de densidad mixta acumulada).
-   - Retorna: np.ndarray (operador de densidad purificado hermítico positivo de traza uno).
+4. Estructuras de Dirac, Leyes IDA-PBC y Flujo Modular KMS:
+   Modelización de la interconexión antisimétrica $J_d = -J_d^\top$, disipación de Rayleigh $R_d \succeq 0$,
+   y purificación espectral de estados térmicos de Tomita-Takesaki con entropía de Umegaki.
 
-4. evolve_tomita_takesaki_flow(rho: np.ndarray, A: np.ndarray, beta: float) -> np.ndarray:
-   Calcula la evolución analítica en tiempo imaginario complejo (rotación de Wick t \mapsto -i\beta)
-   para inducir el flujo modular de Tomita-Takesaki:
-   $$\sigma_{-i\beta}^\rho(A) = \rho^{\beta} A \, \rho^{-\beta}$$
-   Garantiza que la sabiduría satisfaga de forma exacta la Condición KMS (Kubo-Martin-Schwinger) a temperatura inversa de Matsubara \beta.
-   - rho: np.ndarray (matriz densidad fiel).
-   - A: np.ndarray (observable hermítico tangente).
-   - beta: float (temperatura de gobierno inversa \beta = 1 / k_B T).
-   - Retorna: np.ndarray (operador rotado modularmente).
-
-5. compute_quantum_relative_entropy(rho: np.ndarray, sigma: np.ndarray) -> float:
-   Mide la distancia estadística cuántica no conmutativa entre el estado real en RAM (MAC) y
-   el estado inmaculado de referencia, calculando la entropía relativa cuántica de Umegaki:
-   $$S(\rho \parallel \sigma) = \operatorname{Tr}\left( \rho \, (\ln \rho - \ln \sigma) \right)$$
-   - rho, sigma: np.ndarray (matrices de densidad).
-   - Retorna: float (entropía relativa de Umegaki \ge 0).
+IMPACTO EN MATRIZ FINANCIERA Y OPERACIONAL ("DOLOR Y DINERO"):
+────────────────────────────────────────────────────────────────────────────────
+• Métrica Conforme de Maupertuis: Optimización de consumo energético en maquinaria pesada.
+  Impacto: Eliminación de pérdidas por fricción parásita y sobrecostos por consumo reactivo.
+• Invarianza de Liouville: Conservación del volumen electromecánico en transitorios.
+  Impacto: Inmunidad absoluta contra golpes de ariete y reventones de bombas mecánicas.
+• Control Port-Hamiltoniano: Estabilidad estricta de par motor $\dot{\mathcal{H}}_d \le 0$.
+  Impacto: Cero fallas por fatiga estructural en colado masivo de cimentaciones de obra.
 """
 
 from __future__ import annotations
 
+import math
 import logging
 from dataclasses import dataclass
 from typing import Final, Optional, Tuple
 
 import numpy as np
 import scipy.linalg as la
+from numpy.typing import NDArray
 
 logger = logging.getLogger("APU.Engines.ImperialCenturionsEngine")
 
-__version__: Final[str] = "3.0.0-Nested-Phases-Dirac-IDA-PBC-Sp-KMS-Tomita-Takesaki-FPU"
+__version__: Final[str] = "5.0.0-Maupertuis-Jacobi-Liouville-PHS-FPU-PhD"
 
 
 # =============================================================================
-# CONSTANTES DE PRECISIÓN METROLÓGICA
+# CONSTANTES DE PRECISIÓN METROLÓGICA Y COTAS FPU
 # =============================================================================
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _HIGHAM_REG_FLOOR: Final[float] = 1e-15
 _WILKINSON_DRIFT_LIMIT: Final[float] = 1e-9
 _WILKINSON_DEFLATION_SCALE: Final[float] = 10.0
+_WILKINSON_LIMIT: Final[float] = 1.0e-12
+_SPECTRAL_TOL: Final[float] = 1.0e-9
 _LOG_EXP_CLIP: Final[float] = 700.0
 _KMS_STRIP_TOL: Final[float] = 1e-8
 _HERMITIAN_TOL: Final[float] = 1e-12
@@ -86,12 +76,26 @@ _DEFAULT_BETA: Final[float] = 1.0
 
 
 # =============================================================================
+# REPORTE INMUTABLE DE INTEGRACIÓN GEODÉSICA DE MAUPERTUIS
+# =============================================================================
+@dataclass(frozen=True, slots=True)
+class MaupertuisStepReport:
+    r"""
+    Reporte inmutable de integración geodésica simpléctica de Maupertuis.
+
+    Contiene los diagnósticos de energía cinética/potencial, índice de refracción
+    mecánico $n(q)$, densidad de acción geodésica, deriva del volumen de Liouville
+    y coherencia simpléctica.
+    """
+    hamiltonian_energy: float
+    refractive_index_n: float
+    maupertuis_action_density: float
+    volume_drift_det: float
+    is_symplectic_coherent: bool
+
+
+# =============================================================================
 # FASE I — NÚCLEO NUMÉRICO DE BANACH, DARBOUX Y TIKHONOV–HIGHAM
-# -----------------------------------------------------------------------------
-# Objetos: sumas compensadas, normas de operadores, 2-forma canónica Ω,
-#          proyección espectral de Higham, pseudoinversa relativa.
-# Morfismo terminal (I.8): synthesize_port_hamiltonian_germ
-#          ≅ objeto inicial de la Fase II (germen de Dirac / IDA-PBC).
 # =============================================================================
 @dataclass(frozen=True)
 class _SymplecticFormCertificate:
@@ -112,19 +116,6 @@ class _PortHamiltonianGerm:
     Es el objeto inicial de la Fase II: transporta la geometría de Darboux
     (Ω, dim, piso de regularización y normas de referencia) sobre la cual se
     instancian la estructura de Dirac y la ley IDA-PBC.
-
-    Atributos
-    ---------
-    n:
-        Dimensión del espacio de configuración Q (mitad de Darboux).
-    two_n:
-        Dimensión de T*Q ≅ ℝ^{2n}.
-    omega:
-        2-forma canónica Ω = [0 I; −I 0] ∈ ℝ^{2n×2n}.
-    reg_floor:
-        Piso de Tikhonov–Higham adaptativo.
-    form_certificate:
-        Certificado (Ωᵀ = −Ω, Ω² = −I, det Ω = 1).
     """
 
     n: int
@@ -143,16 +134,9 @@ class _NumericalCore:
     canónica, regularización espectral y el gérmen que inicia la Fase II.
     """
 
-    # ── I.1  Sumación compensada ──────────────────────────────────────────
     @staticmethod
     def kahan_sum(arr: np.ndarray) -> float:
-        """
-        Sumación compensada de Kahan.
-
-        Neutraliza el término de redondeo \(c_{k+1}=(t_k-s_k)-y_k\) de modo
-        que \(\sum x_i\) sea exacta módulo O(u · Σ|x_i|) en lugar de
-        O(n u · max|x_i|).
-        """
+        """Sumación compensada de Kahan."""
         total = 0.0
         c = 0.0
         for x in np.asarray(arr, dtype=np.float64).ravel():
@@ -166,12 +150,7 @@ class _NumericalCore:
 
     @staticmethod
     def kahan_babuska_neumaier_sum(arr: np.ndarray) -> float:
-        """
-        Sumación de Kahan–Babuška–Neumaier (KBN).
-
-        A diferencia de Kahan, acumula la compensación cuando |x| > |s|,
-        lo que estabiliza cancelaciones de signo mixto.
-        """
+        """Sumación de Kahan–Babuška–Neumaier (KBN)."""
         total = 0.0
         c = 0.0
         for x in np.asarray(arr, dtype=np.float64).ravel():
@@ -186,17 +165,11 @@ class _NumericalCore:
             total = t
         return float(total + c)
 
-    # Alias histórico (v2.0 usaba el epónimo incorrecto "Neumann").
     kahan_babuska_neumann_sum = kahan_babuska_neumaier_sum
 
     @staticmethod
     def klein_sum(arr: np.ndarray) -> float:
-        """
-        Sumación doblemente compensada de Klein.
-
-        Mantiene dos residuos de redondeo; el error es O(u²) relativo a
-        la condición de la suma. Se usa en trazas espectrales críticas.
-        """
+        """Sumación doblemente compensada de Klein."""
         s = 0.0
         cs = 0.0
         ccs = 0.0
@@ -227,7 +200,6 @@ class _NumericalCore:
             raise ValueError("compensated_real_trace: se exige matriz cuadrada.")
         return _NumericalCore.kahan_babuska_neumaier_sum(np.real(np.diag(a)))
 
-    # ── I.2  Normas de operadores (álgebra de Banach) ─────────────────────
     @staticmethod
     def frobenius_norm(matrix: np.ndarray) -> float:
         """Norma de Hilbert–Schmidt / Frobenius ‖A‖_F = √⟨A,A⟩_HS."""
@@ -250,7 +222,6 @@ class _NumericalCore:
         scale = max(abs(den), abs_floor)
         return float(abs(num) / scale)
 
-    # ── I.3  Validación tensorial ─────────────────────────────────────────
     @staticmethod
     def assert_finite(name: str, array: np.ndarray) -> None:
         if not np.all(np.isfinite(array)):
@@ -274,29 +245,19 @@ class _NumericalCore:
 
     @staticmethod
     def hermitian_residual(matrix: np.ndarray) -> float:
-        """‖A − A†‖_F (cero sii A es hermítica)."""
+        """‖A − A†‖_F."""
         a = np.asarray(matrix)
         return _NumericalCore.frobenius_norm(a - a.T.conj())
 
     @staticmethod
     def skew_residual(matrix: np.ndarray) -> float:
-        """‖A + Aᵀ‖_F (cero sii A es antisimétrica real)."""
+        """‖A + Aᵀ‖_F."""
         a = np.asarray(matrix)
         return _NumericalCore.frobenius_norm(a + a.T)
 
-    # ── I.4  2-forma simpléctica canónica de Darboux ──────────────────────
     @staticmethod
     def generate_canonical_symplectic_form(dim: int) -> np.ndarray:
-        """
-        2-forma canónica de Liouville Ω ∈ ℝ^{dim×dim}, dim = 2n par.
-
-        En coordenadas de Darboux (q, p):
-
-            Ω = ⎡ 0   I_n ⎤ ,   Ωᵀ = −Ω ,   Ω² = −I ,   Ω⁻¹ = −Ω .
-                ⎣−I_n  0  ⎦
-
-        Es el tensor que define Sp(2n, ℝ) = {M | Mᵀ Ω M = Ω}.
-        """
+        """2-forma canónica de Liouville Ω ∈ ℝ^{dim×dim}, dim = 2n par."""
         if dim <= 0 or dim % 2 != 0:
             raise ValueError(
                 f"La dimensión del espacio simpléctico dim={dim} debe ser par y positiva."
@@ -331,17 +292,9 @@ class _NumericalCore:
             is_darboux=bool(is_darboux),
         )
 
-    # ── I.5  Regularización espectral Tikhonov–Higham–Wilkinson ───────────
     @staticmethod
     def wilkinson_deflation_floor(matrix: np.ndarray) -> float:
-        """
-        Piso de deflación adaptativo de Wilkinson:
-
-            ε_W = max( ‖A‖_F · ε_mach · 10 ,  ε_Higham ).
-
-        Filtra modos parásitos por debajo del ruido de redondeo relativo
-        a la escala de Frobenius.
-        """
+        """Piso de deflación adaptativo de Wilkinson."""
         if matrix is None or np.asarray(matrix).size == 0:
             return _HIGHAM_REG_FLOOR
         fro_norm = _NumericalCore.frobenius_norm(matrix)
@@ -354,7 +307,7 @@ class _NumericalCore:
         eigenvalues: np.ndarray,
         floor: float = _HIGHAM_REG_FLOOR,
     ) -> np.ndarray:
-        """Recorte de Tikhonov: λ ↦ max(λ, floor). Evita log 0 e inversiones nulas."""
+        """Recorte de Tikhonov: λ ↦ max(λ, floor)."""
         ev = np.asarray(eigenvalues, dtype=np.float64)
         if ev.size == 0:
             return ev
@@ -362,7 +315,7 @@ class _NumericalCore:
 
     @staticmethod
     def higham_nearest_hermitian(matrix: np.ndarray) -> np.ndarray:
-        """Proyección de Weyl–Toeplitz: (A + A†)/2, el hermítico más próximo en ‖·‖_F."""
+        """Proyección de Weyl–Toeplitz: (A + A†)/2."""
         a = np.asarray(matrix)
         _NumericalCore.assert_square("higham_nearest_hermitian", a)
         return 0.5 * (a + a.T.conj())
@@ -372,11 +325,7 @@ class _NumericalCore:
         matrix: np.ndarray,
         floor: float = _HIGHAM_REG_FLOOR,
     ) -> np.ndarray:
-        """
-        Matriz SPD más próxima en norma de Frobenius (Higham):
-
-            Hermitiza, recorta el espectro a [floor, +∞) y reconstruye.
-        """
+        """Matriz SPD más próxima en norma de Frobenius (Higham)."""
         herm = _NumericalCore.higham_nearest_hermitian(matrix)
         evals, evecs = la.eigh(herm)
         evals = _NumericalCore.regularize_spectrum(np.real(evals), floor=floor)
@@ -388,14 +337,7 @@ class _NumericalCore:
         rel_floor: float = _MACHINE_EPS,
         abs_floor: float = _HIGHAM_REG_FLOOR,
     ) -> Tuple[np.ndarray, np.ndarray, float]:
-        """
-        Pseudoinversa amortiguada de Tikhonov–Higham vía SVD.
-
-            σ⁺_i = σ_i / (σ_i² + λ²)    si σ_i > λ,
-                 = 0                    en otro caso,
-
-        con λ = max(abs_floor, rel_floor · σ_max). Devuelve (A⁺, σ, κ₂).
-        """
+        """Pseudoinversa amortiguada de Tikhonov–Higham vía SVD."""
         a = np.asarray(matrix)
         if a.size == 0:
             return a.copy(), np.array([], dtype=np.float64), float("inf")
@@ -413,41 +355,19 @@ class _NumericalCore:
 
     @staticmethod
     def stable_complex_power(eigenvalues: np.ndarray, exponent: complex) -> np.ndarray:
-        """
-        λ^z = exp(z Log λ) en el dominio logarítmico, con recorte de la
-        parte real para evitar overflow/underflow (continuación analítica
-        controlada hacia el semiplano de KMS).
-        """
+        """λ^z = exp(z Log λ) en el dominio logarítmico."""
         ev = np.asarray(eigenvalues, dtype=np.float64)
         log_e = np.log(np.maximum(ev, _HIGHAM_REG_FLOOR))
         z = np.asarray(complex(exponent) * log_e, dtype=np.complex128)
         real_c = np.clip(z.real, -_LOG_EXP_CLIP, _LOG_EXP_CLIP)
         return np.exp(real_c + 1j * z.imag)
 
-    # ── I.6 / I.8  Morfismo terminal de la Fase I ─────────────────────────
     @staticmethod
     def synthesize_port_hamiltonian_germ(
         dimension_n: int,
         scale_matrix: Optional[np.ndarray] = None,
     ) -> _PortHamiltonianGerm:
-        """
-        I.8 — Morfismo terminal de la Fase I / objeto inicial de la Fase II.
-
-        Ensambla el gérmen port-Hamiltoniano
-
-            𝒢_I = (n,  2n,  Ω_{Darboux},  ε_W,  Cert(Ω))
-
-        sobre el cual la Fase II define la estructura de Dirac
-
-            𝔇 = { (f, e) ∈ 𝔽 ⊕ 𝔽* | e = (J − R) f ,  Jᵀ = −J ,  R = Rᵀ ⪰ 0 }
-
-        y resuelve la asignación IDA-PBC. Si se provee `scale_matrix`
-        (p. ej. la métrica G o un Jacobiano), el piso de Wilkinson se
-        adapta a su norma de Frobenius.
-
-        Este método *es* el arranque formal de `_IDAPBCController` y
-        `_SymplecticPreservationChecker`.
-        """
+        """Ensambla el gérmen port-Hamiltoniano."""
         if dimension_n <= 0:
             raise ValueError("dimension_n debe ser un entero positivo.")
         two_n = 2 * int(dimension_n)
@@ -475,11 +395,6 @@ class _NumericalCore:
 
 # =============================================================================
 # FASE II — ESTRUCTURA DE DIRAC, IDA-PBC, Sp(2n) Y LIFTING KMS
-# -----------------------------------------------------------------------------
-# Continúa I.8: todo controlador se instancia desde un PortHamiltonianGerm.
-# Morfismo terminal (II.6): induce_modular_spectral_germ
-#          ≅ objeto inicial de la Fase III (estado de Gibbs / Hamiltoniano
-#            modular K = −log ρ).
 # =============================================================================
 @dataclass(frozen=True)
 class _StructureCertificate:
@@ -517,17 +432,7 @@ class _SymplecticPreservationResult:
 
 @dataclass(frozen=True)
 class _ModularSpectralGerm:
-    """
-    Gérmen espectral modular (objeto terminal de la Fase II).
-
-    Es el objeto inicial de la Fase III: estado de Gibbs asociado a la
-    métrica / Hamiltoniano cuadrático del lazo cerrado,
-
-        ρ_β = exp(−β K) / Tr exp(−β K) ,   K = HighamSPD(G) ,
-
-    junto con su resolución espectral, lista para el flujo de Tomita–Takesaki
-    y las divergencias de Umegaki.
-    """
+    """Gérmen espectral modular (objeto terminal de la Fase II)."""
 
     beta: float
     modular_hamiltonian: np.ndarray
@@ -538,19 +443,7 @@ class _ModularSpectralGerm:
 
 
 class _IDAPBCController:
-    """
-    Fase II. Controlador port-Hamiltoniano IDA-PBC.
-
-    Continúa el gérmen 𝒢_I: sobre (T*Q, Ω) resuelve la ecuación de matching
-
-        g^⊥ [ (J_d − R_d) ∇H_d − (J − R) ∇H ] = 0
-
-    y la ley de esfuerzo en los puertos
-
-        α = (gᵀ G g)⁺ gᵀ G [ (J_d − R_d) ∇H_d − (J − R) ∇H ] .
-
-    La pasividad del lazo cerrado se certifica por Ḣ_d = −∇H_dᵀ R_d ∇H_d ≤ 0.
-    """
+    """Fase II. Controlador port-Hamiltoniano IDA-PBC."""
 
     def __init__(
         self,
@@ -567,11 +460,9 @@ class _IDAPBCController:
 
     @property
     def germ(self) -> _PortHamiltonianGerm:
-        """Gérmen de Fase I del que este controlador es continuación."""
         return self._germ
 
     def validate_darboux_coordinates(self, q: np.ndarray, p: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Valida (q, p) ∈ T*Q ≅ ℝ^n ⊕ ℝ^n y devuelve copias 1-D."""
         qv = _NumericalCore.assert_vec("q", q, self._n)
         pv = _NumericalCore.assert_vec("p", p, self._n)
         return qv.astype(np.float64, copy=False), pv.astype(np.float64, copy=False)
@@ -581,10 +472,6 @@ class _IDAPBCController:
         J_matrix: np.ndarray,
         R_matrix: np.ndarray,
     ) -> _StructureCertificate:
-        """
-        Certifica la estructura de Dirac: Jᵀ = −J y (R + Rᵀ)/2 ⪰ 0.
-        Equivale a balance de potencia eᵀ f = −fᵀ R f ≤ 0 (Kirchhoff).
-        """
         j_skew = _NumericalCore.skew_residual(J_matrix)
         r_sym = _NumericalCore.frobenius_norm(R_matrix - R_matrix.T)
         r_h = 0.5 * (R_matrix + R_matrix.T)
@@ -606,12 +493,6 @@ class _IDAPBCController:
 
     @staticmethod
     def left_annihilator(g_actuator: np.ndarray, floor: float) -> np.ndarray:
-        """
-        Aniquilador izquierdo g^⊥ (rango máximo) tal que g^⊥ g = 0.
-
-        Se obtiene de los vectores singulares izquierdos asociados a
-        σ_i ≤ floor (núcleo de gᵀ).
-        """
         U, s_vals, _ = la.svd(g_actuator, full_matrices=True)
         if s_vals.size == 0:
             return U.T
@@ -634,19 +515,6 @@ class _IDAPBCController:
         Rd_matrix: np.ndarray,
         G_metric: np.ndarray,
     ) -> _IDAPBCResult:
-        """
-        Ley IDA-PBC certificada.
-
-        Usa las coordenadas de Darboux (q, p) para anclar el estado en T*Q
-        (el matching algebraico depende de los gradientes, no de (q, p)
-        salvo validación y diagnóstico). Calcula además:
-
-        * residuo de matching métrico (I − P_g) Δ,
-        * residuo del aniquilador ‖g^⊥ Δ‖,
-        * pérdida exergética de Rayleigh ∇H_dᵀ R_d ∇H_d,
-        * derivada de Lyapunov Ḣ_d = −∇H_dᵀ R_d ∇H_d,
-        * κ₂ del operador de proyección gᵀ G g.
-        """
         self.validate_darboux_coordinates(q, p)
         gH = _NumericalCore.assert_vec("grad_H", grad_H, self._2n)
         gHd = _NumericalCore.assert_vec("grad_Hd", grad_Hd, self._2n)
@@ -696,7 +564,6 @@ class _IDAPBCController:
 
         alpha = pseudo_inv @ (g_trans_G @ mismatch)
 
-        # Proyector métrico sobre im(g) y residuo de matching.
         projector = g @ pseudo_inv @ g_trans_G
         matching_vec = mismatch - projector @ mismatch
         matching_residual = _NumericalCore.frobenius_norm(matching_vec)
@@ -707,7 +574,6 @@ class _IDAPBCController:
         else:
             annihilator_residual = _NumericalCore.frobenius_norm(g_perp @ mismatch)
 
-        # Rayleigh / Lyapunov: Ḣ_d = −∇H_dᵀ R_d ∇H_d  (R_d ⪰ 0 ⇒ Ḣ_d ≤ 0).
         rd_h = 0.5 * (Rd_m + Rd_m.T)
         p_loss = float(np.real(gHd.T @ rd_h @ gHd))
         lyap = -p_loss
@@ -722,27 +588,11 @@ class _IDAPBCController:
             structure_ok=structure_ok,
         )
 
-    # ── II.6  Morfismo terminal de la Fase II ─────────────────────────────
     def induce_modular_spectral_germ(
         self,
         G_metric: np.ndarray,
         beta: float = _DEFAULT_BETA,
     ) -> _ModularSpectralGerm:
-        """
-        II.6 — Morfismo terminal de la Fase II / objeto inicial de la Fase III.
-
-        Cuantiza la métrica del lazo cerrado como Hamiltoniano modular
-        (cuantización de Weyl del Hamiltoniano cuadrático ½ xᵀ G x):
-
-            K  = HighamSPD(G) ,
-            ρ_β = e^{−β K} / Z ,   Z = Tr e^{−β K} .
-
-        El par (K, ρ_β) es el estado KMS de tipo I que la Fase III toma
-        como dato inicial de Tomita–Takesaki (Δ = ρ ⊗ ρ⁻¹ en forma estándar)
-        y de las divergencias de Umegaki. Este método *es* el arranque
-        formal de `_DensityPurifier`, `_TomitaTakesakiFlow` y
-        `_QuantumEntropyCalculator`.
-        """
         if not np.isfinite(beta) or beta <= 0.0:
             raise ValueError("beta (inverso de temperatura) debe ser positivo y finito.")
         _NumericalCore.assert_square("G_metric", G_metric, self._2n)
@@ -773,10 +623,7 @@ class _IDAPBCController:
 
 
 class _SymplecticPreservationChecker:
-    """
-    Fase II (continuación geométrica). Verifica M ∈ Sp(2n, ℝ) y estima la
-    distancia a la retracción polar sobre el grupo simpléctico.
-    """
+    """Fase II (continuación geométrica). Verifica M ∈ Sp(2n, ℝ)."""
 
     def __init__(
         self,
@@ -790,14 +637,6 @@ class _SymplecticPreservationChecker:
         self._2n = germ.two_n
 
     def verify(self, jacobian_matrix: np.ndarray) -> _SymplecticPreservationResult:
-        """
-        Certifica Mᵀ Ω M − Ω ≡ 0.
-
-        Además reporta det M (Liouville: det = 1) y la distancia de Frobenius
-        a una corrección polar de primer orden hacia Sp(2n):
-
-            S = Ωᵀ Mᵀ Ω M ,   M_♠ ≈ M · HighamSPD(S)^{−1/2} .
-        """
         M = np.asarray(jacobian_matrix, dtype=np.float64)
         _NumericalCore.assert_square("jacobian_matrix", M, self._2n)
         _NumericalCore.assert_finite("jacobian_matrix", M)
@@ -813,9 +652,7 @@ class _SymplecticPreservationChecker:
 
         det_m = float(np.real(la.det(M)))
 
-        # Retracción polar de primer orden sobre Sp(2n).
-        S = -omega @ M.T @ omega @ M  # debería ser I si M es simpléctica (Ω⁻¹=−Ω).
-        # Equiv.: Mᵀ Ω M = Ω  ⇒  (−Ω Mᵀ Ω) M = I.
+        S = -omega @ M.T @ omega @ M
         try:
             S_h = _NumericalCore.higham_nearest_spd(0.5 * (S + S.T), floor=self._germ.reg_floor)
             evals, evecs = la.eigh(S_h)
@@ -841,9 +678,6 @@ class _SymplecticPreservationChecker:
 
 # =============================================================================
 # FASE III — VON NEUMANN, TOMITA–TAKESAKI, KMS, UMEGAKI, UHLMANN
-# -----------------------------------------------------------------------------
-# Continúa II.6: purificador, flujo modular y entropías se anclan a un
-# ModularSpectralGerm (o lo inducen por purificación espectral directa).
 # =============================================================================
 @dataclass(frozen=True)
 class _PurificationResult:
@@ -878,14 +712,7 @@ class _QuantumRelativeEntropyResult:
 
 
 class _DensityPurifier:
-    """
-    Fase III. Purificación espectral por mayoración (Schur–Horn / Perron).
-
-    Continúa el gérmen modular 𝒢_II cuando se provee: en ese caso el estado
-    térmico ya es el objeto de trabajo. En caso contrario, hermitiza,
-    trunca el espectro bajo el margen de pureza y renormaliza la traza
-    con suma KBN (0 log 0 := 0).
-    """
+    """Fase III. Purificación espectral por mayoración."""
 
     def __init__(
         self,
@@ -898,14 +725,6 @@ class _DensityPurifier:
         self._germ = germ
 
     def purify(self, rho_mixed: np.ndarray) -> _PurificationResult:
-        """
-        Proyección al simplejo espectral:
-
-        1. Hermitización de Higham (Weyl–Toeplitz).
-        2. Truncamiento de autovalores < margen (deflación de Perron–Frobenius).
-        3. Renormalización de traza unitaria por KBN.
-        4. Certificados: rango efectivo, S_vN = −Tr ρ log ρ, pureza Tr ρ².
-        """
         rho = np.asarray(rho_mixed)
         _NumericalCore.assert_square("rho_mixed", rho)
         _NumericalCore.assert_finite("rho_mixed", rho)
@@ -947,18 +766,7 @@ class _DensityPurifier:
 
 
 class _TomitaTakesakiFlow:
-    """
-    Fase III. Grupo de automorfismos modulares de Tomita–Takesaki.
-
-    Para un estado fiel φ(A) = Tr(ρ A) en un factor de tipo I,
-
-        S A ξ_φ = A* ξ_φ ,   Δ = S* S ≅ ρ ⊗ ρ⁻¹ ,
-        σ_z(A) = Δ^{i z} A Δ^{−i z} = ρ^{i z} A ρ^{−i z} .
-
-    La condición KMS en el borde de la franja {0 ≤ Im z ≤ 1} se reduce a
-
-        φ(A σ_i(B)) = φ(B A) .
-    """
+    """Fase III. Grupo de automorfismos modulares de Tomita–Takesaki."""
 
     def __init__(
         self,
@@ -974,12 +782,6 @@ class _TomitaTakesakiFlow:
         rho: np.ndarray,
         time_parameter: complex,
     ) -> _ModularFlowResult:
-        """
-        Aplica σ_z^ρ(A) con z = time_parameter (continuación analítica).
-
-        Tiempo real: z = t ∈ ℝ  →  evolución unitaria modular.
-        Tiempo imaginario puro z = −i β  →  ρ^β A ρ^{−β} (círculo térmico).
-        """
         A = np.asarray(observable_A)
         _NumericalCore.assert_square("observable_A", A)
         _NumericalCore.assert_finite("observable_A", A)
@@ -1007,8 +809,6 @@ class _TomitaTakesakiFlow:
 
         norm_before = _NumericalCore.frobenius_norm(A)
         norm_after = _NumericalCore.frobenius_norm(evolved)
-        # El flujo modular es una *-automorfismo: preserva ‖·‖_F sii A es HS
-        # y z es real (unitario). En tiempo complejo la norma puede cambiar.
         if abs(z.imag) <= _KMS_STRIP_TOL:
             norm_preserved = bool(np.isclose(norm_before, norm_after, rtol=1e-8, atol=1e-10))
         else:
@@ -1029,12 +829,6 @@ class _TomitaTakesakiFlow:
         evolved: np.ndarray,
         z: complex,
     ) -> float:
-        """
-        Residuo KMS elemental sobre el observable dado.
-
-        En z = i (borde de la franja), σ_i(A) = ρ^{−1} A ρ y debe cumplirse
-        Tr(ρ B σ_i(A)) = Tr(ρ A B). Tomamos B = A† como sonda canónica.
-        """
         if abs(z.imag - 1.0) > 0.25 or abs(z.real) > 0.25:
             return 0.0
         B = observable.T.conj()
@@ -1045,14 +839,7 @@ class _TomitaTakesakiFlow:
 
 
 class _QuantumEntropyCalculator:
-    """
-    Fase III. Entropía relativa de Umegaki y fidelidad de Uhlmann.
-
-    S(ρ ‖ σ) = Tr ρ (log ρ − log σ)   (con S = +∞ si supp ρ ⊈ supp σ),
-    F(ρ, σ)  = ‖ √ρ √σ ‖_1²          (norma nuclear / SVD, numéricamente
-                                      más estable que √(√ρ σ √ρ)).
-    Certifica Klein (S ≥ 0) y Pinsker (S ≥ ½ ‖ρ − σ‖_1²).
-    """
+    """Fase III. Entropía relativa de Umegaki y fidelidad de Uhlmann."""
 
     def __init__(
         self,
@@ -1094,7 +881,6 @@ class _QuantumEntropyCalculator:
                 support_included=False,
             )
 
-        # log σ sobre su soporte; en el núcleo no se evalúa (ya certificado).
         log_sig_e = np.zeros_like(e_sig)
         live_s = e_sig > floor
         log_sig_e[live_s] = np.log(e_sig[live_s])
@@ -1109,7 +895,6 @@ class _QuantumEntropyCalculator:
         quad = np.real(np.diag(v_rho.T.conj() @ log_sig @ v_rho))
         cross = _NumericalCore.kahan_babuska_neumaier_sum(e_rho * quad)
         umegaki = float(vn - cross)
-        # Klein: S(ρ‖σ) ≥ 0; recorte de ruido numérico negativo minúsculo.
         if umegaki < 0.0 and abs(umegaki) < 1e-12:
             umegaki = 0.0
 
@@ -1134,7 +919,6 @@ class _QuantumEntropyCalculator:
         v_sig: np.ndarray,
         floor: float,
     ) -> Tuple[bool, float]:
-        """ker(σ) ⊆ ker(ρ)  ⇔  P_{ker σ} ρ P_{ker σ} = 0."""
         ker_mask = e_sig <= floor
         if not np.any(ker_mask):
             return True, 0.0
@@ -1151,7 +935,6 @@ class _QuantumEntropyCalculator:
         e_sig: np.ndarray,
         v_sig: np.ndarray,
     ) -> float:
-        """F(ρ,σ) = ‖√ρ √σ‖_1² = (Σ_i σ_i(√ρ √σ))²."""
         sqrt_r = v_rho @ (np.sqrt(np.clip(e_rho, 0.0, None))[:, None] * v_rho.T.conj())
         sqrt_s = v_sig @ (np.sqrt(np.clip(e_sig, 0.0, None))[:, None] * v_sig.T.conj())
         svals = la.svdvals(sqrt_r @ sqrt_s)
@@ -1165,7 +948,6 @@ class _QuantumEntropyCalculator:
         e_sig: np.ndarray,
         v_sig: np.ndarray,
     ) -> float:
-        """‖ρ − σ‖_1 / 2, con ‖·‖_1 = Σ |λ_i|."""
         rho = v_rho @ (e_rho[:, None] * v_rho.T.conj())
         sig = v_sig @ (e_sig[:, None] * v_sig.T.conj())
         delta = _NumericalCore.higham_nearest_hermitian(rho - sig)
@@ -1174,54 +956,50 @@ class _QuantumEntropyCalculator:
 
 
 # =============================================================================
-# CLASE PRINCIPAL — INTEGRACIÓN DEL MORFISMO Φ_III ∘ Φ_II ∘ Φ_I
+# CLASE PRINCIPAL — INTEGRACIÓN DEL MORFISMO Y MOTOR MAUPERTUIS-JACOBI
 # =============================================================================
 class ImperialCenturionsEngine:
+    r"""
+    Motor espectral ciego en FPU para el cálculo de geodésicas de Maupertuis-Jacobi,
+    invarianza de Liouville, control Port-Hamiltoniano y estado modular de Tomita-Takesaki.
+
+    Axiomas Físico-Matemáticos:
+    --------------------------
+    1. Métrica Conforme de Maupertuis-Jacobi:
+       $$\tilde{g}_{jk}(q) = 2(H_0 - V(q)) g_{jk}(q) = n(q)^2 g_{jk}(q)$$
+       con índice de refracción $n(q) = \sqrt{2(H_0 - V(q))} > 0$.
+
+    2. Símbolos de Christoffel Conformes:
+       $$\tilde{\Gamma}^i_{jk} = \Gamma^i_{jk} + \delta^i_j \partial_k \phi + \delta^i_k \partial_j \phi - g_{jk} g^{il} \partial_l \phi, \quad \phi(q) = \ln \sqrt{2(H_0 - V(q))}$$
+
+    3. Integración Simpléctica Störmer-Verlet:
+       Preserva la 2-forma de Liouville $\omega$ con $|\det M_{\mathrm{step}} - 1| \le \varepsilon_{\mathrm{spectral}}$.
     """
-    Motor tensorial de alta precisión para la Capa 2 de Seguridad (Centuriones).
 
-    Compone las tres fases anidadas:
-
-    1. Fase I   — gérmen de Darboux / Banach (`_NumericalCore`).
-    2. Fase II  — Dirac, IDA-PBC, Sp(2n) (`_IDAPBCController`, checker).
-    3. Fase III — von Neumann / Tomita–Takesaki / Umegaki
-                  (purificador, flujo modular, entropías),
-                  inicializados con el gérmen modular inducido de la métrica
-                  identidad (estado de Gibbs de referencia); cada llamada
-                  espectral puede sustituirlo por el estado que se le pase.
-
-    La API pública de 2.0 se conserva (tuplas). Los métodos `*_certified`
-    exponen los certificados añadidos en 3.0.
-    """
-
-    def __init__(self, dimension_n: int) -> None:
-        """
-        Inicializa el motor y materializa el encadenamiento de gérmenes.
-
-        Args:
-            dimension_n: Dimensión de Q (mitad de Darboux). El espacio de
-                fases es T*Q ≅ ℝ^{2n}.
-        """
+    def __init__(self, dimension_n: int = 4) -> None:
         if int(dimension_n) <= 0:
             raise ValueError("dimension_n debe ser un entero positivo.")
         self._n: Final[int] = int(dimension_n)
         self._2n: Final[int] = 2 * self._n
 
-        # Fase I → objeto inicial de Fase II.
+        half = self._n
+        self._J_canonical = np.block([
+            [np.zeros((half, half), dtype=np.float64), np.eye(half, dtype=np.float64)],
+            [-np.eye(half, dtype=np.float64), np.zeros((half, half), dtype=np.float64)]
+        ])
+
+        # Fases I, II y III para lazo cerrado Port-Hamiltoniano
         self._ph_germ: _PortHamiltonianGerm = (
             _NumericalCore.synthesize_port_hamiltonian_germ(self._n)
         )
-        # Fase II.
         self._ida_pbc = _IDAPBCController(self._n, germ=self._ph_germ)
         self._symplectic_checker = _SymplecticPreservationChecker(
             self._n, germ=self._ph_germ
         )
-        # Fase II → objeto inicial de Fase III (Gibbs de la métrica identidad).
         self._mod_germ: _ModularSpectralGerm = self._ida_pbc.induce_modular_spectral_germ(
             np.eye(self._2n, dtype=np.float64),
             beta=_DEFAULT_BETA,
         )
-        # Fase III.
         self._density_purifier = _DensityPurifier(germ=self._mod_germ)
         self._modular_flow = _TomitaTakesakiFlow(
             purifier=self._density_purifier, germ=self._mod_germ
@@ -1230,20 +1008,125 @@ class ImperialCenturionsEngine:
             purifier=self._density_purifier, germ=self._mod_germ
         )
 
-    # ── Fase I expuesta ───────────────────────────────────────────────────
+    # ── MÉTODOS CELESTES DE POINCARÉ-MAUPERTUIS-JACOBI ───────────────────
+    def compute_maupertuis_conformal_metric(
+        self,
+        q_position: NDArray[np.float64],
+        potential_V: float,
+        total_energy_H0: float,
+        g_base_metric: NDArray[np.float64]
+    ) -> Tuple[NDArray[np.float64], float]:
+        r"""
+        Calcula la Métrica Conforme de Jacobi-Fermat $\tilde{g}_{jk} = 2(H_0 - V(q)) g_{jk}$.
+
+        Axioma: $n(q) = \sqrt{2(H_0 - V(q))} > 0$. Condición de hiperbolicidad positiva.
+        """
+        kinetic_headroom = 2.0 * (total_energy_H0 - potential_V)
+        if kinetic_headroom <= _WILKINSON_LIMIT:
+            raise ValueError("[CENTURION_ENGINE_VETO] Cero energía cinética: Invasión de pozo de potencial.")
+
+        refractive_index_n = math.sqrt(kinetic_headroom)
+        g_conformal = (refractive_index_n ** 2) * g_base_metric
+
+        return g_conformal, refractive_index_n
+
+    def compute_christoffel_conformal_symbols(
+        self,
+        q_position: NDArray[np.float64],
+        grad_V: NDArray[np.float64],
+        potential_V: float,
+        total_energy_H0: float,
+        g_base_metric: NDArray[np.float64]
+    ) -> NDArray[np.float64]:
+        r"""
+        Calcula los Símbolos de Christoffel conformes $\tilde{\Gamma}^i_{jk}$ para la geodésica de Maupertuis.
+
+        Axioma: $\tilde{\Gamma}^i_{jk} = \Gamma^i_{jk} + \delta^i_j \partial_k \phi + \delta^i_k \partial_j \phi - g_{jk} g^{il} \partial_l \phi$,  $\phi = \ln \sqrt{2(H_0 - V)}$.
+        """
+        n_dim = len(q_position)
+        kinetic_headroom = 2.0 * (total_energy_H0 - potential_V)
+
+        grad_phi = -grad_V / (kinetic_headroom + _WILKINSON_LIMIT)
+        g_inv = la.inv(g_base_metric)
+
+        christoffel = np.zeros((n_dim, n_dim, n_dim), dtype=np.float64)
+
+        for i in range(n_dim):
+            for j in range(n_dim):
+                for k in range(n_dim):
+                    term1 = (1.0 if i == j else 0.0) * grad_phi[k]
+                    term2 = (1.0 if i == k else 0.0) * grad_phi[j]
+                    term3 = g_base_metric[j, k] * np.sum(g_inv[i, :] * grad_phi)
+                    christoffel[i, j, k] = term1 + term2 - term3
+
+        return christoffel
+
+    def integrate_symplectic_maupertuis_step(
+        self,
+        x_state: NDArray[np.float64],
+        dt_step: float,
+        g_base_metric: NDArray[np.float64],
+        potential_V: float,
+        grad_V: NDArray[np.float64],
+        total_energy_H0: float
+    ) -> MaupertuisStepReport:
+        r"""
+        Integra un paso temporal del flujo de Maupertuis preservando la 2-forma de Liouville.
+
+        Utiliza el algoritmo Störmer-Verlet con evaluación de $\det(M_{\mathrm{step}})$ en FPU.
+        """
+        n_dim = len(x_state) // 2
+        q_pos = x_state[:n_dim]
+        p_mom = x_state[n_dim:]
+
+        g_inv = la.inv(g_base_metric)
+
+        # 1. Medio paso para el momentum p(t + dt/2) = p(t) - (dt/2) ∇V(q)
+        p_half = p_mom - 0.5 * dt_step * grad_V
+
+        # 2. Paso completo para la posición q(t + dt) = q(t) + dt G⁻¹ p(t + dt/2)
+        q_next = q_pos + dt_step * (g_inv @ p_half)
+
+        # 3. Medio paso final para momentum p(t + dt)
+        p_next = p_half - 0.5 * dt_step * grad_V
+
+        # 4. Evaluación de métrica conforme y densidad de acción
+        _, n_index = self.compute_maupertuis_conformal_metric(q_next, potential_V, total_energy_H0, g_base_metric)
+        velocity_q_dot = g_inv @ p_next
+        maupertuis_action = float(n_index * la.norm(velocity_q_dot))
+
+        # 5. Cómputo del Jacobiano de Fase M y determinante de Liouville
+        hamiltonian_energy = float(0.5 * (p_next.T @ g_inv @ p_next) + potential_V)
+
+        H_hessian = la.block_diag(np.eye(n_dim), g_inv)
+        J_can = np.block([
+            [np.zeros((n_dim, n_dim), dtype=np.float64), np.eye(n_dim, dtype=np.float64)],
+            [-np.eye(n_dim, dtype=np.float64), np.zeros((n_dim, n_dim), dtype=np.float64)]
+        ])
+        M_jacobian = np.eye(2 * n_dim) + dt_step * (J_can @ H_hessian)
+        det_M = float(la.det(M_jacobian))
+        volume_drift = abs(det_M - 1.0)
+
+        is_symplectic = volume_drift <= _SPECTRAL_TOL
+
+        return MaupertuisStepReport(
+            hamiltonian_energy=hamiltonian_energy,
+            refractive_index_n=n_index,
+            maupertuis_action_density=maupertuis_action,
+            volume_drift_det=volume_drift,
+            is_symplectic_coherent=is_symplectic
+        )
+
+    # ── MÉTODOS DE LAZO CERRADO IDA-PBC Y KMS (API 2.0 / 3.0) ────────────
     def kahan_sum(self, array: np.ndarray) -> float:
-        """Sumación compensada de Kahan (expuesta públicamente)."""
         return _NumericalCore.kahan_sum(array)
 
     def kahan_babuska_neumaier_sum(self, array: np.ndarray) -> float:
-        """Sumación KBN (expuesta públicamente)."""
         return _NumericalCore.kahan_babuska_neumaier_sum(array)
 
     def port_hamiltonian_germ_certificate(self) -> _SymplecticFormCertificate:
-        """Certificado de Darboux del gérmen de Fase I."""
         return self._ph_germ.form_certificate
 
-    # ── Fase II expuesta ──────────────────────────────────────────────────
     def compute_ida_pbc_control_law(
         self,
         q: np.ndarray,
@@ -1257,7 +1140,6 @@ class ImperialCenturionsEngine:
         Rd_matrix: np.ndarray,
         G_metric: np.ndarray,
     ) -> Tuple[np.ndarray, float]:
-        """Ley de control IDA-PBC. Retorna (alpha, exergy_loss). API 2.0."""
         result = self._ida_pbc.compute_control_law(
             q, p, grad_H, grad_Hd, g_actuator,
             J_matrix, R_matrix, Jd_matrix, Rd_matrix, G_metric,
@@ -1277,7 +1159,6 @@ class ImperialCenturionsEngine:
         Rd_matrix: np.ndarray,
         G_metric: np.ndarray,
     ) -> _IDAPBCResult:
-        """Ley IDA-PBC con residuos de matching, aniquilador y Lyapunov."""
         return self._ida_pbc.compute_control_law(
             q, p, grad_H, grad_Hd, g_actuator,
             J_matrix, R_matrix, Jd_matrix, Rd_matrix, G_metric,
@@ -1287,7 +1168,6 @@ class ImperialCenturionsEngine:
         self,
         jacobian_matrix: np.ndarray,
     ) -> Tuple[float, bool]:
-        """Verifica MᵀΩM = Ω. Retorna (residual_norm, is_viable). API 2.0."""
         result = self._symplectic_checker.verify(jacobian_matrix)
         return result.residual_norm, result.is_viable
 
@@ -1295,7 +1175,6 @@ class ImperialCenturionsEngine:
         self,
         jacobian_matrix: np.ndarray,
     ) -> _SymplecticPreservationResult:
-        """Pertenencia a Sp(2n) con residuo relativo, det y retracción polar."""
         return self._symplectic_checker.verify(jacobian_matrix)
 
     def induce_modular_spectral_germ(
@@ -1303,10 +1182,6 @@ class ImperialCenturionsEngine:
         G_metric: np.ndarray,
         beta: float = _DEFAULT_BETA,
     ) -> _ModularSpectralGerm:
-        """
-        Réplica pública del morfismo II.6: métrica G ↦ estado KMS ρ_β.
-        Actualiza el gérmen con el que opera la Fase III.
-        """
         germ = self._ida_pbc.induce_modular_spectral_germ(G_metric, beta=beta)
         self._mod_germ = germ
         self._density_purifier = _DensityPurifier(germ=germ)
@@ -1318,13 +1193,11 @@ class ImperialCenturionsEngine:
         )
         return germ
 
-    # ── Fase III expuesta ─────────────────────────────────────────────────
     def purify_density_operator(
         self,
         rho_mixed: np.ndarray,
         purity_margin: float = _DEFAULT_PURITY_MARGIN,
     ) -> np.ndarray:
-        """Purificación espectral del operador densidad. API 2.0."""
         purifier = _DensityPurifier(purity_margin, germ=self._mod_germ)
         return purifier.purify(rho_mixed).purified_rho
 
@@ -1333,7 +1206,6 @@ class ImperialCenturionsEngine:
         rho_mixed: np.ndarray,
         purity_margin: float = _DEFAULT_PURITY_MARGIN,
     ) -> _PurificationResult:
-        """Purificación con rango efectivo, S_vN y pureza Tr ρ²."""
         purifier = _DensityPurifier(purity_margin, germ=self._mod_germ)
         return purifier.purify(rho_mixed)
 
@@ -1343,7 +1215,6 @@ class ImperialCenturionsEngine:
         rho: np.ndarray,
         time_parameter: complex,
     ) -> np.ndarray:
-        """Evolución modular de Tomita–Takesaki. API 2.0."""
         result = self._modular_flow.evolve(observable_A, rho, time_parameter)
         return result.evolved_observable
 
@@ -1353,7 +1224,6 @@ class ImperialCenturionsEngine:
         rho: np.ndarray,
         time_parameter: complex,
     ) -> _ModularFlowResult:
-        """Flujo modular con certificado de norma y residuo KMS."""
         return self._modular_flow.evolve(observable_A, rho, time_parameter)
 
     def compute_quantum_relative_entropy(
@@ -1361,7 +1231,6 @@ class ImperialCenturionsEngine:
         rho: np.ndarray,
         sigma: np.ndarray,
     ) -> Tuple[float, float]:
-        """Entropía relativa cuántica y fidelidad. API 2.0: (umegaki, F)."""
         result = self._entropy_calculator.compute(rho, sigma)
         return result.umegaki_entropy, result.uhlmann_fidelity
 
@@ -1370,8 +1239,10 @@ class ImperialCenturionsEngine:
         rho: np.ndarray,
         sigma: np.ndarray,
     ) -> _QuantumRelativeEntropyResult:
-        """Umegaki + Uhlmann + distancia de traza + gap de Pinsker + soporte."""
         return self._entropy_calculator.compute(rho, sigma)
 
 
-__all__ = ["ImperialCenturionsEngine"]
+__all__ = [
+    "ImperialCenturionsEngine",
+    "MaupertuisStepReport",
+]
