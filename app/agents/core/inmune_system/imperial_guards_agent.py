@@ -1,60 +1,58 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Imperial Guards Agent (Guardias Imperiales de Calibre de de Rham)   ║
+║ Módulo : Imperial Guards Agent (Guardias Imperiales de Calibre OODA)         ║
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_agent.py              ║
-║ Versión: 3.0.0-Doctoral-Heyting-OODA-Cheeger-Connes-CAS-Kahan-Secure         ║
+║ Versión: 4.1.0-Poincare-OODA-Heyting-ESP32-Crowbar-PhD                       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS MATEMÁTICA Y GEOMÉTRICA DE DE RHAM:
+SINOPSIS MATEMÁTICA Y GEOMÉTRICA DE POINCARÉ Y DE RHAM:
 ────────────────────────────────────────────────────────────────────────────────
-Ejerce la censura de primer nivel sobre el foso de la obra en la Malla Agéntica
-de APU Filter. Evalúa la regularidad y conectividad espectral del
-grafo de presupuesto $G = (V, E)$ mediante dos aduanas de control de calibre:
+Ejerce la censura de primer nivel y la gobernanza covariante en lazo cerrado OODA
+($\Phi_3 \circ \Phi_2 \circ \Phi_1$) sobre el foso de la obra en la Malla Agéntica de
+APU Filter. Evalúa la regularidad espectral, la conectividad topológica y la invarianza
+simpléctica de la mecánica celeste de Henri Poincaré sobre el espacio de fase $T^*\mathcal{M}$.
 
-ADUANA 1: CURVAS HETEROGEOMORFAS DE AUDITORÍA ESPECTRAL (CONNES)
+FASE 1 (OBSERVE - $\Phi_1$):
 ────────────────────────────────────────────────────────────────────────────────
-Audita el confinamiento de Lipschitz no conmutativo sobre la variedad continua de
-Hilbert $\mathcal{H}_{\text{MAC}}$ mediante la Cota de Regularidad de Connes-Daleckii-Krein:
+Inmersión $\ell^2$, hashing SHA-256 e inspección espectral no conmutativa del operador
+de Dirac con la Cota Lipschitz de Connes-Daleckii-Krein:
    $$L_{\max} \le \frac{1}{2 \lambda_{\min}^{3/2}} \le \tau_{\mathrm{Lipschitz}}$$
-Donde $\lambda_{\min} > 0$ es el autovalor mínimo del operador de Dirac no conmutativo
-$\not\!D = \rho_{\text{MAC}}^{-1/2}$ (piso de regularización de Tikhonov Espectral).
-Si el modelo de lenguaje (LLM) alucina o inyecta transitorios de-normalizados, el
-gap espectral colapsa ($\lambda_{\min} \to 0$), provocando la divergencia asintótica
-de la constante de Lipschitz ($L_{\max} \to \infty$) y anulando determinísticamente
-la probabilidad de emisión inválida:
-   $$P(x_{\mathrm{invalid}}) = 0$$
 
-ADUANA 2: CURVAS HOMOGEOMORFAS DE CUELLOS LOGÍSTICOS (CHEEGER & FIEDLER)
+FASE 2 (ORIENT - $\Phi_2$):
 ────────────────────────────────────────────────────────────────────────────────
-Audita la conectividad algebraica y la ausencia de cuellos de botella u obstrucciones
-topológicas sobre el complejo simplicial $K$ evaluando el valor de Fiedler $\lambda_2$
-del Laplaciano de Haz de de Rham-Hodge $L_F = \delta_0^\top G^{-1} \delta_0$.
-Somete el grafo de dependencias a la Desigualdad Isoperimétrica de Cheeger:
-   $$\frac{h^2(G)}{2} \le \lambda_2 \le 2 h(G) \implies \frac{\lambda_2}{2} \le h(G) \le \sqrt{2 \lambda_2}$$
-Monitorea síncronamente el Índice de Estabilidad Piramidal $\Psi$:
-   $$\Psi = \frac{\lambda_2}{1.0 + \beta_1 + (\beta_0 - 1)} \ge \Psi_{\mathrm{min}}$$
-Donde $\beta_0 > 1$ revela sub-grafos huérfanos e islas de contratistas disconexas, y
-$\beta_1 > 0$ expone ciclos parásitos, triangulación de presupuestos y socavones lógicos.
+Integración de trayectorias en el espacio de fase sobre `imperial_guards_engine.py`:
+- Invarianza simpléctica de Liouville: $\det(\mathbf{M}) = +1$.
+- Métrica conforme y acción de Maupertuis-Jacobi: $\mathcal{S}_M > 0$.
+- Absorción de pequeños divisores en el anillo de Novikov $\Lambda_{\mathrm{Nov}}$.
+- Distancia de recurrencia ergódica de Poincaré: $d_{\mathrm{Poincare}}(z(t_n), z_0) \le \varepsilon$.
+- Auditoría de cuellos de botella con la desigualdad isoperimétrica de Cheeger:
+   $$\frac{\lambda_2}{2} \le h(G) \le \sqrt{2 \lambda_2}$$
 
-INVARIANTES CATEGÓRICOS Y DE HARDWARE PERIMETRAL:
+FASE 3 (DECIDE / ACT - $\Phi_3$):
 ────────────────────────────────────────────────────────────────────────────────
-- Invarianza de la signatura métrica de-confinada: $\operatorname{sgn}(G) = (1, n-1)$.
-- Hermiticidad incondicional del operador densidad: $\rho = \rho^\dagger \succeq 0$.
-- Unitariedad de la traza cuántica de la sabiduría: $\operatorname{Tr}(\rho) \equiv 1.0$.
-- Veto en el retículo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$ ($\top = \text{VETOED}$).
-- Interrupción perimetral ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$) activando el tiristor BT151 (Crowbar) vía GPIO14.
+- Clasificación en el retículo distributivo de Heyting $\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$.
+- Interrupción ciber-física en silicio real/simulado ESP32 en IRAM ($t_{\text{actuation}} \le 400\,\text{ns}$)
+  activando el tiristor BT151 (Crowbar) vía GPIO14 ante rupturas simplécticas o desviaciones presupuestales.
 """
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import math
 import threading
 from dataclasses import dataclass, field
-from typing import Any, Dict, Final, Optional, Tuple
+from typing import Any, Dict, Final, List, Optional, Tuple
 
 import numpy as np
+import scipy.linalg as la
+from numpy.typing import NDArray
+
+from app.core.inmune_system.imperial_guards_engine import (
+    ImperialGuardsEngine,
+    ImperialEngineStepResult,
+)
 
 logger = logging.getLogger("APU.Agents.ImperialGuardsAgent")
 
@@ -93,13 +91,43 @@ _LOGISTIC_DEGRADED_PSI: Final[float] = 0.85
 
 
 # ════════════════════════════════════════════════════════════════════════════════
-# CONTRATOS INMUTABLES DE FASE
+# CONTRATOS INMUTABLES DE FASE Y DOSSIERS DE POINCARÉ
 # ════════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class Phase1ImperialDossier:
+    r"""Expediente inmutable de la Fase 1 (Observe)."""
+
+    state_vector: NDArray[np.float64]
+    state_norm: float
+    session_sha256: str
+
+
+@dataclass(frozen=True, slots=True)
+class Phase2ImperialDossier:
+    r"""Expediente inmutable de la Fase 2 (Orient)."""
+
+    engine_result: ImperialEngineStepResult
+    liouville_conserved: bool
+    maupertuis_valid: bool
+    ergodic_recurrence_distance: float
+
+
+@dataclass(frozen=True, slots=True)
+class ImperialGuardsVerdict:
+    r"""Certificado final de la Fase 3 (Decide/Act) en Heyting Ω₃."""
+
+    verdict: str  # COHERENT, DEGRADED, VETOED
+    volume_drift: float
+    maupertuis_action: float
+    ergodic_return_distance: float
+    is_hardware_crowbar_triggered: bool
+
 
 @dataclass(frozen=True, slots=True)
 class Phase1SpectralObservation:
     """
-    Contrato formal de salida de la FASE 1.
+    Contrato formal de salida de la FASE 1 (Espectral).
 
     Contiene la auditoría espectral del operador de Dirac y la cota Lipschitz
     de Connes-Daleckii-Krein.
@@ -117,7 +145,7 @@ class Phase1SpectralObservation:
 @dataclass(frozen=True, slots=True)
 class Phase2LogisticObservation:
     """
-    Contrato formal de salida de la FASE 2.
+    Contrato formal de salida de la FASE 2 (Topológica/Logística).
 
     Contiene la auditoría logística/topológica del Laplaciano, números de Betti,
     brecha de Fiedler, proxy de Cheeger y estabilidad piramidal Ψ.
@@ -138,7 +166,7 @@ class Phase2LogisticObservation:
 @dataclass(frozen=True, slots=True)
 class Phase3TribunalDecision:
     """
-    Contrato formal de salida de la FASE 3.
+    Contrato formal de salida de la FASE 3 (Heyting Tribunal).
 
     Contiene el veredicto unificado en el retículo de Heyting Ω₃:
         COHERENT < DEGRADED < VETOED
@@ -154,9 +182,6 @@ class Phase3TribunalDecision:
 class ImperialGuardsCertificate:
     """
     Certificado inmutable emitido por el tribunal de los Guardias Imperiales.
-
-    Se conserva compatibilidad con la versión 1.x, añadiendo razones de veto,
-    razones de degradación y diagnósticos extendidos.
     """
 
     phase: str
@@ -182,35 +207,16 @@ class Phase1SpectralGuardianMixin:
     """
     FASE 1 — GUARDIA 1.
 
-    Audita el confinamiento de Lipschitz no conmutativo del operador de Dirac
-    asociado al estado mixto semántico de la MAC mediante el Teorema de Connes:
-
-        L_max ≤ 1 / (2 λ_min^{3/2})
-
-    El último método formal de esta fase devuelve `Phase1SpectralObservation`,
-    contrato que continúa hacia la Fase 2.
+    Audita el confinamiento de Lipschitz no conmutativo del operador de Dirac.
     """
 
     def __init__(self, config_dim_n: int) -> None:
-        """
-        Inicializa la aduana espectral de-confinada.
-
-        Args:
-            config_dim_n: Dimensión del espacio de configuración.
-        """
         self._n = self._validate_positive_int("config_dim_n", config_dim_n)
-
-        # Estado interno para simulación de cerrojo CAS en Fase 3.
         self._interlock_lock = threading.Lock()
         self._interlock_state = False
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # VALIDACIÓN Y CONVERSIÓN NUMÉRICA
-    # ────────────────────────────────────────────────────────────────────────────
-
     @staticmethod
     def _validate_positive_int(name: str, value: Any) -> int:
-        """Valida que `value` sea un entero estrictamente positivo."""
         if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
             raise TypeError(f"{name} debe ser un entero.")
         if value <= 0:
@@ -219,7 +225,6 @@ class Phase1SpectralGuardianMixin:
 
     @staticmethod
     def _validate_nonnegative_int(name: str, value: Any) -> int:
-        """Valida que `value` sea un entero no negativo."""
         if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
             raise TypeError(f"{name} debe ser un entero.")
         if value < 0:
@@ -228,25 +233,17 @@ class Phase1SpectralGuardianMixin:
 
     @staticmethod
     def _validate_finite_nonnegative(name: str, value: Any) -> float:
-        """Valida que `value` sea un número real finito no negativo."""
         if isinstance(value, bool):
             raise TypeError(f"{name} no debe ser booleano.")
-
         try:
             value_f = float(value)
         except (TypeError, ValueError) as exc:
             raise TypeError(f"{name} debe ser numérico.") from exc
-
         if not math.isfinite(value_f) or value_f < 0.0:
             raise ValueError(f"{name} debe ser finito y mayor o igual que cero.")
-
         return value_f
 
     def _as_real_float_array(self, values: Any, name: str) -> np.ndarray:
-        """
-        Convierte `values` a ndarray float64 real, rechazando componentes
-        imaginarias no despreciables y valores no finitos.
-        """
         try:
             raw = np.asarray(values)
         except Exception as exc:
@@ -261,8 +258,7 @@ class Phase1SpectralGuardianMixin:
 
             if np.any(np.abs(raw.imag) > _IMAGINARY_TOL):
                 raise ValueError(
-                    f"{name} posee componente imaginaria no despreciable. "
-                    "Se exige espectro/matriz real dentro de tolerancia."
+                    f"{name} posee componente imaginaria no despreciable."
                 )
 
             raw = raw.real
@@ -278,80 +274,40 @@ class Phase1SpectralGuardianMixin:
         return arr
 
     def _as_real_float_vector(self, values: Any, name: str) -> np.ndarray:
-        """Valida y convierte un vector real float64."""
         arr = self._as_real_float_array(values, name)
         return arr.ravel()
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # SUMACIÓN COMPENSADA DE KAHAN-NEUMAIER
-    # ────────────────────────────────────────────────────────────────────────────
-
     def kahan_compensated_sum(self, terms: np.ndarray) -> float:
-        r"""
-        Realiza sumación compensada de Kahan-Neumaier para evitar acumulación
-        de deriva por redondeo de Wilkinson en la mantisa flotante de la CPU.
-
-        Args:
-            terms: Vector de términos reales finitos.
-
-        Returns:
-            Suma compensada como float.
-        """
         arr = self._as_real_float_vector(terms, "terms")
-
         sum_val = 0.0
         compensation = 0.0
-
         for term in arr:
             x = float(term)
             t = sum_val + x
-
             if not math.isfinite(t):
                 return float(t)
-
             if abs(sum_val) >= abs(x):
                 compensation += (sum_val - t) + x
             else:
                 compensation += (x - t) + sum_val
-
             sum_val = t
-
         result = sum_val + compensation
         return float(result)
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # CÁLCULO Y CLASIFICACIÓN DE LA COTA LIPSCHITZ DE CONNES
-    # ────────────────────────────────────────────────────────────────────────────
-
     @staticmethod
     def _compute_lipschitz_coefficient(lambda_min: float) -> float:
-        r"""
-        Calcula de forma estable:
-            L_max ≤ 1 / (2 λ_min^{3/2})
-
-        Si λ_min es cero, no finito o inferior al epsilon de máquina, retorna
-        infinito para forzar censura determinística.
-        """
         if not math.isfinite(lambda_min) or lambda_min <= _MACHINE_EPS:
             return float("inf")
-
         try:
             coeff = 1.0 / (2.0 * (lambda_min ** 1.5))
         except OverflowError:
             return float("inf")
-
         return coeff if math.isfinite(coeff) else float("inf")
 
     @staticmethod
     def _classify_spectral_lipschitz(
         lipschitz_coeff: float,
     ) -> Tuple[str, Tuple[str, ...], Tuple[str, ...]]:
-        """
-        Clasifica la cota Lipschitz en el retículo de Heyting.
-
-        Returns:
-            (verdict, veto_reasons, degraded_reasons)
-        """
         veto_reasons = []
         degraded_reasons = []
 
@@ -373,29 +329,10 @@ class Phase1SpectralGuardianMixin:
 
         return verdict, tuple(veto_reasons), tuple(degraded_reasons)
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # ÚLTIMO MÉTODO FORMAL DE LA FASE 1
-    # Su retorno `Phase1SpectralObservation` continúa hacia la FASE 2.
-    # ────────────────────────────────────────────────────────────────────────────
-
     def phase1_audit_spectral_heterogeomorphic_curve(
         self,
         eigenvalues_dirac: Any,
     ) -> Phase1SpectralObservation:
-        r"""
-        [FASE 1 — GUARDIA 1: CURVAS HETEROGEOMORFAS]
-
-        Audita el confinamiento de Lipschitz no conmutativo del operador de Dirac
-        asociado al estado mixto semántico de la MAC mediante el Teorema de Connes:
-
-            L_max ≤ 1 / (2 λ_min^{3/2})
-
-        Args:
-            eigenvalues_dirac: Espectro de autovalores del operador de Dirac.
-
-        Returns:
-            Phase1SpectralObservation con L_max, λ_min, veredicto parcial y razones.
-        """
         diagnostics: Dict[str, Any] = {
             "dirac_spectrum_valid": True,
             "regularization": "tikhonov_higham_hypot",
@@ -430,7 +367,7 @@ class Phase1SpectralGuardianMixin:
                     "dirac_spectrum_error": "empty_spectrum",
                 }
             )
-            logger.warning("Fuga espectral absoluta detectada: espectro de Dirac vacío.")
+            logger.warning("Espectro de Dirac vacío.")
             return Phase1SpectralObservation(
                 dirac_spectrum_size=0,
                 lambda_min_dirac=0.0,
@@ -441,18 +378,12 @@ class Phase1SpectralGuardianMixin:
                 diagnostics=diagnostics,
             )
 
-        # Regularización estable sqrt(λ² + ε²) usando hypot para evitar overflow.
         regularized_abs = np.hypot(eigenvalues, _HIGHAM_REG_SQRT)
-
-        # Filtrar valores bajo el límite espectral de Wilkinson.
         valid_eigs = regularized_abs[regularized_abs > _WILKINSON_DRIFT_LIMIT]
         diagnostics["dirac_valid_eigenvalue_count"] = int(valid_eigs.size)
 
         if valid_eigs.size == 0:
-            logger.warning(
-                "Fuga espectral absoluta detectada: espectro de Dirac colapsado "
-                "bajo el límite de Wilkinson."
-            )
+            logger.warning("Espectro de Dirac colapsado bajo el límite de Wilkinson.")
             diagnostics["dirac_spectrum_error"] = "spectral_gap_collapsed"
             return Phase1SpectralObservation(
                 dirac_spectrum_size=int(eigenvalues.size),
@@ -466,7 +397,6 @@ class Phase1SpectralGuardianMixin:
 
         lambda_min = float(np.min(valid_eigs))
         lipschitz_coeff = self._compute_lipschitz_coefficient(lambda_min)
-
         verdict, veto_reasons, degraded_reasons = self._classify_spectral_lipschitz(
             lipschitz_coeff
         )
@@ -492,16 +422,13 @@ class Phase1SpectralGuardianMixin:
 
 # ════════════════════════════════════════════════════════════════════════════════
 # FASE 2 — GUARDIA IMPERIAL 2: CURVAS HOMOGEOMORFAS DE CUELLOS LOGÍSTICOS
-# Anidada sobre FASE 1 por herencia.
 # ════════════════════════════════════════════════════════════════════════════════
 
 class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
     """
     FASE 2 — GUARDIA 2.
 
-    Audita los cuellos de botella organizacionales e ineficiencias de la red
-    mediante la conectividad algebraica de Fiedler, la desigualdad de Cheeger,
-    los números de Betti y el índice de estabilidad piramidal Ψ.
+    Audita los cuellos de botella organizacionales e ineficiencias de la red.
     """
 
     def __init__(
@@ -509,45 +436,21 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
         config_dim_n: int,
         cheeger_threshold: float = _DEFAULT_CHEEGER_THRESHOLD,
     ) -> None:
-        """
-        Inicializa la aduana topológica/logística.
-
-        Args:
-            config_dim_n: Dimensión del espacio de configuración.
-            cheeger_threshold: Umbral crítico para la conectividad de Fiedler.
-        """
         super().__init__(config_dim_n)
         self._cheeger_threshold = self._validate_finite_nonnegative(
             "cheeger_threshold",
             cheeger_threshold,
         )
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # VALIDACIÓN DE NÚMEROS DE BETTI
-    # ────────────────────────────────────────────────────────────────────────────
-
     @staticmethod
     def _validate_betti(name: str, value: Any) -> int:
-        """Valida que un número de Betti sea entero no negativo."""
         if isinstance(value, bool) or not isinstance(value, (int, np.integer)):
             raise TypeError(f"{name} debe ser un entero.")
         if value < 0:
             raise ValueError(f"{name} debe ser mayor o igual que cero.")
         return int(value)
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # CÁLCULO ROBUSTO DE LA BRECHA DE FIEDLER
-    # ────────────────────────────────────────────────────────────────────────────
-
     def _fiedler_gap(self, eigenvalues_L: Any) -> Tuple[float, Dict[str, Any]]:
-        """
-        Calcula la brecha de Fiedler λ₂ del Laplaciano normalizado.
-
-        Estrategia fail-safe:
-            - Si el espectro es inválido o no finito, retorna gap 0.
-            - Si hay violación de semidefinición positiva, retorna gap 0.
-            - Tolera pequeños negativos numéricos y los proyecta a cero.
-        """
         diagnostics: Dict[str, Any] = {
             "laplacian_spectrum_valid": True,
             "fiedler_gap_defined": False,
@@ -584,10 +487,7 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
 
         clipped = np.where(eigenvalues < 0.0, 0.0, eigenvalues)
         sorted_eigs = np.sort(clipped)
-
-        # Proyección de ceros numéricos.
         sorted_eigs[np.abs(sorted_eigs) <= _PSD_TOL] = 0.0
-
         fiedler_gap = float(sorted_eigs[1])
 
         if not math.isfinite(fiedler_gap) or fiedler_gap < 0.0:
@@ -603,10 +503,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
 
         return fiedler_gap, diagnostics
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # CLASIFICADOR LOGÍSTICO / TOPOLOGICO
-    # ────────────────────────────────────────────────────────────────────────────
-
     def _classify_logistic_metrics(
         self,
         fiedler_gap: float,
@@ -615,16 +511,9 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
         betti_0: int,
         betti_1: int,
     ) -> Tuple[str, Tuple[str, ...], Tuple[str, ...]]:
-        """
-        Clasifica las métricas logísticas/topológicas en el retículo de Heyting.
-
-        Returns:
-            (verdict, veto_reasons, degraded_reasons)
-        """
         veto_reasons = []
         degraded_reasons = []
 
-        # Fiedler.
         if not math.isfinite(fiedler_gap):
             veto_reasons.append("fiedler_connectivity_nonfinite")
         elif fiedler_gap < 0.0:
@@ -635,7 +524,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
             elif fiedler_gap < _LOGISTIC_DEGRADED_FIEDLER:
                 degraded_reasons.append("fiedler_connectivity_below_degraded_threshold")
 
-        # Residuo cohomológico.
         if not math.isfinite(cohomological_residual):
             veto_reasons.append("cohomological_residual_nonfinite")
         elif cohomological_residual < 0.0:
@@ -643,7 +531,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
         elif cohomological_residual > 0.0:
             veto_reasons.append("cohomological_residual_nonzero")
 
-        # Topología explícita.
         if betti_0 == 0:
             veto_reasons.append("empty_complex_detected")
         elif betti_0 > 1:
@@ -652,7 +539,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
         if betti_1 > 0:
             veto_reasons.append("logical_loops_detected")
 
-        # Estabilidad piramidal Ψ.
         if not math.isfinite(pyramidal_stability):
             veto_reasons.append("pyramidal_stability_nonfinite")
         elif pyramidal_stability < 0.0:
@@ -672,11 +558,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
 
         return verdict, tuple(veto_reasons), tuple(degraded_reasons)
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # ÚLTIMO MÉTODO FORMAL DE LA FASE 2
-    # Recibe opcionalmente el contrato de Fase 1 y produce el contrato de Fase 3.
-    # ────────────────────────────────────────────────────────────────────────────
-
     def phase2_audit_logistic_from_phase1(
         self,
         phase1_observation: Optional[Phase1SpectralObservation],
@@ -684,22 +565,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
         betti_0: int,
         betti_1: int,
     ) -> Phase2LogisticObservation:
-        r"""
-        [FASE 2 — GUARDIA 2: CURVAS HOMOGEOMORFAS]
-
-        Audita los cuellos de botella organizacionales e ineficiencias de la red
-        calculando la conectividad de Fiedler, cotas de Cheeger, residuo
-        cohomológico y estabilidad piramidal Ψ.
-
-        Args:
-            phase1_observation: Contrato de Fase 1, opcional para trazabilidad.
-            eigenvalues_L: Autovalores del Laplaciano normalizado de de Rham-Hodge.
-            betti_0: Componentes conexas simpliciales (β₀).
-            betti_1: Bucles lógicos o dependencias circulares parásitas (β₁).
-
-        Returns:
-            Phase2LogisticObservation con métricas, veredicto parcial y razones.
-        """
         if phase1_observation is not None and not isinstance(
             phase1_observation,
             Phase1SpectralObservation,
@@ -708,30 +573,15 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
 
         b0 = self._validate_betti("betti_0", betti_0)
         b1 = self._validate_betti("betti_1", betti_1)
-
-        # Residuo cohomológico riguroso:
-        # Se exige β₀ = 1 y β₁ = 0. Cualquier desviación penaliza.
         cohom_residual = float(b1 + abs(b0 - 1))
-
         fiedler_gap, fiedler_diagnostics = self._fiedler_gap(eigenvalues_L)
 
-        if math.isfinite(fiedler_gap) and fiedler_gap > 0.0:
-            safe_fiedler = float(fiedler_gap)
-        else:
-            safe_fiedler = 0.0
-
-        # Compatibilidad v1.x:
-        # El campo principal conserva el proxy original h²/2 ≈ λ₂²/2.
+        safe_fiedler = float(fiedler_gap) if (math.isfinite(fiedler_gap) and fiedler_gap > 0.0) else 0.0
         cheeger_lower_bound = float((safe_fiedler * safe_fiedler) / 2.0)
-
-        # Cotas rigurosas adicionales para diagnósticos:
-        #   h ≥ λ₂ / 2
-        #   h ≤ sqrt(2 λ₂)
         cheeger_constant_lower_bound = float(safe_fiedler / 2.0)
         cheeger_constant_upper_bound = (
             float(math.sqrt(2.0 * safe_fiedler)) if safe_fiedler > 0.0 else 0.0
         )
-
         psi_stability = float(safe_fiedler / (1.0 + cohom_residual))
 
         verdict, veto_reasons, degraded_reasons = self._classify_logistic_metrics(
@@ -743,14 +593,12 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
         )
 
         diagnostics: Dict[str, Any] = {
-            # Claves compatibles con versión 1.x.
             "fiedler_gap": fiedler_gap,
             "cheeger_lower_bound": cheeger_lower_bound,
             "pyramidal_stability": psi_stability,
             "has_cohomological_obstruction": cohom_residual > 0.0,
             "islands_detected": b0 > 1,
             "loops_detected": b1 > 0,
-            # Claves extendidas.
             "betti_0": b0,
             "betti_1": b1,
             "cohomological_residual": cohom_residual,
@@ -759,7 +607,6 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
             "cheeger_constant_upper_bound": cheeger_constant_upper_bound,
             "cheeger_threshold": self._cheeger_threshold,
         }
-
         diagnostics.update(fiedler_diagnostics)
 
         if phase1_observation is not None:
@@ -785,35 +632,113 @@ class Phase2LogisticGuardianMixin(Phase1SpectralGuardianMixin):
 
 
 # ════════════════════════════════════════════════════════════════════════════════
-# FASE 3 — TRIBUNAL DE HEYTING Y ACTUACIÓN CAS/CROWBAR
-# Anidada sobre FASE 2 por herencia.
+# FASE 3 — SOBERANO DE CALIBRE IMPERIAL (OODA & HEYTING TRIBUNAL)
 # ════════════════════════════════════════════════════════════════════════════════
 
 class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
     """
-    Guardias Imperiales de la Malla de APU Filter v5.0.
+    Soberano de Calibre OODA sobre imperial_guards_engine.py.
 
-    Ejecuta el ciclo de lazo cerrado OODA para censurar derivas semánticas
-    y estrangular cuellos de botella organizacionales.
+    Gobernanza de lazo cerrado, clasificación en Heyting Ω₃ y disparo
+    de la ISR en IRAM del ESP32 (< 400 ns) ante violaciones de Poincaré.
     """
 
     def __init__(
         self,
-        config_dim_n: int,
+        config_dim_n: int = 6,
         cheeger_threshold: float = _DEFAULT_CHEEGER_THRESHOLD,
         *,
         rng_seed: Optional[int] = None,
     ) -> None:
         """
-        Inicializa las aduanas de control espectral y topológico de-confinado.
+        Inicializa las aduanas de control espectral, topológico y de mecánica celeste.
 
         Args:
-            config_dim_n: Dimensión del espacio de configuración.
+            config_dim_n: Dimensión del espacio de configuración n.
             cheeger_threshold: Umbral crítico para la conectividad de Fiedler.
             rng_seed: Semilla opcional para reproducibilidad del jitter CAS.
         """
         super().__init__(config_dim_n, cheeger_threshold)
         self._rng = np.random.default_rng(rng_seed)
+        self._engine = ImperialGuardsEngine(dimension=config_dim_n)
+        self._trajectory_history: List[NDArray[np.float64]] = []
+
+    # ────────────────────────────────────────────────────────────────────────────
+    # AUDITORÍA DE LAZO CERRADO OODA DE HENRI POINCARÉ
+    # ────────────────────────────────────────────────────────────────────────────
+
+    def execute_ooda_poincare_audit(
+        self,
+        current_state: NDArray[np.float64],
+        metric_G: NDArray[np.float64],
+        potential_V: float,
+        total_energy_H0: float,
+        dt_step: float,
+        external_freq_omega: NDArray[np.float64],
+        wave_k: NDArray[np.float64],
+    ) -> ImperialGuardsVerdict:
+        r"""
+        Ejecuta el ciclo OODA (Φ₃ ∘ Φ₂ ∘ Φ₁) de auditoría simpléctica de Poincaré.
+        """
+        # ─── FASE 1: OBSERVE (Φ₁) ───
+        state_vec = self._as_real_float_vector(current_state, "current_state")
+        state_norm = float(la.norm(state_vec))
+        sha256_hash = hashlib.sha256(state_vec.tobytes()).hexdigest()
+        phase1_dossier = Phase1ImperialDossier(
+            state_vector=state_vec,
+            state_norm=state_norm,
+            session_sha256=sha256_hash,
+        )
+
+        # ─── FASE 2: ORIENT (Φ₂) ───
+        engine_res = self._engine.step_poincare_symplectic_integration(
+            current_state=state_vec,
+            metric_G=metric_G,
+            potential_V=potential_V,
+            total_energy_H0=total_energy_H0,
+            dt_step=dt_step,
+            external_freq_omega=external_freq_omega,
+            wave_k=wave_k,
+        )
+
+        self._trajectory_history.append(engine_res.next_state)
+
+        # Distancia de retorno ergódico de Poincaré
+        past_distances = [
+            float(la.norm(pt - engine_res.next_state))
+            for pt in self._trajectory_history[:-1]
+        ]
+        min_return_dist = float(np.min(past_distances)) if past_distances else 0.0
+
+        phase2_dossier = Phase2ImperialDossier(
+            engine_result=engine_res,
+            liouville_conserved=engine_res.volume_drift <= _WILKINSON_DRIFT_LIMIT,
+            maupertuis_valid=engine_res.maupertuis_action > 0.0,
+            ergodic_recurrence_distance=min_return_dist,
+        )
+
+        # ─── FASE 3: DECIDE / ACT (Φ₃) ───
+        if phase2_dossier.liouville_conserved and phase2_dossier.maupertuis_valid:
+            verdict_str = "COHERENT"
+            crowbar_triggered = False
+        elif engine_res.volume_drift <= 10.0 * _WILKINSON_DRIFT_LIMIT:
+            verdict_str = "DEGRADED"
+            crowbar_triggered = False
+        else:
+            verdict_str = "VETOED"
+            crowbar_triggered = True
+            logger.error(
+                f"[IMPERIAL_GUARDS_VETOED] Ruptura de Liouville/Maupertuis: "
+                f"Drift={engine_res.volume_drift:.3e}. Disparando Crowbar ESP32 (< 400 ns)."
+            )
+
+        return ImperialGuardsVerdict(
+            verdict=verdict_str,
+            volume_drift=engine_res.volume_drift,
+            maupertuis_action=engine_res.maupertuis_action,
+            ergodic_return_distance=min_return_dist,
+            is_hardware_crowbar_triggered=crowbar_triggered,
+        )
 
     # ────────────────────────────────────────────────────────────────────────────
     # UNIFICACIÓN DE VEREDICTOS EN EL RETÍCULO DE HEYTING Ω₃
@@ -821,47 +746,19 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
 
     @staticmethod
     def _join_heyting_verdicts(verdicts: Tuple[str, ...]) -> str:
-        """
-        Unifica veredictos mediante Supremo (join ⊔) en el retículo distributivo
-        de Heyting:
-
-            COHERENT < DEGRADED < VETOED
-
-        Cualquier veredicto desconocido se interpreta fail-safe como VETOED.
-        """
         rank = {"COHERENT": 0, "DEGRADED": 1, "VETOED": 2}
         inverse = {0: "COHERENT", 1: "DEGRADED", 2: "VETOED"}
-
         max_rank = 0
-
         for verdict in verdicts:
             normalized = str(verdict).strip().upper()
             max_rank = max(max_rank, rank.get(normalized, 2))
-
         return inverse[max_rank]
-
-    # ────────────────────────────────────────────────────────────────────────────
-    # MÉTODO FORMAL DE DECISIÓN FASE 3
-    # ────────────────────────────────────────────────────────────────────────────
 
     def phase3_decide_from_phase1_and_phase2(
         self,
         phase1_observation: Phase1SpectralObservation,
         phase2_observation: Phase2LogisticObservation,
     ) -> Phase3TribunalDecision:
-        """
-        [FASE 3 — DECIDE]
-
-        Unifica los veredictos parciales de los Guardias 1 y 2 mediante el join
-        en el retículo de Heyting Ω₃.
-
-        Args:
-            phase1_observation: Contrato de salida de Fase 1.
-            phase2_observation: Contrato de salida de Fase 2.
-
-        Returns:
-            Phase3TribunalDecision con veredicto final y razones agregadas.
-        """
         if not isinstance(phase1_observation, Phase1SpectralObservation):
             raise TypeError("phase1_observation debe ser Phase1SpectralObservation.")
 
@@ -897,22 +794,7 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
             diagnostics=diagnostics,
         )
 
-    # ────────────────────────────────────────────────────────────────────────────
-    # CERROJO ATÓMICO CAS Y ACTUADOR CROWBAR SIMULADO
-    # ────────────────────────────────────────────────────────────────────────────
-
     def _cas_interlock(self, expected: bool, desired: bool) -> bool:
-        """
-        Simula una operación atómica Compare-And-Swap sobre el estado del
-        disyuntor de potencia.
-
-        Args:
-            expected: Estado esperado.
-            desired: Estado deseado.
-
-        Returns:
-            True si el CAS tuvo éxito, False en caso contrario.
-        """
         with self._interlock_lock:
             if self._interlock_state == expected:
                 self._interlock_state = desired
@@ -920,12 +802,6 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
             return False
 
     def reset_hardware_interlock_for_supervision(self) -> bool:
-        """
-        Reinicia manualmente el estado simulado del interlock.
-
-        Returns:
-            Estado previo del interlock.
-        """
         with self._interlock_lock:
             previous_state = self._interlock_state
             self._interlock_state = False
@@ -935,22 +811,6 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
         self,
         decision: Phase3TribunalDecision,
     ) -> Tuple[bool, float]:
-        r"""
-        [FASE 3 — ACT]
-
-        Simula síncronamente el actuador ciber-físico de lazo cerrado en silicio.
-
-        Si el veredicto es VETOED, ejecuta un cerrojo CAS para simular el disparo
-        del tiristor BT151 (Crowbar) en GPIO14 en menos de 400 ns:
-
-            t_actuation ≤ τ_IRAM = 400 ns
-
-        Args:
-            decision: Contrato Phase3TribunalDecision derivado de la Fase Decide.
-
-        Returns:
-            Tuple con estado de activación del disyuntor y latencia simulada en ns.
-        """
         if not isinstance(decision, Phase3TribunalDecision):
             raise TypeError("decision debe ser Phase3TribunalDecision.")
 
@@ -962,10 +822,7 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
         swapped = self._cas_interlock(expected=False, desired=True)
 
         if not swapped:
-            logger.warning(
-                "CAS: el interlock ya estaba enclavado. Se reconoce el veto "
-                "y se registra la latencia de actuación."
-            )
+            logger.warning("CAS: el interlock ya estaba enclavado.")
 
         jitter = float(self._rng.normal(loc=0.0, scale=5.0))
         actuation_latency_ns = float(
@@ -977,33 +834,20 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
         )
 
         logger.critical(
-            "¡VETO SÍNCRONO DISPARADO POR GUARDIAS IMPERIALES! "
-            "Crowbar BT151 [GPIO14] conmutado en %.2f ns. Maquinaria de obra paralizada.",
+            "¡VETO SÍNCRONO DISPARADO! Crowbar BT151 [GPIO14] conmutado en %.2f ns.",
             actuation_latency_ns,
         )
 
         return True, actuation_latency_ns
 
     # ────────────────────────────────────────────────────────────────────────────
-    # API PÚBLICA COMPATIBLE CON VERSIÓN 1.X
+    # API PÚBLICA COMPATIBLE
     # ────────────────────────────────────────────────────────────────────────────
 
     def audit_spectral_heterogeomorphic_curve(
         self,
         eigenvalues_dirac: Any,
     ) -> Tuple[float, float, str]:
-        r"""
-        [COMPATIBILIDAD 1.X — GUARDIA 1]
-
-        Audita el confinamiento de Lipschitz no conmutativo del operador de Dirac.
-
-        Args:
-            eigenvalues_dirac: Espectro de autovalores del operador de Dirac.
-
-        Returns:
-            Tuple con el coeficiente Lipschitz L_max, el gap espectral y el
-            veredicto parcial.
-        """
         phase1 = self.phase1_audit_spectral_heterogeomorphic_curve(eigenvalues_dirac)
         return (
             phase1.lipschitz_coefficient,
@@ -1017,27 +861,12 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
         betti_0: int,
         betti_1: int,
     ) -> Tuple[float, float, float, float, str]:
-        r"""
-        [COMPATIBILIDAD 1.X — GUARDIA 2]
-
-        Audita los cuellos de botella organizacionales e ineficiencias de la red.
-
-        Args:
-            eigenvalues_L: Autovalores del Laplaciano normalizado.
-            betti_0: Componentes conexas simpliciales (β₀).
-            betti_1: Bucles lógicos o dependencias circulares parásitas (β₁).
-
-        Returns:
-            Tuple con (Fiedler value, Cheeger proxy, residuo de de Rham,
-            Ψ stability, veredicto parcial).
-        """
         phase2 = self.phase2_audit_logistic_from_phase1(
             phase1_observation=None,
             eigenvalues_L=eigenvalues_L,
             betti_0=betti_0,
             betti_1=betti_1,
         )
-
         return (
             phase2.fiedler_connectivity,
             phase2.cheeger_lower_bound,
@@ -1047,29 +876,13 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
         )
 
     def act_hardware_interlock_simulation(self, verdict: str) -> Tuple[bool, float]:
-        r"""
-        [COMPATIBILIDAD 1.X — FASE ACT]
-
-        Simula síncronamente el actuador ciber-físico de lazo cerrado en silicio.
-
-        Args:
-            verdict: Veredicto de Heyting derivado de la Fase Decide.
-
-        Returns:
-            Tuple con estado de activación del disyuntor y latencia simulada en ns.
-        """
         decision = Phase3TribunalDecision(
             heyting_verdict=str(verdict),
             veto_reasons=(),
             degraded_reasons=(),
             diagnostics={"source": "compatibility_api"},
         )
-
         return self.phase3_act_hardware_interlock(decision)
-
-    # ────────────────────────────────────────────────────────────────────────────
-    # ORQUESTADOR COMPLETO DEL CICLO DE LOS GUARDIAS IMPERIALES
-    # ────────────────────────────────────────────────────────────────────────────
 
     def execute_guardians_cycle(
         self,
@@ -1079,35 +892,16 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
         betti_1: int,
     ) -> ImperialGuardsCertificate:
         """
-        Orquesta el ciclo de control de calibre de la capa de Guardias Imperiales
-        sobre el espacio de fase simpléctico de-confinado.
-
-        Args:
-            eigenvalues_dirac: Autovalores del operador de Dirac de Connes.
-            eigenvalues_L: Autovalores del Laplaciano de de Rham.
-            betti_0: Número de Betti 0 (componentes conexas).
-            betti_1: Número de Betti 1 (bucles cíclicos).
-
-        Returns:
-            ImperialGuardsCertificate con la firma inmutable de de Rham.
+        Orquesta el ciclo de control de calibre de la capa de Guardias Imperiales.
         """
-        # 1. OBSERVE & ORIENT: Guardia 1 (Curvas Heterogeomorfas)
         phase1 = self.phase1_audit_spectral_heterogeomorphic_curve(eigenvalues_dirac)
-
-        # 2. OBSERVE & ORIENT: Guardia 2 (Curvas Homogeomorfas)
-        # Se pasa phase1 para trazabilidad anidada, aunque la auditoría logística
-        # es matemáticamente independiente.
         phase2 = self.phase2_audit_logistic_from_phase1(
             phase1_observation=phase1,
             eigenvalues_L=eigenvalues_L,
             betti_0=betti_0,
             betti_1=betti_1,
         )
-
-        # 3. DECIDE: Tribunal de Heyting.
         phase3 = self.phase3_decide_from_phase1_and_phase2(phase1, phase2)
-
-        # 4. ACT: Interlock perimetral simulado ESP32 / BT151.
         interlock_fired, latency = self.phase3_act_hardware_interlock(phase3)
 
         diagnostics = dict(phase3.diagnostics)
@@ -1132,16 +926,32 @@ class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
             diagnostics=diagnostics,
         )
 
+    def execute_sovereign_governance(
+        self,
+        eigenvalues_dirac: Any,
+        eigenvalues_L: Any,
+        betti_0: int,
+        betti_1: int,
+    ) -> ImperialGuardsCertificate:
+        """
+        Alias de gobernanza soberana para execute_guardians_cycle.
+        """
+        return self.execute_guardians_cycle(
+            eigenvalues_dirac=eigenvalues_dirac,
+            eigenvalues_L=eigenvalues_L,
+            betti_0=betti_0,
+            betti_1=betti_1,
+        )
 
-# ════════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA DE FIRMAS
-# ════════════════════════════════════════════════════════════════════════════════
 
 __all__ = [
     "Phase1SpectralObservation",
     "Phase2LogisticObservation",
     "Phase3TribunalDecision",
     "ImperialGuardsCertificate",
+    "Phase1ImperialDossier",
+    "Phase2ImperialDossier",
+    "ImperialGuardsVerdict",
     "Phase1SpectralGuardianMixin",
     "Phase2LogisticGuardianMixin",
     "ImperialGuardsAgent",
