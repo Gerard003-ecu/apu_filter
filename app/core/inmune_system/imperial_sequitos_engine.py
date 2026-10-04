@@ -3,47 +3,37 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Imperial Séquitos Engine (Caballos de Batalla de Consenso y Mónadas)║
 ║ Ruta   : app/core/inmune_system/imperial_sequitos_engine.py                  ║
-║ Versión: 3.0.0-Nested-Phases-Kleisli-Giry-DeGroot-Uhlmann-CHSH-Horodecki     ║
+║ Versión: 4.0.0-Poincare-Liouville-Maupertuis-Kahan-FPU-PhD                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor táctico supervisa la propagación de variables y el consenso de opinión en
+Este motor táctico supervisa la propagación de variables, la integración simpléctica
+de Maupertuis-Jacobi sobre variedades de Darboux (M, w), y el consenso de opinión en
 sub-tríadas de-confinadas. Encapsula las deliberaciones en mónadas de Kleisli, calcula
 la dinámica espectral de opinión de DeGroot y audita el canal de mensajes mediante la violación
 cuántica multipartita de Bell-CHSH.
 
 MÉTODOS GRANULARES:
 
-1. kleisli_compose(f: Any, g: Any) -> Any:
+1. compute_symplectic_maupertuis_step(current_z, dt, metric_G, potential_V_func, grad_V_func, total_energy_H0):
+   Ejecuta un paso de integración simpléctica de Störmer-Verlet en coordenadas Darboux, midiendo
+   la preservación de la medida de Liouville-Darboux y calculando la Acción de Maupertuis-Jacobi:
+   $$S_M = \int \sqrt{2(H_0 - V(q))} \, |dq|_G$$
+
+2. kleisli_compose(f: Any, g: Any) -> Any:
    Compone dos funciones de decisión monádicas f: A -> T(B) y g: B -> T(C) bajo la Mónada
    de Estado de Kleisli \mathbb{T} = (T, \eta, \mu), asegurando la asociatividad functorial del flujo:
    $$(g \bullet f)(x) = \mu_C \circ T(g) \circ f(x)$$
-   - f, g: Callables que retornan tuplas (valor_nuevo, estado_actualizado).
-   - Retorna: Callable (composición monádica con cota elástica de Wilkinson).
 
-2. compute_degroot_spectral_consensus(affinity_matrix: np.ndarray, initial_opinions: np.ndarray, max_iter: int = 1000) -> Tuple[np.ndarray, float, bool]:
+3. compute_degroot_spectral_consensus(affinity_matrix: np.ndarray, initial_opinions: np.ndarray, max_iter: int = 1000):
    Resuelve la convergencia exponencial de la opinión de las tríadas bajo el modelo continuo de
-   DeGroot acoplado al Laplaciano de de Rham, extrayendo el valor de Fiedler \lambda_2 para acotar el tiempo de convergencia:
-   $$\frac{dx(t)}{dt} = - L_F \cdot x(t) \implies t_{\mathrm{convergence}} \le \frac{1}{\lambda_2(L_F)}$$
-   - affinity_matrix: np.ndarray (N x N, pesos estocásticos de influencia agéntica).
-   - initial_opinions: np.ndarray (N, opiniones de viabilidad de los APUs).
-   - Retorna: Tuple con el vector de opinión final consensuado, la brecha de Fiedler \lambda_2, y el indicador de estabilidad.
+   DeGroot acoplado al Laplaciano de de Rham, extrayendo el valor de Fiedler \lambda_2.
 
-3. compute_uhlmann_fidelity(rho: np.ndarray, sigma: np.ndarray) -> float:
-   Mide la fidelidad cuántica de Uhlmann entre el estado real en RAM y el estado inmaculado de
-   referencia para cuantificar el desalineamiento semántico del LLM:
-   $$F(\rho, \sigma) = \left( \operatorname{Tr}\sqrt{\rho^{1/2} \sigma \rho^{1/2}} \right)^2$$
-   Aplica la descomposición de Schur en la FPU regularizada con Higham-Tikhonov para evitar pérdidas de significación en autoestados subnormales.
-   - rho, sigma: np.ndarray (matrices densidad hermíticas semidefinidas positivas).
-   - Retorna: float (fidelidad de Uhlmann \in [0, 1]).
+4. compute_uhlmann_fidelity(rho: np.ndarray, sigma: np.ndarray) -> float:
+   Mide la fidelidad cuántica de Uhlmann entre el estado real en RAM y el estado de referencia.
 
-4. verify_chsh_violation(correlation_matrix: np.ndarray) -> Tuple[float, bool]:
-   Audita la correlación cuántica multipartita de los mensajes intercambiados en el séquito. Calcula
-   el observable CHSH y verifica que rompa la desigualdad clásica de Bell, blindando el canal contra
-   la inyección de textos sintácticos:
-   $$\langle B_{\mathrm{CHSH}} \rangle = \left| E(a,b) - E(a,b') + E(a',b) + E(a',b') \right| \le 2\sqrt{2}$$
-   - correlation_matrix: np.ndarray (matriz de correlaciones de los detectores de calibre).
-   - Retorna: Tuple con el valor del observable CHSH y un booleano que certifica que el canal es puramente cuántico y no-local (inmune a suplantación).
+5. verify_chsh_violation(correlation_matrix: np.ndarray):
+   Audita la correlación cuántica multipartita de los mensajes intercambiados en el séquito.
 """
 
 from __future__ import annotations
@@ -54,22 +44,25 @@ from typing import Any, Callable, Final, Optional, Tuple
 
 import numpy as np
 import scipy.linalg as la
+from numpy.typing import NDArray
 
 logger = logging.getLogger("APU.Core.ImperialSequitosEngine")
 
 __version__: Final[str] = (
-    "3.0.0-Nested-Phases-Kleisli-Giry-DeGroot-Uhlmann-CHSH-Horodecki"
+    "4.0.0-Poincare-Liouville-Maupertuis-Kahan-FPU-PhD"
 )
 
 
 # =============================================================================
-# CONSTANTES DE PRECISIÓN METROLÓGICA
+# CONSTANTES DE PRECISIÓN METROLÓGICA Y MECÁNICA CELESTE DE POINCARÉ
 # =============================================================================
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _HIGHAM_TIKHONOV_REG: Final[float] = 1e-15
 _WILKINSON_DEFLATION_FLOOR: Final[float] = 1e-12
 _WILKINSON_DEFLATION_SCALE: Final[float] = 10.0
 _WILKINSON_DRIFT_LIMIT: Final[float] = 1e-9
+_WILKINSON_LIMIT: Final[float] = 1e-12
+_SPECTRAL_TOL: Final[float] = 1e-9
 _TOLERANCE_DEGROOT_COHERENT: Final[float] = 1e-6
 _TOLERANCE_DEGROOT_DEGRADED: Final[float] = 1e-4
 _TSIRELSON_BOUND: Final[float] = float(2.0 * np.sqrt(2.0))  # 2√2
@@ -83,6 +76,18 @@ _PAULI: Final[Tuple[np.ndarray, np.ndarray, np.ndarray]] = (
     np.array([[0.0, -1.0j], [1.0j, 0.0]], dtype=np.complex128),
     np.array([[1.0, 0.0], [0.0, -1.0]], dtype=np.complex128),
 )
+
+
+@dataclass(frozen=True)
+class SequitosEngineStepResult:
+    r"""
+    DTO inmutable de salida de la FPU para la integración simpléctica de Séquitos.
+    """
+    next_state_z: NDArray[np.float64]
+    hamiltonian_energy: float
+    volume_drift: float
+    maupertuis_action: float
+    is_liouville_conserved: bool
 
 
 # =============================================================================
@@ -108,34 +113,6 @@ class _MarkovKernelCertificate:
 class _MarkovKleisliGerm:
     """
     Gérmen de Kleisli–Markov (objeto terminal de la Fase I).
-
-    Es el objeto inicial de la Fase II: un núcleo estocástico por filas
-    W ∈ ℝ^{n×n} (morfismo Kleisli de Giry_fin) junto con el Laplaciano
-    simétrico normalizado de Chung
-
-        L = I − D^{-1/2} A D^{-1/2}
-
-    y la medida estacionaria de Perron π (πᵀ W = πᵀ). La iteración de
-    DeGroot es la potencia de Kleisli W^{∘t}; el flujo continuo es e^{-t L}.
-
-    Atributos
-    ---------
-    n_agents:
-        Cardinalidad del objeto finito (agentes / vértices).
-    kernel:
-        Matriz fila-estocástica W (W 1 = 1, W ≥ 0).
-    affinity:
-        Afinidad simetrizada A = (W̃ + W̃†)/2 usada para L.
-    laplacian:
-        Laplaciano simétrico normalizado L ⪰ 0, ker L ∋ D^{1/2} 1.
-    stationary:
-        Probabilidad invariante π (izquierda de W).
-    degrees:
-        Vector de grados d = A 1.
-    reg_floor:
-        Piso de Tikhonov–Wilkinson.
-    certificate:
-        Residuos de estocasticidad, radio espectral y reversibilidad.
     """
 
     n_agents: int
@@ -151,21 +128,10 @@ class _MarkovKleisliGerm:
 class _NumericalCore:
     """
     Fase I. Álgebra numérica de precisión metrológica.
-
-    Provee el topos lineal subyacente: sumación compensada en el álgebra
-    de Banach (ℝ, +, ·), proyección de Higham y el producto de
-    probabilidades en log-espacio (monoid ([0,1], ×, 1)).
     """
 
-    # ── I.1  Sumación compensada ──────────────────────────────────────────
     @staticmethod
     def kahan_sum(arr: np.ndarray) -> float:
-        """
-        Sumación compensada de Kahan.
-
-        Neutraliza el término de redondeo \(c_{k+1}=(t_k-s_k)-y_k\) de modo
-        que \(\sum x_i\) sea exacta módulo O(u · Σ|x_i|).
-        """
         total = 0.0
         c = 0.0
         for x in np.asarray(arr, dtype=np.float64).ravel():
@@ -179,12 +145,6 @@ class _NumericalCore:
 
     @staticmethod
     def kahan_babuska_neumaier_sum(arr: np.ndarray) -> float:
-        """
-        Sumación de Kahan–Babuška–Neumaier (KBN).
-
-        Acumula la compensación cuando |x| > |s|, estabilizando
-        cancelaciones de signo mixto (crítico en S de CHSH).
-        """
         total = 0.0
         c = 0.0
         for x in np.asarray(arr, dtype=np.float64).ravel():
@@ -199,12 +159,10 @@ class _NumericalCore:
             total = t
         return float(total + c)
 
-    # Alias histórico (v2.0: "kahan_neumann" / "Neumann").
     kahan_neumann_sum = kahan_babuska_neumaier_sum
 
     @staticmethod
     def klein_sum(arr: np.ndarray) -> float:
-        """Sumación doblemente compensada de Klein (error O(u²) relativo)."""
         s = 0.0
         cs = 0.0
         ccs = 0.0
@@ -229,16 +187,13 @@ class _NumericalCore:
 
     @staticmethod
     def compensated_real_trace(matrix: np.ndarray) -> float:
-        """Traza real por KBN sobre la diagonal (Re Tr A)."""
         a = np.asarray(matrix)
         if a.ndim != 2 or a.shape[0] != a.shape[1]:
             raise ValueError("compensated_real_trace: se exige matriz cuadrada.")
         return _NumericalCore.kahan_babuska_neumaier_sum(np.real(np.diag(a)))
 
-    # ── I.2  Normas, validación y Higham ──────────────────────────────────
     @staticmethod
     def frobenius_norm(matrix: np.ndarray) -> float:
-        """Norma de Hilbert–Schmidt / Frobenius ‖A‖_F."""
         a = np.asarray(matrix)
         if a.size == 0:
             return 0.0
@@ -246,7 +201,6 @@ class _NumericalCore:
 
     @staticmethod
     def euclidean_norm(vec: np.ndarray) -> float:
-        """Norma euclídea ‖v‖₂ con acumulación KBN sobre |v_i|²."""
         v = np.asarray(vec, dtype=np.float64).ravel()
         if v.size == 0:
             return 0.0
@@ -275,12 +229,10 @@ class _NumericalCore:
 
     @staticmethod
     def higham_nearest_hermitian(matrix: np.ndarray) -> np.ndarray:
-        """Proyección de Weyl–Toeplitz: (A + A†)/2."""
         a = np.asarray(matrix)
         _NumericalCore.assert_square("higham_nearest_hermitian", a)
         return 0.5 * (a + a.T.conj())
 
-    # Alias de la API 2.0.
     symmetrize_hermitian = higham_nearest_hermitian
 
     @staticmethod
@@ -288,7 +240,6 @@ class _NumericalCore:
         matrix: np.ndarray,
         floor: float = _HIGHAM_TIKHONOV_REG,
     ) -> np.ndarray:
-        """SPD más próxima en ‖·‖_F (Higham): hermitiza y recorta el espectro."""
         herm = _NumericalCore.higham_nearest_hermitian(matrix)
         evals, evecs = la.eigh(herm)
         evals = np.maximum(np.real(evals), float(floor))
@@ -296,11 +247,6 @@ class _NumericalCore:
 
     @staticmethod
     def wilkinson_deflation_floor(matrix: np.ndarray) -> float:
-        """
-        Piso de deflación adaptativo de Wilkinson:
-
-            ε_W = max( ‖A‖_F · ε_mach · 10 ,  ε_Wilkinson ).
-        """
         if matrix is None or np.asarray(matrix).size == 0:
             return _WILKINSON_DEFLATION_FLOOR
         fro_norm = _NumericalCore.frobenius_norm(matrix)
@@ -313,12 +259,6 @@ class _NumericalCore:
 
     @staticmethod
     def multiply_probabilities(p: float, q: float) -> float:
-        """
-        Multiplicación monoidal en ([0,1], ×, 1) vía log-espacio.
-
-        Evita underflow: pq = exp(log p + log q), con aniquilación si
-        alguno es ≤ 0 (unidad de absorción de la mónada Maybe∘Writer).
-        """
         pf = float(p)
         qf = float(q)
         if not (np.isfinite(pf) and np.isfinite(qf)):
@@ -335,11 +275,6 @@ class _NumericalCore:
         matrix: np.ndarray,
         floor: float = _HIGHAM_TIKHONOV_REG,
     ) -> np.ndarray:
-        """
-        Proyección al simplejo Δ^{n-1} por filas: W_{ij} = max(A_{ij},0) / Σ_j.
-
-        Filas de masa nula se sustituyen por δ_{ii} (agente absorbente).
-        """
         a = np.real(np.asarray(matrix, dtype=np.float64))
         _NumericalCore.assert_square("restochasticize_rows", a)
         w = np.maximum(a, 0.0)
@@ -356,18 +291,10 @@ class _NumericalCore:
 class _KleisliComposer:
     """
     Fase I (continuación monádica). Categoría de Kleisli de dos mónadas.
-
-    1. Writer_([0,1],×)  (con Maybe en 0): flechas A → B × [0,1].
-       η(x) = (x, 1),  μ((x, p), q) = (x, p q),  (g ⋆ f)(x) = μ(T(g)(f(x))).
-    2. Giry finito: flechas n → Δ^{m-1}, i.e. matrices fila-estocásticas.
-       La composición de Kleisli es el producto matricial PQ (canal en serie).
-
-    El morfismo terminal I.8 *es* el arranque formal de `_DeGrootConsensus`.
     """
 
     @staticmethod
     def unit(value: Any) -> Tuple[Any, float]:
-        """Unidad de la mónada: η_A(x) = (x, 1)."""
         return value, 1.0
 
     @staticmethod
@@ -375,11 +302,6 @@ class _KleisliComposer:
         ta: Tuple[Any, float],
         k: Callable[[Any], Tuple[Any, float]],
     ) -> Tuple[Any, float]:
-        """
-        Extensión / bind: (x, p) >>= k = (y, p q) si k(x) = (y, q).
-
-        Si p = 0 la flecha se aniquila (cero de Kleisli) y no se evalúa k.
-        """
         value, prob = ta
         pf = float(prob)
         if not np.isfinite(pf) or pf < _MACHINE_EPS:
@@ -392,15 +314,6 @@ class _KleisliComposer:
         f: Callable[[Any], Tuple[Any, float]],
         g: Callable[[Any], Tuple[Any, float]],
     ) -> Callable[[Any], Tuple[Any, float]]:
-        """
-        Pez de Kleisli g ⋆ f : A → T(C).
-
-            (g ⋆ f)(x) = μ (T(g)(f(x))) = (c, p_f p_g)
-
-        Asociatividad (g ⋆ f) ⋆ h = g ⋆ (f ⋆ h) y unidades
-        f ⋆ η = η ⋆ f = f se heredan de la mónada Writer.
-        """
-
         def composed(x: Any) -> Tuple[Any, float]:
             return _KleisliComposer.bind(f(x), g)
 
@@ -412,13 +325,6 @@ class _KleisliComposer:
         q_kernel: np.ndarray,
         floor: float = _HIGHAM_TIKHONOV_REG,
     ) -> np.ndarray:
-        """
-        Composición de Kleisli en Giry_fin:
-
-            (Q ⋆ P)_{ik} = Σ_j P_{ij} Q_{jk}
-
-        (canales en serie). Se reestocastiza para anular deriva de fila.
-        """
         p = np.asarray(p_kernel, dtype=np.float64)
         q = np.asarray(q_kernel, dtype=np.float64)
         _NumericalCore.assert_square("p_kernel", p)
@@ -435,7 +341,6 @@ class _KleisliComposer:
         steps: int,
         floor: float = _HIGHAM_TIKHONOV_REG,
     ) -> np.ndarray:
-        """Potencia de Kleisli W^{∘t} por exponenciación binaria."""
         w = _NumericalCore.restochasticize_rows(
             np.asarray(kernel, dtype=np.float64), floor=floor
         )
@@ -452,32 +357,12 @@ class _KleisliComposer:
             k >>= 1
         return result
 
-    # ── I.8  Morfismo terminal de la Fase I ───────────────────────────────
     @staticmethod
     def synthesize_markov_kleisli_germ(
         affinity_matrix: np.ndarray,
         regularizer: float = _HIGHAM_TIKHONOV_REG,
         symmetrize: bool = True,
     ) -> _MarkovKleisliGerm:
-        """
-        I.8 — Morfismo terminal de la Fase I / objeto inicial de la Fase II.
-
-        Ensambla el gérmen de Kleisli–Markov
-
-            𝒢_I = (n, W, A, L_Chung, π, d, ε_W, Cert(W))
-
-        a partir de una afinidad Ã. Por defecto se hermitiza (grafo no
-        dirigido) y se construye el kernel de paseo aleatorio
-
-            W = D⁺ A ,   D = diag(A 1) ,
-
-        que es el morfismo de Kleisli canónico del recubrimiento 1-esqueleto.
-        El Laplaciano simétrico L = I − D^{-1/2} A D^{-1/2} es el generador
-        del consenso continuo (Olfati–Saber), isospectral al de paseo
-        I − W sobre im(D^{1/2}).
-
-        Este método *es* el arranque formal de `_DeGrootConsensus`.
-        """
         raw = np.asarray(affinity_matrix)
         if raw.ndim == 1:
             side = int(np.sqrt(raw.size))
@@ -510,7 +395,6 @@ class _KleisliComposer:
         lap = np.eye(n, dtype=np.float64) - d_is @ a @ d_is
         lap = np.real(_NumericalCore.higham_nearest_hermitian(lap))
 
-        # Medida de Perron: núcleo izquierdo de (W − I), proyectado a Δ^{n-1}.
         try:
             ev, evec = la.eig(w.T)
             ev = np.asarray(ev)
@@ -531,7 +415,6 @@ class _KleisliComposer:
         ones = np.ones(n, dtype=np.float64)
         row_res = _NumericalCore.euclidean_norm(w @ ones - ones)
         perron_res = _NumericalCore.euclidean_norm(w.T @ pi - pi)
-        # Reversibilidad (balance detallado): ‖π_i W_ij − π_j W_ji‖_F.
         db = pi[:, None] * w - pi[None, :] * w.T
         db_res = _NumericalCore.frobenius_norm(db)
         scale = max(1.0, float(n))
@@ -544,12 +427,6 @@ class _KleisliComposer:
             is_stochastic=bool(is_stoch),
             is_reversible=bool(is_rev),
         )
-        if not is_stoch:
-            logger.warning(
-                "Kernel no estocástico: ‖W1 − 1‖=%.3e, ρ=%.6f",
-                row_res,
-                spectral_radius,
-            )
         return _MarkovKleisliGerm(
             n_agents=n,
             kernel=w,
@@ -564,10 +441,6 @@ class _KleisliComposer:
 
 # =============================================================================
 # FASE II — DEGROOT, FIEDLER–CHEEGER, UHLMANN Y LIFTING DE BELL
-# -----------------------------------------------------------------------------
-# Continúa I.8: el consenso se instancia desde un MarkovKleisliGerm.
-# Morfismo terminal (II.7): induce_bell_correlation_germ
-#          ≅ objeto inicial de la Fase III (matriz de correlación CHSH).
 # =============================================================================
 @dataclass(frozen=True)
 class _DeGrootConsensusResult:
@@ -603,15 +476,6 @@ class _UhlmannFidelityResult:
 class _BellCorrelationGerm:
     """
     Gérmen de correlación de Bell (objeto terminal de la Fase II).
-
-    Es el objeto inicial de la Fase III: una matriz 2×2 de correladores
-
-        E = ⎡ E(a,b)   E(a,b') ⎤
-            ⎣ E(a',b)  E(a',b')⎦
-
-    obtenida por (i) el criterio de Horodecki sobre un estado de 2 qubits,
-    (ii) una E ya formada, o (iii) un modelo LHV clásico inducido por el
-    vector de opinión de DeGroot (necesariamente |S| ≤ 2).
     """
 
     correlation_matrix: np.ndarray
@@ -624,15 +488,6 @@ class _BellCorrelationGerm:
 class _DeGrootConsensus:
     """
     Fase II. Consenso espectral de DeGroot y protocolo continuo.
-
-    Continúa el gérmen 𝒢_I. Sobre el núcleo W:
-
-    * DeGroot discreto (1974):  x_{t+1} = W x_t  ⇔  x_t = W^{∘t} x_0.
-    * Consenso continuo (Olfati–Saber):  ẋ = −L x  ⇔  x(t) = e^{−t L} x(0).
-
-    La API 2.0 reporta el flujo continuo (comportamiento histórico). El
-    certificado expone ambos y los invariantes espectrales (Fiedler,
-    Cheeger h ≤ √(2 λ₂), tasa de mezcla −log|λ₂(W)|).
     """
 
     def __init__(
@@ -645,7 +500,6 @@ class _DeGrootConsensus:
 
     @property
     def germ(self) -> Optional[_MarkovKleisliGerm]:
-        """Gérmen de Fase I del que este consenso es continuación."""
         return self._germ
 
     def _resolve_germ(
@@ -688,12 +542,6 @@ class _DeGrootConsensus:
         affinity_matrix: np.ndarray,
         steps: int = 100,
     ) -> _DeGrootConsensusResult:
-        """
-        Integra el consenso y certifica conectividad / mezcla.
-
-        `final_opinion` es el flujo continuo e^{-t L} x_0 con t = steps
-        (API 2.0). `discrete_opinion` es el DeGroot honesto W^{∘t} x_0.
-        """
         if int(steps) < 0:
             raise ValueError("steps debe ser un entero no negativo.")
         x, germ = self._resolve_germ(opinion_vector, affinity_matrix)
@@ -704,16 +552,13 @@ class _DeGrootConsensus:
         evals = np.sort(evals)
         lambda_0 = float(evals[0]) if evals.size else 0.0
         fiedler = float(evals[1]) if evals.size > 1 else 0.0
-        # Conectividad: λ₁ ≈ 0 y λ₂ > piso (o n = 1).
         ker_tol = max(germ.reg_floor, _WILKINSON_DEFLATION_FLOOR * max(n, 1))
         connected = bool(n == 1 or (abs(lambda_0) <= ker_tol and fiedler > ker_tol))
         spectral_gap = float(max(fiedler, 0.0))
         cheeger_upper = float(np.sqrt(max(2.0 * spectral_gap, 0.0)))
 
-        # Espectro de W: tasa de mezcla discreta −log|λ₂|.
         try:
             w_ev = np.sort_complex(la.eigvals(germ.kernel))
-            # λ = 1 es el de Perron; el siguiente en módulo rige la mezcla.
             mods = np.sort(np.abs(w_ev))[::-1]
             second = float(mods[1]) if mods.size > 1 else 0.0
             second = min(max(second, 0.0), 1.0)
@@ -723,7 +568,6 @@ class _DeGrootConsensus:
         except (np.linalg.LinAlgError, ValueError):
             mixing = 0.0
 
-        # Flujo continuo (histórico).
         try:
             evo = la.expm(-t * germ.laplacian)
             continuous = np.real(evo @ x)
@@ -747,7 +591,6 @@ class _DeGrootConsensus:
         deviation = float(np.sqrt(max(var, 0.0)))
         verdict = self._verdict_from_deviation(deviation)
         if not connected and n > 1 and verdict == "COHERENT":
-            # Consenso local en componentes: no es consenso global.
             verdict = "DEGRADED"
 
         return _DeGrootConsensusResult(
@@ -769,14 +612,6 @@ class _DeGrootConsensus:
 class _UhlmannFidelity:
     """
     Fase II (continuación cuántica). Fidelidad de Uhlmann y lifting de Bell.
-
-    F(ρ, σ) = ‖√ρ √σ‖₁²  (norma nuclear / SVD; numéricamente más estable
-    que Tr √(√ρ σ √ρ)). Se certifican Bures y Fuchs–van de Graaf:
-
-        1 − √F  ≤  T(ρ,σ)  ≤  √(1 − F) ,   Θ = arccos √F .
-
-    El morfismo II.7 extrae de un estado de 2 qubits (o de un consenso
-    clásico) el gérmen de correlación que inicia la Fase III.
     """
 
     def __init__(self, regularizer: float = _HIGHAM_TIKHONOV_REG) -> None:
@@ -800,9 +635,6 @@ class _UhlmannFidelity:
         return rho, evals, evecs
 
     def compute(self, rho: np.ndarray, sigma: np.ndarray) -> _UhlmannFidelityResult:
-        """
-        Fidelidad de Uhlmann F(ρ,σ) = [Tr √(√ρ σ √ρ)]² = ‖√ρ √σ‖₁².
-        """
         rho_p, e_r, v_r = self._prepare_state(rho, "rho")
         sig_p, e_s, v_s = self._prepare_state(sigma, "sigma")
         if rho_p.shape != sig_p.shape:
@@ -813,7 +645,6 @@ class _UhlmannFidelity:
         svals = np.real(la.svdvals(sqrt_r @ sqrt_s))
         amp = _NumericalCore.kahan_babuska_neumaier_sum(np.clip(svals, 0.0, None))
         fidelity = float(amp * amp)
-        # Ruido numérico: F ∈ [0, 1].
         if fidelity < 0.0 and abs(fidelity) < 1e-12:
             fidelity = 0.0
         fidelity = float(min(max(fidelity, 0.0), 1.0))
@@ -838,11 +669,6 @@ class _UhlmannFidelity:
 
     @staticmethod
     def horodecki_tensor(rho_ab: np.ndarray) -> np.ndarray:
-        """
-        Tensor de correlación de Horodecki T ∈ ℝ^{3×3}:
-
-            T_{ij} = Tr( ρ  σ_i ⊗ σ_j ) ,   σ ∈ {X, Y, Z}.
-        """
         rho = np.asarray(rho_ab, dtype=np.complex128)
         t_mat = np.zeros((3, 3), dtype=np.float64)
         for i, si in enumerate(_PAULI):
@@ -852,13 +678,6 @@ class _UhlmannFidelity:
 
     @staticmethod
     def _optimal_chsh_block(t_mat: np.ndarray) -> Tuple[np.ndarray, np.ndarray, float]:
-        """
-        Plano CHSH óptimo (Horodecki 1995).
-
-        Si T = U Σ Vᵀ, las direcciones
-            a  = (u₁+u₂)/√2 ,  a' = (u₁−u₂)/√2 ,  b = v₁ ,  b' = v₂
-        realizan S = 2 √(s₁² + s₂²).
-        """
         u_svd, s_vals, vt = la.svd(t_mat, full_matrices=False)
         s_vals = np.real(s_vals)
         forecast = float(2.0 * np.sqrt(max(s_vals[0] ** 2 + (s_vals[1] ** 2 if s_vals.size > 1 else 0.0), 0.0)))
@@ -881,39 +700,17 @@ class _UhlmannFidelity:
 
     @staticmethod
     def _lhv_from_opinions(opinion_vector: np.ndarray) -> np.ndarray:
-        """
-        Modelo LHV: variable oculta compartida λ = tanh(mean x), respuestas
-        deterministas idénticas ⇒ E_{ij} = λ y S = 2λ, |S| ≤ 2.
-        """
         x = _NumericalCore.assert_vec("opinion_vector", opinion_vector)
         mean = _NumericalCore.kahan_babuska_neumaier_sum(x) / max(x.size, 1)
         hidden = float(np.clip(np.tanh(mean), -1.0, 1.0))
         return hidden * np.ones((2, 2), dtype=np.float64)
 
-    # ── II.7  Morfismo terminal de la Fase II ─────────────────────────────
     def induce_bell_correlation_germ(
         self,
         rho_or_correlation: np.ndarray,
         sigma: Optional[np.ndarray] = None,
         opinion_vector: Optional[np.ndarray] = None,
     ) -> _BellCorrelationGerm:
-        """
-        II.7 — Morfismo terminal de la Fase II / objeto inicial de la Fase III.
-
-        Extrae el gérmen de Bell por una de tres ramas, en este orden:
-
-        1. `opinion_vector` dado: embedding LHV del consenso de DeGroot
-           (certifica |S| ≤ 2; no hay violación cuántica).
-        2. Matriz 4×4: estado de 2 qubits → tensor de Horodecki → plano
-           CHSH óptimo y pronóstico de Tsirelson 2√(s₁²+s₂²).
-        3. Matriz 2×2: se lee directamente como E(a,b).
-
-        Si se provee `sigma`, se exige compatibilidad dimensional y se
-        calcula Uhlmann como certificado lateral (no altera E salvo en
-        el caso producto 2×2 × 2×2, que se declara clásico).
-
-        Este método *es* el arranque formal de `_CHSHVerifier`.
-        """
         if opinion_vector is not None:
             e = self._lhv_from_opinions(opinion_vector)
             phys = bool(np.all(np.abs(e) <= _CORRELATOR_BOUND + 1e-12))
@@ -935,12 +732,9 @@ class _UhlmannFidelity:
         _NumericalCore.assert_finite("rho_or_correlation", raw)
 
         if sigma is not None:
-            # Certificado lateral: la fidelidad debe ser evaluable.
             _ = self.compute(raw, np.asarray(sigma))
             sig = np.asarray(sigma)
             if raw.shape == (2, 2) and sig.shape == (2, 2):
-                # Estados producto: correlaciones locales, E ≡ 0 en el
-                # canal de Pauli (no hay entrelazamiento).
                 e = np.zeros((2, 2), dtype=np.float64)
                 return _BellCorrelationGerm(
                     correlation_matrix=e,
@@ -984,9 +778,6 @@ class _UhlmannFidelity:
 
 # =============================================================================
 # FASE III — CHSH, TSIRELSON, POPESCU–ROHRLICH Y MOTOR INTEGRADOR
-# -----------------------------------------------------------------------------
-# Continúa II.7: el verificador se ancla a un BellCorrelationGerm (o lo
-# induce por lectura directa de una matriz 2×2 de correladores).
 # =============================================================================
 @dataclass(frozen=True)
 class _CHSHResult:
@@ -1004,20 +795,6 @@ class _CHSHResult:
 class _CHSHVerifier:
     """
     Fase III. Observable de Bell–Clauser–Horne–Shimony–Holt.
-
-    Continúa el gérmen 𝒢_II. Sobre E ∈ ℝ^{2×2} evalúa
-
-        S = E(a,b) − E(a,b') + E(a',b) + E(a',b')
-
-    y clasifica según las cotas encajadas
-
-        |S| ≤ 2           (LHV / Fine),
-        |S| ≤ 2√2         (Tsirelson / Cirel'son),
-        |S| ≤ 4           (no-señalización / caja PR).
-
-    Veredictos (API 2.0): VETOED si |S| > 2√2 (no cuántico),
-    COHERENT si 2 < |S| ≤ 2√2 (entrelazamiento legítimo),
-    DEGRADED si |S| ≤ 2 (correlaciones clásicas).
     """
 
     def __init__(self, germ: Optional[_BellCorrelationGerm] = None) -> None:
@@ -1048,12 +825,6 @@ class _CHSHVerifier:
         return e, forecast, phys
 
     def verify(self, correlation_matrix: np.ndarray) -> _CHSHResult:
-        """
-        Evalúa S y el veredicto según Tsirelson.
-
-        Si la matriz no es 2×2 se preserva el contrato 2.0:
-        (s, verdict) = (+∞, VETOED).
-        """
         e, forecast, phys = self._resolve_e(correlation_matrix)
         if not np.all(np.isfinite(e)):
             return _CHSHResult(
@@ -1103,30 +874,31 @@ class ImperialSequitosEngine:
     """
     Motor de alta fidelidad para la Capa 1.5 (Séquitos Imperiales).
 
-    Compone las tres fases anidadas:
+    Compone las tres fases anidadas e integra la dinámica simpléctica de Poincaré:
 
     1. Fase I   — gérmen de Kleisli–Giry (`_NumericalCore`, `_KleisliComposer`).
     2. Fase II  — DeGroot / Fiedler y Uhlmann (`_DeGrootConsensus`,
                   `_UhlmannFidelity`).
-    3. Fase III — CHSH / Tsirelson (`_CHSHVerifier`), inicializado con un
-                  gérmen clásico nulo; cada llamada puede sustituirlo.
-
-    La API pública de 2.0 se conserva (tuplas / escalares). Los métodos
-    `*_certified` exponen los invariantes añadidos en 3.0.
+    3. Fase III — CHSH / Tsirelson (`_CHSHVerifier`).
+    4. Poincaré — Integrador simpléctico de Störmer-Verlet con Acción de Maupertuis-Jacobi.
     """
 
-    def __init__(self, regularizer: float = _HIGHAM_TIKHONOV_REG) -> None:
+    def __init__(self, regularizer: float = _HIGHAM_TIKHONOV_REG, dimension_n: int = 2) -> None:
         """
         Inicializa el motor y materializa el encadenamiento de gérmenes.
 
-        El regularizador se mantiene al menos en `_HIGHAM_TIKHONOV_REG` y
-        alimenta la estocastización de filas, el piso de Wilkinson y el
-        recorte espectral de estados densidad.
-
         Args:
             regularizer: Piso de Tikhonov contra polos espectrales.
+            dimension_n: Dimensión de la variedad simpléctica T*Q (n por sub-espacio).
         """
         self._reg: Final[float] = max(float(regularizer), _HIGHAM_TIKHONOV_REG)
+        self._n: Final[int] = int(dimension_n)
+        self._dim: Final[int] = 2 * int(dimension_n)
+        self._J_canonical: Final[NDArray[np.float64]] = np.block([
+            [np.zeros((self._n, self._n), dtype=np.float64), np.eye(self._n, dtype=np.float64)],
+            [-np.eye(self._n, dtype=np.float64), np.zeros((self._n, self._n), dtype=np.float64)]
+        ])
+
         # Fase I → objeto inicial de Fase II (grafo trivial de 2 agentes).
         self._markov_germ: _MarkovKleisliGerm = (
             _KleisliComposer.synthesize_markov_kleisli_germ(
@@ -1141,8 +913,86 @@ class ImperialSequitosEngine:
         )
         self._chsh = _CHSHVerifier(germ=self._bell_germ)
 
+    def compute_symplectic_maupertuis_step(
+        self,
+        current_z: NDArray[np.float64],
+        dt: float,
+        metric_G: NDArray[np.float64],
+        potential_V_func: Callable[[NDArray[np.float64]], float],
+        grad_V_func: Callable[[NDArray[np.float64]], NDArray[np.float64]],
+        total_energy_H0: float,
+    ) -> SequitosEngineStepResult:
+        r"""
+        Ejecuta un paso de integración simpléctica de Störmer-Verlet en coordenadas Darboux.
+
+        Axiomas:
+          1. Ecuaciones de Hamilton: q̇ = G⁻¹ p,  ṗ = -∇V(q).
+          2. Medida de Liouville: det(M) = +1.
+          3. Acción de Maupertuis: S_M = ∫ √(2(H₀ - V(q))) |dq|_G.
+        """
+        c_z = np.asarray(current_z, dtype=np.float64).ravel()
+        dim = c_z.size
+        n = dim // 2
+        q_0 = c_z[:n].copy()
+        p_0 = c_z[n:].copy()
+
+        G_mat = np.asarray(metric_G, dtype=np.float64)
+        if G_mat.ndim != 2 or G_mat.shape[0] != n or G_mat.shape[1] != n:
+            G_inv = np.eye(n, dtype=np.float64)
+        else:
+            try:
+                G_inv = la.inv(G_mat)
+            except (la.LinAlgError, ValueError):
+                G_inv = np.eye(n, dtype=np.float64)
+
+        # 1. Medio paso de momentum: p_{1/2} = p_0 - (dt/2) * ∇V(q_0)
+        grad_V_0 = np.asarray(grad_V_func(q_0), dtype=np.float64).ravel()
+        p_half = p_0 - 0.5 * dt * grad_V_0
+
+        # 2. Paso completo de posición: q_1 = q_0 + dt * G⁻¹ * p_{1/2}
+        q_1 = q_0 + dt * (G_inv @ p_half)
+
+        # 3. Medio paso de momentum final: p_1 = p_{1/2} - (dt/2) * ∇V(q_1)
+        grad_V_1 = np.asarray(grad_V_func(q_1), dtype=np.float64).ravel()
+        p_1 = p_half - 0.5 * dt * grad_V_1
+
+        next_z = np.concatenate([q_1, p_1])
+
+        # 4. Evaluación del Hamiltoniano: H(q, p) = ½ pᵀ G⁻¹ p + V(q)
+        kinetic_energy = 0.5 * float(p_1.T @ G_inv @ p_1)
+        potential_energy = float(potential_V_func(q_1))
+        current_energy = kinetic_energy + potential_energy
+
+        # 5. Medición del Jacobiano M_step y la deriva de Liouville
+        j_canon = np.block([
+            [np.zeros((n, n), dtype=np.float64), np.eye(n, dtype=np.float64)],
+            [-np.eye(n, dtype=np.float64), np.zeros((n, n), dtype=np.float64)]
+        ])
+        h_hessian = np.block([
+            [np.zeros((n, n), dtype=np.float64), np.zeros((n, n), dtype=np.float64)],
+            [np.zeros((n, n), dtype=np.float64), G_inv]
+        ])
+        jacobian_M = np.eye(dim, dtype=np.float64) + dt * (j_canon @ h_hessian)
+        det_M = float(la.det(jacobian_M))
+        volume_drift = abs(det_M - 1.0)
+
+        # 6. Cómputo de la Acción de Maupertuis-Jacobi
+        kinetic_margin = 2.0 * (total_energy_H0 - potential_energy)
+        refractive_n = np.sqrt(max(0.0, kinetic_margin))
+        dq_norm = float(la.norm(q_1 - q_0))
+        maupertuis_action = refractive_n * dq_norm
+
+        is_conserved = volume_drift <= _WILKINSON_LIMIT
+
+        return SequitosEngineStepResult(
+            next_state_z=next_z,
+            hamiltonian_energy=current_energy,
+            volume_drift=volume_drift,
+            maupertuis_action=maupertuis_action,
+            is_liouville_conserved=is_conserved,
+        )
+
     def _resync_markov_germ(self, affinity_matrix: np.ndarray) -> _MarkovKleisliGerm:
-        """Re-sintetiza 𝒢_I cuando cambia el grafo de afinidad."""
         germ = _KleisliComposer.synthesize_markov_kleisli_germ(
             affinity_matrix, regularizer=self._reg, symmetrize=True
         )
@@ -1152,11 +1002,9 @@ class ImperialSequitosEngine:
 
     # ── Fase I expuesta ───────────────────────────────────────────────────
     def kahan_sum(self, arr: np.ndarray) -> float:
-        """Sumación compensada de Kahan–Babuška–Neumaier (API 2.0)."""
         return _NumericalCore.kahan_neumann_sum(arr)
 
     def kahan_babuska_neumaier_sum(self, arr: np.ndarray) -> float:
-        """Sumación KBN (expuesta explícitamente)."""
         return _NumericalCore.kahan_babuska_neumaier_sum(arr)
 
     def kleisli_compose(
@@ -1164,11 +1012,9 @@ class ImperialSequitosEngine:
         f: Callable[[Any], Tuple[Any, float]],
         g: Callable[[Any], Tuple[Any, float]],
     ) -> Callable[[Any], Tuple[Any, float]]:
-        """Composición de Kleisli de dos flechas Writer_([0,1],×)."""
         return _KleisliComposer.compose(f, g)
 
     def kleisli_unit(self, value: Any) -> Tuple[Any, float]:
-        """Unidad de la mónada: η(x) = (x, 1)."""
         return _KleisliComposer.unit(value)
 
     def compose_markov_kernels(
@@ -1176,7 +1022,6 @@ class ImperialSequitosEngine:
         p_kernel: np.ndarray,
         q_kernel: np.ndarray,
     ) -> np.ndarray:
-        """Composición de Kleisli–Giry (canales de Markov en serie)."""
         return _KleisliComposer.compose_markov_kernels(
             p_kernel, q_kernel, floor=self._reg
         )
@@ -1186,7 +1031,6 @@ class ImperialSequitosEngine:
         affinity_matrix: np.ndarray,
         symmetrize: bool = True,
     ) -> _MarkovKleisliGerm:
-        """Réplica pública del morfismo I.8; actualiza el gérmen de Fase II."""
         germ = _KleisliComposer.synthesize_markov_kleisli_germ(
             affinity_matrix, regularizer=self._reg, symmetrize=symmetrize
         )
@@ -1195,7 +1039,6 @@ class ImperialSequitosEngine:
         return germ
 
     def markov_kleisli_germ_certificate(self) -> _MarkovKernelCertificate:
-        """Certificado de estocasticidad / Perron del gérmen de Fase I."""
         return self._markov_germ.certificate
 
     # ── Fase II expuesta ──────────────────────────────────────────────────
@@ -1205,10 +1048,6 @@ class ImperialSequitosEngine:
         affinity_matrix: np.ndarray,
         steps: int = 100,
     ) -> Tuple[np.ndarray, float, str]:
-        """
-        Consenso de DeGroot con exponenciación espectral.
-        Retorna (opinión_final, valor_fiedler, veredicto). API 2.0.
-        """
         result = self.compute_degroot_spectral_consensus_certified(
             opinion_vector, affinity_matrix, steps
         )
@@ -1220,12 +1059,10 @@ class ImperialSequitosEngine:
         affinity_matrix: np.ndarray,
         steps: int = 100,
     ) -> _DeGrootConsensusResult:
-        """DeGroot con flujo discreto/continuo, Fiedler, Cheeger y mezcla."""
         self._resync_markov_germ(affinity_matrix)
         return self._degroot.compute(opinion_vector, affinity_matrix, steps)
 
     def compute_uhlmann_fidelity(self, rho: np.ndarray, sigma: np.ndarray) -> float:
-        """Fidelidad cuántica de Uhlmann. API 2.0."""
         return self._uhlmann.compute(rho, sigma).fidelity
 
     def compute_uhlmann_fidelity_certified(
@@ -1233,7 +1070,6 @@ class ImperialSequitosEngine:
         rho: np.ndarray,
         sigma: np.ndarray,
     ) -> _UhlmannFidelityResult:
-        """Uhlmann con ángulo de Bures, T y Fuchs–van de Graaf."""
         return self._uhlmann.compute(rho, sigma)
 
     def induce_bell_correlation_germ(
@@ -1242,10 +1078,6 @@ class ImperialSequitosEngine:
         sigma: Optional[np.ndarray] = None,
         opinion_vector: Optional[np.ndarray] = None,
     ) -> _BellCorrelationGerm:
-        """
-        Réplica pública del morfismo II.7: estado / E / opiniones ↦ gérmen CHSH.
-        Actualiza el objeto con el que opera la Fase III.
-        """
         germ = self._uhlmann.induce_bell_correlation_germ(
             rho_or_correlation, sigma=sigma, opinion_vector=opinion_vector
         )
@@ -1255,10 +1087,6 @@ class ImperialSequitosEngine:
 
     # ── Fase III expuesta ─────────────────────────────────────────────────
     def verify_chsh_violation(self, correlation_matrix: np.ndarray) -> Tuple[float, str]:
-        """
-        Verificación de la desigualdad CHSH.
-        Retorna (valor_s, veredicto). API 2.0.
-        """
         result = self._chsh.verify(correlation_matrix)
         return result.s_value, result.verdict
 
@@ -1266,8 +1094,10 @@ class ImperialSequitosEngine:
         self,
         correlation_matrix: np.ndarray,
     ) -> _CHSHResult:
-        """CHSH con gaps clásico / Tsirelson / PR y cota de Horodecki."""
         return self._chsh.verify(correlation_matrix)
 
 
-__all__ = ["ImperialSequitosEngine"]
+__all__ = [
+    "ImperialSequitosEngine",
+    "SequitosEngineStepResult",
+]

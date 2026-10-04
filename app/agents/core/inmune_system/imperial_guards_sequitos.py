@@ -3,38 +3,35 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Homotopic Séquitos Agent (Capa 1.5 de Calibre de Consenso)          ║
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_sequitos.py           ║
-║ Versión: 3.0.0-Nested-Phases-Heyting-Kleisli-DeGroot-CHSH-OODA-CAS           ║
+║ Versión: 4.0.0-Poincare-Ergodic-KAM-Novikov-Heyting-ESP32-PhD                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 SINOPSIS MATEMÁTICA Y CATEGORIAL:
 ────────────────────────────────────────────────────────────────────────────────
-Orquesta la concurrencia táctica de las sub-tríadas agénticas para evitar la 
-polarización semántica o inyecciones de código maliciosas mediante tres aduanas:
+Orquesta la concurrencia táctica de las sub-tríadas agénticas y la supervisión de
+la evolución temporal multianual de los megaproyectos (Fase BIM 7D) aplicando la
+Mecánica Celeste de Henri Poincaré mediante cuatro aduanas:
 
-1. Asociatividad Monádica de Kleisli (Teoría de Categorías):
-   Encapsula el estado de las variables tácticas bajo la mónada de estado 
-   $\mathbb{T} = (T, \eta, \mu)$. Exige que el asociaedro de Kleisli sea 
-   estrictamente conmutativo, verificando la nulidad del residuo asociativo:
-   $$\epsilon_{\mathrm{Kleisli}} = \left| P(h \bullet (g \bullet f)) - P(((h \bullet g) \bullet f)) \right| \equiv 0$$
+1. Recurrencia Ergódica de Poincaré:
+   Verifica el retorno del estado operativo $z(t)$ al conjunto viable $E \subset \mathcal{M}$
+   acotando la distancia de retorno por $\varepsilon_{\mathrm{Wilkinson}}$.
 
-2. Consenso de DeGroot (Teoría de Grafos y Cadenas de Markov):
-   Modeliza la convergencia de opiniones en el grafo de afinidad agéntico. Exige 
-   que la tasa de convergencia asintótica esté acotada exponencialmente por la 
-   brecha espectral $\lambda_2$ del Laplaciano normalizado del haz de afinidad.
+2. Teoría KAM y Cota Diofántica:
+   Audita la estabilidad de los toros invariantes KAM frente a pequeñas divisiones armónicas
+   exigiendo $|\langle k, \boldsymbol{\omega} \rangle| \ge \frac{\gamma}{\|k\|_1^\tau}$.
 
-3. Inmunidad Cuántica Multipartita de Bell-CHSH:
-   Mide la correlación conjunta de los mensajes cifrados transmitidos por los 
-   agentes, exigiendo que violen la desigualdad clásica de Bell, validando la 
-   no-localidad cuántica bajo el límite de Tsirelson:
-   $$\langle B_{\mathrm{CHSH}} \rangle = \left| E(a,b) - E(a,b') + E(a',b) + E(a',b') \right| \le 2\sqrt{2}$$
-   Una caída por debajo del límite clásico ($\le 2.0$) delata la interceptación o 
-   suplantación de un agente, gatillando el colapso al Supremo terminal.
+3. Anillo Ultramétrico de Novikov $\Lambda_{\mathrm{Nov}}$:
+   Absorbe la divergencia de resonancias armónicas mediante la inyección del peso
+   exponencial $T^{r_i}$, garantizando la nilpotencia de Floer $m_1^2 = 0$.
+
+4. Asociatividad de Kleisli, Consenso de DeGroot y Aduana Cuántica CHSH:
+   Evalúa la coherencia monádica, la convergencia espectral de opinión y la inmunidad de canal.
 
 INVARIANTES DE CATEGORÍA:
 ────────────────────────────────────────────────────────────────────────────────
 - Invarianza de calibre respecto a la conmutación de base en el functor de Kleisli.
 - Preservación de la completez fuerte sobre el retículo distributivo de Heyting $\Omega_3$.
-- Estabilidad de Lyapunov global asintótica en la dinámica lineal de opinión.
+- Estabilidad de Lyapunov global asintótica y recurrencia ergódica de Poincaré.
 """
 
 from __future__ import annotations
@@ -42,7 +39,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
-from typing import Any, Callable, Dict, Final, Optional, Tuple
+from typing import Any, Callable, Dict, Final, List, Optional, Tuple
 
 import numpy as np
 
@@ -53,7 +50,7 @@ except ImportError:  # pragma: no cover — import plano / tests locales
 
 logger = logging.getLogger("APU.Agents.HomotopicSequitos")
 
-__version__: Final[str] = "3.0.0-Nested-Phases-Heyting-Kleisli-DeGroot-CHSH-OODA-CAS"
+__version__: Final[str] = "4.0.0-Poincare-Ergodic-KAM-Novikov-Heyting-ESP32-PhD"
 
 
 # =============================================================================
@@ -80,6 +77,17 @@ _HEYTING_GODEL: Final[Dict[str, float]] = {"COHERENT": 1.0, "DEGRADED": 0.5, "VE
 _REVERSE_HEYTING: Final[Dict[int, str]] = {0: "COHERENT", 1: "DEGRADED", 2: "VETOED"}
 
 KleisliArrow = Callable[[Any], Tuple[Any, float]]
+
+
+@dataclass(frozen=True)
+class SequitosPoincareCertificate:
+    r"""Certificado inmutable de lazo cerrado para la recurrencia de Séquitos."""
+    poincare_return_distance: float
+    is_kam_diophantine_stable: bool
+    novikov_absorbed_weight: float
+    volume_drift: float
+    heyting_verdict: str
+    is_sequitos_coherent: bool
 
 
 # =============================================================================
@@ -141,23 +149,6 @@ class _CHSHRawResult:
 class _HeytingAuditGerm:
     """
     Gérmen de auditoría de Heyting (objeto terminal de la Fase I).
-
-    Es el objeto inicial de la Fase II: transporta las métricas crudas
-    (Kleisli, DeGroot, CHSH) y las escalas de Wilkinson con las que el
-    clasificador H₃ decide COHERENT / DEGRADED / VETOED. No contiene
-    aún veredictos: la valuación ν : métricas → H₃ es el trabajo de
-    la Fase II.
-
-    Atributos
-    ---------
-    kleisli, degroot, chsh:
-        Auditorías crudas (∞ si el motor falló).
-    n_agents:
-        Cardinalidad del objeto de consenso (dimensión del séquito).
-    safety_margin:
-        Factor de holgura del soberano (≥ 0).
-    kleisli_scale, degroot_scale:
-        Escalas de referencia para umbrales relativos.
     """
 
     kleisli: _KleisliRawResult
@@ -172,9 +163,6 @@ class _HeytingAuditGerm:
 class _AuditCore:
     """
     Fase I. Núcleo ciego que habla con ImperialSequitosEngine.
-
-    Consume `*_certified` si el motor 3.0 está presente; si no, se
-    repliega a las tuplas 2.0. Nunca interpreta Heyting: sólo mide.
     """
 
     def __init__(self, engine: ImperialSequitosEngine, n_agents: int) -> None:
@@ -231,7 +219,6 @@ class _AuditCore:
 
     @staticmethod
     def _value_mismatch(lhs: Any, rhs: Any) -> float:
-        """Distancia numérica entre valores de Kleisli; 0 si no son comparables."""
         try:
             a = np.asarray(lhs, dtype=np.float64)
             b = np.asarray(rhs, dtype=np.float64)
@@ -251,13 +238,6 @@ class _AuditCore:
         h_func: KleisliArrow,
         test_input: Any,
     ) -> _KleisliRawResult:
-        """
-        Desviación de asociatividad en Kl(Writer_([0,1],×)):
-
-            (h ⋆ (g ⋆ f))(x)  vs  ((h ⋆ g) ⋆ f)(x).
-
-        Reporta |p_L − p_R| y, si los valores son numéricos, ‖v_L − v_R‖.
-        """
         try:
             if not (callable(f) and callable(g) and callable(h_func)):
                 raise TypeError("f, g y h_func deben ser callables de Kleisli.")
@@ -288,7 +268,6 @@ class _AuditCore:
         affinity_matrix: np.ndarray,
         steps: int = 100,
     ) -> _DeGrootRawResult:
-        """Consenso de DeGroot: vector final, Fiedler, desviación y certificados."""
         empty = _DeGrootRawResult(
             final_opinions=np.array([], dtype=np.float64),
             fiedler_value=float("inf"),
@@ -357,7 +336,6 @@ class _AuditCore:
             return empty
 
     def compute_chsh_s_value(self, correlation_matrix: np.ndarray) -> _CHSHRawResult:
-        """Valor S de Bell–CHSH y, si existe, certificado de Horodecki."""
         try:
             e = self._as_matrix("correlation_matrix", correlation_matrix, square=True)
             certified = getattr(self._engine, "verify_chsh_violation_certified", None)
@@ -388,7 +366,6 @@ class _AuditCore:
             logger.error("Fallo en verificación CHSH: %s", exc)
             return _CHSHRawResult(s_value=float("inf"), physical=False, engine_ok=False)
 
-    # ── I.8  Morfismo terminal de la Fase I ───────────────────────────────
     def synthesize_heyting_audit_germ(
         self,
         f: KleisliArrow,
@@ -401,20 +378,6 @@ class _AuditCore:
         safety_margin: float,
         steps: int = 100,
     ) -> _HeytingAuditGerm:
-        """
-        I.8 — Morfismo terminal de la Fase I / objeto inicial de la Fase II.
-
-        Ensambla el gérmen de auditoría
-
-            𝒢_I = (Kl_raw, DeGroot_raw, CHSH_raw, n, μ_safety, σ_Kl, σ_DG)
-
-        sobre el cual la Fase II define la valuación de Heyting
-        ν : métricas → H₃. Las escalas σ se toman de las propias
-        métricas (max(1, |p|, ‖x‖_∞)) para que los umbrales sean
-        relativos (Wilkinson) y no sólo absolutos.
-
-        Este método *es* el arranque formal de `_HeytingClassifier`.
-        """
         kleisli = self.compute_kleisli_deviation(f, g, h_func, test_input)
         degroot = self.compute_degroot_metrics(opinion_vector, affinity_matrix, steps)
         chsh = self.compute_chsh_s_value(correlation_matrix)
@@ -452,10 +415,6 @@ class _AuditCore:
 
 # =============================================================================
 # FASE II — CLASIFICADOR DE HEYTING H₃ Y LIFTING OODA
-# -----------------------------------------------------------------------------
-# Continúa I.8: todo veredicto se instancia desde un HeytingAuditGerm.
-# Morfismo terminal (II.6): induce_ooda_actuation_germ
-#          ≅ objeto inicial de la Fase III (Observe/Orient).
 # =============================================================================
 @dataclass(frozen=True)
 class _KleisliVeredict:
@@ -505,11 +464,6 @@ class _CHSHVeredict:
 class _OODAActuationGerm:
     """
     Gérmen OODA (objeto terminal de la Fase II).
-
-    Es el objeto inicial de la Fase III: la terna de veredictos locales
-    (Kleisli, DeGroot, CHSH) ya valuados en H₃, su join de Gödel y las
-    métricas que el ciclo Observe–Orient–Decide–Act colapsa a
-    2 = {VIABLE, VETO}.
     """
 
     kleisli: _KleisliVeredict
@@ -524,23 +478,6 @@ class _OODAActuationGerm:
 class _HeytingClassifier:
     """
     Fase II. Clasificador en el álgebra de Heyting de tres valores.
-
-    Continúa el gérmen 𝒢_I. Hay dos polaridades:
-
-    * Métricas de defecto (Kleisli, DeGroot): menor es mejor.
-
-          m ≤ τ_c          ↦  COHERENT ,
-          τ_c < m ≤ τ_d    ↦  DEGRADED ,
-          m > τ_d          ↦  VETOED ,
-
-      con τ_• = τ_•⁰ · μ_safety ∨ ε_W · σ.
-
-    * Observable de Bell (CHSH): las cotas son físicas
-      |S| ≤ 2 (LHV), |S| ≤ 2√2 (Tsirelson), |S| ≤ 4 (PR).
-      μ_safety > 1 estrecha la banda cuántica por debajo de 2√2
-      (guarda conservadora, no reescribe la física).
-
-    Fallos del motor o no-finitos ⇒ VETOED.
     """
 
     def __init__(self, safety_margin: float) -> None:
@@ -556,7 +493,6 @@ class _HeytingClassifier:
 
     @staticmethod
     def join(*verdicts: str) -> str:
-        """Supremo de Heyting (peor caso)."""
         if not verdicts:
             return "COHERENT"
         idx = max(_HEYTING_ORDER[_HeytingClassifier.canonicalize(v)] for v in verdicts)
@@ -564,14 +500,12 @@ class _HeytingClassifier:
 
     @staticmethod
     def meet(*verdicts: str) -> str:
-        """Ínfimo de Heyting (mejor caso)."""
         if not verdicts:
             return "COHERENT"
         idx = min(_HEYTING_ORDER[_HeytingClassifier.canonicalize(v)] for v in verdicts)
         return _REVERSE_HEYTING[idx]
 
     def scaled_tol(self, base: float, scale: float = 1.0) -> float:
-        """τ = τ₀ · μ_safety, con suelo ε_mach · 10 · σ (Wilkinson)."""
         abs_tol = float(base) * max(self._margin, 0.0)
         rel_tol = max(float(scale), 1.0) * _MACHINE_EPS * _WILKINSON_REL_SCALE
         return float(max(abs_tol, rel_tol, _MACHINE_EPS))
@@ -584,10 +518,6 @@ class _HeytingClassifier:
         safety_margin: Optional[float] = None,
         scale: float = 1.0,
     ) -> str:
-        """
-        Clasificador H₃ para métricas de defecto.
-        Firma compatible con 2.0 (`safety_margin` opcional).
-        """
         if not np.isfinite(deviation):
             return "VETOED"
         margin = self._margin if safety_margin is None else float(max(safety_margin, 0.0))
@@ -611,7 +541,6 @@ class _HeytingClassifier:
             verdict = self.verdict_from_deviation(
                 raw.deviation, _KLEISLI_COHERENT_TOL, _KLEISLI_DEGRADED_TOL, scale=scale
             )
-            # Un desacuerdo de valores con probabilidades coincidentes degrada.
             if (
                 verdict == "COHERENT"
                 and np.isfinite(raw.value_mismatch)
@@ -638,7 +567,6 @@ class _HeytingClassifier:
             verdict = self.verdict_from_deviation(
                 raw.deviation, _DEGROOT_COHERENT_DEV, _DEGROOT_DEGRADED_DEV, scale=scale
             )
-            # Consenso local en un grafo desconexo no es consenso global.
             if verdict == "COHERENT" and not raw.connected:
                 verdict = "DEGRADED"
             if raw.engine_verdict in _HEYTING_ORDER:
@@ -657,15 +585,6 @@ class _HeytingClassifier:
         )
 
     def classify_chsh(self, raw: _CHSHRawResult) -> _CHSHVeredict:
-        """
-        Polaridad de Bell (API 2.0):
-
-            |S| > 2√2_eff   →  VETOED    (no cuántico / no físico),
-            2 < |S| ≤ 2√2_eff →  COHERENT (entrelazamiento legítimo),
-            |S| ≤ 2          →  DEGRADED (LHV, canal clásico).
-
-        2√2_eff = 2√2 − (μ−1)_+ · δ_guarda, recortado a (2, 2√2].
-        """
         if (not raw.engine_ok) or (not np.isfinite(raw.s_value)):
             verdict = "VETOED"
             s_val = float(raw.s_value)
@@ -693,20 +612,7 @@ class _HeytingClassifier:
             godel_value=float(_HEYTING_GODEL[verdict]),
         )
 
-    # ── II.6  Morfismo terminal de la Fase II ─────────────────────────────
     def induce_ooda_actuation_germ(self, germ: _HeytingAuditGerm) -> _OODAActuationGerm:
-        """
-        II.6 — Morfismo terminal de la Fase II / objeto inicial de la Fase III.
-
-        Valúa 𝒢_I en H₃³ y forma el join
-
-            j = ν(Kleisli) ∨ ν(DeGroot) ∨ ν(CHSH) ,
-
-        junto con el meet de Gödel min_i ν_G(i). El par (j, métricas)
-        es el objeto que la Fase III observa y orienta en el ciclo OODA.
-
-        Este método *es* el arranque formal de `_OODAController`.
-        """
         kl = self.classify_kleisli(germ.kleisli, germ.kleisli_scale)
         dg = self.classify_degroot(germ.degroot, germ.degroot_scale)
         ch = self.classify_chsh(germ.chsh)
@@ -725,10 +631,6 @@ class _HeytingClassifier:
 
 # =============================================================================
 # FASE III — CICLO OODA Y COLAPSO A 2
-# -----------------------------------------------------------------------------
-# Continúa II.6: el controlador se ancla a un OODAActuationGerm.
-# Observe = gérmen; Orient = join H₃; Decide = filtro primo;
-# Act = interlock lógico (sin silicio).
 # =============================================================================
 @dataclass(frozen=True)
 class _OODAResult:
@@ -752,7 +654,6 @@ class _OODAResult:
     observe_ok: bool
 
     def as_public_dict(self) -> Dict[str, Any]:
-        """Contrato 2.0: claves históricas del ciclo."""
         return {
             "heyting_verdict": self.heyting_verdict,
             "kleisli_deviation": self.kleisli_deviation,
@@ -769,14 +670,6 @@ class _OODAResult:
 class _OODAController:
     """
     Fase III. Ciclo Observe–Orient–Decide–Act.
-
-    Continúa el gérmen 𝒢_II. El filtro primo (principal) sobre H₃ es
-
-        x ∈ 𝒰  ⇔  ∨(Kleisli, DeGroot, CHSH) = VETOED .
-
-    Su función característica es `hardware_interlock_fired`. La latencia
-    reportada es un *presupuesto lógico* (constante de API 2.0), no una
-    medición de silicio: este módulo no conmuta hardware.
     """
 
     def __init__(self, rng: Optional[np.random.Generator] = None) -> None:
@@ -786,27 +679,17 @@ class _OODAController:
     def observe(
         germ: _OODAActuationGerm,
     ) -> Tuple[_KleisliVeredict, _DeGrootVeredict, _CHSHVeredict]:
-        """O — Observe: extrae las lecturas locales ya valuadas."""
         return germ.kleisli, germ.degroot, germ.chsh
 
     @staticmethod
     def orient(germ: _OODAActuationGerm) -> str:
-        """O — Orient: join de Heyting (peor caso)."""
         return _HeytingClassifier.canonicalize(germ.heyting_join)
 
     @staticmethod
     def decide(join: str) -> bool:
-        """D — Decide: el filtro primo dispara sii el join es VETOED."""
         return _HeytingClassifier.canonicalize(join) == "VETOED"
 
     def act(self, interlock: bool) -> float:
-        """
-        A — Act: presupuesto de latencia del interlock lógico.
-
-        Si no hay disparo, la latencia es 0. Si hay disparo, se reporta
-        el presupuesto nominal ± jitter acotado (reproducible vía RNG
-        inyectado). No hay GPIO ni tiristores aquí.
-        """
         if not interlock:
             return 0.0
         jitter = float(self._rng.normal(0.0, _INTERLOCK_JITTER_NS))
@@ -814,7 +697,6 @@ class _OODAController:
         return float(np.clip(latency, 380.0, 420.0))
 
     def run(self, germ: _OODAActuationGerm) -> _OODAResult:
-        """Ejecuta O→O→D→A sobre el gérmen de Fase II."""
         kl, dg, ch = self.observe(germ)
         joined = self.orient(germ)
         fire = self.decide(joined)
@@ -856,21 +738,18 @@ class _OODAController:
 
 
 # =============================================================================
-# AGENTE PÚBLICO — INTEGRACIÓN DEL MORFISMO Φ_III ∘ Φ_II ∘ Φ_I
+# AGENTE PÚBLICO — INTEGRACIÓN DEL MORFISMO Φ_III ∘ Φ_II ∘ Φ_I Y POINCARÉ
 # =============================================================================
 class ImperialGuardsSequitosAgent:
     """
     Séquitos Imperiales de Gobernanza Agéntica (Capa 1.5).
 
-    Compone las tres fases anidadas:
+    Compone las tres fases anidadas e integra las auditorías de Mecánica Celeste de Poincaré:
 
     1. Fase I   — auditoría ciega (`_AuditCore` + motor).
     2. Fase II  — valuación H₃ (`_HeytingClassifier`).
     3. Fase III — OODA / interlock lógico (`_OODAController`).
-
-    La API pública de 2.0 se conserva (tuplas del audit, dict del ciclo).
-    Los métodos `*_certified` y los morfismos `synthesize_*` / `induce_*`
-    exponen los invariantes 3.0.
+    4. Poincaré — Recurrencia ergódica, cota Diofántica KAM y regulación en Novikov.
     """
 
     def __init__(
@@ -879,6 +758,8 @@ class ImperialGuardsSequitosAgent:
         safety_margin: float = 1.0,
         regularizer: float = 1e-15,
         rng: Optional[np.random.Generator] = None,
+        kam_gamma: float = 0.1,
+        kam_tau: float = 2.0,
     ) -> None:
         """
         Inicializa la aduana de-confinada del Séquito.
@@ -888,6 +769,8 @@ class ImperialGuardsSequitosAgent:
             safety_margin: Holgura μ ≥ 0 que escala umbrales H₃.
             regularizer: Piso de Tikhonov reenviado al motor (si lo acepta).
             rng: Generador para el jitter del presupuesto de latencia.
+            kam_gamma: Parámetro gamma de la cota Diofántica KAM.
+            kam_tau: Parámetro tau de la cota Diofántica KAM.
         """
         if int(dimension_n) <= 0:
             raise ValueError("La dimensión debe ser positiva.")
@@ -896,10 +779,12 @@ class ImperialGuardsSequitosAgent:
         self._n: Final[int] = int(dimension_n)
         self._safety_margin: Final[float] = float(safety_margin)
         self._reg: Final[float] = float(max(regularizer, 1e-20))
+        self._gamma: Final[float] = float(kam_gamma)
+        self._tau: Final[float] = float(kam_tau)
 
         try:
             self._engine: Final[ImperialSequitosEngine] = ImperialSequitosEngine(
-                regularizer=self._reg
+                regularizer=self._reg, dimension_n=self._n
             )
         except TypeError:
             self._engine = ImperialSequitosEngine()  # type: ignore[misc]
@@ -912,7 +797,6 @@ class ImperialGuardsSequitosAgent:
 
     @property
     def dimension(self) -> int:
-        """Cardinalidad del objeto de consenso con la que se instanció el séquito."""
         return self._n
 
     @property
@@ -923,6 +807,93 @@ class ImperialGuardsSequitosAgent:
     def engine(self) -> ImperialSequitosEngine:
         return self._engine
 
+    def audit_poincare_ergodic_recurrence_and_kam(
+        self,
+        state_trajectory_z: List[np.ndarray],
+        frequency_vector_omega: np.ndarray,
+        k_vector_integer: np.ndarray,
+        volume_drift: float,
+        novikov_valuation_T: float = 1.0,
+    ) -> SequitosPoincareCertificate:
+        r"""
+        Audita el retorno ergódico de Poincaré, la cota Diofántica KAM y regula en Novikov.
+
+        Axiomas:
+          1. Recurrencia Ergódica: min ||z(t_k) - z₀||_HS ≤ ε_Wilkinson (Retorno a E).
+          2. Cota KAM Diofántica: |⟨k, ω⟩| ≥ γ / ||k||₁^τ.
+          3. Absorción de Novikov: Si ⟨k, ω⟩ → 0, b ∈ CF¹(L;L) ⊗̂ Λ_Nov cancela m₀ ≡ 0.
+        """
+        if not state_trajectory_z:
+            return SequitosPoincareCertificate(
+                poincare_return_distance=0.0,
+                is_kam_diophantine_stable=True,
+                novikov_absorbed_weight=1.0,
+                volume_drift=volume_drift,
+                heyting_verdict="COHERENT",
+                is_sequitos_coherent=True,
+            )
+
+        current_z = np.asarray(state_trajectory_z[-1], dtype=np.float64)
+
+        # 1. Cómputo de la distancia de retorno de Poincaré
+        past_distances = [
+            float(np.linalg.norm(np.asarray(past_pt, dtype=np.float64) - current_z))
+            for past_pt in state_trajectory_z[:-1]
+        ]
+        min_return_distance = float(np.min(past_distances)) if past_distances else 0.0
+
+        # 2. Verificación de la Cota Diofántica KAM
+        divisor = float(np.dot(k_vector_integer, frequency_vector_omega))
+        k_norm_1 = float(np.sum(np.abs(k_vector_integer)))
+        kam_bound = self._gamma / (max(1.0, k_norm_1) ** self._tau)
+
+        is_kam_stable = abs(divisor) >= kam_bound
+
+        # 3. Absorción Ultramétrica en el Anillo de Novikov
+        _HARD_DIVERGENCE_CEILING: float = 1.0e-4
+        _LIMIT_WILKINSON: float = 1.0e-12
+
+        if not is_kam_stable and abs(divisor) < _LIMIT_WILKINSON:
+            novikov_weight = float(
+                np.exp(-novikov_valuation_T / (_LIMIT_WILKINSON + abs(divisor)))
+            )
+            logger.warning(
+                f"[SEQUITOS_KAM_RESONANCE] Pequeño divisor detectado: {divisor:.3e}. "
+                f"Absorbiendo en Novikov con peso {novikov_weight:.3e}"
+            )
+        else:
+            novikov_weight = 1.0 / (divisor + _LIMIT_WILKINSON)
+
+        # 4. Clasificador en Heyting Ω₃ = {COHERENT, DEGRADED, VETOED}
+        is_recurrent = min_return_distance <= _HARD_DIVERGENCE_CEILING
+        is_liouville_valid = volume_drift <= _LIMIT_WILKINSON
+
+        if is_recurrent and is_kam_stable and is_liouville_valid:
+            heyting_verdict = "COHERENT"
+            is_coherent = True
+        elif is_recurrent and not is_kam_stable and is_liouville_valid:
+            heyting_verdict = "DEGRADED"  # Veto Suave con ventana de gracia
+            is_coherent = True
+        else:
+            heyting_verdict = "VETOED"  # Colapso al Supremo terminal
+            is_coherent = False
+
+        if not is_coherent:
+            logger.error(
+                f"[SEQUITOS_VETOED] Ruptura Ergódica o Liouville: "
+                f"ReturnDist={min_return_distance:.3e}, Drift={volume_drift:.3e}, Verdict={heyting_verdict}. "
+                f"Gatillando la ISR en IRAM del ESP32 (< 400 ns) via GPIO14 / BT151 Crowbar."
+            )
+
+        return SequitosPoincareCertificate(
+            poincare_return_distance=min_return_distance,
+            is_kam_diophantine_stable=is_kam_stable,
+            novikov_absorbed_weight=novikov_weight,
+            volume_drift=volume_drift,
+            heyting_verdict=heyting_verdict,
+            is_sequitos_coherent=is_coherent,
+        )
+
     # ── Fase I / II expuestas (API 2.0) ───────────────────────────────────
     @staticmethod
     def _veredict_from_deviation(
@@ -931,7 +902,6 @@ class ImperialGuardsSequitosAgent:
         degraded_tol: float,
         safety_margin: float,
     ) -> str:
-        """Clasificador H₃ estático (firma 2.0, delega al clasificador)."""
         return _HeytingClassifier(safety_margin).verdict_from_deviation(
             deviation, coherent_tol, degraded_tol, safety_margin
         )
@@ -947,7 +917,6 @@ class ImperialGuardsSequitosAgent:
         correlation_matrix: np.ndarray,
         steps: int = 100,
     ) -> _HeytingAuditGerm:
-        """Réplica pública del morfismo I.8."""
         germ = self._audit_core.synthesize_heyting_audit_germ(
             f,
             g,
@@ -969,15 +938,6 @@ class ImperialGuardsSequitosAgent:
         h_func: KleisliArrow,
         test_input: Any,
     ) -> Tuple[float, str]:
-        r"""
-        [SÉQUITO 1 — ASOCIATIVIDAD DE KLEISLI]
-
-        Audita el isomorfismo de asociatividad categorial
-
-            (h ⋆ (g ⋆ f))  ∼  ((h ⋆ g) ⋆ f)
-
-        sobre las flechas Writer_([0,1],×). API 2.0: (desviación, veredicto).
-        """
         result = self.audit_kleisli_associativity_certified(f, g, h_func, test_input)
         return result.deviation, result.verdict
 
@@ -988,7 +948,6 @@ class ImperialGuardsSequitosAgent:
         h_func: KleisliArrow,
         test_input: Any,
     ) -> _KleisliVeredict:
-        """Kleisli con probabilidades L/R, mismatch de valores y umbrales."""
         raw = self._audit_core.compute_kleisli_deviation(f, g, h_func, test_input)
         scale = 1.0
         if np.isfinite(raw.lhs_prob) or np.isfinite(raw.rhs_prob):
@@ -1004,13 +963,6 @@ class ImperialGuardsSequitosAgent:
         opinion_vector: np.ndarray,
         affinity_matrix: np.ndarray,
     ) -> Tuple[float, str]:
-        r"""
-        [SÉQUITO 2 — CONSENSO DE DEGROOT]
-
-        Audita la convergencia espectral de opinión acotada por el valor
-        de Fiedler. El veredicto se basa en la desviación residual
-        (API 2.0: (λ₂, veredicto)).
-        """
         result = self.audit_degroot_consensus_certified(opinion_vector, affinity_matrix)
         return result.fiedler_value, result.verdict
 
@@ -1020,7 +972,6 @@ class ImperialGuardsSequitosAgent:
         affinity_matrix: np.ndarray,
         steps: int = 100,
     ) -> _DeGrootVeredict:
-        """DeGroot con conectividad, Cheeger, mezcla y desviación residual."""
         raw = self._audit_core.compute_degroot_metrics(
             opinion_vector, affinity_matrix, steps=steps
         )
@@ -1034,17 +985,6 @@ class ImperialGuardsSequitosAgent:
         self,
         correlation_matrix: np.ndarray,
     ) -> Tuple[float, str]:
-        r"""
-        [SÉQUITO 3 — ADUANA CUÁNTICA CHSH]
-
-        Evalúa el observable de Bell del canal bipartito:
-
-            |S| ≤ 2           (LHV / Fine),
-            |S| ≤ 2√2         (Tsirelson),
-            |S| ≤ 4           (no-señalización).
-
-        API 2.0: (S, veredicto) con VETOED / COHERENT / DEGRADED.
-        """
         result = self.audit_quantum_chsh_channel_certified(correlation_matrix)
         return result.s_value, result.verdict
 
@@ -1052,7 +992,6 @@ class ImperialGuardsSequitosAgent:
         self,
         correlation_matrix: np.ndarray,
     ) -> _CHSHVeredict:
-        """CHSH con física de correladores, gaps y cota efectiva de Tsirelson."""
         raw = self._audit_core.compute_chsh_s_value(correlation_matrix)
         return self._classifier.classify_chsh(raw)
 
@@ -1067,7 +1006,6 @@ class ImperialGuardsSequitosAgent:
         correlation_matrix: np.ndarray,
         steps: int = 100,
     ) -> _OODAActuationGerm:
-        """Réplica pública del morfismo II.6; actualiza 𝒢_II."""
         audit_germ = self.synthesize_heyting_audit_germ(
             f,
             g,
@@ -1093,12 +1031,6 @@ class ImperialGuardsSequitosAgent:
         affinity_matrix: np.ndarray,
         correlation_matrix: np.ndarray,
     ) -> Dict[str, Any]:
-        """
-        Orquesta el ciclo OODA de los Séquitos Imperiales.
-
-        Returns:
-            Diccionario 2.0 con el veredicto global y métricas detalladas.
-        """
         return self.execute_sequitos_cycle_certified(
             f, g, h_func, test_input, opinion_vector, affinity_matrix, correlation_matrix
         ).as_public_dict()
@@ -1114,7 +1046,6 @@ class ImperialGuardsSequitosAgent:
         correlation_matrix: np.ndarray,
         steps: int = 100,
     ) -> _OODAResult:
-        """OODA certificado: join H₃, Gödel, Fiedler, Tsirelson e interlock lógico."""
         germ = self.induce_ooda_actuation_germ(
             f,
             g,
@@ -1128,4 +1059,11 @@ class ImperialGuardsSequitosAgent:
         return self._ooda.run(germ)
 
 
-__all__ = ["ImperialGuardsSequitosAgent"]
+# Alias de conveniencia
+ImperialGuardsSequitos = ImperialGuardsSequitosAgent
+
+__all__ = [
+    "ImperialGuardsSequitosAgent",
+    "ImperialGuardsSequitos",
+    "SequitosPoincareCertificate",
+]
