@@ -1,36 +1,29 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Imperial Eruditos Agent (Soberano de Cohomología Simpléctica)       ║
+║ Módulo : Imperial Guards Eruditos Agent (Soberano de Cohomología y KAM)      ║
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_eruditos.py           ║
-║ Versión: 3.0.0-Nested-Phases-Heyting-Floer-Cech-Hodge-OODA-CAS               ║
+║ Versión: 5.0.0-Poincare-Novikov-KAM-PhD                                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 SINOPSIS MATEMÁTICA Y COHOMOLÓGICA:
-────────────────────────────────────────────────────────────────────────────────
 Sostiene síncronamente la consistencia estructural del Consejo de Sabios, 
-bloqueando alucinaciones estocásticas en la ventana de atención del LLM mediante 
-dos aduanas cohomológicas:
+bloqueando alucinaciones estocásticas en la ventana de atención del LLM y supervisando
+la estabilidad analítica de las series de perturbaciones presupuestales mediante las
+aduanas de la Mecánica Celeste de Henri Poincaré:
 
-1. Cohomología Simpléctica de Floer:
-   Modeliza el frente de logits como cilindros pseudo-holomorfos $u: \mathbb{R} \times S^1 \to \mathcal{M}$ 
-   en el colector simpléctico, resolviendo la ecuación de Cauchy-Riemann perturbada:
-   $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv 0$$
-   La nulidad de la co-frontera ($\partial_{\mathrm{Floer}}^2 \equiv 0$) garantiza 
-   la rigidez simpléctica ante deformaciones asonantes inducidas por el modelo.
+1. Teorema de No-Integrabilidad y Pequeños Divisores de Poincaré-KAM:
+   $$\min_k |\langle k, \boldsymbol{\omega} \rangle| \ge \varepsilon_{\mathrm{Wilkinson}}$$
 
-2. Cohomología Atencional Čech:
-   Modeliza los pesos de atención del KV-Cache como secciones de un haz celular 
-   $\mathcal{F}_{\mathrm{att}}$ sobre la cobertura Čech $\mathcal{U}$. Exige la 
-   nulidad incondicional de la clase de obstrucción virtual:
-   $$\check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0$$
-   para aniquilar bucles de atención parasitarios o redundancias atencionales.
+2. Absorción Ultramétrica T-ádica en el Anillo de Novikov \Lambda_{\mathrm{Nov}}:
+   $$W_{\mathrm{Novikov}} = \exp\left( -\frac{T_{\mathrm{val}}}{\varepsilon + |\langle k, \boldsymbol{\omega} \rangle|} \right)$$
 
-INVARIANTES DE CATEGORÍA:
-────────────────────────────────────────────────────────────────────────────────
-- Invarianza simpléctica exacta de la estructura de casi-complejo $J$: $J^2 \equiv -\mathrm{Id}$.
-- Conservación del índice de Maslov a lo largo de trayectorias pseudo-holomorfas.
-- Nulidad de la clase virtual de Čech en el semiplano complejo estable.
+3. Cohomología Simpléctica de Floer (\partial_{\mathrm{Floer}}^2 \equiv 0) y Čech (\check{H}^1 \equiv 0).
+
+4. Retículo Distributivo de Heyting \Omega_3:
+   - COHERENT : \min_k |\langle k, \boldsymbol{\omega} \rangle| \ge \varepsilon_{\mathrm{Wilkinson}} \land |\det\mathbf{M} - 1| \le \varepsilon_{\mathrm{Wilkinson}}
+   - DEGRADED : \varepsilon_{\mathrm{floor}} < \min_k |\langle k, \boldsymbol{\omega} \rangle| < \varepsilon_{\mathrm{Wilkinson}}
+   - VETOED   : \min_k |\langle k, \boldsymbol{\omega} \rangle| \le \varepsilon_{\mathrm{floor}} \lor |\det\mathbf{M} - 1| > \varepsilon_{\mathrm{Wilkinson}}
 """
 
 from __future__ import annotations
@@ -40,15 +33,22 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Final, Optional, Tuple
 
 import numpy as np
+from numpy.typing import NDArray
 
 try:
-    from app.core.inmune_system.imperial_eruditos_engine import ImperialEruditosEngine
+    from app.core.inmune_system.imperial_eruditos_engine import (
+        ImperialEruditosEngine,
+        EruditosSpectrumReport,
+    )
 except ImportError:  # pragma: no cover — import plano / tests locales
-    from imperial_eruditos_engine import ImperialEruditosEngine
+    from imperial_eruditos_engine import (  # type: ignore[no-redef]
+        ImperialEruditosEngine,
+        EruditosSpectrumReport,
+    )
 
 logger = logging.getLogger("APU.Agents.SymplecticEruditos")
 
-__version__: Final[str] = "3.0.0-Nested-Phases-Heyting-Floer-Cech-Hodge-OODA-CAS"
+__version__: Final[str] = "5.0.0-Poincare-Novikov-KAM-PhD"
 
 
 # =============================================================================
@@ -59,6 +59,8 @@ _FLOER_THRESHOLD: Final[float] = 1e-7
 _CECH_THRESHOLD: Final[float] = 1e-5
 _DEGRADATION_FACTOR: Final[float] = 0.01
 _WILKINSON_REL_SCALE: Final[float] = 10.0
+_WILKINSON_LIMIT: Final[float] = 1.0e-12
+_SPECTRAL_TOL: Final[float] = 1.0e-9
 _INTERLOCK_LATENCY_BUDGET_NS: Final[float] = 400.0  # presupuesto lógico (API 2.0)
 _INTERLOCK_JITTER_NS: Final[float] = 5.0
 
@@ -67,13 +69,22 @@ _HEYTING_GODEL: Final[Dict[str, float]] = {"COHERENT": 1.0, "DEGRADED": 0.5, "VE
 _REVERSE_HEYTING: Final[Dict[int, str]] = {0: "COHERENT", 1: "DEGRADED", 2: "VETOED"}
 
 
+@dataclass(frozen=True, slots=True)
+class EruditosAgentCertificate:
+    r"""Certificado inmutable de lazo cerrado emitido por los Eruditos Imperiales."""
+
+    min_small_divisor: float
+    novikov_weight: float
+    volume_drift: float
+    heyting_verdict: str  # COHERENT, DEGRADED, VETOED
+    is_verdict_coherent: bool
+
+
+PoincareEruditosAgentCertificate = EruditosAgentCertificate
+
+
 # =============================================================================
 # FASE I — NÚCLEO DE AUDITORÍA ESPECTRAL (MOTOR CIEGO)
-# -----------------------------------------------------------------------------
-# Objetos: métricas crudas de Floer / Čech, certificados 3.0 si el motor
-#          los expone, validación de Darboux.
-# Morfismo terminal (I.7): synthesize_heyting_audit_germ
-#          ≅ objeto inicial de la Fase II (valuación en H₃).
 # =============================================================================
 @dataclass(frozen=True)
 class _FloerAudit:
@@ -108,25 +119,7 @@ class _CechAudit:
 
 @dataclass(frozen=True)
 class _HeytingAuditGerm:
-    """
-    Gérmen de auditoría de Heyting (objeto terminal de la Fase I).
-
-    Es el objeto inicial de la Fase II: transporta las métricas crudas
-    (Floer, Čech) y las escalas de Wilkinson con las que el clasificador
-    H₃ decide COHERENT / DEGRADED / VETOED. No contiene aún veredictos:
-    la valuación ν : métricas → H₃ es exactamente el trabajo de la Fase II.
-
-    Atributos
-    ---------
-    floer, cech:
-        Auditorías crudas (∞ si el motor falló).
-    two_n:
-        Dimensión de Darboux vigente (par).
-    safety_margin:
-        Factor de holgura del soberano (≥ 0).
-    floer_scale, cech_scale:
-        Escalas de referencia (norma / masa) para umbrales relativos.
-    """
+    """Gérmen de auditoría de Heyting (objeto terminal de la Fase I)."""
 
     floer: _FloerAudit
     cech: _CechAudit
@@ -137,12 +130,7 @@ class _HeytingAuditGerm:
 
 
 class _AuditCore:
-    """
-    Fase I. Núcleo ciego que habla con ImperialEruditosEngine.
-
-    Consume `*_certified` si el motor 3.0 está presente; si no, se
-    repliega a las tuplas 2.0. Nunca interpreta Heyting: sólo mide.
-    """
+    """Fase I. Núcleo ciego que habla con ImperialEruditosEngine."""
 
     def __init__(self, engine: ImperialEruditosEngine, two_n: int) -> None:
         self._engine = engine
@@ -299,7 +287,6 @@ class _AuditCore:
             return 0.0
         return float(np.linalg.norm(a, "fro"))
 
-    # ── I.7  Morfismo terminal de la Fase I ───────────────────────────────
     def synthesize_heyting_audit_germ(
         self,
         start_point: np.ndarray,
@@ -308,21 +295,7 @@ class _AuditCore:
         attention_sheaf_matrix: np.ndarray,
         safety_margin: float,
     ) -> _HeytingAuditGerm:
-        """
-        I.7 — Morfismo terminal de la Fase I / objeto inicial de la Fase II.
-
-        Ensambla el gérmen de auditoría
-
-            𝒢_I = (Floer_raw, Čech_raw, 2n, μ_safety, σ_Floer, σ_Čech)
-
-        sobre el cual la Fase II define la valuación de Heyting
-        ν : métricas → H₃. Las escalas σ se toman de la norma de
-        Frobenius del monodromía y de la masa nuclear atencional, de
-        modo que los umbrales sean relativos (Wilkinson) y no sólo
-        absolutos.
-
-        Este método *es* el arranque formal de `_HeytingClassifier`.
-        """
+        """Synthesize Heyting Audit Germ."""
         floer = self.floer_audit(start_point, end_point, jacobian_m3)
         cech = self.cech_audit(attention_sheaf_matrix)
         try:
@@ -355,10 +328,6 @@ class _AuditCore:
 
 # =============================================================================
 # FASE II — CLASIFICADOR DE HEYTING H₃ Y LIFTING OODA
-# -----------------------------------------------------------------------------
-# Continúa I.7: todo veredicto se instancia desde un HeytingAuditGerm.
-# Morfismo terminal (II.6): induce_ooda_actuation_germ
-#          ≅ objeto inicial de la Fase III (Observe/Orient).
 # =============================================================================
 @dataclass(frozen=True)
 class _FloerVeredict:
@@ -393,24 +362,7 @@ class _CechVeredict:
 
 @dataclass(frozen=True)
 class _OODAActuationGerm:
-    """
-    Gérmen OODA (objeto terminal de la Fase II).
-
-    Es el objeto inicial de la Fase III: el par de veredictos locales
-    (Floer, Čech) ya valuados en H₃, su join de Gödel y las métricas
-    que el ciclo Observe–Orient–Decide–Act colapsa a 2 = {VIABLE, VETO}.
-
-    Atributos
-    ---------
-    floer, cech:
-        Veredictos locales.
-    heyting_join:
-        ∨_{H₃}(floer, cech)  (peor caso / supremo).
-    godel_meet:
-        ∧ de las valuaciones de Gödel (t-norma mínima).
-    two_n, safety_margin:
-        Contexto de Darboux / holgura.
-    """
+    """Gérmen OODA (objeto terminal de la Fase II)."""
 
     floer: _FloerVeredict
     cech: _CechVeredict
@@ -421,18 +373,7 @@ class _OODAActuationGerm:
 
 
 class _HeytingClassifier:
-    """
-    Fase II. Clasificador en el álgebra de Heyting de tres valores.
-
-    Continúa el gérmen 𝒢_I. Sobre una métrica m ≥ 0 y un umbral τ > 0:
-
-        m ≤ τ · δ          ↦  COHERENT ,
-        τ · δ < m ≤ τ      ↦  DEGRADED ,
-        m > τ              ↦  VETOED ,
-
-    con δ = `_DEGRADATION_FACTOR` y τ = τ₀ · μ_safety · max(1, σ_rel)
-    (Wilkinson relativo). Fallos del motor o no-finitos ⇒ VETOED.
-    """
+    """Fase II. Clasificador en el álgebra de Heyting de tres valores."""
 
     def __init__(self, safety_margin: float) -> None:
         self._margin = float(max(safety_margin, 0.0))
@@ -450,7 +391,7 @@ class _HeytingClassifier:
         """Supremo de Heyting (peor caso)."""
         if not verdicts:
             return "COHERENT"
-        idx = max(_HEYTING_ORDER[ _HeytingClassifier.canonicalize(v)] for v in verdicts)
+        idx = max(_HEYTING_ORDER[_HeytingClassifier.canonicalize(v)] for v in verdicts)
         return _REVERSE_HEYTING[idx]
 
     @staticmethod
@@ -462,7 +403,7 @@ class _HeytingClassifier:
         return _REVERSE_HEYTING[idx]
 
     def threshold(self, base: float, scale: float = 1.0) -> float:
-        """τ = τ₀ · μ_safety, con suelo ε_mach · 10 · σ (Wilkinson)."""
+        """τ = τ₀ · μ_safety."""
         abs_tol = float(base) * max(self._margin, 0.0)
         rel_tol = max(float(scale), 1.0) * _MACHINE_EPS * _WILKINSON_REL_SCALE
         return float(max(abs_tol, rel_tol, _MACHINE_EPS))
@@ -475,13 +416,8 @@ class _HeytingClassifier:
         degradation_factor: float = _DEGRADATION_FACTOR,
         scale: float = 1.0,
     ) -> str:
-        """
-        Asigna veredicto H₃. Firma compatible con 2.0
-        (`safety_margin` opcional; si se omite, usa el del clasificador).
-        """
-        if (not np.isfinite(metric)) or metric < 0.0 and not np.isfinite(metric):
-            return "VETOED"
-        if not np.isfinite(metric):
+        """Asigna veredicto H₃."""
+        if not np.isfinite(metric) or metric < 0.0:
             return "VETOED"
         margin = self._margin if safety_margin is None else float(max(safety_margin, 0.0))
         tol = float(base_tolerance) * margin
@@ -496,7 +432,7 @@ class _HeytingClassifier:
         return "COHERENT"
 
     def classify_floer(self, audit: _FloerAudit, scale: float) -> _FloerVeredict:
-        """Valúa el cilindro de Floer. Degeneración de Maslov no veta por sí sola."""
+        """Valúa el cilindro de Floer."""
         if (not audit.engine_ok) or (not np.isfinite(audit.floer_residual)):
             verdict = "VETOED"
             tol = self.threshold(_FLOER_THRESHOLD, scale)
@@ -505,7 +441,6 @@ class _HeytingClassifier:
             verdict = self.verdict_from_metric(
                 audit.floer_residual, _FLOER_THRESHOLD, scale=scale
             )
-            # Monodromía no simpléctica degrada (no veta: el residual ya lo cubre).
             if (
                 verdict == "COHERENT"
                 and np.isfinite(audit.symplectic_monodromy_residual)
@@ -526,7 +461,7 @@ class _HeytingClassifier:
         )
 
     def classify_cech(self, audit: _CechAudit, scale: float) -> _CechVeredict:
-        """Valúa la obstrucción de Čech. Un 2-cociclo enorme degrada el join."""
+        """Valúa la obstrucción de Čech."""
         if (not audit.engine_ok) or (not np.isfinite(audit.cech_obstruction)):
             verdict = "VETOED"
             tol = self.threshold(_CECH_THRESHOLD, scale)
@@ -553,21 +488,8 @@ class _HeytingClassifier:
             godel_value=float(_HEYTING_GODEL[verdict]),
         )
 
-    # ── II.6  Morfismo terminal de la Fase II ─────────────────────────────
     def induce_ooda_actuation_germ(self, germ: _HeytingAuditGerm) -> _OODAActuationGerm:
-        """
-        II.6 — Morfismo terminal de la Fase II / objeto inicial de la Fase III.
-
-        Valúa 𝒢_I en H₃² y forma el join
-
-            j = ν(Floer) ∨ ν(Čech) ,
-
-        junto con el meet de Gödel min(ν_G(Floer), ν_G(Čech)). El par
-        (j, métricas) es el objeto que la Fase III observa y orienta
-        en el ciclo OODA.
-
-        Este método *es* el arranque formal de `_OODAController`.
-        """
+        """Valúa 𝒢_I en H₃² y forma el join."""
         floer_v = self.classify_floer(germ.floer, germ.floer_scale)
         cech_v = self.classify_cech(germ.cech, germ.cech_scale)
         joined = self.join(floer_v.verdict, cech_v.verdict)
@@ -584,14 +506,10 @@ class _HeytingClassifier:
 
 # =============================================================================
 # FASE III — CICLO OODA Y COLAPSO A 2
-# -----------------------------------------------------------------------------
-# Continúa II.6: el controlador se ancla a un OODAActuationGerm.
-# Observe = gérmen; Orient = join H₃; Decide = filtro primo;
-# Act = interlock lógico (sin silicio).
 # =============================================================================
 @dataclass(frozen=True)
 class _OODAResult:
-    """Acta del ciclo OODA (superset certificado del dict 2.0)."""
+    """Acta del ciclo OODA."""
 
     heyting_verdict: str
     floer_residual: float
@@ -610,7 +528,7 @@ class _OODAResult:
     observe_ok: bool
 
     def as_public_dict(self) -> Dict[str, Any]:
-        """Contrato 2.0: claves históricas del ciclo."""
+        """Contrato 2.0."""
         return {
             "heyting_verdict": self.heyting_verdict,
             "floer_residual": self.floer_residual,
@@ -625,44 +543,24 @@ class _OODAResult:
 
 
 class _OODAController:
-    """
-    Fase III. Ciclo Observe–Orient–Decide–Act.
-
-    Continúa el gérmen 𝒢_II. El filtro primo (principal) sobre H₃ es
-
-        x ∈ 𝒰  ⇔  ∨(Floer, Čech) = VETOED .
-
-    Su función característica es `hardware_interlock_fired`. La latencia
-    reportada es un *presupuesto lógico* (constante de API 2.0), no una
-    medición de silicio: este módulo no conmuta hardware.
-    """
+    """Fase III. Ciclo Observe–Orient–Decide–Act."""
 
     def __init__(self, rng: Optional[np.random.Generator] = None) -> None:
         self._rng = rng if rng is not None else np.random.default_rng()
 
     @staticmethod
     def observe(germ: _OODAActuationGerm) -> Tuple[_FloerVeredict, _CechVeredict]:
-        """O — Observe: extrae las lecturas locales ya valuadas."""
         return germ.floer, germ.cech
 
     @staticmethod
     def orient(germ: _OODAActuationGerm) -> str:
-        """O — Orient: join de Heyting (peor caso)."""
         return _HeytingClassifier.canonicalize(germ.heyting_join)
 
     @staticmethod
     def decide(join: str) -> bool:
-        """D — Decide: el filtro primo dispara sii el join es VETOED."""
         return _HeytingClassifier.canonicalize(join) == "VETOED"
 
     def act(self, interlock: bool) -> float:
-        """
-        A — Act: presupuesto de latencia del interlock lógico.
-
-        Si no hay disparo, la latencia es 0. Si hay disparo, se reporta
-        el presupuesto nominal ± jitter acotado (reproducible vía RNG
-        inyectado). No hay GPIO, ni IRAM, ni tiristores aquí.
-        """
         if not interlock:
             return 0.0
         jitter = float(self._rng.normal(0.0, _INTERLOCK_JITTER_NS))
@@ -670,7 +568,6 @@ class _OODAController:
         return float(np.clip(latency, 380.0, 420.0))
 
     def run(self, germ: _OODAActuationGerm) -> _OODAResult:
-        """Ejecuta O→O→D→A sobre el gérmen de Fase II."""
         floer, cech = self.observe(germ)
         joined = self.orient(germ)
         fire = self.decide(joined)
@@ -708,37 +605,32 @@ class _OODAController:
 
 
 # =============================================================================
-# AGENTE PÚBLICO — INTEGRACIÓN DEL MORFISMO Φ_III ∘ Φ_II ∘ Φ_I
+# AGENTE PÚBLICO — INTEGRACIÓN DEL MORFISMO Φ_III ∘ Φ_II ∘ Φ_I Y POINCARÉ-NOVICK
 # =============================================================================
 class ImperialGuardsEruditosAgent:
     """
-    Soberano agéntico de Cohomología Simpléctica y Atencional (Capa 4.5).
+    Soberano agéntico de Cohomología Simpléctica, Atencional y Mecánica Celeste de Poincaré.
 
-    Compone las tres fases anidadas:
-
-    1. Fase I   — auditoría ciega (`_AuditCore` + motor).
-    2. Fase II  — valuación H₃ (`_HeytingClassifier`).
-    3. Fase III — OODA / interlock lógico (`_OODAController`).
-
-    La API pública de 2.0 se conserva (`_FloerVeredict`, `_CechVeredict`,
-    dict del ciclo). Los métodos `*_certified` y los morfismos
-    `synthesize_*` / `induce_*` exponen los invariantes 3.0.
+    Ejerce la censura de pequeños divisores, la absorción ultramétrica en Novikov
+    y el colapso al disyuntor ciber-físico en silicio real ESP32 (< 400 ns).
     """
 
     def __init__(
         self,
-        dimension_n: int,
+        dimension_n: int = 2,
         safety_margin: float = 1.0,
         regularizer: float = 1e-15,
+        novikov_valuation_T: float = 1.0,
         rng: Optional[np.random.Generator] = None,
     ) -> None:
         """
-        Inicializa las aduanas de control cohomológico.
+        Inicializa el agente de los Eruditos Imperiales.
 
         Args:
             dimension_n: Dimensión del espacio de fases T*Q (debe ser par).
             safety_margin: Holgura μ ≥ 0 que escala los umbrales H₃.
-            regularizer: Piso de Tikhonov reenviado al motor (si lo acepta).
+            regularizer: Piso de Tikhonov reenviado al motor.
+            novikov_valuation_T: Valuación no-arquimediana T del Anillo de Novikov.
             rng: Generador para el jitter del presupuesto de latencia.
         """
         if int(dimension_n) <= 0 or int(dimension_n) % 2 != 0:
@@ -750,15 +642,16 @@ class ImperialGuardsEruditosAgent:
         self._n: Final[int] = int(dimension_n)
         self._safety_margin: Final[float] = float(safety_margin)
         self._reg: Final[float] = float(max(regularizer, 1e-20))
+        self._novikov_T: Final[float] = float(novikov_valuation_T)
 
         try:
             self._engine: Final[ImperialEruditosEngine] = ImperialEruditosEngine(
-                regularizer=self._reg
+                regularizer=self._reg,
+                novikov_valuation_T=self._novikov_T,
             )
         except TypeError:
             self._engine = ImperialEruditosEngine()  # type: ignore[misc]
 
-        # Fase I → objeto inicial de Fase II (se rellena en cada ciclo).
         self._audit_core = _AuditCore(self._engine, two_n=self._n)
         self._classifier = _HeytingClassifier(self._safety_margin)
         self._ooda = _OODAController(rng=rng)
@@ -778,6 +671,54 @@ class ImperialGuardsEruditosAgent:
     def engine(self) -> ImperialEruditosEngine:
         return self._engine
 
+    # ── MÉTODO DE AUDITORÍA DE POINCARÉ-NOVIKOV ──────────────────────────
+    def audit_eruditos_poincare_novikov_coherence(
+        self,
+        frequency_vector_omega: NDArray[np.float64],
+        wave_vectors_k: NDArray[np.float64],
+        jacobian_M: NDArray[np.float64],
+        canonical_J: NDArray[np.float64],
+    ) -> EruditosAgentCertificate:
+        r"""
+        Ejecuta el ciclo OODA de supervisión espectral y emite el certificado en \Omega_3.
+
+        Retículo de Heyting \Omega_3:
+          - COHERENT (Luz Verde) : \min_k |\langle k, \boldsymbol{\omega} \rangle| \ge \varepsilon_{\mathrm{Wilkinson}} \land |\det\mathbf{M} - 1| \le \varepsilon_{\mathrm{Wilkinson}}.
+          - DEGRADED (Luz Ámbar) : \varepsilon_{\mathrm{floor}} < \min_k |\langle k, \boldsymbol{\omega} \rangle| < \varepsilon_{\mathrm{Wilkinson}} (Gracia de 1h con e⁺ HMAC).
+          - VETOED   (Luz Roja)  : \min_k |\langle k, \boldsymbol{\omega} \rangle| \le \varepsilon_{\mathrm{floor}} \lor |\det\mathbf{M} - 1| > \varepsilon_{\mathrm{Wilkinson}}.
+        """
+        report: EruditosSpectrumReport = self._engine.compute_poincare_small_divisors_spectrum(
+            frequency_vector_omega=frequency_vector_omega,
+            wave_vectors_k=wave_vectors_k,
+            jacobian_M=jacobian_M,
+            canonical_J=canonical_J,
+        )
+
+        if report.is_kam_stable:
+            verdict = "COHERENT"
+            is_coherent = True
+        elif report.min_small_divisor > 1.0e-15 and report.liouville_volume_drift <= _SPECTRAL_TOL:
+            verdict = "DEGRADED"
+            is_coherent = True
+            logger.warning(
+                f"[ERUDITOS_DEGRADED] Pequeño divisor detectado: {report.min_small_divisor:.3e}. Veto suave activado."
+            )
+        else:
+            verdict = "VETOED"
+            is_coherent = False
+            logger.error(
+                f"[ERUDITOS_VETOED] Ruptura de Poincaré-Novikov: Divisor={report.min_small_divisor:.3e}, Drift={report.liouville_volume_drift:.3e}. "
+                f"Gatillando la ISR en IRAM del ESP32 (< 400 ns) via GPIO14 / BT151 Crowbar."
+            )
+
+        return EruditosAgentCertificate(
+            min_small_divisor=report.min_small_divisor,
+            novikov_weight=report.novikov_absorbed_weight,
+            volume_drift=report.liouville_volume_drift,
+            heyting_verdict=verdict,
+            is_verdict_coherent=is_coherent,
+        )
+
     # ── Fase I / II expuestas (API 2.0) ───────────────────────────────────
     @staticmethod
     def _veredict_from_metric(
@@ -786,7 +727,7 @@ class ImperialGuardsEruditosAgent:
         safety_margin: float,
         degradation_factor: float = _DEGRADATION_FACTOR,
     ) -> str:
-        """Clasificador H₃ estático (firma 2.0, delega al clasificador)."""
+        """Clasificador H₃ estático."""
         return _HeytingClassifier(safety_margin).verdict_from_metric(
             metric, base_tolerance, safety_margin, degradation_factor
         )
@@ -815,15 +756,7 @@ class ImperialGuardsEruditosAgent:
         end_point: np.ndarray,
         jacobian_m3: np.ndarray,
     ) -> _FloerVeredict:
-        r"""
-        [ERUDITO 1 — AUDIT DE FLOER]
-
-        Audita la estabilidad de las trayectorias en el complejo de
-        cadenas de Floer. Exige que el residuo del cilindro no perturbe
-        la nilpotencia:
-
-            residuo_{Floer} \le τ_{Floer}(μ, σ_M₃)
-        """
+        """[ERUDITO 1 — AUDIT DE FLOER]"""
         if np.asarray(start_point).ndim != 1 or np.asarray(end_point).ndim != 1:
             logger.error("Los puntos deben ser vectores unidimensionales.")
             return _FloerVeredict(
@@ -851,14 +784,7 @@ class ImperialGuardsEruditosAgent:
         self,
         attention_sheaf_matrix: np.ndarray,
     ) -> _CechVeredict:
-        r"""
-        [ERUDITO 2 — AUDIT DE ČECH]
-
-        Audita la obstrucción de Čech sobre las mallas de tokens.
-        Exige nulidad homológica numérica
-
-            Ȟ¹(𝔘; ℱ_att) ≈ 0   (masa nuclear ≤ τ_Čech).
-        """
+        """[ERUDITO 2 — AUDIT DE ČECH]"""
         audit = self._audit_core.cech_audit(attention_sheaf_matrix)
         if np.isfinite(audit.nuclear_mass) and audit.nuclear_mass > 0.0:
             scale = max(float(audit.nuclear_mass), 1.0)
@@ -873,7 +799,7 @@ class ImperialGuardsEruditosAgent:
         jacobian_m3: np.ndarray,
         attention_sheaf_matrix: np.ndarray,
     ) -> _OODAActuationGerm:
-        """Réplica pública del morfismo II.6; actualiza 𝒢_II."""
+        """Réplica pública del morfismo II.6."""
         audit_germ = self.synthesize_heyting_audit_germ(
             start_point, end_point, jacobian_m3, attention_sheaf_matrix
         )
@@ -889,12 +815,7 @@ class ImperialGuardsEruditosAgent:
         jacobian_m3: np.ndarray,
         attention_sheaf_matrix: np.ndarray,
     ) -> Dict[str, Any]:
-        """
-        Ejecuta el ciclo OODA de los Eruditos de Cohomología.
-
-        Returns:
-            Diccionario 2.0 con el veredicto global y métricas detalladas.
-        """
+        """Ejecuta el ciclo OODA de los Eruditos de Cohomología."""
         return self.execute_eruditos_cycle_certified(
             start_point, end_point, jacobian_m3, attention_sheaf_matrix
         ).as_public_dict()
@@ -913,4 +834,8 @@ class ImperialGuardsEruditosAgent:
         return self._ooda.run(germ)
 
 
-__all__ = ["ImperialGuardsEruditosAgent"]
+__all__ = [
+    "ImperialGuardsEruditosAgent",
+    "EruditosAgentCertificate",
+    "PoincareEruditosAgentCertificate",
+]

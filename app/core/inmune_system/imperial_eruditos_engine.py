@@ -3,40 +3,45 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Imperial Eruditos Engine (Caballos de Batalla de Cohomología)       ║
 ║ Ruta   : app/core/inmune_system/imperial_eruditos_engine.py                  ║
-║ Versión: 3.0.0-Nested-Phases-Floer-CZ-Cech-Hodge-CSMD-Kahan-FPU              ║
+║ Versión: 5.0.0-Poincare-Novikov-KAM-PhD                                     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor cohomológico asiste síncronamente al Consejo de Sabios. Evalúa la regularidad
-elíptica y el potencial de acción de cilindros pseudo-holomorfos en el espacio de fase
-simpléctico (Floer) y aniquila bucles parasitarios en el KV-Cache del LLM (Čech atencional).
+Este motor cohomológico y de mecánica celeste asiste síncronamente al Consejo de Sabios.
+Evalúa la regularidad elíptica y el potencial de acción de cilindros pseudo-holomorfos
+en el espacio de fase simpléctico (Floer), aniquila bucles parasitarios en el KV-Cache
+del LLM (Čech atencional) y resuelve el espectro de pequeños divisores de Poincaré-KAM
+con absorción ultramétrica en el Anillo de Novikov \Lambda_{\mathrm{Nov}}.
 
-MÉTODOS GRANULARES:
+MÉTODOS GRANULARES Y CÁLCULO DE MECÁNICA CELESTE DE HENRI POINCARÉ:
 
-1. compute_symplectic_gradient(potential_func: Any, x: np.ndarray, h: float = 1e-20) -> np.ndarray:
+1. compute_poincare_small_divisors_spectrum(frequency_vector_omega, wave_vectors_k, jacobian_M, canonical_J):
+   Calcula el espectro de pequeños divisores de Poincaré-KAM, absorción ultramétrica T-ádica
+   en \Lambda_{\mathrm{Nov}} y la conservación simpléctica de Liouville-Darboux:
+   $$\min_k |\langle k, \boldsymbol{\omega} \rangle| \ge \varepsilon_{\mathrm{Wilkinson}}$$
+   $$W_{\mathrm{Novikov}} = \exp\left( -\frac{T_{\mathrm{val}}}{\varepsilon + |\langle k, \boldsymbol{\omega} \rangle|} \right)$$
+   $$\det(\mathbf{M}_t) = +1 \implies |\det(\mathbf{M}_t) - 1| \le \varepsilon_{\mathrm{Wilkinson}}$$
+
+2. compute_maupertuis_jacobi_conformal_metric(hamiltonian_energy_H0, potential_energy_V, base_metric_g):
+   Calcula la métrica conforme de Maupertuis-Jacobi \tilde{g}_{jk}(q) = 2 (H_0 - V(q)) g_{jk}(q)
+   para trayectorias variacionales de mínima acción exergética en el fibrado cotangente.
+
+3. compute_symplectic_gradient(potential_func: Any, x: np.ndarray, h: float = 1e-20) -> np.ndarray:
    Calcula el campo vectorial simpléctico X_H = \Omega \nabla H_t perturbando la fibra mediante
    CSMD para eludir cancelaciones sustractivas en la mantisa de la CPU:
    $$X_H = \Omega \cdot \frac{\operatorname{Im}\left(H(x + j \cdot h \cdot e_k)\right)}{h} + \mathcal{O}(h^2)$$
-   - potential_func: Callable que representa el Hamiltoniano de atención.
-   - x: np.ndarray del punto de evaluación.
-   - Retorna: np.ndarray (campo simpléctico graduado).
 
-2. verify_floer_homology_trajectory(u_start: np.ndarray, u_end: np.ndarray, potential_func: Any) -> Tuple[float, float]:
+4. verify_floer_homology_trajectory(u_start: np.ndarray, u_end: np.ndarray, potential_func: Any) -> Tuple[float, float]:
    Evalúa la regularidad y el potencial de acción del cilindro pseudo-holomorfo
    u: \mathbb{R} \times S^1 -> \mathcal{M} en la categoría de Fukaya, exigiendo nilpotencia de
    la diferencial de Floer (\partial^2 \equiv 0) ante alucinaciones semánticas:
    $$\bar{\partial}_{J, H}(u) = \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) \equiv 0$$
-   - u_start, u_end: np.ndarray (estados extremos del cilindro de Floer).
-   - potential_func: Callable Hamiltoniano.
-   - Retorna: Tuple con el residual de la acción de Floer y el potencial de transición.
 
-3. compute_attention_cech_cohomology(attention_weights: np.ndarray, regularizer: float = 1e-12) -> Tuple[float, np.ndarray]:
-   Modela los pesos del KV-Cache como un haz celular \mathcal{F}_{\mathrm{att}} sobre la cobertura
+5. compute_attention_cech_cohomology(attention_weights: np.ndarray, regularizer: float = 1e-12) -> Tuple[float, np.ndarray]:
+   Modela los pesos del KV-Cache como un haz cellular \mathcal{F}_{\mathrm{att}} sobre la cobertura
    Čech \mathcal{U}. Calcula el rango virtual de la co-frontera Čech aplicando SVD en la FPU regularizada
    con Higham-Tikhonov, exigiendo la aniquilación del primer grupo de cohomología:
    $$\check{H}^1(\mathcal{U}; \, \mathcal{F}_{\mathrm{att}}) \equiv 0 \implies \mathcal{O}_{\mathrm{\check{C}ech}} \equiv 0$$
-   - attention_weights: np.ndarray (matriz de atención del LLM).
-   - Retorna: Tuple con la obstrucción Čech de-confinada y los valores singulares del haz.
 """
 
 from __future__ import annotations
@@ -44,23 +49,26 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from typing import Callable, Final, Optional, Tuple
-
 import numpy as np
 import scipy.linalg as la
+from numpy.typing import NDArray
 
 logger = logging.getLogger("APU.Core.ImperialEruditosEngine")
 
-__version__: Final[str] = "3.0.0-Nested-Phases-Floer-CZ-Cech-Hodge-CSMD-Kahan-FPU"
+__version__: Final[str] = "5.0.0-Poincare-Novikov-KAM-PhD"
 
 
 # =============================================================================
-# CONSTANTES DE PRECISIÓN METROLÓGICA
+# CONSTANTES DE PRECISIÓN METROLÓGICA Y MECÁNICA CELESTE DE POINCARÉ
 # =============================================================================
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _HIGHAM_TIKHONOV_FLOOR: Final[float] = 1e-20
 _WILKINSON_DEFLATION_FLOOR: Final[float] = 1e-15
 _WILKINSON_DEFLATION_SCALE: Final[float] = 10.0
 _WILKINSON_DRIFT_LIMIT: Final[float] = 1e-9
+_WILKINSON_LIMIT: Final[float] = 1.0e-12
+_SPECTRAL_TOL: Final[float] = 1.0e-9
+_HARD_DIVERGENCE_CEILING: Final[float] = 1.0e-4
 _CSMD_STEP: Final[float] = 1e-20
 _CSMD_FD_FALLBACK: Final[float] = 1e-8
 _CECH_TRIPLE_CAP: Final[int] = 80
@@ -68,8 +76,22 @@ _LOG_EXP_CLIP: Final[float] = 700.0
 _MASLOV_DEGENERACY: Final[float] = 1e-10
 
 
+@dataclass(frozen=True, slots=True)
+class EruditosSpectrumReport:
+    r"""Reporte numérico inmutable emitido por la FPU del motor de los Eruditos."""
+
+    min_small_divisor: float
+    novikov_absorbed_weight: float
+    maurercartan_residual: float
+    liouville_volume_drift: float
+    is_kam_stable: bool
+
+
+PoincareEruditosSpectrumReport = EruditosSpectrumReport
+
+
 # =============================================================================
-# FASE I — NÚCLEO DE BANACH, DARBOUX Y CSMD HOLMORFA
+# FASE I — NÚCLEO DE BANACH, DARBOUX Y CSMD HOLOMORFA
 # -----------------------------------------------------------------------------
 # Objetos: sumas compensadas, 2-forma canónica Ω, gradiente / Hessiano CSMD,
 #          campo hamiltoniano X_H = Ω ∇H y acción de Liouville discreta.
@@ -99,21 +121,6 @@ class _FloerCylinderGerm:
         ∂̄_{J,H}(u) = ∂_s u + J(u)(∂_t u − X_H(u))
 
     y el funcional de acción 𝒜_H(γ) = ∫_γ λ − ∫ H dt.
-
-    Atributos
-    ---------
-    two_n:
-        Dimensión de T*Q ≅ ℝ^{2n} (par, estructura de Darboux).
-    n:
-        Dimensión del espacio de configuración Q.
-    omega:
-        2-forma canónica Ω = [0 I; −I 0].
-    csmd_step:
-        Paso imaginario de la diferenciación holomorfa.
-    reg_floor:
-        Piso de Tikhonov–Higham–Wilkinson.
-    form_certificate:
-        Certificado (Ωᵀ = −Ω, Ω² = −I, det Ω = 1).
     """
 
     two_n: int
@@ -133,15 +140,10 @@ class _NumericalCore:
     cancelación sustractiva) y el gérmen que inicia la Fase II.
     """
 
-    # ── I.1  Sumación compensada ──────────────────────────────────────────
     @staticmethod
     def kahan_sum(arr: np.ndarray) -> float:
         """
         Sumación compensada de Kahan.
-
-        Neutraliza el término de redondeo \(c_{k+1}=(t_k-s_k)-y_k\) de modo
-        que \(\sum x_i\) sea exacta módulo O(u · Σ|x_i|) en lugar de
-        O(n u · max|x_i|).
         """
         total = 0.0
         c = 0.0
@@ -158,9 +160,6 @@ class _NumericalCore:
     def kahan_babuska_neumaier_sum(arr: np.ndarray) -> float:
         """
         Sumación de Kahan–Babuška–Neumaier (KBN).
-
-        Acumula la compensación cuando |x| > |s|, estabilizando
-        cancelaciones de signo mixto (crítico en cobordes de Čech).
         """
         total = 0.0
         c = 0.0
@@ -176,17 +175,11 @@ class _NumericalCore:
             total = t
         return float(total + c)
 
-    # Alias histórico (v2.0 usaba el epónimo incorrecto "Neumann").
     kahan_babuska_neumann_sum = kahan_babuska_neumaier_sum
 
     @staticmethod
     def klein_sum(arr: np.ndarray) -> float:
-        """
-        Sumación doblemente compensada de Klein (error O(u²) relativo).
-
-        Se reserva para invariantes espectrales críticos (masa nuclear de
-        Čech, energía armónica).
-        """
+        """Sumación doblemente compensada de Klein."""
         s = 0.0
         cs = 0.0
         ccs = 0.0
@@ -209,7 +202,6 @@ class _NumericalCore:
             ccs += cc
         return float(s + cs + ccs)
 
-    # ── I.2  Normas y validación tensorial ────────────────────────────────
     @staticmethod
     def frobenius_norm(matrix: np.ndarray) -> float:
         """Norma de Hilbert–Schmidt / Frobenius ‖A‖_F."""
@@ -266,13 +258,7 @@ class _NumericalCore:
         rel_floor: float = _MACHINE_EPS,
         abs_floor: float = _HIGHAM_TIKHONOV_FLOOR,
     ) -> Tuple[np.ndarray, np.ndarray, float]:
-        """
-        Pseudoinversa amortiguada de Tikhonov–Higham vía SVD.
-
-            σ⁺_i = σ_i / (σ_i² + λ²)    si σ_i > λ,
-                 = 0                    en otro caso,
-        con λ = max(abs_floor, rel_floor · σ_max). Devuelve (A⁺, σ, κ₂).
-        """
+        """Pseudoinversa amortiguada de Tikhonov–Higham vía SVD."""
         a = np.asarray(matrix)
         if a.size == 0:
             return a.copy(), np.array([], dtype=np.float64), float("inf")
@@ -292,18 +278,9 @@ class _NumericalCore:
         cond = float(s_vals[0] / max(s_min_live, _MACHINE_EPS))
         return pinv, s_vals, cond
 
-    # ── I.3  2-forma simpléctica canónica de Darboux ──────────────────────
     @staticmethod
     def generate_canonical_symplectic_form(dim: int) -> np.ndarray:
-        """
-        2-forma canónica de Liouville Ω ∈ ℝ^{dim×dim}, dim = 2n par.
-
-            Ω = ⎡ 0   I_n ⎤ ,   Ωᵀ = −Ω ,   Ω² = −I ,   Ω⁻¹ = −Ω .
-                ⎣−I_n  0  ⎦
-
-        Con esta convención Hamilton se lee X_H = Ω ∇H, i.e.
-        q̇ = ∂H/∂p, ṗ = −∂H/∂q.
-        """
+        """2-forma canónica de Liouville Ω ∈ ℝ^{dim×dim}, dim = 2n par."""
         if dim <= 0 or dim % 2 != 0:
             raise ValueError(
                 f"La dimensión del espacio simpléctico dim={dim} debe ser par y positiva."
@@ -340,11 +317,7 @@ class _NumericalCore:
 
     @staticmethod
     def wilkinson_deflation_floor(matrix: np.ndarray) -> float:
-        """
-        Piso de deflación adaptativo de Wilkinson:
-
-            ε_W = max( ‖A‖_F · ε_mach · 10 ,  ε_Wilkinson ).
-        """
+        """Piso de deflación adaptativo de Wilkinson."""
         if matrix is None or np.asarray(matrix).size == 0:
             return _WILKINSON_DEFLATION_FLOOR
         fro_norm = _NumericalCore.frobenius_norm(matrix)
@@ -355,22 +328,13 @@ class _NumericalCore:
             )
         )
 
-    # ── I.4  Diferenciación holomorfa por paso complejo (CSMD) ────────────
     @staticmethod
     def compute_gradient_csmd(
         func: Callable[[np.ndarray], float],
         x: np.ndarray,
         h: float = _CSMD_STEP,
     ) -> np.ndarray:
-        """
-        Gradiente CSMD de una función escalar (Lyness–Moler / Squire–Trapp).
-
-            ∂_i f(x) = Im[ f(x + i h e_i) ] / h  +  O(h²)
-
-        No hay cancelación sustractiva: h puede ser ~ 10⁻²⁰. Si `func` no
-        acepta entradas complejas (fallo de holomorfía: |·|, max, ReLU),
-        se cae a diferencias centrales con paso √ε.
-        """
+        """Gradiente CSMD de una función escalar."""
         xv = _NumericalCore.assert_vec("x", np.asarray(x, dtype=np.float64))
         if not np.isfinite(h) or h == 0.0:
             raise ValueError("El paso CSMD h debe ser finito y no nulo.")
@@ -421,13 +385,7 @@ class _NumericalCore:
         x: np.ndarray,
         h: float = _CSMD_STEP,
     ) -> np.ndarray:
-        """
-        Hessiano por diferencia central de gradientes CSMD.
-
-            Hess_{ij} f(x) ≈ [∇f(x + η e_j) − ∇f(x − η e_j)]_i / (2η)
-
-        con η = √ε_mach · max(1, ‖x‖). Se hermitiza al final (Higham).
-        """
+        """Hessiano por diferencia central de gradientes CSMD."""
         xv = _NumericalCore.assert_vec("x", np.asarray(x, dtype=np.float64))
         dim = xv.size
         scale = max(_NumericalCore.euclidean_norm(xv), 1.0)
@@ -450,13 +408,7 @@ class _NumericalCore:
         x: np.ndarray,
         h: float = _CSMD_STEP,
     ) -> np.ndarray:
-        """
-        Campo vectorial hamiltoniano X_H = Ω ∇H(x).
-
-        Con Ω canónica esto reproduce las ecuaciones de Hamilton. El
-        resultado es, por construcción, una sección de TT*Q que preserva
-        Ω (teorema de Cartan: ℒ_{X_H} Ω = 0 si d²H = 0, siempre cierto).
-        """
+        """Campo vectorial hamiltoniano X_H = Ω ∇H(x)."""
         xv = cls.assert_vec("x", np.asarray(x, dtype=np.float64))
         dim = xv.size
         if dim % 2 != 0:
@@ -467,18 +419,9 @@ class _NumericalCore:
         grad = cls.compute_gradient_csmd(hamiltonian_func, xv, h)
         return omega @ grad
 
-    # ── I.5  Acción de Liouville discreta (puente a Floer) ────────────────
     @staticmethod
     def liouville_action(start_point: np.ndarray, end_point: np.ndarray) -> float:
-        """
-        Acción de Liouville del segmento geodésico euclídeo γ: start → end.
-
-            𝒜_λ(γ) = ∫_γ p dq  ≈  ((p₀ + p₁)/2) · (q₁ − q₀)
-
-        Es el término topológico del funcional de Floer 𝒜_H = 𝒜_λ − ∫ H dt
-        y el objeto que la Fase II refina con el Hamiltoniano y el
-        monodromía.
-        """
+        """Acción de Liouville del segmento geodésico euclídeo γ: start → end."""
         z0 = _NumericalCore.assert_vec("start_point", start_point)
         z1 = _NumericalCore.assert_vec("end_point", end_point)
         if z0.size != z1.size:
@@ -492,7 +435,6 @@ class _NumericalCore:
         dq = q1 - q0
         return _NumericalCore.kahan_babuska_neumaier_sum(mid_p * dq)
 
-    # ── I.9  Morfismo terminal de la Fase I ───────────────────────────────
     @staticmethod
     def synthesize_floer_cylinder_germ(
         dimension_two_n: int,
@@ -500,20 +442,7 @@ class _NumericalCore:
         regularizer: float = _HIGHAM_TIKHONOV_FLOOR,
         scale_matrix: Optional[np.ndarray] = None,
     ) -> _FloerCylinderGerm:
-        """
-        I.9 — Morfismo terminal de la Fase I / objeto inicial de la Fase II.
-
-        Ensambla el gérmen del cilindro de Floer
-
-            𝒢_I = (2n, n, Ω_{Darboux}, h_CSMD, ε_W, Cert(Ω))
-
-        sobre el cual la Fase II define el operador de Cauchy–Riemann
-        perturbado ∂̄_{J,H} y el funcional 𝒜_H. Si se provee
-        `scale_matrix` (p. ej. el Jacobiano / monodromía M₃), el piso de
-        Wilkinson se adapta a su norma de Frobenius.
-
-        Este método *es* el arranque formal de `_FloerHomologyVerifier`.
-        """
+        """Sintetiza el gérmen del cilindro de Floer."""
         dim = int(dimension_two_n)
         if dim <= 0 or dim % 2 != 0:
             raise ValueError(
@@ -545,10 +474,6 @@ class _NumericalCore:
 
 # =============================================================================
 # FASE II — HOMOLOGÍA DE FLOER, CONLEY–ZEHNDER Y LIFTING AL NERVIO
-# -----------------------------------------------------------------------------
-# Continúa I.9: todo verificador se instancia desde un FloerCylinderGerm.
-# Morfismo terminal (II.7): induce_cech_nerve_germ
-#          ≅ objeto inicial de la Fase III (Gram / conexión de Čech).
 # =============================================================================
 @dataclass(frozen=True)
 class _FloerResult:
@@ -567,18 +492,7 @@ class _FloerResult:
 
 @dataclass(frozen=True)
 class _CechNerveGerm:
-    """
-    Gérmen del nervio atencional (objeto terminal de la Fase II).
-
-    Es el objeto inicial de la Fase III: la transformada de Cayley del
-    monodromía simpléctico M₃ produce una matriz hermítica
-
-        K = Higham( −Ω (M−I)(M+I)⁺ )
-
-    que se interpreta como Gram de secciones locales (o, si es
-    predominantemente antisimétrica, como 1-cociclo de conexión) sobre
-    el nervio del recubrimiento semántico.
-    """
+    """Gérmen del nervio atencional."""
 
     sheaf_gram: np.ndarray
     cayley_condition: float
@@ -588,26 +502,13 @@ class _CechNerveGerm:
 
 
 class _FloerHomologyVerifier:
-    """
-    Fase II. Verificador de homología de Floer.
-
-    Continúa el gérmen 𝒢_I. Sobre el cilindro ℝ × S¹ mide:
-
-    * el residuo discreto de ∂̄_{J,H} (cuerda + defecto simpléctico de M₃);
-    * el funcional de acción (Liouville + cuerda);
-    * el índice de Conley–Zehnder / Robbin–Salamon del monodromía;
-    * la no-degeneración (distancia de spec(M₃) al ciclo de Maslov {1}).
-
-    El Jacobiano `jacobian_m3` se interpreta como la aplicación de
-    Poincaré / monodromía del flujo hamiltoniano linealizado a tiempo 1.
-    """
+    """Fase II. Verificador de homología de Floer."""
 
     def __init__(self, germ: _FloerCylinderGerm) -> None:
         self._germ = germ
 
     @property
     def germ(self) -> _FloerCylinderGerm:
-        """Gérmen de Fase I del que este verificador es continuación."""
         return self._germ
 
     def _coerce_pair(
@@ -649,26 +550,12 @@ class _FloerHomologyVerifier:
         return _NumericalCore.generate_canonical_symplectic_form(dim)
 
     def maslov_degeneracy(self, jacobian_m3: np.ndarray) -> float:
-        """
-        Distancia de spec(M) a {1}: min_i |λ_i(M) − 1|.
-
-        Cero sii M yace en el ciclo de Maslov (órbita degenerada, el
-        índice de Conley–Zehnder no está definido como entero).
-        """
+        """Distancia de spec(M) a {1}: min_i |λ_i(M) − 1|."""
         ev = la.eigvals(np.asarray(jacobian_m3, dtype=np.float64))
         return float(np.min(np.abs(ev - 1.0)))
 
     def conley_zehnder_index(self, jacobian_m3: np.ndarray) -> float:
-        """
-        Índice de Conley–Zehnder / Robbin–Salamon del monodromía M ∈ Sp(2n).
-
-        Polar M = UP; la parte U se proyecta a U(n) vía la identificación
-        ℝ^{2n} ≅ ℂ^n, (q, p) ↔ q + i p. Si U_ℂ = X + i Y,
-
-            CZ(M) ≈ (1/π) Σ_k Arg(λ_k(U_ℂ))   ∈ ℝ
-
-        (convención de Robbin–Salamon: semientero si 1 ∈ spec(M)).
-        """
+        """Índice de Conley–Zehnder / Robbin–Salamon del monodromía M ∈ Sp(2n)."""
         M = np.asarray(jacobian_m3, dtype=np.float64)
         dim = M.shape[0]
         n = dim // 2
@@ -680,7 +567,6 @@ class _FloerHomologyVerifier:
         x_blk = 0.5 * (u_polar[:n, :n] + u_polar[n:, n:])
         y_blk = 0.5 * (u_polar[n:, :n] - u_polar[:n, n:])
         u_c = np.asarray(x_blk + 1j * y_blk, dtype=np.complex128)
-        # Proyección de Higham al grupo unitario.
         try:
             uu, ss, vv = la.svd(u_c, full_matrices=False)
             u_c = uu @ vv
@@ -691,7 +577,6 @@ class _FloerHomologyVerifier:
         angles = np.angle(ev)
         cz = float(_NumericalCore.kahan_babuska_neumaier_sum(angles) / np.pi)
         if self.maslov_degeneracy(M) <= _MASLOV_DEGENERACY:
-            # Cruce: Robbin–Salamon aporta un semientero.
             cz += 0.5 * np.sign(cz) if cz != 0.0 else 0.5
         return cz
 
@@ -702,18 +587,7 @@ class _FloerHomologyVerifier:
         jacobian_m3: np.ndarray,
         hamiltonian_func: Optional[Callable[[np.ndarray], float]] = None,
     ) -> _FloerResult:
-        """
-        Certifica el cilindro de Floer discreto (start ⇝ end; M₃).
-
-        Residuo (refinamiento monótono de v2.0):
-
-            R = ‖end−start‖ (1 + ‖M₃‖_F)  +  ‖M₃ᵀ Ω M₃ − Ω‖_F
-
-        El segundo sumando se anula sobre Sp(2n), de modo que en monodromías
-        exactas se recupera el residual 2.0. La acción reportada en la API
-        sigue siendo la longitud de cuerda; la acción de Liouville y la
-        energía de Dirichlet viven en el certificado.
-        """
+        """Certifica el cilindro de Floer discreto."""
         z0, z1, M = self._coerce_pair(start_point, end_point, jacobian_m3)
 
         chord = _NumericalCore.euclidean_norm(z1 - z0)
@@ -723,7 +597,6 @@ class _FloerHomologyVerifier:
 
         liouville = _NumericalCore.liouville_action(z0, z1)
         if hamiltonian_func is not None:
-            # Regla del trapecio sobre el segmento (start, end).
             try:
                 h0 = float(np.real(hamiltonian_func(z0)))
                 h1 = float(np.real(hamiltonian_func(z1)))
@@ -750,27 +623,13 @@ class _FloerHomologyVerifier:
             is_symplectic_monodromy=bool(is_sp),
         )
 
-    # ── II.7  Morfismo terminal de la Fase II ─────────────────────────────
     def induce_cech_nerve_germ(
         self,
         jacobian_m3: np.ndarray,
         start_point: Optional[np.ndarray] = None,
         end_point: Optional[np.ndarray] = None,
     ) -> _CechNerveGerm:
-        """
-        II.7 — Morfismo terminal de la Fase II / objeto inicial de la Fase III.
-
-        Cuantiza el monodromía de Floer como Gram / conexión de Čech vía
-        la transformada de Cayley regularizada
-
-            W = (M − I)(M + I)⁺ ,   K = Higham(−Ω W).
-
-        K ∈ Herm(2n) es el objeto que la Fase III toma como matriz de
-        haz atencional (secciones locales / 1-cociclo). Si se proveen
-        los extremos, se usa su dimensión como chequeo de coherencia.
-
-        Este método *es* el arranque formal de `_AttentionCechCohomology`.
-        """
+        """Cuantiza el monodromía de Floer como Gram de Čech."""
         M = np.asarray(jacobian_m3)
         if M.ndim == 1:
             side = int(np.sqrt(M.size))
@@ -806,9 +665,6 @@ class _FloerHomologyVerifier:
 
 # =============================================================================
 # FASE III — COHOMOLOGÍA DE ČECH ATENCIONAL, HODGE Y BETTI
-# -----------------------------------------------------------------------------
-# Continúa II.7: el calculador se ancla a un CechNerveGerm (o lo induce
-# por hermitización directa de una matriz de haz cruda).
 # =============================================================================
 @dataclass(frozen=True)
 class _CechCohomologyResult:
@@ -825,21 +681,7 @@ class _CechCohomologyResult:
 
 
 class _AttentionCechCohomology:
-    """
-    Fase III. Cohomología de Čech del haz atencional.
-
-    Continúa el gérmen 𝒢_II cuando se provee. Interpreta la matriz de
-    haz A de dos modos complementarios (topos de haces sobre el nervio):
-
-    * **Gram / Laplace** (A ≈ A†): Laplaciano de Hodge Δ = δδ* + δ*δ
-      del grafo umbralizado; β₀ = dim ker Δ, β₁ = e − v + β₀.
-    * **Conexión / curvatura** (A ≈ −A†): A se lee como 1-cochain ω y
-      (δω)_{ijk} = ω_{jk} − ω_{ik} + ω_{ij} es la obstrucción en Ȟ².
-
-    La obstrucción reportada por la API 2.0 permanece siendo la masa
-    nuclear de los modos activos (suma KBN de valores singulares sobre
-    el piso de Wilkinson), invariante espectral estable.
-    """
+    """Fase III. Cohomología de Čech del haz atencional."""
 
     def __init__(
         self,
@@ -863,15 +705,7 @@ class _AttentionCechCohomology:
         return np.asarray(a, dtype=np.complex128)
 
     def cech_coboundary_defect(self, omega: np.ndarray) -> float:
-        """
-        ‖δω‖² del 1-cochain antisimétrico, con
-
-            (δω)_{ijk} = ω_{jk} − ω_{ik} + ω_{ij} ,   i < j < k.
-
-        Es idénticamente nulo si ω = δf (lema de Poincaré combinatorio /
-        δ² = 0). Para N > `_CECH_TRIPLE_CAP` se muestrea un subconjunto
-        determinista de tríadas (stride regular) para no degradar la FPU.
-        """
+        """‖δω‖² del 1-cochain antisimétrico."""
         w = np.real(0.5 * (np.asarray(omega) - np.asarray(omega).T.conj()))
         n = w.shape[0]
         if n < 3:
@@ -904,13 +738,7 @@ class _AttentionCechCohomology:
         gram: np.ndarray,
         floor: float,
     ) -> Tuple[np.ndarray, np.ndarray, int, int, float]:
-        """
-        Espectro del Laplaciano de Hodge combinatorio del nervio.
-
-        El nervio se obtiene umbralizando |A_{ij}| > floor (i ≠ j).
-        Δ_0 = D − W (Laplaciano simétrico de Higham) actúa en C⁰.
-        Devuelve (eigenvalues, active_modes, β₀, β₁, harmonic_energy).
-        """
+        """Espectro del Laplaciano de Hodge combinatorio del nervio."""
         herm = np.real(_NumericalCore.higham_nearest_hermitian(gram))
         n = herm.shape[0]
         weights = np.abs(herm)
@@ -921,27 +749,16 @@ class _AttentionCechCohomology:
         lap = np.diag(degree) - weights
         lap = np.real(_NumericalCore.higham_nearest_hermitian(lap))
         evals = np.real(la.eigvalsh(lap)) if n else np.array([], dtype=np.float64)
-        # β₀ = multiplicidad numérica del núcleo.
         ker_tol = max(floor, _WILKINSON_DEFLATION_FLOOR * max(n, 1))
         betti_0 = int(np.sum(evals <= ker_tol))
         n_edges = int(np.sum(np.triu(adjacency, 1)))
         betti_1 = int(max(n_edges - n + betti_0, 0))
         active = evals[evals > ker_tol]
-        # Energía armónica de 0-cochains: masa del núcleo (debe ~ 0).
         harmonic = _NumericalCore.kahan_babuska_neumaier_sum(np.clip(evals[: max(betti_0, 0)], 0.0, None))
         return evals, active, betti_0, betti_1, float(harmonic)
 
     def compute(self, attention_sheaf_matrix: np.ndarray) -> _CechCohomologyResult:
-        """
-        Calcula la clase de obstrucción de Čech y los modos activos.
-
-        Pipeline:
-        1. Resolución de la matriz (cruda o gérmen de Cayley-Floer).
-        2. Hermitización de Higham y SVD (modos de haz).
-        3. Deflación de Wilkinson → modos activos.
-        4. Masa nuclear por KBN  (= `cech_obstruction` de la API 2.0).
-        5. Defecto de coborde δω y espectro de Hodge (certificado).
-        """
+        """Calcula la clase de obstrucción de Čech y los modos activos."""
         if np.asarray(attention_sheaf_matrix).size == 0 and self._germ is None:
             return _CechCohomologyResult(
                 cech_obstruction=0.0,
@@ -990,45 +807,30 @@ class _AttentionCechCohomology:
 # =============================================================================
 class ImperialEruditosEngine:
     """
-    Motor de alta precisión para la rigidez de Floer y Čech sobre el
-    espacio de fase de los logits de atención semántica.
-
-    Compone las tres fases anidadas:
-
-    1. Fase I   — gérmen de Darboux / CSMD (`_NumericalCore`).
-    2. Fase II  — cilindro de Floer, CZ, Cayley (`_FloerHomologyVerifier`).
-    3. Fase III — nervio de Čech / Hodge (`_AttentionCechCohomology`),
-                  inicializado con un gérmen de referencia (identidad);
-                  cada llamada puede sustituirlo por la matriz que se le pase.
-
-    La API pública de 2.0 se conserva (tuplas). Los métodos `*_certified`
-    exponen los invariantes añadidos en 3.0.
+    Motor de alta precisión para la rigidez de Floer, Čech y Mecánica Celeste de Poincaré
+    sobre el espacio de fase de los logits y perturbaciones presupuestales.
     """
 
-    def __init__(self, regularizer: float = 1e-15) -> None:
+    def __init__(
+        self,
+        regularizer: float = 1e-15,
+        novikov_valuation_T: float = 1.0,
+    ) -> None:
         """
-        Inicializa el motor y materializa el encadenamiento de gérmenes.
-
-        El regularizador se mantiene al menos en `_HIGHAM_TIKHONOV_FLOOR`
-        y alimenta el piso de Wilkinson, el Cayley del monodromía y el
-        Laplaciano de Hodge (en 2.0 se almacenaba y no se usaba).
-
-        El gérmen de Fase I se instancia sobre T*Q de dimensión mínima
-        de Darboux (2n = 2) y se re-sintetiza bajo demanda cuando llegan
-        trayectorias o haces de dimensión mayor.
+        Inicializa el motor de los Eruditos con regularizador de Tikhonov y valuación de Novikov.
 
         Args:
             regularizer: Piso de Tikhonov contra polos espectrales.
+            novikov_valuation_T: Valuación no-arquimediana T del Anillo de Novikov.
         """
         self._reg: Final[float] = max(float(regularizer), _HIGHAM_TIKHONOV_FLOOR)
-        # Fase I → objeto inicial de Fase II (dimensión mínima; se adapta).
+        self._T_val: Final[float] = float(novikov_valuation_T)
         self._floer_germ: _FloerCylinderGerm = (
             _NumericalCore.synthesize_floer_cylinder_germ(
                 2, csmd_step=_CSMD_STEP, regularizer=self._reg
             )
         )
         self._floer_verifier = _FloerHomologyVerifier(self._floer_germ)
-        # Fase II → objeto inicial de Fase III (Cayley de I_2).
         self._cech_germ: _CechNerveGerm = self._floer_verifier.induce_cech_nerve_germ(
             np.eye(2, dtype=np.float64)
         )
@@ -1048,13 +850,94 @@ class ImperialEruditosEngine:
         )
         self._floer_verifier = _FloerHomologyVerifier(self._floer_germ)
 
+    # ── MÉTODOS DE MECÁNICA CELESTE DE HENRI POINCARÉ ────────────────────
+    def compute_poincare_small_divisors_spectrum(
+        self,
+        frequency_vector_omega: NDArray[np.float64],
+        wave_vectors_k: NDArray[np.float64],
+        jacobian_M: NDArray[np.float64],
+        canonical_J: NDArray[np.float64],
+    ) -> EruditosSpectrumReport:
+        r"""
+        Calcula el espectro de pequeños divisores de Poincaré-KAM y verifica la invarianza de Liouville.
+
+        Demostración Teórica y Fundamentación de Mecánica Celeste:
+          1. Ecuación de Arrastre de Poincaré y Pequeños Divisores:
+             En la teoría de perturbaciones hamiltonianas H(I,\theta) = H_0(I) + \varepsilon H_1(I,\theta),
+             la transformación canónica generada por S_1 satisface:
+               \sum_{j=1}^n \omega_j \frac{\partial S_1}{\partial \theta_j} = -H_1(I',\theta)
+             La expansión en serie de Fourier produce denominadores resonantemente pequeños:
+               S_{1,k} = \frac{i H_{1,k}}{\langle k, \boldsymbol{\omega} \rangle}
+             Si |\langle k, \boldsymbol{\omega} \rangle| < \varepsilon_{\mathrm{Wilkinson}}, el espectro sufre divergencia.
+
+          2. Absorción Ultramétrica T-ádica en el Anillo de Novikov \Lambda_{\mathrm{Nov}}:
+             El peso ultramétrico se define como:
+               W_{\mathrm{Novikov}}(k, \boldsymbol{\omega}) = \exp\left( -\frac{T_{\mathrm{val}}}{\varepsilon_{\mathrm{floor}} + |\langle k, \boldsymbol{\omega} \rangle|} \right)
+
+          3. Curvatura Deformada de Maurer-Cartan:
+               \mathcal{R}_{\mathrm{MC}} = |\min_k |\langle k, \boldsymbol{\omega} \rangle| \cdot W_{\mathrm{Novikov}}|
+
+          4. Conservación del Volumen Simpléctico de Liouville-Darboux:
+               \det(\mathbf{M}_t) = +1 \implies \Delta V_{\mathrm{Liouville}} = |\det(\mathbf{M}_t) - 1|
+        """
+        freq_omega = np.asarray(frequency_vector_omega, dtype=np.float64)
+        wave_k = np.asarray(wave_vectors_k, dtype=np.float64)
+        jac_m = np.asarray(jacobian_M, dtype=np.float64)
+
+        if wave_k.ndim == 1:
+            divisors = np.abs(np.dot(wave_k, freq_omega))
+            min_divisor = float(divisors) if np.isscalar(divisors) else float(np.min(divisors))
+        else:
+            divisors = np.abs(wave_k @ freq_omega)
+            min_divisor = float(np.min(divisors)) if divisors.size > 0 else 1.0
+
+        novikov_weight = float(np.exp(-self._T_val / (_WILKINSON_LIMIT + min_divisor)))
+        mc_residual = float(abs(min_divisor * novikov_weight))
+
+        if jac_m.ndim == 2 and jac_m.shape[0] == jac_m.shape[1] and jac_m.size > 0:
+            det_M = float(la.det(jac_m))
+            volume_drift = float(abs(det_M - 1.0))
+        else:
+            volume_drift = 0.0
+
+        is_kam_stable = bool((min_divisor >= _WILKINSON_LIMIT) and (volume_drift <= _WILKINSON_LIMIT))
+
+        return EruditosSpectrumReport(
+            min_small_divisor=min_divisor,
+            novikov_absorbed_weight=novikov_weight,
+            maurercartan_residual=mc_residual,
+            liouville_volume_drift=volume_drift,
+            is_kam_stable=is_kam_stable,
+        )
+
+    def compute_maupertuis_jacobi_conformal_metric(
+        self,
+        hamiltonian_energy_H0: float,
+        potential_energy_V: float,
+        base_metric_g: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        r"""
+        Calcula la métrica conforme de Maupertuis-Jacobi \tilde{g}_{jk}(q) = 2 (H_0 - V(q)) g_{jk}(q).
+
+        Demostración Rigurosa y Axiomas de la Mecánica Celeste:
+          Para trayectorias de energía constante H(q,p) = H_0, el principio de Maupertuis
+          reformula la acción abreviada S_M = \int p dq como el principio variacional de Fermat
+          sobre una variedad Riemanniana cuya métrica es conformalmente deformada por la energía libre:
+            \tilde{g}_{jk}(q) = 2 (H_0 - V(q)) g_{jk}(q)
+          Si H_0 \le V(q), el espacio se vuelve inaccesible (región prohibida de Hill / frontera de Poincaré).
+          El factor escalar conformal se acota positivamente mediante un suelo de regularización:
+            \Phi_{\mathrm{conformal}} = \max\left( 2 (H_0 - V(q)), \varepsilon_{\mathrm{Wilkinson}} \right)
+        """
+        energy_diff = max(2.0 * (hamiltonian_energy_H0 - potential_energy_V), _WILKINSON_LIMIT)
+        return energy_diff * np.asarray(base_metric_g, dtype=np.float64)
+
     # ── Fase I expuesta ───────────────────────────────────────────────────
     def kahan_sum(self, arr: np.ndarray) -> float:
         """Sumación compensada de Kahan expuesta públicamente."""
         return _NumericalCore.kahan_sum(arr)
 
     def kahan_babuska_neumaier_sum(self, arr: np.ndarray) -> float:
-        """Sumación KBN (expuesta públicamente)."""
+        """Sumación KBN."""
         return _NumericalCore.kahan_babuska_neumaier_sum(arr)
 
     def compute_symplectic_gradient(
@@ -1075,7 +958,7 @@ class ImperialEruditosEngine:
         x: np.ndarray,
         h: float = _CSMD_STEP,
     ) -> np.ndarray:
-        """Hessiano de H por CSMD + diferencia central (Fase I)."""
+        """Hessiano de H por CSMD + diferencia central."""
         return _NumericalCore.compute_hessian_csmd(hamiltonian_func, x, h)
 
     def floer_cylinder_germ_certificate(self) -> _SymplecticFormCertificate:
@@ -1089,10 +972,7 @@ class ImperialEruditosEngine:
         end_point: np.ndarray,
         jacobian_m3: np.ndarray,
     ) -> Tuple[float, float]:
-        """
-        Verificación de la trayectoria de Floer.
-        Retorna (floer_residual, action_potential). API 2.0.
-        """
+        """Verificación de la trayectoria de Floer."""
         result = self.verify_floer_homology_trajectory_certified(
             start_point, end_point, jacobian_m3
         )
@@ -1119,10 +999,7 @@ class ImperialEruditosEngine:
         start_point: Optional[np.ndarray] = None,
         end_point: Optional[np.ndarray] = None,
     ) -> _CechNerveGerm:
-        """
-        Réplica pública del morfismo II.7: monodromía M₃ ↦ Gram de Čech.
-        Actualiza el gérmen con el que opera la Fase III.
-        """
+        """Réplica pública del morfismo II.7: monodromía M₃ ↦ Gram de Čech."""
         M = np.asarray(jacobian_m3)
         if M.ndim == 1:
             side = int(np.sqrt(M.size))
@@ -1143,10 +1020,7 @@ class ImperialEruditosEngine:
         self,
         attention_sheaf_matrix: np.ndarray,
     ) -> Tuple[float, np.ndarray]:
-        """
-        Cálculo de la cohomología atencional de Čech.
-        Retorna (cech_obstruction, active_modes). API 2.0.
-        """
+        """Cálculo de la cohomología atencional de Čech."""
         result = self._cech_calculator.compute(attention_sheaf_matrix)
         return result.cech_obstruction, result.active_modes
 
@@ -1158,4 +1032,8 @@ class ImperialEruditosEngine:
         return self._cech_calculator.compute(attention_sheaf_matrix)
 
 
-__all__ = ["ImperialEruditosEngine"]
+__all__ = [
+    "ImperialEruditosEngine",
+    "EruditosSpectrumReport",
+    "PoincareEruditosSpectrumReport",
+]
