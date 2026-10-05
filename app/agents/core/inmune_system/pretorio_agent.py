@@ -44,10 +44,13 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Dict, Final, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Final, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 import numpy as np
 import scipy.linalg as la
+
+if TYPE_CHECKING:
+    from app.core.inmune_system.pretorio_engine import PretorioEngine
 
 logger = logging.getLogger("APU.Agents.PretorioAgent")
 
@@ -157,6 +160,24 @@ class HeytingVerdict(Enum):
             return cls[token]
         except KeyError:
             return cls.VETOED
+
+
+@dataclass(frozen=True)
+class PretorioDeliberationCertificate:
+    r"""
+    Certificado de Deliberación Pretoreana basado en el Teorema de Poincaré-Birkhoff.
+
+    Invariantes de Mecánica Celeste de Henri Poincaré:
+      1. Verdict: Veredicto en el retículo de Heyting \Omega_3 \in \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}.
+      2. Area Drift: \Delta_{\mathrm{Area}} = |\det M - 1.0|.
+      3. Fixed Points: Conteo de puntos fijos en el círculo unidad |\lambda_k| = 1.
+      4. Is Deliberation Stable: Banderola booleana de estabilidad de la deliberación.
+    """
+
+    verdict: str
+    area_drift: float
+    fixed_points: int
+    is_deliberation_stable: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -815,6 +836,7 @@ class PretorioAgent:
         hypercohomology_threshold: float = _HYPERCOHOMOLOGY_THRESHOLD_DEFAULT,
         safety_margin: float = 1.0,
         require_positive_vanishing: bool = False,
+        engine: Optional[PretorioEngine] = None,
     ) -> None:
         """
         Inicio formal de la Fase II.
@@ -835,6 +857,12 @@ class PretorioAgent:
         self._threshold: Final[float] = float(hypercohomology_threshold)
         self._safety_margin: Final[float] = float(safety_margin)
         self._require_positive_vanishing: Final[bool] = bool(require_positive_vanishing)
+
+        if engine is not None:
+            self._engine = engine
+        else:
+            from app.core.inmune_system.pretorio_engine import PretorioEngine
+            self._engine = PretorioEngine()
 
     def ingest_observables(
         self,
@@ -985,6 +1013,41 @@ class PretorioAgent:
             density_matrix, transition_map_matrix, self._n
         )
         return self._brouwer_from_spectrum(spectrum)
+
+    def audit_pretorio_poincare_deliberation(
+        self,
+        deliberation_state: np.ndarray,
+        jacobian_M: np.ndarray,
+        contractor_twist: float,
+        auditor_twist: float,
+    ) -> PretorioDeliberationCertificate:
+        r"""
+        Audita la convergencia del Pretorio bajo el Teorema de Poincaré-Birkhoff.
+
+        Somete el veredicto al Retículo Distributivo de Heyting \Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}.
+        """
+        spectrum_report = self._engine.compute_poincare_birkhoff_twist_spectrum(
+            deliberation_matrix_M=jacobian_M,
+            contractor_twist_angle=contractor_twist,
+            auditor_twist_angle=auditor_twist,
+        )
+
+        if spectrum_report.is_spectrum_valid:
+            verdict = "COHERENT"
+        elif spectrum_report.has_opposite_twist:
+            verdict = "DEGRADED"
+        else:
+            verdict = "VETOED"
+            logger.error(
+                f"[PRETORIO_VETO] Colapso deliberativo de Poincaré-Birkhoff. AreaDrift={spectrum_report.area_drift:.3e}"
+            )
+
+        return PretorioDeliberationCertificate(
+            verdict=verdict,
+            area_drift=spectrum_report.area_drift,
+            fixed_points=spectrum_report.fixed_points_count,
+            is_deliberation_stable=(verdict == "COHERENT"),
+        )
 
     def evaluate_global_boolean_ultrafilter(
         self,
@@ -1313,5 +1376,6 @@ __all__ = [
     "HeytingVerdict",
     "PretorioAgent",
     "PretorioCoherenceChamber",
+    "PretorioDeliberationCertificate",
     "execute_pretorio_supervision_cycle",
 ]

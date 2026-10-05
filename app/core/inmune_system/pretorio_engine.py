@@ -85,6 +85,24 @@ _CANONICAL_VERDICTS: Final[Tuple[str, ...]] = ("COHERENT", "DEGRADED", "VETOED")
 #          ≅ objeto inicial de la Fase II (bicomplejo Čech–de Rham).
 # =============================================================================
 @dataclass(frozen=True)
+class PretorioSpectrumReport:
+    r"""
+    Reporte del espectro del Twist Map de Poincaré-Birkhoff sobre la variedad anular.
+
+    Invariantes de Mecánica Celeste de Henri Poincaré:
+      1. Area Drift: \Delta_{\mathrm{Area}} = |\det M - 1.0|.
+      2. Opposite Twist Condition: \theta'_a - \theta > 0 > \theta'_b - \theta  \implies  \text{contractor\_twist} \cdot \text{auditor\_twist} < 0.
+      3. Fixed Points Count: |\operatorname{Fix}(f)| = |\{ \lambda_k \in \operatorname{Spec}(M) \mid |\lambda_k| = 1 \}| \ge 2.
+      4. Spectrum Validity: is_spectrum_valid \iff has_opposite_twist \land area_drift \le 10^{-12} \land fixed_points_count \ge 2.
+    """
+
+    area_drift: float
+    has_opposite_twist: bool
+    fixed_points_count: int
+    is_spectrum_valid: bool
+
+
+@dataclass(frozen=True)
 class _HypercohomologyGerm:
     """
     Gérmen del bicomplejo Čech–de Rham (objeto terminal de la Fase I).
@@ -1088,5 +1106,47 @@ class PretorioEngine:
         """Ultrafiltro con histograma, Gödel, Łukasiewicz, margen y átomo."""
         return self._ultrafilter_evaluator.evaluate(heyting_verdicts)
 
+    # ── Métodos de Mecánica Celeste de Henri Poincaré ────────────────────
+    def compute_poincare_birkhoff_twist_spectrum(
+        self,
+        deliberation_matrix_M: np.ndarray,
+        contractor_twist_angle: float,
+        auditor_twist_angle: float,
+    ) -> PretorioSpectrumReport:
+        r"""
+        Calcula el espectro del Twist Map de Poincaré-Birkhoff y mide el residuo simpléctico de área.
 
-__all__ = ["PretorioEngine"]
+        Axiomas del Teorema de Poincaré-Birkhoff (Twist Map):
+          1. Twist Condition: \theta'_a - \theta > 0 > \theta'_b - \theta  \implies  contractor_twist \cdot auditor_twist < 0.0.
+          2. Conservación de Área de Liouville: \det M = +1 \implies |\det M - 1.0| \le 10^{-12}.
+          3. Puntos Fijos de Equilibrio Inmutables: \operatorname{Spec}(M) contiene autovalores sobre el círculo unidad |\lambda_k| = 1.0,
+             garantizando al menos dos puntos fijos de acuerdo Pareto-óptimo.
+        """
+        # 1. Verificación del determinante de Liouville (Conservación de Área)
+        det_M = float(la.det(deliberation_matrix_M))
+        area_drift = abs(det_M - 1.0)
+
+        # 2. Condición de Giro Opuesto (Twist Condition)
+        has_opposite_twist = (contractor_twist_angle * auditor_twist_angle) < 0.0
+
+        # 3. Espectro y Puntos Fijos (Autovalores en |\lambda| = 1)
+        eigenvalues = la.eigvals(deliberation_matrix_M)
+        unit_circle_fixed_points = int(
+            np.sum(np.isclose(np.abs(eigenvalues), 1.0, atol=1e-9))
+        )
+
+        is_poincare_birkhoff_valid = (
+            has_opposite_twist
+            and (area_drift <= 1e-12)
+            and (unit_circle_fixed_points >= 2)
+        )
+
+        return PretorioSpectrumReport(
+            area_drift=area_drift,
+            has_opposite_twist=has_opposite_twist,
+            fixed_points_count=unit_circle_fixed_points,
+            is_spectrum_valid=is_poincare_birkhoff_valid,
+        )
+
+
+__all__ = ["PretorioEngine", "PretorioSpectrumReport"]
