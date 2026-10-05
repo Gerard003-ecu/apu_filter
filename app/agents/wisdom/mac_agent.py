@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : MAC Agent (Soberano de la Medición y Gestor Epistemológico)         ║
-║ Ruta   : app/wisdom/mac_agent.py                                             ║
+║ Ruta   : app/agents/wisdom/mac_agent.py                                      ║
 ║ Versión: 4.0.0-Galois-Adjunction-POVM-Heyting-Doctoral-Strict                ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
