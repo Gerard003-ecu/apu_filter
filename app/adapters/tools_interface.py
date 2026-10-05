@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Central Interaction Interface (La Base Canónica y el Topos EMIC)    ║
 ║ Ruta   : app/adapters/tools_interface.py                                     ║
-║ Versión: 6.0.0-Topos-Grothendieck-StandardBasis-Orthogonal-Strict-Doctoral   ║
+║ Versión: 7.0.0-Poincare-Darboux-Gromov-Novikov-Doctoral                      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y ÁLGEBRA CATEGÓRICA EN EL ESTRATO TACTICS (V_𝕋) ───
@@ -5143,6 +5143,77 @@ except ImportError:
     pass
 
 # =============================================================================
+# MÉTODOS DE LA MECÁNICA CELESTE DE HENRI POINCARÉ (AUDITORÍA DE CALIBRE)
+# =============================================================================
+
+def audit_poincare_darboux_symplectic_form(canonical_omega: np.ndarray) -> Tuple[float, bool]:
+    r"""
+    Audita que la 2-forma canónica $\Omega$ cumpla la antisimetría y ortogonalidad de Darboux:
+    $$\Omega^\top = -\Omega \quad \land \quad \Omega^\top \Omega = \mathbf{I}_{2n}$$
+    """
+    if not NUMPY_AVAILABLE or canonical_omega is None or canonical_omega.size == 0:
+        return 0.0, True
+    skew_defect = float(np.linalg.norm(canonical_omega.T + canonical_omega, ord='fro'))
+    orth_defect = float(np.linalg.norm(canonical_omega.T @ canonical_omega - np.eye(canonical_omega.shape[0]), ord='fro'))
+    total_residual = skew_defect + orth_defect
+    return total_residual, total_residual <= 1e-9
+
+def audit_gromov_nonsqueezing_capacity(radius_ball: float, radius_cylinder: float) -> Tuple[float, bool]:
+    r"""
+    Audita el Teorema de No-Squeezing de Gromov para la capacidad simpléctica:
+    $$c(B^{2n}(r)) \le c(Z^{2n}(R)) \implies r \le R$$
+    Evita la compresión de alucinaciones en cilindros de menor radio.
+    """
+    capacity_ratio = radius_ball / max(1e-12, radius_cylinder)
+    is_valid = radius_ball <= (radius_cylinder + 1e-10)
+    return capacity_ratio, is_valid
+
+def audit_novikov_small_divisors_spectrum(
+    frequencies: np.ndarray,
+    diophantine_gamma: float = 1e-3,
+    diophantine_tau: float = 2.0
+) -> Tuple[float, bool]:
+    r"""
+    Audita la condición diofántica KAM sobre el espectro de frecuencias en el Anillo de Novikov:
+    $$|\langle k, \boldsymbol{\omega} \rangle| \ge \frac{\gamma}{|k|^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{\mathbf{0}\}$$
+    """
+    if not NUMPY_AVAILABLE or frequencies is None or len(frequencies) == 0:
+        return 1.0, True
+    n = len(frequencies)
+    min_divisor = float('inf')
+    is_diophantine = True
+
+    from itertools import product
+    for k_tuple in product(range(-2, 3), repeat=n):
+        if all(ki == 0 for ki in k_tuple):
+            continue
+        k = np.array(k_tuple, dtype=np.float64)
+        k_norm = float(np.linalg.norm(k, ord=1))
+        dot_product = abs(float(np.dot(k, frequencies)))
+        min_divisor = min(min_divisor, dot_product)
+        threshold = diophantine_gamma / (k_norm ** diophantine_tau)
+        if dot_product < threshold:
+            is_diophantine = False
+            break
+
+    return (min_divisor if min_divisor != float('inf') else 1.0), is_diophantine
+
+def audit_poincare_ergodic_recurrence_distance(
+    phase_space_points: np.ndarray,
+    wilkinson_limit: float = 1e-12
+) -> Tuple[float, bool]:
+    r"""
+    Audita el Teorema de Recurrencia Ergódica de Poincaré en el espacio de fase $T^*\mathcal{M}$.
+    Calcula la distancia mínima $\|z_i - z_0\|_2$ para $i > 0$.
+    """
+    if not NUMPY_AVAILABLE or phase_space_points is None or len(phase_space_points) < 2:
+        return 0.0, True
+    z0 = phase_space_points[0]
+    dists = np.linalg.norm(phase_space_points[1:] - z0, axis=1)
+    min_dist = float(np.min(dists))
+    return min_dist, min_dist <= wilkinson_limit
+
+# =============================================================================
 # ANÁLISIS ESPECTRAL DEL GRAFO DE SERVICIOS
 # =============================================================================
 
@@ -7069,6 +7140,84 @@ class ExecutionCommand(ProjectionCommand):
 
 
 
+class PoincareSymplecticAdjunctionCommand(ProjectionCommand):
+    r"""
+    Comando de Auditoría Simpléctica de Darboux y Poincaré en la MIC.
+
+    Axiomas Preservados:
+      1. Defecto de simplecticidad de Darboux: $M^\top \Omega M = \Omega$.
+      2. Conservación del Volumen de Liouville: $\det(M) = +1$.
+      3. Veto Simpléctico de Gromov: $r \le R$.
+      4. Absorción de pequeños divisores KAM en el Anillo Ultramétrico de Novikov.
+    """
+    __slots__ = ("_metrics",)
+
+    def __init__(self, metrics: MICMetrics) -> None:
+        self._metrics = metrics
+
+    def execute(self, ctx: ProjectionContext) -> Optional[ProjectionResult]:
+        poincare_data = ctx.context.get("poincare") or ctx.payload.get("poincare")
+        if not poincare_data or not isinstance(poincare_data, dict):
+            return None
+
+        try:
+            # 1. Gromov Capacity Non-squeezing check
+            if "radius_ball" in poincare_data and "radius_cylinder" in poincare_data:
+                r = float(poincare_data["radius_ball"])
+                R = float(poincare_data["radius_cylinder"])
+                _, is_valid = audit_gromov_nonsqueezing_capacity(r, R)
+                if not is_valid:
+                    self._metrics.record_error("gromov_nonsqueezing_violation")
+                    return ProjectionResult(
+                        success=False,
+                        error=f"Veto Simpléctico de Gromov: Radio de bola r={r:.4f} excede cilindro R={R:.4f}",
+                        error_type="GromovSqueezingViolation",
+                        error_category="poincare_symp_veto",
+                        error_details={"radius_ball": r, "radius_cylinder": R}
+                    )
+
+            # 2. Darboux / Liouville Symplectic check
+            jacobian_M = poincare_data.get("jacobian_M")
+            canonical_omega = poincare_data.get("canonical_omega")
+            if jacobian_M is not None and canonical_omega is not None and NUMPY_AVAILABLE:
+                M = np.asarray(jacobian_M, dtype=np.float64)
+                Omega = np.asarray(canonical_omega, dtype=np.float64)
+                symp_defect = M.T @ Omega @ M - Omega
+                symp_res = float(np.linalg.norm(symp_defect, ord='fro'))
+                det_M = float(np.linalg.det(M))
+                vol_drift = abs(det_M - 1.0)
+                if symp_res > 1e-9 or vol_drift > 1e-9:
+                    self._metrics.record_error("darboux_liouville_violation")
+                    return ProjectionResult(
+                        success=False,
+                        error=f"Veto de Liouville-Darboux: Defecto={symp_res:.3e}, VolDrift={vol_drift:.3e}",
+                        error_type="LiouvilleVolumeViolation",
+                        error_category="poincare_symp_veto",
+                        error_details={"symplectic_residual": symp_res, "volume_drift": vol_drift}
+                    )
+
+            # 3. Small Divisors KAM / Novikov check
+            frequencies = poincare_data.get("frequencies")
+            if frequencies is not None and NUMPY_AVAILABLE:
+                freqs = np.asarray(frequencies, dtype=np.float64)
+                min_div, is_diophantine = audit_novikov_small_divisors_spectrum(freqs)
+                if not is_diophantine:
+                    self._metrics.record_error("novikov_small_divisors_divergence")
+                    return ProjectionResult(
+                        success=False,
+                        error=f"Veto KAM-Novikov: Resonancia de Pequeños Divisores ({min_div:.3e})",
+                        error_type="SmallDivisorsDivergence",
+                        error_category="poincare_symp_veto",
+                        error_details={"min_divisor": min_div}
+                    )
+
+            ctx.context["poincare_audit_passed"] = True
+        except Exception as e:
+            logger.warning("Error en auditoría simpléctica de Poincaré: %s", e)
+
+        return None
+
+
 class ErrorMonadAuditCommand(ProjectionCommand):
     r"""Auditor de Clausura Transitiva de Monadas de Error (Fase 6)."""
     __slots__ = ("_metrics",)
@@ -7183,6 +7332,7 @@ class MICRegistry:
             CacheCheckCommand(self._cache, self._metrics),
             SheafCohomologyProjectionCommand(self._metrics),
             ResolutionCommand(self._vectors, self._lock, self._metrics),
+            PoincareSymplecticAdjunctionCommand(self._metrics),
             InterchangeLawVerificationCommand(self._metrics),
             BDDVerificationCommand(self._metrics),
             SATOrcaleCommand(self._metrics),
@@ -8260,9 +8410,14 @@ __all__: Final[List[str]] = [
     "NormalizationCommand",
     "BDDVerificationCommand",
     "InterchangeLawVerificationCommand",
+    "PoincareSymplecticAdjunctionCommand",
     "SATOrcaleCommand",
     "ValidationCommand",
     "ExecutionCommand",
+    "audit_poincare_darboux_symplectic_form",
+    "audit_gromov_nonsqueezing_capacity",
+    "audit_novikov_small_divisors_spectrum",
+    "audit_poincare_ergodic_recurrence_distance",
     
     # =========================================================================
     # CORE — MATRIZ DE INTERACCIÓN CENTRAL
