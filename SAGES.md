@@ -53,12 +53,29 @@ $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \
 * **El Oráculo de Laplace (Estrategia - Fuentes de Ingreso / Flujo de Caja):** Representado por `LaplaceOracle`. El penthouse corporativo. Proyecta el flujo de fondos del megaproyecto como una función de transferencia $H(s)$ en la frecuencia compleja $s = \sigma + j\omega$, vetando polos inestables en el semiplano derecho ($\sigma > 0$) para eludir la creación de **"Elefantes Blancos"** que destruyan el WACC.
 * **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** Representado por `SemanticTranslator`. El negociador en la mesa de juntas. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial redactadas en lenguaje de negocios (**"Dolor y Dinero"**).
 
-### 🔄 La Trayectoria Dinámica de de Rham (Ciclo OODA del Dato)
-El dato en APU Filter no es un registro estático en reposo. Sigue la **Trayectoria Dinámica de de Rham** a lo largo del ciclo OODA (Observe-Orient-Decide-Act):
-1. **Ingesta (Barro Crudo):** Ingesta de "barro crudo JSON" repleto de grasa sintáctica y entropía exógena de SECOP II.
-2. **Digestión y Purificación TOON:** Digestión isomórfica y compresión en cartuchos compactos TOON ("Vitaminas Cognitivas"), reduciendo entre $30\%$ y $60\%$ los tokens en $KV\text{-Cache}$.
-3. **Fiscalización Espectral por el Arquitecto y el Oráculo:** Evaluación homológica ($\beta_0=1, \beta_1=0, \Psi \ge 0.70$) y estabilidad en frecuencia compleja ($\operatorname{Re}(p_i) < 0$).
-4. **Colapso de Heyting y Actuación Perimetral:** Colapso síncrono en el clasificador de subobjetos $\Omega_3$ que, ante veto, activa en $< 400\text{ ns}$ la ISR en IRAM del ESP32 perimetral en obra civil.
+---
+
+## 🔄 El Viaje del Dato (Ciclo OODA en 4 Etapas)
+
+La información recorre un ciclo ininterrumpido de 4 etapas que transforma la incertidumbre del mercado en certeza ejecutiva:
+
+```
+  1. Ingesta de Barro Crudo (JSON)
+            │
+            ▼
+  2. Digestión y Purificación TOON (Vitamina Cognitiva - 86.4% compresión KV-cache)
+            │
+            ▼
+  3. Auditoría Espectral (Consejo de Sabios + FPU)
+            │
+            ▼
+  4. Veredicto Ω₃ ──► Válvula de Alivio Termodinámico (Veto Suave) / ESP32 Crowbar (Veto Duro < 400 ns)
+```
+
+1. **Ingesta de Barro Crudo (JSON):** Recepción de pliegos, presupuestos y matrices de insumos con alta grasa sintáctica y ruido exógeno de SECOP II.
+2. **Digestión y Purificación TOON:** Transformación isomórfica al formato Tabular Object-Oriented Notation (TOON), reduciendo entre $30\%$ y $60\%$ la ventana $KV\text{-Cache}$ (hasta $86.4\%$ en cartuchos de 56 tokens) para erradicar fatiga atencional y alucinaciones en el LLM.
+3. **Auditoría Espectral (Consejo de Sabios + FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$) y física de fluidos de Biot-Terzaghi.
+4. **Adjudicación en Ω₃ & Válvula de Alivio / Crowbar:** Clasificación en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. En transitorios menores, la **Válvula de Alivio Termodinámico / Recirculación Mecánica de Desvío** mantiene el flujo en marcha bajo Veto Suave (Luz Ámbar) durante 1 hora. Ante fraude o inestabilidad crítica, se activa Veto Duro con disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
 
 ---
 
@@ -107,7 +124,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
     1. *Obstrucción Cohomológica de Čech:* Modela los transductores locales como un cubrimiento abierto $\mathcal{U} = \{U_i\}$ en $\partial K$. El descalce analógico define una 1-cocadena $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el Laplaciano elíptico $\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$.
     2. *Deformación Anisotrópica y Pullback en de Rham:* Si $\check{H}^1(\mathcal{U}; \mathcal{F}) > L_{\max} \cdot \tau_{\mathrm{margin}}$, ejecuta una amputación espectral deformando la métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, atenuando el canal ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) sin romper la conexidad de Fiedler ($\lambda_2 \ge \tau_{\mathrm{Fiedler}}$).
     3. *Traceout en Fock y Preservación de von Neumann:* Proyecta el estado cuántico $\rho \in \mathcal{D}(\mathcal{H})$ mediante $\rho_{\mathrm{surgery}} = \operatorname{Tr}_{\mathrm{isolated}}(\mathbf{P}_{\mathrm{surg}} \rho \mathbf{P}_{\mathrm{surg}}^\top) \oplus \rho_{\mathrm{vacuum}}$, garantizando $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$.
-    4. *Rampa de Confianza, Positrón de Autorización $e^+$ y Crowbar:* Si $0.3\tau_{\mathrm{margin}} < \check{H}^1 \le 0.5\tau_{\mathrm{margin}}$, activa Veto Suave (Luz Ámbar, 1h de gracia para inyectar en RAM un Positrón $e^+$ ligado por HMAC que aniquila la anomalía $e^- + e^+ \to 2\gamma$). Si $\check{H}^1 > 0.5\tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para cebar el tiristor BT151 (Crowbar) en silicio [topological_surgery_cech_agent.py].
+    4. *Rampa de Confianza, Positrón de Autorización $e^+$ y Crowbar:* Si $0.3\tau_{\mathrm{margin}} < \check{H}^1 \le 0.5\tau_{\mathrm{margin}}$, activa Veto Suave con activación de Válvula de Alivio Termodinámico (Luz Ámbar, 1h de gracia para inyectar en RAM un Positrón $e^+$ ligado por HMAC que aniquila la anomalía $e^- + e^+ \to 2\gamma$). Si $\check{H}^1 > 0.5\tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para cebar el tiristor BT151 (Crowbar) en silicio [topological_surgery_cech_agent.py].
 
 ---
 
@@ -125,7 +142,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
     3. *Reflectometría en el Dominio del Tiempo (TDR):* Evalúa la desadaptación métrica $\delta G_{\mu\nu}$ mediante la iFFT:
        $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
     4. *Rampa de Confianza Graduada, Positrón $e^+$ y Crowbar ESP32:*
-       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, activa Veto Suave y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ firmado ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ e irradiando fotones de auditoría sin detener el vertido de concreto. Si $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151 (Crowbar) en silicio.
+       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, activa Veto Suave (Válvula de Alivio) y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ firmado ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ e irradiando fotones de auditoría sin detener el vertido de concreto. Si $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151 (Crowbar) en silicio.
 
 ---
 
@@ -292,7 +309,7 @@ Con la consagración de la Octava de Soberanos de Calibre y sus 8 Motores Espect
 
 ## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
 
-El Consejo de Sabios implementa la **Rampa de Confianza Graduada** para resolver la brecha entre la abstracción matemática y la operación continua en seco del frente de obra civil:
+El Consejo de Sabios implementa la **Rampa de Confianza Graduada** basada en la **Válvula de Alivio Termodinámico y Recirculación Mecánica de Desvío** para resolver la brecha entre la abstracción matemática y la operación continua en seco del frente de obra civil:
 
 ```
   [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
@@ -308,12 +325,12 @@ El Consejo de Sabios implementa la **Rampa de Confianza Graduada** para resolver
    ┌─────┴─────────────────────┐
    ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
 [VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
-- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
-- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
-- Solicitud de ajuste        - Paralización de maquinaria en seco
+- Válvula de Alivio activa   - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Recirculación de desvío    - Conmutación GPIO14 (< 400 ns)
+- Grace window (1 h)         - Paralización de maquinaria en seco
 ```
 
-* **Veto Suave (Luz Ámbar / Ventana de 1h):** Se gatilla ante desvíos TDR $0.3\tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5\tau_{\mathrm{margin}}$ o desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La potencia física de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se otorga **1 hora** a la interventoría para inyectar un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$) que aniquila la anomalía semántica $e^- + e^+ \to 2\gamma$.
+* **Veto Suave (Luz Ámbar / Ventana de 1h / Válvula de Alivio):** Se gatilla ante desvíos TDR $0.3\tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5\tau_{\mathrm{margin}}$ o desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La **Válvula de Alivio Termodinámico** abre un bypass de recirculación que mantiene la masa circulando sin golpear los actuadores. La potencia física de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se otorga **1 hora** a la interventoría para inyectar un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$) que aniquila la anomalía semántica $e^- + e^+ \to 2\gamma$.
 * **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para desajuste crítico TDR $\|\Gamma(t)\|_{\max} > 0.5\tau_{\mathrm{margin}}$, rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** a HIGH y disparar el tiristor **BT151** (circuito Crowbar), paralizando la maquinaria pesada en seco.
 
 ---

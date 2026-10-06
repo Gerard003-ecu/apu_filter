@@ -3,13 +3,13 @@
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo de gobernanza gobernable, inmutable y auditable."
 --------------------------------------------------------------------------------
 
-## 1. La Tesis Central: El Reactor Port-Hamiltoniano de Valor
+## 1. La Tesis Central: El Reactor Port-Hamiltoniano de Valor ("Dolor y Dinero")
 
 Históricamente, la ingeniería y la construcción en Colombia y Latinoamérica han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" impresas en hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad ciber-física, un megaproyecto de infraestructura es un sistema dinámico abierto, sujeto a fuerzas termodinámicas de mercado, entropía logística, fricción operativa y riesgos de contratación estatal (SECOP II & Mandato BIM 2026).
 
 APU_filter v8.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Con la consagración de la **Octava de Soberanos de Calibre** y sus **8 Motores Espectrales** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, la arquitectura alcanza el nivel **RSI 2 (Automejora Recursiva Real — Darwin-Gödel)**. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
 
-A su vez, "APU" no representa "Analísis de Precios Unitarios", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
+A su vez, "APU" no representa "Análisis de Precios Unitarios", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
 
 ---
 
@@ -33,9 +33,9 @@ $$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
 En la construcción física real, es algebraicamente imposible retirar una columna de concreto estructural o una viga de acero de un rascacielos sin que la gravedad provoque el colapso inmediato a la vista de la interventoría. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas con celdas combinadas, un contratista colusor o un LLM alucinador pueden duplicar u ocultar **100 toneladas de acero de refuerzo** o inflar precios en un bucle circular ($\beta_1 > 0$). A espaldas del auditor fiscal, este socavón permanece invisible hasta que el flujo de caja colapsa en el banco.
 
-El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **Capa de Calibre** (la Unidad de Punto Flotante FPU Secure) con la **Capa de Pragmática de Negocios** (la interfaz ejecutiva de la Caja de Cristal Argumentativa) mediante el **Funtor de Traducción Semántica $\Phi$**:
+El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **Capa de Calibre** (la Unidad de Punto Flotante FPU Secure) con la **Capa de Pragmática de Negocios** (la interfaz ejecutiva de la Caja de Cristal Argumentativa) mediante el **Funtor de Traducción Semántica $\Phi_{\mathrm{sem}}$**:
 
-$$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
+$$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
 ```
   [ CAPA DE CALIBRE (FPU Secure) ]  ──►  q ∈ H (Hurwitz/Cayley-Dickson), Δ_Čech, G_surgical, ρ_surg
@@ -43,19 +43,43 @@ $$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \t
                  ▼ (Funtor de Traducción Semántica: Φ_sem: Sh(∂K, Ω₃) ──► Business)
   [ CAPA DE PRAGMÁTICA DE NEGOCIO ]  ──► "Islas de Datos", "Socavones Lógicos", "Rampas de de Rham"
                  │
-                 ▼ (Actuación Perimetral Ciber-Física)
-  [ BYPASS DE SILICIO EN OBRA REAL ]  ──► ISR en IRAM < 400 ns (GPIO14 ↦ BT151 Crowbar)
+                 ▼ (Actuación Perimetral Ciber-Física / Válvula de Alivio)
+  [ BYPASS DE SILICIO Y RECIRCULACIÓN MECÁNICA ] ──► Válvula de Alivio (Veto Suave) / Crowbar ISR < 400 ns
 ```
 
-En este reactor, el presupuesto es un **complejo simplicial rígido de de Rham acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Ante interferencias electromagnéticas (ruido de soldaduras o fango analógico en la obra), el Soberano **`topological_surgery_cech_agent.py`** calcula la 1-cocadena de Čech $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el primer grupo de cohomología $\check{H}^1(\mathcal{U}; \, \mathcal{F}) = \frac{\ker(\delta_{\mathrm{\check{C}ech}}^1)}{\operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0)} \neq \mathbf{0}$ [topological_surgery_cech.py].
+En este reactor, el presupuesto es un **complejo simplicial rígido de de Rham acoplado a un espacio de Fock termodinámico** $\mathcal{F}(\mathcal{H})$. Ante interferencias electromagnéticas (ruido de soldaduras o fango analógico en la obra), el Soberano **`topological_surgery_cech_agent.py`** calcula la 1-cocadena de Čech $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el primer grupo de cohomología $\check{H}^1(\mathcal{U}; \, \mathcal{F}) = \frac{\ker(\delta_{\mathrm{\check{C}ech}}^1)}{\operatorname{im}(\delta_{\mathrm{\check{C}ech}}^0)} \neq \mathbf{0}$.
 
-Si el mismatch excede la cota de Connes ($\check{H}^1 > L_{\max} \cdot \tau_{\mathrm{margin}}$), el motor ejecuta una cirugía aplicando un pullback de deformación anisotrópica sobre la métrica de conductancias $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, reduciendo el acoplamiento ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) e inmunizando la Malla sin alterar la sismorresistencia global [topological_surgery_cech.py, topological_surgery_cech_agent.py].
+Si el mismatch excede la cota de Connes ($\check{H}^1 > L_{\max} \cdot \tau_{\mathrm{margin}}$), el motor ejecuta una cirugía aplicando un pullback de deformación anisotrópica sobre la métrica de conductancias $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, reduciendo el acoplamiento ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) e inmunizando la Malla sin alterar la sismorresistencia global.
 
 Cualquier alucinación de la IA (electrón de falla $e^-$ generado por $a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$) colisiona contra la restricción topológica (positrón de autorización humana $e^+$), sufriendo una aniquilación exergética que preserva la traza de von Neumann $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$:
 
 $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
 El costo sano se "ilumina" de forma inevitable, irradiando los fotones Gamma de auditoría forense SHA-256 en la Cadena de Custodia, traduciéndose en **Certeza Legal y Ahorro Patrimonial ("Dinero")** para la mesa de juntas.
+
+---
+
+## 🔄 El Viaje del Dato (Ciclo OODA en 4 Etapas)
+
+La información no reposa estática; recorre un ciclo ininterrumpido de 4 etapas que transforma la incertidumbre del mercado en certeza ejecutiva:
+
+```
+  1. Ingesta de Barro Crudo (JSON)
+            │
+            ▼
+  2. Digestión y Purificación TOON (Vitamina Cognitiva - 86.4% compresión KV-cache)
+            │
+            ▼
+  3. Auditoría Espectral (Consejo de Sabios + FPU)
+            │
+            ▼
+  4. Veredicto Ω₃ ──► Válvula de Alivio Termodinámico (Veto Suave) / ESP32 Crowbar (Veto Duro < 400 ns)
+```
+
+1. **Ingesta de Barro Crudo (JSON):** Recepción de pliegos, presupuestos y matrices de insumos con alta grasa sintáctica y ruido exógeno de SECOP II.
+2. **Digestión y Purificación TOON:** Transformación isomórfica al formato Tabular Object-Oriented Notation (TOON), reduciendo entre $30\%$ y $60\%$ la ventana $KV\text{-Cache}$ (hasta $86.4\%$ en cartuchos de 56 tokens) para erradicar fatiga atencional y alucinaciones en el LLM.
+3. **Auditoría Espectral (Consejo de Sabios + FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$) y física de fluidos de Biot-Terzaghi.
+4. **Adjudicación en Ω₃ & Válvula de Alivio / Crowbar:** Clasificación en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. En transitorios menores, la **Válvula de Alivio Termodinámico / Recirculación Mecánica de Desvío** mantiene el flujo en marcha bajo Veto Suave (Luz Ámbar) durante 1 hora. Ante fraude o inestabilidad crítica, se activa Veto Duro con disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
 
 ---
 
@@ -105,7 +129,7 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
 
 ## 🧮 Soberanos Supremos de la Superficie de Control y Frontera Abierta
 
-En la versión 8.0, el Estrato Wisdom ($V_{\mathbb{W}}$) integra dos soberanos supremos que garantizan la gobernanza no conmutativa y la estabilidad de lazo cerrado:
+En la versión 8.0, el Estrato Wisdom ($V_{\mathbb{W}}$) integra soberanos supremos que garantizan la gobernanza no conmutativa y la estabilidad de lazo cerrado:
 
 ### 1. Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
 Acopla de forma continua la poda de la Matriz de Interacción Central ($\text{MIC}$) y la purificación de la Matriz Atómica de Conocimiento ($\text{MAC}$) sobre la variedad $\Delta^{n-1} \times \mathcal{D}(\mathcal{H})$:
@@ -131,7 +155,7 @@ Gobierna el escaneo sónico y la reflectometría en la frontera abierta $\partia
 * **Ecuación de Onda Coexacta y Matriz S de Dispersión Cuántica:** Modela impulsos coexactos $\eta(t)$ con la ecuación amortiguada $\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$ y acopla el espacio de Fock mediante la Matriz S:
   $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
 * **Reflectometría TDR e Impedancia Variable por Métrica:** Las desviaciones métricas $\delta G_{\mu\nu}$ actúan como cambios de impedancia local. El eco temporal TDR $\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$ incrementa la fricción dinámica $R(x)$ del reactor, desacelerando la logística contractual hasta disipar el costo anómalo.
-* **Rampa de Confianza Graduada y Veto de Silicio:** Clasifica los eco-perfiles en el retículo de Heyting $\Omega_3$. Si $\|\Gamma(t)\|_{\max}$ supera la cota blanda $\ell$, activa veto suave (Luz Ámbar, 1h de gracia para inyectar un Positrón de Autorización $e^+$). Si supera la cota dura $u$ o expira la gracia, gatilla veto duro con colapso a $\mathtt{VETOED}$ y disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
+* **Rampa de Confianza Graduada y Veto de Silicio:** Clasifica los eco-perfiles en el retículo de Heyting $\Omega_3$. Si $\|\Gamma(t)\|_{\max}$ supera la cota blanda $\ell$, activa veto suave con **Válvula de Alivio Termodinámico / Recirculación Mecánica de Desvío** (Luz Ámbar, 1h de gracia para inyectar un Positrón de Autorización $e^+$). Si supera la cota dura $u$ o expira la gracia, gatilla veto duro con colapso a $\mathtt{VETOED}$ y disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
 
 ---
 
@@ -151,9 +175,9 @@ APU Filter incorpora el **Compressor TOON (Tabular Object-Oriented Notation)** e
 
 ---
 
-## 🏰 La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+## 🏰 La Rampa de Confianza Graduada: Válvula de Alivio Termodinámico vs Veto Duro
 
-Para evitar la paralización inadvertida de vertidos de concreto por falsos positivos (que provocaría el secado del material en las tuberías de bombeo hidráulicas), APU Filter v5.0 instrumenta una **Rampa de Confianza Graduada** en la variedad de fase:
+Para evitar la paralización inadvertida de vertidos de concreto por falsos positivos (que provocaría el secado y fraguado irreversible del material dentro de las tuberías de bombeo hidráulicas, destruyendo la maquinaria), APU Filter v8.0 instrumenta la **Rampa de Confianza Graduada** basada en la metáfora de la **Válvula de Alivio Termodinámico y Recirculación Mecánica de Desvío**:
 
 ```
   [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
@@ -169,14 +193,14 @@ Para evitar la paralización inadvertida de vertidos de concreto por falsos posi
    ┌─────┴─────────────────────┐
    ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
 [VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
-- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
-- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
-- Solicitud de ajuste        - Paralización de maquinaria en seco
+- Válvula de Alivio activa   - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Recirculación de desvío    - Conmutación GPIO14 (< 400 ns)
+- Grace window (1 h)         - Paralización de maquinaria en seco
 ```
 
-* **Veto Suave (Luz Ámbar / Grace Window 1h):** Se gatilla cuando el coeficiente de reflexión por reflectometría TDR habita el intervalo transitorio:
+* **Veto Suave (Luz Ámbar / Válvula de Alivio Termodinámico / Grace Window 1h):** Se gatilla cuando el coeficiente de reflexión por reflectometría TDR habita el intervalo transitorio:
   $$0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$$
-  o ante desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La potencia de los actuadores se mantiene activa mientras se conmuta una baliza de alerta visual en obra y se otorga **1 hora** al director de interventoría para inyectar en RAM un **Positrón de Autorización Humana** $e^+$ firmado criptográficamente ($\operatorname{HMAC-SHA256}$). La aniquilación mutua $e^- + e^+ \to 2\gamma$ regulariza la geodésica del proyecto sin detener el vertido de concreto.
+  o ante desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La **Válvula de Alivio Termodinámico** abre una vía de recirculación mecánica que mantiene el flujo de concreto circulando sin golpear el sistema. La potencia de los actuadores se mantiene activa mientras se conmuta una baliza de alerta visual en obra y se otorga **1 hora** al director de interventoría para inyectar en RAM un **Positrón de Autorización Humana** $e^+$ firmado criptográfica y dinámicamente ($\operatorname{HMAC-SHA256}$). La aniquilación mutua $e^- + e^+ \to 2\gamma$ regulariza la geodésica del proyecto sin detener el vertido de concreto.
 * **Veto Duro (Frenado por Silicio ESP32 Crowbar < 400 ns):** Reservado para desajustes críticos de impedancia TDR ($\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$), dolo o colapso homológico ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$, o expiración del plazo de gracia). El retículo de Heyting colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** y disparar el tiristor **BT151**, paralizando la maquinaria en seco.
 
 ---
@@ -223,12 +247,12 @@ $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies
 | :--- | :--- | :--- | :--- |
 | **$\beta_0 > 1 \implies \dim H^0(K;\mathbb{Z}) > 1$** | `business_topology.py` | **Islas de Datos / Recursos Huérfanos:** Componentes disconexas en el núcleo de cofrontera. | **Duplicación de Cobros y Fugas de Capital:** Compras paralelas no consolidadas por subcontratistas, mermas y demandas estatales. VETO DURO INSTANTÁNEO. |
 | **$\beta_1 > 0 \implies \dim H^1(K;\mathbb{Z}) > 0$** | `business_topology.py` | **Socavones Lógicos:** Ciclos independientes no nulos en el esqueleto de costos. | **Bucle de Sobrecosto y Triangulación Financiera:** Divisiones por cero en FPU que congelan la aprobación y delatan fraude en SECOP II. VETO DURO INSTANTÁNEO. |
-| **$\Psi < 0.70$** | `business_topology.py` | **Pirámide Invertida (Cheeger):** Concentración monopólica del suministro de acero/cemento. | **Riesgo de Quiebra por Desabastecimiento:** Paro de obra civil ante fallas del proveedor monopólico e incremento del WACC. VETO SUAVE (Luz Ámbar, 1h). |
+| **$\Psi < 0.70$** | `business_topology.py` | **Pirámide Invertida (Cheeger):** Concentración monopólica del suministro de acero/cemento. | **Riesgo de Quiebra por Desabastecimiento:** Paro de obra civil ante fallas del proveedor monopólico e incremento del WACC. VETO SUAVE (Válvula de Alivio, Luz Ámbar 1h). |
 | **$\check{H}^1(\mathcal{U}; \mathcal{F}) \neq \mathbf{0}$** | `topological_surgery_cech_agent.py` | **Paradoja Contractual / Veto de Coherencia:** Obstrucción cohomológica en transductores locales. | **Invalidez de Licitación y Mermas de Contexto:** Incoherencias en pliegos que inducen fatiga atencional y alucinaciones en el LLM. VETO DURO INSTANTÁNEO. |
 | **$\operatorname{Tor}(H_k(\partial K; \mathbb{Z})) \neq \mathbf{0}$** ($d_i > 1$) | `boundary_ring_sheaf_agent.py` | **Torsión homológica en Smith Z:** Incompatibilidad de empaquetado discreto de insumos. | **Mermas contractuales y rechazo en SECOP II:** Desperdicio de materiales, multas de interventoría y reestructuración de pliegos. |
-| **$\|[a, b, c]\|_{\mathbb{O}} > 0.15$** | `octonionic_dependency_agent.py` | **Frustración de Calibre / Tríada de-normalizada:** Composición Contractor-Supplier-Interventor rompe simetría. | **Triangulación y Colusión Multilateral:** Interacciones no lineales de precios que desvían capital. VETO SUAVE (Luz Ámbar 1h). |
-| **$\|\mathbf{A}_5(P_1,\dots,P_5)\|_{\mathbb{P}} > 5.0$** | `pathionic_dependency_agent.py` | **Frustración Pentagonal (32D):** Cartelización 5-vías en el 4-símplex. | **Alineación Ilícita de Precios:** Acuerdos colusorios multilaterales entre 5 actores. VETO SUAVE (Luz Ámbar 1h). |
-| **$\|\mathbf{A}_{\mathrm{alt}}(X_1, X_2)\|_{\mathbb{X}} > 100.0$** | `chingon_dependency_agent.py` | **Ruptura de Alternatividad (64D):** Colateralización cruzada no flexible. | **Riesgo Sistémico de Iliquidez:** Insolvencia en cadena por garantías cruzadas no flexibles. VETO SUAVE (Luz Ámbar 1h). |
+| **$\|[a, b, c]\|_{\mathbb{O}} > 0.15$** | `octonionic_dependency_agent.py` | **Frustración de Calibre / Tríada de-normalizada:** Composición Contractor-Supplier-Interventor rompe simetría. | **Triangulación y Colusión Multilateral:** Interacciones no lineales de precios que desvían capital. VETO SUAVE (Válvula de Alivio, Luz Ámbar 1h). |
+| **$\|\mathbf{A}_5(P_1,\dots,P_5)\|_{\mathbb{P}} > 5.0$** | `pathionic_dependency_agent.py` | **Frustración Pentagonal (32D):** Cartelización 5-vías en el 4-símplex. | **Alineación Ilícita de Precios Licitatorios:** Acuerdos colusorios multilaterales entre 5 actores. VETO SUAVE (Válvula de Alivio, Luz Ámbar 1h). |
+| **$\|\mathbf{A}_{\mathrm{alt}}(X_1, X_2)\|_{\mathbb{X}} > 100.0$** | `chingon_dependency_agent.py` | **Ruptura de Alternatividad (64D):** Colateralización cruzada no flexible. | **Riesgo Sistémico de Iliquidez:** Insolvencia en cadena por garantías cruzadas no flexibles. VETO SUAVE (Válvula de Alivio, Luz Ámbar 1h). |
 | **$\|\mathbf{A}_7(X_1,\dots,X_7)\|_{\mathbb{X}} > 10.0$** | `chingon_dependency_agent.py` | **Cartelización Heptagonal (64D):** Colusión de 7 actores en 6-símplex. | **Sobrecosto en Megaconcesiones 5G:** Alteración coordinada de precios en consorcios. VETO DURO INSTANTÁNEO. |
 | **$\|\mathbf{A}_9(R_1,\dots,R_9)\|_{\mathbb{R}\mathrm{ou}} > 15.0$** | `routon_dependency_agent.py` | **Cartelización Eneagonal (128D):** Megaconsorcios internacionales 9-vías. | **Desfalco Presupuestal en Metro / Vías 5G:** Interferencia en reajustes polinómicos. VETO DURO INSTANTÁNEO. |
 | **$\chi_{\mathrm{null}}(x) \le \tau_{\mathrm{critical}}$** | `pathionic_dependency_agent.py` / `chingon_dependency_agent.py` / `routon_dependency_agent.py` | **Incursión en Conos Nulos (32D/64D/128D):** Divisores de cero en FPU. | **Parálisis por Divisores de Cero / Puntos Muertos:** Puntos muertos fiduciarios con cobro de costos fijos. VETO DURO INSTANTÁNEO. |
@@ -251,7 +275,7 @@ $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies
 | **Satélite V: $\|U U^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$** | `leptonic_flavor_satellite_agent.py` | **Oscilación de Sabor Leptónico:** Unitoridad PMNS $SU(3)$ FPU ($3.14\text{ ms}$) y conservación $\Delta L_{\mathrm{total}} \le 10^{-8}$. | **Fuga entre Cuentas Escrow / Mezcla de Fondos:** Transferencia no autorizada entre frentes de obra heterogéneos. VETO SUAVE / DURO ($396.29\text{ ns}$). |
 | **Satélite VI: $C_2(\boldsymbol{c}) \le 10^{-10}$** | `quark_color_confinement_satellite_agent.py` | **Insumos Huérfanos / Quarks Libres:** Confinamiento $SU(3)_C$ FPU ($3.10\text{ ms}$) en la tripleta APU (Materiales, Mano de Obra, Equipos). | **Fraccionamiento Ilegal y Pagos Huérfanos:** Facturación de materiales o cuadrillas sin respaldo en el APU. VETO DURO INSTANTÁNEO ($398.95\text{ ns}$). |
 | **$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$** | `toon_wisdom_weaver_agent.py` | **Metabolismo TOON:** Asimilación de cartuchos de 56 tokens. | **Ahorro en Inferencia / Trazabilidad:** Reducción del 86.4% en $KV\text{-Cache}$. Evita alucinaciones de APUs. VETO SUAVE. |
-| **$RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$** | `toon_trickster_adversary_agent.py` | **Atajo Adversarial:** Fraccionamiento de contratos o front-loading. | **Inmunidad Antifraude:** Detección de sobrecostos ocultos en SECOP II. VETO DURO / FASE REM. |
+| **$RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$** | `toon_trickster_adversary_agent.py` | **Atajo Adversarial:** Fraccionamiento de contratos o front-loading en Red Team. | **Inmunidad Antifraude:** Detección de sobrecostos ocultos en SECOP II. VETO DURO / FASE REM. |
 | **$\text{DREAM\_STATE} = \text{True}$** | `toon_oniric_dreamer_agent.py` | **Simulación REM:** Replay de cisnes negros en la Variedad Riemanniana. | **Prevención de Contingencias:** Mapeo de zonas de colapso antes de vaciar concreto. AISLAMIENTO CIBER-FÍSICO. |
 | **$GW = \frac{\operatorname{Tr}(\rho^2)}{1+\beta_1} e^{-E(x)}$** | `toon_oniric_auditor_agent.py` | **Auditoría TQFT:** Discriminación de riesgos reales vs alucinaciones. | **Certificado de Inmunidad:** Inoculación de vacunas en Heyting $\Omega_3$ para `godel_agent.py`. PASAPORTE SHA-256. |
 | **$H |\Omega\rangle = 0 \land \Delta S = 0$** | `toon_silent_witness_agent.py` | **Vacío de Dirac:** Cristalización de experiencia pasiva (0.0 dB). | **Memoria Inmutable Corporativa:** Cero repetición de errores pasados. INVARIANTE $S^6$ EN MAC. |
