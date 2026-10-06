@@ -65,6 +65,7 @@ REFERENCIAS CIENTÍFICAS DE DISEÑO: ──────────────�
 from __future__ import annotations
 
 import logging
+import math
 import numpy as np
 import scipy.sparse as sp
 import scipy.linalg as la
@@ -442,6 +443,136 @@ class AtomicDensityMatrix:
             tol=self._tol, 
             auto_renormalize=True
         )
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # MÉTODOS DE LA MECÁNICA CELESTE Y RIGIDEZ SIMPLÉCTICA DE POINCARÉ
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def poincare_delaunay_elements(
+        self,
+        N_potential: Optional[np.ndarray] = None
+    ) -> Dict[str, Any]:
+        r"""
+        Calcula los elementos celestes de Delaunay metabólicos (L, e, G, i, H, C_J) de la MAC.
+
+        FORMULACIÓN MATEMÁTICO-FÍSICA:
+            • Semieje mayor metabólico:      L = √(Tr(ρ N))
+            • Excentricidad de fase:          e = ||[ρ, N]||_F / (1 + Tr(ρ N))
+            • Momento angular espectral:     G = L √(1 - e²)
+            • Inclinación por gap:           i = arctan(λ_n - λ_{n-1})
+            • Proyección de Jacobi:           H_jacobi = G cos(i)
+            • Constante de estabilidad Hill: C_J = 2 / ||ρ||_F - ||[ρ, N]||_F²
+
+        Returns:
+            Dict con elementos celestes de Delaunay y bandera de estabilidad de Hill.
+        """
+        rho = self._rho
+        n = self._dim
+        if N_potential is None:
+            N_potential = np.diag(np.arange(1, n + 1, dtype=np.float64))
+
+        trace_rN = max(float(np.trace(rho @ N_potential).real), 0.0)
+        L = math.sqrt(trace_rN)
+        comm = rho @ N_potential - N_potential @ rho
+        kinetic_norm = float(la.norm(comm, 'fro'))
+        e = min(kinetic_norm / (1.0 + trace_rN), 1.0 - 1e-12)
+        G = L * math.sqrt(max(1.0 - e * e, 0.0))
+
+        eigvals = la.eigvalsh(rho)
+        gap = float(eigvals[-1] - eigvals[-2]) if n >= 2 else 0.0
+        inclination = math.atan(gap)
+        H_jacobi = G * math.cos(inclination)
+
+        rho_norm = float(la.norm(rho, 'fro'))
+        jacobi_C = 2.0 / max(rho_norm, 1e-12) - (kinetic_norm ** 2)
+
+        return {
+            "L_metabolic_semi_axis": L,
+            "eccentricity_e": e,
+            "G_angular_momentum": G,
+            "inclination_rad": inclination,
+            "H_jacobi_projection": H_jacobi,
+            "jacobi_constant_C": jacobi_C,
+            "is_hill_stable": bool(jacobi_C > 0.0)
+        }
+
+    def wigner_discretized_function(self) -> np.ndarray:
+        r"""
+        Función de Wigner discreta W_ρ(q, p) sobre el espacio de fase ℤ_n × ℤ_n:
+
+            W_ρ(q, p) = (1/n) Σ_{x=0}^{n-1} e^{-2πi p x / n} ρ_{q+x, q-x}
+
+        Returns:
+            Matriz real n × n representando la distribución de Wigner.
+        """
+        rho = self._rho
+        n = self._dim
+        W = np.zeros((n, n), dtype=np.complex128)
+        omega = np.exp(-2j * np.pi / n)
+        for q in range(n):
+            for p in range(n):
+                s = 0.0 + 0.0j
+                for x in range(n):
+                    s += (omega ** (p * x)) * rho[(q + x) % n, (q - x) % n]
+                W[q, p] = s / n
+        return np.real(W)
+
+    def gromov_capacity_check(
+        self,
+        max_capacity_threshold: float = 12.5
+    ) -> Tuple[float, bool]:
+        r"""
+        Evalúa la capacidad simpléctica de Gromov c_G(ρ) vía distribución de Wigner.
+        Garantiza el Teorema de No-Aplastamiento (Nonsqueezing Theorem): c_G(ρ) <= threshold.
+
+            c_G(ρ) = 4 / (Var_q(ρ) + Var_p(ρ))
+
+        Returns:
+            Tuple (capacidad_calculada, es_valido_segun_rigidez_de_gromov)
+        """
+        W = self.wigner_discretized_function()
+        n = self._dim
+        idx = np.arange(n, dtype=float)
+        q_marg = np.sum(W, axis=1)
+        p_marg = np.sum(W, axis=0)
+
+        mean_q, mean_p = float(np.dot(idx, q_marg)), float(np.dot(idx, p_marg))
+        var_q = float(np.dot((idx - mean_q) ** 2, q_marg))
+        var_p = float(np.dot((idx - mean_p) ** 2, p_marg))
+
+        capacity = 4.0 / max(var_q + var_p, 1e-12)
+        is_rigid_valid = bool(capacity <= max_capacity_threshold)
+        return capacity, is_rigid_valid
+
+    def evolve_state_cayley(
+        self,
+        H_error: np.ndarray,
+        N_potential: np.ndarray,
+        dt: float = 0.01
+    ) -> 'AtomicDensityMatrix':
+        r"""
+        Evolución variacional simpléctica de Cayley conservando la 1-forma de Poincaré-Cartan.
+
+        Transformada de Cayley sobre U(n):
+            A = -i H_error - [ρ, N]
+            U = (I - dt/2 A)^(-1) (I + dt/2 A)
+            ρ_{k+1} = U ρ_k U†
+
+        Returns:
+            Nuevo operador AtomicDensityMatrix evolucionado y saneado.
+        """
+        n = self._dim
+        A = -1j * H_error - (self._rho @ N_potential - N_potential @ self._rho)
+        I = np.eye(n, dtype=np.complex128)
+
+        # Transformada variacional de Cayley U = (I - dt/2 A)^(-1) (I + dt/2 A)
+        U = la.solve(I - (dt / 2.0) * A, I + (dt / 2.0) * A)
+
+        rho_next = U @ self._rho @ U.conj().T
+        rho_next = 0.5 * (rho_next + rho_next.conj().T)  # Hermiticidad
+        rho_next /= np.trace(rho_next).real             # Normalización Tr = 1.0
+
+        return AtomicDensityMatrix(rho_next, auto_renormalize=True, validate=False)
 
     @property
     def matrix(self) -> NDArray[np.complex128]:
