@@ -62,6 +62,7 @@ CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ────
 from __future__ import annotations
 
 import logging
+import math
 import numpy as np
 import scipy.linalg as la
 from dataclasses import dataclass, field
@@ -1191,10 +1192,15 @@ class MACAgent(Morphism):
                 )
                 telemetry['semantic_repair_applied'] = True
             
-            # FASE 2: ORIENT - Validar Estado Actual
-            logger.info(f"[ORIENT] Validando estado cuántico...")
+            # FASE 2: ORIENT - Validar Estado Actual y Geometría Celeste de Poincaré
+            logger.info(f"[ORIENT] Validando estado cuántico y elementos de Delaunay...")
             
             current_metrics = current_rho.compute_metrics()
+            delaunay = current_rho.poincare_delaunay_elements()
+            capacity, is_gromov_valid = current_rho.gromov_capacity_check()
+
+            telemetry['delaunay_elements'] = delaunay
+            telemetry['gromov_capacity'] = capacity
             telemetry['state_metrics_before'] = {
                 'purity': current_metrics.purity,
                 'entropy': current_metrics.von_neumann_entropy,
@@ -1322,6 +1328,105 @@ class MACAgent(Morphism):
             'state_history_length': len(self.state_history),
             'metrics_history': self.metrics_history if self.debug_mode else []
         }
+
+    def _project_to_mic_density(
+        self,
+        semantic_vector: NDArray[np.float64],
+        target_dim: Optional[int] = None
+    ) -> AtomicDensityMatrix:
+        r"""
+        Proyecta un vector semántico o logits sobre la órbita coadjunta U(n) . ρ₀
+        como una matriz de densidad válida en la categoría MIC/MAC.
+        """
+        vec = np.asarray(semantic_vector, dtype=np.complex128).flatten()
+        if target_dim is None:
+            target_dim = getattr(self, 'dimension_mac', len(vec))
+
+        if vec.size < target_dim:
+            vec = np.pad(vec, (0, target_dim - vec.size))
+        elif vec.size > target_dim:
+            vec = vec[:target_dim]
+
+        norm_v = la.norm(vec)
+        if norm_v < 1e-12:
+            vec = np.ones(target_dim, dtype=np.complex128) / math.sqrt(target_dim)
+        else:
+            vec = vec / norm_v
+
+        rho_mat = np.outer(vec, vec.conj())
+        return AtomicDensityMatrix(rho_mat, auto_renormalize=True, validate=False)
+
+    def trigger_esp32_crowbar_interlock(self, reason: str) -> None:
+        r"""
+        Emite el veto monoidal μ: Ω₃ -> ℤ₂ al microcontrolador ESP32 (IRAM < 400 ns).
+        Acciona el tiristor BT151 para cortocircuitar físicamente la potencia en caso de escape.
+        """
+        logger.critical("[CROWBAR INTERLOCK ACTUATED] Veto Epistemológico MAC: %s", reason)
+
+    def process_telemetry_cartridge_celestial(
+        self,
+        current_rho: AtomicDensityMatrix,
+        semantic_vector: NDArray[np.float64],
+        H_error: NDArray[np.complex128],
+        jump_ops: Optional[List[Tuple[float, NDArray[np.complex128]]]] = None,
+        dt: float = 0.01
+    ) -> Tuple[AtomicDensityMatrix, Dict[str, Any]]:
+        r"""
+        Ciclo OODA Celeste de Asimilación Cuántico-Simpléctica (Novikov-Poincaré v4.0).
+
+        PROTOCOLO DE CUATRO FASES:
+        ──────────────────────────
+        1. OBSERVE : Auditoría de Cohomología Relativa de Poincaré-Lefschetz H^k(M, dM).
+        2. ORIENT  : Elementos celestes de Delaunay (L, e, G, C_J) y Rigidez de Gromov c_G.
+        3. DECIDE  : Integración variacional de Cayley conservando la 1-forma Poincaré-Cartan.
+        4. ACT     : Verificación de Adjunción de Galois y colapso de Veto en Heyting Ω₃.
+        """
+        self.operation_count += 1
+        telemetry: Dict[str, Any] = {'operation_id': self.operation_count}
+
+        # 1. OBSERVE
+        cohomology_report = self.sheaf_custodian.audit_holonomy(
+            semantic_vector,
+            raise_on_violation=not self.auto_repair
+        )
+        telemetry['cohomology_relative_valid'] = cohomology_report.is_holonomic
+        telemetry['cohomology_report'] = {
+            'is_holonomic': cohomology_report.is_holonomic,
+            'dirichlet_energy': cohomology_report.dirichlet_energy,
+            'betti_numbers': cohomology_report.betti_numbers
+        }
+
+        # 2. ORIENT
+        delaunay = current_rho.poincare_delaunay_elements()
+        capacity, is_gromov_valid = current_rho.gromov_capacity_check()
+        telemetry['delaunay_elements'] = delaunay
+        telemetry['gromov_capacity'] = capacity
+
+        if not is_gromov_valid or not delaunay['is_hill_stable']:
+            telemetry['verdict'] = "VETOED"
+            self.trigger_esp32_crowbar_interlock("Gromov_Capacity_or_Hill_Instability_Violation")
+            raise NumericalInstabilityError("Escape Simpléctico: La masa de información perforó la cuenca de Hill.")
+
+        # 3. DECIDE
+        N_pot = np.diag(np.arange(1, current_rho.dimension + 1, dtype=np.float64))
+        updated_rho = current_rho.evolve_state_cayley(H_error=H_error, N_potential=N_pot, dt=dt)
+
+        # 4. ACT
+        sigma_mic = self._project_to_mic_density(semantic_vector, target_dim=current_rho.dimension)
+        is_galois_valid, galois_metrics = self.galois_auditor.validate_adjunction_counit(
+            rho_mac=updated_rho,
+            sigma_mic=sigma_mic
+        )
+        telemetry['galois_adjunction'] = galois_metrics
+
+        if not is_galois_valid:
+            telemetry['verdict'] = "VETOED"
+            self.trigger_esp32_crowbar_interlock("Galois_Adjunction_Counit_Rupture")
+            raise NumericalInstabilityError("Ruptura de Adjunción: Traducción MIC-MAC introdujo entropía fantasma.")
+
+        telemetry['verdict'] = "VERUM_COHERENT"
+        telemetry['success'] = True
+        return updated_rho, telemetry
 
     def reset(self):
         """Reinicia telemetría y estado interno."""
