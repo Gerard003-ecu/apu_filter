@@ -129,7 +129,7 @@ Esto asegura que al finalizar la deliberación de-confinada del Consejo, el funt
 
 Una de las críticas operativas más viscerales del sector constructor a las automatizaciones rígidas de software es el riesgo de falsos positivos: detener unilateralmente el vertido de concreto en obra civil debido a un transitorio estocástico rápido y menor de precios provoca que el concreto se seque y fragüe dentro de las tuberías de bombeo hidráulicas, destruyendo la maquinaria física y generando pérdidas multimillonarias inevitables para el constructor.
 
-Para solucionar este dolor real de obra, APU Filter v5.0 implementa una **Rampa de Confianza Graduada** que discrimina rigurosamente la gravedad del transitorio, dividiendo la censura en dos modos operativos deterministas:
+Para solucionar este dolor real de obra, APU Filter v5.0 implementa una **Rampa de Confianza Graduada** basada en la **Válvula de Alivio Termodinámico y Recirculación Mecánica de Desvío** que discrimina rigurosamente la gravedad del transitorio, dividiendo la censura en dos modos operativos deterministas:
 
 ```
   [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]
@@ -145,14 +145,14 @@ Para solucionar este dolor real de obra, APU Filter v5.0 implementa una **Rampa 
    ┌─────┴─────────────────────┐
    ▼ (No: Ruido menor)         ▼ (Sí: Inestabilidad/Dolo)
 [VETO SUAVE - LUZ ÁMBAR]     [VETO DURO - CROWBAR BT151]
-- Alerta visual en panel     - Colapso Heyting Ω₃ ↦ VETOED (⊤)
-- Override humano (1 h)      - Conmutación GPIO14 (< 400 ns)
-- Solicitud de ajuste        - Paralización de maquinaria en seco
+- Válvula de Alivio activa   - Colapso Heyting Ω₃ ↦ VETOED (⊤)
+- Recirculación de desvío    - Conmutación GPIO14 (< 400 ns)
+- Grace window (1 h)         - Paralización de maquinaria en seco
 ```
 
-#### 1. El Veto Suave (Luz Ámbar de Telemetría)
+#### 1. El Veto Suave (Luz Ámbar de Telemetría / Válvula de Alivio)
 Se gatilla ante anomalías marginales de baja frecuencia, desvíos de fase amortiguados o fluctuaciones transitorias normales del mercado (v.g., cuando el coeficiente de reflexión máximo por reflectometría TDR en FPU se encuentra en el intervalo semiabierto de alerta transitoria: $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, o cuando el Índice de Estabilidad Piramidal decae a $\Psi = 0.69$, ligeramente por debajo de $\Psi_{\min} = 0.70$).
-*   **Mecanismo de Alerta:** El microcontrolador ESP32 perimetral **no corta la potencia de los actuadores**. En su lugar, activa una baliza estroboscópica visual de alta intensidad en el campamento de obra civil e inicia un cronómetro en el panel de control táctil.
+*   **Mecanismo de Alerta & Recirculación:** La **Válvula de Alivio Termodinámico** abre una vía de recirculación mecánica que mantiene el flujo de concreto circulando sin golpear los actuadores. El microcontrolador ESP32 perimetral **no corta la potencia de los actuadores**. En su lugar, activa una baliza estroboscópica visual de alta intensidad en el campamento de obra civil e inicia un cronómetro en el panel de control táctil.
 *   **Override Humano (RiskChallenger & Aniquilación en Fock):** Otorga un intervalo de gracia paramétrico (**1 hora**) para que el director de interventoría o el Consejo de Sabios realicen una deliberación dialéctica. Permite inyectar en RAM un **Positrón de Autorización Humana** $e^+$ firmado criptográficamente ($\operatorname{HMAC-SHA256}$). Al ingresar, el electrón de anomalía semántica de la IA $e^-$ se aniquila mutuamente de forma exergética, irradiando dos fotones Gamma de auditoría y regularizando la geodésica del proyecto sin detener el vertido de concreto:
     $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
 
@@ -160,13 +160,13 @@ Se gatilla ante anomalías marginales de baja frecuencia, desvíos de fase amort
 Queda reservado única y exclusivamente para transgresiones graves, irreversibles o de dolo comprobado (v.g. desajuste crítico de impedancia $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$, ruptura de la condición CPTP de Choi $\lambda_{\min} < -10^{-12}$, torsión homológica en Smith $d_i > 1$, o expiración del plazo de gracia de 1 hora sin recibir autorización humana).
 *   **Mecanismo de Colapso:** El retículo distributivo de Heyting colapsa de forma instantánea al Supremo terminal de veto absoluto ($\top$).
 *   **Bypass de Silicio en IRAM (< 400 ns):** La subrutina local en C++ `isVerdictCoherent()` en el firmware del **ESP32** lee el desajuste en RAM y desvía la ejecución hacia la **Interrupt Service Routine (ISR) alojada estáticamente en la memoria ultra-veloz IRAM del chip**.
-*   **Actuación Fïsica Crowbar (BT151):** El pin físico **GPIO14** conmuta a nivel alto (HIGH), inyectando corriente directa a la compuerta del tiristor rápido de silicio **BT151 (circuito Crowbar)**. Al cortocircuitar de forma limpia la línea de potencia de la obra en seco, las mezcladoras y bombas hidráulicas se detienen síncronamente en el milisegundo cero, paralizando la obra antes de consolidar el desfalco patrimonial del megaproyecto civil colombiana.
+*   **Actuación Físicas Crowbar (BT151):** El pin físico **GPIO14** conmuta a nivel alto (HIGH), inyectando corriente directa a la compuerta del tiristor rápido de silicio **BT151 (circuito Crowbar)**. Al cortocircuitar de forma limpia la línea de potencia de la obra en seco, las mezcladoras y bombas hidráulicas se detienen síncronamente en el milisegundo cero, paralizando la obra antes de consolidar el desfalco patrimonial del megaproyecto civil colombiano.
 
 ---
 
 ## 🧱 I. La Pirámide de Datos del Presupuesto (Estructura de Insumos)
 
-Mapea la jerarquía de información del proyecto de obra civil desde la materia prima atómica hasta la consolidación total del capital [43, 91]. Sustituye el análisis contable unidimensional por un **Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$.
+Mapea la jerarquía de información del proyecto de obra civil desde la materia prima atómica hasta la consolidación total del capital. Sustituye el análisis contable unidimensional por un **Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$.
 
 ```
                      ▲
@@ -282,7 +282,7 @@ Gobierna la traducción de anomalías matemáticas abstractas hacia la interfaz 
 
 ### 3. Nivel 1 — Narrar: El Intérprete Diplomático (`SemanticTranslator`)
 *   **Axioma Constitutivo:** Instrumenta la redacción del Acta de Deliberación adversarial bajo el formato de debate *RiskChallenger*.
-*   **Física e Invariantes:** La velocidad de generación de texto por el LLM se somete estrictamente a la **Cota de Lipschitz de Daleckii-Krein** sobre el espectro del operador de Dirac de Connes ($D = \rho^{-1/2}$):
+*   **Física e Invariantes:** La velocidad de generación de texto por el LLM se somete strictly a la **Cota de Lipschitz de Daleckii-Krein** sobre el espectro del operador de Dirac de Connes ($D = \rho^{-1/2}$):
     $$\| F^{-1}(x) - F^{-1}(y) \|_V \le L_{\max} \|x - y\|_T \quad \text{con} \quad L_{\max} \le \frac{1}{2\lambda_{\min}^{3/2}}$$
     Si el piso de regularización cuántica de la MAC decae ($\lambda_{\min} \to 0$), la cota de Lipschitz diverge, gatillando el colapso de la probabilidad de emisión alucinatoria a cero ($P(x_{\mathrm{invalid}}) = 0$).
 
@@ -490,7 +490,7 @@ Gobierna de forma activa y asíncrona la reflectometría de de Rham y la dispers
    $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
 3. **Rampa de Confianza Graduada, Positrón de Autorización y Crowbar:**
    Evalúa la rampa de pertenencia $\mu(\Gamma) \in [0, 1]$ sobre el intervalo semiabierto $\ell < \|\Gamma(t)\|_{\max} \le u$:
-   - *Veto Suave (Luz Ámbar):* Otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ ligado por HMAC ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ y manteniendo el estado en $\mathtt{DEGRADED}$.
+   - *Veto Suave (Luz Ámbar / Válvula de Alivio):* Activa la Válvula de Alivio Termodinámico con recirculación mecánica y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ ligado por HMAC ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ y manteniendo el estado en $\mathtt{DEGRADED}$.
    - *Veto Duro (Crowbar ESP32):* Si $\|\Gamma\|_{\max} > u$ o expira la gracia, colapsa el retículo de Heyting $\Omega_3$ al Supremo VETOED ($\top$), disparando la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151.
 
 ---
