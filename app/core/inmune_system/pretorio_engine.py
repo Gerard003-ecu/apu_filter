@@ -7,53 +7,59 @@ r"""
 ║          deRham-Brouwer-Heyting-Ultrafilter-PhD                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Este motor supremo ejecuta el escrutinio final e independiente de la coherencia
-ciber-física. Evalúa la hipercohomología del bicomplejo de Čech–de Rham, purga
-las corrientes asimétricas en la base de la MAC mediante simetrización de
-Weyl–Toeplitz y colapsa los veredictos parciales en un ultrafiltro booleano
-binario. Sobre esta armazón, teje la Mécanique Céleste de Henri Poincaré en tres
-fases anidadas, donde el objeto terminal de una es la continuación formal de la
-siguiente.
+────────────────────────────────────────────────────────────────────────────────
+Motor supremo de cálculo epistémico, metrología de FPU y deliberación de seguridad
+de Capa 4 (El Pretorio) en la arquitectura APU Filter v8.0. Ejecuta la auditoría
+epistémica final sobre la Malla Agéntica estructurando un functor anidado de tres
+fases ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) que
+integra la hipercohomología del bicomplejo de Čech–de Rham, los teoremas de punto
+fijo de Brouwer en espacios de densidad $\mathcal{D}(\mathcal{H})$, la mecánica celeste
+de Henri Poincaré (KAM, Melnikov, Birkhoff, Conley–Zehnder) y el colapso de la
+lógica de Heyting $\Omega_3$ mediante ultrafiltros principales booleanos.
 
-FASE I — Geometría de la fase (Banach + Weyl + Maupertuis–Jacobi + Poincaré–Cartan):
-  1. Sumación compensada Kahan / KBN / Klein en el álgebra de Banach (ℝ, +, ·).
-  2. Simetrización de Weyl–Toeplitz Π_Herm(M) = (M + M†)/2.
-  3. Estado densidad más próximo (Higham: Herm + PSD + Tr = 1).
-  4. Métrica conforme de Maupertuis–Jacobi g̃ = 2(H₀ − V) g = n(q)² g.
-  5. Región de Hill: H₀ − V(q) > 0 (curva de velocidad cero ∂D_H).
-  6. Símbolos de Christoffel conformes de Koszul–Levi-Civita y torsión de Koszul.
-  7. Marea geodésica de Jacobi ‖∇V‖² / (H₀ − V).
-  8. 1-forma de Poincaré–Cartan λ = p dq − H dt y circulación discreta.
-  9. 2-forma canónica de Liouville Ω (Darboux) y defecto de pullback Φ*ω − ω.
- 10. Gérmen del bicomplejo Čech–de Rham y su Laplaciano de Hodge Δ_D.
-  ⇒ Objeto terminal 𝒢_I = _PretorioCelestialGerm  (inicial de Fase II).
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-FASE II — Certificación (Hipercohomología + Brouwer + KAM + Melnikov + Birkhoff):
- 11. Continuación formal: lift_from_celestial_germ(𝒢_I).
- 12. Hipercohomología del bicomplejo: D² = δ² + d² + {δ, d} ≡ 0.
- 13. Brouwer en 𝒟(ℋ): ρ = f(ρ) con Weyl–Toeplitz.
- 14. Pequeños divisores de Poincaré–KAM: |⟨k, ω⟩| ≥ γ/|k|^τ, τ > n − 1.
- 15. Ecuación homológica de Poincaré–Lindstedt: i⟨k,ω⟩ χ_k = (H₁)_k.
- 16. Resonancias de Arnol'd y absorción ultramétrica de Novikov.
- 17. Función de Melnikov M(t₀) = ∫ {H₀, H₁}(γ⁰(t − t₀)) dt.
- 18. Twist map de Poincaré–Birkhoff + teorema geométrico último.
- 19. Mapa de retorno P: Σ → Σ con Floquet, Lyapunov, Conley–Zehnder y ρ.
-  ⇒ Objeto terminal 𝒢_II = _UltrafilterCelestialGerm  (inicial de Fase III).
+FASE I — ÁLGEBRA DE BANACH, GEOMETRÍA CONFORME Y POINCARÉ–CARTAN:
+1. Simetrización de Weyl–Toeplitz y Proyección de Higham:
+   Todo observable denso $M \in M_n(\mathbb{C})$ se proyecta al espacio hermítico vía $\Pi_{\mathrm{Herm}}(M) = \frac{1}{2}(M + M^\dagger)$.
+   La proyección de Higham sobre el simplejo de estados cuánticos $\mathcal{D}(\mathcal{H}) = \{ \rho \in M_n(\mathbb{C}) \mid \rho = \rho^\dagger, \, \rho \succeq 0, \, \mathrm{Tr}(\rho) = 1 \}$
+   garantiza la no-negatividad de los autovalores y la conservación de la traza unitaria.
 
-FASE III — Colapso (Heyting H₃ + Ultrafiltro booleano + Crowbar ESP32):
- 20. Continuación formal: collapse_from_ultrafilter_celestial_germ(𝒢_II).
- 21. Valuación de Heyting Ω₃ (orden de permiso): VETOED ≤ DEGRADED ≤ COHERENT.
- 22. Dual de severidad: COHERENT ≺ DEGRADED ≺ VETOED (átomo generador).
- 23. Ultrafiltro 𝒰 : H₃ⁿ → 2 = {VIABLE, RECHAZAR} gobernado por el MEET.
- 24. Colapso a actuación en silicio real (< 400 ns) via GPIO14 / BT151.
+2. Métrica Conforme de Maupertuis–Jacobi y 1-Forma de Poincaré–Cartan:
+   En la región de Hill $D_H = \{ q \in Q \mid H_0 - V(q) > 0 \}$, la métrica conforme $\tilde{g}_{ij}(q) = 2(H_0 - V(q))g_{ij}(q)$
+   satisface la conexión Levi-Civita conformemente deformada. La 1-forma extendida de Poincaré–Cartan $\lambda = p_i \mathrm{d}q^i - H \mathrm{d}t$
+   satisface el invariante integral absoluto $\mathrm{d}\lambda = \Omega - \mathrm{d}H \wedge \mathrm{d}t$.
+   $\Rightarrow$ Morfismo Terminal de Fase I: $\mathcal{G}_{\mathrm{I}} = \text{\_PretorioCelestialGerm}$.
 
-ÁLGEBRA DE HEYTING — DUALIDAD PERMISO / SEVERIDAD:
-  Permiso  (Gödel): VETOED=0.0 ≤ DEGRADED=0.5 ≤ COHERENT=1.0
-                    meet = min = peor permiso = colapso de seguridad.
-  Severidad:        COHERENT=0 ≺ DEGRADED=1 ≺ VETOED=2
-                    max = átomo generador del filtro.
-  El join (supremo de verdad) es diagnóstico; el meet gobierna el interlock.
-  Corrección v5: un único VETOED basta para RECHAZAR (el join lo ocultaría).
+FASE II — HIPERCOHOMOLOGÍA ČECH–DE RHAM, BROUWER, KAM, MELNIKOV Y BIRKHOFF:
+3. Nilpotencia del Bicomplejo Čech–de Rham:
+   Dado el diferencial total $D = \delta + \mathrm{d}$, el axioma $D^2 = \delta^2 + \mathrm{d}^2 + \{\delta, \mathrm{d}\} = 0$
+   garantiza la coincidencia espectral del Laplaciano de Hodge $\Delta_D = D D^\dagger + D^\dagger D$.
+
+4. Punto Fijo de Brouwer y Contracción de Banach en $\mathcal{D}(\mathcal{H})$:
+   Sea $f: \mathcal{D}(\mathcal{H}) \to \mathcal{D}(\mathcal{H})$ definida por $f(\rho) = \frac{T \rho T^\dagger}{\mathrm{Tr}(T \rho T^\dagger)}$.
+   Puesto que $\mathcal{D}(\mathcal{H})$ es un conjunto convexo compacto, el Teorema de Brouwer asegura la existencia de al menos un $\rho^* = f(\rho^*)$.
+   Si la constante de Lipschitz satisface $L_f < 1$, el mapa es una contracción de Banach y $\rho^*$ es único.
+
+5. Aduanas Celestes de Poincaré:
+   - Pequeños divisores KAM: $|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau}$, $\tau > n-1$, con absorción en $\Lambda_{\mathrm{Nov}}$.
+   - Función de Melnikov: $M(t_0) = \int_{-\infty}^{\infty} \{H_0, H_1\}(\gamma^0(t - t_0)) \mathrm{d}t$. Un cero simple implica caos homoclínico.
+   - Poincaré–Birkhoff Twist Map: Preservación de área y giros opuestos $\theta'_a - \theta > 0 > \theta'_b - \theta$ implican al menos dos puntos fijos.
+   - Conley–Zehnder: El índice robbin-salamoniano $i_{\mathrm{CZ}}(M) \in \mathbb{Z}$ evalúa el cruce espectral de la monodromía.
+   $\Rightarrow$ Morfismo Terminal de Fase II: $\mathcal{G}_{\mathrm{II}} = \text{\_UltrafilterCelestialGerm}$.
+
+FASE III — ÁLGEBRA DE HEYTING, ULTRAFILTRO BOOLEANO Y DISYUNTOR HARDWARE:
+6. Dualidad Permiso/Severidad en la Lógica Intuicionista de Gödel $G_3$:
+   El retículo $G_3$ posee la dualidad:
+   - Orden de Permiso: $\bot = \mathrm{VETOED} (0.0) \le \mathrm{DEGRADED} (0.5) \le \top = \mathrm{COHERENT} (1.0)$, donde $\land = \min$ (meet) es el colapso de seguridad.
+   - Dual de Severidad: $\mathrm{COHERENT} (0) \prec \mathrm{DEGRADED} (1) \prec \mathrm{VETOED} (2)$.
+
+7. Ultrafiltro Booleano Principal y Actuación ciber-física:
+   El ultrafiltro principal $\mathcal{U}$ sobre $G_3^n$ colapsa al clasificadores de subobjetos $2 = \{\mathrm{VIABLE}, \mathrm{RECHAZAR}\}$
+   gobernado exclusivamente por el MEET de Heyting:
+   $$\bigwedge_{i=1}^n v_i = \bot \text{ (VETOED)} \quad \Longrightarrow \quad \mathcal{U} = \mathrm{RECHAZAR}$$
+   Un único veto local $v_k = \mathrm{VETOED}$ fuerza la decisión global $\mathrm{RECHAZAR}$, disparando la ISR en IRAM
+   del tiristor crowbar BT151 [GPIO14] en tiempo de reacción latente $\tau_{\mathrm{crowbar}} < 400\text{ ns}$.
 """
 
 from __future__ import annotations

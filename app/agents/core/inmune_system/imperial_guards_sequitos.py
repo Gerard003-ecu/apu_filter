@@ -5,34 +5,48 @@ r"""
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_sequitos.py           ║
 ║ Versión: 5.1.0-Poincare-Celeste-KAM-Nekhoroshev-Lindstedt-Birkhoff-Twist     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-SINOPSIS MATEMÁTICA Y CATEGORIAL:
+SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Orquesta la concurrencia táctica de las sub-tríadas agénticas y la supervisión
-de la evolución temporal multianual de los megaproyectos (Fase BIM 7D),
-aplicando la Mecánica Celeste de Henri Poincaré mediante aduanas anidadas:
+de la evolución temporal multianual de los megaproyectos (Fase BIM 7D) en APU Filter v8.0,
+articulando la geometría simpléctica y el análisis estocástico cuántico mediante tres
+fases anidadas ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$).
 
-  Φ_I   :  Datos operativos  →  𝒢_I  = _PoincareHeytingAuditGerm
-  Φ_II  :  𝒢_I               →  𝒢_II = _PoincareOODAActuationGerm
-  Φ_III :  𝒢_II × 𝒢_I        →  PoincareSequitosCertificate
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-Aduanas de Poincaré (celeste):
-1. Recurrencia ergódica / primer retorno P: Σ → Σ,  inf‖z(t)−z(0)‖ ≤ ε_W.
-2. KAM diofántico: |⟨k,ω⟩| ≥ γ / ‖k‖₁^τ , τ > n−1.
-3. Anillo ultramétrico de Novikov Λ_Nov: peso T^{r_i} sobre divisores pequeños.
-4. Kleisli / DeGroot / CHSH (heredadas, topos de Heyting Ω₃).
-5. Floquet–Lyapunov simpléctico: M = exp(T A_F) R_F,  λ_k = log|μ_k|/T.
-6. Mel’nikov: ℳ(t₀)=∫ {H₀,H₁}(q₀(t),t+t₀) dt ; ceros simples ⇒ homoclínico.
-7. Lyapunov–Benettin (QR) + Kaplan–Yorke + Pesin (h_{KS}=∑ λ_i⁺).
-8. Twist de Moser / Poincaré–Birkhoff, forma normal de Birkhoff, Nekhoroshev,
-   serie de Lindstedt–Poincaré, elementos de Kepler–Delaunay–Poincaré,
-   invariante integral de Poincaré–Cartan ∮ p dq − H dt.
+FASE 1 — OBSERVE ($\Phi_{\mathrm{I}}$) — MONADAS DE KLEISLI, CONSENSO DE DEGROOT Y BELL–CHSH:
+1. Mónada de Kleisli-Giry para Probabilidades Cuánticas:
+   Para la mónada de Giry $\mathcal{P}: \mathbf{Meas} \to \mathbf{Meas}$, un morfismo Kleisli
+   $f: A \rightsquigarrow B$ en $\mathbf{Kl}(\mathcal{P})$ satisface la asociatividad covariante
+   $(h \circ_K g) \circ_K f = h \circ_K (g \circ_K f)$, garantizando la invarianza de la regla de Bayes
+   frente a la conmutación de la base de medición.
 
-INVARIANTES DE CATEGORÍA:
-────────────────────────────────────────────────────────────────────────────────
-- Invarianza de calibre Kleisli bajo conmutación de base.
-- Completez fuerte sobre el retículo distributivo de Heyting Ω₃.
-- El ínfimo de Gödel (meet de verdad) coincide con el supremo de severidad.
-- Estabilidad de Lyapunov, recurrencia de Poincaré y preservación de Liouville.
+2. Consenso Espectral de DeGroot–Fiedler:
+   Para la matriz de afinidad $W \in \mathbb{R}^{n \times n}$ normalizada estocásticamente $M = D^{-1} W$,
+   el laplaciano $L = I - M$ posee autovalor de Fiedler $\lambda_2(L) > 0$. El tiempo de mezcla satisface
+   $\tau_{\mathrm{mix}}(\epsilon) \le \frac{1}{\lambda_2(L)} \ln \frac{1}{\epsilon \min_i \pi_i}$.
+
+3. Cota Cuántica de Tsirelson y Desigualdad Bell–CHSH:
+   El observable correlador de Bell–CHSH $S = E(a,b) - E(a,b') + E(a',b) + E(a',b')$ satisface:
+   $$|S| \le 2 \quad (\text{Clásico}), \qquad |S| \le 2\sqrt{2} \approx 2.8284 \quad (\text{Tsirelson / QM}), \qquad |S| \le 4 \quad (\text{PR-Boxes}).$$
+   Cualquier violación $|S| > 2\sqrt{2}$ denota no-localidad suprawantum no física (ruido no señalizado).
+
+FASE 2 — ORIENT ($\Phi_{\mathrm{II}}$) — RECURRENCIA DE POINCARÉ Y KAM MULTIDIMENSIONAL:
+4. Teorema de Recurrencia de Poincaré y Distancia de Retorno:
+   Para una transformación $T$ que preserva la medida de Liouville $\mu$ en un espacio de fase compacto $\Omega$,
+   todo conjunto medible $E$ contiene puntos que retornan infinitas veces a $E$.
+   La distancia de retorno ergódico satisface $d_{\mathrm{ret}}(z) \triangleq \inf_{t > t_0} \|z(t) - z(0)\| \le \varepsilon_{\mathrm{div}}$.
+
+5. Cota Diofántica KAM y Anillo de Novikov:
+   Para vector de frecuencias $\omega$, si $|\langle k, \omega \rangle| \ge \frac{\gamma}{\|k\|_1^\tau}$ ($\tau > n-1$),
+   el peso de Novikov $W_{\mathrm{Nov}} = \exp\left(-\frac{T_{\mathrm{val}}}{\varepsilon + |\langle k, \omega \rangle|}\right)$
+   absorbe las divisiones pequeñas en el integrador no lineal.
+
+FASE 3 — DECIDE/ACT ($\Phi_{\mathrm{III}}$) — ADJUDICACIÓN DE HEYTING Y CONTROL CIBER-FÍSICO:
+6. Ínfimo de Gödel e Interlock Ciber-Físico en IRAM:
+   El veredicto global es el meet del retículo de Heyting $G_3 = \{\mathrm{VETOED}(0) \le \mathrm{DEGRADED}(1) \le \mathrm{COHERENT}(2)\}$:
+   $$\nu_{\mathrm{global}} = \bigwedge_k \nu_k \in G_3$$
+   Ante $\nu_{\mathrm{global}} = \mathrm{VETOED}$, el interlock en IRAM interrumpe la ejecución táctica en $t_{\mathrm{act}} \le 400 \text{ ns}$.
 """
 from __future__ import annotations
 

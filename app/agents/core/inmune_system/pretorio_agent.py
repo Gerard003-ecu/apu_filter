@@ -6,61 +6,44 @@ r"""
 ║ Versión: 5.0.0-Nested-Poincare-Cartan-Christoffel-CZ-Birkhoff-KAM-Hodge-     ║
 ║          Brouwer-TMR-Ultrafilter-Heyting-PhD                                 ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-SINOPSIS MATEMÁTICA Y DE GOBERNANZA:
+SINOPSIS MATEMÁTICA, CATEGORIAL Y DE GOBERNANZA SUPREMA:
 ────────────────────────────────────────────────────────────────────────────────
-Ejerce el mando absoluto e independiente en el penthouse de la pirámide de control
-אDIKΩαHWΓ. Realiza monitoreo pasivo en RAM sin introducir latencias en el ciclo
-OODA ordinario, evaluando la consistencia mediante tres pilares clásicos y,
-sobre ellos, la Mécanique Céleste de Henri Poincaré en tres fases anidadas,
-donde el objeto terminal de una es la continuación formal de la siguiente.
+Ejerce el comando supremo en el penthouse de la pirámide de control $\aleph\mathrm{DIK}\Omega\alpha\mathrm{HW}\Gamma$
+de APU Filter v8.0. Realiza la supervisión covariante y la adjudicación de permisos
+en lazo cerrado ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
+suturando la cohomología de Čech–de Rham con la teoría de punto fijo de Brouwer–Schauder,
+el ultrafiltro booleano principal y la mecánica celeste de Henri Poincaré.
 
-FASE I — Núcleo espectral + geometría de la fase (Darboux + Maupertuis–Jacobi):
-  1. Complejo de co-cadenas, laplaciano de Hodge Δ^k y números de Betti β_k.
-  2. Brouwer sobre el simplex 𝒮_n de estados densidad (Herm + PSD + Tr = 1).
-  3. Métrica conforme de Maupertuis–Jacobi: g̃ = 2(H₀ − V) g = n(q)² g.
-  4. Región de Hill: H₀ − V(q) > 0 (curva de velocidad cero ∂D_H).
-  5. Símbolos de Christoffel conformes de Koszul–Levi-Civita y torsión.
-  6. Marea geodésica de Jacobi ‖∇V‖² / (H₀ − V).
-  7. 1-forma de Poincaré–Cartan λ = p dq − H dt y circulación discreta.
-  8. 2-forma canónica de Liouville Ω (Darboux: Ωᵀ = −Ω, Ω² = −I).
-  9. Corchete de Poisson {H₀, H₁}(x) = (∇H₀)ᵀ Ω ∇H₁.
- 10. Integrador simpléctico Störmer–Verlet (det DΦ = 1 + O(ε)).
-  ⇒ Objeto terminal 𝒢_I = _PretorioCelestialJet  (inicial de Fase II).
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-FASE II — Aduanas y mecánica celeste decisoria (KAM + Melnikov + Birkhoff + CZ):
- 11. Continuación formal: lift_from_celestial_jet(𝒢_I).
- 12. Hipercohomología de Čech–de Rham: D² ≡ 0 (nilpotencia).
- 13. Brouwer sobre 𝒮_n: ρ = f(ρ) (Weyl–Toeplitz).
- 14. Pequeños divisores de Poincaré–KAM: |⟨k, ω⟩| ≥ γ/|k|^τ, τ > n − 1.
- 15. Ecuación homológica de Poincaré–Lindstedt: i⟨k,ω⟩ χ_k = (H₁)_k.
- 16. Resonancias de Arnol'd y absorción ultramétrica de Novikov.
- 17. Función de Melnikov M(t₀) = ∫ {H₀, H₁}(γ⁰(t − t₀)) dt.
- 18. Twist map de Poincaré–Birkhoff + teorema geométrico último.
- 19. Mapa de retorno P: Σ → Σ con Floquet, Lyapunov, Conley–Zehnder y ρ.
- 20. TMR + ultrafiltro principal 𝒰_τ + ínfimo de Heyting (MEET).
-  ⇒ Objeto terminal 𝒢_II = _PretorioCelestialEdict  (inicial de Fase III).
+FASE 1 — OBSERVE ($\Phi_{\mathrm{I}}$) — NÚCLEO ESPECTRAL HODGE, BROUWER Y GEOMETRÍA DE DARBOUX:
+1. Hipercohomología de Čech–de Rham y Laplaciano de Hodge:
+   Sobre la variedad de estados $\mathcal{M}$, el laplaciano de Hodge $\Delta^k = \mathrm{d}^{k-1} (\mathrm{d}^{k-1})^\dagger + (\mathrm{d}^k)^\dagger \mathrm{d}^k$
+   posee espectro discreto. La dimensión del núcleo $\dim(\mathrm{ker}\,\Delta^k) = \beta_k$ coincide con los números de Betti de Čech.
+   La obstrucción de hipercohomología $\mathbb{H}^{k>0}(\mathcal{M}, \Omega^p) \cong 0$ verifica la aciclicidad de calibre.
 
-FASE III — Cámara de Coherencia y colapso al disyuntor ciber-físico:
- 21. Continuación formal: collapse_from_celestial_edict(𝒢_II).
- 22. Ciclo OODA sobre 𝒢_II: fusionar y actuar.
- 23. Colapso Ω₃ → {fire, no-fire} gobernado por el MEET de Heyting.
- 24. Crowbar BT151 [GPIO14] via ISR en IRAM del ESP32 (< 400 ns).
+2. Teorema de Punto Fijo de Brouwer en el Simplex Cuántico:
+   Para el espacio convexo compacto $\mathcal{S}_n = \{ \rho \in \mathrm{Herm}(n) \mid \rho \succeq 0, \mathrm{Tr}(\rho) = 1 \}$
+   y la transformación endomórfica continua $f(\rho) = \frac{T \rho T^\dagger}{\mathrm{Tr}(T \rho T^\dagger)}$,
+   existe al menos un punto fijo $\rho^* \in \mathcal{S}_n$ tal que $f(\rho^*) = \rho^*$.
 
-ÁLGEBRA DE HEYTING — DUALIDAD PERMISO / SEVERIDAD:
-  Permiso  (Gödel): VETOED=0.0 ≤ DEGRADED=0.5 ≤ COHERENT=1.0
-                    meet = min = peor permiso = colapso de seguridad.
-  Severidad:        COHERENT=0 ≺ DEGRADED=1 ≺ VETOED=2
-                    max = átomo generador del filtro.
-  El join (supremo de verdad) es diagnóstico; el meet gobierna el interlock.
-  Corrección v5: un único VETOED basta para disparar el crowbar.
+FASE 2 — ORIENT ($\Phi_{\mathrm{II}}$) — ADUANAS DE POINCARÉ Y ULTRAFILTRO BOOELANO PRINCIPAL:
+3. Teorema del Twist de Poincaré–Birkhoff y Módulo de Rotación:
+   Dado el mapa de anillo que preserva área $\phi: A \to A$ sobre $A = S^1 \times [a, b]$, si las curvas de frontera
+   giran en direcciones opuestas $\theta_1(r=a) \cdot \theta_2(r=b) < 0$, $\phi$ admite al menos 2 puntos fijos geométricos.
 
-INVARIANTES DE CATEGORÍA:
-────────────────────────────────────────────────────────────────────────────────
-- Monotonicidad estricta en el Poset de filtración covariante de-confinado.
-- Preservación de la estructura convexa y compacta del espacio de estados densidad.
-- Unicidad y reflexividad del ultrafiltro principal booleano de veto.
-- Conservación de la 2-forma simpléctica Ω y del área |det M − 1| ≤ ε por el
-  integrador Störmer–Verlet (invariante integral absoluto de Poincaré–Cartan).
+4. Ultrafiltro Principal Booleano $\mathcal{U}_\tau$ y Dualidad Permiso/Severidad:
+   El filtro principal de veto $\mathcal{U}_\tau = \{ A \subseteq X \mid \tau \in A \}$ sobre la familia de aduanas
+   está generado por el átomo crítico $\tau = \text{Tesserarios}$.
+   El permiso global es la evaluación estricta en el meet de Heyting:
+   $$\nu_{\mathrm{global}} = \bigwedge_{k} \nu_k = \min_k (\nu_k) \in G_3 \triangleq \{\mathrm{VETOED}(0) \le \mathrm{DEGRADED}(1) \le \mathrm{COHERENT}(2)\}$$
+
+FASE 3 — DECIDE/ACT ($\Phi_{\mathrm{III}}$) — COLAPSO Y DISYUNTOR CIBER-FÍSICO EN IRAM:
+5. Colapso TMR e Interlock Síncrono Crowbar BT151:
+   La votación TMR con mediana inferior $\nu_{\mathrm{TMR}} = \mathrm{median}(\nu_{\mathrm{Guards}}, \nu_{\mathrm{Centurions}}, \nu_{\mathrm{Tesserarios}})$
+   y el átomo de Capa 4 fuerzan $\nu_{\mathrm{global}} = \mathrm{VETOED}$ si cualquiera de ellos colapsa.
+   Ante $\nu_{\mathrm{global}} = \mathrm{VETOED}$, el agente gatilla síncronamente el disyuntor de silicio
+   BT151 [GPIO14] mediante la rutina ISR en IRAM del ESP32 en latencia acotada $t_{\mathrm{act}} \in [380, 415] \text{ ns}$.
 """
 
 from __future__ import annotations

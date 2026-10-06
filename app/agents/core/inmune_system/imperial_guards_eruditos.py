@@ -5,36 +5,49 @@ r"""
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_eruditos.py           ║
 ║ Versión: 6.1.0-Poincare-Cartan-Melnikov-KAM-Heyting-OODA-Nested-PhD          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-SINOPSIS MATEMÁTICA Y COHOMOLÓGICA:
-Sostiene síncronamente la consistencia estructural del Consejo de Sabios,
-bloqueando alucinaciones estocásticas en la ventana de atención del LLM y
-supervisando la estabilidad analítica de las series de perturbaciones
-presupuestales mediante las aduanas de la mecánica celeste de Henri Poincaré.
+SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
+────────────────────────────────────────────────────────────────────────────────
+Ejerce la salvaguarda de consistencia estructural del Consejo de Sabios, anulando
+alucinaciones estocásticas en la matriz de atención del LLM y garantizando la
+estabilidad analítica del sistema inmunológico cognitivo de APU Filter v8.0 mediante
+un esquema anidado de tres fases ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
+fundado en la cohomología de Čech–de Rham, la homología de Floer y la mecánica celeste de Henri Poincaré.
 
-El tejido es estrictamente anidado:
-    I.ω   = synthesize_poincare_celestial_germ   → _PoincareCelestialAuditGerm
-            ≡ objeto inicial de la FASE II
-    II.0  = phase2_ingest_poincare_celestial_germ  (continúa I.ω)
-    II.ω  = induce_ooda_actuation_germ           → _OODAActuationGerm
-            ≡ objeto inicial de la FASE III
-    III.0 = phase3_ingest_ooda_actuation_germ      (continúa II.ω)
-    III.ω = run / execute_eruditos_cycle_certified → _OODAResult
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-    Φ_III ∘ Φ_II ∘ Φ_I : Auditoría celeste ⟶ H₃⁵ (join/meet Gödel) ⟶ OODA.
+FASE 1 — OBSERVE ($\Phi_{\mathrm{I}}$) — COHOMOLOGÍA Y AUDITORÍAS CELESTES CRUDAS:
+1. Homología de Floer y Variedades Invariantes Lagrangianas:
+   Para el funcional de acción simpléctica $\mathcal{A}_H(\gamma) = -\int_{\mathbb{D}^2} v^* \Omega + \int_{S^1} H(t, \gamma(t)) \mathrm{d}t$,
+   los puntos críticos de $\mathcal{A}_H$ corresponden a órbitas periódicas $x \in \mathcal{P}(H)$.
+   El operador de frontera de Floer $\partial_F \langle x \rangle = \sum_{y, \mu(x)-\mu(y)=1} n(x, y) \langle y \rangle$
+   satisface $\partial_F^2 = 0$, definiendo los grupos de homología $HF_k(M, \Omega)$.
 
-Aduanas de Poincaré (valuación en el retículo de Heyting Ω₃):
-  1. Pequeños divisores KAM  |⟨k,ω⟩| ≥ γ/|k|^τ, τ > n−1, y Brjuno ℬ(ρ)<∞.
-  2. Absorción ultramétrica T-ádica en Λ_Nov:
-        W_Nov = exp(−T_val / (ε + |⟨k,ω⟩|)).
-  3. Melnikov  M(t₀)=∫{H₀,H₁}(γ⁰(t−t₀)) dt; ceros simples ⇒ Smale.
-  4. Mapa de retorno P:Σ→Σ, Floquet–Krein, Lyapunov–Pesin, det M = 1.
-  5. Floer (cuerda + Sp(2n)) y Čech (Ȟ¹ ≡ 0, b₁ = 0).
-  6. Ω₃ = {COHERENT ≼ DEGRADED ≼ VETOED}:
-       COHERENT : KAM diofantino ∧ |det M−1|≤ε_W ∧ sin ceros simples de M
-                  ∧ Floer no degenerado ∧ Ȟ¹ trivial.
-       DEGRADED : divisor sub-KAM ∨ Floquet parabólico/mixto ∨ Ȟ¹ sucio.
-       VETOED   : resonancia k·ω≈0 ∨ |det M−1|>ε_W ∨ M(t₀)=0 simple
-                  ∨ motor caído.
+2. Cohomología Atencional de Čech–de Rham:
+   Sobre un cubrimiento abierto U de la variedad de atención, el operador coborde $\delta: \check{C}^p(\mathcal{U}, \mathcal{F}) \to \check{C}^{p+1}(\mathcal{U}, \mathcal{F})$
+   satisface $\delta^2 = 0$. La trivialidad del primer grupo de cohomología $\check{H}^1(\mathcal{U}, \mathcal{F}) \cong 0$
+   y la anulación del número de Betti $\beta_1 = 0$ certifican la ausencia de obstrucciones holonómicas en la atemporalidad del modelo.
+
+FASE 2 — ORIENT ($\Phi_{\mathrm{II}}$) — HEYTING $G_3^5$ Y VALUACIÓN EN ANILLO ULTRAMÉTRICO:
+3. Estabilidad Diofántica de Poincaré–KAM y Módulo de Brjuno:
+   Para un vector de frecuencias $\omega \in \mathbb{R}^n$, la condición diofántica
+   $|\langle k, \omega \rangle| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{0\} \quad (\tau > n-1)$
+   y la convergencia del módulo de Brjuno $\mathfrak{B}(\omega) = \sum_{\nu=0}^\infty 2^{-\nu} \ln\frac{1}{\Omega_\nu} < \infty$
+   impiden la colisión por divisiones pequeñas.
+
+4. Peso Ultramétrico T-Ádico en el Anillo de Novikov:
+   Las pequeñas divisiones se absorben en el anillo de Novikov $\Lambda_{\mathrm{Nov}}$ mediante el peso ultramétrico
+   $W_{\mathrm{Nov}} = \exp\left(-\frac{T_{\mathrm{val}}}{\varepsilon + |\langle k, \omega \rangle|}\right) \in (0, 1]$,
+   anulando la singularidad del integrador de Lindstedt–Poincaré $\chi_k = \frac{i (H_1)_k}{\langle k, \omega \rangle}$.
+
+5. Fractura Homoclínica de Melnikov y Matriz de Retorno:
+   La función de Melnikov $M(t_0) = \int_{-\infty}^\infty \{H_0, H_1\}(\gamma^0(t - t_0)) \mathrm{d}t$ mide la bifurcación homoclínica.
+   Un cero simple $M(t_0) = 0$ con $M'(t_0) \neq 0$ demuestra caos determinista y herraduras de Smale.
+
+FASE 3 — DECIDE/ACT ($\Phi_{\mathrm{III}}$) — COLAPSO OODA Y CONTROL LOGÍSICO SÍNCRONO:
+6. Adjudicación por Ínfimo de Gödel e Interlock Ciber-Físico:
+   El veredicto global se calcula mediante el meet de Heyting:
+   $$\nu_{\mathrm{global}} = \bigwedge_{k=1}^5 \nu_k \in G_3 \triangleq \{\mathrm{VETOED}(0) \le \mathrm{DEGRADED}(1) \le \mathrm{COHERENT}(2)\}$$
+   Ante $\nu_{\mathrm{global}} = \mathrm{VETOED}$, se activa el interlock lógico síncrono en IRAM para frenar la propagación de alucinaciones en $t_{\mathrm{act}} \le 400 \text{ ns}$.
 """
 from __future__ import annotations
 

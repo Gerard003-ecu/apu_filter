@@ -5,49 +5,57 @@ r"""
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_centurions.py         ║
 ║ Versión: 7.0.0-Poincare-Cartan-Christoffel-CZ-Birkhoff-KAM-OODA-Heyting-PhD  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-SINOPSIS MATEMÁTICA Y FÍSICA DE HENRI POINCARÉ:
+SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Ejerce la aduana de potencia ciber-física acoplando la Cortina de Potencia Imperial
 de la obra civil con la cúpula de sabiduría agéntica de APU Filter v8.0 mediante el
-Soberano de Calibre OODA en Lazo Cerrado, ahora con 3 fases anidadas donde el objeto
-terminal de una es el objeto inicial de la siguiente.
+Soberano de Calibre OODA en Lazo Cerrado, organizado en tres fases anidadas
+($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) sobre el
+fibrado cotangente $T^*Q \cong \mathbb{R}^{2n}$.
 
-FASE I — Auditorías crudas de la geometría de la fase (Mécanique Céleste):
-  1. Maupertuis–Jacobi: g̃_{jk} = 2(H₀ − V) g_{jk} = n(q)² g_{jk}.
-  2. Región de Hill: H₀ − V(q) > 0 (curva de velocidad cero ∂D_H).
-  3. Símbolos de Christoffel conformes de Koszul–Levi-Civita sobre g̃.
-  4. 1-forma de Poincaré–Cartan λ = p dq − H dt y su dλ = ω − dH ∧ dt.
-  5. Invariante integral absoluto: Φ*ω = ω  ⇔  Mᵀ J M = J (pullback simpléctico).
-  6. Desviación geodésica de Jacobi (marea de Maupertuis) ‖R(J, γ')γ'‖.
-  7. Pequeños divisores KAM: |⟨k, ω⟩| ≥ γ/|k|^τ, τ > n − 1.
-  8. Ecuación homológica de Poincaré–Lindstedt: i⟨k,ω⟩ χ_k = (H₁)_k.
-  9. Función de Melnikov: M(t₀) = ∫ {H₀, H₁}(γ⁰(t−t₀)) dt.
- 10. Mapa de retorno P: Σ → Σ con Floquet + Lyapunov + Conley–Zehnder.
- 11. Número de rotación de Poincaré ρ y twist de Poincaré–Birkhoff.
- 12. Cortina de Potencia IDA-PBC con disipación de Rayleigh Ḣ_d ≤ 0.
-  ⇒ Objeto terminal 𝒢_I = _CenturionsPoincareGerm  (inicial de Fase II).
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-FASE II — Valuación en el retículo de Heyting Ω₃⁵ (álgebra de Gödel G₃):
- 13. Los 5 canales se valúan en HeytingVerdict = {VETOED ≤ DEGRADED ≤ COHERENT}.
- 14. Meet (ínfimo = peor permiso = agregación de seguridad).
- 15. Join (supremo = mejor coherencia = diagnóstico).
- 16. Implicación de Gödel y negación Heyting para residuo de autorización.
-  ⇒ Objeto terminal 𝒢_II = _CenturionsOODAGerm  (inicial de Fase III).
+FASE I — OBSERVE ($\Phi_{\mathrm{I}}$) — GEOMETRÍA DE MAUPERTUIS Y CORTINA IDA-PBC:
+1. Métrica Conforme de Maupertuis–Jacobi y Región de Hill:
+   Para un sistema conservativo $H(q,p) = \frac{1}{2} p^\top g^{-1}(q) p + V(q) = H_0$,
+   las geodésicas de energía $H_0$ se desarrollan en la región de Hill $D_H \triangleq \{ q \in Q \mid H_0 - V(q) > 0 \}$
+   bajo la métrica conforme $\tilde{g}_{jk}(q) = 2(H_0 - V(q)) g_{jk}(q) = n(q)^2 g_{jk}(q)$.
+   Su factor de refracción es $n(q) \triangleq \sqrt{2(H_0 - V(q))}$.
 
-FASE III — Cámara de Coherencia y colapso ciber-físico:
- 17. Cámara con audit de la Cortina + KMS termodinámico de Tomita–Takesaki.
- 18. Colapso Ω₃ → {fire, no-fire} al disyuntor: ISR en IRAM del ESP32 (< 400 ns)
-     vía GPIO14 / Tiristor BT151 (Crowbar de Potencia), gobernado por el MEET.
+2. Estructura Port-Hamiltoniana e Interconexión Disipativa (IDA-PBC):
+   La dinámica en lazo cerrado satisface la ecuación de Dirac $\dot{x} = (J_d - R_d) \nabla H_d(x) + g u$,
+   con $J_d^\top = -J_d$ (matriz de interconexión simpléctica) y $R_d \succeq 0$ (matriz de disipación de Rayleigh).
+   La tasa de disipación exergética satisface $\dot{H}_d = -(\nabla H_d)^\top R_d (\nabla H_d) + (\nabla H_d)^\top g u \le 0$
+   para el sistema libre ($u=0$), garantizando pasividad estricta.
+
+3. 1-Forma de Poincaré–Cartan e Invarianza de Pullback:
+   Sobre la variedad extendida $T^*Q \times \mathbb{R}_t$, la 1-forma $\lambda = p_i \mathrm{d}q^i - H \mathrm{d}t$
+   preserva el invariante integral absoluto $\oint_\gamma \lambda = \text{const}$. Para la monodromía $M \in Sp(2n, \mathbb{R})$,
+   la invarianza simpléctica exige $M^\top J M = J$.
+
+FASE II — ORIENT ($\Phi_{\mathrm{II}}$) — ADJUDICACIÓN DE HEYTING $G_3^5$:
+4. Estructura de Retículo de Heyting $G_3$ y Operador Ínfimo:
+   Cada uno de los 5 canales celestes (Cortina PHS, Maupertuis, KAM, Melnikov, Retorno de Poincaré)
+   se evalúa en el álgebra trivalente de Gödel $G_3 = \{\mathrm{VETOED}(0) \le \mathrm{DEGRADED}(1) \le \mathrm{COHERENT}(2)\}$.
+   El permiso global de lazo cerrado se rige estrictamente por el ínfimo (meet):
+   $$\nu_{\mathrm{meet}} = \bigwedge_{k=1}^5 \nu_k = \min_{k} (\nu_k)$$
+   El supremo (join) $\nu_{\mathrm{join}} = \bigvee_{k=1}^5 \nu_k$ opera únicamente como indicador diagnóstico.
+
+FASE III — DECIDE/ACT ($\Phi_{\mathrm{III}}$) — CÁMARA DE COHERENCIA Y DISYUNTOR CIBER-FÍSICO:
+5. Estado KMS de Tomita–Takesaki y Cierre Termodinámico:
+   Sobre el Hamiltoniano modular $K \in \mathrm{SPD}(2n)$ obtenido al izar $\tilde{g} \oplus \tilde{g}^{-1}$,
+   el estado de Gibbs $\rho_\beta = \frac{e^{-\beta K}}{\mathrm{Tr}(e^{-\beta K})}$ satisface la condición KMS
+   $\mathrm{Tr}(\rho_\beta A \sigma_{-i \beta}(B)) = \mathrm{Tr}(\rho_\beta B A)$.
+
+6. Interlock Ciber-Físico y Actuación Crowbar BT151:
+   Ante $\nu_{\mathrm{meet}} = \mathrm{VETOED}$, la Cámara de Coherencia activa la rutina ISR en IRAM del ESP32
+   para disparar el tiristor BT151 [GPIO14] (Crowbar de Potencia) en un tiempo acotado $t_{\mathrm{act}} \in [380, 420] \text{ ns}$.
 
 IMPACTO EN MATRIZ FINANCIERA Y OPERACIONAL ("DOLOR Y DINERO"):
 ────────────────────────────────────────────────────────────────────────────────
-• Geodésicas de Maupertuis: ruta de potencia de mínima acción.
-  Impacto: cero derroche energético y ahorro directo del 12% en la planilla eléctrica.
-• Invarianza de Poincaré–Cartan / Liouville: conservación del volumen de fase.
-  Impacto: prevención de golpes de ariete y protección del WACC / ROI del proyecto.
-• Pasividad de Rayleigh: amortiguamiento asintótico hacia x*.
-  Impacto: garantía de vida útil extendida en variadores y bombas mecánicas.
-• Ruptura de Melnikov + CZ degenerado: detección temprana de caos torsional.
+• Geodésicas de Maupertuis: optimización de rutas de potencia de mínima acción, reduciendo el desgaste térmico y logrando un 12% de ahorro energético.
+• Conservación Simpléctica de Liouville: erradicación de transitorios destructivos y protección del WACC y ROI en infraestructura crítica.
+• Disipación de Rayleigh: amortiguamiento asintótico hacia puntos de equilibrio estables, extendiendo la vida útil de variadores y bombas.
 """
 
 from __future__ import annotations

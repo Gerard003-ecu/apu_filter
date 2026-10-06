@@ -6,44 +6,55 @@ r"""
 ║ Versión: 4.1.0-Poincare-Nested-Phases-KAM-Floquet-Melnikov-Williamson-Krein  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Motor homotópico de-confinado que custodia la invarianza por deformación
-continua de las transiciones de la Malla. Realiza la proyección simpléctica
-de Quillen (iteración polar estructurada de Higham–Mackey–Tisseur), calcula
-el tensor de homotopía m₃ en asociaedros de Stasheff, evalúa la obstrucción
-de Čech–Deligne para gerbes no abelianos y despliega la maquinaria completa
-de la **mecánica celeste de Henri Poincaré**, ahora con refinamiento 4.1.0:
+────────────────────────────────────────────────────────────────────────────────
+Motor homotópico, algebraico y geométrico de Capa 3 (Tesserarios Imperiales) para
+la Malla Agéntica de APU Filter v8.0. Despliega la proyección simpléctica
+de Quillen vía la iteración polar de Higham–Mackey–Tisseur, los tensores de homotopía
+$m_3$ sobre asociaedros de Stasheff $A_\infty$, la cohomología de Čech–Deligne para gerbes
+no abelianos y la arquitectura de tres fases de mecánica celeste de Henri Poincaré.
 
-  * Sección transversal Σ ⊂ T*Q con certificación *dinámica*
-    n_Σ · X_H ≠ 0 (no meramente Ω n_Σ ≠ 0, tautológica por no-degeneración).
-  * 1-forma de Poincaré–Cartan ϑ = p dq − H dt y su acción de periodo.
-  * Función generatriz de Hamilton–Jacobi F₂(q, P) con hessiana simetrizada
-    (cerradura d²F₂ = 0 ⇔ canonicidad).
-  * Gram–Schmidt simpléctico de Parasjuk–de Gosson con completación canónica
-    w ← −Ωv cuando el par degenera.
-  * Forma de volumen de Liouville Ωⁿ / n! y pairing compensado uᵀΩv.
-  * Clasificación de Williamson del equilibrio (elíptico / hiperbólico /
-    foco–foco) vía el espectro de la matriz hamiltoniana K = J Hess H.
-  * Factorización de Floquet–Lyapunov M = exp(T·A_F)·R_F con logaritmo real
-    por Schur y clasificación de Krein–Moser de los multiplicadores.
-  * Reducción de la monodromía al mapa de Poincaré (2n−2)×(2n−2)
-    (se extrae el bloque parabólico μ = 1 doble).
-  * Función de Mel'nikov ℳ(t₀) con ceros *simples* (signo ⊗ |ℳ′| > 0).
-  * Número de rotación ρ ∈ ℝ/ℤ (mod 2π) por fracción continua de Farey.
-  * Condición de twist de Moser ∂ρ/∂I ≠ 0 (Poincaré–Birkhoff).
-  * Ecuación homológica de Birkhoff (pequeños divisores k·ω).
-  * Detección KAM diofántica |k·ω| ≥ γ / |k|^τ sobre retículos adaptativos.
-  * Tiempo de estabilidad de Nekhoroshev T ~ exp(c ε^{−1/(2n)}).
-  * Espectro de Lyapunov por QR de Benettin con *emparejamiento hamiltoniano*
-    λᵢ ↔ −λ_{2n+1−i}, Kaplan–Yorke corregido y entropía de Pesin.
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-Tres fases anidadas (el objeto terminal de Φₖ es el objeto inicial de Φₖ₊₁):
+FASE I — GEOMETRÍA DE POINCARÉ–DARBOUX Y PROYECCIÓN POLAR:
+1. Axioma de Darboux y Proyección Polar Simpléctica:
+   Dada la 2-forma canónica $\Omega = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$, la iteración de Newton
+   escalada por Frobenius $X_{k+1} = \frac{1}{2} \left( \mu_k X_k + \mu_k^{-1} \Omega X_k^{-\top} \Omega^\top \right)$
+   con $\mu_k = \sqrt{\frac{\|\Omega X_k^{-\top} \Omega^\top\|_F}{\|X_k\|_F}}$ converge cuadráticamente a la proyección
+   $S = \mathrm{Pol}_{\mathrm{Sp}(2n)}(M) \in \mathrm{Sp}(2n, \mathbb{R})$, satisfaciendo $S^\top \Omega S = \Omega$.
 
-  Φ_I   : _NumericalCore.synthesize_poincare_darboux_germ
-            → _PoincareDarbouxGerm          ≡  germen inicial de Φ_II
-  Φ_II  : _SymplecticProjector.induce_poincare_floquet_germ
-            → _PoincareFloquetGerm          ≡  germen inicial de Φ_III
-  Φ_III : _PoincareMonodromyAnalyzer.compute_certificate
-            → PoincareMonodromyCertificate
+2. Gram–Schmidt Simpléctico de Parasjuk–de Gosson:
+   Dada una base de $T^*Q$, la ortogonalización simpléctica construye pares conjugados $(e_k, f_k)$ tales que
+   $\Omega(e_i, e_j) = 0$, $\Omega(f_i, f_j) = 0$ y $\Omega(e_i, f_j) = \delta_{ij}$. Cuando un par $(v, w)$ degenera,
+   se aplica la completación canónica $w \leftarrow -\Omega v$, garantizando $\Omega(v, -\Omega v) = \|v\|^2 > 0$.
+   $\Rightarrow$ Morfismo Terminal de Fase I: $\mathcal{G}_{\mathrm{I}} = \text{\_PoincareDarbouxGerm}$.
+
+FASE II — ÁLGEBRA $A_\infty$ DE STASHEFF, FACTORIZACIÓN DE QUILLEN Y FLOQUET:
+3. Tensores de Homotopía en Asociaedros de Stasheff $A_\infty$:
+   En la categoría de complejos $A_\infty$, la operación ternaria $m_3: A^{\otimes 3} \to A$ mide la no-asociatividad
+   de la multiplicación $m_2$ mediante la identidad del pentágono de Stasheff:
+   $$(m_3)_{ijk}^l = \sum_s \left( (m_2)_{ij}^s (m_2)_{sk}^l - (m_2)_{jk}^s (m_2)_{is}^l \right)$$
+
+4. Factorización Simpléctica de Quillen:
+   Todo mapa $M \in \mathrm{GL}(2n, \mathbb{R})$ admite la descomposición $M = P_L S = S P_R$, donde $S = \mathrm{Pol}_{\mathrm{Sp}}(M)$
+   es la cofibración simpléctica y $P_L, P_R$ son fibraciones deformadas.
+   $\Rightarrow$ Morfismo Terminal de Fase II: $\mathcal{G}_{\mathrm{II}} = \text{\_PoincareFloquetGerm}$.
+
+FASE III — OBSTRUCCIÓN DE ČECH–DELIGNE, KAM Y ESPECTRO DE LYAPUNOV:
+5. Hipercohomología de Čech–Deligne para 2-Gerbes No Abelianos:
+   Para un 1-cociclo de Čech $\omega \in C^1(\mathcal{U}; \mathcal{F})$, el defecto del coborde $\delta \omega \in C^2$ es
+   $(\delta \omega)_{ijk} = \omega_{jk} - \omega_{ik} + \omega_{ij}$. La obstrucción de gerbe se evalúa mediante la norma nuclear
+   de la matriz de Gram del haz $G = \mathrm{Herm}(-\Omega w)$, donde $w = (M-I)(M+I)^{-1} \in \mathfrak{sp}(2n, \mathbb{R})$
+   es la transformada de Cayley.
+
+6. Teorema de Estabilidad KAM y Cota de Nekhoroshev:
+   La retícula diofántica $|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau}$ ($\tau > n-1$) certifica la existencia de toros
+   invariantes. El tiempo de estabilidad efectiva de Nekhoroshev ante perturbaciones $\varepsilon$ satisface:
+   $$T_N \ge T_0 \exp\left( c \cdot \varepsilon^{-\frac{1}{2n}} \right)$$
+
+7. Algoritmo QR de Benettin con Emparejamiento Simpléctico de Lyapunov:
+   La evolución tangente $Z_k = M Q_{k-1}$, $Q_k R_k = \mathrm{QR}(Z_k)$ produce los exponentes de Lyapunov $\lambda_i = \frac{1}{N} \sum \ln |R_k[i,i]|$.
+   Para la monodromía $M \in \mathrm{Sp}(2n, \mathbb{R})$, la invarianza de Liouville impone el emparejamiento $\lambda_i = -\lambda_{2n+1-i}$.
+   $\Rightarrow$ Morfismo Terminal Global de Fase III: $\text{PoincareMonodromyCertificate}$.
 """
 from __future__ import annotations
 

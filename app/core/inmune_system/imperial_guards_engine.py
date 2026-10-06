@@ -6,31 +6,57 @@ r"""
 ║ Versión: 5.1.0-Poincare-Celeste-KAM-Nekhoroshev-Lindstedt-Birkhoff-Twist     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Motor elíptico ciego que ejecuta los cálculos espectrales, algebraicos,
-topológicos y de mecánica celeste de Henri Poincaré sobre la FPU. Alimenta
-las aduanas de-confinadas del módulo `imperial_guards_agent.py` con
-invariancia de Liouville, acción geodésica de Maupertuis–Jacobi, absorción
-de pequeños divisores en el anillo de Novikov, y despliega:
+────────────────────────────────────────────────────────────────────────────────
+Motor de cómputo geométrico, espectral y de mecánica celeste de Capa 1 (Guardias
+Imperiales) para el sistema inmune de APU Filter v8.0. Despliega la composición
+functorial de tres fases ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
+que gobierna la estabilidad orbital, la geometría de Darboux–Liouville, la teoría KAM,
+las cotas exponenciales de Nekhoroshev, las formas normales de Birkhoff y el álgebra de Heyting $\Omega_3$.
 
-  Φ_I   :  (2n, ρ, Σ)     →  𝒢_I  = _PoincareDarbouxGerm
-  Φ_II  :  𝒢_I × (M, ω)   →  𝒢_II = _PoincareFloquetGerm
-  Φ_III :  𝒢_II           →  PoincareGuardsCertificate
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-Aduanas celestes de Poincaré:
-  1. Sección transversal Σ, dirección característica J n_Σ, flujo n_Σ·X_H.
-  2. Recurrencia / primer retorno P_Σ : Σ → Σ.
-  3. Corchete de Poisson {f,g}=(∇f)ᵀ Ω (∇g) y generatriz F₂ de Hamilton–Jacobi.
-  4. Gram–Schmidt simpléctico S ∈ Sp(2n), ι(M)=Ω M^{−T} Ωᵀ.
-  5. Floquet–Lyapunov hamiltoniano: M=exp(T A_F) R_F, A_F ∈ sp(2n).
-  6. Mel’nikov ℳ(t₀)=∫{H₀,H₁} dt ; ceros simples ⇒ homoclínico.
-  7. Rotación ρ (Gauss–Hurwitz) y KAM |k·ω|≥γ/‖k‖₁^τ (τ>n−1, Rüssmann).
-  8. Lyapunov–Benettin (QR con absorción de signos) + Kaplan–Yorke + Pesin.
-  9. Poincaré–Cartan ∮ p dq − H dt, acción-ángulo, Kepler–Delaunay–Poincaré.
- 10. Birkhoff, Nekhoroshev, twist de Moser / Poincaré–Birkhoff, Lindstedt.
+FASE I — GEOMETRÍA DE POINCARÉ–DARBOUX Y SECCIONES DE RETORNO:
+1. Axioma de la 2-Forma Canónica y Sección de Poincaré:
+   En el fibrado cotangente $T^*M \cong \mathbb{R}^{2n}$, la 2-forma de Liouville $\Omega = \mathrm{d}q^i \wedge \mathrm{d}p_i$
+   satisface $\Omega^\top = -\Omega$ y $\Omega^2 = -I_{2n}$. Una hipersuperficie $\Sigma = \{ q_k = q_k^* \}$ define una sección
+   transversal de Poincaré si la dirección característica $J n_\Sigma$ y el vector de flujo $X_H = \Omega \nabla H$ cumplen
+   el criterio de transversalidad no degenerada: $n_\Sigma \cdot X_H \neq 0$.
 
-INVARIANTES:
-  Liouville det M = +1, Darboux Ωᵀ=−Ω y Ω²=−I, completez de Heyting Ω₃
-  (ínfimo de Gödel = join de severidad).
+2. Teorema de la Integración Simpléctica de Störmer–Verlet:
+   El mapa discreto $\Phi_{\Delta t}(q, p) = (q', p')$ en $T^*M$ se compone de cizallamientos simplécticos en $\mathrm{Sp}(2n, \mathbb{R})$.
+   Conserva la medida de Liouville $\det(\mathrm{d}\Phi_{\Delta t}) = +1$ y preserva la acción geodésica de Maupertuis–Jacobi
+   $S_M = \int \sqrt{2(H_0 - V(q))} \, |\mathrm{d}q|_G$.
+   $\Rightarrow$ Morfismo Terminal de Fase I: $\mathcal{G}_{\mathrm{I}} = \text{\_PoincareDarbouxGerm}$.
+
+FASE II — ESTABILIDAD DE FLOQUET, KAM, NEKHOROSHEV Y BIRKHOFF:
+3. Factorización de Floquet–Lyapunov y Multiplicadores de Krein:
+   El operador de monodromía $M \in \mathrm{Sp}(2n, \mathbb{R})$ a lo largo de una órbita periódica de periodo $T$ se factoriza como:
+   $$M = \exp(T A_F) R_F, \quad A_F \in \mathfrak{sp}(2n, \mathbb{R})$$
+   Los multiplicadores de Floquet $\mu = \mathrm{spec}(M)$ aparecen en pares recíprocos $\{\mu, \mu^{-1}, \bar{\mu}, \bar{\mu}^{-1}\}$ (simetría de Krein).
+
+4. Teorema de Estabilidad Exponencial de Nekhoroshev:
+   Para un hamiltoniano $H(I, \theta) = H_0(I) + \varepsilon H_1(I, \theta)$ con $H_0$ cuasiconvexo de índice $\alpha = 1$,
+   las variables de acción $I(t)$ satisfacen la cota de confinamiento exponencial:
+   $$|I(t) - I(0)| \le \varepsilon^b \quad \text{para todo } |t| \le T_0 \exp\left( \frac{c}{\varepsilon^a} \right)$$
+   con exponentes óptimos de Nekhoroshev $a = b = \frac{1}{2n}$.
+
+5. Forma Normal de Birkhoff y Condición Twist de Moser:
+   Mediante transformaciones canónicas generadas por $S(\theta, I')$, $H$ se reduce a la forma normal $H_B(I') = H_0(I') + \mathcal{O}(|I'|^k)$.
+   La condición de no-degeneración de Kolmogorov $\det \frac{\partial^2 H_0}{\partial I^2} \neq 0$ y la condición de twist isoenergético
+   garantizan la existencia de toros de KAM persistentes y puntos fijos según el Teorema de Poincaré–Birkhoff.
+   $\Rightarrow$ Morfismo Terminal de Fase II: $\mathcal{G}_{\mathrm{II}} = \text{\_PoincareFloquetGerm}$.
+
+FASE III — TOPOLOGÍA COMBINATORIA, HODGE–CHEEGER Y ADJUDICACIÓN DE HEYTING:
+6. Laplaciano Combinatorio de Hodge y Constante de Cheeger:
+   Sobre un complejo simplicial $K$, el operador Laplaciano $\Delta_k = \mathrm{d}_k^\dagger \mathrm{d}_k + \mathrm{d}_{k-1} \mathrm{d}_{k-1}^\dagger$
+   determina los números de Betti $\beta_k = \dim \ker \Delta_k$. La constante isoperimétrica de Cheeger $h(G)$ está acotada por el autovalor de Fiedler $\lambda_2(\Delta_0)$:
+   $$\frac{\lambda_2}{2} \le h(G) \le \sqrt{2 \lambda_2}$$
+
+7. Adjudicación Intuicionista en el Retículo de Gödel $G_3$ ($\Omega_3$):
+   El veredicto ciber-físico global colapsa mediante el ínfimo de Gödel (meet $\land = \min$) sobre los veredictos de canal:
+   $$\text{Verdict}_{\text{Global}} = \bigwedge_{c \in \text{Canales}} v_c \in \{\text{VETOED} = 0.0 \le \text{DEGRADED} = 0.5 \le \text{COHERENT} = 1.0\}$$
+   Un único canal veto $v_c = \text{VETOED}$ fuerza el colapso a $\bot = 0.0$, activando la protección de seguridad en tiempo real.
+   $\Rightarrow$ Morfismo Terminal Global de Fase III: $\text{PoincareGuardsCertificate}$.
 """
 from __future__ import annotations
 
