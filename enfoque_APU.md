@@ -146,7 +146,7 @@ PROYECTO: Megaconcesión Vial Sector 3 | FRENTE: Vaciado de Pilotes Sector B
 1.  **Reorganización de Documentos Principales (`PRODUCT_VISION.md`, `BMC.md`, `ARCHITECTURE_DEEP_DIVE.md`):**
     *   Insertar la **Analogía del Automóvil y los Frenos ABS** en el primer capítulo de cada documento.
     *   Estructurar el Business Model Canvas presentando la tabla de traducción semántica ("Dolor y Dinero") antes de introducir la definición del 1-complejo simplicial.
-2.  **Actualización de la Narrativa de los Soberanos en `SAGES.md` y `LENGUAJE_CONSEJO.md`:**
+2.  **Actualización de la Narrativa de los Soberanos en `SAGES.md` , `LENGUAJE_CONSEJO.md` y `PIRAMIDES_DE_CONTROL.md`:**
     *   Integrar la secuencia OODA del **"Viaje del Dato"** (APU de Vaciado de Concreto) para explicar la interacción conjunta de los 8 Soberanos TOON y `godel_agent.py`.
     *   Sustituir la descripción de apagado directo de mezcladoras por la formulación de la **Válvula de Alivio Termodinámico y Bypass Mecánico en IRAM ($< 400\text{ ns}$)**.
 3.  **Anexos Técnicos de Respaldo:**
