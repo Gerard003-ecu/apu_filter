@@ -31,8 +31,8 @@ r"""
 ║      de costos, previniendo fallos sistémicos antes de la ejecución.                     ║
 ║                                                                                          ║
 ║  §3. Contrato de Isomorfismo Afín (Escala Invariante):                                   ║
-║      Las proporciones funcionales operan intrínsecamente en el intervalo unitario $[5]$,║
-║      mientras que las condiciones semánticas humanas existen en el espacio $[6]$.   ║
+║      Las proporciones funcionales operan intrínsecamente en el intervalo unitario $[5]$, ║
+║      mientras que las condiciones semánticas humanas existen en el espacio $[6]$.        ║
 ║      El salto entre espacios se asegura mediante el operador afín isotrópico estricto:   ║
 ║          $c = M_{scale} p \implies M_{scale} = 100 \cdot I$                              ║
 ║      Este difeomorfismo afín garantiza la conmutatividad matemática sin pérdidas         ║
