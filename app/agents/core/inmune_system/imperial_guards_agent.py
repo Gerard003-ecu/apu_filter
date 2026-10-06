@@ -5,41 +5,72 @@ r"""
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_agent.py              ║
 ║ Versión: 5.1.0-Poincare-Nested-Phases-Darboux-Floquet-Melnikov-KAM-Cartan    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-SINOPSIS MATEMÁTICA Y GEOMÉTRICA DE POINCARÉ · DE RHAM · MOSER · KREIN:
+SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
-Ejerce la censura de primer nivel y la gobernanza covariante en lazo cerrado
-OODA (Φ₃ ∘ Φ₂ ∘ Φ₁) sobre el foso de la obra en la Malla Agéntica de APU Filter.
+Ejerce la censura de primer nivel y la gobernanza covariante en lazo cerrado OODA
+($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) sobre el
+foso de la obra en la Malla Agéntica de APU Filter v8.0. Implementa la composición
+anidada de functores sobre la variedad fásica extendida $T^*M \cong \mathbb{R}^{2n}$,
+suturando la geometría no conmutativa de Alain Connes con la teoría de grafos
+isoperimétricos de Cheeger–Fiedler, la mecánica celeste de Henri Poincaré y la
+adjudicación trivalente en el retículo de Heyting $G_3$.
 
-El tejido es estrictamente anidado:
-    I.ω  = synthesize_poincare_spectral_dossier  → Phase1PoincareDossier
-           ≡ objeto inicial de la FASE II
-    II.ω = synthesize_poincare_floquet_dossier   → Phase2PoincareDossier
-           ≡ objeto inicial de la FASE III
-    III.ω= certify_poincare_guards               → PoincareGuardsCertificate
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-Geometría y dinámica sobre T*M ≅ ℝ^{2n} con forma de Darboux Ω:
-  • θ = p dq  (1-forma de Liouville),  ω = dθ,  dω = 0 (cerrada).
-  • X_H ⌟ ω = −dH  (campo hamiltoniano; ι_{X_H} ω + dH = 0).
-  • {f,g} = ω(X_f, X_g) = (∇f)ᵀ Ω (∇g); identidad de Jacobi.
-  • Σ transversal al flujo: n_Σ · X_H ≠ 0  y  Ω n_Σ ≠ 0.
-  • F₂(q,P) tipo 2: p = ∂F₂/∂q, Q = ∂F₂/∂P, det(∂²F₂/∂q∂P) ≠ 0.
-  • S ∈ Sp(2n,ℝ): Sᵀ Ω S = Ω  (Gram–Schmidt simpléctico / SR).
-  • Involución de Cartan ι(ι(M)) = M sobre Sp(2n).
-  • Verlet: composición de cizallas, det Dφ = 1 (Liouville exacto).
-  • Floquet: M = exp(T A_F) R_F; multiplicadores (λ, 1/λ, λ̄).
-  • Discriminante de Hill Δ = tr M; elíptico ⇔ |Δ| ≤ 2 (1 d.o.f.).
-  • Krein–Gelfand–Lidskii: |μ| = 1 y definitud de Krein.
-  • Mel'nikov ℳ(t₀); ceros simples ⇒ homoclínicas transversas (Smale).
-  • ρ número de rotación (Denjoy); fracción continua; diofantino.
-  • KAM |k·ω| ≥ γ/|k|^τ  y condición de Brjuno.
-  • Twist de Moser: ∂ρ/∂I ≠ 0.
-  • Lyapunov–Benettin + Kaplan–Yorke + Pesin (h_KS = Σ λ_i⁺).
-  • Poincaré–Cartan ∮ p dq − H dt  (invariante integral relativo).
-  • Acción-ángulo I_k = (1/2π) ∮ p_k dq_k.
-  • Kepler osculador (a,e,i,Ω,ω,ν) + Delaunay (L,G,H,ℓ,g,h).
-FASE 1 (OBSERVE · Φ₁) — geometría de Darboux + espectro de Dirac.
-FASE 2 (ORIENT · Φ₂) — logística Cheeger + dinámica de Poincaré.
-FASE 3 (DECIDE/ACT · Φ₃) — retículo de Heyting Ω₃ + crowbar IRAM.
+FASE 1 — OBSERVE ($\Phi_{\mathrm{I}}$) — ESPECTRO DE DIRAC Y ESTRUCTURA DE DARBOUX:
+1. Triple Espectral No Conmutativo y Cota Lipschitz de Connes:
+   Dado el triple espectral $(\mathcal{A}, \mathcal{H}, \mathcal{D})$, la constante
+   Lipschitz no conmutativa sobre el álgebra de observables satisface la cota de
+   Daleckii–Krein–Connes: $L(\mathcal{D}) \le \frac{1}{2 \lambda_{\min}(\mathcal{D})^{3/2}}$,
+   donde $\lambda_{\min}(\mathcal{D}) = \min \{ |\lambda| \mid \lambda \in \mathrm{spec}(\mathcal{D}) \setminus \{0\} \}$
+   es el gap espectral del operador de Dirac regularizado vía Tikhonov–Higham.
+
+2. Axioma de la 2-Forma de Darboux–Liouville:
+   La 2-forma simpléctica no degenerada $\Omega = \mathrm{d}q^i \wedge \mathrm{d}p_i \in \Omega^2(T^*M)$
+   satisface $\mathrm{d}\Omega = 0$, $\Omega^\top = -\Omega$, $\Omega^2 = -I_{2n}$,
+   $\det(\Omega) = 1$, y $\mathrm{Pf}(\Omega) = 1$.
+   El mapa de Hamilton $X_H = -\Omega \nabla H$ satisface $\iota_{X_H} \Omega = -\mathrm{d}H$.
+
+3. Sección Transversal de Poincaré y Normal Simpléctica:
+   Sobre la hipersuperficie $\Sigma = \{ q \in M \mid q_k = q_k^* \}$, el vector normal unitario
+   $n_\Sigma = e_k$ satisface la no-degeneración simpléctica $\omega(n_\Sigma, \cdot) = \Omega n_\Sigma \neq 0$
+   y la transversalidad al flujo hamiltoniano $n_\Sigma \cdot X_H \neq 0$.
+
+FASE 2 — ORIENT ($\Phi_{\mathrm{II}}$) — TOPOLOGÍA DE CHEEGER Y DINÁMICA CELESTE:
+4. Invariante Isoperimétrico de Cheeger y Conectividad de Fiedler:
+   Para el laplaciano del grafo combinatorio $L = D - A$, la autovalor de Fiedler $\lambda_2(L)$
+   acota la constante de corte isoperimétrica de Cheeger $h(G)$:
+   $$\frac{\lambda_2(L)}{2} \le h(G) \le \sqrt{2 \lambda_2(L)}$$
+   La estabilidad piramidal $\Psi \triangleq \frac{\lambda_2(L)}{1 + \beta_1 + |\beta_0 - 1|}$
+   mide la resistencia del tejido agéntico frente a islas disjuntas ($\beta_0 > 1$) o bucles ($\beta_1 > 0$).
+
+5. Teoría de Floquet, Discriminante de Hill y Firma de Krein:
+   La monodromía $M = \Phi_T \in Sp(2n, \mathbb{R})$ admite la factorización de Floquet–Lyapunov
+   $M = \exp(T A_F) R_F$. Los multiplicadores de Floquet $\mathrm{spec}(M) = \{ \mu_k \}$ satisfacen la
+   simetría recíproca $\{\mu_k\} = \{1/\mu_k\} = \{\bar{\mu}_k\}$.
+   Un autoespacio elíptico $|\mu_k| = 1$ es Krein-definido si la forma hermítica $i \Omega(\xi, \bar{\xi}) \neq 0$.
+
+6. Estabilidad Diofántica KAM y Condición de Brjuno:
+   Un vector de frecuencias $\omega \in \mathbb{R}^n$ es diofántico de tipo $(\gamma, \tau)$ ($\tau > n-1$) si
+   $|\langle k, \omega \rangle| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{0\}$.
+   El módulo de Brjuno $\mathfrak{B}(\omega) = \sum_{\nu=0}^\infty 2^{-\nu} \ln\frac{1}{\Omega_\nu} < \infty$
+   garantiza la preservación de toros KAM bajo el flujo no degenerado de Moser ($\det \frac{\partial \omega}{\partial I} \neq 0$).
+
+7. Ruptura Homoclínica de Melnikov y Caos de Smale:
+   La función de Melnikov $M(t_0) = \int_{-\infty}^\infty \{H_0, H_1\}(\gamma^0(t - t_0)) \mathrm{d}t$
+   mide la distancia entre las variedades $W^s$ y $W^u$. Un cero simple $M(t_0) = 0$ con $M'(t_0) \neq 0$
+   implica intersección transversal homoclínica y presencia de herraduras de Smale.
+
+FASE 3 — DECIDE/ACT ($\Phi_{\mathrm{III}}$) — ADJUDICACIÓN DE HEYTING Y CROWBAR:
+8. Retículo de Heyting $G_3$ e Ínfimo de Permiso:
+   El álgebra trivalente de Gödel $G_3 = \{\mathrm{COHERENT}(2) \succ \mathrm{DEGRADED}(1) \succ \mathrm{VETOED}(0)\}$
+   posee estructura de retículo distributivo donde el permiso global se rige por el ínfimo (meet):
+   $$\nu_{\mathrm{global}} = \bigwedge_{k} \nu_k = \min_k (\nu_k)$$
+   Cualquier violación $\nu_k = \mathrm{VETOED}$ fuerza $\nu_{\mathrm{global}} = \mathrm{VETOED}$.
+
+9. Interlock Ciber-Físico y Latencia IRAM del ESP32:
+   Ante $\nu_{\mathrm{global}} = \mathrm{VETOED}$, el agente gatilla síncronamente el disyuntor de potencia
+   en IRAM vía GPIO14 / tiristor BT151 con latencia acotada $t_{\mathrm{act}} \in [380, 420] \text{ ns}$.
 """
 from __future__ import annotations
 

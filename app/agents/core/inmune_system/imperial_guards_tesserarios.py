@@ -5,38 +5,45 @@ r"""
 ║ Ruta   : app/agents/core/inmune_system/imperial_guards_tesserarios.py        ║
 ║ Versión: 4.1.0-Poincare-Floquet-Melnikov-KAM-Krein-Williamson-Nekhoroshev    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
-SINOPSIS MATEMÁTICA Y HOMOTÓPICA (v4.1.0):
+SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
-Supervisa la consistencia homotópica no abeliana de las deliberaciones
-agénticas desplegando, en paralelo a las tres aduanas heredadas (Quillen,
-Stasheff, Čech–Deligne), la maquinaria de la **mecánica celeste de Henri
-Poincaré**, ahora con el refinamiento 4.1.0 alineado al motor
-`ImperialTesserariosEngine` 4.1.0:
+Supervisa la consistencia homotópica no abeliana de las deliberaciones agénticas
+en APU Filter v8.0, acoplando las aduanas categoriales de Quillen, Stasheff y Čech–Deligne
+con la mecánica celeste de Henri Poincaré sobre tres fases anidadas
+($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$).
 
-  1. Sección transversal Σ ⊂ T*Q con transversalidad *dinámica*
-     n_Σ · X_H ≠ 0 (no la tautología Ω n_Σ ≠ 0).
-  2. 1-forma de Poincaré–Cartan ϑ = p dq − H dt y su acción de periodo.
-  3. Clasificación de Williamson del equilibrio (elíptico / hiperbólico /
-     foco–foco / parabólico) vía K = J Hess H.
-  4. Factorización de Floquet–Lyapunov M = exp(T·A_F)·R_F, con logaritmo
-     real por Schur y **clasificación de Krein–Moser** de {μ_k}.
-  5. Reducción al mapa de Poincaré (2n−2)×(2n−2) (se extrae μ = 1 doble).
-  6. Función de Mel'nikov ℳ(t₀) con ceros *simples* (signo ⊗ |ℳ′| > 0).
-  7. Número de rotación ρ ∈ ℝ/ℤ (mod 2π) por fracción continua de Farey.
-  8. Condición de twist de Moser ∂ρ/∂I ≠ 0 (Poincaré–Birkhoff).
-  9. Certificado KAM |k·ω| ≥ γ/|k|^τ sobre retículos adaptativos, con
-     tiempo de Nekhoroshev T_N ~ exp(c ε^{−1/(2n)}).
- 10. Espectro de Lyapunov por QR de Benettin con *emparejamiento
-     hamiltoniano* λᵢ ↔ −λ_{2n+1−i}, Kaplan–Yorke y Pesin.
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-Tres fases anidadas (el objeto terminal de Φₖ es el objeto inicial de Φₖ₊₁):
+FASE 1 — OBSERVE ($\Phi_{\mathrm{I}}$) — ALGEBRA HOMOTÓPICA $A_\infty$ Y GERBES DE ČECH:
+1. Cofibraciones de Quillen y Factorización Polar Simpléctica:
+   Para una matriz jacobiana $M \in \mathrm{GL}(2n, \mathbb{R})$, la factorización polar de Higham $M = U P$
+   obtiene la retracción ortogonal $U = M P^{-1} \in \mathrm{Sp}(2n, \mathbb{R}) \cap \mathrm{O}(2n) \cong U(n)$.
+   El residuo simpléctico $\epsilon_{\mathrm{Sp}} = \|M^\top \Omega M - \Omega\|_F$ mide el defecto de cofibración.
 
-  Φ_I   : _HomotopySpectralCoreTerminal.assemble_poincare_homotopy_jet
-            → _PoincareHomotopyJet              ≡  dominio de Φ_II
-  Φ_II  : HomotopicTesserariosAgent.compile_poincare_tesserarios_sheaf
-            → _PoincareTesserariosSheaf         ≡  dominio de Φ_III
-  Φ_III : TesserariosCoherenceChamber.fuse_and_actuate_poincare
-            → PoincareMonodromyCertificate
+2. Estructura de Álgebra $A_\infty$ de Stasheff y Pentágono $K_4$:
+   El tensor homotópico $m_3 \in \mathrm{Hom}(A^{\otimes 3}, A)$ y el producto $m_2$ satisfacen la identidad del pentágono $K_4$:
+   $$-m_2(m_3 \otimes \mathrm{id}) - m_2(\mathrm{id} \otimes m_3) + m_3(m_2 \otimes \mathrm{id} \otimes \mathrm{id}) - m_3(\mathrm{id} \otimes m_2 \otimes \mathrm{id}) + m_3(\mathrm{id} \otimes \mathrm{id} \otimes m_2) = 0$$
+   medida por la norma de Frobenius $\|K_4\|_F \le \varepsilon_{\mathrm{Stasheff}}$.
+
+3. Obstrucción de Gerbe No Abeliana de Čech–Deligne:
+   Para una 2-cocadena de Čech $C \in \check{C}^2(\mathcal{U}, \mathcal{F})$, el coborde $\delta C$ mide la curvatura de la 2-gerbe:
+   $\| \delta C \|_F = 0 \iff$ la gerbe es trivializable en $H^2(\mathcal{U}, \mathcal{F})$.
+
+FASE 2 — ORIENT ($\Phi_{\mathrm{II}}$) — ADUANA DE MONODROMÍA Y ESTABILIDAD DE KREIN:
+4. Monodromía de Floquet y Signatura de Krein–Moser:
+   Para el sistema lineal periódico $\dot{x} = A(t) x$, la monodromía $M = X(T) \in \mathrm{Sp}(2n, \mathbb{R})$
+   admite autoespacios elípticos $|\mu_k| = 1$. Un autoespacio es Krein-definido si la forma hermítica
+   $i \Omega(v, \bar{v}) \neq 0$ retiene el mismo signo para todos los autovectores en el bloque elíptico.
+
+5. Cota Diofántica KAM y Tiempo Exponencial de Nekhoroshev:
+   Para frecuencias $\omega \in \mathbb{R}^n$, la condición $|\langle k, \omega \rangle| \ge \frac{\gamma}{\|k\|_1^\tau}$ ($\tau > n-1$)
+   garantiza la estabilidad de toros KAM por un tiempo exponencialmente largo de Nekhoroshev:
+   $$T_N \ge T_0 \exp\left(c \cdot \varepsilon^{-1/(2n)}\right)$$
+
+FASE 3 — DECIDE/ACT ($\Phi_{\mathrm{III}}$) — ÍNFIMO DE HEYTING Y COLAPSO EN IRAM:
+6. Permiso Global por Ínfimo (Meet) y Disparo BT151:
+   El veredicto final $\nu_{\mathrm{global}} = \bigwedge_{k} \nu_k \in G_3 \triangleq \{\mathrm{VETOED}(0) \le \mathrm{DEGRADED}(1) \le \mathrm{COHERENT}(2)\}$
+   gatilla el disyuntor BT151 [GPIO14] en IRAM ($t_{\mathrm{act}} \le 400 \text{ ns}$) si $\nu_{\mathrm{global}} = \mathrm{VETOED}$.
 """
 from __future__ import annotations
 

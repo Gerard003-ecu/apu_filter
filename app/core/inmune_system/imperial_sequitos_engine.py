@@ -6,48 +6,58 @@ r"""
 ║ Versión: 5.1.0-Poincare-Nested-Phases-Krein-Williamson-Nekhoroshev-Kepler    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Motor táctico que supervisa la propagación de variables, la integración
-simpléctica de Maupertuis–Jacobi sobre variedades de Darboux (M, ω), el
-consenso de opinión en sub-tríadas de-confinadas (DeGroot–Fiedler), la
-fidelidad de Uhlmann y la violación multipartita de Bell–CHSH. En v5.1.0
-se teje, granular y rigurosamente, la **mecánica celeste de Henri Poincaré**
-alineada al refinamiento 4.1.0 del motor tesserario:
+────────────────────────────────────────────────────────────────────────────────
+Motor táctico de consenso, mecánica celeste y teoría cuántica de la información de Capa 1.5
+(Séquitos Imperiales) para el sistema inmune APU Filter v8.0. Implementa la composición
+anidada de tres fases functoriales ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
+que integra el consenso espectral de DeGroot, la fidelidad cuántica de Uhlmann, las desigualdades
+de Bell–CHSH, la integración simpléctica de Störmer–Verlet y las formas normales de Williamson.
 
-  • Sección transversal Σ ⊂ T*Q con transversalidad *dinámica* n_Σ · X_H ≠ 0
-    (no la tautología Ω n_Σ ≠ 0).
-  • 1-forma de Poincaré–Cartan ϑ = p dq − H dt y su acción de periodo.
-  • Corchete de Poisson {f,g} = (∇f)ᵀ Ω (∇g) (pairing compensado).
-  • Función generatriz F₂(q, P) de Hamilton–Jacobi con hessiana simetrizada
-    (cerradura d²F₂ = 0 ⇔ canonicidad).
-  • Gram–Schmidt simpléctico de Parasjuk–de Gosson con completación canónica
-    w ← −Ωv cuando el par degenera.
-  • Forma de volumen de Liouville Ωⁿ / n! y pairing uᵀΩv.
-  • Clasificación de Williamson del equilibrio (elíptico / hiperbólico /
-    foco–foco / parabólico) vía K = J Hess H.
-  • Factorización de Floquet–Lyapunov M = exp(T·A_F)·R_F, logaritmo real
-    por Schur y **clasificación de Krein–Moser** de {μ_k}.
-  • Reducción al mapa de Poincaré (2n−2)×(2n−2) (se extrae μ = 1 doble).
-  • Función de Mel'nikov ℳ(t₀) con ceros *simples* (signo ⊗ |ℳ′| > 0).
-  • Número de rotación ρ ∈ ℝ/ℤ (mod 2π) por fracción continua de Farey.
-  • Condición de twist de Moser ∂ρ/∂I ≠ 0 (Poincaré–Birkhoff).
-  • Certificado KAM |k·ω| ≥ γ/|k|^τ sobre retículos adaptativos, con
-    tiempo de Nekhoroshev T_N ~ exp(c ε^{−1/(2n)}).
-  • Espectro de Lyapunov por QR de Benettin; emparejamiento hamiltoniano
-    λᵢ ↔ −λ_{2n+1−i} *sólo* sobre monodromías en Sp(2n).
-  • Variables acción-ángulo I_i = (1/2π) ∮ p_i dq_i, θ̇_i = ∂H/∂I_i.
-  • Elementos orbitales osculadores de Kepler (a, e, i, Ω, ω, ν) con
-    residuo de vis-viva y periodo medio n = √(μ/a³).
-  • Integración Störmer–Verlet de Maupertuis–Jacobi con residual
-    simpléctico del jacobiano linealizado.
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-Tres fases anidadas (el objeto terminal de Φₖ es el objeto inicial de Φₖ₊₁):
+FASE I — ESTRUCTURA MONÁDICA DE KLEISLI–GIRY Y GEOMETRÍA DE DARBOUX:
+1. Mónadas Compuestas de Kleisli–Giry y Writer:
+   Dado un grafo de afinidad $A \in \mathrm{Mat}_{n \times n}(\mathbb{R}_{\ge 0})$, la estocastización por filas
+   re-normalizada $W = D^{-1} A$ define un núcleo de Markov sobre el espacio de estados. La mónada de Writer
+   $(T, \cdot)$ acumula las probabilidades de transición en la categoría de Kleisli.
 
-  Φ_I   : _NumericalCore.synthesize_poincare_kleisli_germ
-            → _PoincareKleisliGerm          ≡  germen inicial de Φ_II
-  Φ_II  : _DeGrootConsensus.induce_poincare_consensus_germ
-            → _PoincareConsensusGerm        ≡  germen inicial de Φ_III
-  Φ_III : _CHSHVerifier.certify_poincare_sequitos
-            → PoincareSequitosCertificate
+2. Axioma de la 2-Forma Canónica de Darboux y Sección de Poincaré:
+   En el espacio fásico inmerso $T^*Q \cong \mathbb{R}^{2n}$, la 2-forma canónica $\Omega = \mathrm{d}q^i \wedge \mathrm{d}p_i$
+   garantiza invarianza de medida. La sección transversal $\Sigma = \{ q_k = q_k^* \}$ satisface transversalidad
+   dinámica si el flujo hamiltoniano $X_H = \Omega \nabla H$ cumple $n_\Sigma \cdot X_H \neq 0$.
+
+3. Función Generatriz de Hamilton–Jacobi $F_2(q, P)$:
+   La transformación canónica $(q, p) \mapsto (Q, P)$ generada por $F_2(q, P)$ verifica $p = \frac{\partial F_2}{\partial q}$
+   y $Q = \frac{\partial F_2}{\partial P}$. La canonicidad se certifica mediante la simetría de la hessiana $\mathrm{d}^2 F_2 = 0$.
+   $\Rightarrow$ Morfismo Terminal de Fase I: $\mathcal{G}_{\mathrm{I}} = \text{\_PoincareKleisliGerm}$.
+
+FASE II — CONSENSO DE DEGROOT, FIDELIDAD DE UHLMANN Y DIVERGENCIA DE MEL'NIKOV:
+4. Teorema de Consenso Continuo y Discreto de DeGroot–Olfati-Saber:
+   El flujo continuo $\dot{x}(t) = -L_{\mathrm{norm}} x(t)$ con $L_{\mathrm{norm}} = I - D^{-1/2} A D^{-1/2}$
+   y el flujo discreto $x(t+1) = W x(t)$ convergen al vector propio estacionario de Perron–Frobenius $\pi^\top W = \pi^\top$.
+   La velocidad de mezcla está gobernada por el autovalor de Fiedler $\lambda_2(L_{\mathrm{norm}}) > 0$.
+
+5. Fidelidad Cuántica de Uhlmann y Cota de Tsirelson:
+   Para dos estados densidad $\rho, \sigma \in \mathcal{D}(\mathcal{H})$, la fidelidad de Uhlmann $F(\rho, \sigma) = \left( \mathrm{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$
+   cumple las desigualdades de Fuchs–van de Graaf respecto a la distancia de traza $T(\rho, \sigma) = \frac{1}{2} \|\rho - \sigma\|_1$:
+   $$1 - \sqrt{F(\rho, \sigma)} \le T(\rho, \sigma) \le \sqrt{1 - F(\rho, \sigma)}$$
+
+6. Función de Mel'nikov y Caos Homoclínico:
+   La función $M(t_0) = \int_{-\infty}^{\infty} \{H_0, H_1\}(q_0(t), t + t_0) \, \mathrm{d}t$ mide la divergencia
+   de variedades. Ceros simples $M(t_0) = 0$ con $M'(t_0) \neq 0$ garantizan dinámica de herradura de Smale.
+   $\Rightarrow$ Morfismo Terminal de Fase II: $\mathcal{G}_{\mathrm{II}} = \text{\_PoincareConsensusGerm}$.
+
+FASE III — VIOLACIÓN CHSH, POPESCU–ROHRLICH Y CERTIFICADO GLOBAL:
+7. Desigualdad de Bell–CHSH y Límite Causal No-Local:
+   Para el operador de correlación $S = E(a,b) - E(a,b') + E(a',b) + E(a',b')$, el límite local realista satisface $|S| \le 2$.
+   El límite cuántico de Tsirelson es $|S| \le 2\sqrt{2} \approx 2.8284$, mientras que las cajas no-locales no-señalizantes
+   de Popescu–Rohrlich (PR-boxes) alcanzan el techo algebraico $|S| \le 4$.
+
+8. Adjudicación de Heyting en Ω₃:
+   El veredicto final colapsa mediante el ínfimo de Gödel sobre los canales auditados:
+   $$\text{Verdict}_{\text{Global}} = \bigwedge \left\{ v_{\text{DeGroot}}, v_{\text{Floquet}}, v_{\text{KAM}}, v_{\text{Melnikov}}, v_{\text{CHSH}} \right\}$$
+   donde $\bot = \text{VETOED} = 0.0 \le \text{DEGRADED} = 0.5 \le \top = \text{COHERENT} = 1.0$.
+   $\Rightarrow$ Morfismo Terminal Global de Fase III: $\text{PoincareSequitosCertificate}$.
 """
 from __future__ import annotations
 

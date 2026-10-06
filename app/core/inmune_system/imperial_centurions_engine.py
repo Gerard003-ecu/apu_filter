@@ -7,35 +7,79 @@ r"""
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS MATEMÁTICA Y METROLOGÍA CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
-Este motor físico de cálculo ciego en FPU actúa como la aduana exergética de lazo
-cerrado para la Cortina de Potencia Imperial (Capa 3 de la Malla Agéntica APU
-Filter v8.0). Somete la dinámica de potencia electromecánica (bombas hidráulicas,
-mezcladoras y variadores de frecuencia) a los postulados fundamentales de Henri
-Poincaré, en 3 fases anidadas donde el objeto terminal de una es el objeto inicial
-de la siguiente.
+Motor numérico y geométrico de Capa 2 (Centuriones Imperiales) para la Cortina
+de Potencia Imperial en la arquitectura cognitiva APU Filter v8.0. Implementa
+un esquema de composición de tres fases functoriales ($\Phi_{\mathrm{III}} \circ
+\Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) fundado en la mecánica celeste de
+Henri Poincaré, la geometría diferencial riemanniana conforme, la integración
+simpléctica, la teoría port-Hamiltoniana (IDA-PBC) y el álgebra modular de
+Tomita–Takesaki.
 
-FASE I — Geometría de la fase (Darboux + Maupertuis–Jacobi + Poincaré–Cartan):
-  1. 1-forma de Liouville θ = p dq; 2-forma canónica Ω = dθ = dq ∧ dp.
-  2. Métrica conforme de Maupertuis–Jacobi:
-        g̃_{jk}(q) = 2(H₀ − V(q)) g_{jk}(q) = n(q)² g_{jk}(q)
-     con índice de refracción mecánico n(q) = √(2(H₀ − V(q))).
-  3. Factor conforme φ(q) = ½ ln(2(H₀ − V(q))) = ln n(q).
-  4. Símbolos de Christoffel conformes de Koszul–Levi-Civita:
-        Γ̃^i_{jk} = Γ^i_{jk} + δ^i_j ∂_k φ + δ^i_k ∂_j φ − g_{jk} g^{il} ∂_l φ.
-  5. Región de Hill: D_H = {q : H₀ − V(q) > 0}; ∂D_H curva de velocidad cero.
-  6. 1-forma de Poincaré–Cartan: λ = θ − H dt = p dq − H dt
-     (invariante integral relativo; dλ es el invariante absoluto).
-  7. Acciones de Poincaré: I_k = (1/2π) ∮ p_k dq^k  (invariante relativo).
-  8. Campo hamiltoniano X_H = Ω^{-1} dH ≅ J ∇H; medida de Liouville Ωⁿ / n!.
-  9. Integrador simpléctico Störmer–Verlet (shears, det = 1) y Yoshida 4.
-  10. Ecuación de desviación geodésica (campos de Jacobi) como germen variacional.
-  ⇒ Objeto terminal 𝒢_I = _PoincareCartanGerm (inicial de Fase II).
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-FASE II — Mecánica celeste de Poincaré (KAM + Melnikov + Retorno + PHS):
-  [se genera en el paso siguiente; consume 𝒢_I]
+FASE I — GEOMETRÍA DE LA FASE Y VARIACIÓN DE MAUPERTUIS–JACOBI:
+1. Axioma de la 2-Forma Canónica de Liouville–Darboux:
+   En el fibrado cotangente $T^*Q \cong \mathbb{R}^{2n}$, la 1-forma potencial de Liouville $\theta = p_i \mathrm{d}q^i$
+   induce la 2-forma simpléctica no degenerada $\Omega = \mathrm{d}\theta = \mathrm{d}q^i \wedge \mathrm{d}p_i$.
+   Matricialmente: $\Omega = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$, verificando $\Omega^\top = -\Omega$,
+   $\Omega^2 = -I_{2n}$, y medida de Liouville $\mu_{\mathrm{Liouville}} = \frac{\Omega^n}{n!}$.
 
-FASE III — Capa modular y cierre termodinámico (Tomita–Takesaki + Umegaki):
-  [se genera en el tercer paso; consume 𝒢_II]
+2. Teorema de Maupertuis–Jacobi y Métrica Conforme:
+   Para un sistema hamiltoniano conservativo $H(q,p) = \frac{1}{2} p^\top g^{-1}(q) p + V(q) = H_0$,
+   las trayectorias dinámicas a energía fija $H_0$ en la región de Hill $D_H \triangleq \{ q \in Q \mid H_0 - V(q) > 0 \}$
+   son geodésicas reparameterizadas de la métrica conforme $\tilde{g}_{ij}(q) = 2(H_0 - V(q)) g_{ij}(q) = n(q)^2 g_{ij}(q)$,
+   donde $n(q) \triangleq \sqrt{2(H_0 - V(q))}$ es el índice de refracción óptico-mecánico.
+
+3. Símbolos de Christoffel Conformes (Koszul–Levi-Civita):
+   Sea $\phi(q) \triangleq \ln n(q) = \frac{1}{2} \ln(2(H_0 - V(q)))$ el factor conforme escalar.
+   Los símbolos de Christoffel de la conexión conformemente deformada adoptan la expresión exacta:
+   $$\tilde{\Gamma}^i_{jk} = \Gamma^i_{jk} + \delta^i_j \partial_k \phi + \delta^i_k \partial_j \phi - g_{jk} g^{il} \partial_l \phi$$
+   donde $\nabla \phi = \frac{-\nabla V}{2(H_0 - V)}$. La aceleración geodésica satisface $\ddot{q}^i = -\tilde{\Gamma}^i_{jk} \dot{q}^j \dot{q}^k$.
+
+4. 1-Forma de Poincaré–Cartan e Invariante Integral Absoluto:
+   Sobre la variedad de fase extendida $T^*Q \times \mathbb{R}_t$, la 1-forma $\lambda = p_i \mathrm{d}q^i - H \mathrm{d}t$
+   satisface la invarianza integral de Poincaré: $\oint_{\gamma_1} \lambda = \oint_{\gamma_2} \lambda$ para curvas cerradas
+   homólogas $\gamma_1, \gamma_2$ sobre un tubo de trayectorias. Su diferencial exterior $\mathrm{d}\lambda = \Omega - \mathrm{d}H \wedge \mathrm{d}t$
+   constituye el invariante integral absoluto de É. Cartan (1922).
+
+5. Integradores Simplécticos de Störmer–Verlet y Yoshida (Orden 4):
+   El integrador $\Phi_{\Delta t}: T^*Q \to T^*Q$ se compone de cizallamientos simplécticos en $Sp(2n, \mathbb{R})$,
+   preservando el volumen en el espacio fásico $\det(\mathrm{d}\Phi_{\Delta t}) = 1$. La composición de Yoshida de 4º orden
+   $\Phi_{\Delta t}^{\mathrm{Yoshida}} = \Phi_{w_1 \Delta t} \circ \Phi_{w_0 \Delta t} \circ \Phi_{w_1 \Delta t}$
+   con $w_1 = \frac{1}{2 - 2^{1/3}}$ y $w_0 = \frac{-2^{1/3}}{2 - 2^{1/3}}$ anula los términos de error sombra hasta $\mathcal{O}(\Delta t^4)$.
+   $\Rightarrow$ Morfismo Terminal de Fase I: $\mathcal{G}_{\mathrm{I}} = \text{\_PoincareCartanGerm}$.
+
+FASE II — MECÁNICA CELESTE, KAM, MELNIKOV Y CONTROL IDA-PBC:
+6. Teorema diofántico de Poincaré–KAM y Módulo de Bruno–Rüssmann:
+   Para frecuencias $\omega \in \mathbb{R}^n$, la condición diofántica $|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau}$
+   $\forall k \in \mathbb{Z}^n \setminus \{0\}$ ($\tau > n-1$) garantiza la preservación de toros invariantes.
+   El módulo de Bruno–Rüssmann $\mathfrak{B}(\omega) \triangleq \sum_{\nu=0}^\infty 2^{-\nu} \ln\frac{1}{\Omega_\nu} < \infty$
+   donde $\Omega_\nu = \inf \{ |\langle k, \omega \rangle| : 0 < |k| \le 2^{\nu+1} \}$ gobierna la convergencia analítica.
+   El peso ultramétrico de Novikov $W_{\mathrm{Nov}} = \exp\left(-\frac{T}{|\langle k, \omega \rangle|}\right)$ absorbe las pequeñas divisiones.
+
+7. Función de Melnikov y Fractura Homoclínica:
+   Para sistemas perturbados $H = H_0 + \varepsilon H_1$, la función de Melnikov $M(t_0) = \int_{-\infty}^{\infty} \{H_0, H_1\}(\gamma^0(t - t_0)) \mathrm{d}t$
+   mide la distancia de división entre las variedades estable $W^s$ e inestable $W^u$.
+   Un cero simple $M(t_0) = 0$ con $M'(t_0) \neq 0$ demuestra la presencia de intersecciones homoclínicas transversales
+   y caos determinista de Poincaré.
+
+8. Control Port-Hamiltoniano por Interconexión y Amortiguamiento (IDA-PBC):
+   Sistemas representados mediante la ecuación de Dirac $\dot{x} = (J - R) \nabla H(x) + g u$, con $J^\top = -J$ y $R \succeq 0$.
+   El control $u = \alpha(x)$ resuelve la ecuación de matching $(J_d - R_d) \nabla H_d = (J - R) \nabla H + g \alpha$,
+   garantizando disipación de exergía $\dot{H}_d = -(\nabla H_d)^\top R_d (\nabla H_d) \le 0$.
+   $\Rightarrow$ Morfismo Terminal de Fase II: $\mathcal{G}_{\mathrm{II}} = \text{\_ModularCelestialGerm}$.
+
+FASE III — ÁLGEBRA MODULAR DE TOMITA–TAKESAKI Y CIERRE TERMODINÁMICO:
+9. Estado de Gibbs Modular y Grupo de Automorfismos Modulares:
+   A partir de la métrica fásica $G = \tilde{g} \oplus \tilde{g}^{-1} \in \mathrm{SPD}(2n)$, se define el estado de Gibbs $\rho_\beta = \frac{e^{-\beta K}}{Z}$
+   donde $Z = \mathrm{Tr}(e^{-\beta K})$. El grupo de automorfismos modulares de Tomita–Takesaki $\sigma_t^{\rho_\beta}(A) = \rho_\beta^{i t} A \rho_\beta^{-i t}$
+   satisface la condición KMS en la franja analítica $\mathbb{R} + i [-\beta, 0]$: $\mathrm{Tr}(\rho_\beta A \sigma_{-i \beta}(B)) = \mathrm{Tr}(\rho_\beta B A)$.
+
+10. Divergencia de Umegaki, Principio Variacional y Recurrencia de Poincaré:
+    La entropía relativa de Umegaki $S(\rho \parallel \sigma) = \mathrm{Tr}(\rho(\ln\rho - \ln\sigma)) \ge \frac{1}{2} \|\rho - \sigma\|_1^2 \ge 0$ (Pinsker/Klein).
+    El estado $\rho_\beta$ minimiza la energía libre de Helmholtz $F[\sigma] = \langle K \rangle_\sigma - \beta^{-1} S(\sigma) \ge F[\rho_\beta] = -\beta^{-1} \ln Z$.
+    El tiempo de recurrencia cuántica de Poincaré–Bocchieri–Loinger es $\tau_{\mathrm{rec}} = \frac{2\pi}{\min_{i \neq j} |\lambda_i(K) - \lambda_j(K)|}$.
+    $\Rightarrow$ Cierre Termodinámico: $\mathcal{C}_{\mathrm{III}} = \text{\_ThermodynamicClosureCertificate}$.
 """
 from __future__ import annotations
 

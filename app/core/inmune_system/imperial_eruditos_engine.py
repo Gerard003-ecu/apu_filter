@@ -6,33 +6,58 @@ r"""
 ║ Versión: 6.1.0-Poincare-Cartan-Melnikov-KAM-Floer-Cech-Nested-PhD            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
-Motor cohomológico y de mecánica celeste. Evalúa la regularidad elíptica y el
-potencial de acción de cilindros pseudo-holomorfos (Floer), aniquila bucles
-parasitarios en el KV-Cache (Čech atencional) y resuelve el espectro de
-pequeños divisores de Poincaré–KAM con absorción ultramétrica en Λ_Nov.
+────────────────────────────────────────────────────────────────────────────────
+Motor numérico, cohomológico y de mecánica celeste de Capa 3 (Eruditos Imperiales)
+para la Malla Agéntica del sistema inmune APU Filter v8.0. Implementa una
+cadena anidada de tres morfismos functoriales ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}}
+\circ \Phi_{\mathrm{I}}$) que audita la regularidad elíptica de cilindros pseudo-holomorfos
+de Floer, aniquila la obstrucción cohomológica de Čech en la memoria de atención,
+y evalúa el espectro diofántico de pequeños divisores de Poincaré–KAM.
 
-El tejido es estrictamente anidado:
-    I.ω   = synthesize_poincare_cartan_germ      → _PoincareCartanGerm
-            ≡ objeto inicial de la FASE II
-    II.0  = phase2_ingest_poincare_cartan_germ   (continúa I.ω)
-    II.ω  = induce_cech_nerve_germ               → _CechNerveGerm
-            ≡ objeto inicial de la FASE III
-    III.0 = phase3_ingest_cech_nerve_germ        (continúa II.ω)
-    III.ω = compute / compute_attention_cech…    → _CechCohomologyResult
+DEFINICIONES, AXIOMAS Y TEOREMAS FORMALES:
 
-    Φ_III ∘ Φ_II ∘ Φ_I : Darboux ⟶ Poincaré-Cartan ⟶ KAM/Melnikov/Floer ⟶ Čech/Hodge.
+FASE I — ESTRUCTURA SIMPLÉCTICA DE DARBOUX Y GEOMETRÍA DE MAUPERTUIS:
+1. Axioma de Darboux y 1-Forma de Liouville:
+   Sea $T^*Q \cong \mathbb{R}^{2n}$ el fibrado cotangente. La 1-forma potencial de Liouville $\theta = p_i \mathrm{d}q^i$
+   genera la 2-forma simpléctica canónica $\Omega = \mathrm{d}\theta = \mathrm{d}q^i \wedge \mathrm{d}p_i$,
+   con matriz $\Omega = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$ que satisface $\Omega^\top = -\Omega$,
+   $\Omega^2 = -I_{2n}$, $\det \Omega = 1$ y Pfaffiano $\mathrm{Pf}(\Omega) = +1$.
 
-Geometría sobre T*Q ≅ ℝ^{2n} y el espacio extendido T*Q × ℝ:
-  • θ = p dq  (Liouville);  ω = dθ;  dω = 0.
-  • λ_PC = θ − H dt  (Poincaré–Cartan);  dλ_PC = ω − dH ∧ dt.
-  • X_H ⌟ ω = −dH;  {f,g} = ω(X_f, X_g) = (∇f)ᵀ Ω (∇g).
-  • g̃ = 2(H₀ − V) g  (Maupertuis–Jacobi);  D_H = {V ≤ H₀} (Hill).
-  • KAM: |⟨k,ω⟩| ≥ γ/|k|^τ, τ > n−1;  Brjuno ℬ(ρ) < ∞.
-  • Melnikov ℳ(t₀)=∫{H₀,H₁}(γ⁰(t−t₀)) dt; ceros simples ⇒ Smale.
-  • P: Σ→Σ, M∈Sp(2n); Floquet (μ,1/μ,μ̄); Krein; Hill Δ=tr M.
-  • Floer ∂̄_{J,H}(u)=0; CZ (Robbin–Salamon); Maslov.
-  • Cayley w=(M−I)(M+I)^{−1};  G=−Ω w  (nervio de Čech).
-  • Ȟ¹(𝒰; F_att) ≡ 0  (coborde + Betti b₁).
+2. Teorema de Maupertuis–Jacobi y Métricas Conformes:
+   En la región de Hill $D_H = \{ q \in Q \mid H_0 - V(q) > 0 \}$, la reparameterización geodésica a energía fija $H_0$
+   está gobernada por la métrica conforme $\tilde{g}_{ij}(q) = 2(H_0 - V(q)) g_{ij}(q)$.
+   Diferenciación holomorfa CSMD (Complex Step Matrix Differentiation):
+   $$\nabla_k H(x) = \frac{\mathrm{Im}[H(x + i h e_k)]}{h} + \mathcal{O}(h^2)$$
+   anula la cancelación sustractiva de coma flotante en la mantisa de la FPU.
+   $\Rightarrow$ Morfismo Terminal de Fase I: $\mathcal{G}_{\mathrm{I}} = \text{\_PoincareCartanGerm}$.
+
+FASE II — MECÁNICA CELESTE, HOMOLOGÍA DE FLOER Y MAPA DE RETORNO:
+3. Teorema Diofántico de KAM y Absorción Ultramétrica de Novikov:
+   Un vector de frecuencia $\omega \in \mathbb{R}^n$ satisface la cota de no-resonancia diofántica si:
+   $$|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau}, \quad \forall k \in \mathbb{Z}^n \setminus \{0\}, \quad \tau > n-1$$
+   El peso ultramétrico de Novikov $W_{\mathrm{Nov}} = \exp\left(-\frac{T}{|\langle k, \omega \rangle|}\right)$
+   absorbe las divergencias de pequeños divisores en el anillo $\Lambda_{\mathrm{Nov}}$.
+
+4. Ecuación de Cauchy–Riemann Deformada de Floer:
+   Para un cilindro pseudo-holomorfo $u: \mathbb{R} \times S^1 \to T^*Q$, la ecuación de Floer adopta la forma:
+   $$\bar{\partial}_{J,H}(u) \triangleq \frac{\partial u}{\partial s} + J(u) \left( \frac{\partial u}{\partial t} - X_H(u) \right) = 0$$
+   El funcional de acción simpléctica $\mathcal{A}_H(u) = \int_{S^1} u^* \theta - \int_0^1 H(u) \mathrm{d}t$
+   satisface la gradiente negativa $\frac{\mathrm{d}}{\mathrm{d}s} \mathcal{A}_H(u(s)) = -\int_0^1 \|\frac{\partial u}{\partial s}\|^2 \mathrm{d}t \le 0$.
+   La no-degeneración espectral se evalúa mediante el índice de Conley–Zehnder $i_{\mathrm{CZ}}(u) \in \mathbb{Z}$.
+   $\Rightarrow$ Morfismo Terminal de Fase II: $\mathcal{G}_{\mathrm{II}} = \text{\_CechNerveGerm}$.
+
+FASE III — COHOMOLOGÍA DE ČECH ATENCIONAL Y ESTRUCTURA DE HODGE:
+5. Transformada de Cayley y Gram del Haz Atencional:
+   A partir del operador de monodromía $M \in \mathrm{Sp}(2n, \mathbb{R})$, la transformada de Cayley $w = (M - I)(M + I)^{-1} \in \mathfrak{sp}(2n, \mathbb{R})$
+   induce la matriz de Gram del haz de atención $G = \mathrm{Herm}(- \Omega w) \succeq 0$.
+
+6. Trivialidad de la Obstrucción Cohomológica $\check{H}^1(\mathcal{U}; \mathcal{F}_{\mathrm{att}}) \equiv 0$:
+   Dado un 1-cociclo de Čech $\omega \in C^1(\mathcal{U}; \mathcal{F}_{\mathrm{att}})$, el operador coborde $\delta: C^1 \to C^2$ actua como
+   $(\delta \omega)_{ijk} = \omega_{jk} - \omega_{ik} + \omega_{ij}$.
+   El Laplaciano de Hodge combinatorio $\Delta_0 = D - W$ sobre el grafo del nervio $\mathcal{U}$ determina los números de Betti:
+   $$b_0 = \dim \ker \Delta_0, \quad b_1 = |E| - |V| + b_0$$
+   La aniquilación completa de bucles atencionales parásitos se verifica sii el primer número de Betti y la norma del coborde se anulan:
+   $$b_1 = 0 \quad \text{y} \quad \|\delta \omega\| = 0 \quad \Longrightarrow \quad \check{H}^1(\mathcal{U}; \mathcal{F}_{\mathrm{att}}) \cong 0$$
 """
 from __future__ import annotations
 
