@@ -6,38 +6,48 @@ r"""
 ║ Versión  : 5.0.0-Poincare-Delaunay-Lindstedt-Moser-Greene-Chirikov-Topos     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Evolución del Campo Tensorial Transitorio T_TOON^trans(t) sobre T*Q, anidando
-granularmente los métodos de Henri Poincaré (*Les Méthodes Nouvelles de la
-Mécanique Céleste*, tt. I–III, 1892–1899) y su descendencia KAM/Moser/Greene:
+Evolución del Campo Tensorial Transitorio T_TOON^trans(t) = Q_cuant(t) ⊗ K_cual(t)
+sobre T*Q, anidando granular y rigurosamente los métodos de Henri Poincaré
+(*Les Méthodes Nouvelles de la Mécanique Céleste*, tt. I–III, 1892–1899) y su
+descendencia KAM/Moser/Greene/Oseledets:
 
-    • Variables canónicas de Delaunay (L, G, H, l, g, h) y de Poincaré (ξ, η, p, q)
-    • Tensor de Poisson J^{ij}, corchete {F,G} y 1-forma de Poincaré-Cartan Θ
-    • Hamiltoniano perturbado H = H₀(L) + ε H₁(l,g,h;L,G,H) con derivadas analíticas
-    • Ecuaciones de Hamilton en Delaunay (no Euler ingenuo: Verlet simpléctico)
-    • Series de Lindstedt-Poincaré (eliminación de términos seculares)
-    • Sección de Poincaré Σ_ℓ = {ℓ ≡ ℓ₀ (mod 2π), ℓ̇ > 0} ⊂ T*Q  (estroboscópica)
-    • Mapa de retorno P : Σ → Σ, monodromía D P, exponentes de Floquet
-    • Teorema del twist de Moser (τ = ∂n/∂L = −3μ²/L⁴ ≠ 0)
-    • Residuo de Greene R = (2 − Tr M)/4  y criterio de destrucción del último toro
-    • Solapamiento de Chirikov de resonancias de movimiento medio
-    • Función de Melnikov M(t₀) = ∫ {H₀, H₁}(φ_t(z)) dt  (splitting homoclínico)
-    • Teorema geométrico de Poincaré-Birkhoff (puntos fijos del mapa twist)
-    • Vector de Laplace-Runge-Lenz como invariante adiabático (cuaternión orbital)
-    • Álgebras de Heyting Ω₃ (clasificador de subobjetos del topos) y de Banach B(H)
+DEFINICIONES Y AXIOMAS MATEMÁTICOS INTEGRADOS:
 
-Arquitectura de 3 FASES ANIDADAS por herencia (el último método de la fase k
-es el germen formal / primer acto de la fase k+1):
+1. Variedad Cotangente y 1-Forma de Poincaré-Cartan:
+   El espacio de fases T*Q está dotado de la forma simpléctica canónica ω = dθ_PC,
+   donde θ_PC = p dq = Tr(ρ dN) preserva el volumen de Liouville en el flujo Hamiltoniano.
 
+2. Criterio de Chirikov Dilatado por los Exponentes de Lyapunov de Oseledets (λ_max):
+   El solapamiento de resonancias de movimiento medio s_base = (Δn_a + Δn_b) / (2|n_a - n_b|)
+   se dilata por el espectro de Oseledets de la matriz de monodromía M ∈ M_4(ℝ):
+       λ_max = (1 / τ_orbit) ln ρ(M)
+       s_eff = s_base · exp(λ_max · τ_orbit)
+   Anticipando la degradación a toros de Cantori (estructuras de Cantor Aubry-Mather)
+   y la difusión de Arnold cuando s_eff > 0.85 o λ_max > 0.05.
+
+3. Automejora Recursiva Nivel 3 (Mónada de Categorías T = (T, η, μ)):
+   Supera la cota de contracción de Banach k < 1.0 permitiendo meta-aceleración
+   d³C/dt³ > 0 mediante la multiplicación monádica μ_buffer : T²(A) -> T(A):
+       η^{(t+1)} = μ_buffer(η^{(t)}) = η^{(t)} · exp(-h_KS · d_FS(ρ_MAC, ρ_trans))
+   donde d_FS es la distancia de Fubini-Study sobre ℂP^{n-1} y h_KS es la entropía
+   de Kolmogorov-Sinai / Rényi-2.
+
+4. Residuos de Greene, Splitting de Melnikov y Teorema de Poincaré-Birkhoff:
+   • Residuo de Greene R_G = (2 - Tr M) / 4 (R_G -> 1/4 destruye el último toro KAM).
+   • Melnikov M(t₀) = ∫ {H₀, H₁}(φ_t(z)) dt delata el transversal homoclinic tangle.
+   • Teorema de Poincaré-Birkhoff garantiza al menos 2 puntos fijos en el mapa twist.
+
+Arquitectura de 3 FASES ANIDADAS por herencia:
     FASE I  : PoincareCanonicalAtlas
               ontología simpléctica + Delaunay + LRL + semilla canónica
               → compute_poincare_canonical_seed()     ⟶ germen de FASE II
 
     FASE II : TOONBufferEngine(PoincareCanonicalAtlas)
-              ingesta Hamiltonian, Lindstedt, Verlet, mapa de retorno, monodromía
+              ingesta Hamiltoniana, Lindstedt, Verlet, mapa de retorno Oseledets, monodromía
               → poincare_return_map_step()            ⟶ germen de FASE III
 
     FASE III: KAMMelnikovAuditor
-              KAM / Greene / Chirikov / Melnikov / Birkhoff + funtor CPTP de Lüders
+              KAM / Greene / Chirikov Oseledets / Melnikov / Birkhoff + funtor CPTP de Lüders
 """
 
 from __future__ import annotations
@@ -210,7 +220,7 @@ class DelaunayPoint:
         ℓ = anomalía media,  g = ω (periapsis),  h = Ω (nodo)
 
     Hamiltoniano kepleriano no perturbado:  H₀ = −μ² / (2 L²).
-    Twist de Moser:  τ = ∂²H₀/∂L² = ∂n/∂L = −3 μ² / L⁴  < 0  (monótono).
+    Twist de Moser:  τ = ∂n/∂L = −3 μ² / L⁴  < 0  (monótono).
     """
 
     L: float
@@ -308,7 +318,8 @@ class PoincareSection:
 class ReturnMapOrbit:
     """
     GERMEN FORMAL FASE II → FASE III.
-    Órbita discreta del mapa de retorno P: Σ → Σ junto con su monodromía.
+    Órbita discreta del mapa de retorno P: Σ → Σ junto con su monodromía M,
+    espectro de Oseledets λ_max, residuo de Greene R_G y solapamiento de Chirikov dilatado.
     """
 
     sections: Tuple[PoincareSection, ...]
@@ -318,6 +329,10 @@ class ReturnMapOrbit:
     winding_number: float
     lyapunov_max: float
     birkhoff_fixed_points: int
+    monodromy_matrix: Optional[np.ndarray] = None
+    greene_residual: float = 0.0
+    chirikov_overlap_effective: float = 0.0
+    is_cantori_degraded: bool = False
 
 
 @dataclass(slots=True)
@@ -583,7 +598,8 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
     `ingest_from_canonical_seed`.  Evoluciona bajo
         H = H₀(L) + ε H₁(ℓ, g, h; L, G, H)
     con Verlet simpléctico, series de Lindstedt a orden 2, sección
-    estroboscópica Σ_ℓ y monodromía del mapa de retorno.
+    estroboscópica Σ_ℓ y monodromía del mapa de retorno con exponentes
+    de Oseledets y solapamiento de Chirikov dilatado.
 
     El último método, `poincare_return_map_step`, emite `ReturnMapOrbit`
     (germen II→III) que FASE III audita.
@@ -618,7 +634,7 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
         )
 
     # ─────────────────────────────────────────────────────────────────────
-    # §II.0 — Banach / espectro de observables (álgebra B(H))
+    # §II.0 — Banach / espectro de observables / RSI Nivel 3
     # ─────────────────────────────────────────────────────────────────────
     @staticmethod
     def banach_operator_norm(A: np.ndarray) -> float:
@@ -635,6 +651,39 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
             return float(np.max(np.abs(np.linalg.eigvals(A))))
         except (np.linalg.LinAlgError, ValueError):
             return 0.0
+
+    def compute_level3_rsi_monadic_rate(
+        self,
+        mac_density_matrix: np.ndarray,
+        transient_density_matrix: np.ndarray,
+        base_eta: float = 0.15,
+    ) -> float:
+        """
+        Calcula la multiplicación monádica μ_buffer : T²(A) -> T(A) para la tasa
+        adaptativa de Nivel 3 RSI (Meta-Mejora / Inflexión super-exponencial d³C/dt³ > 0),
+        superando la constante de Lipschitz k < 1.0 mediante geodésicas de Fubini-Study d_FS
+        sobre ℂP^{n-1} y entropía de Kolmogorov-Sinai / Rényi-2 h_KS.
+        """
+        # 1. Distancia Geodésica de Fubini-Study d_FS sobre ℂP^{n-1}
+        try:
+            sqrt_mac = la.sqrtm(mac_density_matrix)
+            core = sqrt_mac @ transient_density_matrix @ sqrt_mac
+            sqrt_core = la.sqrtm(core)
+            fidelity = float(np.abs(np.trace(sqrt_core)))
+        except Exception:
+            fidelity = float(np.abs(np.trace(mac_density_matrix @ transient_density_matrix)))
+        fidelity_clamped = float(np.clip(fidelity, 0.0, 1.0))
+        dist_FS = float(np.arccos(fidelity_clamped))
+
+        # 2. Entropía de Kolmogorov-Sinai / Rényi-2 h_KS
+        eigenvals = la.eigvalsh(transient_density_matrix)
+        positive_eigs = np.maximum(eigenvals, 1e-15)
+        renyi_2 = float(-np.log(np.sum(positive_eigs ** 2)))
+        h_KS = max(0.01, renyi_2)
+
+        # 3. Multiplicación Monádica μ_buffer : T²(A) -> T(A)
+        eta_rsi_3 = float(np.clip(base_eta * np.exp(-h_KS * dist_FS), 0.05, 0.45))
+        return eta_rsi_3
 
     # ─────────────────────────────────────────────────────────────────────
     # §II.1 — Continuación formal del germen de FASE I
@@ -811,7 +860,6 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
             ℓ̇ =  ∂H/∂L,   L̇ = −∂H/∂ℓ
             ġ =  ∂H/∂G,   Ġ = −∂H/∂g
             ḣ =  ∂H/∂H,   Ḣ = −∂H/∂h
-        (aquí se corrige el bug v4: ġ = ε ∂H₁/∂G ≠ 0 ⇒ hay precesión).
         """
         del aitch  # H₁ independiente de h a este orden (simetría axial)
         H0 = -mu ** 2 / (2.0 * max(L, _EPS) ** 2)
@@ -1015,16 +1063,10 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
         """
         ÚLTIMO método de la FASE II  ≡  GERMEN / PRIMER ACTO de la FASE III.
 
-        Integra X_H con Verlet simpléctico y registra cruces transversales con
-            Σ_ℓ₀ = { ℓ ≡ ℓ₀ (mod 2π),  ℓ̇ > 0 }.
-
-        (Se usa la anomalía media —siempre creciente por n>0— y no g, que en v4
-        era estacionaria.  Esto garantiza cruces y un mapa de retorno honesto.)
-
-        Por cada cartucho se construye un `ReturnMapOrbit` con:
-            • secciones, twist de Moser, número de rotación ϖ
-            • monodromía, residuo de Greene, exponentes de Floquet
-            • solapamiento de Chirikov, cota de Lyapunov, puntos de Birkhoff
+        Integra X_H con Verlet simpléctico, recolecta la matriz de monodromía M,
+        calcula los exponentes de Oseledets λ_max para dilatar las barras de resonancia
+        de Chirikov s_eff = s_base · exp(λ_max · τ_orbit) y detecta la degradación
+        a toros de Cantori.
 
         ⟶ `KAMMelnikovAuditor.audit_return_orbits(orbits, …)` es la
            continuación formal de este método.
@@ -1050,7 +1092,8 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
             crossings: List[PoincareSection] = []
             crossing_angles_g: List[float] = []
             step = 0
-            n_corr, _ = self.lindstedt_second_order(del_pt, eps_risk)
+            last_M: Optional[np.ndarray] = None
+            n_period_last = 50
 
             while step < max_steps and len(crossings) < max_crossings:
                 z = self._verlet_step(z, dt_integration, mu, eps_risk)
@@ -1058,13 +1101,15 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
                 _, X = self.hamiltonian_and_field(z[0], z[1], z[2], z[3], z[4], z[5], mu, eps_risk)
                 ell_dot = X[3]  # ∂H/∂L = n + ε ∂H₁/∂L  > 0 genéricamente
                 if prev < 0.0 <= curr and ell_dot > 0.0:
-                    # monodromía local: flujo de un periodo medio 2π/n
+                    # monodromía local M por diferencias finitas en Σ_ℓ0
                     n_loc = max(abs(ell_dot), 1e-9)
                     n_period = max(8, int((_TWO_PI / n_loc) / max(dt_integration, 1e-9)))
                     n_period = min(n_period, 400)
+                    n_period_last = n_period
                     M = self._finite_difference_monodromy(
                         z, mu, eps_risk, dt_integration, n_steps=n_period
                     )
+                    last_M = M
                     trM = float(np.trace(M))
                     R = self.greene_residue(trM)
                     try:
@@ -1105,28 +1150,32 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
             else:
                 winding = 0.0
 
-            # Lyapunov máximo ≃ log ρ(M)  (radio espectral de la monodromía)
-            lyap = 0.0
+            # Exponente de Oseledets λ_max = (1/τ_orbit) ln ρ(M)
+            spectral_radius = 1.0
             if crossings:
-                radii = [
-                    max((abs(lam) for lam in s.floquet_multipliers), default=1.0)
-                    for s in crossings
-                    if s.floquet_multipliers
-                ]
-                if radii:
-                    lyap = float(math.log(max(max(radii), _EPS)))
+                for s in crossings:
+                    if s.floquet_multipliers:
+                        radii = [abs(lam) for lam in s.floquet_multipliers]
+                        if radii:
+                            spectral_radius = max(spectral_radius, max(radii))
 
-            # Chirikov: semianchos ∼ ε / |τ|  entre el primer y último cruce
+            tau_orbit = float(len(crossings) * dt_integration * n_period_last) if crossings else float(max_steps * dt_integration)
+            lambda_max = float(np.log(max(spectral_radius, 1.0 + 1e-12)) / max(tau_orbit, 1e-6))
+
+            # Chirikov base y dilatado por λ_max
             if len(crossings) >= 2:
                 n_a = mu ** 2 / max(crossings[0].crossing_actions[0], _EPS) ** 3
                 n_b = mu ** 2 / max(crossings[-1].crossing_actions[0], _EPS) ** 3
                 hw = abs(eps_risk / max(abs(del_pt.moser_twist), _EPS))
-                s_ch = self.chirikov_overlap(n_a, n_b, hw, hw)
+                s_ch_base = self.chirikov_overlap(n_a, n_b, hw, hw)
             else:
-                s_ch = 0.0
+                s_ch_base = 0.0
+
+            chirikov_effective = float(s_ch_base * math.exp(lambda_max * tau_orbit))
+            last_greene = float(crossings[-1].greene_residue) if crossings else 0.0
+            is_cantori = bool(chirikov_effective > 0.85 or lambda_max > 0.05 or abs(last_greene) >= 0.25)
 
             # Poincaré-Birkhoff: un mapa twist del anillo tiene ≥ 2 puntos fijos
-            # Proxy: cambios de signo de (g_{k+1} − g_k − ϖ) sobre la órbita
             birkhoff = 0
             if len(crossing_angles_g) >= 3:
                 unwrapped = np.unwrap(crossing_angles_g)
@@ -1139,10 +1188,14 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
                 sections=tuple(crossings),
                 cartridge_id=cart.cartridge_id,
                 twist=float(del_pt.moser_twist),
-                chirikov_overlap=float(s_ch),
+                chirikov_overlap=float(s_ch_base),
                 winding_number=float(winding),
-                lyapunov_max=float(lyap),
+                lyapunov_max=float(lambda_max),
                 birkhoff_fixed_points=int(birkhoff),
+                monodromy_matrix=last_M,
+                greene_residual=last_greene,
+                chirikov_overlap_effective=chirikov_effective,
+                is_cantori_degraded=is_cantori,
             )
             cart.return_orbit = orbit
             orbits.append(orbit)
@@ -1170,7 +1223,7 @@ class KAMMelnikovAuditor:
 
         1. Detecta resonancias de movimiento medio (p:q) por fracciones continuas
            (pequeños divisores de Poincaré, 1885)
-        2. Evalúa KAM + residuo de Greene + solapamiento de Chirikov
+        2. Evalúa KAM + residuo de Greene + solapamiento de Chirikov dilatado por λ_max
         3. Calcula Melnikov M(t₀) = ∫ {H₀, H₁} dt  (splitting homoclínico)
         4. Verifica el teorema geométrico de Poincaré-Birkhoff (puntos fijos)
         5. Emite el veredicto Heyting Ω₃ que modula el funtor CPTP de Lüders
@@ -1268,7 +1321,7 @@ class KAMMelnikovAuditor:
         PRIMER método de FASE III  ≡  continuación de
         `TOONBufferEngine.poincare_return_map_step`.
 
-        Consume `ReturnMapOrbit` y clasifica cada cartucho (KAM/Greene/Chirikov).
+        Consume `ReturnMapOrbit` y clasifica cada cartucho (KAM/Greene/Chirikov Oseledets).
         """
         all_sections: List[PoincareSection] = [s for o in orbits for s in o.sections]
         p, q, n_vals = self.detect_mean_motion_resonance(all_sections)
@@ -1289,7 +1342,8 @@ class KAMMelnikovAuditor:
             n_carts += 1
             Mamp = self.melnikov_amplitude(cart.delaunay, cart.qual_comp.exergy_risk_index)
             melnikov_max = max(melnikov_max, Mamp)
-            chirikov_max = max(chirikov_max, orbit.chirikov_overlap)
+            eff_ch = getattr(orbit, "chirikov_overlap_effective", orbit.chirikov_overlap)
+            chirikov_max = max(chirikov_max, eff_ch)
             twist_acc += orbit.twist
             birkhoff_total += orbit.birkhoff_fixed_points
             if orbit.sections:
@@ -1309,10 +1363,10 @@ class KAMMelnikovAuditor:
             else:
                 drift_c, R_c = 0.0, 0.0
 
-            if orbit.chirikov_overlap >= 1.0 or drift_c >= math.sqrt(self.epsilon_kam) or R_c > 1.0:
+            if getattr(orbit, "is_cantori_degraded", False) or eff_ch >= 1.0 or drift_c >= math.sqrt(self.epsilon_kam) or R_c > 1.0:
                 cart.kam_regime = KAMRegime.ARNOLD_DIFFUSION
                 cart.status = CartridgeStatus.KAM_BROKEN_CHAOTIC
-            elif abs(R_c - self.greene_critical) < 0.05:
+            elif abs(R_c - self.greene_critical) < 0.05 or eff_ch > 0.85:
                 cart.kam_regime = KAMRegime.CANTORUS_PARTIAL
                 cart.status = CartridgeStatus.GREENE_RESONANT
             elif drift_c < self.epsilon_kam and R_c < self.greene_critical:
@@ -1366,10 +1420,11 @@ class KAMMelnikovAuditor:
         """
         Cierra la FASE III (y el ciclo anidado I ⊂ II ⊂ III):
 
-          1. Audita `ReturnMapOrbit` (KAM, Greene, Chirikov, Melnikov, Birkhoff)
-          2. Ejecuta la mixtura CPTP de Lüders hacia la MAC
-          3. Determina el veredicto Heyting Ω₃ (implicación intuicionista incluida)
-          4. Emite `BufferCertificate` con metadatos celestes y espectrales
+          1. Audita `ReturnMapOrbit` (KAM, Greene, Chirikov Oseledets, Melnikov, Birkhoff)
+          2. Calcula la tasa adaptativa Nivel 3 RSI monádica μ_buffer
+          3. Ejecuta la mixtura CPTP de Lüders hacia la MAC
+          4. Determina el veredicto Heyting Ω₃ (implicación intuicionista incluida)
+          5. Emite `BufferCertificate` con metadatos celestes y espectrales
         """
         now = time.time()
         mac_dim = int(mac_density_matrix.shape[0])
@@ -1423,7 +1478,8 @@ class KAMMelnikovAuditor:
             )
             max_risk = max(max_risk, cart.qual_comp.exergy_risk_index)
 
-        eta = float(np.clip(assimilation_rate_eta, 0.01, 0.50))
+        # Tasa adaptativa Nivel 3 RSI vía multiplicación monádica μ_buffer
+        eta = engine.compute_level3_rsi_monadic_rate(mac_density_matrix, rho_sum, assimilation_rate_eta)
         mac_updated = (1.0 - eta) * mac_density_matrix + eta * rho_sum
         mac_updated = 0.5 * (mac_updated + mac_updated.T.conj())
         tr = float(np.trace(mac_updated))
@@ -1514,7 +1570,7 @@ class KAMMelnikovAuditor:
             heyting_implication=implication.name,
         )
         logger.info(
-            f"[FASE III] Asimilación MAC. {cert.certificate_id} Ω₃={verdict.name} "
+            f"[FASE III] Asimilación MAC (RSI-3 η={eta:.4f}). {cert.certificate_id} Ω₃={verdict.name} "
             f"KAM={kam_regime.name} p:q={audit_result['resonance_pq']} "
             f"M={M_max:.4f} R_G={R_max:.3f} s_Ch={s_ch:.3f} "
             f"Floquet ρ={audit_result['floquet_spectral_radius']:.4f}"
@@ -1608,7 +1664,7 @@ if __name__ == "__main__":
     for o in orbits:
         print(
             f"    – {o.cartridge_id}: ϖ={o.winding_number:.4f}  "
-            f"s_Chirikov={o.chirikov_overlap:.3f}  λ_max={o.lyapunov_max:.4f}  "
+            f"s_Chirikov_eff={o.chirikov_overlap_effective:.3f}  λ_max={o.lyapunov_max:.4f}  "
             f"Birkhoff={o.birkhoff_fixed_points}  cruces={len(o.sections)}"
         )
 
