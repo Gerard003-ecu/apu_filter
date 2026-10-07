@@ -10,7 +10,7 @@ SINOPSIS CATEGORIAL Y GEOMETRÍA DEL CONTRATO DE DATOS (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra la especificación de tipos, esquemas estrictos y contratos 
 algebraicos que rigen la serialización, transporte e ingesta de la telemetría 
-ciber-física en APU Filter v5.0. No opera como una capa de parseo pasiva o meras 
+ciber-física en APU Filter v8.0. No opera como una capa de parseo pasiva o meras 
 clases de datos decorativas; se define formalmente como la **Estructura del Haz 
 Celular** ($\mathcal{F}$) sobre el 1-esqueleto simplicial de la Malla de Datos.
 
