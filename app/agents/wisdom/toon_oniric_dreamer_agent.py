@@ -4,14 +4,20 @@ r"""
 ║ MÓDULO   : app/agents/wisdom/toon_oniric_dreamer_agent.py                            ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
 ║ FUNCIÓN  : SOBERANO SIMULADOR ONÍRICO REM Y METABOLIZADOR POINCARANO                 ║
-║ VERSIÓN  : 9.1.0-Doctoral-Poincare-Celeste-CRTBP-Lindstedt-Hill-Homoclinic-A4        ║
-║ CONTRATO : 9.1.0 (Mecánica Celeste de Poincaré Vols. I–III + Topos + C* + GKSL)      ║
+║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincare-Celeste-CRTBP-Lindstedt-Hill-Homoclinic-A4   ║
+║ CONTRATO : 10.0.0 (Automejora Recursiva Nivel 3 - Inflexión y Meta-Mejora Monádica)  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
 ───────────────────────────────────────────────
 El `TOONOniricDreamerAgent` es la autoridad soberana responsable de orquestar la
 generación de escenarios contrafactuales y la inyección de estrés controlado durante
-la Fase REM del ecosistema agéntico APU Filter.
+la Fase REM del ecosistema agéntico APU Filter bajo Automejora Recursiva Nivel 3 (Inflexión / Meta-Mejora).
+
+Aplica la Mónada T = (T, η, μ) con multiplicación monádica μ_dreamer : T²(A) ↦ T(A) sobre
+las tres superficies de modificación agéntica:
+    (1) Data-RSI: Currículum autónomo DGM de Cisnes Negros combinatorios en ℍ².
+    (2) Harness-RSI: Solvers variacionales de Lie-Kossakowski / Cayley-Darboux sobre U(n).
+    (3) Model-RSI: Reescritura endógena de los operadores de salto L_k y modulación adaptativa η(Ω₄).
 
 Inspirado en *Les Méthodes Nouvelles de la Mécanique Céleste* (Vols. I–III, 1892–1899)
 de Henri Poincaré, este soberano simula escenarios de colapso navegando los tubos de
@@ -94,6 +100,7 @@ from numpy.typing import NDArray
 
 from app.wisdom.toon_oniric_dreamer_engine import (
     FuchsianDomainCertificate,
+    MetaOniricDreamerEngine,
     NonHermitianLindbladMasterEngine,
     poincare_hyperbolic_distance,
     reduce_to_poincare_fundamental_domain,
@@ -2523,6 +2530,7 @@ class TOONOniricDreamerAgent:
             if enclave_engine is not None
             else NonHermitianLindbladMasterEngine(enclave_dim=dimension_mac)
         )
+        self.meta_engine = MetaOniricDreamerEngine(dimension=dimension_mac)
 
     def compute_umegaki_and_bures_metrics(
         self,
