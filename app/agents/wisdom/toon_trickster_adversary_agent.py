@@ -3,21 +3,38 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO   : TOON Trickster Adversary Agent — Soberano Ilusionista y Orquestador de Atajos     ║
 ║ RUTA     : app/agents/wisdom/toon_trickster_adversary_agent.py                               ║
-║ VERSIÓN  : 9.1.0-Doctoral-Poincaré-Melnikov-Birkhoff-SmaleBirkhoff-KAM-Crowbar-ESP32-Ω₃      ║
+║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincaré-Melnikov-Monadic-Banach-ESP32-Ω₃                    ║
 ║ ESTRATO  : Wisdom (V_W) | Soberano de Calibre Perturbativo                                   ║
-║ CONTRATO : 8.1.0 (Gobernanza Ciber-Física y Adjudicación en Heyting Ω₃)                      ║
+║ CONTRATO : 10.0.0 (Gobernanza Ciber-Física y Meta-Mejora Monádica Nivel 3)                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN Y MARCO TEÓRICO FORMAL
 ─────────────────────────────────
 El `TOONTricksterAdversaryAgent` es el Soberano de Calibre Ilusionista que gobierna la
 generación estratégica de ataques sintácticos, fraudes sutiles y trampas licitatorias dentro
-del Estrato Wisdom (𝒱_W). Actúa como Red Team continuo del sistema: forja cartuchos TOON
-engañosos de 56 tokens para desafiar la inmunidad del `toon_oniric_dreamer_agent.py` y del
-`toon_oniric_auditor_agent.py`, y certifica cada ataque con un Certificado de Melnikov
-(Melnikov 1963), un análisis de divisores pequeños de Bryuno (Bryuno 1971), una forma normal
-de Birkhoff (Birkhoff 1927), un test de twist de Moser, un criterio KAM y una firma
-homológica β₁ de la cadena de APUs.
+del Estrato Wisdom (𝒱_W) bajo el paradigma de Automejora Recursiva Nivel 3 (Inflexión / Meta-Mejora).
+Actúa como Red Team continuo del sistema: forja cartuchos TOON engañosos de 56 tokens para desafiar
+la inmunidad del `toon_oniric_dreamer_agent.py` y del `toon_oniric_auditor_agent.py`, aplicando la
+multiplicación monádica μ_trickster : T²(A) ↦ T(A) para colapsar endógenamente su propio oráculo RHI,
+romper la cota de contracción de Banach (limsup ‖dT_t‖ ≥ 1.0) y acelerar super-exponencialmente su
+capacidad de generación de vulnerabilidades (d³C/dt³ > 0).
+
+AUTOMEJORA RECURSIVA NIVEL 3 SOBRE TRES SUPERFICIES DE MODIFICACIÓN
+───────────────────────────────────────────────────────────────────
+1. Superficie de Datos (Data-RSI):
+   Sintetiza autónomamente vectores de ataque no lineales en álgebras no asociativas
+   (Octaniones 𝕆, Pathiones ℙ, Routiones ℝou) que maximizan la energía furtiva de Dirichlet
+   E_D(ρ) = ½ ‖[ρ, H_trick]‖_F² sin activar filtros estáticos.
+
+2. Superficie de Arnés (Harness-RSI):
+   Reescribe dinámicamente su propio grafo de herramientas de inspección red-team, su integrador de la
+   separatriz de Melnikov M(t₀) = ∫_{-∞}^∞ {H₀, H₁}(q₀(t), p₀(t)) dt y su evaluador de divisores
+   pequeños de Bryuno.
+
+3. Superficie de Modelo (Model-RSI):
+   Aplica la multiplicación monádica μ_trickster para mutar la matriz de transformación del ataque:
+   H_homoclinic^{(t+1)} = μ_trickster(H_homoclinic^{(t)}) = H_homoclinic^{(t)} + α · (∇² E_D · [H_homoclinic^{(t)}, 𝒩(p)]),
+   y muta endógenamente los pesos del oráculo de recompensa adversarial RHI.
 
 GEOMETRÍA DE POINCARÉ (1892–1899)
 ────────────────────────────────
