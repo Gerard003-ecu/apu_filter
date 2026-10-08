@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : GÖDEL ENGINE (MOTOR ESPECTRAL Y ORQUESTADOR DE AUTOMEJORA RSI NIVEL 3)                 ║
+║ MÓDULO   : GÖDEL ENGINE (MOTOR ESPECTRAL Y ORQUESTADOR DE AUTOMEJORA RSI NIVEL 3)                ║
 ║ UBICACIÓN: app/wisdom/godel_engine.py                                                            ║
 ║ VERSIÓN  : 5.0.0-Poincaré-Meta-Self-Improvement-Level-3                                          ║
 ║ TRATADOS : Les Méthodes Nouvelles de la Mécanique Céleste (Poincaré, 1892-1899)                  ║
 ║            Sur le problème des trois corps et les équations de la dynamique (Poincaré, 1890)     ║
 ║            Analysis Situs (Poincaré, 1895) · Sur un théorème de géométrie (1912-1913)            ║
-║            Novikov (1981), Grothendieck (1972), Tarski (1955), Brouwer (1911), Banach (1922)      ║
-║            Löb (1955), Gödel (1931), Kac (1947), Birkhoff (1927), Marsden-Weinstein (1974)        ║
+║            Novikov (1981), Grothendieck (1972), Tarski (1955), Brouwer (1911), Banach (1922)     ║
+║            Löb (1955), Gödel (1931), Kac (1947), Birkhoff (1927), Marsden-Weinstein (1974)       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
 GOBERNANZA ESPECTRAL, TOPOLÓGICA, MONÁDICA Y METAMÓRFICA DE NIVEL 3 (INFLEXIÓN SUPER-EXPONENCIAL)
 ──────────────────────────────────────────────────────────────────────────────────────────────────
