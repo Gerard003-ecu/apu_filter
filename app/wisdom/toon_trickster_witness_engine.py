@@ -4,38 +4,89 @@ r"""
 ║ Módulo   : TOON Trickster Witness Engine (Motor Espectral Testigo Tramposo)  ║
 ║ Ubicación: app/wisdom/toon_trickster_witness_engine.py                       ║
 ║ Versión  : 6.1.0-Doctoral-Nested-Poincare-RSI3-QND-Categorical               ║
+║ Función  : Medición débil cuántica sin demolición (QND), geometría celeste    ║
+║            de Poincaré, análisis espectral de Oseledets, filtración de       ║
+║            Novikov, capacidad de Gromov-Wigner, multiplicación monádica      ║
+║            RSI Nivel 3 y adjudicación Heyting Ω₃ con disparo ciber-físico    ║
+║            al disyuntor ESP32 Crowbar.                                       ║
 ║ Tratados : Poincaré, Méthodes Nouvelles (1892–99) · Melnikov (1963)          ║
 ║            Greene (1979) · Bryuno (1971) · Siegel (1942) · Gromov (1985)     ║
 ║            Oseledets (1968) · Novikov (1981) · Aharonov–Albert–Vaidman (1988)║
 ║            Kolmogorov–Sinai · Chirikov (1979) · Kac (1947) · Löb (1955)      ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-TEJIDO ANIDADO EN TRES FASES:
+DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
 
-  ◈ FASE I  — Tejido Celeste: Delaunay canónico → Melnikov homoclínico
-              (cuadratura factorizada) → Greene en Sp(2n) → Bryuno sobre q_k
-              → Siegel → Floquet–Liouville → S tipo 2 → Poincaré–Cartan
-              θ = p dq − H dt → costura `weave_celestial_seed`
-              (= objeto inicial de la FASE II).
+El Motor Espectral Testigo Tramposo (`TOONTricksterWitnessEngine`) constituye el
+soberano de medición cuántica débil sin demolición (QND) y caracterización de
+variedades invariantes en el Estrato Wisdom ($V_{\mathbb{W}}$, RSI Nivel 3). Evalúa
+las ilusiones adversariales mediante un tejido canónico tripartito estructurado
+como una secuencia de functores de preservación geométrica y lógica:
 
-  ◈ FASE II — Tejido Espectral: valor débil von Neumann QND → geodésica
-              Fubini–Study en ℂPⁿ⁻¹ → espectro de Oseledets → filtración
-              ultramétrica Novikov (|x|=e^{−v}) → capacidad Gromov–Wigner
-              → multiplicación monádica μ_witness (RSI Nivel 3, leyes)
-              → costura `weave_spectral_witness`
-              (= objeto inicial de la FASE III).
+◈ FASE I — TEJIDO CELESTE DE POINCARÉ-DELAUNAY-MELNIKOV-GREENE-BRYUNO-SIEGEL
+  1. Coordenadas Canónicas de Delaunay $(L, G, H, \ell, g, h)$ obtenidas del espectro
+     espectral de la matriz de densidad $\rho \in \mathcal{D}(\mathcal{H}_n)$:
+     $$J_i = -\ln \lambda_i(\rho), \quad L = \sum_{i=1}^n J_i, \quad G = L \frac{J_2}{J_1}, \quad H = G \frac{J_3}{J_2}$$
+     $$\ell = 2\pi \lambda_1, \quad g = 2\pi \lambda_2, \quad h = 2\pi \lambda_3$$
+     Energía kepleriana $H_0 = -\frac{\mu^2}{2 L^2}$, movimiento medio $n = \frac{\mu^2}{L^3}$,
+     excentricidad $e = \sqrt{\max(0, 1 - (G/L)^2)}$ e inclinación $i = \arccos(H/G)$.
+  2. Monodromía Simpléctica $M \in \mathrm{Sp}(2n, \mathbb{R})$ y Residuo de Greene $R_G$:
+     $$M^\top \Omega M = \Omega, \quad \det(M) = 1 \quad (\text{Liouville}), \quad R_G = \frac{2 - \mathrm{Tr}(B)}{4}$$
+     donde $B = R_{\omega_0} \circ \mathrm{Shear}_\epsilon \in \mathrm{Sp}(2, \mathbb{R})$.
+  3. Integral Homoclínica de Melnikov $M(t_0)$ por momentos de Fourier de $\{H_0, H_1\}$:
+     $$M(t_0) = \epsilon \int_{-\infty}^{\infty} \{H_0, H_1\}(q_0(t), p_0(t), t+t_0) \, dt = \epsilon [A \cos(\omega t_0) - B \sin(\omega t_0)]$$
+     sobre la separatriz del péndulo $(q_0(t), p_0(t)) = (2\arctan(\sinh t), 2\mathrm{sech}\, t)$
+     con invariante relativo homoclínico $\oint p_0 dq_0 = \int_{-\infty}^{\infty} 4 \mathrm{sech}^2 t \, dt = 8$.
+  4. Condición Diofantina de Bryuno y Cota de Siegel:
+     Fracción continua $\omega = [a_0; a_1, a_2, \dots]$ con denominadores de convergentes $q_k$.
+     Suma de Bryuno $B(\omega) = \sum_{k} \frac{\ln q_{k+1}}{q_k} < \infty$.
+     Cota de Siegel $\gamma = \min_k q_k^2 |\omega - p_k / q_k| > 0$.
+  5. 1-Forma de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ y Residuo de Cierre:
+     $$\text{Residuo} = \frac{\|[\rho, N]\|_F}{\mathrm{Tr}(\rho)} < 10^{-5}$$
+  6. Función Generatriz Canónica de Tipo 2 $S(q, P) = q P + \frac{\epsilon}{2} P^2$ con $\det\left(\frac{\partial^2 S}{\partial q \partial P}\right) = 1$.
+  Costura Terminal: `weave_celestial_seed` $\longrightarrow$ `HomoclinicCanonicalSeed`.
 
-  ◈ FASE III — Tejido Adjudicador: retículo de Heyting Ω₃ → Kac → Löb/DGM
-              → tres superficies RSI → árbol de Merkle DAG → disyuntor
-              ESP32 Crowbar (< 400 ns / GPIO14) → `WitnessExecutionCertificate`.
+◈ FASE II — TEJIDO ESPECTRAL QND, FUBINI-STUDY, OSELEDETS, NOVIKOV Y MONADA RSI-3
+  1. Medición Débil QND (Aharonov-Albert-Vaidman):
+     $$A_w = \frac{\langle \phi_f | A | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}, \quad \text{Back-Action} = 0.0 \text{ dB}$$
+  2. Distancia Geodésica de Fubini-Study en $\mathbb{C}P^{n-1}$:
+     $$d_{\mathrm{FS}}(u, v) = \arccos(|\langle u | v \rangle|) \in [0, \pi/2]$$
+  3. Espectro Multiplicativo Ergódico de Oseledets $\lambda_i$:
+     $$\lambda_i = \lim_{t \to \infty} \frac{1}{t} \ln \sigma_i(\Phi(t)) = \frac{\ln(\lambda_i(\rho) \, e^{R_G \tau / 4})}{2\pi}$$
+     Dilatación de Chirikov efectiva $s_{\mathrm{eff}} = 0.45 \, e^{\lambda_{\max} \tau}$.
+  4. Filtración Ultramétrica de Novikov:
+     Valuación $v(T^a) = \min_i a_i$ con $a_i = -\ln \lambda_i$, norma $|x| = e^{-v(x)}$,
+     satisfaciendo la desigualdad ultramétrica $|x+y|_\infty \le \max(|x|, |y|)$.
+  5. Capacidad Simpléctica de Gromov-Wigner:
+     $$c_G(B^2(r) \times \mathbb{R}^{2n-2}) = \pi r^2 = \pi (\lambda_1 + \lambda_2) n_{\mathrm{eff}} \le 12.5, \quad n_{\mathrm{eff}} = \frac{1}{\mathrm{Tr}(\rho^2)}$$
+  6. Multiplicación Monádica $\mu_{\mathrm{witness}} : T^2 \Rightarrow T$ (RSI Nivel 3):
+     $$\eta^{(t+1)} = \mu_{\mathrm{witness}}(\eta^{(t)}) = \eta^{(t)} e^{-h_{\mathrm{KS}} d_{\mathrm{FS}}} \cos(\pi R_G) \frac{1 - \lambda_{\max} d_{\mathrm{FS}}}{1 + \lambda_{\max} d_{\mathrm{FS}}}$$
+     Leyes monádicas de unidad y asociatividad: $\mu \circ T\eta = \mathrm{id} = \mu \circ \eta T$, $\mu \circ T\mu = \mu \circ \mu T$.
+  Costura Terminal: `weave_spectral_witness` $\longrightarrow$ `SpectralWitnessBundle`.
 
-Invariantes preservadas:
-  • 1-forma de Poincaré–Cartan θ_PC = Tr(ρ N)     (residuo [ρ,N] a 1e-9)
-  • det M = 1  (Liouville) y Mᵀ Ω M = Ω  (Sp(2n))
-  • Capacidad simpléctica de Gromov c_G ≤ 12.5
-  • Filtración ultramétrica de Novikov  |x+y| ≤ max(|x|,|y|)  con |·|=e^{−v}
-  • Back-Action QND = 0.0 dB
-  • Cierre ciber-físico < 400 ns al GPIO14 del ESP32
+◈ FASE III — ADJUDICACIÓN HEYTING Ω₃, KAC, LÖB/DGM, TRES SUPERFICIES RSI Y ESP32 CROWBAR
+  1. Retículo de Heyting $\Omega_3 = \{0 < 1 < 2\}$ (VETOED < DEGRADED < COHERENT):
+     $$a \sqcap b = \min(a,b), \quad a \sqcup b = \max(a,b), \quad a \Rightarrow b = \max \{ c \in \Omega_3 : a \sqcap c \le b \}$$
+  2. Lema de Recurrencia de Kac:
+     $$\bar{\tau}_A = \frac{1}{\mu(A)}$$
+     evaluado sobre la sombra estocástica de Perron-Frobenius $P_{ij} \propto |\rho|_{ij} + \epsilon \delta_{ij}$.
+  3. Obstáculo de Löb y Máquina de Darwin-Gödel (DGM):
+     Evita el obstáculo de Löb $\Box(\Box P \to P) \to \Box P$ sustituyendo la auto-demostración sintáctica por verificación empírica QND sandbox.
+  4. Evaluación de las Tres Superficies RSI:
+     Data-RSI ($v \ge 0$, Lagrangiana exacta), Harness-RSI (Cartan, Sp(2n), Liouville), Model-RSI (Mónada, $d_{\mathrm{FS}}$, QND).
+     Aceleración super-exponencial $d^3 C / dt^3 > 0$.
+  5. Disparo Ciber-Físico al Disyuntor ESP32 Crowbar:
+     Interrupción IRAM a GPIO14 en latencia $< 400\text{ ns}$ ante fallo de invariantes o veto en $\Omega_3$.
+  6. Cierre Criptográfico DAG de Merkle:
+     Raíz $H_{\mathrm{Merkle}} = \mathrm{SHA256}(\bigparallel_i b_i)$.
+
+INVARIANTES Y AXIOMAS OPERATIVOS PRESERVADOS:
+  • 1-forma de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ con residuo $\|[\rho, N]\|_F / \mathrm{Tr}(\rho) < 10^{-5}$.
+  • Simplecticidad $M^\top \Omega M = \Omega$ y Liouville $\det(M) = 1$ con tolerancias $< 10^{-9}$.
+  • Capacidad simpléctica de Gromov-Wigner $c_G \le 12.5$.
+  • Filtración ultramétrica de Novikov $v(x+y) \ge \min(v(x), v(y))$.
+  • Back-Action de medición débil QND $= 0.0\text{ dB}$.
+  • Cierre ciber-físico $< 400\text{ ns}$ en GPIO14.
 """
 from __future__ import annotations
 

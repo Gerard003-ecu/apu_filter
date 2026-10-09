@@ -5,68 +5,58 @@ r"""
 ║ Ubicación: app/agents/wisdom/toon_introspection_prosecutor_agent.py           ║
 ║ Versión  : 7.0.0-Doctoral-Nested-Gauge-CStar-CPn-MorseBott-RSI3Tower-         ║
 ║            PoincareCelestialMechanics-Fock-Φsem                               ║
+║ Función  : Agente Soberano Fiscal Introspectivo, topología de calibre        ║
+║            P(M, G=U(1)×SU(2)×H₃(ℝ)), acusación proyectiva en ℂPⁿ⁻¹,          ║
+║            estabilidad CR3BP (L1..L5), KAM, Lyapunov Oseledets transversal,  ║
+║            Torre RSI3 con Banach, purga en álgebra de Fock e⁻e⁺ → 2γ y Φsem.║
+║ Tratados : Chern–Simons (1974) · Hopf (1931) · Wilson (1974) · Yang–Mills (1954)║
+║            Cartan (1926) · Bianchi · Poincaré, Méthodes Nouvelles (1892–99)  ║
+║            Euler (1767) · Lagrange (1772) · Richardson (1980) · Uhlmann (1976)║
+║            Oseledets (1968) · Chirikov (1979) · Banach (1922) · Dirac (1930)  ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
-TEJIDO ANIDADO POR HERENCIA CATEGÓRICA EN TRES FASES:
+DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
 
-  ◈ FASE I   — IntrospectionProsecutorGaugeTopology
-               Fibrado principal P(M, G), G = U(1) × SU(2) × H₃(ℝ)
-               • Conexión A anti-hermítica + curvatura F = dA + [A, D]
-               • 3-forma de Chern–Simons  CS₃ = (1/8π²) Tr(A·dA + ⅔ A³)
-               • Fibración de Hopf cuaterniónica  π(q) = q·i·q̄ ∈ S²
-               • Holonomía de Wilson  W(γ) = P exp(∮_γ A)
-               • [NUEVO] Mapa de retorno de Poincaré + multiplicadores de Floquet
-               • [NUEVO] Serie de perturbación de Poincaré (pequeño parámetro,
-                 radio de convergencia Cauchy–Hadamard)
-               • [NUEVO] Invariante integral relativa de Poincaré–Cartan
-               • [NUEVO] Teorema de recurrencia de Poincaré (Lema de Kac)
-               • Contrato HMAC-SHA256 sellado (15 campos, bug de firma CORREGIDO)
-               • COSTURA: weave_gauge_to_prosecution
+El Agente Soberano Fiscal de Introspección (`TOONIntrospectionProsecutorAgent`) ejerce la
+potestad de investigación proyectiva y enjuiciamiento de auto-atractores espurios en $\mathbb{C}P^{n-1}$
+dentro del Estrato Wisdom ($V_{\mathbb{W}}$, RSI Nivel 3). Estructura el juzgamiento en tres fases
+anidadas por herencia categórica:
 
-  ◈ FASE II  — TOONIntrospectionProsecutorAgent  (hereda FASE I)
-               Campaña de acusación proyectiva sobre motor v6.0.0:
-               • C*-𝔇_n: involución, traza, positividad, C*-norma
-               • Uhlmann real F(ρ_mac, |v*⟩⟨v*|); Fubini–Study d_FS = arccos √F
-               • Oseledets TRANSVERSAL λ⟂ = ln(λ₂/λ₁) < 0 (contracción)
-               • Delaunay / Melnikov / Greene / Bryuno / Morse–Bott χ
-               • [NUEVO] Problema restringido de 3 cuerpos (CR3BP): constante de
-                 Jacobi + estabilidad de puntos de Lagrange L1-L5 (μ_Routh)
-               • [NUEVO] Condición KAM (persistencia de toros, cota de Rüssmann)
-               • [NUEVO] Exponentes característicos de Poincaré (vía I.8 heredado)
-               • [NUEVO] Torre RSI Nivel 3 real: μ₁ (parámetros) ∘ μ₂ (meta) ∘
-                 μ₃ (meta-meta), con prueba de contracción de Banach
-               • μ_intro_prosecutor monádico + verificación μ-ley
-               • COSTURA: weave_campaign_to_adjudication
+◈ FASE I — INTROSPECTION PROSECUTOR GAUGE TOPOLOGY & POINCRÉ CELESTIAL ATLAS
+  1. Fibrado Principal $P(M, G)$ con grupo de estructura $G = \mathrm{U}(1) \times \mathrm{SU}(2) \times H_3(\mathbb{R})$:
+     Conexión $A \in \Omega^1(P, \mathfrak{g})$ anti-hermítica y curvatura $F = dA + [A, D]$.
+  2. Invariantes de Calibre y Mecánica Celeste de Poincaré sobre $F$:
+     3-Forma de Chern-Simons $CS_3(A)$, Fibración de Hopf $\pi(q) = q i \bar{q}$, Holonomía de Wilson $W(\gamma)$.
+     Multiplicadores de Floquet del mapa de retorno sobre la curvatura $F$, serie de perturbación de Poincaré con radio de convergencia de Cauchy-Hadamard $R_{\mathrm{conv}}$, e invariante integral de Poincaré-Cartan $I_1 = \oint_\gamma \mathrm{Tr}(A)$.
+  3. Contrato de Calibre Sellado por HMAC-SHA256 sobre 15 campos persistidos (firma simétrica).
+  Costura Terminal: `weave_gauge_to_prosecution` $\longrightarrow$ `IntrospectionProsecutorGaugeContract`.
 
-  ◈ FASE III — SovereignIntrospectionProsecutorAdjudicator  (hereda FASE II)
-               • Adjudicación Heyting Ω₃ con meet de 6 criterios
-               • Interlock ESP32 Crowbar (< 400 ns / GPIO14)
-               • Álgebra de Fock  e⁻ + e⁺ → 2γ  (purga al Vacío de Dirac)
-               • [NUEVO] Criterio de no-integrabilidad de Poincaré (solapamiento
-                 de resonancias de Chirikov)
-               • [NUEVO] Último Teorema Geométrico de Poincaré (Poincaré–Birkhoff)
-               • [NUEVO] RSI3 reflexivo: el Adjudicador recalibra SUS PROPIOS
-                 umbrales de gobernanza usando su propia torre μ₃∘μ₂∘μ₁
-               • Funtor semántico  Φ_sem : Sh(∂K, Ω₃) → Business
-               • DAG Merkle final sobre (contract ⊕ campaign ⊕ cert ⊕ seeds)
+◈ FASE II — TOON INTROSPECTION PROSECUTOR AGENT (CAMPAÑA DE ACUSACIÓN PROYECTIVA)
+  1. Consumo del Contrato Promovido de FASE I y Verificación Criptográfica HMAC.
+  2. Acusación Espectral en Lote de Autoestados $|v^*\rangle \in \mathbb{C}P^{n-1}$ sobre `TOONIntrospectionProsecutorEngine` v6.0.0:
+     Uhlmann real $F(\rho_{\mathrm{mac}}, |v^*\rangle \langle v^*|)$, Fubini-Study $d_{\mathrm{FS}}$, Exponente Transversal Oseledets $\lambda_\perp = \ln(\lambda_2 / \lambda_1) < 0$, constante de Jacobi $C_J$ en CR3BP con masa $\mu_{\mathrm{CR3BP}} = 1 - \mathrm{Tr}(\rho_{\mathrm{mac}}^2)$, análisis de estabilidad de Lagrange $L_4/L_5$ vs $L_1..L_3$, persistencia de toros KAM bajo perturbación de Stinespring $\epsilon < e^{-B(\omega)}$.
+  3. Torre de Automejora Recursiva Nivel 3 ($\mu_1 \circ \mu_2 \circ \mu_3$):
+     Prueba de contracción de Banach sobre la sucesión de tasas $\{\eta_1^{(k)}\}$ con cota $q < 1.0$.
+  Costura Terminal: `weave_campaign_to_adjudication` $\longrightarrow$ `IntrospectionProsecutionCampaignResult`.
 
-Invariantes transversales:
-  • C*-𝔇_n: ‖ρ‖=1, ρ=ρ†, λ_i ≥ −ε, involución ρ = ρ†
-  • θ_PC = Tr(ρ dN)              residuo [ρ, N] ≤ 1e-5
-  • c_G ≤ 12.5                   capacidad simpléctica Gromov–Wigner
-  • χ(ℂPⁿ⁻¹) = n                 Morse–Bott por índice espectral
-  • v(T^{a}) = min{a_i}          filtración ultramétrica Novikov
-  • μ-ley: μ∘(Tμ) = μ∘(μT)      plegado ≤ 1e-3 (RSI Nivel 3)
-  • Fock: e⁻ + e⁺ → 2γ           ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
-  • [NUEVO] Banach RSI3: q = sup|Δη_{k+1}|/|Δη_k| < 1 (convergencia garantizada)
-  • [NUEVO] CR3BP: μ < μ_Routh ≈ 0.0385209 ⇒ L4/L5 linealmente estables
-  • [NUEVO] Chirikov: K = Σ Δω_i/δω_i ≤ 1 ⇒ ausencia de solapamiento caótico
-  • [NUEVO] Birkhoff: rotación de frontera opuesta ⇒ ≥ 2 puntos fijos garantizados
+◈ FASE III — SOVEREIGN INTROSPECTION PROSECUTOR ADJUDICATOR (ADJUDICACIÓN Y AUTO-AUDITORÍA)
+  1. Adjudicación en el Retículo de Heyting $\Omega_3 = \{0 < 1 < 2\}$ mediante meet de 8 criterios.
+  2. Criterio de No-Integrabilidad de Poincaré (Solapamiento de Chirikov $K = \sum \frac{\Delta \omega_i}{\delta \omega_i} > 1$).
+  3. Garantía de Estabilidad Topológica de Poincaré-Birkhoff ($\#\text{FixedPoints} \ge 2$).
+  4. RSI3 Reflexivo: El Adjudicador recalibra sus propios umbrales de gobernanza $c_G$ usando su propia torre $\mu_3 \circ \mu_2 \circ \mu_1$.
+  5. Purga al Vacío de Dirac en Álgebra de Fock $e^- + e^+ \to 2\gamma$ ($E_\gamma = 511\text{ keV}$).
+  6. Disparo Ciber-Físico al ESP32 Crowbar en GPIO14 ($< 400\text{ ns}$).
+  7. Funtor Semántico de Impacto Ejecutivo $\Phi_{\mathrm{sem}} : \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$.
+  8. Cierre Criptográfico DAG de Merkle SHA-256 $\longrightarrow$ `IntrospectionProsecutorSovereignGovernancePassport`.
 
-Criterio crítico de atractor espurio:
-  λ⟂ = ln(λ₂/λ₁) ≥ 0  ⇒  sin contracción exponencial ⇒ falso punto fijo
-  (análogo celeste: el rayo se comporta como punto colineal L1-L3, silla
-   inestable, en vez de punto triangular L4/L5, centro estable)
+INVARIANTES Y AXIOMAS OPERATIVOS PRESERVADOS:
+  • Cumplimiento de axiomas $C^*$-álgebraicos para matrices de densidad.
+  • Invariancia de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ con residuo $< 10^{-5}$.
+  • Cota superior de capacidad simpléctica de Gromov-Wigner $c_G \le 12.5$.
+  • Contracción transversal Oseledets $\lambda_\perp < 0$ para atractor autocoherente.
+  • Convergencia de punto fijo de Banach en Torre RSI3 ($q < 1.0$).
+  • Preservación del meet funtorial $\Phi_{\mathrm{sem}}(a \sqcap b) = \Phi_{\mathrm{sem}}(a) \sqcap \Phi_{\mathrm{sem}}(b)$.
+  • Cierre ciber-físico $< 400\text{ ns}$ en GPIO14.
 """
 
 from __future__ import annotations

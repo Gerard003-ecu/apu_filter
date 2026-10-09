@@ -4,55 +4,71 @@ r"""
 ║ Módulo   : TOON Trickster Prosecutor Engine (Motor Espectral Fiscal Ilusionista)║
 ║ Ubicación: app/wisdom/toon_trickster_prosecutor_engine.py                       ║
 ║ Versión  : 7.0.0-Doctoral-Poincare-Celeste-Birkhoff-RSI3Tower-Fock              ║
+║ Función  : Auditoría C*-algebraica, acusación espectral QND, mecánica celeste  ║
+║            de Poincaré (CR3BP, Lagrange L1..L5, Birkhoff, Kac), torre RSI3   ║
+║            2-categórica con punto fijo de Banach y purga de Fock e⁻e⁺ → 2γ. ║
+║ Tratados : Poincaré, Méthodes Nouvelles (1892–99) · Birkhoff (1913)          ║
+║            Euler (1767) · Lagrange (1772) · Richardson (1980) · Kac (1947)   ║
+║            Uhlmann (1976) · Wirtinger (1904) · Novikov (1981) · Gromov (1985)║
+║            Banach (1922) · Dirac (1930) · Heyting (1930) · Merkle (1987)     ║
 ╚═════════════════════════════════════════════════════════════════════════════════╝
 
-TEJIDO ANIDADO EN TRES FASES (v7.0.0 — ampliación celeste y recursiva):
+DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
 
-  ◈ FASE I  — PoincareProsecutorAtlas
-              Delaunay canónico (J_i = −ln λ_i) → LRL → monodromía simpléctica →
-              Greene con defecto ‖MᵀΩM − Ω‖_F → Melnikov (scipy.quad) →
-              Bryuno (fracción continua exacta) → Morse–Bott χ(ℂPⁿ⁻¹) = n →
-              Poincaré–Cartan θ = Tr(ρ dN) con residuo [ρ, N] →
-              ── Mecánica Celeste de Poincaré (Méthodes Nouvelles, I–III) ──
-              Integral de Jacobi C_J del problema restringido circular de 3
-              cuerpos → Puntos de Lagrange L1…L5 (ecuación quíntica de Euler,
-              brentq) → Obstrucción de no-integrabilidad (pequeños divisores
-              k·ω) → Teorema de Recurrencia de Poincaré (lema de Kac) →
-              Variedades invariantes estable/inestable en L1 (linealización de
-              Richardson 1980) → Último Teorema Geométrico de Poincaré–Birkhoff
-              (twist map, ≥ 2 puntos fijos) →
-              COSTURA: weave_celestial_indictment_seed.
+El Motor Espectral Fiscal Ilusionista (`TOONTricksterProsecutorEngine`) ejecuta el rol
+de Órgano de Acusación Espectral y Auditoría Topológica de Ilusiones en el Estrato
+Wisdom ($V_{\mathbb{W}}$, RSI Nivel 3). Estructura el juzgamiento de tramas adversariales
+en tres fases rigurosamente concatenadas:
 
-  ◈ FASE II — ProsecutorQNDEngine + TOONTricksterProsecutorEngine
-              Axiomas C*-𝔇_n (involución, C*-norma, positividad, traza 1) →
-              Uhlmann real F(ρ,σ) = Tr √(√ρ σ √ρ) → Fubini–Study en ℂPⁿ⁻¹ →
-              Poincaré–Wirtinger var ≤ C_P · 2 E_D → Oseledets (MET) →
-              Novikov ultramétrico → Gromov–Wigner c_G ≤ 12.5 →
-              ── RSI3MonadicTower: Automejora Recursiva Nivel 3 ──
-              Jerarquía 2-categórica: objetos η (Nivel 1, parámetro) →
-              1-morfismos F_θ (Nivel 2, meta-gradiente sobre θ) →
-              2-morfismos Θ_φ (Nivel 3, punto fijo de Banach vía combinador
-              Y: Y(Θ) = Θ(Y(Θ))) → verificación de leyes monádicas
-              (identidad izq/der, asociatividad) →
-              COSTURA: weave_indictment_to_adjudication.
+◈ FASE I — POINCARÉ PROSECUTOR ATLAS (MECÁNICA CELESTE DE POINCARÉ I–III)
+  1. Coordenadas Canónicas de Delaunay $(L, G, H, \ell, g, h)$ e Invariantes Keplerianos:
+     $$J_i = -\ln \lambda_i(\rho), \quad L = \sum_{i=1}^n J_i, \quad G = L \frac{J_2}{J_1}, \quad H = G \frac{J_3}{J_2}$$
+  2. Problema Restringido Circular de Tres Cuerpos (CR3BP) y Constante de Jacobi $C_J$:
+     $$C_J(x, y, \dot{x}, \dot{y}; \mu) = x^2 + y^2 + \frac{2(1-\mu)}{r_1} + \frac{2\mu}{r_2} - (\dot{x}^2 + \dot{y}^2)$$
+     donde la razón de masas $\mu = \frac{g}{\ell + g} \in (0, 0.5)$, $r_1 = \|(x+\mu, y)\|$, $r_2 = \|(x-1+\mu, y)\|$.
+  3. Puntos de Equilibrio de Libración de Lagrange $L_1, \dots, L_5$:
+     Puntos colineales $L_1, L_2, L_3$ resueltos por bisección de Brent sobre $\frac{\partial \Omega}{\partial x} = 0$.
+     Puntos equiláteros $L_4, L_5 = (\frac{1}{2}-\mu, \pm \frac{\sqrt{3}}{2})$.
+  4. Obstrucción de No-Integrabilidad de Poincaré (Pequeños Divisores):
+     $$D = \min_{|k| \le k_{\max}, k_2 \ge 1} |k_1 + k_2 \omega| < 10^{-3} \implies \text{Divergencia de series perturbativas}$$
+  5. Variedades Invariantes Linealizadas en $L_1$ (Richardson 1980):
+     Ecuación característica $\lambda^4 + (c_2 - 2)\lambda^2 - (c_2 - 1)(2c_2 + 1) = 0$.
+     Autovalores hiperbólicos $\lambda_s \le 0, \lambda_u \ge 0$ (silla) y centro $\pm i \omega_p$.
+  6. Último Teorema Geométrico de Poincaré-Birkhoff:
+     Todo mapa de giro de área preservada en el anillo posee al menos 2 puntos fijos ($\#\text{FixedPoints} \ge 2$).
+  7. Característica de Euler de Morse-Bott $\chi(\mathbb{C}P^{n-1}) = n$ e Índice de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$.
+  Costura Terminal: `weave_celestial_indictment_seed` $\longrightarrow$ `ProsecutorCanonicalSeed`.
 
-  ◈ FASE III — SovereignProsecutorAdjudicator (hereda FASE II)
-              Retículo Heyting Ω₃ (meet/join/⇒/¬, ahora con criterios de
-              Birkhoff y no-integrabilidad) → PoincareRecurrenceAuditor
-              (recurrencia empírica del espacio de fase (c_G, d_FS, h_KS)) →
-              álgebra de Fock e⁻ + e⁺ → 2γ → ESP32 Crowbar (< 400 ns / GPIO14) →
-              DAG Merkle → ProsecutorExecutionCertificate.
+◈ FASE II — AUDITORÍA C*-ALGEBRAICA, UHLMANN, POINCARÉ-WIRTINGER Y TORRE RSI-3
+  1. Axiomas $C^*$-álgebraicos de la Matriz de Densidad $\rho \in \mathcal{D}_n$:
+     Involución self-adjoint $\rho = \rho^\dagger$, traza unitaria $\mathrm{Tr}(\rho) = 1$, positividad $\lambda_{\min}(\rho) \ge -10^{-10}$, norma $C^*$ $\|\rho\|_\infty \le 1$.
+  2. Fidelidad de Uhlmann $F(\rho, \sigma)$ y Distancia Geodésica de Fubini-Study:
+     $$F(\rho, \sigma) = \left[ \mathrm{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right]^2, \quad d_{\mathrm{FS}} = \arccos(\sqrt{F}) \in [0, \pi/2]$$
+  3. Desigualdad de Poincaré-Wirtinger:
+     $$\left\| \rho - \frac{I}{n} \right\|_F^2 \le C_P \cdot 2 E_D(\rho), \quad E_D(\rho) = \mathrm{Tr}(\rho \ln(n \rho))$$
+  4. Espectro Ergódico de Oseledets, Valuación Ultramétrica de Novikov $v(T^a) = \min a_i$ y Capacidad de Gromov $c_G \le 12.5$.
+  5. Torre de Automejora Recursiva Nivel 3 ($\mathbf{Cat}_{\mathrm{RSI}}$ 2-Categoría):
+     • Nivel 1 (Objetos): $\eta \in [0.05, 0.45]$
+     • Nivel 2 (1-Morfismos): $F_\theta(\eta) = \eta \, e^{-\beta h_{\mathrm{KS}} d_{\mathrm{FS}}} \cos(\alpha \pi R_G) \left[ \frac{1 - \lambda_{\max} d_{\mathrm{FS}}}{1 + \lambda_{\max} d_{\mathrm{FS}}} \right]^\gamma$
+     • Nivel 3 (2-Morfismos): Punto fijo del combinador Y $Y(\Theta_\phi) = \Theta_\phi(Y(\Theta_\phi))$ vía el Teorema de Contracción de Banach ($k < 1$).
+  Costura Terminal: `weave_indictment_to_adjudication` $\longrightarrow$ `ProsecutorIndictmentGerm`.
 
-Invariantes transversales:
-  • C*-𝔇_n: ‖ρ‖ = 1, ρ = ρ†, λ_i ≥ 0, inv(ρ†) = ρ
-  • θ_PC = Tr(ρ dN)             residuo [ρ, N] ≤ 1e-5
-  • c_G ≤ 12.5                  capacidad simpléctica Gromov–Wigner
-  • v(T^{a}) = min{a_i}         filtración ultramétrica Novikov
-  • Morse–Bott  Σ ind_p = n     χ(ℂPⁿ⁻¹) por espectro de ρ
-  • Birkhoff:   #FixedPoints ≥ 2  (Último Teorema Geométrico)
-  • Poincaré:   τ_recurrence ≈ 1/μ(A)  (Lema de Kac)
-  • μ-ley: μ∘(Tμ) = μ∘(μT)     plegado ≤ 1e-3, contracción Banach k < 1 (RSI3)
-  • Fock:       e⁻ + e⁺ → 2γ    ‖p_e⁻ + p_e⁺ − Σ p_γ‖ ≤ 1e-10
+◈ FASE III — ADJUDICACIÓN HEYTING Ω₃, RECURRENCIA DE GOBERNANZA, PURGA FOCK Y ESP32 CROWBAR
+  1. Retículo de Heyting $\Omega_3 = \{0 < 1 < 2\}$ con meet de 8 criterios de invariantes físicos.
+  2. Auditoría de Recurrencia de Gobernanza de Poincaré-Kac sobre $(c_G, d_{\mathrm{FS}}, h_{\mathrm{KS}})$: $\tau_P \approx 1 / \mu(A)$.
+  3. Purga al Vacío de Dirac en Álgebra de Fock de Pares Electrón-Positrón:
+     $$|1\rangle_{e^-} \otimes |1\rangle_{e^+} \longrightarrow |0\rangle_{e^-} \otimes |0\rangle_{e^+} \otimes |2\rangle_\gamma \quad (E_\gamma = m_e c^2 = 511 \text{ keV})$$
+  4. Disparo Ciber-Físico al Disyuntor ESP32 Crowbar en GPIO14 con latencia $< 400\text{ ns}$.
+  5. Cierre Criptográfico DAG de Merkle SHA-256 $\longrightarrow$ `ProsecutorExecutionCertificate`.
+
+INVARIANTES Y AXIOMAS OPERATIVOS PRESERVADOS:
+  • Cumplimiento estricto de los axiomas $C^*$-álgebraicos para $\rho \in \mathcal{D}_n$.
+  • Invariancia de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ con residuo $\|[\rho, N]\|_F / \mathrm{Tr}(\rho) < 10^{-5}$.
+  • Cota superior de capacidad simpléctica de Gromov $c_G \le 12.5$.
+  • Garantía topológica de Poincaré-Birkhoff: $\#\text{FixedPoints} \ge 2$.
+  • Contracción de Banach en la Torre RSI-3: constante $k < 1.0$.
+  • Conservación de 4-momento en aniquilación de Fock $e^- + e^+ \to 2\gamma$.
+  • Cierre ciber-físico $< 400\text{ ns}$ en GPIO14.
 """
 
 from __future__ import annotations

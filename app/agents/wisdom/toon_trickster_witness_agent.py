@@ -4,49 +4,64 @@ r"""
 ║ Módulo   : TOON Trickster Witness Agent (Soberano Observador QND)            ║
 ║ Ubicación: app/agents/wisdom/toon_trickster_witness_agent.py                 ║
 ║ Versión  : 6.1.0-Doctoral-Nested-Gauge-QND-Fock-Φsem-RSI3                    ║
-║ Tratados : Chern–Simons · Hopf (1931) · Wilson (1974) · Yang–Mills (1954)    ║
-║            Cartan (1926) · Bianchi · Poincaré, Méthodes Nouvelles            ║
+║ Función  : Agente Soberano Observador QND, topología de calibre              ║
+║            P(M, G=U(1)×SU(2)×H₃(ℝ)), campañas de medición débil en ℂPⁿ⁻¹,     ║
+║            adjudicación en el retículo de Heyting Ω₃, aniquilación en        ║
+║            álgebra de Fock e⁺e⁻ → 2γ y traducción semántica de impacto.      ║
+║ Tratados : Chern–Simons (1974) · Hopf (1931) · Wilson (1974) · Yang–Mills (1954)║
+║            Cartan (1926) · Bianchi · Poincaré, Méthodes Nouvelles (1892–99)  ║
 ║            Aharonov–Albert–Vaidman (1988) · Gromov (1985) · Löb (1955)       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Tejido anidado por herencia categórica en TRES FASES:
+DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
 
-  ◈ FASE I   — TricksterWitnessGaugeTopology
-               Fibrado principal P(M, G), G = U(1) × SU(2) × H₃(ℝ)
-               • Conexión A_μ, curvatura F = [A₀, A₁] (ecuación de estructura)
-               • Identidad de Bianchi  DF = dF + [A, F] ≈ 0
-               • 3-forma de Chern–Simons discreta (proxy de Tr(A∧dA + ⅔ A³))
-               • Fibrado de Hopf  S³ → S²  (residuo ‖π(q)‖² − 1)
-               • Holonomía de Wilson  W(γ) = P exp(∮ A(γ̇) dt) ∈ U(n)
-               • Mapa de momentos de calibre (Marsden–Weinstein)
-               • COSTURA: weave_gauge_to_observatory → GaugeObservatorySeed
-                 (= objeto inicial de la FASE II).
+El Agente Soberano Testigo Tramposo (`TOONTricksterWitnessAgent`) opera como el observador
+cuántico sin demolición (QND) y calibrador de topología de calibre en el Estrato
+Wisdom ($V_{\mathbb{W}}$, RSI Nivel 3). Estructura el ciclo de gobernanza observacional en
+tres fases anidadas por herencia categórica:
 
-  ◈ FASE II  — TOONTricksterWitnessAgent  (hereda FASE I)
-               Campaña QND sobre el motor espectral v6.1.0:
-               • consume HomoclinicCanonicalSeed / SpectralWitnessBundle
-               • Delaunay / Melnikov-Fourier / Greene-Sp(2n) / Bryuno-q_k
-               • Oseledets / Novikov |x|=e^{−v} / Gromov / Fubini–Study
-               • Leyes monádicas μ∘Tη = id = μ∘ηT, μ∘Tμ = μ∘μT
-               • COSTURA: weave_campaign_to_adjudication → CampaignAdjudicationBundle
-                 (= objeto inicial de la FASE III).
+◈ FASE I — TRICKSTER WITNESS GAUGE TOPOLOGY (FIBRADO PRINCIPAL $P(M, G)$)
+  1. Fibrado Principal $P(M, G)$ con grupo de estructura $G = \mathrm{U}(1) \times \mathrm{SU}(2) \times H_3(\mathbb{R})$:
+     Conexión $A = A_0 \, dx^0 + A_1 \, dx^1 \in \Omega^1(P, \mathfrak{g})$ con componentes anti-hermíticas $A_\mu^\dagger = -A_\mu$.
+  2. Curvatura de Yang-Mills $F \in \Omega^2(P, \mathfrak{g})$ e Identidad de Bianchi $D_A F \approx 0$:
+     $$F = [A_0, A_1] \quad (\text{Ecuación de estructura con } dA=0), \quad D_A F = [A_0, F] + [A_1, F] \approx 0 \quad (\text{Jacobi})$$
+     Energía de Yang-Mills $E_{\mathrm{YM}} = \frac{1}{2} \|F\|_F^2$.
+  3. 3-Forma Discreta de Chern-Simons $CS_3(A)$:
+     $$CS_3 = \frac{1}{8\pi^2} \mathrm{Re} \, \mathrm{Tr}\left( A F + \frac{2}{3} A^3 \right)$$
+  4. Fibrado Cuaterniónico de Hopf $\pi : S^3 \to S^2$:
+     Proyección $\pi(q) = q i \bar{q} \in S^2 \subset \mathrm{Im}(\mathbb{H})$ sobre cuaternión unitario $q \in S^3$. Residuo de esfera $|\|\pi(q)\|^2 - 1|$.
+  5. Holonomía de Wilson $W(\gamma) \in \mathrm{U}(n)$ y Defecto Unitario:
+     $$W(\gamma) = \mathcal{P} \exp \left( \oint_\gamma A(\dot{\gamma}) \, dt \right), \quad \text{Defecto} = \|W^\dagger W - I\|_F$$
+  6. Mapa de Momentos de Calibre $J : T^* P \to \mathfrak{g}^*$ (Marsden-Weinstein):
+     $$J(A) = \left( i \, \mathrm{Tr}(A_0), \, \|F_{\mathfrak{su}(2)}\|_F, \, \mathrm{Tr}(F_{\mathfrak{h}_3}) \right)$$
+  7. Contrato de Calibre Inmutable Forjado con Firma HMAC-SHA256 Canónica.
+  Costura Terminal: `weave_gauge_to_observatory` $\longrightarrow$ `GaugeObservatorySeed`.
 
-  ◈ FASE III — SovereignTricksterWitnessAdjudicator  (hereda FASE II)
-               • Adjudicación Heyting Ω₃ con meet/join/⇒
-               • Kac, Löb/DGM, tres superficies RSI, d³C/dt³
-               • Interlock ESP32 Crowbar (< 400 ns / GPIO14)
-               • Álgebra de Fock:  e⁺ + e⁻ → 2γ  (modelo CM, 511 keV)
-               • Funtor semántico  Φ_sem : Sh(∂K, Ω₃) → Business
-               • DAG Merkle final sobre (contract, campaign, passport)
+◈ FASE II — TOON TRICKSTER WITNESS AGENT (CAMPAÑA DE OBSERVACIÓN QND)
+  1. Consumo del Germen de Observatorio y Validación de Contrato HMAC.
+  2. Ejecución de Campañas de Medición Débil QND sobre `TOONTricksterWitnessEngine` v6.1.0:
+     Ponderación de valores débiles $A_w = \frac{\langle \phi_f | A | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}$, geodésicas de Fubini-Study $d_{\mathrm{FS}} \in [0, \pi/2]$,
+     Oseledets $\lambda_{\max}$, Novikov $v(T^a) = \min a_i$, Gromov-Wigner $c_G \le 12.5$ y Back-Action $= 0.0\text{ dB}$.
+  3. Verificación de Leyes Monádicas RSI Nivel 3 ($\mu \circ T\eta = \mathrm{id} = \mu \circ \eta T$, $\mu \circ T\mu = \mu \circ \mu T$).
+  Costura Terminal: `weave_campaign_to_adjudication` $\longrightarrow$ `CampaignAdjudicationBundle`.
 
-Invariantes preservadas a través de las tres fases:
-  • θ_PC = Tr(ρ N)                      residuo ≤ 1e-5
-  • M ∈ Sp(2n), det M = 1               (Liouville)
-  • c_G ≤ 12.5                          capacidad simpléctica Gromov
-  • v(T^{a}) = min{a_i}                 filtración Novikov, |x|=e^{−v}
-  • Back-Action QND = 0.0 dB
-  • Leyes monádicas                     residuos de unidad/asociatividad
-  • Cierre ciber-físico                 < 400 ns GPIO14
+◈ FASE III — SOVEREIGN TRICKSTER WITNESS ADJUDICATOR (ADJUDICACIÓN Y TRADUCCIÓN SEMÁNTICA)
+  1. Adjudicación en el Retículo de Heyting $\Omega_3 = \{0 < 1 < 2\}$ (VETOED < DEGRADED < COHERENT).
+  2. Aniquilación en Álgebra de Fock $e^+ + e^- \to 2\gamma$ en el Centro de Masa (CM):
+     $$|1\rangle_{e^-} \otimes |1\rangle_{e^+} \longrightarrow |0\rangle_{e^-} \otimes |0\rangle_{e^+} \otimes |2\rangle_\gamma \quad (E_\gamma = 511\text{ keV})$$
+  3. Disparo Ciber-Físico al Disyuntor ESP32 Crowbar en GPIO14 ($< 400\text{ ns}$).
+  4. Funtor Semántico de Impacto Ejecutivo $\Phi_{\mathrm{sem}} : \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$:
+     Mapea la coherencia cuántica a compresión KV-cache ($\%$) y protección de capital WACC ($\%$) conservando meet:
+     $$\Phi_{\mathrm{sem}}(a \sqcap b) = \Phi_{\mathrm{sem}}(a) \sqcap \Phi_{\mathrm{sem}}(b)$$
+  5. Cierre Criptográfico DAG de Merkle SHA-256 $\longrightarrow$ `WitnessSovereignGovernancePassport`.
+
+INVARIANTES Y AXIOMAS OPERATIVOS PRESERVADOS:
+  • 1-forma de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ con residuo $< 10^{-5}$.
+  • Unitaridad $W^\dagger W = I$ e invaribilidad simpléctica en $\mathrm{Sp}(2n, \mathbb{R})$.
+  • Cota superior de capacidad simpléctica de Gromov-Wigner $c_G \le 12.5$.
+  • Back-Action de medición débil QND $= 0.0\text{ dB}$.
+  • Preservación del meet funtorial $\Phi_{\mathrm{sem}}(a \sqcap b) = \Phi_{\mathrm{sem}}(a) \sqcap \Phi_{\mathrm{sem}}(b)$.
+  • Cierre ciber-físico $< 400\text{ ns}$ en GPIO14.
 """
 from __future__ import annotations
 
