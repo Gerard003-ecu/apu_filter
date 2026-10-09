@@ -5,12 +5,12 @@ r"""
 ║ Ubicación: app/agents/wisdom/toon_introspection_prosecutor_agent.py           ║
 ║ Versión  : 7.0.0-Doctoral-Nested-Gauge-CStar-CPn-MorseBott-RSI3Tower-         ║
 ║            PoincareCelestialMechanics-Fock-Φsem                               ║
-║ Función  : Agente Soberano Fiscal Introspectivo, topología de calibre        ║
-║            P(M, G=U(1)×SU(2)×H₃(ℝ)), acusación proyectiva en ℂPⁿ⁻¹,          ║
-║            estabilidad CR3BP (L1..L5), KAM, Lyapunov Oseledets transversal,  ║
-║            Torre RSI3 con Banach, purga en álgebra de Fock e⁻e⁺ → 2γ y Φsem.║
+║ Función  : Agente Soberano Fiscal Introspectivo, topología de calibre         ║
+║            P(M, G=U(1)×SU(2)×H₃(ℝ)), acusación proyectiva en ℂPⁿ⁻¹,           ║
+║            estabilidad CR3BP (L1..L5), KAM, Lyapunov Oseledets transversal,   ║
+║            Torre RSI3 con Banach, purga en álgebra de Fock e⁻e⁺ → 2γ y Φsem.  ║
 ║ Tratados : Chern–Simons (1974) · Hopf (1931) · Wilson (1974) · Yang–Mills (1954)║
-║            Cartan (1926) · Bianchi · Poincaré, Méthodes Nouvelles (1892–99)  ║
+║            Cartan (1926) · Bianchi · Poincaré, Méthodes Nouvelles (1892–99)   ║
 ║            Euler (1767) · Lagrange (1772) · Richardson (1980) · Uhlmann (1976)║
 ║            Oseledets (1968) · Chirikov (1979) · Banach (1922) · Dirac (1930)  ║
 ╚═══════════════════════════════════════════════════════════════════════════════╝
