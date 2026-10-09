@@ -4,64 +4,55 @@ r"""
 ║ Módulo   : TOON Trickster Prosecutor Agent (Soberano Fiscal Ilusionista)     ║
 ║ Ubicación: app/agents/wisdom/toon_trickster_prosecutor_agent.py              ║
 ║ Versión  : 7.0.0-Doctoral-Nested-Gauge-Celestial-CStar-Fock-Φsem-RSI3Tower   ║
+║ Función  : Agente Soberano Fiscal Ilusionista, topología de calibre          ║
+║            P(M, G=U(1)×SU(2)×H₃(ℝ)), sección de retorno de Poincaré sobre    ║
+║            holonomías de Wilson, acusaciones QND C*-algebraicas, Torre RSI3  ║
+║            con Banach, purga en álgebra de Fock e⁻e⁺ → 2γ y traducción Φsem. ║
+║ Tratados : Chern–Simons (1974) · Hopf (1931) · Wilson (1974) · Yang–Mills (1954)║
+║            Cartan (1926) · Bianchi · Poincaré, Méthodes Nouvelles (1892–99)  ║
+║            Aharonov–Albert–Vaidman (1988) · Gromov (1985) · Löb (1955)       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Tejido anidado por herencia categórica en TRES FASES (v7.0.0):
+DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
 
-  ◈ FASE I   — TricksterProsecutorGaugeTopology
-               Fibrado principal P(M, G), G = U(1) × SU(2) × H₃(ℝ)
-               • Conexión A anti-hermítica + curvatura F = dA + [A, D]
-               • 3-forma de Chern–Simons  CS₃ = (1/8π²) Tr(A·dA + ⅔ A³)
-               • Fibrado de Hopf cuaterniónico  π(q) = q·i·q̄ ∈ S²
-               • Holonomía de Wilson  W(γ) = P exp(∮_γ A)
-               • ── Sección de Retorno de Poincaré sobre la holonomía ──
-                 La holonomía ϑ_W se trata como número de rotación de un
-                 mapa de circunferencia; se reutiliza directamente el
-                 `PoincareProsecutorAtlas` del motor (no-integrabilidad,
-                 Bryuno, Birkhoff, recurrencia de Kac) instanciado sobre
-                 una densidad ρ_gauge = e^{−AA†}/Tr[e^{−AA†}] inducida por
-                 la propia conexión — la mecánica celeste de Poincaré
-                 tejida *dentro* de la topología de calibre, no sólo
-                 heredada como dato.
-               • Contrato HMAC-SHA256 sellado — TODOS los campos firmados
-                 son ahora campos persistidos del dataclass (fix de
-                 integridad criptográfica, ver nota doctoral).
-               • COSTURA: weave_gauge_to_prosecution → (contract, ok)
+El Agente Soberano Fiscal Ilusionista (`TOONTricksterProsecutorAgent`) ejerce la potestad
+de investigación topológica y acusación espectral de tramas de engaño en el Estrato
+Wisdom ($V_{\mathbb{W}}$, RSI Nivel 3). Estructura el juzgamiento en tres fases anidadas por
+herencia categórica:
 
-  ◈ FASE II  — TOONTricksterProsecutorAgent  (hereda FASE I)
-               Campaña de acusación sobre motor espectral v7.0.0:
-               • C*-𝔇_n, Uhlmann, Fubini–Study, Poincaré–Wirtinger
-               • Delaunay / Melnikov / Greene / Bryuno / Morse–Bott χ
-               • Jacobi / Lagrange / No-integrabilidad / Recurrencia /
-                 Variedades invariantes / Birkhoff (Atlas Celeste I)
-               • Oseledets (MET) / Novikov ultramétrico / Gromov–Wigner
-               • RSI3MonadicTower (Niveles 1-2-3, combinador Y, Banach) —
-                 la verificación de ley monádica ya NO recomputa una
-                 fórmula obsoleta: lee directamente los residuos que la
-                 propia Torre certificó en el motor (retrocompatible).
-               • COSTURA: weave_campaign_to_adjudication
+◈ FASE I — TRICKSTER PROSECUTOR GAUGE TOPOLOGY & POINCRÉ RETURN MAP
+  1. Fibrado Principal $P(M, G)$ con grupo $G = \mathrm{U}(1) \times \mathrm{SU}(2) \times H_3(\mathbb{R})$:
+     Conexión $A \in \Omega^1(P, \mathfrak{g})$ anti-hermítica y curvatura $F = dA + [A, D]$.
+  2. 3-Forma de Chern-Simons $CS_3(A) = \frac{1}{8\pi^2} \mathrm{Tr}(A \cdot dA + \frac{2}{3} A^3)$, Fibración de Hopf $\pi(q) = q i \bar{q}$, y Holonomía de Wilson $W(\gamma) = \mathcal{P} \exp(\oint_\gamma A)$.
+  3. SECCIÓN DE RETORNO DE POINCARÉ SOBRE LA HOLONOMÍA DE WILSON:
+     La holonomía $\vartheta_W$ actúa como número de rotación $\omega_{\mathrm{rot}} = \frac{|\vartheta_W|}{2\pi} \pmod 1$ sobre la densidad inducida $\rho_{\mathrm{gauge}} = \frac{e^{-A A^\dagger}}{\mathrm{Tr}(e^{-A A^\dagger})}$.
+     Aplica el `PoincareProsecutorAtlas` para evaluar la obstrucción de no-integrabilidad (pequeños divisores $D < 10^{-3}$), la condición de Bryuno $B(\omega) < \infty$, y la cota de Poincaré-Birkhoff ($\#\text{FixedPoints} \ge 2$).
+  4. Contrato de Calibre Sellado por HMAC-SHA256 sobre 15 campos persistidos (sello simétrico).
+  Costura Terminal: `weave_gauge_to_prosecution` $\longrightarrow$ `ProsecutorGaugeContract`.
 
-  ◈ FASE III — SovereignTricksterProsecutorAdjudicator  (hereda FASE II)
-               • Adjudicación Heyting Ω₃ con meet de criterios ampliados
-                 (Birkhoff ≥ 2 puntos fijos, no-integrabilidad informativa)
-               • PoincareRecurrenceAuditor de GOBERNANZA (nivel negocio):
-                 recurrencia empírica sobre (c_G, d_FS, h_KS) agregados
-                 de campaña — distinto del auditor interno del motor,
-                 opera sobre la serie histórica de pasaportes emitidos.
-               • Interlock ESP32 Crowbar (< 400 ns / GPIO14)
-               • Álgebra de Fock  e⁻ + e⁺ → 2γ  (purga al Vacío de Dirac)
-               • Funtor semántico  Φ_sem : Sh(∂K, Ω₃) → Business
-               • DAG Merkle final sobre (contract ⊕ campaign ⊕ cert ⊕ seeds)
+◈ FASE II — TOON TRICKSTER PROSECUTOR AGENT (CAMPAÑA DE ACUSACIÓN ESPECTRAL)
+  1. Consumo del Contrato Promovido de FASE I y Verificación Criptográfica HMAC.
+  2. Acusación Espectral en Lote sobre `TOONTricksterProsecutorEngine` v7.0.0:
+     Verificación $C^*$-algebraica para $\rho \in \mathcal{D}_n$, Uhlmann real $F(\rho, \sigma)$, Fubini-Study $d_{\mathrm{FS}}$, Poincaré-Wirtinger, Morse-Bott $\chi(\mathbb{C}P^{n-1}) = n$, Jacobi $C_J$, puntos de Lagrange $L_1 \dots L_5$, Oseledets $\lambda_{\max}$, Novikov $v(T^a)$, Gromov-Wigner $c_G \le 12.5$.
+  3. Verificación de Leyes Monádicas RSI Nivel 3 ($\mu \circ T\mu = \mu \circ \mu T$) mediante la lectura directa de los residuos certificados por la Torre de Banach en Nivel 3.
+  Costura Terminal: `weave_campaign_to_adjudication` $\longrightarrow$ `ProsecutionCampaignResult`.
 
-Invariantes transversales:
-  • C*-𝔇_n: ‖ρ‖=1, ρ=ρ†, λ_i ≥ −ε, involución ρ = ρ†
-  • θ_PC = Tr(ρ dN)              residuo [ρ, N] ≤ 1e-5
-  • c_G ≤ 12.5                   capacidad simpléctica Gromov–Wigner
-  • χ(ℂPⁿ⁻¹) = n                 Morse–Bott por índice espectral
-  • Birkhoff: #FixedPoints ≥ 2   Último Teorema Geométrico de Poincaré
-  • v(T^{a}) = min{a_i}          filtración ultramétrica Novikov
-  • μ-ley: μ∘(Tμ) = μ∘(μT)      plegado ≤ 1e-3, contracción Banach (RSI3)
-  • Fock: e⁻ + e⁺ → 2γ           ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
+◈ FASE III — SOVEREIGN TRICKSTER PROSECUTOR ADJUDICATOR (ADJUDICACIÓN CIBER-FÍSICA)
+  1. Adjudicación en el Retículo de Heyting $\Omega_3 = \{0 < 1 < 2\}$ mediante meet de criterios ampliados.
+  2. Auditoría de Recurrencia de Gobernanza de Poincaré-Kac sobre el histórico de pasaportes.
+  3. Purga al Vacío de Dirac en Álgebra de Fock $e^- + e^+ \to 2\gamma$ ($E_\gamma = 511\text{ keV}$).
+  4. Disparo Ciber-Físico al ESP32 Crowbar en GPIO14 ($< 400\text{ ns}$).
+  5. Funtor Semántico $\Phi_{\mathrm{sem}} : \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$:
+     Traducción a salvaguardia de capital USD y protección WACC preservando meet.
+  6. Cierre Criptográfico DAG de Merkle SHA-256 $\longrightarrow$ `ProsecutorSovereignGovernancePassport`.
+
+INVARIANTES Y AXIOMAS OPERATIVOS PRESERVADOS:
+  • Cumplimiento de axiomas $C^*$-álgebraicos para matrices de densidad.
+  • Invariancia de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ con residuo $< 10^{-5}$.
+  • Cota superior de capacidad simpléctica de Gromov-Wigner $c_G \le 12.5$.
+  • Cota de estabilidad de Poincaré-Birkhoff $\#\text{FixedPoints} \ge 2$.
+  • Preservación del meet funtorial $\Phi_{\mathrm{sem}}(a \sqcap b) = \Phi_{\mathrm{sem}}(a) \sqcap \Phi_{\mathrm{sem}}(b)$.
+  • Cierre ciber-físico $< 400\text{ ns}$ en GPIO14.
 """
 
 from __future__ import annotations

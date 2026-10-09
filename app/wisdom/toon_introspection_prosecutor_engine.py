@@ -4,71 +4,62 @@ r"""
 ║ Módulo   : TOON Introspection Prosecutor Engine (Motor Espectral Fiscal)     ║
 ║ Ubicación: app/wisdom/toon_introspection_prosecutor_engine.py                ║
 ║ Versión  : 7.0.0-Doctoral-Nested-CStar-CPn-PoincareCeleste-Birkhoff-RSI3Tower║
+║ Función  : Acusación espectral de auto-atractores espurios en ℂPⁿ⁻¹,         ║
+║            validación cruzada de estabilidad hiperbólica en L1 (CR3BP),     ║
+║            Lyapunov transversal de Oseledets, Fidelidad de Uhlmann real,     ║
+║            Geodesia Fubini-Study, Torre RSI3 y purga al Vacío de Dirac.      ║
+║ Tratados : Poincaré, Méthodes Nouvelles (1892–99) · Birkhoff (1913)          ║
+║            Richardson (1980) · Uhlmann (1976) · Oseledets (1968)             ║
+║            Novikov (1981) · Gromov (1985) · Banach (1922) · Dirac (1930)     ║
+║            Heyting (1930) · Merkle (1987) · Fubini-Study (1904/1905)         ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-TEJIDO ANIDADO EN TRES FASES (v7.0.0):
+DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
 
-  ◈ FASE I  — PoincareIntrospectionProsecutorAtlas
-              Delaunay canónico (J_i = −ln λ_i) → LRL → monodromía simpléctica →
-              Greene con defecto ‖MᵀΩM − Ω‖_F → Melnikov (scipy.quad) →
-              Bryuno (fracción continua exacta) → Morse–Bott χ(ℂPⁿ⁻¹) = n →
-              Poincaré–Cartan θ = Tr(ρ dN) con residuo [ρ, N] →
-              ── Mecánica Celeste de Poincaré sobre el rayo ρ_ray ──
-              Integral de Jacobi C_J + razón de masas μ espectral →
-              Puntos de Lagrange L1…L5 (quíntica de Euler, brentq) →
-              Obstrucción de no-integrabilidad (pequeños divisores k·ω) →
-              Teorema de Recurrencia de Poincaré (Lema de Kac) →
-              Variedades invariantes en L1 (linealización de Richardson):
-              λ_s ≤ 0 (estable), λ_u ≥ 0 (INESTABLE — firma de silla) →
-              Último Teorema Geométrico de Poincaré–Birkhoff (≥ 2 puntos fijos,
-              garantía estructural de que el espacio de adjudicación admite
-              atractores genuinos) →
-              COSTURA: weave_celestial_ray_seed.
+El Motor Espectral Fiscal de Introspección (`TOONIntrospectionProsecutorEngine`) realiza
+la auditoría proyectiva de auto-alucinaciones de convergencia sobre los autoestados
+$|v^*\rangle \in \mathbb{C}P^{n-1}$ reportados por los agentes de introspección en el
+Estrato Wisdom ($V_{\mathbb{W}}$, RSI Nivel 3). Estructura el escrutinio en tres fases
+concatenadas:
 
-  ◈ FASE II — IntrospectionProsecutorQNDEngine
-              Axiomas C*-𝔇_n → Uhlmann real F(ρ_mac, |v*⟩⟨v*|) →
-              Fubini–Study d_FS = arccos √F en ℂPⁿ⁻¹ →
-              Oseledets TRANSVERSAL empírico λ⟂ = ln(λ₂/λ₁) < 0 (medición) →
-              ── Validación cruzada de silla hiperbólica (Richardson) ──
-              Un rayo sólo se absuelve como atractor GENUINO si (a) el test
-              empírico de Oseledets confirma contracción Y (b) la firma
-              teórica de silla λ_u(L1) no domina — exigiendo dos pruebas
-              independientes (dato + modelo) antes de absolver.
-              Poincaré–Wirtinger → Novikov ultramétrico → Gromov–Wigner →
-              ── RSI3MonadicTower: Automejora Recursiva Nivel 3 ──
-              Nivel 1 (η) → Nivel 2 (θ, meta-gradiente con momento) →
-              Nivel 3 (punto fijo de Banach vía combinador Y) →
-              COSTURA: weave_indictment_to_adjudication.
+◈ FASE I — POINCARÉ INTROSPECTION PROSECUTOR ATLAS (GEOMETRÍA CELESTE PROYECTIVA)
+  1. Coordenadas Canónicas de Delaunay del Rayo Proyectivo $\rho_{\mathrm{ray}} = |v^*\rangle \langle v^*|$:
+     $$J_i = -\ln \lambda_i(\rho_{\mathrm{ray}}), \quad L = \sum_{i=1}^n J_i, \quad G = L \frac{J_2}{J_1}, \quad H = G \frac{J_3}{J_2}$$
+  2. Problema Restringido Circular de Tres Cuerpos (CR3BP) sobre $\rho_{\mathrm{ray}}$ y Constante de Jacobi $C_J$:
+     $$C_J(x, y, \dot{x}, \dot{y}; \mu) = x^2 + y^2 + \frac{2(1-\mu)}{r_1} + \frac{2\mu}{r_2} - (\dot{x}^2 + \dot{y}^2)$$
+  3. Puntos de Libración de Lagrange $L_1, \dots, L_5$ y Variedades Invariantes Linealizadas en $L_1$:
+     Autovalores de Richardson $\lambda_s \le 0$ (estable) y $\lambda_u \ge 0$ (FIRMA DE SILLA HIPERBÓLICA).
+  4. Garantía Topológica de Poincaré-Birkhoff:
+     $\#\text{FixedPoints} \ge 2$ en mapas de giro con conservación de área.
+  5. Característica de Euler de Morse-Bott $\chi(\mathbb{C}P^{n-1}) = n$ e Índice de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$.
+  Costura Terminal: `weave_celestial_ray_seed` $\longrightarrow$ `IntrospectionProsecutorCanonicalSeed`.
 
-  ◈ FASE III — TOONIntrospectionProsecutorEngine
-              Retículo Heyting Ω₃ con meet ampliado (C*, PW, Gromov, d_FS,
-              espurios, Oseledets, Birkhoff estructural, silla dominante;
-              no-integrabilidad como señal informativa DEGRADED) →
-              PoincareRecurrenceAuditor de gobernanza (recurrencia empírica
-              sobre el histórico de certificados emitidos) →
-              Álgebra de Fock e⁻ + e⁺ → 2γ → ESP32 Crowbar (< 400 ns / GPIO14) →
-              DAG Merkle → IntrospectionProsecutorExecutionCertificate.
+◈ FASE II — AUDITORÍA C*-PROYECTIVA, UHLMANN, OSELEDETS TRANSVERSAL Y TORRE RSI-3
+  1. Axiomas $C^*$-álgebraicos de la Matriz de Densidad MAC $\rho_{\mathrm{mac}} \in \mathcal{D}_n$:
+     Involución $\rho = \rho^\dagger$, $\mathrm{Tr}(\rho) = 1$, $\lambda_{\min} \ge -10^{-10}$, $\|\rho\|_\infty \le 1$.
+  2. Fidelidad de Uhlmann Mixto-Puro $F(\rho_{\mathrm{mac}}, |v^*\rangle \langle v^*|)$ y Distancia Geodésica Fubini-Study:
+     $$F = \langle v^* | \rho_{\mathrm{mac}} | v^* \rangle, \quad d_{\mathrm{FS}} = \arccos(\sqrt{F}) \in [0, \pi/2]$$
+  3. Exponente de Oseledets Transversal Empírico $\lambda_\perp$:
+     $$\lambda_\perp = \ln \left( \frac{\lambda_2(\rho_{\mathrm{mac}})}{\lambda_1(\rho_{\mathrm{mac}})} \right) < 0 \quad (\text{Contracción exponencial hacia el rayo})$$
+  4. VALIDACIÓN CRUZADA DE ATRACTOR ESPURIO (DATO + MODELO):
+     Un rayo se condena como atractor espurio si $\lambda_\perp \ge 0$ (sin contracción medida) O si $\lambda_u(L_1) > 8.0$ (variedad inestable de silla domina teóricamente).
+  5. Torre RSI-3 2-Categorical ($\mathbf{Cat}_{\mathrm{RSI}}$) con convergencia de punto fijo de Banach ($k < 1$).
+  Costura Terminal: `weave_indictment_to_adjudication` $\longrightarrow$ `IntrospectionIndictmentGerm`.
 
-Criterios de atractor espurio (auto-alucinación de convergencia):
-  • Oseledets transversal empírico λ⟂ ≥ 0        ⇒ sin contracción medida
-  • Firma de silla λ_u(L1) > 8.0 (umbral conservador) ⇒ geometría de punto
-    fantasma/metaestable (variedad inestable domina la linealización)
-  • Birkhoff #FixedPoints < 2                     ⇒ falla estructural del
-    propio espacio de adjudicación (defensivo; garantizado por construcción)
-  • Uhlmann residual > 0.85                       ⇒ rayo v* muy alejado de ρ_mac
-  • c_G > 12.5                                    ⇒ violación de capacidad simpléctica
-  • C*-𝔇_n violado                                ⇒ no-realizabilidad física
-  • d_FS > π/2 · 0.95                             ⇒ ortogonalidad proyectiva
+◈ FASE III — ADJUDICACIÓN HEYTING Ω₃, RECURRENCIA DE GOBERNANZA, PURGA FOCK Y ESP32 CROWBAR
+  1. Adjudicación en el Retículo de Heyting $\Omega_3 = \{0 < 1 < 2\}$ mediante meet de 8 criterios.
+  2. Auditoría de Recurrencia de Gobernanza de Poincaré-Kac sobre $(c_G, d_{\mathrm{FS}}, h_{\mathrm{KS}})$: $\tau_P \approx 1 / \mu(A)$.
+  3. Purga al Vacío de Dirac en Álgebra de Fock $e^- + e^+ \to 2\gamma$ ($E_\gamma = 511\text{ keV}$).
+  4. Interlock Ciber-Físico al ESP32 Crowbar en GPIO14 ($< 400\text{ ns}$).
+  5. Cierre Criptográfico DAG de Merkle SHA-256 $\longrightarrow$ `IntrospectionProsecutorExecutionCertificate`.
 
-Invariantes transversales:
-  • C*-𝔇_n: ‖ρ‖=1, ρ=ρ†, λ_i ≥ −ε, involución ρ = ρ†
-  • θ_PC = Tr(ρ dN)              residuo [ρ, N] ≤ 1e-5
-  • c_G ≤ 12.5                   capacidad simpléctica Gromov–Wigner
-  • χ(ℂPⁿ⁻¹) = n                 Morse–Bott por índice espectral
-  • Birkhoff: #FixedPoints ≥ 2   Último Teorema Geométrico de Poincaré
-  • v(T^{a}) = min{a_i}          filtración ultramétrica Novikov
-  • μ-ley: μ∘(Tμ) = μ∘(μT)      plegado ≤ 1e-3, contracción Banach (RSI3)
-  • Fock: e⁻ + e⁺ → 2γ           ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
+INVARIANTES Y AXIOMAS OPERATIVOS PRESERVADOS:
+  • Cumplimiento de axiomas $C^*$-álgebraicos para la matriz MAC $\rho_{\mathrm{mac}}$.
+  • Invariancia de Poincaré-Cartan $\theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)$ con residuo $< 10^{-5}$.
+  • Cota de capacidad simpléctica de Gromov $c_G \le 12.5$.
+  • Cota topológica de Poincaré-Birkhoff $\#\text{FixedPoints} \ge 2$.
+  • Exponente transversal Oseledets $\lambda_\perp < 0$ para absolución de atractor.
+  • Cierre ciber-físico $< 400\text{ ns}$ en GPIO14.
 """
 
 from __future__ import annotations
