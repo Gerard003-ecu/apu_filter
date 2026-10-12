@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/agents/toon_introspection_agent.py                                    ║
+║ MÓDULO   : app/agents/wisdom/toon_introspection_agent.py                             ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO INTROSPECTIVO               ║
 ║ FUNCIÓN  : SOBERANO DE INTROSPECCIÓN — POINCARÉ-BIRKHOFF-OSELEDETS-KAM-MELNIKOV      ║
 ║ VERSIÓN  : 9.0.0-Doctoral-Poincaré-Birkhoff-Oseledets-KAM-NestedThreePhase           ║

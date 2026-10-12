@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Introspection Witness Agent (Soberano Testigo Introspectivo) ║
-║ Ubicación: app/wisdom/toon_introspection_witness_agent.py                    ║
+║ Ubicación: app/agents/wisdom/toon_introspection_witness_agent.py             ║
 ║ Versión  : 7.0.0-Poincaré-RSI3-Nested-Gauge-Hopf-Berry-Lévy-QND-Fock-Φsem    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

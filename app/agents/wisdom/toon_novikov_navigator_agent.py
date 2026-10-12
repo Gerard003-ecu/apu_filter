@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Novikov Navigator Agent (Soberano Navegante de Novikov)      ║
-║ Ubicación: app/wisdom/toon_novikov_navigator_agent.py                        ║
+║ Ubicación: app/agents/wisdom/toon_novikov_navigator_agent.py                 ║
 ║ Versión  : 7.0.0-Poincaré-RSI3-Nested-Gauge-Hopf-Novikov-BruhatTits-Φsem     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

@@ -5,7 +5,7 @@ r"""
 ║ Ubicación: app/wisdom/toon_introspection_prosecutor_engine.py                ║
 ║ Versión  : 7.0.0-Doctoral-Nested-CStar-CPn-PoincareCeleste-Birkhoff-RSI3Tower║
 ║ Función  : Acusación espectral de auto-atractores espurios en ℂPⁿ⁻¹,         ║
-║            validación cruzada de estabilidad hiperbólica en L1 (CR3BP),     ║
+║            validación cruzada de estabilidad hiperbólica en L1 (CR3BP),      ║
 ║            Lyapunov transversal de Oseledets, Fidelidad de Uhlmann real,     ║
 ║            Geodesia Fubini-Study, Torre RSI3 y purga al Vacío de Dirac.      ║
 ║ Tratados : Poincaré, Méthodes Nouvelles (1892–99) · Birkhoff (1913)          ║

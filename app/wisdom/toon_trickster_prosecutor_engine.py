@@ -4,13 +4,13 @@ r"""
 ║ Módulo   : TOON Trickster Prosecutor Engine (Motor Espectral Fiscal Ilusionista)║
 ║ Ubicación: app/wisdom/toon_trickster_prosecutor_engine.py                       ║
 ║ Versión  : 7.0.0-Doctoral-Poincare-Celeste-Birkhoff-RSI3Tower-Fock              ║
-║ Función  : Auditoría C*-algebraica, acusación espectral QND, mecánica celeste  ║
-║            de Poincaré (CR3BP, Lagrange L1..L5, Birkhoff, Kac), torre RSI3   ║
-║            2-categórica con punto fijo de Banach y purga de Fock e⁻e⁺ → 2γ. ║
-║ Tratados : Poincaré, Méthodes Nouvelles (1892–99) · Birkhoff (1913)          ║
-║            Euler (1767) · Lagrange (1772) · Richardson (1980) · Kac (1947)   ║
-║            Uhlmann (1976) · Wirtinger (1904) · Novikov (1981) · Gromov (1985)║
-║            Banach (1922) · Dirac (1930) · Heyting (1930) · Merkle (1987)     ║
+║ Función  : Auditoría C*-algebraica, acusación espectral QND, mecánica celeste   ║
+║            de Poincaré (CR3BP, Lagrange L1..L5, Birkhoff, Kac), torre RSI3      ║
+║            2-categórica con punto fijo de Banach y purga de Fock e⁻e⁺ → 2γ.     ║
+║ Tratados : Poincaré, Méthodes Nouvelles (1892–99) · Birkhoff (1913)             ║
+║            Euler (1767) · Lagrange (1772) · Richardson (1980) · Kac (1947)      ║
+║            Uhlmann (1976) · Wirtinger (1904) · Novikov (1981) · Gromov (1985).  ║
+║            Banach (1922) · Dirac (1930) · Heyting (1930) · Merkle (1987)        ║
 ╚═════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN FORMAL Y ARQUITECTURA EN TRES FASES ANIDADAS:
