@@ -1,65 +1,92 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Cognitive Crop Witness Engine (Motor Testigo del Cultivo)    ║
-║ Ubicación: app/wisdom/toon_cognitive_crop_witness_engine.py                  ║
-║ Versión  : 7.0.0-Doctoral-Crop-Witness-QND-Maupertuis-Poincare-Floquet       ║
-║            -Birkhoff-RSI3-Banach-FixedPoint-Nested-Phases-Heyting-ESP32      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Cognitive Crop Witness Engine (Motor Testigo del Cultivo Cognitivo)                  ║
+║ Ubicación: app/wisdom/toon_cognitive_crop_witness_engine.py                                          ║
+║ Versión  : 7.0.0-Doctoral-Crop-Witness-QND-Maupertuis-Poincare-Floquet-Birkhoff-RSI3-Banach          ║
+║            -FixedPoint-Nested-Phases-Heyting-ESP32                                                   ║
+║ Función  : Motor espectral observador sin demolición cuántica (QND, back-action ≡ 0.0 dB) del        ║
+║            metabolismo del cultivo cognitivo, responsable de medir geodésicas en la métrica          ║
+║            conformal de Maupertuis-Jacobi, clasificar multiplicadores orbitales de Floquet, computar ║
+║            números de rotación de Poincaré y ejecutar el ciclo RSI³ con punto fijo de Banach.        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor Espectral del Testigo del Cultivo Cognitivo. Observación débil QND
-(Quantum Non-Demolition) con Back-Action nulo (0.0 dB) sobre el metabolismo
-de siembra, riego, iluminación y disciplina ejecutado por el Soberano del
-Cultivo Cognitivo.
+I. DEFINICIÓN Y ROL DEL MOTOR EN LA ARQUITECTURA COGNITIVA
+──────────────────────────────────────────────────────────
+El TOON Cognitive Crop Witness Engine es el observador cuántico débil del ciclo agronómico-cognitivo
+(Estrato WISDOM). Su mandato consiste en auditar sin back-action perturbativo (0.0 dB) la germinación,
+riego metabólico, transpiración entrópica e iluminación de los cartuchos de conocimiento TOON
+generados por el Soberano del Cultivo. A través de la reformulación geodésica de Maupertuis-Jacobi
+y el análisis espectral de Floquet-Poincaré, cuantifica la estabilidad de las parcelas de deliberación
+y condiciona su certificación a la contracción uniforme del operador de automejora recursiva.
 
-Evolución v7.0.0: integración granular y rigurosa de
+II. PRINCIPIO VARIACIONAL DE MAUPERTUIS-JACOBI Y GEOMETRÍA CONFORMAL
+────────────────────────────────────────────────────────────────────
+§1. Métrica Conformal de Maupertuis:
+    Para un sistema hamiltoniano con energía total constante $H(q, p) = T(q, p) + V(q) = E$, el principio
+    de mínima acción de Maupertuis $\delta \int p \, dq = 0$ equivale a la ecuación geodésica bajo
+    la métrica riemanniana conformemente deformada $g_{ij}^M$:
+        ds_M^2 = 2 \left( E - V(q) \right) g_{ij} dq^i dq^j \iff g_{ij}^M(q) = 2(E - V(q)) g_{ij}(q)
+    Las soluciones dinámicas reales del cultivo son geodésicas parametrizadas por longitud de arco $s$:
+        \nabla_{\dot{\gamma}}^M \dot{\gamma} = 0 \implies \int_{\gamma} ds_M \le \int_{\tilde{\gamma}} ds_M
+    garantizando que la absorción de nutrientes cognitivos minimice la longitud informacional.
 
-  (A) MECÁNICA CELESTE DE POINCARÉ (Les Méthodes Nouvelles, 1892-1899):
-      • Multiplicadores de Floquet sobre la monodromía M ∈ Sp(4,ℝ) →
-        clasificación ELÍPTICA / PARABÓLICA / HIPERBÓLICA de la órbita de
-        referencia del cultivo.
-      • Número de rotación ρ(ω_L,ω_G) vía algoritmo de fracción continua.
-      • Teorema de recurrencia de Poincaré (estimador de Kac):
-        τ_rec ≈ 1/μ(A) sobre la fracción de medida de fase (pureza).
-      • Teorema geométrico de Poincaré-Birkhoff: 2q puntos fijos para
-        ρ ≈ p/q racional.
-      • Test de no-integrabilidad por divisores pequeños
-        k₁ω_L + k₂ω_G + k₃ω_H ≈ 0 (Tome I, Cap. V).
-      • Serie del parámetro pequeño x(t,ε) = x₀ + εx₁ + ε²x₂ + …
+§2. Acción Reducida de Maupertuis:
+    El funcional de acción reducida evaluado a lo largo de la trayectoria de deliberación satisface:
+        S_0(E) = \oint p \, dq = \int_0^T 2 T(t) \, dt
+    constituyendo el generador canónico de las transformaciones de escala temporal del cultivo.
 
-  (B) AUTOMEJORA RECURSIVA DE NIVEL 3 (RSI3) SOBRE LA MÓNADA Cont:
-      • NIVEL 1 — Adaptación Paramétrica: unidad η_T acotada en [0.05,0.45].
-      • NIVEL 2 — Mutación Estratégica: pesos internos (w_flatten, w_entropy,
-        w_maupertuis) de la composición de Kleisli μ_T auto-regulados por el
-        residual de asociatividad monádica.
-      • NIVEL 3 — Cierre Meta-Reflexivo de Punto Fijo de Banach: operador
-        T_RSI3:(ℝ⁴,‖·‖_∞)→(ℝ⁴,‖·‖_∞) sobre el estado conjunto (η,w₁,w₂,w₃),
-        con estimación empírica de la constante de Lipschitz L̂, verificación
-        formal de contracción 0≤L̂<1 y cómputo de la cota de error de Banach.
-        El sistema VERIFICA LA CONVERGENCIA DE SU PROPIO PROCESO DE MEJORA.
+III. MECÁNICA CELESTE DE POINCARÉ Y MULTIPLICADORES DE FLOQUET
+──────────────────────────────────────────────────────────────
+§1. Multiplicadores de Floquet y Monodromía Orbital:
+    Para la órbita periódica de referencia del cultivo $\gamma(t)$ con período $T$, la ecuación variacional
+    $\dot{\xi} = J \nabla^2 H(\gamma(t)) \xi$ induce la matriz de monodromía $M = \Phi(T, 0) \in \mathrm{Sp}(4, \mathbb{R})$.
+    Los autovalores de $M$ son los multiplicadores de Floquet $\{\mu_k\}_{k=1}^4$:
+        • ELÍPTICO   : \mu_k = e^{\pm i \theta_k}, \quad |\mu_k| = 1 \quad (\text{Órbita centralmente estable})
+        • PARABÓLICO : \mu_k = \pm 1 \quad \text{con defectos no diagonales} \quad (\text{Colisión de Krein})
+        • HIPERBÓLICO: |\mu_k| \neq 1 \implies \text{separatrices exponenciales} \quad (\text{Dispersión de cultivo})
 
-Estructura: TRES FASES ANIDADAS.
+§2. Número de Rotación de Poincaré y Fracciones Continuas:
+    El número de rotación $\rho(\omega_L, \omega_G)$ sobre el toro invariante se expande en convergentes:
+        \rho = \frac{\omega_G}{\omega_L} = [a_0; a_1, a_2, \dots, a_k, \dots] \implies \frac{p_k}{q_k}
+    Por el Teorema Geométrico de Poincaré-Birkhoff, cualquier perturbación sobre una rotación racional
+    $\rho \approx p/q$ preserva un número par mínimo de $2q$ puntos fijos (órbitas periódicas cerradas).
 
-  FASE I — PoincareCropWitnessAtlas
-           Atlas Celeste Poincaré-Maupertuis. Delaunay-Kepler, CR3BP Jacobi,
-           monodromía Sp(4,ℝ), Melnikov, Bryuno, Morse-Bott, Poincaré-Cartan,
-           Stora-Zumino, Hopf cuaterniónico, MÉTRICA CONFORMAL DE MAUPERTUIS-
-           JACOBI + MECÁNICA CELESTE DE POINCARÉ (Floquet, rotación,
-           recurrencia, Birkhoff, no-integrabilidad, serie ε-pequeño).
-           Terminal: `emit_crop_qnd_initial_condition` → semilla → FASE II.
+§3. Teorema de Recurrencia y Tiempo Medio de Kac:
+    Bajo el flujo de Liouville en la sección de fase de pureza cuántica $\mu(A) = \mathrm{Tr}(\rho^2)$:
+        \langle \tau_{\mathrm{rec}} \rangle = \frac{1}{\mu(A)} = \frac{1}{\mathrm{Tr}(\rho^2)} \ge 1.0
 
-  FASE II — CropWitnessQNDEngine
-           Ingesta la semilla de FASE I (incl. invariantes de Poincaré),
-           mide Aw, Uhlmann, Fubini-Study, Berry-Bargmann, Lévy, Oseledets,
-           KS, Novikov, Gromov, Maupertuis; aplica RSI3 de 3 NIVELES sobre la
-           mónada Cont (Kleisli) con cierre de contracción de Banach.
-           Terminal: `emit_certificate_draft_for_adjudication` → semilla → FASE III.
+IV. AUTOMEJORA RECURSIVA DE NIVEL 3 (RSI³) Y PUNTO FIJO DE BANACH
+─────────────────────────────────────────────────────────────────
+§1. Operador Conjunto de Banach $T_{\mathrm{RSI3}}$:
+    El proceso de automejora se formaliza como un endomapeo sobre el espacio normado $(\mathbb{R}^4, \|\cdot\|_\infty)$
+    que actúa sobre el estado vectorial de hiperparámetros $x = (\eta, w_{\mathrm{flatten}}, w_{\mathrm{entropy}}, w_{\mathrm{maupertuis}})$:
+        T_{\mathrm{RSI3}}: (\mathbb{R}^4, \|\cdot\|_\infty) \longrightarrow (\mathbb{R}^4, \|\cdot\|_\infty)
 
-  FASE III — TOONCognitiveCropWitnessEngine
-           Adjudica en Heyting Ω₃ (condicionado a estabilidad orbital de
-           Poincaré y contracción de Banach de RSI3), acciona el crowbar
-           ESP32 (< 400 ns / GPIO14), purga al Vacío de Dirac, emite Merkle
-           SHA-256 y el certificado inmutable.
+§2. Verificación Numérica de la Contracción Uniforme:
+    El motor estima la constante de Lipschitz suprema $\hat{L}$ en cada época:
+        \hat{L} = \sup_{x \neq y} \frac{\|T_{\mathrm{RSI3}}(x) - T_{\mathrm{RSI3}}(y)\|_\infty}{\|x - y\|_\infty}
+    La validez del ciclo exige la verificación formal de la condición de contracción:
+        0 \le \hat{L} < 1.0
+    Garantizando por el Teorema del Punto Fijo de Banach la convergencia geométrica hacia el único
+    atractor óptimo $x^*$, acotando el error absoluto residual mediante:
+        \|x_n - x^*\|_\infty \le \frac{\hat{L}^n}{1 - \hat{L}} \|x_1 - x_0\|_\infty
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Atlas Celeste Poincaré-Maupertuis]: Computa Delaunay, $ds_M^2$, multiplicadores de
+             Floquet, $\rho(\omega)$ y emite `CropWitnessQNDInitialCondition`.
+  • FASE II  [Motor QND del Cultivo]: Ingiere la condición inicial, evalúa $A_w$, Berry-Bargmann,
+             Maupertuis, RSI³ de 3 niveles con Banach y emite `CropWitnessCertificateDraft`.
+  • FASE III [Motor Soberano Adjudicador]: Adjudica en Heyting $\Omega_3$ subordinado a $\hat{L} < 1$
+             y estabilidad orbital de Floquet, acciona el ESP32 Crowbar y sella el certificado Merkle.
+
+VI. DISYUNTOR CIBER-FÍSICO ESP32 Y PURGA EN EL VACÍO DE DIRAC
+─────────────────────────────────────────────────────────────
+Si el metabolismo del cultivo exhibe hiperbolicidad inestable o $\hat{L} \ge 1.0$:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+aniquilando los estados cuánticos degradados en el Vacío de Dirac:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

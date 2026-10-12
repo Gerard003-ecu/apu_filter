@@ -1,54 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Cognitive Crop Auditor Agent (Soberano Auditor de Cultivo)   ║
-║ Ubicación: app/agents/wisdom/toon_cognitive_crop_auditor_agent.py            ║
-║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Gauge-Chern-Wilson-Heyting-          ║
-║            ESP32-Dirac-PhiSem-Kleisli-Hopf-StoraZumino-Sp4-Ruelle            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Cognitive Crop Auditor Agent (Soberano Auditor de Cultivo Cognitivo)                 ║
+║ Ubicación: app/agents/wisdom/toon_cognitive_crop_auditor_agent.py                                    ║
+║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Gauge-Chern-Wilson-Heyting-ESP32-Dirac-PhiSem                ║
+║            -Kleisli-Hopf-StoraZumino-Sp4-Ruelle                                                      ║
+║ Función  : Soberano de Calibre Auditor y Fiscal de parcelas de cultivo cognitivo, responsable de     ║
+║            investigar y juzgar en el topos Heyting Ω₃ los autoestados generados por el cultivo       ║
+║            mediante conexión de calibre de estado A_μ = π_𝔰𝔲(ρ), mapa de momento equivariante en     ║
+║            P(T*Q, G), análisis de Gelfand-Ruelle y Nekhoroshev, y mediación ejecutiva vía Φ_sem.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre Auditor/Fiscal del Cultivo Cognitivo. Entidad de acusación,
-investigación y juzgamiento en el topos Heyting Ω₃ sobre las parcelas y
-autoestados derivados por el Soberano del Cultivo Cognitivo.
+I. DEFINICIÓN Y ROL DEL SOBERANO EN LA ARQUITECTURA COGNITIVA
+─────────────────────────────────────────────────────────────
+El TOON Cognitive Crop Auditor Agent es la autoridad fiscal y censora del Estrato WISDOM
+especializada en el escrutinio de los autoestados agronómicos y metabólicos del conocimiento.
+Su cometido ineludible es impedir que parcelas de datos espurias, sobreajustes estocásticos o
+alucinaciones semánticas contaminen el Atlas de la corporación. Emplea un fibrado de gauge $P(T^*Q, G)$
+donde la conexión se extrae canónicamente de la matriz de densidad $\rho$, y proyecta la reducción
+simpléctica vía mapas de momento equivariantes, sentenciando en el topos de Heyting $\Omega_3$.
 
-Tejido evolucionado (v7.0.0) respecto de v6.0.0:
-  • CS₃ signado; Stora-Zumino no degenerado; Pontryagin auténtico;
-    A_μ = π_{𝔰𝔲(N)}(ρ) (calibre anclado al estado, no RNG).
-  • Mecánica celeste de Poincaré en el fibrado P(T*Q, G): mapa de momento
-    equivariante, holonomía de Wilson sobre el retorno, exponentes
-    característicos, Hill, Greene, splitting homoclínico.
-  • RSI3: mónada Kleisli μ^{(3)} : T³ ⇒ T en el agente (envuelve la del
-    motor), sin doble aplicación; realimentación η al contrato de calibre.
-  • Φ_sem funtor lineal Sh(∂K, Ω₃) → Business (no constantes rígidas).
-  • Compatibilidad motor v6/v7 (getattr + TypeError en rsi3_eta).
+II. FIBRADOS DE CALIBRE Y MAPA DE MOMENTO EQUIVARIANTE
+──────────────────────────────────────────────────────
+§1. Conexión Anclada al Estado y Curvatura No-Abeliana:
+    La conexión se define mediante la proyección sobre la subálgebra compacta $\mathfrak{su}(N)$:
+        A_\mu = \pi_{\mathfrak{su}(N)}(\rho) \in \mathfrak{su}(N) \implies F_{\mu\nu} = [A_\mu, A_\nu] \quad (\text{para formas planas})
+    La 3-forma de Chern-Simons y la carga instantónica $k = \frac{1}{8\pi^2}\int \mathrm{Tr}(F \wedge F)$
+    proporcionan los números cuánticos topológicos que caracterizan de forma unívoca a la parcela.
 
-Estructura: TRES FASES ANIDADAS por herencia categórica, donde el terminal
-de cada fase es la semilla formal del inicial de la siguiente.
+§2. Mapa de Momento Equivariante de Marsden-Weinstein:
+    Dada la acción del grupo de simetría $G$ sobre la variedad simpléctica de fases $M$, el mapa
+    de momento equivariante $\mathbf{J}: M \to \mathfrak{g}^*$ satisface:
+        \langle d\mathbf{J}(\xi), v \rangle = \omega(X_\xi, v) \quad \forall \xi \in \mathfrak{g}, \; v \in TM
+    asegurando que las trayectorias de auditoría conserven estrictamente los invariantes de Noether.
 
-  FASE I  — CognitiveCropAuditorGaugeTopology
-            Fibrado principal P(T*Q, G) con G = U(1) ⊗ SU(2) ⊗ H₃(ℝ).
-            Rigurosos: proyección 𝔰𝔲(N), F = [A_μ, A_ν], CS₃ signado,
-            instantón k, holonomía de Wilson sobre el retorno de Poincaré,
-            residual Stora-Zumino, clase Chern-Hopf c₁, momento equivariante,
-            HMAC canónico, unidad RSI3 η.
-            Terminal: `emit_crop_auditor_gauge_initial_condition`
-            → CropAuditorGaugeInitialCondition → FASE II.
+III. AUDITORÍA ESPECTRAL BANACH-GELFAND Y TAMIZ DE RUELLE
+─────────────────────────────────────────────────────────
+§1. Radio Espectral de Gelfand en $\mathcal{B}(\mathfrak{u}(n))$:
+    Para el operador de transferencia cuántica $\mathcal{T}$, se verifica el radio espectral sobre $\mathfrak{sl}(n)$:
+        r(\mathcal{T}) = \lim_{k \to \infty} \|\mathcal{T}^k\|^{1/k} \le 1.0 - \Delta_{\mathrm{CPTP}}
+    Un radio mayor o igual a 1 en el subespacio de traza cero indica fuga no conservativa de probabilidad.
 
-  FASE II — TOONCognitiveCropAuditorAgent
-            Ingiere la semilla de FASE I, orquesta campañas de acusación con
-            auditoría Banach-Gelfand/Ruelle, Nekhoroshev (steepness), falso
-            vacío (Hessiano + π₃ + Bogomolny), integra disguised_cost_ratio
-            y reward_hacking_index en el veredicto local y en la observación
-            RSI3, y aplica μ^{(3)} una sola vez al emitir el bundle.
-            Terminal: `emit_crop_prosecution_campaign_draft`
-            → CropAuditorCampaignDraftBundle → FASE III.
+§2. Operador de Ruelle y Estabilidad de Nekhoroshev:
+    El autovalor líder de Ruelle determina la entropía métrica, mientras que la cota de Nekhoroshev
+    garantiza que el confinamiento en las acciones perdure durante tiempos astronómicos $T_{\mathrm{nek}} \sim \exp(\varepsilon^{-a})$.
 
-  FASE III — SovereignCognitiveCropAuditorAdjudicator
-            Recibe el bundle, adjudica en Heyting Ω₃ (∧, ∨, ¬), acciona el
-            disyuntor ciber-físico ESP32 Crowbar (< 400 ns / GPIO14),
-            contabiliza la purga al Vacío de Dirac (e⁻ + e⁺ → 2γ), inyecta
-            positrón de autorización humana vía HMAC-SHA256, traduce al
-            funtor semántico Φ_sem y realimenta (η, gain, meta) a FASE I.
+IV. FUNTOR SEMÁNTICO $\Phi_{\mathrm{sem}}: \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$
+────────────────────────────────────────────────────────────────────────────────
+El auditor cuantifica las pérdidas monetarias por ineficiencia de parcela:
+    \Phi_{\mathrm{sem}}(\tau) \mapsto \left( \mathrm{CapitalEnRiesgo}, \; \mathrm{IndiceDeDegradacionMetabolica}, \; \mathrm{SancionPorVeto} \right)
+proveyendo a la dirección ejecutiva de un cálculo exacto del desvío presupuestario ("Dolor y Dinero").
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Topología de Calibre Auditora]: Inicia $P(T^*Q, G)$, calcula $A_\mu$, $\mathrm{CS}_3$, mapa de
+             momento $\mathbf{J}$, contrato HMAC y emite `CropAuditorGaugeInitialCondition`.
+  • FASE II  [Agente Auditor de Cultivo]: Consume fase I, ejecuta auditoría Banach-Gelfand, Ruelle,
+             evalúa métricas adversarias de costo, aplica RSI³ y emite `CropAuditorCampaignDraftBundle`.
+  • FASE III [Soberano Adjudicador Fiscal]: Juzga en Heyting $\Omega_3$, verifica ESP32 Crowbar,
+             purga a Dirac, traduce a $\Phi_{\mathrm{sem}}$ y realimenta $(\eta, \mathrm{gain}, \mathrm{meta})$ a Fase I.
+
+VI. CIERRE CIBER-FÍSICO ESP32 Y ANIQUILACIÓN EN VACÍO DE DIRAC
+─────────────────────────────────────────────────────────────
+Al dictaminarse un veredicto de veto $\bot = \mathrm{VETOED}$:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+disipando la totalidad de la energía corrupta en el Vacío de Dirac con rendimiento térmico nulo:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

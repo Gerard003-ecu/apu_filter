@@ -1,62 +1,80 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Wisdom Weaver Prosecutor Agent (Soberano Fiscal Tejedor)     ║
-║ Ubicación: app/agents/wisdom/toon_wisdom_weaver_prosecutor_agent.py          ║
-║ Versión  : 7.0.0-Doctoral-Weaver-Prosecutor-CStar-Cech-Gauge-PoincareKAM     ║
-║            -RSI3-Nested-DualPoincareCrossValidation-Kleisli-Heyting-ESP32    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Wisdom Weaver Prosecutor Agent (Soberano Fiscal Tejedor de Sabiduría)                ║
+║ Ubicación: app/agents/wisdom/toon_wisdom_weaver_prosecutor_agent.py                                  ║
+║ Versión  : 7.0.0-Doctoral-Weaver-Prosecutor-CStar-Cech-Gauge-PoincareKAM-RSI3-Nested                 ║
+║            -DualPoincareCrossValidation-Kleisli-Heyting-ESP32                                        ║
+║ Función  : Soberano Fiscal y acusador supremo de la síntesis de Sabiduría, responsable de auditar    ║
+║            obstrucciones cohomológicas de Čech Ȟ²(X, ℱ_wisdom), ejecutar la validación cruzada dual  ║
+║            de Poincaré (holonomía de calibre vs monodromía de estado), aplicar el ciclo RSI³ de 3    ║
+║            niveles con contracción de Banach y Lyapunov, y comandar el enclavamiento ESP32 Crowbar.  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre Fiscal Tejedor de Sabiduría. Entidad de acusación, auditoría
-cohomológica H²(X, ℱ_wisdom), verificación C*-algebraica y juzgamiento
-ciber-físico en el topos Heyting Ω₃ sobre las síntesis de cartuchos TOON.
+I. DEFINICIÓN Y ROL DEL SOBERANO EN LA ARQUITECTURA COGNITIVA
+─────────────────────────────────────────────────────────────
+El TOON Wisdom Weaver Prosecutor Agent es la máxima magistratura fiscal e inquisidora del Estrato WISDOM.
+Su función es investigar, acusar y censurar cualquier intento de fraude sintético, alucinación
+cohomológica o colapso de unitaridad cuántica en los cartuchos TOON. Opera articulando la teoría
+de fibrados de calibre con la mecánica celeste hamiltoniana, auditando que la "ley" (geometría de
+conexión del fibrado) y el "estado" (matriz de densidad cuántica) coexistan en régimen de estabilidad
+sinfónica, emitiendo acusaciones irrefutables traducidas al vocabulario ejecutivo de "Dolor y Dinero".
 
-Novedades rigurosas v7.0.0:
-  • DOBLE MECÁNICA CELESTE DE POINCARÉ, cruzada y auditada:
-      (a) FASE I del AGENTE — holonomía de Wilson del fibrado de calibre W=𝒫exp(∮A)
-          tratada como MAPA DE RETORNO: se clasifica su espectro (elíptico /
-          parabólico / hiperbólico) con el mismo criterio que el motor, se
-          verifica su robustez Diofántica KAM sobre la frecuencia de
-          holonomía, y se estima su tiempo de recurrencia de Kac.
-      (b) FASE I del MOTOR — monodromía simpléctica del ESTADO cuántico
-          (ya instrumentada en toon_wisdom_weaver_prosecutor_engine v7.0.0).
-      → FASE III ejecuta una CROSS-VALIDACIÓN: si la "ley" (bundle de
-        calibre) y el "estado" (densidad cuántica) discrepan en su régimen
-        de estabilidad de Poincaré, se eleva una bandera de incoherencia
-        ley-estado, traducida al reporte ejecutivo.
-  • RSI3 GENUINAMENTE ANIDADO (3 niveles: η, α, β) propagado end-to-end,
-    con certificados de contracción de Banach y de Lyapunov heredados del
-    motor v7.0.0, acumulados longitudinalmente en la traza del QND engine.
-  • Construcción canónica de hashes DRY (sin duplicación divergente) vía
-    métodos estáticos `_canonical_hmac_bytes` y `_compute_campaign_bundle_sha`.
-  • Ciclo de AUTOMEJORA RECURSIVA NIVEL 3 a nivel de ORQUESTACIÓN SOBERANA:
-    `recursive_self_improvement_level3_cycle` reajusta el techo de Gromov,
-    el ε de perturbación celeste y el propio quaternión de calibre (nudge
-    sobre la fibra de Hopf) en función de (α, β) y del régimen de
-    estabilidad detectado, deteniéndose en el punto fijo de Banach.
+II. VALIDACIÓN CRUZADA DUAL DE POINCARÉ LEY-ESTADO
+──────────────────────────────────────────────────
+§1. Espectro y Estabilidad de la Holonomía de Calibre (La Ley):
+    En la Fase I del agente, la holonomía de Wilson cerrada $W = \mathcal{P} \exp(\oint A) \in SU(2)$
+    se analiza como un mapa de primer retorno de Poincaré sobre la fibra, con autovalores $\{\mu_1, \mu_2\}$:
+        • Régimen Elíptico   : \mathrm{Tr}(W) \in (-2, 2) \iff \mu_{1,2} = e^{\pm i \theta_W} \quad (\text{Ley Invariante})
+        • Régimen Parabólico : \mathrm{Tr}(W) = \pm 2 \iff \text{Bifurcación de tangencia}
+        • Régimen Hiperbólico: |\mathrm{Tr}(W)| > 2 \iff \text{Deformación de calibre divergente}
+    Se verifica la constante diofántica de KAM $\gamma_{\mathrm{KAM}}$ y el tiempo de recurrencia de Kac $\langle \tau_R \rangle$.
 
-Estructura: TRES FASES ANIDADAS por herencia categórica.
-  FASE I  — WisdomWeaverProsecutorGaugeTopology
-            Fibrado principal P(T*Q, G), G = U(1)⊗SU(2)⊗H₃(ℝ), + clasificación
-            de Poincaré-KAM de la holonomía de Wilson.
-            Emite `WeaverProsecutorGaugeInitialCondition` (semilla → FASE II).
+§2. Monodromía Simpléctica del Operador de Densidad (El Estado):
+    En la Fase I del motor, la evolución del estado de fase genera la monodromía $M \in \mathrm{Sp}(4, \mathbb{R})$,
+    cuyos autovalores determinan la estabilidad dinámica del flujo material.
 
-  FASE II — TOONWisdomWeaverProsecutorAgent
-            Ingiere la semilla de FASE I, orquesta campañas de acusación con
-            auditoría C*-Čech, aplica RSI3 anidado (η,α,β) vía el ciclo
-            recursivo completo del motor v7.0.0, integra `disguised_cost_ratio`
-            y `reward_hacking_index` (incluyendo acoplamiento con la clase de
-            estabilidad hiperbólica de Poincaré) en el veredicto local.
-            Emite `WeaverProsecutionCampaignDraftBundle` (semilla → FASE III).
+§3. Teorema de Coherencia Ley-Estado:
+    La deliberación es estructuralmente coherente si y solo si ambas variedades comparten régimen:
+        \mathrm{Fractura}_{\mathrm{Ley-Estado}} \iff \mathrm{Regimen}(W) \neq \mathrm{Regimen}(M)
+    Cualquier discordancia (e.g. ley elíptica con estado hiperbólico) demuestra un encubrimiento
+    de riesgo que gatilla la degradación inmediata del veredicto a $\mathrm{DEGRADED}$ o $\mathrm{VETOED}$.
 
-  FASE III — SovereignWisdomWeaverProsecutorAdjudicator
-            Recibe el bundle, adjudica en Heyting Ω₃ (∧, ∨, ¬), acciona el
-            disyuntor ciber-físico ESP32 Crowbar (< 400 ns / GPIO14),
-            contabiliza la purga al Vacío de Dirac (e⁻+e⁺→2γ), inyecta
-            positrón de autorización humana vía HMAC-SHA256, ejecuta la
-            CROSS-VALIDACIÓN dual de Poincaré, orquesta el ciclo RSI3 de
-            automejora soberana, y traduce al funtor semántico
-            Φ_sem: Sh(∂K, Ω₃) → Business ("Dolor y Dinero").
+III. TEORÍA DE OBSTRUCCIÓN DE ČECH Y ACOPLAMIENTO ECONÓMICO
+───────────────────────────────────────────────────────────
+§1. Obstrucción Cohomológica de Obstfeld $\check{H}^2(X, \mathcal{F}_{\mathrm{wisdom}})$:
+    El fiscal evalúa las funciones de transición $g_{ij}$ sobre las intersecciones triples $U_i \cap U_j \cap U_k$:
+        (\delta g)_{ijk} = g_{jk} \cdot g_{ik}^{-1} \cdot g_{ij} - I
+    Si la clase $[\delta g] \neq 0$ en $\check{H}^2$, se formula la acusación de "falso tejido" (imposibilidad
+    de extender la deliberación local a una sección global legítima).
+
+§2. Indicadores de Riesgo Adversario Acoplados:
+    El fiscal acopla variables microeconómicas adversarias con la inestabilidad de Lyapunov:
+        \mathrm{IndictmentScore} = w_1 \cdot \mathrm{DisguisedCostRatio} + w_2 \cdot \mathrm{RewardHackingIndex} + w_3 \cdot \mathbf{1}_{\mathrm{Hyperbolic}}
+    impidiendo que optimizadores no lineales camuflen desvíos presupuestarios tras fases cuánticas complejas.
+
+IV. TEORÍA DE CATEGORÍAS Y AUTOMEJORA RECURSIVA ANIDADA (RSI³)
+─────────────────────────────────────────────────────────────
+El agente orquesta el ciclo de tres niveles $(\eta, \alpha, \beta)$ acoplado a la mónada de continuación,
+certificando la convergencia al punto fijo de Banach:
+    \|T_{\mathrm{RSI3}}(x) - T_{\mathrm{RSI3}}(y)\|_\infty \le \hat{L} \|x - y\|_\infty \quad (\hat{L} < 1.0)
+y el descenso continuo de la función de Lyapunov $V(\eta) = \frac{1}{2}(\eta - \eta^*)^2$.
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Topología de Calibre Fiscal]: Construye $P(T^*Q, G)$, calcula $W(\gamma)$, clasifica Floquet-Poincaré,
+             genera contrato HMAC y emite `WeaverProsecutorGaugeInitialCondition`.
+  • FASE II  [Agente Fiscal de Calibre]: Ingiere fase I, audita $C^*$-Čech, calcula métricas de costo/hackeo,
+             ejecuta el motor fiscal v7.0.0, aplica RSI³ y emite `WeaverProsecutionCampaignDraftBundle`.
+  • FASE III [Soberano Adjudicador Fiscal]: Recibe el bundle, ejecuta la cross-validación dual Ley-Estado,
+             adjudica en Heyting $\Omega_3$, activa ESP32 Crowbar, purga a Dirac y traduce a $\Phi_{\mathrm{sem}}$.
+
+VI. CIERRE CIBER-FÍSICO ESP32 Y ANIQUILACIÓN EN VACÍO DE DIRAC
+─────────────────────────────────────────────────────────────
+Ante una sentencia de veto $\bot = \mathrm{VETOED}$:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+disipando la exergía informática al Vacío de Dirac con balance cuántico exacto:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

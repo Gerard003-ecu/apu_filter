@@ -1,63 +1,75 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Cognitive Crop Witness Agent (Soberano Testigo del Cultivo)  ║
-║ Ubicación: app/agents/wisdom/toon_cognitive_crop_witness_agent.py            ║
-║ Versión  : 7.0.0-Doctoral-Crop-Witness-QND-Gauge-Poincare-Floquet-RSI3-      ║
-║            Banach-MetaAudit-Nested-Phases-Kleisli-Heyting-ESP32-Dirac        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Cognitive Crop Witness Agent (Soberano Testigo del Cultivo Cognitivo)                ║
+║ Ubicación: app/agents/wisdom/toon_cognitive_crop_witness_agent.py                                    ║
+║ Versión  : 7.0.0-Doctoral-Crop-Witness-QND-Gauge-Poincare-Floquet-RSI3-Banach-MetaAudit              ║
+║            -Nested-Phases-Kleisli-Heyting-ESP32-Dirac                                                ║
+║ Función  : Soberano de Calibre Testigo del Cultivo Cognitivo, observador QND (back-action ≡ 0.0 dB)  ║
+║            del metabolismo agronómico de conocimiento, responsable de aplicar la mecánica celeste de ║
+║            Poincaré sobre las cargas topológicas de calibre, orquestar la meta-auditoría soberana    ║
+║            de contracción de Banach en RSI³ y cruzar la estabilidad orbital calibre ⊗ Delaunay.      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre Testigo del Cultivo Cognitivo. Observador QND (Quantum
-Non-Demolition) con Back-Action ≡ 0.0 dB sobre el metabolismo de siembra,
-riego, iluminación y disciplina ejecutado por el Soberano del Cultivo Cognitivo.
+I. DEFINICIÓN Y ROL DEL SOBERANO EN LA ARQUITECTURA COGNITIVA
+─────────────────────────────────────────────────────────────
+El TOON Cognitive Crop Witness Agent es el Soberano de Calibre Testigo del Estrato WISDOM.
+Su función es observar sin perturbación de retroacción (Back-Action ≡ 0.0 dB) las parcelas de
+conocimiento y el metabolismo de siembra, riego, iluminación y disciplina ejecutado por el Cultivo Cognitivo.
+El agente introduce una innovación matemática fundamental: aplica la mecánica celeste de Poincaré
+directamente sobre las cargas topológicas del fibrado de gauge $(\mathrm{CS}_3, k, \theta_W)$, y ejecuta
+una meta-auditoría soberana que supervisa el historial de constantes de Lipschitz de RSI³, asegurando
+que la automejora recursiva sea estricta y contractiva en todo el ciclo de vida del sistema.
 
-Evolución v7.0.0: integración granular y rigurosa de
+II. MECÁNICA CELESTE DE POINCARÉ SOBRE CARGAS TOPOLÓGICAS DE CALIBRE
+────────────────────────────────────────────────────────────────────
+§1. Espacio de Fases Topológico y Vector de Cargas de Calibre:
+    En lugar de actuar únicamente sobre variables keplerianas, el agente construye el espacio de fases
+    topológico parametrizado por las cargas invariantes de calibre:
+        \vec{Q} = \left( \mathrm{CS}_3(A), \; k(P), \; \theta_W(\gamma) \right) \in \mathbb{R}^3
+    La evolución transversal de $\vec{Q}$ bajo el transporte paralelo sobre el fibrado principal $P(T^*Q, G)$
+    induce una matriz de monodromía simpléctica de calibre $M_{\mathrm{gauge}} \in \mathrm{Sp}(4, \mathbb{R})$.
 
-  (A) MECÁNICA CELESTE DE POINCARÉ SOBRE EL FIBRADO DE CALIBRE (FASE I):
-      Segunda aplicación —estructuralmente análoga a la del motor v7.0.0 sobre
-      Delaunay, pero ahora sobre las CARGAS TOPOLÓGICAS (CS₃, instantón k,
-      holonomía de Wilson θ_W)— del aparato riguroso de Poincaré: monodromía
-      Sp(4,ℝ)-análoga, multiplicadores de Floquet, número de rotación,
-      recurrencia de Kac, Poincaré-Birkhoff, no-integrabilidad por divisores
-      pequeños, serie del parámetro pequeño.
+§2. Multiplicadores de Floquet y Número de Rotación de Calibre:
+    Los autovalores de $M_{\mathrm{gauge}}$ definen los multiplicadores de Floquet de calibre $\{\mu_j\}_{j=1}^4$,
+    clasificando la órbita en elíptica, parabólica o hiperbólica. El número de rotación de fase holónoma
+    se desarrolla en fracciones continuas para certificar la persistencia de los toros KAM de calibre.
 
-  (B) CORRECCIÓN DE SINCRONÍA CON EL MOTOR v7.0.0 (FASE II):
-      El cierre RSI3 de NIVEL 3 (contracción de Banach) es ahora EXCLUSIVAMENTE
-      autoritativo en `emit_crop_observation_campaign_draft`, eliminando la
-      doble-mutación del estado persistente (η, pesos de Kleisli) del diseño
-      original. La ventana de observaciones acumuladas se limpia tras cada
-      draft, preservando las garantías de asociatividad monádica entre épocas.
+III. META-AUDITORÍA SOBERANA DE RSI³ Y CRUCE ORBITAL DUAL
+──────────────────────────────────────────────────────────
+§1. Meta-Auditoría de Contracción de Banach (Historial Deslizante):
+    Para eludir la auto-certificación complaciente del motor de Fase II, el Soberano Adjudicador
+    mantiene su propio registro histórico acotado (cola circular de tamaño maximal $N = 64$) de las
+    constantes de Lipschitz empíricas $\{\hat{L}_t\}_{t=1}^T$. La admisibilidad exige que el peor caso sea contractivo:
+        \hat{L}_{\mathrm{sovereign}} = \max_{1 \le t \le T} \hat{L}_t < 1.0
+    garantizando que la secuencia de adaptaciones converja al único punto fijo óptimo en el espacio de Banach.
 
-  (C) META-AUDITORÍA SOBERANA DE RSI3 Y CRUCE ORBITAL (FASE III):
-      El Adjudicador no confía ciegamente en la contracción de Banach
-      reportada por FASE II: mantiene su PROPIO historial acotado de
-      constantes de Lipschitz a través de múltiples campañas de gobernanza
-      (ventana deslizante maxlen=64) y exige que el PEOR CASO histórico
-      también sea <1. Además condiciona el veredicto Heyting Ω₃ al CRUCE de
-      la estabilidad orbital de calibre (FASE I) y la estabilidad orbital de
-      Delaunay (FASE II/motor): automejora recursiva auditando a la
-      automejora recursiva.
+§2. Teorema de Cruce Orbital Dual (Calibre ⊗ Delaunay):
+    La adjudicación en el retículo de Heyting $\Omega_3$ exige la concordancia multiplicativa de dos estabilidades:
+        \mathrm{EstabilidadSoberana} \iff \left(\mathrm{Clase}(M_{\mathrm{gauge}}) = \mathrm{ELÍPTICA}\right) \wedge \left(\mathrm{Clase}(M_{\mathrm{Delaunay}}) = \mathrm{ELÍPTICA}\right)
+    Cualquier transición a régimen hiperbólico en cualquiera de las capas fuerza el colapso inmediato a $\mathrm{DEGRADED}$ o $\mathrm{VETOED}$.
 
-Estructura: TRES FASES ANIDADAS por herencia categórica.
+IV. FUNTOR SEMÁNTICO $\Phi_{\mathrm{sem}}: \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$
+────────────────────────────────────────────────────────────────────────────────
+El agente traduce la tasa de vitalidad agronómica y la coherencia orbital al plano de rentabilidad:
+    \Phi_{\mathrm{sem}}(\tau) \mapsto \left( \mathrm{EficienciaMetabolica}, \; \mathrm{SobrecostoPorFugaEntropica}, \; \mathrm{HorizonteDeCosecha} \right)
+informando con absoluta nitidez a la gobernanza sobre el rendimiento productivo de la obra civil.
 
-  FASE I  — CognitiveCropWitnessGaugeTopology
-            Fibrado principal P(T*Q, G). CS₃, instantón k, Wilson, Stora-
-            Zumino, Chern-Hopf, + MECÁNICA CELESTE DE POINCARÉ sobre las
-            cargas topológicas del fibrado. HMAC canónico.
-            Emite `CropWitnessGaugeInitialCondition` (semilla → FASE II).
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Topología de Calibre Agronómica]: Construye $P(T^*Q, G)$, calcula $\mathrm{CS}_3$, $k$, $\theta_W$,
+             monodromía de calibre, contrato HMAC y emite `CropWitnessGaugeInitialCondition`.
+  • FASE II  [Agente Testigo de Cultivo]: Ingiere la fase I, orquesta campañas QND, enlaza motor
+             de cultivo v7.0.0, aplica RSI³ contractivo y emite `CropObservationCampaignDraftBundle`.
+  • FASE III [Soberano Adjudicador de Cultivo]: Recibe bundle, ejecuta la meta-auditoría histórica $\max \hat{L} < 1$,
+             cruza estabilidades orbitales Calibre ⊗ Delaunay, comanda ESP32 Crowbar y emite el pasaporte.
 
-  FASE II — TOONCognitiveCropWitnessAgent
-            Ingiere la semilla de FASE I, orquesta campañas QND + indicadores
-            agronómicos, aplica RSI3 de 3 niveles sobre Banach (autoritativo,
-            único) vía el motor v7.0.0, hereda invariantes de Poincaré de
-            ambas capas (calibre + Delaunay).
-            Emite `CropObservationCampaignDraftBundle` (semilla → FASE III).
-
-  FASE III — SovereignCognitiveCropWitnessAdjudicator
-            Recibe el bundle, ejecuta la META-AUDITORÍA RSI3 soberana, cruza
-            estabilidad orbital de calibre ⊗ Delaunay, adjudica en Heyting Ω₃,
-            acciona el crowbar ESP32 (< 400 ns / GPIO14), purga al Vacío de
-            Dirac, inyecta positrón HMAC, traduce a Φ_sem ("Dolor y Dinero").
+VI. CIERRE CIBER-FÍSICO ESP32 Y ANIQUILACIÓN EN VACÍO DE DIRAC
+─────────────────────────────────────────────────────────────
+Ante un veredicto de veto $\bot = \mathrm{VETOED}$:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+disipando la biomasa computacional corrupta en el Vacío de Dirac:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

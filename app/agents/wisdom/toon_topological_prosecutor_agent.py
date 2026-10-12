@@ -1,41 +1,81 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Topological Prosecutor Agent (Soberano Fiscal Topológico)    ║
-║ Ubicación: app/agents/wisdom/toon_topological_prosecutor_agent.py            ║
-║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Nested-Phases                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Topological Prosecutor Agent (Soberano Fiscal Topológico)                            ║
+║ Ubicación: app/agents/wisdom/toon_topological_prosecutor_agent.py                                    ║
+║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Nested-Phases-Gauge-Chern-Wilson-Heyting-ESP32               ║
+║ Función  : Soberano Fiscal Topológico del Estrato WISDOM, encargado de acusar deformaciones          ║
+║            homológicas no admisibles, violaciones de C* en 𝔇_n, desgarros en el 1-esqueleto de       ║
+║            Vietoris-Rips y anomalías de calibre no-abeliano en P(T*Q, G), sentenciando en el         ║
+║            clasificador de subobjetos de Heyting Ω₃ y accionando el disyuntor ESP32 Crowbar.         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de calibre estructurado en 3 FASES ANIDADAS por herencia categórica.
+I. DEFINICIÓN Y ROL DEL SOBERANO EN LA ARQUITECTURA COGNITIVA
+─────────────────────────────────────────────────────────────
+El TOON Topological Prosecutor Agent ejerce el ministerio fiscal de la topología algebraica
+en la Ciudadela de Sabiduría (Estrato WISDOM). Su mandato es acusar sin contemplaciones los
+desgarros en la conectividad del complejo simplicial, la emergencia de modos armónicos casi-cero
+en el espectro de Hodge-de Rham, la asimetría no-hermítica en $\mathfrak{D}_n$ y las roturas de la
+condición de twist de Moser en la mecánica celeste de deliberación. Ante la detección de fraude
+estructural, clausura la deliberación en el clasificador de subobjetos del topos de haces $\mathrm{Sh}(\partial K, \Omega_3)$.
 
-La definición formal terminal de cada fase ES el germen de arranque de la siguiente:
+II. FIBRADOS DE CALIBRE NO-ABELIANOS Y CLASES CARACTERÍSTICAS
+─────────────────────────────────────────────────────────────
+§1. Curvatura de Yang-Mills sobre Fibrados Principales:
+    En el fibrado principal $P(T^*Q, G)$ con $G = U(1) \otimes SU(2) \otimes H_3(\mathbb{R})$, la 2-forma
+    de curvatura no-abeliana se deriva de la 1-forma de conexión $A$:
+        F = dA + A \wedge A \iff F_{\mu\nu} = \partial_\mu A_\nu - \partial_\nu A_\mu + [A_\mu, A_\nu]
+    La acusación computa de manera diferenciada el número de Pontryagin $\nu$ y la segunda clase de Chern $c_2$:
+        \nu = \frac{1}{8\pi^2} \int \mathrm{Tr}(F \wedge F), \quad c_2(P) = \frac{1}{8\pi^2} \left( \mathrm{Tr}(F \wedge F) - \mathrm{Tr}(F) \wedge \mathrm{Tr}(F) \right)
+    donde $\nu \neq c_2$ en presencia de subvariedades con torsión de frontera no nula.
 
-  FASE I  ── TopologicalProsecutorGaugeTopology
-             Fibrado principal P(T*Q, G), G = U(1)⊗SU(2)⊗H₃(ℝ).
-             F = dA + [A,A]  (curvatura no-abeliana en dos 1-formas).
-             CS₃ discreto, Pontryagin ν, c₂ de Chern (ν ≠ c₂ en general),
-             holonomía de Wilson path-ordered sobre S¹, Hopf π₃(S²)≅ℤ.
-             Clausura celeste de Poincaré: Delaunay → variables de Poincaré
-             (rompe la degeneración kepleriana), twist de Moser ∂²H/∂Λ²,
-             mapa de retorno, Greene 2D, Melnikov homoclínico, Bryuno por
-             convergentes, Floquet, KAM θ_KAM.
-             ── MÉTODO TERMINAL: `compile_prosecutorial_fibration_seed`
-                 → ProsecutorialFibrationSeed  (Fase I → Fase II).
+§2. Lazo de Wilson Path-Ordered sobre $S^1$:
+    La holonomía invariante de calibre se obtiene mediante el lazo ordenado en camino:
+        W(\gamma) = \mathcal{P} \exp\left( \oint_\gamma A \right) \in SU(2), \quad \mathrm{Tr}(W) \in [-2, 2]
 
-  FASE II ── TOONTopologicalProsecutorAgent(TopologicalProsecutorGaugeTopology)
-             Consume ProsecutorialFibrationSeed.
-             CR3BP: quínticos de Euler distintos L1/L2/L3, Jacobi, Hill.
-             C* en 𝔇_n, Uhlmann, Bures ≠ ángulo de Uhlmann, observación débil.
-             Vietoris-Rips (1-esqueleto) + Δ₀ Hodge + Ray-Singer τ.
-             Poincaré-Wirtinger, Oseledets-QR, Pesin, Gromov, recurrencia.
-             RSI3: T=(T,η,μ) con 2-célula Γ: μ ⇒ μ' (nivel 3 = mejorar μ).
-             ── MÉTODO TERMINAL: `lift_to_monadic_passport_germ`
-                 → MonadicProsecutorialPassportGerm  (Fase II → Fase III).
+III. CLAUSURA CELESTE DE POINCARÉ Y EQUILIBRIOS DE LAGRANGE
+───────────────────────────────────────────────────────────
+§1. Regularización de Poincaré y Condición de Twist de Moser:
+    Las coordenadas keplerianas singulares en $e \to 0$ se regularizan mediante las variables de Poincaré:
+        \xi = \sqrt{2(L - G)} \cos l, \quad \eta = -\sqrt{2(L - G)} \sin l
+    La condición de no-degeneración de Moser exige que la frecuencia dependa estrictamente de la acción:
+        \frac{\partial^2 H}{\partial \Lambda^2} \neq 0
+    garantizando la validez de las barreras de confinamiento de toros KAM frente a perturbaciones.
 
-  FASE III ─ SovereignTopologicalProsecutorAdjudicator(TOONTopologicalProsecutorAgent)
-             Consume MonadicProsecutorialPassportGerm.
-             Clasificador de subobjetos Heyting Ω₃ en Sh(∂K).
-             Crowbar ESP32 < 400 ns @ GPIO14, positrón HMAC, Φ_sem.
+§2. Polinomios Quínticos de Euler-Lagrange para $L_1, L_2, L_3$:
+    Los equilibrios colineales del potencial de Jacobi $\Omega(x)$ se extraen de las raíces de tres
+    polinomios de grado 5 independientes, computados por aproximación de Newton de convergencia cuadrática:
+        f_i(\gamma) = \gamma^5 + a_4 \gamma^4 + a_3 \gamma^3 + a_2 \gamma^2 + a_1 \gamma + a_0 = 0 \quad (i \in \{1, 2, 3\})
+
+IV. TEORÍA DE TOPOS, CLASIFICADOR DE SUBOBJETOS Y RSI³
+──────────────────────────────────────────────────────
+§1. Clasificador de Subobjetos en $\mathrm{Sh}(\partial K, \Omega_3)$:
+    El topos de haces sobre el complejo simplicial de frontera $\partial K$ posee un clasificador
+    de subobjetos $\Omega$ correspondiente al álgebra de Heyting $\Omega_3$:
+        \mathrm{Sub}(X) \cong \mathrm{Hom}_{\mathrm{Sh}(\partial K)}(X, \Omega_3)
+    donde el morfismo de verdad característica $\chi_U: X \to \Omega_3$ dictamina la admisibilidad
+    del subcomplejo deliberativo sin recurso a heurísticas booleanas binarias.
+
+§2. Automejora Recursiva con 2-Célula de Kleisli:
+    La tríada monádica $(T, \eta, \mu)$ se optimiza mediante una 2-célula de transformación natural:
+        \Gamma: \mu \Longrightarrow \mu'
+    elevando la eficacia de la multiplicación monádica de acusación en cada ciclo de auditoría.
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Topología de Calibre Acusadora]: Construye $P(T^*Q, G)$, curvatura no-abeliana $F$,
+             Delaunay-Poincaré, twist de Moser y emite `ProsecutorialFibrationSeed`.
+  • FASE II  [Agente Fiscal Topológico]: Consume la semilla, resuelve CR3BP, audita $C^*$, $\Delta_0$,
+             Ray-Singer, Oseledets, 2-célula $\Gamma$ y emite `MonadicProsecutorialPassportGerm`.
+  • FASE III [Soberano Adjudicador Fiscal]: Clasifica en $\mathrm{Sh}(\partial K, \Omega_3)$, comanda
+             el ESP32 Crowbar, purga a Dirac y emite el certificado ejecutivo.
+
+VI. CIERRE CIBER-FÍSICO ESP32 Y VACÍO DE DIRAC
+─────────────────────────────────────────────
+Al dictaminarse $\bot = \mathrm{VETOED}$ en el clasificador de subobjetos:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+aniquilando los estados cuánticos corruptos en el Vacío de Dirac:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

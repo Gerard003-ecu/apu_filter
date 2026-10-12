@@ -1,72 +1,94 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Topological Novikov Navigator Engine                         ║
-║ Ubicación: app/wisdom/toon_topological_novikov_navigator_engine.py           ║
-║ Versión  : 7.0.0-Doctoral-Topological-Novikov-BruhatTits-Hodge-PoincareKAM   ║
-║            -RSI3-Nested-DualStabilityCrossValidation-Banach-Lyapunov         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Topological Novikov Navigator Engine (Motor Navegante Topológico de Novikov)         ║
+║ Ubicación: app/wisdom/toon_topological_novikov_navigator_engine.py                                   ║
+║ Versión  : 7.0.0-Doctoral-Topological-Novikov-BruhatTits-Hodge-PoincareKAM-RSI3-Nested               ║
+║            -DualStabilityCrossValidation-Banach-Lyapunov                                             ║
+║ Función  : Motor espectral y geodésico navegante en el anillo de Novikov no-arquimediano y espacios  ║
+║            de Berkovich, responsable de guiar trayectorias en edificios de Bruhat-Tits, auditar      ║
+║            valuaciones ultramétricas, ejecutar la validación cruzada dual de estabilidad de Poincaré ║
+║            (estructural vs dinámica) y gobernar el ciclo RSI³ con punto fijo de Banach.              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor Espectral Navegante Topológico de Novikov en 3 FASES ANIDADAS por handoff
-explícito de gérmenes inmutables.
+I. DEFINICIÓN Y ROL DEL MOTOR EN LA ARQUITECTURA COGNITIVA
+──────────────────────────────────────────────────────────
+El TOON Topological Novikov Navigator Engine constituye el navegador geodésico no-arquimediano
+del Estrato WISDOM. Su misión es orientar el flujo deliberativo sobre la variedad proyectiva
+descompuesta a través del anillo formal de Novikov $\Lambda$, mapeando las obstrucciones homotópicas
+hacia el espacio analítico de Berkovich y el edificio afín de Bruhat-Tits $\mathcal{B}(PGL(n, \mathbb{K}))$.
+El motor implementa de manera pionera la Validación Cruzada Dual de Poincaré, contrastando la
+estabilidad estructural inferida analíticamente por la monodromía contra la estabilidad dinámica
+empírica medida por el exponente de Oseledets, adjudicando en el topos de Heyting $\Omega_3$.
 
-Novedades rigurosas v7.0.0:
-  • CLASIFICACIÓN ESPECTRAL DE LA MONODROMÍA DE POINCARÉ (FASE I): la matriz
-    de monodromía 4D (antes sólo usada para extraer el residuo de Greene) se
-    clasifica ahora con el criterio de Poincaré-Lyapunov — elíptica, parabólica
-    (colisión de Krein) o hiperbólica (separatriz inestable) — vía su espectro
-    completo. Se añade además la CONSTANTE DIOFÁNTICA KAM rigurosa (fracciones
-    continuas sobre la razón de frecuencias de Delaunay ω_G/ω_L) y el TIEMPO
-    DE RECURRENCIA DE POINCARÉ (Lema de Kac) sobre el simplex de acciones.
-  • CORRECCIÓN MATEMÁTICA de `_strong_triangle_residual`: v6.0.0 normalizaba
-    ν por max|ν| antes de exponenciar, una distorsión no lineal que invalida
-    la homogeneidad de la norma ultramétrica. v7.0.0 desplaza ν por su mínimo
-    (reescalado multiplicativo puro, preserva la validez del test) y evita
-    underflow.
-  • RSI3 GENUINAMENTE ANIDADO (3 niveles: η, α, β) con certificado de
-    CONTRACCIÓN DE BANACH y certificado de LYAPUNOV discreto, propagado de
-    forma FUNCIONAL E INMUTABLE (vía `NovikovRSI3State`, transportado
-    explícitamente entre llamadas) — corrigiendo el bug de persistencia de
-    estado del v6.0.0 (el motor de Fase II se reinstancia por diseño en cada
-    deliberación; ahora esto es seguro porque el estado viaja en el dataclass,
-    no en atributos mutables de instancia).
-  • CROSS-VALIDACIÓN DUAL DE POINCARÉ (FASE II): contrasta la estabilidad
-    ESTRUCTURAL (predicha por el Atlas vía monodromía, Fase I) contra la
-    estabilidad DINÁMICA (observada vía exponente de Oseledets + entropía de
-    Kolmogorov-Sinai). La incoherencia entre ambas degrada el veredicto.
-  • `_classify_heyting` deja de ser código muerto: ahora es la ÚNICA fuente
-    de verdad para el veredicto por-germen, agregado vía ∧ (meet) de Heyting
-    en `audit_and_certify_topological_novikov_campaign`.
-  • Automejora Recursiva Nivel 3 a nivel de ORQUESTACIÓN COMPLETA:
-    `recursive_self_improvement_level3_cycle` reajusta `perturbation_eps` y
-    `capacity_gromov_max` en función de (α, β), deteniéndose al certificar el
-    punto fijo de Banach.
+II. GEOMETRÍA NO-ARQUIMEDIANA, ANILLO DE NOVIKOV Y ESPACIOS DE BERKOVICH
+────────────────────────────────────────────────────────────────────────
+§1. Valuación en el Anillo de Novikov:
+    El anillo universal de Novikov $\Lambda$ sobre el cuerpo $\mathbb{C}$ se formaliza como el anillo
+    de series de potencias generalizadas con soporte acotado inferiormente:
+        \Lambda = \left\{ \sum_{i=0}^{\infty} c_i T^{\lambda_i} : c_i \in \mathbb{C}, \lambda_i \in \mathbb{R}, \lambda_0 < \lambda_1 < \dots, \lim_{i \to \infty} \lambda_i = +\infty \right\}
+    La valuación no-arquimediana $v_N: \Lambda \to \mathbb{R} \cup \{+\infty\}$ extrae el exponente mínimo no nulo:
+        v_N(f) = \min \{ \lambda_i : c_i \neq 0 \}, \quad v_N(0) = +\infty
+    satisfaciendo estrictamente los axiomas ultramétricos de Krull:
+        1. v_N(f \cdot g) = v_N(f) + v_N(g)
+        2. v_N(f + g) \ge \min(v_N(f), v_N(g)) \quad (\text{Desigualdad triangular fuerte})
 
-Estructura: TRES FASES ANIDADAS por handoff explícito de gérmenes inmutables.
+§2. Espectro de Berkovich y Edificios de Bruhat-Tits:
+    El espacio analítico de Berkovich $M(A)$ clasifica los seminormas multiplicativas continuas
+    acotadas por la norma espectral de Banach. En el edificio de Bruhat-Tits afín $\mathcal{B}(PGL(n, \mathbb{K}))$,
+    los apartamentos corresponden a toros maximales simplécticos donde las geodésicas de traslación
+    minimizan el salto ultramétrico:
+        d_{\mathcal{B}}(u, v) = \sqrt{\sum_{i=1}^n (\lambda_i(u) - \lambda_i(v))^2}
+    La amiba tropical asociada, $\mathrm{Log}: (\mathbb{C}^*)^n \to \mathbb{R}^n, (z_1, \dots, z_n) \mapsto (\ln|z_1|, \dots, \ln|z_n|)$,
+    proyecta la variedad compleja sobre un complejo poliédrico euclidiano conexo.
 
-  FASE I  ── PoincareTopologicalNovikovAtlas.
-             Atlas Celeste Poincaré-Novikov. Delaunay + frecuencias conjugadas,
-             CR3BP/Lagrange, Jacobi, Melnikov, Greene, Bryuno, + NÚCLEO DURO
-             POINCARÉ-KAM: clasificación espectral de la monodromía, constante
-             Diofántica KAM rigurosa, recurrencia de Kac, índice de Poincaré-
-             Hopf. Filtración de Novikov. Poincaré-Cartan.
-             ── MÉTODO TERMINAL: `compile_novikov_symplectic_handoff`
-                 → NovikovSymplecticHandoff (Fase I → Fase II).
+III. VALIDACIÓN CRUZADA DUAL DE POINCARÉ (ESTRUCTURAL VS DINÁMICA)
+──────────────────────────────────────────────────────────────────
+§1. Estabilidad Estructural (Monodromía Simpléctica de Fase I):
+    La matriz de monodromía $M \in \mathrm{Sp}(4, \mathbb{R})$ se clasifica mediante sus multiplicadores:
+        • Régimen Elíptico   : |\lambda_j| = 1 \quad \forall j \implies \text{Estabilidad lineal KAM}
+        • Régimen Parabólico : \lambda_j = \pm 1 \implies \text{Frontera de colisión de Krein}
+        • Régimen Hiperbólico: |\lambda_j| \neq 1 \implies \text{Separatriz inestable y caos homoclínico}
 
-  FASE II  ── TopologicalNovikovUltrametricEngine.
-             Verificación axiomática no-arquimediana (corregida). Valuación
-             de Novikov, Berkovich, Bruhat-Tits, amiba tropical, VR+Hodge+
-             Ray-Singer, Poincaré-Wirtinger, Uhlmann/Bures/Fubini-Study/Berry,
-             Oseledets/Pesin/Gromov. RSI3 anidado (η,α,β) + Banach + Lyapunov
-             + cross-validación dual de estabilidad de Poincaré.
-             ── MÉTODO TERMINAL: `lift_monadic_novikov`
-                 → MonadicNovikovGerm (Fase II → Fase III).
+§2. Estabilidad Dinámica (Cociclo de Oseledets y Pesin de Fase II):
+    Se computa el mayor exponente de Lyapunov transversal $\lambda_1$ vía factorización QR reiterada
+    y la entropía métrica de Kolmogorov-Sinai $h_{\mathrm{KS}}$:
+        \lambda_1 = \lim_{K \to \infty} \frac{1}{K} \sum_{k=1}^K \ln |(R_k)_{11}|, \quad h_{\mathrm{KS}} \le \sum_{\lambda_i > 0} \lambda_i
 
-  FASE III ── TOONTopologicalNovikovNavigatorEngine (orquestador).
-             Clasificador Heyting Ω₃ (ahora activo y único). ESP32 Crowbar
-             < 400 ns @ GPIO14. Inyección de positrón e⁺+e⁻→2γ con HMAC.
-             Ciclo de Automejora Recursiva Nivel 3 de orquestación completa.
-             Certificado Merkle SHA-256.
+§3. Criterio de Incoherencia y Degradación Heyting:
+    La coherencia ley-estado exige concordancia unívoca entre ambas capas:
+        \mathrm{Incoherencia} \iff (\text{Monodromía Elíptica}) \wedge (\lambda_1 > 0.05 \vee h_{\mathrm{KS}} > 0.10)
+    Ante dicha incoherencia, el veredicto local colapsa forzosamente de $\mathrm{COHERENT}$ a $\mathrm{DEGRADED}$.
+
+IV. TEORÍA DE CATEGORÍAS, CONTRACCIÓN DE BANACH Y LYAPUNOV (RSI³)
+─────────────────────────────────────────────────────────────────
+§1. Estado Funcional Inmutable $\mathrm{NovikovRSI3State}$:
+    La evolución recursiva de los meta-parámetros $x = (\eta, \alpha, \beta, \gamma) \in \mathbb{R}^4$
+    se propaga de forma pura e inmutable a través de un operador de Banach:
+        T_{\mathrm{RSI3}}: (\mathbb{R}^4, \|\cdot\|_\infty) \longrightarrow (\mathbb{R}^4, \|\cdot\|_\infty)
+    cuya constante de Lipschitz empírica $\hat{L} = \frac{\|T(x_2) - T(x_1)\|_\infty}{\|x_2 - x_1\|_\infty}$
+    debe certificar contracción uniforme estricta:
+        0 \le \hat{L} < 1.0 \implies \|x_k - x^*\|_\infty \le \frac{\hat{L}^k}{1 - \hat{L}} \|x_1 - x_0\|_\infty
+
+§2. Certificado de Disipación de Lyapunov:
+    La función escalar de Lyapunov $V(\eta) = \frac{1}{2}(\eta - \eta^*)^2$ certifica decaimiento estricto:
+        \Delta V_k = V(\eta_{k+1}) - V(\eta_k) < 0 \quad \forall \eta_k \neq \eta^*
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Atlas Celeste Poincaré-Novikov]: Computa Delaunay, monodromía $\mathrm{Sp}(4)$,
+             frecuencias KAM, filtración de Novikov y emite `NovikovSymplecticHandoff`.
+  • FASE II  [Motor Ultramétrico de Novikov]: Evalúa valuaciones de Krull, Berkovich, Bruhat-Tits,
+             cross-validación dual de Poincaré, RSI³ con Banach y emite `MonadicNovikovGerm`.
+  • FASE III [Motor Navegante Soberano]: Agrega veredictos mediante el ínfimo $\bigwedge$ de Heyting,
+             gestiona el disyuntor ESP32 Crowbar y sella el certificado Merkle SHA-256.
+
+VI. CIERRE CIBER-FÍSICO ESP32 Y ANIQUILACIÓN EN VACÍO DE DIRAC
+──────────────────────────────────────────────────────────────
+Si la navegación topológica detecta singularidad ultramétrica o divergencia de Lyapunov:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+aniquilando los remanentes entrópicos en el Vacío de Dirac:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E_{\mathrm{purge}} = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

@@ -1,48 +1,92 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Topological Prosecutor Engine (Motor Fiscal Topológico)      ║
-║ Ubicación: app/wisdom/toon_topological_prosecutor_engine.py                  ║
-║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Betti-Hodge-RaySinger-Sp4-CStar-     ║
-║            Nested-Phases-Kleisli-Heyting-ESP32-Dirac-VR-Homology-KAM         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Topological Prosecutor Engine (Motor Fiscal Topológico)                              ║
+║ Ubicación: app/wisdom/toon_topological_prosecutor_engine.py                                          ║
+║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Betti-Hodge-RaySinger-Sp4-CStar-Nested-Phases-Kleisli        ║
+║            -Heyting-ESP32-Dirac-VR-Homology-KAM                                                      ║
+║ Función  : Motor espectral fiscal e inquisidor de la coherencia homológica en el topos de Sabiduría, ║
+║            encargado de auditar cavidades espurias en Vietoris-Rips, violaciones de las álgebras C*  ║
+║            en 𝔇_n, desgarros en el gap espectral de Hodge-de Rham, censurar anomalías de Poincaré-KAM║
+║            y sentenciar en el retículo de Heyting Ω₃.                                                ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor Espectral Fiscal Topológico. Investiga, acusa y censura cavidades
-homológicas espurias, violaciones C* en 𝔇_n y anomalías de Hodge-de Rham
-sobre el complejo de Vietoris-Rips anclado a la sección de Poincaré de la
-deliberación, y adjudica en el topos Heyting Ω₃.
+I. DEFINICIÓN Y ROL DEL MOTOR EN LA ARQUITECTURA COGNITIVA
+──────────────────────────────────────────────────────────
+El TOON Topological Prosecutor Engine encarna la fiscalía topológica y geométrica del sistema
+en el Estrato WISDOM. Su cometido implacable es detectar y censurar deformaciones no homotópicas,
+cavidades cíclicas patológicas (dependencias circulares o subredes autorreferenciales), desgarros
+en el espectro del Laplaciano de Hodge-de Rham y colapsos de unitaridad en el espacio de Hilbert $\mathfrak{D}_n$.
+Al interceptar transgresiones métricas o topológicas, formula el dictamen de acusación e impone
+el veto inmediato en el retículo de Heyting $\Omega_3$, asegurando que ningún paquete viciado
+contamine la Ciudadela de Cristal.
 
-Tejido evolucionado (v7.0.0) respecto de v6.0.0:
-  • θ_PC = Tr(ρ N) (ya no idénticamente 0); Sp(4,ℝ) auténtico vía exp(JH);
-    Lagrange colineales por Newton en los tres intervalos de Ω_x;
-    Delaunay G = L√(1-e²); Kepler seculares O(ε); Bryuno por convergentes;
-    H_k(VR;ℝ) por rango de ∂_k; Oseledets QR; Bures ⟂ Fubini-Study;
-    RSI3 μ^{(3)} con leyes no tautológicas; ingest formal FASE I → II.
-  • Mecánica celeste de Poincaré: retorno, recurrencia, Birkhoff, Floquet,
-    splitting homoclínico, Hill, n = μ²/L³, indicador KAM θ_KAM.
-  • Cierre ciber-físico: crowbar < 400 ns / GPIO14, Vacío de Dirac,
-    Merkle + HMAC, pseudocomplemento Heyting, realimentación η.
+II. AXIOMAS DE INVESTIGACIÓN Y CENSURA TOPOLÓGICA
+─────────────────────────────────────────────────
+§1. Censura de Cavidades Homológicas Espurias (1-Ciclos Tóxicos):
+    Sobre el complejo simplicial de Vietoris-Rips $\mathrm{VR}_\varepsilon(X)$, el número de Betti de primer
+    orden $\beta_1 = \dim \ker(\partial_1) / \mathrm{im}(\partial_2)$ cuantifica los bucles cerrados
+    no contraíbles. La ley de admisibilidad estructural exige:
+        \beta_1 \le \beta_{1,\mathrm{pre-veto}} = 5 \implies \text{Zona Admisible}
+        5 < \beta_1 \le \beta_{1,\mathrm{veto}} = 20 \implies \text{Degradación Metrológica } (\mathrm{DEGRADED})
+        \beta_1 > \beta_{1,\mathrm{veto}} = 20 \implies \text{Veto Absoluto Inmediato } (\mathrm{VETOED})
+    pues un exceso de 1-ciclos revela "socavones lógicos" y deadlocks irresolubles en la planificación.
 
-Estructura: TRES FASES ANIDADAS donde el terminal de cada fase es la semilla
-formal del inicial de la siguiente.
+§2. Axiomas de Integridad $C^*$ sobre el Espacio $\mathfrak{D}_n$:
+    El operador de densidad de deliberación $\rho$ es auditado bajo tolerancia estricta:
+        1. Desviación Hermítica:       \Delta_{\mathrm{Herm}} = \|\rho - \rho^\dagger\|_F \le 10^{-12}
+        2. Desviación de Traza:        \Delta_{\mathrm{Tr}} = |\mathrm{Tr}(\rho) - 1.0| \le 10^{-12}
+        3. Espectro No Negativo:       \lambda_{\min}(\rho) \ge -10^{-14}
+    Cualquier infracción $\|\rho - \rho^\dagger\| > 10^{-12}$ constituye un fraude de fase cuántica
+    y gatilla la aniquilación inmediata de la sesión.
 
-  FASE I  — PoincareTopologicalProsecutorAtlas
-            Atlas Celeste Poincaré-Topológico (Delaunay, CR3BP, Melnikov,
-            Greene, Bryuno, Morse-Bott, Poincaré-Cartan, Sp(4,ℝ), retorno,
-            KAM θ_KAM). Terminal: `compile_symplectic_prosecutor_handoff`
-            → SymplecticProsecutorHandoff → FASE II.
+§3. Métrica de Bures vs. Distancia de Fubini-Study:
+    El motor audita la geometría informacional distinguiendo rigurosamente entre la métrica riemanniana
+    de Bures y la distancia proyectiva de Fubini-Study sobre $\mathbb{C}P^{n-1}$:
+        d_B(\rho, \sigma) = \sqrt{2 \left(1 - \sqrt{F(\rho, \sigma)}\right)}, \quad d_{\mathrm{FS}}(\rho, \sigma) = \arccos\left(\sqrt{F(\rho, \sigma)}\right)
+    donde la fidelidad cuántica de Uhlmann es calculada unívocamente:
+        F(\rho, \sigma) = \left( \mathrm{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2
 
-  FASE II — TopologicalProsecutorQNDEngine
-            Ingesta el germen de FASE I. C* en 𝔇_n, Uhlmann, Bures ⟂ FS,
-            H_k(VR;ℝ), Δ_k Hodge, Ray-Singer, Poincaré-Wirtinger, Oseledets
-            QR, Pesin, Gromov, μ^{(3)}. Terminal: `lift_monadic_indictment`
-            → MonadicIndictmentGerm → FASE III.
+§4. Gap Espectral del Laplaciano de Hodge $\Delta_1$:
+    El primer autovalor no nulo del Laplaciano de Hodge de 1-formas $\lambda_1(\Delta_1)$ mide la
+    rigidez de las formas armónicas. La pérdida de estabilidad espectral se censura mediante:
+        \lambda_1(\Delta_1) < \delta_{\mathrm{gap}} = 0.05 \implies \text{Degradación Espectral por Casi-Modos Cero}
 
-  FASE III— TOONTopologicalProsecutorEngine
-            Recibe el germen, adjudica Heyting Ω₃, acciona ESP32 Crowbar,
-            purga al Vacío de Dirac, sella Merkle + HMAC, inyecta positrón.
+III. MECÁNICA CELESTE DE POINCARÉ Y PROBLEMA RESTRINGIDO DE TRES CUERPOS (CR3BP)
+────────────────────────────────────────────────────────────────────────────────
+§1. Ecuaciones Quínticas de Lagrange Colineales:
+    Los tres puntos de equilibrio colineales $L_1, L_2, L_3$ sobre el eje rotante satisfacen los
+    polinomios quínticos de Euler diferenciados en los tres intervalos disjuntos del potencial $\Omega(x)$:
+        \Omega_x(x, 0) = x - \frac{(1 - \mu)(x + \mu)}{|x + \mu|^3} - \frac{\mu(x - 1 + \mu)}{|x - 1 + \mu|^3} = 0
+    El motor resuelve las raíces de forma unívoca mediante esquemas de Newton-Raphson de alta precisión.
 
-Back-Action objetivo: 0.0 dB.  c_G ≤ 12.5.  Cierre IRAM < 400 ns @ GPIO14.
+§2. Indicador Diofántico de KAM e Integrabilidad:
+    Para las frecuencias orbitales $(\omega_L, \omega_G)$, el índice de proximidad resonante diofántico:
+        \theta_{\mathrm{KAM}} = \min_{0 < |q| \le N} |q \tau - p| \cdot q^\alpha \ge \gamma_{\mathrm{KAM}}
+    acota la proximidad a la destrucción de los toros invariantes de Liouville-Arnold.
+
+IV. TEORÍA DE CATEGORÍAS Y MÓNADA DE CONTINUACIÓN (RSI³)
+───────────────────────────────────────────────────────
+La acusación monádica se estructura mediante el funtor de continuación $T(A) = (A \to \mathbb{R}) \to \mathbb{R}$
+con multiplicación Kleisli $\mu^{(3)}: T^3 \Rightarrow T$, verificando empíricamente el residual de
+asociatividad monádica $\|\mu \circ T\mu - \mu \circ \mu T\| \le \varepsilon_{\mathrm{monad}}$,
+asegurando que la cadena de acusaciones sea composicional y lógicamente cerrada.
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Atlas Celeste Poincaré-Fiscal]: Integra variables de Delaunay, monodromía $\mathrm{Sp}(4)$,
+             indicador $\theta_{\mathrm{KAM}}$ y emite `SymplecticProsecutorHandoff`.
+  • FASE II  [Motor Fiscal QND]: Computa $\beta_k(VR)$, $\Delta_k$, $T_{\mathrm{RS}}$, Bures vs FS,
+             auditoría $C^*$ y emite `MonadicIndictmentGerm`.
+  • FASE III [Motor Soberano Adjudicador]: Evalúa la acusación en Heyting $\Omega_3$, verifica
+             umbrales de veto, acciona ESP32 Crowbar y genera el certificado Merkle + HMAC.
+
+VI. ENCLAVAMIENTO CIBER-FÍSICO ESP32 Y ANIQUILACIÓN EN VACÍO DE DIRAC
+─────────────────────────────────────────────────────────────────────
+Al declararse el veredicto $\bot = \mathrm{VETOED}$ ante transgresiones homológicas o $C^*$:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+disipando la totalidad de la energía corrupta al Vacío de Dirac:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

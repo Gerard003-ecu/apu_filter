@@ -1,64 +1,115 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Wisdom Weaver Prosecutor Engine (Motor Fiscal Tejedor)       ║
-║ Ubicación: app/wisdom/toon_wisdom_weaver_prosecutor_engine.py                ║
-║ Versión  : 7.0.0-Doctoral-Weaver-Prosecutor-CStar-Cech-Gromov-PoincareKAM    ║
-║            -RSI3-Nested-Banach-Lyapunov-Kleisli-Obstfeld-Heyting-ESP32       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Wisdom Weaver Prosecutor Engine (Motor Fiscal Tejedor de Sabiduría)                  ║
+║ Ubicación: app/wisdom/toon_wisdom_weaver_prosecutor_engine.py                                        ║
+║ Versión  : 7.0.0-Doctoral-Weaver-Prosecutor-CStar-Cech-Gromov-PoincareKAM-RSI3-Nested-Banach         ║
+║            -Lyapunov-Kleisli-Obstfeld-Heyting-ESP32                                                  ║
+║ Función  : Motor espectral acusador y fiscal de la síntesis de Sabiduría, responsable de auditar     ║
+║            las C*-álgebras en 𝔇_n, computar obstrucciones cohomológicas de Obstfeld                  ║
+║            Ȟ²(X, ℱ_wisdom), clasificar la estabilidad espectral de Poincaré-KAM y aplicar el ciclo   ║
+║            de automejora recursiva RSI³ con convergencia de Banach y Lyapunov.                       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor Espectral del Fiscal Tejedor de Sabiduría. Realiza acusación, auditoría
-topológica y juzgamiento en el topos Heyting Ω₃ de la síntesis de cartuchos
-TOON y secciones globales cohomológicas Hᵏ(X, ℱ_wisdom).
+I. DEFINICIÓN Y ROL DEL MOTOR EN LA ARQUITECTURA COGNITIVA
+──────────────────────────────────────────────────────────
+El TOON Wisdom Weaver Prosecutor Engine es la autoridad judicial y fiscal del tejido cognitivo
+en el Estrato WISDOM. Su propósito formal es la inquisición matemática de la síntesis de cartuchos
+TOON, detectando anomalías cohomológicas, desgarros en las funciones de transición sobre el espacio
+base, falsificaciones de densidad cuántica que vulneren los postulados de von Neumann y derivas
+caóticas en el flujo hamiltoniano de deliberación. Ante la detección de una singularidad topológica
+o un cociclo espurio, el motor formula la acusación formal y comanda el colapso hacia el escenario
+del peor caso en el topos de Heyting $\Omega_3$.
 
-Fundamento matemático (v7.0.0):
-  • Axiomas C*-álgebra sobre 𝔇_n: hermiticidad, traza unitaria, positividad,
-    submultiplicatividad de la norma espectral, C*-identity ‖A*A‖ = ‖A‖².
-  • Obstrucción de Obstfeld: 2-cociclo de Čech δg ∈ H²(X, ℱ_wisdom) medido
-    vía cobertura {U_i} y funciones de transición. H² ≠ 0 ⇒ falso tejido.
-  • Mecánica celeste de Poincaré (núcleo duro, ampliado):
-      - Delaunay-Kepler (L,G,H), LRL ‖A‖ = μe, CR3BP con Jacobi C_J,
-        inestabilidad L1, Melnikov homoclínico, Greene, Bryuno.
-      - Clasificación espectral del MAPA DE RETORNO de Poincaré: elíptico
-        (|λ|=1, estable), parabólico (colisión de Krein, ±1, frontera KAM),
-        hiperbólico (separatriz, inestable).
-      - Teorema de RECURRENCIA de Poincaré / Lema de Kac: ⟨τ_R⟩ = 1/μ(A).
-      - INVARIANTE INTEGRAL RELATIVO de Poincaré (1892): ∮Σp_idq_i.
-      - Condición DIOFÁNTICA de Kolmogorov-Arnold-Moser (KAM): persistencia
-        de toros invariantes, γ = min_q q^τ|qω - p|.
-      - Teorema del ÍNDICE de Poincaré-Hopf: Σíndices = χ(X).
-      - LEMA DE POINCARÉ: forma cerrada ⇒ exacta (Clairaut-Schwarz, d²=0),
-        verificado numéricamente sobre el potencial generador de Delaunay.
-      - Modelo del DISCO DE POINCARÉ: incrustación hiperbólica del punto
-        base de Hopf vía proyección estereográfica.
-  • Geometría simpléctica: Fubini-Study sobre ℂPⁿ⁻¹, Uhlmann con sqrtm,
-    Poincaré-Wirtinger con energía de Dirichlet, no-squeezing de Gromov.
-  • Anomalía de Adler-Bell-Jackiw: descent d CS₃ = Tr(F ∧ F), inflow de
-    Stora-Zumino, cota de Bogomolny ‖F‖ ≥ 8π²|k|/vol(X).
-  • AUTOMEJORA RECURSIVA NIVEL 3 (RSI³), genuinamente anidada y acoplada a
-    Poincaré-KAM:
-      - Nivel 1 (η): tasa de confianza, actualizada por μ_Kleisli (mónada
-        de continuación Cont).
-      - Nivel 2 (α): meta-tasa que gobierna CUÁN RÁPIDO se adapta η.
-      - Nivel 3 (β): meta-meta-tasa que gobierna CUÁN RÁPIDO se adapta α,
-        modulada por la clasificación de estabilidad de la monodromía de
-        Poincaré y acotada por la constante Diofántica KAM (evita el
-        problema de los pequeños divisores al auto-modificarse).
-      - Verificación de leyes de la mónada de Kleisli (unidad + asociativi-
-        dad módulo 2-celda residual: mónada LAXA, honesta y auditada).
-      - Certificado de CONTRACCIÓN DE BANACH (L̂ < 1 ⇒ punto fijo único,
-        convergencia geométrica garantizada).
-      - Certificado de LYAPUNOV discreto (V(η)=(η-η*)² decreciente).
+II. AXIOMAS FORMALES Y TEORÍA DE C*-ÁLGEBRAS
+────────────────────────────────────────────
+§1. Axiomas C*-Algebraicos sobre el Espacio de Estados $\mathfrak{D}_n$:
+    El operador de densidad de síntesis $\rho \in \mathfrak{D}_n \subset \mathcal{B}(\mathcal{H})$
+    debe satisfacer estrictamente la estructura canónica de C*-álgebra:
+        1. Involución Hermítica:       \rho = \rho^\dagger \iff \rho_{ij} = \bar{\rho}_{ji}
+        2. Normalización de Traza:     \mathrm{Tr}(\rho) = \sum_{i=1}^n \lambda_i(\rho) = 1.0
+        3. Positividad Semidefinida:   \rho \ge 0 \iff \langle \psi | \rho | \psi \rangle \ge 0 \quad \forall |\psi\rangle \in \mathcal{H}
+        4. C*-Identidad Métrica:       \|A^* A\|_{\mathcal{B}(\mathcal{H})} = \|A\|_{\mathcal{B}(\mathcal{H})}^2 \quad \forall A \in \mathcal{B}(\mathcal{H})
+    Cualquier transgresión $\|\rho - \rho^\dagger\|_F > \varepsilon_{\mathrm{tol}}$ o $\lambda_{\min}(\rho) < -\varepsilon_{\mathrm{tol}}$
+    invalida la admisibilidad física del tensor y dicta veto absoluto.
 
-Estructura: TRES FASES ANIDADAS.
-  FASE I  → PoincareWeaverProsecutorAtlas. Terminal:
-            `emit_prosecution_initial_condition` → `WeaverProsecutionInitialCondition`.
-  FASE II → WeaverProsecutorQNDEngine. Terminal:
-            `emit_indictment_draft_for_adjudication` → `WeaverIndictmentDraftBundle`.
-  FASE III→ TOONWisdomWeaverProsecutorEngine. Terminal:
-            `emit_prosecution_execution_certificate` → certificado inmutable,
-            crowbar ESP32 (< 400 ns / GPIO14), aniquilación e⁻+e⁺ → 2γ, y
-            ciclo de automejora recursiva `recursive_self_improvement_level3_cycle`.
+§2. Obstrucción Cohomológica de Obstfeld en $\check{H}^2(X, \mathcal{F}_{\mathrm{wisdom}})$:
+    Dada una cobertura abierta $\mathcal{U} = \{U_i\}_{i \in I}$ del complejo simplicial base $X$ y un
+    sistema de funciones de transición $g_{ij}: U_i \cap U_j \to G$, la condición de cociclo exige:
+        g_{jk} \circ g_{ik}^{-1} \circ g_{ij} = \mathrm{id}_G \quad \text{en } U_i \cap U_j \cap U_k
+    El defecto de consistencia define el 2-cociclo de Čech $\delta g \in \check{C}^2(\mathcal{U}, \mathcal{F}_{\mathrm{wisdom}})$:
+        (\delta g)_{ijk} = g_{jk} \cdot g_{ik}^{-1} \cdot g_{ij} - I
+    Si la clase cohomológica $[\delta g] \neq 0$ en $\check{H}^2(X, \mathcal{F}_{\mathrm{wisdom}})$,
+    existe una obstrucción topológica no remediable que impide levantar la síntesis local a una sección
+    global admisible, diagnosticando un "falso tejido" y dictando veto inmediato.
+
+§3. Descenso de Stora-Zumino y Anomalía Quiral ABJ:
+    La 3-forma de Chern-Simons satisface la ecuación de descenso diferencial:
+        d \, \mathrm{CS}_3(A) = \mathrm{Tr}(F \wedge F) = \frac{1}{2} \varepsilon^{\mu\nu\rho\sigma} \mathrm{Tr}(F_{\mu\nu} F_{\rho\sigma}) \, d^4x
+    Bajo transformaciones de gauge $A \mapsto A^g = g^{-1} A g + g^{-1} dg$, la variación efectiva
+    está cuantizada por el grado topológico (número de instantón $k \in \mathbb{Z}$):
+        \mathrm{CS}_3[A^g] - \mathrm{CS}_3[A] = -\frac{1}{6} \mathrm{Tr}\left((g^{-1} dg)^3\right) + d\alpha
+    Cualquier flujo que viole la cota topológica de Bogomolny $\|F\| \ge \frac{8\pi^2 |k|}{\mathrm{vol}(X)}$
+    revela inyección de masa logística no conservativa.
+
+III. MECÁNICA CELESTE DE POINCARÉ Y CLASIFICACIÓN DEL MAPA DE RETORNO
+─────────────────────────────────────────────────────────────────────
+§1. Espectro y Clasificación de la Monodromía de Poincaré:
+    La matriz de monodromía simpléctica $M \in \mathrm{Sp}(4, \mathbb{R})$ asociada a la órbita periódica
+    de Delaunay se clasifica estrictamente según la distribución de su espectro de autovalores $\{\lambda_k\}_{k=1}^4$:
+        • ELÍPTICA   : |\lambda_k| = 1 \quad \forall k, \quad \lambda_k = e^{\pm i \theta_k} \quad (\text{Estabilidad lineal KAM})
+        • PARABÓLICA : \lambda_k = \pm 1 \quad \text{con multiplicidad algebraíca } \ge 2 \quad (\text{Colisión de Krein / Bifurcación})
+        • HIPERBÓLICA: \exists k : |\lambda_k| \neq 1 \implies \text{autovalores en cuaternas } (\lambda, \bar{\lambda}, \lambda^{-1}, \bar{\lambda}^{-1}) \quad (\text{Separatriz inestable})
+
+§2. Teorema de Recurrencia de Poincaré y Lema de Kac:
+    Bajo el flujo hamiltoniano que preserva la medida simpléctica de Liouville $\Omega = \bigwedge \omega_0$,
+    el tiempo de retorno esperado a una vecindad $A$ de volumen $\mu(A) > 0$ se acota por el lema de Kac:
+        \langle \tau_R \rangle = \frac{1}{\mu(A)} \approx \frac{1}{\mathrm{Tr}(\rho^2)}
+    Desviaciones divergentes en $\tau_R$ diagnostican fuga de medida hacia atractores extraños no integrables.
+
+§3. Desigualdad de Poincaré-Wirtinger sobre Grafos:
+    Para cualquier campo escalar discreto $u$ sobre el complejo simplicial con Laplaciano combinatorial $L$,
+    la energía de Dirichlet se acota inferiormente por el segundo autovalor (valor de Fiedler $\lambda_2$):
+        \sum_{(i,j) \in E} (u_i - u_j)^2 \ge \lambda_2(L) \sum_{i \in V} (u_i - \bar{u})^2 \iff C_P = \frac{1}{\lambda_2(L)}
+
+IV. TEORÍA DE CATEGORÍAS Y AUTOMEJORA RECURSIVA ANIDADA (RSI³)
+─────────────────────────────────────────────────────────────
+§1. Arquitectura de Tres Niveles de Meta-Adaptación:
+    El operador de automejora recursiva opera sobre un fibrado jerárquico triplemente anidado:
+        • Nivel 1 (\eta): Tasa de aprendizaje o unidad monádica, $\eta \in [0.05, 0.45]$.
+        • Nivel 2 (\alpha): Meta-tasa que modula la rapidez de deformación de $\eta$.
+        • Nivel 3 (\beta): Meta-meta-tasa regulada por la estabilidad orbital de Poincaré y acotada
+          por la constante diofántica de KAM $\gamma$:
+              \beta_{t+1} = \mathrm{clip}\left(\beta_t + \kappa \cdot (\gamma_{\mathrm{KAM}} - \gamma_{\mathrm{floor}}), \beta_{\min}, \beta_{\max}\right)
+
+§2. Certificado de Contracción de Banach y Punto Fijo:
+    El operador de transición $T_{\mathrm{RSI3}}: \mathbb{R}^3 \to \mathbb{R}^3$ satisface la condición
+    de contracción uniforme en el espacio de Banach $(\mathbb{R}^3, \|\cdot\|_\infty)$:
+        \|T_{\mathrm{RSI3}}(x) - T_{\mathrm{RSI3}}(y)\|_\infty \le \hat{L} \|x - y\|_\infty, \quad 0 \le \hat{L} < 1.0
+    Garantizando por el Teorema del Punto Fijo de Banach (1922) la existencia y unicidad del estado
+    estacionario óptimo $x^* = (\eta^*, \alpha^*, \beta^*)$ con convergencia geométrica:
+        \|x_k - x^*\|_\infty \le \frac{\hat{L}^k}{1 - \hat{L}} \|x_1 - x_0\|_\infty
+
+§3. Certificado de Estabilidad de Lyapunov Discreto:
+    La función de Lyapunov $V(\eta) = \frac{1}{2}(\eta - \eta^*)^2$ certifica estabilidad asintótica:
+        \Delta V_k = V(\eta_{k+1}) - V(\eta_k) \le -\alpha \|\eta_k - \eta^*\|^2 < 0 \quad \forall \eta_k \neq \eta^*
+
+V. ARQUITECTURA DE TRES FASES ANIDADAS
+──────────────────────────────────────
+  • FASE I   [Atlas Celeste Poincaré-Fiscal]: Inicia el tensor de Delaunay, computa la holonomía
+             simpléctica $\mathrm{Sp}(4)$, el residuo de Greene y emite `WeaverProsecutionInitialCondition`.
+  • FASE II  [Motor Fiscal QND]: Audita la $C^*$-álgebra, evalúa el 2-cociclo de Čech $\check{H}^2$,
+             la anomalía de Stora-Zumino, el ciclo RSI³ y emite `WeaverIndictmentDraftBundle`.
+  • FASE III [Motor Soberano Adjudicador]: Adjudica en Heyting $\Omega_3$, verifica el disyuntor
+             ESP32 Crowbar, purga al Vacío de Dirac y emite `WeaverProsecutionExecutionCertificate`.
+
+VI. PROTOCOLO CIBER-FÍSICO DE CROWBAR ESP32 Y ANIQUILACIÓN
+──────────────────────────────────────────────────────────
+Ante cualquier detección de ruptura $C^*$ o residuo cohomológico no compensado, el fiscal activa
+el enclavamiento de hardware en IRAM:
+    \tau_{\mathrm{ESP32}} \le 400.0 \text{ ns (GPIO14)}
+aniquilando los paquetes en el Vacío de Dirac con balance de masa-energía de Einstein:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV} \right)
 """
 
 from __future__ import annotations

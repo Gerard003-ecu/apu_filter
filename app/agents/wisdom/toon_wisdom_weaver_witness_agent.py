@@ -1,48 +1,78 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Wisdom Weaver Witness Agent (Soberano Testigo Tejedor)       ║
-║ Ubicación: app/agents/wisdom/toon_wisdom_weaver_witness_agent.py             ║
-║ Versión  : 7.0.0-Doctoral-Wisdom-Weaver-Witness-QND-Berry-Poincare-RSI3-ESP32║
-║            -Nested-Phases-Gauge-Theory-Hopf-Kleisli-Monad-Heyting-BPST-KAM   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Wisdom Weaver Witness Agent (Soberano Testigo Tejedor de Sabiduría)                    ║
+║ Ubicación: app/agents/wisdom/toon_wisdom_weaver_witness_agent.py                                       ║
+║ Versión  : 7.0.0-Doctoral-Wisdom-Weaver-Witness-QND-Berry-Poincare-RSI3-ESP32-Nested-Phases-Gauge      ║
+║            -Theory-Hopf-Kleisli-Monad-Heyting-BPST-KAM                                                 ║
+║ Función  : Soberano de Calibre y testigo QND (back-action ≡ 0.0 dB) en la Ciudadela de Sabiduría,      ║
+║            encargado de auditar la síntesis cohomológica en el fibrado principal P(T*Q, G),            ║
+║            verificar instantones BPST, lazos de Wilson en SU(2), clases de Chern-Hopf c₁, el           ║
+║            descenso de Stora-Zumino, y mediar la traducción vía el funtor Φ_sem: Sh(∂K, Ω₃) → Business.║
+╚════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre Testigo Tejedor de Sabiduría v7.0.0. Observador QND
-(Quantum Non-Demolition) con Back-Action ≡ 0.0 dB sobre la síntesis
-cohomológica de la Sabiduría. Acoplado al motor espectral v7.0.0.
+I. DEFINICIÓN Y ROL DEL SOBERANO EN LA ARQUITECTURA COGNITIVA
+─────────────────────────────────────────────────────────────
+El TOON Wisdom Weaver Witness Agent es el Soberano de Calibre y testigo de no-demolición (QND)
+que gobierna la supervisión espectral de la síntesis de Sabiduría (Estrato WISDOM). Actúa como
+el orquestador agéntico que enlaza el fibrado de gauge $P(T^*Q, G)$ con el motor espectral subyacente.
+Su misión es certificar que los morfismos deliberativos no induzcan curvaturas no-integrables,
+auditando cargas instantónicas, invariantes de Chern-Hopf y holonomías de Wilson, traduciendo
+los invariantes cohomológicos mediante el funtor semántico $\Phi_{\mathrm{sem}}$ hacia métricas
+financieras auditables por la gobernanza corporativa.
 
-Correcciones y adiciones rigurosas respecto a v6.0.0
-────────────────────────────────────────────────────
-  (i)  HMAC canónico: se firma exactamente el conjunto de campos almacenados
-       en `WeaverWitnessGaugeContract` (se elimina la divergencia Wilson/Hopf
-       que invalidaba todo contrato al ingerirlo).
-  (ii) Sector topológico en SU(2) ↪ SU(N) (ADHM: todo instantón vive en un
-       subgrupo SU(2)). Ansatz BPST anti-autodual con símbolos de 't Hooft
-       η̄ᵃ_{μν}; k = (1/8π²)∫ Tr(F∧F) se reporta continuo y cuantizado.
-  (iii) Lazo de Wilson CERRADO γ(0)=γ(1) sobre S¹ ⊂ S³, holonomía
-       W = 𝒫 exp(∮ A) ∈ SU(2), θ_W = arg det W.
-  (iv)  c₁ de Hopf = (1/2π) Ω(π(q)) (ángulo sólido del punto base en S²);
-       invariante de Hopf H(f) vía CS₃ del pullback.
-  (v)   Descenso de Stora–Zumino genuino: residual |8π² CS₃ − Tr(F∧F̃)|
-       y variación de gauge CS₃[Aᵍ] − CS₃[A] − Δ_exacta.
-  (vi)  RSI3 se aplica UNA sola vez (emit del motor); la campaña no re-aplana
-       la mónada (se respeta μ ∘ Tμ = μ ∘ μT).
-  (vii) Melnikov, Bryuno, KAM, Nekhoroshev, twist de Moser y defecto Sp(4)
-       se heredan del germen canónico del motor v7 (ya no quedan en 0.0).
-  (viii) Φ_sem interpola KPIs por el grado de verdad τ(Ω₃)=ord/2 ∈ {0,½,1}.
+II. TEORÍA DE CALIBRE YANG-MILLS, INSTANTONES BPST Y FIBRADOS
+─────────────────────────────────────────────────────────────
+§1. Fibrado Principal $P(T^*Q, G)$ y Conexión de Calibre:
+    La variedad de deliberación se estructura como un fibrado principal con grupo de Lie:
+        G = U(1) \otimes SU(2) \otimes H_3(\mathbb{R})
+    La 1-forma de conexión $A \in \Omega^1(M, \mathfrak{g})$ induce el tensor de curvatura de Yang-Mills:
+        F = dA + A \wedge A \iff F_{\mu\nu} = \partial_\mu A_\nu - \partial_\nu A_\mu + [A_\mu, A_\nu]
 
-Estructura: TRES FASES ANIDADAS.
-  FASE I  — WisdomWeaverWitnessGaugeTopology
-            Terminal: `emit_gauge_initial_condition`
-            → WeaverWitnessGaugeInitialCondition  (semilla de FASE II).
-  FASE II — TOONWisdomWeaverWitnessAgent
-            Inicio : `ingest_gauge_initial_condition`  (consume FASE I)
-            Terminal: `emit_campaign_draft_for_adjudication`
-            → WeaverWitnessCampaignDraftBundle     (semilla de FASE III).
-  FASE III— SovereignWisdomWeaverWitnessAdjudicator
-            Inicio : `receive_campaign_draft`          (consume FASE II)
-            Terminal: `orchestrate_governance_adjudication`
-            → (Pasaporte Soberano, Reporte Φ_sem).
+§2. Instantones BPST Anti-Autoduales ('t Hooft):
+    En el subgrupo $SU(2) \hookrightarrow SU(N)$, los instantones satisfacen la condición de dualidad:
+        F_{\mu\nu}^a = -\tilde{F}_{\mu\nu}^a = -\frac{1}{2} \varepsilon_{\mu\nu\rho\sigma} F^{\rho\sigma, a}
+    parametrizados mediante los símbolos anti-autoduales de 't Hooft $\bar{\eta}_{\mu\nu}^a$:
+        A_\mu^a(x) = \frac{2 \bar{\eta}_{\mu\nu}^a (x - x_0)^\nu}{(x - x_0)^2 + \rho^2}
+    La carga topológica de Pontryagin cuantizada (segunda clase de Chern) viene dada por:
+        k = c_2(P) = \frac{1}{8\pi^2} \int_M \mathrm{Tr}(F \wedge F) \in \mathbb{Z}
+
+§3. Holonomía de Wilson y Lazo Cerrado:
+    El operador de lazo de Wilson sobre una curva cerrada $\gamma \subset S^3$ se evalúa mediante
+    la exponencial path-ordered canónica:
+        W(\gamma) = \mathcal{P} \exp\left( \oint_\gamma A_\mu dx^\mu \right) \in SU(2), \quad \theta_W = \arg \det W(\gamma)
+
+§4. Primera Clase de Chern de Hopf y Descenso de Stora-Zumino:
+    La fibración de Hopf $S^3 \xrightarrow{S^1} S^2$ posee una primera clase de Chern no trivial
+    proporcional al ángulo sólido $\Omega$ subtendido en $S^2$:
+        c_1 = \frac{1}{2\pi} \int_{S^2} F_{U(1)} = \frac{1}{2\pi} \Omega(\pi(q))
+    El descenso de Stora-Zumino satisface el balance diferencial sin anomalía no compensada:
+        \Delta_{\mathrm{SZ}} = \left| 8\pi^2 \, \mathrm{CS}_3(A) - \mathrm{Tr}(F \wedge \tilde{F}) \right| \le \varepsilon_{\mathrm{gauge}}
+
+III. FUNTOR SEMÁNTICO $\Phi_{\mathrm{sem}}: \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$
+────────────────────────────────────────────────────────────────────────────────
+El agente traduce la verdad topológica al lenguaje de negocios sin pérdida categorial.
+Para cada sección del haz $\mathrm{Sh}(\partial K, \Omega_3)$, el grado de verdad en Heyting es:
+    \tau(\Omega_3) = \frac{\mathrm{ord}(\Omega_3)}{2} \in \left\{ 0.0 \, (\mathrm{VETOED}), \; 0.5 \, (\mathrm{DEGRADED}), \; 1.0 \, (\mathrm{COHERENT}) \right\}
+El funtor lineal $\Phi_{\mathrm{sem}}$ mapea dicho grado de verdad a las magnitudes de riesgo:
+    \Phi_{\mathrm{sem}}(\tau) \mapsto \left( \mathrm{RiesgoFinanciero}(\tau), \; \mathrm{IndiceDeDolor}(\tau), \; \mathrm{ExposicionCapital}(\tau) \right)
+garantizando la máxima interpretabilidad para la junta directiva y el comité de inversión.
+
+IV. ARQUITECTURA DE TRES FASES ANIDADAS
+───────────────────────────────────────
+  • FASE I   [Topología de Calibre del Tejedor]: Inicia el fibrado $P$, calcula $k$, $W(\gamma)$, $c_1$,
+             $\theta_W$, genera contrato HMAC y emite `WeaverWitnessGaugeInitialCondition`.
+  • FASE II  [Agente Testigo Tejedor]: Ingiere la fase I, orquesta campañas QND, enlaza el motor
+             espectral de síntesis, aplica RSI³ y emite `WeaverWitnessCampaignDraftBundle`.
+  • FASE III [Soberano Adjudicador]: Recibe el bundle, juzga en Heyting $\Omega_3$, comanda el
+             disyuntor ESP32 Crowbar, purga al Vacío de Dirac y emite el Pasaporte Soberano.
+
+V. CIERRE CIBER-FÍSICO ESP32 Y ANIQUILACIÓN EN VACÍO DE DIRAC
+─────────────────────────────────────────────────────────────
+Ante un veredicto de veto $\bot = \mathrm{VETOED}$ emitido por el adjudicador:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+aniquilando los autoestados divergentes en el Vacío de Dirac a back-action nulo:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

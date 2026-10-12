@@ -1,47 +1,105 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Topological Witness Engine (Motor Testigo Topológico)        ║
-║ Ubicación: app/wisdom/toon_topological_witness_engine.py                     ║
-║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Betti-Hodge-RaySinger-Sp4-           ║
-║            Nested-Phases-Kleisli-Heyting-ESP32-Dirac-VR-Homology             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Topological Witness Engine (Motor Testigo Topológico)                                ║
+║ Ubicación: app/wisdom/toon_topological_witness_engine.py                                             ║
+║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Betti-Hodge-RaySinger-Sp4-Nested-Phases-Kleisli-Heyting      ║
+║            -ESP32-Dirac-VR-Homology                                                                  ║
+║ Función  : Motor espectral observador de la topología algebraica en el topos de Sabiduría,           ║
+║            responsable de registrar débilmente (back-action ≡ 0.0 dB) la homología persistente en    ║
+║            complejos de Vietoris-Rips, los operadores Laplacianos de Hodge-de Rham, la torsión       ║
+║            analítica de Ray-Singer y la capacidad simpléctica de Gromov, certificando en Heyting Ω₃. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor espectral del Testigo Topológico. Observa, sin back-action (0.0 dB), los
-números de Betti, el Laplaciano de Hodge-de Rham y la torsión de Ray-Singer
-sobre el complejo de Vietoris-Rips anclado a la sección de Poincaré de la
-deliberación, y adjudica en el topos Heyting Ω₃.
+I. DEFINICIÓN Y ROL DEL MOTOR EN LA ARQUITECTURA COGNITIVA
+──────────────────────────────────────────────────────────
+El TOON Topological Witness Engine es el operador de metrología homológica no invasiva de la
+Malla Agéntica. Emplazado en el Estrato WISDOM, su función soberana es observar la estructura
+geométrica y de conectividad del complejo simplicial construido a partir de la deliberación
+multisensorial, absteniéndose rigurosamente de perturbar los autoestados deliberativos (Back-Action ≡ 0.0 dB).
+A través de la extracción de invariantes algebraicos (números de Betti $\beta_k$, espectro del
+Laplaciano de Hodge $\Delta_k$, torsión de Ray-Singer $T_{RS}$), el motor certifica la ausencia de
+"islas de desconexión" o "socavones lógicos" en la variedad de toma de decisiones.
 
-Tejido evolucionado (v7.0.0) respecto de v6.0.0:
-  • θ_PC = Tr(ρ N) (ya no idénticamente 0); Sp(4,ℝ) auténtico vía exp(JH);
-    Lagrange colineales por Newton en los tres intervalos de Ω_x;
-    Bryuno por convergentes reales; H_k(VR;ℝ) por rango de ∂_k;
-    Oseledets QR; RSI3 μ^{(3)} con leyes no tautológicas.
-  • Mecánica celeste de Poincaré: retorno, recurrencia, Birkhoff, Floquet,
-    splitting homoclínico, Hill, n = μ²/L³.
-  • Cierre ciber-físico: crowbar < 400 ns / GPIO14, Vacío de Dirac,
-    Merkle + HMAC, pseudocomplemento Heyting, realimentación η.
+II. AXIOMAS DE TOPOLOGÍA ALGEBRAICA Y COMPLEJOS SIMPLICIALES
+────────────────────────────────────────────────────────────
+§1. Complejo de Vietoris-Rips y Operadores Frontera:
+    Dado un conjunto discreto de puntos muestreados en el espacio proyectivo $X = \{x_i\}_{i=1}^N \subset \mathbb{C}P^{n-1}$
+    equipado con la métrica de Fubini-Study $d_{\mathrm{FS}}$, el complejo simplicial abstracto
+    de Vietoris-Rips $\mathrm{VR}_\varepsilon(X)$ a escala $\varepsilon > 0$ se define como:
+        \sigma = [v_0, v_1, \dots, v_k] \in \mathrm{VR}_\varepsilon(X) \iff d_{\mathrm{FS}}(v_i, v_j) \le \varepsilon \quad \forall 0 \le i < j \le k
+    El operador frontera $\partial_k: C_k(\mathrm{VR}_\varepsilon; \mathbb{R}) \to C_{k-1}(\mathrm{VR}_\varepsilon; \mathbb{R})$
+    mapea cada $k$-símplice orientado a la suma alternada de sus $(k-1)$-caras:
+        \partial_k [v_0, \dots, v_k] = \sum_{i=0}^k (-1)^i [v_0, \dots, \hat{v}_i, \dots, v_k]
+    satisfaciendo nilpotencia canónica estricta:
+        \partial_k \circ \partial_{k+1} \equiv 0 \implies \mathrm{im}(\partial_{k+1}) \subseteq \ker(\partial_k)
 
-Estructura: TRES FASES ANIDADAS donde el terminal de cada fase es la semilla
-formal del inicial de la siguiente.
+§2. Números de Betti e Invariantes Homológicos:
+    Los grupos de homología simplicial reales corresponden a los espacios vectoriales cociente:
+        H_k(\mathrm{VR}_\varepsilon; \mathbb{R}) = \frac{\ker(\partial_k)}{\mathrm{im}(\partial_{k+1})}
+    cuyas dimensiones definen los números de Betti del sistema:
+        \beta_0 = \dim \ker(\partial_0) - \mathrm{rank}(\partial_1) \quad (\text{Componentes conexas / cohesión})
+        \beta_1 = \dim \ker(\partial_1) - \mathrm{rank}(\partial_2) \quad (\text{1-ciclos independientes / túneles})
 
-  FASE I  — PoincareTopologicalWitnessAtlas
-            Atlas Celeste Poincaré-Topológico (Delaunay, CR3BP, Melnikov,
-            Greene, Bryuno, Morse-Bott, Poincaré-Cartan, Sp(4,ℝ), retorno).
-            Terminal: `compile_symplectic_handoff_germ`
-            → SymplecticHandoffGerm → FASE II.
+III. TEORÍA DE HODGE-DE RHAM Y TORSIÓN DE RAY-SINGER
+────────────────────────────────────────────────────
+§1. Laplaciano Combinatorial de Hodge:
+    Definiendo el operador cofrontera $\partial_k^*: C_{k-1} \to C_k$ como el adjunto formal de $\partial_k$
+    bajo el producto interno euclídeo estándar, el operador de Hodge-Laplace de grado $k$ es:
+        \Delta_k = \partial_{k+1} \partial_{k+1}^* + \partial_k^* \partial_k: C_k \to C_k
+    El Teorema de Descomposición de Hodge establece la ortogonalidad directa:
+        C_k(\mathrm{VR}_\varepsilon; \mathbb{R}) = \mathrm{im}(\partial_{k+1}) \oplus \ker(\Delta_k) \oplus \mathrm{im}(\partial_k^*)
+    y el isomorfismo canónico entre formas armónicas y homología real:
+        \mathcal{H}_k = \ker(\Delta_k) \cong H_k(\mathrm{VR}_\varepsilon; \mathbb{R}) \implies \dim \ker(\Delta_k) = \beta_k
 
-  FASE II — TopologicalWitnessQNDEngine
-            Ingesta el germen de FASE I. Homología persistente VR, Δ_k Hodge,
-            Ray-Singer, Uhlmann, Oseledets QR, Pesin, Gromov, μ^{(3)}.
-            Terminal: `lift_monadic_rsi3`
-            → MonadicRSI3Lift → FASE III.
+§2. Torsión Analítica de Ray-Singer Combinatoria:
+    La torsión analítica de Ray-Singer $T_{\mathrm{RS}}$ mide la asimetría espectral del complejo de cadenas,
+    evaluada mediante los determinantes regularizados (producto de autovalores estrictamente positivos):
+        T_{\mathrm{RS}} = \frac{1}{2} \sum_{k=0}^m (-1)^k k \ln \det{}'(\Delta_k) = \frac{1}{2} \sum_{k=0}^m (-1)^k k \sum_{\lambda \in \mathrm{spec}(\Delta_k) \setminus \{0\}} \ln \lambda
+    constituyendo un invariante topológico de Reidemeister sensible a la torsión métrica del atlas deliberativo.
 
-  FASE III— TOONTopologicalWitnessEngine
-            Recibe el lift, adjudica Heyting Ω₃, acciona ESP32 Crowbar,
-            purga al Vacío de Dirac, sella Merkle + HMAC.
+IV. TEORÍA DE CONTROL HAMILTONIANO Y CAPACIDAD DE GROMOV
+────────────────────────────────────────────────────────
+§1. 1-Forma Simpléctica de Poincaré-Cartan:
+    Sobre la variedad de fases fibrada, la 1-forma canónica se evalúa sobre el operador de número $N$:
+        \theta_{\mathrm{PC}} = \mathrm{Tr}(\rho N)
+    La preservación de $\theta_{\mathrm{PC}}$ asegura que no existan fugas estocásticas en el ciclo cerrado de retorno.
 
-Back-Action objetivo: 0.0 dB.  c_G ≤ 12.5.  Cierre IRAM < 400 ns @ GPIO14.
+§2. Teorema Ergódico Multiplicativo de Oseledets (Cálculo QR):
+    Dada la sucesión de matrices de transferencia cocíclicas $\{M_k\}_{k=1}^K \subset \mathrm{Sp}(4, \mathbb{R})$,
+    el cociclo lineal se descompone asintóticamente mediante factorizaciones QR sucesivas:
+        M_k Q_{k-1} = Q_k R_k \implies \lambda_i = \lim_{K \to \infty} \frac{1}{K} \sum_{k=1}^K \ln |(R_k)_{ii}|
+    La suma de los exponentes de Lyapunov positivos acota la entropía métrica de Kolmogorov-Sinai (Teorema de Pesin):
+        h_{\mathrm{KS}} \le \sum_{\lambda_i > 0} \lambda_i
+
+§3. Capacidad Simpléctica de Gromov:
+    En virtud del Teorema de No-Aplastamiento (No-Squeezing Theorem), la capacidad simpléctica del cilindro
+    circunscrito acota la sección transversal del haz deliberativo:
+        c_G(\Omega) \le 12.5
+
+V. MÓNADA DE CONTINUACIÓN Y CATEGORÍA DE KLEISLI (RSI³)
+───────────────────────────────────────────────────────
+La propagación de la certeza de deliberación se formaliza en la mónada de continuación:
+    T(A) = (A \to \mathbb{R}) \to \mathbb{R}, \quad \eta(a) = \lambda k. k(a), \quad \mu(\sigma) = \lambda k. \sigma(\lambda m. m(k))
+El levantamiento monádico $\mu^{(3)}: T^3 \Rightarrow T$ verifica las identidades de conmutatividad
+de diagramas de Kleisli, asegurando que la meta-adaptación no introduzca distorsiones semánticas.
+
+VI. ARQUITECTURA DE TRES FASES ANIDADAS
+───────────────────────────────────────
+  • FASE I   [Atlas Celeste Poincaré-Topológico]: Integra las variables de Delaunay, la monodromía
+             $\mathrm{Sp}(4)$ y emite `SymplecticHandoffGerm`.
+  • FASE II  [Motor QND Topológico]: Ingiere el germen, ensambla $\mathrm{VR}_\varepsilon$, computa $\Delta_k$,
+             $\beta_k$, $T_{\mathrm{RS}}$, Oseledets y emite `MonadicRSI3Lift`.
+  • FASE III [Motor Soberano]: Adjudica en Heyting $\Omega_3$, verifica límites $c_G \le 12.5$,
+             gestiona el disyuntor ESP32 Crowbar y sella el certificado Merkle + HMAC.
+
+VII. ENCLAVAMIENTO CIBER-FÍSICO ESP32 Y VACÍO DE DIRAC
+──────────────────────────────────────────────────────
+Si la cavidad homológica degenera ($\beta_1 > 20$ o $c_G > 12.5$), el motor conmuta a $\bot = \mathrm{VETOED}$,
+accionando la señal de interrupción en silicio real:
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+disipando el paquete al Vacío de Dirac sin radiación residual:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations

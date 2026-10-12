@@ -1,54 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Topological Witness Agent (Soberano Testigo Topológico)      ║
-║ Ubicación: app/agents/wisdom/toon_topological_witness_agent.py               ║
-║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Gauge-Chern-Wilson-Betti-Hodge-      ║
-║            Heyting-ESP32-Dirac-PhiSem-Kleisli-Hopf-StoraZumino-Sp4           ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Topological Witness Agent (Soberano Testigo Topológico)                              ║
+║ Ubicación: app/agents/wisdom/toon_topological_witness_agent.py                                       ║
+║ Versión  : 7.0.0-Doctoral-Poincare-RSI3-Gauge-Chern-Wilson-Betti-Hodge-Heyting-ESP32-Dirac-PhiSem    ║
+║            -Kleisli-Hopf-StoraZumino-Sp4                                                             ║
+║ Función  : Soberano de Calibre Testigo Topológico en la Ciudadela de Sabiduría, encargado de auditar ║
+║            débilmente (back-action ≡ 0.0 dB) la conexión de calibre anclada al estado A_μ = π_𝔰𝔲(ρ), ║
+║            la 3-forma de Chern-Simons signada CS₃, la holonomía de Wilson sobre el retorno de        ║
+║            Poincaré, los invariantes homológicos de Betti β_k y mediar la traducción vía Φ_sem.      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre Testigo Topológico. Entidad de observación débil QND
-(Back-Action 0.0 dB) sobre homología persistente, números de Betti β_k, espectro
-de Hodge-de Rham y la superficie de deliberación de la octava TOON, juzgando
-en el topos Heyting Ω₃.
+I. DEFINICIÓN Y ROL DEL SOBERANO EN LA ARQUITECTURA COGNITIVA
+─────────────────────────────────────────────────────────────
+El TOON Topological Witness Agent es el Soberano de Calibre Testigo del Estrato WISDOM.
+Su función principal es monitorear con interferencia nula (Back-Action ≡ 0.0 dB) el transporte
+paralelo sobre el fibrado de gauge $P(T^*Q, G)$, donde la conexión no es un artificio estocástico,
+sino una proyección canónica del estado de densidad $\rho$. El agente observa los números de Betti $\beta_k$,
+la torsión de Ray-Singer y la carga de Chern-Simons, traduciendo de forma fidedigna la geometría
+de la red al plano táctico-financiero mediante el funtor semántico $\Phi_{\mathrm{sem}}$.
 
-Tejido evolucionado (v7.0.0) respecto de v5.2.0:
-  • CS₃ signado; Stora-Zumino no degenerado; Pontryagin auténtico;
-    A_μ = π_{𝔰𝔲(N)}(ρ) (calibre anclado al estado, no RNG);
-    Wilson = 𝒫 exp(∮ A) sobre el retorno de Poincaré.
-  • API del motor v7: MonadicRSI3Lift (no tupla); η via _last_eta / lift.
-  • Mecánica celeste de Poincaré en P(T*Q, G): momento equivariante,
-    Greene, Hill, splitting, T_ret, Birkhoff, Sp(4,ℝ).
-  • RSI3 μ^{(3)} : T³ ⇒ T en el agente (envuelve la del motor);
-    indicadores económicos en el veredicto local y en la observación RSI3.
-  • Φ_sem funtor lineal Sh(∂K, Ω₃) → Business.
-  • Tres fases anidadas con semillas tipadas (no mera herencia).
+II. CONEXIÓN DE CALIBRE ANCLADA AL ESTADO Y TEORÍA DE CHERN-SIMONS
+──────────────────────────────────────────────────────────────────
+§1. Proyección Canónica sobre el Álgebra $\mathfrak{su}(N)$:
+    La 1-forma de conexión $A_\mu$ se define rígidamente anclada a la matriz de densidad $\rho \in \mathfrak{D}_n$:
+        A_\mu = \pi_{\mathfrak{su}(N)}(\rho) = \frac{1}{2}(\rho - \rho^\dagger) - \frac{1}{N} \mathrm{Tr}\left(\frac{1}{2}(\rho - \rho^\dagger)\right) I_N \in \mathfrak{su}(N)
+    eliminando la arbitrariedad estocástica y garantizando invarianza bajo transformaciones unitarias globales.
 
-Estructura: TRES FASES ANIDADAS por herencia categórica, donde el terminal
-de cada fase es la semilla formal del inicial de la siguiente.
+§2. Acción Signada de Chern-Simons y Descenso de Stora-Zumino:
+    La 3-forma de Chern-Simons signada se evalúa como el funcional topológico:
+        \mathrm{CS}_3(A) = \frac{1}{8\pi^2} \int_M \mathrm{Tr}\left( A \wedge dA + \frac{2}{3} A \wedge A \wedge A \right)
+    cuyo diferencial exterior reproduce el segundo invariante de Chern (número de Pontryagin $\nu$):
+        d \, \mathrm{CS}_3(A) = \frac{1}{8\pi^2} \mathrm{Tr}(F \wedge F) = \nu(P) \in \mathbb{Z}
+    El balance de Stora-Zumino se verifica estrictamente:
+        \Delta_{\mathrm{SZ}} = \left| 8\pi^2 \, \mathrm{CS}_3(A) - \mathrm{Tr}(F \wedge \tilde{F}) \right| \le \varepsilon_{\mathrm{gauge}}
 
-  FASE I  — TopologicalWitnessGaugeTopology
-            Fibrado principal P(T*Q, G) con G = U(1) ⊗ SU(2) ⊗ H₃(ℝ).
-            Rigurosos: proyección 𝔰𝔲(N), F = [A_μ, A_ν], CS₃ signado,
-            instantón k, holonomía de Wilson sobre el retorno de Poincaré,
-            residual Stora-Zumino, clase Chern-Hopf c₁, momento equivariante,
-            HMAC canónico, unidad RSI3 η.
-            Terminal: `emit_topological_gauge_initial_condition`
-            → TopologicalWitnessGaugeInitialCondition → FASE II.
+§3. Holonomía de Wilson sobre la Órbita de Retorno de Poincaré:
+    A lo largo de la trayectoria de retorno cíclico $\gamma_{\mathrm{ret}}$ generada por la sección de Poincaré:
+        W(\gamma_{\mathrm{ret}}) = \mathcal{P} \exp\left( \oint_{\gamma_{\mathrm{ret}}} A_\mu dx^\mu \right) \in SU(2)
+    La fase de Wilson $\theta_W = \arg \det W(\gamma_{\mathrm{ret}})$ cuantifica la holonomía aditiva del transporte paralelo.
 
-  FASE II — TOONTopologicalWitnessAgent
-            Ingiere la semilla de FASE I, orquesta campañas QND homológicas
-            (Betti H_k(VR;ℝ), Hodge, Ray-Singer, Uhlmann, Gromov) integrando
-            disguised_cost_ratio y reward_hacking_index en el veredicto local
-            y en la observación RSI3. μ^{(3)} del agente no duplica la del motor.
-            Terminal: `emit_witness_campaign_draft`
-            → TopologicalWitnessCampaignDraftBundle → FASE III.
+III. FUNTOR SEMÁNTICO $\Phi_{\mathrm{sem}}: \mathrm{Sh}(\partial K, \Omega_3) \to \mathrm{Business}$
+────────────────────────────────────────────────────────────────────────────────
+El agente mapea los invariantes topológicos al dominio de la viabilidad económica:
+    • \beta_0 = 1 \implies \text{Cohesión total de partidas presupuestarias (Sin islas desconectadas)}
+    • \beta_1 = 0 \implies \text{Topología acíclica estricta (Ausencia de socavones o sobrecostos circulares)}
+    • \tau(\Omega_3) = \frac{\mathrm{ord}}{2} \implies \text{Grado de certidumbre ejecutiva } \in [0.0, 1.0]
+El funtor $\Phi_{\mathrm{sem}}$ interpola linealmente el costo contingente y la reserva para contingencias.
 
-  FASE III — SovereignTopologicalWitnessAdjudicator
-            Recibe el bundle, adjudica en Heyting Ω₃ (∧, ∨, ¬), acciona el
-            disyuntor ESP32 Crowbar (< 400 ns / GPIO14), contabiliza la purga
-            al Vacío de Dirac (e⁻ + e⁺ → 2γ), inyecta positrón HMAC-SHA256,
-            traduce al funtor Φ_sem y realimenta (η, gain, meta) a FASE I.
+IV. ARQUITECTURA DE TRES FASES ANIDADAS
+───────────────────────────────────────
+  • FASE I   [Topología de Calibre Testigo]: Computa $A_\mu = \pi_{\mathfrak{su}(N)}(\rho)$, $\mathrm{CS}_3$,
+             $W(\gamma_{\mathrm{ret}})$, firma el contrato HMAC y emite `TopologicalWitnessGaugeInitialCondition`.
+  • FASE II  [Agente Testigo Homológico]: Orquesta campañas QND homológicas, evalúa $\beta_k$, $\Delta_k$,
+             Ray-Singer, incorpora indicadores económicos y emite `TopologicalWitnessCampaignDraftBundle`.
+  • FASE III [Soberano Adjudicador Topológico]: Adjudica en Heyting $\Omega_3$, verifica disyuntor
+             ESP32 Crowbar, purga a Dirac, traduce a $\Phi_{\mathrm{sem}}$ y realimenta $\eta$ a la Fase I.
+
+V. ENCLAVAMIENTO CIBER-FÍSICO ESP32 Y VACÍO DE DIRAC
+────────────────────────────────────────────────────
+Ante un colapso homológico ($\beta_1 > 20$ o $\tau(\Omega_3) = 0.0$):
+    \tau_{\mathrm{crowbar}} \le 400.0 \text{ ns (ESP32 / GPIO14)}
+disipando el flujo hacia el Vacío de Dirac sin perturbación analógica externa:
+    e^- + e^+ \longrightarrow 2\gamma \quad \left( E = 2 m_e c^2 \approx 1.021998 \text{ MeV}, \quad \text{Back-Action } 0.0 \text{ dB} \right)
 """
 
 from __future__ import annotations
