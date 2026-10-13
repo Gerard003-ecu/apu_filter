@@ -73,11 +73,16 @@ import math
 import time
 from dataclasses import dataclass
 from enum import IntEnum
-from typing import Dict, Final, List, Optional, Sequence, Tuple, Union
+from typing import Any, Dict, Final, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
+
+from app.wisdom.toon_introspection_engine import (
+    TOONIntrospectionEngine,
+    MetaIntrospectionEngine,
+)
 
 
 logger = logging.getLogger("APU.Wisdom.TOONIntrospection")
@@ -1673,6 +1678,7 @@ class TOONIntrospectionAgent:
         field_update_eta: float = 0.20,
         max_iter: int = PowerIterationSolver.MAX_ITER_DEFAULT,
         tol: float = PowerIterationSolver.TOL_DEFAULT,
+        meta_engine: Optional[MetaIntrospectionEngine] = None,
     ) -> None:
         if dimension_mac < 1:
             raise ValueError("dimension_mac ≥ 1")
@@ -1682,6 +1688,7 @@ class TOONIntrospectionAgent:
         self.field_update_eta = float(np.clip(field_update_eta, 0.0, 1.0))
         self.max_iter = int(max_iter)
         self.tol = float(tol)
+        self.meta_engine = meta_engine or MetaIntrospectionEngine(dimension=dimension_mac)
         self.mac_density_matrix: ComplexMatrix = (
             np.eye(self.dimension_mac, dtype=np.complex128) / self.dimension_mac
         )
@@ -1690,6 +1697,24 @@ class TOONIntrospectionAgent:
             f"{agent_id}::GENESIS::n={dimension_mac}::"
             f"η={self.field_update_eta}".encode("ascii")
         ).hexdigest()
+
+    def solve_poincare_birkhoff_fixed_point_cpn_level3(
+        self,
+        density_matrix: Optional[np.ndarray] = None,
+        seed_vector_s6: Optional[np.ndarray] = None,
+        entropy_ks: float = 0.05,
+    ) -> Tuple[np.ndarray, float, Dict[str, Any]]:
+        r"""Resuelve el punto fijo de Tarski-Brouwer de Nivel 3 acelerado por Newton-Grassmann."""
+        rho_input = density_matrix if density_matrix is not None else self.mac_density_matrix
+        updated_rho, d_fs, metrics = self.meta_engine.solve_poincare_birkhoff_fixed_point_cpn_level3(
+            density_matrix=rho_input,
+            seed_vector_s6=seed_vector_s6,
+            entropy_ks=entropy_ks,
+        )
+        if getattr(self, "update_field", True):
+            if density_matrix is None or density_matrix is self.mac_density_matrix:
+                self.mac_density_matrix = updated_rho
+        return updated_rho, d_fs, metrics
 
     def _advance_chain(self, tag: str, payload: bytes) -> str:
         h = hashlib.sha256(
@@ -1832,8 +1857,17 @@ class TOONIntrospectionAgent:
         flash_vector: np.ndarray,
         incoming_heyting_verdict: HeytingOmega3 = HeytingOmega3.COHERENT,
         visceral_message: str = "",
+        seed_vector_s6: Optional[np.ndarray] = None,
+        entropy_ks: float = 0.05,
     ) -> IntrospectionProofCertificate:
-        r"""Ciclo soberano: F₃ ∘ F₂ ∘ F₁."""
+        r"""Ciclo soberano: F₃ ∘ F₂ ∘ F₁ con soporte de aceleración Nivel 3 por Semilla S⁶."""
+        if seed_vector_s6 is not None:
+            updated_rho, _, _ = self.solve_poincare_birkhoff_fixed_point_cpn_level3(
+                density_matrix=self.mac_density_matrix,
+                seed_vector_s6=seed_vector_s6,
+                entropy_ks=entropy_ks,
+            )
+            self.mac_density_matrix = updated_rho
         self.introspection_counter += 1
         introspection_id = f"INTROSPECT-PROOF-{self.introspection_counter:04d}"
         t_start = time.perf_counter()
