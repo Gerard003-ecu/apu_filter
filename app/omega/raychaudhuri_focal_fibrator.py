@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Raychaudhuri Focal Fibrator (Colapso Geodésico y Límite Afín)                  ║
-║  Ruta   : app/omega/raychaudhuri_focal_fibrator.py                                       ║
-║  Versión: 3.0.0-Nested-Caustic-Spectral-Topos                                            ║
+║  Nombre   : Raychaudhuri Focal Fibrator (Colapso Geodésico y Límite Afín)               ║
+║  Módulo   : app.omega.raychaudhuri_focal_fibrator                                         ║
+║  Ubicación : app/omega/raychaudhuri_focal_fibrator.py                                    ║
+║  Ruta     : app/omega/raychaudhuri_focal_fibrator.py                                    ║
+║  Versión  : 3.0.0-Nested-Caustic-Spectral-Topos                                          ║
+║  Función  : Operador de convergencia geodésica que evalúa la cinemática de congruencias   ║
+║             (expansión, cizalladura, vorticidad), certifica la Condición de Energía     ║
+║             Fuerte (SEC) y resuelve la ecuación de Raychaudhuri para detectar cáusticas.║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
 ║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║

@@ -1,9 +1,15 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Chingon Dependency Agent (Soberano de Calibre Chingónico 64D).      ║
-║ Ruta   : app/agents/core/chingon_dependency_agent.py                         ║
-║ Versión: 3.0.0-Doctoral-OODA-Heyting-CayleyDickson-64D-IRAM-ESP32-Nested3    ║
+║ Nombre   : Chingon Dependency Agent (Soberano de Calibre Chingónico 64D)    ║
+║ Módulo   : app.agents.core.chingon_dependency_agent                         ║
+║ Ubicación : app/agents/core/chingon_dependency_agent.py                      ║
+║ Ruta     : app/agents/core/chingon_dependency_agent.py                         ║
+║ Versión  : 3.0.0-Doctoral-OODA-Heyting-CayleyDickson-64D-IRAM-ESP32-Nested3    ║
+║ Función  : Agente supervisor ciber-físico que gobierna síncronamente al      ║
+║            Motor de Calibre Chingónico 64D en la FPU, auditando regularidad   ║
+║            de Banach, asociadores de 7 vías, tensores alternativos,          ║
+║            composición de Hurwitz, cono nulo y retículo de Heyting Ω_3.      ║
 ║                                                                              ║
 ║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO:                         ║
 ║ Este agente supervisor ciber-físico opera en el Estrato de la Sabiduría      ║

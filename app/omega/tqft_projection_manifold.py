@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : TQFT Projection Manifold (Proyector Topológico Independiente)                  ║
-║  Ruta   : app/omega/tqft_projection_manifold.py                                          ║
-║  Versión: 4.0.0-Strict-Functorial-Spectral-TQFT-Doctoral                                 ║
+║  Nombre   : TQFT Projection Manifold (Proyector Topológico Independiente)               ║
+║  Módulo   : app.omega.tqft_projection_manifold                                           ║
+║  Ubicación : app/omega/tqft_projection_manifold.py                                       ║
+║  Ruta     : app/omega/tqft_projection_manifold.py                                       ║
+║  Versión  : 4.0.0-Strict-Functorial-Spectral-TQFT-Doctoral                              ║
+║  Función  : Endofuntor soberano que impone independencia de fondo métrico (Met → Top),   ║
+║             evalúa cobordismos en Cob(3), calcula acciones de Chern-Simons, sumas de    ║
+║             estados de Turaev-Viro y colapsa veredictos en el álgebra booleana.          ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
 ║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS TOPOLÓGICA (TQFT):                  ║

@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Utils Agent (Custodio de la Frontera Termodinámica)                            ║
-║  Ruta   : app/agents/core/utils_agent.py                                                 ║
-║  Versión: 2.0.0-Topological-FPU-Boundary-Strict                                          ║
+║  Nombre   : Utils Agent (Custodio de la Frontera Termodinámica)                          ║
+║  Módulo   : app.agents.core.utils_agent                                                  ║
+║  Ubicación : app/agents/core/utils_agent.py                                           ║
+║  Ruta     : app/agents/core/utils_agent.py                                           ║
+║  Versión  : 2.0.0-Topological-FPU-Boundary-Strict                                    ║
+║  Función  : Endofuntor de capa límite termodinámica que actúa como filtro de entropía    ║
+║             sintáctica, proyector de FPU IEEE 754, retracto de deformación idempotente y ║
+║             certificador de difeomorfismos I/O de inodos.                                ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
 ║  NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL (Rigor Doctoral):                       ║

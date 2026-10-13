@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Quantum Fock Orchestrator (Colisionador Catadióptrico Supremo)                 ║
-║  Ruta   : app/omega/quantum_fock_orchestrator.py                                         ║
-║  Versión: 3.0.0-Rigorous-Lindblad-Spectral-Topos                                         ║
+║  Nombre   : Quantum Fock Orchestrator (Colisionador Catadióptrico Supremo)               ║
+║  Módulo   : app.omega.quantum_fock_orchestrator                                          ║
+║  Ubicación : app/omega/quantum_fock_orchestrator.py                                       ║
+║  Ruta     : app/omega/quantum_fock_orchestrator.py                                       ║
+║  Versión  : 3.0.0-Rigorous-Lindblad-Spectral-Topos                                       ║
+║  Función  : Cámara de reacción del espacio de Fock H_Fock que orquesta colisiones entre  ║
+║             bosones focales y fermiones de Householder, evolucionando matrices densidad ║
+║             vía Lindblad CPTP y aniquilando errores en fotones Gamma forenses.          ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
 ║  NATURALEZA CIBER-FÍSICA Y TEORÍA CUÁNTICA DE CAMPOS (Rigor Doctoral):                   ║
