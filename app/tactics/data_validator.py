@@ -1,9 +1,14 @@
 # -*- coding: utf-8 -*-
 r""" 
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Data Validator (Tribunal de Coherencia Termodinámica y Filtrado Topológico)    ║
-║  Ruta   : app/tactics/data_validator.py                                                  ║
-║  Versión: 4.0.0-Topological-Thermodynamic-Strict-Doctoral                                ║
+║  Nombre   : Data Validator (Tribunal de Coherencia Termodinámica y Filtrado Topológico)   ║
+║  Módulo   : app.tactics.data_validator                                                   ║
+║  Ubicación : app/tactics/data_validator.py                                               ║
+║  Ruta     : app/tactics/data_validator.py                                               ║
+║  Versión  : 4.0.0-Topological-Thermodynamic-Strict-Doctoral                              ║
+║  Función  : Filtro de variedad diferenciable transversal que ejecuta auditorías          ║
+║             microscópicas C = Q·P, análisis de complejos simpliciales bipartitos APU-Insumo ║
+║             (Betti-0, conectividad Fiedler) y evaluación de la entropía termodinámica.   ║
 ╠══════════════════════════════════════════════════════════════════════════════════════════╣
 ║                                                                                          ║
 ║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
