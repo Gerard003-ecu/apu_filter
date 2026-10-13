@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ADAPTERS
 
 Nombre: ToolsInterface
 Ubicación: app/adapters/tools_interface.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Interfaz funtorial y adaptador universal entre los estados abstractos de sabiduría
          (espinores, haces topológicos, cuaterniones, lazos de Novikov) y los efectores
          computacionales y herramientas del entorno. Preserva la conmutatividad categórica F(g circ f) = F(g) circ F(f).

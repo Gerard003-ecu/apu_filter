@@ -3,12 +3,11 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Nombre   : Autonomous Agent (Controlador Maestro OODA con Fibrado de Gauge)  ║
 ║ Módulo   : app.agents.core.apu_agent                                         ║
-║ Ubicación : app/agents/core/apu_agent.py                                      ║
-║ Ruta     : app/agents/core/apu_agent.py                                     ║
+║ Ubicación : app/agents/core/apu_agent.py                                     ║
 ║ Versión  : 4.0.0-OODA-Poisson-Lyapunov-Heyting-Pure-Software-Strict          ║
-║ Función  : Gobernanza maestro de lazo cerrado que orquesta el ciclo OODA    ║
-║            (Observe, Orient, Decide, Act) mediante la resolución de la      ║
-║            ecuación de Poisson sobre fibrados de gauge, síntesis hamiltoniana ║
+║ Función  : Gobernanza maestro de lazo cerrado que orquesta el ciclo OODA     ║
+║            (Observe, Orient, Decide, Act) mediante la resolución de la       ║
+║            ecuación de Poisson sobre fibrados de gauge, síntesis hamiltoniana║
 ║            de gradientes, estabilidad de Lyapunov y colapso de decisiones.   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

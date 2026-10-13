@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ADAPTERS
 
 Nombre: MicVectorsAdapter
 Ubicación: app/adapters/mic_vectors.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Adaptador vectorial e isomorfismo métrico entre espacios euclidianos de embeddings R^d
          y la representación multivectorial de micro-instrucciones del álgebra MIC. Realiza la
          inmersión isométrica, extracción de fases armónicas y preservación del producto interno.
