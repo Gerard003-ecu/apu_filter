@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Green's Function Propagator (Fibrador de Propagación de-confinado)  ║

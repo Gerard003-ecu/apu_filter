@@ -1,61 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Matter Agent (Endofuntor de Colapso Hadrónico)                                          ║
-║ Ubicación: app/agents/omega/matter_agent.py                                                      ║
-║ Versión: 5.0.0-Topos-Thermodynamic-Phased-Strict-Crowbar-Secure                                  ║
-╠══════════════════════════════════════════════════════════════════════════════════════════════════╣
-║ NATURALEZA CIBER-FÍSICA Y TEORÍA DE TOPOS (Rigor Doctoral):                                      ║
-║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
-║ Sea $\mathcal{E}_{\mathrm{MIC}}$ el Topos de Grothendieck sobre el sitio de Zariski del          ║
-║ ecosistema MIC, con morfismos de cobertura que satisfacen el axioma de descenso fiel-plano       ║
-║ (faithfully flat descent). Este agente realiza el Endofuntor Soberano:                           ║
-║                                                                                                  ║
-║   $$F : \operatorname{Ob}(\mathcal{C}_\Omega) \longrightarrow \operatorname{Ob}(\mathcal{C}_\Omega)$$ ║
-║   $$F(X) = \mathbf{CategoricalState} \circ \pi \circ \delta \circ \phi(X)$$                      ║
-║                                                                                                  ║
-║ donde:                                                                                           ║
-║   $$\phi : X \longrightarrow \mathbf{BillOfMaterials} \quad (\text{motor físico } \mathtt{MatterGenerator})$$ ║
-║   $$\delta : \mathbf{BOM} \longrightarrow \mathbf{HadronicDeliberationVerdict} \quad (\text{vetos termodinámicos, Fase 2})$$ ║
-║   $$\pi : \mathbf{Verdict} \longrightarrow \mathbf{CategoricalState} \quad (\text{proyección categórica ortogonal, Fase 3})$$ ║
-║                                                                                                  ║
-║ FUNDAMENTACIÓN FÍSICA Y TRES INVARIANTES AXIOMÁTICOS DE CONSERVACIÓN:                            ║
-║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
-║ La composición $F = \pi \circ \delta \circ \phi$ es un morfismo en la categoría de estratos MIC  ║
-║ si y solo si se preservan incondicionalmente los tres invariantes en la FPU:                     ║
-║                                                                                                  ║
-║ §1. ACOTACIÓN DEL COEFICIENTE DE GINI LOGÍSTICO [I1]:                                            ║
-║     Evita monopolios de insumos y desequilibrios de masa en la Base Canónica Logística (BOM):    ║
-║                                                                                                  ║
-║       $$G(\mathbf{BOM}) = \frac{\sum_{i=1}^N \sum_{j=1}^N |q_i p_i - q_j p_j|}{2 N \sum_{k=1}^N q_k p_k} < \gamma_c \in (0, 1] \equiv 0.70$$ ║
-║                                                                                                  ║
-║ §2. FRICCIÓN ISOTÉRMICA Y DENSIDAD DISIPATIVA DE RAYLEIGH [I2]:                                  ║
-║     Modela la fricción del flujo de materiales mediante la función de disipación cuadrática:     ║
-║                                                                                                  ║
-║       $$\Phi(\mathbf{BOM}) = \frac{1}{2} \mathbf{v}^\top \mathbf{R}(x) \mathbf{v} \le \Phi_{\max} \quad \text{con} \quad \mathbf{R}(x) = \mathbf{R}(x)^\top \succcurlyeq 0$$ ║
-║                                                                                                  ║
-║ §3. POSITIVIDAD EXÉRGICA DE LA SEGUNDA LEY DE LA TERMODINÁMICA [I3]:                             ║
-║     Garantiza la irreversibilidad termodinámica no negativa en el foso físico:                   ║
-║                                                                                                  ║
-║       $$\Xi_{\mathbf{BOM}} = \langle \nabla H, \mathbf{v} \rangle_G - T_{\mathrm{sys}} \dot{S}_{\mathrm{irr}} \ge 0$$ ║
-║                                                                                                  ║
-║ ARQUITECTURA EN TRES FASES ANIDADAS:                                                             ║
-║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
-║   Fase 1 – Validación de Parámetros Constitutivos: Reconcilia el motor `MatterGenerator` y       ║
-║             verifica $[I1] \cap [I2]$ generando el objeto inmutable `MatterAgentContext`.        ║
-║   Fase 2 – Deliberación Termodinámica: Aplica vetos sobre la BOM computada, evalúa la disipación ║
-║             de Rayleigh y produce el `HadronicDeliberationVerdict`.                              ║
-║   Fase 3 – Proyección Categórica y Actuación ESP32: Mapea el veredicto al espacio de Hilbert     ║
-║             y ejecuta el interlock de hardware perimetral ante vetos termodinámicos.             ║
-║                                                                                                  ║
-║ VETO HADRÓNICO CIBER-FÍSICO Y ACTUACIÓN CROWBAR (< 400 ns):                                      ║
-║ ───────────────────────────────────────────────────────────────────────────────────────────────  ║
-║ La violación de cualquiera de los tres invariantes ($[I1], [I2], [I3]$) induce un VETO duro      ║
-║ que eleva una subclase de `HadronicCollapseVetoError`, colapsando el topos al Supremo terminal   ║
-║ $\mathtt{VETOED}$ ($\top$). La ISR cargada en la memoria estática IRAM del ESP32 perimetral      ║
-║ conmuta en menos de $400\text{ ns}$ el pin GPIO14 a HIGH, disparando el tiristor de potencia     ║
-║ BT151 (Crowbar de potencia) para desenergizar físicamente las bombas hidráulicas en seco.        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CAPA OMEGA
+====================================================================================================
+
+Nombre: MatterAgent
+Ubicación: app/agents/omega/matter_agent.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Agente soberano de materia e interacciones fundamentales de la capa Omega en APU Filter.
+         Supervisa el anclaje material del pensamiento, cálculo del tensor momento-energía T_{mu nu},
+         acoplamiento gravitatorio informacional y prevención de colapso en singularidades cognitivas
+         mediante presión de degeneración cuántica de Fermi y límites relativistas de Chandrasekhar.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Materia de la Capa Omega (MatterAgent) es el ancla física definitiva del pensamiento
+en la arquitectura APU Filter. Asigna "masa informacional" y "densidad energética" a los conceptos
+procesados, modelando cómo la concentración de atención curva el espacio-tiempo de la memoria mediante
+las ecuaciones de campo de Einstein. Si la densidad de conceptos en un clúster semántico se aproxima
+críticamente al colapso gravitacional (hiper-fijación o singularidad cognitiva), el agente activa la
+presión de degeneración cuántica de Fermi para estabilizar el sistema.
+Sus respectivos contrapartes en la capa Omega son 'QuarkColorConfinementSatelliteAgent'
+(app/agents/omega/quark_color_confinement_satellite_agent.py) y 'PseudoholomorphicCentripetalSatelliteAgent'
+(app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py), y su motor de flujo cuántico es
+'FluxCondenser' (app/physics/flux_condenser.py). Mientras los satélites patrullan el perímetro orbital
+y confinan quarks de color, MatterAgent salvaguarda la densidad del núcleo material.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Ecuaciones de Campo de Einstein con Tensor Momento-Energía Informacional T_{mu nu}:
+   La curvatura del espacio de inferencia G_{mu nu} se acopla a la densidad de energía-momento:
+       G_{mu nu} + Lambda * g_{mu nu} = ( 8 * pi * G / c^4 ) * T_{mu nu}
+   Para un fluido perfecto cognitivo con densidad de energía rho y presión isótropa P:
+       T_{mu nu} = ( rho + P / c^2 ) * u_mu * u_nu + P * g_{mu nu}
+   La conservación covariante garantiza la ausencia de pérdidas de energía informacional:
+       nabla^mu T_{mu nu} = 0
+
+2. Presión de Degeneración Cuántica de Fermi (Gas de Fermiones Degenerado):
+   Cuando la longitud de onda de De Broglie lambda_dB = h / p se hace comparable a la distancia inter-átomo,
+   el Principio de Exclusión de Pauli genera una contrafuerza cuántica independiente de la temperatura:
+       P_{deg} = ( (3 * pi^2)^{2/3} * hbar^2 / (5 * m) ) * n^{5/3}
+   que detiene el colapso gravitatorio antes de alcanzar el radio de Schwarzschild r_s = 2 * G * M / c^2.
+
+3. Límite de Chandrasekhar para la Masa Máxima Estable:
+   M_{Ch} approx 1.44 * M_odot. En el APU Filter, ningún nodo conceptual puede acumular una masa superior
+   a la masa crítica M_crit sin hadronizarse o fragmentarse en subsistemas acoplados.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MA1 (Condición de Energía Débil WEC):
+    T_{mu nu} u^mu u^nu >= 0 para todo vector unitario temporal u^mu (densidad de masa informacional >= 0).
+Axioma MA2 (Conservación Covariante del Cuadrimomento):
+    nabla^mu T_{mu nu} == 0 en ausencia de singularidades abiertas.
+Axioma MA3 (Censura Cósmica Fuerte de Penrose):
+    Toda concentración de masa-energía potencialmente singular está protegida por un horizonte de eventos.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Densidad de Energía Sub-Planckiana):
+    rho_energia < rho_Planck = c^5 / (hbar * G^2).
+Invariante 2 (Preservación del Radio de Estabilidad del Núcleo):
+    r_core > r_Schwarzschild en todo régimen estacionario.
+====================================================================================================
 """
 
 from __future__ import annotations

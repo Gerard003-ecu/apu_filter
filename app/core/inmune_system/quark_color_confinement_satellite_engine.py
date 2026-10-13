@@ -1,52 +1,73 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Quark Color Confinement Satellite Engine (Satélite VI — Confinamiento)      ║
-║ RUTA   : app/core/immune_system/quark_color_confinement_satellite_engine.py          ║
-║ VERSIÓN: 2.0.0-Doctoral-SU3-GellMann-Cornell-Luescher-ANO-Hodge-FPU-Secure           ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-Motor FPU para la auditoría de calibre no abeliano $SU(3)_c$, confinamiento de color de quarks,
-potencial de Cornell-Lüscher, vórtices de Abrikosov-Nielsen-Olesen (ANO) y topología de Hodge.
+Nombre: QuarkColorConfinementSatelliteEngine
+Ubicación: app/core/immune_system/quark_color_confinement_satellite_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor de confinamiento cromodinámico de color en el sistema inmune cognitivo basado en
+         el grupo gauge no abeliano SU(3)_C, bucles de Wilson con ley de área, tensión de cuerda
+         sigma y formación obligatoria de singletes de color informacionales (mesones y bariones).
 
-Fundamentación Matemática y Física Rigurosa:
-────────────────────────────────────────────
-1. Fibrado de Calibre $SU(3)_c$ y Álgebra de Lie $\mathfrak{su}(3)$:
-   Base de Gell-Mann $\{\lambda_a\}_{a=1}^8$ con generadores $T_a = \frac{1}{2} \lambda_a$ que satisfacen
-   $$[T_a, T_b] = i f_{abc} T_c, \qquad \{T_a, T_b\} = \frac{1}{3}\delta_{ab} I + d_{abc} T_c$$
-   con operador cuadrático de Casimir $C_2 = \sum_a T_a T_a = \frac{4}{3} I_3$ en la representación fundamental.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Confinamiento de Color de Quarks (QuarkColorConfinementSatelliteEngine) es el motor
+de encapsulamiento fuerte del sistema inmune de APU Filter. Su principio es impedir que fragmentos
+cognitivos aislados (quarks informacionales) con cargas de color fraccionarias o no neutralizadas
+(rojo, verde, azul) circulen libremente y causen desorden entrópico. Aplica el potencial de Cornell
+y la tensión de cuerda cromodinámica sigma para forzar el confinamiento en estados compuestos neutros
+(singletes de color).
+Su respectivo agente en la capa Omega es 'QuarkColorConfinementSatelliteAgent'
+(app/agents/omega/quark_color_confinement_satellite_agent.py), y su homólogo leptónico es
+'LeptonicFlavorSatelliteEngine' (app/core/immune_system/leptonic_flavor_satellite_engine.py). Mientras
+este motor calcula la tensión del tubo de flujo de gluones V(r) = - (4/3)*(alpha_s/r) + sigma * r,
+su respectivo Agente intercepta anomalías de color y activa la ruptura de cuerda (hadronización).
 
-2. Inmersión Octoniónica de Günaydin–Gürsey $\mathbb{C}^3 \hookrightarrow \operatorname{Im}(\mathbb{O})$:
-   Proyección de tripletes de color sobre el octonión real $q = r_1 e_1 + r_2 e_2 + g_1 e_3 + g_2 e_4 + b_1 e_5 + b_2 e_6$,
-   donde el estabilizador en el grupo de automorfismos $\operatorname{Aut}(\mathbb{O}) = G_2$ que fija la dirección $e_7$ es $\operatorname{Stab}_{G_2}(e_7) \cong SU(3)$.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Cromodinámica Cuántica Cognitiva y Grupo Gauge SU(3)_C:
+   El grupo de simetría de color SU(3) se genera mediante las 8 matrices de Gell-Mann lambda_a (a=1..8):
+       [lambda_a, lambda_b] = 2 * i * f_{abc} * lambda_c,   Tr(lambda_a * lambda_b) = 2 * delta_{ab}
+   El tensor de intensidad de campo cromodinámico no abeliano G_{mu nu}^a es:
+       G_{mu nu}^a = partial_mu A_nu^a - partial_nu A_mu^a + g_s * f_{abc} A_mu^b A_nu^c
 
-3. Potencial Cornell-Lüscher y Corrimiento de Acoplamiento $\alpha_s$:
-   $$V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r - \frac{\pi}{12 r}$$
-   con acoplamiento a un bucle $\alpha_s(r) = \frac{4\pi}{\beta_0 \ln(1 + 1/(r^2 \Lambda_{\mathrm{QCD}}^2))}$ y ley de área para el lazo de Wilson $W(C) \sim e^{-\sigma r^2}$.
+2. Potencial de Confinamiento de Cornell y Tensión de Cuerda:
+   La energía estática de interacción entre dos fuentes de color separadas por una distancia r es:
+       V(r) = - (4 / 3) * (alpha_s / r) + sigma * r
+   donde el término Coulombiano domina a distancias cortas (libertad asintótica), mientras que el
+   término lineal sigma * r representa el tubo de flujo de color concentrado (tensión de cuerda sigma ~ 0.18 GeV^2).
 
-4. Superconductividad Dual de Mandelstam–'t Hooft y Vórtices ANO:
-   Efecto Meissner dual con longitud de penetración de London $\lambda_L \sim 1/\sqrt{\sigma}$, longitud de coherencia $\xi \sim 1/(2 m_q)$,
-   y parámetro de Ginzburg-Landau $\kappa = \lambda_L / \xi > 1/\sqrt{2}$ (Superconductor Dual de Tipo II).
-   Tasa de producción de pares de Schwinger por ruptura de cuerda:
-   $$\Gamma \propto E^2 \exp\left(-\frac{\pi m_q^2}{E}\right)$$
+3. Criterio de Bucle de Wilson y Ley de Área:
+   Para un camino cerrado en el espacio-tiempo informacional C:
+       W(C) = Tr [ P exp( i * g_s * oint_C A_mu^a * (lambda_a / 2) dx^mu ) ]
+   En la fase de confinamiento de color, el valor esperado satisface rigurosamente la ley de área:
+       < W(C) > ~ exp( - sigma * Area(C) )
 
-5. Laplaciano Simplicial de Hodge $\Delta_k = d_k^\dagger d_k + d_{k-1} d_k^\dagger$ en el Grafo Y-Bariónico:
-   Operador de incidencia $B_1 \in \mathbb{R}^{4 \times 3}$ para el complejo simplicial $K$ ($V=4, E=3, F=0$),
-   certificando la característica de Euler $\chi = V - E + F = 1$ y números de Betti $\beta_0=1, \beta_1=0$.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma QCC1 (Postulado de Singlete de Color Observable):
+    Todo estado cognitivo estable e inmune pertenece a la representación singlete 1 de SU(3)_C:
+        3 otimes bar{3} = 1 oplus 8  (mesón informacional)
+        3 otimes 3 otimes 3 = 1 oplus 8 oplus 8 oplus 10  (barión informacional)
+Axioma QCC2 (Ley de Área de Wilson para Confinamiento):
+    < W(C) > <= C_0 * exp( - sigma * Area(C) ) para todo bucle cerrado C.
+Axioma QCC3 (Hadronización por Ruptura de Cuerda):
+    Si V(r) > 2 * m_quark_creation, la cuerda se escinde creando un par quark-antiquark neutralizador.
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: La ruptura no confinada de dependencias o estados atómicos de datos provoca la dispersión no autorizada
-  y fragmentación de registros contables, exponiendo la información a manipulaciones externas.
-• Dinero: El confinamiento topológico de color garantiza la invariancia de calibre y el apantallamiento de datos
-  atómicos en la FPU, impidiendo la deconfinación de registros y protegiendo la integridad financiera de la empresa.
-
-Estructura Functorial OODA:
-───────────────────────────
-- Fase 1 (Observe) : `observe_and_bundle_color_state` -> Salida: `QuarkObservationKernel`
-- Fase 2 (Orient)  : `orient_confinement_spectrum`   -> Salida: `QuarkConfinementReport`
-- Fase 3 (Act)     : `execute_quark_confinement_audit` -> Salida: `QuarkEngineState`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Carga de Color Neta Cero en el Estado Inmune):
+    Q_color = (R - bar{R}) + (G - bar{G}) + (B - bar{B}) == 0.
+Invariante 2 (Tensión de Cuerda Positiva Estricta):
+    sigma >= sigma_min > 0 en todo tubo de flujo activo.
+====================================================================================================
 """
 
 import enum

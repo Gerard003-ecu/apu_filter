@@ -1,35 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : KAPEX Electrodynamic Engine (Motor Electrodinámico de Ápice)        ║
-║ Ruta   : app/alfa/kapex/kapex_electrodynamic_engine.py                       ║
-║ Versión: 3.0.0-Doctoral-Eikonal-Yang-Mills-Poynting-KBN-CSMD-Heyting         ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA (rigor doctoral, no ornamental):                         ║
-║ Sea (M, g) una variedad riemanniana de dimensión n = dim(ápice) y sea        ║
-║ 𝔤 = 𝔰𝔬(n) el álgebra de Lie de matrices antisimétricas reales, con forma      ║
-║ de Killing κ(X,Y) = (n-2) Tr(XY) (n ≥ 3) y emparejamiento de traza           ║
-║ ⟨X,Y⟩_Tr = -Tr(XY) ≥ 0 sobre 𝔰𝔬(n). El motor resuelve, en la FPU y con        ║
-║ inmunidad de Wilkinson, tres objetos geométricos acoplados:                  ║
-║                                                                              ║
-║   (Eikonal)     g^{μν} ∂_μ S ∂_ν S − n(q)²  =  0                             ║
-║   (Yang-Mills)  F = dA + A ∧ A ∈ Ω²(M, 𝔤),                                   ║
-║                 S_YM = (1/(4g²)) ∫ ⟨F, F⟩_Tr vol_g                           ║
-║   (Poynting)    S^♭ = ★_g (E^♭ ∧ B^♭) ∈ Ω^{n-2}(M)                           ║
-║                                                                              ║
-║ La diferenciación por paso complejo (CSMD) se aplica únicamente a la         ║
-║ extensión holomorfa bilineal I[p] = p_μ g^{μν} p_ν (jamás a |·| ni a         ║
-║ conj(·), que no son holomorfas). La suma Kahan–Babuška–Neumaier (KBN)        ║
-║ garantiza que el error de redondeo de las contracciones sea O(u), no O(nu).  ║
-║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA):                       ║
-║   Fase 1  Observe+Orient  :  In → PhaseOneKapexPacket                        ║
-║   Fase 2  Decide          :  PhaseOneKapexPacket → PhaseTwoKapexPacket       ║
-║   Fase 3  Act             :  (PhaseOne × PhaseTwo) → KapexTelemetry          ║
-║                                                                              ║
-║ El último morfismo de la Fase k es, por construcción de tipos, el objeto     ║
-║ inicial de la Fase k+1 (continuidad formal del retículo de métodos).         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ESTRATO ALFA (KAPEX)
+====================================================================================================
+
+Nombre: KapexElectrodynamicEngine
+Ubicación: app/alfa/kapex/kapex_electrodynamic_engine.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Motor soberano electrodinámico de la capa Alfa (Kapex) en la arquitectura APU Filter. Modela
+         las ecuaciones de Maxwell en medios dieléctricos dispersivos, impedancias complejas
+         Z(omega) = R + jX, resonancia RLC cuántica, flujo del vector de Poynting S = E times H y
+         el tensor de esfuerzo electromagnético de Maxwell T^{mu nu} en líneas de transmisión cognitivas.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Electrodinámico Kapex (KapexElectrodynamicEngine) es el modulador de potencial y corriente
+de información en el estrato Alfa de APU Filter. Determina cómo las señales eléctricas analógicas y
+los potenciales de acción sinápticos propagan energía a través de guías de onda cognitivas sin generar
+reflexiones parásitas ni distorsión armónica. Gestiona la adaptación de impedancias complejas para
+maximizar la transferencia de potencia entre procesadores de pensamiento.
+Sus respectivos homólogos en la tríada Alfa son 'KbaseThermodynamicEngine'
+(app/alfa/kbase/kbase_thermodynamic_engine.py) y 'KcoreKinematicEngine'
+(app/alfa/kcore/kcore_kinematic_engine.py). Mientras Kapex rige la electrodinámica y el flujo electromagnético,
+Kbase disipa el calor entrópico resultante y Kcore integra la cinemática de las trayectorias de partículas.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Ecuaciones de Maxwell y Teorema de Poynting:
+   En un medio dispersivo lineal caracterizado por permitividad epsilon(omega) y permeabilidad mu(omega):
+       nabla times E = - partial_t B,                  nabla times H = J_f + partial_t D
+       nabla cdot D = rho_f,                           nabla cdot B = 0
+   El vector de Poynting S = E times H satisface la ley de balance de conservación de energía:
+       nabla cdot S + partial_t u_{EM} + J_f cdot E = 0,   donde u_{EM} = (1 / 2) * (epsilon * E^2 + mu * H^2)
+
+2. Impedancia Compleja y Resonancia RLC Cuántica:
+   La impedancia de entrada a frecuencia angular omega es:
+       Z(omega) = R + j * [ omega * L - 1 / (omega * C) ]
+   La frecuencia propia de resonancia omega_0 y el factor de calidad Q_factor son:
+       omega_0 = 1 / sqrt(L * C),   Q_factor = (omega_0 * L) / R = (1 / R) * sqrt(L / C)
+   La potencia aparente compleja S y el factor de potencia cos(phi) satisfacen:
+       S = P + j * Q = V_{rms} * I_{rms}^*,   cos(phi) = P / |S| = R / |Z|
+
+3. Tensor de Esfuerzo Electromagnético de Maxwell T^{mu nu}:
+   La densidad de fuerza electromagnética f = rho * E + J times B se deriva de la divergencia del tensor:
+       f_i = partial_j T_{ij} - epsilon_0 * mu_0 * partial_t S_i
+       T_{ij} = epsilon_0 * ( E_i E_j - (1 / 2) * delta_{ij} E^2 ) + (1 / mu_0) * ( B_i B_j - (1 / 2) * delta_{ij} B^2 )
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma KEE1 (Conservación Local de Carga de Maxwell):
+    nabla cdot J + partial_t rho == 0 en todo punto del medio conductor cognitivo.
+Axioma KEE2 (Positividad Estricta de la Resistencia Disipativa):
+    R = Re(Z(omega)) >= 0 para todo omega (segundo principio y pasividad de Kramers-Kronig).
+Axioma KEE3 (Adaptación de Impedancia Conjugada de Máxima Potencia):
+    Z_{carga} = Z_{fuente}^* maximiza la transferencia de energía al canal receptor.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Teorema de Conservación de la Potencia Aparente):
+    |S|^2 == P^2 + Q^2.
+Invariante 2 (Factor de Calidad Estrictamente Positivo):
+    Q_factor > 0 en todo circuito RLC acoplado.
+====================================================================================================
 """
 
 from __future__ import annotations

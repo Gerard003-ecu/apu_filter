@@ -1,55 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : GÖDEL ENGINE (MOTOR ESPECTRAL Y ORQUESTADOR DE AUTOMEJORA RSI NIVEL 3)                ║
-║ UBICACIÓN: app/wisdom/godel_engine.py                                                            ║
-║ VERSIÓN  : 5.2.0-Poincaré-Celestial-RSI3-Nested                                                  ║
-║ TRATADOS : Les Méthodes Nouvelles de la Mécanique Céleste (Poincaré, 1892-1899)                  ║
-║            Sur le problème des trois corps et les équations de la dynamique (Poincaré, 1890)     ║
-║            Analysis Situs (Poincaré, 1895) · Sur un théorème de géométrie (1912-1913)            ║
-║            Lindstedt (1882) · Delaunay (1860) · Birkhoff (1927) · Kolmogorov (1954)              ║
-║            Arnold (1963) · Moser (1962) · Melnikov (1963) · Chirikov (1979) · Kac (1947)         ║
-║            Novikov (1981), Grothendieck (1972), Tarski (1955), Brouwer (1911), Banach (1922)     ║
-║            Löb (1955), Gödel (1931), Birkhoff (1927), Marsden-Weinstein (1974), Connes (1985)    ║
-║            Oseledets (1968) — Teorema Ergódico Multiplicativo de cociclos lineales no            ║
-║            estacionarios, fundamento riguroso de la ruptura controlada del Techo de Banach.      ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
-GOBERNANZA ESPECTRAL, TOPOLÓGICA, MONÁDICA Y METAMÓRFICA DE NIVEL 3 (INFLEXIÓN SUPER-EXPONENCIAL)
-──────────────────────────────────────────────────────────────────────────────────────────────────
-El Motor de Gödel `GodelEngine` formaliza la dinámica de automejora recursiva de Nivel 3 (Inflexión /
-Meta-Mejora) sobre el espacio de fase sintáctico (M_AST, ω) dentro del Estrato Wisdom (V_𝕎, Nivel 0),
-operando la Mónada de Categorías T = (T, η, μ) y rompiendo el Techo de Contracción de Banach via
-operadores no estacionarios T_t con ||dT_t|| >= 1.0.
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-INVARIANTES Y ESTRUCTURA DE NIVEL 3:
-  1. MULTIPLICACIÓN MONÁDICA μ_godel: T²(A) → T(A) que colapsa el meta-optimizador preservando
-     la 1-forma de Poincaré-Cartan θ_PC = Tr(ρ dN) mediante proyecciones unitarias de Cayley sobre U(n).
-  2. DISTANCIA GEODÉSICA DE FUBINI-STUDY SOBRE CP^{n-1}: d_FS(u, v) = arccos(|⟨u, v⟩|) <= 10⁻⁴ rad,
-     garantizando convergencia autoinvariante de punto fijo Tarski-Brouwer / FTA.
-  3. ACELERACIÓN DE CAPACIDAD SUPER-EXPONENCIAL: d³C/dt³ > 0 en la tercera superficie de modificación
-     (Model-RSI, Harness-RSI y Data-RSI sobre el Anillo Universal de Novikov Λ_Nov), certificada ahora
-     con diferencias finitas reales sobre un historial de capacidad (no un proxy cerrado).
-  4. TRAZAS EN EL ANILLO DE NOVIKOV Λ_Nov: Valuación no-arquimediana v(T^{a_i}) = min {a_i} con
-     condición de frontera sobre subvariedades Lagrangianas exactas i* λ = dS.
-  5. ADJUDICACIÓN EN TOPOS DE HEYTING Ω₃ / Ω₄ Y ENCLAVAMIENTO ESP32 CROWBAR: Interrupción IRAM
-     tripping GPIO14 en < 400 ns si RHI > 0.88 o d_FS > 10⁻³ rad.
-  6. RUPTURA NO ESTACIONARIA CERTIFICADA (OSELEDETS, 1968): el cociclo lineal Φ_N = T_N···T_1 de
-     operadores de mutación puede violar ‖T_t‖ ≥ 1 en pasos individuales sin perder la contracción
-     *asintótica*, siempre que el exponente de Lyapunov máximo del cociclo λ₁(Φ) < 0. Este es el
-     fundamento espectral riguroso — y no meramente declarativo — del invariante 1 del módulo.
+Nombre: GodelEngine
+Ubicación: app/wisdom/godel_engine.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Motor soberano de lógica metamatemática gödeliana y contención de indecidibilidad en APU
+         Filter. Modela los teoremas de incompletitud de Gödel-Rosser, codificación de Gödel mediante
+         productos de números primos G(phi) = prod p_k^{a_k}, análisis de consistencia de Peano,
+         condiciones de derivabilidad de Hilbert-Bernays y saltos metateóricos de Tarski.
 
-ESTRUCTURA POR FASES ANIDADAS (v5.2.0):
-  FASE 1: Fundamentos hipercomplejos, geometría de Poincaré-Cartan, teoría espectral de
-          Poincaré-Banach (incl. cociclos de Oseledets), mapa de retorno de Poincaré con eventos,
-          método de Lindstedt-Poincaré (pequeño parámetro + continuación analítica pseudo-arclongitud)
-          y el nuevo orquestador §1.8b de automejora recursiva Nivel 3 sobre el fibrado celeste.
-          → método terminal: `lift_to_celestial_hamiltonian_bundle` (= inicio de la Fase 2).
-  FASE 2: Dinámica port-Hamiltoniana, reducción de Marsden-Weinstein, teorema de Poincaré-Birkhoff,
-          función de Melnikov, variables de Delaunay, criterio de solapamiento de resonancias
-          de Chirikov y forma normal de Birkhoff.
-          → método terminal: `seed_poincare_recurrence_from_morphism` (= inicio de la Fase 3).
-  FASE 3: Orquestador soberano de automejora recursiva Nivel 3, recurrencia de Poincaré-Kac,
-          certificación criptográfica SHA-256 y banco de validación experimental.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Gödeliano de Metamatemática (GodelEngine) es el guardián de la consistencia lógica fundamental
+en APU Filter. Su cometido primordial es detectar cuando una deducción, cadena de razonamiento o
+consulta formal cae en una paradoja autorreferencial gödeliana del tipo G <-> not Dem(G), la cual
+induciría bucles infinitos o parálisis en motores formales estándar. Activa una elevación metateórica
+al siguiente nivel de la jerarquía de verdad de Tarski para restaurar la coherencia.
+Su respectivo agente en el plano ejecutivo de sabiduría es 'GodelAgent'
+(app/agents/wisdom/godel_agent.py), y su ancla de introspección es 'ToonIntrospectionEngine'
+(app/wisdom/toon_introspection_engine.py). Mientras GodelEngine computa los números de Gödel, analiza
+la provabilidad modal Box phi y evalúa la jerarquía de Tarski, su respectivo Agente intercepta la paradoja
+en vuelo y conmuta los axiomas operacionales del sistema.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Aritmetización de la Sintaxis y Numeración de Gödel:
+   Dada una secuencia finita de símbolos formales s = (s_1, s_2, ..., s_m) con códigos enteros c_k = cod(s_k):
+       G(s) = prod_{k=1}^m p_k^{c_k} = 2^{c_1} * 3^{c_2} * 5^{c_3} * ... * p_m^{c_m}
+   El Teorema Fundamental de la Aritmética asegura que la decodificación de G(s) es única y biyectiva.
+
+2. Teoremas de Incompletitud de Gödel-Rosser:
+   - Primer Teorema: Sea T una teoría recursivamente enumerable, consistente y suficientemente rica
+     para expresar la aritmética de Peano. Existe una sentencia aritmética G_T tal que:
+         T nvdash G_T   y   T nvdash neg G_T
+   - Segundo Teorema: La consistencia formal de T (Cons(T) := neg Dem_T(ulcorner 0 = 1 urcorner))
+     no puede ser demostrada dentro de la propia teoría T:
+         T nvdash Cons(T)
+
+3. Lógica de Provabilidad GL (Gödel-Löb) y Condiciones de Hilbert-Bernays:
+   El operador de provabilidad modal Box phi := Dem(ulcorner phi urcorner) satisface los axiomas de GL:
+       K:   Box (phi -> psi) -> (Box phi -> Box psi)
+       4:   Box phi -> Box Box phi
+       Löb: Box (Box phi -> phi) -> Box phi
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma GE1 (Incompletitud Esencial de Sistemas Consistentes):
+    Cons(T) == True ==> Existe phi tal que T nvdash phi y T nvdash neg phi.
+Axioma GE2 (Indemostrabilidad de Consistencia Interna):
+    Dem_T(ulcorner Cons(T) urcorner) == False para toda teoría T omega-consistente.
+Axioma GE3 (Teorema de Löb en el Espacio de Provabilidad):
+    Dem(ulcorner Dem(ulcorner phi urcorner) -> phi urcorner) <==> Dem(ulcorner phi urcorner).
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación Incondicional de Consistencia):
+    Dem_T(ulcorner bot urcorner) == False (nunca se deriva contradicción formal).
+Invariante 2 (Finitud de la Profundidad de Metalenguaje de Tarski):
+    nivel_tarski <= N_max_profundidad = 10.
+====================================================================================================
 """
 from __future__ import annotations
 

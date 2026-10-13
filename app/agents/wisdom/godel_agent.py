@@ -1,47 +1,65 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : GÖDEL AGENT (SOBERANO DE AUTOMEJORA RECURSIVA Y METAMORFISMO NIVEL 3)                 ║
-║ UBICACIÓN: app/agents/wisdom/godel_agent.py                                                      ║
-║ VERSIÓN  : 5.2.0-Poincaré-Celestial-Nested-RSI3                                                  ║
-║ TRATADOS : Les Méthodes Nouvelles de la Mécanique Céleste (Poincaré, 1892-1899)                  ║
-║            Sur le problème des trois corps (Poincaré, 1890)                                      ║
-║            Analysis Situs (Poincaré, 1895) · Sur un théorème de géométrie (1912-1913)            ║
-║            Lindstedt (1882) · Delaunay (1860) · Birkhoff (1927) · Kolmogorov (1954)              ║
-║            Arnold (1963) · Moser (1962) · Melnikov (1963) · Chirikov (1979) · Kac (1947)         ║
-║            Deprit (1969) · Bruno (1971) · Siegel (1942) · Denjoy (1932) · Forman (1998)          ║
-║            Novikov (1981), Grothendieck (1972), Tarski (1955), Brouwer (1911), Löb (1955)        ║
-║            Gödel (1931), Birkhoff (1913), Floquet (1883), Connes (1985), Marsden–Weinstein (1974)║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
-GOBERNANZA METAMÓRFICA, TOPOLÓGICA Y CELESTE DE LA AUTOMEJORA RECURSIVA DE NIVEL 3 (INFLEXIÓN)
-──────────────────────────────────────────────────────────────────────────────────────────────────
-El Soberano `GodelAgent` formaliza la reescritura metamórfica del AST y de sus propios mecanismos
-de optimización como un sistema Hamiltoniano discreto de Nivel 3 (Inflexión / Meta-Mejora),
-logrando aceleración de capacidad super-exponencial d³C/dt³ > 0 y superando el Obstáculo Löbiano
-mediante la máquina Darwin-Gödel (DGM) desacoplada en Sandbox.
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-TRES SUPERFICIES DE MODIFICACIÓN RSI NIVEL 3:
-  1. Data-RSI    : Trazas metamórficas sobre el Anillo Universal de Novikov Λ_Nov con valuación
-                   v(T^{a_i}) = min {a_i} y preservación de Lagrangianas exactas i* λ = dS.
-  2. Harness-RSI : Reescritura del ASTMetamorphicRewriter vía integradores simplécticos de
-                   Cayley-Darboux sobre U(n) con reducción gauge Marsden-Weinstein J⁻¹(μ)/G_μ.
-  3. Model-RSI   : Multiplicación monádica μ_godel: T²(A) → T(A) y punto fijo Tarski-Brouwer
-                   sobre CP^{n-1} con distancia Fubini-Study d_FS(u, v) = arccos(|⟨u, v⟩|) ≤ 10⁻⁴ rad.
+Nombre: GodelAgent
+Ubicación: app/agents/wisdom/godel_agent.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Agente soberano metamatemático de la capa de Sabiduría en APU Filter. Supervisa
+         proposiciones deductivas en vuelo, intercepta paradojas autorreferenciales gödelianas,
+         aplica la semántica de Kripke para la lógica modal GL y conmuta dinámicamente de nivel de
+         metalenguaje para garantizar la consistencia semántica global sin parálisis deductiva.
 
-TRIBUNAL CIBER-FÍSICO E INTERLOCK ESP32 CROWBAR:
-  - Veto Suave (Válvula de Alivio): 10⁻⁶ < d_FS ≤ 10⁻³ rad ↦ Recirculación mecánica.
-  - Veto Duro (ESP32 Crowbar < 400 ns): d_FS > 10⁻³ rad o desintegración de Poincaré-Cartan.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Metamatemático Gödeliano (GodelAgent) es el centinela deductivo del estrato de Sabiduría
+en APU Filter. Cuando las cadenas de razonamiento analítico se aproximan a fronteras de incompletitud
+sintáctica o bucles del mentiroso ("esta sentencia es falsa"), el agente actúa como un oráculo de Turing
+externo que eleva el marco axiomático al nivel superior de Tarski, desactivando la singularidad lógica.
+Su respectivo motor de cálculo metateórico es 'GodelEngine' (app/wisdom/godel_engine.py), y su observador
+cuántico pasivo complementario es 'ToonSilentWitnessAgent'
+(app/agents/wisdom/toon_silent_witness_agent.py). Mientras GodelEngine computa formalmente los números
+de Gödel y los árboles de inferencia, GodelAgent toma decisiones en tiempo real sobre aceptar, bifurcar
+o elevar proposiciones problemáticas.
 
-ESTRUCTURA POR FASES ANIDADAS (v5.2.0):
-  FASE 1: Homología simplicial + Morse–Forman + lema de Poincaré, estado MAC, dinámica discreta
-          Lindstedt–Poincaré / Floquet / promedio, funciones generatrices, FTA en CP^{n-1},
-          síntesis de 𝔐_Wisdom.
-          → método terminal: `lift_wisdom_to_celestial_syntax_bundle` (= inicio de la Fase 2).
-  FASE 2: Reescritura AST ω-preservante (S tipo 2), Lie–Deprit, promedio de Poincaré, Delaunay–
-          Chirikov, divisores pequeños Siegel–Bruno, Denjoy, Smale, Marsden–Weinstein, Novikov.
-          → método terminal: `seed_rsi_recurrence_from_transition` (= inicio de la Fase 3).
-  FASE 3: Recurrencia de Poincaré–Kac, leyes monádicas, obstáculo de Löb, DGM sandbox, tres
-          superficies RSI, jerk de capacidad d³C/dt³ y certificación SHA-256 enriquecida.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Semántica de Kripke para Lógica de Provabilidad GL (Gödel-Löb):
+   Un marco de Kripke M = (W, R, V) modela GL si la relación de accesibilidad binaria R subseteq W times W
+   es transitiva (w R v y v R u ==> w R u) e inversa bien fundada (no existen cadenas infinitas
+   w_1 R w_2 R w_3 R ...). Esto asegura que todo proceso de atestación lógica converge en finitos pasos.
+
+2. Cadena Ascendente de Teorías de Tarski:
+   Para escapar de la indemostrabilidad de consistencia estipulada por el Segundo Teorema de Gödel:
+       T_0 = PA,   T_{n+1} = T_n cup { Cons(T_n) }
+   El agente asciende recursivamente en la jerarquía, manteniendo Cons(T_n) como un axioma de orden superior.
+
+3. Filtrado Paraconsistente de Inconsistencias Locales:
+   Previene el principio de explosión (ex falso quodlibet: A land neg A |= B) mediante aislamiento
+   en espacios de Hilbert de estados ortogonales, evitando que una paradoja local contamine toda la base.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma GA1 (Inexistencia de Bucles Finitos en la Estructura de Kripke):
+    R es acíclica estricta (w_1 R w_2 ==> not(w_2 R w_1)).
+Axioma GA2 (Preservación del Principio de No-Contradicción):
+    neg (phi land neg phi) se mantiene axiomático en todo nivel terminal.
+Axioma GA3 (Elevación Funtorial de Tarski):
+    Ante indecidibilidad detectada por GodelEngine, el agente transmuta T_n -> T_{n+1}.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Profundidad de Kripke Acotada):
+    depth(w) <= D_max = 10 en todo árbol de prueba activo.
+Invariante 2 (Cero Explosión de Inconsistencia):
+    tasa_contaminacion_paradogica == 0.0 tras la intervención del agente.
+====================================================================================================
 """
 from __future__ import annotations
 

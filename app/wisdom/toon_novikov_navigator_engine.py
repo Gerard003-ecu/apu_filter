@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonNovikovNavigatorEngine
 Ubicación: app/wisdom/toon_novikov_navigator_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Motor soberano de navegación causal y resolución de curvas cerradas de tipo tiempo (CTCs)
          basado en el Principio de Autoconsistencia de Novikov, dinámica celeste de resonancia orbital
          y el Teorema del Punto Fijo de Schauder-Banach.

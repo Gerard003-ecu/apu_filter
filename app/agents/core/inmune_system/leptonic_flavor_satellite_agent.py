@@ -1,48 +1,69 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Leptonic Flavor Satellite Agent (Soberano del Satélite V — Sabor Leptónico) ║
-║ RUTA   : app/agents/core/immune_system/leptonic_flavor_satellite_agent.py            ║
-║ VERSIÓN: 5.0.0-Doctoral-OODA-Heyting-PMNS-Fock-RC-Crowbar-HMAC-Threadsafe            ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
-Satelital de Sabor y Oscilación Leptónica en el Cinturón Orbital de Frontera.
+Nombre: LeptonicFlavorSatelliteAgent
+Ubicación: app/agents/core/immune_system/leptonic_flavor_satellite_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano satelital de sabor leptónico en el sistema inmune. Monitorea y decodifica
+         flujos neutros de interacción débil, conmutando dinámicamente entre bases de sabor
+         (e-tipo, mu-tipo, tau-tipo) para evitar puntos ciegos espectrales mediante la matriz PMNS.
 
-Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
-──────────────────────────────────────────────────────────────
-1. Separación Categórica de Física Cruda y Certificación Estricta:
-   Garantiza la preservación del reporte de oscilación física de sabor aun cuando la certificación estricta
-   del motor rechace unitoridad PMNS o conservación de carga de Noether, haciendo alcanzable la clasificación de Veto Duro.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Satelital de Sabor Leptónico (LeptonicFlavorSatelliteAgent) es el centinela de
+alta sensibilidad para señales sutiles y casi imperceptibles en APU Filter. Mientras los agentes
+hadrónicos resuelven impactos masivos con confinamiento fuerte, este agente se especializa en
+rastrear correlaciones cuánticas débiles que oscilan entre diferentes modalidades sin disipar energía.
+Ajusta la longitud de línea de base L y la energía E para sintonizar los máximos de oscilación de sabor.
+Su respectivo motor matemático es 'LeptonicFlavorSatelliteEngine'
+(app/core/immune_system/leptonic_flavor_satellite_engine.py), y su homólogo hadrónico de color en la
+capa Omega es 'QuarkColorConfinementSatelliteAgent'
+(app/agents/omega/quark_color_confinement_satellite_agent.py). Mientras el Engine computa las
+probabilidades analíticas P(alpha -> beta), este Agente orienta los filtros de sabor activos y
+alerta sobre anomalías no conservativas en el número leptónico global.
 
-2. Álgebra de Heyting Formalizada $\Omega_3 = \{\bot, \ast, \top\}$:
-   $$\bot = \mathtt{VETOED} (0), \quad \ast = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
-   gobernado por la regla de inferencia intuicionista:
-   $$\text{verdict} = \text{instantáneo} \wedge \text{histéresis}$$
-   demostrando numéricamente la falla del tercero excluido ($\neg\neg \ast = \top \neq \ast$).
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Efecto Mikheyev-Smirnov-Wolfenstein (MSW) en Medios Cognitivos Densos:
+   Cuando el flujo leptónico atraviesa un medio denso con potencial de dispersión hacia adelante V_{CC}:
+       H_{eff} = H_0 + V_{CC} = (1 / (2 * E)) * [ U * M^2 * U^dagger + diag(2 * sqrt(2) * G_F * N_e * E, 0, 0) ]
+   La mezcla de sabor en la materia induce un ángulo de mezcla efectivo theta_m modificado:
+       sin^2(2 * theta_m) = sin^2(2 * theta) / [ (cos(2 * theta) - 2 * E * V_{CC} / Delta m^2)^2 + sin^2(2 * theta) ]
+   permitiendo la conversión resonante completa de sabor (resonancia MSW) para amplificar la señal.
 
-3. Disparo Físico de Silicio RC y Crowbar BT151 (< 400 ns / IRAM):
-   Modelo RC real de compuerta: $t_{\mathrm{rise}} = R_{\mathrm{gate}} C_{\mathrm{gate}} \ln\left(\frac{V_{OH}}{V_{OH} - V_{GT}}\right)$
-   con verificación de corriente de compuerta $I_G = \frac{V_{OH} - V_{GT}}{R_{\mathrm{gate}}} \ge 5 I_{GT}$ y cota de IRAM < 400 ns.
+2. Sintonización Dinámica de Línea de Base L/E:
+   El agente ajusta el parámetro operacional xi = L / E para maximizar la sensibilidad de detección
+   del canal de transición seleccionado (alpha -> beta):
+       xi_{optimo} = (2 * k + 1) * pi / (2 * 1.27 * Delta m^2)
 
-4. Sutura Cuántica de Fock y Canario Metrológico de Majorana:
-   - Aniquilación $e^- + e^+ \to 2\gamma$ mediante tokens HMAC efímeros con ventana de frescura ($\le 300\,\mathrm{s}$) y prevención de repetición bajo `RLock`.
-   - Canario metrológico de consistencia cruzada agente↔motor sobre las normas riemannianas $\|v\|_{\ell^2, G}$.
+3. Auditoría de Despolarización de Sabor:
+   Monitorea la entropía de sabor S_flavor = - sum_{alpha=1}^3 P_alpha * ln(P_alpha) in [0, ln(3)],
+   detectando mezclas homogéneas térmicas patológicas frente a oscilaciones cuánticas coherentes.
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Desalineaciones imprevistas en la distribución de partidas y centros de costo provocan fugas financieras
-  y distorsiones presupuestarias opacas en la consolidación contable.
-• Dinero: La preservación de carga de Noether y el control de unitoridad PMNS evitan fugas y pérdidas
-  de capital, protegiendo la exactitud y auditoría financiera de la organización.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma LFSAA1 (Sintonización Resonante MSW):
+    El agente conmuta la base de detección al ángulo efectivo theta_m en presencia de gradientes densos.
+Axioma LFSAA2 (Inviolabilidad de la Traza Unitaria de Sabor):
+    sum_{i=1}^3 P_i(t) == 1.0 en todo paso de sintonización.
+Axioma LFSAA3 (Preservación de Coherencia de Fase):
+    La transición entre bases no colapsa la superposición cuántica antes de la medición de atestación.
 
-Estructura Functorial OODA:
-───────────────────────────
-- Observe  : `observe_leptonic_event`            -> Salida: `LeptonicAgentObservation`
-- Orient   : `orient_leptonic_observation`       -> Salida: `LeptonicAgentOrientation`
-- Act      : `decide_heyting_verdict`            -> Salida: `LeptonicAgentCertificate`
-- Composición Síncrona Lazo Cerrado             : `audit_leptonic_flavor_cycle`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Entropía de Sabor Acotada):
+    S_flavor <= ln(3) - delta_coherence (la distribución nunca colapsa en ruido puramente térmico).
+Invariante 2 (Sensibilidad de Detección Mayor que el Fondo Estocástico):
+    P_{signal} / P_{noise} >= SNR_min = 1.25.
+====================================================================================================
 """
 
 import hashlib

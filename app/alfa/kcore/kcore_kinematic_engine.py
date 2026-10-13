@@ -1,41 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : KCore Kinematic Engine (Motor Cinemático del Núcleo — Estrato α)    ║
-║ Ruta   : app/alfa/kcore/kcore_kinematic_engine.py                            ║
-║ Versión: 3.0.0-Doctoral-IDA-PBC-Hodge-PH-KBN-CSMD-Heyting                    ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA (rigor doctoral, no ornamental):                         ║
-║ Sea Q una variedad de configuración de dimensión n, T*Q su fibrado           ║
-║ cotangente y (V, E, F) un 2-complejo celular (F opcional) con operador       ║
-║ de frontera ∂₁ = B₀ ∈ ℝ^{|V|×|E|}, ∂₂ = B₁ ∈ ℝ^{|E|×|F|}, de modo que        ║
-║ B₀ B₁ = 0 (complejo de cadenas). El motor calcula, en la FPU y con           ║
-║ inmunidad de Wilkinson, tres objetos cinemáticos acoplados:                  ║
-║                                                                              ║
-║   (IDA-PBC)   ẋ = (J−R) ∇H + g α ,   ẋ = (J_d−R_d) ∇H_d   (lazo cerrado)     ║
-║               g α = (J_d−R_d)∇H_d − (J−R)∇H                                  ║
-║               g^⊥ F_err = 0   (EDP de matching; obstrucción geométrica)      ║
-║               α = argmin_u ‖g u − F_err‖_G² + γ² ‖u‖²   (Tikhonov en g,      ║
-║                   NO en el Gramiano; filtro σ/(σ²+γ²) sobre SVD de G^{½}g)   ║
-║               J = −Jᵀ ,  R = Rᵀ ⪰ 0  (estructura port-Hamiltoniana)          ║
-║                                                                              ║
-║   (Hodge)     C¹ = im(d₀) ⊕ im(δ₂) ⊕ ℋ¹          (teorema de Hodge discreto)║
-║               I = I_grad + I_curl + I_harm ,     ⟨·,·⟩_W = (·)ᵀ W (·)        ║
-║               I_grad ∈ im(B₀ᵀ) ,   I_curl ∈ W⁻¹ im(B₁) ,                     ║
-║               I_harm ∈ ker(B₀ W) ∩ ker(B₁ᵀ)                                  ║
-║               Sin 2-esqueleto: im(δ₂)={0} y ker(B₀ W) es armónico, NO curl.  ║
-║                                                                              ║
-║   (Energía)   T = ½ q̇ᵀ M(q) q̇ ,   P = q̇ᵀ F                                 ║
-║               Ḣ = −∇Hᵀ R ∇H + ∇Hᵀ g α          (pasividad de puertos)        ║
-║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA):                       ║
-║   Fase 1  Observe+Orient  :  In → PhaseOneKinematicPacket                    ║
-║   Fase 2  Decide          :  PhaseOneKinematicPacket → PhaseTwoKinematicPacket║
-║   Fase 3  Act             :  (PhaseOne × PhaseTwo) → KinematicTelemetry      ║
-║                                                                              ║
-║ El último morfismo de la Fase k es, por construcción de tipos, el objeto     ║
-║ inicial de la Fase k+1 (continuidad formal del retículo de métodos).         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ESTRATO ALFA (KCORE)
+====================================================================================================
+
+Nombre: KcoreKinematicEngine
+Ubicación: app/alfa/kcore/kcore_kinematic_engine.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Motor soberano cinemático de la capa Alfa (Kcore) en APU Filter. Modela la cinemática
+         diferencial riemanniana, integración simpléctica de trayectorias en espacios de configuración,
+         conexión de Levi-Civita nabla, símbolos de Christoffel Gamma^mu_{alpha beta} y la ecuación
+         geodésica ddot{x}^mu + Gamma^mu_{alpha beta} dot{x}^alpha dot{x}^beta = 0 para paquetes cognitivos.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Cinemático Kcore (KcoreKinematicEngine) es el timonel del movimiento y desplazamiento en el
+espacio de configuraciones del estrato Alfa de APU Filter. Determina las curvas geodésicas de mínima
+resistencia informacional a lo largo de variedades de Riemann dotadas de una métrica dependiente del contexto.
+Evita la aceleración excesiva o trayectorias con fuerzas inerciales de Coriolis desbalanceadas.
+Sus respectivos contrapartes en la tríada Alfa son 'KapexElectrodynamicEngine'
+(app/alfa/kapex/kapex_electrodynamic_engine.py) y 'KbaseThermodynamicEngine'
+(app/alfa/kbase/kbase_thermodynamic_engine.py). Mientras Kcore resuelve la cinemática y la dinámica de
+Newton-Euler sobre la variedad, Kapex provee las fuerzas electromagnéticas impulsoras y Kbase absorbe
+el calor disipativo generado en el trayecto.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Geometría Riemanniana y Símbolos de Christoffel:
+   Dada una variedad riemanniana (M, g) con tensor métrico g_{mu nu} y su inversa g^{mu nu}:
+       Gamma^sigma_{mu nu} = (1 / 2) * g^{sigma rho} * [ partial_mu g_{nu rho} + partial_nu g_{mu rho} - partial_rho g_{mu nu} ]
+   La conexión de Levi-Civita nabla es simétrica (libre de torsión T(X, Y) = 0) y compatible con la métrica:
+       nabla_sigma g_{mu nu} = 0
+
+2. Ecuación Geodésica y Transporte Paralelo:
+   Una curva parametrizada por longitud de arco gamma(s) es una geodésica si su vector tangente dot{x}
+   se autotransporta paralelamente a lo largo de sí mismo:
+       nabla_{dot{gamma}} dot{gamma} = 0  <=>  ddot{x}^mu + Gamma^mu_{alpha beta} * dot{x}^alpha * dot{x}^beta = 0
+
+3. Integración Simpléctica de Posición-Velocidad (Verlet Cuántico):
+   Para conservar rigurosamente el volumen de fase (Teorema de Liouville) y la energía a largo plazo:
+       x_{n+1} = x_n + v_n * Delta t + (1 / 2) * a_n * Delta t^2
+       v_{n+1} = v_n + (1 / 2) * (a_n + a_{n+1}) * Delta t
+   donde la aceleración neta incluye la fuerza de gradiente y las correcciones de curvatura de Christoffel.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma KKE1 (Principio de Mínima Acción de Maupertuis):
+    Las geodésicas minimizan la acción reducida S_0 = int p_i dq^i en ausencia de potenciales no conservativos.
+Axioma KKE2 (Compatibilidad de la Métrica):
+    nabla g == 0 garantiza la conservación de longitudes de vectores durante el transporte paralelo.
+Axioma KKE3 (Preservación de Simetría Simpléctica de Liouville):
+    det( partial(x_{n+1}, v_{n+1}) / partial(x_n, v_n) ) == 1.0.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Conservación Cuasi-Exacta de la Energía de Verlet):
+    | E(t) - E(0) | <= epsilon_energy = 1e-4.
+Invariante 2 (No-Divergencia de Velocidad Tangencial):
+    ||v(t)||_g <= v_max_light_limit.
+====================================================================================================
 """
 
 from __future__ import annotations

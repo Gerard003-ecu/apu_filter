@@ -1,38 +1,70 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : KBase Thermodynamic Engine (Motor Termodinámico de Base — Estrato α)║
-║ Ruta   : app/alfa/kbase/kbase_thermodynamic_engine.py                        ║
-║ Versión: 3.0.0-Doctoral-Riemann-Congruence-Gibbs-Clausius-Duhem-KBN-CSMD     ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA (rigor doctoral, no ornamental):                         ║
-║ Sea (M, g) una variedad riemanniana de dimensión n = dim(Canvas) y sea       ║
-║ (ℋ, ⟨·,·⟩) un espacio de Hilbert de dimensión n con álgebra de von Neumann  ║
-║ ℬ(ℋ). El motor calcula, en la FPU y con inmunidad de Wilkinson, cuatro      ║
-║ objetos termogeométricos acoplados:                                          ║
-║                                                                              ║
-║   (Congruencia)   T^♭ = g T g ,   T^♯ = g⁻¹ T g⁻¹                            ║
-║                   (esto NO es un pullback por un difeomorfismo φ;            ║
-║                    φ*T = J† T J se expone aparte si se inyecta J = dφ)       ║
-║   (Potenciales)   H = U + P V ,   F = U − T S ,   G = H − T S = F + P V      ║
-║                   (∂(G/T)/∂T)_P = −H/T²   (Gibbs–Helmholtz; sonda CSMD)      ║
-║   (Clausius–Duhem) Φ = σ_int − ⟨q , dT⟩ / T²  ≥  0                           ║
-║                   ⟨q , dT⟩ := q^μ ∂_μ T   (emparejamiento de dualidad,       ║
-║                    invariante y SIN métrica; q contravariante, dT covariante)║
-║   (Estacionariedad) ℐ = ‖[H, ρ]‖_HS²                                         ║
-║                   ℐ = 0  ⇔  ρ conmuta con H (punto fijo unitario).           ║
-║                   La irreversibilidad termodinámica real se reporta como     ║
-║                   exceso de energía libre relativa al estado de Gibbs        ║
-║                   ρ_β = e^{−βH}/Z :  D(ρ‖ρ_β) = β(ℱ − ℱ_eq) ≥ 0  (Spohn).   ║
-║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA):                       ║
-║   Fase 1  Observe+Orient  :  In → PhaseOneKBasePacket                        ║
-║   Fase 2  Decide          :  PhaseOneKBasePacket → PhaseTwoKBasePacket       ║
-║   Fase 3  Act             :  (PhaseOne × PhaseTwo) → KBaseTelemetry          ║
-║                                                                              ║
-║ El último morfismo de la Fase k es, por construcción de tipos, el objeto     ║
-║ inicial de la Fase k+1 (continuidad formal del retículo de métodos).         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ESTRATO ALFA (KBASE)
+====================================================================================================
+
+Nombre: KbaseThermodynamicEngine
+Ubicación: app/alfa/kbase/kbase_thermodynamic_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano termodinámico de la capa Alfa (Kbase) en APU Filter. Modela la termodinámica
+         estadística del no-equilibrio, entropía de Boltzmann-Gibbs-Shannon S = -k_B sum p_i ln p_i,
+         relaciones de reciprocidad de Onsager L_{ij} = L_{ji}, tasa de producción entrópica
+         sigma_S = sum J_k X_k >= 0 y potenciales termodinámicos libres de Helmholtz y Gibbs.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Termodinámico Kbase (KbaseThermodynamicEngine) es el regulador entrópico y térmico de la
+capa Alfa en APU Filter. Supervisa que el procesamiento de información respete el principio de
+Landauer (disipación mínima de calor k_B T ln(2) por bit borrado) y previene la catástrofe de sobrecalentamiento
+cognitivo. Monitorea los flujos de calor informacional y calcula el balance de energía libre para
+garantizar la espontaneidad y estabilidad de las transiciones de estado.
+Sus respectivos hermanos en el estrato Alfa son 'KapexElectrodynamicEngine'
+(app/alfa/kapex/kapex_electrodynamic_engine.py) y 'KcoreKinematicEngine'
+(app/alfa/kcore/kcore_kinematic_engine.py). Mientras Kapex alimenta el sistema con energía electromagnética
+y Kcore guía la trayectoria mecánica, Kbase enfría la máquina de estados y preserva el equilibrio térmico.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Termodinámica Estadística y Función de Partición Canónica:
+   Para un ensamble canónico de microestados con energías E_i a temperatura absoluta T (beta = 1 / (k_B * T)):
+       Z = sum_{i=1}^W exp(- beta * E_i),   p_i = (1 / Z) * exp(- beta * E_i)
+   La energía media interna U, la energía libre de Helmholtz F y la entropía de Shannon satisfacen:
+       U = - partial_beta ln(Z),   F = - k_B * T * ln(Z),   S = - k_B * sum_{i=1}^W p_i * ln(p_i)
+   relacionadas canónicamente por la transformación de Legendre: F = U - T * S.
+
+2. Termodinámica del No-Equilibrio y Teorema de Reciprocidad de Onsager:
+   En un sistema conducido fuera del equilibrio por fuerzas termodinámicas generalizadas X_i (gradientes
+   de temperatura, potencial químico o voltaje), los flujos conjugados J_i obedecen leyes fenomenológicas:
+       J_i = sum_j L_{ij} * X_j,   con L_{ij} = L_{ji} (micro-reversibilidad temporal)
+   La tasa local de producción entrópica sigma_S por unidad de tiempo es estrictamente positiva:
+       sigma_S = sum_i J_i * X_i = sum_{i,j} L_{ij} * X_i * X_j >= 0
+
+3. Límite de Landauer y Disipación en Puertas Lógicas:
+   El borrado irreversible de una unidad de información binaria (1 shannon) disipa inevitablemente
+   en el sumidero térmico una cantidad mínima de calor:
+       Delta Q_{Landauer} >= k_B * T * ln(2)
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma KTE1 (Segundo Principio del No-Equilibrio de Prigogine):
+    d_i S >= 0 para toda transformación termodinámica interna.
+Axioma KTE2 (Simetría Microversal de Onsager):
+    L_{ij} == L_{ji} para todo par de flujos y fuerzas sin campos magnéticos externos.
+Axioma KTE3 (Convexidad de la Entropía Estadística):
+    La matriz Hessiana de la función de entropía - nabla^2 S es semidefinida positiva.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Temperatura Absoluta Estrictamente Positiva):
+    T >= T_min = 0.01 K > 0.
+Invariante 2 (Producción de Entropía No-Negativa):
+    sigma_S = sum J_i X_i >= 0.0.
+====================================================================================================
 """
 
 from __future__ import annotations

@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonIntrospectionWitnessEngine
 Ubicación: app/wisdom/toon_introspection_witness_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Motor soberano testigo de introspección no-perturbativo (Quantum Non-Demolition / QND),
          certificación de trazas cuánticas y cálculo de invariantes topológicos de Chern sobre
          conexiones de Berry cognitivas.

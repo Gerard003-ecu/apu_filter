@@ -1,297 +1,76 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Financial Engine — Oráculo Estocástico y Funtor de Medida Financiera           ║
-║  Ruta   : app/strategy/financial_engine.py                                               ║
-║  Versión: 6.1.0-Nested-Phase-Spectral-Homological-Banach-Axiomatic-Strict                ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  0. OBJETO CATEGORIAL                                                                    ║
-║  ────────────────────                                                                    ║
-║  Sea 𝔐_fin el topos de Grothendieck de estructuras financieras admisibles,              ║
-║  con objeto terminal 1 (config axioma-cerrado) y clasificador Ω = {OK, WARN, FAIL}.      ║
-║  Este módulo realiza tres endofuntores Fᵢ : 𝔐_fin → 𝔐_fin, i ∈ {1,2,3},                ║
-║  y su composición (lectura de derecha a izquierda)                                       ║
-║                                                                                          ║
-║      Φ  :=  F₃ ∘ F₂ ∘ F₁  :  𝔐_fin  →  𝔐_fin                                            ║
-║                                                                                          ║
-║  Cada Fᵢ es exacto a izquierda sobre el cono de no-arbitraje 𝒩 ⊂ 𝔐_fin y                ║
-║  preserva la consistencia dimensional (R_F, Ke, WACC ∈ T⁻¹; σ ∈ T⁻¹/²;                   ║
-║  flujos ∈ Moneda; β₀,β₁ ∈ ℕ; λ₂ ∈ T⁰).                                                   ║
-║                                                                                          ║
-║  Morfismos de puerto (objetos terminales / iniciales de fases adyacentes):               ║
-║      π₁₂ : F₁(X) → F₂(X)     CouplingTensor τ = (κ₀, κ₁, λ̄₂)                             ║
-║      π₂₃ : F₂(X) → F₃(X)     RiskEnvelope   ε = (K_eff, σ_eff, ‖·‖_{tail})               ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  I. FASE 1 — SUBSTRATO ONTOLÓGICO  (estrato 0 del topos)                                 ║
-║  ────────────────────────────────────────────────────────                                ║
-║                                                                                          ║
-║  I.1  Álgebra de Boole de validez                                                        ║
-║       𝔅 = ⟨{OK, WARN, FAIL}, ∧, ∨, ¬⟩ con FAIL absorbente.                               ║
-║       Un objeto C ∈ Ob(FinancialConfig) es construible  ⇔  ningún átomo es FAIL.         ║
-║                                                                                          ║
-║  I.2  Universo de medidas  𝔇 = {NORMAL, STUDENT_T, CORNISH_FISHER}                       ║
-║       Cerrado bajo tail-flip γ ↦ 1−γ, operación exigida por                              ║
-║                                                                                          ║
-║           ES_α(X)  =  (1−α)⁻¹  ∫_α¹ VaR_γ(X) dγ,     α ∈ (0,1).                          ║
-║                                                                                          ║
-║       NORMAL         : S(α=2,β=0) estable.  φ_X(t) = exp(iμt − ½σ² t²).                  ║
-║       STUDENT_T(ν)   : colas O(|x|⁻ν).  Var < ∞  ⇔  ν>2;  Kurt < ∞  ⇔  ν>4.              ║
-║       CORNISH_FISHER : jet de orden 4 sobre Φ⁻¹. Dominio heurístico |γ₁|<1, |γ₂|<3.      ║
-║                                                                                          ║
-║  I.3  Homología del complejo simplicial de dependencias K                                ║
-║       Sea C_•(K; ℝ) el complejo de cadenas. Números de Betti:                            ║
-║                                                                                          ║
-║           β₀  = dim H₀(K; ℝ)  ≥ 1     (componentes conexas; fragmentación)               ║
-║           β₁  = dim H₁(K; ℝ)  ≥ 0     (ciclos independientes; mallas)                    ║
-║           χ̃  = β₀ − β₁               (Euler truncada a grado ≤ 1)                       ║
-║           φ   = max(β₀ − 1, 0)        (índice de fragmentación; 0 ⇔ K conexo)            ║
-║                                                                                          ║
-║       Axiomas:  (H1) β₀ ∈ ℕ, β₀ ≥ 1;  (H2) β₁ ∈ ℕ ∪ {0};  (H3) χ̃ ∈ ℤ.                    ║
-║                                                                                          ║
-║  I.4  Espectro del Laplaciano combinatorio  L = D − A ∈ Sym⁺(ℝ^{|V|})                    ║
-║       0 = λ₁(L) ≤ λ₂(L) ≤ ⋯ ≤ λ_{|V|}(L).  Teorema de Fiedler:                           ║
-║                                                                                          ║
-║           λ₂(L) = 0   ⇔   el grafo (V,E) es disconexo.                                   ║
-║                                                                                          ║
-║       Semigrupo del calor  e^{−t L} sobre ℓ²(V): la componente ortogonal a las           ║
-║       constantes decae a tasa e^{−t λ₂}. Kernel de descuento espectral:                  ║
-║                                                                                          ║
-║           κ_heat(t, λ₂)  :=  exp(− t λ₂)  ∈  (0, 1],     t ≥ 0, λ₂ ≥ 0.                  ║
-║                                                                                          ║
-║       Identidad  κ_heat = 1  ⇔  λ₂=0 ∨ t=0.                                              ║
-║                                                                                          ║
-║  I.5  Tensor de acoplamiento  (objeto terminal de F₁ = objeto inicial de F₂)             ║
-║       τ ∈ ℝ²_{≥0} × [0,1] ⊂ (ℝ³, ‖·‖_∞)  álgebra de Banach con producto de Hadamard:    ║
-║                                                                                          ║
-║           τ  =  (κ₀, κ₁, λ̄₂),     ‖τ‖_∞ = max{|κ₀|, |κ₁|, |λ̄₂|}.                        ║
-║                                                                                          ║
-║       Factor estructural (acción lineal sobre homología):                                ║
-║                                                                                          ║
-║           S(τ, H)  =  1 + κ₀ · φ(H) + κ₁ · β₁(H)  ≥  1.                                  ║
-║                                                                                          ║
-║       S = 1  ⇔  K es un árbol (β₀=1, β₁=0). Acción completa:                             ║
-║                                                                                          ║
-║           τ.apply(w, H, Σ)  =  w · S(τ, H) · κ_heat(t_Σ, λ₂(Σ)),    w ≥ 0.               ║
-║                                                                                          ║
-║       Axioma de cono: w ≥ 0  ⇒  τ.apply(w,·,·) ≥ 0  (preserva tasas admisibles).         ║
-║       λ̄₂ es cota de diagnóstico, NUNCA se usa para forzar un descuento artificial.      ║
-║                                                                                          ║
-║  I.6  Invariantes cruzadas del config (no factorizables)                                 ║
-║       (I1) D/E > 0  ∧  K_d ≤ 0          → pasivo remunerado degenerado (WARN).           ║
-║       (I2) β > 2    ∧  D/E < 0.3        → apalancamiento operativo implícito (Hamada).   ║
-║       (I3) Ψ* < Ψ_stable                → existencia de meseta estable de pandeo.        ║
-║       (I4) T_ref < T_stress             → monotonía de la rama Arrhenius.                ║
-║       (I5) λ_L + ρ_f ≤ 1.5              → heurística de sanidad de ratios.               ║
-║       (I6) R_F + β R_P ≱ 0              → Ke naive fuera del cono (floor en F₂).         ║
-║                                                                                          ║
-║  PUERTO π₁₂ :  FinancialConfig.topological_coupling_tensor()  →  CouplingTensor          ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  II. FASE 2 — MEDIDA Y ESPECTRO                                                          ║
-║  ────────────────────────────────                                                        ║
-║                                                                                          ║
-║  II.1  CAPM (Sharpe–Lintner)                                                             ║
-║                                                                                          ║
-║           Ke  =  R_F + β · R_P,     R_P := E[R_M] − R_F.                                 ║
-║                                                                                          ║
-║       Casos degenerados:                                                                 ║
-║           |β| < 10⁻¹⁰  ⇒  Ke = R_F          (neutralidad sistémica)                      ║
-║           β < 0        ⇒  Ke < R_F admisible (cobertura)                                 ║
-║           Ke < 0       ⇒  Ke ← max(Ke, ½ R_F)  (floor del cono relajado)                 ║
-║                                                                                          ║
-║  II.2  Hamada (desapalancamiento / reapalancamiento)                                     ║
-║                                                                                          ║
-║           β_U  =  β_L  /  [ 1 + (1−τ)·(D/E) ]                                            ║
-║           β_L  =  β_U  ·  [ 1 + (1−τ)·(D/E) ]                                            ║
-║                                                                                          ║
-║       Identidad: D/E = 0  ⇒  β_U = β_L.                                                  ║
-║                                                                                          ║
-║  II.3  WACC (Modigliani–Miller con escudo fiscal)                                        ║
-║       Pesos:  w_E = 1/(1+D/E),  w_D = (D/E)/(1+D/E),  w_E + w_D = 1.                     ║
-║                                                                                          ║
-║           WACC_base  =  w_E · Ke  +  w_D · K_d · (1−τ).                                  ║
-║                                                                                          ║
-║  II.4  WACC topológico  (consume π₁₂)                                                    ║
-║                                                                                          ║
-║           WACC_topo  =  τ.apply(WACC_base, H, Σ)                                         ║
-║                      =  WACC_base · [1 + κ₀(β₀−1) + κ₁ β₁] · e^{−t λ₂}.                  ║
-║                                                                                          ║
-║       Coherencia espectral-homológica:                                                   ║
-║           árbol conexo (β₀=1, β₁=0, λ₂=0)  ⇒  WACC_topo = WACC_base                      ║
-║           fragmentación (β₀>1)             ⇒  WACC_topo ≥ WACC_base                      ║
-║           ciclos (β₁>0)                    ⇒  WACC_topo ≥ WACC_base                      ║
-║           alta conectividad (λ₂ ≫ 0)       ⇒  descuento e^{−tλ₂} < 1                     ║
-║                                                                                          ║
-║  II.5  DCF, TIR, MIRR, duración                                                          ║
-║                                                                                          ║
-║           NPV(r)   =  −|I₀| + Σ_{t=1}^{T} CF_t / (1+r)^t                                 ║
-║           NPV'(r)  =  − Σ_{t=1}^{T} t · CF_t / (1+r)^{t+1}                               ║
-║                                                                                          ║
-║       TIR: raíz r* ∈ (−1+ε, 10] de NPV(r*)=0. Newton–Raphson                             ║
-║           r_{n+1} = r_n − NPV(r_n)/NPV'(r_n)                                             ║
-║       con respaldo biseccional si NPV no cambia de signo en el intervalo → None.         ║
-║                                                                                          ║
-║           MIRR  =  ( FV₊(r_reinv) / PV₋(r_fin) )^{1/n} − 1                               ║
-║                                                                                          ║
-║       Duración de Macaulay / modificada / convexidad / DV01:                             ║
-║                                                                                          ║
-║           D_mac  =  Σ t·PV(CF_t) / P                                                     ║
-║           D_mod  =  D_mac / (1+r)                                                        ║
-║           Conv   =  Σ t(t+1)·PV(CF_t) / [P (1+r)²]                                       ║
-║           DV01   =  D_mod · P / 10⁴                                                      ║
-║                                                                                          ║
-║  II.6  Medidas de riesgo coherentes (Artzner–Delbaen–Eber–Heath)                         ║
-║       Cuantil y Expected Shortfall:                                                      ║
-║                                                                                          ║
-║           VaR_α(X)  =  inf{ x : P(X ≤ x) ≥ α }                                           ║
-║           ES_α(X)   =  (1−α)⁻¹ ∫_α¹ VaR_γ(X) dγ  =  E[X | X > VaR_α(X)]                  ║
-║                                                                                          ║
-║       Axiomas sobre 𝓡 (el VaR viola A4; el ES los satisface todos):                      ║
-║           (A1) Monotonía:            X ≤ Y  ⇒  𝓡(X) ≥ 𝓡(Y)                               ║
-║           (A2) Invariancia transl.:  𝓡(X + c) = 𝓡(X) − c                                 ║
-║           (A3) Homogeneidad⁺:        𝓡(λX) = λ 𝓡(X),  λ > 0                              ║
-║           (A4) Subaditividad:        𝓡(X+Y) ≤ 𝓡(X) + 𝓡(Y)                                ║
-║                                                                                          ║
-║       Escalado i.i.d. temporal:  σ_X(t) = σ · √(t / t_year),  t_year = 252.              ║
-║                                                                                          ║
-║       ■ Normal(μ,σ²):                                                                    ║
-║           VaR_α = μ + σ z_α,     z_α = Φ⁻¹(α)                                            ║
-║           ES_α  = μ + σ · φ(z_α) / (1−α)                                                 ║
-║                                                                                          ║
-║       ■ Student-t(ν), X = μ + s T_ν,  s = σ √((ν−2)/ν)  [s es ESCALA, no σ]:             ║
-║           VaR_α = μ + s t_α,     t_α = F_{t,ν}⁻¹(α)                                      ║
-║           ES_α  = μ + s · [ f_{t,ν}(t_α) · (ν + t_α²) / ((ν−1)(1−α)) ]                   ║
-║                                                                                          ║
-║       ■ Cornish–Fisher (orden 4), z = Φ⁻¹(α):                                            ║
-║           q_CF(α) = z + (γ₁/6)(z²−1) + (γ₂/24)(z³−3z)                                    ║
-║                     − (γ₁²/36)(2z³−5z) + O(γ³)                                           ║
-║           VaR_α = μ + σ q_CF(α)                                                          ║
-║           ES_α  ≈ μ + σ (1−α)⁻¹ ∫_α¹ q_CF(u) du     (cuadratura trapezoidal)             ║
-║                                                                                          ║
-║       Coherencia numérica débil: ES_α ≥ VaR_α (cola superior, σ>0).                      ║
-║       Norma de Banach de cola en ℓ²:                                                     ║
-║                                                                                          ║
-║           ‖(VaR, ES)‖₂  =  √(VaR² + ES²).                                                ║
-║                                                                                          ║
-║  II.7  Sobre de riesgo  (objeto terminal de F₂ = objeto inicial de F₃)                   ║
-║                                                                                          ║
-║           tail_loading      = max( 0, (ES_α − VaR_α) / K₀ )                              ║
-║           tail_dispersion   = max( 0, ES_α / VaR_α − 1 )                                 ║
-║           K_eff  = K₀ · (1 + tail_loading)                                               ║
-║           σ_eff  = σ₀ · (1 + tail_dispersion)                                            ║
-║                                                                                          ║
-║       ε = RiskEnvelope(K_eff, σ_eff, tail_loading, tail_dispersion, VaR, ES, ‖·‖₂).      ║
-║                                                                                          ║
-║  PUERTO π₂₃ :  RiskQuantifier.synthesize_risk_envelope()  →  RiskEnvelope                ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  III. FASE 3 — PDE ESTOCÁSTICA Y SÍNTESIS TERMUDINÁMICA                                  ║
-║  ───────────────────────────────────────────────────────                                 ║
-║                                                                                          ║
-║  III.1  PDE de Black–Scholes–Merton (medida martingala Q)                                ║
-║       Subyacente:  dS_t = (r−q) S_t dt + σ S_t dW_t^Q.                                   ║
-║                                                                                          ║
-║           ∂V/∂t + ½ σ² S² ∂²V/∂S² + (r−q) S ∂V/∂S − r V  =  0                            ║
-║           V(S, T)  =  max(S − K, 0)                 (call europea)                       ║
-║                                                                                          ║
-║       Feynman–Kac (solución cerrada, saturación |d₁|,|d₂| ≤ 8 en C_b(ℝ)):                ║
-║                                                                                          ║
-║           d₁  =  [ ln(S/K) + (r − q + ½σ²) T ] / (σ √T),     d₂ = d₁ − σ√T               ║
-║           C   =  S e^{−qT} N(d₁) − K e^{−rT} N(d₂)                                       ║
-║           P   =  K e^{−rT} N(−d₂) − S e^{−qT} N(−d₁)     (paridad put-call)              ║
-║                                                                                          ║
-║       Greeks de 1º y 2º orden (call):                                                    ║
-║           Δ     = e^{−qT} N(d₁)                                                          ║
-║           Γ     = e^{−qT} φ(d₁) / (S σ √T)                                               ║
-║           Vega  = S e^{−qT} φ(d₁) √T                                                     ║
-║           Θ     = −S e^{−qT} φ(d₁) σ/(2√T) + q S e^{−qT} N(d₁) − r K e^{−rT} N(d₂)       ║
-║           ρ     = K T e^{−rT} N(d₂)                                                      ║
-║           Vanna = ∂Δ/∂σ = − e^{−qT} φ(d₁) d₂ / σ                                         ║
-║           Volga = ∂Vega/∂σ = Vega · d₁ d₂ / σ                                            ║
-║           Charm = ∂Δ/∂τ                                                                  ║
-║                                                                                          ║
-║       Mapa σ ↦ C_BSM(σ) estrictamente creciente (Vega>0, T>0, S,K>0) ⇒ IV única.        ║
-║                                                                                          ║
-║  III.2  CRR (Cox–Ross–Rubinstein), rejilla recombinante, precios en log-espacio          ║
-║                                                                                          ║
-║           Δt = T/n,   u = e^{σ√Δt},   d = 1/u = e^{−σ√Δt}                                ║
-║           p  = ( e^{(r−q)Δt} − d ) / (u − d),     disc = e^{−r Δt}                       ║
-║                                                                                          ║
-║       No-arbitraje:  p ∈ (0,1)  ⇔  r−q ∈ ( ln d / Δt , ln u / Δt ).                      ║
-║       Nodo (i,j):  S_{i,j} = exp( ln S + (2j − i) σ√Δt ).                                ║
-║       Inducción hacia atrás:                                                             ║
-║                                                                                          ║
-║           V_{i,j}^{eur}  = disc · [ p V_{i+1,j+1} + (1−p) V_{i+1,j} ]                    ║
-║           V_{i,j}^{am}   = max( S_{i,j} − K,  V_{i,j}^{eur} )                            ║
-║                                                                                          ║
-║       Greeks de árbol: Δ = (V_u − V_d)/(S(u−d));  Γ por diferencias de Δ en 2Δt;         ║
-║       Θ = (E^Q[V(Δt)] − V(0)) / Δt.                                                      ║
-║       Richardson (solo europeas, error O(1/n)):  V_rich = (4 V(2n) − V(n)) / 3.          ║
-║                                                                                          ║
-║  III.3  Acoplamiento termo-estructural (Arrhenius modificado ⊗ pandeo de Euler)          ║
-║                                                                                          ║
-║           σ_eff  =  σ_base · M_s(Ψ) · M_t(T),     saturado por max_amplification.        ║
-║                                                                                          ║
-║           F_s(Ψ) = 0                                           si Ψ ≥ Ψ_stable           ║
-║                    tanh[(Ψ*−Ψ) κ] + ½ [(Ψ*−Ψ)/Ψ*]² 𝟙{Ψ<Ψ*}    si Ψ < Ψ_stable           ║
-║                                                                                          ║
-║           F_t(T) = 0                                           si T ≤ T_ref              ║
-║                    (T − T_ref)/Θ · 0.1                         si T_ref < T ≤ T_str      ║
-║                    0.1 + [ e^{(T−T_str)/Θ} − 1 ] · 0.2        si T > T_str               ║
-║                                                                                          ║
-║           M_s = 1 + F_s,    M_t = 1 + α F_t,                                             ║
-║           cruce:  M_s ← M_s + 0.3 F_s F_t     si F_s>0 ∧ F_t>0.                          ║
-║                                                                                          ║
-║  III.4  Inercia térmica financiera (analogía C_th = m · c)                               ║
-║                                                                                          ║
-║           M_eff  =  λ_L · (1 + ½ Ψ)                                                      ║
-║           C_eff  =  ρ_f · (1 + 0.3 Ψ)                                                    ║
-║           A_att  =  e^{−2 σ}                                                             ║
-║           I      =  M_eff · C_eff · A_att                                                ║
-║                                                                                          ║
-║       Dinámica de primer orden  C dT/dt = Q − T/τ_ext:                                   ║
-║                                                                                          ║
-║           ΔT(t)  =  (Q / I) · (1 − e^{−1/τ})                                             ║
-║                                                                                          ║
-║       τ → 0⁺ ⇒ ΔT → Q/I (cuasi-estático);  τ → ∞ ⇒ ΔT → 0 (amortiguación total).         ║
-║       I → 0  ⇒ régimen elástico: ΔT = Q.                                                 ║
-║                                                                                          ║
-║  III.5  Amplificación topológica de volatilidad                                          ║
-║                                                                                          ║
-║           σ_adj  =  σ_base · ( 1 + P_sinergia + P_eficiencia )                           ║
-║                  ≤  σ_base · ( 1 + Δ_max )                                               ║
-║                                                                                          ║
-║           P_sinergia   = f_syn · strength · 𝟙{synergy_detected}                          ║
-║           P_eficiencia = f_eff · ( 1 − clamp(euler_efficiency, 0, 1) )                   ║
-║                                                                                          ║
-║  III.6  Orquestación  Φ(proyecto) = F₃(F₂(F₁(proyecto)))                                 ║
-║       1. σ_eff ← Arrhenius⊗Euler  (o ajuste topológico).                                 ║
-║       2. WACC_topo ← π₁₂(τ) · (H, Σ).                                                    ║
-║       3. NPV, duración, TIR, MIRR bajo WACC_topo.                                        ║
-║       4. VaR/CVaR sobre (I₀, σ_costo · σ_eff/σ_base).                                    ║
-║       5. ε ← π₂₃;  V_option ← BSM/CRR(S = NPV+|I₀|, K = K_eff, σ = σ_eff).               ║
-║       6. Inercia térmica y síntesis de informe.                                          ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  IV. INVARIANTES GLOBALES DE Φ  =  F₃ ∘ F₂ ∘ F₁                                          ║
-║  ──────────────────────────────────────────────                                          ║
-║                                                                                          ║
-║  (N1) No-arbitraje: p_CRR ∈ (0,1); WACC ≥ 0; Ke ≥ min(R_F, ½ R_F) en el floor.          ║
-║  (N2) Consistencia dimensional: tasas ∈ T⁻¹, σ ∈ T⁻¹/², Betti adimensionales.            ║
-║  (N3) Monotonía de riesgo: ES_α ≥ VaR_α (cola superior, σ>0).                            ║
-║  (N4) Preservación del cono: τ.apply : ℝ_{≥0} → ℝ_{≥0}.                                  ║
-║  (N5) Exactitud a izquierda sobre 𝒩 (subcategoría de mercados libres de arbitraje).      ║
-║  (N6) S(τ,H) = 1 sobre árboles; κ_heat = 1 sobre grafos con λ₂=0.                        ║
-║  (N7) Call BSM: Δ ∈ [0, e^{−qT}] ⊂ [0,1]; Γ ≥ 0; Vega ≥ 0.                               ║
-║  (N8) Clausura axiomática de FinancialConfig: FAIL ⇒ el objeto no se construye.          ║
-║                                                                                          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE ESTRATEGIA
+====================================================================================================
+
+Nombre: FinancialEngine
+Ubicación: app/strategy/financial_engine.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Motor soberano de valoración estocástica, optimización de cartera informacional de Markowitz,
+         ecuaciones de Hamilton-Jacobi-Bellman (HJB) y cálculo estocástico de Itô en el espacio de
+         activos cognitivos de APU Filter. Modela la asignación óptima de recursos computacionales,
+         tasas de rendimiento ajustadas por riesgo y preservación de martingala bajo medidas neutrales.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Estrategia Financiera Informacional (FinancialEngine) es el regulador económico-estocástico
+de APU Filter. Su cometido esencial es cuantificar el valor esperado, la volatilidad y el costo de
+oportunidad en la asignación de recursos neuronales, de memoria y de tiempo de procesamiento hacia
+diferentes tareas cognitivas. Trata a cada canal cognitivo como un activo financiero en un espacio de
+Banach estocástico dotado de una medida neutral al riesgo Q.
+Su respectivo agente de supervisión y despacho global es 'AppAgent' (app/agents/app_agent.py), y su
+entorno aplicativo unificado es 'APUFilterApp' (app/app.py). Mientras FinancialEngine calcula
+analíticamente la frontera eficiente de Pareto, las volatilidades de Black-Scholes y los pesos de
+Markowitz w*, su respectivo Agente ejecuta los rebalanceos de carga y protege la liquidez de cómputo.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Cálculo Estocástico de Itô y Ecuación de Difusión de Black-Scholes:
+   Sea S_t el valor de un activo de conocimiento gobernado por un movimiento browniano geométrico (GBM):
+       d S_t = mu * S_t * dt + sigma * S_t * d W_t
+   donde W_t es un proceso de Wiener estándar con E[dW_t] = 0 y E[(dW_t)^2] = dt.
+   Por el Lema de Itô, cualquier reclamo contingente V(S, t) satisface la EDP parabólica:
+       partial_t V + (1 / 2) * sigma^2 * S^2 * partial_{SS} V + r * S * partial_S V - r * V = 0
+   La solución analítica para una opción europea de compra (call) con precio de ejercicio K y madurez T:
+       V(S, t) = S * Phi(d_1) - K * exp(-r * (T - t)) * Phi(d_2)
+       d_1 = [ ln(S / K) + (r + (1 / 2) * sigma^2) * (T - t) ] / [ sigma * sqrt(T - t) ]
+       d_2 = d_1 - sigma * sqrt(T - t)
+
+2. Optimización de Cartera de Markowitz en Variedades Riemannianas:
+   Dado un vector de rendimientos esperados mu in R^N y una matriz de covarianza definida positiva Sigma in S_{++}^N:
+       min_{w in R^N} (1 / 2) * w^T Sigma w - lambda * w^T mu
+       sujeto a: sum_{i=1}^N w_i = 1,   w_i >= 0  forall i
+   El vector óptimo de asignación de recursos w^* y el ratio de Sharpe S_R resultan:
+       w^* = lambda * Sigma^{-1} (mu - r_f * 1) / (1^T Sigma^{-1} (mu - r_f * 1))
+       S_R = (w^T mu - r_f) / sqrt(w^T Sigma w)
+
+3. Ecuación de Hamilton-Jacobi-Bellman (HJB) para Control Óptimo de Recursos:
+   Para una función de valor V(x, t) con tasa de descuento rho y ley de control de tasa de consumo c(t):
+       rho * V(x) = max_{c} [ U(c) + V'(x) * (r * x - c) + (1 / 2) * sigma^2 * x^2 * V''(x) ]
+   garantizando la tasa óptima de reinversión de presupuesto computacional a lo largo del horizonte temporal.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma FE1 (Condición de No-Arbitraje Libre de Fricción):
+    Bajo la medida neutral al riesgo Q, el valor descontado es una martingala estricta:
+        E^Q [ exp(-r * t) * S_t | F_s ] == exp(-r * s) * S_s   (s <= t).
+Axioma FE2 (Convexidad Estricta y Regularidad de Covarianza):
+    v^T Sigma v > 0 para todo vector no nulo v in R^N \ {0} (Sigma in S_{++}^N).
+Axioma FE3 (Conservación Unitaria de la Fracción de Asignación):
+    sum_{i=1}^N w_i == 1.0 en todo rebalanceo de cartera cognitiva.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Normalización Estricta de Pesos de Cartera):
+    | sum_{i=1}^N w_i - 1.0 | <= 1e-6.
+Invariante 2 (Positividad Estricta del Valor de Capital Cognitivo):
+    V_total(t) >= V_reserva_min > 0.
+====================================================================================================
 """
 
 from __future__ import annotations

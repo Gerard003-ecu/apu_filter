@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonBufferEngine
 Ubicación: app/wisdom/toon_buffer_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Motor soberano de amortiguamiento mnemónico y filtrado espectral en espacios de Banach
          y variedades cuaterniónicas con análogo de admitancia de circuito RLC distribuido.
 

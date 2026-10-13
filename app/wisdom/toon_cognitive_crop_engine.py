@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonCognitiveCropEngine
 Ubicación: app/wisdom/toon_cognitive_crop_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Motor soberano de poda y focalización cognitiva mediante operadores de proyección en
          álgebras de von Neumann y restricción de haces (sheaf cohomology crop) sobre topologías
          de Grothendieck.

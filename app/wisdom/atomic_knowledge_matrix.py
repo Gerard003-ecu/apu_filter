@@ -1,53 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : Atomic Knowledge Matrix (Fibrado Neuronal, Matriz de Densidad     ║
-║            y Mecánica Celeste de Poincaré)                                   ║
-║ Ubicación: app/wisdom/atomic_knowledge_matrix.py                             ║
-║ Versión  : 5.0.0-Celestial-Poincare-Delaunay-KAM-Birkhoff-Lindstedt-Doctoral ║
-╚══════════════════════════════════════════════════════════════════════════════╝
-NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO WISDOM (V_W) ─────
-La Matriz Atómica de Conocimiento (MAC) es un fibrado vectorial complejo sobre
-el complejo simplicial de agentes. Sobre él tejemos la maquinaria analítica de
-la Mecánica Celeste de Poincaré (Méthodes Nouvelles, t. I–III), elevando el
-operador de densidad ρ_MAC a un sistema Hamiltoniano (casi) integrable en el
-espacio de fases simpléctico (T*ℋ_MAC, ω = dθ), con forma de Poincaré-Cartan
-Θ = p dq − H dt y transformación canónica de Delaunay → Poincaré regularizada.
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-  FASE 1 ──► GEOMETRÍA ESPECTRAL Y ELEMENTOS DE DELAUNAY/POINCARÉ (Observe)
-             ρ = ρ† ≽ 0, Tr(ρ) = 1. Cartas acción-ángulo (J, θ).
-             Delaunay (L, G, H, ℓ, g, h) y Poincaré no-singulares (Λ, λ, ξ, η, p, q).
-             Firma de Krein del linearizado Hamiltoniano, condición de Kolmogorov,
-             divisores pequeños Diofantinos. Semilla: Phase1CelestialSpectralCertificate.
-             El último morfismo de FASE 1 ES el morfismo de apertura de FASE 2.
-  FASE 2 ──► FLUJO PORT-HAMILTONIANO CELESTE (Orient)
-             ẋ = [J(x) − R(x)] ∇H(x) + g(x) u
-             Sección de Poincaré Σ ⊂ T*Q, mapa de primer retorno P: Σ → Σ,
-             monodromía de Floquet, número de rotación, twist de Poincaré-Birkhoff.
-             Resonancias de Chirikov, función de Melnikov, Nekhoroshev, recurrencia.
-             Semilla: Phase2CelestialDynamicsCertificate.
-             El último morfismo de FASE 2 ES el morfismo de apertura de FASE 3.
-  FASE 3 ──► ADJUNCIÓN DE GALOIS CELESTE Y COLLAPSE (Decide & Act)
-             Hom_D(F(MIC), MAC) ≅_{G_{μν}} Hom_C(MIC, G(MAC))
-             Índice de Poincaré-Hopf, dualidad de Poincaré, polinomio de Poincaré,
-             colapso al retículo de Heyting Ω₃ y Veto simpléctico de Gromov.
+Nombre: AtomicKnowledgeMatrix
+Ubicación: app/wisdom/atomic_knowledge_matrix.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Matriz soberana de conocimiento atómico, álgebra multilineal y proyecciones tensoriales sobre
+         grafos ontológicos en APU Filter. Modela la estructura modular irreducible de axiomas,
+         conceptos y pesos de enlace conceptuales mediante descomposiciones espectrales, cálculo
+         Laplaciano combinatorial y análisis de coherencia de subespacios semánticos.
 
-INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
-  [I1]  Pureza Espectral MAC:            Tr(ρ²) ∈ [1/d, 1]
-  [I2]  Invarianza de Traza de Lindblad: Tr(ρ̇(t)) ≡ 0
-  [I3]  Pasividad de Lyapunov Basal:     Ḣ = −∇Hᵀ R(x) ∇H ≤ 0
-  [I4]  Isomorfismo de Adjunción:        F ⊣ G ⟹ X ≅ G(F(X))
-  [I5]  Confinamiento de Calibre:        V_{ℵ₀} ⊊ V_P ⊊ V_T ⊊ V_S ⊊ V_W
-  [I6]  Delaunay Celeste:                (L, e, G, i, H, C_J) canónicos
-  [I7]  Poincaré no-singular:            (Λ, λ, ξ, η, p, q) regulares en e=i=0
-  [I8]  KAM-Kolmogorov:                  det(∂ω/∂J) ≠ 0 y ω ∈ DC(γ, τ)
-  [I9]  Chirikov:                        K = Δω / δω_res < 1 ⇒ toros KAM intactos
-  [I10] Poincaré-Hopf:                   Σ_p ind_p(X) = χ(ℳ)
-  [I11] Dualidad de Poincaré:            b_k = b_{n−k} en H^*(ℳ; ℝ)
-  [I12] Invariante integral relativo:    ∮_γ θ = ∮ p dq  (Poincaré)
-  [I13] Twist de Poincaré-Birkhoff:      ∂ν/∂J ≠ 0 en el anillo área-preservante
-  [I14] Colapso de Heyting Ω₃:           {⊥, ½, ⊤} con implicación a → b
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Matriz de Conocimiento Atómico (AtomicKnowledgeMatrix) es la base de datos tensorial
+fundacional del estrato de sabiduría en APU Filter. Encapsula las relaciones categoriales primordiales
+entre átomos de verdad, asegurando que ninguna deducción lógica o heurística se ejecute sobre
+definiciones contradictorias o desalineadas en su topología de conectividad.
+Su respectivo motor de validación introspectiva es 'ToonIntrospectionEngine'
+(app/wisdom/toon_introspection_engine.py), y su agente atestiguador respectivo es
+'ToonIntrospectionWitnessAgent' (app/agents/wisdom/toon_introspection_witness_agent.py). Mientras
+AtomicKnowledgeMatrix almacena y proyecta la estructura de conectividad matricial K y su Laplaciano L,
+su respectivo Agente audita la pureza espectral del estado atómico y certifica la fidelidad cuántica.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Espacio Tensorial de Conocimiento y Descomposición Singular Truncada:
+   Sea K in R^{N times M} una matriz de incidencia concepto-propiedad con rango r <= min(N, M):
+       K = U * Sigma * V^T = sum_{i=1}^r sigma_i * (u_i otimes v_i)
+   donde sigma_1 >= sigma_2 >= ... >= sigma_r > 0 son los valores singulares y u_i, v_i son vectores
+   singulares ortonormales. La mejor aproximación de rango k < r bajo la norma de Frobenius obedece
+   el Teorema de Eckart-Young-Mirsky:
+       K_k = sum_{i=1}^k sigma_i * (u_i otimes v_i),   ||K - K_k||_F^2 = sum_{i=k+1}^r sigma_i^2
+
+2. Laplaciano Combinatorial de Grafo Ontológico:
+   Sea A in R^{N times N} la matriz de adyacencia ponderada simétrica (A_{ij} >= 0) y D = diag(d_i)
+   la matriz diagonal de grados donde d_i = sum_j A_{ij}. El operador Laplaciano L se define como:
+       L = D - A,   L_{ij} = d_i * delta_{ij} - A_{ij}
+   La energía de Dirichlet ontológica de una señal de concepto x in R^N es cuadrática y semidefinida positiva:
+       E_L(x) = x^T L x = (1 / 2) * sum_{i,j=1}^N A_{ij} * (x_i - x_j)^2 >= 0
+
+3. Espectro y Conexidad de Fiedler:
+   El espectro de L satisface 0 = lambda_1 <= lambda_2 <= ... <= lambda_N.
+   El segundo autovalor lambda_2(L) (valor de Fiedler o conectividad algebraica) gobierna la robustez
+   y resistencia de la red ontológica contra fragmentación conceptual.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma AKM1 (Ortogonalidad de Subespacios Atómicos):
+    u_i^T u_j = delta_{ij} y v_i^T v_j = delta_{ij} para todo i, j in {1, ..., r}.
+Axioma AKM2 (Positividad Semidefinida del Operador Laplaciano):
+    x^T L x >= 0 para todo x in R^N, con L * 1 = 0.
+Axioma AKM3 (Conexidad Topológica Unitaria):
+    dim(ker(L)) == 1 si y solo si el grafo atómico de conocimiento es conexo.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Energía de Frobenius Acotada):
+    ||K||_F = sqrt(Tr(K^T K)) <= E_max < infty.
+Invariante 2 (No-Negatividad del Espectro Laplaciano):
+    lambda_i(L) >= 0 para todo autovalor i in {1, ..., N}.
+====================================================================================================
 """
 from __future__ import annotations
 

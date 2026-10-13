@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO TÁCTICO
 
 Nombre: TopologicalAnalyzerAgent
 Ubicación: app/agents/tactics/topological_analyzer_agent.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Agente soberano táctico de supervisión topológica que monitorea la conectividad
          multidimensional, detecta fragmentaciones informacionales (b_0 > 1) y ciclos
          parásitos de deliberación táctica (b_1 >> 0), emitiendo directivas de clausura homológica.

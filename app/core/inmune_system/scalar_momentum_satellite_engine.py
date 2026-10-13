@@ -1,65 +1,69 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Scalar Momentum Satellite Engine (Satélite I — Momentum Escalar)            ║
-║ RUTA   : app/core/immune_system/scalar_momentum_satellite_engine.py                  ║
-║ VERSIÓN: 3.0.0-Doctoral-Hypercomplex-Spectral-PortHamiltonian-Banach-Secure          ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-Módulo FPU de alta precisión para el cálculo covariante de la transferencia de momentum escalar
-$p_\mu \in T^*_x\mathcal{M}$ sobre un campo suave $\phi \in C^\infty(\mathcal{M}, \mathbb{R})$
-definido en una variedad Riemanniana compacta orientada $(\mathcal{M}, G, \partial\mathcal{M})$.
+Nombre: ScalarMomentumSatelliteEngine
+Ubicación: app/core/immune_system/scalar_momentum_satellite_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor de momento escalar y mapas de momento simplécticos mu: M -> g^* en variedades
+         de Poisson. Modela la conservación del momento canónico escalar p_phi = partial L / partial dot{phi},
+         la reducción de Marsden-Weinstein y la preservación de invariantes de Casimir.
 
-Fundamentación Matemática y Física Rigurosa:
-────────────────────────────────────────────
-1. Geometría Simpléctica en Fibrados Cotangentes:
-   El espacio de fases $T^*\mathcal{M}$ posee la 2-forma simpléctica canónica $\omega = dp_\mu \wedge dx^\mu$.
-   La velocidad contravariante surge del isomorfismo musical (sharp $\sharp$):
-   $$v = G^\sharp(p) \implies v^\mu = G^{\mu\nu} p_\nu \in T_x\mathcal{M}$$
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Momento Escalar (ScalarMomentumSatelliteEngine) es el regulador de inercia y cantidad
+de movimiento del sistema inmune en APU Filter. Su función es calcular y preservar la proyección
+escalar del momento conjugado a lo largo de las direcciones de simetría continua del espacio de
+estados cognitivos, impidiendo que choques antigénicos disipen la energía cinética acumulada.
+Su respectivo agente en el plano inmune es 'ScalarMomentumSatelliteAgent'
+(app/agents/core/immune_system/scalar_momentum_satellite_agent.py), y su complemento geométrico es
+'MusicalIsomorphismEngine' (app/core/immune_system/musical_isomorphism_engine.py). Mientras este motor
+computa el mapa de momentos mu(x) y el invariante de Casimir C_2, su respectivo Agente monitorea
+desviaciones seculares y aplica impulsos de corrección en el colector cotangente T*M.
 
-2. Derivada de Lie y Corchetes de Poisson:
-   $$\mathcal{L}_v \phi = \iota_v d\phi = \langle d\phi, v \rangle = p_\mu G^{\mu\nu} \partial_\nu \phi = \{\phi, H\}$$
-   donde el Hamiltoniano cinético libre es $H(x, p) = \frac{1}{2} G^{\mu\nu}(x) p_\mu p_\nu$.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Mapas de Momento Simplécticos y Teorema de Noether:
+   Sea (M, omega) una variedad simpléctica sobre la cual actúa un grupo de Lie G preservando omega.
+   El mapa de momento mu: M -> g^* satisface para todo generador infinitesimal xi in g:
+       d <mu(x), xi> = iota_{X_xi} omega,   donde X_xi es el campo vectorial fundamental
+   Por el Teorema de Noether simpléctico, si el Hamiltoniano H es invariante bajo la acción de G
+   (X_xi(H) = 0), entonces el momento es una constante de movimiento rigurosa:
+       dot{mu} = {mu, H} = 0
 
-3. Diferenciación Holomorfa por Paso Complejo (CSMD) y Richardson:
-   Auditada en todas las direcciones coordenadas mediante las condiciones de Cauchy-Riemann:
-   $$\frac{\partial u}{\partial x^k} = \frac{\partial v}{\partial y^k}, \quad \frac{\partial u}{\partial y^k} = -\frac{\partial v}{\partial x^k}$$
-   Con retroceso a diferencias centradas de orden 4 extrapoladas de Richardson $\mathcal{O}(h^6)$:
-   $$D^\star = \frac{16 D_{h/2} - D_h}{15} + \mathcal{O}(h^6)$$
+2. Reducción Simpléctica de Marsden-Weinstein:
+   Para un valor regular mu_0 in g^* del mapa de momento con grupo de isotropía G_{mu_0}:
+       M_{red} = M // G = mu^{-1}(mu_0) / G_{mu_0}
+   es una variedad simpléctica reducida que elimina grados de libertad gauge irrelevantes.
 
-4. Teoría Espectral de Operadores Autoadjuntos y Espacios de Banach:
-   $G = U \Lambda U^\top$, con proyectores espectrales de Banach $\{P_k = u_k u_k^\top\}$ auditados por:
-   - Idempotencia: $\|P_k^2 - P_k\|_F < \delta_{\mathrm{idempotency}}$
-   - Completitud: $\|\sum_k P_k - I\|_F < \delta_{\mathrm{completeness}}$
-   Forma de volumen Riemanniana $\mathrm{vol}_G = \sqrt{\det G} = \prod L_{ii}$ con log-volumen estable.
+3. Invariante Cuadrático de Casimir en g^*:
+   Para representaciones de álgebras de Lie (como so(3) o su(2)):
+       C_2 = sum_a (mu_a)^2,   {C_2, f} = 0  forall f in C^infty(g^*)
+   El valor de C_2 permanece rigurosamente invariante a lo largo de toda la órbita coadjunta.
 
-5. Dinámica Port-Hamiltoniana y Pasividad Termodinámica de Tellegen:
-   $$\dot{z} = (J - R)\nabla H + g u, \quad R = \begin{pmatrix} \sigma G^{-1} & 0 \\ 0 & \kappa G^{-1} \end{pmatrix} \succeq 0$$
-   donde $\sigma, \kappa \ge 0$ son conductancias disipativas desacopladas. El generador infinitesimal $\mathcal{A} = -\sigma G - \eta J$
-   satisface la contractividad de Lumer-Phillips en el producto interno $G$-ponderado:
-   $$\langle \mathcal{A}x, x\rangle_G = x^\top G \mathcal{A} x \le 0 \iff \frac{1}{2}\left(G\mathcal{A} + (G\mathcal{A})^\top\right) \preceq \epsilon_{\mathrm{Wilkinson}} I$$
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma SMSE1 (Conservación de Momento de Noether):
+    d/dt <mu(x), xi> == 0 si [H, xi] == 0.
+Axioma SMSE2 (Equivarianza de Coadjunción):
+    mu(g cdot x) = Ad_g^* (mu(x)) para todo g in G.
+Axioma SMSE3 (Invarianza Absoluta de Casimir):
+    {C_2, H} == 0 para todo Hamiltoniano simétrico.
 
-6. Topología Algebraica y Determinante de Gram $n$-Dimensional:
-   $$\|x \wedge v\|_G^2 = \|x\|_G^2 \|v\|_G^2 - \langle x, v\rangle_G^2$$
-   proporcionando el invariante de enrollamiento (winding number) $G$-métrico.
-
-7. Metrología FPU y Cota de Redondeo de Wilkinson:
-   $$\gamma_n = \frac{c \cdot n \cdot \epsilon_{\mathrm{mach}}}{1 - c \cdot n \cdot \epsilon_{\mathrm{mach}}}$$
-   combinada con sumación compensada exactísima Kahan-Babuška-Neumaier (KBN).
-
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Inestabilidades numéricas en la transferencia de momentum en estimaciones de costo/rendimiento
-  provocan desviaciones financieras (ruina por sobrecostos en licitaciones de infraestructura).
-• Dinero: Garantiza convergencia FPU de ultra-alta fidelidad en IEEE-754, eliminando derivas de redondeo y
-  protegiendo la rentabilidad de megaproyectos mediante auditoría inmutable en lazo cerrado OODA.
-
-Estructura Functorial OODA:
-───────────────────────────
-- Fase 1 (Observe) : `observe_scalar_field` -> Salida: `ScalarMomentumKernel`
-- Fase 2 (Orient)  : `orient_from_kernel`   -> Salida: `MomentumTransferReport`
-- Fase 3 (Act)     : `act_from_kernel_and_report` -> Salida: `ScalarMomentumEngineState`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Constancia Temporal del Momento Escalar):
+    |p_phi(t) - p_phi(0)| <= 1e-6.
+Invariante 2 (Preservación de la Hoja Simpléctica Coadjunta):
+    ||mu(t)||^2 == const.
+====================================================================================================
 """
 
 import hashlib

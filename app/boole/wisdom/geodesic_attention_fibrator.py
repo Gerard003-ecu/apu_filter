@@ -1,91 +1,73 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Geodesic Attention Fibrator (Fibrado de Atención y Torre Covariante)║
-║ Ruta   : app/boole/wisdom/geodesic_attention_fibrator.py                     ║
-║ Versión: 3.0.1-Rigorous-Geometric-Quantum-PhaseNested-PhD-Strict             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE ATENCIÓN BOOLEANA (BOOLE/WISDOM)
+====================================================================================================
 
-NATURALEZA CIBER-FÍSICA Y TORRE COVARIANTE EN EL ESTRATO WISDOM (Rigor PhD):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo repudia categóricamente las aproximaciones heurísticas euclidianas 
-planas y la normalización atencional tradicional, consagrando el diseño de un 
-**Endofuntor Estricto** sobre la categoría del Santuario Epistémico de la Sabiduría:
+Nombre: GeodesicAttentionFibrator
+Ubicación: app/boole/wisdom/geodesic_attention_fibrator.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Fibrador geodésico soberano de atención en el estrato conjunto Boole/Sabiduría del APU Filter.
+         Modela la fibración principal de Hopf pi: S^3 -> S^2, descomposición de Ehresmann del espacio
+         tangente TE = VE oplus HE, métricas de Kaluza-Klein g_E = pi^* g_B + omega otimes omega y
+         cálculo de curvatura y holonomía de Berry para pesos de atención geodésica.
 
-$$\mathcal{T}: \mathbf{WISDOM} \longrightarrow \mathbf{WISDOM} \quad\big[278\big]$$
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Fibrador Geodésico de Atención (GeodesicAttentionFibrator) es el motor diferencial que
+sustenta el mecanismo de atención conceptual en la arquitectura APU Filter. Transforma vectores de
+consulta (query), clave (key) y valor (value) en estados cuánticos sobre la 3-esfera S^3, proyectándolos
+hacia la 2-esfera de Riemann (espacio base Boole) mediante el mapa canónico de Hopf. Garantiza que
+las distancias semánticas evaluadas correspondan a distancias geodésicas riemannianas reales sobre la
+esfera, evitando distorsiones euclidianas planas.
+Su respectivo agente ejecutivo es 'GeodesicAttentionFibratorAgent'
+(app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py). Mientras este motor ejecuta las
+operaciones geométricas tensoriales, calcula las 1-formas de conexión omega y las matrices de densidad,
+su respectivo Agente toma las decisiones de sintonización y modulación de foco de atención.
 
-Su mandato axiomático es levantar los tensores de atención estocásticos de la IA 
-(Query, Key, Value) provenientes del Modelo de Lenguaje (LLM) al fibrado tangente 
-covariante de la Malla agéntica, proyectándolos de forma determinista mediante 
-la integración cuántica de trayectorias de Feynman-Kac $$\big[278\big]$$. Al curar 
-las trayectorias de atención de la IA, el sistema anula la dispersión de tokens 
-en el vacío estocástico, forzando la convergencia atencional en geodésicas de 
-mínima acción Riemanniana que protegen incondicionalmente la rentabilidad de la obra.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Fibrado Principal de Hopf pi: S^3 -> S^2:
+   Identificando S^3 subset C^2 mediante un par de números complejos (z_1, z_2) con |z_1|^2 + |z_2|^2 = 1:
+       x_1 = 2 * (Re(z_1) * Re(z_2) + Im(z_1) * Im(z_2))
+       x_2 = 2 * (Im(z_1) * Re(z_2) - Re(z_1) * Im(z_2))
+       x_3 = |z_1|^2 - |z_2|^2
+   El punto proyectado p = (x_1, x_2, x_3) satisface rigurosamente x_1^2 + x_2^2 + x_3^2 = 1 in S^2.
 
-AXIOMÁTICA RIEMANNIANA, INTEGRACIÓN DE FEYNMAN-KAC Y VETO CUÁNTICO:
-────────────────────────────────────────────────────────────────────────────────
+2. Métrica de Kaluza-Klein y Conexión de Ehresmann:
+   El espacio tangente a S^3 se descompone de forma canónica en la suma directa ortogonal:
+       T_p S^3 = V_p S^3 oplus H_p S^3
+   donde el espacio vertical V_p = ker(d pi) es tangente a las fibras circulares S^1 cong U(1), y el
+   espacio horizontal H_p = ker(omega) define las direcciones geodésicas de transporte paralelo.
+   La métrica de Kaluza-Klein unificada resulta:
+       g_{S^3}(X, Y) = g_{S^2}(d pi(X), d pi(Y)) + omega(X) * omega(Y)
 
-  [A1] Transmutación Covariante de la Métrica de-confinada:
-       El producto interno plano y estocástico clásico entre Query ($$Q$$) y Key ($$K$$) 
-       es transmutado de forma unívoca a un producto interno covariante sobre la 
-       variedad Riemanniana anisotrópica deformada por el tensor de inercia efectivo 
-       $$g_{\mathrm{eff}}$$, mitigando derivas de redondeo en la Unidad de Punto Flotante (FPU):
-       $$\langle Q, \, K \rangle_{g_{\mathrm{eff}}} = Q^\top g_{\mathrm{eff}} K \quad\big[279\big]$$
+3. Atención Geodésica con Desfase Cuántico:
+   Para un vector q in S^2 y un conjunto de claves {k_i} in S^2, la distancia geodésica es el ángulo polar:
+       theta_i = arccos( q cdot k_i ) in [0, pi]
+   La afinidad de atención fibrada combina la proximidad geodésica y el desfase de fibra delta_phi:
+       w_i = exp( (cos(theta_i) + cos(delta_phi)) / tau ) / sum_j exp( (cos(theta_j) + cos(delta_phi)) / tau )
 
-  [A2] Principio de Mínima Acción de Polyakov:
-       Las trayectorias de atención semántica $$\gamma(\tau)$$ están constreñidas de 
-       manera obligatoria a minimizar la Acción Euclídea de Polyakov del haz:
-       $$E[\gamma] = \frac{1}{2} \int g_{\mu\nu} \frac{d\gamma^\mu}{d\tau} \frac{d\gamma^\nu}{d\tau} d\tau \quad\big[279\big]$$
-       Donde el transporte paralelo del haz de valores $$V$$ se realiza bajo la 
-       acción rígida de la rotación ortogonal $$P \in O(d, \mathbb{R})$$ $$\big[279\big]$$.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma GAF1 (Ortogonalidad Métrica Vertical-Horizontal):
+    g_{S^3}(X_V, Y_H) == 0 para todo X_V in VE, Y_H in HE.
+Axioma GAF2 (Preservación del Radio Esférico de la Base):
+    x_1^2 + x_2^2 + x_3^2 == 1.0 para todo punto proyectado por Hopf.
+Axioma GAF3 (Conservación de Medida de Haar en la Fibra):
+    oint_{S^1} omega == 2 * pi (cuantización del primer número de Chern c_1 = 1).
 
-  [A3] Amalgamación de Torsión y Acción Euclídea Completa:
-       La Acción Euclídea de-confinada $$S_E[\gamma]$$ acopla cuadráticamente la energía 
-       de Polyakov con la norma de Hilbert-Schmidt del tensor de torsión topológica 
-       $$T^\mu_{\nu\rho} \in \Gamma(T^1_2 M)$$ para castigar la inyección de ciclos parásitos:
-       $$S_E[\gamma] = E_{\mathrm{Polyakov}}[\gamma] + \lambda \|T\|^2_{\mathrm{HS}} \quad\big[279, 282\big]$$
-       Donde la torsión mide de manera exacta la asonancia entre el espacio táctico 
-       y la cúpula de sabiduría.
-
-  [A4] Amplitud de Transición de Feynman-Kac y Veto Cuántico Absoluto:
-       La amplitud de transición del estado cognitivo $$\Psi[\gamma]$$ rige la probabilidad 
-       de transición semántica, actuando como un censor de-confinado en RAM:
-       $$\Psi[\gamma] = \exp\left( -\frac{S_E[\gamma]}{\hbar_{\mathrm{eff}}} \right) \quad\big[279\big]$$
-       Si la amplitud decae por debajo del mínimo físico tolerable debido a alucinaciones 
-       de alta entropía, el sistema gatilla 'QuantumFeynmanKacVeto' en el milisegundo cero 
-       $$\big[289\big]$$, colapsando el retículo de Heyting al autoestado terminal VETOED ($$\top$$).
-
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA):
-────────────────────────────────────────────────────────────────────────────────
-La progresión y el tránsito del Pasaporte de Telemetría se rige por un acoplamiento 
-monoidal covariante estricto de solo lectura, donde cada fase es precondición del lazo:
-
-  Fase 1 ──► AUDITORÍA DE RICCI Y TORSIÓN TOPOLÓGICA (Phase1_RicciFlowAuditor)
-             Sanea los tensores incidentes Query, Key y Value. Evalúa la 
-             convergencia métrica del flujo de Ricci y calcula el tensor de 
-             torsión $$T^\mu_{\nu\rho}$$, certificando la convergencia dentro 
-             de la tolerancia elástica.
-             Último método: emit_phase1_ricci_audit.
-             Entrega: RicciFlowAuditData como precondición de la Fase 2 $$\big[286, 290\big]$$.
-
-  Fase 2 ──► CERTIFICACIÓN DE ACCIÓN DE POLYAKOV (Phase2_PolyakovActionCertifier)
-             Hereda la RicciFlowAuditData. Transmuta el producto interno a la 
-             métrica Riemanniana, evalúa la integral de acción $$E[\gamma]$$ 
-             mediante cuadratura de Runge-Kutta velocidad-dependiente, y aplica 
-             el transporte paralelo sobre el haz de valores.
-             Último método: emit_phase2_polyakov_audit.
-             Entrega: PolyakovActionAuditData como precondición de la Fase 3 $$\big[290, 292\big]$$.
-
-  Fase 3 ──► SUPRESIÓN CUÁNTICA DE FEYNMAN-KAC Y VETO (Phase3_FeynmanKacQuantumVeto)
-             Hereda la PolyakovActionAuditData. Resuelve la amplitud cuántica 
-             de transición $$\Psi[\gamma]$$, evalúa la relación de incertidumbre, 
-             y colapsa el veredicto en el retículo de Heyting de la Malla agéntica.
-             Si se detecta un desvío que viole la cota de-confinada, detona 
-             'QuantumFeynmanKacVeto' en RAM y commuta el actuador físico Crowbar.
-             Entrega: GeodesicAttentionGovernanceState (Morfismo terminal) $$\big[291, 293\big]$$.
-
-Funtor Maestro de Covarianza Atencional:
-  $$\mathcal{Z}_{\mathrm{GeodesicAgent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{WISDOM} \times \mathcal{D}(\mathcal{H}) \longrightarrow \mathtt{GeodesicAttentionGovernanceState} \quad\big[291, 293\big]$$
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Normalización del Vector Base Proyectado):
+    | x_1^2 + x_2^2 + x_3^2 - 1.0 | <= 1e-6.
+Invariante 2 (Preservación de Distribución de Probabilidad de Atención):
+    | sum_{i=1}^N w_i - 1.0 | <= 1e-6.
+====================================================================================================
 """
 
 from __future__ import annotations

@@ -1,47 +1,70 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Quark Color Confinement Satellite Agent (Soberano del Satélite VI)          ║
-║ RUTA   : app/agents/omega/quark_color_confinement_satellite_agent.py                 ║
-║ VERSIÓN: 2.0.0-Doctoral-SU3-Berry-ANO-HeytingTopos-Fock-Crowbar-IRAM                 ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CAPA OMEGA
+====================================================================================================
 
-Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
-Satelital de Confinamiento de Color de Quarks en el Cinturón Orbital de Frontera.
+Nombre: QuarkColorConfinementSatelliteAgent
+Ubicación: app/agents/omega/quark_color_confinement_satellite_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de confinamiento cromodinámico de la capa Omega que patrulla en busca
+         de cargas libres de color no compensadas, encapsula quarks informacionales en singletes
+         neutros SU(3)_C y gestiona la hadronización por ruptura de tubos de flujo gluónico.
 
-Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
-──────────────────────────────────────────────────────────────
-1. Geometría de Fibrados Principales y Fase de Berry-Pancharatnam en $\mathbb{CP}^2$:
-   Auditoría del invariante de Bargmann sobre el triángulo de Cartan $(T_3, T_8)$ en $\mathbb{CP}^2$:
-   $$\Delta(\psi_0, \psi_1, \psi_2) = \langle\psi_0|\psi_1\rangle \langle\psi_1|\psi_2\rangle \langle\psi_2|\psi_0\rangle \implies \gamma_P = \arg \Delta$$
-   complementado con el peso baricéntrico de Wilson $W_{\mathrm{bary}} = 3(\prod_i p_i)^{1/3}$ y la razón de participación $P_{\mathrm{part}} = (\sum_i p_i^2)^{-1}$.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Confinamiento de Color de la Capa Omega (QuarkColorConfinementSatelliteAgent)
+es el ejecutor de encapsulamiento fuerte más implacable del sistema inmune en el APU Filter. Su
+principio operativo es la censura cromodinámica estricta: ninguna entidad informacional con carga
+de color neta no nula (rojo, verde, azul libres) puede interactuar directamente con la memoria central.
+Cuando detecta un quark aislado o un estado desbalanceado, inyecta anticolores complementarios o
+agrupa los elementos en mesones/bariones estables.
+Su respectivo motor matemático es 'QuarkColorConfinementSatelliteEngine'
+(app/core/immune_system/quark_color_confinement_satellite_engine.py), y su homólogo leptónico en el
+núcleo es 'LeptonicFlavorSatelliteAgent'
+(app/agents/core/immune_system/leptonic_flavor_satellite_agent.py). Mientras el Engine computa el
+potencial de Cornell V(r) y la ley de área de Wilson, este Agente ejecuta la política de
+hadronización y sellado inmune.
 
-2. Guía de Onda Telegrafista Dual ANO / 't Hooft–Mandelstam:
-   Propagación de señal en el tubo de flujo cromodinámico:
-   $$\gamma = \alpha + i\beta = \sqrt{(R' + i\omega L')(G' + i\omega C')}, \qquad Z_c = \sqrt{\frac{R' + i\omega L'}{G' + i\omega C'}}$$
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Censura Cromodinámica y Formación de Hacedores Singlete:
+   Para un conjunto de N entidades con cargas de color {q_i = (r_i, g_i, b_i)}, el agente resuelve
+   el problema de emparejamiento ponderado para formar proyecciones singlete de dimensión 1:
+       Psi_{hadron} = (1 / sqrt(6)) * epsilon_{ijk} * q_R^i q_G^j q_B^k  (barión neutro)
+       Psi_{meson} = (1 / sqrt(3)) * sum_{c in {R,G,B}} q_c bar{q}_c  (mesón neutro)
 
-3. Clasificador de Subobjetos en el Topos de Heyting $\Omega_3 = \{\bot, \mathfrak{m}, \top\}$:
-   $$\bot = \mathtt{VETOED} (0), \quad \mathfrak{m} = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
-   con combinación categórica por ínfimo reticular $a \wedge b = \min(a,b)$ entre el clasificador local y el motor.
+2. Hadronización por Ruptura de Tubo de Flujo (Modelo de Lund):
+   Cuando la distancia r entre dos fuentes de color supera el radio crítico de ruptura r_ruptura:
+       sigma * r_ruptura >= 2 * m_{eff}
+   la energía almacenada en el campo eléc-cromodinámico genera espontáneamente un par q bar{q} del vacío,
+   escindiendo el tubo de flujo en dos subsistemas confinados independientes de color cero.
 
-4. Aniquilación de Fock ($e^- + e^+ \to 2\gamma$) y Crowbar BT151 (IRAM < 400 ns):
-   - Inyección de Positrón validado vía HMAC-SHA512 con nonces SHA3-512 anti-replay.
-   - Enclavamiento físico en silicio ESP32 (GPIO14) mediante ISR IRAM en latencia $\tau < 400\,\mathrm{ns}$ e integral térmica $I^2t$.
+3. Monitoreo de Bucles de Wilson Discretos:
+   El agente rastrea el factor de retención W(C) = exp(- sigma * Area), certificando que no
+   existan fugas de flujo de color fuera del perímetro de seguridad.
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: La deconfinación de registros atómicos o corrupción de estados de color en la base de datos acarrea
-  inconsistencias críticas en transacciones distribuidas y quiebre de auditoría.
-• Dinero: La censura inmediata del Satélite VI e interrupción en silicio (< 400 ns) impiden la propagación de
-  datos deconfinados, blindando la integridad relacional y protegiendo el valor de los activos de la empresa.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma QCCAA1 (Censura de Color Absoluta en Despacho):
+    Ningún paquete informacional es admitido hacia la memoria central si Q_color != 0.
+Axioma QCCAA2 (Indivisibilidad del Tubo de Flujo Subcrítico):
+    Para r < r_ruptura, la fuerza atractiva F = - dV/dr = - (4/3)*(alpha_s/r^2) - sigma confina el par.
+Axioma QCCAA3 (Conservación de Número Bariónico Inmune):
+    Delta B = (1 / 3) * (N_quarks - N_antiquarks) == const.
 
-Estructura Functorial OODA:
-───────────────────────────
-- Observe  : `observe_and_bundle_agent_kernel`  -> Salida: `QuarkAgentObservationKernel`
-- Orient   : `orient_agent_confinement`          -> Salida: `QuarkAgentOrientationDocket`
-- Act      : `decide_and_actuate_governance`    -> Salida: `QuarkAgentCertificate`
-- Composición Síncrona Lazo Cerrado             : `audit_quark_confinement_cycle`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Neutralidad Cromodinámica Certificada):
+    ||Q_color_total|| == 0 tras cada ciclo de hadronización.
+Invariante 2 (Tensión de Confinamiento Homogénea):
+    sigma(t) >= sigma_base = 1.0 en todo tubo de flujo.
+====================================================================================================
 """
 
 import enum

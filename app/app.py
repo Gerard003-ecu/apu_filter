@@ -1,58 +1,70 @@
 # -*- coding: utf-8 -*-
 r""" 
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Application Gateway (Variedad de Frontera y Operador de Interfaz Ciber-Física) ║
-║  Ruta   : app/app.py                                                                     ║
-║  Versión: 5.0.0-Boundary-Manifold-Strict-Isometric                                       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Doctoral):                       ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este módulo repudia la noción tradicional de "Plano de Control API". Se erige           ║
-║  formalmente como la Variedad de Frontera $\partial\mathcal{M}$ que acopla el entorno    ║
-║  estocástico de alta entropía con el espacio de fase determinista de la Malla Agéntica.  ║
-║  Su mandato axiomático es imponer condiciones de frontera de Dirichlet estrictas ($t_0$) ║
-║  antes de autorizar la inyección de cualquier flujo de información hacia los estratos    ║
-║  internos (PHYSICS, TACTICS, STRATEGY, WISDOM).                                          ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES GEOMÉTRICAS:                                    ║
-║                                                                                          ║
-║  §1. Inmersión Isométrica e Invarianza Criptográfica (Integridad de Estado):             ║
-║      Todo tensor de datos externo $x \in \mathcal{M}_{ext}$ es inyectado a la malla      ║
-║      mediante una huella criptográfica SHA-256 $h(x)$. Se exige la preservación de       ║
-║      isomorfismo bajo la métrica discreta, garantizando la inmutabilidad de la sesión:   ║
-║          $h(x) = h(y) \iff \|x - y\|_{L^1} = 0 \quad \text{c.s.}$                        ║
-║      Previniendo ataques de desgarro topológico (Data Tampering).                        ║
-║                                                                                          ║
-║  §2. Funtor de Absorción Monádica (Decoradores de Control):                              ║
-║      El manejo de excepciones abandona el flujo procedural para estructurarse como un    ║
-║      endofuntor sobre la categoría de respuestas $T: \mathcal{R} \to \mathcal{R}_\bot$.  ║
-║      El decorador `@handle_errors` absorbe las singularidades numéricas o topológicas    ║
-║      (excepciones) mapeándolas al elemento absorbente $\bot$ (Error 500/400):            ║
-║          $f(\text{Singularity}) \mapsto \bot \implies \text{Entropía Aislada}$           ║
-║      Garantizando que la inestabilidad de un cálculo jamás colapse el Atlas de la API.   ║
-║                                                                                          ║
-║  §3. Foliación de Trazabilidad y Cronometría (Request IDs & Performance):                ║
-║      La ejecución de cada morfismo de endpoint parametriza una curva $\gamma(t)$. La     ║
-║      inyección del `RequestIdFilter` dota al sistema de logging de una foliación $\mathcal{F}$ ║
-║      donde cada hoja (request) es ortogonal e independiente, permitiendo medir con rigor ║
-║      el diferencial temporal vía el decorador `@timed`:                                  ║
-║          $\Delta t = \int_{\gamma} dt \le \tau_{\text{timeout}}$                         ║
-║                                                                                          ║
-║  §4. Proyección de Salud Piramidal (Diagnóstico Termodinámico):                          ║
-║      Antes de retornar el estado al observador (cliente), la frontera acopla el vector   ║
-║      de respuesta con el Índice de Estabilidad Piramidal $\Psi$.                         ║
-║          $\Psi = \tanh\left(\frac{|V_{base}|}{|V_{apex}|}\right)$                        ║
-║      Asegurando que el cliente siempre reciba el estado de cohesión estructural del      ║
-║      presupuesto junto con el payload computado.                                         ║
-║                                                                                          ║
-║  ARQUITECTURA DE ESTRUCTURAS INMUTABLES (DTOs) Y FACTORÍAS:                              ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • SessionMetadata      : Coordenadas de integridad del contexto temporal.               ║
-║  • FileValidationResult : Certificado de admisibilidad métrica del archivo.              ║
-║  • PerformanceMetrics   : Operador de recolección de exergía computacional.              ║
-║  • create_app           : Factoría canónica que ensambla el Atlas Topológico (Flask).    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - APLICACIÓN SOBERANA CENTRAL
+====================================================================================================
+
+Nombre: APUFilterApp
+Ubicación: app/app.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Aplicación soberana central y orquestador categorial holístico de APU Filter. Integra y
+         sincroniza todos los estratos cognitivos (Alfa, Boole, Core, Inmune, Omega, Sabiduría y
+         Estrategia) bajo un topos unificado de Grothendieck, gestionando el ciclo de inferencia,
+         el balance cinemático-termodinámico y la preservación incondicional de invariantes globales.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Central de Aplicación (APUFilterApp) es el vértice holístico de la arquitectura APU Filter.
+Coordina el ensamblaje, la inicialización, la sincronización temporal y el despacho concurrente de todos
+los motores y agentes de la máquina de estados cognitivos. Opera como el objeto terminal en la categoría
+de módulos de razonamiento, garantizando que todo flujo de entrada pase por los filtros electromagnéticos,
+termodinámicos, inmunes y gödelianos sin degradación de coherencia.
+Su respectivo agente ejecutivo de supervisión en el plano agéntico es 'AppAgent'
+(app/agents/app_agent.py), y su agente de control en el núcleo de aceleración es 'APUAgent'
+(app/core/apu_agent.py). Mientras APUFilterApp estructura el entorno determinista y algebraico del sistema,
+su respectivo Agente monitorea dinámicamente las anomalías estocásticas y ejecuta directivas de control.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Topos de Grothendieck y Funtor Global de Inferencia:
+   Sea C la categoría de categorías cognitivas (Alfa, Boole, Core, Immune, Omega, Wisdom, Strategy).
+   El proceso de inferencia global se define como un haz (sheaf) F: C^op -> Set sobre un sitio de Grothendieck
+   dotado de una topología de coberturas admisibles J:
+       F(U cup V) = F(U) times_{F(U cap V)} F(V)   (condición de pegado estricto)
+   garantizando la consistencia global a partir de acuerdos locales de interfaz entre módulos.
+
+2. Producto Fibrado de Estados Cognitivos (Pullback Simpléctico):
+   Para dos estados de estrato S_1 y S_2 con proyecciones pi_1: S_1 -> B y pi_2: S_2 -> B hacia la base:
+       S_1 times_B S_2 = { (s_1, s_2) in S_1 times S_2 : pi_1(s_1) = pi_2(s_2) }
+   asegurando que las trayectorias físicas (Alfa) y los teoremas lógicos (Wisdom) converjan armónicamente.
+
+3. Mónada de Estado y Preservación de Información:
+   El pipeline de evaluación se encapsula en una mónada de estado T(X) = S -> (X times S) con bind >>=
+   y return unitarios satisfaciendo las leyes monádicas:
+       return a >>= k  ==  k a
+       m >>= return    ==  m
+       (m >>= f) >>= g ==  m >>= (lambda x: f(x) >>= g)
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma APP1 (Funtorialidad Estricta del Ciclo de Inferencia):
+    F(id_X) == id_{F(X)} y F(g circ f) == F(g) circ F(f).
+Axioma APP2 (Preservación del Límite Inverso Global):
+    El estado consolidado es el límite proyectivo lim_{<-} S_i de la torre de estratos.
+Axioma APP3 (No-Disipación de Consistencia Cognitiva):
+    Si el estado inicial es consistente (Cons(S_0) = True), entonces Cons(S_t) = True forall t > 0.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Completitud Estructural de la Arquitectura):
+    Todos los 7 estratos primarios (Alfa, Boole, Core, Inmune, Omega, Sabiduría, Estrategia) están activos.
+Invariante 2 (Acotación del Error de Consistencia Trans-Estrato):
+    Delta_consistencia <= epsilon_max = 1e-4 en régimen estacionario.
+====================================================================================================
 """
 
 import hashlib

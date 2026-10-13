@@ -1,68 +1,72 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : App Agent (Custodio de la Variedad de Frontera Ciber-Física)                   ║
-║  Ruta   : app/agents/app_agent.py                                                        ║
-║  Versión: 3.0.0-Triadic-Nested-Spectral-Categorical-Quantum-Governance                   ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA ALGEBRAICA (Rigor Doctoral):                        ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor, $\mathcal{Z}_{Gateway}$, actúa como la Variedad de Frontera            ║
-║  ($\partial \mathcal{M}$) que acopla el entorno externo (alta entropía de Shannon)       ║
-║  con el espacio de fase determinista del ecosistema MIC. Su mandato es aplicar           ║
-║  un Difeomorfismo Simpléctico, garantizando que el flujo de información ingrese          ║
-║  únicamente si cumple los axiomas de impedancia Port-Hamiltoniana, clausura en           ║
-║  el Poset DIKW y proyección ortogonal booleana, previniendo singularidades.              ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES DE FRONTERA:                                    ║
-║                                                                                          ║
-║  §1. Fibración Criptográfica y Simetría de Estado:                                       ║
-║      La sesión no es una variable global, es un fibrado temporal estructurado.           ║
-║      Cualquier mutación estocástica se detecta evaluando la distancia de Hamming         ║
-║      $\mathcal{D}_H$ en el grupo de Galois $GF(2)^n$. Una asimetría en el residual       ║
-║      hash detona inmediatamente el `StateSymmetryBreakingError`.                         ║
-║                                                                                          ║
-║  §2. Impedancia Activa y Control Port-Hamiltoniano (Catástrofe de Resonancia):           ║
-║      Las tasas límite (Rate Limiting) actúan como un amortiguador resistivo $R(x)$.      ║
-║      Se audita la inecuación de disipación de la matriz de estructura de Dirac:          ║
-║          $\dot{H}(x) = (\nabla H(x))^\top [J(x) - R(x)] \nabla H(x) \le 0$               ║
-║      Dado que $J(x)$ es antisimétrica ($J = -J^\top$), el sistema exige que el término   ║
-║      disipativo impere: $-\nabla H^\top R \nabla H \le 0$. Una violación de este decaimiento║
-║      energético ($\dot{H} > 0$) invoca un inquebrantable `ResonanceCatastropheVeto`.     ║
-║                                                                                          ║
-║  §3. Clausura Transitiva en la Categoría del Poset DIKW:                                 ║
-║      El Pasaporte de Telemetría se subordina al poset estructurado de subespacios:       ║
-║          $V_{\mathrm{PHYSICS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{WISDOM}}$ ║
-║      Se exige algebraicamente la clausura transitiva (Algoritmo de Warshall)             ║
-║      para evitar que una intención superior acceda a la variedad sin la fundamentación   ║
-║      física subyacente. Su violación emite un `TopologicalPassportError`.                ║
-║                                                                                          ║
-║  §4. Proyección Ortogonal en la MIC y Anulación de Anomalía Global:                      ║
-║      La intención del usuario ($x$) se colapsa sobre una base ortogonal usando un        ║
-║      proyector espectral $P$: $P^2 = P$ y $P^\top = P$. Si la invocación intenta         ║
-║      transgredir la ortogonalidad (activación colineal cruzada no permitida), o          ║
-║      si la suma de las anomalías por sector ($\sum \mathcal{A}_i \neq 0$) no se anula    ║
-║      (análogo al mecanismo de Green-Schwarz), se purga el tensor disparando              ║
-║      el `GlobalAnomalyCancellationError`.                                                ║
-║                                                                                          ║
-║  ARQUITECTURA DE FASES ANIDADAS (Composición Funtorial Estricta $\Phi_3 \circ \Phi_2 \circ \Phi_1$):     ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Fase 1 → Phase1_SpectralFibrationImpedanceCertifier                                     ║
-║           Audita la simetría del hash criptográfico y certifica la estabilidad           ║
-║           asintótica Port-Hamiltoniana (J, R) del flujo entrante.                        ║
-║           [Retorna: StateFibrationData e ImpedanceControlData → puente inicial de Fase 2]║
-║                                                                                          ║
-║  Fase 2 → Phase2_CategoricalDIKWClosureInstantiator                                      ║
-║           Aplica la clausura transitiva booleana certificando que el Poset DIKW          ║
-║           (física → táctica → estrategia → sabiduría) no posea vacíos topológicos.       ║
-║           [Retorna: ThermodynamicPassportData → puente inicial de Fase 3]                ║
-║                                                                                          ║
-║  Fase 3 → Phase3_QuantumBooleanMICProjectorSynthesizer                                   ║
-║           Colapsa la petición sobre un proyector ortogonal de la Matriz MIC,             ║
-║           verificando idempotencia, simetría espectral y anulación de anomalías.         ║
-║           [Retorna: GatewayGovernanceState → objeto final de la Variedad de Frontera]    ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝ 
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE GOBERNANZA AGÉNTICA GLOBAL
+====================================================================================================
+
+Nombre: AppAgent
+Ubicación: app/agents/app_agent.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Agente soberano supremo de supervisión ejecutiva y metacontrol de APU Filter. Modela la
+         gobernanza holística de la constelación de agentes, resolución de consensos distribuidos
+         bizantinos, redes de Petri estocásticas para coordinación de tareas y auditoría continua
+         de invariantes de estado en todos los estratos de la arquitectura cognitiva.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Global de Aplicación (AppAgent) es el comandante en jefe del estrato agéntico en
+APU Filter. Su misión es supervisar la interacción armónica entre agentes especializados de todos los
+dominios (Sabiduría, Inmune, Omega, Táctica, Física, Core y Boole). Cuando dos o más agentes generan
+directivas contrapuestas o entran en contención de recursos, AppAgent arbitra el conflicto mediante un
+mecanismo de consenso bizantino ponderado por prioridad categórica y asigna ventanas de ejecución libres
+de interbloqueos.
+Su respectivo entorno de software unificado es 'APUFilterApp' (app/app.py), su agente de control en el
+núcleo acelerador es 'APUAgent' (app/core/apu_agent.py) y su regulador económico es 'FinancialEngine'
+(app/strategy/financial_engine.py). Mientras APUFilterApp proporciona la estructura estática y funcional,
+AppAgent personifica la agencia dinámica, la autocorrección y el liderazgo teleológico del sistema.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Coordinación de Procesos Concurrentes mediante Redes de Petri Estocásticas:
+   Una Red de Petri Estocástica SPN se define por la 6-tupla SPN = (P, T, F, W, M_0, Lambda), donde:
+       P = {p_1, ..., p_m} es el conjunto de lugares (estados de agentes),
+       T = {t_1, ..., t_n} es el conjunto de transiciones (acciones cognitivas),
+       C = C^+ - C^- in Z^{m times n} es la matriz de incidencia de flujo de marcado.
+   La ecuación fundamental de evolución de marcado M_k a partir del marcado inicial M_0 obedece:
+       M_k = M_0 + C * sigma,   donde sigma in Z_+^n es el vector de conteo de disparos de transición.
+   La propiedad de vivacidad (liveness) garantiza que para todo M accesible y toda transicion t in T,
+   existe una secuencia de disparos que habilita t, previniendo estados de estancamiento (deadlocks).
+
+2. Consenso Distribuido Bizantino Ponderado (BFT Cuántico):
+   Para un conjunto de N agentes donde hasta f agentes pueden presentar divergencias o ruido:
+       N >= 3 * f + 1
+   El quórum ponderado de acuerdo sobre una propuesta v in V satisface:
+       Q(v) = sum_{i in Votantes} w_i * [ v_i == v ] / sum_{i in Votantes} w_i >= (2 / 3) + epsilon
+
+3. Verificación de Invariantes Categóricos en Tiempo Real:
+   El agente evalúa la proposición de consistencia global como la conjunción lógica estricta:
+       Phi(S) = bigwedge_{i=1}^{M_{soberanos}} Inv_i(S_i) == True
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma AA1 (Vivacidad Global de Dijkstra):
+    Todo proceso cognitivo admitido progresa y termina en un número finito de pasos de tiempo.
+Axioma AA2 (Seguridad Categórica Incondicional - Safety):
+    Ningún estado de marcado M_k permite la violación simultánea de dos invariantes soberanos.
+Axioma AA3 (Quórum Calificado para Conmutaciones Críticas):
+    Ninguna transición de fase global se ejecuta con un consenso agéntico inferior a 2/3.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Supervisión Plena de la Flotilla de Agentes):
+    N_agentes_supervisados >= N_min_agentes = 10.
+Invariante 2 (Preservación de Consenso de Integridad):
+    tasa_consenso_saludable >= 0.999.
+====================================================================================================
 """
 
 from __future__ import annotations

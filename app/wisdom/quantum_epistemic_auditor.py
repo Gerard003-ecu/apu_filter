@@ -1,4 +1,4 @@
-### -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Quantum Epistemic Spectral Auditor (Sutura Connes-Takesaki-Watcher) ║

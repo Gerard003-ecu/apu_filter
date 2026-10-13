@@ -6,7 +6,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonIntrospectionEngine
 Ubicación: app/wisdom/toon_introspection_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 7.0.0-APU-SOVEREIGN
 Función: Motor soberano de auto-reflexión metacognitiva basado en endofuntores monádicos
          (T, eta, mu) en categorías de estados mentales, estabilidad asintótica de Lyapunov
          y análisis de radio espectral en álgebras de Banach.

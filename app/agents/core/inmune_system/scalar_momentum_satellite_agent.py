@@ -1,52 +1,67 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Scalar Momentum Satellite Agent (Soberano del Satélite I — Momentum Escalar)║
-║ RUTA   : app/agents/core/immune_system/scalar_momentum_satellite_agent.py            ║
-║ VERSIÓN: 3.0.0-Doctoral-HeytingTopos-BanachSobolev-PortHamiltonian-ESP32Secure       ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-Agente supervisor ciber-físico en el Estrato Omega ($V_\Omega$). Gobierna en lazo cerrado al Motor
-Satelital de Momentum Escalar sobre una variedad Riemanniana compacta con frontera $(\mathcal{M}, G, \partial\mathcal{M})$.
-Cada paso del ciclo OODA actúa como un 1-morfismo functorial en el topos de haces $\mathcal{S}h(\mathcal{M})$
-equipado con el clasificador de subobjetos de Heyting $\Omega_3$.
+Nombre: ScalarMomentumSatelliteAgent
+Ubicación: app/agents/core/immune_system/scalar_momentum_satellite_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano satelital de momento escalar en el sistema inmune. Supervisa el
+         balanceo cinemático de cantidad de movimiento, detecta derivas en el invariante de Casimir
+         y aplica impulsos de restauración en el colector cotangente T*M sin disipación de fase.
 
-Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
-──────────────────────────────────────────────────────────────
-1. Clasificador de Subobjetos en el Topos de Heyting Trivalente $\Omega_3 = \{\bot, \mathfrak{m}, \top\}$:
-   $$\bot = \mathtt{VETOED} (0), \quad \mathfrak{m} = \mathtt{DEGRADED} (1), \quad \top = \mathtt{COHERENT} (2)$$
-   - Operaciones de retículo intuicionista:
-     $$a \wedge b = \min(a,b), \quad a \vee b = \max(a,b), \quad a \Rightarrow b = \begin{cases} \top & \text{si } a \le b \\ b & \text{si } a > b \end{cases}$$
-   - Pseudo-complementación intuicionista: $\neg a = (a \Rightarrow \bot)$.
-   - Falla del Tercio Excluso: $\neg\neg \mathfrak{m} = \top \neq \mathfrak{m}$, validando la lógica intuicionista no booleana.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Satelital de Momento Escalar (ScalarMomentumSatelliteAgent) es el ejecutor de
+estabilidad inercial del sistema inmune del APU Filter. Su misión es vigilar activamente que los
+patrullajes satelitales mantengan su cantidad de movimiento escalar constante independientemente de
+fricciones semánticas o perturbaciones antigénicas. Aplica correcciones de control impulsivo para
+fijar el momento angular p_phi en el valor objetivo.
+Su respectivo motor de cálculo es 'ScalarMomentumSatelliteEngine'
+(app/core/immune_system/scalar_momentum_satellite_engine.py), y su complemento cotangente es
+'MusicalIsomorphismEngine' (app/core/immune_system/musical_isomorphism_engine.py). Mientras el Engine
+calcula las proyecciones del mapa de momentos mu(x), este Agente decide la amplitud y cadencia de los
+micro-impulsos de restitución.
 
-2. Regularidad de Sobolev-Banach $\ell^p$ sobre $T^*\mathcal{M}$:
-   Para $v \in \mathbb{R}^d \setminus \{0\}$, se cumple la equivalencia de normas:
-   $$\|v\|_2 \le \|v\|_1 \le \sqrt{d} \|v\|_2 \implies 1.0 \le \frac{\|v\|_1}{\|v\|_2} \le \sqrt{d}$$
-   con entropía espectral de Shannon $H(q) = -\sum q_k \ln q_k$ en nats.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Control Hamiltoniano en Variedades de Poisson (P, {., .}):
+   La dinámica controlada del momento escalar p bajo una ley de control u(t) obedece:
+       dot{p} = {p, H} + u(t)
+   Para estabilizar p en el valor de consigna p^*, el agente genera un impulso de retroalimentación:
+       u(t) = - k_gain * (p(t) - p^*) - k_d * d(p(t) - p^*) / dt
 
-3. Aniquilación Cuántica de Fock ($e^- + e^+ \to 2\gamma$):
-   Sutura de la Luz Ámbar ($\mathfrak{m}$) mediante inyección de Positrón de Autorización $e^+$
-   verificado en tiempo constante (`hmac.compare_digest`), colapsando el estado degradado a $\top = \mathtt{COHERENT}$.
+2. Estabilidad de Lyapunov para la Deriva de Momento:
+   Definiendo la función candidata de Lyapunov V(p) = (1 / 2) * (p - p^*)^2:
+       dot{V} = (p - p^*) * ( {p, H} + u(t) ) = - k_gain * (p - p^*)^2 <= 0
+   garantizando convergencia exponencial asintótica p(t) -> p^* con tiempo de relajación tau = 1 / k_gain.
 
-4. Conmutación de Silicio y Actuación Crowbar ESP32 / BT151 (IRAM < 400 ns):
-   Ante un Veto Duro ($\bot$), se despacha la ISR en memoria IRAM en latencia $t_{\mathrm{act}} < 400\,\mathrm{ns}$
-   hacia el pin GPIO14, disparando el tiristor rápido BT151 para desenergizar actuadores en el milisegundo cero.
+3. Integración en el Colector Cotangente T*M:
+   El impulso de corrección se transforma canónicamente en una 1-forma cotangente de retroalimentación:
+       delta alpha = u(t) * dphi
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Desbordamientos no controlados en la transferencia de momentum técnico/financiero provocan
-  fallos en cascada en la ejecución de la obra, resultando en penalizaciones contractuales y demandas por paradas no programadas.
-• Dinero: El circuito Crowbar y la lógica de Heyting en lazo cerrado previenen el desgarro de procesos y mitigan
-  riesgos catastróficos, ahorrando costos de paralización de planta y protegiendo el margen financiero del contrato.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma SMSA1 (Mínima Energía de Control de Momento):
+    int_0^T u(t)^2 dt se minimiza sujeto a |p(T) - p^*| < epsilon.
+Axioma SMSA2 (No Inversión del Signo de Giro Inercial):
+    sign(p(t)) == sign(p^*) para todo tiempo t (preservación de la orientación de patrulla).
+Axioma SMSA3 (Inmunidad a Micro-Ruido de Alta Frecuencia):
+    Perturbaciones con |delta p| < theta_deadband no disparan ignición de corrección.
 
-Estructura Functorial OODA:
-───────────────────────────
-- Observe  : `observe_field_and_momentum` -> Salida: `MomentumObservationKernel`
-- Orient   : `orient_transfer_dynamics`   -> Salida: `MomentumOrientationReport`
-- Act      : `decide_and_act`            -> Salida: `ScalarMomentumAgentCertificate`
-- Composición Síncrona Lazo Cerrado      : `execute_ooda_cycle`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Residuo de Deriva de Momento Acotado):
+    |p(t) - p^*| <= epsilon_drift = 0.05.
+Invariante 2 (Estabilidad del Casimir de Coadjunción):
+    d C_2 / dt == 0 en régimen estacionario.
+====================================================================================================
 """
 
 import hashlib

@@ -1,31 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Pseudoholomorphic Centripetal Satellite Agent (Soberano del Satélite III)   ║
-║ RUTA   : app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py           ║
-║ VERSIÓN: 5.0.0-Doctoral-Rigorous-Nested-3Phases-Clifford-Floer-Novikov-Fock-IRAM     ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CAPA OMEGA
+====================================================================================================
 
-Arquitectura Verificada en Tres Fases Anidadas Formales.
-Refinamiento Granular y Rigor Doctorado en Topología Algebraica, Teoría Espectral,
-Mecánica Cuántica y Física de Circuitos para Conmutación Criogénica de Silicio.
+Nombre: PseudoholomorphicCentripetalSatelliteAgent
+Ubicación: app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano satelital centrípeto de la capa Omega que comanda la flotilla de satélites
+         inmunes perimetrales, modulando radios de órbita r(t), excentricidades simplécticas y
+         maniobras de intercepción centrípeta frente a intrusiones de antígenos.
 
-FUNDACIÓN MATEMÁTICA DOCTORAL:
-─────────────────────────────
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Satelital Centrípeto de la Capa Omega (PseudoholomorphicCentripetalSatelliteAgent)
+es el comandante táctico de la primera línea de defensa periférica en APU Filter. Su misión es
+posicionar, acelerar y coordinar los nodos satelitales en órbitas pseudoholomorfas estables
+alrededor del centroide informacional, impidiendo que incursiones adversarias alcancen el núcleo.
+Su respectivo motor dinámico es 'PseudoholomorphicCentripetalSatelliteEngine'
+(app/core/immune_system/pseudoholomorphic_centripetal_satellite_engine.py), y su ancla baricéntrica
+es 'PseudoholomorphicCentroidInertiaEngine'
+(app/core/immune_system/pseudoholomorphic_centroid_inertia_engine.py). Mientras el Engine computa
+la cinemática diferencial Kepler-Poincaré, este Agente ajusta las directivas de velocidad y radio
+de intercepción en función del nivel de amenaza detectado.
 
-I.   GEOMETRÍA SIMPLÉCTICA DE FUKAYA Y MAPAS PSEUDOHOLOMORFOS:
-     Auditoría exhaustiva de $(u: (\Sigma, j) \to (\mathcal{M}, \omega, J))$ bajo perturbación centrípeta.
-     Preservación de compacidad de Gromov. Control de residual Floer-Cauchy-Riemann $\bar{\partial}_{J,H}(u)=0$.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Maniobras de Transferencia Orbital y Homotopía de Lazos:
+   Para reposicionar un satélite desde un radio de patrulla r_1 a un radio de intercepción r_2:
+       Delta v_1 = sqrt(mu / r_1) * [ sqrt(2 * r_2 / (r_1 + r_2)) - 1 ]
+       Delta v_2 = sqrt(mu / r_2) * [ 1 - sqrt(2 * r_1 / (r_1 + r_2)) ]
+   La transferencia preserva la clase homotópica del lazo en el espacio simpléctico perforado M \ {c*}.
 
-II.  ÁLGEBRA DE CLIFFORD $\mathcal{C}\ell_{p,q}$ Y DESCOMPOSICIÓN $\mathfrak{so}(n)$:
-     Normas de Wilkinson. Acondicionamiento espectral. Forma de volumen de Rham.
+2. Barrido Perimetral de Reeb y Cobertura Angular:
+   Una constelación de N_sat satélites desfasados equidistantemente en delta theta = 2*pi / N_sat
+   garantiza una cota superior en el tiempo ciego de detección de antígenos:
+       tau_ciego = 2 * pi / (N_sat * omega_orb) <= tau_admisible
 
-III. TOPOS DE HEYTING CON CLASIFICADOR TRIVALENTE $\Omega_3 = \{\bot, \ast, \top\}$:
-     Lógica intuicionista. Negación clásica NO es involución.
+3. Resonancia Orbital Colectiva:
+   La sincronización armónica entre satélites evita interferencias y colisiones mutuas mediante
+   relaciones de resonancia entera p * omega_1 = q * omega_2 con p, q in N coprimos.
 
-IV.  FÍSICA DE CONMUTACIÓN CRIOGÉNICA: BT151-650R, ISR IRAM < 400 ns, ESP32 Xtensa LX6.
-     Inyección de positrón Fock. Aniquilación cuántica $e^+ + e^- \to 2\gamma$.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma PCSAA1 (Cobertura Perimetral Completa 2*pi):
+    La unión de los sectores de barrido cup_{i=1}^N S_i(t) = S^1 en todo instante t.
+Axioma PCSAA2 (Retención Incondicional en Órbita Confinada):
+    Ningún comando agéntico puede inducir energía orbital positiva E_orb >= 0 (órbita hiperbólica de escape).
+Axioma PCSAA3 (Prioridad de Intercepción Inmune):
+    La detección de un antígeno a distancia r_antigen conmuta el radio orbital al modo de barrera r_antigen.
 
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Número de Satélites Confinados Activos):
+    N_sat_activos >= N_min_defensa = 3.
+Invariante 2 (Excentricidad Orbital Acotada):
+    0.0 <= e_eccentricity <= e_max = 0.25 (órbitas casi circulares estables).
+====================================================================================================
 """
 
 from __future__ import annotations

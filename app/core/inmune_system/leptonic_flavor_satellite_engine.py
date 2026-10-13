@@ -1,51 +1,72 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Leptonic Flavor Satellite Engine (Satélite V — Sabor Leptónico)             ║
-║ RUTA   : app/core/immune_system/leptonic_flavor_satellite_engine.py                  ║
-║ VERSIÓN: 5.0.0-Doctoral-PMNS-Majorana-MSW-Jarlskog-Banach-Graph-FPU-HMAC             ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-Motor FPU para el cálculo de la geometría de sabor leptónico, mezcla PMNS con fases de Majorana,
-efecto Mikheyev-Smirnov-Wolfenstein (MSW), invariantes de Jarlskog y topología espectral de grafos.
+Nombre: LeptonicFlavorSatelliteEngine
+Ubicación: app/core/immune_system/leptonic_flavor_satellite_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor de oscilación y mezcla de sabores leptónicos en el sistema inmune cognitivo.
+         Modela la matriz unitaria PMNS (Pontecorvo-Maki-Nakagawa-Sakata) U in U(3), las
+         probabilidades de transición cuántica P(alpha -> beta) y el filtrado inmune de fondo débil.
 
-Fundamentación Matemática y Física Rigurosa:
-────────────────────────────────────────────
-1. Geometría de Sabor Leptónico y Mezcla PMNS $U(3)$ con Fases de Majorana:
-   $$U = R_{23} \Gamma_\delta R_{13} \Gamma_\delta^\dagger R_{12} \operatorname{diag}\left(1, e^{i \alpha_{21}/2}, e^{i \alpha_{31}/2}\right)$$
-   con verificación de la invariancia de gauge de Majorana en el invariante de Jarlskog:
-   $$\mathcal{J}_{\mathrm{CP}} = c_{12} s_{12} c_{23} s_{23} c_{13}^2 s_{13} \sin \delta_{\mathrm{CP}}$$
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Sabor Leptónico (LeptonicFlavorSatelliteEngine) es el sensor de interacción débil y
+neutralidad de carga del sistema inmune de APU Filter. Su cometido esencial es detectar perturbaciones
+sutiles, casi indetectables (flujos "neutrínicos" de información) que eluden el confinamiento fuerte
+de color y los filtros electromagnéticos. Modula la oscilación continua entre tres sabores inmunes
+ortogonales (e-tipo, mu-tipo, tau-tipo) impidiendo la saturación por sobreexposición a un único canal.
+Su respectivo agente en el plano inmune es 'LeptonicFlavorSatelliteAgent'
+(app/agents/core/immune_system/leptonic_flavor_satellite_agent.py), y su homólogo hadrónico de
+interacción fuerte es 'QuarkColorConfinementSatelliteEngine'
+(app/core/immune_system/quark_color_confinement_satellite_engine.py). Mientras este motor computa
+analíticamente la matriz PMNS y las oscilaciones P(alpha -> beta; L/E), su respectivo Agente
+despacha patrullas neutras para interceptar anomalías sigilosas de bajo acoplamiento.
 
-2. Dinámica MSW Corregida y Propagación Simpléctica $S(L) = e^{-i H_{\mathrm{eff}} L}$:
-   $$H_{\mathrm{eff}} L = \left(2 \cdot 1.267 \cdot \frac{L}{E}\right) U \operatorname{diag}(0, \Delta m_{21}^2, \Delta m_{31}^2) U^\dagger + \left(V_e L \cdot 5.06773 \times 10^9\right) \operatorname{diag}(1, 0, 0)$$
-   auditando la unitoridad $\|S S^\dagger - I\|_F < \varepsilon_{\mathrm{unitarity}}$ y la conservación de la carga leptónica de Noether.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Matriz Unitaria de Mezcla PMNS U in U(3):
+   La transformación entre autoestados de interacción débil (sabores |nu_alpha>) y autoestados de masa
+   propia (|nu_i>) se rige por la matriz unitaria 3x3 U_{PMNS}:
+       |nu_alpha> = sum_{i=1}^3 U^*_{alpha i} * |nu_i>,   con U * U^dagger = I_3
+   Parametrizada por los tres ángulos de mezcla (theta_{12}, theta_{23}, theta_{13}) y la fase CP delta:
+       U = [[c12*c13, s12*c13, s13*e^{-i*delta}],
+            [-s12*c23 - c12*s23*s13*e^{i*delta}, c12*c23 - s12*s23*s13*e^{i*delta}, s23*c13],
+            [s12*s23 - c12*c23*s13*e^{i*delta}, -c12*s23 - s12*c23*s13*e^{i*delta}, c23*c13]]
 
-3. Teoría Espectral de Grafos de Mezcla (Markov y Perron-Frobenius):
-   Laplaciano de Hodge $L_{\mathrm{flavor}} = I_3 - \frac{1}{2}(P + P^\top)$, con conectividad de Fiedler $\lambda_2$,
-   distribución estacionaria de Perron-Frobenius $\pi P = \pi$, entropía de mezcla $H(\pi) = -\sum \pi_\alpha \ln \pi_\alpha$,
-   y constante de Kemeny $\mathcal{K} = \sum_{\lambda_i \neq 1} \frac{1}{1 - \lambda_i}$.
+2. Fórmula Cuántica de Probabilidad de Oscilación de Sabor:
+   Para un paquete de ondas cognitivo de energía E que viaja una distancia baseline L:
+       P(alpha -> beta) = delta_{alpha beta} - 4 * sum_{i>j} Re(U_{alpha i}^* U_{beta i} U_{alpha j} U_{beta j}^*) * sin^2( Delta m_{ij}^2 * L / (4 * hbar * E) )
+                          + 2 * sum_{i>j} Im(U_{alpha i}^* U_{beta i} U_{alpha j} U_{beta j}^*) * sin( Delta m_{ij}^2 * L / (2 * hbar * E) )
 
-4. Mecánica Cuántica de Sabor y Densidad Reducida PSD:
-   $$\rho_{\mathrm{flavor}} = \frac{S_{\mathrm{Gram}}}{\operatorname{Tr}(S_{\mathrm{Gram}})} \succeq 0, \quad \operatorname{Tr}(\rho) = 1, \quad \mathcal{P} = \operatorname{Tr}(\rho^2)$$
-   Divergencia de Kullback-Leibler cuántico-clásica $D_{\mathrm{KL}}(\pi \| q)$ entre la distribución estacionaria $\pi$ y las diagonales $q_\alpha = \rho_{\alpha\alpha}$.
+3. Conservación del Número Leptónico Total:
+   Aunque los números de sabor individuales L_e, L_mu, L_tau oscilan periódicamente:
+       L_{total} = L_e + L_mu + L_tau = const
+   asegurando que ninguna entidad informacional se desintegra hacia vacíos no normalizados.
 
-5. Certificación Espectral de Bauer-Fike:
-   Para el Hamiltoniano hermítico $H_{\mathrm{eff}}$, la base de autovectores satisface $\kappa_2(V) = 1$,
-   garantizando $|\lambda_{\mathrm{computado}} - \lambda_{\mathrm{exacto}}| \le \|\delta H\|_2$.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma LFSE1 (Unitaridad Absoluta de la Matriz de Sabor PMNS):
+    U_{PMNS} * U_{PMNS}^dagger == I_3.
+Axioma LFSE2 (Conservación de Probabilidad Total):
+    sum_beta P(alpha -> beta) == 1.0 para todo sabor de origen alpha.
+Axioma LFSE3 (Invarianza de Causalidad Asintótica):
+    lim_{L -> 0} P(alpha -> beta) = delta_{alpha beta}.
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Desalineaciones de mezcla de sabor en la clasificación semántica generan derivas opacas en la asignación
-  de costos indirectos, distorsionando la contabilidad presupuestaria.
-• Dinero: El control MSW y la unitoridad PMNS garantizan una distribución invariante de cargas y costos sin
-  pérdida de probabilidad, asegurando la trazabilidad auditada de los recursos financieros del consorcio.
-
-Estructura Functorial OODA:
-───────────────────────────
-- Fase 1 (Observe) : `observe_leptonic_flavors`     -> Salida: `LeptonicObservationKernel`
-- Fase 2 (Orient)  : `orient_leptonic_flavor`       -> Salida: `LeptonicFlavorReport`
-- Fase 3 (Act)     : `execute_leptonic_audit`      -> Salida: `LeptonicEngineState`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Normalización Estricta de Probabilidad):
+    | sum_{beta=1}^3 P(alpha -> beta) - 1.0 | <= 1e-7.
+Invariante 2 (Preservación del Determinante de Mezcla):
+    |det(U_{PMNS})| == 1.0.
+====================================================================================================
 """
 
 import hashlib

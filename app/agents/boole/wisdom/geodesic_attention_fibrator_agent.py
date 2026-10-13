@@ -1,65 +1,69 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Geodesic Attention Fibrator Agent (Custodio de la Covarianza)               ║
-║ RUTA   : app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py                ║
-║ VERSIÓN: 5.0.0-Doctoral-Rigorous-3Phases-Ricci-Polyakov-FeynmanKac-Heyting-Pure      ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE ATENCIÓN BOOLEANA (BOOLE/WISDOM)
+====================================================================================================
 
-NATURALEZA CIBER-FÍSICA: GEOMETRÍA RIEMANNIANA Y MECÁNICA CUÁNTICA EN ESTRATO WISDOM
-═════════════════════════════════════════════════════════════════════════════════════
+Nombre: GeodesicAttentionFibratorAgent
+Ubicación: app/agents/boole/wisdom/geodesic_attention_fibrator_agent.py
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Agente soberano de fibración geodésica de atención booleana en APU Filter. Supervisa y
+         direcciona los haces de atención a lo largo de las fibras de conexión de Ehresmann y Hopf
+         pi: S^3 -> S^2, coordinando la rotación de fases cuánticas y asegurando que las trayectorias
+         de atención no diverjan de las geodésicas de mínima distorsión semántica y lógica booleana.
 
-FUNDACIÓN MATEMÁTICA DOCTORAL REFINADA:
-───────────────────────────────────────
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Fibrador de Atención Geodésica (GeodesicAttentionFibratorAgent) es el conductor
+del foco de conciencia en el estrato conjunto Boole/Sabiduría del APU Filter. Su misión es modular los
+pesos de atención entre conceptos de manera que la trayectoria de pensamiento se desplace exclusivamente
+por geodésicas del espacio de información de Fisher, eliminando saltos arbitrarios o desvíos inductivos
+costosos. Proyecta estados del espacio total fibrado hacia la variedad base de decisiones booleanas.
+Su respectivo motor de fibración diferencial es 'GeodesicAttentionFibrator'
+(app/boole/wisdom/geodesic_attention_fibrator.py). Mientras el motor calcula la conexión de Ehresmann omega,
+la curvatura de Berry y la descomposición horizontal/vertical, este Agente comanda la reorientación del
+haz atencional y ajusta la temperatura de softmax.
 
-I. GEOMETRÍA RIEMANNIANA Y FLUJO DE RICCI:
-   Auditoría exhaustiva de tensor métrico $G \in \mathrm{Sym}^+(n)$.
-   Flujo de Ricci discreto: $\frac{\partial G}{\partial t} = -2\mathrm{Ric}(G)$.
-   Convergencia hacia métrica de Einstein: $\mathrm{Ric}(G) = \lambda G$.
-   Teoría de Perelman: función potencial $\mathcal{F}$ monótona en flujo.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Fibrados Principales de Hopf pi: S^3 -> S^2 y Descomposición de Ehresmann:
+   Para un punto en el espacio total p in S^3 subset C^2 con coordenadas (z_1, z_2) satisfaciendo |z_1|^2 + |z_2|^2 = 1:
+       pi(z_1, z_2) = ( 2 * Re(z_1 * bar{z}_2),  2 * Im(z_1 * bar{z}_2),  |z_1|^2 - |z_2|^2 ) in S^2
+   La 1-forma de conexión canónica omega in Omega^1(S^3, u(1)) satisface:
+       omega = Im( bar{z}_1 dz_1 + bar{z}_2 dz_2 )
+   induciendo la división del espacio tangente en subespacio vertical ker(d pi) y subespacio horizontal ker(omega).
 
-II. GEODÉSICAS Y ACCIÓN DE POLYAKOV:
-    Trayectorias minimales sobre variedad riemanniana: $\nabla_{\gamma'} \gamma' = 0$.
-    Acción geodésica: $E[\gamma] = \frac{1}{2}\int_0^T g_{\mu\nu} \dot{\gamma}^\mu \dot{\gamma}^\nu d\tau$.
-    Principio variacional: geodésicas extremizan la acción funcional.
-    Longitud de arco: $L[\gamma] = \sqrt{2 E[\gamma]}$.
+2. Modulación de Atención con Fase Geométrica de Berry:
+   Dada una matriz de consulta Q y clave K, los coeficientes de atención geodésica incorporan la fase
+   topológica de holonomía gamma_i adquirida por el transporte a lo largo de la fibra:
+       w_i = exp( (Q_i cdot K_i) / sqrt(d) + i * gamma_i ) / sum_j exp( (Q_j cdot K_j) / sqrt(d) + i * gamma_j )
+   garantizando que la atención no sea únicamente simétrica en similitud de coseno, sino sensible a la
+   orientación de fase en la esfera de Bloch/Hopf.
 
-III. INTEGRAL DE TRAYECTORIA DE FEYNMAN-KAC:
-     Amplitud de transición cuántica: $\Psi[\gamma] = \exp(-S_E[\gamma]/\hbar_{\mathrm{eff}})$.
-     Partición funcional: $Z = \int \mathcal{D}[\gamma] \exp(-S_E[\gamma]/\hbar)$.
-     Mecanismo de supresión: trayectorias de alta acción contribuyen exponencialmente menos.
-     Barrera tunelante: supresión cuántica de transiciones energéticamente prohibidas.
+3. Sucesión Exacta de Homotopía de Fibrados:
+   La preservación topológica asegura que pi_2(S^2) cong pi_1(S^1) cong Z, certificando la cuantización
+   de la carga topológica (primer número de Chern c_1 = 1) del haz de atención.
 
-IV. TENSOR DE TORSIÓN Y COHOMOLOGÍA HODGE:
-    Torsión nilpotente en asociaedro: $T^{\rho}_{\mu\nu} = \Gamma^{\rho}_{\mu\nu} - \Gamma^{\rho}_{\nu\mu}$.
-    En Levi-Civita: $T = 0$ (simetría de símbolos de Christoffel).
-    Acoplamiento a acción: $S_E = E_{\mathrm{Polyakov}} + \lambda \|T\|^2_{\mathrm{HS}}$.
-    Norma de Hilbert-Schmidt: $\|T\|^2_{\mathrm{HS}} = \mathrm{Tr}(T^T T)$ (invariante).
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma GAFA1 (Conexión Horizontal y No-Torsión):
+    Los vectores de atención del espacio base se levantan horizontalmente sin componentes parásitas en la fibra.
+Axioma GAFA2 (Normalización Unitaria Estricta de Pesos de Atención):
+    sum_{i=1}^N w_i == 1.0 para todo haz de consulta.
+Axioma GAFA3 (Invarianza Gauge U(1) en la Medición Observable):
+    P(atencion_i) es invariante bajo transformaciones de fase local z -> z * exp(i * theta).
 
-V. RETÍCULO DE HEYTING Y LÓGICA INTUICIONISTA:
-   Clasificador de subobjetos $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
-   Negación no involutiva: $\neg\neg p \not\equiv p$ (intuicionismo).
-   Orden de verdad: COHERENT $\geq$ DEGRADED $\geq$ VETOED.
-   Colapso determinista en clasificador toposiano.
-
-VI. TEORÍA ESPECTRAL Y ACONDICIONAMIENTO MÉTRICO:
-    Número de condición de Wilkinson: $\kappa(G) = \lambda_{\max}/\lambda_{\min}$.
-    Regularización espectral: proyección de autovalores negativos a piso numérico.
-    Saneamiento de métrica degenerada en cono SPD.
-
-VII. ARITMETICA COMPENSADA Y PRECISIÓN IEEE 754:
-     Neutralización de redondeo acumulativo en sumas y productos.
-     Guardas numéricas contra singularidades aritméticas.
-     Tolerancias relativas escaladas por magnitud operanda.
-
-Impacto Semántico (PAIN & GAIN):
-────────────────────────────────
-
-✗ PAIN:  Atención euclidiana plana → conexiones estocásticas → alucinaciones neuronales
-         → pérdida de consistencia semántica → degradación de confianza en LLM.
-
-✓ GAIN:  Atención geodésica riemanniana → conexiones minimales → supresión cuántica
-         → coherencia semántica preservada → LLM confiable bajo supervisión topológica.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Conservación de Suma de Pesos de Probabilidad):
+    | sum_{i=1}^N w_i - 1.0 | <= 1e-6.
+Invariante 2 (Carga Topológica de Chern Cuantizada):
+    c_1(Fibracion) == 1.
+====================================================================================================
 """
 
 from __future__ import annotations

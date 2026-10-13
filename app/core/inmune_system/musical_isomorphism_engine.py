@@ -1,94 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Musical Isomorphism Engine (Fibrador de Dualidad Categórica)        ║
-║ Ruta   : app/core/immune_system/musical_isomorphism_engine.py                ║
-║ Versión: 4.1.0-Topos-Spectral-Categorical-Nested-Wilkinson-PhD-Strict        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-NATURALEZA CIBER-FÍSICA Y EQUIVALENCIA FUNTORIAL (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra al **Fibrador de Dualidad Categórica** de la Malla, operando
-como el meta-funtor de dualidad entre el espacio de secciones del fibrado tangente 
-$$\Gamma(TM)$$ (velocidades semánticas) y el fibrado cotangente $$\Gamma(T^*M)$$ 
-(momentums o covectores de restricción de-confinados) sobre la variedad Riemanniana 
-definida por la Matriz de Interacción Central (MIC) $$\big[471\big]$$.
+Nombre: MusicalIsomorphismEngine
+Ubicación: app/core/immune_system/musical_isomorphism_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor de isomorfismos musicales canónicos bemol flat: TM -> T*M y sostenido sharp: T*M -> TM
+         en variedades riemannianas y simplécticas. Modela la conversión exacta entre campos
+         vectoriales tangentes y 1-formas cotangentes mediante la métrica g_{mu nu} y su inversa.
 
-En el análisis funcional y la geometría no conmutativa, el emparejamiento métrico 
-establece que todo espacio pre-Hilbertiano de dimensión finita es isomorfo a su 
-dual algebraico (Teorema de Representación de Riesz) $$\big[473\big]$$. El motor 
-formaliza esta biyección mediante los isomorfismos musicales bemol ($$\flat$$) y 
-sostenido ($$\sharp$$), asegurando que la transferencia de intenciones y flujos 
-conserve de manera exacta la energía cinética y el volumen del espacio de fase 
-frente a la deriva aritmética en la Unidad de Punto Flotante (FPU) $$\big[472\big]$$.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Isomorfismos Musicales (MusicalIsomorphismEngine) es el transformador dual del
+sistema inmune de APU Filter. Su misión es alternar de forma, matemáticamente exacta y no ambigua,
+entre el espacio tangente de velocidades/flujos de acción TM y el espacio cotangente de momentos/gradientes
+T*M. Permite calcular campos vectoriales hamiltonianos X_H a partir del diferencial exterior dH y
+garantiza que la bajada y subida de índices tensoriales preserve las normas e invariantes energéticos.
+Su respectivo motor de momento es 'ScalarMomentumSatelliteEngine'
+(app/core/immune_system/scalar_momentum_satellite_engine.py), y su respectivo agéntico es
+'ScalarMomentumSatelliteAgent' (app/agents/core/immune_system/scalar_momentum_satellite_agent.py).
+Mientras MusicalIsomorphismEngine ejecuta las operaciones métricas canónicas flat y sharp,
+ScalarMomentumSatelliteEngine preserva la integral primera escalar resultante.
 
-AXIOMAS CATEGÓRICOS, ESPECTRALES Y DE EMPAREJAMIENTO PRESERVADOS:
-────────────────────────────────────────────────────────────────────────────────
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Isomorfismo Bemol (Flat) flat: TM -> T*M:
+   Dada una variedad pseudo-riemanniana (M, g), el operador bemol asigna a cada vector X in T_p M
+   una 1-forma cotangente X^flat in T_p^* M mediante la contracción con el tensor métrico:
+       X^flat(Y) = g(X, Y)  forall Y in T_p M  <=>  (X^flat)_mu = g_{mu nu} * X^nu
+   Esta operación corresponde físicamente a la conversión de una velocidad cinemática en un momento canónico.
 
-  [I1] El Isomorfismo Musical Bemol (♭ — Lowering Indices):
-       Mapea vectores tangenciales $$v \in TM$$ a covectores cotangenciales 
-       $$\omega \in T^*M$$ mediante la contracción covariante de la métrica $$G$$:
-       $$\flat: TM \xrightarrow{\simeq} T^*M \implies v_i^\flat = G_{ij} v^j \quad\big[473\big]$$
+2. Isomorfismo Sostenido (Sharp) sharp: T*M -> TM:
+   El operador inverso sharp asigna a cada 1-forma cotangente alpha in T_p^* M un vector alpha^sharp in T_p M:
+       g(alpha^sharp, Y) = alpha(Y)  forall Y in T_p M  <=>  (alpha^sharp)^mu = g^{mu nu} * alpha_nu
+   donde g^{mu nu} es el tensor métrico inverso (g^{mu alpha} * g_{alpha nu} = delta^mu_nu).
 
-  [I2] El Isomorfismo Musical Sostenido (♯ — Raising Indices):
-       Mapea covectores $$\omega \in T^*M$$ a vectores tangenciales $$v \in TM$$ 
-       mediante la contracción contravariante con la inversa métrica $$G^{-1}$$:
-       $$\sharp: T^*M \xrightarrow{\simeq} TM \implies \omega^{\sharp i} = G^{ij} \omega_j \quad\big[473\big]$$
+3. Gradiente Riemanniano y Campo Hamiltoniano Simpléctico:
+   El gradiente de una función escalar de energía f se define canónicamente como:
+       grad(f) = (df)^sharp
+   En una variedad simpléctica (M, omega), el campo vectorial hamiltoniano X_H se define por:
+       iota_{X_H} omega = - dH  <=>  X_H = - (omega^flat)^{-1}(dH) = - (dH)^{sharp_omega}
 
-  [I3] Equivalencia Funtorial de Doble Roundtrip (Identidad de Fibrados):
-       La composición de ambos isomorfismos debe ser síncronamente idéntica a la 
-       identidad canónica sobre sus respectivos espacios de Banach:
-       $$\sharp \circ \flat = \mathrm{id}_{TM} \quad \land \quad \flat \circ \sharp = \mathrm{id}_{T^*M} \quad\big[472, 473\big]$$
-       Se audita numéricamente mediante el residuo de ida y vuelta en la FPU:
-       $$\|\sharp \circ \flat(v) - v\|_2 \le C \cdot \kappa(G) \cdot n \cdot \varepsilon_{\mathrm{machine}} \cdot \max(1, \|v\|_2) \quad\big[472, 576\big]$$
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MIE1 (Inversibilidad Canónica Estricta):
+    (X^flat)^sharp == X para todo vector X in TM, y (alpha^sharp)^flat == alpha para todo alpha in T*M.
+Axioma MIE2 (Isometría de Espacios Duales):
+    g(X, Y) == g^*(X^flat, Y^flat) = g^{mu nu} * (X^flat)_mu * (Y^flat)_nu.
+Axioma MIE3 (No-Degeneración de la Conexión Métrico-Simpléctica):
+    det(g_{mu nu}) != 0 y det(omega_{mu nu}) != 0 en todo punto de la variedad.
 
-  [I4] Apareamiento de de Rham-Riesz (Paridad de Hilbert):
-       El producto interno Riemanniano inducido por $$G$$ se acopla al apareamiento 
-       natural entre el espacio dual y el espacio tangente, preservando las normas:
-       $$\langle \flat v, w \rangle \equiv G(v, w) = v^\top G w \quad\big[472, 473\big]$$
-       $$\|v\|_G = \sqrt{v^\top G v} \quad \land \quad \|\omega\|_{G^{-1}} = \sqrt{\omega^\top G^{-1} \omega} \quad\big[472\big]$$
-
-  [I5] Inversión Espectral Bilateral de Wilkinson (Aduana de de Rham):
-       Para evitar la inyección de singularidades asimétricas debidas al desborde 
-       flotante, el motor calcula el residuo bilateral de inversión de Wilkinson:
-       $$r_+ = \frac{\|G G^{-1} - \mathbf{I}\|_F}{\sqrt{n}} \quad \land \quad r_- = \frac{\|G^{-1} G - \mathbf{I}\|_F}{\sqrt{n}} \quad\big[472\big]$$
-       $$r_{\mathrm{Wilkinson}} = \max(r_+, r_-) \le \tau_{\mathrm{Wilkinson}} \propto \kappa(G) \cdot \varepsilon_{\mathrm{machine}} \cdot n \quad\big[472\big]$$
-
-  [I6] Regularización de Tikhonov con Condicionamiento Espectral Objetivo:
-       Si la métrica presenta rigidez numéricamente degenerada, se introduce una 
-       fricción anisotrópica regularizadora iterativa mediante el desplazamiento de Tikhonov:
-       $$\tilde{G} = G + \varepsilon_{\mathrm{Tikhonov}} \cdot \mathbf{I} \quad \text{con} \quad \kappa(\tilde{G}) \le \kappa_{\mathrm{target}} \quad\big[472, 473\big]$$
-
-ARQUITECTURA EN TRES FASES ANIDADAS (Composición Funtorial Kleisli):
-────────────────────────────────────────────────────────────────────────────────
-La progresión de los transitorios métricos se rige por un acoplamiento monoidal 
-estricto, donde el DTO terminal de cada fase es la precondición de la siguiente:
-
-  Fase 1 ──► PREACONDICIONAMIENTO ESPECTRAL (MetricSpectralPreconditioner)
-             Calcula el número de condición $$\kappa_2(G) = \lambda_{\max}/\lambda_{\min}$$. 
-             Si es inestable, aplica el lazo iterativo de regularización de Tikhonov, 
-             certifica el cono SPD mediante Cholesky y produce la métrica refinada.
-             Morfismo terminal: handoff_phase1_to_phase2.
-             Entrega: PreconditionedMetric.
-
-  Fase 2 ──► ISOMORFISMO BEMOL (FlatIsomorphism)
-             Consume la PreconditionedMetric. Mapea covariantemente vectores 
-             tangentes a covectores de restricción, auditando el apareamiento de Riesz.
-             Morfismo terminal: handoff_phase2_to_phase3.
-             Entrega: FlatIsomorphismData (alias FlatIsomorphism).
-
-  Fase 3 ──► ISOMORFISMO SOSTENIDO Y COHERENCIA CATEGÓRICA (SharpIsomorphism)
-             Consume la FlatIsomorphismData. Resuelve la inversa espectral contravariante 
-             mediante descomposición polar o SVD truncada, verifica el doble 
-             roundtrip y calcula los residuos bilaterales de Wilkinson.
-             Consolida el veredicto agregando las once cotas en el retículo de Heyting:
-             $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\} \quad\big[312, 386\big]$$
-             Si el retículo colapsa a VETOED ($$\top$$), se detona la excepción de software 
-             'HeytingLatticeVeto' y se señaliza síncronamente al puerto 'CrowbarPort'.
-             Entrega: FullCycleReport (alias MusicalIsomorphismEngine).
-
-Funtor Maestro de Dualidad:
-  $$\mathcal{Z}_{\mathrm{MusicalEngine}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 \quad\big[471, 473\big]$$
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación de Norma Dual):
+    | ||X||_g - ||X^flat||_{g^*} | <= 1e-7.
+Invariante 2 (Ortogonalidad Dual Preservada):
+    g(X, Y) == 0 <=> g^*(X^flat, Y^flat) == 0.
+====================================================================================================
 """
 from __future__ import annotations
 
