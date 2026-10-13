@@ -184,6 +184,7 @@ __all__ = [
     "SpectralMeasureSeed",
     "ImmunizationPassport",
     "OniricFieldState",
+    "MetaOniricAuditorEngine",
     "OniricSpectraEngine",
     "UnsealedOniricTrace",
     "MerkleInclusionProof",
@@ -1239,6 +1240,9 @@ class OniricFieldState:
     floquet_radius: float = 1.0
     mean_motion: float = 0.0
     eccentricity: float = 0.0
+    monadic_acceleration: float = 0.0
+    novikov_valuation: float = 0.0
+    reward_hacking_index: float = 0.0
 
     def __post_init__(self) -> None:
         rho = np.asarray(self.density_matrix, dtype=np.complex128)
@@ -1318,6 +1322,77 @@ class SpectralMeasureSeed(ABC):
 # (UnsealedOniricTrace, producido por evaluate_dream_spectrum) es el germen
 # formal de FASE-3 (_seal_and_accumulate).
 # ══════════════════════════════════════════════════════════════════════════════
+class MetaOniricAuditorEngine:
+    r"""Motor Espectral del Auditor Onírico con Automejora Recursiva Nivel 3.
+
+    Aplica la multiplicación monádica \mu_{\mathrm{auditor}}: T^2(A) \to T(A) sobre el
+    proyector de vacunas espectrales y reescribe dinámicamente el pipeline TQFT
+    sobre el Anillo Universal de Novikov (\Lambda_{\mathrm{Nov}}).
+    """
+
+    def __init__(self, dimension: int = 64, novikov_scale: float = 1.0) -> None:
+        self.dim = dimension
+        self.novikov_scale = novikov_scale
+        self.monadic_operator = np.eye(dimension, dtype=np.complex128)
+        self.ricci_curvature_history: List[float] = []
+
+    def novikov_valuation(self, powers: Sequence[float]) -> float:
+        r"""Valuación no-arquimediana v(T^{a_i}) = \min \{a_i\} sobre \Lambda_{\mathrm{Nov}}."""
+        if not powers:
+            return 0.0
+        return float(min(powers)) * self.novikov_scale
+
+    def compute_reward_hacking_index(self, wilson_phase: complex, hannay_angle: float) -> float:
+        r"""Calcula el índice de Reward Hacking RHI a partir de las holonomías."""
+        w_arg = float(np.angle(wilson_phase))
+        h_arg = (hannay_angle + math.pi) % (2.0 * math.pi) - math.pi
+        diff = abs((w_arg - h_arg + math.pi) % (2.0 * math.pi) - math.pi)
+        return float(diff / math.pi)
+
+    def evolve_tqft_immunization_kernel(
+        self,
+        current_vaccine_projector: np.ndarray,
+        density_manifold_ricci: np.ndarray,
+        gromov_ratio: float,
+        dt: float = 0.001,
+    ) -> Tuple[np.ndarray, Dict[str, float]]:
+        r"""Aplica la multiplicación monádica \mu_{\mathrm{auditor}}: T^2(A) \to T(A) sobre el proyector.
+
+        Reconfigura dinámicamente el rango de corte k(t) del proyector P_{\mathrm{vac}}
+        y ajusta la cota de capacidad simpléctica c_G(t) según la curvatura de Ricci.
+        """
+        dim = current_vaccine_projector.shape[0]
+        if self.monadic_operator.shape[0] != dim:
+            self.dim = dim
+            self.monadic_operator = np.eye(dim, dtype=np.complex128)
+
+        ricci = np.asarray(density_manifold_ricci, dtype=np.complex128)
+        if ricci.shape != (dim, dim):
+            ricci = np.eye(dim, dtype=np.complex128) * float(np.trace(ricci).real) / max(dim, 1)
+
+        meta_gradient = ricci @ self.monadic_operator
+        self.monadic_operator = self.monadic_operator + dt * (meta_gradient - self.monadic_operator)
+
+        evolved_projector = self.monadic_operator @ current_vaccine_projector @ self.monadic_operator.conj().T
+        evolved_projector = 0.5 * (evolved_projector + evolved_projector.conj().T)
+        tr_val = float(np.trace(evolved_projector).real)
+        if tr_val > 1e-12:
+            evolved_projector = evolved_projector / tr_val
+
+        ricci_scalar = float(np.trace(ricci).real)
+        self.ricci_curvature_history.append(ricci_scalar)
+        dynamic_gromov_cap = 12.5 / (1.0 + 0.1 * abs(ricci_scalar))
+
+        metrics = {
+            "monadic_acceleration": float(la.norm(meta_gradient, "fro")),
+            "dynamic_gromov_capacity": dynamic_gromov_cap,
+            "spectral_purity": float(np.trace(evolved_projector @ evolved_projector).real),
+            "level3_inflexion_rate": float(ricci_scalar * dt),
+        }
+
+        return evolved_projector, metrics
+
+
 class OniricSpectraEngine(SpectralMeasureSeed):
     r"""
     Motor espectral onírico: dualidad Poincaré–Lefschetz, rigidez de Gromov,
@@ -1338,8 +1413,13 @@ class OniricSpectraEngine(SpectralMeasureSeed):
     DIOPHANTINE_KMAP: Final[int] = 4
     NEKHOROSHEV_EPS_STAR: Final[float] = 0.15
 
-    def __init__(self, gw_auditor: Optional[GromovWittenOniricAuditor] = None) -> None:
+    def __init__(
+        self,
+        gw_auditor: Optional[GromovWittenOniricAuditor] = None,
+        meta_engine: Optional[MetaOniricAuditorEngine] = None,
+    ) -> None:
         self.gw_auditor = gw_auditor or GromovWittenOniricAuditor()
+        self.meta_engine = meta_engine or MetaOniricAuditorEngine()
 
     @classmethod
     def _project_spectrum(cls, eigvals: np.ndarray) -> np.ndarray:
@@ -1958,6 +2038,17 @@ class OniricSpectraEngine(SpectralMeasureSeed):
             mean_motion = 0.0
             ecc = 0.0
             chirikov = 0.0
+        novikov_val = self.meta_engine.novikov_valuation([abs(x) for x in lam if abs(x) > 1e-12])
+        rhi = self.meta_engine.compute_reward_hacking_index(
+            poincare_cert.wilson_phase if poincare_cert else 1.0 + 0.0j,
+            hannay
+        )
+        ricci_dummy = np.eye(n, dtype=np.complex128) * (measure.purity - measure.von_neumann_entropy)
+        vac_proj = np.eye(n, dtype=np.complex128) / float(n)
+        _, meta_metrics = self.meta_engine.evolve_tqft_immunization_kernel(
+            vac_proj, ricci_dummy, poincare_cert.symplectic_capacity_ratio if poincare_cert else 1.0
+        )
+
         return UnsealedOniricTrace(
             density_matrix=np.array(_hermitize_trace_one(density_matrix), copy=True),
             measure=measure,
@@ -1992,6 +2083,9 @@ class OniricSpectraEngine(SpectralMeasureSeed):
             floquet_radius=floquet_r,
             mean_motion=mean_motion,
             eccentricity=ecc,
+            monadic_acceleration=meta_metrics.get("monadic_acceleration", 0.0),
+            novikov_valuation=novikov_val,
+            reward_hacking_index=rhi,
         )
 
 
@@ -2041,6 +2135,9 @@ class UnsealedOniricTrace:
     floquet_radius: float = 1.0
     mean_motion: float = 0.0
     eccentricity: float = 0.0
+    monadic_acceleration: float = 0.0
+    novikov_valuation: float = 0.0
+    reward_hacking_index: float = 0.0
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -2100,13 +2197,15 @@ class TOONOniricAuditorEngine:
         engine_id: str = "ONIRIC-ENGINE-SABIO-01",
         gw_auditor: Optional[GromovWittenOniricAuditor] = None,
         spectra_engine: Optional[OniricSpectraEngine] = None,
+        meta_engine: Optional[MetaOniricAuditorEngine] = None,
     ) -> None:
         self.engine_id: str = engine_id
+        self.meta_engine = meta_engine or MetaOniricAuditorEngine()
         self.auditor = gw_auditor or GromovWittenOniricAuditor()
         self.spectra: OniricSpectraEngine = (
             spectra_engine
             if spectra_engine is not None
-            else OniricSpectraEngine(gw_auditor=self.auditor)
+            else OniricSpectraEngine(gw_auditor=self.auditor, meta_engine=self.meta_engine)
         )
         self.cycle_count: int = 0
         self.history: List[OniricFieldState] = []
@@ -2199,6 +2298,9 @@ class TOONOniricAuditorEngine:
             floquet_radius=trace.floquet_radius,
             mean_motion=trace.mean_motion,
             eccentricity=trace.eccentricity,
+            monadic_acceleration=trace.monadic_acceleration,
+            novikov_valuation=trace.novikov_valuation,
+            reward_hacking_index=trace.reward_hacking_index,
         )
 
     def _seal_passport(
