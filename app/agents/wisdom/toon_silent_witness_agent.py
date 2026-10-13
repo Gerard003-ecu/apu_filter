@@ -82,6 +82,7 @@ from scipy.optimize import brentq
 # ── Motor heredado Tomita–Takesaki / KMS / Dirac-Vacuum ──
 from app.wisdom.toon_silent_witness_engine import (
     TOONSilentWitnessEngine,
+    MetaSilentWitnessEngine,
     ExperienceCrystal as EngineExperienceCrystal,
     HeytingOmega3,
     MatrixBanachAlgebra,
@@ -1576,6 +1577,7 @@ class TOONSilentWitnessAgent:
         hopping: float = WitnessVacuumPreparation.DEFAULT_HOPPING,
         celestial_dt: float = 5.0e-3,
         n_crossings: int = 256,
+        meta_engine: Optional[MetaSilentWitnessEngine] = None,
     ) -> None:
         if dimension is not None:
             dimension_mac = dimension
@@ -1589,12 +1591,14 @@ class TOONSilentWitnessAgent:
         self.crystal_count = 0
         self.crystal_history: List[ExperienceCrystal] = []
         self.experience_archive: List[ExperienceCrystal] = []
+        self.meta_engine = meta_engine or MetaSilentWitnessEngine(dimension=dimension_mac)
 
         self.engine = TOONSilentWitnessEngine(
             engine_id=f"ENGINE-{agent_id}",
             mac_dimension=dimension_mac,
             kms_beta=kms_beta,
             hopping=hopping,
+            meta_engine=self.meta_engine,
         )
 
         self.H_ext = WitnessVacuumPreparation.tight_binding_hamiltonian(
@@ -1607,6 +1611,16 @@ class TOONSilentWitnessAgent:
             f"{agent_id}::GENESIS::{__version__}".encode("ascii")
         ).hexdigest()
         self._chain_hash = self._genesis_hash
+
+    def audit_poincare_recurrence_kms_level3(
+        self,
+        density_matrix: np.ndarray,
+        time_t: float = 1.0,
+    ) -> Tuple[np.ndarray, float, Dict[str, Any]]:
+        r"""Audita la condición KMS y cristaliza el vector en S⁶ ⊂ ℝ⁷ Nivel 3 delegando a self.meta_engine."""
+        return self.meta_engine.audit_poincare_recurrence_kms_level3(
+            density_matrix=density_matrix, time_t=time_t
+        )
 
     # ── Hashes y cadena Merkle ──
     def _content_hash(

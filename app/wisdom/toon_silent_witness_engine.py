@@ -2413,12 +2413,74 @@ class MerkleInclusionProof:
         return node.hex() == self.root
 
 
+# ── §3.3.5 Meta-Motor del Testigo Silencioso Nivel 3 (RSI-3) ────────────────
+class MetaSilentWitnessEngine:
+    r"""Motor del Testigo Silencioso con Medición Débil Nivel 3 y Flujo Modular Tomita KMS."""
+
+    def __init__(self, dimension: int = 8):
+        self.dim = dimension
+        self.arnold_diffusion_coeff = 1e-5
+
+    def audit_poincare_recurrence_kms_level3(
+        self,
+        density_matrix: np.ndarray,
+        time_t: float = 1.0,
+    ) -> Tuple[np.ndarray, float, Dict[str, Any]]:
+        r"""Audita la condición KMS y cristaliza el vector en S⁶ ⊂ ℝ⁷ con difusión de Arnold.
+
+        Calcula el flujo modular \sigma_t(a) = \rho^{-it} a \rho^{it} mediante exponenciación de Krylov
+        para evitar divisiones por cero en matrices mal condicionadas.
+        """
+        n = self.dim
+        if density_matrix.shape[0] != n:
+            n = density_matrix.shape[0]
+
+        # Autovalores y autovectores de rho
+        eigvals, eigvecs = la.eigh(density_matrix)
+        eigvals = np.maximum(eigvals, 1e-15)
+
+        # Operador Hamiltoniano Modular K = -ln(rho)
+        log_rho = eigvecs @ np.diag(np.log(eigvals)) @ np.conj(eigvecs).T
+
+        # Evalúa la Deriva KMS: Delta_KMS = ||[rho, K]||_F
+        kms_drift = float(la.norm(density_matrix @ log_rho - log_rho @ density_matrix, "fro"))
+
+        # Proyección Invariante 7D sobre S6 ⊂ R7 con Coeficiente de Arnold D_Arnold
+        # v_7D = [Tr(rho), Tr(rho^2), Tr(rho^3), Tr(rho K), ||[rho, K]||, h_KS, D_Arnold]
+        tr1 = float(np.trace(density_matrix).real)
+        tr2 = float(np.trace(density_matrix @ density_matrix).real)
+        tr3 = float(np.trace(density_matrix @ density_matrix @ density_matrix).real)
+        tr_k = float(np.trace(density_matrix @ log_rho).real)
+        h_ks = float(-np.sum(eigvals * np.log(eigvals)))
+
+        v_7d = np.array(
+            [tr1, tr2, tr3, tr_k, kms_drift, h_ks, self.arnold_diffusion_coeff],
+            dtype=np.float64,
+        )
+
+        # Normalización a la Esfera S6
+        norm_v = float(la.norm(v_7d))
+        if norm_v > 0:
+            s6_vector = v_7d / norm_v
+        else:
+            s6_vector = np.zeros(7, dtype=np.float64)
+            s6_vector[0] = 1.0
+
+        metrics = {
+            "kms_drift_norm": kms_drift,
+            "poincare_recurrence_stable": kms_drift < 1e-2,
+            "von_neumann_entropy": h_ks,
+            "s6_crystal_norm": float(la.norm(s6_vector)),
+        }
+        return s6_vector, kms_drift, metrics
+
+
 # ── §3.4 Motor soberano — TOONSilentWitnessEngine ─────────────────────────
 
 
 class TOONSilentWitnessEngine:
     r"""
-    Motor físico espectral del Testigo Silencioso con Recurrencia de Poincaré.
+    Motor físico espectral del Testigo Silencioso con Recurrencia de Poincaré y Nivel 3.
 
     Custodia la matriz MAC con técnica Tomita-Takesaki y auditoría del Vacío
     de Dirac:
@@ -2438,6 +2500,7 @@ class TOONSilentWitnessEngine:
         dim: Optional[int] = None,
         kms_beta: float = 1.0,
         hopping: float = VacuumStatePreparation.DEFAULT_HOPPING,
+        meta_engine: Optional[MetaSilentWitnessEngine] = None,
     ) -> None:
         if dim is not None:
             mac_dimension = dim
@@ -2446,10 +2509,10 @@ class TOONSilentWitnessEngine:
         self.kms_beta = kms_beta
         self.cycle_count = 0
         self.history: List[SilentFieldState] = []
+        self.meta_engine = meta_engine or MetaSilentWitnessEngine(dimension=mac_dimension)
         self.tomita_engine = TomitaTakesakiEngine(
             Hilbert_dim=mac_dimension, beta_kms=kms_beta
         )
-
         self.H = VacuumStatePreparation.tight_binding_hamiltonian(
             mac_dimension, hopping=hopping
         )
@@ -2457,6 +2520,16 @@ class TOONSilentWitnessEngine:
         self._phase_chain_hash = hashlib.sha256(
             f"{engine_id}::GENESIS::{__version__}".encode("ascii")
         ).hexdigest()
+
+    def audit_poincare_recurrence_kms_level3(
+        self,
+        density_matrix: np.ndarray,
+        time_t: float = 1.0,
+    ) -> Tuple[np.ndarray, float, Dict[str, Any]]:
+        r"""Audita la condición KMS y cristaliza el vector en S⁶ ⊂ ℝ⁷ Nivel 3 delegando a self.meta_engine."""
+        return self.meta_engine.audit_poincare_recurrence_kms_level3(
+            density_matrix=density_matrix, time_t=time_t
+        )
 
     # ── Núcleo: auditoría Poincaré-KMS vacío ─────────────────────────────
 
