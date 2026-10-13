@@ -1,56 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Central Interaction Interface (La Base Canónica y el Topos EMIC)    ║
-║ Ruta   : app/adapters/tools_interface.py                                     ║
-║ Versión: 8.1.0-Poincare-Symplectic-KAM-Novikov-Doctoral                      ║
-║ Fase   : 1 / 3  — FUNDAMENTOS ALGEBRAICO-SIMPLÉCTICOS                        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ADAPTERS
+====================================================================================================
 
+Nombre: ToolsInterface
+Ubicación: app/adapters/tools_interface.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Interfaz funtorial y adaptador universal entre los estados abstractos de sabiduría
+         (espinores, haces topológicos, cuaterniones, lazos de Novikov) y los efectores
+         computacionales y herramientas del entorno. Preserva la conmutatividad categórica F(g circ f) = F(g) circ F(f).
 
-NATURALEZA CIBER-FÍSICA Y ÁLGEBRA CATEGÓRICA EN EL ESTRATO TACTICS (V_𝕋) ───
-Este módulo no es una tabla de despacho procedimental. El espacio de acciones
-del Agente se modela como un topos elemental \(\mathcal{E}_{\mathrm{MIC}}\)
-cuyo objeto de verdad \(\Omega\) está fibrado sobre el cotangente \(T^*\mathcal{M}\)
-con la 2-forma canónica de Darboux
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Adaptador de Interfaz de Herramientas (ToolsInterface) es la puerta de enlace material
+de APU Filter con el mundo exterior. Su función es traducir especificaciones puramente matemáticas
+y representaciones multivectoriales generadas por los motores soberanos en contratos de ejecución,
+invocaciones a APIs, comandos de shell y flujos de entrada/salida reproducibles y verificables.
+Su respectivo motor de planificación es 'ChingonDependencyEngine'
+(app/core/chingon_dependency_engine.py), y su respectivo adaptador de entrada es
+'MicVectorsAdapter' (app/adapters/mic_vectors.py). Mientras ChingonDependencyEngine emite el orden
+topológico óptimo de despacho, ToolsInterface efectiviza la llamada garantizando la preservación
+funtorial de los tipos y estados de invariancia.
 
-    \[\Omega = \sum_{i=1}^{n} dq^{i}\wedge dp_{i}.\]
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Funtor Covariante F: C_cog -> D_tools:
+   Sea C_cog la categoría de estados cognitivos y morfismos de sabiduría, y D_tools la categoría
+   de herramientas computacionales, esquemas JSON y funciones ejecutables.
+   El adaptador se define rigurosamente como un funtor fiel F que satisface:
+       F(id_A) = id_{F(A)},   para todo objeto A in C_cog
+       F(g circ f) = F(g) circ F(f),   para todo par de morfismos componibles f: A -> B, g: B -> C
 
-La dinámica de decisión es el flujo hamiltoniano \(X_{H}=J\nabla H\). La
-inteligencia no se inyecta: emerge de los invariantes geométricos de ese flujo
-(Poincaré, *Les méthodes nouvelles de la mécanique céleste*, 1892–1899).
+2. Monadas de Efectos Secundarios y Transformaciones Naturales:
+   Toda invocación externa que mute el entorno se encapsula en una mónada de I/O o de estado
+   (T_{IO}, eta, mu) garantizando que los fallos del entorno no provoquen singularidades en el
+   núcleo cognitivo.
 
+3. Validación de Invariantes Previos y Posteriores (Contratos de Hoare):
+   Para toda herramienta op in D_tools y estado cognitivo s:
+       {Pre(s)} op {Post(s')}  ==>  Invariantes_Soberanos(s') == True
 
-INVARIANTES PRESERVADOS ────────────────────────────────────────────────────
-  [I1]  Ortonormalidad de la base canónica: \(I_{ij}=\delta_{ij}\)
-  [I2]  Nulidad del núcleo: \(\ker(I_n)=\{\mathbf{0}\}\)
-  [I3]  Pullback de Heyting: \(S\times_X Y\cong\lim(S\to X\leftarrow Y)\)
-  [I4]  Complejidad de despacho: \(\mathcal{O}(n)\)
-  [I5]  Máxima entropía sobre la base: \(p_i=1/n\)
-  [I6]  Clausura de Darboux: \(\Omega^{\top}=-\Omega\), \(d\Omega=0\), \(J^{2}=-I_{2n}\)
-  [I7]  Liouville: \(\mathcal{L}_{X_H}(\Omega^{n})=0\Leftrightarrow\div X_H=0\)
-  [I8]  No-aplastamiento de Gromov: \(c(B^{2n}(r))\le c(Z^{2n}(R))\Rightarrow r\le R\)
-  [I9]  Condición diofántica KAM: \(|\langle k,\omega\rangle|\ge\gamma/|k|^{\tau}\)
-  [I10] Recurrencia de Poincaré (germen Fase 2)
-  [I11] Forma normal de Birkhoff hasta orden \(N\)
-  [I12] Invariante integral absoluto: \(\oint_{\gamma}\sum p_i\,dq^{i}\) constante
-        sobre tubos de flujo (Poincaré, 1890)
-  [I13] Invariante de Poincaré–Cartan: \(\oint(p\,dq-H\,dt)\) en el espacio
-        extendido \(T^*\mathcal{M}\times\mathbb{R}\)
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma TI1 (Funtorialidad Fiel):
+    F(g circ f) == F(g) circ F(f) sin mutación no conmutativa de efectos colaterales.
+Axioma TI2 (Aislamiento de Excepciones del Entorno):
+    Cualquier fallo de ejecución en D_tools se proyecta al estado de error acotado sin divergir.
+Axioma TI3 (Determinismo de Invocación):
+    Para argumentos isomórficos x simeq y, F(x) genera llamadas estructuralmente idénticas.
 
-
-ARQUITECTURA DE TRES FASES ANIDADAS ────────────────────────────────────────
-  FASE 1 ──► FUNDAMENTOS ALGEBRAICO-SIMPLÉCTICOS
-             Configuración, Heyting enriquecida, Darboux, fase, Hamilton,
-             acción-ángulo, generatriz, Poincaré–Cartan, secciones.
-             Último método: Phase1Foundation.seed_phase2_topology()
-
-  FASE 2 ──► ESTRUCTURAS TOPOLÓGICAS Y SISTEMAS DINÁMICOS
-             Consume el germen de seed_phase2_topology: persistencia,
-             Betti, mapas de retorno, cadenas de Markov ergódicas, KAM.
-
-  FASE 3 ──► ORQUESTACIÓN CATEGÓRICA Y OPERADORES
-             Comandos, MICRegistry como topos simpléctico, pipeline.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Validación Previa de Contratos):
+    Toda carga útil despachada satisface el esquema tipado estricto de la herramienta destino.
+Invariante 2 (Preservación de Trazabilidad):
+    Cada invocación de herramienta se registra con firma criptográfica y sello temporal.
+====================================================================================================
 """
 
 from __future__ import annotations

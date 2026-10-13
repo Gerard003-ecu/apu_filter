@@ -1,59 +1,75 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Introspection Witness Engine (Motor Testigo Introspectivo)   ║
-║ Ubicación: app/wisdom/toon_introspection_witness_engine.py                   ║
-║ Versión  : 7.0.0-Doctoral-Nested-Hopf-Berry-Lévy-QND-PoincareReturn-RSI3-Fock║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-TEJIDO ANIDADO EN TRES FASES:
+Nombre: ToonIntrospectionWitnessEngine
+Ubicación: app/wisdom/toon_introspection_witness_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano testigo de introspección no-perturbativo (Quantum Non-Demolition / QND),
+         certificación de trazas cuánticas y cálculo de invariantes topológicos de Chern sobre
+         conexiones de Berry cognitivas.
 
-  ◈ FASE I  — PoincareIntrospectionWitnessAtlas
-              Delaunay canónico (J_i = −ln λ_i) → LRL →
-              monodromía simpléctica + defecto ‖MᵀΩM − Ω‖_F →
-              Greene → Melnikov (scipy.quad) → Bryuno (Fraction) →
-              Morse–Bott χ(ℂPⁿ⁻¹) = n → CR3BP Jacobi + L1 Richardson →
-              Poincaré–Cartan θ = Tr(ρ dN) con residuo [ρ, N] →
-              ★ Sección de Poincaré (mapa de retorno tipo Chirikov) →
-              ★ Multiplicadores de Floquet (estabilidad lineal elíptica/hiperbólica) →
-              ★ Teorema de recurrencia de Poincaré (tiempo medio de Kac) →
-              ★ Método de los pequeños parámetros de Poincaré (serie Melnikov) →
-              COSTURA: weave_celestial_witness_seed.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Testigo de Introspección (ToonIntrospectionWitnessEngine) es el dispositivo de atestación
+formal y observación pasiva de APU Filter. Su principio operativo central es verificar la salud y
+coherencia de los bucles introspectivos sin inyectar ruido estocástico ni colapsar la superposición
+de trayectorias de inferencia (medición no-demolición).
+Su respectivo agente es 'ToonIntrospectionWitnessAgent' (app/agents/wisdom/
+toon_introspection_witness_agent.py). Mientras el Engine calcula numéricamente la traza invariante
+Tr(rho * O), la fase geométrica de Berry gamma_B y el conmutador de back-action [H_int, O_sys] = 0,
+su respectivo Agente emite certificados cripto-topológicos y alertas tempranas de decoherencia o
+inestabilidad recurrente a los supervisores del sistema.
 
-  ◈ FASE II — IntrospectionWitnessQNDEngine
-              Uhlmann real F(ρ_mac, |v*⟩⟨v*|) → Fubini–Study d_FS = arccos √F →
-              fase de Berry–Pancharatnam vía conexión 𝓐_Berry →
-              concentración de Lévy ε* en S^{2n−1} →
-              Oseledets transversal MET (λ_i = (ln λ_i − R_G·τ/4)/τ) →
-              Novikov ultramétrico v(T^a) = min a_i →
-              Gromov–Wigner c_G ≤ 12.5 →
-              ★ RSI Nivel 3 jerárquico:
-                  Nivel 1 (objeto)    : η_{t+1} = μ_intro_witness(η_t,…)
-                  Nivel 2 (meta)      : meta-gradiente sobre (damping, curvature)
-                  Nivel 3 (meta-meta) : punto fijo de Banach η* (L<1) +
-                                        consistencia tipo Löb T_μ(η*)=η* →
-              COSTURA: weave_witness_to_certificate.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Medición Cuántica Libre de Perturbación (Quantum Non-Demolition - QND):
+   Sea H_S el Hamiltoniano del subsistema cognitivo y H_int el Hamiltoniano de acoplamiento con el
+   testigo. Un observable O_S es un observable QND continuo si conmuta con el Hamiltoniano total:
+       [O_S, H_S] = 0   y   [O_S, H_int] = 0
+   Esto garantiza que el valor esperado <O_S> y su dispersión Delta O_S se preservan idénticamente:
+       d <O_S> / dt = (i / hbar) * <[H_total, O_S]> = 0
 
-  ◈ FASE III — TOONIntrospectionWitnessEngine.audit_and_certify_rays
-              Retículo Heyting Ω₃ con meet de 7 criterios
-              (C*, Wirtinger, Gromov, Fubini–Study, Berry, Oseledets, RSI3-Banach-Löb) →
-              Álgebra de Fock e⁻ + e⁺ → 2γ (purga al Vacío de Dirac) →
-              ESP32 Crowbar (< 400 ns / GPIO14) →
-              DAG Merkle → IntrospectionWitnessExecutionCertificate.
+2. Conexión de Berry y Primera Clase de Chern c_1:
+   En un ciclo adiabático cerrado gamma en el espacio de parámetros cognitivos M:
+       gamma: [0, T] -> M,   con R(T) = R(0)
+   La conexión de Berry (1-forma diferencial) está dada por:
+       A = i * <psi(R) | d_R psi(R)>
+   La 2-forma de curvatura de Berry F = dA satisface la integral topológica de Chern:
+       c_1 = (1 / (2 * pi)) * int_M F_Berry in Z
+   El número entero c_1 clasifica topológicamente el haz de estados introspectivos, garantizando
+   que cualquier perturbación suave mantenga el índice topológico invariante.
 
-Invariantes transversales:
-  • Back-Action QND = 0.0 dB     (observación sin demolición)
-  • C*-𝔇_n: ‖ρ‖=1, ρ=ρ†, λ_i ≥ −ε
-  • θ_PC = Tr(ρ dN)              residuo [ρ, N] ≤ 1e-5
-  • c_G ≤ 12.5                   capacidad simpléctica Gromov–Wigner
-  • χ(ℂPⁿ⁻¹) = n                 Morse–Bott por índice espectral
-  • v(T^{a}) = min{a_i}          filtración ultramétrica Novikov
-  • μ-ley: μ∘(Tμ) = μ∘(μT)      plegado ≤ 1e-3 (RSI Nivel 3, Nivel 1)
-  • Fock: e⁻ + e⁺ → 2γ           ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
-  • Berry: |γ_Berry| < 0.5 rad   coherencia de fase geométrica
-  • Floquet: |τ| ≶ 2             clasificación elíptica/hiperbólica (sección de Poincaré)
-  • Banach RSI3: L < 1           contracción garantiza punto fijo único η* (Nivel 3)
-  • Löb RSI3: T_μ(η*) = η*       consistencia autorreferencial sin regresión infinita
+3. Comónadas de Atestación Pasiva:
+   El testigo opera como una comónada W = (W, varepsilon, delta) en la categoría C:
+       W: C -> C
+       varepsilon_A: W(A) -> A  (morfismo de counidad o extracción fiel de evidencia)
+       delta_A: W(A) -> W^2(A)  (morfismo de codiagonal o meta-atestación)
+   Satisfaciendo las identidades comonádicas:
+       varepsilon_W circ delta = id_W = W(varepsilon) circ delta
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma W1 (Invarianza de Back-Action Nulo):
+    ||Psi_post_witness - Psi_pre_witness|| == 0 para todo estado coherente observado.
+Axioma W2 (Invarianza de Clase Topológica de Chern):
+    Delta c_1(M) = 0 bajo cualquier difeomorfismo suave del espacio de parámetros de inferencia.
+Axioma W3 (Unitaridad de la Traza de Densidad):
+    Tr(rho(t)) = 1.0 para todo tiempo t >= 0.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación Exacta de Pureza):
+    |gamma(t) - gamma(0)| <= epsilon_tolerance, donde gamma = Tr(rho^2).
+Invariante 2 (Cuantización del Índice Topológico):
+    c_1 in {-K, ..., 0, ..., K} subset Z (el índice es estrictamente discreto).
+====================================================================================================
 """
 
 from __future__ import annotations

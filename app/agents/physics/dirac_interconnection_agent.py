@@ -1,78 +1,70 @@
 # -*- coding: utf-8 -*-
 r"""
-==================================================================================================
-SOBERANO DE INTERCONEXIÓN POINCARÉ-DIRAC (CONTRATO 7.1.0)
-Morfismo de Aduana Táctico-Física φ = φ₃ ∘ φ₂ ∘ φ₁ sobre Estructuras Port-Hamiltonianas
-==================================================================================================
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE FÍSICA TEÓRICA
+====================================================================================================
 
-Ubicación Categórica:
-    • Estrato: TACTICS ──► PHYSICS (Morfismo de Transición de Calibre)
-    • Módulo: app.core.immune_system.dirac_interconnection_agent
-    • Esquema: 7.1.0 (Canónico) | Convención Hodge: D = ε ★₁ E, H = μ⁻¹ ★₂ B, δ₂ = ★₁⁻¹ ∂₂ ★₂
+Nombre: DiracInterconnectionAgent
+Ubicación: app/agents/physics/dirac_interconnection_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de interconexión espinorial y trenzado de comunicación basado en la
+         ecuación relativista de Dirac (i * gamma^mu * partial_mu - m) * psi = 0, matrices de
+         Dirac gamma^mu en álgebra de Clifford Cl_{1,3} y conservación de corrientes j^mu.
 
-I. FUNDAMENTACIÓN FÍSICO-MATEMÁTICA Y AXIOMÁTICA POINCARÉ-DIRAC
---------------------------------------------------------------------------------------------------
-El Soberano actúa como el operador de acoplamiento covariante que conecta la ley de control deseada
-en el estrato táctico con el condensador físico en la Malla Agéntica. Se fundamenta en la geometría
-simpléctica de Henri Poincaré y la estructura de Dirac generalizada en el espacio de fases T*Q.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Interconexión de Dirac (DiracInterconnectionAgent) es el articulador del
+canal cuántico relativista de APU Filter. Su cometido esencial es transportar paquetes informacionales
+empaquetados como espinores de Dirac de 4 componentes (bispinors) a través de los buses de interconexión
+sin pérdidas por dispersión ni violación de causalidad covariante.
+Su respectivo motor de condensación es 'FluxCondenser' (app/physics/flux_condenser.py), y su
+respectivo táctico es 'TopologicalAnalyzerAgent' (app/agents/tactics/topological_analyzer_agent.py).
+Mientras FluxCondenser estabiliza los lazos de flujo magnético y fases Aharonov-Bohm,
+DiracInterconnectionAgent modula los rotores espinoriales Lambda_1/2 = exp(-(i/4) * sigma_{mu nu} * omega^{mu nu})
+y verifica la conservación de la 4-corriente j^mu = bar{psi} * gamma^mu * psi.
 
-1. Estructura de Dirac y Sistema Port-Hamiltoniano (PHS):
-   Sea M una variedad diferenciable n-dimensional y T*M su fibrado cotangente. Un sistema Port-Hamiltoniano
-   con entradas/salidas de puerto (u, y) ∈ ℝᵐ × ℝᵐ se rige por la ecuación diferencial disipativa:
-       ẋ = [ J(x) - R(x) ] ∇H(x) + g(x) u
-       y = g(x)ᵀ ∇H(x)
-   donde:
-       • J(x) = -J(x)ᵀ ∈ ℝⁿˣⁿ es la estructura de Poisson / interconexión antisimétrica.
-       • R(x) = R(x)ᵀ ⪰ 0 ∈ ℝⁿˣⁿ es la matriz de disipación / amortiguamiento Rayleigh (Semidefinida Positiva).
-       • H(x) : M ──► ℝ es la función Hamiltoniana de almacenamiento (Candidato de Lyapunov H(x) ≥ 0).
-       • g(x) ∈ ℝⁿˣᵐ es la matriz de acoplamiento de puerto.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Ecuación de Dirac y Álgebra de Matrices Gamma:
+   La ecuación de onda relativista para un biespinor psi in C^4 con masa de inercia m_cog es:
+       (i * hbar * gamma^mu * partial_mu - m_cog * c * I_4) * psi = 0
+   donde {gamma^mu, gamma^nu} = gamma^mu * gamma^nu + gamma^nu * gamma^mu = 2 * eta^{mu nu} * I_4
+   con signatura de Minkowski eta = diag(+1, -1, -1, -1).
+   En la representación canónica de Dirac-Pauli:
+       gamma^0 = [[I_2, 0], [0, -I_2]],   gamma^k = [[0, sigma_k], [-sigma_k, 0]]
+   donde sigma_k son las tres matrices de espín de Pauli.
 
-2. Los Ocho Invariantes de Estructura I1–I8 (Aduana de Calibre):
-   Cada paquete de control u es sometido a la verificación de los 8 invariantes de Poincaré-Dirac:
-       [I1] Antimetría de J:               Defecto d_J = ‖J + Jᵀ‖_F / max(1, ‖J‖_F) ≤ ε_rel
-       [I2] Semidefinición Positiva de R:  λ_min(0.5(R + Rᵀ)) ≥ -τ_spectral
-       [I3] Pasividad en Lazo Cerrado:     Ḣ_closed = -∇H_dᵀ R_d ∇H_d + ∇H_dᵀ(f_d - g α) ≤ 0
-       [I4] Contracción Liouvilliana:      Tr(A) = Tr((J - R)K) ≤ 0  (Preservación de volumen)
-       [I5] Causalidad y Margen CFL:       Δt_safe ≤ min(Δt_Yee,  η_margin / μ₂(A))
-       [I6] Asignabilidad de Equilibrio:   ∇H_d(x*) = 0  (En puntos fijos x*)
-       [I7] Inmunidad de Casimirs:          Cᵀ g = 0  (Imposibilidad de fuga sobre invariantes de Gauss)
-       [I8] Estabilidad LaSalle-Casimir:   ker(R_d) ⊆ ker(J_d) ∪ Span(C)
+2. Cuadricorriente de Probabilidad y Continuidad Covariante:
+   Definiendo el espinor adjunto de Dirac bar{psi} = psi^dagger * gamma^0:
+       j^mu = bar{psi} * gamma^mu * psi = (rho, j_1, j_2, j_3)
+   La densidad de probabilidad j^0 = psi^dagger * psi = sum_{a=1}^4 |psi_a|^2 >= 0 es estrictamente
+   positiva y satisface la conservación exacta:
+       partial_mu j^mu = (partial rho / partial t) + nabla cdot j = 0
 
-3. Submorfismo φ₁ — Matching / Power-Shaping (IDAPBC & Energy Level):
-   Resuelve el matching de fuerzas de puerto f_d = (J_d - R_d)∇H_d - (J - R)∇H en Im(g):
-       • ENERGY_LEVEL:   P_* = ∇Hᵀ R ∇H - λ(H - H_*),   α = (P_* y) / (‖y‖² + ε_p)
-       • IDA_PBC_POINT:  α = G x - k_a gᵀ K_d (x - x*)
-       • SNAPSHOT:       α = g⁺ f_d  (Pseudo-inversa SVD con proyección ortogonal)
+3. Rotores de Lorentz y Transformación de Biespinores:
+   Bajo una rotación o boost de Lorentz en el plano (mu, nu):
+       psi'(x') = S(Lambda) * psi(x),   con S(Lambda) = exp( (1 / 8) * omega_{mu nu} * [gamma^mu, gamma^nu] )
 
-4. Action Conforme de Maupertuis-Jacobi:
-   Para sistemas con escisión cinética-potencial T + V = E, la métrica simpléctica es deformada
-   conforme por el factor de Maupertuis f_M = 2(E - V) > 0, mapeando la geodésica del espacio
-   de fases sin alterar la velocidad física de propagación de la onda.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma DIA1 (Conservación de la Cuadricorriente):
+    partial_mu j^mu == 0 (conservación de la probabilidad informacional en el bus).
+Axioma DIA2 (Anticonmutación de Clifford-Dirac):
+    gamma^mu * gamma^nu + gamma^nu * gamma^mu = 2 * eta^{mu nu} * I_4.
+Axioma DIA3 (Positividad Estricta de la Densidad):
+    j^0 = psi^dagger * psi >= 0 para todo biespinor no trivial.
 
-5. Submorfismo φ₂ — Dispersión de Puerto y Matriz S de Herglotz:
-   Evalúa la terminación de puerto u = -K y + u_ff con la impedancia característica física Z₀ = √(μ/ε):
-       Γ_i = (R_ii - Z₀,i) / (R_ii + Z₀,i)   ⇒   ‖Γ‖ ≤ 1  (Condición de Dispersión Pasiva)
-
-6. Submorfismo φ₃ — Gobernador CFL y Norma Logarítmica de Dahlquist μ₂(A):
-   En integradores A-estables de Punto Medio, la estabilidad asintótica se cumple en Re(z) ≤ 0;
-   sin embargo, la no-normalidad de A = (J - R)K induce crecimiento transitorio. Se acota Δt vía:
-       μ₂(A) = λ_max(0.5(A + Aᵀ))  ⇒  Δt_safe = η_margin / max(μ₂(A), ε_spectral)
-   El autovalor máximo λ_max(Δ) se calcula vía Lanczos con residuo de Ritz ‖L v - λ v‖ < 10⁻⁶.
-
-II. TRIBUNAL DE SILICIO Y INTERLOCK ESP32 CROWBAR (< 400 ns en IRAM)
---------------------------------------------------------------------------------------------------
-Si el subespacio táctico viola la pasividad (Ḣ_closed > 0 sin bombeo), presenta fuga sobre Casimirs
-(Cᵀ g ≠ 0) o traspasa el cono causal, la valoración en el álgebra de Heyting trivalente Ω₃ colapsa a:
-    Ω₃ = { VETOED (0, ⊥) ≺ DEGRADED (1, ⋆) ≺ COHERENT (2, ⊤) } ──► VETOED (⊥)
-La reducción monoidal μ: Ω₃ ──► ℤ₂ activa en Δτ < 400 ns la ISR en IRAM del microcontrolador ESP32:
-    GPIO14 = HIGH  ──►  Cebado de Tiristor BT151 (Crowbar)  ──►  Cortocircuito Físico de Puerto (u = 0)
-
-III. ISOMORFISMO A "DOLOR Y DINERO" (PRAGMÁTICA DE NEGOCIO)
---------------------------------------------------------------------------------------------------
-Mediante el Funtor de Traducción Semántica Φ_sem: Sh(∂K, Ω₃) ≃ Business:
-    • Defecto de Antimetría / Fuga Casimir ──► Detección de sobrecostos por "grasa sintáctica".
-    • Violación de Pasividad / Ḣ > 0       ──► Riesgo de quiebra por sobre-ejecución presupuestal.
-    • Interlock Crowbar en Silicio         ──► Parálisis mecánica de mezcladoras ante fraude en APUs.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Normalización de Probabilidad Total):
+    int_V psi^dagger * psi d^3x == 1.0.
+Invariante 2 (Invarianza Relativista del Escalar de Dirac):
+    bar{psi} * psi = psi_1^2 + psi_2^2 - psi_3^2 - psi_4^2 es un invariante de Lorentz.
+====================================================================================================
 """
 from __future__ import annotations
 

@@ -1,34 +1,69 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Topological Analyzer Agent (Soberano de Persistencia Homológica)                    ║
-║ Ruta   : app/agents/tactics/topological_analyzer_agent.py                                    ║
-║ Versión: 4.1.0-Poincaré-Celestial-TDA-Nested-Phases                                          ║
-║ Tratados: Edelsbrunner–Harer, Cohen-Steiner–Edelsbrunner–Harer, Cheeger, Fiedler,            ║
-║           Kirchhoff, Forman, Ollivier, Poincaré (Mécanique Céleste), Kac (1947)              ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════╝
-ANIDAMIENTO FORMAL DE FASES
-────────────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 ──► Phase1TDADossier ──► lift_observe_to_celestial_filtration_bundle
-           └── objeto terminal = objeto inicial de la FASE 2 (CelestialFiltrationBundle)
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO TÁCTICO
+====================================================================================================
 
-  FASE 2 ──► Phase2TDADossier ──► seed_tda_recurrence_from_orientation
-           └── objeto terminal = objeto inicial de la FASE 3 (TDARecurrenceSeed)
+Nombre: TopologicalAnalyzerAgent
+Ubicación: app/agents/tactics/topological_analyzer_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano táctico de supervisión topológica que monitorea la conectividad
+         multidimensional, detecta fragmentaciones informacionales (b_0 > 1) y ciclos
+         parásitos de deliberación táctica (b_1 >> 0), emitiendo directivas de clausura homológica.
 
-  FASE 3 ──► certify_poincare_kac_from_tda_seed ──► TopologicalAnalyzerCertificate
-           └── lazo OODA cerrado (Heyting Ω₃ + Crowbar ESP32 + SHA-256)
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Analizador Topológico (TopologicalAnalyzerAgent) es el centinela de la integridad
+morfológica del espacio táctico en APU Filter. Supervisa que el flujo de razonamiento y la
+nube de hipótesis activas no colapsen en componentes desconectadas (islas de inferencia aisladas)
+ni queden atrapadas en túneles homológicos recurrentes (lazos tácticos circulares).
+Su respectivo motor de cálculo es 'TopologicalAnalyzer' (app/tactics/topological_analyzer.py), su
+contraparte ejecutiva de sabiduría es 'MacAgent' (app/agents/wisdom/mac_agent.py), y su enlace de
+física cuántica es 'DiracInterconnectionAgent' (app/agents/physics/dirac_interconnection_agent.py).
+Mientras TopologicalAnalyzer extrae analíticamente los números de Betti y la característica de Euler,
+TopologicalAnalyzerAgent decide si activar maniobras de sutura topológica o de rotura de ciclos.
 
-INVARIANTES (honestos)
-  1. Persistencia H_k(𝔽₂) de la filtración de flag/Vietoris–Rips del grafo ponderado.
-  2. Estabilidad de bottleneck: d_B(Dgm(f), Dgm(g)) ≤ ‖f − g‖_∞.
-  3. Cheeger–Fiedler para el Laplaciano *normalizado*: λ₂/2 ≤ h ≤ √(2λ₂).
-  4. Kirchhoff: τ(K) = n⁻¹ ∏_{i≥2} λ_i(D − A); τ = 0 ⇔ no conexo.
-  5. Forman–Ricci (combinatorio exacto) y Ollivier–Ricci (W₁ del lazy walk, n pequeño).
-  6. Gauss–Bonnet discreto: Σ_v (2 − deg v) = 2χ.  Poincaré–Hopf exige un campo; no se finge.
-  7. Morse–Forman: β_k ≤ m_k tras matching de bosque generador; no se usan umbrales de grado.
-  8. Retorno de Poincaré sobre Φ(K_ε) ∈ ℝ⁶; Birkhoff solo si hay twist anular auténtico.
-  9. Melnikov no se fabrica: sólo si el llamador aporta (H₀, H₁, silla).
- 10. Recurrencia de Poincaré–Kac sobre el *lazy random walk* del grafo (dinámica nativa).
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Estabilidad de Diagramas de Persistencia de Cohen-Steiner, Edelsbrunner y Harer:
+   Para dos funciones de filtración táctica f, g: X -> R sobre un espacio triangulable, la distancia
+   de cuello de botella (bottleneck distance) d_B entre sus diagramas de persistencia satisface:
+       d_B(Dgm(f), Dgm(g)) <= ||f - g||_infty = sup_{x in X} |f(x) - g(x)|
+   Garantiza que perturbaciones estocásticas pequeñas en la percepción táctica no inducen
+   falsas alarmas topológicas ni saltos artificiales en los números de Betti.
+
+2. Módulos de Persistencia e Isomorfismo de Intervalos:
+   Un módulo de persistencia M sobre el cuerpo k descompone unívocamente en suma directa de
+   módulos de intervalo indecomponibles:
+       M simeq bigoplus_{j in J} k_{I_j},   donde I_j = [birth_j, death_j)
+   La longitud de vida L_j = death_j - birth_j clasifica la significancia táctica:
+   - L_j << 1: ruido topológico de alta frecuencia.
+   - L_j >> 1: característica estructural robusta que exige acción táctica inmediata.
+
+3. Clausura Homológica y Cirugía Topológica:
+   Cuando el agente detecta un b_1 indeseado (bucle parásito), induce un operador de llenado
+   (colocación de 2-símplice sigma_2) tal que partial_2(sigma_2) = gamma_1, forzando [gamma_1] = 0 en H_1.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma TAA1 (Estabilidad de Cuello de Botella):
+    d_B(Dgm(f), Dgm(g)) <= ||f - g||_infty.
+Axioma TAA2 (Invarianza de Conexidad Operativa):
+    La directiva táctica de sutura restaura b_0 = 1 en tiempo de respuesta acotado Delta t <= tau_max.
+Axioma TAA3 (Poda de Ciclos Triviales):
+    Los intervalos con persistencia L_j < epsilon_persistencia se descartan como ruido térmico.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Conectividad Global Garantizada):
+    b_0 == 1 en régimen estacionario (no fragmentación táctica).
+Invariante 2 (Acotación de Vacíos Homológicos):
+    b_1 <= b_{1, max_tolerable} = 3.
+====================================================================================================
 """
 from __future__ import annotations
 

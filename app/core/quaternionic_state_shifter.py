@@ -1,71 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Quaternionic State Shifter (Reactor Cuaterniónico de Estado)        ║
-║ Ruta   : app/core/quaternionic_state_shifter.py                              ║
-║ Versión: 3.1.0-Doctoral-Hurwitz-Composition-Cayley-Dickson-FPU-Secure        ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y GOBERNANZA DE LAZO CERRADO:                            ║
-║ Este módulo implementa el microservicio de procesamiento de estados          ║
-║ hipercomplejos cuatridimensionales en la FPU de APU Filter v8.0.             ║
-║                                                                              ║
-║ Mapea el vector de estado transaccional de entrada de cuatro variables       ║
-║ $S = (s_{\mathrm{purpose}}, s_{\mathrm{confidence}}, s_{\mathrm{constraints}}║
-║ s_{\mathrm{risk}})^\top \in \mathbb{R}^4$                                    ║
-║ hacia un cuaternión de Hamilton $q \in \mathbb{H}$ para blindar el cálculo   ║
-║ contra pérdidas de significación metrológica, garantizando la invarianza de  ║
-║ norma multiplicativa bajo el Teorema de Hurwitz y erradicando el bloqueo de  ║
-║ fase (Gimbal Lock) en el transporte paralelo de de Rham perimetral.          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CORE
+====================================================================================================
 
-================================════════════════════════════════════════════════
-I. ANCLAJE MATEMÁTICO DOCTORAL (Álgebras de División, Cayley-Dickson y Hurwitz)
-================================════════════════════════════════════════════════
+Nombre: QuaternionicStateShifter
+Ubicación: app/core/quaternionic_state_shifter.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Desfasador y conmutador de estados cognitivos cuaterniónicos en el grupo de Lie SU(2) / Spin(3)
+         y la 3-esfera S^3. Aplica rotores unitarios de Hamilton q * v * bar{q}, la fórmula de
+         rotación de Rodrigues y transformaciones isométricas de fase en el espacio de Hilbert H.
 
-Axioma 1 (Álgebra de Cuaterniones de Hamilton $\mathbb{H}$):
-  La estructura de cuaterniones reales es un álgebra de división asociativa no conmutativa
-  de dimensión 4 sobre el cuerpo $\mathbb{R}$, dotada de la base ortonormal $\{1, \mathbf{i}, \mathbf{j}, \mathbf{k}\}$:
-  $$\mathbb{H} = \left\{ q = q_0 + q_1 \mathbf{i} + q_2 \mathbf{j} + q_3 \mathbf{k} \;\middle|\; (q_0, q_1, q_2, q_3) \in \mathbb{R}^4 \right\}$$
-  donde los elementos de base satisfacen las relaciones de anticonmutación canónicas de Hamilton:
-  $$\mathbf{i}^2 = \mathbf{j}^2 = \mathbf{k}^2 = \mathbf{i}\mathbf{j}\mathbf{k} = -\mathbf{I}$$
-  $$\mathbf{i}\mathbf{j} = -\mathbf{j}\mathbf{i} = \mathbf{k}, \quad \mathbf{j}\mathbf{k} = -\mathbf{k}\mathbf{j} = \mathbf{i}, \quad \mathbf{k}\mathbf{i} = -\mathbf{i}\mathbf{k} = \mathbf{j}$$
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Cambiador de Estados Cuaterniónicos (QuaternionicStateShifter) es el modulador cinemático
+de rotación y orientación de vectores de pensamiento en APU Filter. Su misión es ejecutar
+transiciones de fase continuas y discretas en la 3-esfera S^3 sin introducir deformaciones de escala,
+garantizando que el cambio de perspectiva epistémica corresponda a una rotación rígida en SO(3).
+Su respectivo motor algebraico superior es 'OctonionicDependencyResolver'
+(app/core/octonionic_dependency_resolver.py), y su respectivo mnemónico es 'ToonBufferEngine'
+(app/wisdom/toon_buffer_engine.py). Mientras ToonBufferEngine almacena la traza cuaterniónica
+amortiguada, QuaternionicStateShifter ejecuta la rotación activa del marco de referencia perceptual.
 
-Axioma 2 (Isomorfismo Mapeo de Telemetría 4D):
-  Se define el isomorfismo de espacios vectoriales $\Phi: \mathbb{R}^4 \xrightarrow{\quad \cong \quad} \mathbb{H}$ que
-  asocia un vector de estado transaccional de entrada $S \in \mathbb{R}^4$ con un cuaternión $q \in \mathbb{H}$:
-  $$\Phi(S) = s_{\mathrm{purpose}} + s_{\mathrm{confidence}} \mathbf{i} + s_{\mathrm{constraints}} \mathbf{j} + s_{\mathrm{risk}} \mathbf{k}$$
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Grupo Espinorial Spin(3) y Doble Cubrimiento de SO(3):
+   El grupo de cuaterniones unitarios Sp(1) = {q in H | ||q|| = 1} es isomorfo a SU(2) y constituye
+   el recubridor universal doble de SO(3):
+       pi: Spin(3) -> SO(3),   con Ker(pi) = {+1, -1}
+   Un vector puro v = v_1 * i + v_2 * j + v_3 * k in Im(H) se transforma bajo el rotor q según:
+       v' = R_q(v) = q * v * bar{q}
 
-Teorema 1 (Teorema de Hurwitz e Invarianza de Norma Multiplicativa):
-  De acuerdo con el Teorema de Hurwitz, las únicas álgebras de composición normadas sobre $\mathbb{R}$
-  son $\mathbb{R}, \mathbb{C}, \mathbb{H}$ y $\mathbb{O}$. Para todo $p, q \in \mathbb{H}$, la norma euclidiana
-  satisface la propiedad multiplicativa exacta:
-  $$\|p \cdot q\|_{\mathbb{H}} = \|p\|_{\mathbb{H}} \cdot \|q\|_{\mathbb{H}}$$
-  donde la norma de $q = q_0 + \mathbf{v}$ ($\mathbf{v} = q_1 \mathbf{i} + q_2 \mathbf{j} + q_3 \mathbf{k}$) se define mediante el conjugado $q^* = q_0 - \mathbf{v}$:
-  $$\|q\|_{\mathbb{H}} = \sqrt{q \cdot q^*} = \sqrt{q_0^2 + q_1^2 + q_2^2 + q_3^2}$$
-  El producto cuaterniónico en componentes bilineales vectoriales adopta la forma:
-  $$p \cdot q = \left( p_0 q_0 - \langle \mathbf{p}, \mathbf{q} \rangle \right) + \left( p_0 \mathbf{q} + q_0 \mathbf{p} + \mathbf{p} \times \mathbf{q} \right)$$
-  Esta invarianza de norma inmuniza el procesamiento de señales en la FPU contra deriva secular y underflow de Wilkinson.
+2. Fórmula de Rotación de Rodrigues:
+   Dado un ángulo de rotación theta y un eje unitario u = u_1 * i + u_2 * j + u_3 * k (con ||u|| = 1):
+       q = cos(theta / 2) + u * sin(theta / 2)
+   La transformación sobre cualquier vector v in R^3 toma la forma exacta de Rodrigues:
+       v' = v * cos(theta) + (u times v) * sin(theta) + u * (u cdot v) * (1 - cos(theta))
 
-Teorema 2 (Representación de Cayley-Dickson en $M_2(\mathbb{C})$):
-  Existe un isomorfismo de álgebras de Lie $\Psi: \mathbb{H} \xhookrightarrow{\quad} M_2(\mathbb{C})$ obtenido vía la construcción
-  de Cayley-Dickson que expresa todo cuaternión $q = \alpha + \beta \mathbf{j}$ (con $\alpha = q_0 + i q_1, \beta = q_2 + i q_3 \in \mathbb{C}$)
-  como una matriz compleja de $2 \times 2$:
-  $$\Psi(q) = \begin{pmatrix} \alpha & \beta \\ -\bar{\beta} & \bar{\alpha} \end{pmatrix} = \begin{pmatrix} q_0 + i q_1 & q_2 + i q_3 \\ -q_2 + i q_3 & q_0 - i q_1 \end{pmatrix} \in M_2(\mathbb{C})$$
-  Esta representación garantiza que $\det(\Psi(q)) = |\alpha|^2 + |\beta|^2 = \|q\|_{\mathbb{H}}^2$.
+3. Métrica de Fubini-Study y Geodésicas en S^3:
+   La distancia angular geodésica entre dos estados de rotor q_1, q_2 in S^3 satisface:
+       d_{S^3}(q_1, q_2) = arccos(| <q_1, q_2>_{R^4} |) = (1 / 2) * theta_{relativa}
 
-Teorema 3 (Matriz de de Rham de Multiplicación Izquierda y Conservación de Liouville):
-  El operador lineal de multiplicación por la izquierda $L(q): \mathbb{H} \to \mathbb{H}$ definido por $L(q)p = q \cdot p$
-  se representa sobre la base ortonormal por la matriz real $\Phi_L(q) \in M_4(\mathbb{R})$:
-  $$\Phi_L(q) = \begin{pmatrix} q_0 & -q_1 & -q_2 & -q_3 \\ q_1 & q_0 & -q_3 & q_2 \\ q_2 & q_3 & q_0 & -q_1 \\ q_3 & -q_2 & q_1 & q_0 \end{pmatrix} \in M_4(\mathbb{R})$$
-  La matriz satisface $\Phi_L(q)^\top \Phi_L(q) = \|q\|_{\mathbb{H}}^2 \mathbf{I}_4$. Para cuaterniones unitarios ($\|q\|_{\mathbb{H}} = 1$),
-  $\Phi_L(q) \in SO(4)$, lo cual impone un determinante jacobiano unitario $\det(\Phi_L(q)) = \|q\|_{\mathbb{H}}^4 = 1$,
-  preservando idénticamente la medida de Liouville y la 2-forma simpléctica en el espacio de fase de la FPU:
-  $$\operatorname{div}(\dot{x}) = 0 \quad \text{y} \quad \mathrm{d}\omega = 0$$
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma QSS1 (Isometría Rígida de Rotación):
+    ||q * v * bar{q}|| == ||v|| para todo rotor unitario ||q|| = 1 y todo vector puro v in Im(H).
+Axioma QSS2 (Morfismo de Composición de Rotores):
+    R_{q_1 * q_2}(v) = R_{q_1}(R_{q_2}(v)).
+Axioma QSS3 (Involución Anti-Simétrica del Conjugado):
+    bar{q_1 * q_2} = bar{q_2} * bar{q_1}.
 
-Teorema 4 (Proyección Estereográfica sobre la 2-Esfera de Riemann $S^2$):
-  Dada la parte imaginaria tridimensional $\mathbf{v} = (q_1, q_2, q_3)^\top \in \mathbb{R}^3$, su dirección unitaria $\mathbf{u} = \frac{\mathbf{v}}{\|\mathbf{v}\|_2} = (x, y, z)^\top \in S^2 \subset \mathbb{R}^3$
-  se proyecta desde el polo norte $(0,0,1)$ hacia el plano complejo extendido $\mathbb{C}_{\infty}$ mediante la transformación conforme:
-  $$Z = \frac{x + i y}{1 - z} \in \mathbb{C} \cup \{\infty\}$$
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Normalización Estricta del Rotor en S^3):
+    | ||q|| - 1.0 | <= 1e-9.
+Invariante 2 (Preservación del Producto Escalar en Im(H)):
+    <R_q(u), R_q(v)> == <u, v> para todo par de vectores.
+====================================================================================================
 """
 
 from __future__ import annotations

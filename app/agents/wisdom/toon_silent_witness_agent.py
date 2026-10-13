@@ -1,43 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/agents/wisdom/toon_silent_witness_agent.py                            ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / VACÍO DE DIRAC                      ║
-║ FUNCIÓN  : SOBERANO TESTIGO SILENCIOSO Y CRISTALIZADOR DE EXPERIENCIA                ║
-║ VERSIÓN  : 9.0.0-Poincaré-Celestial-Mechanics-CR3BP-KAM-Birkhoff-KS-S6               ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA
-───────────────────────────────────────────────
-El `TOONSilentWitnessAgent` actúa como el Soberano observador imparcial e
-incorruptible del Estrato Wisdom (V_W). Reside en el límite de congelamiento
-entrópico del vacío de Dirac y observa de forma no destructiva las
-interacciones de la Malla Agéntica.
+Nombre: ToonSilentWitnessAgent
+Ubicación: app/agents/wisdom/toon_silent_witness_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano testigo silencioso que realiza observación asíncrona no-invasiva,
+         sellado criptográfico de trazas cognitivas y certificación de invariantes de Chern
+         sin inyectar entropía ni perturbaciones (cero back-action).
 
-MEJORAS DOCTORALES v9.0.0 (POINCARÉ CELESTE):
-─────────────────────────────────────────────
-(I)   La tríada (Trickster, Dreamer, Auditor) se reinterpreta como el Problema
-      de los Tres Cuerpos Restringido Circular (CR3BP) en marco rotante de
-      Poincaré, con ratio de masas μ ∈ (0, 1/2] y potencial efectivo Ω(x,y).
-(II)  El grupo simpático Sp(4,ℝ) actúa sobre la variedad foliada por la
-      integral de Jacobi C = 2Ω − (ẋ² + ẏ²).
-(III) Se construye la sección de Poincaré Σ = {y=0, ẏ>0} y se estima la
-      aplicación de retorno T: Σ → Σ con detección de eventos RK4.
-(IV)  Regularización Levi-Civita (planar) y Kustaanheimo-Stiefel (3D) para
-      remover singularidades binarias.
-(V)   Indicadores exponenciales de caos: Liapunov, SALI (Skokos 2001) y
-      cotejo con la función de Melnikov para transversalidad homoclínica.
-(VI)  Verificación KAM de tori invariantes y análisis de resonancias
-      p:q (Moser 1962, Arnold 1963).
-(VII) Forma normal de Birkhoff alrededor de L4/L5 (Lyapunov-Deprit) con
-      frecuencia fundamental ω_{short,long}.
-(VIII) Difusión de Arnold en la red resonante (Nekhoroshev) cuantificada
-       como proxy del KMS drift del Testigo.
-(IX)  La 7-upla invariante se proyecta en S⁶ preservando compatibilidad
-      topológica con el vacío de Dirac.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Testigo Silencioso (ToonSilentWitnessAgent) personifica la mirada observadora
+inmutable y libre de interferencias dentro de la jerarquía agéntica de sabiduría de APU Filter.
+No altera variables de control, no re-escribe estados de memoria y no emite órdenes de intervención
+directa. Su función soberana es sostener la atestación formal de coherencia sistémica.
+Su respectivo motor matemático subyacente es 'ToonIntrospectionWitnessEngine' (app/wisdom/
+toon_introspection_witness_engine.py). Mientras el motor computa la ortogonalidad cuántica QND y
+la integración de formas de curvatura diferencial, este Agente mantiene el libro mayor inmutable
+(ledger) de atestaciones continuas mediante funciones hash criptográficas encadenadas.
 
-FIRMA DEL TESTIGO SILENCIOSO: mediciones débiles A_w con κ → 0 y contrato
-Merkle con raíz SHA-256 (v_S6 ‖ τ_rec ‖ KMSDrift ‖ Timestamp).
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Fibrado Principal P(M, G) y Conexión Libre de Torsión:
+   Sea M la variedad base de estados del agente y G = U(1) el grupo de simetría gauge del observador.
+   La conexión de Ehresmann omega in Omega^1(P, g) define la descomposición del espacio tangente:
+       T_u P = H_u oplus V_u  (subespacios horizontal y vertical)
+   El agente opera exclusivamente en el subespacio horizontal H_u, anulando cualquier componente
+   vertical de back-action generadora de perturbaciones:
+       P_vertical(Delta u) = 0
+
+2. Medición Pasiva de Entropía Categórica de Shannon-Von Neumann:
+   Dada una secuencia de estados observados {S_t}_{t=1}^N, la entropía diferencial acumulada satisface:
+       S(t) = - sum_i p(S_t = s_i) * log_2 p(S_t = s_i),   con dS_int / dt = 0
+
+3. Encadenamiento Criptográfico de Trazas (Merkle-Damgard Topological Digest):
+   Para cada evento de estado E_t en el tiempo discreto t:
+       H_0 = SHA256("APU_SOVEREIGN_GENESIS_WITNESS")
+       H_t = SHA256(H_{t-1} || E_t || c_1(t))
+   donde c_1(t) es el número de Chern instantáneo provisto por el motor testigo.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma SWA1 (Principio de Silencio / Acción Cero):
+    El Lagrangiano de interacción L_int entre el Agente Testigo y el sistema es idénticamente nulo:
+        L_int(Psi_sys, Psi_witness) == 0.
+Axioma SWA2 (Monotonía y Monotonicidad Temporal del Registro):
+    Si t_1 < t_2, entonces el estado del ledger H_{t_1} es estrictamente antecesor de H_{t_2}.
+Axioma SWA3 (Inviolabilidad de la Firma Topológica):
+    Toda certificación de invariante preserva la clase cohomológica [F] in H^2(M; Z).
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Back-Action Nulo Verificado):
+    ||Delta u_system||_witness == 0.0.
+Invariante 2 (Integridad Criptográfica del Registro de Atestación):
+    Verificación estricta de la cadena de hashes H_t sin colisiones ni fracturas de orden temporal.
+====================================================================================================
 """
 
 from __future__ import annotations

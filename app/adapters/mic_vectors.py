@@ -1,78 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MIC Vectors — Evolución Bicompleja                                  ║
-║ Ruta   : app/adapters/mic_vectors.py                                         ║
-║ Versión: 5.1.0-Bicomplex-Heyting-Hodge-MayerVietoris-Doctoral-Certified      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ADAPTERS
+====================================================================================================
 
-OBJETO DEL MÓDULO
-─────────────────
-Este módulo materializa la transición categorial y espectral de la MIC desde
-cocadenas reales/escalares hacia la teoría de cocadenas simpliciales bicomplejas
+Nombre: MicVectorsAdapter
+Ubicación: app/adapters/mic_vectors.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Adaptador vectorial e isomorfismo métrico entre espacios euclidianos de embeddings R^d
+         y la representación multivectorial de micro-instrucciones del álgebra MIC. Realiza la
+         inmersión isométrica, extracción de fases armónicas y preservación del producto interno.
 
-    C^k(K; C₂) = C^k(K; C) ⊗_R C₂ ≅ C^k(K; C) e₁ ⊕ C^k(K; C) e₂,
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Adaptador de Vectores MIC (MicVectorsAdapter) opera como el puente de traducción canónico
+entre las representaciones continuas del espacio latente y la estructura graduada de Clifford.
+Su cometido esencial es garantizar que la inyección de vectores densos no distorsione las relaciones
+de ortogonalidad ni disperse la norma cuadrática del percepto.
+Su respectivo motor ontológico microscópico es 'MicAlgebra' (app/core/mic_algebra.py), mientras que su
+respectivo de nivel macroscópico es 'MacVectorsAdapter' (app/wisdom/mac_vectors.py). Mientras
+MicAlgebra rige las operaciones bilineales de conmutación y producto de Grassmann,
+MicVectorsAdapter empaca tensores de percepción en multivectores con riguroso control de dispersión.
 
-donde C₂ = C ⊗_R C es el álgebra conmutativa de números bicomplejos, con
-unidad hiperbólica j² = +1, y base idempotente
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Inmersión Isométrica en Álgebra de Clifford:
+   Sea V = R^d un espacio euclidiano con producto escalar estandar <u, v> = sum_i u_i v_i.
+   Se define el monomorfismo de inmersión Phi: R^d -> Cl(V):
+       Phi(v) = sum_{i=1}^d v_i * e_i in <Cl(V)>_1
+   donde {e_i} es la base ortonormal canónica. Para todo par u, v in R^d:
+       <Phi(u), Phi(v)>_Cl = (1 / 2) * (Phi(u) * Phi(v) + Phi(v) * Phi(u)) = <u, v>_Euclid * 1
 
-    e₁ = (1 + j)/2,   e₂ = (1 - j)/2,
-    e₁² = e₁, e₂² = e₂, e₁e₂ = 0, e₁ + e₂ = 1.
+2. Transformada Polar Hipercompleja y Fase de Clifford:
+   Para un multivector M = s + v + B con escalar s, vector v y bivector B:
+       M = ||M|| * exp(B / ||B|| * theta)
+   donde theta = arctan(||B|| / s) define el ángulo de rotación de fase mnemónica.
 
-C₂ **no** es un dominio de integridad: posee divisores de cero exactamente
-en los elementos Z tales que Z⁽¹⁾ = 0 xor Z⁽²⁾ = 0. Esta propiedad se explota
-para diagonalizar todo operador C₂-lineal en dos operadores C-lineales
-independientes, uno por canal idempotente — el principio estructural que
-gobierna las tres fases de este módulo.
+3. Reducción y Proyección de Rango:
+   Para señales de dimensión superior d > dim(Cl), se aplica el operador de condensación
+   armónica mediante coeficientes de Fourier discretos en la base de Chebyshev:
+       c_k = (2 / d) * sum_{j=0}^{d-1} v_j * cos(k * pi * (j + 0.5) / d)
 
-El módulo queda organizado en TRES FASES ANIDADAS:
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MVA1 (Isometría Lineal Estricta):
+    ||Phi(v)||_Cl == ||v||_2 para todo vector v in R^d inmerso en grado 1.
+Axioma MVA2 (Preservación del Ángulo de Similitud):
+    cos(theta_{u, v}) = <u, v> / (||u|| * ||v||) == <Phi(u), Phi(v)>_Cl / (||Phi(u)|| * ||Phi(v)||).
+Axioma MVA3 (Inyectividad en Soporte Activo):
+    Phi(v) = 0 sii v = 0.
 
-    FASE 1 — PROYECCIÓN BICOMPLEJA Y SANEAMIENTO DIMENSIONAL (Observe)
-        Núcleo algebraico C₂ con operaciones certificables, ingesta 4D,
-        mapeo Z = z₁ + z₂ j, proyección idempotente, saneamiento FPU de
-        ceros signados, certificación bilateral de Banach y sellado/
-        verificación criptográfica HMAC-SHA256.
-
-    FASE 2 — ANÁLISIS HOMOLÓGICO Y ESPECTRAL BICOMPLEJO (Orient)
-        Auditoría Mayer-Vietoris dual, Laplaciano de Hodge discreto
-        bicomplejo con saneamiento espectral PSD, certificación de
-        nilpotencia del coborde, certificación de la descomposición de
-        Hodge-Kodaira, conectividad de Fiedler dual, suma compensada KBN
-        y síntesis de un índice de defecto topológico por canal.
-
-    FASE 3 — SÍNTESIS DE COHERENCIA, HEYTING Y CENSURA CIBER-FÍSICA (Decide/Act)
-        Retículo de Heyting B₂ completo (conjunción, disyunción,
-        implicación, pseudo-complemento), índice de coherencia bicomplejo
-        C_{C₂} penalizado por defectos topológicos heredados de Fase 2,
-        veto dual, verificación explícita de invariantes, emisión de
-        certificados y adaptación a VectorResult.
-
-CONTINUIDAD DE FASES
-────────────────────
-La última definición formal de la FASE 1, `phase1_export_to_phase2`, constituye
-la frontera categórica exacta cuya imagen es el dominio canónico de la FASE 2.
-Análogamente, la última definición formal de la FASE 2, `phase2_export_to_phase3`,
-es la frontera cuya imagen (`Phase3Input`) es el dominio canónico de la FASE 3,
-y es **efectivamente consumida** por `vector_compute_bicomplex_coherence_index`
-(a diferencia de versiones previas, donde esta frontera era observacionalmente
-inerte).
-
-INVARIANTES PRESERVADOS Y CERTIFICADOS
-───────────────────────────────────────
-[I1] Nilpotencia del coborde:
-        d_{k+1} ∘ d_k = 0.                          → `verify_coboundary_nilpotency`
-[I2] Exactitud Mayer-Vietoris dual:
-        Δβ₁⁽¹⁾ = 0 ∧ Δβ₁⁽²⁾ = 0.                    → `vector_audit_bicomplex_mayer_vietoris`
-[I3] Hodge-Kodaira discreto:
-        C^k = im(d_{k-1}) ⊕ im(d_k^T) ⊕ ker(L_k).   → `verify_hodge_kodaira_decomposition`
-[I4] Coherencia continua por canal:
-        C⁽ᵃ⁾ = clamp(S⁽ᵃ⁾ R⁽ᵃ⁾ / (1 + H⁽ᵃ⁾), 0, 1).  → `verify_coherence_formula_invariant`
-[I5] Censura de Heyting bicompleja:
-        Verdict_global = v₁ ∧ v₂ = min(v₁, v₂).      → `verify_heyting_censorship_invariant`
-[I6] Diagonalización multiplicativa idempotente:
-        (Z · W)⁽ᵃ⁾ = Z⁽ᵃ⁾ · W⁽ᵃ⁾,  a ∈ {1, 2}.       → `BicomplexScalar.__mul__`
-[I7] Sanidad espectral PSD:
-        λ_i(L_k) ∈ (-ε, 0) ⇒ λ_i(L_k) ← 0.           → `_clip_psd_spectrum`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Conservación de Norma en Inmersión):
+    | ||Phi(v)||^2 - ||v||_2^2 | <= 1e-7.
+Invariante 2 (Preservación de Ortogonalidad):
+    Si <u, v> == 0, entonces Phi(u) * Phi(v) + Phi(v) * Phi(u) == 0.
+====================================================================================================
 """
 
 from __future__ import annotations

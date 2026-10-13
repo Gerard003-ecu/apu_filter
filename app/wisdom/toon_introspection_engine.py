@@ -1,106 +1,79 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/wisdom/toon_introspection_engine.py                                   ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO INTROSPECTIVO               ║
-║ FUNCIÓN  : MOTOR ESPECTRAL INTROSPECTIVO — POINCARÉ-BIRKHOFF-OSELEDETS-KAM-MELNIKOV  ║
-║ VERSIÓN  : 9.1.0-Doctoral-Poincaré-Celeste-Hamiltonian-NestedThreePhase              ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
-ARQUITECTURA DE FASES ANIDADAS (categorías encajadas)
-─────────────────────────────────────────────────────
-Funtor F = F₃ ∘ F₂ ∘ F₁ sobre la categoría 𝐂𝐨𝐧𝐜𝐫𝐞𝐭𝐞 de prehaces sobre Ω₃:
-    F₁ : 𝔇_n × ℂⁿ           → IntrospectiveField     (sustrato proyectivo-métrico)
-    F₂ : IntrospectiveField  → IntrospectionBundle     (dinámica de punto fijo)
-    F₃ : Bundle × Ω₃         → IntrospectionFieldState (adjudicación ⊗ auto-org)
-Anidamiento estricto (igualdad de morfismos, no analogía):
-    continue_into_phase2 ∘ prepare               = synthesize ∘ prepare
-    continue_into_phase3 ∘ synthesize ∘ prepare  = adjudicate ∘ synthesize ∘ prepare
-MECÁNICA CELESTE DE POINCARÉ — NÚCLEO FORMAL (v9.1)
-────────────────────────────────────────────────────
-Distinción ontológica (imprescindible):
-    (G) Flujo gradiente   X_G = (I − vv†)ρv     — disipativo, Lyapunov = −R.
-    (H) Flujo hamiltoniano X_H = i X_G            — conservativo, Liouville, Poincaré.
-    (T) Mapa proyectivo    T([v]) = [ρv]          — iteración de potencia, no simplectomorfismo.
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-1. Hamiltoniano integrable de Rayleigh sobre ℂP^{n−1}:
-       H(I) = Σ_{k=1}^n λ_k I_k ,   I_k = |⟨φ_k|v⟩|² ,  Σ I_k = 1.
-   Frecuencias de Poincaré: ω_k = ∂H/∂I_k = λ_k  (sistema ISÓCRONO).
-   Hessiano ∂²H/∂I² = 0 ⇒ twist nulo (oscilador armónico / Kepler degenerado).
-   Función generatriz de tipo 2:  S(θ, I; t) = Σ θ_k I_k + t H(I).
+Nombre: ToonIntrospectionEngine
+Ubicación: app/wisdom/toon_introspection_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano de auto-reflexión metacognitiva basado en endofuntores monádicos
+         (T, eta, mu) en categorías de estados mentales, estabilidad asintótica de Lyapunov
+         y análisis de radio espectral en álgebras de Banach.
 
-2. Forma de Fubini–Study (simplectica, Kähler):
-       ω_FS(ξ, η) = 2 Im ⟨ξ_h | η_h⟩ ,  ξ_h = (I − vv†)ξ.
-   Invariante integral relativo de Poincaré–Cartan:  ∮_γ λ_FS ,  dλ_FS = ω_FS.
-   El flujo (H) preserva ω_FS (Liouville).  El mapa (T) NO: contrae hacia [φ₁].
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Introspección (ToonIntrospectionEngine) es el núcleo computacional de auto-examen
+interno del sistema. Realiza la evaluación endógena del grafo de inferencias, calculando el grado
+de divergencia entre las expectativas a priori y los estados a posteriori.
+Su respectivo agente en el plano directivo es 'ToonIntrospectionAgent' (app/agents/wisdom/
+toon_introspection_agent.py). Mientras el Engine computa la convergencia espectral rho(A) < 1,
+el funcional cuadrático de Lyapunov V(x) = x^T P x y las ecuaciones monádicas de coherencia
+mu circ T(mu) = mu circ mu_T, su respectivo Agente ejecuta la política correctiva y actualización
+de pesos sinápticos o heurísticos en el grafo de razonamiento.
 
-3. Sección de Poincaré.
-   (G) Σ_c = {R = c} es transversal a X_G ⇔ c ∉ spec(ρ), pues ⟨∇R, X_G⟩ = 2‖X_G‖².
-   (H) {R = c} es INVARIANTE bajo X_H.  La sección auténtica es
-           Σ_{c,q} = {R = c} ∩ {Im⟨q|v⟩ = 0} ⊂ {R = c},
-       de dimensión real 2n−4, y el mapa de primer retorno P : Σ_{c,q} → Σ_{c,q}
-       es un simplectomorfismo.  En un 2-plano span{φ_i, φ_j} el periodo es
-           τ_{ij} = 2π / |λ_i − λ_j|.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Endofuntor Monádico en Categoría de Estados Mentales (Mind):
+   Sea C una categoría cartesiana cerrada con objetos A, B (estados cognitivos) y morfismos f: A -> B.
+   Una tríada monádica T = (T, eta, mu) sobre C comprende:
+       T: C -> C (endofuntor reflexivo)
+       eta_A: A -> T(A) (transformación natural de unidad / auto-observación primaria)
+       mu_A: T^2(A) -> T(A) (transformación natural de multiplicación / condensación metacognitiva)
+   Satisfaciendo los axiomas de coherencia de Mac Lane:
+       mu circ T(mu) = mu circ mu_T   (asociatividad categórica)
+       mu circ T(eta) = mu circ eta_T = id_T  (unitaridad categórica)
 
-4. Teorema de Poincaré–Hopf:  χ(ℂP^{n−1}) = n.
-   Índice de Morse de R en [φ_k] (λ₁ ≥ ⋯ ≥ λ_n estrictos) = 2(n − k).
-   Índice de Hopf del gradiente = (−1)^{Morse} = +1 (índices pares).
-   Σ índices = n = χ.  Degeneración ⇒ Morse–Bott (eje degenerado).
+2. Teoría Espectral de Operadores en Álgebra de Banach B(X):
+   Sea A in B(X) el operador lineal continuo que modela la transición de errores reflexivos:
+       x_{t+1} = A * x_t + xi_t
+   El espectro sigma(A) = {lambda in C | (A - lambda * I) no es invertible} define el radio espectral:
+       rho(A) = lim_{k -> infty} ||A^k||^{1/k} = sup_{lambda in sigma(A)} |lambda|
+   La condición de convergencia asintótica y no-divergencia introspectiva exige rigurosamente:
+       rho(A) < 1
 
-5. Recurrencia de Poincaré (1890) + lema de Kac:
-   (H) preserva la medida de Haar FS en variedad compacta ⇒ recurrencia plena.
-   Tiempo medio de retorno a A:  1/μ(A).
-   (T) no preserva Haar: la recurrencia falla salvo en Fix(T).
+3. Estabilidad en el Sentido de Lyapunov:
+   Para el sistema dinámico de error metacognitivo, se define el funcional cuadrático:
+       V(x) = x^T * P * x,   con P = P^T > 0 (definida positiva)
+   Su derivada o diferencia temporal satisface:
+       Delta V(x) = x^T * (A^T * P * A - P) * x = - x^T * Q * x < 0,  con Q = Q^T > 0
+   garantizando estabilidad exponencial global en el punto de equilibrio x* = 0.
 
-6. Último teorema geométrico de Poincaré (1912) / Birkhoff (1913):
-   Un homeomorfismo que preserva área del anillo con twist ∂(θ')/∂r ≠ 0
-   tiene ≥ 2 puntos fijos.  Aquí:
-       — (H) es isócrono ⇒ twist = 0 ⇒ Birkhoff N/A (rotación rígida).
-       — (T) restringido al intervalo radial r ∈ [0,1] del 2-plano
-         f(r) = α r / (α r + β(1−r)), α = λ_i², β = λ_j²,
-         tiene exactamente 2 FP (los eigenrayos), f monótona.
-       Certificamos ambos hechos por separado.
+4. Retículo Booleano y Coherencia de Juicios:
+   El espacio de asertos introspectivos forma un álgebra booleana (B, wedge, vee, neg, 0, 1).
+   La consistencia epistemológica impone que el conjunto de juicios revisados pertenezca al filtro
+   propio F subset B tal que 0 notin F.
 
-7. Oseledets proyectivo de (T):  λ_i^{Lyap} = log(λ_i(ρ)/λ₁(ρ)) ≤ 0.
-   h_KS = 0 si λ₁ simple.  Degeneración λ₁ = λ₂ ⇒ λ_max = 0 y un ℂP¹ de FP.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma I1 (Idempotencia de Condensación Monádica):
+    Para todo estado observado Psi in Mind, mu(eta(Psi)) = Psi (la introspección no altera el estado basal).
+Axioma I2 (Contracción Espectral de Lyapunov):
+    Existe P > 0 y Q > 0 tales que A^T * P * A - P = -Q, asegurando rho(A) < 1.
+Axioma I3 (No Contradicción en el Retículo Booleano de Creencias):
+    Para toda proposición metacognitiva p, (p wedge neg p) == 0.
 
-8. Melnikov proyectivo (Poincaré–Melnikov):
-   H = H₀ + ε H₁,  γ heteroclínica de X_G(H₀) entre [φ₂] y [φ₁]:
-       M(ϑ) = ∫_{−∞}^{∞} ω_FS(X_{H₀}, X_{H₁})(γ_ϑ(t)) dt.
-   Cero simple ⇒ W^s ∩ W^u transversal.  H₀ integrable ⇒ M ≡ 0 sin perturbación.
-
-9. KAM diofántico sobre el toro de acciones: |ω · k| ≥ γ / |k|^τ.
-   Persistencia no trivial sólo bajo perturbación no integrable de H
-   (un único ρ hermítico es siempre integrable).  Certificamos el módulo
-   de resonancia y la condición diofántica del vector ω = λ.
-
-10. Monodromía / Floquet a lo largo de órbitas periódicas de (H):
-    multiplicadores μ = exp(± i (λ_k − λ_*) τ) ∈ U(1)  (Krein-neutros).
-
-11. Lévy sobre ℂP^{n−1}: Ric = 2(n+1) g_{FS},
-        P(|f − 𝔼f| ≥ ε) ≤ exp(−(n+1)ε² / (2π² L²)).
-
-12. Grafo de resonancia espectral (teoría de grafos + mecánica celeste):
-    vértices = eigenrayos, arista ij ⇔ |λ_i − λ_j| < δ o relación entera
-    k · λ = 0.  La tela de resonancias es el “web” de Arnold.
-
-POSTULADOS OPERATIVOS
-─────────────────────
-P1. Iteración de potencia gauge-fijada; parada d_FS ∧ ‖T_φ − v‖.
-P2. d_FS = arccos(|⟨u|v⟩|); residuo gauge-fijado = 2 sin(θ/2).
-P3. ρ(DT|_{v₁}) = λ₂/λ₁ (Floquet); tasa empírica en ventana sana.
-P4. Ω₃ por meets adimensionales; no conteo.
-P5. Φ_η CPTP, Lip₁ = |1−η|.
-P6. Cadena Merkle F1 → F2 → F3.
-P7. (H) y (T) nunca se confunden: simplectomorfismo ≠ contracción.
-P8. Twist nulo se declara nulo; no se fabrica caos hamiltoniano de un ρ hermítico.
-
-TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
-──────────────────────────────────────
-- Certificación de punto fijo con respaldo topológico (Brouwer + Poincaré–Hopf).
-- Veto automático si λ_max ≥ 0 (degeneración), Melnikov homoclínico o KAM colapsa.
-- Tasa empírica vs teórica λ₂/λ₁ valida la convergencia geométrica.
-- Auto-organización Φ_η modulada por h_KS (evita colapso prematuro).
-- Recurrencia / no-recurrencia distinguen el sector conservativo del disipativo.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Disipación Monótona de la Energía de Lyapunov):
+    V(x_{t+1}) <= (1 - alpha_L) * V(x_t), con alpha_L = lambda_min(Q) / lambda_max(P) > 0.
+Invariante 2 (Acotación del Radio Espectral):
+    rho(A_introspection) <= 1.0 - delta_margin, con delta_margin = 0.05.
+====================================================================================================
 """
 from __future__ import annotations
 

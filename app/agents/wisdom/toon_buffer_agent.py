@@ -1,56 +1,64 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Buffer Agent v5 — Soberano de Calibre Anidado Poincaré       ║
-║ Ubicación: app/agents/wisdom/toon_buffer_agent.py                            ║
-║ Versión  : 5.0.0-Poincare-Hopf-Chern-Greene-Chirikov-Moser-Lindstedt-Topos   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-Soberano de calibre del Campo Tensorial Transitorio sobre el fibrado
-simpléctico principal
+Nombre: ToonBufferAgent
+Ubicación: app/agents/wisdom/toon_buffer_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de amortiguamiento y adaptación de impedancias complejas que regula el
+         tráfico de perceptos, previene la saturación mnemónica y optimiza el factor de potencia cognitivo.
 
-        P(T*Q, G),   G = U(1)_fase ⊗ SU(2)_orbital ⊗ H₃(ℝ)_Heisenberg.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Búfer (ToonBufferAgent) es el gestor operativo de flujo e ingestión sensorial
+de APU Filter. Su misión es garantizar que las señales entrantes se acoplen suavemente a la
+arquitectura sin provocar reflejos de onda, pérdida de coherencia de fase o saturación de cola
+en el búfer cuaterniónico.
+Su respectivo motor matemático es 'ToonBufferEngine' (app/wisdom/toon_buffer_engine.py). Mientras el
+Engine calcula analíticamente la impedancia Z(s), la admitancia Y(s) y el decaimiento exponencial
+en el espacio de Banach, este Agente modula el caudal de entrada lambda_in, monitorea la longitud
+de la cola según la ley de Little y adapta la impedancia cognitiva para máxima transferencia de potencia.
 
-Gobierna el ciclo Hamiltoniano H = H₀(Kepler) + ε H₁(riesgo) anidando los
-invariantes de Henri Poincaré (*Méthodes Nouvelles*, 1892–1899) y su
-descendencia KAM/Moser/Greene/Oseledets/Sheaf, ahora acoplados al motor v5:
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Teorema de Máxima Transferencia de Potencia e Impedancias Conjugadas:
+   Para que un canal de entrada con impedancia interna Z_S = R_S + j * X_S transfiera la máxima
+   energía informacional al búfer con impedancia de carga Z_L = R_L + j * X_L sin reflexión:
+       Z_L = Z_S^*  <=>  R_L = R_S   y   X_L = - X_S
+   El coeficiente de reflexión de onda Gamma satisface:
+       Gamma = (Z_L - Z_S) / (Z_L + Z_S),   |Gamma| -> 0
 
-DEFINICIONES Y AXIOMAS MATEMÁTICOS INTEGRADOS:
+2. Teoría de Colas M/M/1/K y Ley de Little:
+   El número medio de elementos en el búfer L y el tiempo medio de permanencia W satisfacen:
+       L = lambda_eff * W,   con lambda_eff = lambda * (1 - P_K)
+   donde P_K es la probabilidad de bloqueo en el búfer de capacidad finita K.
 
-1. Fibrado Principal P → T*Q y Funtor Semántico Φ_sem:
-   El funtor semántico Φ_sem : Sh(∂K, Ω₃) ≃ Business proyecta biyectivamente
-   los invariantes celestes a indicadores ejecutivos ("Dolor y Dinero"):
-       • 1-forma Poincaré-Cartan θ_PC  ⟶ Preservación de inercia monetaria (cero pérdidas).
-       • Capacidad simpléctica c_G ≤ 12.5 ⟶ Condensador de ingesta SECOP II (-80% costo API).
-       • Cohomología H¹(F_web) = 0     ⟶ Red sin triangulación fraudulenta.
-       • Exponente Oseledets λ_max ≤ 0.05 ⟶ Estabilidad de toros KAM en obra (-11.5% contingencia).
-       • ESP32 Crowbar < 400 ns        ⟶ Protección inalienable de la tasa WACC.
+3. Factor de Potencia Cognitivo cos(phi):
+   El ángulo de desfase phi = arctan(X / R) determina la eficiencia de ingestión:
+       cos(phi) = R / sqrt(R^2 + X^2) >= cos(phi_min) = 0.90
 
-2. Haz Celular (Cellular Sheaf F_web) y Cohomología H¹(F_web):
-   Elevación de la red de pequeños divisores a un haz celular F_web sobre el grafo
-   de resonancias. A cada nodo v se asigna T*Q|_v y a cada arista e=(u,v) el operador
-   coborde d⁰: C⁰(F_web) -> C¹(F_web).
-   La primera cohomología H¹(F_web) = ker d¹ / im d⁰ mide obstrucciones topológicas
-   globales (triangulación de precios entre APUs en SECOP II) si dim H¹(F_web) > 0.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma BA1 (Adaptación de Impedancia Libre de Reflexión):
+    |Gamma_reflection| <= Gamma_max = 0.10.
+Axioma BA2 (Conservación de Información en Flujo Estacionario):
+    lambda_in = mu_out + dN_buffer / dt.
+Axioma BA3 (Estabilidad de Cola de Banach):
+    ||Psi_buffer(t)||_B <= M_capacity < infty para todo t >= 0.
 
-3. Automejora Recursiva Nivel 3 (Multiplicación Monádica μ_buffer):
-   Integración no estacionaria de la tasa adaptativa η^{(t+1)} = μ_buffer(η^{(t)})
-   vía distancia de Fubini-Study d_FS sobre ℂP^{n-1} y entropía de Kolmogorov-Sinai h_KS.
-
-ARQUITECTURA EN 3 FASES ANIDADAS POR HERENCIA
-(el último método de la fase k es el germen formal del primero de la k+1):
-
-    FASE I  : SovereignGaugeTopology
-              fibrado, curvatura, Hopf/Chern, Poisson, semilla canónica
-              → forge_gauge_contract()              ⟶ germen de FASE II
-
-    FASE II : TOONBufferAgent(SovereignGaugeTopology)
-              vínculo de calibre, ingesta, Lindblad, Σ_ℓ, red de resonancias y haz celular H¹
-              → conduct_hamiltonian_campaign()      ⟶ germen de FASE III
-
-    FASE III: SovereignAuditAssimilator(TOONBufferAgent)
-              KAM/Greene/Chirikov/Melnikov/Birkhoff + CPTP RSI-3 + dossier ejecutivo Φ_sem
-              → emit_full_executive_dossier()
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Factor de Potencia Aceptable):
+    cos(phi) >= 0.90.
+Invariante 2 (Preservación de Tiempos de Coherencia):
+    tau_retention < tau_decoherence_limit.
+====================================================================================================
 """
 
 from __future__ import annotations

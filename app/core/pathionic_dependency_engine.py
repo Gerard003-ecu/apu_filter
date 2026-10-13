@@ -1,102 +1,71 @@
-
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : PATHIONIC DEPENDENCY ENGINE (MOTOR DE CALIBRE PATIONIÓNICO 32D)     ║
-║ RUTA   : app/core/pathionic_dependency_engine.py                             ║
-║ NIVEL  : Doctorado en Ciencias Matemáticas, Física Teórica y Computación     ║
-║ VERSIÓN: 3.0.0-Doctoral-32D-DeRham-Stasheff-Hodge-Exergy-Axiomatic-Nested3   ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ TRATADO DE FUNDAMENTACIÓN MATEMÁTICA, FÍSICA Y TOPOLÓGICA:                   ║
-║                                                                              ║
-║ 1. ÁLGEBRA DE CAYLEY-DICKSON 32-DIMENSIONAL (PATHIONES \mathbb{P}):          ║
-║    La torre hipercompleja de Cayley-Dickson procede como:                    ║
-║      \mathbb{R} (1D) \to \mathbb{C} (2D) \to \mathbb{H} (4D) \to             ║
-║      \mathbb{O} (8D) \to \mathbb{S} (16D) \to \mathbb{P} (32D).              ║
-║    Sea \mathbb{P} \cong \mathbb{S} \times \mathbb{S}. El producto CD-2:      ║
-║      (a, b)(c, d) = (a c - \overline{d} b,\ d a + b \overline{c}),           ║
-║    con la involución anti-automórfica (conjugación CD-3):                    ║
-║      \overline{(a, b)} = (\overline{a}, -b), \quad \overline{xy} =           ║
-║      \overline{y}\,\overline{x}.                                             ║
-║    Por el Teorema de Hurwitz (1898), solo \mathbb{R},\mathbb{C},\mathbb{H},  ║
-║    \mathbb{O} son álgebras de división normadas. En \mathbb{P} (32D):        ║
-║      - Falla la conmutatividad (heredada desde \mathbb{H}).                  ║
-║      - Falla la asociatividad (heredada desde \mathbb{O}).                   ║
-║      - Falla la alternatividad y las identidades de Moufang (Zorn 1930,      ║
-║        Moufang 1935): [x,x,y] \neq 0, (xy)(zx) \neq x((yz)x)                 ║
-║        (heredada desde \mathbb{S}, dim \ge 16).                              ║
-║      - Preserva la flexibilidad: [x, y, x] = (xy)x - x(yx) \equiv 0          ║
-║        (identidad UNIVERSAL probada por Albert en 1942 para TODA álgebra     ║
-║        de Cayley-Dickson, independientemente de la dimensión). Su violación  ║
-║        numérica grosera es, por tanto, un CERTIFICADO DE BUG, no de ruido.   ║
-║      - Presenta un esquema proyectivo denso de divisores de cero BILÁTEROS   ║
-║        \mathcal{N}_L(\mathbb{P}) = \{x : \exists y \neq 0,\ xy = 0\},        ║
-║        \mathcal{N}_R(\mathbb{P}) = \{x : \exists y \neq 0,\ yx = 0\},        ║
-║        generalmente distintos por la no conmutatividad.                      ║
-║                                                                              ║
-║ 2. FÍSICA DE CIRCUITOS Y TEORÍA DE CUERDAS (CAMPO DE CALIBRE NO-ASOCIATIVO): ║
-║    En teoría de cuerdas abiertas sobre D-branas con flujo no nulo de campo B ║
-║    (Kalb-Ramond 2-forma), la intensidad H = dB actúa como curvatura          ║
-║    asociativa en el espacio de coordenadas: [x^i, x^j, x^k] \sim H^{ijk}.    ║
-║    Modelamos la Malla Agéntica de 5 vías como un 4-símplex \Delta_4.         ║
-║    Las obstrucciones de coherencia de Mac Lane en el operando pentagonal     ║
-║    de Stasheff K_4 corresponden a caídas de tensión por holonomía no         ║
-║    trivial. La incursión en el cono nulo \mathcal{N}(\mathbb{P}) se traduce  ║
-║    físicamente en una resonancia de impedancia nula (cortocircuito           ║
-║    topológico interno), disipando exergía sin transferencia de trabajo útil. ║
-║    El defecto de isometría del operador L_p (o R_p) normalizado —            ║
-║    \sigma_{\max}(L_{\hat p}) - 1 — mide cuánto se aparta el "circuito"       ║
-║    algebraico de un acoplamiento sin pérdidas (unitario).                    ║
-║                                                                              ║
-║ 3. TOPOLOGÍA SIMPLICIAL, OPERADA DE STASHEFF Y TEORÍA ESPECTRAL DE HODGE:    ║
-║    - El 4-símplex posee 5 vértices, 10 aristas, 10 caras 2D y 5 tetraedros.  ║
-║    - El volumen 4D exacto se obtiene mediante el determinante de Gram de     ║
-║      los 4 vectores arista respecto al baricentro, utilizando descomposición ║
-║      SVD robusta: V_4 = \frac{1}{4!} \prod_{k=1}^4 \sigma_k(E).              ║
-║    - La 1-esqueleto es el grafo completo K_5. Su laplaciano combinatorio     ║
-║      L = D - W gobierna la conectividad algebraica (autovalor de Fiedler     ║
-║      \lambda_2) y la resistencia efectiva global (Índice de Kirchhoff R_K).  ║
-║    - La disipación exergética de Dirichlet es \mathcal{E}_D = \mathrm{Tr}(P^T L P).║
-║    - El pentágono de Stasheff K_4 audita las 5 formas de parentizar 4        ║
-║      factores: diam(K_4) = \max_{1 \le i < j \le 5} \|v_i - v_j\|_2.         ║
-║                                                                              ║
-║ 4. METROLOGÍA DE PRECISIÓN FPU Y SUMACIÓN EXACTA DE SHEWCHUK:                ║
-║    - Se reemplaza la sumación compensada de Neumaier (cota O(n\varepsilon))  ║
-║      por el algoritmo de destilación de Shewchuk (1997) — implementado en    ║
-║      `math.fsum` — que garantiza un resultado correctamente redondeado       ║
-║      (error \le 1 ulp) independiente del condicionamiento o del orden de     ║
-║      los sumandos. Se conserva el nombre `KBNSummationKernel` por            ║
-║      estabilidad de interfaz, documentando la mejora del núcleo interno.     ║
-║    - Norma euclídea de doble paso con pre-escalado por \max_i |x_i| para     ║
-║      inmunizar la FPU frente a subdesbordamientos y sobredesbordamientos.    ║
-║    - Producto de Gram compensado (`pairwise_gram`) para evitar cancelación   ║
-║      catastrófica en productos internos densos de baja dimensión (n=5).      ║
-║                                                                              ║
-║ 5. AXIOMÁTICA AUTO-VERIFICABLE Y CACHÉ ESPECTRAL INTERFÁSICA (v3.0.0):       ║
-║    - Fase 1 calcula y CONGELA en cada `PathionicState` el espectro singular  ║
-║      extremal de los operadores L_{\hat p}, R_{\hat p} (representación       ║
-║      regular izquierda/derecha normalizada). Por bilinealidad,               ║
-║      \sigma(L_p) = \|p\| \cdot \sigma(L_{\hat p}), evitando que la Fase 3    ║
-║      recompute SVDs ya resueltas — coherencia funtorial estricta OODA.       ║
-║    - Fase 2 audita las tres identidades de Moufang (certificado espectral    ║
-║      exacto de ruptura de alternatividad) y ENFUERZA la identidad universal  ║
-║      de flexibilidad de Albert, escalando `PathionicAxiomViolationError`     ║
-║      ante violaciones catastróficas no atribuibles a redondeo IEEE-754.      ║
-║    - Fase 3 realiza el análisis BILÁTERO del cono nulo (L_p y R_p) leyendo   ║
-║      la caché de la Fase 1, y sella el certificado con *framing* de longitud ║
-║      (Merkle-Damgård canónico) para eliminar ambigüedades de concatenación.  ║
-║                                                                              ║
-║ 6. ARQUITECTURA DE TRES FASES ANIDADAS FUNCTORIALES (OODA EN FPU):           ║
-║    Phase1_PathionicMetricObserver (Observe + Orient):                        ║
-║      Morfismo terminal: observe_metrics \to PathionicMetricsReport.          ║
-║    Phase2_PentagonalAssociatorCalculator (Decide, hereda Phase1):            ║
-║      Morfismo de inicio: continue_from_metrics_report.                       ║
-║      Morfismo terminal: decide_from_metrics_report \to PathionicDecisionState.║
-║    Phase3_PathionicNullConeEvaluator (Act, hereda Phase2):                   ║
-║      Morfismo de inicio: continue_from_decision_state.                       ║
-║      Morfismo terminal: execute_pentagonal_audit \to PathionicEngineState.   ║
-║    Fachada Soberana: PathionicDependencyEngine = Phase3.                     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CORE
+====================================================================================================
+
+Nombre: PathionicDependencyEngine
+Ubicación: app/core/pathionic_dependency_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor de dependencias pathiónicas construido sobre álgebras de Cayley-Dickson de dimensión
+         32 (Pathiones P = CD(S)). Explota la estructura rica de divisores de cero (zero divisors)
+         para anular colisiones y cuellos de botella de dependencias mediante trayectorias
+         singulares no asociativas x * y = 0 con ||x||, ||y|| > 0.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Motor de Dependencias Pathiónicas (PathionicDependencyEngine) es la cúspide hipercompleja de
+resolución de grafos masivos en APU Filter. Mientras que en álgebras de división clásicas (R, C,
+H, O) el producto de dos elementos no nulos nunca puede ser cero, en el álgebra de pathiones de 32
+dimensiones emergen subespacios enteros de divisores de cero. Este motor utiliza esos divisores de
+cero como "sumideros de interferencia": proyecta dependencias bloqueantes mutuamente conflictivas
+en parejas que se anulan algebraicamente sin perturbar el resto del flujo cognitivo.
+Su respectivo motor de dimensión 8 es 'OctonionicDependencyResolver'
+(app/core/octonionic_dependency_resolver.py), y su respectivo planificador es
+'ChingonDependencyEngine' (app/core/chingon_dependency_engine.py). Mientras PathionicDependencyEngine
+calcula las proyecciones en el cono de divisores de cero Z(P), ChingonDependencyEngine ensambla la
+secuencia de despacho libre de ciclos.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Álgebra de Pathiones de Cayley-Dickson P = CD(S):
+   A partir del álgebra de sedeniones S (dimensión 16), el álgebra de pathiones P = S oplus S se
+   define como el espacio vectorial de dimensión 32 dotado del producto bilineal:
+       (a, b) * (c, d) = (a * c - bar{d} * b,  d * a + b * bar{c}),   para a, b, c, d in S
+   donde bar{.} es la conjugación heredada de sedeniones. P pierde la alternatividad y la flexibilidad.
+
+2. Variedad de Divisores de Cero Z(P):
+   El conjunto de divisores de cero Z(P) subset P x P está formado por pares no nulos:
+       Z(P) = { (x, y) in P x P | x != 0, y != 0,  x * y = 0 }
+   Moreno (1998) y de Marrais (2002) demostraron que los divisores de cero en CD(A) forman
+   subvariedades compactas asociadas a la fibración de Hopf y tríadas de Fano de orden superior.
+
+3. Anulación de Conflictos en Grafos de Dependencia:
+   Sea C_1, C_2 dos restricciones de dependencia mutuamente excluyentes en un hipergrafo.
+   Al codificarlas como vectores pathiónicos u, v in P tales que (u, v) in Z(P):
+       C_compuesto = u * v == 0
+   la interferencia colapsa a la identidad nula sin necesidad de podar ninguna de las directivas originales.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma PDE1 (Construcción Inductiva de Cayley-Dickson de Grado 5):
+    dim(P) = 2^5 = 32, con base canónica {e_0, ..., e_{31}}.
+Axioma PDE2 (Existencia No Vacía de Divisores de Cero):
+    Z(P) != emptyset (existencia rigurosa de parejas ortogonales de producto nulo).
+Axioma PDE3 (Preservación de la Traza Escalar Real):
+    Re(x * y) = Re(y * x) para todo x, y in P.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación de Subálgebras Asociativas Conexas):
+    Toda subálgebra monodependiente generada por un único elemento x in P es asociativa y conmutativa.
+Invariante 2 (Estabilidad de la Norma Cuadrática):
+    N(x) = sum_{k=0}^{31} x_k^2 >= 0.
+====================================================================================================
 """
 
 from __future__ import annotations

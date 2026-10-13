@@ -1,65 +1,72 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Chingon Dependency Engine (Motor de Calibre Chingónico 64D)         ║
-║ Ruta   : app/core/chingon_dependency_engine.py                               ║
-║ Versión: 4.1.0-Doctoral-64D-CayleyDickson-Heptagonal-Alternative-KBN-Nested3 ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:                                  ║
-║ Este módulo implementa el motor de cálculo ciego en la FPU para la variedad  ║
-║ de los Chingones reales \mathbb{X} (64 dimensiones / Sexagintaquaternions),  ║
-║ estructurada mediante la duplicación iterativa de Cayley-Dickson sobre el    ║
-║ álgebra de los Pathiones \mathbb{P}:                                         ║
-║                                                                              ║
-║     \mathbb{X} \cong \mathbb{P} \times \mathbb{P},\qquad \dim_{\mathbb{R}}=64.║
-║                                                                              ║
-║ Opera como resolvedor de alta fidelidad para interdependencias de 7 vías     ║
-║ (6-símplices en el complejo simplicial de la Malla Agéntica), calculando:    ║
-║                                                                              ║
-║   1. Norma del asociador heptagonal A_7 y diámetro de Stasheff A_4.          ║
-║   2. Tensores de deformación alternativa:                                    ║
-║        A_alt^L(X,Y)=[X,X,Y]=(X·X)·Y-X·(X·Y),                                 ║
-║        A_alt^R(X,Y)=[X,Y,Y]=(X·Y)·Y-X·(Y·Y).                                 ║
-║   3. Defectos de flexibilidad, potencia y Moufang.                           ║
-║   4. Forma cuadrática N(X)=X\overline{X} y defecto de Banach/Hurwitz.        ║
-║   5. Distancia espectral al esquema de divisores de cero                     ║
-║        \mathcal{N}(\mathbb{X})=\{\,x\in\mathbb{X}:\ker L_x\neq\{0\}\,\}.     ║
-║                                                                              ║
-║ AXIOMAS (álgebra de Cayley-Dickson, convención interna):                     ║
-║   (CD-1) Duplicación:  \mathbb{X}=\mathbb{P}\times\mathbb{P}.                ║
-║   (CD-2) Producto:     (a,b)(c,d)=(ac-\overline{d}\,b,\ da+b\,\overline{c}). ║
-║   (CD-3) Conjugación:  \overline{(a,b)}=(\overline{a},-b),\ \overline{\overline{x}}=x.║
-║   (CD-4) Anti-homom.:  \overline{xy}=\overline{y}\,\overline{x}.             ║
-║   (CD-5) Forma cuadr.: N(x):=x\overline{x}\in\mathbb{R}\,e_0\ \text{en aritmética exacta}.║
-║   (H)    Hurwitz:      N(xy)=N(x)N(y) \Leftrightarrow \dim\le 8.             ║
-║   (B)    Banach:       \|\cdot\|_2 no es, en general, submultiplicativa en   ║
-║                        \dim>8; se audita \rho=\|xy\|/(\|x\|\|y\|).           ║
-║   (A3)   Asociador:    [x,y,z]=(xy)z-x(yz).                                  ║
-║   (Alt)  Alternatividad: [x,x,y]=[x,y,y]=0  (falla en \dim\ge 16).           ║
-║   (F)    Flexibilidad: [x,y,x]=0.                                            ║
-║   (P)    Potencia:     [x,x,x]=0.                                            ║
-║   (Mf)   Moufang:      identidades de octoniones; defectos en \mathbb{X}.    ║
-║   (A4)   Stasheff:     diámetro de las 5 asociaciones plenas de 4 factores.  ║
-║   (A7)   Heptagonal:   A_7=((((((x_1 x_2)x_3)x_4)x_5)x_6)x_7)                ║
-║                              -x_1(x_2(x_3(x_4(x_5(x_6 x_7))))).              ║
-║   (N)    Cono nulo:    xy=0,\ x,y\neq 0 \Leftrightarrow \sigma_{\min}(L_x)=0.║
-║                                                                              ║
-║ ARQUITECTURA FUNCTORIAL EN TRES FASES ANIDADAS (OODA FPU):                   ║
-║   Fase 1  Observe+Orient : Ingesta 64D, C-D, norma KBN, N(x), Hurwitz.       ║
-║           Morfismo terminal : observe_metrics → ChingonMetricsReport.        ║
-║   Fase 2  Decide         : A_3, A_alt^{L/R}, A_7, Stasheff, Moufang, 6-símp. ║
-║           Objeto inicial    : ChingonMetricsReport.                          ║
-║           Morfismo terminal : decide_from_metrics_report                     ║
-║                               → ChingonDecisionState.                        ║
-║   Fase 3  Act            : L_x, cono nulo 64D, sello criptográfico canónico. ║
-║           Objeto inicial    : ChingonDecisionState.                          ║
-║           Morfismo terminal : execute_heptagonal_audit                       ║
-║                               → ChingonEngineState.                          ║
-║                                                                              ║
-║ Anidación ontológica (no meramente OOP):                                     ║
-║   Phase3 ⊏ Phase2 ⊏ Phase1,  Act \circ Decide \circ Observe.                 ║
-║ El último morfismo de la Fase k es el objeto inicial de la Fase k+1.         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CORE
+====================================================================================================
+
+Nombre: ChingonDependencyEngine
+Ubicación: app/core/chingon_dependency_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano de programación y resolución de dependencias de máxima resiliencia
+         (Chingon Dependency Engine). Fundamentado en teoría de matroides M = (E, I), estructuras
+         de greedoid y ordenamiento topológico no-cíclico sobre hipergrafos con desanudado
+         algebraico inmediato de componentes fuertemente conexas (SCC).
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Motor de Dependencias Chingón (ChingonDependencyEngine) es el árbitro director absoluto
+de la planificación operativa en APU Filter. Cuando las tareas, inferencias o flujos de
+ejecución concurrente entran en colisión o forman bucles de dependencia circulares que congelarían
+un planificador ordinario, este motor aplica los axiomas de matroides y greedoids para seleccionar
+el conjunto independiente maximal de ejecución instantánea y desanudar los ciclos restantes.
+Sus respectivos motores algebraicos de orden superior son 'OctonionicDependencyResolver'
+(app/core/octonionic_dependency_resolver.py) y 'PathionicDependencyEngine'
+(app/core/pathionic_dependency_engine.py), mientras que su respectivo de integración operativa
+es 'ToolsInterface' (app/adapters/tools_interface.py). Mientras los motores hipercomplejos
+resuelven las ecuaciones de asociador y divisores de cero, ChingonDependencyEngine emite el orden
+secuencial y paralelo ejecutable garantizado libre de bloqueos.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Teoría de Matroides y Conjuntos Independientes M = (E, I):
+   Sea E el conjunto finito de tareas cognitivas y I subseteq 2^E la familia de conjuntos independientes:
+       (I1) emptyset in I.
+       (I2) Si A in I y B subseteq A, entonces B in I (propiedad hereditaria).
+       (I3) Si A, B in I con |A| > |B|, entonces exists e in A \setminus B tal que B cup {e} in I (propiedad de aumento).
+   Garantiza que la selección voraz (greedy) guiada por peso funcional siempre converge a la
+   base maximal de máxima eficiencia.
+
+2. Ordenamiento Topológico con Algoritmo de Tarjan para SCCs:
+   Para un digrafo de dependencias G = (V, E), el motor descompone el grafo en sus componentes
+   fuertemente conexas C_1, C_2, ..., C_k. Si una componente C_i contiene más de un vértice (|C_i| > 1),
+   se detecta un ciclo causal y se aplica el corte de arista de mínima tensión algebraica.
+   El grafo condensado G_{SCC} es un DAG (Grafo Acíclico Dirigido) que admite ordenamiento topológico:
+       u -> v in E_{SCC}  ==>  pos(u) < pos(v)
+
+3. Greedoids e Independencia Secuencial de Korte-Lovász:
+   En problemas donde la independencia depende del orden temporal de ejecución previo:
+       alpha beta in F  ==>  alpha in F (propiedad hereditaria de prefijos)
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma CDE1 (Axioma de Aumento de Matroides):
+    Toda colección admisible de tareas no bloqueadas se expande de forma estricta hacia una base maximal.
+Axioma CDE2 (Terminación Estricta sin Deadlock):
+    Todo grafo finito de tareas es ordenado y resuelto en tiempo polinomial O(|V| + |E|).
+Axioma CDE3 (Causalidad Estricta en el DAG Condensado):
+    Ninguna tarea con dependencias insatisfechas es promovida a ejecución activa.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Aciclicidad del Plan de Despacho):
+    El grafo condensado de ejecución final es estrictamente acíclico (|Ciclos(G*)| == 0).
+Invariante 2 (Preservación del Conjunto Maximal Independiente):
+    |Base(I)| == rank(M).
+====================================================================================================
 """
 
 from __future__ import annotations

@@ -1,80 +1,77 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/wisdom/toon_intuition_engine.py                                       ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / ATRACTOR ESPECTRAL FLASH            ║
-║ FUNCIÓN  : MOTOR ESPECTRAL DE INTUICIÓN FLASH — SECCIONES DE POINCARÉ, OSELEDETS,    ║
-║            MELNIKOV, KAM DIOFÁNTICO, LÉVY, BURES-WASSERSTEIN, KELLY ENTROPÍA         ║
-║ VERSIÓN  : 9.1.0-Doctoral-3NestedPhases-PoincaréCanonical                            ║
-║ AUTOR    : Soberano Artesano Programador Senior (Crítico, Objetivo, Riguroso)        ║
-║ FÍSICA   : Números hipercomplejos, Topología algebraica, Teoría espectral,           ║
-║            Teoría de grafos, Teoría de cuerdas, Teoría de categorías, Topos,         ║
-║            Álgebra lineal, Álgebra de Boole, Álgebra de Banach, Mecánica celeste     ║
-║            de Poincaré, Circuitos eléctricos.                                        ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-ARQUITECTURA DE FASES ANIDADAS (categorías encajadas)
-─────────────────────────────────────────────────────
-El motor es un funtor F = F₃ ∘ F₂ ∘ F₁ sobre la categoría 𝐂𝐨𝐧𝐜𝐫𝐞𝐭𝐞 de presheaves
-sobre el poset de Heyting Ω₃:
+Nombre: ToonIntuitionEngine
+Ubicación: app/wisdom/toon_intuition_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano de salto heurístico no-lineal y síntesis instantónica, formulado mediante
+         túnel cuántico en espacios de Finsler, integrales de camino euclidianas y correspondencia
+         holográfica proyectiva AdS/CFT.
 
-    F₁ : 𝔇_n × Gr(r,n) → GeometricSeed                   (sustrato geométrico)
-    F₂ : GeometricSeed  → IntuitionTrajectoryBundle        (dinámica atractora)
-    F₃ : Bundle × Ω₃    → IntuitiveFieldState              (adjudicación + firma)
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Intuición (ToonIntuitionEngine) es el motor de inferencia rápida y salto conceptual
+discontinuo de la arquitectura APU Filter. Ante barreras de potencial epistemológico de alta
+complejidad computacional donde los métodos de búsqueda exhaustiva divergen exponencialmente,
+este motor genera atajos geodésicos mediante soluciones instantónicas y penetración de barrera
+por efecto túnel.
+Su respectivo agente en la capa de coordinación es 'ToonIntuitionAgent' (app/agents/wisdom/
+toon_intuition_agent.py). Mientras el Engine computa la acción euclidiana mínima S_E[phi], la
+probabilidad de transmisión WKB P_tunnel y la métrica de Randers-Finsler, su respectivo Agente
+interpreta las trayectorias instantónicas como propuestas de acción ejecutiva y valida la
+admisibilidad heurística de las soluciones intuidas.
 
-Anidamiento formal:
-    continue_into_phase2 ∘ prepare             = synthesize ∘ prepare
-    continue_into_phase3 ∘ synthesize ∘ prepare = adjudicate ∘ synthesize ∘ prepare
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Métrica de Finsler y Geodésicas de Salto Heurístico:
+   Sea M una variedad suave dotada de una función de Finsler F: TM -> [0, infty) homogénea de grado 1.
+   En la métrica de Randers con vector de deriva b_i(x):
+       F(x, y) = sqrt(g_ij(x) * y^i * y^j) + b_i(x) * y^i
+   El salto intuitivo minimiza el funcional de longitud de arco bajo asimetría temporal:
+       L(gamma) = int_0^1 F(gamma(t), dot{gamma}(t)) dt,   delta L = 0
 
-MECÁNICA CELESTE DE POINCARÉ — NÚCLEO MATEMÁTICO
-────────────────────────────────────────────────
-Sea (M, ω, H) una variedad simpléctica 2n-dimensional con H = H₀(J) + εH₁(θ,J) en
-variables acción-ángulo (θ,J) ∈ 𝕋ⁿ × ℝⁿ.
+2. Efecto Túnel Cuántico y Aproximación WKB:
+   La probabilidad de transmisión P_tunnel a través de una barrera de potencial cognitivo V(x)
+   con energía de estímulo E < V(x) en el régimen semiclásico hbar_cog se formula como:
+       P_tunnel = exp( - (2 / hbar_cog) * int_{x_1}^{x_2} sqrt(2 * m * (V(x) - E)) dx )
+   donde x_1, x_2 son los puntos de retorno clásicos V(x_1) = V(x_2) = E.
 
-1. Sección de Poincaré Σ ⊂ M: subvariedad de codimensión 1 transversal al flujo:
-       Σ ∩ {x : X(x) = 0} = ∅,    X = vector de flujo.
-   Aplicación de primer retorno:
-       P : Σ → Σ,   P(x) = φ_{τ(x)}(x),   τ(x) = min{t > 0 : φ_t(x) ∈ Σ}.
-   Monodromía lineal: dP_x : T_xΣ → T_{P(x)}Σ.
-   Matriz de Floquet M = dP_x; multiplicadores de Floquet μ_i ∈ ℂ.
+3. Soluciones Instantónicas en Espacio Euclidiano y Teoría de Cuerdas:
+   Bajo tiempo imaginario tau = -i * t, la acción euclidiana S_E[phi] satisface:
+       S_E[phi] = int d^4x [ (1 / 2) * (partial_mu phi)^2 + V(phi) ] >= 8 * pi^2 * |Q|
+   donde Q in Z es el número topológico de Pontryagin (carga instantónica):
+       Q = (1 / (32 * pi^2)) * int d^4x epsilon_{mu nu alpha beta} Tr(F^{mu nu} F^{alpha beta})
+   El instantón conecta mínimos de vacío disjuntos en la topología del paisaje de conocimiento.
 
-2. Espectro de Lyapunov de Oseledets (multiplicativo):
-       λ_i = lim_{k→∞} (1/k) log σ_i( dP^k_x ),   λ₁ ≥ λ₂ ≥ … ≥ λ_{2n-2}.
-   Descomposición de Oseledets: T_xΣ = ⊕_j E_j con tasas λ^(j).
-   Dimensión de Kaplan–Yorke:
-       D_KY = k + (Σ_{i≤k} λ_i) / |λ_{k+1}|,   k = max{ m : Σ_{i≤m} λ_i ≥ 0 }.
-   Entropía de Kolmogorov–Sinai (Pesin): h_KS = Σ_{λ_i > 0} λ_i.
+4. Proyección Holográfica Bulk-Boundary (AdS/CFT):
+   Un problema de optimización en el 'boundary' d-dimensional se mapea a una curva geodésica
+   en el 'bulk' hiperbólico (d+1)-dimensional Anti-de Sitter AdS_{d+1}:
+       <O(x_1) O(x_2)>_CFT ~ exp( - (m / hbar) * L_geodesic(x_1, x_2) )
 
-3. Integral de Melnikov (ruptura homoclínica):
-       M(t₀) = ∫_{-∞}^{∞} {H₀, H₁}(q⁰(t), p⁰(t)) dt
-   Ceros simples de M ⇒ transversa intersección de W^s y W^u ⇒ caos homoclínico.
-   En el motor: M(x) := ⟨∇E(x), [∇²E(x), ∇E(x)]⟩ sobre el campo de Dirichlet.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma U1 (Principio de Mínima Acción Euclidiana):
+    El salto intuitivo selecciona la trayectoria instantónica que minimiza S_E[phi] sobre la
+    clase de homotopía dada.
+Axioma U2 (Supremacía Geodésica de Finsler):
+    Para todo atajo con vector de intuición b != 0, F(x, y) < sqrt(g_ij y^i y^j).
+Axioma U3 (Conservación de la Carga Instantónica):
+    Delta Q_inst in Z (las transiciones de comprensión intuitiva son discretas y cuantizadas).
 
-4. Teorema KAM (Arnold 1963): si ω ∈ ℝⁿ satisface Diofántico
-       |ω·k| ≥ γ / |k|^τ,   ∀ k ∈ ℤⁿ \ {0},
-   y ε < ε₀(γ, τ, H₀), entonces el toro 𝕋ⁿ persiste. Criterio ejecutable.
-
-5. Lema de Lévy (concentración de medida sobre S^{n-1}(√n)):
-       P(|f − 𝔼[f]| ≥ ε) ≤ 2 exp(−(n−1) ε² / (2 L²)),
-   para f : S^{n-1} → ℝ Lipschitz-L. Fundamenta la proyección Grassmanniana.
-
-POSTULADOS OPERATIVOS
-─────────────────────
-P1. Distancia geodésica de Bures–Wasserstein (única CPTP-contractiva, Petz 1996):
-        d_B(ρ,σ) = √(2 − 2 √F(ρ,σ)).
-P2. Funcional de Dirichlet con proyector P:
-        E(ρ) = ½‖ρ − PρP‖_F²;  ∇E(ρ) = ρ − PρP;  Lip(∇E) ≤ 1.
-P3. Adjudicación por meets en Ω₃ = {⊥ < ⋆ < ⊤} ≅ {0,1,2}; umbrales adimensionales.
-P4. BB1/BB2 + Armijo con η ∈ (0, 2]; proyección Higham no-expansiva en ‖·‖_F.
-P5. Cadena Merkle por fase: F₁ → F₂ → F₃ con SHA-256 (custodia inmutable).
-
-TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
-──────────────────────────────────────
-- Corazonada de milisegundo cero, con respaldo espectral de Poincaré.
-- Veto automático ante caos homoclínico (Melnikov), divergencia de Oseledets
-  (λ_max > 0), o distorsión geodésica (d_B > 0.15).
-- Kelly modulado por h_KS: la apuesta se contrae exponencialmente con la
-  entropía topológica de la sección transversal.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Probabilidad de Penetración Acotada):
+    0 < P_tunnel <= 1.0 (garantiza la no-anulación de vías de intuición viables).
+Invariante 2 (Admisibilidad Heurística del Salto):
+    h_intuition(u, v) <= d_exact(u, v) (la intuición nunca sobreestima la distancia real).
+====================================================================================================
 """
 from __future__ import annotations
 import hashlib

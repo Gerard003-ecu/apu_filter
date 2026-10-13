@@ -1,54 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Novikov Navigator Agent (Soberano Navegante de Novikov)      ║
-║ Ubicación: app/agents/wisdom/toon_novikov_navigator_agent.py                 ║
-║ Versión  : 7.0.0-Poincaré-RSI3-Nested-Gauge-Hopf-Novikov-BruhatTits-Φsem     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-TEJIDO ANIDADO POR HERENCIA CATEGÓRICA EN TRES FASES:
+Nombre: ToonNovikovNavigatorAgent
+Ubicación: app/agents/wisdom/toon_novikov_navigator_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de navegación causal y estabilización temporal que orquesta la resolución
+         de árboles de decisión contrafactuales y la convergencia de historias de bucle cerrado.
 
-  ◈ FASE I   — NovikovGaugeTopology
-               Fibrado principal P(M, G), G = U(1) × SU(2) × H₃(ℝ)
-               • Conexión A anti-hermítica + curvatura F = dA + [A, D]
-               • 3-forma de Chern–Simons  CS₃ = (1/8π²) Tr(A·dA + ⅔ A³)
-               • Fibración de Hopf cuaterniónica  π(q) = q·i·q̄ ∈ S²
-               • Holonomía de Wilson  W(γ) = P exp(∮_γ A)
-               • Atlas celeste de Poincaré (retorno, twist, Lindstedt, Nekhoroshev, Kac)
-               • Contrato HMAC-SHA256 canónico (payload único I ↔ II)
-               • COSTURA: weave_gauge_to_navigation  →  GaugeToNavigationSeam
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Navegador Novikov (ToonNovikovNavigatorAgent) es el estratega proactivo que guía
+la exploración de alternativas causales y escenarios hipotéticos ("¿qué pasaría si...?"). A
+diferencia de planificadores heurísticos convencionales que generan ramificaciones incoherentes,
+este agente somete cada conjetura a la prueba de autoconsistencia de Novikov.
+Su respectivo motor es 'ToonNovikovNavigatorEngine' (app/wisdom/toon_novikov_navigator_engine.py).
+Mientras el Engine calcula rigurosamente las iteraciones de punto fijo de Banach y evalúa el
+residuo ||T(x) - x||, este Agente formula las hipótesis iniciales, define las funciones de costo
+de penalización por divergencia contrafactual y reconcilia la línea temporal maestra de la
+arquitectura APU Filter.
 
-  ◈ FASE II  — TOONNovikovNavigatorAgent  (hereda FASE I)
-               Continuación: ingest_gauge_to_navigation_seam
-               Campaña ultramétrica (Back-Action 0.0 dB):
-               • C*-𝔇_n, Uhlmann, Fubini–Study
-               • Valuación v(A) = min{a_i}  y  ‖T^a‖_Nov = exp(−v(T^a))
-               • Test ultramétrico CORRECTO sobre Λ_Nov (no sobre ℝ)
-               • Distancia Bruhat–Tits d_BT = |v − v_floor| + d_FS
-               • Amiba tropical 𝒜_Nov, Oseledets, Poincaré–Wirtinger
-               • Gromov–Wigner c_G cruda (sin clip previo al veto)
-               • Mónada RSI-3 (T, η, μ) con plegado triple y Banach k³
-               • COSTURA: weave_campaign_to_adjudication → CampaignToAdjudicationSeam
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Espacio de Caminos Temporales P(M) y Clases de Homotopía:
+   Sea M la variedad lorentziana de estados epistémicos. Una trayectoria temporal contrafactual
+   gamma: [0, T] -> M conecta el estado presente x_0 con la predicción de futuro x_T.
+   El agente minimiza el funcional de acción temporal con penalización de cierre de lazo:
+       J(gamma) = int_0^T [ ||dot{gamma}(t) - f(gamma(t))||^2 + lambda_pen * ||gamma(T) - gamma(0)||^2 ] dt
 
-  ◈ FASE III — SovereignNovikovAdjudicator  (hereda FASE II)
-               Continuación: ingest_campaign_to_adjudication_seam
-               • Adjudicación Heyting Ω₃ (meet de 6 criterios)
-               • Interlock ESP32 Crowbar (< 400 ns / GPIO14)
-               • Álgebra de Fock  e⁻ + e⁺ → 2γ
-               • Funtor semántico  Φ_sem : Sh(∂K, Ω₃) → Business
-               • DAG Merkle final
+2. Teoría de Juegos Causal y Equilibrio de Nash-Novikov:
+   En un sistema recursivo con múltiples agentes o módulos en interacción reflexiva, la solución
+   autoconsistente corresponde al punto de equilibrio de Nash donde ninguna rama temporal tiene
+   incentivo epistémico para desviarse unilateralmente de la historia fija.
 
-Invariantes transversales:
-  • Back-Action QND = 0.0 dB
-  • C*-𝔇_n: ‖ρ‖₁=1, ρ=ρ†, λ_i ≥ −ε
-  • θ_PC = Tr(ρ dN)              residuo ‖[ρ, N]‖_F ≤ 1e-5
-  • det DP = 1                   (simpléctica del mapa de Poincaré)
-  • c_G ≤ 12.5                   (capacidad cruda, sin clip previo)
-  • χ(ℂPⁿ⁻¹) = n
-  • v(x+y) ≥ min(v(x), v(y))     (ultramétrico sobre Λ_Nov)
-  • μ∘(Tμ) = μ∘(μT)             plegado ≤ 1e-3; ‖μ∘Tμ − μ∘μT‖ ≤ 1e-3
-  • ρ(DT) < 1  y  k³ < 1         Banach RSI-3
-  • Fock: ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
+3. Mecánica Celeste y Resonancia de Líneas Temporales:
+   El agente proyecta la sincronización armónica de tareas concurrentes sobre los modos orbitales
+   de Poincaré, amortiguando batidos y resonancias parásitas en la planificación periódica.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma NNA1 (Invarianza de Causalidad Global):
+    Toda acción ejecutiva adoptada en el presente x_0 debe poseer al menos una trayectoria admisible
+    en el bucle futuro con residuo de paradoja R <= epsilon_novikov.
+Axioma NNA2 (Convergencia por Poda de Ramas No-Consistentes):
+    Toda rama contrafactual cuyo operador de retorno no converja en N_max iteraciones queda
+    topológicamente podada del árbol de decisiones.
+Axioma NNA3 (Admisibilidad Causal de Hamilton-Jacobi):
+    partial S / partial t + H(x, nabla S) = 0 a lo largo de la geodésica seleccionada.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Residuo de Paradoja Nulo):
+    R_paradox(gamma*) <= epsilon_tolerance = 1e-4.
+Invariante 2 (Consistencia Homotópica de la Historia Maestra):
+    [gamma_t] in pi_1(M, x_0) permanece en la clase fundamental de compatibilidad.
+====================================================================================================
 """
 
 from __future__ import annotations

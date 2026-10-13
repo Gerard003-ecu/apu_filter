@@ -1,62 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MAC Agent (Soberano de la Medición, Gestor Epistemológico y         ║
-║          Mecánica Celeste de Henri Poincaré)                                 ║
-║ Ruta   : app/agents/wisdom/mac_agent.py                                      ║
-║ Versión: 6.0.0-Celestial-Poincare-POVM-Lindblad-Galois-Doctoral-Nested       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-NATURALEZA CIBER-FÍSICA Y GOBERNANZA EPISTÉMICA EN EL ESTRATO WISDOM (V_W) ─────
-Este módulo consagra al Agente Soberano del Estrato WISDOM como endofuntor de
-medición sobre ℋ_MAC. Sobre la axiomática cuántica (Dirac–von Neumann), la
-ecuación maestra GKSL (Lindblad) y la cohomología de haces, se teje la
-maquinaria analítica de las Méthodes Nouvelles de Poincaré: Delaunay →
-Poincaré no-singular, carta acción-ángulo, divisores Diofantinos, invariantes
-integrales (relativo/absoluto), firma de Krein del linearizado Hamiltoniano,
-toros KAM, sección Σ ⊂ T*Q, monodromía de Floquet, twist de Poincaré-Birkhoff,
-recurrencia de Poincaré–Kac, Chirikov, Melnikov, Nekhoroshev, índice de
-Poincaré-Hopf, dualidad y polinomio de Poincaré, colapso a Ω₃.
+Nombre: MacAgent
+Ubicación: app/agents/wisdom/mac_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano sobre la matriz atómica de conocimiento (MAC) que orquesta la síntesis, secuenciación y
+         despacho de macro-políticas de sabiduría hacia los efectores tácticos. Resuelve
+         interferencias no conmutativas mediante composiciones BCH y verifica la controlabilidad
+         geodésica sobre el álgebra de Lie.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ──────────
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Macro-Acciones (MacAgent) es el director ejecutivo del estrato de sabiduría
+de APU Filter. Su misión soberana es integrar las directivas de alto nivel formuladas por los
+motores reflexivos e intuitivos en una secuencia coordinada de generadores de acción sin conflictos
+de fase ni interferencias parásitas.
+Su respectivo motor matemático es 'MacAlgebra' (app/wisdom/mac_algebra.py), su respectivo
+transportador geométrico es 'MacVectorsAdapter' (app/wisdom/mac_vectors.py), y su contraparte
+táctica inmediata es 'TopologicalAnalyzerAgent' (app/agents/tactics/topological_analyzer_agent.py).
+Mientras MacAlgebra computa analíticamente los corchetes [X, Y], MacAgent supervisa el ciclo de vida
+de las macro-acciones y las despacha conforme a restricciones monoidales estrictas.
 
-  FASE 1 ──► ÁLGEBRA POVM Y GEOMETRÍA ESPECTRAL CELESTE (Observe)
-             Mide ρ vía POVM {Eₖ}: p(k) = Tr(Eₖ† Eₖ ρ), isometría de Stinespring.
-             Extrae Delaunay (L, G, H, ℓ, g, h), Poincaré (Λ, λ, ξ, η, p, q),
-             carta (J, θ), Krein, KAM-Kolmogorov e invariantes ∮ p dq.
-             Semilla: Phase1MeasurementCertificate.
-             El último morfismo de FASE 1 ES el morfismo de apertura de FASE 2.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Controlabilidad en Grupos de Lie y Teorema de Chow-Rashevsky:
+   La dinámica de la macro-política en el grupo de Lie G obedece a la ecuación invariante a izquierda:
+       dot{g}(t) = g(t) * ( X_0 + sum_{i=1}^m u_i(t) * X_i ),   con X_i in g
+   Por el teorema de Chow-Rashevsky, si el álgebra de Lie generada por {X_1, ..., X_m} abarca todo
+   g (condición de rango de Lie), el sistema es completamente gobernable y puede conectar cualquier
+   par de estados de sabiduría en tiempo finito.
 
-  FASE 2 ──► DINÁMICA DE LINDBLAD CELESTE Y SECCIONES DE POINCARÉ (Orient)
-             ρ̇ = −i[H, ρ] + Σₖ γₖ 𝒟[Lₖ](ρ)  (flujo Port-Hamiltoniano en T*ℋ).
-             Sección Σ, retorno P: Σ → Σ, Floquet, twist, recurrencia,
-             Chirikov, Melnikov, Nekhoroshev.
-             Semilla: Phase2DynamicsCertificate.
-             El último morfismo de FASE 2 ES el morfismo de apertura de FASE 3.
+2. Optimización Geodésica con Función de Coste Cuadrática:
+   El agente minimiza el funcional de acción de control:
+       J(u) = (1 / 2) * int_0^T [ sum_{i=1}^m u_i(t)^2 + lambda_pen * d_g(g(t), g_target)^2 ] dt
+   sujeto a las ecuaciones cinemáticas del álgebra.
 
-  FASE 3 ──► COHOMOLOGÍA, ADJUNCIÓN DE GALOIS Y TOPOLOGÍA GLOBAL (Decide & Act)
-             H¹(X; ℱ), adjunción F ⊣ G (Bures–Uhlmann), Poincaré-Hopf,
-             dualidad b_k = b_{n−k}, polinomio de Poincaré, colapso Ω₃ y
-             Veto simpléctico de Gromov / Crowbar BT151.
+3. Composición Monoidal de Planes de Acción:
+   El espacio de macro-acciones forma una categoría monoidal estricta (MacroActions, otimes, I) donde:
+       (A_1 otimes A_2) otimes A_3 = A_1 otimes (A_2 otimes A_3)
+   asegurando asociatividad en la concatenación de objetivos tácticos.
 
-INVARIANTES MATEMÁTICOS PRESERVADOS: ────────────────────────────────────────────
-  [I1]  Rango Completo MIC:              rank(MIC) = n ⇒ dim ker(MIC) = 0
-  [I2]  Postulados Dirac–von Neumann:    ρ = ρ† ≽ 0, Tr(ρ) = 1
-  [I3]  Isometría de Stinespring:        V†V = I
-  [I4]  Nulidad Cohomológica:            H¹(K;ℱ) = 0 ⇒ E_Dirichlet(x) ≡ 0
-  [I5]  Índice de Witten:                dim ker(Đ) − dim ker(Đᵀ) = index(δ)
-  [I6]  Delaunay Celeste:                (L, e, G, i, H, C_J) canónicos
-  [I7]  Poincaré no-singular:            (Λ, λ, ξ, η, p, q) regulares en e=i=0
-  [I8]  Firma de Krein:                  espectro del linearizado Hamiltoniano
-  [I9]  KAM-Kolmogorov:                  det(∂ω/∂J) ≠ 0 y ω ∈ DC(γ, τ)
-  [I10] Chirikov:                        K = Δω/δω_res < 1 ⇒ toros intactos
-  [I11] Melnikov:                        M(t₀)=0 ∧ M'(t₀)≠0 ⇒ tangencia homoclínica
-  [I12] Floquet–Poincaré:                μ ∈ spec(DP), χ = Log(μ)/T
-  [I13] Twist de Poincaré-Birkhoff:      ∂ν/∂J ≠ 0 ⇒ ≥ 2 puntos fijos
-  [I14] Recurrencia de Poincaré:         T_Kac ≳ vol(M)/vol(U)
-  [I15] Poincaré-Hopf:                   Σ_p ind_p(X) = χ(ℳ)
-  [I16] Dualidad de Poincaré:            b_k = b_{n−k}
-  [I17] Colapso de Heyting Ω₃:           {⊥, ½, ⊤} ≅ {VETOED, DEGRADED, COHERENT}
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MACA1 (Optimalidad Geodésica de Despacho):
+    Toda macro-acción despachada sigue la curva geodésica de mínima energía de control en G.
+Axioma MACA2 (No Interferencia Destructiva):
+    Si ||[X_i, X_j]|| > Delta_crit, el agente inserta una acción de compensación BCH intermedia.
+Axioma MACA3 (Preservación del Orden Monoidal Causal):
+    Dispatch(A_1 otimes A_2) respeta la precedencia temporal t(A_1) <= t(A_2).
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Residuo de Interferencia Acotado):
+    ||[X_active, X_incoming]|| <= epsilon_interference = 0.25.
+Invariante 2 (Preservación de Estabilidad de Lie):
+    El rango del álgebra de control rango(Lie(X_1,...,X_m)) == dim(g).
+====================================================================================================
 """
 from __future__ import annotations
 

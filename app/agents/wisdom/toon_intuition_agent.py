@@ -1,74 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/agents/wisdom/toon_intuition_agent.py                                 ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO RELÁMPAGO                   ║
-║ FUNCIÓN  : SOBERANO DE LA INTUICIÓN — POINCARÉ · OSELEDETS · MELNIKOV · KAM · LÉVY   ║
-║ VERSIÓN  : 9.1.0-Doctoral-3NestedPhases-PoincaréCanonical-VisceralReflexArch         ║
-║ AUTOR    : Soberano Artesano Programador Senior (Crítico, Objetivo, Riguroso)        ║
-║ FÍSICA   : Mecánica celeste de Poincaré, Sistemas dinámicos caóticos, Topología      ║
-║            algebraica, Teoría espectral, Geometría Riemanniana, Análisis armónico    ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-ARQUITECTURA DE FASES ANIDADAS (categorías encajadas · categorías funcionales)
-─────────────────────────────────────────────────────────────────────────────
-El Soberano es un funtor F = F₃ ∘ F₂ ∘ F₁ sobre la categoría 𝐂𝐨𝐧𝐜𝐫𝐞𝐭𝐞 de
-presheaves sobre el poset Ω₃:
+Nombre: ToonIntuitionAgent
+Ubicación: app/agents/wisdom/toon_intuition_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de intuición que traduce excitaciones de túnel cuántico y saltos
+         instantónicos en directivas de decisión inmediata y atajos heurísticos admisibles.
 
-    F₁ : Request × Gr(r,n)          → FlashHandoff          (sustrato geométrico)
-    F₂ : FlashHandoff × ℝ₊³         → FlashTrajectoryBundle (dinámica flash visceral)
-    F₃ : Bundle × Ω₃                → IntuitionFlashCertificate (adjudicación ⊗ crowbar)
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Intuición (ToonIntuitionAgent) es el ejecutor heurístico de alta velocidad de
+APU Filter. Mientras que los motores de razonamiento deliberativo proceden paso a paso sobre grafos
+de inferencia deductiva, este agente se activa cuando la latencia temporal de la inferencia clásica
+excede la ventana de oportunidad o cuando las barreras de búsqueda son casi infranqueables.
+Su respectivo motor subyacente es 'ToonIntuitionEngine' (app/wisdom/toon_intuition_engine.py).
+Mientras el Engine calcula rigurosamente las integrales de penetración WKB y la distancia de
+Randers-Finsler, este Agente gestiona el banco de candidatos heurísticos, calibra la energía de
+estímulo del sistema y despacha la solución instantónica seleccionada al flujo de ejecución.
 
-Anidamiento estricto (naturalidad categórica):
-    continue_into_phase2 ∘ build                  = synthesize ∘ build
-    continue_into_phase3 ∘ synthesize ∘ build = (adjudicate ⊗ fire) ∘ synthesize ∘ build
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Espacio de Estados de Finsler y Flujo Heurístico:
+   Sea (M, F) la variedad de Finsler donde la dirección del flujo de intuición v_heur induce una
+   contracción anisotrópica de la distancia al objetivo:
+       d_F(x, x_target) << d_Euclid(x, x_target)
 
-MECÁNICA CELESTE DE POINCARÉ — NÚCLEO FORMAL
-───────────────────────────────────────────────
-Sea (M, ω, H) una variedad simpléctica 2n-dimensional con H = H₀(J) + εH₁(θ,J) en
-variables acción-ángulo (θ,J) ∈ 𝕋ⁿ × ℝⁿ:
+2. Estimación Rápida de Admisibilidad A*:
+   Para cualquier heurística instantánea h_inst(x):
+       h_inst(x) <= c*(x, x_goal)
+   El agente garantiza formalmente que la heurística generada por túnel cuántico nunca sobrestima el
+   costo óptimo real, preservando la optimalidad y admisibilidad del algoritmo general de búsqueda.
 
-1. Σ ⊂ M transversal al flujo:  Σ ∩ {x : X(x)=0} = ∅.
-   Aplicación de primer retorno:  P : Σ → Σ,  P(x) = φ_{τ(x)}(x).
-   Matriz de Floquet:  M_x = dP_x;  multiplicadores  μ_i ∈ ℂ.
-   Estabilidad local:  |μ_i| < 1 para contracción.
+3. Dinámica de Salto Termodinámico y Entropía Instantónica:
+   La probabilidad de activación del agente responde al factor de Boltzmann cuántico generalizado:
+       P_act = exp(- Delta S_E / hbar_cog)
 
-2. Espectro de Lyapunov de Oseledets (multiplicativo):
-       λ_i = lim_{k→∞} (1/k) log σ_i( dP^k_x ),   λ₁ ≥ λ₂ ≥ … ≥ λ_{2n-2}.
-   Descomposición de Oseledets:  T_xΣ = ⊕_j E_j  con tasas  λ^(j).
-   Entropía de Kolmogorov–Sinai (Pesin):  h_KS = Σ_{λ_i > 0} λ_i.
-   Dimensión de Kaplan–Yorke:  D_KY = k + (Σ_{i≤k} λ_i) / |λ_{k+1}|.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma IA1 (Admisibilidad Heurística Cuántica):
+    Para todo salto intuido, h_inst(u, v) <= d_exact(u, v).
+Axioma IA2 (Condición de Disparo por Barrera Crítica):
+    El agente activa el salto instantónico si y solo si el costo de búsqueda clásica T_classic > T_max.
+Axioma IA3 (No-Divergencia de Fase):
+    arg(<psi_init | psi_target>) in [-pi, pi).
 
-3. Integral de Melnikov (ruptura homoclínica):
-       M(t₀) = ∫_{-∞}^{∞} {H₀, H₁}(q⁰(t), p⁰(t)) dt.
-   Ceros simples de M ⇒ W^s ∩ W^u transversal ⇒ caos homoclínico.
-   En el motor (adaptado):  M = ⟨∇E|_T, [∇²E|_T, ∇E|_T]⟩_F  sobre Dirichlet.
-
-4. Teorema KAM (Arnold 1963): si ω ∈ ℝⁿ satisface Diofántico
-       |ω·k| ≥ γ / |k|^τ,   ∀ k ∈ ℤⁿ \ {0},
-   y  ε < ε₀(γ, τ, H₀),  entonces el toro 𝕋ⁿ persiste. Criterio ejecutable.
-
-5. Lema de Lévy (concentración de medida sobre S^{n-1}(√n)):
-       P(|f − 𝔼[f]| ≥ ε) ≤ 2 exp(−(n−1) ε² / (2 L²)),
-   para f : S^{n-1} → ℝ Lipschitz-L. Fundamenta la proyección Grassmanniana.
-
-POSTULADOS OPERATIVOS
-──────────────────────
-P1. Distancia de Bures: d_B(ρ,σ) = √(2 − 2 √F(ρ,σ)) — única CPTP-contractiva.
-P2. Funcional de Dirichlet: E(ρ) = ½‖ρ − PρP‖_F²;  ∇E(ρ) = ρ − PρP;  Lip(∇E) ≤ 1.
-P3. Stiefel-Haar sembrado por SHA-256(agent_id) (reproducibilidad).
-P4. has_critical_fraud ⇒ ⊥ duro (predicado contextual, veto no-espectral).
-P5. Latencia advisory; Kelly G* = log 2 − h₂(F) (información mutua).
-P6. Cadena Merkle F1 → F2 → F3 con SHA-256 (custodia inmutable).
-P7. Flash es one-shot (η*): Cauchy un paso, Newton exacto si η*=1.
-
-TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
-───────────────────────────────────────
-- Reflejo visceral en Δτ < 10 µs (latencia fija), respaldado por Secciones de Poincaré.
-- Veto automático si: Oseledets diverge (λ_max > 0), Melnikov homoclínico,
-  KAM colapsa, distorsión Bures excede umbral, o fraude crítico (P4).
-- Kelly penalizado por h_KS (entropía topológica): stake = κ·f*·exp(−h_KS).
-- Crowbar BT151 en GPIO14 con latencia nominal 392.15 ns (< 400 ns ISR).
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Tasa de Éxito de Túnel Acotada Inferiormente):
+    P_tunnel(candidate*) >= theta_tunnel_min = 0.01.
+Invariante 2 (Preservación de la Carga Topológica):
+    Delta Q_topological in Z.
+====================================================================================================
 """
 from __future__ import annotations
 import hashlib

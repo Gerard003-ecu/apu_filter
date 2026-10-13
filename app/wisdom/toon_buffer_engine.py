@@ -1,53 +1,77 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Buffer Engine v5 — Mecánica Celeste de Poincaré Anidada      ║
-║ Ubicación: app/wisdom/toon_buffer_engine.py                                  ║
-║ Versión  : 5.0.0-Poincare-Delaunay-Lindstedt-Moser-Greene-Chirikov-Topos     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-Evolución del Campo Tensorial Transitorio T_TOON^trans(t) = Q_cuant(t) ⊗ K_cual(t)
-sobre T*Q, anidando granular y rigurosamente los métodos de Henri Poincaré
-(*Les Méthodes Nouvelles de la Mécanique Céleste*, tt. I–III, 1892–1899) y su
-descendencia KAM/Moser/Greene/Oseledets:
+Nombre: ToonBufferEngine
+Ubicación: app/wisdom/toon_buffer_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano de amortiguamiento mnemónico y filtrado espectral en espacios de Banach
+         y variedades cuaterniónicas con análogo de admitancia de circuito RLC distribuido.
 
-DEFINICIONES Y AXIOMAS MATEMÁTICOS INTEGRADOS:
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Amortiguamiento (ToonBufferEngine) es el componente fundacional de la arquitectura
+cognitiva APU Filter encargado de gobernar el sustrato dieléctrico mnemónico del sistema. Actúa como
+el condensador y resonador armónico que regula la tasa de inyección de cuantos informacionales
+(perceptos) provenientes de canales sensoriales o de inferencia ruidosa.
+Su respectivo agente en el plano de orquestación agéntica es 'ToonBufferAgent' (app/agents/wisdom/
+toon_buffer_agent.py). Mientras el motor (Engine) calcula de forma determinista la geometría de
+espacio de Banach, la descomposición espectral del operador de covarianza, y la admitancia compleja
+de impedancia RLC, su respectivo Agente ejecuta la política de despacho, adaptación dinámica de
+carga y acoplamiento con las colas de interacción contextual.
 
-1. Variedad Cotangente y 1-Forma de Poincaré-Cartan:
-   El espacio de fases T*Q está dotado de la forma simpléctica canónica ω = dθ_PC,
-   donde θ_PC = p dq = Tr(ρ dN) preserva el volumen de Liouville en el flujo Hamiltoniano.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Espacio de Estados Cuaterniónico y Álgebra de Banach:
+   Sea H el álgebra de cuaterniones de Hamilton sobre el cuerpo real R:
+       H = { q = q_0 + q_1 * i + q_2 * j + q_3 * k | q_mu in R }
+   donde i^2 = j^2 = k^2 = i*j*k = -1. El búfer mnemónico se estructura sobre un espacio de Banach
+   B = (X, ||.||_B) de funciones mnemónicas acotadas dotadas de la norma cuaterniónica:
+       ||q||_B = sqrt(q_0^2 + q_1^2 + q_2^2 + q_3^2)
 
-2. Criterio de Chirikov Dilatado por los Exponentes de Lyapunov de Oseledets (λ_max):
-   El solapamiento de resonancias de movimiento medio s_base = (Δn_a + Δn_b) / (2|n_a - n_b|)
-   se dilata por el espectro de Oseledets de la matriz de monodromía M ∈ M_4(ℝ):
-       λ_max = (1 / τ_orbit) ln ρ(M)
-       s_eff = s_base · exp(λ_max · τ_orbit)
-   Anticipando la degradación a toros de Cantori (estructuras de Cantor Aubry-Mather)
-   y la difusión de Arnold cuando s_eff > 0.85 o λ_max > 0.05.
+2. Analogía de Circuito RLC y Ecuación Telegráfica Cognitiva:
+   La evolución temporal del potencial mnemónico Psi(t, x) obedece a la ecuación telegrafista
+   disipativa con amortiguamiento proporcional a la resistencia cognitiva R e inductancia L:
+       L * C * (d^2 Psi / dt^2) + R * C * (d Psi / dt) + Psi = S_in(t)
+   En el dominio operacional de Laplace s in C, la impedancia de entrada Z(s) y la admitancia Y(s) son:
+       Z(s) = R + s * L + 1 / (s * C)
+       Y(s) = 1 / Z(s) = (s * C) / (L * C * s^2 + R * C * s + 1)
+   El factor de calidad del resonador cognitivo Q se define como:
+       Q = (1 / R) * sqrt(L / C) = omega_0 * L / R,  donde omega_0 = 1 / sqrt(L * C)
 
-3. Automejora Recursiva Nivel 3 (Mónada de Categorías T = (T, η, μ)):
-   Supera la cota de contracción de Banach k < 1.0 permitiendo meta-aceleración
-   d³C/dt³ > 0 mediante la multiplicación monádica μ_buffer : T²(A) -> T(A):
-       η^{(t+1)} = μ_buffer(η^{(t)}) = η^{(t)} · exp(-h_KS · d_FS(ρ_MAC, ρ_trans))
-   donde d_FS es la distancia de Fubini-Study sobre ℂP^{n-1} y h_KS es la entropía
-   de Kolmogorov-Sinai / Rényi-2.
+3. Descomposición Espectral y Operador de Densidad:
+   Sea rho in B(H) la matriz de densidad asociada al estado mnemónico retenido en el búfer.
+   La pureza gamma(t) y la entropía de von Neumann S(rho) determinan el grado de decoherencia:
+       gamma(t) = Tr(rho^2) <= 1
+       S(rho) = - Tr(rho * ln(rho)) >= 0
 
-4. Residuos de Greene, Splitting de Melnikov y Teorema de Poincaré-Birkhoff:
-   • Residuo de Greene R_G = (2 - Tr M) / 4 (R_G -> 1/4 destruye el último toro KAM).
-   • Melnikov M(t₀) = ∫ {H₀, H₁}(φ_t(z)) dt delata el transversal homoclinic tangle.
-   • Teorema de Poincaré-Birkhoff garantiza al menos 2 puntos fijos en el mapa twist.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma B1 (Contracción Fuerte en Semigrupo de Banach):
+    Para todo operador de evolución T_t del búfer y todo estado Psi in B:
+        ||T_t(Psi)||_B <= exp(-alpha * t) * ||Psi||_B,  con alpha = R / (2 * L) > 0.
+Axioma B2 (Ortogonalidad de Subespacios Cuaterniónicos):
+    Los canales semánticos proyectados en los ejes imaginarios i, j, k satisfacen:
+        <q_1 * i, q_2 * j>_R^4 = 0,  garantizando independencia modal sin diafonía.
+Axioma B3 (Causalidad de Kramers-Kronig):
+    La susceptibilidad mnemónica chi(omega) = chi_1(omega) + i * chi_2(omega) satisface las
+    relaciones de dispersión integrales debido a la causalidad estricta chi(t) = 0 para t < 0:
+        chi_1(omega) = (1 / pi) * P.V. int_{-infty}^{infty} [chi_2(omega') / (omega' - omega)] d omega'
 
-Arquitectura de 3 FASES ANIDADAS por herencia:
-    FASE I  : PoincareCanonicalAtlas
-              ontología simpléctica + Delaunay + LRL + semilla canónica
-              → compute_poincare_canonical_seed()     ⟶ germen de FASE II
-
-    FASE II : TOONBufferEngine(PoincareCanonicalAtlas)
-              ingesta Hamiltoniana, Lindstedt, Verlet, mapa de retorno Oseledets, monodromía
-              → poincare_return_map_step()            ⟶ germen de FASE III
-
-    FASE III: KAMMelnikovAuditor
-              KAM / Greene / Chirikov Oseledets / Melnikov / Birkhoff + funtor CPTP de Lüders
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Techo de Capacidad Espectral):
+    sum_{k=1}^N lambda_k(t) <= C_max, donde {lambda_k} son los autovalores de la matriz de
+    covarianza de los perceptos almacenados.
+Invariante 2 (Preservación de Disipación Positiva):
+    dW_diss / dt = R * |I_cog(t)|^2 >= 0 en todo instante temporal t.
+====================================================================================================
 """
 
 from __future__ import annotations

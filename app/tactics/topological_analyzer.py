@@ -1,108 +1,73 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Topological Analyzer & TDA Engine — Cohomología Espectral en V_𝕋               ║
-║  Ruta   : app/tactics/topological_analyzer.py                                            ║
-║  Versión: 6.1.0-Nested-Phase1-UF-Hodge-KBN-Gershgorin-BlockFactor                        ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  0. OBJETO CATEGORIAL                                                                    ║
-║  ────────────────────                                                                    ║
-║  Sea 𝒞_Temp la categoría de observaciones temporales (series, grafos de servicio)        ║
-║  y 𝒞_Topo la categoría de invariantes homológico-espectrales. Este módulo realiza        ║
-║  un funtor covariante estricto                                                           ║
-║                                                                                          ║
-║      F : 𝒞_Temp ⟶ 𝒞_Topo,          F(g ∘ f) = F(g) ∘ F(f),                             ║
-║                                                                                          ║
-║  factorizado en tres endofuntores anidados F = F₃ ∘ F₂ ∘ F₁ sobre el topos               ║
-║  táctico 𝔗_tac, con clasificador de subobjetos el retículo de Heyting                    ║
-║                                                                                          ║
-║      Ω₃ = {⊥, ½, ⊤}    (VETOED ≤ DEGRADED ≤ COHERENT).                                   ║
-║                                                                                          ║
-║  Morfismos de puerto (objeto terminal de Fᵢ = objeto inicial de Fᵢ₊₁):                   ║
-║      π₁₂ : F₁(X) → F₂(X)     SimplicialCohainComplex  (B₁, W, L₀, índices, bloques)      ║
-║      π₂₃ : F₂(X) → F₃(X)     TopologicalInvariants    (β, λ₂, h, Ψ, SNF)   [FASE 2]      ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  I. FASE 1 — SUBSTRATO OBSERVACIONAL  (estrato 0 de 𝔗_tac)  ← ESTE ARCHIVO / PASO        ║
-║  ─────────────────────────────────────────────────────────                               ║
-║                                                                                          ║
-║  I.0  Constantes IEEE-754 / espectrales / contrato Ω₃ (Σ wᵢ = 1).                        ║
-║                                                                                          ║
-║  I.1  Mónada Option  𝕋 = 1 + (−)                                                         ║
-║       Leyes:  η▹f = f;  m▹η = m;  (m▹f)▹g = m▹(λx. f(x)▹g).                              ║
-║       Absorbe NaN/Inf sin romper la funtorialidad de F₁.  Applicative + μ.               ║
-║                                                                                          ║
-║  I.2  Proyección IEEE-754  π : ℝ̄ → ℝ_fin                                                 ║
-║       π(NaN)=0, π(±∞)=±C_cap, π(−0)=+0.  Idempotencia: π∘π = π.                          ║
-║       π_𝕋 : ℝ̄ → 𝕋(ℝ_fin)  envía patologías a None (no contamina el semiring).           ║
-║                                                                                          ║
-║  I.3  Aritmética compensada                                                              ║
-║       TwoSum (Knuth), TwoProd (FMA/Dekker), Neumaier–Kahan (KBN).                        ║
-║           |S_KBN − S_exact|  ≤  (2 ε_mach + O(N ε_mach²)) · Σ|xᵢ|.                       ║
-║       Producto interno compensado: ⟨x,y⟩_KBN = Σ (pᵢ + eᵢ)  con (p,e)=TwoProd.           ║
-║                                                                                          ║
-║  I.4  Laplaciano de Hodge 0-dimensional (1-complejo ponderado)                           ║
-║           L₀  =  d* d  =  B₁ W B₁ᵀ  ∈  Sym⁺(ℝ^{|V|}),                                    ║
-║       con d = B₁ᵀ : Ω⁰ → Ω¹ y d* = B₁ W.  Propiedades:                                   ║
-║           L₀ = L₀ᵀ,   L₀ ⪰ 0,   ker L₀ ≅ ℝ^{β₀}  (si W ≻ 0),                             ║
-║           0 = λ₁ ≤ λ₂ ≤ ⋯ ≤ λ_n ≤ 2 Δ_máx     (Gershgorin).                              ║
-║       Rank-nullity:  rank_ℝ(B₁) + dim ker L₀  =  |V|.                                    ║
-║       tr(L₀) = 2 Σ_e w_e.  Factorización por bloques conexos (gancho V.1).               ║
-║                                                                                          ║
-║  I.5  Homología persistente 0-dimensional                                                ║
-║       (A) Corte de superlevel a umbral θ  (API legado):  S^θ = {t : f(t) > θ}.           ║
-║       (B) Diagrama H₀ por Union–Find + elder rule sobre el path graph:                   ║
-║           subnivel de −f  ⇔  supernivel de f.  Estabilidad (Cohen–Steiner):              ║
-║           d_B(Dgm(f), Dgm(g))  ≤  ‖f − g‖_∞.                                             ║
-║       NO es Vietoris–Rips ni reducción ELZ (v. §V.2).                                    ║
-║                                                                                          ║
-║  PUERTO π₁₂ :  CompensatedLaplacianAssembler.assemble_from_graph()                       ║
-║                → SimplicialCohainComplex                                                 ║
-║  INGRESO F₂ :  Phase2Ingress.reduce_from_complex(complex_)     ← inicio formal FASE 2    ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  II–III.  FASES 2–3  (siguientes pasos de generación)                                    ║
-║  SNF Euclid, Euler–Poincaré, Fiedler–Wielandt, Cheeger sweep, Ψ, Ω₃, Crowbar.            ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  IV. INVARIANTES GLOBALES DE F  =  F₃ ∘ F₂ ∘ F₁                                          ║
-║  (N1) Euler–Poincaré: χ(K) = β₀ − β₁ = |V| − |E|.                                        ║
-║  (N2) Gauss (SNF): d₁ | d₂ | ⋯ | d_r  cuando SNF no está omitida.                        ║
-║  (N3) Wielandt: L_def desplaza λ₁=0 ↦ γ; λ₂ invariante si β₀=1.                          ║
-║  (N4) Cheeger–Dodziuk: λ₂/2 ≤ h(K) ≤ √(2λ₂(2Δ_máx+λ₂)).                                  ║
-║  (N5) Neumaier: |S_KBN − S_exact| ≤ 2 ε_mach Σ|xᵢ|.                                      ║
-║  (N6) Heyting: ⊥ ≤ ½ ≤ ⊤; VETOED absorbente.                                             ║
-║  (N7) Hodge: ker L₀ ≅ H⁰(K;ℝ) ≅ ℝ^{β₀}  (W ≻ 0).                                         ║
-║  (N8) Idempotencia IEEE-754: π∘π=π.  Clausura Option.                                    ║
-║  (N9) Cohen–Steiner: d_B(Dgm₀(f), Dgm₀(g)) ≤ ‖f−g‖_∞.                                    ║
-║  (N10) tr(L₀) = 2 Σ w_e  (identidad de aristas).                                         ║
-║                                                                                          ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  V. PECADOS RESIDUALES  (conscientemente no resueltos; Fases 2–3 + iteración futura)     ║
-║  ──────────────────────────────────────────────────────────────                          ║
-║                                                                                          ║
-║  V.1  SNF no escala a |V| grande. Complejidad O(r·(m+n)·log M) con pivotes               ║
-║       euclídeos e hinchazón entera. Para |V|>200 se OMITE (guardia de presupuesto)       ║
-║       y se declara torsion-free por el teorema de 1-complejos, no por SNF.               ║
-║       Mitigación FASE 1: `factor_by_connected_components` expone bloques para            ║
-║       SNF independiente (Fase 2 debe consumirlos). sympy.smith_normal_form pendiente.    ║
-║                                                                                          ║
-║  V.2  Persistencia 0-dimensional sobre el 1-esqueleto camino. TDA completa exigiría      ║
-║       Vietoris–Rips con filtración por peso y reducción matricial ELZ                    ║
-║       (Edelsbrunner–Letscher–Zomorodian). Union–Find + elder rule ES el algoritmo        ║
-║       exacto de H₀ sobre un grafo; NO sustituye VR ni ELZ. Fuera de alcance.             ║
-║                                                                                          ║
-║  V.3  Fiedler en grafos disconexos: β₀>1 ⇒ λ₂=0 ⇒ ker multidimensional.  [FASE 2]        ║
-║       `fiedler_faithful=False`.                                                          ║
-║                                                                                          ║
-║  V.4  Crowbar sin HAL real.  [FASE 3]  dry_run=True por defecto.                         ║
-║                                                                                          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO TÁCTICO
+====================================================================================================
+
+Nombre: TopologicalAnalyzer
+Ubicación: app/tactics/topological_analyzer.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor táctico de análisis topológico de datos (TDA), homología persistente, cálculo
+         de operadores de frontera simplicial partial_k y extracción analítica de números de
+         Betti b_0, b_1, b_2 y diagramas de persistencia de vacíos informacionales.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Analizador Topológico (TopologicalAnalyzer) es el calculador algebraico-topológico del
+estrato táctico de APU Filter. Su misión es discernir la forma invariante, conectividad multicomponente
+y cavidades de decisión que emergen en el espacio de configuraciones tácticas, inmune a ruidos de
+escala o deformaciones continuas que engañan a las métricas geométricas convencionales.
+Su respectivo agente en el plano directivo táctico es 'TopologicalAnalyzerAgent'
+(app/agents/tactics/topological_analyzer_agent.py). Mientras TopologicalAnalyzer computa las
+matrices de frontera simplicial, los rangos de núcleos Ker(partial_k) e imágenes Im(partial_{k+1}),
+su respectivo Agente interpreta los números de Betti resultantes como vulnerabilidades o corredores
+de maniobra y coordina acciones de estabilización topológica.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Complejo Simplicial y Cadena de Homología:
+   Sea K un complejo simplicial abstracto sobre un conjunto de vértices V. El grupo de k-cadenas C_k(K)
+   es el espacio vectorial libre generado por los k-símplices orientados sigma = [v_0, v_1, ..., v_k].
+   El operador lineal de frontera partial_k: C_k(K) -> C_{k-1}(K) se define rigurosamente como:
+       partial_k([v_0, v_1, ..., v_k]) = sum_{i=0}^k (-1)^i * [v_0, ..., hat{v}_i, ..., v_k]
+   donde hat{v}_i indica la omisión del i-ésimo vértice. Se verifica la nilpotencia cuadrática:
+       partial_{k-1} circ partial_k = 0
+
+2. Grupos de Homología y Números de Betti:
+   Dado el complejo de cadenas ... -> C_{k+1} -> C_k -> C_{k-1} -> ...:
+       Z_k = Ker(partial_k)  (subespacio de k-ciclos)
+       B_k = Im(partial_{k+1})  (subespacio de k-fronteras)
+   El k-ésimo grupo de homología de espacio vectorial es el espacio cociente H_k(K) = Z_k / B_k,
+   y su dimensión define el k-ésimo número de Betti:
+       b_k = dim(H_k) = dim(Ker(partial_k)) - dim(Im(partial_{k+1}))
+   - b_0: número de componentes conexas disjuntas.
+   - b_1: número de túneles o ciclos 1-dimensionales no acotados.
+   - b_2: número de cavidades tridimensionales vacías.
+
+3. Teorema de Euler-Poincaré:
+   La característica de Euler chi(K) relaciona la combinatoria directa con los invariantes topológicos:
+       chi(K) = sum_{k=0}^n (-1)^k * c_k = sum_{k=0}^n (-1)^k * b_k,   donde c_k = dim(C_k)
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma TA1 (Nilpotencia Cuadrática de Frontera):
+    partial_{k-1} circ partial_k == 0 para todo grado k >= 1.
+Axioma TA2 (Monotonía de la Filtración de Vietoris-Rips):
+    Si epsilon_1 <= epsilon_2, entonces VR_{epsilon_1}(X) subseteq VR_{epsilon_2}(X).
+Axioma TA3 (Invarianza Topológica Homotópica):
+    Si X simeq Y (espacios homotópicamente equivalentes), entonces b_k(X) == b_k(Y) para todo k.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Identidad de Euler-Poincaré):
+    sum_k (-1)^k * c_k == sum_k (-1)^k * b_k.
+Invariante 2 (No-Negatividad Estricta de Números de Betti):
+    b_k in Z_{>= 0} para todo grado k.
+====================================================================================================
 """
 from __future__ import annotations
 

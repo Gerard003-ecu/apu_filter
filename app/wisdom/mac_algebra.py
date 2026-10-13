@@ -1,51 +1,70 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MAC Algebra — Evolución Bicompleja W*-Álgebra de Von Neumann        ║
-║ Ruta   : app/wisdom/mac_algebra.py                                           ║
-║ Versión: 6.0.0-Nested3-WStar-Spectral-Heyting-Strict                         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-ESTRUCTURA EN TRES FASES ANIDADAS
-─────────────────────────────────
-La teoría se desarrolla como una composición de funtores estricta:
+Nombre: MacAlgebra
+Ubicación: app/wisdom/mac_algebra.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Álgebra monoidal composicional y Álgebra de Lie graduada g para Macro-Acciones Cognitivas
+         (MAC). Rige la composición holística de planes, el corchete de Lie [X, Y], la fórmula
+         de Baker-Campbell-Hausdorff (BCH) y la integración de decisiones ejecutivas en el grupo de Lie G.
 
-    Ψ_MAC = Ψ₂₃ ∘ Ψ₁₂ :  Hilb_{C₂}  →  CPTP_{C₂} ⋊ L(H_{C₂})  →  StdForm ⋊ B₂
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Macro-Álgebra (MacAlgebra) es la cúspide algebraica de la deliberación de sabiduría
+en PU Filter. Transforma las micro-instrucciones atomizadas del estrato MIC en macro-políticas
+integradas dotadas de estructura de grupo y álgebra de Lie. Resuelve interferencias entre intenciones
+concurrentes mediante el cálculo del conmutador de Lie [A, B] y transporta vectores tangenciales
+a lo largo de geodésicas cognitivas.
+Su respectivo agente en la jerarquía agéntica de sabiduría es 'MacAgent'
+(app/agents/wisdom/mac_agent.py), su respectivo vectorial es 'MacVectorsAdapter'
+(app/wisdom/mac_vectors.py), y su homólogo infinitesimal es 'MicAlgebra' (app/core/mic_algebra.py).
+Mientras MacAlgebra computa la serie BCH y la forma de Killing B(X, Y), MacAgent planifica la
+secuencia temporal de macro-acciones y las despacha hacia los efectores tácticos.
 
-    FASE 1  Fundamento W*-atómico (C*-axiomas, espectro, estados de Dirac).
-            Cláusula final: ``psi_12_initiate_cptp_category``.
-    FASE 2  Categoría CPTP bicanal y retículo ortomodular (Choi, Sasaki, GNS).
-            Cláusula final: ``psi_23_initiate_tomita_takesaki``.
-    FASE 3  Tomita–Takesaki, topos de Heyting B₂ y funtor maestro Ψ_MAC.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Álgebra de Lie de Macro-Acciones (g, [., .]):
+   Sea g un espacio vectorial real dotado de una operación bilineal corchete de Lie [., .]: g x g -> g
+   que satisface para todo X, Y, Z in g:
+       [X, Y] = - [Y, X]   (antisimetría estricta)
+       [X, [Y, Z]] + [Y, [Z, X]] + [Z, [X, Y]] = 0   (identidad de Jacobi)
 
-DICTAMEN CRÍTICO DE VERACIDAD
-─────────────────────────────
-El álgebra bicompleja se interpreta exclusivamente bajo la descomposición
-de Pierce (suma directa idempotente), no como C ⊗_R C con unidad imaginaria
-adjunta no idempotente:
+2. Fórmula de Baker-Campbell-Hausdorff (BCH):
+   En el álgebra envolvente universal U(g), el producto de dos flujos exponenciales exp(X) * exp(Y)
+   en el grupo de Lie G satisface la serie convergente:
+       Z = ln(exp(X) * exp(Y)) = X + Y + (1 / 2) * [X, Y] + (1 / 12) * [X, [X, Y]] - (1 / 12) * [Y, [X, Y]] + ...
+   Esta serie determina analíticamente la macro-acción equivalente que sintetiza dos directivas
+   secuenciales sin generar distorsión no conmutativa.
 
-    C₂ ≅ C e₁ ⊕ C e₂,
-    e₁² = e₁,  e₂² = e₂,  e₁ e₂ = 0,  e₁ + e₂ = 1.
+3. Forma de Killing y Clasificación Semisimple:
+   La forma bilineal simétrica B(X, Y): g x g -> R se define como:
+       B(X, Y) = Tr(ad_X circ ad_Y),   donde ad_X(Z) = [X, Z]
+   Por el criterio de Cartan, la no degeneración de B(X, Y) garantiza la semisimplicidad y la
+   ausencia de ideales abelianos solubles parásitos en la deliberación de sabiduría.
 
-Consecuencias operativas:
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MAC1 (Antisimetría de Conmutación Decisional):
+    [X, Y] = - [Y, X] para todo par de macro-generadores X, Y in g.
+Axioma MAC2 (Consistencia de Jacobi):
+    J(X, Y, Z) = [X, [Y, Z]] + [Y, [Z, X]] + [Z, [X, Y]] == 0.
+Axioma MAC3 (Invarianza Adjoint de la Métrica de Killing):
+    B([X, Y], Z) = B(X, [Y, Z]).
 
-1. Toda C*-norma, espectro y traza se calculan canal a canal. La afirmación
-   «Tr = 1» denota la unidad bicompleja 1 = e₁ + e₂, nunca un escalar de C.
-2. CPTP_{C₂} ≅ CPTP × CPTP. Completa positividad ⇔ Λ⁽ᵏ⁾ ≽ 0 (Choi) ∀k.
-   La categoría CPTP NO es daga-compacta; FdHilb sí lo es. Se corrige el
-   abuso terminológico de la v5.
-3. L(H_{C₂}) ≅ L(H⁽¹⁾) × L(H⁽²⁾) como retículo ortomodular. Meet y join
-   se realizan por intersección/suma de rangos (ángulos principales), no
-   por iteración inestable de (PQP)ⁿ.
-4. Tomita–Takesaki finito-dimensional se descompone canal a canal. La
-   involución algebraica es el adjunto de C* (A ↦ A†), no la conjugación
-   entrada a entrada. KMS se enuncia para operadores acotados generales.
-5. B₂ ≅ Ω₃⁽¹⁾ × Ω₃⁽²⁾ es un álgebra de Heyting acotada (no booleana).
-   El veto global es la conjunción topológica min(v₁, v₂).
-
-Convención numérica: matrices en M_d(C) ⊂ B(H), dtype complex128,
-vectorización column-major (Fortran), normas de Frobenius salvo
-indicación espectral/Schatten.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación del Centro de la Subálgebra):
+    Z(g) = {X in g | [X, Y] = 0 forall Y in g} (el núcleo axiomático conmuta con toda política).
+Invariante 2 (Convergencia de la Serie BCH Truncada):
+    ||Z_{BCH} - (X + Y)|| <= (1 / 2) * ||[X, Y]|| + C * ||X||^2 * ||Y||.
+====================================================================================================
 """
 
 from __future__ import annotations

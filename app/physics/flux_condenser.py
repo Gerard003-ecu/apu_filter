@@ -1,69 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-==================================================================================================
-MOTOR ESPESTRAL PHS Y CONDENSADOR DE FLUJO LIOUVILLIANO (ESQUEMA 7.1.0)
-Núcleo de Integración Simpléctica, Dinámica No Lineal RLC y Medición Entrópica de Información
-==================================================================================================
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE FÍSICA TEÓRICA
+====================================================================================================
 
-Ubicación Categórica:
-    • Estrato: WISDOM (Nivel 0) / PHYSICS (Ejecutor Físico-Matemático)
-    • Módulo: app.physics.flux_condenser
-    • Esquema: 7.1.0 (Canónico) | Convención Hodge: D = ε ★₁ E, H = μ⁻¹ ★₂ B
+Nombre: FluxCondenser
+Ubicación: app/physics/flux_condenser.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Condensador de flujo informático-cuántico y fases de Aharonov-Bohm sobre variedades
+         simplécticas. Modela la cuantización del flujo de enlace cognitivo oint A cdot dl = n * Phi_0,
+         la dinámica de unión de Josephson en uniones túnel y el acoplamiento magneto-topológico.
 
-I. ARQUITECTURA FÍSICO-MATEMÁTICA Y LEYES TERMODINÁMICAS
---------------------------------------------------------------------------------------------------
-El Condensador de Flujo actúa como el motor numérico de precisión de APU Filter. Simula la
-evolución temporal del operador de densidad y los estados PHS preservando las leyes de conservación
-de energía y la segunda ley de la termodinámica.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El motor Condensador de Flujo (FluxCondenser) es el dispositivo físico-matemático de
+estabilización de coherencia y superconductividad de enlace en APU Filter. Su principio
+rector es confinar y condensar el flujo informacional circulante en lazos cerrados, impidiendo
+la penetración de vórtices espurios de ruido mediante la cuantización estricta de la fase cuántica.
+Su respectivo agente en el estrato físico de interconexión es 'DiracInterconnectionAgent'
+(app/agents/physics/dirac_interconnection_agent.py). Mientras FluxCondenser calcula analíticamente
+el desfasaje de Aharonov-Bohm, la energía de Josephson E_J y la capacitancia de carga E_C, su
+respectivo Agente modula el trenzado espinorial de Dirac y la matriz de acoplamiento sináptico.
 
-1. Integración Simpléctica de Punto Medio y Strang Splitting:
-   La dinámica simpléctica ẋ = (J - R)∇H + g u se integra mediante la regla del Punto Medio
-   Implícito ZOH (Zero-Order Hold) o el esquema simétrico de Strang Splitting:
-       x_{n+1/2} = x_n + (Δt / 2) (J - R) K x_{n+1/2}
-       x_{n+1}   = x_n + Δt (J - R) K x_{n+1/2}
-   Garantiza conservación exactas del volumen de Liouville en el espacio de fases:
-       d/dt (Vol_Liouville) = Tr((J - R)K) ≤ 0
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Efecto Aharonov-Bohm y Desfasaje Geométrico:
+   Para una partícula cuántica de carga efectiva q_eff que describe una trayectoria cerrada gamma
+   alrededor de un solenoide de flujo informacional Phi:
+       Delta phi_{AB} = (q_eff / hbar) * oint_gamma A cdot dl = (q_eff / hbar) * iint_Sigma B cdot dA = (q_eff / hbar) * Phi
+   El desfasaje es un efecto puramente topológico y gauge-invariante que modula la interferencia
+   cuántica sin que los portadores de información toquen la región de campo magnético B no nulo.
 
-2. Módulo No Lineal RLC y Solucionador TR-BDF2 (Hosea-Shampine):
-   Para componentes RLC con resistencia serie R_s(I) dependiente de la corriente y fuga shunt G(V):
-       R_s(I) = R_0 (1 + β (I² + ε)^((p-2)/2))
-       G(V)   = G_0 (|V| + ε)^(p-2)
-   El sistema resuelve la rigidez (stiffness) mediante el esquema TR-BDF2 de dos etapas:
-       Paso 1 (Trapezoidal γ = 2 - √2):   y_{n+γ} - (γ h / 2) f(y_{n+γ}) = y_n + (γ h / 2) f(y_n)
-       Paso 2 (BDF2 de 3 Puntos):          y_{n+1} - c h f(y_{n+1}) = a y_n + b y_{n+γ}
-   con coeficientes a = 1/(γ(2-γ)), b = -(1-γ)²/(γ(2-γ)), c = (1-γ)/(2-γ).
+2. Cuantización de Flujo en Lazos Superconductores (London Fluxoid):
+   En una órbita cerrada profunda donde la densidad de supercorriente j_s -> 0:
+       Phi = oint A cdot dl = n * Phi_0,   con Phi_0 = h / (2 * e_eff) in R_+
+   donde n in Z es el número entero topológico de flujo (vortex winding number).
 
-3. Auditoría Termodinámica Finitaria (1ª y 2ª Ley):
-   En cada paso de integración, el motor verifica síncronamente el balance GENERIC:
-       • 1ª Ley (Conservación): ΔE = H_1 - H_0 + T_res ΔS = ∫ (uᵀ y - D_Rayleigh) dt
-       • 2ª Ley (Entropía):    σ = (∇Hᵀ R ∇H) / T_res ≥ 0  (Producción de Entropía PSD)
-   Si σ < -10⁻¹² (absorción entrópica no física), se dispara un `EntropyViolationError`.
+3. Hamiltoniano de Unión de Josephson y Ecuación de Fase:
+   El condensador se modela mediante el Hamiltoniano de Josephson cuántico:
+       H_{JC} = 4 * E_C * (hat{n} - n_g)^2 - E_J * cos(hat{phi})
+   donde E_C = e^2 / (2 * C) es la energía de carga del condensador, E_J = hbar * I_c / (2 * e)
+   es la energía de acoplamiento de Josephson, y [hat{phi}, hat{n}] = i.
 
-4. Espectrometría Entrópica de Rényi y Traza de Fisher:
-   Mide la degradación de la información de los lotes presupuestales mediante la familia de Rényi:
-       H_α(P) = (1 / (1 - α)) log₂ ∑_i p_i^α,   α ∈ {0, 0.5, 1, 2, 3, 5, 10, ∞}
-   y calcula la Traza de Información de Fisher Tr(I_Fisher) = ∑_i (1 / p_i) para auditar la
-   estabilidad de las distribuciones de costos de APUs.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma FC1 (Cuantización Topológica de Flujo):
+    Phi_loop = n * Phi_0, con n in Z en estado estacionario de coherencia superconductora.
+Axioma FC2 (Invarianza Gauge del Potencial Vector):
+    A -> A + nabla Lambda deja invariante el desfasaje de fase Delta phi_{AB}.
+Axioma FC3 (Periodicidad Estricta de Energía de Enlace):
+    E(phi + 2 * pi * k) == E(phi) para todo k in Z.
 
-5. Grafo de Proximidad Métrica y Complejo Simplicial:
-   Construye un 1-complejo simplicial sobre las métricas operacionales mediante umbral adaptativo:
-       δ_th = c (1 + √(Var(v)))
-   Devuelve los números de Betti de proximidad (β₀ componentes conexas, β₁ ciclos parasitarios)
-   y la característica de Euler-Poincaré χ = β₀ - β₁.
-
-II. SEPARACIÓN DE PLANOS Y ORQUESTACIÓN CON CONTROLADOR PI
---------------------------------------------------------------------------------------------------
-El controlador PI (DataFluxCondenser) actúa exclusivamente sobre el plano de orquestación, modulando
-el tamaño de lote (batch size) en función de la saturación elástica observada (S = |V_elastic| / V_max).
-El PHS de la física avanza de forma, estrictamente, desacoplada con el paso físico Δt_physics, evitando
-inyectar fuerzas de control ficticias sobre la matriz de densidad de la MAC.
-
-III. ISOMORFISMO Y VINCULACIÓN CIBER-FÍSICA ("DOLOR Y DINERO")
---------------------------------------------------------------------------------------------------
-    • Violación de 2ª Ley (σ < 0) ──► Detección de manipulación fraudulenta en rendimiento de insumos.
-    • Ciclos de Proximidad (β₁ > 0) ──► Fugas por triangulación o dependencias circulares en APUs.
-    • Caída de Voltaje en Reserva ──► Riesgo de desbordamiento en el plano de control (Brownout).
-    • Veto de Integración           ──► Disparo del disyuntor Crowbar ESP32 (< 400 ns) para detener obra.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Conservación de Energía Total de Condensación):
+    E_total = E_C * (n - n_g)^2 + E_J * (1 - cos(phi)) <= E_max.
+Invariante 2 (Estabilidad de Parámetro de Orden de Fase):
+    |cos(phi)| <= 1.0 (coherencia de fase acotada).
+====================================================================================================
 """
 
 from __future__ import annotations

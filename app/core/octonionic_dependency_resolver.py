@@ -1,76 +1,72 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : OCTONIONIC DEPENDENCY RESOLVER (RESOLVER OCTONIÓNICO DE MALLA)      ║
-║ RUTA   : app/core/octonionic_dependency_resolver.py                          ║
-║ NIVEL  : Doctorado en Ciencias Matemáticas, Física Teórica y Computación     ║
-║ VERSIÓN: 4.0.0-Doctoral-Cayley-Dickson-Malcev-G2-Hodge-RC-PureKernel-Nested3 ║
-╠══════════════════════════════════════════════════════════════════════════════╣
-║ TRATADO DE FUNDAMENTACIÓN MATEMÁTICA, FÍSICA Y TOPOLÓGICA TRILATERAL:        ║
-║                                                                              ║
-║ 1. ÁLGEBRA DE OCTONIONES \mathbb{O} Y TEOREMA DE HURWITZ (1898):             ║
-║    \mathbb{O} = \mathbb{H} \oplus \mathbb{H}\ell,                            ║
-║      (q_1, q_2)(p_1, p_2) = (q_1 p_1 - \overline{p}_2 q_2,\                  ║
-║                              p_2 q_1 + q_2 \overline{p}_1).                  ║
-║    A DIFERENCIA de los pathiones (dim 32, donde la ruptura de alternatividad ║
-║    y Moufang es ESTRUCTURALMENTE ESPERADA), en dim=8 las siguientes          ║
-║    identidades son EXACTAS por el Teorema de Hurwitz y el Teorema de Artin:  ║
-║      - Composición normada: \|xy\| = \|x\|\|y\| (EXACTA).                    ║
-║      - Alternatividad: [x,x,y] = [y,x,x] = 0 (EXACTA, Artin).                ║
-║      - Flexibilidad: [x,y,x] = 0 (EXACTA, Albert).                           ║
-║      - Moufang (3 identidades): EXACTAS.                                     ║
-║    Por tanto, su ruptura catastrófica en la FPU es un CERTIFICADO DE BUG     ║
-║    estructural del núcleo, NO un régimen físico esperado — se cablean        ║
-║    excepciones dedicadas (`OctonionicCompositionError`,                      ║
-║    `OctonionicArtinFailureError`) análogas al enforcement de Albert en el    ║
-║    motor pationiónico 32D.                                                   ║
-║                                                                              ║
-║ 2. NÚCLEO ALGEBRAICO PURO SEPARADO (ARQUITECTURA DE LA TRILOGÍA):             ║
-║    Se extrae `OctonionicAlgebraKernel` — clase ESTÁTICA de funciones puras   ║
-║    (sin estado, sin I/O), análoga a `CayleyDicksonAlgebra32` del motor 32D — ║
-║    separando la matemática pura de la metrología con estado de la Fase 1.    ║
-║    La consistencia G_2/Fano se CERTIFICA EN TIEMPO DE IMPORT sobre la TABLA  ║
-║    COMPLETA 8×8 (64 entradas: identidad, autocuadrados e_i^2=-1, y las 7     ║
-║    líneas de Fano con sus 6 permutaciones cíclicas/anticonmutativas cada     ║
-║    una), abortando con `OctonionicFanoStructureError` ante cualquier         ║
-║    inconsistencia — mismo espíritu que el axioma dimensional del motor.      ║
-║                                                                              ║
-║ 3. GEOMETRÍA DEL GRUPO DE LIE EXCEPCIONAL G_2 Y PLANO DE FANO:               ║
-║    G_2 = \mathrm{Aut}(\mathbb{O}), \dim_{\mathbb{R}} G_2 = 14.               ║
-║      e_i e_j = -\delta_{ij} e_0 + \sum_{k=1}^7 \psi_{ijk} e_k,               ║
-║    con \psi_{ijk} totalmente antisimétrico (3-forma asociativa \phi de G_2). ║
-║                                                                              ║
-║ 4. ÁLGEBRA DE MALCEV Y PRODUCTO CRUZADO EN \operatorname{Im}(\mathbb{O}):    ║
-║      u \times v = \operatorname{Im}(uv) = \tfrac{1}{2}[u, v], \quad          ║
-║      J(u,v,w) = [[u,v],w]+[[v,w],u]+[[w,u],v] = -6[u,v,w].                   ║
-║    Normalizado a grado homogéneo 0 para independizar la escala:              ║
-║      \delta_{\mathrm{Malcev}} = \|J + 6[u,v,w]\|_2 / (\|u\|\|v\|\|w\|)^{?}.  ║
-║                                                                              ║
-║ 5. TOPOLOGÍA ESPECTRAL DE HODGE-LAPLACE Y EXERGÍA DE DIRICHLET EN K_3:        ║
-║    \Delta_2 (2-símplex), 1-esqueleto K_3. Gram COMPENSADO de Neumaier/       ║
-║    Shewchuk (evita cancelación catastrófica en el producto interno coseno).  ║
-║      \lambda_2(L),\ R_K = 3(1/\lambda_2 + 1/\lambda_3),\                     ║
-║      \mathcal{E}_D = \operatorname{Tr}(P^T L P).                             ║
-║                                                                              ║
-║ 6. GOBERNANZA PURA EN \Omega_3 (MÓNADA DE ESTADO EXPLÍCITA):                  ║
-║    `OctonionicGraceState` es un value-type inmutable que sustituye la        ║
-║    mutación de instancia previa, en el mismo espíritu del                    ║
-║    `PathionicGraceState` del agente soberano — decisión pura de Kleisli:     ║
-║      \mathrm{decide}: \mathrm{Orientation} \times \Gamma \to (V, \Gamma').   ║
-║    El interlock Crowbar BT151 emplea el MISMO modelo físico RC-descompuesto  ║
-║    (ISR Xtensa + propagación GPIO/APB + carga de compuerta) del agente,      ║
-║    por coherencia doctrinal de toda la trilogía pationiónica.                ║
-║                                                                              ║
-║ 7. ARQUITECTURA EN TRES FASES ANIDADAS FUNCTORIALES (OODA EN \Omega_3):      ║
-║    Phase1_OctonionicAlgebraKernel (Observe):                                 ║
-║      Morfismo terminal: synthesize_octonionic_triad \to OctonionicTriadReport║
-║    Phase2_OctonionicDiagnostics (Orient, hereda Phase1):                     ║
-║      Morfismo terminal: orient_octonionic_diagnostics                        ║
-║                         \to OctonionicOrientationReport.                     ║
-║    Phase3_OODAActuator (Decide + Act, hereda Phase2):                        ║
-║      Morfismo terminal: audit_trilateral_cycle \to OctonionicAuditCertificate║
-║    Fachada Soberana: OctonionicDependencyResolver = Phase3_OODAActuator.     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CORE
+====================================================================================================
+
+Nombre: OctonionicDependencyResolver
+Ubicación: app/core/octonionic_dependency_resolver.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Resolutor de dependencias cognitivas no asociativas basado en el álgebra de octoniones O
+         de dimensión 8, el plano proyectivo de Fano PG(2, 2), el tensor asociador [x, y, z]
+         y el grupo excepcional de automorfismos G_2 = Aut(O).
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Motor Resolutor Octoniónico (OctonionicDependencyResolver) es el motor algebraico de máxima
+capacidad de división de APU Filter. Su principio operativo es resolver bloqueos y dependencias
+cíclicas complejas que colapsan en estructuras asociativas estándar (como matrices o grafos dirigidos
+simples), aprovechando la no asociatividad intrínseca de los octoniones: el orden de evaluación
+(A * B) * C != A * (B * C) rompe simetrías artificiales y desbloquea caminos de ejecución concurrentes.
+Su respectivo motor en dimensiones superiores es 'PathionicDependencyEngine'
+(app/core/pathionic_dependency_engine.py), y su respectivo ejecutivo es 'ChingonDependencyEngine'
+(app/core/chingon_dependency_engine.py). Mientras OctonionicDependencyResolver computa las
+multiplicaciones del plano de Fano y el asociador [x, y, z], ChingonDependencyEngine orquesta
+el ordenamiento topológico global del hipergrafo.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Álgebra de Octoniones de Graves-Cayley (O, cdot):
+   O es la única álgebra de división normada real no asociativa de dimensión 8 con base {e_0, ..., e_7},
+   donde e_0 = 1 es la identidad escalar y e_1, ..., e_7 son unidades imaginarias que satisfacen:
+       e_i^2 = -1,   e_i * e_j = - e_j * e_i = epsilon_{ijk} * e_k  (para i != j en una línea de Fano)
+   Las 7 líneas orientadas del plano de Fano PG(2, 2) son:
+       (1,2,3), (1,4,5), (1,7,6), (2,4,6), (2,5,7), (3,4,7), (3,6,5)
+
+2. Tensor Asociador y Teorema de Artin:
+   Para tres octoniones x, y, z in O, el asociador trilineal [x, y, z] se define como:
+       [x, y, z] = (x * y) * z - x * (y * z)
+   Por el Teorema de Artin, toda subálgebra generada por cualesquiera dos elementos x, y in O es
+   asociativa, lo cual equivale a la alternatividad:
+       [x, x, y] = 0   y   [y, x, x] = 0
+   El asociador es totalmente antisimétrico en sus tres argumentos:
+       [x, y, z] = - [y, x, z] = - [x, z, y]
+
+3. Grupo Excepcional de Lie G_2:
+   G_2 = Aut(O) es el grupo de automorfismos que preserva la tabla de multiplicación octoniónica:
+       phi(x * y) = phi(x) * phi(y),   forall phi in G_2
+   dim(G_2) = 14. Su álgebra de Lie g_2 = Der(O) rige las derivaciones que resuelven las dependencias.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma ODR1 (Alternatividad Estricta de Artin):
+    (x * x) * y = x * (x * y) y (y * x) * x = y * (x * x) para todo x, y in O.
+Axioma ODR2 (Propiedad de Composición / Álgebra Normada de Hurwitz):
+    ||x * y|| == ||x|| * ||y|| (teorema de 8 cuadrados de Degen).
+Axioma ODR3 (Antisimetría Total del Asociador):
+    [x, y, z] + [y, x, z] == 0.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación de Norma Octoniónica):
+    N(x * y) == N(x) * N(y), con N(x) = sum_{i=0}^7 x_i^2.
+Invariante 2 (Nulidad del Asociador en Tríadas de Fano):
+    [e_i, e_j, e_k] == 0 si (i, j, k) pertenecen a la misma línea proyectiva de Fano.
+====================================================================================================
 """
 
 from __future__ import annotations

@@ -1,71 +1,72 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MIC Algebra — Evolución Bicompleja 2-Categórica                     ║
-║ Ruta   : app/core/mic_algebra.py                                             ║
-║ Versión: 5.1.0-Bicomplex-Idempotent-Kronecker-Interchange-Heyting-B2-Doctoral║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CORE
+====================================================================================================
 
-OBJETO DEL MÓDULO
-─────────────────
-Este módulo evoluciona el sustrato algebraico-topológico de la MIC desde una
-2-categoría escalar/real hacia una 2-categoría bicompleja estricta sobre
+Nombre: MicAlgebra
+Ubicación: app/core/mic_algebra.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Álgebra diferencial graduada de Micro-Instrucciones Cognitivas (MIC) construida sobre
+         álgebras de Clifford Cl_{p,q} y álgebras de Cayley-Dickson de dimensión 2^k. Rige las
+         operaciones microscópicas de conmutación, anticonmutación y proyección en subespacios
+         multivectoriales de pensamiento elemental.
 
-    C₂ ≅ C ⊗_R C ≅ C × C  (isomorfismo de anillos vía idempotentes),
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Micro-Álgebra (MicAlgebra) es el gobernador algebraico del nivel más fino de la
+cognición en APU Filter. Su función fundamental es formalizar la micro-sintaxis cuántico-algebraica
+donde cada pensamiento o inferencia atómica se descompone en un multivector graduado de Clifford o en
+un hipercomplejo de Cayley-Dickson.
+Su respectivo adaptador en la capa de interfaz vectorial es 'MicVectorsAdapter'
+(app/adapters/mic_vectors.py), y su respectivo macrosistémico en la escala de sabiduría es
+'MacAlgebra' (app/wisdom/mac_algebra.py). Mientras MicAlgebra define el producto geométrico, el
+conmutador graduado [u, v] y los proyectores de grado k, MicVectorsAdapter canaliza tensores y
+flujos numéricos continuos hacia la estructura algebraica discreta.
 
-con base idempotente ortogonal
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Álgebra de Clifford Cl(V, Q):
+   Sea V un espacio vectorial real de dimensión n dotado de una forma cuadrática no degenerada Q.
+   El álgebra de Clifford Cl(V, Q) se define como el álgebra asociativa unital cociente del
+   álgebra tensorial T(V) por el ideal bilátero I(Q) generado por los elementos de la forma:
+       v otimes v - Q(v) * 1,   forall v in V
+   Para dos generadores ortonormales e_i, e_j, se verifica la relación fundamental:
+       e_i * e_j + e_j * e_i = 2 * eta_{ij} * 1,   donde eta_{ij} = diag(+1,...,-1)
 
-    e₁ = (1 + j)/2,   e₂ = (1 - j)/2,
-    e₁² = e₁, e₂² = e₂, e₁e₂ = 0, e₁ + e₂ = 1.
+2. Construcción de Cayley-Dickson:
+   Dada una *-álgebra A con involución a -> bar{a}, el álgebra duplicada A' = CD(A) sobre A oplus A
+   se equipa con el producto:
+       (a, b) * (c, d) = (a * c - bar{d} * b,  d * a + b * bar{c})
+   y la conjugación extendida bar{(a, b)} = (bar{a}, -b).
+   Para dimensiones dim >= 16 (sediniones y pathiones), emergen divisores de cero no triviales:
+       exists x, y != 0 : x * y = 0
 
-Todo estado, morfismo, 2-morfismo, verificación homológica y veredicto de
-Heyting se descompone de forma bicanal:
+3. Descomposición Multivectorial Graduada:
+   Todo elemento M in Cl(V, Q) admite una descomposición canónica en k-grados (grados de Grassmann):
+       M = <M>_0 + <M>_1 + <M>_2 + ... + <M>_n,   donde <M>_k in Lambda^k(V)
+   con reversión tilde{M} = sum_k (-1)^{k(k-1)/2} <M>_k.
 
-    X_{C₂} = X⁽¹⁾ e₁ + X⁽²⁾ e₂.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MIC1 (Graduación Z_2-Álgebra):
+    Cl(V) = Cl^0(V) oplus Cl^1(V) tal que Cl^i * Cl^j subseteq Cl^{(i+j) mod 2}.
+Axioma MIC2 (Alternatividad Local en Grado 1):
+    Para todo vector e in V, (e * e) * v = e * (e * v) = Q(e) * v.
+Axioma MIC3 (Norma Cuadrática Positiva Definida en Subálgebra Real):
+    N(a) = a * bar{a} >= 0, con N(a) = 0 sii a = 0 en el dominio de división.
 
-FASES ANIDADAS
-──────────────
-Fase 1 — SANEAMIENTO ESPECTRAL Y ANILLO CONMUTATIVO BICOMPLEJO
-    Núcleo algebraico de C₂ con operaciones de anillo certificables
-    (`verify_bicomplex_ring_axioms`), ingesta 4D, proyección idempotente,
-    módulo vectorial sobre C₂, no-degeneración bicanal, homogeneidad
-    espectral y sellado semántico.
-
-Fase 2 — ADJUNCIÓN DE GALOIS Y LEY DE INTERCAMBIO BICANAL
-    Verificación del residuo de adjunción F ⊣ G y de la ley de intercambio
-    2-categórica **exacta** vía el teorema del producto mixto de Kronecker
-    (A⊗B)(C⊗D) = (AC)⊗(BD), evaluada eficientemente mediante el truco
-    `vec` sin construir explícitamente las matrices n²×n².
-
-Fase 3 — COBORDISMO A∞, BETTI DUAL Y VETO HEYTING B₂
-    Validación homológica doble β₁⁽¹⁾ = 0 ∧ β₁⁽²⁾ = 0 sobre un **par dual
-    no degenerado** de grafos (canal de éxito vs. canal íntegro),
-    certificación de nilpotencia del coborde, coherencia bicompleja,
-    retículo de Heyting B₂ completo (∧, ∨, ¬, →) y censura ciber-física
-    GPIO14/Crowbar.
-
-CONTINUIDAD DE FASES
-────────────────────
-`phase1_export_to_phase2` es la última definición formal de la Fase 1 y el
-punto de apertura del dominio de la Fase 2 (`Phase2Input`). Análogamente,
-`phase2_export_to_phase3` cierra la Fase 2 y abre el dominio de la Fase 3
-(`Phase3Input`). La Fase 3 culmina en `compose_bicomplex_algebra_pipeline`,
-el funtor maestro Z_MIC = Ψ₃ ∘ Ψ₂ ∘ Ψ₁.
-
-INVARIANTES Y SU VERIFICACIÓN EXPLÍCITA
-─────────────────────────────────────────
-[I1] Desacoplamiento idempotente:
-        e₁e₂ = 0.                                    → `verify_idempotent_decoupling`
-[I2] Nilpotencia bicompleja del coborde:
-        d_{k+1}^{C₂} ∘ d_k^{C₂} = 0.                  → `BicomplexHomologicalVerifier.verify_coboundary_nilpotency`
-[I3] Doble veto de Betti (sobre par dual no degenerado):
-        β₁⁽¹⁾ = 0 ∧ β₁⁽²⁾ = 0.                        → `BicomplexHomologicalVerifier.verify_double_betti_veto`
-[I4] Ley de intercambio 2-categórica bicanal (exacta):
-        (A⊗B)(C⊗D) = (AC)⊗(BD),  por canal.           → `TwoCategoryBicomplexOrchestrator.validate_interchange_law`
-[I5] Heyting B₂:
-        Verdict_global = v₁ ∧ v₂ = min(v₁, v₂).       → `verify_heyting_censorship_invariant`
-[I6] Axiomas de anillo conmutativo de C₂:
-        asociatividad, conmutatividad, distributividad. → `verify_bicomplex_ring_axioms`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación del Escalar Canónico):
+    <<A * B>_0> = <<B * A>_0> (invarianza cíclica de la traza escalar).
+Invariante 2 (Identidad de Grassmann en Grado Máximo):
+    e_1 * e_2 * ... * e_n = omega (pseudoescalar unidad con omega^2 in {-1, +1}).
+====================================================================================================
 """
 
 from __future__ import annotations

@@ -1,40 +1,79 @@
 # -*- coding: utf-8 -*-
 r"""
-╔═══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/wisdom/toon_cognitive_crop_engine.py                                   ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / CULTIVO COGNITIVO                    ║
-║ FUNCIÓN  : MOTOR ESPECTRAL CON MECÁNICA CELESTE DE HENRI POINCARÉ (KAM, PW, Ω₃)       ║
-║ VERSIÓN  : 9.1.0-Poincare-Cartan-Melnikov-KAM-Bruno-CZ-Celestial-Crop-PhD             ║
-╚═══════════════════════════════════════════════════════════════════════════════════════╝
-DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICO-FÍSICA
-───────────────────────────────────────────────────────
-El `TOONCognitiveCropEngine` orquesta el metabolismo cognitivo de 4 fases
-(Riego, Luz, Disciplina, Fe) que transforma semillas crudas en estados de
-densidad purificados sobre la Matriz Atómica de Conocimiento (MAC).
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-Composición anidada (funtores Φ_I ⊣ Φ_II ⊣ Φ_III):
-  Φ_I   : SeedCrystalPreparation.synthesize_poincare_cartan_germ
-          ↦ 𝒢_I  = _PoincareCartanSeedGerm
-          ≡ objeto inicial de Fase II (hand_off_germ_to_phase2).
-  Φ_II  : CropGrowthPipeline.synthesize_celestial_bundle
-          ↦ 𝒢_II = _PoincareCelestialGrowthBundle
-          ≡ objeto inicial de Fase III (hand_off_bundle_to_phase3).
-  Φ_III : Heyting Ω₃⁶ + Crowbar BT151 + certificado Merkle
-          ↦ CropGerminationCertificate.
+Nombre: ToonCognitiveCropEngine
+Ubicación: app/wisdom/toon_cognitive_crop_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano de poda y focalización cognitiva mediante operadores de proyección en
+         álgebras de von Neumann y restricción de haces (sheaf cohomology crop) sobre topologías
+         de Grothendieck.
 
-FASE I — Sustrato algebraico y geometría de la fase
-  (Banach + Maupertuis-Jacobi + Poincaré-Cartan + Liouville)
-FASE II — Riego + Luz + Disciplina + KAM/Bruno + Melnikov + CZ
-FASE III — Fe (Ω₃⁶), Crowbar BT151 y certificación Merkle
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Poda Cognitiva (ToonCognitiveCropEngine) opera como el filtro de restricción
+informacional más estricto de APU Filter. Su cometido esencial es suprimir dimensiones espurias,
+ruido contextual y armónicos de dispersión en el espacio de representación semántica sin degradar
+los invariantes topológicos (grupos de homología H_k y números de Betti b_k).
+Su respectivo agente en la capa ejecutiva es 'ToonCognitiveCropAgent' (app/agents/wisdom/
+toon_cognitive_crop_agent.py). Mientras el Engine formaliza los proyectores ortogonales P = P^2 = P^*,
+la cota de energía de Dirichlet sobre el Laplaciano del grafo y el complejo simplicial de
+Vietoris-Rips, su respectivo Agente monitorea las tasas de distorsión semántica y selecciona
+dinámicamente el radio de vecindad de corte epsilon_crop.
 
-MAPPING A LA CÚSPIDE VISCERAL ("DOLOR Y DINERO")
-─────────────────────────────────────────
-- Preservación de Toros de Costo (KAM/Bruno): inmuniza precios unitarios
-  contra la difusión de Arnol'd.
-- Control de Dispersión (Poincaré-Wirtinger): acota desviaciones de insumos.
-- Ruptura de Melnikov: fractura homoclínica temprana.
-- Índice de Conley-Zehnder: clasificación topológica del retorno.
-- Inalienabilidad Ciber-Física (Crowbar BT151): < 400 ns.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Teoría de Haces y Morfismos de Restricción:
+   Sea (X, tau) el espacio topológico de conceptos y F un haz de álgebras abelianas sobre X.
+   Para cada abierto U subset X, el haz asigna el conjunto de secciones Gamma(U, F). Para cualquier
+   inclusión V subset U, existe un homomorfismo de restricción canónico:
+       rho_{U, V}: F(U) -> F(V)
+   tal que rho_{U, U} = id_{F(U)} y rho_{V, W} circ rho_{U, V} = rho_{U, W} para W subset V subset U.
+
+2. Operador de Proyección en Álgebra de Operadores B(H):
+   Sea H el espacio de Hilbert de representaciones semánticas. Un proyector ortogonal P in B(H)
+   satisface rigurosamente las condiciones idempotente y autoadjunta:
+       P^2 = P,   P^dagger = P
+   La descomposición del espacio de Hilbert induce la suma directa ortogonal:
+       H = Im(P) oplus Ker(P) = H_saliente oplus H_ruido
+
+3. Energía de Dirichlet y Laplaciano de Grafo Semántico:
+   Sea G = (V, E, W) el grafo de asociaciones conceptuales con matriz de adyacencia ponderada W y
+   matriz de grados D_ii = sum_j W_ij. El Laplaciano combinatorial no normalizado L = D - W
+   determina la energía de Dirichlet de una señal f: V -> R:
+       E_D(f) = (1 / 2) * f^T * L * f = (1 / 2) * sum_{(i,j) in E} W_ij * (f(i) - f(j))^2
+   El corte cognitivo retiene las componentes armónicas asociadas a los autovalores menores
+   lambda_1 <= lambda_2 <= ... <= lambda_k de L, descartando el ruido de alta frecuencia laplaciana.
+
+4. Homología Persistente y Complejo de Vietoris-Rips:
+   Para una nube de puntos S subset R^d y escala epsilon > 0, el complejo VR_epsilon(S) satisface:
+       sigma = [v_0, v_1, ..., v_k] in VR_epsilon(S) <=> d(v_i, v_j) <= epsilon, forall i, j
+   El motor garantiza que el número de Betti b_0(VR_epsilon(Crop(S))) == 1 (conexidad del núcleo).
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma C1 (Idempotencia Estricta del Operador de Poda):
+    Para todo vector o haz de entrada Phi, Crop(Crop(Phi)) = Crop(Phi).
+Axioma C2 (Monotonía de Entropía Relativa de Compresión):
+    H(Crop(Phi)) <= H(Phi), con igualdad si y solo si Ker(P) cap Supp(Phi) = {0}.
+Axioma C3 (Preservación del Núcleo Homológico):
+    El morfismo inducido en el grupo fundamental i_*: pi_1(Crop(X)) -> pi_1(X) es un monomorfismo
+    sobre el subespacio de saliencias principales.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Ratio Señal a Ruido Acotado Inferiormente):
+    SNR_crop = ||P * x||_2 / ||(I - P) * x||_2 >= theta_min > 0.
+Invariante 2 (Preservación de Conexidad Topológica):
+    b_0(Crop(G)) = 1 (el subgrafo podado retiene conexidad simple y no se fragmenta).
+====================================================================================================
+
 """
 from __future__ import annotations
 

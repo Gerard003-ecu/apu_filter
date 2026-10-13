@@ -1,54 +1,65 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Introspection Witness Agent (Soberano Testigo Introspectivo) ║
-║ Ubicación: app/agents/wisdom/toon_introspection_witness_agent.py             ║
-║ Versión  : 7.0.0-Poincaré-RSI3-Nested-Gauge-Hopf-Berry-Lévy-QND-Fock-Φsem    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-TEJIDO ANIDADO POR HERENCIA CATEGÓRICA EN TRES FASES:
+Nombre: ToonIntrospectionWitnessAgent
+Ubicación: app/agents/wisdom/toon_introspection_witness_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano testigo de introspección que audita la estabilidad reflexiva monádica,
+         fiscaliza al agente de introspección activa y previene patologías autorreferenciales de Gödel.
 
-  ◈ FASE I   — IntrospectionWitnessGaugeTopology
-               Fibrado principal P(M, G), G = U(1) × SU(2) × H₃(ℝ)
-               • Conexión A anti-hermítica + curvatura F = dA + [A, D]
-               • 3-forma de Chern–Simons  CS₃ = (1/8π²) Tr(A·dA + ⅔ A³)
-               • Fibración de Hopf cuaterniónica  π(q) = q·i·q̄ ∈ S²
-               • Holonomía de Wilson  W(γ) = P exp(∮_γ A)
-               • Atlas celeste de Poincaré (retorno, twist, Lindstedt, Nekhoroshev)
-               • Contrato HMAC-SHA256 canónico (payload único I ↔ II)
-               • COSTURA: weave_gauge_to_witness  →  GaugeToWitnessSeam
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Testigo de Introspección (ToonIntrospectionWitnessAgent) es el auditor epistemológico
+supremo asignado al subsistema reflexivo de APU Filter. Su misión crítica es garantizar que el proceso
+de auto-corrección e introspección no degenere en bucles autorreferenciales patológicos (Gödel loops),
+recursión infinita o auto-justificación tautológica.
+Su respectivo motor matemático es 'ToonIntrospectionWitnessEngine' (app/wisdom/
+toon_introspection_witness_engine.py). Mientras el Engine computa la curvatura de Berry, la
+conmutación QND y la pureza cuántica de la matriz de densidad, este Agente vigila activamente el
+comportamiento de 'ToonIntrospectionAgent', imponiendo cuotas de profundidad recursiva y emitiendo
+interrupciones de emergencia si el exponente de Lyapunov diverge positivamente.
 
-  ◈ FASE II  — TOONIntrospectionWitnessAgent  (hereda FASE I)
-               Continuación: ingest_gauge_to_witness_seam
-               Campaña QND pasiva (Back-Action 0.0 dB):
-               • C*-𝔇_n, Uhlmann, Fubini–Study, Berry–Pancharatnam, Lévy
-               • Oseledets TRANSVERSAL λ⟂ (advierte, no veta)
-               • Melnikov / Greene / Bryuno / Morse–Bott / Poincaré–Wirtinger
-               • Mapa de primer retorno + monodromía simpléctica det J = 1
-               • Mónada RSI-3 (T, η, μ) con plegado triple y Banach k³
-               • COSTURA: weave_campaign_to_adjudication → CampaignToAdjudicationSeam
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Teorema de Indecidibilidad de Gödel-Tarski y Prevención de Paradojas:
+   En un sistema formal deductivo capaz de aritmética recursiva, el predicado de verdad no puede
+   ser definido internamente sin generar contradicción. El agente actúa como el meta-nivel ontológico
+   externo que evalúa la validez de los asertos introspectivos desde el exterior del lenguaje objeto.
 
-  ◈ FASE III — SovereignIntrospectionWitnessAdjudicator  (hereda FASE II)
-               Continuación: ingest_campaign_to_adjudication_seam
-               • Adjudicación Heyting Ω₃ con meet de 6 criterios
-               • Interlock ESP32 Crowbar (< 400 ns / GPIO14)
-               • Álgebra de Fock  e⁻ + e⁺ → 2γ
-               • Funtor semántico  Φ_sem : Sh(∂K, Ω₃) → Business
-               • DAG Merkle final
+2. Criterio de Estabilidad de Exponentes de Lyapunov y Entropía KS:
+   Para la trayectoria introspectiva {x_t}, los exponentes de Lyapunov lambda_i miden la tasa de
+   separación de trayectorias infinitesimalmente cercanas:
+       lambda = lim_{t -> infty} (1 / t) * ln( ||delta x(t)|| / ||delta x(0)|| )
+   El agente impone que el máximo exponente de Lyapunov satisfaga:
+       lambda_max < 0 (estabilidad contractiva estricta)
 
-Invariantes transversales:
-  • Back-Action QND = 0.0 dB
-  • C*-𝔇_n: ‖ρ‖₁=1, ρ=ρ†, λ_i ≥ −ε
-  • θ_PC = Tr(ρ dN)              residuo ‖[ρ, N]‖ ≤ 1e-5
-  • det DP = 1                   (simpléctica del mapa de Poincaré)
-  • c_G ≤ 12.5
-  • χ(ℂPⁿ⁻¹) = n
-  • v(T^{a}) = min{a_i}
-  • μ∘(Tμ) = μ∘(μT)             plegado ≤ 1e-3; ‖μ∘Tμ − μ∘μT‖ ≤ 1e-3
-  • ρ(DT) < 1                    radio espectral del jacobiano RSI-3
-  • Fock: ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
-  • Berry: |γ_Berry| < 0.5 rad
-  • Nekhoroshev: T_nek ≥ T_min
+3. Auditoría Comonádica de Coherencia:
+   El agente fiscaliza el cumplimiento de la ecuación comonádica varepsilon circ delta = id,
+   verificando que ninguna auto-observación haya alterado el estado cognitivo basal observado.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma IWA1 (Acotación de Profundidad Recursiva):
+    depth(introspect) <= D_max < infty (ninguna auto-referencia puede ser infinitamente profunda).
+Axioma IWA2 (Inmunidad Metacognitiva):
+    El auditor no es modificado por los juicios evaluados por el agente auditado.
+Axioma IWA3 (Conservación de Pureza Espectral):
+    |gamma_post - gamma_pre| <= 1e-5.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Exponentes de Lyapunov Negativos):
+    lambda_max <= - lambda_margin < 0.
+Invariante 2 (Traza Unitaria de Matriz de Densidad Introspectiva):
+    Tr(rho) == 1.0.
+====================================================================================================
 """
 
 from __future__ import annotations

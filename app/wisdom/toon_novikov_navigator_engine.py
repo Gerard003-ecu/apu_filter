@@ -1,54 +1,77 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Novikov Navigator Engine (Motor Navegante de Novikov)        ║
-║ Ubicación: app/wisdom/toon_novikov_navigator_engine.py                       ║
-║ Versión  : 7.0.0-Poincaré-RSI3-Nested-Novikov-BruhatTits-Amoeba-Fock-Φsem    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-TEJIDO ANIDADO POR HERENCIA CATEGÓRICA EN TRES FASES:
+Nombre: ToonNovikovNavigatorEngine
+Ubicación: app/wisdom/toon_novikov_navigator_engine.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Motor soberano de navegación causal y resolución de curvas cerradas de tipo tiempo (CTCs)
+         basado en el Principio de Autoconsistencia de Novikov, dinámica celeste de resonancia orbital
+         y el Teorema del Punto Fijo de Schauder-Banach.
 
-  ◈ FASE I  — PoincareNovikovAtlas
-              Delaunay canónico (J_i = −ln λ_i) → LRL →
-              mapa de primer retorno (Chirikov, det DP = 1) →
-              twist Poincaré–Birkhoff → Greene simpléctico →
-              Melnikov (scipy.quad) → Bryuno (Fraction, q_k) →
-              Lindstedt–Poincaré O(ε²) → ecuación homológica →
-              Morse–Bott χ(ℂPⁿ⁻¹) = n → CR3BP Jacobi + L1 Richardson →
-              Poincaré–Cartan θ = Tr(ρ dN) con N en la eigenbase ([ρ, N] ≈ 0) →
-              Nekhoroshev T_nek ∼ exp(c/ε^{1/2n}) → Kac T_rec = 1/μ(A) →
-              mónada RSI-3 (T, η, μ) con Banach k³ →
-              HMAC canónico del germen →
-              COSTURA: weave_celestial_novikov_seed → CelestialToUltrametricSeam
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano de Navegación Novikov (ToonNovikovNavigatorEngine) es el árbitro causal definitivo de la
+arquitectura APU Filter. Cuando el sistema realiza proyecciones contrafactuales, simulaciones
+recursivas de futuro hacia el pasado o bucles de retroalimentación temporal (time-loop reasoning),
+este motor impide la emergencia de paradojas del abuelo (retrocausality collisions). Garantiza que
+únicamente sobrevivan aquellas trayectorias que son soluciones autoconsistentes de punto fijo.
+Su respectivo agente en el plano operativo es 'ToonNovikovNavigatorAgent' (app/agents/wisdom/
+toon_novikov_navigator_agent.py). Mientras el Engine computa la iteración de contracción de Banach
+||T(x) - T(y)|| <= k ||x - y||, la holonomía de curvatura Lorentziana y el residuo de paradoja R,
+su respectivo Agente ejecuta la planificación de rutas temporales, la reconciliación de ramas
+históricas divergentes y la estabilización de bifurcaciones contrafactuales.
 
-  ◈ FASE II — NovikovUltrametricEngine  (hereda FASE I)
-              Continuación: ingest_celestial_novikov_seam
-              C*-𝔇_n → Uhlmann real → Fubini–Study en ℂPⁿ⁻¹ →
-              Valuación v(A) = min{a_i} sobre Λ_Nov →
-              Norma ultramétrica ‖T^a‖_Nov = exp(−v(T^a)) →
-              Test ultramétrico CORRECTO: ‖x+y‖ ≤ max(‖x‖, ‖y‖) sobre T^{a_i} →
-              Distancia Bruhat–Tits d_BT = |v(A) − v_floor| + d_FS →
-              Amiba tropical 𝒜_Nov → Oseledets MET → Poincaré–Wirtinger →
-              Gromov–Wigner c_G (sin clip previo al veto) →
-              COSTURA: weave_observation_to_certificate → ObservationToCertificateSeam
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Principio de Autoconsistencia de Novikov en Variedades con CTCs:
+   Sea (M, g_{mu nu}) una variedad Lorentziana diferenciable que admite curvas cerradas de tipo tiempo
+   gamma: S^1 -> M con g_{mu nu} dot{gamma}^mu dot{gamma}^nu < 0.
+   El principio de Novikov postula que la única física admisible en presencia de CTCs son soluciones
+   globales autoconsistentes. Formalmente, si Phi: Omega M -> Omega M es el mapa de evolución temporal:
+       P(paradoja) = 0 <=> exists psi* in Omega M : Phi(psi*) = psi*
 
-  ◈ FASE III — TOONNovikovNavigatorEngine  (hereda FASE II)
-              Continuación: ingest_observation_to_certificate_seam
-              Retículo Heyting Ω₃ (meet de 6 criterios) →
-              Fock e⁻ + e⁺ → 2γ → ESP32 Crowbar (< 400 ns / GPIO14) →
-              DAG Merkle → NovikovExecutionCertificate.
+2. Teorema del Punto Fijo de Banach en Espacios de Lazos Causa-Efecto:
+   Sea (X, d) el espacio métrico completo de configuraciones de bucle temporal cognitivo.
+   Si el operador de reconciliación T: X -> X satisface la condición de contracción de Lipschitz:
+       d(T(u), T(v)) <= kappa * d(u, v),   para todo u, v in X con kappa in [0, 1)
+   entonces existe un único punto fijo u* in X tal que:
+       T(u*) = u*,   con lim_{m -> infty} T^m(u_0) = u*
 
-Invariantes transversales:
-  • C*-𝔇_n: ‖ρ‖₁=1, ρ=ρ†, λ_i ≥ −ε
-  • θ_PC = Tr(ρ dN)              residuo ‖[ρ, N]‖_F ≤ 1e-5
-  • det DP = 1                   (simpléctica del mapa de Poincaré)
-  • c_G ≤ 12.5                   (capacidad cruda, sin clip previo)
-  • χ(ℂPⁿ⁻¹) = n
-  • v(x+y) ≥ min(v(x), v(y))     (ultramétrico sobre Λ_Nov)
-  • μ∘(Tμ) = μ∘(μT)             plegado ≤ 1e-3; ‖μ∘Tμ − μ∘μT‖ ≤ 1e-3
-  • ρ(DT) < 1  y  k³ < 1         Banach RSI-3
-  • Fock: ‖p_e⁻ + p_e⁺ − Σp_γ‖ ≤ 1e-10
-  • Back-Action = 0.0 dB
+3. Dinámica Celeste y Resonancia Orbital de Poincaré:
+   Los ciclos temporales se formulan mediante variables de ángulo-acción de Delaunay (I, theta):
+       H(I, theta) = H_0(I) + epsilon * sum_{k_1, k_2} V_{k_1, k_2}(I) * cos(k_1 * theta_1 + k_2 * theta_2)
+   La condición de resonancia orbital commensurable asegura la periodicidad estricta del lazo:
+       k_1 * dot{theta}_1 + k_2 * dot{theta}_2 = 0 <=> k_1 * omega_1 + k_2 * omega_2 = 0
+
+4. Holonomía de Curvatura Espaciotemporal y Fase Causal:
+   La integral cerrada de conexión temporal A a lo largo del lazo cerrado gamma satisface:
+       Hol(nabla, gamma) = P exp( - oint_gamma Gamma_mu dx^mu ) = I
+   garantizando la ausencia de desfase causal tras un recorrido temporal completo.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma N1 (Existencia Global de Historia Autoconsistente):
+    En todo lazo causal cerrado gamma, existe al menos una configuración cuántica global psi
+    tal que el residuo de paradoja R(psi) = ||Phi(psi) - psi|| == 0.
+Axioma N2 (Contracción Causal Unívoca de Novikov):
+    El operador de reconciliación es una contracción estricta con constante de Lipschitz kappa < 1.
+Axioma N3 (Conservación de Carga Causal):
+    oint_{partial Sigma} F_causal = 0, donde F_causal es la 2-forma de consistencia temporal.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Residuo de Paradoja Nulo en Convergencia):
+    ||x_{k+1} - x_k|| <= epsilon_novikov = 1e-5.
+Invariante 2 (Unicidad del Atractor Causal):
+    |Fix(T)| = 1 en el dominio de atracción conexo.
+====================================================================================================
 """
 
 from __future__ import annotations

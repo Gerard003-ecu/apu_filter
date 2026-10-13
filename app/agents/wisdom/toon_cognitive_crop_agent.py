@@ -1,41 +1,63 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/agents/wisdom/toon_cognitive_crop_agent.py                            ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / CULTIVO COGNITIVO                   ║
-║ FUNCIÓN  : SOBERANO DEL CULTIVO COGNITIVO CON MECÁNICA CELESTE DE POINCARÉ           ║
-║ VERSIÓN  : 9.1.0-Poincare-Cartan-Melnikov-KAM-Bruno-CZ-Celestial-Crop-Agent-PhD      ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
-DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICO-FÍSICA
-───────────────────────────────────────────────────────
-El `TOONCognitiveCropAgent` es el Soberano de Calibre que gobierna el campo de
-cultivo cognitivo, sanea semillas, autoriza la inoculación CPTP en la MAC y
-certifica la cosecha con Merkle + Crowbar BT151.
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-Composición anidada (funtores Φ_I ⊣ Φ_II ⊣ Φ_III):
-  Φ_I   : SeedCrystalSanitizer.synthesize_poincare_cartan_germ
-          → SeedCelestialHandoff.hand_off_germ_to_phase2
-          ↦ 𝒢_I  = _PoincareCartanSeedGerm ⊗ SeedCelestialHandoff
-          ≡ objeto inicial de Fase II.
-  Φ_II  : CropGrowthPipeline.synthesize_celestial_bundle
-          → CropGrowthPipeline.hand_off_bundle_to_phase3
-          ↦ 𝒢_II = _PoincareCelestialGrowthBundle
-          ≡ objeto inicial de Fase III.
-  Φ_III : Ω₃⁷ ⊕ canal celeste + Crowbar + inoculación MAC + pasaporte Merkle
-          ↦ CropHarvestYield ⊗ CropSovereignGovernancePassport.
+Nombre: ToonCognitiveCropAgent
+Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de poda cognitiva que gobierna la asignación de presupuesto de atención,
+         la compresión de entropía y la aplicación adaptativa de proyectores de haz sobre el contexto.
 
-FASE I  — Sustrato algebraico, saneamiento, geometría de la fase, MAC CPTP.
-FASE II — Riego (Hill) + Luz (Brockett/Cayley) + Disciplina + KAM/Bruno + Melnikov + CZ.
-FASE III — Fe Ω₃⁷⊕celeste, Crowbar BT151, inoculación MAC, gobernanza Merkle.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Poda Cognitiva (ToonCognitiveCropAgent) es el gestor táctico de foco atencional
+de APU Filter. Su función es regular de forma continua la ventana de observación semántica,
+eliminando ramas de contexto irrelevantes o parasitarias que pudieran saturar la capacidad de
+cálculo de los motores reflexivos y amortiguadores.
+Su respectivo motor matemático es 'ToonCognitiveCropEngine' (app/wisdom/
+toon_cognitive_crop_engine.py). Mientras el Engine computa la proyección ortogonal P, la energía
+de Dirichlet de la señal y la persistencia homológica b_0 = 1, este Agente define dinámicamente el
+umbral de corte energético epsilon_crop en función de la carga informacional actual y del presupuesto
+de cómputo disponible.
 
-POSTULADOS DE GOBERNANZA
-────────────────────────
-1. Toros KAM: |⟨k,ω⟩| ≥ γ/|k|^τ  y  Bruno ∑ 2^{-ν} log(1/Ω(2^ν)) < ∞.
-2. Poincaré-Wirtinger: ‖ρ − I/n‖_F² ≤ C_P · 2 E_D(ρ).
-3. Contracción MAC: Lip(Φ_γ) = |1−γ| < 1 (CPTP convexo).
-4. Melnikov: cero simple ⇒ fractura homoclínica (veto).
-5. Conley–Zehnder + Nekhoroshev T ≥ exp(c ε^{-1/(2n)}).
-6. Inoculación MAC sólo si Ω₃ = ⊤; crowbar si Ω₃ = ⊥.
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Teoría de la Información y Función de Tasa-Distorsión R(D):
+   El agente busca la tasa mínima de bits informacionales R sujeta a una cota de distorsión esperada D:
+       R(D) = min_{p(hat{x}|x) : E[d(x, hat{x})] <= D} I(X; hat{X})
+   donde d(x, hat{x}) = ||x - P * x||_2^2 es la norma euclidiana del residuo de corte.
+
+2. Envolvente Convexa de Saliencia y Teorema de Carathéodory:
+   Cualquier punto en la envolvente convexa de saliencias conv(S) subset R^d puede expresarse
+   como combinación convexa de como máximo d + 1 puntos extremos, permitiendo al agente
+   reducir el soporte del haz a un conjunto minimal de anclas conceptuales.
+
+3. Restricción de Haz sobre Topologías de Grothendieck:
+   El agente selecciona el subcubrimiento abierto {U_i} minimal tal que la cohomología de Cech
+   asociada H^1({U_i}, F) no presente obstrucciones para la síntesis de sabiduría.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma CCA1 (Preservación del Núcleo Crítico):
+    El conjunto de axiomas primarios y directivas soberanas K_sovereign subset Crop(Context_global).
+Axioma CCA2 (Compresión de Entropía Monótona):
+    H(Crop(Context)) <= H(Context_global).
+Axioma CCA3 (Acotación de Distorsión):
+    E[||x - Crop(x)||^2] <= D_max en todo ciclo de poda.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Ratio Mínimo de Energía Conservada):
+    ||P * x||_2^2 / ||x||_2^2 >= eta_min = 0.70.
+Invariante 2 (Conexidad del Subespacio Retenido):
+    b_0(Crop(S)) == 1.
+====================================================================================================
 """
 from __future__ import annotations
 

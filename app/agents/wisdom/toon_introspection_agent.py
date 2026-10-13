@@ -1,65 +1,68 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/agents/wisdom/toon_introspection_agent.py                             ║
-║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / REFLEJO INTROSPECTIVO               ║
-║ FUNCIÓN  : SOBERANO DE INTROSPECCIÓN — POINCARÉ-BIRKHOFF-OSELEDETS-KAM-MELNIKOV      ║
-║ VERSIÓN  : 9.0.0-Doctoral-Poincaré-Birkhoff-Oseledets-KAM-NestedThreePhase           ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-ARQUITECTURA DE FASES ANIDADAS (categorías encajadas)
-─────────────────────────────────────────────────────
-Funtor F = F₃ ∘ F₂ ∘ F₁ sobre la categoría 𝐂𝐨𝐧𝐜𝐫𝐞𝐭𝐞 de presheaves sobre Ω₃:
+Nombre: ToonIntrospectionAgent
+Ubicación: app/agents/wisdom/toon_introspection_agent.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Agente soberano de introspección activa encargado de la revisión de creencias (postulados
+         AGM), optimización por gradiente natural sobre variedades de Riemann y auto-corrección de sesgos.
 
-    F₁ : Flash × MAC × Ω₃           → IntrospectiveHandoff     (sustrato proyectivo)
-    F₂ : IntrospectiveHandoff       → IntrospectionBundle       (dinámica de PF)
-    F₃ : Bundle                     → IntrospectionProofCertificate
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Introspección (ToonIntrospectionAgent) es el motor activo de metacognición de
+APU Filter. Cuando se detectan discrepancias entre las inferencias generadas y las evidencias
+emergentes, este agente no se limita a observar pasivamente: toma el control de los pesos de
+creencia, re-organiza la jerarquía de asertos lógicos y ejecuta la contracción de errores.
+Su respectivo motor matemático es 'ToonIntrospectionEngine' (app/wisdom/toon_introspection_engine.py).
+Mientras el Engine calcula las matrices de Lyapunov P y Q, y el radio espectral rho(A), este
+Agente formula las propuestas de revisión de creencias que satisfacen el álgebra booleana de
+consistencia y envía los estados contraídos a los demás agentes de sabiduría.
 
-Anidamiento estricto:
-    continue_into_phase2 ∘ build              = synthesize ∘ build
-    continue_into_phase3 ∘ synthesize ∘ build = adjudicate ∘ synthesize ∘ build
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Postulados AGM de Revisión de Creencias (Alchourrón, Gärdenfors, Makinson):
+   Sea K un conjunto deductivamente cerrado de creencias y alpha una nueva fórmula. La operación de
+   revisión K * alpha satisface los 6 postulados fundamentales:
+       (AGM 1) K * alpha es deductivamente cerrado: K * alpha = Cn(K * alpha).
+       (AGM 2) alpha in K * alpha.
+       (AGM 3) K * alpha subseteq Cn(K cup {alpha}).
+       (AGM 4) Si neg alpha notin K, entonces Cn(K cup {alpha}) subseteq K * alpha.
+       (AGM 5) K * alpha = L si y solo si alpha es lógicamente inconsistente.
+       (AGM 6) Si alpha equiv beta, entonces K * alpha = K * beta.
 
-MECÁNICA CELESTE DE POINCARÉ — NÚCLEO FORMAL
-─────────────────────────────────────────────
-Sea ρ_MAC ∈ 𝔇_n y T([v]) = [ρv] la aplicación proyectiva sobre ℂP^{n−1}.
+2. Gradiente Natural de Amari sobre la Variedad de Información:
+   La actualización del vector de parámetros theta se efectúa a lo largo de la geodésica inducida
+   por el tensor métrico de Fisher G(theta):
+       theta_{t+1} = theta_t - eta_lr * G(theta_t)^{-1} * nabla L(theta_t)
+   garantizando invarianza bajo reparametrizaciones arbitrarias del espacio latente.
 
-1. Sección de Poincaré Σ_c ⊂ ℂP^{n−1}: nivel de Rayleigh R(v) = ⟨v|ρ|v⟩ = c.
-   R es función Morse con puntos críticos = rayos propios de ρ. Σ_c es
-   transversal al flujo proyectado X(v) = (I − vv†)ρv siempre que c ∉ spec(ρ).
+3. Contracción de Energía de Error Cuadrático:
+   El agente minimiza la divergencia metacognitiva:
+       E(x) = (1 / 2) * ||x - x*||_2^2,   dE / dt = <x - x*, dot{x}> <= - beta * E(x)
 
-2. Teorema de Birkhoff (Último Teorema Geométrico de Poincaré): un
-   homeomorfismo que preserva área del anillo A = S¹ × [0,1] con twist
-   ∂(θ')/∂r ≠ 0 tiene al menos 2 puntos fijos.  Aquí: la restricción de T
-   a un 2-plano real invariante span{v_i, v_j} es area-preserving y, si
-   los autovalores son distintos, satisface twist ⇒ ≥ 2 puntos fijos.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma IA_ACT1 (Consistencia Lógica Estricta):
+    Si la nueva evidencia es consistente, el estado revisado jamás colapsa en el conjunto trivial.
+Axioma IA_ACT2 (Monotonía de Pérdida Metacognitiva):
+    E_{t+1} < E_t para todo paso de corrección con gradiente no nulo.
+Axioma IA_ACT3 (Preservación del Núcleo Axiomático Soberano):
+    K_sovereign subset K * alpha para toda revisión admisible.
 
-3. Oseledets proyectivo: T sobre ℂP^{n−1} tiene tasas transversales
-       λ_i = log(λ_i(ρ)/λ₁(ρ)) ≤ 0
-   (λ₁ simple ⇒ todas < 0).  h_KS(Pesin) = Σ_{λ_i > 0} λ_i = 0 en atractor
-   puntual; degeneración λ₁ = λ₂ ⇒ λ_max = 0 (caos introspectivo).
-
-4. Melnikov proyectivo: M = ⟨[H_eff, g], g⟩_F sobre la órbita entre [v₁] y [v₂];
-   M = 0 simple ⇒ tangle homoclínico ⇒ caos.
-
-5. KAM diofántico: |ω·k| ≥ γ/|k|^τ.  ω derivado de Floquet moduli.
-
-6. Lévy sobre ℂP^{n−1} con métrica Fubini–Study (Ric = 2(n+1)ω):
-       P(|f − 𝔼f| ≥ ε) ≤ exp(−(n+1)ε²/(2π²L²)).
-
-POSTULADOS OPERATIVOS
-─────────────────────
-P1. Iteración de potencia gauge-fijada; parada d_FS ∧ ‖T_φ − v‖.
-P2. d_FS = arccos(|⟨u|v⟩|); residuo gauge-fijado = 2 sin(θ/2).
-P3. ρ(DT|_{v₁}) = λ₂/λ₁ (Floquet); tasa empírica en ventana sana.
-P4. Ω₃ por meets adimensionales incluyendo λ_max, Melnikov, KAM, Birkhoff, Σ.
-P5. Φ_η CPTP, Lip₁ = |1−η|.
-P6. Cadena Merkle F1 → F2 → F3.
-
-TRADUCCIÓN EJECUTIVA ("DOLOR Y DINERO")
-──────────────────────────────────────
-- Certificación de punto fijo con respaldo topológico (Brouwer + Birkhoff).
-- Veto automático si λ_max ≥ 0 (degeneración), Melnikov transversal o KAM colapsa.
-- Crowbar BT151 en GPIO14 con latencia < 400 ns en IRAM del ESP32.
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Disminución Monótona de la Divergencia):
+    ||e_{t+1}||_2 <= (1 - alpha_decay) * ||e_t||_2.
+Invariante 2 (Preservación de Idempotencia Monádica):
+    mu(eta(Psi)) == Psi.
+====================================================================================================
 """
 
 from __future__ import annotations

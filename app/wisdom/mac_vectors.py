@@ -1,63 +1,66 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MAC Vectors (Operador de Inyección Tensorial y Canal Bicomplejo)    ║
-║ Ruta   : app/wisdom/mac_vectors.py                                           ║
-║ Versión: 5.0.0-Doctoral-Bicomplex-HyperbolicAlgebra-SpectralCalculus         ║
-║          [FASE 1 / 3 — Kernel Algebraico Bicomplejo]                         ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO:                         ║
-║ Este módulo implementa la inyección de estados cuánticos y semánticos        ║
-║ continuos en el espacio de Hilbert de la Matriz Atómica de Conocimiento      ║
-║ (MAC) en el Estrato de la Sabiduría (V_W, Nivel 0).                          ║
-║                                                                              ║
-║ Enriquece la inyección cuántica ordinaria con el álgebra de los Números      ║
-║ Bicomplejos C₂ ≅ C ⊗ C, introduciendo proyectores idempotentes sobre la      ║
-║ base {e1, e2}. Esto permite segregar el flujo de información y valor en      ║
-║ canales ortogonales de Inversión Directa y Carga Entrópica, detectando       ║
-║ Puntos de Estancamiento Financiero como divisores de cero en el cono nulo    ║
-║ de la FPU.                                                                   ║
-║                                                                              ║
-║ ESTRUCTURA DEL ANILLO BICOMPLEJO C₂ (base real {1,i,j,k}):                   ║
-║   i² = -1, j² = -1, ij = ji = k, k² = +1, k ≠ ±1.                            ║
-║   e1 = (1 + k)/2, e2 = (1 - k)/2.                                            ║
-║   e1² = e1, e2² = e2, e1e2 = 0, e1 + e2 = 1.                                 ║
-║                                                                              ║
-║ REPRESENTACIÓN IDEMPOTENTE (Teorema de descomposición de C₂, Price 1991):    ║
-║   Todo z = z1 + z2·j ∈ C₂ (z1,z2 ∈ C(i)) admite la única descomposición:     ║
-║       z = u1·e1 + u2·e2,     u1 = z1 - i·z2,   u2 = z1 + i·z2 ∈ C(i)         ║
-║   que constituye un ISOMORFISMO DE ANILLOS  C₂ ≅ C(i) ⊕ C(i).                ║
-║   Esta es la base categórica de todo el módulo: el funtor de descomposición  ║
-║   idempotente es una equivalencia entre la categoría de módulos hermíticos   ║
-║   sobre C₂ y el producto de dos copias de la categoría de módulos            ║
-║   hermíticos sobre C — de allí que ρ = ρ1·e1 + ρ2·e2 se pueda auditar        ║
-║   canal por canal de forma completamente desacoplada.                        ║
-║                                                                              ║
-║ LAS TRES CONJUGACIONES DE C₂ (derivadas exactamente en base real {1,i,j,k}): ║
-║   τ_i (bar):   (a,b,c,d) → (a,-b, c,-d)   ⟹  (u1,u2) → (ū2, ū1)  [swap+conj]║
-║   τ_j (star):  (a,b,c,d) → (a, b,-c,-d)   ⟹  (u1,u2) → (u2, u1)  [swap puro]║
-║   τ_k (bar★):  (a,b,c,d) → (a,-b,-c, d)   ⟹  (u1,u2) → (ū1, ū2)  [conj puro]║
-║                                                                              ║
-║ MÓDULO HIPERBÓLICO (vía τ_k, produce un elemento de D = R[k]/(k²-1)):        ║
-║       |z|²_D := z · τ_k(z) = |u1|² e1 + |u2|² e2  ∈  D₊ (cono positivo)      ║
-║                                                                              ║
-║ MATRIZ DE DENSIDAD BICOMPLEJA:                                               ║
-║   ρ = ρ1 e1 + ρ2 e2, con ρ1, ρ2 ∈ M_d(C).                                    ║
-║                                                                              ║
-║ ÍNDICE DE ESTANCAMIENTO FINANCIERO:                                          ║
-║   χ_stagnation = ||ρ1 ρ2†||_F².                                              ║
-║   Un divisor de cero aparece cuando:                                         ║
-║       ||ρ1||_F > 0 ∧ ||ρ2||_F > 0 ∧ ρ1 ρ2† ≈ 0.                              ║
-║   Esto es exactamente la condición de divisor de cero del anillo hiperbólico ║
-║   D: un elemento z1·e1 + z2·e2 con z1≠0 ∧ z2≠0 puede aun así ser divisor     ║
-║   de cero relativo si el producto cruzado se anula — la MAC generaliza esta  ║
-║   noción escalar de D al caso matricial M_d(C)⊗D.                            ║
-║                                                                              ║
-║ ÁLGEBRA DE BOOLE SUBYACENTE:                                                 ║
-║   {0, e1, e2, 1} ⊂ C₂, con el producto de idempotentes como "meet", forma    ║
-║   un álgebra de Boole de 2 átomos, isomorfa a (℘({1,2}), ∩, ∪, ᶜ). Esta es   ║
-║   la base formal de los veredictos ternarios de Heyting de la Fase 3.        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
+
+Nombre: MacVectorsAdapter
+Ubicación: app/wisdom/mac_vectors.py
+Versión: 1.0.0-APU-SOVEREIGN
+Función: Adaptador vectorial y transporte paralelo de generadores de macro-acciones sobre variedades
+         riemannianas y espacios homogéneos G/H. Integra la métrica de Cartan-Killing, el mapa
+         exponencial geodésico exp_p(v) y la proyección tensorial hacia el espacio de control táctico.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Adaptador de Vectores MAC (MacVectorsAdapter) constituye el puente diferencial que
+traduce los elementos abstractos del álgebra de Lie g en trayectorias geodésicas continuas en la
+variedad de estados del sistema. Gobierna el transporte paralelo de Levi-Civita a lo largo de las
+curvas integrales de las políticas de sabiduría, previniendo derivas angulares no compensadas.
+Su respectivo motor algebraico es 'MacAlgebra' (app/wisdom/mac_algebra.py), su respectivo agéntico
+es 'MacAgent' (app/agents/wisdom/mac_agent.py), y su homólogo microscópico es 'MicVectorsAdapter'
+(app/adapters/mic_vectors.py). Mientras MacAlgebra rige los corchetes de Lie y la composición BCH,
+MacVectorsAdapter calcula el mapa exponencial geodésico y la métrica de Killing inducida.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Transporte Paralelo de Levi-Civita en Variedad Riemanniana (M, g):
+   Dada una curva suave gamma: [0, 1] -> M con vector tangente dot{gamma}(t), un campo vectorial
+   V(t) a lo largo de gamma es transportado paralelamente si su derivada covariante se anula:
+       nabla_{dot{gamma}} V = 0 <=> dot{V}^k + Gamma^k_{ij} dot{gamma}^i V^j = 0
+   donde Gamma^k_{ij} son los símbolos de Christoffel de segunda especie de la métrica g.
+
+2. Mapa Exponencial Geodésico exp_p: T_p M -> M:
+   Para un vector tangente v in T_p M, exp_p(v) = gamma_v(1), donde gamma_v es la única geodésica
+   que satisface gamma_v(0) = p y dot{gamma}_v(0) = v.
+   La distancia geodésica mínima entre dos macro-estados p, q viene dada por:
+       d_g(p, q) = ||exp_p^{-1}(q)||_g = sqrt(g_p(v, v))
+
+3. Curvatura de Riemann y Holonomía Geodésica:
+   El tensor de curvatura R(X, Y)Z = nabla_X nabla_Y Z - nabla_Y nabla_X Z - nabla_{[X, Y]} Z
+   cuantifica el desvío que experimenta una macro-acción al ser transportada sobre un lazo cerrado:
+       oint_{partial Sigma} R(X, Y) = Delta V_holonomy
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MCVA1 (Compatibilidad con la Métrica Riemanniana):
+    nabla_X g(Y, Z) = 0, garantizando d/dt <V, W>_g = 0 bajo transporte paralelo.
+Axioma MCVA2 (Torsión Nula de Levi-Civita):
+    nabla_X Y - nabla_Y X = [X, Y].
+Axioma MCVA3 (Conservación de Longitud Geodésica):
+    ||P_{gamma}(v)||_g == ||v||_g para todo camino suave gamma.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Isometría de Transporte Paralelo):
+    | ||V(t)||_g - ||V(0)||_g | <= 1e-6 para todo parámetro t in [0, 1].
+Invariante 2 (Preservación del Ángulo entre Políticas):
+    cos(theta(t)) = <V(t), W(t)> / (||V(t)|| * ||W(t)||) == cos(theta(0)).
+====================================================================================================
 """
 
 from __future__ import annotations
