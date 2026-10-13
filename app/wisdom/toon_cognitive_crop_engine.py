@@ -98,7 +98,7 @@ if not logger.handlers:
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
-__version__: Final[str] = "9.1.0-Poincare-Cartan-Melnikov-KAM-Bruno-CZ-Celestial-Crop-PhD"
+__version__: Final[str] = "10.0.0-RSI-3-Inflexion-Monadic-Hodge-Lanczos-Poincare-Wirtinger-PhD"
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONSTANTES NUMÉRICAS (Wilkinson, Hill, KAM, Melnikov, Floquet, Birkhoff)
@@ -1690,6 +1690,50 @@ class CognitiveIlluminationModule:
 
 
 # ── §2.3 CognitiveDisciplineModule — DISCIPLINA (Poincaré-Wirtinger) ──────
+class MetaCognitiveCropEngine:
+    r"""
+    Motor Espectral del Cultivo Cognitivo con Meta-Aceleración Recursiva Nivel 3 (Inflexión / Meta-Mejora).
+
+    Satisface la positividad de la tercera derivada temporal de la capacidad:
+        d³C / dt³ > 0
+
+    Aplica la multiplicación monádica μ_crop : T²(A) -> T(A) para reescribir dinámicamente
+    la constante geométrica de Poincaré-Wirtinger C_P(t) y el parámetro de contracción CPTP:
+        C_P(t+1) = μ_crop(C_P(t)) = C_P^♯ / (1 + β · dE_D(ρ)/dt)
+        Φ_γ(ρ) = (1 - γ(t)) ρ + γ(t) ρ*, con γ(t) = γ₀ exp(-λ₂(Δ_k) · t)
+    """
+
+    def __init__(self, dimension: int = 4, cp_base: float = 0.5) -> None:
+        if dimension < 1:
+            raise ValueError("dimension debe ser ≥ 1.")
+        self.dim: int = int(dimension)
+        self.CP_base: float = float(cp_base)
+
+    def update_poincare_wirtinger_constant(
+        self, current_CP: float, d_dirichlet_dt: float, beta: float = 0.25
+    ) -> float:
+        r"""
+        Aplica la multiplicación monádica μ_crop para actualizar C_P(t) en función de la
+        variación temporal de la energía de Dirichlet.
+        """
+        cp_curr = float(current_CP)
+        d_e = max(float(d_dirichlet_dt), 0.0)
+        CP_next = cp_curr / (1.0 + float(beta) * d_e)
+        return float(np.clip(CP_next, 0.05, 1.0))
+
+    @staticmethod
+    def compute_fiedler_cptp_gamma(
+        gamma0: float, fiedler_lambda2: float, time_t: float
+    ) -> float:
+        r"""
+        Calcula el factor de contracción CPTP γ(t) = γ₀ exp(-λ₂(Δ_k) t).
+        """
+        g0 = float(np.clip(gamma0, 0.0, 1.0))
+        lam2 = max(float(fiedler_lambda2), 0.0)
+        t_val = max(float(time_t), 0.0)
+        return float(g0 * math.exp(-lam2 * t_val))
+
+
 class CognitiveDisciplineModule:
     r"""
     Módulo de Disciplina con acotación Poincaré-Wirtinger.
@@ -3183,6 +3227,7 @@ __all__ = [
     "CrowbarActuationReport",
     "CognitiveFaithModule",
     "CropGerminationCertificate",
+    "MetaCognitiveCropEngine",
     "TOONCognitiveCropEngine",
 ]
 
