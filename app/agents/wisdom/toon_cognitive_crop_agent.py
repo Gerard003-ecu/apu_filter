@@ -118,7 +118,7 @@ if not logger.handlers:
     )
 
 __version__: Final[str] = (
-    "9.1.0-Poincare-Cartan-Melnikov-KAM-Bruno-CZ-Celestial-Crop-Agent-PhD"
+    "10.0.0-RSI-3-Inflexion-Monadic-Hodge-Lanczos-Poincare-Wirtinger-Agent-PhD"
 )
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2600,6 +2600,27 @@ class TOONCognitiveCropAgent:
                 except Exception:
                     self.engine = None
         self.crowbar_interlock = CognitiveFaithModule()
+        self.CP_current = 0.5
+        try:
+            from app.wisdom.toon_cognitive_crop_engine import MetaCognitiveCropEngine
+            self.meta_engine = MetaCognitiveCropEngine(dimension=self.dimension_mac)
+        except ImportError:
+            self.meta_engine = None
+
+    def execute_rsi3_meta_crop_step(self, d_dirichlet_dt: float) -> float:
+        r"""
+        Ejecuta la aceleración metamórfica Nivel 3 (Inflexión / Meta-Mejora):
+            C_P(t+1) = μ_crop(C_P(t)) = C_P^♯ / (1 + β · dE_D(ρ)/dt)
+
+        Actualiza la constante geométrica de Poincaré-Wirtinger en función de la
+        variación temporal de la energía de Dirichlet.
+        """
+        if self.meta_engine is None:
+            return self.CP_current
+        self.CP_current = self.meta_engine.update_poincare_wirtinger_constant(
+            self.CP_current, d_dirichlet_dt
+        )
+        return self.CP_current
 
     def _advance_chain(self, tag: str, payload: bytes) -> str:
         h = hashlib.sha256(
@@ -3250,6 +3271,7 @@ __all__ = [
     "CognitiveFaithModule",
     "CropHarvestYield",
     "CropSovereignGovernancePassport",
+    "MetaCognitiveCropEngine",
     "TOONCognitiveCropAgent",
 ]
 

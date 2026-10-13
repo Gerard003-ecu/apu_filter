@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Wisdom Weaver Agent (Soberano Tejedor de Sabiduría)          ║
 ║ Ubicación: app/agents/wisdom/toon_wisdom_weaver_agent.py                     ║
-║ Versión  : 5.0.0-Doctoral-Nested-TOON-Poincaré-Hopf-KAM-Delaunay-Hill-A5     ║
+║ Versión  : 6.0.0-RSI-3-Inflexion-Monadic-Novikov-Octonion-Cayley-Darboux     ║
 ║ Autor    : APU Wisdom & Metacortex Mathematical Core Architecture            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS EJECUTIVA Y GOBERNANZA DE LAZO CERRADO EN WISDOM (V_𝕎)
@@ -122,6 +122,7 @@ __all__ = [
     "WisdomWeavingPipeline",
     "HeytingAdjudicator",
     "ESP32CrowbarInterlock",
+    "MetaWisdomWeaverEngine",
     "TOONWisdomWeaverAgent",
     "TopologicalInvariantError",
     "MetabolicProjector",
@@ -2673,6 +2674,30 @@ class TOONWisdomWeaverAgent:
         self.dt_metabolic = 0.05
         self.brockett_engine = BrockettIsospectralEngine()
         self.functor = JSONToTOONFunctor()
+        try:
+            from app.wisdom.toon_wisdom_weaver_engine import MetaWisdomWeaverEngine
+            self.meta_engine = MetaWisdomWeaverEngine(dimension=self.mac_dimension)
+        except ImportError:
+            self.meta_engine = None
+
+    def execute_rsi3_meta_weaver_step(
+        self, ricci_curvature: Optional[np.ndarray] = None
+    ) -> np.ndarray:
+        r"""
+        Ejecuta la aceleración metamórfica de Nivel 3 (Inflexión / Meta-Mejora):
+            μ_weaver : T²(A) -> T(A)
+
+        Reconfigura la matriz de potencial N_potential agregando la corrección por
+        curvatura de Ricci sobre la variedad.
+        """
+        if self.meta_engine is None:
+            return self.N_potential
+        if ricci_curvature is None:
+            ricci_curvature = np.eye(self.mac_dimension, dtype=complex) * 0.1
+        self.N_potential = self.meta_engine.compute_meta_brockett_potential(
+            self.N_potential, ricci_curvature
+        )
+        return self.N_potential
 
     def _update_chain(self, tag: str, payload: bytes) -> str:
         r"""
