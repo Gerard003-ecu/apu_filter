@@ -1,24 +1,48 @@
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
-ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 ====================================================================================================
+
 Nombre:    ToonSilentWitnessAgent
 Ubicación: app/agents/wisdom/toon_silent_witness_agent.py
 Versión:   9.2.0-APU-CR3BP-AGM-RSI3-CROWBAR-POINCARE
-Fase:      1 / 3  ·  SUSTRATO ONTOLÓGICO (tríada ≅ CR3BP + AGM + Crowbar + RSI-3)
+Función:   Agente soberano Testigo Silencioso, orquestación de la observación sin retro-acción ( Dirac vacuum ),
+           adjudicación de creencias AGM sobre Ω₃, monitoreo de puntos de Lagrange L1-L5 y hardware Crowbar.
+
 ----------------------------------------------------------------------------------------------------
-EVOLUCIÓN GRANULAR v9.2.0-F1 respecto de v9.1.0:
-  (i)   AGM en mundos posibles de Ω₃: expansión = ∩, contracción = full-meet ∪ ¬α,
-        revisión = identidad de Levi. Verificación exhaustiva de K*1–K*8 (256 casos).
-  (ii)  Germen RSI-3 (T, η, μ) sin colisión eta/mix; unidad = unit(); Mac Lane sobre 𝔓_n.
-  (iii) μ CR3BP vía ‖U−I‖_F, no |det U| ≡ 1.  Firma mass_ratio coherente.
-  (iv)  Jacobi / Hill a la Szebehely: C_i = 2Ω(L_i), topología {C>C1, C2, C3, C4=C5}.
-  (v)   Jacobiano 4×4 del flujo rotante en Fase 1 (Lyapunov de L1–L5 sin TangentFlow).
-  (vi)  Crowbar SWA1 con predicados catastróficos (KMS, Jacobi, λ, Hill) y latencia cota.
-  (vii) KrausRankCertificate: SVD, rango de Choi, CP (λ_min(Choi) ≥ −ε), back-action Lüders.
-  (viii) Carta de Poincaré planar (Λ, λ, ξ, η) del germen L4/L5.
-  (ix)  PoincareSectionSeed nace en Fase 1 — morfismo terminal emit_poincare_seed.
+DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
+----------------------------------------------------------------------------------------------------
+El Agente Soberano Testigo Silencioso (ToonSilentWitnessAgent) actúa como el observador inmune no-intrusivo
+de la arquitectura APU Filter. Su misión es garantizar que las inspecciones del vacío y los estados de
+densidad ρ_vac se ejecuten con cero perturbación sobre el flujo disipativo cognitivo.
+Supervisa el motor 'TOONSilentWitnessEngine' (app/wisdom/toon_silent_witness_engine.py).
+
+1. Dinámica Simpléctica y Puntos de Libración L1–L5:
+   En el problema restringido de tres cuerpos circular (CR3BP) o su análogo cognitivo con relación de masas μ,
+   la constante de Jacobi C define las superficies de velocidad cero (regiones de Hill):
+       C = 2 Ω(x, y) - (ẋ^2 + ẏ^2)
+   El agente monitorea la estabilidad de los puntos Lagrangianos L1–L5 evaluando la no-degeneración de Kolmogorov:
+       κ = det(Hessian_I H) ≠ 0
+
+2. Revisión de Creencias AGM y Disparador Crowbar:
+   El Agente mantiene un sistema de creencias K sobre el álgebra de Heyting Ω₃. En presencia de anomalías
+   en la integral de Jacobi C < C_critical o divergencias modulares en la condición KMS, se dispara
+   el mecanismo hardware Crowbar en IRAM, asegurando una latencia menor a 400 ns.
+
+3. Mónada RSI-3 y Registro Causal Inmutable:
+   Cada observación se cristaliza sobre la 6-esfera S⁶ y se firma mediante un árbol de Merkle inmutable,
+   certificando la integridad del Testigo Silencioso sin colisión de la unidad η.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS Y INVARIANTES FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma AS1 (Zero Back-Action Operational):
+    ⟨Ψ | [A, H_vac] | Ψ⟩ = 0 para todo observable A del filtro, garantizando la naturaleza pasiva de la observación.
+Axioma AS2 (Coherencia de Revisión AGM):
+    Para todo α ∈ Ω₃, K * α satisface los 8 postulados de Alchourrón-Gärdenfors-Makinson.
+Invariante AS1 (Acotamiento de la Superficie de Hill):
+    El movimiento informacional está topológicamente restringido a la región permitida { (x,y) : 2Ω(x,y) ≥ C }.
 ====================================================================================================
 """
 from __future__ import annotations
@@ -30,6 +54,7 @@ import math
 import time
 from dataclasses import dataclass, field, replace
 from enum import IntEnum
+from fractions import Fraction
 from typing import (
     Any,
     Callable,
@@ -275,24 +300,6 @@ DensityMatrixOps = DensityOperatorAlgebra
 WitnessVacuumContext = VacuumModularContext
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 1 · SUSTRATO ONTOLÓGICO                                              ║
-# ║          TRÍADA ≅ CR3BP  +  AGM  +  CROWBAR SWA1  +  GERMEN RSI-3         ║
-# ║                                                                           ║
-# ║  §1.0  Crowbar ESP32 / predicados SWA1 (Acción Cero)                      ║
-# ║  §1.1  AGM sobre mundos posibles de Ω₃  (K*1–K*8)                         ║
-# ║  §1.2  Germen mónada RSI-3 (T, η, μ) — mix, no eta-float                  ║
-# ║  §1.3  Métricas del vacío y firma de la tríada                            ║
-# ║  §1.4  Fábrica de operadores (Haar / GUE / Lüders)                        ║
-# ║  §1.5  Canal de tríada: Kraus, Choi, CP, back-action                      ║
-# ║  §1.6  Carta canónica de Poincaré planar + Delaunay                       ║
-# ║  §1.7  CR3BP rotante: estado, Ω, Jacobi, jacobiano 4×4                    ║
-# ║  §1.8  Libración L1–L5, Routh, Lyapunov lineal                            ║
-# ║  §1.9  Región de Hill (Szebehely)                                         ║
-# ║  §1.10 Preparación del vacío del Testigo                                  ║
-# ║  §1.11 PoincareSectionSeed  +  TriadToCR3BPMorphism.emit_poincare_seed    ║
-# ║        └── morfismo terminal FASE 1  ≡  objeto inicial de FASE 2          ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -1750,28 +1757,6 @@ class TriadToCR3BPMorphism:
         rsi3_mix: float = _RSI3_DEFAULT_MIX,
         rho_for_backaction: Optional[np.ndarray] = None,
     ) -> PoincareSectionSeed:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO TERMINAL DE FASE 1  ≡  OBJETO INICIAL DE FASE 2      ║
-        ║                                                                 ║
-        ║  emit_poincare_seed : (TriadChannel, ρ_vac, α_AGM)              ║
-        ║                     → PoincareSectionSeed                       ║
-        ║                                                                 ║
-        ║  Composición:                                                   ║
-        ║      (U,D,P,ρ) --reduce_channel--> (μ, C, z₀, L)                ║
-        ║                --JacobiRegion-->   Hill / Szebehely             ║
-        ║                --AGM Levi-->       certificado K*1–K*8          ║
-        ║                --Kraus SVD-->      rango Choi / back-action     ║
-        ║                --carta Poincaré--> (Λ, λ, ξ, η) tadpole         ║
-        ║                                                                 ║
-        ║  CONTINUACIÓN FORMAL (FASE 2 · §2.1, primer método):            ║
-        ║      PoincareSectionIntegrator.integrate_section(seed)          ║
-        ║                                                                 ║
-        ║  El tipo PoincareSectionSeed ES el dominio de integrate_section.║
-        ║  No hay gap: el último morfismo de Fase 1 es el primero de      ║
-        ║  Fase 2.                                                        ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         mu, C, state0, L = cls.reduce_channel(channel, rho_vac)
         routh = LibrationPointSolver.routh_stability(mu)
         region = JacobiRegion.evaluate(state0, mu)
@@ -1844,46 +1829,6 @@ class TriadToCR3BPMorphism:
             jacobi_region=region,
             kraus_certificate=kraus_cert,
         )
-
-
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FIN DE FASE 1                                                             ║
-# ║                                                                           ║
-# ║ Continuación formal — FASE 2 · §2.1  (próximo prompt):                    ║
-# ║                                                                           ║
-# ║     class PoincareSectionIntegrator:                                      ║
-# ║         def integrate_section(                                            ║
-# ║             self, seed: PoincareSectionSeed, n_crossings: int = 512,      ║
-# ║         ) -> List[SectionCrossing]:                                       ║
-# ║             ...  # consume el objeto terminal de Fase 1                   ║
-# ║                                                                           ║
-# ║ El par (emit_poincare_seed, integrate_section) es un isomorfismo de       ║
-# ║ transporte: PoincareSectionSeed ↦ órbita de sección (x, ẋ) con            ║
-# ║ refinamiento Newton–Raphson de y(t)=0.  Fase 2 abre Levi-Civita/KS,       ║
-# ║ Lyapunov, SALI/GALI, Melnikov, KAM, lenguas de Arnold y el pipeline       ║
-# ║ WitnessObservationPipeline.emit_birkhoff_seed.                            ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
-from fractions import Fraction
-
-
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2 · POINCARÉ, LEVI-CIVITA/K-S, CAOS, KAM, GALI, ARNOLD, MELNIKOV     ║
-# ║                                                                           ║
-# ║  CONTINUACIÓN FORMAL DE FASE 1                                            ║
-# ║      TriadToCR3BPMorphism.emit_poincare_seed                              ║
-# ║          : (TriadChannel, ρ_vac, α_AGM) → PoincareSectionSeed             ║
-# ║      ≡  dominio de PoincareSectionIntegrator.integrate_section            ║
-# ║                                                                           ║
-# ║  §2.0  SectionCrossing, ReturnMapReport, CelestialDiagnostics             ║
-# ║  §2.1  PoincareSectionIntegrator  (Hermite–Newton, Σ={y=0, ẏ>0})          ║
-# ║  §2.2  Levi-Civita / Kustaanheimo–Stiefel                                 ║
-# ║  §2.3  Flujo tangente, Lyapunov BGGS, SALI, GALI                          ║
-# ║  §2.4  Melnikov {H₀,H₁} + ceros transversales + Smale–Birkhoff            ║
-# ║  §2.5  KAM, número de rotación, Chirikov, lenguas de Arnold               ║
-# ║  §2.6  WitnessObservationBundle                                           ║
-# ║  §2.7  WitnessObservationPipeline                                         ║
-# ║        └── emit_birkhoff_seed  ≡  morfismo inicial de FASE 3              ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 _EVENT_NEWTON_TOL: float = 1.0e-12
@@ -2096,19 +2041,6 @@ class PoincareSectionIntegrator:
     def integrate_section(
         self, seed: PoincareSectionSeed, n_crossings: int = 512
     ) -> List[SectionCrossing]:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO INICIAL DE FASE 2                                     ║
-        ║                                                                 ║
-        ║  integrate_section : PoincareSectionSeed → List[SectionCrossing]║
-        ║                                                                 ║
-        ║  Dominio = codominio de                                         ║
-        ║      TriadToCR3BPMorphism.emit_poincare_seed.                   ║
-        ║                                                                 ║
-        ║  Integra ż = X_μ(z) con RK4, detecta cruces y=0, ẏ>0,           ║
-        ║  refina por Hermite–Newton y certifica Jacobi en cada hoja.     ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         f = CR3BPDynamics.vector_field(seed.mu)
         z = seed.initial_state.as_array().copy()
         t = 0.0
@@ -3308,24 +3240,6 @@ class WitnessObservationPipeline:
 
     @classmethod
     def emit_birkhoff_seed(cls, bundle: WitnessObservationBundle) -> BirkhoffSeed:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO TERMINAL DE FASE 2  ≡  OBJETO INICIAL DE FASE 3      ║
-        ║                                                                 ║
-        ║  emit_birkhoff_seed : WitnessObservationBundle → BirkhoffSeed   ║
-        ║                                                                 ║
-        ║  Composición:                                                   ║
-        ║      bundle --reduce L4/L5, ω_KAM, λ₁, SALI/GALI, Melnikov-->   ║
-        ║             --Arnold, AGM, RSI-3, Crowbar, Hill--> BirkhoffSeed ║
-        ║                                                                 ║
-        ║  CONTINUACIÓN FORMAL (FASE 3 · §3.1, primer método):            ║
-        ║      BirkhoffNormalForm.linearization(seed.L4_xy, seed.mu)      ║
-        ║      BirkhoffNormalForm.frequencies(seed.mu)                    ║
-        ║                                                                 ║
-        ║  El tipo BirkhoffSeed ES el dominio de la forma normal de       ║
-        ║  Birkhoff–Deprit y de la cota de Nekhoroshev.  No hay gap.      ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         if bundle.poincare_seed is None:
             raise ValueError(
                 "Bundle sin poincare_seed: no se puede emitir BirkhoffSeed."
@@ -3391,42 +3305,6 @@ class WitnessObservationPipeline:
         )
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FIN DE FASE 2                                                             ║
-# ║                                                                           ║
-# ║ Continuación formal — FASE 3 · §3.1  (próximo prompt):                    ║
-# ║                                                                           ║
-# ║     class BirkhoffNormalForm:                                             ║
-# ║         @classmethod                                                      ║
-# ║         def linearization(cls, L4_xy: Tuple[float, float], mu: float)     ║
-# ║             -> np.ndarray:                                                ║
-# ║             ...  # consume BirkhoffSeed.L4_xy, BirkhoffSeed.mu            ║
-# ║         @classmethod                                                      ║
-# ║         def frequencies(cls, mu: float) -> Tuple[float, float]:           ║
-# ║             ...  # ω_s, ω_ℓ  (Routh / Gascheau)                           ║
-# ║                                                                           ║
-# ║ El par (emit_birkhoff_seed, linearization/frequencies) es un              ║
-# ║ isomorfismo de transporte: BirkhoffSeed ↦ forma normal de                 ║
-# ║ Birkhoff–Deprit + cota de Nekhoroshev + cristal Merkle.                   ║
-# ║ Fase 3 abre Hori–Deprit a orden 3–4, Floquet, difusión de Arnold,         ║
-# ║ adjudicación Ω₃ y TOONSilentWitnessAgent.observe_and_crystallize.         ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3 · BIRKHOFF–DEPRIT, NEKHOROSHEV, Ω₃, MERKLE Y SOBERANO TOON         ║
-# ║                                                                           ║
-# ║  CONTINUACIÓN FORMAL DE FASE 2                                            ║
-# ║      WitnessObservationPipeline.emit_birkhoff_seed                        ║
-# ║          : WitnessObservationBundle → BirkhoffSeed                        ║
-# ║      ≡  dominio de BirkhoffNormalForm.from_seed                           ║
-# ║                                                                           ║
-# ║  §3.1  BirkhoffNormalForm  (Gascheau, Floquet, twist, Taylor Ω)           ║
-# ║  §3.2  ResonanceLadder  (fracciones continuas, 2:1 / 3:1 Deprit)          ║
-# ║  §3.3  NekhoroshevBound  ≠  ArnoldDiffusionBridge  (2DOF vs ≥3DOF)        ║
-# ║  §3.4  ExperienceCrystal  (objeto terminal del agente)                    ║
-# ║  §3.5  HeytingWitnessAdjudicator  (meet granular)                         ║
-# ║  §3.6  TOONSilentWitnessAgent.observe_and_crystallize                     ║
-# ║  §3.7  Demostración autónoma                                              ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 # Resonancias de Deprit–Deprit-Bartholomé (1967) en L4:
@@ -3564,19 +3442,6 @@ class BirkhoffNormalForm:
 
     @classmethod
     def from_seed(cls, seed: BirkhoffSeed) -> BirkhoffNormalFormReport:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO INICIAL DE FASE 3                                     ║
-        ║                                                                 ║
-        ║  from_seed : BirkhoffSeed → BirkhoffNormalFormReport            ║
-        ║                                                                 ║
-        ║  Dominio = codominio de                                         ║
-        ║      WitnessObservationPipeline.emit_birkhoff_seed.             ║
-        ║                                                                 ║
-        ║  Consume (μ, L4_xy) y certifica Gascheau, Floquet, twist,       ║
-        ║  resonancias 2:1 / 3:1 de Deprit.                               ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         return cls.analyze(seed.L4_xy, seed.mu)
 
     @classmethod
@@ -4513,21 +4378,6 @@ class TOONSilentWitnessAgent:
         dirichlet_energy: float = 0.0,
         tau_recurrence: float = 1.0,
     ) -> ExperienceCrystal:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO TERMINAL DE FASE 3  ≡  OBJETO TERMINAL DEL MÓDULO    ║
-        ║                                                                 ║
-        ║  observe_and_crystallize :                                      ║
-        ║      (ilusión, sueño, auditor, Ω₃) → ExperienceCrystal          ║
-        ║                                                                 ║
-        ║  Composición de las tres fases:                                 ║
-        ║      F₁  emit_poincare_seed          → PoincareSectionSeed      ║
-        ║      F₂  synthesize + emit_birkhoff  → BirkhoffSeed             ║
-        ║      F₃  from_seed ⊗ adjudicate      → ExperienceCrystal        ║
-        ║                                                                 ║
-        ║  Sello Merkle, AGM, RSI-3, Crowbar SWA1, Nekhoroshev/KAM.       ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         self.crystal_count += 1
         crystal_id = f"CRYSTAL-EXP-{self.crystal_count:04d}"
         t_start = time.perf_counter()
@@ -4900,23 +4750,3 @@ if __name__ == "__main__":
     print("  Crowbar SWA1 + GALI + Melnikov {H₀,H₁} + Gascheau½ + Nekhoroshev≠Arnold.")
     print("═" * 88)
 
-
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FIN DE FASE 3  ≡  FIN DEL AGENTE                                          ║
-# ║                                                                           ║
-# ║ Cadena de morfosmos (isomorfismos de transporte):                         ║
-# ║                                                                           ║
-# ║   FASE 1  TriadToCR3BPMorphism.emit_poincare_seed                         ║
-# ║        →  PoincareSectionSeed                                             ║
-# ║   FASE 2  PoincareSectionIntegrator.integrate_section                     ║
-# ║        →  WitnessObservationPipeline.emit_birkhoff_seed                   ║
-# ║        →  BirkhoffSeed                                                    ║
-# ║   FASE 3  BirkhoffNormalForm.from_seed                                    ║
-# ║        →  HeytingWitnessAdjudicator.adjudicate                            ║
-# ║        →  TOONSilentWitnessAgent.observe_and_crystallize                  ║
-# ║        →  ExperienceCrystal  ⊂  Merkle  ⊂  AGM  ⊂  S⁶                     ║
-# ║                                                                           ║
-# ║ El par (emit_birkhoff_seed, from_seed) cierra el topos: no hay            ║
-# ║ gap tipado entre fases.  El soberano realiza la composición               ║
-# ║ F₁∘F₂∘F₃ en un único endomorfismo de registro.                            ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝

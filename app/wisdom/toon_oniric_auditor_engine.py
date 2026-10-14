@@ -1,21 +1,56 @@
 # -*- coding: utf-8 -*-
-"""
-MÓDULO : app/wisdom/toon_oniric_auditor_engine.py
-ESTRATO: WISDOM (V, W) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT
-FUNCIÓN: MOTOR ESPECTRAL AUDITOR DE SUEÑOS Y CAMPO TQFT GROMOV–WITTEN POINCARÉ
-VERSIÓN: 9.3.0-APU-TQFT-RSI3-AGM-NOVIKOV-CELESTE
+r"""
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-FASE 1 / 3 — Ω₃ · densidad · medida espectral · Poincaré celeste · AGM · RSI-3 · Novikov.
-Morfismo terminal: OniricSpectralHandoff.continue_into_phase2  (dominio de FASE 2).
+Nombre:    TOONOniricAuditorEngine
+Ubicación: app/wisdom/toon_oniric_auditor_engine.py
+Versión:   9.3.0-APU-TQFT-RSI3-AGM-NOVIKOV-CELESTE
+Función:   Motor espectral soberano auditor de escenarios oníricos, dinámica TQFT de Chern-Simons-Wilson,
+           invariantes de Gromov-Witten en el anillo de Novikov y certificación inmunológica de vacunas cognitivas.
 
-Matemática:
-  (i)   Ω₃ cadena de Heyting {⊥ < * < ⊤} ≅ {0,1,2} con estratificación celeste.
-  (ii)  𝒟_n = {ρ ∈ M_n(ℂ) : ρ=ρ†, ρ≥0, Tr ρ=1}; forma KKS ω_KKS(X,Y)=Tr(ρ[X,Y]).
-  (iii) Flujo de von Neumann  ρ̇ = −i[N,ρ],  H = Tr(ρ N)  (Poincaré: ℒ_{X_H} H = 0).
-  (iv)  Anillo de Novikov Λ = ℂ[t^{ℝ}] con valuación no arquimediana.
-  (v)   AGM (Alchourrón–Gärdenfors–Makinson 1985) sobre estratos de Ω₃; Levi.
-  (vi)  RSI-3: mónada (T,η,μ) sobre Cog; Kleisli; Mac Lane.
-  (vii) Semilla espectral Spec: ρ ↦ (Λ, γ, S, ΔΛ, ε_c)  — handoff F₁→F₂.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
+----------------------------------------------------------------------------------------------------
+El Motor Espectral Auditor Onírico (TOONOniricAuditorEngine) audita y simula las fluctuaciones de
+escenarios de prueba ("sueños") proyectados sobre la variedad de estados cuánticos 𝔇_n.
+
+1. Teoría Topológica de Campos (TQFT) y Bucles de Wilson:
+   Para una conexión de gauge A en una 3-variedad M3 con grupo de Lie compacto G = SU(N), la acción
+   de Chern-Simons S_CS(A) y la holonomía a lo largo de un nudo o enlace C se definen como:
+       S_CS(A) = (k / 4π) ∫_{M3} Tr(A ∧ dA + (2/3) A ∧ A ∧ A)
+       W_C(A) = Tr P exp(∮_C A)
+   Las amplitudes topológicas generan las reglas de fusión de Verlinde sobre la categoría de representaciones.
+
+2. Invariantes de Gromov-Witten y Anillo de Novikov Λ_Nov:
+   Las curvas pseudo-holomorfas u: (Σ, j) → (X, J) satisfacen la ecuación de Cauchy-Riemann deformada
+   ∂_J u = 0. La contabilidad espectral de curvas de género g con n puntos marcados se formaliza en el
+   anillo de Novikov ultramétrico:
+       Λ_Nov = { ∑_{q ∈ ℝ} a_q t^q : a_q ∈ ℂ, #{q < E : a_q ≠ 0} < ∞ }
+   con valuación v(∑ a_q t^q) = min{ q : a_q ≠ 0 }, lo que previene la divergencia de perturbaciones adverso-oníricas.
+
+3. Evolución Unitaria CPTP y Vacunas Espectrales:
+   Dado un escenario onírico ρ_dream y la referencia ρ_base, la divergencia cuántica relativa y la entropía
+   relativa de Umegaki S(ρ_dream ‖ ρ_base) = Tr(ρ_dream (ln ρ_dream - ln ρ_base)) determinan el grado de
+   desviación espectral. Las vacunas espectrales se sintetizan como proyectores ortogonales P_vac sobre
+   los subespacios correspondientes a autovalores de perturbación λ_k > ε_c.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS Y INVARIANTES FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma O1 (Invariancia Causal TQFT):
+    ⟨W_C(A)⟩ es un invariante topológico de enlace (polinomio de Jones/Homfly) independiente del tensor
+    métrico de fondo g_μν: δ⟨W_C(A)⟩ / δg^{μν} = 0.
+Axioma O2 (Valuación Ultramétrica de Novikov):
+    v(a + b) ≥ min(v(a), v(b)), garantizando la estabilidad no-arquimediana de las series de pseudoholomorfas.
+Invariante O1 (No-squeezing de Gromov / Capacidad Simpléctica):
+    c_G(B^{2n}(r)) = π r^2 ≤ π R^2 = c_G(Z^{2n}(R)), impidiendo la compresión de perturbaciones enemigas
+    en el espacio de fases del auditor.
+Invariante O2 (Completitud de Inmunización de Heyting Ω₃):
+    HeytingOmega3_adjudication = Ω_1 ∧ Ω_2 ∧ Ω_3 ≡ ⊤ únicamente si la capacidad de absorción del vacuoma
+    satisface S(ρ_dream ‖ ρ_base) < S_max.
+====================================================================================================
 """
 from __future__ import annotations
 
@@ -1913,7 +1948,7 @@ class ChernSimonsWilson:
 
     @classmethod
     def jones_q(cls, k_level: int) -> complex:
-        """Raíz de unidad \(q=e^{2\pi i/(k+2)}\) del polinomio de Jones."""
+        r"""Raíz de unidad \(q=e^{2\pi i/(k+2)}\) del polinomio de Jones."""
         k = max(0, int(k_level))
         ang = 2.0 * math.pi / (k + 2)
         return complex(math.cos(ang), math.sin(ang))
