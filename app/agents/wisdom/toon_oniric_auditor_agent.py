@@ -1,25 +1,47 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/agents/toon_oniric_auditor_agent.py                                   ║
-║ ESTRATO  : WISDOM (V_𝕎) — CIUDADELA DE CRISTAL / AUDITORÍA ONÍRICA TQFT              ║
-║ FUNCIÓN  : SOBERANO AUDITOR DE ESCENARIOS ONÍRICOS Y CERTIFICADOR DE INMUNIZACIÓN    ║
-║ VERSIÓN  : 9.2.0-APU-TQFT-RSI3-AGM-NOVIKOV-CROWBAR                                   ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-MEJORAS GRANULARES v9.2.0 respecto de v9.1.0:
-  (i)   ESP32CrowbarInterlock: ISR hardware explícito (GPIO14 ↦ BT151, < 400 ns IRAM).
-  (ii)  AGMBeliefSet + HeytingAGMRevision: revisión de creencias sobre Ω₃ con los
-        6 postulados AGM verificados.
-  (iii) MonadRSI3 (T, η, μ): mónada explícita con axiomas de Mac Lane + Kleisli.
-  (iv)  NovikovRing: anillo no-arquimediano con valuación ultramétrica.
-  (v)   TQFTPathIntegral, ChernSimonsWilson, VerlindeFusion, FukayaAinfinity,
-        KontsevichFormality: estructuras TQFT integradas al certificado.
-  (vi)  MelnikovZerosFinder: certificado de horseshoe de Smale.
-  (vii) NekhoroshevBound con constantes explícitas + LyapunovSpectrumVonNeumann.
-  (viii) HochschildCohomology + MorseConleyIndex: invariantes topológicos.
-  (ix)  BirkhoffHoriDeprit: orden arbitrario con pequeños divisores.
-  (x)   ImmunizationCertificate enriquecido con 11 campos nuevos.
+Nombre:    TOONOniricAuditorAgent
+Ubicación: app/agents/wisdom/toon_oniric_auditor_agent.py
+Versión:   9.2.0-APU-TQFT-RSI3-AGM-NOVIKOV-CROWBAR
+Función:   Agente soberano auditor de escenarios oníricos, gestor de orquestación de certificados TQFT,
+           revisión de creencias AGM sobre Ω₃ e interlock hardware ESP32 Crowbar de seguridad.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
+----------------------------------------------------------------------------------------------------
+El Soberano Auditor Onírico (TOONOniricAuditorAgent) ejecuta el control de calidad inmunológica sobre
+escenarios adversarios simulados ("sueños"). Coordina las respuestas del motor 'TOONOniricAuditorEngine'
+(app/wisdom/toon_oniric_auditor_engine.py).
+
+1. Revisión de Creencias AGM sobre Ω₃:
+   Sea K un conjunto de creencias sobre el retículo de Heyting Ω₃. La operación de revisión K * α
+   satisface los postulados de Alchourrón-Gärdenfors-Makinson (AGM K*1–K*8) mediante la identidad de Levi:
+       K * α = (K ÷ ¬α) + α
+
+2. Interlock Hardware Crowbar ESP32:
+   En caso de divergencia catastrófica en el espectro onírico o colapso de la entropía relativa
+   S(ρ_dream ‖ ρ_base) > S_threshold, la rutina de interrupción de hardware (ISR) activa el Crowbar:
+       GPIO14 ↦ BT151 (latencia < 400 ns en IRAM)
+   desconectando la corriente informacional y forzando la inmovilización del estado.
+
+3. Mónada de Auto-Mejora Recursiva RSI-3:
+   El Agente encapsula los morfismos de Kleisli f: A → T(B) sobre la categoría Cog, emitiendo certificados
+   inmunológicos que garantizan la preservación del nivel de capacidad d^3 C / dt^3 > 0.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS Y INVARIANTES FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma AO1 (Consistencia de Revisión AGM):
+    Si α es consistente, K * α es consistente (Postulado K*5).
+Axioma AO2 (Causalidad Hardware Crowbar):
+    t_interrupt ≤ 392.15 ns, previniendo la propagación de inestabilidades oníricas al núcleo disipativo.
+Invariante AO1 (Monotonía de Certificación Inmunológica):
+    El índice de inmunización I_imm ∈ [0, 1] es estrictamente creciente ante la inyección de vacunas
+    espectrales P_vac: d I_imm / d t ≥ 0.
 ====================================================================================================
 """
 from __future__ import annotations

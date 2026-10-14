@@ -1,23 +1,56 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO   : app/wisdom/toon_silent_witness_engine.py                                  ║
-║ ESTRATO  : WISDOM (V_𝕎) — CIUDADELA DE CRISTAL / VACÍO DE DIRAC                      ║
-║ FUNCIÓN  : MOTOR ESPECTRAL TESTIGO SILENCIOSO Y CRISTALIZADOR DEL VACÍO              ║
-║ VERSIÓN  : 9.2.0-APU-RSI3-CELESTE-AGM-KMS-POINCARE                                   ║
-║ FASE     : 1 / 3  ·  SUSTRATO ALGEBRAICO-MODULAR, RSI-3 GERM Y POINCARÉ              ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
+====================================================================================================
 
-EVOLUCIÓN GRANULAR v9.2.0-F1 respecto de v9.1.0:
-  (i)   Araki relativo HS-riguroso: Δ(ρ‖σ) = ρ ⊗ (σ^{-1})^T  (sin base conjunta).
-  (ii)  Polar C* vía SVD: A = U_pol P, U_pol = U V†, P = V Σ V†  (isometría parcial).
-  (iii) Carta canónica de Poincaré (ξ, η, p, q) no singular en e = 0, i = 0.
-  (iv)  No-degeneración de Kolmogorov: κ = det(Hess_I H) = det(∂ω/∂I).
-  (v)   Espectro de Lyapunov del jacobiano ad-N sobre T_ρ 𝔇_n.
-  (vi)  Kac–Poincaré con volumen FS: μ(B_ε) = ε^{2n−2} / (n−1)!  (bola Fubini–Study).
-  (vii) Germen mónada RSI-3 (T, η, μ) sobre 𝔇_n — unidad η no colisiona con el scalar.
-  (viii) Cristal S⁶ inmovilizado (write-flag False) + exponentes característicos.
-  (ix)  Morfismo terminal handoff_to_tomita_takesaki ≡ objeto inicial de FASE 2.
+Nombre:    TOONSilentWitnessEngine
+Ubicación: app/wisdom/toon_silent_witness_engine.py
+Versión:   9.2.0-APU-RSI3-CELESTE-AGM-KMS-POINCARE
+Función:   Motor espectral soberano Testigo Silencioso, teoría modular de Tomita-Takesaki, dinámica KMS del vacío de Dirac,
+           cristalización no-conmutativa en la 6-esfera S⁶ y certificación inmutable de registros mnemónicos.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
+----------------------------------------------------------------------------------------------------
+El Motor Espectral Testigo Silencioso (TOONSilentWitnessEngine) establece el sustrato algebraico del
+vacío de Dirac a través de álgebras de Von Neumann M ⊂ B(ℋ) dotadas de un estado fiel y normal ω_vac.
+
+1. Teoría Modular de Tomita-Takesaki y Condición KMS:
+   Para la representación GNS (ℋ_GNS, π_GNS, |Ω_vac⟩), el operador modular antilineal no acotado S_0
+   se define sobre los elementos A|Ω_vac⟩ mediante S_0(A|Ω_vac⟩) = A*|Ω_vac⟩.
+   Su polar polarización polar C* da lugar al operador modular Δ_KMS = S_0* S_0 > 0 y al operador antilineal
+   J (conjugación modular):
+       S_0 = J Δ_KMS^{1/2}
+   El grupo automorfismo modular de Tomita-Takesaki σ_t^{KMS}(A) = Δ_KMS^{i t} A Δ_KMS^{-i t} satisface la
+   condición de Kubo-Martin-Schwinger (KMS) a temperatura inversa β_KMS = 1:
+       ω(A σ_t^{KMS}(B)) = ω(σ_{t + i}^{KMS}(B) A)
+
+2. Hamiltoniano Modular K y Divergencia de Araki:
+   El Hamiltoniano modular se define de forma única como K = -ln(Δ_KMS) = -ln(ρ_vac).
+   Para dos estados de densidad ρ y σ, el operador modular relativo Δ(ρ ‖ σ) = ρ ⊗ (σ^{-1})^T sostiene
+   la entropía relativa de Araki en la norma de Hilbert-Schmidt:
+       S_{Araki}(ρ ‖ σ) = -⟨Ω_ρ | ln Δ(ρ ‖ σ) | Ω_ρ⟩ = Tr(ρ (ln ρ - ln σ))
+
+3. Cristalización de Registro en S⁶ ⊂ ℝ⁷ y Árbol de Merkle:
+   Las observaciones del vacío se proyectan estereográficamente sobre la 6-esfera S⁶ ⊂ ℝ⁷ preservando
+   la estructura octoniónica. El estado cristalizado inmutable en S⁶ es sellado con el hash de Merkle
+   del ciclo mediante la raíz:
+       R_Merkle = SHA-256( R_left ║ R_right ║ K_modular )
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS Y INVARIANTES FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma S1 (Cero Retro-acción del Vacío de Dirac):
+    H_{vac} |Ω_vac⟩ = 0, garantizando que el Testigo Silencioso observa el sistema sin inyectar perturbaciones
+    térmicas o quantum back-action sobre el filtro.
+Axioma S2 (Simetría Modular de Tomita-Takesaki):
+    J Δ_KMS J = Δ_KMS^{-1}  y  J |Ω_vac⟩ = |Ω_vac⟩.
+Invariante S1 (Invariancia del Estado KMS bajo Automorfismos Modulares):
+    ω_{vac}(σ_t^{KMS}(A)) = ω_{vac}(A) para todo t ∈ ℝ.
+Invariante S2 (Inmutabilidad del Cristal Mnemónico en S⁶):
+    H_k(S⁶; ℤ) = ℤ para k ∈ {0, 6} y 0 en caso contrario, garantizando que la topología de la esfera de
+    observación no presenta cavidades intermedias de fuga mnemónica.
 ====================================================================================================
 """
 from __future__ import annotations
@@ -74,20 +107,6 @@ _RSI3_DEFAULT_LEVEL: Final[int] = 3
 _FS_VOLUME_MAX_DIM: Final[int] = 64  # (n−1)! overflow guard
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 1 · SUSTRATO ALGEBRAICO-MODULAR, GERMEN RSI-3 Y POINCARÉ             ║
-# ║                                                                           ║
-# ║  §1.0  Cristal S⁶ inmutable + exponentes característicos                  ║
-# ║  §1.1  Retículo de Heyting Ω₃ (clasificador de estratos de Poincaré)      ║
-# ║  §1.2  C*-álgebra matricial (espectro de Gelfand, polar SVD, rango num.)  ║
-# ║  §1.3  Hamiltoniano modular K_ρ + flujo σ_t + Helmholtz                   ║
-# ║  §1.4  Álgebra 𝔇_n (Rényi, QFI, Petz, Holevo, Wigner, Kac-FS, Poincaré)   ║
-# ║  §1.5  GNS / Tomita: Δ, J, S, Δ(ρ‖σ) de Araki en HS                       ║
-# ║  §1.6  Mecánica celeste de Poincaré (carta, Kolmogorov, Lyapunov, KAM)    ║
-# ║  §1.7  Germen RSI-3 (T, η, μ) sobre 𝔇_n                                   ║
-# ║  §1.8  VacuumModularContext + VacuumStatePreparation                      ║
-# ║        └── handoff_to_tomita_takesaki  ≡  morfismo inicial de FASE 2      ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -2045,25 +2064,6 @@ class VacuumStatePreparation:
         rsi3_levels: int = _RSI3_DEFAULT_LEVEL,
         rsi3_mix: float = DEFAULT_RSI3_MIX,
     ) -> VacuumModularContext:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO TERMINAL DE FASE 1  ≡  OBJETO INICIAL DE FASE 2      ║
-        ║                                                                 ║
-        ║  handoff_to_tomita_takesaki : (H, β, ℓ) → VacuumModularContext ║
-        ║                                                                 ║
-        ║  Composición:                                                   ║
-        ║      (H, β)  --prepare_vacuum_context-->  ctx₀                  ║
-        ║              --RSI-3 recede_improve(ℓ)-->  ρ^{(ℓ)}              ║
-        ║              --rebind K, TFD, Poincaré-->  ctx_ℓ                ║
-        ║                                                                 ║
-        ║  CONTINUACIÓN FORMAL (FASE 2 · §2.1, primer método):            ║
-        ║      TomitaTakesakiEngine.bind_vacuum_context(ctx_ℓ)            ║
-        ║                                                                 ║
-        ║  El tipo de retorno VacuumModularContext ES el dominio de       ║
-        ║  bind_vacuum_context.  No hay gap: el último morfismo de        ║
-        ║  Fase 1 es el primero de Fase 2.                                ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         H = MatrixBanachAlgebra.hermitize(H)
         ctx = cls.prepare_vacuum_context(H, beta=beta)
         rho_l, cert = cls.apply_rsi3_germ(ctx.rho, mix=rsi3_mix, levels=rsi3_levels)
@@ -2094,37 +2094,6 @@ class VacuumStatePreparation:
         return ctx
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FIN DE FASE 1                                                             ║
-# ║                                                                           ║
-# ║ Continuación formal — FASE 2 · §2.1  (próximo prompt):                    ║
-# ║                                                                           ║
-# ║     class TomitaTakesakiEngine:                                           ║
-# ║         @classmethod                                                      ║
-# ║         def bind_vacuum_context(cls, ctx: VacuumModularContext)           ║
-# ║             -> VacuumModularContext:                                      ║
-# ║             ...  # consume el objeto terminal de Fase 1                   ║
-# ║                                                                           ║
-# ║ El par (handoff_to_tomita_takesaki, bind_vacuum_context) es un            ║
-# ║ isomorfismo de transporte:  ctx_ℓ  ↦  ctx_ℓ  validado (H, ρ, K            ║
-# ║ dimensionalmente coherentes, GNS-fiel, RSI-3 condensado, carta            ║
-# ║ de Poincaré adjunta).  Fase 2 abre la dinámica modular σ_t, el            ║
-# ║ número de Chern, QFI y el pipeline del silencio.                          ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2 · DINÁMICA MODULAR, ESPECTRO DEL VACÍO Y SILENCIO                  ║
-# ║                                                                           ║
-# ║  CONTINUACIÓN FORMAL DE FASE 1                                            ║
-# ║      VacuumStatePreparation.handoff_to_tomita_takesaki                    ║
-# ║          : (H, β, ℓ) → VacuumModularContext                               ║
-# ║      ≡  dominio de TomitaTakesakiEngine.bind_vacuum_context               ║
-# ║                                                                           ║
-# ║  §2.1  TomitaTakesakiEngine  (σ_t Haag–KMS, Chern, QFI, Poincaré–BKM)     ║
-# ║  §2.2  VacuumSpectraAnalyzer + VacuumAuditReport                          ║
-# ║  §2.3  SilentFieldDetector  + SilentFieldProbe                            ║
-# ║  §2.4  ModularSilencePipeline + SilentFieldBundle                         ║
-# ║        └── handoff_to_heyting_adjudicator  ≡  morfismo inicial de FASE 3  ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -3576,26 +3545,6 @@ class ModularSilencePipeline:
         cycle_index: int,
         ctx: VacuumModularContext,
     ) -> SilentFieldBundle:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO TERMINAL DE FASE 2  ≡  OBJETO INICIAL DE FASE 3      ║
-        ║                                                                 ║
-        ║  handoff_to_heyting_adjudicator :                               ║
-        ║      (cycle, ctx_ℓ) → SilentFieldBundle                         ║
-        ║                                                                 ║
-        ║  Composición:                                                   ║
-        ║      ctx  --bind_vacuum_context-->  ctx✓                        ║
-        ║           --synthesize_from_context-->  SilentFieldBundle       ║
-        ║                                                                 ║
-        ║  CONTINUACIÓN FORMAL (FASE 3 · §3.1, primer método):            ║
-        ║      HeytingVacuumAdjudicator.adjudicate(                       ║
-        ║          bundle, external_verdict)                              ║
-        ║                                                                 ║
-        ║  El tipo de retorno SilentFieldBundle ES el dominio de          ║
-        ║  adjudicate.  No hay gap: el último morfismo de Fase 2 es       ║
-        ║  el primero de Fase 3.                                          ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         bundle = cls.synthesize_from_context(cycle_index=cycle_index, ctx=ctx)
         logger.info(
             "FASE 2→3 handoff | cycle=%d Ω₃_pre=%s | KMS=%.3e | "
@@ -3612,44 +3561,6 @@ class ModularSilencePipeline:
         return bundle
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FIN DE FASE 2                                                             ║
-# ║                                                                           ║
-# ║ Continuación formal — FASE 3 · §3.1  (próximo prompt):                    ║
-# ║                                                                           ║
-# ║     class HeytingVacuumAdjudicator:                                       ║
-# ║         @classmethod                                                      ║
-# ║         def adjudicate(                                                   ║
-# ║             cls,                                                          ║
-# ║             bundle: SilentFieldBundle,                                    ║
-# ║             external_verdict: HeytingOmega3,                              ║
-# ║         ) -> HeytingOmega3:                                               ║
-# ║             ...  # consume el objeto terminal de Fase 2                   ║
-# ║                                                                           ║
-# ║ El par (handoff_to_heyting_adjudicator, adjudicate) es un                 ║
-# ║ isomorfismo de transporte:  SilentFieldBundle ↦ Ω₃, con meet              ║
-# ║ granular (audit ∧ probe ∧ kms ∧ axioms ∧ polar ∧ group ∧ klein)           ║
-# ║ y veredicto externo.  Fase 3 abre la soberanía: certificado               ║
-# ║ firmado, Merkle, mónada RSI-3 (axiomas de Mac Lane) y el                  ║
-# ║ motor TOONSilentWitnessEngine.                                            ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3 · SOBERANÍA, CERTIFICACIÓN, MÓNADA RSI-3 Y MOTOR TOON              ║
-# ║                                                                           ║
-# ║  CONTINUACIÓN FORMAL DE FASE 2                                            ║
-# ║      ModularSilencePipeline.handoff_to_heyting_adjudicator                ║
-# ║          : (cycle, ctx_ℓ) → SilentFieldBundle                             ║
-# ║      ≡  dominio de HeytingVacuumAdjudicator.adjudicate                    ║
-# ║                                                                           ║
-# ║  §3.1  HeytingVacuumAdjudicator + AdjudicationCertificate                 ║
-# ║  §3.2  SilentFieldState  (certificado firmado del silencio)               ║
-# ║  §3.3  MerkleInclusionProof                                               ║
-# ║  §3.4  Mónada RSI-3 (Mac Lane sobre la imagen reflexiva)                  ║
-# ║  §3.5  AGMBeliefSet  (hand-off → toon_introspection_agent)                ║
-# ║  §3.6  MetaSilentWitnessEngine                                            ║
-# ║  §3.7  TOONSilentWitnessEngine  (motor soberano)                          ║
-# ║  §3.8  Demostración autónoma                                              ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -3713,19 +3624,6 @@ class HeytingVacuumAdjudicator:
         bundle: SilentFieldBundle,
         external_verdict: HeytingOmega3,
     ) -> HeytingOmega3:
-        r"""
-        ╔═════════════════════════════════════════════════════════════════╗
-        ║  MORFISMO INICIAL DE FASE 3                                     ║
-        ║                                                                 ║
-        ║  adjudicate : SilentFieldBundle × Ω₃ → Ω₃                       ║
-        ║                                                                 ║
-        ║  Dominio = codominio de                                         ║
-        ║      ModularSilencePipeline.handoff_to_heyting_adjudicator.     ║
-        ║                                                                 ║
-        ║  verdict = (⋀ granular_scores(bundle)) ∧ external.              ║
-        ║  El meet de Heyting es el producto fibrado en Sh(Ω₃).           ║
-        ╚═════════════════════════════════════════════════════════════════╝
-        """
         cert = cls.adjudicate_certified(bundle, external_verdict)
         return cert.verdict
 
@@ -5226,23 +5124,3 @@ if __name__ == "__main__":
     print("  + Poincaré-BKM + RSI-3 (Mac Lane sobre 𝔓_n) + AGM + Merkle completada.")
     print("═" * 80)
 
-
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FIN DE FASE 3  ≡  FIN DEL MÓDULO                                          ║
-# ║                                                                           ║
-# ║ Cadena de morfosmos (isomorfismos de transporte):                         ║
-# ║                                                                           ║
-# ║   FASE 1  VacuumStatePreparation.handoff_to_tomita_takesaki               ║
-# ║        →  VacuumModularContext                                            ║
-# ║   FASE 2  TomitaTakesakiEngine.bind_vacuum_context                        ║
-# ║        →  ModularSilencePipeline.handoff_to_heyting_adjudicator           ║
-# ║        →  SilentFieldBundle                                               ║
-# ║   FASE 3  HeytingVacuumAdjudicator.adjudicate                             ║
-# ║        →  Ω₃  ⊂  SilentFieldState  ⊂  Merkle  ⊂  AGM  ⊂  S⁶               ║
-# ║                                                                           ║
-# ║ El par (handoff_to_heyting_adjudicator, adjudicate) cierra el             ║
-# ║ topos: no hay gap tipado entre fases.  El motor soberano                  ║
-# ║ TOONSilentWitnessEngine.execute_silence_cycle realiza la                  ║
-# ║ composición de las tres fases en un único endomorfismo de                 ║
-# ║ registro:  ℤ₊ × 𝔇_n → SilentFieldState.                                   ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝

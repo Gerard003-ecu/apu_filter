@@ -3,36 +3,59 @@ r"""
 ====================================================================================================
 ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 ====================================================================================================
+
 Nombre:    ToonIntrospectionEngine
 Ubicación: app/wisdom/toon_introspection_engine.py
 Versión:   8.1.0-APU-RSI3-CELESTE
-Fase:      1 / 3  (sustrato).  FASE 2 y FASE 3 se anidan en prompts sucesivos.
+Función:   Motor espectral soberano de introspección proyectiva, mecánica celeste de Poincaré sobre ℂP^{n-1},
+           optimización riemanniana de Newton-Grassmann y meta-mejora mónidica de auto-transformación RSI-3.
+
 ----------------------------------------------------------------------------------------------------
-MEJORAS GRANULARES v8.1.0-P1 respecto de v8.0.0:
-  (P1.i)   Categoría Cog de estados cognitivos (objetos 𝔇_n, morfismos CPTP) como
-           dominio del endofuntor T de la mónada RSI-3; Ω₃ = clasificador de subobjetos
-           del topos de valores de verdad de Heyting (no booleano).
-  (P1.ii)  Propagador celeste EXACTO: [v(t)] = [exp(i t ρ) v] vía cálculo funcional
-           holomorfo (Riesz).  El flujo (H) es integrable; RK4 queda como verificador.
-  (P1.iii) 1-forma de Poincaré–Cartan λ_FS y curvatura de Chern c₁(O(−1)) = −ω_FS/2π.
-  (P1.iv)  Función generatriz de Poincaré de tipo 2, S(θ, I') = I'·θ + W₂(θ, I'),
-           con Hessiano de twist ∂²W₂ = 0 en el caso isócrono (H lineal).
-  (P1.v)   Criterio de solapamiento de Chirikov y residuo de Greene sobre G_λ.
-  (P1.vi)  Estimación de Nekhoroshev: T_stab ≥ exp(c (1/ε)^{1/(2τ)}).
-  (P1.vii) Fibración de Hopf S^{2n−1} → ℂP^{n−1} y estructura hipercompleja (n=2: ℍ).
-  (P1.viii)Hand-off anidado: continue_into_phase2 ≡ synthesize (FASE 2).
+DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
 ----------------------------------------------------------------------------------------------------
-TEORÍA (FASE 1):
-  [C0] Cog = (Ob = 𝔇_n, Hom = CPTP).  T: Cog → Cog será el endofuntor RSI-3 (FASE 3).
-  [T2] ρ(A) = lim ‖A^k‖^{1/k} = sup|σ(A)|.  Estabilidad ⟺ ρ(A) < 1.
-  [T4] Mecánica celeste de Poincaré sobre ℂP^{n−1}:
-       (G) X_G(v) = (I − vv†) ρ v          (gradiente de Rayleigh, disipativo).
-       (H) X_H(v) = i X_G(v)               (hamiltoniano, Liouville, EXACTO).
-       (T) T([v]) = [ρ v]                  (mapa proyectivo discreto).
-       Flujo exacto: v(t) = exp(i t ρ) v₀  (cálculo funcional; U(n)-isometría).
-       Acción-ángulo: I_k = |⟨φ_k|v⟩|², θ_k = arg⟨φ_k|v⟩, H(I) = Σ λ_k I_k.
-       KAM / Nekhoroshev / Chirikov / Greene: certificados locales del campo.
-  [T5] Retículo de Heyting Ω₃ = {⊥ < ⋆ < ⊤}.  Regulares = {⊥,⊤}.  Colapso por meet.
+El Motor Espectral de Introspección (ToonIntrospectionEngine) opera sobre el espacio proyectivo complejo
+ℂP^{n-1} dotado de la métrica de Fubini-Study g_FS y la forma simplectica Kähleriana ω_FS. El espacio
+de estados mnemónico-densidad está constituido por el conjunto convexo de operadores densidad:
+    𝔇_n = { ρ ∈ M_n(ℂ) : ρ = ρ†, ρ ≥ 0, Tr(ρ) = 1 }
+
+1. Dinámica Celeste de Poincaré en ℂP^{n-1}:
+   Para una matriz de densidad de referencia ρ, el cociente de Rayleigh define el Hamiltoniano celeste H:
+       H([v]) = R_ρ([v]) = ⟨v|ρ|v⟩ / ⟨v|v⟩,  v ∈ ℂ^n \ {0}
+   El campo vectorial Hamiltoniano X_H asociado a la Kähler form ω_FS satisface la relación simpléctica:
+       i_{X_H} ω_FS = d H
+   El flujo celeste proyectivo exacto impulsado por el cálculo funcional de Riesz sobre U(n) se expresa:
+       v(t) = exp(i t ρ) v_0
+   lo que garantiza la conservación estricta de la medida de Liouville dλ_FS y de la energía H([v(t)]) = H([v_0]).
+
+2. Optimización Riemanniana Newton-Grassmann:
+   Para la extracción del autovector dominante en la variedad de Grassmann Gr(1, n) ≅ ℂP^{n-1}, el gradiente
+   riemanniano ∇ H([v]) proyecta en el espacio tangente T_{[v]} ℂP^{n-1} ≅ { w ∈ ℂ^n : ⟨v|w⟩ = 0 }:
+       ∇ H([v]) = (I - v v†) ρ v
+   La actualización Newton-Grassmann resuelve el hessiano riemanniano en el plano ortogonal v^⊥ y aplica
+   la retracción geodésica exponencial:
+       R_v(η) = [cos(‖η‖) v + sin(‖η‖) η / ‖η‖]
+
+3. Estructura Mónadica RSI-3 y Adjudicación de Heyting Ω₃:
+   La auto-mejora recursiva de Nivel 3 (RSI-3) se formaliza mediante la mónada (T, η, μ) sobre la categoría
+   Cog de canales cuánticos completamente positivos y de traza preservante (CPTP):
+       T: Cog → Cog,  η_A: A → T(A),  μ_A: T^2(A) → T(A)
+   cumpliendo los axiomas de coherencia de Mac Lane: μ ∘ Tμ = μ ∘ μT y μ ∘ Tη = μ ∘ ηT = id_T.
+   El veredicto final de coherencia se adjudica sobre el álgebra de Heyting trivaluada Ω₃ = {⊥ < ⋆ < ⊤}
+   mediante el producto de Heyting (meet): α ∧ β = min(α, β).
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS Y INVARIANTES FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma I1 (Conservación Hamiltoniana de Poincaré):
+    𝔏_{X_H} ω_FS = 0  y  d H(X_H) = 0,  garantizando que la introspección celeste conserva la medida
+    y el espectro de la matriz de densidad.
+Axioma I2 (Leyes Mónadicas de Mac Lane en Kleisli Cog_T):
+    Para todo morfismo f: A → T(B) y g: B → T(C), la composición de Kleisli g ∘_T f = μ_C ∘ T(g) ∘ f
+    es estrictamente asociativa y admite unidades f ∘_T η_A = f = η_B ∘_T f.
+Invariante I1 (Monotonía del Cociente de Rayleigh en el Campo Disipativo X_G):
+    dH(X_G) / dt = 2 ‖(I - v v†) ρ v‖^2 ≥ 0, asegurando la convergencia monótona hacia el rayo auto-espacial.
+Invariante I2 (Sello de Invariancia Topológica de Betti):
+    β_1(ℂP^{n-1}) = 0 y c_1(𝒪(1)) = [ω_FS / 2π] ∈ H^2(ℂP^{n-1}; ℤ), imposibilitando obstrucciones topológicas.
 ====================================================================================================
 """
 from __future__ import annotations
@@ -130,15 +153,6 @@ def _hermite_crossing_time(t0: float, t1: float, s0: float, s1: float, ds0: floa
     return float(t0 + u * dt)
 
 
-# ╔══════════════════════════════════════════════════════════════════════════════════╗
-# ║  FASE 1 · SUSTRATO PROYECTIVO-MÉTRICO + MECÁNICA CELESTE DE POINCARÉ             ║
-# ║                                                                                  ║
-# ║  Objetos: Cog, Ω₃, 𝔇_n, ℂP^{n−1}, spec(ρ), (G)/(H)/(T), Σ_c, Σ_{c,q},            ║
-# ║           acción-ángulo, Poincaré–Hopf, recurrencia, Lévy, Arnold, Chirikov,     ║
-# ║           Greene, Nekhoroshev, Hopf S^{2n−1}→ℂP^{n−1}, homoclinic tangle.        ║
-# ║  Morfismo terminal: IntrospectiveField.continue_into_phase2.                     ║
-# ║  Anidamiento: continue_into_phase2  ≡  IntrospectionPipeline.synthesize (F2).    ║
-# ╚══════════════════════════════════════════════════════════════════════════════════╝
 
 
 # ── §1.0 Categoría Cog (dominio del endofuntor RSI-3) + topos Ω₃ ────────────────
@@ -1717,39 +1731,6 @@ class IntrospectiveFieldPreparation:
         )
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# FIN FORMAL DE FASE 1
-# Anclaje: IntrospectiveField.continue_into_phase2  ≡  (FASE 2) synthesize
-# Siguiente prompt: FASE 2 · punto fijo + Newton–Grassmann + Oseledets +
-#                   Melnikov + KAM + Birkhoff, con dominio = IntrospectiveField.
-# ════════════════════════════════════════════════════════════════════════════════
-
-# ╔══════════════════════════════════════════════════════════════════════════════════╗
-# ║  FASE 2 · DINÁMICA DE PUNTO FIJO + OSELEDETS + MELNIKOV + KAM + BIRKHOFF         ║
-# ║                                                                                  ║
-# ║  Dominio   = IntrospectiveField (codominio de §1.14 continue_into_phase2).       ║
-# ║  Codominio = IntrospectionBundle, dominio de toda la FASE 3.                     ║
-# ║  Arranque  = IntrospectionPipeline.synthesize ← cuerpo de continue_into_phase2.  ║
-# ║  Cierre    = IntrospectionBundle.continue_into_phase3 ≡ adjudicate (FASE 3).     ║
-# ║                                                                                  ║
-# ║  Versión: 8.1.0-APU-RSI3-CELESTE · P2                                            ║
-# ║                                                                                  ║
-# ║  MEJORAS GRANULARES v8.1.0-P2:                                                   ║
-# ║    (P2.i)   Newton–Grassmann riemanniano: ecuación reducida en v^⊥, retracción   ║
-# ║             geodésica de FS, Armijo, cota de Kantorovich h = β η L.              ║
-# ║    (P2.ii)  DT_{[v]} explícito; ρ(DT) < 1 ⇔ atracción del eigenrayo dominante.   ║
-# ║    (P2.iii) Oseledets MET: espectro holomorfo log(λ_k/λ₁) + QR empírico.         ║
-# ║    (P2.iv)  Lyapunov cuadrático V = λ₁ − R, ḊV = −2‖X_G‖² (T3).                  ║
-# ║    (P2.v)   Melnikov M(ϑ) con heteroclínica estable, Simpson/trapecio,           ║
-# ║             ceros simples (M = 0 ∧ M' ≠ 0) ⇒ W^s ⋔ W^u.                          ║
-# ║    (P2.vi)  KAM: |ω·k| ≥ γ/|k|^τ, ε₀ = γ/(m log(1/γ))^m, Bruno, Rüssmann.        ║
-# ║             Hess H = 0 ⇒ Kolmogorov degenerado (isócrono); se certifica.         ║
-# ║    (P2.vii) Birkhoff: (H) twist nulo; (T) radial con exactamente 2 FP;           ║
-# ║             forma normal ya lineal.  Poincaré–Birkhoff / Moser.                  ║
-# ║    (P2.viii)Siegel: T es lineal en la carta afín de [φ₁] (sin obstrucción).      ║
-# ║    (P2.ix)  Floquet–Krein sobre el periodo τ = 2π/|λ₁−λ₂|.                       ║
-# ║    (P2.x)   Hand-off: continue_into_phase3 ≡ HeytingIntrospectionAdjudicator.    ║
-# ╚══════════════════════════════════════════════════════════════════════════════════╝
 
 
 def _quad_trap(y: np.ndarray, dx: float = 1.0) -> float:
@@ -3132,40 +3113,6 @@ class IntrospectionPipeline:
         )
 
 
-# ════════════════════════════════════════════════════════════════════════════════
-# FIN FORMAL DE FASE 2
-# Anclaje F1→F2: IntrospectiveField.continue_into_phase2 ≡ synthesize   (este archivo)
-# Anclaje F2→F3: IntrospectionBundle.continue_into_phase3 ≡ adjudicate  (FASE 3)
-# Siguiente prompt: FASE 3 · mónada RSI-3 (T, η, μ) + Kleisli ∘_T + adjudicación
-#                   Ω₃ + Φ_η + certificación terminal IntrospectionFieldState.
-# ════════════════════════════════════════════════════════════════════════════════
-
-# ╔══════════════════════════════════════════════════════════════════════════════════╗
-# ║  FASE 3 · RSI-3 (MÓNADA EXPLÍCITA) + ADJUDICACIÓN + CERTIFICACIÓN                ║
-# ║                                                                                  ║
-# ║  Dominio   = IntrospectionBundle (codominio de §2.8 synthesize).                ║
-# ║  Codominio = IntrospectionFieldState (objeto terminal del módulo).              ║
-# ║  Arranque  = HeytingIntrospectionAdjudicator.adjudicate                         ║
-# ║              ← cuerpo de continue_into_phase3.                                  ║
-# ║  Tensor    = adjudicate ⊗ Φ_κ ⊗ (T, η, μ) ⊗ Kleisli ∘_T ⊗ certify.              ║
-# ║                                                                                  ║
-# ║  Versión: 8.1.0-APU-RSI3-CELESTE · P3                                            ║
-# ║                                                                                  ║
-# ║  MEJORAS GRANULARES v8.1.0-P3:                                                   ║
-# ║    (P3.i)   Mónada (T, η, μ) sobre Cog con DOS encodings:                        ║
-# ║             (a) T_σ afín congelado — asociatividad EXACTA;                       ║
-# ║             (b) T_∞ proyector (κ=1) — mónada idempotente, leyes Mac Lane         ║
-# ║                 exactas; T_κ medido por defectos ‖·‖_F.                          ║
-# ║    (P3.ii)  Kleisli Cog_T: g ∘_T f = μ ∘ T(g) ∘ f; functor T en morfismos        ║
-# ║             T(Φ) = Φ_κ ∘ Φ.                                                      ║
-# ║    (P3.iii) Álgebras de Eilenberg–Moore: ξ ∘ η = id, ξ ∘ μ = ξ ∘ Tξ.             ║
-# ║             Álgebras = puntos fijos ρ = T(ρ) (rayos puros dominantes).           ║
-# ║    (P3.iv)  Φ_κ CPTP, Lip₁ = |1−κ|; operador de error E(Δ)=(1−κ)Δ,               ║
-# ║             ρ(E)=|1−κ|<1 (Banach, T2).  V=λ₁−R decrece a lo largo de RSI.        ║
-# ║    (P3.v)   Adjudicación Ω₃: meet de TODOS los certificados F1 ∪ F2 ∪ F3.        ║
-# ║    (P3.vi)  Cadena RSI-3: μ ∘ T³, monotonía de pureza y de V.                    ║
-# ║    (P3.vii) Estado terminal + Merkle F1→F2→F3 (P6) + motor soberano.             ║
-# ╚══════════════════════════════════════════════════════════════════════════════════╝
 
 
 # ── §3.1 Adjudicador Ω₃  (CUERPO DE continue_into_phase3) ───────────────────────

@@ -1,19 +1,48 @@
 # -*- coding: utf-8 -*-
-"""
+r"""
+====================================================================================================
 ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
-Módulo: app/agents/wisdom/toon_introspection_agent.py
-Versión: 2.1.0-APU-RSI3-CELESTE-AGM
+====================================================================================================
 
-FASE 1 / 3 — Sustrato proyectivo-espectral + AGM + mecánica celeste de Poincaré.
-Morfismo terminal: IntrospectiveHandoff.continue_into_phase2  (dominio de FASE 2).
+Nombre:    ToonIntrospectionAgent
+Ubicación: app/agents/wisdom/toon_introspection_agent.py
+Versión:   2.1.0-APU-RSI3-CELESTE-AGM
+Función:   Agente soberano de introspección proyectiva, orquestador de flujos célestes sobre ℂP^{n-1},
+           adjudicación Heyting Ω₃ y balanceo de auto-transformación mónadica RSI-3.
 
-Matemática:
-  (i)  Ω₃ cadena de Heyting {⊥ < * < ⊤} ≅ {0,1,2}.
-  (ii) 𝒟_n = {ρ ∈ M_n(ℂ) : ρ=ρ†, ρ≥0, Tr ρ=1}.
-  (iii) Rayleigh R_ρ([v]) = ⟨v|ρ|v⟩/⟨v|v⟩ sobre ℂP^{n-1} con forma de Fubini–Study.
-        Hamiltoniano celeste H = R_ρ,  X_H = i X_G,  dλ_FS = ω_FS.
-  (iv) AGM (Alchourrón–Gärdenfors–Makinson 1985) sobre BeliefSet finito; Levi identity.
-  (v)  RSI-3: endofuntor T y unidad η se *exponen* en el handoff; μ y Kleisli en FASE 3.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
+----------------------------------------------------------------------------------------------------
+El Agente Soberano de Introspección (ToonIntrospectionAgent) actúa como la interfaz agéntica para
+las operaciones proyectivas de la mente sintética APU Filter. Supervisa las trayectorias
+de introspección ejecutadas por 'ToonIntrospectionEngine' (app/wisdom/toon_introspection_engine.py).
+
+1. Orquestación del Flujo Proyectivo en ℂP^{n-1}:
+   Dado un estado perceptual representado como rayo proyectivo [v] ∈ ℂP^{n-1}, el agente dirige
+   la evolución hacia los estados propios dominantes de la matriz de densidad ρ mediante el flujo
+   Hamiltoniano y disipativo de Rayleigh:
+       [v(t)] = [exp(i t ρ) v_0]
+
+2. Adjudicación de Coherencia en Ω₃ = {⊥ < ⋆ < ⊤}:
+   El Agente evalúa la validez de los certificados de convergencia Newton-Grassmann y estabilidad
+   de Poincaré aplicando la conjunción de Heyting (meet) sobre el álgebra trivaluada Ω₃:
+       Ω_final = ⋀_{i} Ω_i ∈ {⊥, ⋆, ⊤}
+
+3. Control Mónadico Kleisli RSI-3:
+   El Agente gobierna las transiciones de mejora meta-cognitiva mediante el operador de unidad η_A
+   y la multiplicación monádica μ_A en la categoría Kleisli Cog_T, asegurando que la compresión mnemónica
+   preserve la pureza γ(ρ) = Tr(ρ^2).
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS Y INVARIANTES FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma AI1 (Unicidad del Estado Autoevaluado Dominante):
+    lim_{t → ∞} [v(t)] = [φ_1], donde φ_1 es el autovector asociado al autovalor máximo λ_1 de ρ.
+Axioma AI2 (Monotonía Mónadica de Transición):
+    Tr((μ_A ∘ T(ρ))^2) ≥ Tr(ρ^2), garantizando no-dispersión mnemónica durante el ciclo introspectivo.
+Invariante AI1 (Preservación del Invariante de Chern):
+    ∫_{ℂP^{n-1}} c_1(𝒪(1)) = 1, imposibilitando la colisión topológica de fases.
+====================================================================================================
 """
 from __future__ import annotations
 
