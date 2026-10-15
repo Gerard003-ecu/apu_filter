@@ -37,7 +37,7 @@ El Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** ha alcanzado la madu
   ├────────────────────────────────────────────────────────────────────────────────────────┤
   │ PT-2: FORMALIZACIÓN MATEMÁTICA Y TEOREMAS ESPECTRALES (metodos.md)                     │
   ├────────────────────────────────────────────────────────────────────────────────────────┤
-  │ PT-3: TRADUCCIÓN SEMÁNTICA Y FUNTOR DE NEGOCIO (LENGUAJE_CONSEJO.md & translator.txt)  │
+  │ PT-3: TRADUCCIÓN SEMÁNTICA Y FUNTOR DE NEGOCIO (LENGUAJE_CONSEJO.md)                   │
   ├────────────────────────────────────────────────────────────────────────────────────────┤
   │ PT-4: MODELO DE NEGOCIO Y VISIÓN EJECUTIVA (PRODUCT_VISION.md & TOON_apu_comercial.md) │
   └────────────────────────────────────────────────────────────────────────────────────────┘
