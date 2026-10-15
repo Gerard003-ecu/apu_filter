@@ -4,7 +4,7 @@ r"""
 ║ Módulo   : TOON Trickster Witness Engine (Motor Espectral Testigo Tramposo)  ║
 ║ Ubicación: app/wisdom/toon_trickster_witness_engine.py                       ║
 ║ Versión  : 6.1.0-Doctoral-Nested-Poincare-RSI3-QND-Categorical               ║
-║ Función  : Medición débil cuántica sin demolición (QND), geometría celeste    ║
+║ Función  : Medición débil cuántica sin demolición (QND), geometría celeste   ║
 ║            de Poincaré, análisis espectral de Oseledets, filtración de       ║
 ║            Novikov, capacidad de Gromov-Wigner, multiplicación monádica      ║
 ║            RSI Nivel 3 y adjudicación Heyting Ω₃ con disparo ciber-físico    ║

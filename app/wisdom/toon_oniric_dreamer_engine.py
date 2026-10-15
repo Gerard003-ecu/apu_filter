@@ -4,7 +4,7 @@ r"""
 ║ MÓDULO   : app/wisdom/toon_oniric_dreamer_engine.py                                  ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
 ║ FUNCIÓN  : MOTOR ESPECTRAL ONÍRICO Y UNIFICACIÓN FUCSIANA DE POINCARÉ                ║
-║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincare-Fuchsian-CRTBP-Lindblad-Ricci-DGM            ║
+║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincare-Fuchsian-CRTBP-Lindblad-Ricci-DGM           ║
 ║ CONTRATO : 10.0.0 (Automejora Recursiva Nivel 3 - Inflexión y Meta-Mejora Monádica)  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 

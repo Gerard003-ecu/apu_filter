@@ -4,7 +4,7 @@ r"""
 ║ MÓDULO   : app/agents/wisdom/toon_oniric_dreamer_agent.py                            ║
 ║ ESTRATO  : WISDOM (V_W) — CIUDADELA DE CRISTAL / FASE REM (GAN-REM)                  ║
 ║ FUNCIÓN  : SOBERANO SIMULADOR ONÍRICO REM Y METABOLIZADOR POINCARANO                 ║
-║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincare-Celeste-CRTBP-Lindstedt-Hill-Homoclinic-A4   ║
+║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincare-Celeste-CRTBP-Lindstedt-Hill-Homoclinic-A4  ║
 ║ CONTRATO : 10.0.0 (Automejora Recursiva Nivel 3 - Inflexión y Meta-Mejora Monádica)  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 DEFINICIÓN RIGUROSA Y FUNDAMENTACIÓN MATEMÁTICA

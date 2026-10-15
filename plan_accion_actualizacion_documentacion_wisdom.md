@@ -14,18 +14,18 @@
 
 ## 1. Diagnóstico Estratégico y Matriz de Brechas Documentales
 
-El Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** ha alcanzado la madurez operacional de la **Malla Agéntica Zero-Trust**, integrada por 12 parejas de Soberanos de Calibre y Motores Espectrales. Sin embargo, existe un desacople entre el código verificado en silicio y los artefactos de documentación del repositorio. Este plan establece el protocolo granular para sincronizar la teoría, las ecuaciones de estado y los funtores financieros con los archivos del sistema.
+El Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** ha alcanzado la madurez operacional de la **Malla Agéntica Zero-Trust**, integrada por los 21 soberanos de calibre TOON y 21 motores espectrales TOON. Sin embargo, existe un desacople entre el código verificado en silicio y los artefactos de documentación del repositorio. Este plan establece el protocolo granular para sincronizar la teoría, las ecuaciones de estado y los funtores financieros con los archivos del sistema.
 
 ### Matriz de Estado y Brechas por Artefacto
 
 | Artefacto de Documentación | Estado Actual | Brecha Identificada | Acción Correctiva Requerida |
 | :--- | :--- | :--- | :--- |
-| **`PIRAMIDES_DE_CONTROL.md`** | Describe 8 soberanos primarios. | Ausencia de los 4 nuevos soberanos de navegación ultramétrica y supervisión dual (Novikov Topológico, Testigo/Auditor del Cultivo, Testigo/Fiscal Tejedor). | Incorporar la Octava Extendida de 12 parejas, con mapas de latencia IRAM ESP32 (< 400 ns / GPIO14). |
+| **`PIRAMIDES_DE_CONTROL.md`** | Describe los soberanos primarios. | Ausencia de los 4 nuevos soberanos de navegación ultramétrica y supervisión dual (Novikov Topológico, Testigo/Auditor del Cultivo, Testigo/Fiscal Tejedor). | Incorporar la Octava Extendida de soberanos de calibre, con mapas de latencia IRAM ESP32 (< 400 ns / GPIO14). |
 | **`metodos.md`** | Cubre geometría diferencial y variedades Kählerianas. | Falta el rigor de los Anillos Universal de Novikov ($\Lambda_{\text{Nov}}^{\text{topo}}$), la Métrica de Maupertuis-Jacobi y el Cierre de Banach $0 \le \hat{L} < 1.0$ en RSI³. | Incluir demostraciones formales, desigualdades de Bruhat-Tits y la clasificación de Floquet-Poincaré sobre $Sp(4, \mathbb{R})$. |
 | **`LENGUAJE_CONSEJO.md`** | Mapea conceptos técnicos a lenguaje diplomático. | Carece de la traducción para la censura de Falsos Vacíos, Obstrucción de Čech $H^2$ e Incoherencia Ley-Estado. | Extender la Piedra Rosetta con diagnósticos topológicos acoplados a la gestión de licitaciones públicas en SECOP II. |
-| **`semantic_translator.txt`** | Define el Funtor $\Phi_{\mathrm{sem}}$. | No incluye la cuantificación exacta del ahorro por desmantelamiento de cavidades 1-homológicas ($\beta_1 > 0$). | Formalizar el mapeo del Funtor $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial K, \Omega_3) \xrightarrow{\simeq} \text{Business}$ hacia WACC (15%), ROI y $KV$-Cache. |
+| **`semantic_translator.py`** | Define el Funtor $\Phi_{\mathrm{sem}}$. | No incluye la cuantificación exacta del ahorro por desmantelamiento de cavidades 1-homológicas ($\beta_1 > 0$). | Formalizar el mapeo del Funtor $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial K, \Omega_3) \xrightarrow{\simeq} \text{Business}$ hacia WACC (15%), ROI y $KV$-Cache. |
 | **`PRODUCT_VISION.md`** | Visión general del producto y arquitectura. | Falta la conexión explícita entre la capacidad de Gromov ($c_G \le 12.5$) y la reducción de la reserva imprevista del 15% al 3.5%. | Reestructurar la sección de propuesta de valor con las métricas de la Malla Agéntica Wisdom. |
-| **`atomic_knowledge_matrix.txt`** | Representación matricial de conocimientos. | Ausencia de la estructura tensorial del Campo Transitorio Buffer ($T_{\text{TOON}}^{\text{trans}}$) y del Haz Celular $F_{\text{web}}$. | Inocular los invariantes de los 12 soberanos en la Matriz $\rho_{\text{MAC}} \in \mathfrak{D}_n$. |
+| **`atomic_knowledge_matrix.py`** | Representación matricial de conocimientos. | Ausencia de la estructura tensorial del Campo Transitorio Buffer ($T_{\text{TOON}}^{\text{trans}}$) y del Haz Celular $F_{\text{web}}$. | Inocular los invariantes de los soberanos TOON en la Matriz $\rho_{\text{MAC}} \in \mathfrak{D}_n$. |
 
 ---
 
@@ -45,7 +45,7 @@ El Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** ha alcanzado la madu
 
 ### PT-1: Sincronización de la Arquitectura Ciber-Física (`PIRAMIDES_DE_CONTROL.md`)
 
-* **Objetivo**: Reflejar la red completa de 12 parejas de Soberanos de Calibre y Motores Espectrales del Estrato Wisdom ($\mathcal{V}_{\mathbb{W}}$).
+* **Objetivo**: Reflejar la red completa de los 21 soberanos de calibre TOON y 21 motores espectrales TOON del Estrato Wisdom ($\mathcal{V}_{\mathbb{W}}$).
 * **Entregables Específicos**:
   1. **Sección 1.4 — La Octava Extendida de Soberanos de Calibre**:
      * Redacción de especificaciones para `toon_novikov_navigator`, `toon_topological_novikov_navigator`, `toon_cognitive_crop_witness`, `toon_cognitive_crop_auditor`, `toon_wisdom_weaver_witness`, `toon_wisdom_weaver_prosecutor`, `toon_topological_witness`, `toon_topological_prosecutor` y `toon_buffer_agent`.
