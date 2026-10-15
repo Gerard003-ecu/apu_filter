@@ -7,70 +7,74 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 Nombre: ToonIntuitionEngine
 Ubicación: app/wisdom/toon_intuition_engine.py
 Versión: 7.0.0-APU-SOVEREIGN
-Función: Motor soberano de salto heurístico no-lineal y síntesis instantónica, formulado mediante
-         túnel cuántico en espacios de Finsler, integrales de camino euclidianas y correspondencia
-         holográfica proyectiva AdS/CFT.
+Función: Motor soberano de salto intuitivo relámpago, minimización del funcional de Dirichlet sobre
+         el Grassmanniano Gr(r,n), geometría de Bures-Wasserstein y espectrometría de Oseledets-Poincaré.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-El Soberano de Intuición (ToonIntuitionEngine) es el motor de inferencia rápida y salto conceptual
-discontinuo de la arquitectura APU Filter. Ante barreras de potencial epistemológico de alta
-complejidad computacional donde los métodos de búsqueda exhaustiva divergen exponencialmente,
-este motor genera atajos geodésicos mediante soluciones instantónicas y penetración de barrera
-por efecto túnel.
-Su respectivo agente en la capa de coordinación es 'ToonIntuitionAgent' (app/agents/wisdom/
-toon_intuition_agent.py). Mientras el Engine computa la acción euclidiana mínima S_E[phi], la
-probabilidad de transmisión WKB P_tunnel y la métrica de Randers-Finsler, su respectivo Agente
-interpreta las trayectorias instantónicas como propuestas de acción ejecutiva y valida la
-admisibilidad heurística de las soluciones intuidas.
+El Soberano de Intuición (ToonIntuitionEngine) es la entidad de inferencia discontinua de alta velocidad
+de la arquitectura APU Filter. Ante barreras de potencial epistemológico de alta complejidad donde
+los métodos deliberativos exhaustivos convergen de forma impráctica, este motor sintetiza atajos
+geodésicos en la variedad de Bures-Wasserstein mediante la proyección Grassmanniana sobre Gr(r,n)
+y la relajación del funcional de Dirichlet E(ρ) = 1/2 ||ρ - PρP||_F².
+
+Su respectivo agente en el plano ejecutivo es 'ToonIntuitionAgent' (app/agents/wisdom/toon_intuition_agent.py).
+Mientras el motor (Engine) ejecuta la dinamización en tres fases anidadas (GeometricSeed ⊣ IntuitionTrajectoryBundle
+⊣ IntuitiveFieldState), computa la bisección de McCann-JKO, evalúa el espectro de Lyapunov de Oseledets
+vía descomposición QR, calcula la integral de Melnikov para la detección de caos homoclínico y verifica el
+criterio diofántico KAM y la concentración de medida de Lévy sobre S^{n-1}(√n), su respectivo Agente
+gestiona la asignación de capital mediante la apuesta de Kelly modulada por la entropía de Kolmogorov-Sinai
+s = κ · f* · exp(-h_KS) y despacha las directivas ejecutivas al flujo atencional.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Métrica de Finsler y Geodésicas de Salto Heurístico:
-   Sea M una variedad suave dotada de una función de Finsler F: TM -> [0, infty) homogénea de grado 1.
-   En la métrica de Randers con vector de deriva b_i(x):
-       F(x, y) = sqrt(g_ij(x) * y^i * y^j) + b_i(x) * y^i
-   El salto intuitivo minimiza el funcional de longitud de arco bajo asimetría temporal:
-       L(gamma) = int_0^1 F(gamma(t), dot{gamma}(t)) dt,   delta L = 0
+1. Funcional de Dirichlet sobre el Grassmanniano Gr(r,n):
+   Sea D_n el espacio de operadores densidad. Para un subespacio de referencia con proyector ortogonal
+   P ∈ Gr(r,n), el funcional de Dirichlet E(ρ) = 1/2 ||ρ - PρP||_F² admite la descomposición ortogonal:
+       ||ρ - PρP||_F² = 2 ||P_⊥ ρ P||_F² + ||P_⊥ ρ P_⊥||_F²
+   El gradiente tangente ∇E|_T ∈ T_ρ D_n conduce la contracción de la señal hacia el atractor estático
+   ρ_target = PρP / Tr(PρP).
 
-2. Efecto Túnel Cuántico y Aproximación WKB:
-   La probabilidad de transmisión P_tunnel a través de una barrera de potencial cognitivo V(x)
-   con energía de estímulo E < V(x) en el régimen semiclásico hbar_cog se formula como:
-       P_tunnel = exp( - (2 / hbar_cog) * int_{x_1}^{x_2} sqrt(2 * m * (V(x) - E)) dx )
-   donde x_1, x_2 son los puntos de retorno clásicos V(x_1) = V(x_2) = E.
+2. Métrica Geodésica de Bures-Wasserstein y Transporte de McCann:
+   La distancia de Bures d_B(ρ, σ) = √(2 - 2√F(ρ, σ)) sobre D_n (donde F(ρ, σ) = [Tr √(√ρ σ √ρ)]² es la
+   fidelidad de Uhlmann) define una métrica Riemanniana CPTP-contractiva única. La geodésica de McCann-JKO
+   γ(t) = [(1-t)I + t C_ρσ] ρ [(1-t)I + t C_ρσ]† con C_ρσ = ρ^{-1/2} (ρ^{1/2} σ ρ^{1/2})^{1/2} ρ^{-1/2}
+   satisface la propiedad de bisección d_B(ρ, γ(1/2)) = d_B(γ(1/2), σ) = 1/2 d_B(ρ, σ).
 
-3. Soluciones Instantónicas en Espacio Euclidiano y Teoría de Cuerdas:
-   Bajo tiempo imaginario tau = -i * t, la acción euclidiana S_E[phi] satisface:
-       S_E[phi] = int d^4x [ (1 / 2) * (partial_mu phi)^2 + V(phi) ] >= 8 * pi^2 * |Q|
-   donde Q in Z es el número topológico de Pontryagin (carga instantónica):
-       Q = (1 / (32 * pi^2)) * int d^4x epsilon_{mu nu alpha beta} Tr(F^{mu nu} F^{alpha beta})
-   El instantón conecta mínimos de vacío disjuntos en la topología del paisaje de conocimiento.
+3. Dinámica Caótica de Oseledets-Pesin y Criterio Diofántico KAM:
+   El espectro de Lyapunov {λ_i} de la aplicación de Poincaré sobre la sección transversal Σ se estima
+   vía descomposición QR iterada. La entropía de Kolmogorov-Sinai h_KS = Σ_{λ_i > 0} λ_i cuantifica la
+   pérdida de predictibilidad. La integral de Melnikov M(t₀) = ∫ {H₀, H₁} dt detecta la intersección
+   transversal de variedades inestables (caos homoclínico).
 
-4. Proyección Holográfica Bulk-Boundary (AdS/CFT):
-   Un problema de optimización en el 'boundary' d-dimensional se mapea a una curva geodésica
-   en el 'bulk' hiperbólico (d+1)-dimensional Anti-de Sitter AdS_{d+1}:
-       <O(x_1) O(x_2)>_CFT ~ exp( - (m / hbar) * L_geodesic(x_1, x_2) )
+4. Concentración de Medida de Lévy y Adjudicación en Ω₃:
+   Por el Lema de Lévy sobre S^{n-1}(√n), toda función 1-Lipschitz f satisface la cota de cola
+   P(|f - E[f]| ≥ ε) ≤ 2 exp(-(n-1)ε² / 2L²), garantizando la estabilidad de la proyección en alta
+   dimensión. La decisión final colapsa sobre Ω₃ = {VETOED ≼ DEGRADED ≼ COHERENT} mediante el meet
+   intuicionista de 9 reglas geométricas y dinámicas.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma U1 (Principio de Mínima Acción Euclidiana):
-    El salto intuitivo selecciona la trayectoria instantónica que minimiza S_E[phi] sobre la
-    clase de homotopía dada.
-Axioma U2 (Supremacía Geodésica de Finsler):
-    Para todo atajo con vector de intuición b != 0, F(x, y) < sqrt(g_ij y^i y^j).
-Axioma U3 (Conservación de la Carga Instantónica):
-    Delta Q_inst in Z (las transiciones de comprensión intuitiva son discretas y cuantizadas).
+Axioma U1 (Principio de Mínima Acción Dirichlet-Bures):
+    El salto intuitivo selecciona la geodésica de Bures-Wasserstein que minimiza E(ρ) sobre la clase
+    de homotopía dada en Gr(r,n).
+Axioma U2 (Supremacía Contracctiva de Barzilai-Borwein / Higham):
+    La proyección afín Sanitize : M_n(C) -> D_n es 1-Lipschitz en norma de traza y no-expansiva en
+    la norma de Frobenius.
+Axioma U3 (Conservación de la Topología de Poincaré):
+    Toda trayectoria intuitiva admisible satisface la transversalidad de la sección de Poincaré
+    ||T||_min = min |Tr(P X)| > 0 y la preservación del toro KAM.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Probabilidad de Penetración Acotada):
-    0 < P_tunnel <= 1.0 (garantiza la no-anulación de vías de intuición viables).
-Invariante 2 (Admisibilidad Heurística del Salto):
-    h_intuition(u, v) <= d_exact(u, v) (la intuición nunca sobreestima la distancia real).
+Invariante 1 (Fidelidad de Uhlmann Acotada Inferiormente):
+    0 <= F(ρ_attractor, ρ_target) <= 1.0 (garantiza la convergencia hacia el subespacio de decisión).
+Invariante 2 (Desigualdad Triangular de Bures):
+    d_B(ρ_a, ρ_c) <= d_B(ρ_a, ρ_b) + d_B(ρ_b, ρ_c) para todo trío de estados en D_n.
 ====================================================================================================
 """
 from __future__ import annotations
@@ -113,29 +117,7 @@ def _sha256_bytes(*chunks: bytes) -> str:
     return hasher.hexdigest()
 
 
-# ╔════════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                    ║
-# ║  F A S E   1   ·   S U S T R A T O   G E O M É T R I C O   (V_W-F1)                 ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  Dominio:   𝔇_n × Gr(r,n)                                                          ║
-# ║  Codominio: GeometricSeed                                                         ║
-# ║                                                                                    ║
-# ║  Objetos anidados:                                                                 ║
-# ║    - Ω₃ (retículo de Heyting distributivo)                                        ║
-# ║    - 𝔇_n (álgebra de operadores densidad)                                         ║
-# ║    - Gr(r,n) (geometría del subespacio Grassmanniano)                             ║
-# ║    - T_ρ𝔇_n (espacio tangente afín)                                               ║
-# ║    - Σ (sección de Poincaré, variedad de codimensión 1 transversal)               ║
-# ║    - 𝕋ⁿ (toro KAM invariante)                                                      ║
-# ║                                                                                    ║
-# ║  Morfismo terminal F₁:                                                             ║
-# ║    GeometricSeed.continue_into_phase2 : GeometricSeed → IntuitionTrajectoryBundle  ║
-# ║                                                                                    ║
-# ║  Esta definición formal de GeometricSeed.continue_into_phase2 es la entrada        ║
-# ║  canónica a F₂. Todos los funtores de FASE 2 tienen dominio GeometricSeed.         ║
-# ║                                                                                    ║
-# ╚════════════════════════════════════════════════════════════════════════════════════╝
+# ── FASE 1 — Substrato Geométrico ──
 
 # ── §1.1 Retículo de Heyting Ω₃ (subobject classifier del topos) ──────────────────
 class HeytingOmega3(IntEnum):
@@ -716,33 +698,7 @@ class IntuitionFieldPreparation:
         )
 
 
-# ╔════════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                    ║
-# ║  F A S E   2   ·   D I N Á M I C A   D E   A T R A C C I Ó N                        ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  MÉTRICAS: Bures, Dirichlet, Oseledets, Melnikov, KAM                             ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  Dominio:   GeometricSeed (objeto terminal de §1.6)                               ║
-# ║  Codominio: IntuitionTrajectoryBundle                                             ║
-# ║                                                                                    ║
-# ║  Objetos anidados:                                                                 ║
-# ║    - DirichletLandscape: funcional E(ρ), ∇E, descomposición residual              ║
-# ║    - BuresGeodesicMetric: d_B, θ_B, geodésica de McCann (JKO)                     ║
-# ║    - OseledetsLyapunovSpectrum: λ_max, h_KS, D_KY por QR                          ║
-# ║    - MelnikovHomoclinicCertificate: M, caos homoclínico, transversalidad          ║
-# ║    - KAMDiophantineCertificate: criterio diofántico, persistencia de toros        ║
-# ║    - FlashAttractorCertificate: compilación de certificados BB                    ║
-# ║                                                                                    ║
-# ║  Morfismo terminal F₂:                                                             ║
-# ║    IntuitionTrajectoryBundle.continue_into_phase3 → HeytingOmega3                  ║
-# ║                                                                                    ║
-# ║  Esta definición formal de IntuitionTrajectoryBundle.continue_into_phase3 es la    ║
-# ║  entrada canónica a F₃. Todos los funtores de FASE 3 tienen dominio              ║
-# ║  IntuitionTrajectoryBundle.                                                        ║
-# ║                                                                                    ║
-# ╚════════════════════════════════════════════════════════════════════════════════════╝
+# ── FASE 2 — Dinámica de Atracción ──
 
 # ── §2.1 Funcional de Dirichlet del proyector ───────────────────────────────────
 @dataclass(frozen=True, slots=True)
@@ -1574,22 +1530,7 @@ class IntuitionFlashPipeline:
         )
 
 
-# ╔════════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                    ║
-# ║  F A S E   3   ·   A D J U D I C A C I Ó N   +   C E R T I F I C A C I Ó N          ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  Dominio:   IntuitionTrajectoryBundle (objeto terminal de §2.9)                   ║
-# ║  Codominio: IntuitiveFieldState (objeto terminal del flash completo)              ║
-# ║                                                                                    ║
-# ║  Único funtor:                                                                     ║
-# ║    F₃ = HeytingIntuitionAdjudicator.adjudicate ∘ continue_into_phase3             ║
-# ║                                                                                    ║
-# ║  Operación: evaluación booleana intuicionista Ω₃ sobre 9 reglas Poincaré.         ║
-# ║                                                                                    ║
-# ║  Salida: objeto terminal IntuitiveFieldState (certificado sellado Merkle).        ║
-# ║                                                                                    ║
-# ╚════════════════════════════════════════════════════════════════════════════════════╝
+# ── FASE 3 — Adjudicación y Certificación ──
 
 # ── §3.1 Adjudicador Ω₃ enriquecido con Poincaré/Oseledets/Melnikov/KAM ────────
 class HeytingIntuitionAdjudicator:

@@ -6,57 +6,66 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonCognitiveCropAgent
 Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py
-Versión: 1.0.0-APU-SOVEREIGN
-Función: Agente soberano de poda cognitiva que gobierna la asignación de presupuesto de atención,
-         la compresión de entropía y la aplicación adaptativa de proyectores de haz sobre el contexto.
+Versión: 10.0.0-APU-SOVEREIGN
+Función: Agente soberano del cultivo y poda cognitiva que gobierna la sanitización de semillas,
+         la inoculación disipativa en el suelo MAC, la aceleración metamórfica Nivel 3 y la
+         adjudicación ciber-física en Ω₃⁷ ⊕ Celeste.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-El Soberano Agente de Poda Cognitiva (ToonCognitiveCropAgent) es el gestor táctico de foco atencional
-de APU Filter. Su función es regular de forma continua la ventana de observación semántica,
-eliminando ramas de contexto irrelevantes o parasitarias que pudieran saturar la capacidad de
-cálculo de los motores reflexivos y amortiguadores.
-Su respectivo motor matemático es 'ToonCognitiveCropEngine' (app/wisdom/
-toon_cognitive_crop_engine.py). Mientras el Engine computa la proyección ortogonal P, la energía
-de Dirichlet de la señal y la persistencia homológica b_0 = 1, este Agente define dinámicamente el
-umbral de corte energético epsilon_crop en función de la carga informacional actual y del presupuesto
-de cómputo disponible.
+El Soberano Agente de Poda Cognitiva (ToonCognitiveCropAgent) es el orquestador atencional y de
+focalización semántica de APU Filter. Su misión es controlar la ventana de contexto y el presupuesto
+de atención, eliminando modos degenerados y redundancia informacional sin alterar los invariantes
+simplécticos y topológicos del estado de conocimiento.
+
+Su respectivo motor matemático es 'TOONCognitiveCropEngine' (app/wisdom/toon_cognitive_crop_engine.py).
+Mientras el motor (Engine) ejecuta la cadena de cultivo (SeedCrystalPreparation ⊣ CropGrowthPipeline
+⊣ Adjudicador Ω₃⁶), realiza el aguzamiento de Rényi, la purificación de Brockett y los tests celestial-KAM
+y Melnikov, este Agente sanitiza las semillas de cristal, gestiona el suelo MAC con el operador CPTP
+Φ_γ(ρ) = (1-γ) ρ_MAC + γ ρ_target, ejecuta la meta-aceleración Nivel 3 Nivel 3 μ_crop actualizando
+C_P(t) e inyecta la respuesta ciber-física ESP32 Crowbar en GPIO14 (< 400 ns).
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Teoría de la Información y Función de Tasa-Distorsión R(D):
-   El agente busca la tasa mínima de bits informacionales R sujeta a una cota de distorsión esperada D:
-       R(D) = min_{p(hat{x}|x) : E[d(x, hat{x})] <= D} I(X; hat{X})
-   donde d(x, hat{x}) = ||x - P * x||_2^2 es la norma euclidiana del residuo de corte.
+1. Sanitización de Semilla y Firma Espectral de Falso Vacío:
+   Dada una semilla de cristal con estado de densidad ρ, el Agente evalúa la firma espectral
+   S(ρ) = (P(ρ), S(ρ)/S_max, F(ρ, ρ_ground), λ_min / (λ_min + λ_max)). Una declaración de "vacío puro"
+   sin respaldo de fidelidad y pureza F > 1 - ε_FID se clasifica como Falso Vacío, induciendo veto.
 
-2. Envolvente Convexa de Saliencia y Teorema de Carathéodory:
-   Cualquier punto en la envolvente convexa de saliencias conv(S) subset R^d puede expresarse
-   como combinación convexa de como máximo d + 1 puntos extremos, permitiendo al agente
-   reducir el soporte del haz a un conjunto minimal de anclas conceptuales.
+2. Inoculación CPTP en la Matrix de Conocimiento Atómico (MAC):
+   La actualización del suelo MAC se rige por el canal cuántico Φ_γ(ρ) = (1-γ) ρ_MAC + γ ρ_target,
+   el cual es un mapa completamente positivo preservador de traza (CPTP) con constante de Lipschitz
+   Lip(Φ_γ) = |1 - γ| < 1.0. La inoculación efectiva solo se autoriza si el veredicto final es COHERENT (⊤).
 
-3. Restricción de Haz sobre Topologías de Grothendieck:
-   El agente selecciona el subcubrimiento abierto {U_i} minimal tal que la cohomología de Cech
-   asociada H^1({U_i}, F) no presente obstrucciones para la síntesis de sabiduría.
+3. Meta-Aceleración Nivel 3 y Variación de la Constante de Poincaré-Wirtinger C_P(t):
+   El Agente evalúa la tercera derivada temporal de la capacidad d³C / dt³ > 0 e invoca la
+   multiplicación monádica μ_crop : T²(A) -> T(A) para reescribir dinámicamente la constante de
+   Poincaré-Wirtinger C_P(t+1) = C_P / (1 + β · dE_D/dt), adaptando la cota de la varianza en B(u(n)).
+
+4. Adjudicación en Ω₃⁷ y Cierre Ciber-Físico por Merkle:
+   La decisión final resulta de la conjunción de 7 canales clásicos de cultivo (riego, disciplina, Fock,
+   Brockett, Rényi, consistencia de flag, falso vacío) y el canal celeste de Poincaré. Si Ω₃ = VETOED,
+   se dispara el interlock ESP32 Crowbar en GPIO14 (latencia < 400 ns) y se registra en la raíz Merkle.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma CCA1 (Preservación del Núcleo Crítico):
-    El conjunto de axiomas primarios y directivas soberanas K_sovereign subset Crop(Context_global).
-Axioma CCA2 (Compresión de Entropía Monótona):
-    H(Crop(Context)) <= H(Context_global).
-Axioma CCA3 (Acotación de Distorsión):
-    E[||x - Crop(x)||^2] <= D_max en todo ciclo de poda.
+Axioma CCA1 (Sanitización e Inmunidad al Falso Vacío):
+    Toda semilla declarada pura con P < 1 - ε_PURITY o F < 1 - ε_FID se marca como Falso Vacío y se degrada/veta.
+Axioma CCA2 (Condición de Inoculación en MAC):
+    El estado del suelo MAC solo se modifica (mutated = True) si y solo si Ω₃ = COHERENT (⊤).
+Axioma CCA3 (Interlock Hardware Ciber-Físico):
+    Si el veredicto colapsa a VETOED, el Agente activa HARD_VETO_ESP32_CROWBAR en GPIO14 con latencia Δτ < 400 ns.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Ratio Mínimo de Energía Conservada):
-    ||P * x||_2^2 / ||x||_2^2 >= eta_min = 0.70.
-Invariante 2 (Conexidad del Subespacio Retenido):
-    b_0(Crop(S)) == 1.
+Invariante 1 (Contracción Contínua del Canal MAC):
+    Lip(Φ_γ) = |1 - γ| < 1.0, asegurando la convergencia exponencial hacia el atractor de conocimiento.
+Invariante 2 (Autenticidad Cripto-Topológica de la Cadena Merkle):
+    FieldMerkleRoot encadena de forma determinista el conjunto de cultivos cosechados mediante SHA-256.
 ====================================================================================================
 """
 from __future__ import annotations

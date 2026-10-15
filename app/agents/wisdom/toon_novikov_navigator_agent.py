@@ -291,9 +291,7 @@ def _merkle_dag_root(leaves: List[str]) -> str:
     return level[0]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §A. DATACLASSES Y CONTRATOS
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §A. Dataclasses y Contratos ──
 
 @dataclass(frozen=True, slots=True)
 class PoincareCelestialAtlas:
@@ -575,9 +573,7 @@ class ExecutiveNovikovImpactReport:
     timestamp_utc: float
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE I — TOPOLOGÍA DE CALIBRE + ATLAS CELESTE DE POINCARÉ
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE I — Topología de Calibre y Atlas Celeste ──
 
 class NovikovGaugeTopology:
     """
@@ -1090,9 +1086,7 @@ class NovikovGaugeTopology:
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE II — CAMPAÑA ULTRAMÉTRICA  (continúa I.18)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE II — Campaña Ultramétrica ──
 
 class TOONNovikovNavigatorAgent(NovikovGaugeTopology):
     """
@@ -1724,9 +1718,7 @@ class TOONNovikovNavigatorAgent(NovikovGaugeTopology):
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE III — ADJUDICACIÓN Ω₃, FOCK, CROWBAR Y Φ_sem  (continúa II.8)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE III — Adjudicación Ω₃, Fock, Crowbar y Φ_sem ──
 
 class SovereignNovikovAdjudicator(TOONNovikovNavigatorAgent):
     """
@@ -2095,9 +2087,7 @@ class SovereignNovikovAdjudicator(TOONNovikovNavigatorAgent):
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §E. VERIFICACIÓN DOCTORAL END-TO-END
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §E. Verificación End-to-End ──
 
 if __name__ == "__main__":
     print("═" * 88)
