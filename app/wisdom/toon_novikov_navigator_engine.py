@@ -7,70 +7,67 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 Nombre: ToonNovikovNavigatorEngine
 Ubicación: app/wisdom/toon_novikov_navigator_engine.py
 Versión: 7.0.0-APU-SOVEREIGN
-Función: Motor soberano de navegación causal y resolución de curvas cerradas de tipo tiempo (CTCs)
-         basado en el Principio de Autoconsistencia de Novikov, dinámica celeste de resonancia orbital
-         y el Teorema del Punto Fijo de Schauder-Banach.
+Función: Motor soberano de navegación causal, filtración ultramétrica no-arquimediana sobre el anillo
+         de Novikov Λ_Nov y resolución de perturbaciones seculares mediante el atlas de Poincaré.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-El Soberano de Navegación Novikov (ToonNovikovNavigatorEngine) es el árbitro causal definitivo de la
-arquitectura APU Filter. Cuando el sistema realiza proyecciones contrafactuales, simulaciones
-recursivas de futuro hacia el pasado o bucles de retroalimentación temporal (time-loop reasoning),
-este motor impide la emergencia de paradojas del abuelo (retrocausality collisions). Garantiza que
-únicamente sobrevivan aquellas trayectorias que son soluciones autoconsistentes de punto fijo.
+El Soberano de Navegación Novikov (ToonNovikovNavigatorEngine) es el árbitro causal no-arquimediano
+de APU Filter. Ante simulaciones contrafactuales y ramificaciones históricas complejas, evalúa la
+admisibilidad C*-𝔇_n, la distancia geodésica en el Árbol de Bruhat-Tits d_BT = |v(A) - v_floor| + d_FS
+y la validez del principio de autoconsistencia de Novikov sobre el anillo ultramétrico Λ_Nov.
+
 Su respectivo agente en el plano operativo es 'ToonNovikovNavigatorAgent' (app/agents/wisdom/
-toon_novikov_navigator_agent.py). Mientras el Engine computa la iteración de contracción de Banach
-||T(x) - T(y)|| <= k ||x - y||, la holonomía de curvatura Lorentziana y el residuo de paradoja R,
-su respectivo Agente ejecuta la planificación de rutas temporales, la reconciliación de ramas
-históricas divergentes y la estabilización de bifurcaciones contrafactuales.
+toon_novikov_navigator_agent.py). Mientras el motor (Engine) calcula de forma determinista la
+valuación v(A) = min{a_i}, la norma ultramétrica ||T^a||_Nov = exp(-v(A)), la desigualdad no-arquimediana
+||x+y||_Nov <= max(||x||, ||y||), la amiba tropical A_Nov, los exponentes transversales de Oseledets y la
+mónada RSI-3 con contracción de Banach k³ < 1.0, su respectivo Agente coordina los contratos de calibre
+HMAC, orquesta las campañas de deliberación y ejecuta las respuestas ciber-físicas vía ESP32 Crowbar
+y aniquilación Fock e⁻ + e⁺ → 2γ.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Principio de Autoconsistencia de Novikov en Variedades con CTCs:
-   Sea (M, g_{mu nu}) una variedad Lorentziana diferenciable que admite curvas cerradas de tipo tiempo
-   gamma: S^1 -> M con g_{mu nu} dot{gamma}^mu dot{gamma}^nu < 0.
-   El principio de Novikov postula que la única física admisible en presencia de CTCs son soluciones
-   globales autoconsistentes. Formalmente, si Phi: Omega M -> Omega M es el mapa de evolución temporal:
-       P(paradoja) = 0 <=> exists psi* in Omega M : Phi(psi*) = psi*
+1. Valuación de Novikov y Anillo de Series Formales Λ_Nov:
+   Sea Λ_Nov el anillo de series de Novikov con elementos T^a. La valuación v(A) asigna el exponente
+   mínimo v(A) = min{a_i} con a_i = -ln λ_i(ρ). La norma no-arquimediana ||A||_Nov = exp(-v(A)) satisface
+   estrictamente la desigualdad ultramétrica ||x + y||_Nov <= max(||x||_Nov, ||y||_Nov), previniendo la
+   emergencia de incoherencias causales y desbordamientos seculares.
 
-2. Teorema del Punto Fijo de Banach en Espacios de Lazos Causa-Efecto:
-   Sea (X, d) el espacio métrico completo de configuraciones de bucle temporal cognitivo.
-   Si el operador de reconciliación T: X -> X satisface la condición de contracción de Lipschitz:
-       d(T(u), T(v)) <= kappa * d(u, v),   para todo u, v in X con kappa in [0, 1)
-   entonces existe un único punto fijo u* in X tal que:
-       T(u*) = u*,   con lim_{m -> infty} T^m(u_0) = u*
+2. Árbol de Bruhat-Tits y Amiba Tropical A_Nov:
+   El espacio de deliberaciones se mapea sobre el Árbol de Bruhat-Tits con métrica d_BT = |v(A) - v_floor| + d_FS.
+   La proyección de los ceros del polinomio característico en el plano logarítmico define la amiba
+   tropical A_Nov, cuyo volumen de proyección delimita el dominio de estabilidad de la trayectoria.
 
-3. Dinámica Celeste y Resonancia Orbital de Poincaré:
-   Los ciclos temporales se formulan mediante variables de ángulo-acción de Delaunay (I, theta):
-       H(I, theta) = H_0(I) + epsilon * sum_{k_1, k_2} V_{k_1, k_2}(I) * cos(k_1 * theta_1 + k_2 * theta_2)
-   La condición de resonancia orbital commensurable asegura la periodicidad estricta del lazo:
-       k_1 * dot{theta}_1 + k_2 * dot{theta}_2 = 0 <=> k_1 * omega_1 + k_2 * omega_2 = 0
+3. Mecánica Celeste de Poincaré y Absorción de Pequeños Divisores:
+   Los ciclos causales se parametrizan por las variables de Delaunay. Para pequeños divisores |⟨k, ω⟩|,
+   el peso ultramétrico de Novikov W_Nov(k, ω) = exp(-T_val / (ε + |⟨k, ω⟩|)) absorbe las divergencias
+   resonantes, garantizando la convergencia de las series de Lindstedt-Poincaré y el cumplimiento de
+   la condición de Bruno.
 
-4. Holonomía de Curvatura Espaciotemporal y Fase Causal:
-   La integral cerrada de conexión temporal A a lo largo del lazo cerrado gamma satisface:
-       Hol(nabla, gamma) = P exp( - oint_gamma Gamma_mu dx^mu ) = I
-   garantizando la ausencia de desfase causal tras un recorrido temporal completo.
+4. Mónada RSI Nivel 3 y Adjudicación Heyting Ω₃:
+   El endofuntor de mejora T(η) satisface la propiedad de contracción de tercer orden Lip(T³) = k³ < 1.0.
+   La multiplicación monádica μ : T² ⇒ T satisface la ley de asociatividad μ ∘ Tμ = μ ∘ μT. El veredicto
+   final se decide sobre Ω₃ = {VETOED ≼ DEGRADED ≼ COHERENT} mediante la evaluación de 6 canales.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma N1 (Existencia Global de Historia Autoconsistente):
-    En todo lazo causal cerrado gamma, existe al menos una configuración cuántica global psi
-    tal que el residuo de paradoja R(psi) = ||Phi(psi) - psi|| == 0.
-Axioma N2 (Contracción Causal Unívoca de Novikov):
-    El operador de reconciliación es una contracción estricta con constante de Lipschitz kappa < 1.
-Axioma N3 (Conservación de Carga Causal):
-    oint_{partial Sigma} F_causal = 0, donde F_causal es la 2-forma de consistencia temporal.
+Axioma N1 (Invarianza Ultramétrica No-Arquimediana):
+    Para todo par de términos causales x, y ∈ Λ_Nov, ||x + y||_Nov <= max(||x||_Nov, ||y||_Nov).
+Axioma N2 (Observación QND de Retro-Acción Nula):
+    Toda medición pasiva sobre el rayo de deliberación satisface Back-Action == 0.0 dB y Tr(ρ) = 1.0.
+Axioma N3 (Unitaridad y Conservación Simpléctica de Monodromía):
+    El mapa de retorno de Poincaré P satisface det(DP) = 1.0 y preserva la 2-forma de Darboux.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Residuo de Paradoja Nulo en Convergencia):
-    ||x_{k+1} - x_k|| <= epsilon_novikov = 1e-5.
-Invariante 2 (Unicidad del Atractor Causal):
-    |Fix(T)| = 1 en el dominio de atracción conexo.
+Invariante 1 (Piso de Valuación de Novikov):
+    v(A) >= v_floor = 0.1 (evita la divergencia de la norma ultramétrica y colisiones causales).
+Invariante 2 (Autenticidad Cripto-Topológica de Costura):
+    HMAC(Contract ‖ Seam) == Valid_Signature, asegurando trazabilidad inalterable entre Fases.
 ====================================================================================================
 """
 
@@ -245,9 +242,7 @@ def _spectral_actions(rho: np.ndarray) -> np.ndarray:
     return -np.log(eig)
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §A. DATACLASSES Y CONTRATOS
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §A. Dataclasses y Contratos ──
 
 @dataclass(frozen=True, slots=True)
 class DelaunayActions:
@@ -444,9 +439,7 @@ class NovikovExecutionCertificate:
     parent_seed_hashes: Tuple[str, ...]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE I — ATLAS CELESTE DE POINCARÉ–NOVIKOV
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE I — Atlas Celeste de Poincaré–Novikov ──
 
 class PoincareNovikovAtlas:
     """
@@ -979,9 +972,7 @@ class PoincareNovikovAtlas:
         return seam
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE II — MOTOR ULTRAMÉTRICO NOVIKOV  (continúa I.16)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE II — Motor Ultramétrico Novikov ──
 
 class NovikovUltrametricEngine(PoincareNovikovAtlas):
     """
@@ -1401,9 +1392,7 @@ class NovikovUltrametricEngine(PoincareNovikovAtlas):
         return seam
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE III — MOTOR PRINCIPAL: Ω₃, FOCK, CROWBAR, MERKLE  (continúa II.11)
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE III — Motor Principal: Ω₃, Fock, Crowbar y Merkle ──
 
 class TOONNovikovNavigatorEngine(NovikovUltrametricEngine):
     """
@@ -1811,9 +1800,7 @@ class TOONNovikovNavigatorEngine(NovikovUltrametricEngine):
         return cert
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §F. VERIFICACIÓN DOCTORAL END-TO-END
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §F. Verificación End-to-End ──
 
 if __name__ == "__main__":
     print("═" * 88)

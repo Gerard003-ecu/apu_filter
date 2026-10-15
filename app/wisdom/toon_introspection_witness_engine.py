@@ -8,67 +8,67 @@ Nombre: ToonIntrospectionWitnessEngine
 Ubicación: app/wisdom/toon_introspection_witness_engine.py
 Versión: 7.0.0-APU-SOVEREIGN
 Función: Motor soberano testigo de introspección no-perturbativo (Quantum Non-Demolition / QND),
-         certificación de trazas cuánticas y cálculo de invariantes topológicos de Chern sobre
-         conexiones de Berry cognitivas.
+         observación débil en CP^{n-1}, Holonomía de Berry-Pancharatnam y automejora RSI Nivel 3.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Testigo de Introspección (ToonIntrospectionWitnessEngine) es el dispositivo de atestación
-formal y observación pasiva de APU Filter. Su principio operativo central es verificar la salud y
-coherencia de los bucles introspectivos sin inyectar ruido estocástico ni colapsar la superposición
-de trayectorias de inferencia (medición no-demolición).
-Su respectivo agente es 'ToonIntrospectionWitnessAgent' (app/agents/wisdom/
-toon_introspection_witness_agent.py). Mientras el Engine calcula numéricamente la traza invariante
-Tr(rho * O), la fase geométrica de Berry gamma_B y el conmutador de back-action [H_int, O_sys] = 0,
-su respectivo Agente emite certificados cripto-topológicos y alertas tempranas de decoherencia o
-inestabilidad recurrente a los supervisores del sistema.
+formal y observación pasiva no-demolición (Quantum Non-Demolition / QND) de la arquitectura APU Filter.
+Su cometido esencial es fiscalizar la estabilidad y coherencia de los bucles reflexivos sin inyectar
+ruido estocástico ni provocar el colapso de la superposición de trayectorias de inferencia, operando con
+un impacto de retro-acción nulo (Back-Action = 0.0 dB).
+
+Su respectivo agente en el plano de coordinación es 'ToonIntrospectionWitnessAgent' (app/agents/wisdom/
+toon_introspection_witness_agent.py). Mientras el motor (Engine) calcula de forma determinista el atlas
+celeste de Poincaré (Delaunay, Greene, Melnikov, Bryuno, Morse-Bott χ(CP^{n-1}) = n, CR3BP y sección de
+retorno), evalúa los axiomas C* sobre D_n, mide la distancia de Fubini-Study d_FS, la holonomía de
+Berry-Pancharatnam γ_Berry, la concentración de medida de Lévy sobre S^{2n-1}, el exponente transversal
+de Oseledets λ⟂, la cota de Poincaré-Wirtinger y la contracción de Banach Nivel 3 con verificación tipo Löb
+T_μ(η*) = η*, su respectivo Agente emite certificados cripto-topológicos, interlocks hardware en silicio
+vía ESP32 Crowbar (GPIO14 < 400 ns) y registros de aniquilación de Fock e⁻ + e⁺ → 2γ al Vacío de Dirac.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Medición Cuántica Libre de Perturbación (Quantum Non-Demolition - QND):
-   Sea H_S el Hamiltoniano del subsistema cognitivo y H_int el Hamiltoniano de acoplamiento con el
-   testigo. Un observable O_S es un observable QND continuo si conmuta con el Hamiltoniano total:
-       [O_S, H_S] = 0   y   [O_S, H_int] = 0
-   Esto garantiza que el valor esperado <O_S> y su dispersión Delta O_S se preservan idénticamente:
-       d <O_S> / dt = (i / hbar) * <[H_total, O_S]> = 0
+1. Observación Débil QND en CP^{n-1} y Valor Débil Aharonov:
+   Sea |v*⟩ ∈ CP^{n-1} el rayo de prueba y A un observable Hermítico. El valor débil de Aharonov A_w se
+   expresa como A_w = ⟨r| ρ_mac A |r⟩ / ⟨r| ρ_mac |r⟩. La condición QND [O_S, H_total] = 0 garantiza
+   un efecto de retro-acción exactamente nulo (Back-Action = 0.0 dB), preservando la traza Tr(ρ) = 1.
 
-2. Conexión de Berry y Primera Clase de Chern c_1:
-   En un ciclo adiabático cerrado gamma en el espacio de parámetros cognitivos M:
-       gamma: [0, T] -> M,   con R(T) = R(0)
-   La conexión de Berry (1-forma diferencial) está dada por:
-       A = i * <psi(R) | d_R psi(R)>
-   La 2-forma de curvatura de Berry F = dA satisface la integral topológica de Chern:
-       c_1 = (1 / (2 * pi)) * int_M F_Berry in Z
-   El número entero c_1 clasifica topológicamente el haz de estados introspectivos, garantizando
-   que cualquier perturbación suave mantenga el índice topológico invariante.
+2. Fase Geométrica de Berry-Pancharatnam y Conexión en U(1) ↪ CP^{n-1}:
+   La holonomía del fibrado principal U(1) a lo largo de la geodésica de Fubini-Study d_FS = arccos √F
+   (donde F(ρ_mac, |v*⟩⟨v*|) es la fidelidad de Uhlmann) induce la 1-forma de conexión A_Berry = Im ⟨ψ| dψ⟩
+   y la fase de Pancharatnam γ_Berry = arg ⟨v*| ρ_mac |v*⟩. Se exige |γ_Berry| < 0.50 rad para coherencia.
 
-3. Comónadas de Atestación Pasiva:
-   El testigo opera como una comónada W = (W, varepsilon, delta) en la categoría C:
-       W: C -> C
-       varepsilon_A: W(A) -> A  (morfismo de counidad o extracción fiel de evidencia)
-       delta_A: W(A) -> W^2(A)  (morfismo de codiagonal o meta-atestación)
-   Satisfaciendo las identidades comonádicas:
-       varepsilon_W circ delta = id_W = W(varepsilon) circ delta
+3. Estabilidad de Oseledets, Variación Poincaré-Wirtinger y Filtración Ultramétrica:
+   El espectro de Lyapunov transversal λ_i = (ln λ_i - R_G τ / 4) / τ evalúa la velocidad de separación
+   orbital. La cota de Poincaré-Wirtinger ||ρ - I/n||_F² <= C_P · 2 E_D (con E_D la energía de Dirichlet)
+   acota la dispersión espectral. La valuación de Novikov v(T^a) = min a_i induce una filtración no-arquimediana.
+
+4. Jerarquía de Automejora Recursiva Nivel 3 (Banach y Consistencia de Löb):
+   El operador de multiplicación monádica Nivel 1 η^{(t+1)} = μ_intro_witness(η^{(t)}) se optimiza mediante
+   un meta-gradiente Nivel 2 sobre sus hiperparámetros. El Nivel 3 evalúa el punto fijo de Banach T_μ(η*) = η*
+   con constante de Lipschitz L < 1.0 y verifica la consistencia de Löb T_μ(T_μ(η*)) = T_μ(η*) = η*,
+   evitando paradojas de autorreferencia infinita (Gödel loops).
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma W1 (Invarianza de Back-Action Nulo):
-    ||Psi_post_witness - Psi_pre_witness|| == 0 para todo estado coherente observado.
-Axioma W2 (Invarianza de Clase Topológica de Chern):
-    Delta c_1(M) = 0 bajo cualquier difeomorfismo suave del espacio de parámetros de inferencia.
-Axioma W3 (Unitaridad de la Traza de Densidad):
-    Tr(rho(t)) = 1.0 para todo tiempo t >= 0.
+    ||Ψ_post_witness - Ψ_pre_witness|| == 0 y Back-Action == 0.0 dB para todo estado coherente observado.
+Axioma W2 (Invarianza Topológica de Morse-Bott y Euler):
+    La característica de Euler del espacio proyectivo complejo satisfase idénticamente χ(CP^{n-1}) = n.
+Axioma W3 (Consistencia de Löb e Idempotencia Monádica):
+    T_μ(T_μ(η*)) = T_μ(η*) = η*, garantizando un único atractor de automejora estable y libre de Gödel loops.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Preservación Exacta de Pureza):
-    |gamma(t) - gamma(0)| <= epsilon_tolerance, donde gamma = Tr(rho^2).
-Invariante 2 (Cuantización del Índice Topológico):
-    c_1 in {-K, ..., 0, ..., K} subset Z (el índice es estrictamente discreto).
+Invariante 1 (Cota Superior de Capacidad de Gromov):
+    c_G <= c_G_max = 12.5 (evita la inyección descontrolada de volumen simpléctico en el canal QND).
+Invariante 2 (Preservación de Axiomas C* en D_n):
+    Involución autoadjunta ρ = ρ†, traza unitaria Tr(ρ) = 1.0 y positividad espectral λ_min >= -1e-10.
 ====================================================================================================
 """
 
@@ -93,9 +93,7 @@ logging.basicConfig(level=logging.INFO,
                     format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §0. PRIMITIVAS TRANSVERSALES
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §0. Primitivas Transversales ──
 
 class HeytingOmega3(IntEnum):
     VETOED   = 0
@@ -148,9 +146,7 @@ def _poisson_bracket(f: Callable[[float, float], float],
     return fq * gp - fp * gq
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §A. DATACLASSES Y CONTRATOS DEL TESTIGO DE INTROSPECCIÓN
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §A. Dataclasses y Contratos del Testigo de Introspección ──
 
 @dataclass(frozen=True, slots=True)
 class DelaunayActions:
@@ -332,9 +328,7 @@ class IntrospectionWitnessExecutionCertificate:
     parent_seed_hashes: Tuple[str, ...]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE I — ATLAS CELESTE DEL TESTIGO DE INTROSPECCIÓN
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE I — Atlas Celeste del Testigo de Introspección ──
 
 class PoincareIntrospectionWitnessAtlas:
     """
@@ -713,9 +707,7 @@ class PoincareIntrospectionWitnessAtlas:
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE II — MOTOR QND, HOPF-BERRY Y RSI3 DEL TESTIGO
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE II — Motor QND, Hopf-Berry y RSI3 del Testigo ──
 
 class IntrospectionWitnessQNDEngine:
     """
@@ -1244,9 +1236,7 @@ class IntrospectionWitnessQNDEngine:
         return germ, seed
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# FASE III — MOTOR PRINCIPAL: ADJUDICACIÓN Ω₃, FOCK, CROWBAR, MERKLE
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE III — Motor Principal: Adjudicación Ω₃, Fock, Crowbar, Merkle ──
 
 class TOONIntrospectionWitnessEngine:
     """
@@ -1562,9 +1552,7 @@ class TOONIntrospectionWitnessEngine:
         return cert
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §F. VERIFICACIÓN DOCTORAL END-TO-END
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §F. Verificación End-to-End ──
 
 if __name__ == "__main__":
     print("═" * 88)

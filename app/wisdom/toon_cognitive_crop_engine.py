@@ -7,73 +7,71 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 Nombre: ToonCognitiveCropEngine
 Ubicación: app/wisdom/toon_cognitive_crop_engine.py
 Versión: 7.0.0-APU-SOVEREIGN
-Función: Motor soberano de poda y focalización cognitiva mediante operadores de proyección en
-         álgebras de von Neumann y restricción de haces (sheaf cohomology crop) sobre topologías
-         de Grothendieck.
+Función: Motor soberano de poda y focalización cognitiva mediante purificación isospectral de Brockett,
+         acotación de Poincaré-Wirtinger en B(u(n)) × CPTP(D_n) y mecánica celeste sobre métricas
+         conformes de Maupertuis-Jacobi.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-El Soberano de Poda Cognitiva (ToonCognitiveCropEngine) opera como el filtro de restricción
-informacional más estricto de APU Filter. Su cometido esencial es suprimir dimensiones espurias,
-ruido contextual y armónicos de dispersión en el espacio de representación semántica sin degradar
-los invariantes topológicos (grupos de homología H_k y números de Betti b_k).
-Su respectivo agente en la capa ejecutiva es 'ToonCognitiveCropAgent' (app/agents/wisdom/
-toon_cognitive_crop_agent.py). Mientras el Engine formaliza los proyectores ortogonales P = P^2 = P^*,
-la cota de energía de Dirichlet sobre el Laplaciano del grafo y el complejo simplicial de
-Vietoris-Rips, su respectivo Agente monitorea las tasas de distorsión semántica y selecciona
-dinámicamente el radio de vecindad de corte epsilon_crop.
+El Soberano de Poda Cognitiva (ToonCognitiveCropEngine) opera como el dispositivo de restricción
+informacional más estricto de APU Filter. Su cometido esencial es eliminar armónicos espurios,
+redundancia en representaciones semánticas y ruido contextual sin degradar la estructura
+simpléctica ni los invariantes topológicos del estado de conocimiento.
+
+Su respectivo agente en el plano ejecutivo es 'ToonCognitiveCropAgent' (app/agents/wisdom/toon_cognitive_crop_agent.py).
+Mientras el motor (Engine) ejecuta la cadena de tres fases anidadas (SeedCrystalPreparation ⊣ CropGrowthPipeline
+⊣ Adjudicador Ω₃⁶), orquesta la compresión KV, la purificación de Brockett dρ/dt = [ρ, [ρ, N]], la
+aguzamiento de Rényi, la aniquilación en el álgebra de Fock e⁻ + e⁺ → 2γ, el análisis de pequeños
+divisores KAM con condición de Bruno, la integral de Melnikov y el cálculo de multiplicadores de Floquet
+y del índice de Conley-Zehnder sobre el mapa de retorno, su respectivo Agente coordina la inoculación en
+el suelo MAC y ejecuta la interrupción ciber-física en silicio vía ESP32 Crowbar (GPIO14 < 400 ns).
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Teoría de Haces y Morfismos de Restricción:
-   Sea (X, tau) el espacio topológico de conceptos y F un haz de álgebras abelianas sobre X.
-   Para cada abierto U subset X, el haz asigna el conjunto de secciones Gamma(U, F). Para cualquier
-   inclusión V subset U, existe un homomorfismo de restricción canónico:
-       rho_{U, V}: F(U) -> F(V)
-   tal que rho_{U, U} = id_{F(U)} y rho_{V, W} circ rho_{U, V} = rho_{U, W} para W subset V subset U.
+1. Purificación Isospectral de Brockett y Aguzamiento de Rényi:
+   La dinámica de ordenamiento de energía se rige por el flujo de Brockett dρ/dt = [ρ, [ρ, N]] sobre la
+   variedad isospectral, el cual minimiza el funcional de Lyapunov L(ρ) = Tr(ρ N) donde N = diag(1, 2, ..., n).
+   Posteriormente, el aguzamiento de Rényi ρ_α = ρ^α / Tr(ρ^α) (α = 1.5) concentra la masa espectral sobre
+   los modos dominantes, reduciendo la entropía von Neumann S(ρ).
 
-2. Operador de Proyección en Álgebra de Operadores B(H):
-   Sea H el espacio de Hilbert de representaciones semánticas. Un proyector ortogonal P in B(H)
-   satisface rigurosamente las condiciones idempotente y autoadjunta:
-       P^2 = P,   P^dagger = P
-   La descomposición del espacio de Hilbert induce la suma directa ortogonal:
-       H = Im(P) oplus Ker(P) = H_saliente oplus H_ruido
+2. Desigualdad Aguda de Poincaré-Wirtinger sobre B(u(n)):
+   En la primera forma de Dirichlet E_D(ρ) = 1/2 ||[ρ, N]||_F², la varianza Var(ρ) = ||ρ - I/n||_F² queda
+   acotada por ||ρ - I/n||_F² <= C_P^♯ · 2 E_D(ρ), donde C_P^♯ <= 1/2 es la constante aguda de Poincaré-Wirtinger
+   asociada al primer autovalor del laplaciano ad_N* ad_N sobre sl(n).
 
-3. Energía de Dirichlet y Laplaciano de Grafo Semántico:
-   Sea G = (V, E, W) el grafo de asociaciones conceptuales con matriz de adyacencia ponderada W y
-   matriz de grados D_ii = sum_j W_ij. El Laplaciano combinatorial no normalizado L = D - W
-   determina la energía de Dirichlet de una señal f: V -> R:
-       E_D(f) = (1 / 2) * f^T * L * f = (1 / 2) * sum_{(i,j) in E} W_ij * (f(i) - f(j))^2
-   El corte cognitivo retiene las componentes armónicas asociadas a los autovalores menores
-   lambda_1 <= lambda_2 <= ... <= lambda_k de L, descartando el ruido de alta frecuencia laplaciana.
+3. Métrica Conforme de Maupertuis-Jacobi y Capacidad de Gromov:
+   Para un Hamiltoniano H(q,p) = 1/2 g^{jk} p_j p_k + V(q), la métrica de Maupertuis-Jacobi g̃_{jk}(q) = 2(H₀ - V(q)) g_{jk}
+   determina las geodésicas mecánicas en la región de Hill {q : H₀ - V(q) > 0}. El índice de refracción
+   n(q) = √(2(H₀ - V(q))) y la capacidad de Gromov c_G = π r² limitan el volumen simpléctico inyectable.
 
-4. Homología Persistente y Complejo de Vietoris-Rips:
-   Para una nube de puntos S subset R^d y escala epsilon > 0, el complejo VR_epsilon(S) satisface:
-       sigma = [v_0, v_1, ..., v_k] in VR_epsilon(S) <=> d(v_i, v_j) <= epsilon, forall i, j
-   El motor garantiza que el número de Betti b_0(VR_epsilon(Crop(S))) == 1 (conexidad del núcleo).
+4. Criterio KAM de Bruno y Análisis de Floquet-Conley-Zehnder:
+   Se verifica la condición de Bruno B(ω) = Σ 2^{-ν} log(1/Ω(2^ν)) < ∞ para garantizar la persistencia de toros
+   invariantes frente a pequeños divisores. La integral de Melnikov M(t₀) = ∫ {H₀, H₁} dt evalúa el caos
+   homoclínico, mientras que el mapa de retorno Σ_ℓ determina los multiplicadores de Floquet y el índice
+   topológico de Conley-Zehnder CZ(M).
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma C1 (Idempotencia Estricta del Operador de Poda):
-    Para todo vector o haz de entrada Phi, Crop(Crop(Phi)) = Crop(Phi).
-Axioma C2 (Monotonía de Entropía Relativa de Compresión):
-    H(Crop(Phi)) <= H(Phi), con igualdad si y solo si Ker(P) cap Supp(Phi) = {0}.
-Axioma C3 (Preservación del Núcleo Homológico):
-    El morfismo inducido en el grupo fundamental i_*: pi_1(Crop(X)) -> pi_1(X) es un monomorfismo
-    sobre el subespacio de saliencias principales.
+Axioma C1 (Idempotencia y Contracción de Banach):
+    El operador de restricción y acondicionamiento satisface la cota contracctiva de Banach ρ(T_η) < 1.0
+    y la estabilidad en la serie de Neumann.
+Axioma C2 (Preservación CPTP de la Inoculación MAC):
+    El canal de actualización de la MAC Φ_γ(ρ) = (1-γ) ρ_MAC + γ ρ_target es un mapa completamente positivo
+    preservador de traza con constante de Lipschitz Lip(Φ_γ) = |1 - γ| < 1.0.
+Axioma C3 (Invarianza de Liouville y Simplectisidad de Darboux):
+    La 2-forma simpléctica ω = dq ∧ dp satisface dω = 0 y det(DP) = +1 a lo largo del flujo de retorno.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Ratio Señal a Ruido Acotado Inferiormente):
-    SNR_crop = ||P * x||_2 / ||(I - P) * x||_2 >= theta_min > 0.
-Invariante 2 (Preservación de Conexidad Topológica):
-    b_0(Crop(G)) = 1 (el subgrafo podado retiene conexidad simple y no se fragmenta).
+Invariante 1 (Admisibilidad de la Región de Hill):
+    Margen de Hill H₀ - V(q) > 0, garantizando la definitividad positiva de la métrica g̃.
+Invariante 2 (Adjudicación en Ω₃⁶ ⊕ Celeste):
+    El veredicto final resulta del ínfimo sobre el frame distributivo Ω₃ de 6 canales clásicos y el canal celeste.
 ====================================================================================================
-
 """
 from __future__ import annotations
 
@@ -100,9 +98,7 @@ if not logger.handlers:
 
 __version__: Final[str] = "10.0.0-RSI-3-Inflexion-Monadic-Hodge-Lanczos-Poincare-Wirtinger-PhD"
 
-# ═══════════════════════════════════════════════════════════════════════════
-# CONSTANTES NUMÉRICAS (Wilkinson, Hill, KAM, Melnikov, Floquet, Birkhoff)
-# ═══════════════════════════════════════════════════════════════════════════
+# ── Constantes Numéricas ──
 _EPS: Final[float] = 1.0e-14
 _EPS_MODULAR: Final[float] = 1.0e-10
 _EPS_TRACE: Final[float] = 1.0e-15
@@ -175,15 +171,7 @@ def _safe_log(x: np.ndarray, floor: float = _EPS_MODULAR) -> np.ndarray:
     return np.log(np.maximum(np.real(x), floor))
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 1 · SUSTRATO ALGEBRAICO DEL CULTIVO + GEOMETRÍA DE LA FASE            ║
-# ║                                                                           ║
-# ║ Objetos: Ω₃, 𝔇_n, B(u(n)), (H_mac, |Ω⟩), (T*Q, Ω, g̃, λ_PC, i_X ω).     ║
-# ║ Morfismo terminal (I.ω): synthesize_poincare_cartan_germ                  ║
-# ║     ↦ 𝒢_I = _PoincareCartanSeedGerm                                       ║
-# ║ Morfismo de empalme (I.ω⁺): hand_off_germ_to_phase2                       ║
-# ║     ≡ objeto inicial / continuación de Fase II.                           ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
+# ── FASE 1 — Substrato Algebraico del Cultivo + Geometría de la Fase ──
 
 # ── §1.1 Retículo distributivo de Heyting Ω₃ ──────────────────────────────
 class HeytingOmega3(IntEnum):
@@ -1308,16 +1296,7 @@ class SeedCrystalPreparation:
         )
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2 · RIEGO + LUZ + DISCIPLINA + KAM/BRUNO + MELNIKOV + CZ + RETORNO   ║
-# ║                                                                           ║
-# ║ Continuación directa del morfismo terminal de Fase I                      ║
-# ║     (SeedCrystalPreparation.hand_off_germ_to_phase2).                     ║
-# ║ Morfismo terminal (II.ω): synthesize_celestial_bundle                     ║
-# ║     ↦ 𝒢_II = _PoincareCelestialGrowthBundle                               ║
-# ║ Morfismo de empalme (II.ω⁺): hand_off_bundle_to_phase3                    ║
-# ║     ≡ objeto inicial / continuación de Fase III.                          ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
+# ── FASE 2 — Riego, Luz, Disciplina y Análisis Celeste ──
 
 # ── §2.1 CognitiveWateringModule — RIEGO ──────────────────────────────────
 @dataclass(frozen=True, slots=True)
@@ -2557,14 +2536,7 @@ class CropGrowthPipeline:
         )
 
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3 · FE + ADJUDICACIÓN Ω₃⁶ + CROWBAR + CERTIFICACIÓN MERKLE            ║
-# ║                                                                           ║
-# ║ Continuación directa del morfismo terminal de Fase II                     ║
-# ║     (CropGrowthPipeline.hand_off_bundle_to_phase3).                       ║
-# ║ Objeto inicial: 𝒢_II = _PoincareCelestialGrowthBundle.                    ║
-# ║ Objeto terminal: CropGerminationCertificate (Merkle + Ω₃⁶ + Crowbar).     ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
+# ── FASE 3 — Adjudicación Ω₃⁶, Crowbar e Interlock Ciber-Físico ──
 
 # ── §3.1 Adjudicador en Ω₃ y Ω₃⁶ ──────────────────────────────────────────
 class HeytingCropAdjudicator:

@@ -6,59 +6,65 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonIntrospectionWitnessAgent
 Ubicación: app/agents/wisdom/toon_introspection_witness_agent.py
-Versión: 1.0.0-APU-SOVEREIGN
-Función: Agente soberano testigo de introspección que audita la estabilidad reflexiva monádica,
-         fiscaliza al agente de introspección activa y previene patologías autorreferenciales de Gödel.
+Versión: 7.0.0-APU-SOVEREIGN
+Función: Agente soberano de gobernanza de calibre sobre el fibrado P → M, orquestación de campañas QND
+         pasivas, verificación de la mónada RSI-3 y adjudicación ciber-física en Ω₃.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Agente Testigo de Introspección (ToonIntrospectionWitnessAgent) es el auditor epistemológico
-supremo asignado al subsistema reflexivo de APU Filter. Su misión crítica es garantizar que el proceso
-de auto-corrección e introspección no degenere en bucles autorreferenciales patológicos (Gödel loops),
-recursión infinita o auto-justificación tautológica.
-Su respectivo motor matemático es 'ToonIntrospectionWitnessEngine' (app/wisdom/
-toon_introspection_witness_engine.py). Mientras el Engine computa la curvatura de Berry, la
-conmutación QND y la pureza cuántica de la matriz de densidad, este Agente vigila activamente el
-comportamiento de 'ToonIntrospectionAgent', imponiendo cuotas de profundidad recursiva y emitiendo
-interrupciones de emergencia si el exponente de Lyapunov diverge positivamente.
+y atestador pasivo supremo de APU Filter. Su misión es garantizar que las auto-observaciones sobre el
+estado cognitivo no induzcan colapsos de fase, deriva de calibre o patologías autorreferenciales (Gödel loops).
+
+Su respectivo motor matemático es 'TOONIntrospectionWitnessEngine' (app/wisdom/toon_introspection_witness_engine.py).
+Mientras el motor (Engine) calcula de forma determinista la observación débil A_w, la distancia de
+Fubini-Study d_FS, la fase de Berry-Pancharatnam γ_Berry, la concentración de Lévy y los exponentes de Oseledets,
+este Agente forja contratos de calibre HMAC en P(M, G) con G = U(1) × SU(2) × H₃(R), evalúa la ley monádica μ
+y la contracción de Banach k³ < 1.0 en el Nivel 3 de RSI, orquesta las campañas de observación QND, adjudica el
+pasaporte de gobernanza sobre la cadena de Heyting Ω₃ y emite el informe ejecutivo de impacto Φ_sem ("Dolor y Dinero").
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Teorema de Indecidibilidad de Gödel-Tarski y Prevención de Paradojas:
-   En un sistema formal deductivo capaz de aritmética recursiva, el predicado de verdad no puede
-   ser definido internamente sin generar contradicción. El agente actúa como el meta-nivel ontológico
-   externo que evalúa la validez de los asertos introspectivos desde el exterior del lenguaje objeto.
+1. Fibración Principal P → M y Clase de Chern c₁:
+   El espacio de parámetros de introspección se dota de la conexión A y la curvatura F = dA + [A, D]. La
+   fibración de Hopf cuaterniónica induce la clase de Chern c₁ ≃ (2 arctan(ρ/w)) / π y la holonomía de Wilson
+   W(γ) = P exp(∮_γ A). El régimen topológico (TRIVIAL_BUNDLE, MONOPOLE_LIKE, INSTANTON_DENSE) acota la
+   estabilidad de los autoestados.
 
-2. Criterio de Estabilidad de Exponentes de Lyapunov y Entropía KS:
-   Para la trayectoria introspectiva {x_t}, los exponentes de Lyapunov lambda_i miden la tasa de
-   separación de trayectorias infinitesimalmente cercanas:
-       lambda = lim_{t -> infty} (1 / t) * ln( ||delta x(t)|| / ||delta x(0)|| )
-   El agente impone que el máximo exponente de Lyapunov satisfaga:
-       lambda_max < 0 (estabilidad contractiva estricta)
+2. Medición No-Demolición QND y Retro-Acción Nula:
+   La observación del rayo v* ∈ CP^{n-1} satisface la condición QND [O_S, H_total] = 0, garantizando un
+   efecto de retro-acción exactamente nulo (Back-Action = 0.0 dB). La holonomía de Berry-Pancharatnam
+   γ_Berry = arg ⟨v*| ρ_mac |v*⟩ preserva la coherencia cuando |γ_Berry| < 0.50 rad.
 
-3. Auditoría Comonádica de Coherencia:
-   El agente fiscaliza el cumplimiento de la ecuación comonádica varepsilon circ delta = id,
-   verificando que ninguna auto-observación haya alterado el estado cognitivo basal observado.
+3. Mónada RSI-3 de Tercer Orden y Leyes de Categoría:
+   El endofuntor T se aplica iterativamente T³(η) con constante de Lipschitz k³ < 1.0 (Banach). Se
+   somete a verificación la ley de asociatividad μ ∘ Tμ = μ ∘ μT de la multiplicación monádica μ : T² ⇒ T,
+   garantizando la convergencia del punto fijo de automejora.
+
+4. Adjudicación Ciber-Física y Funtor Semántico Φ_sem:
+   El pasaporte de gobernanza resulta de la adjudicación en Ω₃ = {VETOED ≼ DEGRADED ≼ COHERENT}. Si Ω₃ = VETOED
+   (p. ej. por c_G > 12.5 o violación C*), se dispara el interlock ESP32 Crowbar (< 400 ns en GPIO14) y la
+   purga de Fock e⁻ + e⁺ → 2γ. Φ_sem traduce el estado a métricas financieras (ahorro KV 86.4%, WACC 15%).
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma IWA1 (Acotación de Profundidad Recursiva):
-    depth(introspect) <= D_max < infty (ninguna auto-referencia puede ser infinitamente profunda).
-Axioma IWA2 (Inmunidad Metacognitiva):
-    El auditor no es modificado por los juicios evaluados por el agente auditado.
-Axioma IWA3 (Conservación de Pureza Espectral):
-    |gamma_post - gamma_pre| <= 1e-5.
+Axioma IWA1 (Autenticidad Cripto-Topológica HMAC):
+    HMAC(Key, Contract_Payload) == Valid_Signature, asegurando la inmutabilidad de la cadena I ↔ II ↔ III.
+Axioma IWA2 (Invarianza de Back-Action Nulo):
+    Toda observación pasiva sobre la campaña satisface Back-Action == 0.0 dB idénticamente.
+Axioma IWA3 (Interlock Hardware Ciber-Físico):
+    Si el veredicto colapsa a VETOED, se activa HARD_VETO_ESP32_CROWBAR en GPIO14 con latencia Δτ < 400 ns.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Exponentes de Lyapunov Negativos):
-    lambda_max <= - lambda_margin < 0.
-Invariante 2 (Traza Unitaria de Matriz de Densidad Introspectiva):
-    Tr(rho) == 1.0.
+Invariante 1 (Preservación de Capacidad de Gromov):
+    c_G_peak <= c_G_max = 12.5.
+Invariante 2 (Preservación de la Característica de Euler):
+    χ(CP^{n-1}) = n idénticamente (defecto morse-bott nulo).
 ====================================================================================================
 """
 

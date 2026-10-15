@@ -6,57 +6,67 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonIntuitionAgent
 Ubicación: app/agents/wisdom/toon_intuition_agent.py
-Versión: 1.0.0-APU-SOVEREIGN
-Función: Agente soberano de intuición que traduce excitaciones de túnel cuántico y saltos
-         instantónicos en directivas de decisión inmediata y atajos heurísticos admisibles.
+Versión: 9.1.0-APU-SOVEREIGN
+Función: Agente soberano de intuición y reflejo flash que ejecuta la proyección Grassmanniana sobre Gr(r,n),
+         adjudicación en Ω₃, asignación de Kelly fraccional modulada y la interrupción ciber-física
+         ESP32 Crowbar.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Agente de Intuición (ToonIntuitionAgent) es el ejecutor heurístico de alta velocidad de
-APU Filter. Mientras que los motores de razonamiento deliberativo proceden paso a paso sobre grafos
-de inferencia deductiva, este agente se activa cuando la latencia temporal de la inferencia clásica
-excede la ventana de oportunidad o cuando las barreras de búsqueda son casi infranqueables.
-Su respectivo motor subyacente es 'ToonIntuitionEngine' (app/wisdom/toon_intuition_engine.py).
-Mientras el Engine calcula rigurosamente las integrales de penetración WKB y la distancia de
-Randers-Finsler, este Agente gestiona el banco de candidatos heurísticos, calibra la energía de
-estímulo del sistema y despacha la solución instantónica seleccionada al flujo de ejecución.
+APU Filter. Mientras los motores deliberativos proceden por integraciones progresivas, este Agente
+asume la gestión del reflejo intuitivo one-shot, orquestando el salto geodésico sobre el Grassmanniano
+Gr(r,n) en una sola iteración Cauchy η* = 1.0 (Newton exacto en el bloque P_⊥).
+
+Su respectivo motor matemático es 'ToonIntuitionEngine' (app/wisdom/toon_intuition_engine.py).
+Mientras el Engine ejecuta las tres fases anidadas (FlashHandoff ⊣ FlashTrajectoryBundle ⊣
+IntuitionFlashCertificate), computa el transporte de McCann-JKO, estima el espectro de Lyapunov de Oseledets
+vía QR, evalúa la integral de Melnikov y los toros KAM, este Agente sanitiza los requests, ejecuta el
+calculador de Kelly modulado por la entropía de Kolmogorov-Sinai, mide la latencia de Bures contra el
+contrato p99 < 10 µs, traduce la corazonada a lenguaje natural y dispara el interlock ciber-físico
+ESP32 Crowbar (GPIO14 < 400 ns).
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Espacio de Estados de Finsler y Flujo Heurístico:
-   Sea (M, F) la variedad de Finsler donde la dirección del flujo de intuición v_heur induce una
-   contracción anisotrópica de la distancia al objetivo:
-       d_F(x, x_target) << d_Euclid(x, x_target)
+1. Proyección Grassmanniana One-Shot en Gr(r,n):
+   Para la matriz de densidad germinada ρ ∈ D_n, el Agente proyecta la masa atencional sobre la variedad de
+   Stiefel St(r,n) mediante la construcción por QR-Haar B ∈ C^{n×r} con B†B = I_r. El proyector ortogonal
+   P = BB† ∈ Gr(r,n) guía el salto instantáneo Cauchy ρ_flash = sanitize(ρ - η* ∇E|_T).
 
-2. Estimación Rápida de Admisibilidad A*:
-   Para cualquier heurística instantánea h_inst(x):
-       h_inst(x) <= c*(x, x_goal)
-   El agente garantiza formalmente que la heurística generada por túnel cuántico nunca sobrestima el
-   costo óptimo real, preservando la optimalidad y admisibilidad del algoritmo general de búsqueda.
+2. Asignación Capital de Kelly Modulada por Entropía de Kolmogorov-Sinai:
+   La probabilidad efectiva p_eff = F(ρ_flash, ρ_target) determina la fracción óptima f* = 2 p_eff - 1.
+   La tasa de apuesta ajustada se atenúa por la pérdida de predictibilidad caótica h_KS = Σ_{λ_i > 0} λ_i:
+       stake = κ · f* · exp(-h_KS) · Θ(λ_max ≤ 0) · Θ(¬Melnikov) · Θ(d_B ≤ τ_B)
+   maximizando la tasa de crecimiento logarítmico G(f) = p log(1+f) + (1-p) log(1-f).
 
-3. Dinámica de Salto Termodinámico y Entropía Instantónica:
-   La probabilidad de activación del agente responde al factor de Boltzmann cuántico generalizado:
-       P_act = exp(- Delta S_E / hbar_cog)
+3. Lema de Concentración de Medida de Lévy sobre S^{n-1}(√n):
+   Para todo escalar observacional 1-Lipschitz f sobre la esfera S^{n-1}(√n), la banda de concentración
+   ε* = L √(2 log(2/p_tail) / (n-1)) acota las fluctuaciones de proyección con alta confianza (99%).
+
+4. Adjudicación Ω₃ y Traducción Visceral:
+   El Agente evalúa 9 reglas geométricas y dinámicas sobre la cadena de Heyting Ω₃ = {VETOED ≼ DEGRADED ≼ COHERENT}.
+   Si Ω₃ = VETOED (p. ej., por fraude contextual P4 o divergencia de Lyapunov λ_max > 0), el Agente dispara
+   el interlock hardware ESP32 Crowbar en GPIO14 con latencia Δτ < 400 ns.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma IA1 (Admisibilidad Heurística Cuántica):
-    Para todo salto intuido, h_inst(u, v) <= d_exact(u, v).
-Axioma IA2 (Condición de Disparo por Barrera Crítica):
-    El agente activa el salto instantónico si y solo si el costo de búsqueda clásica T_classic > T_max.
-Axioma IA3 (No-Divergencia de Fase):
-    arg(<psi_init | psi_target>) in [-pi, pi).
+Axioma IA1 (Admisibilidad de Kelly y Veto Caótico):
+    Para todo salto intuitivo, si λ_max > 0 o la integral de Melnikov detecta caos homoclínico, stake = 0.0 y Ω₃ = VETOED.
+Axioma IA2 (Contrato de Latencia Sub-Diez Microsegundos):
+    La medición geodésica de Bures y la síntesis flash satisfacen estrictamente la cota p99 < 10,000 ns.
+Axioma IA3 (Interlock Hardware Ciber-Físico):
+    Si el veredicto colapsa a VETOED, el Agente activa HARD_VETO_ESP32_CROWBAR en GPIO14 con latencia Δτ < 400 ns.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Tasa de Éxito de Túnel Acotada Inferiormente):
-    P_tunnel(candidate*) >= theta_tunnel_min = 0.01.
-Invariante 2 (Preservación de la Carga Topológica):
-    Delta Q_topological in Z.
+Invariante 1 (Sanitización y Positividad de la Densidad):
+    Sanitize(ρ) es un mapa 1-Lipschitz que preserva Tr(ρ) = 1.0 y positividad espectral λ_min >= -1e-6.
+Invariante 2 (Autenticidad Cripto-Topológica de la Cadena Merkle):
+    PhaseChainSHA256 encadena las tres fases (F1 ⊣ F2 ⊣ F3) en una firma inmutable de proveniencia.
 ====================================================================================================
 """
 from __future__ import annotations
@@ -101,21 +111,7 @@ def _sha256_bytes(*chunks: bytes) -> str:
     return hasher.hexdigest()
 
 
-# ╔════════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                    ║
-# ║  F A S E   1   ·   S U S T R A T O   G E O M É T R I C O   (V_W-F1)                 ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  Dominio:   Request × Gr(r,n)                                                      ║
-# ║  Codominio: FlashHandoff                                                          ║
-# ║                                                                                    ║
-# ║  Objetos anidados: Ω₃, 𝔇_n, Gr(r,n), Σ (Poincaré), Request, Audit                 ║
-# ║                                                                                    ║
-# ║  Morfismo terminal: FlashHandoff.continue_into_phase2                              ║
-# ║                                                                                    ║
-# ║  Esta definición formal es la ENTRADA CANÓNICA a F₂.                              ║
-# ║                                                                                    ║
-# ╚════════════════════════════════════════════════════════════════════════════════════╝
+# ── FASE 1 — Substrato Geométrico ──
 
 # ── §1.1 Retículo distributivo de Heyting Ω₃ ─────────────────────────────────────
 class HeytingOmega3(IntEnum):
@@ -731,33 +727,7 @@ class FlashHandoff:
         )
 
 
-# ╔════════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                    ║
-# ║  F A S E   2   ·   D I N Á M I C A   D E   A T R A C C I Ó N   F L A S H            ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  MÉTRICAS: Bures, Dirichlet, Oseledets, Melnikov, KAM, Kelly, Latencia           ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  Dominio:   FlashHandoff (objeto terminal de §1.7)                                ║
-# ║  Codominio: FlashTrajectoryBundle (objeto terminal de §2)                         ║
-# ║                                                                                    ║
-# ║  Característica: Flash es ONE-SHOT (η*):                                          ║
-# ║    ρ_flash = sanitize(ρ_seed − η* ∇E|_T)  (Cauchy un paso)                       ║
-# ║    si η* = 1 → Newton exacto en bloque P_⊥                                       ║
-# ║                                                                                    ║
-# ║  Certificación Poincaré automática en synthesize:                                ║
-# ║    - Oseledets por QR                                                             ║
-# ║    - Melnikov por corchetes de Lie                                                ║
-# ║    - KAM por diofantina                                                           ║
-# ║    - Validación de transversalidad                                                ║
-# ║                                                                                    ║
-# ║  Morfismo terminal F₂:                                                             ║
-# ║    FlashTrajectoryBundle.continue_into_phase3 → (Ω₃, CrowbarReport)               ║
-# ║                                                                                    ║
-# ║  Este es el primer morfismo de FASE 3 (simultáneamente último de FASE 2).         ║
-# ║                                                                                    ║
-# ╚════════════════════════════════════════════════════════════════════════════════════╝
+# ── FASE 2 — Dinámica de Atracción Flash ──
 
 # ── §2.1 Funcional de Dirichlet ─────────────────────────────────────────────────
 @dataclass(frozen=True, slots=True)
@@ -1754,21 +1724,7 @@ class FlashPipeline:
         return verdict, actuation
 
 
-# ╔════════════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                                    ║
-# ║  F A S E   3   ·   A D J U D I C A C I Ó N   +   C R O W B A R                      ║
-# ║  ─────────────────────────────────────────────────────────────────────────────────  ║
-# ║                                                                                    ║
-# ║  Dominio:   FlashTrajectoryBundle (codominio de §2.10 synthesize)                  ║
-# ║  Codominio: IntuitionFlashCertificate (objeto terminal del flash)                  ║
-# ║                                                                                    ║
-# ║  Único funtor: HeytingIntuitionAdjudicator.adjudicate ⊗ ESP32CrowbarInterlock.fire ║
-# ║                                                                                    ║
-# ║  Operación: evaluación booleana intuicionista Ω₃ (9 meets) + actuación ciber-fís.  ║
-# ║                                                                                    ║
-# ║  Salida: certificado sellado Merkle + interlock hardware.                          ║
-# ║                                                                                    ║
-# ╚════════════════════════════════════════════════════════════════════════════════════╝
+# ── FASE 3 — Adjudicación y Interlock Crowbar ──
 
 # ── §3.1 Adjudicador en Ω₃ (meet conservador con invariantes Poincaré) ──────────
 class HeytingIntuitionAdjudicator:

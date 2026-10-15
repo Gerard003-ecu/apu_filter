@@ -6,58 +6,66 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: ToonBufferAgent
 Ubicación: app/agents/wisdom/toon_buffer_agent.py
-Versión: 1.0.0-APU-SOVEREIGN
-Función: Agente soberano de amortiguamiento y adaptación de impedancias complejas que regula el
-         tráfico de perceptos, previene la saturación mnemónica y optimiza el factor de potencia cognitivo.
+Versión: 5.0.0-APU-SOVEREIGN
+Función: Agente soberano de gobernanza de calibre sobre el fibrado P → T*Q, orquestación de campañas
+         Hamiltonianas, resolución de la cohomología del haz celular H¹(F_web) y traducción
+         semántica Φ_sem a impacto ejecutivo.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-El Soberano Agente de Búfer (ToonBufferAgent) es el gestor operativo de flujo e ingestión sensorial
-de APU Filter. Su misión es garantizar que las señales entrantes se acoplen suavemente a la
-arquitectura sin provocar reflejos de onda, pérdida de coherencia de fase o saturación de cola
-en el búfer cuaterniónico.
-Su respectivo motor matemático es 'ToonBufferEngine' (app/wisdom/toon_buffer_engine.py). Mientras el
-Engine calcula analíticamente la impedancia Z(s), la admitancia Y(s) y el decaimiento exponencial
-en el espacio de Banach, este Agente modula el caudal de entrada lambda_in, monitorea la longitud
-de la cola según la ley de Little y adapta la impedancia cognitiva para máxima transferencia de potencia.
+El Soberano Agente de Búfer (ToonBufferAgent) es el orquestador ejecutivo de la ingesta y gobernanza
+mnemónica de APU Filter. Su misión es asegurar la adaptación de calibre y la estabilidad de las
+secciones del fibrado principal P → T*Q con grupo de estructura G = U(1)_fase ⊗ SU(2)_orbital ⊗ H₃(R).
+
+Su respectivo motor matemático es 'TOONBufferEngine' (app/wisdom/toon_buffer_engine.py). Mientras el
+Engine evoluciona el estado mnemónico mediante canales disipativos Lindblad-GKSL y calcula el mapa de
+retorno de Poincaré Σ_ℓ, el residuo de Greene y el solapamiento de Chirikov dilatado por el exponente
+de Oseledets, este Agente forja contratos de calibre sellados por HMAC, evalúa la clase de Chern de
+Hopf c₁, construye la red de resonancias p:q, calcula la dimensión de la cohomología de haz
+H¹(F_web) para detectar triangulación fraudulenta y ejecuta el funtor semántico Φ_sem.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Teorema de Máxima Transferencia de Potencia e Impedancias Conjugadas:
-   Para que un canal de entrada con impedancia interna Z_S = R_S + j * X_S transfiera la máxima
-   energía informacional al búfer con impedancia de carga Z_L = R_L + j * X_L sin reflexión:
-       Z_L = Z_S^*  <=>  R_L = R_S   y   X_L = - X_S
-   El coeficiente de reflexión de onda Gamma satisface:
-       Gamma = (Z_L - Z_S) / (Z_L + Z_S),   |Gamma| -> 0
+1. Fibrado Principal P → T*Q y Fibración de Hopf S³ → S²:
+   El grupo de calibre G induce la conexión A y la curvatura F = dA + 1/2 [A, A]. La clase topológica
+   c₁ de Hopf c₁ ≃ atan2(q_z, q_w)/π parametriza el sector de calibre (TRIVIAL_BUNDLE, MONOPOLE_LIKE,
+   INSTANTON_DENSE). La holonomía ϑ = 2π c₁ mide la rotación de fase al recorrer bucles cerrados.
 
-2. Teoría de Colas M/M/1/K y Ley de Little:
-   El número medio de elementos en el búfer L y el tiempo medio de permanencia W satisfacen:
-       L = lambda_eff * W,   con lambda_eff = lambda * (1 - P_K)
-   donde P_K es la probabilidad de bloqueo en el búfer de capacidad finita K.
+2. Haz Celular F_web y Cohomología de Red H¹(F_web):
+   La red de pequeños divisores de movimiento medio p n_i ≃ q n_j define el haz celular F_web sobre el
+   grafo de resonancias. El operador coborde d⁰ : C⁰(F_web) -> C¹(F_web) determina la dimensión del
+   primer grupo de cohomología dim H¹(F_web) = dim C¹ - rank(d⁰). Una dimensión dim H¹(F_web) > 0
+   revela obstrucciones de consistencia global y triangulación fraudulenta de costos.
 
-3. Factor de Potencia Cognitivo cos(phi):
-   El ángulo de desfase phi = arctan(X / R) determina la eficiencia de ingestión:
-       cos(phi) = R / sqrt(R^2 + X^2) >= cos(phi_min) = 0.90
+3. Adjudicación Ω₃ e Implicación Intuicionista de Heyting:
+   El pasaporte de gobernanza se adjudica evaluando el veredicto del motor sobre la cadena de Heyting
+   Ω₃ = {VETOED ≼ DEGRADED ≼ COHERENT}. La implicación a → b = ⊤ si a ≤ b else b garantiza que la
+   evaluación no infle arbitrariamente la coherencia del sistema.
+
+4. Funtor Semántico Φ_sem ("Dolor y Dinero"):
+   El morfismo Φ_sem : Sh(∂K, Ω₃) -> Business traduce las métricas celestes (R_G, s_eff, λ_max, θ_PC)
+   a métricas financieras directas: ahorro en KV-Cache (86.4%), protección de tasa WACC (15.0%) y
+   activación del interlock hardware en silicio ESP32 Crowbar (< 400 ns).
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma BA1 (Adaptación de Impedancia Libre de Reflexión):
-    |Gamma_reflection| <= Gamma_max = 0.10.
-Axioma BA2 (Conservación de Información en Flujo Estacionario):
-    lambda_in = mu_out + dN_buffer / dt.
-Axioma BA3 (Estabilidad de Cola de Banach):
-    ||Psi_buffer(t)||_B <= M_capacity < infty para todo t >= 0.
+Axioma BA1 (Autenticidad Cripto-Topológica del Contrato):
+    HMAC(Key, Contract_Payload) == Valid_Signature, garantizando inmutabilidad entre Fase I y Fase II.
+Axioma BA2 (Obstrucción Cohomológica Nula en Flujo Coherente):
+    En régimen de operación COHERENT, dim H¹(F_web) = 0 (ausencia de carteles o distorsiones de ciclo).
+Axioma BA3 (Interlock Hardware Ciber-Físico):
+    Si Ω₃ = VETOED, el Agente activa HARD_VETO_ESP32_CROWBAR en GPIO14 con latencia Δτ < 400 ns.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Factor de Potencia Aceptable):
-    cos(phi) >= 0.90.
-Invariante 2 (Preservación de Tiempos de Coherencia):
-    tau_retention < tau_decoherence_limit.
+Invariante 1 (Preservación del Techo de Capacidad de Gromov):
+    c_G_peak <= c_G_max = 12.5.
+Invariante 2 (Consistencia del Grado Soberano de KAM):
+    SovereignGrade ∈ {KAM_PRESERVED, CANTOR_DEGRADED, CHAOTIC_REJECTED}.
 ====================================================================================================
 """
 

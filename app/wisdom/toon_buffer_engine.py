@@ -7,70 +7,74 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 Nombre: ToonBufferEngine
 Ubicación: app/wisdom/toon_buffer_engine.py
 Versión: 7.0.0-APU-SOVEREIGN
-Función: Motor soberano de amortiguamiento mnemónico y filtrado espectral en espacios de Banach
-         y variedades cuaterniónicas con análogo de admitancia de circuito RLC distribuido.
+Función: Motor soberano de amortiguamiento mnemónico, filtrado disipativo Lindblad-GKSL en espacios
+         de Banach y dinámica celestial simpléctica sobre variedades de Delaunay.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-El Soberano de Amortiguamiento (ToonBufferEngine) es el componente fundacional de la arquitectura
-cognitiva APU Filter encargado de gobernar el sustrato dieléctrico mnemónico del sistema. Actúa como
-el condensador y resonador armónico que regula la tasa de inyección de cuantos informacionales
-(perceptos) provenientes de canales sensoriales o de inferencia ruidosa.
+El Soberano de Amortiguamiento (ToonBufferEngine) es la entidad fundacional de la arquitectura
+cognitiva APU Filter encargada de gobernar el sustrato dieléctrico mnemónico y la dinámica de
+amortiguamiento espectral. Modela la retención y asimilación de cuantos informacionales (perceptos)
+mediante un atlas canónico de Poincaré sobre variedades de Delaunay T*Q ≅ T³ × R³₊ y una evolución
+disipativa de tipo Lindblad-GKSL acoplada a circuitos RLC equivalentes.
+
 Su respectivo agente en el plano de orquestación agéntica es 'ToonBufferAgent' (app/agents/wisdom/
-toon_buffer_agent.py). Mientras el motor (Engine) calcula de forma determinista la geometría de
-espacio de Banach, la descomposición espectral del operador de covarianza, y la admitancia compleja
-de impedancia RLC, su respectivo Agente ejecuta la política de despacho, adaptación dinámica de
-carga y acoplamiento con las colas de interacción contextual.
+toon_buffer_agent.py). Mientras el motor (Engine) calcula de forma determinista la geometría
+simpléctica, las variables canónicas de Delaunay (L, G, H, ℓ, g, h), el twist de Moser, las series
+de Lindstedt-Poincaré a segundo orden, la sección estroboscópica de Poincaré Σ_ℓ, el residuo de
+Greene, el parámetro de solapamiento de Chirikov dilatado por el exponente de Oseledets y el funtor
+CPTP de Lüders, su respectivo Agente orquesta la política de despacho, la holonomía de calibre
+U(1) ⊗ SU(2) ⊗ H₃(R) y la resolución de la cohomología de haz H¹(F_web).
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Espacio de Estados Cuaterniónico y Álgebra de Banach:
-   Sea H el álgebra de cuaterniones de Hamilton sobre el cuerpo real R:
-       H = { q = q_0 + q_1 * i + q_2 * j + q_3 * k | q_mu in R }
-   donde i^2 = j^2 = k^2 = i*j*k = -1. El búfer mnemónico se estructura sobre un espacio de Banach
-   B = (X, ||.||_B) de funciones mnemónicas acotadas dotadas de la norma cuaterniónica:
-       ||q||_B = sqrt(q_0^2 + q_1^2 + q_2^2 + q_3^2)
+1. Espacio de Estados de Banach y Canales CPTP Lindblad-GKSL:
+   Sea B = (X, ||.||_B) el espacio de Banach de operadores densidad ρ ∈ D_n. La evolución disipativa
+   satisface la ecuación maestra de Lindblad-GKSL:
+       dρ/dt = -i [H_buffer, ρ] + L_buff ρ L_buff† - 1/2 {L_buff† L_buff, ρ}
+   garantizando la preservación de la traza (Tr(ρ) = 1) y la positividad del operador de densidad.
 
-2. Analogía de Circuito RLC y Ecuación Telegráfica Cognitiva:
-   La evolución temporal del potencial mnemónico Psi(t, x) obedece a la ecuación telegrafista
-   disipativa con amortiguamiento proporcional a la resistencia cognitiva R e inductancia L:
-       L * C * (d^2 Psi / dt^2) + R * C * (d Psi / dt) + Psi = S_in(t)
-   En el dominio operacional de Laplace s in C, la impedancia de entrada Z(s) y la admitancia Y(s) son:
-       Z(s) = R + s * L + 1 / (s * C)
-       Y(s) = 1 / Z(s) = (s * C) / (L * C * s^2 + R * C * s + 1)
-   El factor de calidad del resonador cognitivo Q se define como:
-       Q = (1 / R) * sqrt(L / C) = omega_0 * L / R,  donde omega_0 = 1 / sqrt(L * C)
+2. Geometría Simpléctica Canónica y Atlas de Delaunay:
+   El espacio de fases se dota de las variables canónicas de Delaunay (L, G, H, ℓ, g, h) con el
+   tensor de Poisson J ∈ sp(2n, R). El Hamiltoniano Kepleriano no perturbado H₀ = -μ²/(2L²)
+   induce el movimiento medio n = μ²/L³ y el twist monótono de Moser τ = ∂n/∂L = -3μ²/L⁴ < 0.
+   Bajo perturbación H = H₀ + ε H₁, la corrección de frecuencia de Lindstedt a segundo orden satisface
+   n = n₀ + ε n₁ + ε² n₂, previniendo resonancias seculares.
 
-3. Descomposición Espectral y Operador de Densidad:
-   Sea rho in B(H) la matriz de densidad asociada al estado mnemónico retenido en el búfer.
-   La pureza gamma(t) y la entropía de von Neumann S(rho) determinan el grado de decoherencia:
-       gamma(t) = Tr(rho^2) <= 1
-       S(rho) = - Tr(rho * ln(rho)) >= 0
+3. Sección de Poincaré Σ_ℓ, Residuo de Greene y Solapamiento de Chirikov:
+   La sección estroboscópica Σ_ℓ₀ = {(ℓ,g,h; L,G,H) : ℓ ≡ ℓ₀ (mod 2π), ℓ̇ > 0} permite evaluar la
+   matriz de monodromía M = dP. El residuo de Greene R_G = (2 - Tr M)/4 determina la estabilidad
+   elíptica (|R_G| < 1/4) o la transición al caos (|R_G| → 1/4). El parámetro de Chirikov
+   efectivo s_eff = s_base · exp(λ_max · τ_orbit) mide la superposición de barras de resonancia.
+
+4. Multiplicación Monádica RSI-3 y Clasificación Heyting Ω₃:
+   La tasa adaptativa Nivel 3 RSI μ_buffer : T²(A) -> T(A) se evalúa mediante la distancia geodésica
+   de Fubini-Study d_FS sobre CP^{n-1} y la entropía de Kolmogorov-Sinai h_KS:
+       η_RSI3 = clip(η_base · exp(-h_KS · d_FS), 0.05, 0.45)
+   El veredicto final se adjudica sobre el clasificador Ω₃ = {VETOED ≼ DEGRADED ≼ COHERENT}.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma B1 (Contracción Fuerte en Semigrupo de Banach):
-    Para todo operador de evolución T_t del búfer y todo estado Psi in B:
-        ||T_t(Psi)||_B <= exp(-alpha * t) * ||Psi||_B,  con alpha = R / (2 * L) > 0.
-Axioma B2 (Ortogonalidad de Subespacios Cuaterniónicos):
-    Los canales semánticos proyectados en los ejes imaginarios i, j, k satisfacen:
-        <q_1 * i, q_2 * j>_R^4 = 0,  garantizando independencia modal sin diafonía.
-Axioma B3 (Causalidad de Kramers-Kronig):
-    La susceptibilidad mnemónica chi(omega) = chi_1(omega) + i * chi_2(omega) satisface las
-    relaciones de dispersión integrales debido a la causalidad estricta chi(t) = 0 para t < 0:
-        chi_1(omega) = (1 / pi) * P.V. int_{-infty}^{infty} [chi_2(omega') / (omega' - omega)] d omega'
+Axioma B1 (Contracción de Banach en Semigrupo Disipativo):
+    Para todo operador de evolución T_t del búfer y todo estado Ψ ∈ B:
+        ||T_t(Ψ)||_B <= exp(-α · t) · ||Ψ||_B,  con α = R / (2 L) > 0.
+Axioma B2 (Conservación Simpléctica de Liouville):
+    El mapa de retorno de Poincaré P sobre Σ_ℓ preserva la 2-forma simpléctica ω = dq ∧ dp:
+        det(dP) = det(M) = +1.
+Axioma B3 (Causalidad Kramers-Kronig y Admisibilidad CPTP):
+    La susceptibilidad mnemónica χ(ω) satisface relaciones de dispersión estrictas, y la evolución
+    del estado en B(H) es un mapa completamente positivo preservador de traza.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Techo de Capacidad Espectral):
-    sum_{k=1}^N lambda_k(t) <= C_max, donde {lambda_k} son los autovalores de la matriz de
-    covarianza de los perceptos almacenados.
-Invariante 2 (Preservación de Disipación Positiva):
-    dW_diss / dt = R * |I_cog(t)|^2 >= 0 en todo instante temporal t.
+Invariante 1 (Techo de Capacidad de Gromov):
+    c_G = min(1/2 π r_w², c_G_max) <= c_G_max, acotando el volumen simpléctico inyectable.
+Invariante 2 (Preservación de Invariante de Poincaré-Cartan):
+    |Res_Θ| = |Tr(ρ_trans N) - Θ_PC| <= ε_tol (ε_tol = 1e-6).
 ====================================================================================================
 """
 
@@ -101,9 +105,7 @@ _TWO_PI: float = 2.0 * math.pi
 _PI: float = math.pi
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §A. RETÍCULO DE HEYTING Ω₃ (CLASIFICADOR DE SUBOBJETOS), MODOS, REGÍMENES
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §A. Retículos de Heyting Ω₃, Modos y Regímenes ──
 
 class HeytingOmega3(IntEnum):
     """
@@ -158,9 +160,7 @@ class KAMRegime(IntEnum):
     ARNOLD_DIFFUSION = 2  # difusión secular a lo largo de la red de resonancias
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §B. ESTRUCTURAS DE DATOS — TENSORIALES, CELESTES, HIPERCOMPLEJAS, ESPECTRALES
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §B. Estructuras de Datos Tensoriales, Celestes y Espectrales ──
 
 @dataclass(frozen=True, slots=True)
 class Quaternion:
@@ -415,10 +415,7 @@ class BufferCertificate:
     heyting_implication: str = "COHERENT"
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ▓▓▓ FASE I — ONTOLOGÍA GEOMÉTRICA Y COORDENADAS CANÓNICAS DE POINCARÉ ▓▓▓
-# El último método, compute_poincare_canonical_seed, ES el germen de FASE II.
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE I — Ontología Geométrica y Coordenadas Canónicas de Poincaré ──
 
 class PoincareCanonicalAtlas:
     """
@@ -608,11 +605,7 @@ class PoincareCanonicalAtlas:
         return seed
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ▓▓▓ FASE II — INGESTA HAMILTONIANA Y EVOLUCIÓN SOBRE T*Q ▓▓▓
-# Anidada: TOONBufferEngine(PoincareCanonicalAtlas).
-# El primer método consume CanonicalSeed; el último emite ReturnMapOrbit.
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE II — Ingesta Hamiltoniana y Evolución sobre T*Q ──
 
 class TOONBufferEngine(PoincareCanonicalAtlas):
     """
@@ -1234,10 +1227,7 @@ class TOONBufferEngine(PoincareCanonicalAtlas):
         return orbits
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# ▓▓▓ FASE III — KAM, GREENE, CHIRIKOV, MELNIKOV, BIRKHOFF, FUNTOR CPTP ▓▓▓
-# El primer método consume ReturnMapOrbit (germen de FASE II).
-# ══════════════════════════════════════════════════════════════════════════════
+# ── FASE III — KAM, Greene, Chirikov, Melnikov, Birkhoff y Funtor CPTP ──
 
 class KAMMelnikovAuditor:
     """
@@ -1625,9 +1615,7 @@ class KAMMelnikovAuditor:
         return hashes[0]
 
 
-# ══════════════════════════════════════════════════════════════════════════════
-# §D. DEMOSTRACIÓN DOCTORAL INTEGRADA EN 3 FASES ANIDADAS
-# ══════════════════════════════════════════════════════════════════════════════
+# ── §D. Demostración Integrada ──
 
 def _telemetry(engine: TOONBufferEngine) -> Dict[str, Any]:
     return {
