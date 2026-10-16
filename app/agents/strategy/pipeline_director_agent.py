@@ -152,6 +152,8 @@ logger.addHandler(logging.NullHandler())
 # §A. CONSTANTES MATEMÁTICAS Y TOLERANCIAS ESPECTRALES
 # ══════════════════════════════════════════════════════════════════════════════
 
+_WILKINSON_LIMIT: float = 1.0e-12
+
 # Épsilon de máquina para float64 (~2.22e-16).
 _MACHINE_EPSILON: float = float(np.finfo(np.float64).eps)
 
@@ -356,6 +358,14 @@ class PosetFiltrationData:
     inverse_edges_blocked: Tuple[str, ...] = ()
     slack_histogram: Tuple[Tuple[int, int], ...] = ()
     notes: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class PipelineCausalAuditState:
+    r"""Estado inmutable de la auditoría OODA de causalidad funtorial."""
+    mayer_vietoris_residual: float
+    daleckii_krein_bound: float
+    is_funtorially_coherent: bool
 
 
 @dataclass(frozen=True, slots=True)
@@ -2795,6 +2805,42 @@ class PipelineDirectorAgent(Morphism, Phase3_MayerVietorisInterceptor):
             raise_on_veto=raise_on_veto,
         )
 
+    def audit_poincare_causal_pipeline(
+        self,
+        betti_1_sub_A: int,
+        betti_1_sub_B: int,
+        betti_1_intersection: int,
+        betti_1_union: int,
+        fiedler_value_lambda2: float
+    ) -> PipelineCausalAuditState:
+        r"""
+        Audita la nulidad homológica de Mayer-Vietoris Δβ₁ = 0 y la cota de Connes-DK.
+
+        Axiomas:
+          1. Mayer-Vietoris: Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≡ 0.
+          2. Cota Connes-Daleckii-Krein: L_max ≤ 1 / (2 λ₂^(3/2)).
+        """
+        # 1. Auditoría Mayer-Vietoris Δβ₁ = 0
+        expected_union_betti = betti_1_sub_A + betti_1_sub_B - betti_1_intersection
+        delta_betti_1 = float(abs(betti_1_union - expected_union_betti))
+
+        if delta_betti_1 > 0.0:
+            raise TopologicalInvariantError(
+                f"[PIPELINE_CAUSAL_VETO] Bucle causal detectado vía Mayer-Vietoris: Δβ₁={delta_betti_1}"
+            )
+
+        # 2. Cota Connes-Daleckii-Krein derivada de Fiedler λ₂
+        effective_fiedler = max(fiedler_value_lambda2, _WILKINSON_LIMIT)
+        l_max_lipschitz = float(1.0 / (2.0 * (effective_fiedler ** 1.5)))
+
+        is_coherent = (delta_betti_1 == 0.0) and (fiedler_value_lambda2 > _WILKINSON_LIMIT)
+
+        return PipelineCausalAuditState(
+            mayer_vietoris_residual=delta_betti_1,
+            daleckii_krein_bound=l_max_lipschitz,
+            is_funtorially_coherent=is_coherent
+        )
+
     def __call__(self, state: Any = None, **kwargs: Any) -> Any:
         r"""Invocación como morfismo categórico."""
         if kwargs:
@@ -2822,6 +2868,7 @@ __all__ = [
     # DTOs
     "NilpotenceAuditData",
     "PosetFiltrationData",
+    "PipelineCausalAuditState",
     "MayerVietorisAuditData",
     "CausalGovernanceState",
     # Certificadores por fase

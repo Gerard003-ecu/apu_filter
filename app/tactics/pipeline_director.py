@@ -88,6 +88,8 @@ from typing import (
 import networkx as nx
 import numpy as np
 import pandas as pd
+import scipy.linalg as la
+from numpy.typing import NDArray
 from flask import current_app
 
 from app.core.constants import ColumnNames, InsumoType
@@ -136,7 +138,128 @@ SESSION_FILE_EXTENSION: Final[str] = ".pkl"
 MEMOIZATION_CACHE_SIZE: Final[int] = 1000  # Número máximo de entradas en caché
 HOMOLOGICAL_AUDIT_ENABLED: Final[bool] = True
 
+_WILKINSON_LIMIT: Final[float] = 1.0e-12
+_SPECTRAL_TOL: Final[float] = 1.0e-9
+
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True, slots=True)
+class PipelineSpectraCertificate:
+    r"""Certificado espectral inmutable del grafo causal DAG."""
+    fiedler_value: float
+    nilpotency_index: int
+    symplectic_volume_drift: float
+    is_dag_acyclic: bool
+
+
+class PipelineDirectorEngine:
+    r"""
+    Motor Espectral Ciego de Causalidad Algebraica.
+
+    Ejecuta el transporte simpléctico de fase y calcula la conectividad
+    de Fiedler λ₂ sobre el Laplacian L = D - A en la FPU.
+    """
+
+    def __init__(self, wilkinson_tol: float = _WILKINSON_LIMIT) -> None:
+        self._wilkinson_tol = wilkinson_tol
+
+    def evaluate_dag_spectral_invariants(
+        self,
+        adjacency_A: NDArray[np.float64],
+        symplectic_jacobian_M: NDArray[np.float64],
+        canonical_omega: NDArray[np.float64]
+    ) -> PipelineSpectraCertificate:
+        r"""
+        Audita la nilpotencia de adyacencia, el valor de Fiedler y la simplecticidad.
+
+        Axiomas:
+          1. Nilpotencia A^k = 0  ⇒  DAG estrictamente acíclico.
+          2. Valor de Fiedler λ₂ > 0 en Laplaciano L = D - A.
+          3. Conservación de Liouville: det(M) = +1.
+        """
+        n = adjacency_A.shape[0]
+
+        # 1. Comprobación de Nilpotencia A^k = 0
+        A_power = np.copy(adjacency_A)
+        nilpotency_index = 1
+        is_nilpotent = False
+
+        for k in range(1, n + 1):
+            if float(la.norm(A_power, ord='fro')) <= self._wilkinson_tol:
+                is_nilpotent = True
+                nilpotency_index = k
+                break
+            A_power = A_power @ adjacency_A
+
+        # 2. Laplaciano L = D - A y Valor de Fiedler λ₂
+        degree_vec = np.sum(adjacency_A, axis=1)
+        D_mat = np.diag(degree_vec)
+        L_laplacian = D_mat - adjacency_A
+
+        # Simetrización para análisis espectral
+        L_sym = 0.5 * (L_laplacian + L_laplacian.T)
+        eigenvalues = np.sort(np.real(la.eigvalsh(L_sym)))
+
+        fiedler_value = float(eigenvalues[1]) if len(eigenvalues) > 1 else 0.0
+
+        # 3. Conservación del Volumen Simpléctico
+        det_M = float(la.det(symplectic_jacobian_M))
+        volume_drift = abs(det_M - 1.0)
+
+        is_dag_valid = is_nilpotent and (fiedler_value > _SPECTRAL_TOL) and (volume_drift <= self._wilkinson_tol)
+
+        return PipelineSpectraCertificate(
+            fiedler_value=fiedler_value,
+            nilpotency_index=nilpotency_index,
+            symplectic_volume_drift=volume_drift,
+            is_dag_acyclic=is_dag_valid
+        )
+
+    def apply_discrete_ricci_flow(
+        self,
+        G_k: NDArray[np.float64],
+        ricci_tensor: NDArray[np.float64],
+        delta_tau: float = 0.01,
+    ) -> NDArray[np.float64]:
+        r"""
+        Nivel R1: Flujo de Ricci Discreto con Normalización de Volumen.
+
+        $$\mathbf{G}_{k+1} = \mathbf{G}_k - 2 \Delta \tau \left( \operatorname{Ric}_{\mu\nu}(\mathbf{G}_k) - \frac{R_{\mathrm{avg}}}{n} \mathbf{G}_k \right)$$
+        """
+        n = G_k.shape[0]
+        r_avg = float(np.trace(ricci_tensor)) / float(max(n, 1))
+        G_next = G_k - 2.0 * delta_tau * (ricci_tensor - (r_avg / float(n)) * G_k)
+        return G_next
+
+    def compute_brockett_shahshahani_flow(
+        self,
+        p_vec: NDArray[np.float64],
+        rho_mat: NDArray[np.float64],
+        K_kernel: NDArray[np.float64],
+        dt: float = 0.001,
+    ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+        r"""
+        Nivel R3: Flujo Isoespectral de Brockett-Shahshahani sobre el Poset Causal.
+
+        $$\frac{d p_i}{dt} = p_i \left[ (\mathbf{e}_i^\top \tilde{\mathcal{K}} \mathbf{p}) - \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p} \right]$$
+        $$\frac{d \boldsymbol{\rho}}{dt} = \left[ \boldsymbol{\rho}, \, [\boldsymbol{\rho}, \, \operatorname{diag}(\mathbf{p})] \right]$$
+        """
+        Kp = K_kernel @ p_vec
+        p_Kp = float(p_vec @ Kp)
+        dp_dt = p_vec * (Kp - p_Kp)
+        p_next = np.clip(p_vec + dt * dp_dt, 1e-12, None)
+        p_next = p_next / np.sum(p_next)
+
+        diag_p = np.diag(p_next)
+        inner_comm = rho_mat @ diag_p - diag_p @ rho_mat
+        drho_dt = rho_mat @ inner_comm - inner_comm @ rho_mat
+        rho_next = rho_mat + dt * drho_dt
+        # Preservar traza unitaria
+        trace_rho = float(np.trace(rho_next))
+        if abs(trace_rho) > 1e-12:
+            rho_next = rho_next / trace_rho
+        return p_next, rho_next
 
 
 def configure_pipeline_logging(level: str = "INFO") -> None:
