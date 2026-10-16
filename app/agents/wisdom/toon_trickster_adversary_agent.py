@@ -5,7 +5,7 @@ r"""
 ║ RUTA     : app/agents/wisdom/toon_trickster_adversary_agent.py                               ║
 ║ VERSIÓN  : 10.0.0-Doctoral-RSI3-Poincaré-Melnikov-Monadic-Banach-ESP32-Ω₃                    ║
 ║ ESTRATO  : Wisdom (V_W) | Soberano de Calibre Perturbativo                                   ║
-║ CONTRATO : 10.0.0 (Gobernanza Ciber-Física y Meta-Mejora Monádica Nivel 3)                  ║
+║ CONTRATO : 10.0.0 (Gobernanza Ciber-Física y Meta-Mejora Monádica Nivel 3)                   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN Y MARCO TEÓRICO FORMAL
