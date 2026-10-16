@@ -3,90 +3,66 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Pipeline Director Agent (Custodio de Causalidad y Flujo Funtorial)  ║
 ║ Ruta   : app/agents/strategy/pipeline_director_agent.py                      ║
-║ Versión: 2.0.0-Funtorial-MayerVietoris-SchurNilpotent-Heyting-Secure         ║
+║ Versión: 3.1.0-Poincare-Melnikov-RecursiveN3-Strict                          ║
+║ Fase   : 1 / 3  — OBSERVE  (este archivo; Fases 2–3 se anidan a continuación)║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS CATEGORIAL Y ORQUESTACIÓN CAUSAL (Rigor Doctoral):
+FILOSOFÍA CIBER-FÍSICA (Rigor doctoral):
 ────────────────────────────────────────────────────────────────────────────────
-Este agente soberano de calibre del Estrato STRATEGY (Nivel 1, $V_{\mathbb{S}}$)
-gobierna de manera síncrona y determinista la secuencia temporal y la topología 
-de transformaciones que conforman el flujo de ejecución de la Malla. Su mandato 
-supremo es actuar como el **Custodio de la Causalidad Funtorial**, imponiendo una 
-filtración estricta de subespacios de Hilbert sobre el Poset del conocimiento y 
-auditando de manera algebraica cualquier integración concurrente para aniquilar 
-de raíz la retroalimentación parásita y las paradojas de orden temporal.
+Este custodio soberano del Estrato STRATEGY (V_𝕊) impone una filtración
+estricta sobre el Poset DIKW y audita algebraicamente cualquier integración
+concurrente. La versión 3.1.0 eleva el agente a TRES capas anidadas:
 
-El sistema trata el pipeline de cálculo no como un script secuencial plano, sino 
-como un **Funtor Monoidal Estricto** que mapea la categoría de dependencias de la 
-obra hacia la categoría de flujos exergéticos en el silicio, garantizando que el 
-progreso del estado transaccional satisfaga incondicionalmente la Ley de Clausura 
-Transitiva y la regularidad cohomológica de de Rham.
+  (A) MECÁNICA CELESTE DE POINCARÉ sobre el espectro de Schur.
+      · Flujo discreto φ_k(v) = A^k v  y semigrupo nilpotente
+        exp(tA) = Σ_{m=0}^{n-1} (t^m / m!) A^m  (Cayley–Hamilton).
+      · Sección transversal Σ ⊂ T_v ℝ^n definida por h(v) = 0 con
+        h(v) := ‖A^k v‖₂ − tol_BF  y condición de transversabilidad
+        ⟨∇h, A v⟩ ≠ 0  (flujo no tangente a Σ).
+      · Bloques 2×2 de la RSF ≅ osciladores planos (órbitas celestes
+        con frecuencia ω = √|det − (tr/2)²|); sección de Poincaré
+        clásica θ ≡ 0 (mod 2π) en coordenadas polares del bloque.
+      · Aplicación de primer retorno P: Σ → Σ, jacobiano DP vía
+        ecuación variacional w_{k+1} = A w_k  proyectada a TΣ.
+      · Espectro de Lyapunov (Benettin–QR) y exponentes de Floquet
+        de DP: hiperbolicidad ⇔ ningún |μ| = 1.
+      · Función de Melnikov discreta
+            M(t₀) = Σ_k  (f₀ ∧ f₁)(γ_k ; t_k + t₀)
+        sobre la 2-forma inducida por el plano dominante de Schur.
+        Ceros simples con M'(t₀) ≠ 0 ⇒ tangencia homoclínica transversal.
+      · Certificado KAM: condición diofantina |⟨k, ω⟩| ≥ γ / |k|^τ
+        y razón de Greene ε / ε_KAM; persistencia de toros nulos.
+      · Difusión de Arnold / Nekhoroshev: tiempo de estabilidad
+        t_Nek ~ exp(c ε^{-1/(2n)}) y fuga inter-resonancia por bloque.
 
-AXIOMÁTICA CAUSAL, ESPECTRAL Y HOMOLÓGICA DEL DIRECTOR:
-────────────────────────────────────────────────────────────────────────────────
+  (B) AUTOMEJORA RECURSIVA N3 — el kernel (θ, O, α)  [Fase 2].
+      N1: ajusta los parámetros del certificador (tolerancias, umbrales).
+      N2: ajusta la topología O (bloques 2×2 de la RSF, acoplamientos).
+      N3: ajusta la meta-regla α que gobierna N1 y N2 — automejora meta-meta.
+      Fase 1 emite el ObserverPacket como semilla canónica de (θ, O, α).
 
-  [A1] Axioma de Causalidad Funtorial y Monotonicidad del Poset DIKW:
-       La transición de la información a lo largo de los estratos se modela como un funtor 
-       monótono estricto sobre el Conjunto Parcialmente Ordenado (Poset) de la pirámide:
-       $$\mathcal{F} : \mathbf{Poset}_{\mathrm{DIKW}} \longrightarrow \mathbf{Cat}_{\mathrm{Hilbert}}$$
-       Preservando herméticamente la filtración laxa de subespacios de Hilbert acotados:
-       $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}} \quad\big[38, 293\big]$$
-       Cualquier mutación de estado que viole la relación de orden parcial (v.g., inyección 
-       directa de logits crudos del foso físico en el penthouse de la Sabiduría sin pasar 
-       por la purificación de la MIC/MAC) detona una excepción inmediata 'PosetFiltrationError'.
+  (C) GOBERNANZA CAUSAL COMPLETA — el invariante terminal  [Fase 3].
+      Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁  sintetiza los tres certificados en Ω₃.
 
-  [A2] Axioma de Aciclicidad Espectral de Schur-Jordan y Nilpotencia:
-       El grafo acíclico dirigido (DAG) de los resolvedores se mapea en cada paso mediante 
-       su matriz de adyacencia ponderada de dependencias $A \in \mathbb{R}^{n \times n}$. 
-       El agente ejecuta la descomposición de Schur-Jordan de $A$ en tiempo de carga:
-       $$A = U^\top T U \quad\big[366\big]$$
-       Exigiendo estrictamente la nilpotencia de la estructura (espectro puramente trivial):
-       $$\operatorname{Spec}(A) = \{0\} \iff A^\nu \equiv \mathbf{0} \quad \text{con index} \quad \nu \le n \quad\big[366\big]$$
-       La detección de cualquier autovalor no nulo ($\lambda_i \neq 0$) denota la existencia 
-       de dependencias circulares parásitas, abortando el pipeline bajo 'CycleDetectionVeto'.
+JERARQUÍA DE EXCEPCIONES EXTENDIDA (Fail-Secure Boundary):
+  PipelineDirectorAgentError (TopologicalInvariantError)
+   ├── AdjacencyMatrixFormatError, CausalLoopVetoError, ...
+   ├── PoincareTransversalityError : flujo tangente a Σ (ḣ = 0).
+   ├── MelnikovTangleError         : tangencia homoclínica > cota admisible.
+   ├── KAMBreakdownError           : colapso de toros invariantes.
+   └── RecursiveSelfImprovementError : falla en el kernel N3.   [Fase 2]
 
-  [A3] Axioma de Coherencia de Mayer-Vietoris para Fusiones Concurrentes:
-       Al unificar dos subcomplejos de bases de datos presupuestarias independientes 
-       $U$ y $V$ correspondientes a diferentes licitaciones, el agente audita la fusión 
-       sometiendo el acoplamiento a la secuencia exacta homológica de Mayer-Vietoris:
-       $$\dots \longrightarrow H_1(U \cap V) \xrightarrow{\quad} H_1(U) \oplus H_1(V) \xrightarrow{\quad} H_1(U \cup V) \xrightarrow{\;\partial_*\;} H_0(U \cap V) \longrightarrow \dots \quad\big[146\big]$$
-       El agente exige la nulidad exacta del residuo homológico de primer orden para 
-       proscribir la inyección de ciclos mutantes espurios en el presupuesto totalizado:
-       $$\Delta\beta_1 = \dim H_1(U \cup V) - \left( \dim H_1(U) + \dim H_1(V) \right) \equiv 0 \quad\big[146\big]$$
+DISEÑO DEL FLUJO CATEGÓRICO — 3 FASES ANIDADAS (OODA Espectral):
+  Fase 1 OBSERVE ─► espectro Schur + Poincaré ⟹ ObserverPacket
+  Fase 2 ORIENT  ─► Poset DIKW + kernel N3   ⟹ OrientationSeed
+  Fase 3 DECIDE  ─► Mayer-Vietoris + Ω₃      ⟹ CausalGovernanceState
 
-  [A4] Axioma del Veto de Heyting y Actuación Ciber-Física síncrona (Crowbar):
-       La validez y causalidad del pipeline se proyecta continuamente sobre el clasificador 
-       de subobjetos del retículo distributivo de Heyting de tres valores de la Malla:
-       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\} \quad\big[146, 222\big]$$
-       Cualquier ruptura de causalidad, quiebre homológico de Mayer-Vietoris ($\Delta\beta_1 > 0$) 
-       o deriva de nilpotencia colapsa instantáneamente el estado al Supremo terminal VETOED ($\top$).
-       La subrutina C++ 'isVerdictCoherent()' en el microcontrolador perimetral ESP32 detecta 
-       la asonancia de RAM y, mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando 
-       el tiristor BT151 (circuito Crowbar) para paralizar síncronamente la obra real.
-
-JERARQUÍA DE EXCEPCIONES ALGEBRAICAS Y DE GAUGE (Fail-Secure Boundary):
-────────────────────────────────────────────────────────────────────────────────
-  PipelineDirectorError (Exception)
-   ├── PosetFiltrationError  : Ruptura de la monotonicidad en el poset de subespacios DIKW.
-   ├── CycleDetectionVeto    : Detección de ciclos mutantes o autobucles (espectro no nulo).
-   ├── MayerVietorisMisfit   : Desviación homológica anómala (Delta Betti_1 > 0) en fusiones.
-   ├── FunctorialTransitError: Falla en el transporte paralelo o mapeo de morfismos en la FPU.
-   ├── KahanSummationDrift   : Desviación de redondeo acumulada superior a epsilon_machine.
-   └── HeytingLobeCollapse   : Colapso síncrono al autoestado VETOED en el topos de de Rham.
-
-DISEÑO DEL FLUJO CATEGÓRICO DE TRES FASES (OODA Espectral):
-────────────────────────────────────────────────────────────────────────────────
-  Fase 1 ──► OBSERVE : Inspección estructural de la adyacencia de los microservicios.
-             Verifica la conectividad topológica del grafo y computa la característica Euler.
-             Retorna: TopologicalBoundaryCertificate.
-
-  Fase 2 ──► ORIENT  : Descomposición de Schur de la adyacencia y test de nilpotencia.
-             Aplica la secuencia de Mayer-Vietoris sobre los puntos de acoplamiento.
-             Retorna: CausalSpectralReport.
-
-  Fase 3 ──► DECIDE  : Validación de la inecuación de disipación Port-Hamiltoniana.
-             Despacha el estado de regularidad al retículo de Heyting y arma el CrowbarPort.
-             Retorna: FunctorialSuturationState.
+ANIDAMIENTO FUNTORIAL (contrato de continuación):
+  El último método de esta Fase 1,
+      Phase1_SpectralNilpotenceCertifier._phase1_terminal_bridge_to_phase2
+  invoca el primer método efectivo de Fase 2,
+      _audit_poset_filtration_from_nilpotence
+  que Fase 2 sobrescribe.  Φ₂ ∘ Φ₁ queda así estrictamente anidado.
 """
 
 from __future__ import annotations
@@ -95,53 +71,50 @@ from __future__ import annotations
 # §0. IMPORTACIONES CANÓNICAS
 # ══════════════════════════════════════════════════════════════════════════════
 
+import hashlib
 import logging
+import math
 import uuid
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import (
     Any,
+    Callable,
     Dict,
     FrozenSet,
+    Iterable,
     List,
     Mapping,
     Optional,
     Sequence,
     Tuple,
+    TYPE_CHECKING,
 )
 
 import numpy as np
 from numpy.typing import NDArray
 
-# Importación preferente de scipy para álgebra lineal numérica certificada.
-# scipy.linalg.schur implementa la descomposición de Schur (LAPACK dgees/zgees)
-# con pivoteo QR de Householder y certificado backward-stable.
 try:
     import scipy.linalg as _sla
-
     _HAS_SCIPY = True
-except ImportError:  # pragma: no cover
-    import numpy.linalg as _sla  # type: ignore[no-redef]
-
+except ImportError:                                         # pragma: no cover
+    import numpy.linalg as _sla                             # type: ignore
     _HAS_SCIPY = False
 
-# Importación del topos MIC (opcional para entornos de prueba aislados).
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
-    from app.core.schemas import Stratum  # noqa: F401
-except ImportError:  # pragma: no cover
-
+    from app.core.schemas import Stratum                   # noqa: F401
+except ImportError:                                         # pragma: no cover
     class TopologicalInvariantError(Exception):
         r"""Violación a un invariante topológico categórico en el Topos MIC."""
-
         pass
 
     class Morphism:
         """Clase base de morfismos del Topos cuando no existe dependencia externa."""
-
         pass
 
-    Stratum = None  # type: ignore
+    Stratum = None                                          # type: ignore
 
 
 logger = logging.getLogger("MIC.Tactics.PipelineDirectorAgent")
@@ -152,314 +125,373 @@ logger.addHandler(logging.NullHandler())
 # §A. CONSTANTES MATEMÁTICAS Y TOLERANCIAS ESPECTRALES
 # ══════════════════════════════════════════════════════════════════════════════
 
-_WILKINSON_LIMIT: float = 1.0e-12
+_WILKINSON_LIMIT: float                 = 1.0e-12
+_MACHINE_EPSILON: float                 = float(np.finfo(np.float64).eps)
+_BASE_SPECTRAL_TOLERANCE: float         = 1e-10
+_BASE_POWER_TOLERANCE: float            = 1e-8
+_DEFAULT_POWER_AUDIT_MAX_DIM: int       = 96
+_GELFAND_ITERATION_STEPS: int           = 20
+_SCHUR_CONDITION_SAFETY_FACTOR: float   = 4.0
+_SPECTRAL_GAP_FLOOR: float              = 1.0e-12
+_SCHUR_RECONSTRUCTION_TOL_FACTOR: float = 16.0
 
-# Épsilon de máquina para float64 (~2.22e-16).
-_MACHINE_EPSILON: float = float(np.finfo(np.float64).eps)
+# — Constantes de mecánica celeste de Poincaré ————————————————————
+_POINCARE_SECTION_TOL: float            = 1.0e-7
+_POINCARE_TRANSVERSALITY_TOL: float     = 1.0e-10
+_POINCARE_MAX_SEEDS: int                = 8
+_POINCARE_MAX_RETURN_HITS: int          = 12
+_MELNIKOV_MAX_ADMISSIBLE: float         = 1.0e-6
+_MELNIKOV_ZERO_TOL: float               = 1.0e-14
+_MELNIKOV_N_PERIODS: int                = 16
+_KAM_PERSISTENCE_TOL: float             = 1.0e-6
+_KAM_DIOPHANTINE_GAMMA: float           = 1.0e-4
+_KAM_DIOPHANTINE_TAU_OFFSET: float      = 1.0     # τ = n − 1 + offset
+_ARNOLD_DIFFUSION_TOL: float            = 1.0e-4
+_LYAPUNOV_HYPERBOLIC_TOL: float         = 1.0e-9
+_FLOQUET_UNIT_CIRCLE_TOL: float         = 1.0e-6
+_NEKHOROSHEV_EXP_CAP: float             = 40.0    # evita overflow en exp
 
-# Tolerancia base para el radio espectral: más agresiva que ε_machine para
-# absorber errores de redondeo de primer orden sin sacrificar sensibilidad.
-_BASE_SPECTRAL_TOLERANCE: float = 1e-10
+# — Constantes del kernel de automejora recursiva N3 (consumidas en F2) —
+_N3_MAX_LEVEL: int                      = 3
+_N3_IDEMPOTENCE_TOL: float              = 1.0e-7
+_N3_ALPHA_FLOOR: float                  = 1.0e-6
+_N3_ALPHA_CEIL: float                   = 1.0e+2
+_N3_DEFAULT_CYCLES: int                 = 3
 
-# Tolerancia base para residuales de potencia de matriz (Cayley-Hamilton).
-_BASE_POWER_TOLERANCE: float = 1e-8
-
-# Dimensión máxima por defecto para la auditoría de potencia exacta A^n.
-# Para n > este umbral se usa la estimación por radio espectral de Gelfand.
-_DEFAULT_POWER_AUDIT_MAX_DIM: int = 96
-
-# Número de iteraciones para la estimación de Gelfand por iteración de potencia.
-_GELFAND_ITERATION_STEPS: int = 20
-
-# Factor de seguridad para el cálculo de tolerancia adaptativa.
-# Derivado del análisis de perturbación backward-stable de Bauer-Fike.
-_SCHUR_CONDITION_SAFETY_FACTOR: float = 4.0
+# Semillas deterministas (reproducibilidad espectral / Poincaré).
+_SEED_GELFAND: int                      = 42
+_SEED_POINCARE: int                     = 0xC0FFEE
+_SEED_N3: int                           = 0xBEEF
 
 
 # ══════════════════════════════════════════════════════════════════════════════
 # §B. JERARQUÍA DE EXCEPCIONES DE GOBERNANZA CAUSAL
 # ══════════════════════════════════════════════════════════════════════════════
 
-
 class PipelineDirectorAgentError(TopologicalInvariantError):
     """Excepción raíz del Custodio de la Causalidad Funtorial."""
-
     pass
 
 
 class AdjacencyMatrixFormatError(PipelineDirectorAgentError):
-    """Detonada cuando el operador de adyacencia no pertenece al dominio válido."""
-
     pass
 
 
 class CausalLoopVetoError(PipelineDirectorAgentError):
-    r"""Detonada si Spec(A) ≠ {0}. El DAG contiene un ciclo parásito cerrado."""
-
     pass
 
 
 class NilpotenceIndexVetoError(PipelineDirectorAgentError):
-    r"""
-    Detonada cuando el índice de nilpotencia certificado ν excede n.
-
-    Teorema de Cayley-Hamilton: para A ∈ R^{n×n} nilpotente, A^n = 0.
-    Si ‖A^n‖_∞ > tol_power, la matriz no es nilpotente en el sentido práctico.
-    """
-
     pass
 
 
 class StratumMappingError(PipelineDirectorAgentError):
-    """Detonada cuando un nodo carece de estrato DIKW o su nivel no es entero."""
-
     pass
 
 
 class SelfLoopVetoError(PipelineDirectorAgentError):
-    r"""
-    Detonada cuando se detecta una arista (u, u) en la lista de edges.
-
-    Fundamento:
-        Una arista (u, u) es un ciclo de longitud 1. Es incompatible con:
-        (a) La aciclicidad del DAG causal.
-        (b) La filtración estricta: stratum(u) < stratum(u) ⊥.
-        (c) La semántica causal: un nodo no puede ser causa de sí mismo.
-    """
-
     pass
 
 
 class FiltrationViolationVeto(PipelineDirectorAgentError):
-    r"""
-    Detonada si stratum(u) > stratum(v) para alguna arista (u→v).
-
-    Interpretación física:
-        La flecha del tiempo termodinámica exige que la entropía semántica
-        no disminuya a lo largo de la filtración DIKW.
-    """
-
     pass
 
 
 class AdjacencySupportVetoError(PipelineDirectorAgentError):
-    r"""
-    Detonada cuando el cross-check edges↔matriz detecta inconsistencias.
-
-    Incluye:
-        (a) Aristas declaradas sin soporte no nulo en A.
-        (b) Aristas inversas A[j,i] ≠ 0 que introducirían ciclos de longitud 2.
-    """
-
     pass
 
 
 class MayerVietorisInputError(PipelineDirectorAgentError):
-    """Detonada cuando los invariantes homológicos de entrada son inválidos."""
-
     pass
 
 
 class HomologicalFusionVeto(PipelineDirectorAgentError):
-    r"""
-    Detonada si Δβ₁ ≠ 0.
-
-    La fusión introduce socavones lógicos en la malla agéntica: el número
-    de loops independientes no se conserva bajo la ley de pegado.
-    """
-
     pass
 
 
 class EulerPoincareMismatchError(PipelineDirectorAgentError):
+    pass
+
+
+class PoincareTransversalityError(PipelineDirectorAgentError):
     r"""
-    Detonada si χ(A∪B) ≠ χ(A) + χ(B) − χ(A∩B).
-
-    La característica de Euler-Poincaré es un invariante topológico absoluto
-    que debe preservarse bajo toda descomposición CW válida.
+    Detonada cuando el campo A·v es tangente a la sección Σ en un cruce
+    candidato: |⟨n_Σ, A v⟩| ≤ ε_trans ⇒ ḣ = 0 y P no está bien definida.
     """
+    pass
 
+
+class MelnikovTangleError(PipelineDirectorAgentError):
+    r"""
+    Detonada cuando la función de Melnikov presenta tangencias homoclínicas
+    cuya magnitud excede la cota admisible ‖M(t₀)‖_∞ > ε_Melnikov.
+    """
+    pass
+
+
+class KAMBreakdownError(PipelineDirectorAgentError):
+    r"""
+    Detonada cuando ε_perturbación > ε_KAM: los toros invariantes
+    colapsan y la filtración DIKW pierde su rigidez simpléctica.
+    """
+    pass
+
+
+class RecursiveSelfImprovementError(PipelineDirectorAgentError):
+    r"""Detonada ante divergencia o fallo de idempotencia del kernel N3."""
     pass
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §C. ESTRUCTURAS INMUTABLES — DTOs DEL TOPOS
+# §C. UTILIDADES CANÓNICAS  (definidas ANTES de su primer uso)
 # ══════════════════════════════════════════════════════════════════════════════
 
-
 def _utc_timestamp() -> str:
-    """Devuelve marca de tiempo UTC ISO-8601 con precisión de segundo."""
+    """Marca temporal UTC ISO-8601 con resolución de segundos."""
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
+def _sha256_short(s: str) -> str:
+    """Huella SHA-256 truncada a 16 hex (trazabilidad de certificados)."""
+    return hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
+
+
+def _safe_unit(v: NDArray[np.float64], floor: float = _MACHINE_EPSILON) -> NDArray[np.float64]:
+    """Normaliza v; si ‖v‖ < floor retorna ceros (evita NaN)."""
+    nrm = float(np.linalg.norm(v))
+    if nrm < floor:
+        return np.zeros_like(v, dtype=np.float64)
+    return (v / nrm).astype(np.float64, copy=False)
+
+
+def _finite_or_raise(name: str, value: float) -> float:
+    if not math.isfinite(value):
+        raise PipelineDirectorAgentError(f"{name} no finito: {value!r}.")
+    return float(value)
+
+
+# ████████████████████████████████████████████████████████████████████████████
+# █                                                                          █
+# █   FASE 1 ──► OBSERVE : CERTIFICACIÓN ESPECTRAL + MECÁNICA DE POINCARÉ    █
+# █   (Schur RSF + Bauer-Fike + sección transversal + Melnikov + KAM)        █
+# █                                                                          █
+# ████████████████████████████████████████████████████████████████████████████
+
+# ── 1.0 DTOs DE FASE 1 ──────────────────────────────────────────────────────
+
 @dataclass(frozen=True, slots=True)
+class SchurBlock:
+    r"""
+    Bloque irreducible de la forma real de Schur (RSF).
+
+    Un bloque 1×1 es un autovalor real λ.
+    Un bloque 2×2 [[a, b], [c, d]] representa un par conjugado
+        λ = α ± iω,  α = (a+d)/2,  ω = √max(0, |bc| − ((a−d)/2)²)
+    e induce un oscilador plano (órbita celeste linealizada) de
+    frecuencia ω y radio de amortiguamiento e^{α t}.
+    """
+    index: int
+    offset: int
+    size: int                       # 1 o 2
+    trace: float
+    det: float
+    real_part: float                # α
+    frequency: float                # ω ≥ 0
+    modulus: float                  # |λ|
+    is_oscillatory: bool            # size == 2 y ω > 0
+
+
+@dataclass(frozen=True, slots=True, eq=False)
 class NilpotenceAuditData:
     r"""
-    Artefacto de Fase 1.
+    Artefacto espectral de Fase 1.
 
-    Certificado espectral completo del operador de adyacencia del DAG.
-
-    Campos adicionales v3:
-        schur_condition_number: κ₂(Q) de la transformación de Schur.
-            Mide la sensibilidad del espectro a perturbaciones de A.
-            κ₂(Q) = 1 si Q es unitaria exacta (caso nilpotente canónico).
-        frobenius_norm: ‖A‖_F, norma de Frobenius. Más sensible a la
-            distribución de energía espectral que ‖A‖_∞.
-        nilpotence_index: índice mínimo ν tal que ‖A^ν‖_∞ ≤ tol_power.
-            Igual a la longitud máxima de camino dirigido + 1.
-            None si no fue auditado.
-        gelfand_radius_estimate: estimación del radio espectral por
-            iteración de potencia (válida para n > power_audit_max_dim).
-        schur_2x2_blocks_detected: número de bloques 2×2 en la RSF,
-            indicando pares de autovalores complejos conjugados.
+    Certificado de Spec(A) = {0} mediante descomposición de Schur real.
+    Extensión v3.1:
+        - schur_reconstruction_residual : ‖Q T Qᵀ − A‖_F  (error backward).
+        - lyapunov_max                  : exponente de Lyapunov dominante.
+        - spectrum_certificate_hash     : huella SHA-256 corta.
     """
+    dimension:                      int
+    spectral_radius:                float
+    tolerance:                      float
+    adjacency_inf_norm:             float
+    frobenius_norm:                 float
+    nonzero_entries:                int
+    directed_density:               float
+    is_strictly_nilpotent:          bool
+    schur_condition_number:         float = 1.0
+    schur_reconstruction_residual:  float = 0.0
+    power_residual:                 Optional[float] = None
+    power_audited:                  bool = False
+    nilpotence_index:               Optional[int] = None
+    gelfand_radius_estimate:        Optional[float] = None
+    schur_2x2_blocks_detected:      int = 0
+    lyapunov_max:                   Optional[float] = None
+    spectrum_certificate_hash:      Optional[str] = None
+    notes:                          Tuple[str, ...] = ()
 
-    dimension: int
-    spectral_radius: float
-    tolerance: float
-    adjacency_inf_norm: float
-    frobenius_norm: float
-    nonzero_entries: int
-    directed_density: float
-    is_strictly_nilpotent: bool
-    schur_condition_number: float = 1.0
-    power_residual: Optional[float] = None
-    power_audited: bool = False
-    nilpotence_index: Optional[int] = None
-    gelfand_radius_estimate: Optional[float] = None
-    schur_2x2_blocks_detected: int = 0
-    notes: Tuple[str, ...] = ()
 
-
-@dataclass(frozen=True, slots=True)
-class PosetFiltrationData:
+@dataclass(frozen=True, slots=True, eq=False)
+class PoincareSection:
     r"""
-    Artefacto de Fase 2.
+    Punto de la sección transversal Σ ⊂ ℝⁿ.
 
-    Certificado de monotonicidad categórica en la flecha del tiempo DIKW.
+    Σ = { p : h(p) = 0 } con h(p) := ‖φ_k(p)‖₂ − tol_BF  (flujo nilpotente)
+    o, para bloques 2×2, h(z) := arg(z)  (sección clásica θ = 0 mod 2π).
 
-    Campos adicionales v3:
-        self_loops_detected: número de auto-bucles (u,u) encontrados en edges.
-        slack_histogram: distribución de frecuencias de slacks por valor.
-            Clave: valor de slack (int), valor: conteo de aristas.
-        isolated_strata_nodes: nodos en node_strata sin aristas incidentes.
-        inverse_edges_blocked: aristas (v,u) bloqueadas en cross-check.
+    Un crossing p_i ∈ Σ corresponde a un índice k_i tal que el flujo
+    cruza Σ.  La condición de transversabilidad exige
+        |ḣ| = |⟨n_Σ, A p⟩| > ε_trans.
     """
-
-    edge_count: int
-    audited_edge_count: int
-    ignored_edge_count: int
-    min_slack: Optional[int]
-    max_slack: Optional[int]
-    is_monotonic_filtration: bool
-    self_loops_detected: int = 0
-    unknown_nodes: Tuple[str, ...] = ()
-    isolated_strata_nodes: Tuple[str, ...] = ()
-    inverse_edges_blocked: Tuple[str, ...] = ()
-    slack_histogram: Tuple[Tuple[int, int], ...] = ()
-    notes: Tuple[str, ...] = ()
+    crossing_index:     int
+    residual:           float
+    tangent:            NDArray[np.float64]
+    normal:             NDArray[np.float64]
+    schur_block:        int
+    transversality:     float               # |⟨n, A p⟩|
+    is_transverse:      bool
+    section_kind:       str                 # "nilpotent_norm" | "oscillator_arg"
+    interpolant_tstar:  float
+    seed_id:            int = 0
+    metadata:           Tuple[Tuple[str, Any], ...] = ()
 
 
-@dataclass(frozen=True, slots=True)
-class PipelineCausalAuditState:
-    r"""Estado inmutable de la auditoría OODA de causalidad funtorial."""
-    mayer_vietoris_residual: float
-    daleckii_krein_bound: float
-    is_funtorially_coherent: bool
-
-
-@dataclass(frozen=True, slots=True)
-class MayerVietorisAuditData:
+@dataclass(frozen=True, slots=True, eq=False)
+class ReturnMapReport:
     r"""
-    Artefacto de Fase 3.
+    Análisis de la aplicación de primer retorno P: Σ → Σ.
 
-    Certificado de invariancia homológica de fusión bajo Mayer-Vietoris.
-
-    Campos adicionales v3:
-        weak_bound_satisfied: ¿se cumple |β₁(A∪B)−(β₁(A)+β₁(B))| ≤ β₁(A∩B)?
-        euler_characteristic_valid: True si χ(A∪B) = χ(A)+χ(B)−χ(A∩B)
-            fue verificado y se cumple. None si no se proporcionaron β₀.
-        jensen_shannon_defect: métrica de defecto JS ∈ [0,1).
-            Reemplaza relative_defect con una medida simétrica acotada.
-        h0_sequence_valid: ¿la secuencia en H₀ es consistente?
+    Estima:
+      · Punto fijo p* ≈ media de los cruces (si es periódico).
+      · Espectro de Lyapunov λ_i (Benettin–QR sobre A).
+      · Multiplicadores de Floquet de DP (proyección a TΣ).
+      · Hiperbolicidad: ningún exponente nulo y ningún |μ_Floquet| = 1.
     """
+    n_crossings:            int
+    n_seeds:                int
+    fixed_point_estimate:   Optional[NDArray[np.float64]]
+    stability_exponent:     float
+    lyapunov_spectrum:      Tuple[float, ...]
+    floquet_moduli:         Tuple[float, ...]
+    mean_return_time:       float
+    is_hyperbolic:          bool
+    is_periodic_orbit:      bool
+    is_transverse_family:   bool
 
-    betti_1_A: int
-    betti_1_B: int
-    betti_1_intersection: int
-    betti_1_union: int
-    expected_union_betti_1: int
-    delta_betti_1: int
-    relative_defect: float
-    jensen_shannon_defect: float
-    is_fusion_homologous: bool
-    weak_bound_satisfied: bool = True
-    euler_characteristic_valid: Optional[bool] = None
-    h0_sequence_valid: Optional[bool] = None
-    notes: Tuple[str, ...] = ()
+
+@dataclass(frozen=True, slots=True, eq=False)
+class MelnikovCertificate:
+    r"""
+    Certificado de la función de Melnikov discreta.
+
+    M(t₀) = Σ_k  (f₀ ∧ f₁)(γ_k ; t_k + t₀) · Δt
+
+    f₀ := campo triangular estricto de T  (flujo nilpotente no perturbado).
+    f₁ := campo de bloques diagonales/2×2 de T  (perturbación resonante).
+    La 2-forma se evalúa en el plano dominante de Schur (primeros 2
+    vectores de Q, o el bloque 2×2 de mayor |ω|).
+
+    Ceros simples de M con M' ≠ 0 ⇒ W^s ⋔ W^u del subespacio nulo.
+    """
+    melnikov_values:        NDArray[np.float64]
+    melnikov_derivative:    NDArray[np.float64]
+    simple_zeros:           int
+    transverse_zeros:       int             # ceros con |M'| > tol
+    mean_magnitude:         float
+    max_magnitude:          float
+    splitting_distance:     float           # ∼ |M| / ‖f₀‖  (dist. W^s–W^u)
+    tangle_detected:        bool
+    is_admissible:          bool            # ‖M‖_∞ ≤ ε_Melnikov
 
 
 @dataclass(frozen=True, slots=True)
-class CausalGovernanceState:
+class KAMCertificate:
     r"""
-    Objeto final del endofuntor de gobernanza causal:
-        Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁
+    Certificado de persistencia KAM.
 
-    La composición es funtorial en el sentido de que cada Φᵢ es un funtor
-    entre las categorías de entradas y certificados:
-        Φ₁: Matx(R) → NilpotenceCert
-        Φ₂: NilpotenceCert × Poset → FiltrationCert
-        Φ₃: FiltrationCert × HomInv → GovernanceState
+    ε = ‖T_offdiag‖_F / ω_min          (razón de perturbación canónica)
+    Condición diofantina sobre las frecuencias de bloques 2×2:
+        |k₁ ω₁ + k₂ ω₂| ≥ γ / (|k₁|+|k₂|)^τ ,  τ = n−1+δ.
+    Si ε < ε_KAM y las frecuencias son diofantinas, los autovalores
+    cero sobreviven como toros invariantes (Greene / Pöschel).
     """
+    epsilon_perturbation:   float
+    epsilon_KAM_threshold:  float
+    diophantine_gamma:      float
+    diophantine_satisfied:  bool
+    small_divisor_min:      float
+    tori_persisting:        int
+    is_KAM_stable:          bool
 
-    governance_id: str
-    nilpotence_audit: NilpotenceAuditData
-    filtration_audit: PosetFiltrationData
-    mayer_vietoris_audit: MayerVietorisAuditData
-    is_causally_valid: bool
-    generated_at_utc: str
+
+@dataclass(frozen=True, slots=True)
+class ArnoldDiffusionMetric:
+    r"""
+    Difusión de Arnold — fuga entre resonancias espectrales.
+
+    D_Arnold = Σ_k |Δν_k|² / ω_k²
+    donde Δν_k = desviación de la traza del k-ésimo bloque 2×2
+    (idealmente nula si A es nilpotente exacta) y ω_k = frecuencia
+    natural del bloque.
+
+    Tiempo de Nekhoroshev (cota superior de deriva):
+        t_Nek ∼ exp( c · ε^{-1/(2n)} ).
+    Adiabaticidad ⇔ D_Arnold < ε_tol  y  t_Nek grande.
+    """
+    per_block_leakage:      Dict[str, float]
+    total_diffusion:        float
+    dominant_channel:       Optional[str]
+    nekhoroshev_time:       float
+    is_adiabatic:           bool
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 1: CERTIFICACIÓN ESPECTRAL DE ACICLICIDAD ABSOLUTA                     ║
-# ║                                                                             ║
-# ║ Fundamento algebraico:                                                      ║
-# ║   A ∈ R^{n×n} es nilpotente ⟺ ∃ν ≤ n: A^ν = 0 ⟺ Spec(A) = {0}            ║
-# ║   ⟺ χ_A(λ) = λ^n (polinomio característico)                                ║
-# ║                                                                             ║
-# ║ Estrategia numérica:                                                        ║
-# ║   Se usa la descomposición de Schur real (RSF) A = Q·T·Q^T                  ║
-# ║   en lugar de eigvals genérico. La RSF garantiza:                           ║
-# ║     · Error backward-stable: ‖Q·T·Q^T − A‖₂ ≤ n·ε_machine·‖A‖₂              ║
-# ║     · Autovalores exactamente en diag(T) (entradas reales o bloques 2×2)    ║
-# ║     · Número de condición κ₂(Q) accesible para calibrar la tolerancia       ║
-# ║                                                                             ║
-# ║ El último método de esta fase es el puente formal hacia Fase 2.             ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+@dataclass(frozen=True, slots=True, eq=False)
+class ObserverPacket:
+    r"""
+    ← ÚLTIMO ARTEFACTO DE FASE 1.
 
+    Transporta el certificado espectral (Schur) junto con la maquinaria
+    de Poincaré (Σ, P, M, KAM, Arnold, Lyapunov) hacia FASE 2, donde
+    alimenta al kernel de automejora recursiva N3 como semilla (θ, O, α).
+
+    Invariante de empaquetado:
+        ObserverPacket ⊢ Spec(A) certificado  ∧  Σ transversal
+                       ∧  Melnikov evaluada   ∧  KAM/Arnold medidos.
+    """
+    spectra:            NilpotenceAuditData
+    sections:           Tuple[PoincareSection, ...]
+    return_map:         ReturnMapReport
+    melnikov:           MelnikovCertificate
+    kam:                KAMCertificate
+    arnold:             ArnoldDiffusionMetric
+    schur_blocks:       Tuple[SchurBlock, ...]
+    n3_theta_seed:      Tuple[float, ...]       # semilla canónica de θ para N3
+    generated_at_utc:   str
+    packet_hash:        str = ""
+
+
+# ── 1.1 CLASE FASE 1 ────────────────────────────────────────────────────────
 
 class Phase1_SpectralNilpotenceCertifier:
     r"""
-    Certificador espectral de nilpotencia mediante descomposición de Schur.
+    Certificador espectral de nilpotencia + mecánica de Poincaré.
 
-    Teorema central (Cayley-Hamilton + teoría espectral):
-        Sea A ∈ R^{n×n}. Son equivalentes:
-          (i)  A es nilpotente (∃ν ≤ n: A^ν = 0).
-          (ii) Spec(A) = {0} (todos los autovalores son cero).
-          (iii) El polinomio característico es χ_A(λ) = λ^n.
-          (iv)  tr(A^k) = 0 para todo k = 1, ..., n.
-          (v)   El grafo dirigido asociado es acíclico (DAG).
+    Fundamento (Cayley–Hamilton + teoría espectral):
+        A ∈ ℝ^{n×n} es nilpotente  ⟺  ∃ ν ≤ n: A^ν = 0  ⟺  Spec(A) = {0}.
 
-    Estrategia de Schur:
-        Se calcula A = Q·T·Q^T con T triangular superior (real Schur form).
-        Para A nilpotente exacta, T = 0 y Q es unitaria. En aritmética
-        de punto flotante, se certifica ρ(A) = max|diag(T)| ≤ tol_dynamic.
+    Estrategia numérica:
+        Descomposición de Schur real (RSF) A = Q · T · Qᵀ con LAPACK dgees.
+        Error backward-stable: ‖Q T Qᵀ − A‖₂ ≤ n · ε_machine · ‖A‖₂.
+
+    Cadena interna de Fase 1 (OODA-Observe):
+        validar A → Schur → Bauer–Fike → ν → Σ → P → M → KAM → Arnold
+        → ObserverPacket → puente Φ₁→Φ₂.
     """
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.1 Validación y acondicionamiento del operador de adyacencia
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.1  Validación y acondicionamiento del operador de adyacencia
+    # ══════════════════════════════════════════════════════════════════════
     def _validate_and_condition_adjacency(
         self,
         adjacency_matrix: NDArray[Any],
@@ -469,343 +501,258 @@ class Phase1_SpectralNilpotenceCertifier:
         require_boolean: bool = False,
     ) -> NDArray[np.float64]:
         r"""
-        Valida y condiciona el operador de adyacencia A ∈ R^{n×n}.
+        Valida y condiciona A ∈ ℝ^{n×n}.
 
-        Contrato matemático:
-            · ndim = 2 (operador lineal en espacio vectorial finito-dimensional).
-            · shape[0] = shape[1] = n (endomorphismo del espacio R^n).
-            · Todas las entradas ∈ R (no NaN, no Inf).
-            · Para DAG causal: entradas ≥ 0 (la causalidad no tiene pesos negativos).
-            · Para DAG binario: entradas ∈ {0, 1}.
-
-        Acondicionamiento numérico:
-            Las entradas con |A[i,j]| ≤ zero_threshold se anulan exactamente
-            (proyección sobre el subespacio de matrices con soporte dado).
-            Esto elimina ruido de punto flotante sin modificar la estructura
-            topológica del grafo.
-
-        Parámetros:
-            adjacency_matrix: NDArray con el operador de adyacencia o pesos.
-            zero_threshold: umbral ε ≥ 0 para anulación de entradas ruidosas.
-            allow_signed_weights: si False, rechaza A[i,j] < 0 (DAG causal).
-            require_boolean: si True, exige A[i,j] ∈ {0,1} dentro de tolerancia.
-
-        Retorna:
-            A ∈ R^{n×n}, dtype=float64, acondicionada y lista para Schur.
-
-        Lanza:
-            AdjacencyMatrixFormatError: si alguna condición del contrato falla.
+        Contrato:
+            · 2-tensor, cuadrado, entradas finitas.
+            · |A[i,j]| ≤ zero_threshold  ↦  0  (soporte numérico).
+            · pesos ≥ 0 salvo ``allow_signed_weights``.
+            · si ``require_boolean``, el soporte se proyecta a {0,1}.
         """
         A = np.asarray(adjacency_matrix, dtype=np.float64)
 
-        # Verificación de dimensionalidad: A debe ser un endomorfismo 2D.
         if A.ndim != 2:
             raise AdjacencyMatrixFormatError(
-                f"La matriz de adyacencia debe ser un operador 2D (endomorfismo). "
-                f"Se recibió ndim={A.ndim}. "
-                f"Tip: si recibió un tensor 3D, extraiga la slice temporal correcta."
+                f"A debe ser un operador 2D (endomorfismo). ndim={A.ndim}."
             )
-
-        # Verificación de cuadratura: A ∈ End(R^n) ⟹ shape = (n, n).
         if A.shape[0] != A.shape[1]:
             raise AdjacencyMatrixFormatError(
-                f"La matriz de adyacencia debe ser cuadrada (endomorfismo de R^n). "
-                f"Se recibió shape={A.shape}. "
-                f"Una matriz rectangular A ∈ R^{{m×n}}, m≠n, no define un grafo."
+                f"A debe ser cuadrada. shape={A.shape}."
             )
-
-        # Verificación de finitud: el operador debe estar bien definido en R^{n×n}.
         if not np.all(np.isfinite(A)):
-            nan_count = int(np.sum(np.isnan(A)))
-            inf_count = int(np.sum(np.isinf(A)))
+            nan_c = int(np.sum(np.isnan(A)))
+            inf_c = int(np.sum(np.isinf(A)))
             raise AdjacencyMatrixFormatError(
-                f"La matriz de adyacencia contiene valores no finitos. "
-                f"NaN: {nan_count}, Inf: {inf_count}. "
-                f"El operador causal debe estar bien definido en R^{{n×n}}."
+                f"A contiene no finitos. NaN={nan_c}, Inf={inf_c}."
             )
-
-        # Validación del umbral de umbralización.
         if zero_threshold < 0.0:
             raise AdjacencyMatrixFormatError(
-                f"zero_threshold debe ser ≥ 0. "
-                f"Se recibió {zero_threshold:.6e}. "
-                f"Un umbral negativo no tiene interpretación en teoría espectral."
+                f"zero_threshold debe ser ≥ 0. Recibido {zero_threshold}."
             )
 
-        # Anulación de entradas con ruido numérico por debajo del umbral.
-        # Esta operación es equivalente a proyectar A sobre el subespacio
-        # {M ∈ R^{n×n} : |M[i,j]| > ε} (soporte ε-efectivo).
         if zero_threshold > 0.0:
             A = np.where(np.abs(A) <= zero_threshold, 0.0, A)
 
-        # Verificación de positividad: DAG causal físico tiene pesos ≥ 0.
         if not allow_signed_weights:
-            negative_mask = A < 0.0
-            if np.any(negative_mask):
-                negative_count = int(np.count_nonzero(negative_mask))
-                negative_values = A[negative_mask]
-                min_negative = float(np.min(negative_values))
+            neg_mask = A < 0.0
+            if np.any(neg_mask):
+                neg_count = int(np.count_nonzero(neg_mask))
+                min_neg = float(np.min(A[neg_mask]))
                 raise AdjacencyMatrixFormatError(
-                    f"La matriz de adyacencia causal contiene {negative_count} "
-                    f"entradas negativas (mínimo={min_negative:.6e}). "
-                    f"Un DAG causal físico requiere pesos no negativos. "
-                    f"Use allow_signed_weights=True sólo si el modelo lo justifica "
-                    f"(p.ej., grafos con pesos de correlación signados)."
+                    f"A contiene {neg_count} entradas negativas (mínimo="
+                    f"{min_neg:.6e}). Un DAG causal requiere pesos ≥ 0."
                 )
 
-        # Verificación de booleanidad: grafo no ponderado ⟹ A ∈ {0,1}^{n×n}.
         if require_boolean:
-            nonzero_values = A[np.abs(A) > 0.0]
-            boolean_tol = max(zero_threshold, _MACHINE_EPSILON)
-
-            if nonzero_values.size > 0:
-                if not np.allclose(nonzero_values, 1.0, rtol=0.0, atol=boolean_tol):
-                    max_deviation = float(np.max(np.abs(nonzero_values - 1.0)))
+            nonzero = A[np.abs(A) > 0.0]
+            bool_tol = max(zero_threshold, _MACHINE_EPSILON)
+            if nonzero.size > 0:
+                if not np.allclose(nonzero, 1.0, rtol=0.0, atol=bool_tol):
+                    max_dev = float(np.max(np.abs(nonzero - 1.0)))
                     raise AdjacencyMatrixFormatError(
-                        f"require_boolean=True exige A[i,j] ∈ {{0,1}} dentro de "
-                        f"tolerancia {boolean_tol:.2e}. "
-                        f"Desviación máxima detectada: {max_deviation:.6e}. "
-                        f"Se detectaron pesos distintos de 1."
+                        f"require_boolean=True: desviación máxima "
+                        f"{max_dev:.6e} en pesos distintos de 1."
                     )
-
-            # Proyección sobre {0,1}: binarización exacta.
             A = (A != 0.0).astype(np.float64)
 
         return A
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.2 Descomposición de Schur y extracción espectral
-    # ──────────────────────────────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.2  Extracción estructurada de bloques RSF
+    # ══════════════════════════════════════════════════════════════════════
+    def _extract_schur_blocks(
+        self,
+        T: NDArray[np.float64],
+    ) -> Tuple[SchurBlock, ...]:
+        r"""
+        Recorre la subdiagonal de T y emite bloques 1×1 / 2×2 irreducibles.
 
+        Un bloque 2×2 se declara cuando |T[i+1, i]| > ε_machine.
+        Frecuencia del oscilador plano:
+            ω = √max(0, −Δ),  Δ = ((a−d)/2)² + bc   (discriminante).
+        Si Δ < 0 el par es elíptico (órbita celeste); si Δ ≥ 0 es hiperbólico
+        o degenerado (no oscilatorio).
+        """
+        n = int(T.shape[0])
+        blocks: List[SchurBlock] = []
+        i = 0
+        idx = 0
+        while i < n:
+            if i < n - 1 and abs(T[i + 1, i]) > _MACHINE_EPSILON:
+                a = float(T[i, i])
+                b = float(T[i, i + 1])
+                c = float(T[i + 1, i])
+                d = float(T[i + 1, i + 1])
+                tr = a + d
+                det = a * d - b * c
+                alpha = 0.5 * tr
+                disc = ((a - d) * 0.5) ** 2 + b * c
+                if disc < 0.0:
+                    omega = float(math.sqrt(-disc))
+                    oscillatory = omega > _SPECTRAL_GAP_FLOOR
+                else:
+                    omega = 0.0
+                    oscillatory = False
+                modulus = float(math.hypot(alpha, omega))
+                blocks.append(SchurBlock(
+                    index=idx, offset=i, size=2,
+                    trace=tr, det=float(det),
+                    real_part=float(alpha), frequency=omega,
+                    modulus=modulus, is_oscillatory=oscillatory,
+                ))
+                idx += 1
+                i += 2
+            else:
+                lam = float(T[i, i])
+                blocks.append(SchurBlock(
+                    index=idx, offset=i, size=1,
+                    trace=lam, det=lam,
+                    real_part=lam, frequency=0.0,
+                    modulus=abs(lam), is_oscillatory=False,
+                ))
+                idx += 1
+                i += 1
+        return tuple(blocks)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.3  Descomposición de Schur real + residuo de reconstrucción
+    # ══════════════════════════════════════════════════════════════════════
     def _schur_decompose(
         self,
         A: NDArray[np.float64],
-    ) -> Tuple[NDArray[np.float64], NDArray[np.float64], float, int]:
+    ) -> Tuple[NDArray[np.float64], NDArray[np.float64], float, int, float]:
         r"""
-        Calcula la descomposición de Schur real de A.
+        A = Q · T · Qᵀ con T cuasi-triangular superior (RSF).
 
-        Descomposición:
-            A = Q · T · Q^T
-            Q ∈ R^{n×n} ortogonal (Q^T Q = I)
-            T ∈ R^{n×n} cuasi-triangular superior (real Schur form, RSF)
+        Retorna
+            (T, Q, κ₂(Q), n_blocks_2x2, ‖Q T Qᵀ − A‖_F).
 
-        La RSF tiene:
-            · Bloques 1×1 en la diagonal: autovalores reales.
-            · Bloques 2×2 en la diagonal: pares conjugados a+bi, a−bi.
-
-        Para A nilpotente:
-            · T = 0 (en exacta), o ‖diag(T)‖_∞ ≤ tol (en punto flotante).
-            · Los bloques 2×2 tienen traza ≈ 0 y norma ≈ 0.
-
-        Número de condición κ₂(Q):
-            Para Q exactamente ortogonal, κ₂(Q) = 1.
-            En práctica, κ₂(Q) ≈ 1 + O(n·ε_machine) para A bien condicionada.
-
-        Retorna:
-            T: forma de Schur cuasi-triangular.
-            Q: transformación ortogonal.
-            kappa_Q: número de condición de Q (≥ 1).
-            n_blocks_2x2: número de bloques 2×2 detectados en T.
-
-        Notas de implementación:
-            Se usa scipy.linalg.schur con output='real' para obtener la RSF.
-            Si scipy no está disponible, se cae a numpy.linalg.eig con
-            construcción manual de la triangular (menos estable, se advierte).
+        κ₂(Q) = σ_max / σ_min; para dgees, Q es ortogonal y κ₂ ≃ 1.
+        Si scipy no está disponible, se degrada a eigvals (T diagonal,
+        Q = I) y el residuo se reporta como ‖A − diag(Re λ)‖_F.
         """
-        n = A.shape[0]
+        n = int(A.shape[0])
+
+        if n == 0:
+            z = np.zeros((0, 0), dtype=np.float64)
+            return z, z, 1.0, 0, 0.0
 
         if not _HAS_SCIPY:
-            # Fallback: numpy eig + triangularización manual.
-            # ADVERTENCIA: menos estable numéricamente que Schur vía LAPACK.
-            logger.warning(
-                "scipy no disponible. Usando numpy.linalg.eig como fallback "
-                "para la descomposición espectral. La estabilidad numérica "
-                "puede ser inferior al método de Schur (LAPACK dgees)."
-            )
+            logger.warning("scipy ausente. Fallback a numpy.linalg.eigvals.")
             eigenvalues = np.linalg.eigvals(A)
-            # Construimos T diagonal como aproximación (no triangular completa).
-            T = np.diag(eigenvalues.real)
+            T = np.diag(np.real(eigenvalues))
             Q = np.eye(n, dtype=np.float64)
-            kappa_Q = 1.0
-            n_blocks_2x2 = 0
-            return T, Q, kappa_Q, n_blocks_2x2
+            residual = float(np.linalg.norm(A - T, ord="fro"))
+            return T, Q, 1.0, 0, residual
 
         try:
-            # scipy.linalg.schur usa LAPACK dgees/dgeev.
-            # output='real' produce la Real Schur Form (RSF).
             T, Q = _sla.schur(A, output="real")
         except Exception as exc:
-            # Si Schur falla (raro, p.ej. matriz con NaN post-condicionamiento),
-            # caemos a eigvals estándar.
-            logger.warning(
-                "scipy.linalg.schur falló (%s). "
-                "Usando scipy.linalg.eigvals como fallback.",
-                exc,
-            )
+            logger.warning("schur falló (%s). Fallback eigvals.", exc)
             eigenvalues = _sla.eigvals(A)
-            T = np.diag(eigenvalues.real)
+            T = np.diag(np.real(eigenvalues))
             Q = np.eye(n, dtype=np.float64)
-            kappa_Q = 1.0
-            n_blocks_2x2 = 0
-            return T, Q, kappa_Q, n_blocks_2x2
+            residual = float(np.linalg.norm(A - T, ord="fro"))
+            return T, Q, 1.0, 0, residual
 
-        # Cálculo del número de condición de Q.
-        # Para Q ortogonal exacta, κ₂(Q) = σ_max / σ_min = 1.
-        # Usamos svd de Q para obtener los valores singulares.
         try:
-            singular_values = _sla.svd(Q, compute_uv=False)
-            sv_min = float(singular_values[-1])
-            sv_max = float(singular_values[0])
+            sv = _sla.svd(Q, compute_uv=False)
+            sv_min = float(sv[-1])
+            sv_max = float(sv[0])
             kappa_Q = (
-                sv_max / sv_min
-                if sv_min > _MACHINE_EPSILON
-                else float("inf")
+                sv_max / sv_min if sv_min > _MACHINE_EPSILON else float("inf")
             )
         except Exception:
-            kappa_Q = 1.0  # Asumimos ortogonal si SVD falla.
+            kappa_Q = 1.0
 
-        # Detección de bloques 2×2 en la RSF.
-        # Un bloque 2×2 en la posición (i, i+1) se identifica por
-        # T[i+1, i] ≠ 0 (subdiagonal no nula debajo del bloque).
+        try:
+            recon = Q @ T @ Q.T
+            residual = float(np.linalg.norm(recon - A, ord="fro"))
+        except Exception:
+            residual = float("inf")
+
         n_blocks_2x2 = 0
         i = 0
         while i < n - 1:
             if abs(T[i + 1, i]) > _MACHINE_EPSILON:
                 n_blocks_2x2 += 1
-                i += 2  # Saltamos el bloque 2×2 completo.
+                i += 2
             else:
                 i += 1
 
-        return T, Q, kappa_Q, n_blocks_2x2
+        return T, Q, float(kappa_Q), n_blocks_2x2, float(residual)
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.3 Tolerancia espectral dinámica calibrada por condición de Schur
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.4  Tolerancia espectral dinámica calibrada por Bauer–Fike
+    # ══════════════════════════════════════════════════════════════════════
     def _dynamic_spectral_tolerance(
         self,
         dimension: int,
         frobenius_norm: float,
         schur_condition_number: float = 1.0,
+        reconstruction_residual: float = 0.0,
     ) -> float:
         r"""
-        Calcula la tolerancia espectral dinámica calibrada por Bauer-Fike.
+        tol = max(tol_base,
+                  κ₂(Q) · C · √n · ε_machine · ‖A‖_F,
+                  C' · ρ_recon).
 
-        Modelo (v3 — Frobenius + condición de Schur):
-            tol = max(tol_base, κ₂(Q) · C · √n · ε_machine · ‖A‖_F)
-
-        Justificación (Teorema de Perturbación de Bauer-Fike):
-            Si A = Q·T·Q^T con Q ortogonal, entonces para cualquier
-            perturbación ΔA:
-                min_{μ∈Spec(T)} |λ̃ − μ| ≤ κ₂(Q) · ‖ΔA‖₂
-
-            El error backward del algoritmo de Schur (LAPACK dgees) satisface:
-                ‖ΔA‖₂ ≤ C · √n · ε_machine · ‖A‖_F
-
-            donde C = _SCHUR_CONDITION_SAFETY_FACTOR (factor de seguridad
-            empírico basado en el análisis de Wilkinson).
-
-        Para A nilpotente exacta:
-            · Q es unitaria ⟹ κ₂(Q) = 1.
-            · T = 0 ⟹ ‖A‖_F = ‖ΔA‖_F (todo es error numérico).
-            · tol = max(tol_base, √n · ε_machine · ‖A‖_F).
-
-        Parámetros:
-            dimension: n = tamaño de la matriz.
-            frobenius_norm: ‖A‖_F (norma de Frobenius).
-            schur_condition_number: κ₂(Q) de la transformación de Schur.
-
-        Retorna:
-            Tolerancia dinámica en [tol_base, ∞).
+        Justificación (Bauer–Fike): min_μ |λ̃ − μ| ≤ κ₂(X) · ‖ΔA‖₂
+        con ‖ΔA‖₂ ≤ C · √n · ε_machine · ‖A‖_F para LAPACK dgees,
+        más el residuo de reconstrucción observado.
         """
         if dimension <= 0:
             return _BASE_SPECTRAL_TOLERANCE
-
-        # Acotación del número de condición: κ₂(Q) ≥ 1 por definición.
         kappa = max(1.0, float(schur_condition_number))
-
-        # Norma de Frobenius como medida de energía espectral total.
         f_norm = max(1.0, float(frobenius_norm))
-
-        # Tolerancia de Bauer-Fike con factor de seguridad.
-        adaptive_tol = (
+        adaptive = (
             kappa
             * _SCHUR_CONDITION_SAFETY_FACTOR
-            * float(np.sqrt(dimension))
+            * math.sqrt(dimension)
             * _MACHINE_EPSILON
             * f_norm
         )
+        recon_term = _SCHUR_RECONSTRUCTION_TOL_FACTOR * max(0.0, reconstruction_residual)
+        return float(max(_BASE_SPECTRAL_TOLERANCE, adaptive, recon_term))
 
-        return float(max(_BASE_SPECTRAL_TOLERANCE, adaptive_tol))
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.4 Radio espectral de Gelfand para matrices grandes
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.5  Radio espectral de Gelfand para matrices grandes
+    # ══════════════════════════════════════════════════════════════════════
     def _gelfand_spectral_radius_estimate(
         self,
         A: NDArray[np.float64],
         n_steps: int = _GELFAND_ITERATION_STEPS,
     ) -> float:
         r"""
-        Estima el radio espectral de Gelfand para matrices grandes.
+        ρ(A) ≈ lim_{k→∞} ‖A^k‖^{1/k} — vía iteración de potencia normalizada.
 
-        Fórmula de Gelfand:
-            ρ(A) = lim_{k→∞} ‖A^k‖^{1/k}
-
-        Para A nilpotente exacta: ρ(A) = 0, la sucesión decae a 0.
-        Para A con ciclos: la sucesión crece o se estabiliza en ρ(A) > 0.
-
-        Implementación:
-            Se usa la iteración de potencia:
-                v₀ = v_random normalizado
-                vₖ = A · vₖ₋₁ / ‖A · vₖ₋₁‖ (si ‖A · vₖ₋₁‖ > 0)
-                μₖ = ‖A^k · v₀‖^{1/k}
-            donde μₖ converge a ρ(A) para v₀ genérico.
-
-        Coste: O(n² · n_steps) frente a O(n³) de Schur/eigvals.
-
-        Parámetros:
-            A: matriz cuadrada float64.
-            n_steps: número de pasos de iteración de potencia.
-
-        Retorna:
-            Estimación de ρ(A) ∈ [0, ∞).
+        Se reporta el último radio observado; si el iterado colapsa a 0
+        (nilpotencia numérica) se retorna 0.
         """
-        n = A.shape[0]
+        n = int(A.shape[0])
         if n == 0:
             return 0.0
 
-        # Vector inicial: aleatorio con semilla fija para reproducibilidad.
-        rng = np.random.default_rng(seed=42)
+        rng = np.random.default_rng(seed=_SEED_GELFAND)
         v = rng.standard_normal(n)
-        norm_v = float(np.linalg.norm(v))
-        if norm_v < _MACHINE_EPSILON:
+        v = _safe_unit(v)
+        if float(np.linalg.norm(v)) < _MACHINE_EPSILON:
             return 0.0
-        v = v / norm_v
 
-        radius_estimate = 0.0
+        radius = 0.0
         Av = A @ v
-
         for k in range(1, n_steps + 1):
             norm_Av = float(np.linalg.norm(Av))
             if norm_Av < _MACHINE_EPSILON:
-                # El vector se anuló: ρ(A) = 0 (nilpotente en esta dirección).
                 return 0.0
-
-            # Estimación de Gelfand en el paso k: ‖A^k · v₀‖^{1/k}.
-            radius_estimate = float(norm_Av ** (1.0 / k))
-
-            # Actualización: v ← A·v / ‖A·v‖.
+            radius = float(norm_Av ** (1.0 / k))
             v = Av / norm_Av
             Av = A @ v
+        return float(radius)
 
-        return radius_estimate
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.5 Índice de nilpotencia por búsqueda binaria
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.6  Índice de nilpotencia por búsqueda binaria
+    # ══════════════════════════════════════════════════════════════════════
     def _certify_nilpotence_index(
         self,
         A: NDArray[np.float64],
@@ -813,126 +760,111 @@ class Phase1_SpectralNilpotenceCertifier:
         power_audit_max_dim: int,
     ) -> Tuple[Optional[float], Optional[int], Optional[float]]:
         r"""
-        Certifica el índice de nilpotencia ν y el residual ‖A^n‖_∞.
+        Certifica ν = min{k : ‖A^k‖_∞ ≤ tol_power} y el residual ‖A^n‖_∞.
 
-        Teorema (Cayley-Hamilton):
-            Si A es nilpotente, entonces A^n = 0 para n = dim(A).
-            El índice de nilpotencia ν es el mínimo entero ≥ 1 con A^ν = 0.
+        Complejidad: O(log n) productos matriciales por exponentiation
+        binaria de ``np.linalg.matrix_power``.  Si n > power_audit_max_dim
+        se degrada a la estimación de Gelfand (sin ν exacto).
 
-        Estrategia:
-            Para n ≤ power_audit_max_dim:
-                · Calcula el residual exacto r_n = ‖A^n‖_∞.
-                · Busca ν binariamente en [1, n]:
-                    encontrar el menor ν con ‖A^ν‖_∞ ≤ power_tolerance.
-                    Si no existe, ν = None (no es nilpotente en práctica).
-            Para n > power_audit_max_dim:
-                · Usa la estimación de Gelfand (§1.4).
-                · Residual y ν exactos no se calculan (None).
-
-        Parámetros:
-            A: matriz cuadrada float64, ya condicionada.
-            power_tolerance: umbral para considerar ‖A^k‖_∞ = 0.
-            power_audit_max_dim: límite de dimensión para cálculo exacto.
-
-        Retorna:
-            (power_residual, nilpotence_index, gelfand_estimate)
-                power_residual: ‖A^n‖_∞ o None si n > max_dim.
-                nilpotence_index: ν mínimo o None si no certificado.
-                gelfand_estimate: estimación ρ(A) de Gelfand o None.
+        Retorna (residual, ν, gelfand_estimate).
         """
         n = int(A.shape[0])
-
         if n == 0:
             return (0.0, 0, None)
-
         if n > power_audit_max_dim:
-            # Para matrices grandes, usar estimación de Gelfand.
-            gelfand_est = self._gelfand_spectral_radius_estimate(A)
-            return (None, None, gelfand_est)
+            return (None, None, self._gelfand_spectral_radius_estimate(A))
 
-        # Cálculo exacto del residual de Cayley-Hamilton: ‖A^n‖_∞.
         try:
             A_n = np.linalg.matrix_power(A, n)
-            power_residual = float(np.linalg.norm(A_n, ord=np.inf))
+            residual = float(np.linalg.norm(A_n, ord=np.inf))
         except Exception as exc:
-            logger.warning("matrix_power(A, %d) falló: %s", n, exc)
+            logger.warning("matrix_power falló: %s", exc)
             return (None, None, None)
 
-        # Búsqueda binaria del índice de nilpotencia ν.
-        # Invariante: ‖A^ν‖_∞ ≤ tol ⟹ la búsqueda continúa hacia la izquierda.
-        nilpotence_index: Optional[int] = None
+        nu: Optional[int] = None
         lo, hi = 1, n
-
         while lo <= hi:
             mid = (lo + hi) // 2
             try:
-                A_mid = np.linalg.matrix_power(A, mid)
-                norm_mid = float(np.linalg.norm(A_mid, ord=np.inf))
+                norm_mid = float(
+                    np.linalg.norm(np.linalg.matrix_power(A, mid), ord=np.inf)
+                )
             except Exception:
                 break
-
             if norm_mid <= power_tolerance:
-                nilpotence_index = mid
-                hi = mid - 1  # Buscamos ν más pequeño.
+                nu = mid
+                hi = mid - 1
             else:
-                lo = mid + 1  # Necesitamos una potencia mayor.
+                lo = mid + 1
+        return (residual, nu, None)
 
-        return (power_residual, nilpotence_index, None)
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.6 Extracción del radio espectral desde la forma de Schur
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.7  Radio espectral desde la forma de Schur
+    # ══════════════════════════════════════════════════════════════════════
     def _extract_spectral_radius_from_schur(
         self,
         T: NDArray[np.float64],
-        n_blocks_2x2: int,
+        blocks: Optional[Sequence[SchurBlock]] = None,
     ) -> float:
         r"""
-        Extrae el radio espectral ρ(A) = max|λ| desde la forma de Schur T.
+        ρ(A) = max |λ| extraído de la RSF T (bloques 1×1 y 2×2).
 
-        Para la Real Schur Form (RSF):
-            · Bloques 1×1 en diagonal: autovalores reales exactos λ = T[i,i].
-            · Bloques 2×2: pares conjugados λ = a ± bi donde
-                a = (T[i,i] + T[i+1,i+1]) / 2
-                b = √|T[i,i+1] · T[i+1,i]|
-
-        Se toman los módulos |λ| = √(a² + b²) para los bloques 2×2.
-
-        Parámetros:
-            T: forma de Schur cuasi-triangular (RSF).
-            n_blocks_2x2: número de bloques 2×2 detectados.
-
-        Retorna:
-            ρ(A) = max{|λ₁|, ..., |λₙ|} ∈ [0, ∞).
+        Para un bloque 2×2, |λ| = hypot(α, ω) con α = tr/2 y ω la
+        frecuencia elíptica.  Si se proveen ``blocks`` precomputados
+        se reutilizan (evita un segundo barrido).
         """
-        n = T.shape[0]
+        if blocks:
+            return float(max((b.modulus for b in blocks), default=0.0))
+        n = int(T.shape[0])
         if n == 0:
             return 0.0
+        extracted = self._extract_schur_blocks(T)
+        return float(max((b.modulus for b in extracted), default=0.0))
 
-        eigenvalue_moduli: List[float] = []
-        i = 0
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.8  Espectro de Lyapunov (algoritmo de Benettin–QR)
+    # ══════════════════════════════════════════════════════════════════════
+    def _lyapunov_spectrum_benettin(
+        self,
+        A: NDArray[np.float64],
+        n_steps: Optional[int] = None,
+        n_exponents: Optional[int] = None,
+    ) -> Tuple[float, ...]:
+        r"""
+        Espectro de Lyapunov discreto de φ(v) = A v.
 
-        while i < n:
-            if i < n - 1 and abs(T[i + 1, i]) > _MACHINE_EPSILON:
-                # Bloque 2×2: extraer par conjugado.
-                a = (T[i, i] + T[i + 1, i + 1]) / 2.0
-                # Para un bloque [[a, b], [c, a]]: |λ| = √(a² + |bc|).
-                bc = abs(T[i, i + 1] * T[i + 1, i])
-                modulus = float(np.sqrt(a ** 2 + bc))
-                eigenvalue_moduli.append(modulus)
-                i += 2
-            else:
-                # Bloque 1×1: autovalor real.
-                eigenvalue_moduli.append(abs(T[i, i]))
-                i += 1
+        Itera Q_{k+1} R_{k+1} = A Q_k (QR de Gram–Schmidt / Householder)
+        y acumula λ_i = (1/N) Σ_k log |R_{k,ii}|.
 
-        return float(max(eigenvalue_moduli)) if eigenvalue_moduli else 0.0
+        Para A nilpotente exacta, λ_i → −∞ (se satura a log ε).
+        Para A con ciclo, max λ_i = log ρ(A) ≥ 0.
+        """
+        n = int(A.shape[0])
+        if n == 0:
+            return ()
+        n_exp = int(max(1, min(n, n_exponents if n_exponents is not None else min(n, 4))))
+        steps = int(max(1, n_steps if n_steps is not None else min(n, 32)))
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.7 Certificación espectral principal de nilpotencia
-    # ──────────────────────────────────────────────────────────────────────────
+        rng = np.random.default_rng(seed=_SEED_POINCARE)
+        Q, _ = np.linalg.qr(rng.standard_normal((n, n_exp)))
+        acc = np.zeros(n_exp, dtype=np.float64)
+        valid_steps = 0
+        for _ in range(steps):
+            Z = A @ Q
+            Q_new, R = np.linalg.qr(Z)
+            diag = np.abs(np.diag(R))
+            if not np.all(np.isfinite(diag)):
+                break
+            acc += np.log(np.maximum(diag, _MACHINE_EPSILON))
+            Q = Q_new
+            valid_steps += 1
+        if valid_steps == 0:
+            return tuple(0.0 for _ in range(n_exp))
+        return tuple(float(x) for x in (acc / float(valid_steps)))
 
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.9  Certificación espectral principal
+    # ══════════════════════════════════════════════════════════════════════
     def _certify_spectral_nilpotence(
         self,
         adjacency_matrix: NDArray[Any],
@@ -945,187 +877,814 @@ class Phase1_SpectralNilpotenceCertifier:
         raise_on_veto: bool = True,
     ) -> NilpotenceAuditData:
         r"""
-        Certifica que Spec(A) = {0} mediante la descomposición de Schur.
+        Certifica Spec(A) = {0} vía Schur. Emite NilpotenceAuditData.
 
-        Pipeline de certificación:
-            1. Validar y condicionar A (§1.1).
-            2. Calcular RSF: A = Q·T·Q^T (§1.2).
-            3. Calcular tolerancia dinámica con κ₂(Q) y ‖A‖_F (§1.3).
-            4. Extraer ρ(A) = max|diag(T)| (§1.6).
-            5. Si deep_nilpotence_audit=True:
-               a. Para n ≤ max_dim: certificar ‖A^n‖_∞ y búsqueda de ν (§1.5).
-               b. Para n > max_dim: estimación de Gelfand (§1.4).
-            6. Emitir NilpotenceAuditData con todos los campos.
-            7. Si ρ(A) > tol y raise_on_veto=True: lanzar CausalLoopVetoError.
-
-        Teorema de Validez:
-            El certificado emitido es correcto con probabilidad 1 − O(n²·ε_machine)
-            bajo el modelo de error backward-stable de LAPACK dgees.
-
-        Parámetros:
-            adjacency_matrix: operador de adyacencia del DAG.
-            zero_threshold: umbral de anulación de ruido numérico.
-            allow_signed_weights: permitir pesos negativos.
-            require_boolean: exigir entradas ∈ {0,1}.
-            deep_nilpotence_audit: activar auditoría de potencia A^n.
-            power_audit_max_dim: límite de dimensión para cálculo exacto.
-            raise_on_veto: lanzar excepción si ρ(A) > tol.
-
-        Retorna:
-            NilpotenceAuditData: certificado espectral completo.
-
-        Lanza:
-            CausalLoopVetoError: si ρ(A) > tol y raise_on_veto=True.
+        Criterio: ρ(A) ≤ tol_BF(κ₂(Q), ‖A‖_F, ρ_recon).
+        Si ``deep_nilpotence_audit`` y n ≤ power_audit_max_dim, se
+        certifica además el índice de nilpotencia ν por búsqueda binaria.
         """
-        # ── Paso 1: Validación y acondicionamiento ───────────────────────────
         A = self._validate_and_condition_adjacency(
             adjacency_matrix,
             zero_threshold=zero_threshold,
             allow_signed_weights=allow_signed_weights,
             require_boolean=require_boolean,
         )
-
         n = int(A.shape[0])
         notes: List[str] = []
 
-        # ── Caso trivial: matriz vacía ────────────────────────────────────────
         if n == 0:
             return NilpotenceAuditData(
-                dimension=0,
-                spectral_radius=0.0,
+                dimension=0, spectral_radius=0.0,
                 tolerance=_BASE_SPECTRAL_TOLERANCE,
-                adjacency_inf_norm=0.0,
-                frobenius_norm=0.0,
-                nonzero_entries=0,
-                directed_density=0.0,
+                adjacency_inf_norm=0.0, frobenius_norm=0.0,
+                nonzero_entries=0, directed_density=0.0,
                 is_strictly_nilpotent=True,
                 schur_condition_number=1.0,
-                power_residual=0.0,
-                power_audited=True,
-                nilpotence_index=0,
-                gelfand_radius_estimate=None,
+                schur_reconstruction_residual=0.0,
+                power_residual=0.0, power_audited=True,
+                nilpotence_index=0, gelfand_radius_estimate=None,
                 schur_2x2_blocks_detected=0,
-                notes=("El operador vacío es trivialmente nilpotente (A^0 = I, A^1 = 0).",),
+                lyapunov_max=float("-inf"),
+                spectrum_certificate_hash=_sha256_short("empty|nilpotent"),
+                notes=("Operador vacío trivialmente nilpotente.",),
             )
 
-        # ── Paso 2: Normas de la matriz ───────────────────────────────────────
-        # Norma de Frobenius: ‖A‖_F = √(Σ|A[i,j]|²).
-        # Más sensible que ‖A‖_∞ a la distribución de energía espectral.
-        frobenius_norm = float(np.linalg.norm(A, ord="fro"))
+        fro = float(np.linalg.norm(A, ord="fro"))
         inf_norm = float(np.linalg.norm(A, ord=np.inf))
-
-        # Densidad dirigida: fracción de aristas presentes vs posibles.
-        nonzero_entries = int(np.count_nonzero(A))
+        nonzero = int(np.count_nonzero(A))
         if n > 1:
-            off_diag_mask = ~np.eye(n, dtype=bool)
-            directed_density = float(np.count_nonzero(A[off_diag_mask])) / float(
-                n * (n - 1)
-            )
+            mask = ~np.eye(n, dtype=bool)
+            density = float(np.count_nonzero(A[mask])) / float(n * (n - 1))
         else:
-            directed_density = 0.0
+            density = 0.0
 
-        # ── Paso 3: Descomposición de Schur ───────────────────────────────────
-        T, Q, kappa_Q, n_blocks_2x2 = self._schur_decompose(A)
+        T, Q, kappa_Q, blocks_2x2, recon_res = self._schur_decompose(A)
+        blocks = self._extract_schur_blocks(T)
 
         if kappa_Q > 1.0 + 1e-6:
             notes.append(
-                f"Número de condición de Schur κ₂(Q)={kappa_Q:.4f} > 1. "
-                f"La transformación de similaridad no es exactamente unitaria; "
-                f"puede haber amplificación de errores numéricos espectrales."
+                f"κ₂(Q)={kappa_Q:.4f}>1: similaridad no exactamente unitaria."
             )
-
-        if n_blocks_2x2 > 0:
+        if blocks_2x2 > 0:
             notes.append(
-                f"RSF contiene {n_blocks_2x2} bloque(s) 2×2 (pares conjugados). "
-                f"Para A nilpotente, la traza de cada bloque debe ser ≈ 0."
+                f"RSF contiene {blocks_2x2} bloque(s) 2×2 "
+                f"({sum(1 for b in blocks if b.is_oscillatory)} oscilatorio(s))."
+            )
+        recon_tol = _SCHUR_RECONSTRUCTION_TOL_FACTOR * n * _MACHINE_EPSILON * max(1.0, fro)
+        if recon_res > recon_tol:
+            notes.append(
+                f"Residuo de reconstrucción Schur ‖QTQᵀ−A‖_F={recon_res:.4e} "
+                f"> {recon_tol:.4e}."
             )
 
-        # ── Paso 4: Tolerancia dinámica ───────────────────────────────────────
-        tolerance = self._dynamic_spectral_tolerance(n, frobenius_norm, kappa_Q)
+        tol = self._dynamic_spectral_tolerance(n, fro, kappa_Q, recon_res)
+        rho = self._extract_spectral_radius_from_schur(T, blocks)
 
-        # ── Paso 5: Radio espectral desde la forma de Schur ───────────────────
-        spectral_radius = self._extract_spectral_radius_from_schur(T, n_blocks_2x2)
-
-        # ── Paso 6: Auditoría profunda de nilpotencia ─────────────────────────
-        power_residual: Optional[float] = None
-        nilpotence_index: Optional[int] = None
-        gelfand_estimate: Optional[float] = None
+        residual: Optional[float] = None
+        nu: Optional[int] = None
+        gelfand: Optional[float] = None
         power_audited = False
 
         if deep_nilpotence_audit:
-            power_tolerance = max(
+            pow_tol = max(
                 _BASE_POWER_TOLERANCE,
-                _SCHUR_CONDITION_SAFETY_FACTOR * tolerance * max(1.0, inf_norm),
+                _SCHUR_CONDITION_SAFETY_FACTOR * tol * max(1.0, inf_norm),
             )
-            (
-                power_residual,
-                nilpotence_index,
-                gelfand_estimate,
-            ) = self._certify_nilpotence_index(A, power_tolerance, power_audit_max_dim)
+            residual, nu, gelfand = self._certify_nilpotence_index(
+                A, pow_tol, power_audit_max_dim,
+            )
+            power_audited = residual is not None
 
-            power_audited = power_residual is not None
-
-            if power_audited and power_residual is not None:
-                if power_residual > power_tolerance:
-                    notes.append(
-                        f"Residual de Cayley-Hamilton ‖A^n‖_∞={power_residual:.4e} "
-                        f"excede tol_power={power_tolerance:.4e}. "
-                        f"La matriz puede no ser nilpotente en la práctica numérica."
-                    )
-
-            if nilpotence_index is not None:
+            if power_audited and residual is not None and residual > pow_tol:
                 notes.append(
-                    f"Índice de nilpotencia certificado ν={nilpotence_index}. "
-                    f"Longitud máxima de camino dirigido en el DAG ≤ ν−1={nilpotence_index - 1}."
+                    f"‖A^n‖_∞={residual:.4e} > tol_power={pow_tol:.4e}."
                 )
+            if nu is not None:
+                notes.append(f"Índice de nilpotencia certificado ν={nu}.")
+            if gelfand is not None:
+                notes.append(f"Estimación Gelfand ρ̂(A)={gelfand:.4e}.")
 
-            if gelfand_estimate is not None:
-                notes.append(
-                    f"Estimación de Gelfand ρ̂(A)={gelfand_estimate:.4e} "
-                    f"(n={n} > max_dim={power_audit_max_dim}, cálculo exacto omitido)."
-                )
-                if gelfand_estimate > tolerance:
-                    notes.append(
-                        "Estimación de Gelfand sugiere ρ(A) > tol. "
-                        "El DAG puede no ser acíclico."
-                    )
+        lyap_spec = self._lyapunov_spectrum_benettin(A, n_steps=min(n, 24), n_exponents=1)
+        lyap_max = lyap_spec[0] if lyap_spec else None
+        if lyap_max is not None:
+            notes.append(f"λ_max (Benettin)={lyap_max:.4e}.")
 
-        # ── Paso 7: Certificación final ───────────────────────────────────────
-        is_strictly_nilpotent = spectral_radius <= tolerance
+        is_nilpotent = rho <= tol
+
+        cert_hash = _sha256_short(
+            f"{n}|{rho:.12e}|{tol:.12e}|{nu}|{blocks_2x2}|{recon_res:.12e}"
+        )
 
         audit = NilpotenceAuditData(
-            dimension=n,
-            spectral_radius=spectral_radius,
-            tolerance=tolerance,
-            adjacency_inf_norm=inf_norm,
-            frobenius_norm=frobenius_norm,
-            nonzero_entries=nonzero_entries,
-            directed_density=directed_density,
-            is_strictly_nilpotent=is_strictly_nilpotent,
+            dimension=n, spectral_radius=rho, tolerance=tol,
+            adjacency_inf_norm=inf_norm, frobenius_norm=fro,
+            nonzero_entries=nonzero, directed_density=density,
+            is_strictly_nilpotent=is_nilpotent,
             schur_condition_number=kappa_Q,
-            power_residual=power_residual,
-            power_audited=power_audited,
-            nilpotence_index=nilpotence_index,
-            gelfand_radius_estimate=gelfand_estimate,
-            schur_2x2_blocks_detected=n_blocks_2x2,
+            schur_reconstruction_residual=recon_res,
+            power_residual=residual, power_audited=power_audited,
+            nilpotence_index=nu, gelfand_radius_estimate=gelfand,
+            schur_2x2_blocks_detected=blocks_2x2,
+            lyapunov_max=lyap_max,
+            spectrum_certificate_hash=cert_hash,
             notes=tuple(notes),
         )
 
-        if not is_strictly_nilpotent and raise_on_veto:
+        if not is_nilpotent and raise_on_veto:
             raise CausalLoopVetoError(
-                f"Ruptura de causalidad espectral: el DAG propuesto no es acíclico. "
-                f"Radio espectral ρ(A)={spectral_radius:.6e} > tol={tolerance:.6e} "
-                f"(κ₂(Q)={kappa_Q:.4f}, ‖A‖_F={frobenius_norm:.4e}, n={n}). "
-                f"La matriz de adyacencia no es nilpotente: existe al menos un "
-                f"ciclo dirigido en el DAG."
+                f"Ruptura de causalidad espectral: ρ(A)={rho:.6e} > "
+                f"tol={tol:.6e} (κ₂(Q)={kappa_Q:.4f}, ‖A‖_F={fro:.4e}, n={n}). "
+                f"Existe al menos un ciclo dirigido en el DAG."
             )
-
         return audit
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.8 Stub funtorial: puente a Fase 2
-    # ──────────────────────────────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.10  Semillas deterministas para la sección de Poincaré
+    # ══════════════════════════════════════════════════════════════════════
+    def _poincare_seed_bundle(
+        self,
+        n: int,
+        n_seeds: int,
+    ) -> Tuple[NDArray[np.float64], ...]:
+        r"""
+        Construye un haz de semillas ortonormales: base canónica (hasta n)
+        más direcciones Haar-aleatorias (QR de Gaussianas) para cubrir Σ.
+        """
+        if n <= 0:
+            return ()
+        n_seeds = int(max(1, min(n_seeds, _POINCARE_MAX_SEEDS, n)))
+        seeds: List[NDArray[np.float64]] = []
+        for i in range(min(n_seeds, n)):
+            e = np.zeros(n, dtype=np.float64)
+            e[i] = 1.0
+            seeds.append(e)
+        if n_seeds > len(seeds):
+            rng = np.random.default_rng(seed=_SEED_POINCARE)
+            extra = n_seeds - len(seeds)
+            G = rng.standard_normal((n, extra))
+            Q, _ = np.linalg.qr(G)
+            for j in range(Q.shape[1]):
+                seeds.append(Q[:, j].astype(np.float64, copy=False))
+        return tuple(seeds[:n_seeds])
 
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.11  Cruce nilpotente: interpolación lineal de ‖A^k v‖ = tol
+    # ══════════════════════════════════════════════════════════════════════
+    def _nilpotent_norm_crossing(
+        self,
+        A: NDArray[np.float64],
+        v0: NDArray[np.float64],
+        power_tolerance: float,
+        schur_block: int,
+        seed_id: int,
+        max_hits: int = 1,
+    ) -> List[PoincareSection]:
+        r"""
+        Integra v_{k+1} = A v_k y detecta cruces de la hipersuperficie
+            h(v) = ‖v‖₂ − tol_BF = 0
+        con interpolación lineal en k y normal n_Σ = v / ‖v‖.
+
+        Transversabilidad: |⟨n_Σ, A v⟩| = |‖v‖' | ≈ |‖Av‖ − ‖v‖|.
+        """
+        n = int(A.shape[0])
+        sections: List[PoincareSection] = []
+        v = v0.astype(np.float64, copy=True)
+        prev = v.copy()
+        prev_norm = float(np.linalg.norm(v))
+        if prev_norm < _MACHINE_EPSILON:
+            return sections
+        v = v / prev_norm
+        prev = v.copy()
+        prev_norm = 1.0
+
+        for k in range(1, n + 1):
+            v = A @ v
+            norm_v = float(np.linalg.norm(v))
+            crossed = (prev_norm > power_tolerance) and (norm_v <= power_tolerance)
+            if crossed:
+                denom = max(prev_norm - norm_v, _MACHINE_EPSILON)
+                tau = (power_tolerance - norm_v) / denom
+                tau = float(min(1.0, max(0.0, tau)))
+                t_star = float(k) - tau
+                p = (1.0 - tau) * v + tau * prev
+                nrm_p = float(np.linalg.norm(p))
+                normal = _safe_unit(p if nrm_p >= _MACHINE_EPSILON else v)
+                Av = A @ p
+                trans = abs(float(np.dot(normal, Av)))
+                tangent = Av - float(np.dot(Av, normal)) * normal
+                tangent = _safe_unit(tangent)
+                is_trans = trans > _POINCARE_TRANSVERSALITY_TOL
+                sections.append(PoincareSection(
+                    crossing_index=k,
+                    residual=norm_v,
+                    tangent=tangent,
+                    normal=normal,
+                    schur_block=schur_block,
+                    transversality=trans,
+                    is_transverse=is_trans,
+                    section_kind="nilpotent_norm",
+                    interpolant_tstar=t_star,
+                    seed_id=seed_id,
+                    metadata=(
+                        ("prev_norm", prev_norm),
+                        ("tau", tau),
+                        ("seed_id", seed_id),
+                    ),
+                ))
+                if len(sections) >= max_hits:
+                    break
+            if norm_v < _MACHINE_EPSILON:
+                break
+            prev = v.copy()
+            prev_norm = norm_v
+            v = v / norm_v
+        return sections
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.12  Sección clásica θ = 0 en bloques 2×2 oscilatorios
+    # ══════════════════════════════════════════════════════════════════════
+    def _oscillator_arg_crossings(
+        self,
+        T: NDArray[np.float64],
+        Q: NDArray[np.float64],
+        blocks: Sequence[SchurBlock],
+        n_periods: int = 4,
+    ) -> List[PoincareSection]:
+        r"""
+        Para cada bloque 2×2 elíptico (ω > 0), la dinámica linealizada
+        en coordenadas de bloque es una rotación-escala:
+
+            z_{k+1} = e^{α + iω} z_k.
+
+        La sección de Poincaré clásica es arg(z) ≡ 0 (mod 2π).
+        Se reporta un cruce por periodo con tangente polar (−y, x).
+        """
+        n = int(T.shape[0])
+        sections: List[PoincareSection] = []
+        if n == 0:
+            return sections
+
+        for blk in blocks:
+            if not blk.is_oscillatory or blk.size != 2:
+                continue
+            i0 = blk.offset
+            # Vector inicial en el plano del bloque, empujado por Q.
+            z_plane = np.zeros(n, dtype=np.float64)
+            z_plane[i0] = 1.0
+            p = Q @ z_plane if Q.shape == (n, n) else z_plane
+            p = _safe_unit(p)
+            # Tangente polar en el plano (Q e_{i0+1}).
+            z_orth = np.zeros(n, dtype=np.float64)
+            z_orth[i0 + 1] = 1.0
+            tvec = Q @ z_orth if Q.shape == (n, n) else z_orth
+            tvec = _safe_unit(tvec)
+            trans = abs(blk.frequency)
+            is_trans = trans > _POINCARE_TRANSVERSALITY_TOL
+            # Un hit por periodo; crossing_index ∝ 2π/ω.
+            period = max(1, int(round(2.0 * math.pi / max(blk.frequency, _SPECTRAL_GAP_FLOOR))))
+            for q in range(min(n_periods, _POINCARE_MAX_RETURN_HITS)):
+                sections.append(PoincareSection(
+                    crossing_index=q * period,
+                    residual=0.0,
+                    tangent=tvec,
+                    normal=p,
+                    schur_block=blk.index,
+                    transversality=trans,
+                    is_transverse=is_trans,
+                    section_kind="oscillator_arg",
+                    interpolant_tstar=float(q) * 2.0 * math.pi,
+                    seed_id=1000 + blk.index,
+                    metadata=(
+                        ("omega", blk.frequency),
+                        ("alpha", blk.real_part),
+                        ("period", period),
+                    ),
+                ))
+        return sections
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.13  Captura de la sección transversal de Poincaré
+    # ══════════════════════════════════════════════════════════════════════
+    def _capture_poincare_section_from_schur(
+        self,
+        A: NDArray[np.float64],
+        T: NDArray[np.float64],
+        Q: NDArray[np.float64],
+        power_tolerance: float,
+        blocks: Optional[Sequence[SchurBlock]] = None,
+        n_seeds: int = _POINCARE_MAX_SEEDS,
+    ) -> Tuple[PoincareSection, ...]:
+        r"""
+        Captura Σ = Σ_nilpotent ∪ Σ_oscillator.
+
+        · Σ_nilpotent : cruces de ‖A^k v‖ = tol_BF sobre un haz de semillas.
+        · Σ_oscillator: arg(z) = 0 en cada bloque 2×2 elíptico.
+
+        Se descartan (con nota implícita) los cruces no transversales;
+        si TODOS son tangentes se retiene el de mayor |ḣ| para no
+        dejar Σ vacía (el reporte de retorno marcará is_transverse_family=False).
+        """
+        n = int(A.shape[0])
+        if n == 0:
+            return ()
+
+        if blocks is None:
+            blocks = self._extract_schur_blocks(T)
+        dom_block = int(max(range(len(blocks)), key=lambda i: blocks[i].modulus)) if blocks else 0
+
+        collected: List[PoincareSection] = []
+        seeds = self._poincare_seed_bundle(n, n_seeds=min(n_seeds, max(1, n)))
+        for sid, seed in enumerate(seeds):
+            collected.extend(
+                self._nilpotent_norm_crossing(
+                    A, seed, power_tolerance, dom_block, sid, max_hits=1,
+                )
+            )
+        collected.extend(self._oscillator_arg_crossings(T, Q, blocks))
+
+        transverse = [s for s in collected if s.is_transverse]
+        if transverse:
+            return tuple(transverse)
+        return tuple(collected)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.14  Aplicación de primer retorno P: Σ → Σ  (Floquet + Lyapunov)
+    # ══════════════════════════════════════════════════════════════════════
+    def _analyze_return_map_from_schur(
+        self,
+        A: NDArray[np.float64],
+        sections: Sequence[PoincareSection],
+        lyapunov_spectrum: Optional[Sequence[float]] = None,
+    ) -> ReturnMapReport:
+        r"""
+        Estima el exponente de Lyapunov, los multiplicadores de Floquet
+        y la hiperbolicidad del flujo nilpotente a partir de Σ.
+
+        DP se aproxima por la proyección de A^{Δk} sobre TΣ:
+            DP · τ = Π_{TΣ} A^{Δk} τ,  Π = I − n nᵀ.
+        Los módulos de Floquet son las normas de esas imágenes.
+        En A nilpotente exacta, |μ| → 0 (contracción super-exponencial);
+        un ciclo implica algún |μ| ≥ 1.
+        """
+        n_sections = len(sections)
+        n = int(A.shape[0])
+        n_seeds = len({s.seed_id for s in sections}) if sections else 0
+
+        if n == 0 or n_sections == 0:
+            return ReturnMapReport(
+                n_crossings=n_sections, n_seeds=n_seeds,
+                fixed_point_estimate=None,
+                stability_exponent=0.0,
+                lyapunov_spectrum=(),
+                floquet_moduli=(),
+                mean_return_time=0.0,
+                is_hyperbolic=False,
+                is_periodic_orbit=False,
+                is_transverse_family=False,
+            )
+
+        lyap = tuple(
+            float(x) for x in (
+                lyapunov_spectrum
+                if lyapunov_spectrum is not None
+                else self._lyapunov_spectrum_benettin(A)
+            )
+        )
+        lyap_max = lyap[0] if lyap else 0.0
+
+        # Tiempos de retorno entre cruces del mismo kind y seed-adyacentes.
+        by_kind: Dict[str, List[int]] = {}
+        for s in sections:
+            by_kind.setdefault(s.section_kind, []).append(s.crossing_index)
+        deltas: List[int] = []
+        for idxs in by_kind.values():
+            ordered = sorted(idxs)
+            deltas.extend(ordered[i + 1] - ordered[i] for i in range(len(ordered) - 1))
+        mean_return = float(np.mean(deltas)) if deltas else float(sections[0].crossing_index)
+
+        # Floquet: un paso de A^{Δk} proyectado a TΣ sobre cada tangente.
+        floquet: List[float] = []
+        dk = max(1, int(round(mean_return)) if mean_return > 0 else 1)
+        try:
+            A_ret = np.linalg.matrix_power(A, dk) if dk > 1 else A
+        except Exception:
+            A_ret = A
+        for s in sections:
+            nrm = s.normal
+            tau = s.tangent
+            img = A_ret @ tau
+            img = img - float(np.dot(img, nrm)) * nrm
+            floquet.append(float(np.linalg.norm(img)))
+
+        floquet_t = tuple(floquet)
+        # Periodicidad débil: todos los |μ| ≈ 1.
+        is_periodic = (
+            len(floquet_t) >= 2
+            and all(abs(mu - 1.0) <= _FLOQUET_UNIT_CIRCLE_TOL for mu in floquet_t)
+        )
+        is_hyp = bool(
+            abs(lyap_max) > _LYAPUNOV_HYPERBOLIC_TOL
+            or any(abs(mu - 1.0) > _FLOQUET_UNIT_CIRCLE_TOL for mu in floquet_t)
+        )
+        is_trans_fam = all(s.is_transverse for s in sections)
+
+        fixed_point = None
+        if is_periodic:
+            fixed_point = np.array(
+                [float(s.crossing_index) for s in sections], dtype=np.float64,
+            )
+
+        return ReturnMapReport(
+            n_crossings=n_sections,
+            n_seeds=n_seeds,
+            fixed_point_estimate=fixed_point,
+            stability_exponent=float(lyap_max),
+            lyapunov_spectrum=lyap,
+            floquet_moduli=floquet_t,
+            mean_return_time=float(mean_return),
+            is_hyperbolic=is_hyp,
+            is_periodic_orbit=is_periodic,
+            is_transverse_family=is_trans_fam,
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.15  Función de Melnikov — 2-forma sobre el plano dominante
+    # ══════════════════════════════════════════════════════════════════════
+    def _evaluate_melnikov_function_from_schur(
+        self,
+        A: NDArray[np.float64],
+        T: NDArray[np.float64],
+        Q: NDArray[np.float64],
+        blocks: Optional[Sequence[SchurBlock]] = None,
+        omega_perturbation: float = 1.0,
+        n_periods: int = _MELNIKOV_N_PERIODS,
+    ) -> MelnikovCertificate:
+        r"""
+        Discretización de la integral de Melnikov sobre la órbita
+        nilpotente γ_k = Π_{dom} A^k v_0  (proyección al plano dominante):
+
+            M(t₀) = Σ_k  det[ f₀(γ_k) | f₁(γ_k, t_k+t₀) ] / (1+k)
+
+        f₀(x) = T_> x   (parte estrictamente triangular superior: flujo
+                         nilpotente no perturbado),
+        f₁(x) = T_∥ x   (parte de bloques diagonales: perturbación
+                         resonante / oscilatoria).
+
+        M'(t₀) se estima por diferencias centrales.  Un cero simple
+        transversal es M(t₀)=0 ∧ |M'(t₀)| > ε.
+        La distancia de splitting W^s–W^u es |M|_∞ / (‖f₀‖ + ε).
+        """
+        n = int(A.shape[0])
+        n_periods = int(max(2, n_periods))
+        if n == 0:
+            z = np.zeros(1, dtype=np.float64)
+            return MelnikovCertificate(
+                melnikov_values=z, melnikov_derivative=z,
+                simple_zeros=0, transverse_zeros=0,
+                mean_magnitude=0.0, max_magnitude=0.0,
+                splitting_distance=0.0,
+                tangle_detected=False, is_admissible=True,
+            )
+
+        if blocks is None:
+            blocks = self._extract_schur_blocks(T)
+
+        T_strict = np.triu(T, k=1)          # f₀ : nilpotente
+        T_blocks = T - T_strict             # f₁ : diagonal + 2×2
+        # Plano dominante: columnas de Q asociadas al bloque de mayor |λ|.
+        if blocks and Q.shape == (n, n):
+            dom = max(blocks, key=lambda b: b.modulus)
+            e0 = Q[:, dom.offset]
+            e1 = Q[:, min(dom.offset + 1, n - 1)]
+        else:
+            e0 = np.zeros(n, dtype=np.float64)
+            e0[0] = 1.0
+            e1 = np.zeros(n, dtype=np.float64)
+            if n > 1:
+                e1[1] = 1.0
+        # Semilla en el plano dominante.
+        gamma = _safe_unit(e0 + 0.5 * e1)
+
+        def _wedge2(u: NDArray[np.float64], w: NDArray[np.float64]) -> float:
+            """2-forma det[⟨u,e0⟩ ⟨w,e0⟩; ⟨u,e1⟩ ⟨w,e1⟩] en el plano dominante."""
+            return float(
+                np.dot(u, e0) * np.dot(w, e1) - np.dot(u, e1) * np.dot(w, e0)
+            )
+
+        # Órbita y campos a lo largo de γ_k.
+        orbit: List[NDArray[np.float64]] = []
+        f0_along: List[NDArray[np.float64]] = []
+        f1_along: List[NDArray[np.float64]] = []
+        g = gamma.copy()
+        horizon = min(n, n_periods)
+        for k in range(horizon):
+            # Representación en coordenadas de Schur: y = Qᵀ g, campos vía T.
+            y = Q.T @ g if Q.shape == (n, n) else g
+            f0_along.append(T_strict @ y)
+            f1_along.append(T_blocks @ y)
+            orbit.append(g.copy())
+            g = A @ g
+            nrm = float(np.linalg.norm(g))
+            if nrm < _MACHINE_EPSILON:
+                break
+            g = g / nrm
+
+        n_orb = len(orbit)
+        if n_orb == 0:
+            z = np.zeros(1, dtype=np.float64)
+            return MelnikovCertificate(
+                melnikov_values=z, melnikov_derivative=z,
+                simple_zeros=0, transverse_zeros=0,
+                mean_magnitude=0.0, max_magnitude=0.0,
+                splitting_distance=0.0,
+                tangle_detected=False, is_admissible=True,
+            )
+
+        omega = float(omega_perturbation)
+        # Frecuencia natural del bloque dominante, si existe.
+        if blocks:
+            osc = [b for b in blocks if b.is_oscillatory]
+            if osc:
+                omega = float(max(b.frequency for b in osc))
+
+        t_axis = np.arange(n_orb, dtype=np.float64)
+        melnikov_vals = np.zeros(n_periods, dtype=np.float64)
+        for j in range(n_periods):
+            t0 = j * (2.0 * math.pi / max(n_periods, 1))
+            acc = 0.0
+            for k in range(n_orb):
+                phase = math.cos(omega * t_axis[k] + t0)
+                # f₁ modulada por la fase de Poincaré (perturbación periódica).
+                acc += _wedge2(f0_along[k], f1_along[k] * phase) / (1.0 + k)
+            melnikov_vals[j] = acc
+
+        # Derivada central periódica.
+        dM = np.zeros_like(melnikov_vals)
+        dt = 2.0 * math.pi / max(n_periods, 1)
+        for j in range(n_periods):
+            dM[j] = (
+                melnikov_vals[(j + 1) % n_periods]
+                - melnikov_vals[(j - 1) % n_periods]
+            ) / (2.0 * dt)
+
+        signs = np.sign(melnikov_vals)
+        # Ceros por cambio de signo (simples en la malla).
+        dsign = np.diff(signs)
+        simple_zeros = int(np.sum(dsign != 0))
+        # Transversales: el segmento que cambia de signo tiene |M'| grande.
+        trans_zeros = 0
+        for j in range(n_periods - 1):
+            if dsign[j] != 0 and max(abs(dM[j]), abs(dM[j + 1])) > _MELNIKOV_ZERO_TOL:
+                trans_zeros += 1
+
+        mean_mag = float(np.mean(np.abs(melnikov_vals)))
+        max_mag = float(np.max(np.abs(melnikov_vals)))
+        f0_scale = float(np.mean([np.linalg.norm(f) for f in f0_along]) + _MACHINE_EPSILON)
+        splitting = float(max_mag / f0_scale)
+        tangle = (simple_zeros > 0 and mean_mag > _WILKINSON_LIMIT)
+        is_admissible = max_mag <= _MELNIKOV_MAX_ADMISSIBLE
+
+        return MelnikovCertificate(
+            melnikov_values=melnikov_vals,
+            melnikov_derivative=dM,
+            simple_zeros=simple_zeros,
+            transverse_zeros=trans_zeros,
+            mean_magnitude=mean_mag,
+            max_magnitude=max_mag,
+            splitting_distance=splitting,
+            tangle_detected=tangle,
+            is_admissible=is_admissible,
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.16  Condición diofantina de KAM sobre frecuencias de bloques
+    # ══════════════════════════════════════════════════════════════════════
+    def _diophantine_small_divisors(
+        self,
+        frequencies: Sequence[float],
+        gamma: float = _KAM_DIOPHANTINE_GAMMA,
+        tau: Optional[float] = None,
+        k_max: int = 6,
+    ) -> Tuple[bool, float]:
+        r"""
+        Verifica |⟨k, ω⟩| ≥ γ / |k|_1^τ  para 0 < |k|_1 ≤ k_max.
+
+        Retorna (satisfied, min_|⟨k,ω⟩|).  Si hay < 2 frecuencias
+        positivas se declara vacuamente diofantina (un solo toro).
+        """
+        omega = [float(w) for w in frequencies if float(w) > _SPECTRAL_GAP_FLOOR]
+        if len(omega) < 2:
+            return True, float(omega[0]) if omega else float("inf")
+        d = len(omega)
+        tau_eff = float(tau if tau is not None else (d - 1 + _KAM_DIOPHANTINE_TAU_OFFSET))
+        min_div = float("inf")
+        satisfied = True
+        # Barrido de multi-índices en [-k_max, k_max]^d \ {0}, recortado.
+        # Para d>3 se muestrea la esfera l1.
+        from itertools import product
+        rng_k = range(-k_max, k_max + 1)
+        for kvec in product(rng_k, repeat=d):
+            l1 = sum(abs(ki) for ki in kvec)
+            if l1 == 0 or l1 > k_max:
+                continue
+            div = abs(sum(ki * om for ki, om in zip(kvec, omega)))
+            if div < min_div:
+                min_div = div
+            bound = gamma / ((l1 ** tau_eff) + _MACHINE_EPSILON)
+            if div < bound:
+                satisfied = False
+        if not math.isfinite(min_div):
+            min_div = 0.0
+        return satisfied, float(min_div)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.17  Certificado KAM — persistencia de autovalores cero
+    # ══════════════════════════════════════════════════════════════════════
+    def _certify_kam_persistence_from_schur(
+        self,
+        T: NDArray[np.float64],
+        spectra: NilpotenceAuditData,
+        blocks: Optional[Sequence[SchurBlock]] = None,
+        kam_threshold: float = _KAM_PERSISTENCE_TOL,
+    ) -> KAMCertificate:
+        r"""
+        ε = ‖T_offdiag‖_F / ω_min.
+
+        Si ε < ε_KAM y las frecuencias de bloques 2×2 son diofantinas,
+        los toros invariantes (subespacio nulo de A) persisten.
+        El recuento de toros supervivientes se estima por
+            N_tori = round( n · max(0, 1 − ε/ε_KAM) )
+        penalizado si la condición diofantina falla.
+        """
+        T_offdiag_fro = float(np.linalg.norm(np.triu(T, k=1), ord="fro"))
+        omega_min = max(float(spectra.spectral_radius), _SPECTRAL_GAP_FLOOR)
+        # Si hay osciladores, ω_min es la menor frecuencia positiva.
+        if blocks is None:
+            blocks = self._extract_schur_blocks(T)
+        osc_freqs = [b.frequency for b in blocks if b.is_oscillatory]
+        if osc_freqs:
+            omega_min = max(min(osc_freqs), _SPECTRAL_GAP_FLOOR)
+
+        eps_pert = T_offdiag_fro / omega_min
+        eps_KAM = max(float(kam_threshold), _KAM_PERSISTENCE_TOL)
+
+        dio_ok, small_div = self._diophantine_small_divisors(osc_freqs)
+        ratio = eps_pert / max(eps_KAM, _MACHINE_EPSILON)
+        tori = max(0, int(round(spectra.dimension * max(0.0, 1.0 - ratio))))
+        if not dio_ok:
+            tori = max(0, tori // 2)
+
+        is_stable = bool(eps_pert < eps_KAM and dio_ok)
+
+        return KAMCertificate(
+            epsilon_perturbation=float(eps_pert),
+            epsilon_KAM_threshold=float(eps_KAM),
+            diophantine_gamma=_KAM_DIOPHANTINE_GAMMA,
+            diophantine_satisfied=dio_ok,
+            small_divisor_min=float(small_div),
+            tori_persisting=tori,
+            is_KAM_stable=is_stable,
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.18  Difusión de Arnold — fuga entre resonancias + Nekhoroshev
+    # ══════════════════════════════════════════════════════════════════════
+    def _measure_arnold_diffusion_from_schur(
+        self,
+        T: NDArray[np.float64],
+        spectra: NilpotenceAuditData,
+        blocks: Optional[Sequence[SchurBlock]] = None,
+        kam: Optional[KAMCertificate] = None,
+    ) -> ArnoldDiffusionMetric:
+        r"""
+        D_Arnold = Σ_{bloques} |Δν_block|² / ω_block².
+
+        Δν_block := traza del bloque (α-desviación; 0 si nilpotente exacta).
+        ω_block  := frecuencia natural (o 1 para bloques 1×1).
+
+        Tiempo de Nekhoroshev:
+            t_Nek = exp( min(cap, c · ε^{-1/(2n)}) ),  c = 1/2.
+        """
+        n = int(T.shape[0])
+        if n == 0:
+            return ArnoldDiffusionMetric(
+                per_block_leakage={}, total_diffusion=0.0,
+                dominant_channel=None, nekhoroshev_time=float("inf"),
+                is_adiabatic=True,
+            )
+
+        if blocks is None:
+            blocks = self._extract_schur_blocks(T)
+
+        per_block: Dict[str, float] = {}
+        for blk in blocks:
+            if blk.size == 2:
+                omega = max(blk.frequency, _SPECTRAL_GAP_FLOOR)
+                leakage = (blk.trace * blk.trace) / (omega * omega)
+                key = f"block_{blk.index}_2x2"
+            else:
+                lam = abs(blk.real_part)
+                leakage = (lam * lam) / (1.0 + lam * lam)
+                key = f"block_{blk.index}_1x1"
+            per_block[key] = float(leakage)
+
+        total = float(sum(per_block.values()))
+        dominant = (
+            max(per_block.items(), key=lambda kv: kv[1])[0] if per_block else None
+        )
+
+        eps = float(kam.epsilon_perturbation) if kam is not None else total
+        eps = max(eps, _MACHINE_EPSILON)
+        exponent = 1.0 / float(max(2 * max(n, 1), 2))
+        try:
+            nek_arg = 0.5 * (eps ** (-exponent))
+            nek_arg = min(nek_arg, _NEKHOROSHEV_EXP_CAP)
+            t_nek = float(math.exp(nek_arg))
+        except OverflowError:
+            t_nek = float("inf")
+
+        is_adiabatic = total < _ARNOLD_DIFFUSION_TOL
+
+        return ArnoldDiffusionMetric(
+            per_block_leakage=per_block,
+            total_diffusion=total,
+            dominant_channel=dominant,
+            nekhoroshev_time=t_nek,
+            is_adiabatic=is_adiabatic,
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.19  Semilla canónica de θ para el kernel N3  (puente de datos)
+    # ══════════════════════════════════════════════════════════════════════
+    def _n3_theta_seed_from_observe(
+        self,
+        spectra: NilpotenceAuditData,
+        melnikov: MelnikovCertificate,
+        kam: KAMCertificate,
+        arnold: ArnoldDiffusionMetric,
+        return_map: ReturnMapReport,
+    ) -> Tuple[float, ...]:
+        r"""
+        Empaqueta la semilla θ₀ ∈ ℝ⁴ que Fase 2 ingerirá:
+
+            θ₀ = ( ρ(A),  ν/n,  ε_KAM-pert,  ‖M‖_∞ )
+
+        normalizada en ℓ².  No ejecuta N3: sólo fija la condición
+        inicial del endofuntor de automejora (contrato Φ₁ → Φ₂).
+        """
+        nu = float(spectra.nilpotence_index) if spectra.nilpotence_index is not None else 0.0
+        nrm_dim = float(max(spectra.dimension, 1))
+        raw = np.array([
+            float(spectra.spectral_radius),
+            nu / nrm_dim,
+            float(kam.epsilon_perturbation),
+            float(melnikov.max_magnitude),
+        ], dtype=np.float64)
+        # Canales auxiliares (no forman parte de θ, pero se loguean).
+        _ = (arnold.total_diffusion, return_map.stability_exponent)
+        seed = raw / (float(np.linalg.norm(raw)) + _MACHINE_EPSILON)
+        return tuple(float(x) for x in seed)
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.20  Ensamblaje del ObserverPacket
+    # ══════════════════════════════════════════════════════════════════════
+    def _assemble_observer_packet(
+        self,
+        spectra: NilpotenceAuditData,
+        sections: Sequence[PoincareSection],
+        return_map: ReturnMapReport,
+        melnikov: MelnikovCertificate,
+        kam: KAMCertificate,
+        arnold: ArnoldDiffusionMetric,
+        blocks: Sequence[SchurBlock],
+    ) -> ObserverPacket:
+        r"""Sella el artefacto terminal de Fase 1 con huella SHA-256."""
+        theta_seed = self._n3_theta_seed_from_observe(
+            spectra, melnikov, kam, arnold, return_map,
+        )
+        ts = _utc_timestamp()
+        payload = (
+            f"{spectra.spectrum_certificate_hash}|"
+            f"{len(sections)}|{return_map.stability_exponent:.12e}|"
+            f"{melnikov.max_magnitude:.12e}|{kam.epsilon_perturbation:.12e}|"
+            f"{arnold.total_diffusion:.12e}|{ts}"
+        )
+        return ObserverPacket(
+            spectra=spectra,
+            sections=tuple(sections),
+            return_map=return_map,
+            melnikov=melnikov,
+            kam=kam,
+            arnold=arnold,
+            schur_blocks=tuple(blocks),
+            n3_theta_seed=theta_seed,
+            generated_at_utc=ts,
+            packet_hash=_sha256_short(payload),
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.21  Stub funtorial Φ₁ → Φ₂  (implementado por Fase 2)
+    # ══════════════════════════════════════════════════════════════════════
     def _audit_poset_filtration_from_nilpotence(
         self,
         nilpotence_audit: NilpotenceAuditData,
@@ -1134,28 +1693,24 @@ class Phase1_SpectralNilpotenceCertifier:
         **kwargs: Any,
     ) -> "PosetFiltrationData":
         r"""
-        Stub funtorial de continuación hacia Fase 2.
+        Stub funtorial Φ₁ → Φ₂.
 
-        Este método es el "conector" que cierra la categoría de Fase 1
-        y abre la categoría de Fase 2. La implementación concreta vive en
-        Phase2_PosetFiltrationAuditor, que hereda y sobreescribe este stub.
-
-        El patrón de stub-con-herencia implementa el anidamiento funtorial:
-            Φ₁: A ↦ NilpotenceAuditData  [implementado]
-            Φ₂: (NilpotenceAuditData, Poset) ↦ PosetFiltrationData  [stub aquí]
-
-        Lanza:
-            NotImplementedError: siempre (debe ser sobreescrito por Fase 2).
+        Phase2_PosetFiltrationAuditor sobrescribe este método.  El puente
+        terminal de Fase 1 lo invoca como *continuación formal* — no como
+        dependencia opcional — de modo que Φ₂ ∘ Φ₁ es un morfismo estricto
+        de la categoría de auditorías.
         """
         raise NotImplementedError(
             "Phase2_PosetFiltrationAuditor debe ser mezclado en la jerarquía. "
-            "Este stub es el conector funtorial Φ₁ → Φ₂."
+            "Este stub es el conector funtorial Φ₁ → Φ₂.  Continúe en Fase 2 "
+            "con la definición efectiva de _audit_poset_filtration_from_nilpotence."
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §1.9 Último método de Fase 1: puente funtorial hacia Fase 2
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §1.22  ÚLTIMO MÉTODO DE FASE 1: puente funtorial Φ₁ → Φ₂
+    #        Su definición es la CONTINUACIÓN / INICIO de los métodos
+    #        de Fase 2 (ORIENT : Poset DIKW + kernel N3).
+    # ══════════════════════════════════════════════════════════════════════
     def _phase1_terminal_bridge_to_phase2(
         self,
         adjacency_matrix: NDArray[Any],
@@ -1172,40 +1727,34 @@ class Phase1_SpectralNilpotenceCertifier:
         node_order: Optional[Sequence[str]] = None,
         cross_check_adjacency_support: bool = False,
         raise_on_veto: bool = True,
-    ) -> Tuple[NilpotenceAuditData, "PosetFiltrationData"]:
+        require_transverse_section: bool = False,
+    ) -> Tuple[NilpotenceAuditData, "PosetFiltrationData", ObserverPacket]:
         r"""
         ÚLTIMO MÉTODO DE FASE 1 — Puente funtorial Φ₁ → Φ₂.
 
-        Este método es la composición terminal de Fase 1 que produce el
-        artefacto NilpotenceAuditData y lo pasa como entrada a Fase 2.
+        Composición estricta:
+            (1) Certificación espectral vía Schur → NilpotenceAuditData.
+            (2) Reutilización de (T, Q, bloques) para la maquinaria de
+                Poincaré: Σ, P, M, KAM, Arnold, Lyapunov–Benettin.
+            (3) Ensamblaje y sellado del ObserverPacket (semilla N3).
+            (4) Veto fail-secure de Melnikov / KAM / transversabilidad.
+            (5) Invocación inmediata del primer método efectivo de
+                Fase 2 (``_audit_poset_filtration_from_nilpotence``),
+                que abre la categoría de ORIENT.
 
-        Composición funtorial:
-            Φ₁(A) → NilpotenceAuditData
-            (Φ₁(A), Φ₂(edges, strata)) → (NilpotenceAuditData, PosetFiltrationData)
+        Anidamiento:
+            Φ₂ ∘ Φ₁ = _audit_poset_filtration_from_nilpotence
+                      ∘ _phase1_terminal_bridge_to_phase2
 
-        El morfismo terminal de Fase 1 actúa como el morfismo inicial de Fase 2:
-            _phase1_terminal_bridge_to_phase2 ≅ init(Fase 2) ∘ final(Fase 1)
+        Retorna
+            (NilpotenceAuditData, PosetFiltrationData, ObserverPacket).
 
-        Parámetros:
-            adjacency_matrix: operador de adyacencia del DAG.
-            edges: lista de aristas dirigidas (u, v).
-            node_strata: mapeo nodo → nivel DIKW.
-            adjacency_zero_threshold: umbral de anulación numérica.
-            allow_signed_weights: permitir pesos negativos en A.
-            require_boolean: exigir A ∈ {0,1}^{n×n}.
-            deep_nilpotence_audit: activar auditoría profunda de potencia.
-            power_audit_max_dim: límite para cálculo exacto de A^n.
-            allow_unknown_nodes: ignorar nodos sin estrato.
-            strict_filtration: exigir stratum(u) < stratum(v).
-            node_order: orden canónico de nodos para cross-check.
-            cross_check_adjacency_support: verificar edges↔A.
-            raise_on_veto: lanzar excepciones ante violaciones.
-
-        Retorna:
-            (NilpotenceAuditData, PosetFiltrationData): certificados de Fases 1 y 2.
+        La definición de ``_audit_poset_filtration_from_nilpotence`` en
+        Phase2_PosetFiltrationAuditor ES la continuación literal de este
+        método: recibe ``observer_packet=...`` como semilla del kernel N3.
         """
-        # ── Fase 1: Certificación espectral ───────────────────────────────────
-        nilpotence_audit = self._certify_spectral_nilpotence(
+        # ── Paso 1: Certificación espectral (Fase 1 base) ────────────────
+        spectra = self._certify_spectral_nilpotence(
             adjacency_matrix,
             zero_threshold=adjacency_zero_threshold,
             allow_signed_weights=allow_signed_weights,
@@ -1215,9 +1764,92 @@ class Phase1_SpectralNilpotenceCertifier:
             raise_on_veto=raise_on_veto,
         )
 
-        # ── Puente → Fase 2: Auditoría de filtración ──────────────────────────
+        # ── Paso 2: Schur reutilizado para métricas de Poincaré ──────────
+        A_cond = self._validate_and_condition_adjacency(
+            adjacency_matrix,
+            zero_threshold=adjacency_zero_threshold,
+            allow_signed_weights=allow_signed_weights,
+            require_boolean=require_boolean,
+        )
+        T, Q, _, _, _ = self._schur_decompose(A_cond)
+        blocks = self._extract_schur_blocks(T)
+
+        pow_tol = max(
+            _BASE_POWER_TOLERANCE,
+            _SCHUR_CONDITION_SAFETY_FACTOR
+            * spectra.tolerance
+            * max(1.0, spectra.adjacency_inf_norm),
+        )
+
+        sections = self._capture_poincare_section_from_schur(
+            A_cond, T, Q, pow_tol, blocks=blocks,
+        )
+        lyap = self._lyapunov_spectrum_benettin(A_cond)
+        return_map = self._analyze_return_map_from_schur(
+            A_cond, sections, lyapunov_spectrum=lyap,
+        )
+        melnikov = self._evaluate_melnikov_function_from_schur(
+            A_cond, T, Q, blocks=blocks,
+        )
+        kam = self._certify_kam_persistence_from_schur(
+            T, spectra, blocks=blocks,
+        )
+        arnold = self._measure_arnold_diffusion_from_schur(
+            T, spectra, blocks=blocks, kam=kam,
+        )
+
+        observer_packet = self._assemble_observer_packet(
+            spectra, sections, return_map, melnikov, kam, arnold, blocks,
+        )
+
+        logger.info(
+            "[Fase 1::OBSERVE] Σ=%d (trans=%s) | λ_Lya=%s | zeros=%d/%d | "
+            "KAM=%s (dio=%s) | D_Arnold=%.4e | t_Nek=%.3e | hash=%s",
+            len(sections),
+            return_map.is_transverse_family,
+            list(return_map.lyapunov_spectrum),
+            melnikov.simple_zeros,
+            melnikov.transverse_zeros,
+            kam.is_KAM_stable,
+            kam.diophantine_satisfied,
+            arnold.total_diffusion,
+            arnold.nekhoroshev_time,
+            observer_packet.packet_hash,
+        )
+
+        # ── Paso 2.b: vetos fail-secure de mecánica celeste ──────────────
+        if require_transverse_section and sections and not return_map.is_transverse_family:
+            if raise_on_veto:
+                raise PoincareTransversalityError(
+                    "Familia de secciones no transversal: "
+                    f"min |ḣ|={min(s.transversality for s in sections):.6e}."
+                )
+        if not melnikov.is_admissible and raise_on_veto:
+            raise MelnikovTangleError(
+                f"Tangencia homoclínica inadmisible: ‖M‖_∞="
+                f"{melnikov.max_magnitude:.6e} > ε_M="
+                f"{_MELNIKOV_MAX_ADMISSIBLE:.6e} "
+                f"(splitting={melnikov.splitting_distance:.6e})."
+            )
+        if not kam.is_KAM_stable and raise_on_veto:
+            raise KAMBreakdownError(
+                f"Colapso KAM: ε_pert={kam.epsilon_perturbation:.6e} ≥ "
+                f"ε_KAM={kam.epsilon_KAM_threshold:.6e} "
+                f"(diofantina={kam.diophantine_satisfied}, "
+                f"small_div={kam.small_divisor_min:.6e})."
+            )
+
+        # ── Paso 3: CONTINUACIÓN FUNTORIAL HACIA FASE 2 ──────────────────
+        # La invocación de `_audit_poset_filtration_from_nilpotence` ES el
+        # primer método efectivo de Fase 2, y se ejecuta aquí como
+        # continuación formal del cierre de Fase 1.
+        # ------------------------------------------------------------------
+        # FASE 2 comienza exactamente en la definición efectiva de
+        # Phase2_PosetFiltrationAuditor._audit_poset_filtration_from_nilpotence
+        # (ORIENT : Poset DIKW + kernel N3 ← ObserverPacket.n3_theta_seed).
+        # ------------------------------------------------------------------
         filtration_audit = self._audit_poset_filtration_from_nilpotence(
-            nilpotence_audit,
+            spectra,
             edges,
             node_strata,
             allow_unknown_nodes=allow_unknown_nodes,
@@ -1227,472 +1859,791 @@ class Phase1_SpectralNilpotenceCertifier:
             cross_check_adjacency_support=cross_check_adjacency_support,
             adjacency_zero_threshold=adjacency_zero_threshold,
             raise_on_veto=raise_on_veto,
+            observer_packet=observer_packet,
         )
 
-        return nilpotence_audit, filtration_audit
+        return spectra, filtration_audit, observer_packet
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 2: AUDITORÍA DEL DIFEOMORFISMO DE FILTRACIÓN CATEGÓRICA                ║
-# ║                                                                             ║
-# ║ Fundamento matemático:                                                      ║
-# ║   El conjunto (V, ≤_strata) de nodos con la relación de orden por           ║
-# ║   estratos DIKW forma un Poset. El DAG debe ser compatible con este         ║
-# ║   Poset: toda arista (u→v) debe satisfacer stratum(u) ≤ stratum(v).         ║
-# ║                                                                             ║
-# ║   Esto es equivalente a exigir que la función estrato                       ║
-# ║       f: V → {0,1,2,3,4}  (PHYSICS=0,...,WISDOM=4)                          ║
-# ║   sea un morfismo de Posets entre (V, ≤_DAG) y (Z, ≤).                      ║
-# ║                                                                             ║
-# ║ El último método de esta fase es el puente formal hacia Fase 3.             ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ══════════════════════════════════════════════════════════════════════════════
+# FIN DE FASE 1  ──  CONTINÚA EN FASE 2 (prompt siguiente)
+# Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier)
+#   debe abrir con _audit_poset_filtration_from_nilpotence  (Φ₂)
+#   y cerrar con _phase2_terminal_bridge_to_phase3           (Φ₂ → Φ₃)
+# ══════════════════════════════════════════════════════════════════════════════
+# ████████████████████████████████████████████████████████████████████████████
+# █                                                                          █
+# █   FASE 2 ──► ORIENT : POSET DIKW + AUTOMEJORA RECURSIVA N3               █
+# █   (filtración monótona + kernel (θ, O, α) + ciclo meta-meta)             █
+# █                                                                          █
+# █   CONTINUACIÓN FORMAL DE FASE 1                                          █
+# █   Φ₂ abre en  _audit_poset_filtration_from_nilpotence                    █
+# █   Φ₂ cierra en _phase2_terminal_bridge_to_phase3                         █
+# █                                                                          █
+# ████████████████████████████████████████████████████████████████████████████
+#
+# Contrato de anidamiento (OODA-Orient):
+#   Phase1._phase1_terminal_bridge_to_phase2
+#       └─► Phase2._audit_poset_filtration_from_nilpotence   ← AQUÍ ARRANCA Φ₂
+#               (ObserverPacket.n3_theta_seed → kernel N3)
+#       └─► Phase2._phase2_terminal_bridge_to_phase3
+#               └─► Phase3._intercept_mayer_vietoris_sequence  (prompt siguiente)
+#
+# Filosofía (Tikhonov / Fenichel, 3 escalas):
+#   N1 (rápida)  : θ  — tolerancias del certificador espectral.
+#   N2 (media)   : O  — topología DAG, Π_triu estricta ⇒ O^n = 0.
+#   N3 (lenta)   : α  — meta-regla que gobierna las tasas de N1 y N2.
+#   El flujo discreto Ψ = N3 ∘ N2 ∘ N1 es un endomorfismo del fibrado
+#   (θ, O, α) → ObserverPacket; en un punto crítico, Ψ ∘ Ψ = Ψ (idempotencia).
+# ══════════════════════════════════════════════════════════════════════════════
 
+
+# ── 2.0 DTOs DE FASE 2 ──────────────────────────────────────────────────────
+
+@dataclass(frozen=True, slots=True)
+class EdgeSlackRecord:
+    r"""
+    Arista auditada del Poset DIKW.
+
+    slack(u,v) := stratum(v) − stratum(u).
+    Filtración débil  : slack ≥ 0.
+    Filtración estricta: slack ≥ 1  (cubre estrictamente el orden).
+    """
+    source: str
+    target: str
+    stratum_u: int
+    stratum_v: int
+    slack: int
+    is_violation: bool
+
+
+@dataclass(frozen=True, slots=True)
+class PosetHeightCertificate:
+    r"""
+    Certificado de altura vs. índice de nilpotencia.
+
+    Teorema (poset rankeado + DAG): si f: (V, →) → (ℤ, ≤) es un
+    morfismo de posets y las aristas cubren (slack ≥ 1), entonces
+        longest_path ≤ height := max f − min f,
+        ν(A) ≤ longest_path + 1 ≤ height + 1 ≤ n.
+    La consistencia falla si ν certificado > height + 1 (incoherencia
+    entre el espectro de Schur y la filtración declarada).
+    """
+    n_nodes: int
+    min_rank: Optional[int]
+    max_rank: Optional[int]
+    height: Optional[int]
+    longest_path: Optional[int]
+    nilpotence_index: Optional[int]
+    consistent_with_nu: bool
+    notes: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class TransitiveClosureData:
+    r"""Clausura transitiva del DAG de aristas (Warshall booleano)."""
+    n_nodes: int
+    n_edges_declared: int
+    n_reachable_pairs: int
+    n_implied_edges: int
+    has_cycle: bool
+    notes: Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class PosetFiltrationData:
+    r"""
+    Artefacto de Fase 2 — certificado de monotonicidad del Poset DIKW.
+
+    Extensión v3.1: altura, camino más largo, consistencia con ν(A)
+    y huella del ObserverPacket que sembró el kernel N3.
+    """
+    edge_count:                   int
+    audited_edge_count:           int
+    ignored_edge_count:           int
+    min_slack:                    Optional[int]
+    max_slack:                    Optional[int]
+    is_monotonic_filtration:      bool
+    self_loops_detected:          int = 0
+    unknown_nodes:                Tuple[str, ...] = ()
+    isolated_strata_nodes:        Tuple[str, ...] = ()
+    inverse_edges_blocked:        Tuple[str, ...] = ()
+    slack_histogram:              Tuple[Tuple[int, int], ...] = ()
+    poset_height:                 Optional[int] = None
+    longest_path:                 Optional[int] = None
+    height_nilpotence_consistent: Optional[bool] = None
+    transitive_edge_count:        int = 0
+    observer_packet_hash:         Optional[str] = None
+    notes:                        Tuple[str, ...] = ()
+
+
+@dataclass
+class ImprovementState:
+    r"""
+    Estado interno mutable del kernel N3.
+
+    θ ∈ ℝ^d     : parámetros del certificador (tolerancias, umbrales).
+    O ∈ ℝ^{n×n} : topología DAG (triangular estricta ⇒ nilpotente).
+    α ∈ ℝ^3     : meta-parámetros (tasas de N1, N2, N3).
+    """
+    theta:          NDArray[np.float64]
+    O:              NDArray[np.float64]
+    alpha:          NDArray[np.float64]
+    loss_history:   List[float] = field(default_factory=list)
+    level_history:  List[int] = field(default_factory=list)
+    ingested:       bool = False
+    packet_hash:    str = ""
+
+
+@dataclass(frozen=True, slots=True)
+class N3ConvergenceCertificate:
+    r"""
+    Certificado de convergencia del endomorfismo Ψ = N3 ∘ N2 ∘ N1.
+
+    monotone_decrease : L_{c+1} ≤ L_c + ε_num  ∀ c.
+    idempotent        : ‖Ψ(z*) − z*‖ ≤ ε_idem  (punto fijo numérico).
+    lipschitz_grad    : cota empírica de Lip(∇L) en el último ciclo.
+    """
+    n_cycles:               int
+    initial_loss:           float
+    final_loss:             float
+    monotone_decrease:      bool
+    idempotent:             bool
+    residual_fixed_point:   float
+    lipschitz_grad_bound:   float
+    finite:                 bool
+    level_sequence:         Tuple[int, ...]
+    notes:                  Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class OrientationSeed:
+    r"""
+    ← ÚLTIMO ARTEFACTO DE FASE 2.
+
+    Transporta (θ*, α*, ‖O*‖, certificado N3, banderas KAM/Melnikov)
+    hacia Fase 3, donde alimentan el veredicto terminal Ω₃.
+
+    Invariante de empaquetado:
+        OrientationSeed ⊢ filtración monótona ∧ N3 finito
+                        ∧ ObserverPacket sellado.
+    """
+    theta_final:        NDArray[np.float64]
+    alpha_final:        NDArray[np.float64]
+    O_norm:             float
+    final_loss:         float
+    observer_packet:    ObserverPacket
+    kam_preserved:      bool
+    melnikov_chaotic:   bool
+    n3_report:          Dict[str, Any]
+    n3_certificate:     N3ConvergenceCertificate
+    poset_height:       Optional[int]
+    idempotent:         bool
+    packet_hash:        str
+    generated_at_utc:   str
+
+
+# ── 2.1 KERNEL DE AUTOMEJORA RECURSIVA N3 ───────────────────────────────────
+
+class RecursiveSelfImprovementKernel:
+    r"""
+    Kernel N3 de automejora recursiva (θ, O, α).
+
+    Ecuaciones de evolución (proyecciones sobre conjuntos factibles):
+
+      N1: θ_{t+1} = Π_Θ ( θ_t − τ₁ α[0] ∇_θ L )          τ₁ ∈ (0,1] Armijo
+      N2: O_{t+1} = Π_triu⁺ ( O_t − τ₂ α[1] ∇_O L )      aciclicidad por cons.
+      N3: α_{t+1} = Π_[α̲,ᾱ] ( α_t − τ₃ α[2] ∇_α L^↺ )   L^↺ = lookahead
+
+    Pérdida compuesta (informada por el ObserverPacket de Fase 1):
+
+      L = w₁ (1 − ν(O)/n)
+        + w₂ (−λ₂(O)/λ₂^{max})
+        + w₃ D_Arnold (1 + ‖O‖_F)
+        + w₄ ‖M‖_∞ (1 + ‖θ‖₂)
+        + w₅ (1 − 1_{KAM}) (1 + ε_pert)
+        + w₆ (−λ_Lya)_+ 
+        + (μ/2) ‖θ − θ₀‖₂²
+        + λ_s ‖O‖₁
+        − η ⟨α, g_energy⟩
+        + (ρ/2) ‖α‖₂²
+
+    Complejidad por paso N2: O(n²) diferencias finitas centrales,
+    n ≤ n_cap (proyección de Galerkin del DAG).
+    """
+
+    _THETA_FLOOR: float = 1.0e-12
+    _ARMIJO_C: float = 1.0e-4
+    _ARMIJO_BETA: float = 0.5
+    _ARMIJO_MAX_BT: int = 8
+    _LOOKAHEAD_ETA: float = 1.0e-2
+    _THETA_REG: float = 1.0e-3
+    _ALPHA_REG: float = 1.0e-2
+    _SPARSITY_DEFAULT: float = 0.05
+
+    def __init__(
+        self,
+        n_params: int = 4,
+        adjacency_shape: int = 8,
+        alpha_init: Optional[NDArray[np.float64]] = None,
+        learning_rate: float = 1e-2,
+        weights: Optional[Tuple[float, float, float, float, float, float]] = None,
+    ) -> None:
+        rng = np.random.default_rng(seed=_SEED_N3)
+        self._n_params = int(max(1, n_params))
+        self._adj_shape = int(max(1, adjacency_shape))
+
+        theta = rng.uniform(0.1, 1.0, size=self._n_params).astype(np.float64)
+        O = np.triu(
+            rng.uniform(0.0, 0.05, size=(self._adj_shape, self._adj_shape)),
+            k=1,
+        ).astype(np.float64)
+        if alpha_init is None:
+            alpha_init = np.array([1e-2, 1e-3, 1e-4], dtype=np.float64)
+        else:
+            alpha_init = np.asarray(alpha_init, dtype=np.float64).reshape(-1)
+            if alpha_init.size < 3:
+                raise RecursiveSelfImprovementError(
+                    f"alpha_init debe tener dimensión ≥ 3. size={alpha_init.size}."
+                )
+
+        self.state = ImprovementState(
+            theta=theta, O=O, alpha=alpha_init[:3].copy(),
+        )
+        self.lr = float(learning_rate)
+        # (ν, Fiedler, Arnold, Melnikov, KAM, Lyapunov)
+        self.weights = weights or (1.0, 1.0, 0.5, 0.5, 0.5, 0.25)
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+        self._packet: Optional[ObserverPacket] = None
+        self._theta_seed: Optional[NDArray[np.float64]] = None
+        self._poset_mask: Optional[NDArray[np.float64]] = None
+        self._last_g_theta: Optional[NDArray[np.float64]] = None
+        self._last_g_O: Optional[NDArray[np.float64]] = None
+        self._last_g_alpha: Optional[NDArray[np.float64]] = None
+
+    # ── 2.1.1 Ingesta del ObserverPacket (entrada canónica desde FASE 1) ─
+    def ingest_observer_packet(self, packet: ObserverPacket) -> None:
+        r"""
+        Traduce ObserverPacket → condición inicial (θ₀, O₀, α₀).
+
+        θ₀ ← n3_theta_seed  (ya ℓ²-normalizado en Fase 1)
+             = (ρ, ν/n, ε_pert, ‖M‖_∞)̂
+        O₀ ← triu(ε) perturbada por fuga de Arnold por bloque Schur
+             y por acoplamientos 2×2 oscilatorios (frecuencia ω).
+        α₀ ← (η₁ · 1_{KAM},  η₂ · (1+caos),  η₃ · (1+2 caos))
+        """
+        if packet is None:
+            raise RecursiveSelfImprovementError(
+                "ingest_observer_packet: ObserverPacket es None."
+            )
+        self._packet = packet
+        self.state.packet_hash = packet.packet_hash
+        self.state.ingested = True
+
+        seed = np.asarray(packet.n3_theta_seed, dtype=np.float64).reshape(-1)
+        if seed.size == 0:
+            s = packet.spectra
+            nu = float(s.nilpotence_index) if s.nilpotence_index is not None else 0.0
+            seed = np.array([
+                float(s.spectral_radius),
+                nu / float(max(s.dimension, 1)),
+                float(packet.kam.epsilon_perturbation),
+                float(packet.melnikov.max_magnitude),
+            ], dtype=np.float64)
+            seed = seed / (float(np.linalg.norm(seed)) + _MACHINE_EPSILON)
+        if seed.size < self._n_params:
+            seed = np.pad(seed, (0, self._n_params - seed.size))
+        self.state.theta = seed[: self._n_params].copy()
+        self._theta_seed = self.state.theta.copy()
+
+        n = self._adj_shape
+        base = np.triu(np.eye(n, k=1) * 0.05, k=1).astype(np.float64)
+        for i, (_, leak) in enumerate(packet.arnold.per_block_leakage.items()):
+            if i < n - 1:
+                base[i, i + 1] += float(leak) * 0.1
+        # Acoplamiento 2×2 de bloques oscilatorios de Schur.
+        for blk in packet.schur_blocks:
+            i0 = int(blk.offset)
+            if blk.size == 2 and i0 + 1 < n:
+                base[i0, i0 + 1] += 0.05 * float(blk.frequency)
+        self.state.O = np.triu(np.maximum(base, 0.0), k=1)
+        if self._poset_mask is not None:
+            self.state.O = self.state.O * self._poset_mask
+
+        chaos = min(1.0, float(packet.melnikov.max_magnitude) * 1.0e3)
+        kam_m = 1.0 if packet.kam.is_KAM_stable else 0.1
+        trans_m = 1.0 if packet.return_map.is_transverse_family else 1.5
+        self.state.alpha = np.array([
+            1.0e-2 * kam_m / trans_m,
+            1.0e-3 * (1.0 + chaos),
+            1.0e-4 * (1.0 + chaos * 2.0),
+        ], dtype=np.float64)
+        self.state.alpha = np.clip(self.state.alpha, _N3_ALPHA_FLOOR, _N3_ALPHA_CEIL)
+
+        L0 = self._loss(self.state.theta, self.state.O, self.state.alpha)
+        self.state.loss_history.append(float(L0))
+        self.state.level_history.append(0)
+
+        self.logger.info(
+            "[N3::ingest] hash=%s | θ=%s | α=%s | L0=%.6e | chaos=%.3f | KAM=%s",
+            packet.packet_hash,
+            np.round(self.state.theta, 4).tolist(),
+            np.round(self.state.alpha, 6).tolist(),
+            L0, chaos, packet.kam.is_KAM_stable,
+        )
+
+    # ── 2.1.2 Máscara de filtración (N2 no puede violar DIKW) ───────────
+    def bind_poset_mask(self, mask: NDArray[np.float64]) -> None:
+        r"""
+        mask[i,j] ∈ {0,1}: 1 ⇔ la arista i→j es compatible con la
+        filtración (stratum[j] ≥ stratum[i], i ≠ j).  Se aplica en
+        cada proyección Π_triu⁺.
+        """
+        M = np.asarray(mask, dtype=np.float64)
+        if M.shape != (self._adj_shape, self._adj_shape):
+            raise RecursiveSelfImprovementError(
+                f"poset_mask shape={M.shape} ≠ ({self._adj_shape},{self._adj_shape})."
+            )
+        self._poset_mask = (M > 0.5).astype(np.float64)
+        self.state.O = np.triu(self.state.O * self._poset_mask, k=1)
+
+    # ── 2.1.3 Términos de la pérdida ─────────────────────────────────────
+    def _nilpotence_index_of(self, O: NDArray[np.float64]) -> int:
+        """ν(O) = min{k : ‖O^k‖_F ≤ ε_W}.  Si no colapsa, retorna n."""
+        n = int(O.shape[0])
+        if n == 0:
+            return 0
+        P = np.eye(n, dtype=np.float64)
+        for k in range(1, n + 1):
+            P = P @ O
+            if float(np.linalg.norm(P, ord="fro")) < _WILKINSON_LIMIT:
+                return k
+        return n
+
+    def _fiedler_ratio(self, O: NDArray[np.float64]) -> float:
+        r"""−λ₂/λ_max del Laplaciano simetrizado de |O| (conectividad)."""
+        n = int(O.shape[0])
+        if n < 2:
+            return 0.0
+        absO = np.abs(O)
+        degree = np.sum(absO, axis=1)
+        L = np.diag(degree) - absO
+        L_sym = 0.5 * (L + L.T)
+        try:
+            evals = np.sort(np.real(np.linalg.eigvalsh(L_sym)))
+            lam2 = float(evals[1]) if evals.size > 1 else 0.0
+            lam_max = max(float(evals[-1]), _MACHINE_EPSILON)
+        except Exception:
+            return 0.0
+        return -lam2 / lam_max
+
+    def _loss(
+        self,
+        theta: NDArray[np.float64],
+        O: NDArray[np.float64],
+        alpha: NDArray[np.float64],
+    ) -> float:
+        w = self.weights
+        w1, w2, w3, w4 = w[0], w[1], w[2], w[3]
+        w5 = w[4] if len(w) > 4 else 0.5
+        w6 = w[5] if len(w) > 5 else 0.25
+
+        n = int(O.shape[0])
+        nu = self._nilpotence_index_of(O)
+        nu_term = 1.0 - (nu / float(max(n, 1)))
+        fiedler_term = self._fiedler_ratio(O)
+
+        pkt = self._packet
+        O_fro = float(np.linalg.norm(O, ord="fro"))
+        th_n = float(np.linalg.norm(theta))
+        if pkt is not None:
+            arnold_term = float(pkt.arnold.total_diffusion) * (1.0 + O_fro)
+            melnikov_term = float(pkt.melnikov.max_magnitude) * (1.0 + th_n)
+            kam_term = (0.0 if pkt.kam.is_KAM_stable else 1.0) * (
+                1.0 + float(pkt.kam.epsilon_perturbation)
+            )
+            lya = float(pkt.return_map.stability_exponent)
+            lya_term = max(0.0, lya)  # penaliza λ ≥ 0 (ciclos persistentes)
+        else:
+            arnold_term = float(np.std(alpha)) * float(np.std(theta))
+            melnikov_term = abs(math.sin(math.pi * th_n))
+            kam_term = 0.0
+            lya_term = 0.0
+
+        # Regularización hacia la semilla de Fase 1 y sparsidad de O.
+        if self._theta_seed is not None and self._theta_seed.shape == theta.shape:
+            theta_reg = 0.5 * self._THETA_REG * float(
+                np.sum((theta - self._theta_seed) ** 2)
+            )
+        else:
+            theta_reg = 0.5 * self._THETA_REG * float(np.sum(theta ** 2))
+        spars = self._SPARSITY_DEFAULT * float(np.sum(np.abs(O)))
+
+        # Energía de descenso de primer orden (N3 quiere α alineada a ∇).
+        g_energy = 0.0
+        if self._last_g_theta is not None:
+            g_energy += float(alpha[0]) * float(np.sum(self._last_g_theta ** 2))
+        if self._last_g_O is not None:
+            g_energy += float(alpha[1]) * float(np.sum(self._last_g_O ** 2))
+        alpha_reg = 0.5 * self._ALPHA_REG * float(np.sum(alpha ** 2))
+
+        value = (
+            w1 * nu_term
+            + w2 * fiedler_term
+            + w3 * arnold_term
+            + w4 * melnikov_term
+            + w5 * kam_term
+            + w6 * lya_term
+            + theta_reg
+            + spars
+            - self._LOOKAHEAD_ETA * g_energy
+            + alpha_reg
+        )
+        if not math.isfinite(value):
+            return float("inf")
+        return float(value)
+
+    # ── 2.1.4 Gradiente numérico central ────────────────────────────────
+    @staticmethod
+    def _grad_numeric(
+        f: Callable[[NDArray[np.float64]], float],
+        x: NDArray[np.float64],
+        h: float = 1e-6,
+    ) -> NDArray[np.float64]:
+        g = np.zeros_like(x, dtype=np.float64)
+        if x.ndim == 1:
+            for i in range(x.shape[0]):
+                xp = x.copy(); xp[i] += h
+                xm = x.copy(); xm[i] -= h
+                fp, fm = f(xp), f(xm)
+                if math.isfinite(fp) and math.isfinite(fm):
+                    g[i] = (fp - fm) / (2.0 * h)
+        else:
+            for i in range(x.shape[0]):
+                for j in range(x.shape[1]):
+                    xp = x.copy(); xp[i, j] += h
+                    xm = x.copy(); xm[i, j] -= h
+                    fp, fm = f(xp), f(xm)
+                    if math.isfinite(fp) and math.isfinite(fm):
+                        g[i, j] = (fp - fm) / (2.0 * h)
+        return g
+
+    # ── 2.1.5 Proyecciones factibles ─────────────────────────────────────
+    def _project_theta(self, theta: NDArray[np.float64]) -> NDArray[np.float64]:
+        t = np.asarray(theta, dtype=np.float64).reshape(-1)
+        if t.size < self._n_params:
+            t = np.pad(t, (0, self._n_params - t.size))
+        t = np.maximum(t[: self._n_params], self._THETA_FLOOR)
+        nrm = float(np.linalg.norm(t))
+        if nrm > 8.0:
+            t = t * (8.0 / nrm)
+        return t
+
+    def _project_O(self, O: NDArray[np.float64]) -> NDArray[np.float64]:
+        r"""Π_triu⁺ : anula diagonal e inferior, recorta negativos, aplica máscara DIKW."""
+        P = np.triu(np.maximum(np.asarray(O, dtype=np.float64), 0.0), k=1)
+        if self._poset_mask is not None:
+            P = P * self._poset_mask
+        return P
+
+    def _project_alpha(self, alpha: NDArray[np.float64]) -> NDArray[np.float64]:
+        a = np.asarray(alpha, dtype=np.float64).reshape(-1)
+        if a.size < 3:
+            a = np.pad(a, (0, 3 - a.size), constant_values=_N3_ALPHA_FLOOR)
+        return np.clip(a[:3], _N3_ALPHA_FLOOR, _N3_ALPHA_CEIL)
+
+    # ── 2.1.6 Búsqueda lineal de Armijo ──────────────────────────────────
+    def _armijo(
+        self,
+        x: NDArray[np.float64],
+        grad: NDArray[np.float64],
+        step0: float,
+        loss_at: Callable[[NDArray[np.float64]], float],
+        project: Callable[[NDArray[np.float64]], NDArray[np.float64]],
+    ) -> Tuple[NDArray[np.float64], float, float]:
+        r"""
+        x⁺ = Π(x − τ s ∇L) con τ ← β τ hasta
+            L(x⁺) ≤ L(x) − c τ s ‖∇L‖².
+        Retorna (x⁺, L(x⁺), τ_usado).
+        """
+        L0 = loss_at(x)
+        g2 = float(np.sum(grad * grad))
+        if (not math.isfinite(L0)) or g2 < _MACHINE_EPSILON:
+            return project(x), L0, 0.0
+        tau = 1.0
+        s = float(max(step0, _MACHINE_EPSILON))
+        x_best, L_best = project(x), L0
+        for _ in range(self._ARMIJO_MAX_BT):
+            cand = project(x - (tau * s) * grad)
+            Lc = loss_at(cand)
+            if math.isfinite(Lc) and Lc <= L0 - self._ARMIJO_C * tau * s * g2:
+                return cand, float(Lc), float(tau)
+            if math.isfinite(Lc) and Lc < L_best:
+                x_best, L_best = cand, Lc
+            tau *= self._ARMIJO_BETA
+        return x_best, float(L_best), float(tau)
+
+    # ── 2.1.7 Nivel 1: optimización de θ ────────────────────────────────
+    def step_level_1(self, max_iter: int = 10) -> Tuple[NDArray[np.float64], float]:
+        r"""θ_{t+1} = Π_Θ ( θ_t − τ α[0] ∇_θ L(θ_t, O_t, α_t) )."""
+        theta = self.state.theta.copy()
+        loss_prev = self._loss(theta, self.state.O, self.state.alpha)
+        last_g = np.zeros_like(theta)
+        for _ in range(max_iter):
+            grad = self._grad_numeric(
+                lambda th: self._loss(th, self.state.O, self.state.alpha),
+                theta,
+            )
+            last_g = grad
+            theta, loss_new, _ = self._armijo(
+                theta, grad, float(self.state.alpha[0]),
+                lambda th: self._loss(th, self.state.O, self.state.alpha),
+                self._project_theta,
+            )
+            if abs(loss_new - loss_prev) < _N3_IDEMPOTENCE_TOL:
+                loss_prev = loss_new
+                break
+            loss_prev = loss_new
+        self.state.theta = theta
+        self._last_g_theta = last_g
+        self.state.loss_history.append(float(loss_prev))
+        self.state.level_history.append(1)
+        return theta, float(loss_prev)
+
+    # ── 2.1.8 Nivel 2: optimización de O (topología DAG) ────────────────
+    def step_level_2(
+        self,
+        max_iter: int = 5,
+        sparsity_penalty: float = 0.05,
+    ) -> Tuple[NDArray[np.float64], float]:
+        r"""
+        O_{t+1} = Π_triu⁺ ( O_t − τ α[1] ∇_O (L + λ‖O‖₁) ).
+        Π_triu⁺ garantiza aciclicidad y monotonicidad DIKW (máscara).
+        """
+        O = self.state.O.copy()
+        lam = float(sparsity_penalty)
+
+        def L_O(o: NDArray[np.float64]) -> float:
+            return self._loss(self.state.theta, o, self.state.alpha) + lam * float(
+                np.sum(np.abs(o))
+            )
+
+        loss_prev = L_O(O)
+        last_g = np.zeros_like(O)
+        for _ in range(max_iter):
+            grad = self._grad_numeric(L_O, O)
+            last_g = grad
+            O, loss_new, _ = self._armijo(
+                O, grad, float(self.state.alpha[1]), L_O, self._project_O,
+            )
+            if abs(loss_new - loss_prev) < _N3_IDEMPOTENCE_TOL:
+                loss_prev = loss_new
+                break
+            loss_prev = loss_new
+        self.state.O = O
+        self._last_g_O = last_g
+        # Historial reporta L sin el término extra de sparsidad duplicado.
+        L_clean = self._loss(self.state.theta, O, self.state.alpha)
+        self.state.loss_history.append(float(L_clean))
+        self.state.level_history.append(2)
+        return O, float(L_clean)
+
+    # ── 2.1.9 Nivel 3: modificación de la meta-regla α (lookahead) ──────
+    def step_level_3(self, max_iter: int = 3) -> Tuple[NDArray[np.float64], float]:
+        r"""
+        α_{t+1} = Π ( α_t − τ α[2] ∇_α L^↺(θ*, O*, α) ).
+
+        L^↺ es la pérdida con energía de descenso de primer orden
+        (gradientes cacheados de N1/N2): la meta-regla se juzga por
+        cuánto descenso induce, no por el valor estático de L.
+        Autoreferencia: el propio α[2] escala el paso sobre α (meta-meta).
+        """
+        alpha = self.state.alpha.copy()
+        loss_prev = self._loss(self.state.theta, self.state.O, alpha)
+        last_g = np.zeros_like(alpha)
+        for _ in range(max_iter):
+            grad = self._grad_numeric(
+                lambda a: self._loss(self.state.theta, self.state.O, a),
+                alpha,
+            )
+            last_g = grad
+            # Escala auto-referente: paso = α[2].
+            alpha, loss_new, _ = self._armijo(
+                alpha, grad, float(alpha[2]),
+                lambda a: self._loss(self.state.theta, self.state.O, a),
+                self._project_alpha,
+            )
+            if abs(loss_new - loss_prev) < _N3_IDEMPOTENCE_TOL:
+                loss_prev = loss_new
+                break
+            loss_prev = loss_new
+        self.state.alpha = alpha
+        self._last_g_alpha = last_g
+        self.state.loss_history.append(float(loss_prev))
+        self.state.level_history.append(3)
+        return alpha, float(loss_prev)
+
+    # ── 2.1.10 Cota empírica de Lip(∇L) ─────────────────────────────────
+    def _empirical_grad_lipschitz(self) -> float:
+        """‖∇L(z) − ∇L(z+δ)‖ / ‖δ‖ sobre una perturbación Haar de θ."""
+        theta = self.state.theta
+        rng = np.random.default_rng(seed=_SEED_N3 + 7)
+        delta = rng.standard_normal(theta.shape).astype(np.float64)
+        delta *= 1.0e-5 / (float(np.linalg.norm(delta)) + _MACHINE_EPSILON)
+        g0 = self._grad_numeric(
+            lambda th: self._loss(th, self.state.O, self.state.alpha), theta,
+        )
+        g1 = self._grad_numeric(
+            lambda th: self._loss(th, self.state.O, self.state.alpha),
+            theta + delta,
+        )
+        num = float(np.linalg.norm(g1 - g0))
+        den = float(np.linalg.norm(delta)) + _MACHINE_EPSILON
+        return num / den
+
+    # ── 2.1.11 Idempotencia de Ψ en un clon ─────────────────────────────
+    def _fixed_point_residual(self) -> float:
+        r"""
+        ‖Ψ(z) − z‖ combinada (θ, vec(O), α) sobre UN ciclo en un clon
+        del estado; no muta el kernel vivo.
+        """
+        snap_th = self.state.theta.copy()
+        snap_O = self.state.O.copy()
+        snap_a = self.state.alpha.copy()
+        hist_l = list(self.state.loss_history)
+        hist_v = list(self.state.level_history)
+        gth, gO, ga = self._last_g_theta, self._last_g_O, self._last_g_alpha
+        try:
+            self.step_level_1(max_iter=1)
+            self.step_level_2(max_iter=1)
+            self.step_level_3(max_iter=1)
+            d_th = float(np.linalg.norm(self.state.theta - snap_th))
+            d_O = float(np.linalg.norm(self.state.O - snap_O))
+            d_a = float(np.linalg.norm(self.state.alpha - snap_a))
+            nrm_z = (
+                float(np.linalg.norm(snap_th))
+                + float(np.linalg.norm(snap_O))
+                + float(np.linalg.norm(snap_a))
+                + _MACHINE_EPSILON
+            )
+            return (d_th + d_O + d_a) / nrm_z
+        finally:
+            self.state.theta = snap_th
+            self.state.O = snap_O
+            self.state.alpha = snap_a
+            self.state.loss_history = hist_l
+            self.state.level_history = hist_v
+            self._last_g_theta, self._last_g_O, self._last_g_alpha = gth, gO, ga
+
+    # ── 2.1.12 Bucle N3 completo ─────────────────────────────────────────
+    def optimize_recursive_n3(
+        self,
+        n_cycles: int = _N3_DEFAULT_CYCLES,
+    ) -> Tuple[Dict[str, Any], N3ConvergenceCertificate]:
+        r"""
+        Ejecuta n_cycles del bucle anidado:
+            for c in range(n_cycles):
+                N1: θ* ← argmin L(θ, O, α)
+                N2: O* ← argmin L(θ*, O, α)
+                N3: α* ← argmin L^↺(θ*, O*, α)
+        """
+        if not self.state.ingested:
+            raise RecursiveSelfImprovementError(
+                "Kernel N3 invocado sin ingest_observer_packet previo."
+            )
+        n_cycles = int(max(1, min(int(n_cycles), 32)))
+        L_init = (
+            float(self.state.loss_history[0]) if self.state.loss_history else self._loss(
+                self.state.theta, self.state.O, self.state.alpha,
+            )
+        )
+        cycle_losses: List[float] = [L_init]
+        notes: List[str] = []
+
+        for c in range(n_cycles):
+            self.step_level_1()
+            self.step_level_2()
+            _, L_c = self.step_level_3()
+            cycle_losses.append(float(L_c))
+            self.logger.info(
+                "[N3::cycle %d/%d] loss=%.6e | ‖θ‖=%.4f | ‖α‖=%.4f | ‖O‖_F=%.4e",
+                c + 1, n_cycles, L_c,
+                float(np.linalg.norm(self.state.theta)),
+                float(np.linalg.norm(self.state.alpha)),
+                float(np.linalg.norm(self.state.O, ord="fro")),
+            )
+
+        final_loss = float(cycle_losses[-1])
+        if not math.isfinite(final_loss):
+            raise RecursiveSelfImprovementError(
+                f"Kernel N3 divergió: final_loss={final_loss}."
+            )
+
+        monotone = all(
+            cycle_losses[i + 1] <= cycle_losses[i] + 10.0 * _N3_IDEMPOTENCE_TOL
+            for i in range(len(cycle_losses) - 1)
+        )
+        if not monotone:
+            notes.append("Pérdida no monótona en algún ciclo (N3 exploratorio).")
+
+        residual = self._fixed_point_residual()
+        idem = residual <= _N3_IDEMPOTENCE_TOL
+        if idem:
+            notes.append(f"Idempotencia numérica: ‖Ψz−z‖={residual:.3e}.")
+        else:
+            notes.append(f"Punto fijo inexacto: ‖Ψz−z‖={residual:.3e}.")
+
+        try:
+            lip = self._empirical_grad_lipschitz()
+        except Exception:
+            lip = float("inf")
+
+        cert = N3ConvergenceCertificate(
+            n_cycles=n_cycles,
+            initial_loss=float(L_init),
+            final_loss=final_loss,
+            monotone_decrease=bool(monotone),
+            idempotent=bool(idem),
+            residual_fixed_point=float(residual),
+            lipschitz_grad_bound=float(lip),
+            finite=True,
+            level_sequence=tuple(self.state.level_history),
+            notes=tuple(notes),
+        )
+        report: Dict[str, Any] = {
+            "theta": self.state.theta.tolist(),
+            "alpha": self.state.alpha.tolist(),
+            "O_norm": float(np.linalg.norm(self.state.O, ord="fro")),
+            "nilpotence_index_O": self._nilpotence_index_of(self.state.O),
+            "final_loss": final_loss,
+            "loss_history": list(self.state.loss_history),
+            "level_history": list(self.state.level_history),
+            "cycle_losses": cycle_losses,
+            "packet_hash": self.state.packet_hash,
+            "idempotent": bool(idem),
+            "fixed_point_residual": float(residual),
+        }
+        return report, cert
+
+
+# ── 2.2 CLASE FASE 2 ────────────────────────────────────────────────────────
 
 class Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier):
     r"""
-    Auditor de monotonicidad en el Poset DIKW con detección de auto-bucles.
+    Auditor de monotonicidad del Poset DIKW + kernel N3.
 
-    Ley de Clausura Transitiva del Poset DIKW:
-        PHYSICS(0) ≤ DATA(1) ≤ INFORMATION(2) ≤ KNOWLEDGE(3) ≤ WISDOM(4)
+    Cadena funtorial:
+        Φ₂ : (ObserverPacket, Poset) → (FiltrationCert, OrientationSeed).
 
-    Toda arista (u → v) debe ser un morfismo de Posets:
-        stratum(u) ≤ stratum(v)  [modo lazo]
-        stratum(u) < stratum(v)  [modo estricto]
-
-    Nuevas verificaciones v3:
-        · Auto-bucles (u,u): violación categórica de la aciclicidad.
-        · Histograma de slacks: diagnóstico de concentración en estratos.
-        · Nodos aislados en node_strata: certificación de cobertura.
-        · Aristas inversas A[j,i] ≠ 0: detección de ciclos de longitud 2.
+    El PRIMER método efectivo sobrescribe el stub de Fase 1 y es la
+    continuación literal de `_phase1_terminal_bridge_to_phase2`.
     """
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.1 Coerción de estratos a enteros ordenados
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _coerce_stratum_level(
-        self,
-        node: str,
-        raw_level: Any,
-    ) -> int:
-        r"""
-        Convierte el nivel de estrato de un nodo a entero no negativo.
-
-        Jerarquía de conversión (en orden de precedencia):
-            1. bool/np.bool_ → RECHAZADO (semánticamente ambiguo).
-            2. int/np.integer → conversión directa.
-            3. Objeto con .value (Enum-like) → int(.value).
-            4. float/np.floating → verificar finitud e integralidad.
-            5. str → int(strip()) si es numéricamente parseable.
-            6. Cualquier otro → StratumMappingError.
-
-        Invariante:
-            El nivel retornado es un entero ≥ 0 (estrato DIKW válido).
-
-        Parámetros:
-            node: identificador del nodo (para mensajes de error).
-            raw_level: valor crudo del estrato desde node_strata.
-
-        Retorna:
-            int ≥ 0: nivel de estrato normalizado.
-
-        Lanza:
-            StratumMappingError: si la conversión falla o el nivel es negativo.
-        """
-        # Los booleanos son subclase de int en Python, pero semánticamente
-        # ambiguos para un estrato DIKW. Los rechazamos explícitamente.
-        if isinstance(raw_level, (bool, np.bool_)):
-            raise StratumMappingError(
-                f"Nodo '{node}': estrato booleano inválido ({raw_level!r}). "
-                f"Se requiere un nivel entero ordenado {0, 1, 2, 3, 4}. "
-                f"Use el enum Stratum o un entero explícito."
-            )
-
-        # Enteros nativos: conversión directa.
-        if isinstance(raw_level, (int, np.integer)):
-            return int(raw_level)
-
-        # Enums y objetos con .value (p.ej., Stratum.KNOWLEDGE).
-        if hasattr(raw_level, "value"):
-            try:
-                return int(raw_level.value)
-            except (TypeError, ValueError) as exc:
-                raise StratumMappingError(
-                    f"Nodo '{node}': no se pudo convertir {raw_level!r}.value "
-                    f"a entero: {exc}."
-                ) from exc
-
-        # Floats: verificar que sean enteros finitos.
-        if isinstance(raw_level, (float, np.floating)):
-            value = float(raw_level)
-            if not np.isfinite(value):
-                raise StratumMappingError(
-                    f"Nodo '{node}': estrato float no finito: {raw_level!r}. "
-                    f"El estrato debe ser un entero finito."
-                )
-            if not value.is_integer():
-                raise StratumMappingError(
-                    f"Nodo '{node}': estrato float no entero: {raw_level!r}. "
-                    f"El estrato debe ser un valor integral (p.ej., 2.0, no 2.7)."
-                )
-            return int(value)
-
-        # Strings: parseo numérico.
-        if isinstance(raw_level, str):
-            stripped = raw_level.strip()
-            try:
-                return int(stripped)
-            except ValueError:
-                # Intentar parseo vía float para strings como "2.0".
-                try:
-                    fval = float(stripped)
-                    if fval.is_integer():
-                        return int(fval)
-                except ValueError:
-                    pass
-
-        raise StratumMappingError(
-            f"Nodo '{node}': no fue posible convertir el estrato {raw_level!r} "
-            f"(tipo {type(raw_level).__name__}) a un nivel entero ordenado. "
-            f"Tipos soportados: int, np.integer, float integral, Enum con .value, str numérico."
-        )
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.2 Normalización y validación de aristas con detección de auto-bucles
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _normalize_edges(
-        self,
-        edges: Sequence[Tuple[str, str]],
-        *,
-        raise_on_self_loop: bool = True,
-    ) -> Tuple[List[Tuple[str, str]], int]:
-        r"""
-        Normaliza, valida y clasifica las aristas dirigidas.
-
-        Verificaciones (v3):
-            1. edges no es None.
-            2. Cada elemento es desempaquetable como (u, v).
-            3. u y v son strings no vacíos.
-            4. Auto-bucles (u, u): se detectan y se lanza SelfLoopVetoError
-               si raise_on_self_loop=True (o se cuentan si False).
-
-        Auto-bucles (mejora §2.1):
-            Una arista (u, u) es un ciclo de longitud 1. Es semánticamente
-            incompatible con un DAG causal incluso si la diagonal de A es cero
-            (los edges podrían estar desincronizados con la matriz).
-
-        Parámetros:
-            edges: secuencia de pares (u, v).
-            raise_on_self_loop: si True, lanza SelfLoopVetoError al detectar (u,u).
-
-        Retorna:
-            (lista normalizada, n_self_loops): aristas válidas y conteo de bucles.
-
-        Lanza:
-            PipelineDirectorAgentError: si edges es None o tiene formato inválido.
-            SelfLoopVetoError: si se detecta (u, u) y raise_on_self_loop=True.
-        """
-        if edges is None:
-            raise PipelineDirectorAgentError(
-                "edges no puede ser None. "
-                "Proporcione una secuencia vacía [] si el DAG no tiene aristas."
-            )
-
-        normalized: List[Tuple[str, str]] = []
-        self_loops_found: List[str] = []
-
-        for idx, edge in enumerate(edges):
-            # Verificar que la arista es desempaquetable como par.
-            try:
-                u, v = edge
-            except (TypeError, ValueError) as exc:
-                raise PipelineDirectorAgentError(
-                    f"La arista en índice {idx} debe ser una tupla (u, v). "
-                    f"Se recibió: {edge!r} (tipo {type(edge).__name__}). "
-                    f"Error: {exc}"
-                ) from exc
-
-            u_str = str(u).strip()
-            v_str = str(v).strip()
-
-            # Verificar que los identificadores no son vacíos.
-            if not u_str:
-                raise PipelineDirectorAgentError(
-                    f"La arista en índice {idx} tiene el nodo origen vacío: "
-                    f"({u!r}, {v!r}). Los identificadores de nodo no pueden ser vacíos."
-                )
-            if not v_str:
-                raise PipelineDirectorAgentError(
-                    f"La arista en índice {idx} tiene el nodo destino vacío: "
-                    f"({u!r}, {v!r}). Los identificadores de nodo no pueden ser vacíos."
-                )
-
-            # Detección de auto-bucles (mejora §2.1).
-            if u_str == v_str:
-                self_loops_found.append(u_str)
-                if raise_on_self_loop:
-                    raise SelfLoopVetoError(
-                        f"Auto-bucle detectado en la arista índice {idx}: "
-                        f"({u_str!r} → {u_str!r}). "
-                        f"Un DAG causal no puede contener ciclos de longitud 1. "
-                        f"El nodo '{u_str}' no puede ser causa de sí mismo."
-                    )
-                continue  # Si no se lanza, omitir el auto-bucle del resultado.
-
-            normalized.append((u_str, v_str))
-
-        return normalized, len(self_loops_found)
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.3 Normalización del mapeo nodo → estrato con detección de negativos
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _normalize_node_strata(
-        self,
-        node_strata: Mapping[str, Any],
-    ) -> Dict[str, int]:
-        r"""
-        Normaliza el mapeo nodo → nivel de estrato entero.
-
-        Contrato:
-            · node_strata puede ser None o vacío (retorna {}).
-            · Claves no vacías (strip aplicado).
-            · Valores convertibles a int ≥ 0 por _coerce_stratum_level.
-
-        Retorna:
-            Dict[str, int]: mapeo normalizado nodo → estrato.
-
-        Lanza:
-            StratumMappingError: si alguna clave está vacía o el nivel
-            es negativo o no convertible.
-        """
-        if not node_strata:
-            return {}
-
-        normalized: Dict[str, int] = {}
-
-        for node, raw_level in node_strata.items():
-            key = str(node).strip()
-
-            if not key:
-                raise StratumMappingError(
-                    "Se encontró una clave de nodo vacía en node_strata. "
-                    "Los identificadores de nodo no pueden ser strings vacíos."
-                )
-
-            level = self._coerce_stratum_level(key, raw_level)
-
-            if level < 0:
-                raise StratumMappingError(
-                    f"Nodo '{key}': estrato negativo {level}. "
-                    f"Los estratos DIKW son niveles enteros no negativos "
-                    f"(PHYSICS=0, DATA=1, INFORMATION=2, KNOWLEDGE=3, WISDOM=4)."
-                )
-
-            normalized[key] = level
-
-        return normalized
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.4 Cross-check de soporte edges↔matriz con detección de aristas inversas
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _audit_adjacency_support(
-        self,
-        adjacency_matrix: Optional[NDArray[Any]],
-        edges: Sequence[Tuple[str, str]],
-        node_order: Optional[Sequence[str]],
-        *,
-        adjacency_zero_threshold: float,
-        check_inverse_edges: bool = True,
-    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
-        r"""
-        Verifica la consistencia de soporte entre edges y la matriz A.
-
-        Verificaciones (v3):
-            (a) Para toda arista declarada (u→v):
-                A[index(u), index(v)] ≠ 0 (soporte directo).
-            (b) NUEVO: Para toda arista declarada (u→v):
-                A[index(v), index(u)] = 0 (ausencia de arista inversa).
-                Una arista inversa A[v,u] ≠ 0 introduciría un ciclo u→v→u
-                de longitud 2 no detectado por la diagonal de A.
-
-        Condición de activación:
-            El cross-check sólo se ejecuta si adjacency_matrix is not None
-            y node_order is not None (se necesita el mapeo nodo→índice).
-
-        Parámetros:
-            adjacency_matrix: operador de adyacencia.
-            edges: aristas normalizadas.
-            node_order: orden canónico de nodos (define el mapeo nodo→índice).
-            adjacency_zero_threshold: umbral de cero numérico.
-            check_inverse_edges: si True, verifica A[j,i] = 0 para (u→v).
-
-        Retorna:
-            (mensajes_ok, aristas_inversas_bloqueadas): notas y bloqueos.
-
-        Lanza:
-            AdjacencyMatrixFormatError: si node_order es inconsistente con A.
-            AdjacencySupportVetoError: si se detectan inconsistencias.
-        """
-        if adjacency_matrix is None or node_order is None:
-            return (), ()
-
-        # Re-validar y condicionar la matriz (puede diferir de la de Fase 1
-        # si se modificó el zero_threshold en el cross-check).
-        A = self._validate_and_condition_adjacency(
-            adjacency_matrix,
-            zero_threshold=adjacency_zero_threshold,
-            allow_signed_weights=True,  # Soporte puede tener pesos negativos.
-            require_boolean=False,
-        )
-
-        order = [str(node).strip() for node in node_order]
-
-        if len(order) != A.shape[0]:
-            raise AdjacencyMatrixFormatError(
-                f"node_order tiene longitud {len(order)} pero A tiene "
-                f"dimensión {A.shape[0]}. "
-                f"El orden de nodos debe corresponder exactamente a las filas/columnas de A."
-            )
-
-        if len(set(order)) != len(order):
-            duplicates = [
-                node for node in set(order) if order.count(node) > 1
-            ]
-            raise AdjacencyMatrixFormatError(
-                f"node_order contiene identificadores duplicados: {duplicates[:5]}."
-            )
-
-        index_map: Dict[str, int] = {node: i for i, node in enumerate(order)}
-
-        # (a) Verificación de soporte directo: A[i,j] ≠ 0 para (u→v).
-        unsupported_direct: List[str] = []
-
-        # (b) Detección de aristas inversas: A[j,i] ≠ 0 para (u→v).
-        inverse_edges_found: List[str] = []
-
-        for u, v in edges:
-            if u not in index_map or v not in index_map:
-                continue  # Nodo fuera del order: se ignora en cross-check.
-
-            i = index_map[u]
-            j = index_map[v]
-
-            # Verificación (a): soporte directo.
-            if A[i, j] == 0.0:
-                unsupported_direct.append(f"{u}→{v}")
-
-            # Verificación (b): ausencia de arista inversa (v→u en la matriz).
-            if check_inverse_edges and A[j, i] != 0.0:
-                inverse_edges_found.append(
-                    f"{v}→{u} (A[{j},{i}]={A[j, i]:.4e})"
-                )
-
-        errors: List[str] = []
-
-        if unsupported_direct:
-            preview = ", ".join(unsupported_direct[:8])
-            suffix = f" y {len(unsupported_direct)-8} más" if len(unsupported_direct) > 8 else ""
-            errors.append(
-                f"Soporte directo faltante en {len(unsupported_direct)} arista(s): "
-                f"{preview}{suffix}."
-            )
-
-        if inverse_edges_found:
-            preview = ", ".join(inverse_edges_found[:8])
-            suffix = f" y {len(inverse_edges_found)-8} más" if len(inverse_edges_found) > 8 else ""
-            errors.append(
-                f"Aristas inversas detectadas (ciclos de longitud 2) en "
-                f"{len(inverse_edges_found)} caso(s): {preview}{suffix}."
-            )
-
-        if errors:
-            raise AdjacencySupportVetoError(
-                "Cross-check edges↔adjacency fallido: "
-                + " | ".join(errors)
-            )
-
-        ok_notes = ("Cross-check de soporte edges↔adjacency satisfactorio (directo + inverso).",)
-        inverse_blocked = tuple(inverse_edges_found)
-
-        return ok_notes, inverse_blocked
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.5 Cálculo del histograma de slacks
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _compute_slack_histogram(
-        self,
-        slacks: List[int],
-    ) -> Tuple[Tuple[int, int], ...]:
-        r"""
-        Calcula el histograma de distribución de slacks.
-
-        El histograma mapea cada valor de slack a su frecuencia de aristas:
-            H(k) = |{(u,v) ∈ E : stratum(v) − stratum(u) = k}|
-
-        Interpretación:
-            · H(0) grande: muchas aristas dentro del mismo estrato (planas).
-            · H(k) para k > 0: aristas que saltan k estratos (empinadas).
-            · La distribución de H permite detectar cuellos de botella en
-              la filtración DIKW.
-
-        Parámetros:
-            slacks: lista de valores slack = stratum(v) − stratum(u).
-
-        Retorna:
-            Tupla de pares (slack_value, count) ordenados por slack_value.
-        """
-        if not slacks:
-            return ()
-
-        from collections import Counter
-
-        histogram = Counter(slacks)
-        return tuple(sorted(histogram.items()))
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.6 Detección de nodos aislados en node_strata
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _find_isolated_strata_nodes(
-        self,
-        strata: Dict[str, int],
-        edges: List[Tuple[str, str]],
-    ) -> Tuple[str, ...]:
-        r"""
-        Identifica nodos en node_strata que no participan en ninguna arista.
-
-        Un nodo aislado es un vértice de grado 0 (in-degree + out-degree = 0)
-        en el DAG. Su existencia en node_strata es válida pero informativa:
-        puede indicar un nodo fuente/sumidero sin conexiones declaradas.
-
-        Parámetros:
-            strata: mapeo normalizado nodo → estrato.
-            edges: lista de aristas normalizadas.
-
-        Retorna:
-            Tupla de nombres de nodos aislados (ordenados lexicográficamente).
-        """
-        if not strata:
-            return ()
-
-        # Conjunto de nodos que aparecen en al menos una arista.
-        connected_nodes: FrozenSet[str] = frozenset(
-            node for edge in edges for node in edge
-        )
-
-        isolated = tuple(
-            sorted(node for node in strata if node not in connected_nodes)
-        )
-        return isolated
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.7 Auditoría principal de filtración del Poset DIKW
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §2.1  PRIMER MÉTODO EFECTIVO DE FASE 2 — continuación de Φ₁
+    #       Sobrescribe el stub Phase1._audit_poset_filtration_from_nilpotence
+    # ══════════════════════════════════════════════════════════════════════
     def _audit_poset_filtration_from_nilpotence(
         self,
         nilpotence_audit: NilpotenceAuditData,
@@ -1706,70 +2657,45 @@ class Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier):
         adjacency_matrix: Optional[NDArray[Any]] = None,
         cross_check_adjacency_support: bool = False,
         adjacency_zero_threshold: float = _BASE_SPECTRAL_TOLERANCE,
+        observer_packet: Optional[ObserverPacket] = None,
     ) -> PosetFiltrationData:
         r"""
-        Auditoría principal de Fase 2: monotonicidad del Poset DIKW.
+        ← ARRANQUE FORMAL DE FASE 2 (ORIENT).
 
-        Pipeline de auditoría (v3):
-            1. Normalizar edges con detección de auto-bucles (§2.2).
-            2. Cross-check opcional de soporte edges↔A con inversas (§2.4).
-            3. Verificar que Fase 1 certificó nilpotencia (precondición).
-            4. Normalizar node_strata (§2.3).
-            5. Para cada arista (u,v): calcular slack = stratum(v)−stratum(u).
-            6. Verificar monotonicidad laxa (slack ≥ 0) o estricta (slack > 0).
-            7. Calcular histograma de slacks (§2.5).
-            8. Detectar nodos aislados en node_strata (§2.6).
-            9. Emitir PosetFiltrationData con todos los campos.
+        Auditoría de monotonicidad del morfismo de posets
+            f : (V, →_DAG) ⟶ (ℤ, ≤) ,  u → v  ⇒  f(u) ≤ f(v)
+        (desigualdad estricta si ``strict_filtration``).
 
-        Axioma de monotonicidad (morfismo de Posets):
-            f: (V, ≤_DAG) → (Z, ≤) es un morfismo de Posets si y sólo si:
-                u ≤_DAG v ⟹ f(u) ≤ f(v)
-            donde u ≤_DAG v significa "existe un camino dirigido u → ... → v".
+        Pipeline interno (granular):
+            (1) normalizar aristas y rechazar auto-bucles;
+            (2) cross-check opcional edges ↔ soporte de A;
+            (3) precondición espectral de Fase 1 (Spec(A)={0});
+            (4) coerción de estratos;
+            (5) slacks, histograma, violaciones;
+            (6) nodos aislados / desconocidos;
+            (7) camino más largo + clausura transitiva;
+            (8) consistencia height ↔ ν(A)  (teorema de rango);
+            (9) anotación del ObserverPacket (semilla N3, aún no ejecutada).
 
-        Parámetros:
-            nilpotence_audit: certificado de Fase 1 (precondición).
-            edges: aristas del DAG.
-            node_strata: mapeo nodo → estrato DIKW.
-            allow_unknown_nodes: ignorar aristas con nodos sin estrato.
-            strict_filtration: exigir slack > 0 (morfismo de Posets estricto).
-            raise_on_veto: lanzar excepciones ante violaciones.
-            node_order: orden canónico para cross-check.
-            adjacency_matrix: matriz para cross-check.
-            cross_check_adjacency_support: activar cross-check.
-            adjacency_zero_threshold: umbral de cero para cross-check.
-
-        Retorna:
-            PosetFiltrationData: certificado de filtración completo.
-
-        Lanza:
-            SelfLoopVetoError: si se detecta un auto-bucle.
-            CausalLoopVetoError: si Fase 1 no certificó nilpotencia.
-            StratumMappingError: si falta un estrato requerido.
-            FiltrationViolationVeto: si se viola la monotonicidad.
-            AdjacencySupportVetoError: si el cross-check falla.
+        El kernel N3 NO se ejecuta aquí: se inicializa en
+        `_initialize_n3_kernel_from_observer` y se dispara desde el
+        puente terminal `_phase2_terminal_bridge_to_phase3`.
         """
         notes: List[str] = []
 
-        # ── Paso 1: Normalización de aristas con detección de auto-bucles ─────
+        # (1) Aristas.
         edges_norm, n_self_loops = self._normalize_edges(
-            edges,
-            raise_on_self_loop=raise_on_veto,
+            edges, raise_on_self_loop=raise_on_veto,
         )
-
         if n_self_loops > 0:
-            notes.append(
-                f"Se detectaron {n_self_loops} auto-bucle(s) en la lista de aristas. "
-                f"Fueron excluidos del análisis de filtración."
-            )
+            notes.append(f"Se detectaron {n_self_loops} auto-bucle(s) excluidos.")
 
-        # ── Paso 2: Cross-check de soporte (opcional) ─────────────────────────
-        inverse_edges_blocked: Tuple[str, ...] = ()
+        # (2) Cross-check de soporte.
+        inverse_blocked: Tuple[str, ...] = ()
         if cross_check_adjacency_support:
             try:
-                ok_notes, inverse_edges_blocked = self._audit_adjacency_support(
-                    adjacency_matrix,
-                    edges_norm,
-                    node_order,
+                ok_notes, inverse_blocked = self._audit_adjacency_support(
+                    adjacency_matrix, edges_norm, node_order,
                     adjacency_zero_threshold=adjacency_zero_threshold,
                     check_inverse_edges=True,
                 )
@@ -1777,143 +2703,599 @@ class Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier):
             except AdjacencySupportVetoError:
                 if raise_on_veto:
                     raise
-                notes.append("Cross-check de soporte fallido (raise_on_veto=False).")
+                notes.append("Cross-check fallido (raise_on_veto=False).")
 
-        # ── Paso 3: Precondición: Fase 1 debe haber certificado nilpotencia ───
-        if not nilpotence_audit.is_strictly_nilpotent:
-            degraded_note = (
-                "Fase 2 degradada: la auditoría de estratos se omite porque "
-                "Fase 1 no certificó nilpotencia espectral del DAG."
-            )
-            notes.append(degraded_note)
+        packet_hash = (
+            observer_packet.packet_hash if observer_packet is not None else None
+        )
 
-            if raise_on_veto:
-                raise CausalLoopVetoError(
-                    "No se puede certificar la filtración Poset porque el DAG "
-                    "no superó la certificación espectral de aciclicidad (Fase 1). "
-                    f"ρ(A)={nilpotence_audit.spectral_radius:.6e} > "
-                    f"tol={nilpotence_audit.tolerance:.6e}."
-                )
-
-            return PosetFiltrationData(
+        def _empty_fail(**extra: Any) -> PosetFiltrationData:
+            payload = dict(
                 edge_count=len(edges_norm) + n_self_loops,
                 audited_edge_count=0,
                 ignored_edge_count=len(edges_norm),
-                min_slack=None,
-                max_slack=None,
+                min_slack=None, max_slack=None,
                 is_monotonic_filtration=False,
                 self_loops_detected=n_self_loops,
                 unknown_nodes=(),
                 isolated_strata_nodes=(),
-                inverse_edges_blocked=inverse_edges_blocked,
+                inverse_edges_blocked=inverse_blocked,
                 slack_histogram=(),
+                observer_packet_hash=packet_hash,
                 notes=tuple(notes),
             )
+            payload.update(extra)
+            return PosetFiltrationData(**payload)
 
-        # ── Paso 4: Normalización de estratos ────────────────────────────────
+        # (3) Precondición espectral.
+        if not nilpotence_audit.is_strictly_nilpotent:
+            notes.append("Fase 2 degradada: Fase 1 no certificó nilpotencia.")
+            if raise_on_veto:
+                raise CausalLoopVetoError(
+                    "Filtración Poset no certificable sin nilpotencia espectral."
+                )
+            return _empty_fail()
+
+        # (4) Estratos.
         strata = self._normalize_node_strata(node_strata)
 
-        # ── Paso 8 (pre): Detección de nodos aislados ─────────────────────────
-        isolated_nodes = self._find_isolated_strata_nodes(strata, edges_norm)
-        if isolated_nodes:
-            notes.append(
-                f"Nodos aislados en node_strata (sin aristas): {list(isolated_nodes[:8])}."
-            )
+        # (5)–(6) Slacks, violaciones, desconocidos, aislados.
+        records, unknown, audited, ignored = self._compute_edge_slacks(
+            edges_norm, strata,
+            allow_unknown_nodes=allow_unknown_nodes,
+            strict_filtration=strict_filtration,
+        )
+        isolated = self._find_isolated_strata_nodes(strata, edges_norm)
+        if isolated:
+            notes.append(f"Nodos aislados: {list(isolated[:8])}.")
 
-        # ── Pasos 5-6: Cálculo de slacks y verificación de monotonicidad ─────
-        unknown_nodes: List[str] = []
-        violations: List[str] = []
-        slacks: List[int] = []
-        audited_edge_count = 0
-        ignored_edge_count = 0
+        slacks = [r.slack for r in records]
+        violations = [
+            f"{r.source}(s={r.stratum_u})→{r.target}(s={r.stratum_v}) slack={r.slack}."
+            for r in records if r.is_violation
+        ]
+        histogram = self._compute_slack_histogram(slacks)
 
-        for u, v in edges_norm:
-            # Verificación de cobertura del estrato.
-            u_known = u in strata
-            v_known = v in strata
-
-            if not u_known or not v_known:
-                if allow_unknown_nodes:
-                    ignored_edge_count += 1
-                    if not u_known:
-                        unknown_nodes.append(u)
-                    if not v_known:
-                        unknown_nodes.append(v)
-                    continue
-
-                missing = [node for node, known in [(u, u_known), (v, v_known)] if not known]
-                raise StratumMappingError(
-                    f"Falta(n) estrato(s) para nodo(s) {missing} en la arista {u}→{v}. "
-                    f"Use allow_unknown_nodes=True para ignorar nodos auxiliares."
-                )
-
-            stratum_u = strata[u]
-            stratum_v = strata[v]
-            slack = stratum_v - stratum_u
-
-            audited_edge_count += 1
-            slacks.append(slack)
-
-            # Verificación de monotonicidad.
-            if strict_filtration:
-                if slack <= 0:
-                    violations.append(
-                        f"{u}(s={stratum_u})→{v}(s={stratum_v}) "
-                        f"slack={slack}≤0; strict_filtration exige slack>0."
-                    )
-            else:
-                if slack < 0:
-                    violations.append(
-                        f"{u}(s={stratum_u})→{v}(s={stratum_v}) "
-                        f"slack={slack}<0; se requiere slack≥0."
-                    )
-
-        # ── Paso 7: Histograma de slacks ──────────────────────────────────────
-        slack_histogram = self._compute_slack_histogram(slacks)
-
-        # ── Paso 9: Emitir artefacto ──────────────────────────────────────────
         if violations:
             if raise_on_veto:
                 raise FiltrationViolationVeto(
-                    f"Violación de la flecha del tiempo semántica DIKW. "
-                    f"{len(violations)} violación(es) de filtración detectadas. "
-                    f"Primera: {violations[0]}"
+                    f"Violación flecha del tiempo DIKW. "
+                    f"{len(violations)} violación(es). Primera: {violations[0]}"
                 )
-
             return PosetFiltrationData(
                 edge_count=len(edges_norm) + n_self_loops,
-                audited_edge_count=audited_edge_count,
-                ignored_edge_count=ignored_edge_count,
+                audited_edge_count=audited,
+                ignored_edge_count=ignored,
                 min_slack=min(slacks) if slacks else None,
                 max_slack=max(slacks) if slacks else None,
                 is_monotonic_filtration=False,
                 self_loops_detected=n_self_loops,
-                unknown_nodes=tuple(sorted(set(unknown_nodes))),
-                isolated_strata_nodes=isolated_nodes,
-                inverse_edges_blocked=inverse_edges_blocked,
-                slack_histogram=slack_histogram,
+                unknown_nodes=tuple(sorted(set(unknown))),
+                isolated_strata_nodes=isolated,
+                inverse_edges_blocked=inverse_blocked,
+                slack_histogram=histogram,
+                observer_packet_hash=packet_hash,
                 notes=tuple(violations + notes),
+            )
+
+        # (7) Camino más largo + clausura.
+        nodes_for_paths = tuple(sorted(set(strata.keys()) | {
+            n for e in edges_norm for n in e
+        }))
+        longest = self._longest_path_length(nodes_for_paths, edges_norm)
+        closure = self._transitive_closure_warshall(nodes_for_paths, edges_norm)
+        if closure.has_cycle:
+            notes.append("Clausura transitiva: ciclo detectado (incoherente con ν).")
+            if raise_on_veto:
+                raise CausalLoopVetoError(
+                    "Ciclo en clausura transitiva incompatible con Spec(A)={0}."
+                )
+
+        # (8) Height ↔ ν.
+        height_cert = self._nilpotence_height_consistency(
+            strata, longest, nilpotence_audit,
+        )
+        notes.extend(height_cert.notes)
+
+        # (9) Semilla N3 anotada, no ejecutada.
+        if observer_packet is not None:
+            notes.append(
+                f"ObserverPacket hash={observer_packet.packet_hash} "
+                f"KAM={observer_packet.kam.is_KAM_stable} "
+                f"Melnikov_tangle={observer_packet.melnikov.tangle_detected} "
+                f"λ_Lya={observer_packet.return_map.stability_exponent:.3e} "
+                f"θ-seed={tuple(round(x, 4) for x in observer_packet.n3_theta_seed)}."
             )
 
         return PosetFiltrationData(
             edge_count=len(edges_norm) + n_self_loops,
-            audited_edge_count=audited_edge_count,
-            ignored_edge_count=ignored_edge_count,
+            audited_edge_count=audited,
+            ignored_edge_count=ignored,
             min_slack=min(slacks) if slacks else None,
             max_slack=max(slacks) if slacks else None,
             is_monotonic_filtration=True,
             self_loops_detected=n_self_loops,
-            unknown_nodes=tuple(sorted(set(unknown_nodes))),
-            isolated_strata_nodes=isolated_nodes,
-            inverse_edges_blocked=inverse_edges_blocked,
-            slack_histogram=slack_histogram,
+            unknown_nodes=tuple(sorted(set(unknown))),
+            isolated_strata_nodes=isolated,
+            inverse_edges_blocked=inverse_blocked,
+            slack_histogram=histogram,
+            poset_height=height_cert.height,
+            longest_path=longest,
+            height_nilpotence_consistent=height_cert.consistent_with_nu,
+            transitive_edge_count=closure.n_reachable_pairs,
+            observer_packet_hash=packet_hash,
             notes=tuple(notes),
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.8 Stub funtorial: puente a Fase 3
-    # ──────────────────────────────────────────────────────────────────────────
+    # ── §2.2 Coerción de estratos ────────────────────────────────────────
+    def _coerce_stratum_level(self, node: str, raw_level: Any) -> int:
+        r"""Convierte el nivel de estrato de un nodo a entero no negativo."""
+        if isinstance(raw_level, (bool, np.bool_)):
+            raise StratumMappingError(
+                f"Nodo '{node}': estrato booleano inválido ({raw_level!r})."
+            )
+        if isinstance(raw_level, (int, np.integer)):
+            return int(raw_level)
+        if hasattr(raw_level, "value"):
+            try:
+                return int(raw_level.value)
+            except (TypeError, ValueError) as exc:
+                raise StratumMappingError(
+                    f"Nodo '{node}': no convertible: {exc}."
+                ) from exc
+        if isinstance(raw_level, (float, np.floating)):
+            value = float(raw_level)
+            if not np.isfinite(value):
+                raise StratumMappingError(
+                    f"Nodo '{node}': estrato no finito: {raw_level!r}."
+                )
+            if not value.is_integer():
+                raise StratumMappingError(
+                    f"Nodo '{node}': estrato no entero: {raw_level!r}."
+                )
+            return int(value)
+        if isinstance(raw_level, str):
+            s = raw_level.strip()
+            try:
+                return int(s)
+            except ValueError:
+                try:
+                    fval = float(s)
+                    if fval.is_integer():
+                        return int(fval)
+                except ValueError:
+                    pass
+        raise StratumMappingError(
+            f"Nodo '{node}': no convertible {raw_level!r} "
+            f"(tipo {type(raw_level).__name__})."
+        )
 
+    # ── §2.3 Normalización de aristas con detección de auto-bucles ─────
+    def _normalize_edges(
+        self,
+        edges: Sequence[Tuple[str, str]],
+        *,
+        raise_on_self_loop: bool = True,
+    ) -> Tuple[List[Tuple[str, str]], int]:
+        r"""Normaliza aristas; rechaza auto-bucles (u,u) (proyecciones nulas de A)."""
+        if edges is None:
+            raise PipelineDirectorAgentError(
+                "edges no puede ser None (use [] para DAG vacío)."
+            )
+        normalized: List[Tuple[str, str]] = []
+        n_self_loops = 0
+        seen: set = set()
+        for idx, edge in enumerate(edges):
+            try:
+                u, v = edge
+            except (TypeError, ValueError) as exc:
+                raise PipelineDirectorAgentError(
+                    f"Arista {idx} no desempaquetable: {edge!r}."
+                ) from exc
+            u_s, v_s = str(u).strip(), str(v).strip()
+            if not u_s or not v_s:
+                raise PipelineDirectorAgentError(
+                    f"Arista {idx} tiene nodo vacío: ({u!r},{v!r})."
+                )
+            if u_s == v_s:
+                n_self_loops += 1
+                if raise_on_self_loop:
+                    raise SelfLoopVetoError(
+                        f"Auto-bucle índice {idx}: ({u_s!r}→{u_s!r})."
+                    )
+                continue
+            key = (u_s, v_s)
+            if key in seen:
+                continue
+            seen.add(key)
+            normalized.append(key)
+        return normalized, n_self_loops
+
+    # ── §2.4 Normalización de node_strata ───────────────────────────────
+    def _normalize_node_strata(
+        self, node_strata: Mapping[str, Any],
+    ) -> Dict[str, int]:
+        r"""Normaliza mapeo nodo → nivel entero ≥ 0."""
+        if not node_strata:
+            return {}
+        out: Dict[str, int] = {}
+        for node, raw in node_strata.items():
+            key = str(node).strip()
+            if not key:
+                raise StratumMappingError("Clave de nodo vacía en node_strata.")
+            level = self._coerce_stratum_level(key, raw)
+            if level < 0:
+                raise StratumMappingError(
+                    f"Nodo '{key}': estrato negativo {level}."
+                )
+            out[key] = level
+        return out
+
+    # ── §2.5 Cross-check edges ↔ matriz ─────────────────────────────────
+    def _audit_adjacency_support(
+        self,
+        adjacency_matrix: Optional[NDArray[Any]],
+        edges: Sequence[Tuple[str, str]],
+        node_order: Optional[Sequence[str]],
+        *,
+        adjacency_zero_threshold: float,
+        check_inverse_edges: bool = True,
+    ) -> Tuple[Tuple[str, ...], Tuple[str, ...]]:
+        r"""
+        Cross-check edges ↔ A: soporte directo e inversas (ciclos de long. 2).
+        Un ciclo de longitud 2 es un bloque hiperbólico 2×2 con traza nula
+        y det < 0 — incompatible con Spec(A) = {0} salvo degeneración.
+        """
+        if adjacency_matrix is None or node_order is None:
+            return (), ()
+        A = self._validate_and_condition_adjacency(
+            adjacency_matrix,
+            zero_threshold=adjacency_zero_threshold,
+            allow_signed_weights=True,
+            require_boolean=False,
+        )
+        order = [str(n).strip() for n in node_order]
+        if len(order) != A.shape[0]:
+            raise AdjacencyMatrixFormatError(
+                f"node_order (len={len(order)}) ≠ dim(A)={A.shape[0]}."
+            )
+        if len(set(order)) != len(order):
+            raise AdjacencyMatrixFormatError("node_order con duplicados.")
+        idx = {n: i for i, n in enumerate(order)}
+
+        unsupported: List[str] = []
+        inverses: List[str] = []
+        for u, v in edges:
+            if u not in idx or v not in idx:
+                continue
+            i, j = idx[u], idx[v]
+            if A[i, j] == 0.0:
+                unsupported.append(f"{u}→{v}")
+            if check_inverse_edges and A[j, i] != 0.0:
+                inverses.append(f"{v}→{u} (A[{j},{i}]={A[j, i]:.4e})")
+
+        errors: List[str] = []
+        if unsupported:
+            errors.append(
+                f"Soporte directo faltante en {len(unsupported)} arista(s)."
+            )
+        if inverses:
+            errors.append(
+                f"Aristas inversas (ciclos longitud 2) en {len(inverses)} caso(s)."
+            )
+        if errors:
+            raise AdjacencySupportVetoError(
+                "Cross-check edges↔adjacency fallido: " + " | ".join(errors)
+            )
+        return (("Cross-check OK.",), tuple(inverses))
+
+    # ── §2.6 Histograma de slacks ───────────────────────────────────────
+    def _compute_slack_histogram(
+        self, slacks: List[int],
+    ) -> Tuple[Tuple[int, int], ...]:
+        r"""H(k) = |{(u,v) : stratum(v) − stratum(u) = k}|."""
+        if not slacks:
+            return ()
+        return tuple(sorted(Counter(slacks).items()))
+
+    # ── §2.7 Nodos aislados en node_strata ──────────────────────────────
+    def _find_isolated_strata_nodes(
+        self, strata: Dict[str, int], edges: List[Tuple[str, str]],
+    ) -> Tuple[str, ...]:
+        r"""Nodos en node_strata sin aristas incidentes (grado 0)."""
+        if not strata:
+            return ()
+        connected = frozenset(n for e in edges for n in e)
+        return tuple(sorted(n for n in strata if n not in connected))
+
+    # ── §2.8 Slacks por arista ──────────────────────────────────────────
+    def _compute_edge_slacks(
+        self,
+        edges: Sequence[Tuple[str, str]],
+        strata: Mapping[str, int],
+        *,
+        allow_unknown_nodes: bool,
+        strict_filtration: bool,
+    ) -> Tuple[List[EdgeSlackRecord], List[str], int, int]:
+        r"""
+        Emite un EdgeSlackRecord por arista conocida.
+        Retorna (records, unknown_names, n_audited, n_ignored).
+        """
+        records: List[EdgeSlackRecord] = []
+        unknown: List[str] = []
+        audited = 0
+        ignored = 0
+        for u, v in edges:
+            u_known, v_known = u in strata, v in strata
+            if not u_known or not v_known:
+                if allow_unknown_nodes:
+                    ignored += 1
+                    if not u_known:
+                        unknown.append(u)
+                    if not v_known:
+                        unknown.append(v)
+                    continue
+                missing = [n for n, k in ((u, u_known), (v, v_known)) if not k]
+                raise StratumMappingError(
+                    f"Falta estrato para {missing} en arista {u}→{v}."
+                )
+            su, sv = int(strata[u]), int(strata[v])
+            slack = sv - su
+            audited += 1
+            is_viol = (slack <= 0) if strict_filtration else (slack < 0)
+            records.append(EdgeSlackRecord(
+                source=u, target=v,
+                stratum_u=su, stratum_v=sv,
+                slack=slack, is_violation=is_viol,
+            ))
+        return records, unknown, audited, ignored
+
+    # ── §2.9 Clausura transitiva (Warshall booleano) ────────────────────
+    def _transitive_closure_warshall(
+        self,
+        nodes: Sequence[str],
+        edges: Sequence[Tuple[str, str]],
+    ) -> TransitiveClosureData:
+        r"""
+        R⁺ del DAG.  Detecta ciclos si algún R[i,i] se enciende.
+        Complejidad O(n³) con n = |nodes|; n=0 es vacuamente acíclico.
+        """
+        labels = list(nodes)
+        n = len(labels)
+        if n == 0:
+            return TransitiveClosureData(
+                n_nodes=0, n_edges_declared=len(edges),
+                n_reachable_pairs=0, n_implied_edges=0,
+                has_cycle=False,
+                notes=("Poset vacío.",),
+            )
+        idx = {lab: i for i, lab in enumerate(labels)}
+        R = np.zeros((n, n), dtype=bool)
+        declared = 0
+        for u, v in edges:
+            if u in idx and v in idx:
+                R[idx[u], idx[v]] = True
+                declared += 1
+        for k in range(n):
+            # R |= R[:,k] ∧ R[k,:]
+            rk = R[:, k]
+            ck = R[k, :]
+            if not rk.any() or not ck.any():
+                continue
+            R |= rk[:, None] & ck[None, :]
+        has_cycle = bool(np.any(np.diag(R)))
+        reachable = int(np.count_nonzero(R))
+        implied = max(0, reachable - declared)
+        return TransitiveClosureData(
+            n_nodes=n,
+            n_edges_declared=declared,
+            n_reachable_pairs=reachable,
+            n_implied_edges=implied,
+            has_cycle=has_cycle,
+            notes=(
+                f"Warshall: |R⁺|={reachable}, implicadas={implied}, ciclo={has_cycle}.",
+            ),
+        )
+
+    # ── §2.10 Camino más largo en el DAG ────────────────────────────────
+    def _longest_path_length(
+        self,
+        nodes: Sequence[str],
+        edges: Sequence[Tuple[str, str]],
+    ) -> Optional[int]:
+        r"""
+        Longitud (nº de aristas) del camino más largo.
+
+        DP sobre orden topológico de Kahn.  Si hay ciclo, retorna None
+        (el índice de nilpotencia de Fase 1 es entonces la cota fiable).
+        """
+        labels = list(nodes)
+        if not labels:
+            return 0
+        succ: Dict[str, List[str]] = {n: [] for n in labels}
+        indeg: Dict[str, int] = {n: 0 for n in labels}
+        for u, v in edges:
+            if u not in succ or v not in indeg:
+                continue
+            succ[u].append(v)
+            indeg[v] += 1
+        dist: Dict[str, int] = {n: 0 for n in labels}
+        queue = [n for n, d in indeg.items() if d == 0]
+        seen = 0
+        while queue:
+            u = queue.pop()
+            seen += 1
+            du = dist[u]
+            for v in succ[u]:
+                if du + 1 > dist[v]:
+                    dist[v] = du + 1
+                indeg[v] -= 1
+                if indeg[v] == 0:
+                    queue.append(v)
+        if seen != len(labels):
+            return None  # ciclo
+        return int(max(dist.values()) if dist else 0)
+
+    # ── §2.11 Consistencia height ↔ ν(A) ────────────────────────────────
+    def _nilpotence_height_consistency(
+        self,
+        strata: Mapping[str, int],
+        longest_path: Optional[int],
+        spectra: NilpotenceAuditData,
+    ) -> PosetHeightCertificate:
+        r"""
+        Verifica ν(A) ≤ longest_path + 1 ≤ height + 1.
+
+        Si longest_path es None (ciclo) se declara inconsistente salvo
+        que Fase 1 no hubiera certificado nilpotencia (ya vetado).
+        """
+        notes: List[str] = []
+        if not strata:
+            return PosetHeightCertificate(
+                n_nodes=0, min_rank=None, max_rank=None, height=None,
+                longest_path=longest_path,
+                nilpotence_index=spectra.nilpotence_index,
+                consistent_with_nu=True,
+                notes=("Sin estratos: consistencia vacuamente verdadera.",),
+            )
+        ranks = list(strata.values())
+        min_r, max_r = int(min(ranks)), int(max(ranks))
+        height = max_r - min_r
+        nu = spectra.nilpotence_index
+        consistent = True
+        if longest_path is None:
+            consistent = False
+            notes.append("Camino más largo indefinido (ciclo).")
+        else:
+            if longest_path > height:
+                # Posible si la filtración no es estricta (slack 0 permitido).
+                notes.append(
+                    f"longest_path={longest_path} > height={height}: "
+                    f"filtración no estricta o rangos no inyectivos."
+                )
+            if nu is not None and nu > longest_path + 1:
+                consistent = False
+                notes.append(
+                    f"Inconsistencia ν={nu} > longest_path+1={longest_path + 1}."
+                )
+            elif nu is not None and nu > height + 1:
+                notes.append(
+                    f"ν={nu} > height+1={height + 1} (cotas holgadas; "
+                    f"aceptable si slack=0 está permitido)."
+                )
+            else:
+                notes.append(
+                    f"Consistencia OK: ν={nu} ≤ longest_path+1="
+                    f"{None if longest_path is None else longest_path + 1} "
+                    f"≤ height+1={height + 1}."
+                )
+        return PosetHeightCertificate(
+            n_nodes=len(strata),
+            min_rank=min_r, max_rank=max_r, height=height,
+            longest_path=longest_path,
+            nilpotence_index=nu,
+            consistent_with_nu=consistent,
+            notes=tuple(notes),
+        )
+
+    # ── §2.12 Máscara DIKW para el kernel N2 ────────────────────────────
+    def _build_poset_mask(
+        self,
+        node_strata: Mapping[str, int],
+        node_order: Optional[Sequence[str]],
+        n: int,
+    ) -> NDArray[np.float64]:
+        r"""
+        mask[i,j] = 1 ⇔ i≠j y (sin orden → 1  ó  stratum[j] ≥ stratum[i]).
+
+        Si no hay ``node_order`` se admite todo el triángulo estricto
+        (la proyección Π_triu ya garantiza aciclicidad).
+        """
+        mask = np.triu(np.ones((n, n), dtype=np.float64), k=1)
+        if not node_order or not node_strata:
+            return mask
+        order = [str(x).strip() for x in node_order[:n]]
+        if len(order) < n:
+            return mask
+        for i, u in enumerate(order):
+            su = node_strata.get(u)
+            if su is None:
+                continue
+            for j, v in enumerate(order):
+                if j <= i:
+                    mask[i, j] = 0.0
+                    continue
+                sv = node_strata.get(v)
+                if sv is None:
+                    continue
+                if sv < su:
+                    mask[i, j] = 0.0
+        return mask
+
+    # ── §2.13 Inicialización del kernel N3 desde el ObserverPacket ─────
+    def _initialize_n3_kernel_from_observer(
+        self,
+        observer_packet: ObserverPacket,
+        *,
+        n_params: int = 4,
+        adjacency_shape: int = 8,
+        poset_mask: Optional[NDArray[np.float64]] = None,
+        weights: Optional[Tuple[float, float, float, float, float, float]] = None,
+    ) -> RecursiveSelfImprovementKernel:
+        r"""Construye un kernel N3 fresco y lo alimenta con el ObserverPacket."""
+        kernel = RecursiveSelfImprovementKernel(
+            n_params=n_params,
+            adjacency_shape=adjacency_shape,
+            weights=weights,
+        )
+        if poset_mask is not None:
+            kernel.bind_poset_mask(poset_mask)
+        kernel.ingest_observer_packet(observer_packet)
+        return kernel
+
+    # ── §2.14 Ciclo de optimización N3 ──────────────────────────────────
+    def _run_n3_optimization_cycle(
+        self,
+        kernel: RecursiveSelfImprovementKernel,
+        *,
+        n_cycles: int = _N3_DEFAULT_CYCLES,
+    ) -> Tuple[Dict[str, Any], N3ConvergenceCertificate]:
+        r"""Ejecuta N1→N2→N3 durante n_cycles y retorna (reporte, certificado)."""
+        try:
+            return kernel.optimize_recursive_n3(n_cycles=n_cycles)
+        except RecursiveSelfImprovementError:
+            raise
+        except Exception as exc:
+            raise RecursiveSelfImprovementError(
+                f"Fallo en el kernel N3: {exc}"
+            ) from exc
+
+    # ── §2.15 Síntesis del OrientationSeed ──────────────────────────────
+    def _synthesize_orientation_seed(
+        self,
+        observer_packet: ObserverPacket,
+        n3_report: Mapping[str, Any],
+        n3_cert: N3ConvergenceCertificate,
+        filtration: PosetFiltrationData,
+    ) -> OrientationSeed:
+        r"""Sella el artefacto terminal de Fase 2."""
+        return OrientationSeed(
+            theta_final=np.asarray(n3_report["theta"], dtype=np.float64),
+            alpha_final=np.asarray(n3_report["alpha"], dtype=np.float64),
+            O_norm=float(n3_report["O_norm"]),
+            final_loss=float(n3_report["final_loss"]),
+            observer_packet=observer_packet,
+            kam_preserved=observer_packet.kam.is_KAM_stable,
+            melnikov_chaotic=observer_packet.melnikov.tangle_detected,
+            n3_report=dict(n3_report),
+            n3_certificate=n3_cert,
+            poset_height=filtration.poset_height,
+            idempotent=bool(n3_cert.idempotent),
+            packet_hash=observer_packet.packet_hash,
+            generated_at_utc=_utc_timestamp(),
+        )
+
+    # ── §2.16 Stub funtorial Φ₂ → Φ₃ ────────────────────────────────────
     def _intercept_mayer_vietoris_sequence(
         self,
         betti_1_A: int,
@@ -1923,23 +3305,22 @@ class Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier):
         **kwargs: Any,
     ) -> "MayerVietorisAuditData":
         r"""
-        Stub funtorial de continuación hacia Fase 3.
+        Stub funtorial Φ₂ → Φ₃.
 
-        Este método cierra la categoría de Fase 2 y abre la categoría de Fase 3.
-        La implementación concreta vive en Phase3_MayerVietorisInterceptor.
-
-        Lanza:
-            NotImplementedError: siempre (debe ser sobreescrito por Fase 3).
+        Phase3_MayerVietorisInterceptor sobrescribe este método.  El
+        puente terminal de Fase 2 lo invoca como continuación formal.
         """
         raise NotImplementedError(
-            "Phase3_MayerVietorisInterceptor debe ser mezclado en la jerarquía. "
-            "Este stub es el conector funtorial Φ₂ → Φ₃."
+            "Phase3_MayerVietorisInterceptor debe ser mezclado. "
+            "Este stub es el conector funtorial Φ₂ → Φ₃.  Continúe en Fase 3 "
+            "con la definición efectiva de _intercept_mayer_vietoris_sequence."
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §2.9 Último método de Fase 2: puente funtorial hacia Fase 3
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §2.17  ÚLTIMO MÉTODO DE FASE 2: puente funtorial Φ₂ → Φ₃
+    #        Su definición es la CONTINUACIÓN / INICIO de los métodos
+    #        de Fase 3 (DECIDE : Mayer–Vietoris + Ω₃).
+    # ══════════════════════════════════════════════════════════════════════
     def _phase2_terminal_bridge_to_phase3(
         self,
         adjacency_matrix: NDArray[Any],
@@ -1965,386 +3346,367 @@ class Phase2_PosetFiltrationAuditor(Phase1_SpectralNilpotenceCertifier):
         betti_0_B: Optional[int] = None,
         betti_0_intersection: Optional[int] = None,
         betti_0_union: Optional[int] = None,
+        n3_cycles: int = _N3_DEFAULT_CYCLES,
         raise_on_veto: bool = True,
-    ) -> Tuple[NilpotenceAuditData, PosetFiltrationData, "MayerVietorisAuditData"]:
+        require_transverse_section: bool = False,
+    ) -> Tuple[
+        NilpotenceAuditData,
+        PosetFiltrationData,
+        ObserverPacket,
+        OrientationSeed,
+        "MayerVietorisAuditData",
+    ]:
         r"""
         ÚLTIMO MÉTODO DE FASE 2 — Puente funtorial Φ₂ → Φ₃.
 
-        Composición funtorial:
-            Φ₂ ∘ Φ₁: (A, edges, strata) → (NilpotenceAuditData, PosetFiltrationData)
-            (Φ₂ ∘ Φ₁, Φ₃(β)) → (NilpotenceAuditData,
-                                   PosetFiltrationData,
-                                   MayerVietorisAuditData)
+        Composición estricta:
+            (1) Ejecuta Φ₁ (Schur + Poincaré) vía
+                `_phase1_terminal_bridge_to_phase2`, que a su vez invoca
+                `_audit_poset_filtration_from_nilpotence` (este objeto).
+            (2) Construye la máscara DIKW y el kernel N3 desde el
+                ObserverPacket (θ₀ = n3_theta_seed).
+            (3) Ciclo N1→N2→N3 → OrientationSeed (certificado de
+                convergencia, idempotencia, Lip(∇L)).
+            (4) Invoca el primer método efectivo de Fase 3
+                (`_intercept_mayer_vietoris_sequence`) con el seed.
 
-        Parámetros adicionales v3:
-            betti_0_*: números de Betti en grado 0 para verificación de
-                Euler-Poincaré y la secuencia exacta en H₀.
-            image_rank_h1_intersection: rank(im H₁(A∩B)→H₁(A)⊕H₁(B)).
-            connecting_boundary_rank: rank(∂: H₁(A∪B)→H₀(A∩B)).
+        Anidamiento:
+            Φ₃ ∘ Φ₂ ∘ Φ₁
+              = _intercept_mayer_vietoris_sequence
+                ∘ _phase2_terminal_bridge_to_phase3
 
-        Retorna:
-            (NilpotenceAuditData, PosetFiltrationData, MayerVietorisAuditData).
+        Retorna
+            (NilpotenceAuditData, PosetFiltrationData, ObserverPacket,
+             OrientationSeed, MayerVietorisAuditData).
+
+        La definición de `_intercept_mayer_vietoris_sequence` en
+        Phase3_MayerVietorisInterceptor ES la continuación literal de
+        este método: recibe ``orientation_seed=...`` como frontera
+        homológica de ORIENT → DECIDE.
         """
-        # ── Fases 1+2: Certificación espectral y de filtración ────────────────
-        nilpotence_audit, filtration_audit = self._phase1_terminal_bridge_to_phase2(
-            adjacency_matrix,
-            edges,
-            node_strata,
-            adjacency_zero_threshold=adjacency_zero_threshold,
-            allow_signed_weights=allow_signed_weights,
-            require_boolean=require_boolean,
-            deep_nilpotence_audit=deep_nilpotence_audit,
-            power_audit_max_dim=power_audit_max_dim,
-            allow_unknown_nodes=allow_unknown_nodes,
-            strict_filtration=strict_filtration,
-            node_order=node_order,
-            cross_check_adjacency_support=cross_check_adjacency_support,
-            raise_on_veto=raise_on_veto,
+        # ── Paso 1: Fase 1 completa (Schur + Poincaré + filtración) ─────
+        spectra, filtration, observer_packet = (
+            self._phase1_terminal_bridge_to_phase2(
+                adjacency_matrix, edges, node_strata,
+                adjacency_zero_threshold=adjacency_zero_threshold,
+                allow_signed_weights=allow_signed_weights,
+                require_boolean=require_boolean,
+                deep_nilpotence_audit=deep_nilpotence_audit,
+                power_audit_max_dim=power_audit_max_dim,
+                allow_unknown_nodes=allow_unknown_nodes,
+                strict_filtration=strict_filtration,
+                node_order=node_order,
+                cross_check_adjacency_support=cross_check_adjacency_support,
+                raise_on_veto=raise_on_veto,
+                require_transverse_section=require_transverse_section,
+            )
         )
 
-        # ── Puente → Fase 3: Intercepción de Mayer-Vietoris ──────────────────
-        mayer_vietoris_audit = self._intercept_mayer_vietoris_sequence(
-            betti_1_A,
-            betti_1_B,
-            betti_1_intersection,
-            betti_1_union,
+        # ── Paso 2: Kernel N3 ← ObserverPacket ──────────────────────────
+        n_shape = max(1, min(8, int(spectra.dimension) if spectra.dimension else 1))
+        strata_norm = self._normalize_node_strata(node_strata)
+        poset_mask = self._build_poset_mask(strata_norm, node_order, n_shape)
+        kernel = self._initialize_n3_kernel_from_observer(
+            observer_packet,
+            n_params=4,
+            adjacency_shape=n_shape,
+            poset_mask=poset_mask,
+        )
+
+        # ── Paso 3: Ciclo recursivo N1 → N2 → N3 ────────────────────────
+        n3_report, n3_cert = self._run_n3_optimization_cycle(
+            kernel, n_cycles=n3_cycles,
+        )
+        orientation_seed = self._synthesize_orientation_seed(
+            observer_packet, n3_report, n3_cert, filtration,
+        )
+
+        logger.info(
+            "[Fase 2::ORIENT] θ*=%.4f | α*=%.4f | loss=%.6e | ΔL=%.3e | "
+            "idem=%s | Lip∇=%.3e | height=%s | chaotic=%s | hash=%s",
+            float(np.linalg.norm(orientation_seed.theta_final)),
+            float(np.linalg.norm(orientation_seed.alpha_final)),
+            orientation_seed.final_loss,
+            n3_cert.final_loss - n3_cert.initial_loss,
+            n3_cert.idempotent,
+            n3_cert.lipschitz_grad_bound,
+            filtration.poset_height,
+            orientation_seed.melnikov_chaotic,
+            orientation_seed.packet_hash,
+        )
+
+        if raise_on_veto and not n3_cert.finite:
+            raise RecursiveSelfImprovementError(
+                "Kernel N3 no finito tras el ciclo de automejora."
+            )
+
+        # ── Paso 4: CONTINUACIÓN FUNTORIAL HACIA FASE 3 ─────────────────
+        # La invocación de `_intercept_mayer_vietoris_sequence` ES el
+        # primer método efectivo de Fase 3, ejecutado como continuación
+        # formal del cierre de Fase 2.
+        # -----------------------------------------------------------------
+        # FASE 3 comienza exactamente en la definición efectiva de
+        # Phase3_MayerVietorisInterceptor._intercept_mayer_vietoris_sequence
+        # (DECIDE : Mayer–Vietoris + Euler–Poincaré ← OrientationSeed).
+        # -----------------------------------------------------------------
+        mv_audit = self._intercept_mayer_vietoris_sequence(
+            betti_1_A, betti_1_B, betti_1_intersection, betti_1_union,
             image_rank_h1_intersection=image_rank_h1_intersection,
             connecting_boundary_rank=connecting_boundary_rank,
-            betti_0_A=betti_0_A,
-            betti_0_B=betti_0_B,
+            betti_0_A=betti_0_A, betti_0_B=betti_0_B,
             betti_0_intersection=betti_0_intersection,
             betti_0_union=betti_0_union,
+            orientation_seed=orientation_seed,
             raise_on_veto=raise_on_veto,
         )
 
-        return nilpotence_audit, filtration_audit, mayer_vietoris_audit
+        return spectra, filtration, observer_packet, orientation_seed, mv_audit
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║ FASE 3: INTERCEPCIÓN DE LA COHOMOLOGÍA DE FUSIÓN (MAYER-VIETORIS)           ║
-# ║                                                                             ║
-# ║ Fundamento matemático:                                                      ║
-# ║   Dada una descomposición de un espacio topológico X = A ∪ B,               ║
-# ║   la secuencia exacta larga de Mayer-Vietoris relaciona los grupos          ║
-# ║   de homología de A, B, A∩B y A∪B:                                          ║
-# ║                                                                             ║
-# ║   ... → H₁(A∩B) →^φ H₁(A)⊕H₁(B) →^ψ H₁(A∪B)                                 ║
-# ║       →^∂ H₀(A∩B) → H₀(A)⊕H₀(B) → H₀(A∪B) → 0                               ║
-# ║                                                                             ║
-# ║   Por exactitud: ker(ψ) = im(φ), ker(∂) = im(ψ), im(∂) = ker(...).          ║
-# ║   Luego: β₁(A∪B) = β₁(A)+β₁(B) − rank(im φ) + rank(im ∂).                   ║
-# ║                                                                             ║
-# ║ El último método de esta fase sintetiza el objeto final de gobernanza.      ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ══════════════════════════════════════════════════════════════════════════════
+# FIN DE FASE 2  ──  CONTINÚA EN FASE 3 (prompt siguiente)
+# Phase3_MayerVietorisInterceptor(Phase2_PosetFiltrationAuditor)
+#   debe abrir con _intercept_mayer_vietoris_sequence     (Φ₃)
+#   y cerrar con _phase3_terminal_synthesis               (Z_Causal = Φ₃∘Φ₂∘Φ₁)
+# ══════════════════════════════════════════════════════════════════════════════
+# ████████████████████████████████████████████████████████████████████████████
+# █                                                                          █
+# █   FASE 3 ──► DECIDE & ACT : MAYER–VIETORIS + VEREDICTO TERMINAL Ω₃       █
+# █   (secuencia exacta + Euler–Poincaré + Jensen–Shannon + gobernanza)      █
+# █                                                                          █
+# █   CONTINUACIÓN FORMAL DE FASE 2                                          █
+# █   Φ₃ abre en  _intercept_mayer_vietoris_sequence                         █
+# █   Φ₃ cierra en _phase3_terminal_synthesis   (Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁)    █
+# █                                                                          █
+# ████████████████████████████████████████████████████████████████████████████
+#
+# Contrato de anidamiento (OODA-Decide):
+#   Phase2._phase2_terminal_bridge_to_phase3
+#       └─► Phase3._intercept_mayer_vietoris_sequence   ← AQUÍ ARRANCA Φ₃
+#               (OrientationSeed → frontera homológica)
+#       └─► Phase3._phase3_terminal_synthesis
+#               └─► CausalGovernanceState = Ω₃  (objeto terminal)
+#
+# Secuencia exacta de Mayer–Vietoris (coeficientes ℝ, CW-pares regulares):
+#
+#   H₁(A∩B)  --φ-->  H₁(A)⊕H₁(B)  --ψ-->  H₁(A∪B)  --∂-->  H₀(A∩B)
+#            --φ₀-->  H₀(A)⊕H₀(B)  --ψ₀-->  H₀(A∪B)  -->  0
+#
+# Exactitud + rank-nullity ⇒ identidad de rangos
+#   β₁(A∪B) = β₁(A) + β₁(B) − rank(im φ) + rank(∂)
+# y la desigualdad débil (siempre)
+#   |β₁(A∪B) − (β₁(A)+β₁(B))| ≤ β₁(A∩B).
+#
+# Puente Poincaré → homología (Fase 1 ↪ Fase 3):
+#   · ceros transversales de Melnikov  ~  generadores extra de H₁ (herradura);
+#   · rigidez KAM                      ~  Δβ₁ = 0 estable bajo ε-perturbación;
+#   · difusión de Arnold               ~  fuga de ciclos entre cubiertas;
+#   · λ_Lya > 0                        ~  mezcla exponencial de 1-ciclos.
+#
+# Puente N3 → homología (Fase 2 ↪ Fase 3):
+#   · O* triangular estricta ∩ máscara DIKW  ⇒  el 1-esqueleto fusionado
+#     no puede crear ciclos que MV no vea;
+#   · idempotencia de Ψ                    ⇒  estabilidad del veredicto Ω₃.
+# ══════════════════════════════════════════════════════════════════════════════
 
+
+# ── 3.0 CONSTANTES DE FASE 3 ────────────────────────────────────────────────
+
+_JS_FLOOR: float                        = 1.0e-15
+_JS_MAX: float                          = math.log(2.0)          # cota JS(P‖Q)
+_DALECKII_KREIN_EXP: float              = 1.5                    # λ₂^{-3/2}
+_DALECKII_KREIN_PREFACTOR: float        = 0.5
+_HOMOCLINIC_BETTI_CAP: int              = 64
+_OMEGA3_SOFT_REL_DEFECT: float          = 1.0e-12
+
+
+# ── 3.1 DTOs DE FASE 3 ──────────────────────────────────────────────────────
+
+@dataclass(frozen=True, slots=True)
+class ExactnessProfile:
+    r"""
+    Defectos de exactitud término a término de la sucesión MV.
+
+    residual_h1_union : Δβ₁ = β₁(A∪B) − expected   (exactitud en H₁(U))
+    residual_weak     : max(0, |β₁(U)−(β₁(A)+β₁(B))| − β₁(I))
+    residual_h0       : β₀(U) − (β₀(A)+β₀(B)−β₀(I)+rank ∂)   (None si faltan β₀)
+    residual_euler    : χ(U) − (χ(A)+χ(B)−χ(I))              (None si faltan β₀)
+    snake_residual    : |rank(∂) − (β₁(U) − rank ψ)|
+                        con rank ψ := β₁(A)+β₁(B)−rank(im φ)
+                        (idéntico a |Δβ₁| cuando expected usa esa fórmula).
+    """
+    residual_h1_union:      int
+    residual_weak:          int
+    residual_h0:            Optional[int]
+    residual_euler:         Optional[int]
+    snake_residual:         int
+    is_exact_at_h1:         bool
+    is_exact_at_h0:         Optional[bool]
+    is_euler_additive:      Optional[bool]
+
+
+@dataclass(frozen=True, slots=True)
+class HomoclinicBettiCorrection:
+    r"""
+    Corrección diagnóstica de Betti por tangencias homoclínicas.
+
+    Cada cero transversal de Melnikov es un candidato a generador extra
+    de H₁ (herradura de Smale).  En un DAG nilpotente esos generadores
+    están prohibidos: se registran, no se suman a ``expected``.
+
+    pressure = min(1, n_trans / (1 + β₁(I)))  ∈ [0, 1].
+    """
+    transverse_zeros:       int
+    simple_zeros:           int
+    splitting_distance:     float
+    extra_generators:       int
+    pressure:               float
+    contradicts_nilpotence: bool
+
+
+@dataclass(frozen=True, slots=True)
+class KAMHomologyRigidity:
+    r"""
+    Rigidez homológica a la KAM.
+
+    Si los toros nulos persisten (ε < ε_KAM ∧ diofantina), Δβ₁ es
+    estructuralmente estable: cualquier defecto es una ruptura de
+    la filtración, no un artefacto de perturbación.
+    """
+    is_rigid:               bool
+    epsilon_ratio:          float
+    diophantine:            bool
+    tori_persisting:        int
+    admissible_defect:      int         # 0 si rígido; ≥0 si no
+
+
+@dataclass(frozen=True, slots=True)
+class JensenShannonReport:
+    r"""
+    Divergencia de Jensen–Shannon entre el 4-vector observado
+        P ~ (β₁(A), β₁(B), β₁(I), β₁(U))
+    y el predicho por exactitud
+        Q ~ (β₁(A), β₁(B), β₁(I), expected).
+
+    JS(P‖Q) = ½ KL(P‖M) + ½ KL(Q‖M),  M=(P+Q)/2,  ∈ [0, log 2].
+    ``relative_defect`` conserva la fórmula original v3
+        |Δβ₁| / (1 + max(|β₁(U)|, |expected|)).
+    """
+    js_divergence:          float
+    relative_defect:        float
+    observed_simplex:       Tuple[float, float, float, float]
+    predicted_simplex:      Tuple[float, float, float, float]
+
+
+@dataclass(frozen=True, slots=True)
+class PipelineCausalAuditState:
+    r"""Estado inmutable de la auditoría Poincaré–Daleckii–Krein."""
+    mayer_vietoris_residual:    float
+    daleckii_krein_bound:       float
+    fiedler_lambda2:            float
+    lipschitz_coherent:         bool
+    is_funtorially_coherent:    bool
+
+
+@dataclass(frozen=True, slots=True)
+class MayerVietorisAuditData:
+    r"""
+    Artefacto de Fase 3 — certificado de fusión homológica.
+
+    Extensión v3.1: perfil de exactitud, corrección homoclínica,
+    rigidez KAM, JS propio, huella del OrientationSeed.
+    """
+    betti_1_A:                      int
+    betti_1_B:                      int
+    betti_1_intersection:           int
+    betti_1_union:                  int
+    expected_union_betti_1:         int
+    delta_betti_1:                  int
+    relative_defect:                float
+    jensen_shannon_defect:          float
+    is_fusion_homologous:           bool
+    weak_bound_satisfied:           bool = True
+    euler_characteristic_valid:     Optional[bool] = None
+    h0_sequence_valid:              Optional[bool] = None
+    image_rank_phi:                 int = 0
+    connecting_boundary_rank:       int = 0
+    snake_residual:                 int = 0
+    js_divergence:                  float = 0.0
+    homoclinic_pressure:            float = 0.0
+    kam_rigid:                      Optional[bool] = None
+    chi_union:                      Optional[int] = None
+    chi_expected:                   Optional[int] = None
+    orientation_seed_hash:          Optional[str] = None
+    n3_idempotent:                  Optional[bool] = None
+    exactness:                      Optional[ExactnessProfile] = None
+    notes:                          Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class Omega3Certificate:
+    r"""
+    Objeto terminal Ω₃  ≅  Z_Causal  en la categoría de auditorías.
+
+    Ω₃ es el producto fibrado (pullback) de los tres certificados:
+
+        Ω₃  ⊢  Φ₁(Spec=0)  ∧  Φ₂(filtración monótona ∧ N3 finito)
+               ∧  Φ₃(Δβ₁=0 ∧ χ aditivo)  ∧  Poincaré admisible.
+
+    ``is_terminal_object`` ⇔ todos los factores son verdaderos.
+    """
+    phi1_nilpotent:             bool
+    phi2_monotonic:             bool
+    phi2_height_consistent:     Optional[bool]
+    phi3_homologous:            bool
+    phi3_euler:                 Optional[bool]
+    n3_finite:                  bool
+    n3_idempotent:              bool
+    poincare_admissible:        bool
+    kam_stable:                 bool
+    melnikov_admissible:        bool
+    is_terminal_object:         bool
+    composition_hash:           str
+    failing_factors:            Tuple[str, ...]
+    notes:                      Tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True, eq=False)
+class CausalGovernanceState:
+    r"""
+    Objeto final del endofuntor de gobernanza causal:
+        Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁.
+
+    Enriquecido v3.1: Ω₃, huella de composición, paquetes de F1/F2.
+    """
+    governance_id:              str
+    nilpotence_audit:           NilpotenceAuditData
+    filtration_audit:           PosetFiltrationData
+    mayer_vietoris_audit:       MayerVietorisAuditData
+    omega3:                     Omega3Certificate
+    observer_packet:            Optional[ObserverPacket] = None
+    orientation_seed:           Optional[OrientationSeed] = None
+    is_causally_valid:          bool = False
+    composition_hash:           str = ""
+    generated_at_utc:           str = ""
+
+
+# ── 3.2 CLASE FASE 3 ────────────────────────────────────────────────────────
 
 class Phase3_MayerVietorisInterceptor(Phase2_PosetFiltrationAuditor):
     r"""
     Interceptor homológico de fusión con secuencia exacta completa.
 
-    Nuevas verificaciones v3:
-        · Desigualdad débil de Mayer-Vietoris (siempre verificable).
-        · Secuencia exacta en H₀ con β₀ opcionales.
-        · Característica de Euler-Poincaré bajo fusión.
-        · Métrica de defecto Jensen-Shannon (simétrica, acotada en [0,1)).
+    Cadena funtorial:
+        Φ₃ : (OrientationSeed, Betti) → (MayerVietorisAudit, Ω₃).
+
+    El PRIMER método efectivo sobrescribe el stub de Fase 2 y es la
+    continuación literal de `_phase2_terminal_bridge_to_phase3`.
     """
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.1 Validación de números de Betti
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _validate_betti_number(
-        self,
-        name: str,
-        value: Any,
-    ) -> int:
-        r"""
-        Valida que un número de Betti sea un entero no negativo.
-
-        Los números de Betti β_k = rank(H_k(X)) son siempre enteros ≥ 0
-        por definición (rango de un grupo abeliano libre).
-
-        Parámetros:
-            name: nombre del parámetro (para mensajes de error).
-            value: valor a validar.
-
-        Retorna:
-            int ≥ 0: número de Betti válido.
-
-        Lanza:
-            MayerVietorisInputError: si value no es un entero no negativo.
-        """
-        # Booleanos rechazados: True=1, False=0 son enteros válidos numéricamente
-        # pero semánticamente ambiguos para un número de Betti.
-        if isinstance(value, (bool, np.bool_)):
-            raise MayerVietorisInputError(
-                f"{name} no puede ser booleano ({value!r}). "
-                f"Los números de Betti son enteros no negativos, no valores de verdad."
-            )
-
-        if isinstance(value, (int, np.integer)):
-            ivalue = int(value)
-        elif isinstance(value, (float, np.floating)):
-            fvalue = float(value)
-            if not np.isfinite(fvalue):
-                raise MayerVietorisInputError(
-                    f"{name} debe ser un entero no negativo finito. "
-                    f"Se recibió: {value!r} (no finito)."
-                )
-            if not fvalue.is_integer():
-                raise MayerVietorisInputError(
-                    f"{name} debe ser un entero no negativo. "
-                    f"Se recibió float no entero: {value!r}."
-                )
-            ivalue = int(fvalue)
-        else:
-            raise MayerVietorisInputError(
-                f"{name} debe ser un entero no negativo. "
-                f"Se recibió: {value!r} (tipo {type(value).__name__})."
-            )
-
-        if ivalue < 0:
-            raise MayerVietorisInputError(
-                f"{name} no puede ser negativo. "
-                f"Se recibió: {ivalue}. "
-                f"Por definición, β_k = rank(H_k(X)) ≥ 0."
-            )
-
-        return ivalue
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.2 Validación de rangos opcionales de la secuencia exacta
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _validate_optional_rank(
-        self,
-        name: str,
-        value: Optional[int],
-        upper_bound: int,
-        lower_bound: int = 0,
-    ) -> Optional[int]:
-        r"""
-        Valida un rango opcional de la secuencia exacta de Mayer-Vietoris.
-
-        Contrato algebraico:
-            lower_bound ≤ rank ≤ upper_bound
-            El upper_bound es la cota algebraica derivada del teorema del rango.
-
-        Parámetros:
-            name: nombre del rango (para mensajes de error).
-            value: valor a validar (None → se usa el defecto).
-            upper_bound: cota superior algebraica.
-            lower_bound: cota inferior (default 0).
-
-        Retorna:
-            int ∈ [lower_bound, upper_bound] o None si value es None.
-
-        Lanza:
-            MayerVietorisInputError: si la cota algebraica es violada.
-        """
-        if value is None:
-            return None
-
-        rank = self._validate_betti_number(name, value)
-
-        if rank < lower_bound:
-            raise MayerVietorisInputError(
-                f"{name}={rank} viola la cota inferior algebraica {lower_bound}."
-            )
-
-        if rank > upper_bound:
-            raise MayerVietorisInputError(
-                f"{name}={rank} viola la cota superior algebraica {upper_bound}. "
-                f"Por el Teorema del Rango, rank(φ) ≤ min(dim(dominio), dim(codominio)) "
-                f"= {upper_bound}."
-            )
-
-        return rank
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.3 Verificación de la desigualdad débil de Mayer-Vietoris
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _verify_weak_mayer_vietoris_bound(
-        self,
-        bA: int,
-        bB: int,
-        bI: int,
-        bU: int,
-    ) -> Tuple[bool, str]:
-        r"""
-        Verifica la desigualdad débil de Mayer-Vietoris.
-
-        Desigualdad débil (siempre válida sin conocer los rangos exactos):
-            |β₁(A∪B) − (β₁(A) + β₁(B))| ≤ β₁(A∩B)
-
-        Derivación:
-            De la secuencia exacta, β₁(A∪B) = β₁(A)+β₁(B) − r_φ + r_∂
-            con 0 ≤ r_φ ≤ β₁(A∩B) y 0 ≤ r_∂ ≤ β₁(A∪B).
-            La cota inferior da:
-                β₁(A∪B) ≥ β₁(A)+β₁(B) − β₁(A∩B)
-            La cota superior por la inyectividad da:
-                β₁(A∪B) ≤ β₁(A)+β₁(B) + β₁(A∪B) (trivial)
-            La desigualdad estándar es la triangular sobre el defecto.
-
-        Parámetros:
-            bA, bB, bI, bU: números de Betti validados.
-
-        Retorna:
-            (satisfecha: bool, mensaje: str).
-        """
-        lhs = abs(bU - (bA + bB))
-        rhs = bI
-        satisfied = lhs <= rhs
-        msg = (
-            f"Desigualdad débil MV: |β₁(A∪B)−(β₁(A)+β₁(B))| = {lhs} "
-            f"{'≤' if satisfied else '>'} β₁(A∩B) = {rhs}."
-        )
-        return satisfied, msg
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.4 Verificación de la secuencia exacta en H₀
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _verify_h0_sequence(
-        self,
-        betti_0_A: Optional[int],
-        betti_0_B: Optional[int],
-        betti_0_intersection: Optional[int],
-        betti_0_union: Optional[int],
-        connecting_boundary_rank: int,
-    ) -> Tuple[Optional[bool], str]:
-        r"""
-        Verifica la consistencia de la secuencia de Mayer-Vietoris en H₀.
-
-        Fórmula en H₀:
-            β₀(A∪B) = β₀(A) + β₀(B) − β₀(A∩B) + rank(∂₁)
-
-        donde rank(∂₁) = rank(∂: H₁(A∪B) → H₀(A∩B)) = connecting_boundary_rank.
-
-        La interpretación geométrica:
-            · β₀(X) = número de componentes conexas de X.
-            · La fusión A∪B puede reducir el número de componentes si A∩B
-              conecta componentes previamente disjuntas.
-
-        Si algún β₀ es None, se omite la verificación.
-
-        Retorna:
-            (válido: bool | None, mensaje: str).
-        """
-        if any(b is None for b in [betti_0_A, betti_0_B, betti_0_intersection, betti_0_union]):
-            return None, "Verificación H₀ omitida: β₀ no proporcionados."
-
-        b0A = int(betti_0_A)  # type: ignore[arg-type]
-        b0B = int(betti_0_B)  # type: ignore[arg-type]
-        b0I = int(betti_0_intersection)  # type: ignore[arg-type]
-        b0U = int(betti_0_union)  # type: ignore[arg-type]
-
-        expected_b0U = b0A + b0B - b0I + connecting_boundary_rank
-        delta_b0U = b0U - expected_b0U
-        valid = delta_b0U == 0
-
-        msg = (
-            f"Secuencia H₀: β₀(A∪B)={b0U}, expected={expected_b0U} "
-            f"[β₀(A)={b0A}+β₀(B)={b0B}−β₀(A∩B)={b0I}+r_∂={connecting_boundary_rank}]. "
-            f"Δβ₀={delta_b0U}. {'✓ Consistente.' if valid else '✗ Inconsistente.'}"
-        )
-        return valid, msg
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.5 Verificación de la característica de Euler-Poincaré
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _verify_euler_poincare(
-        self,
-        betti_0_A: Optional[int],
-        betti_0_B: Optional[int],
-        betti_0_intersection: Optional[int],
-        betti_0_union: Optional[int],
-        bA: int,
-        bB: int,
-        bI: int,
-        bU: int,
-    ) -> Tuple[Optional[bool], str]:
-        r"""
-        Verifica la identidad de Euler-Poincaré bajo fusión.
-
-        Identidad:
-            χ(A∪B) = χ(A) + χ(B) − χ(A∩B)
-
-        donde χ(X) = β₀(X) − β₁(X) (truncada a grados 0 y 1).
-
-        Para complejos simpliciales en grado ≤ 1 (grafos):
-            χ(X) = V(X) − E(X)  (vértices − aristas)
-
-        Si los β₀ no son proporcionados, se omite la verificación.
-
-        Retorna:
-            (válido: bool | None, mensaje: str).
-        """
-        if any(b is None for b in [betti_0_A, betti_0_B, betti_0_intersection, betti_0_union]):
-            return None, "Verificación Euler-Poincaré omitida: β₀ no proporcionados."
-
-        b0A = int(betti_0_A)  # type: ignore[arg-type]
-        b0B = int(betti_0_B)  # type: ignore[arg-type]
-        b0I = int(betti_0_intersection)  # type: ignore[arg-type]
-        b0U = int(betti_0_union)  # type: ignore[arg-type]
-
-        chi_A = b0A - bA
-        chi_B = b0B - bB
-        chi_I = b0I - bI
-        chi_U = b0U - bU
-
-        expected_chi_U = chi_A + chi_B - chi_I
-        valid = chi_U == expected_chi_U
-
-        msg = (
-            f"Euler-Poincaré: χ(A∪B)={chi_U}, expected={expected_chi_U} "
-            f"[χ(A)={chi_A}+χ(B)={chi_B}−χ(A∩B)={chi_I}]. "
-            f"{'✓ Invariante preservado.' if valid else '✗ Invariante violado.'}"
-        )
-        return valid, msg
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.6 Métrica de defecto Jensen-Shannon simétrica
-    # ──────────────────────────────────────────────────────────────────────────
-
-    def _compute_jensen_shannon_defect(
-        self,
-        bU: int,
-        expected: int,
-    ) -> float:
-        r"""
-        Calcula la métrica de defecto simétrica Jensen-Shannon.
-
-        Definición (adaptada al caso discreto degenerado):
-            JS_defect = |Δβ₁| / (1 + max(β₁(A∪B), expected))
-
-        Propiedades:
-            · Simétrica: JS(bU, expected) = JS(expected, bU).
-            · Acotada: JS_defect ∈ [0, 1).
-            · JS_defect = 0 ⟺ bU = expected (fusión perfecta).
-            · JS_defect → 1 cuando |Δβ₁| ≫ max(bU, expected).
-
-        Interpretación:
-            Mide la fracción del invariante topológico no explicada por
-            la fórmula de Mayer-Vietoris, normalizada por la escala máxima.
-
-        Parámetros:
-            bU: β₁(A∪B) observado.
-            expected: β₁(A∪B) predicho por Mayer-Vietoris.
-
-        Retorna:
-            Defecto JS ∈ [0, 1).
-        """
-        delta = abs(bU - expected)
-        denominator = 1 + max(abs(bU), abs(expected))
-        return float(delta) / float(denominator)
-
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.7 Intercepción principal de la secuencia de Mayer-Vietoris
-    # ──────────────────────────────────────────────────────────────────────────
-
+    # ══════════════════════════════════════════════════════════════════════
+    # §3.1  PRIMER MÉTODO EFECTIVO DE FASE 3 — continuación de Φ₂
+    #       Sobrescribe el stub Phase2._intercept_mayer_vietoris_sequence
+    # ══════════════════════════════════════════════════════════════════════
     def _intercept_mayer_vietoris_sequence(
         self,
         betti_1_A: int,
@@ -2358,197 +3720,683 @@ class Phase3_MayerVietorisInterceptor(Phase2_PosetFiltrationAuditor):
         betti_0_B: Optional[int] = None,
         betti_0_intersection: Optional[int] = None,
         betti_0_union: Optional[int] = None,
+        orientation_seed: Optional[OrientationSeed] = None,
         raise_on_veto: bool = True,
     ) -> MayerVietorisAuditData:
         r"""
-        Auditoría principal de Fase 3: invariancia homológica de fusión.
+        ← ARRANQUE FORMAL DE FASE 3 (DECIDE).
 
-        Pipeline de auditoría (v3):
-            1. Validar β₁(A), β₁(B), β₁(A∩B), β₁(A∪B) como enteros ≥ 0 (§3.1).
-            2. Validar rangos opcionales image_rank y boundary_rank (§3.2).
-            3. Calcular β₁(A∪B) esperado por la secuencia exacta.
-            4. Verificar la desigualdad débil de Mayer-Vietoris (§3.3).
-            5. Verificar la secuencia exacta en H₀ (§3.4).
-            6. Verificar la característica de Euler-Poincaré (§3.5).
-            7. Calcular Δβ₁ y la métrica Jensen-Shannon (§3.6).
-            8. Emitir MayerVietorisAuditData con todos los campos.
-            9. Lanzar HomologicalFusionVeto si Δβ₁ ≠ 0 y raise_on_veto=True.
+        Auditoría de fusión homológica de dos cubiertas A, B del 1-esqueleto
+        causal.  Recibe el ``OrientationSeed`` de Fase 2 como frontera:
+        KAM/Melnikov/N3 no alteran la identidad algebraica (fail-secure),
+        pero calibran notas, presión homoclínica y rigidez.
 
-        Modos de operación:
-
-            Modo por defecto (contrato aditivo):
-                image_rank := β₁(A∩B)  [toda H₁(A∩B) mapea inyectivamente]
-                boundary_rank := 0     [la diferencial de conexión es nula]
-                expected = β₁(A) + β₁(B) − β₁(A∩B)
-
-            Modo exacto (con rangos proporcionados):
-                expected = β₁(A) + β₁(B) − image_rank + boundary_rank
-                [fórmula exacta de la secuencia larga por exactitud]
-
-        Parámetros:
-            betti_1_A: β₁(A), número de loops en A.
-            betti_1_B: β₁(B), número de loops en B.
-            betti_1_intersection: β₁(A∩B), loops en la intersección.
-            betti_1_union: β₁(A∪B), loops observados en la unión.
-            image_rank_h1_intersection: rank(im φ: H₁(A∩B)→H₁(A)⊕H₁(B)).
-            connecting_boundary_rank: rank(∂: H₁(A∪B)→H₀(A∩B)).
-            betti_0_*: números de Betti en grado 0 para verificaciones adicionales.
-            raise_on_veto: lanzar HomologicalFusionVeto si Δβ₁ ≠ 0.
-
-        Retorna:
-            MayerVietorisAuditData: certificado homológico completo.
-
-        Lanza:
-            MayerVietorisInputError: si los invariantes de entrada son inválidos.
-            HomologicalFusionVeto: si Δβ₁ ≠ 0 y raise_on_veto=True.
-            EulerPoincareMismatchError: si χ(A∪B) ≠ χ(A)+χ(B)−χ(A∩B)
-                y raise_on_veto=True y β₀ fueron proporcionados.
+        Pipeline interno (granular):
+            (1)  validar números de Betti (enteros ≥ 0, no booleanos);
+            (2)  cotas algebraicas de rank(im φ) y rank(∂);
+            (3)  identidad exacta  β₁(U) = β₁(A)+β₁(B)−rank φ + rank ∂;
+            (4)  desigualdad débil MV;
+            (5)  sucesión H₀ y Euler–Poincaré (si hay β₀);
+            (6)  JS propio + defecto relativo;
+            (7)  perfil de exactitud (snake lemma);
+            (8)  corrección homoclínica (Melnikov → H₁);
+            (9)  rigidez KAM de la homología;
+            (10) notas N3 / Poincaré;
+            (11) vetos fail-secure (Δβ₁, Euler).
         """
-        # ── Paso 1: Validación de números de Betti en grado 1 ─────────────────
         bA = self._validate_betti_number("betti_1_A", betti_1_A)
         bB = self._validate_betti_number("betti_1_B", betti_1_B)
         bI = self._validate_betti_number("betti_1_intersection", betti_1_intersection)
         bU = self._validate_betti_number("betti_1_union", betti_1_union)
 
         notes: List[str] = []
+        seed_hash: Optional[str] = None
+        n3_idem: Optional[bool] = None
+        if orientation_seed is not None:
+            self._validate_orientation_seed(orientation_seed)
+            seed_hash = orientation_seed.packet_hash
+            n3_idem = bool(orientation_seed.idempotent)
 
-        # ── Paso 2: Validación y selección del rango de imagen φ ──────────────
-        # La cota algebraica es: rank(φ) ≤ min(β₁(A∩B), β₁(A)+β₁(B)).
-        image_rank_upper = min(bI, bA + bB)
+        # (2)–(3) Identidad exacta.
+        image_rank, boundary_rank, expected, rank_notes = (
+            self._exact_mayer_vietoris_prediction(
+                bA, bB, bI, bU,
+                image_rank_h1_intersection=image_rank_h1_intersection,
+                connecting_boundary_rank=connecting_boundary_rank,
+            )
+        )
+        notes.extend(rank_notes)
+        delta = int(bU - expected)
 
-        if image_rank_h1_intersection is None:
-            image_rank = bI
+        if expected < 0:
             notes.append(
-                "Contrato aditivo: rank(im H₁(A∩B)→H₁(A)⊕H₁(B)) := β₁(A∩B) = "
-                f"{bI}. Se asume que φ es inyectiva."
-            )
-        else:
-            validated_image = self._validate_optional_rank(
-                "image_rank_h1_intersection",
-                image_rank_h1_intersection,
-                upper_bound=image_rank_upper,
-            )
-            image_rank = bI if validated_image is None else validated_image
-            notes.append(
-                f"Modo exacto: rank(im H₁(A∩B)→H₁(A)⊕H₁(B)) = {image_rank} "
-                f"(cota: ≤ {image_rank_upper})."
+                f"ALERTA: expected={expected} < 0: rangos inconsistentes "
+                f"(im φ={image_rank}, ∂={boundary_rank})."
             )
 
-        # ── Paso 2b: Validación del rango del morfismo de conexión ∂ ──────────
-        # La cota algebraica es: rank(∂) ≤ min(β₁(A∪B), β₀(A∩B)).
-        # Sin β₀(A∩B), usamos bU como cota conservadora.
-        boundary_rank_upper = bU
-
-        if connecting_boundary_rank is None:
-            boundary_rank = 0
-            notes.append(
-                "Contrato aditivo: rank(∂: H₁(A∪B)→H₀(A∩B)) := 0. "
-                "Se asume que ∂ es el morfismo nulo."
-            )
-        else:
-            validated_boundary = self._validate_optional_rank(
-                "connecting_boundary_rank",
-                connecting_boundary_rank,
-                upper_bound=boundary_rank_upper,
-            )
-            boundary_rank = 0 if validated_boundary is None else validated_boundary
-            notes.append(
-                f"Modo exacto: rank(∂: H₁(A∪B)→H₀(A∩B)) = {boundary_rank} "
-                f"(cota: ≤ {boundary_rank_upper})."
-            )
-
-        # ── Paso 3: Cálculo del β₁(A∪B) esperado ────────────────────────────
-        # Fórmula de la secuencia exacta larga (por exactitud):
-        #     β₁(A∪B) = β₁(A)+β₁(B) − rank(im φ) + rank(im ∂)
-        expected_union_betti_1 = bA + bB - image_rank + boundary_rank
-        delta_betti_1 = bU - expected_union_betti_1
-
-        # Nota de alerta si expected < 0 (inconsistencia algebraica).
-        if expected_union_betti_1 < 0:
-            notes.append(
-                f"ALERTA: expected_union_betti_1={expected_union_betti_1} < 0. "
-                f"Los rangos suministrados son algebraicamente inconsistentes: "
-                f"image_rank={image_rank} > bA+bB={bA+bB}. "
-                f"Verifique los rangos de la secuencia exacta."
-            )
-
-        # ── Paso 4: Desigualdad débil de Mayer-Vietoris ───────────────────────
-        weak_bound_satisfied, weak_msg = self._verify_weak_mayer_vietoris_bound(
-            bA, bB, bI, bU
+        # (4) Desigualdad débil.
+        weak_ok, weak_msg, weak_residual = self._verify_weak_mayer_vietoris_bound(
+            bA, bB, bI, bU,
         )
         notes.append(weak_msg)
 
-        # ── Paso 5: Secuencia exacta en H₀ ────────────────────────────────────
-        h0_valid, h0_msg = self._verify_h0_sequence(
-            betti_0_A,
-            betti_0_B,
-            betti_0_intersection,
-            betti_0_union,
+        # (5) H₀ y Euler–Poincaré.
+        h0_ok, h0_msg, h0_residual = self._verify_h0_sequence(
+            betti_0_A, betti_0_B, betti_0_intersection, betti_0_union,
             boundary_rank,
         )
         notes.append(h0_msg)
 
-        # ── Paso 6: Característica de Euler-Poincaré ──────────────────────────
-        euler_valid, euler_msg = self._verify_euler_poincare(
-            betti_0_A,
-            betti_0_B,
-            betti_0_intersection,
-            betti_0_union,
-            bA, bB, bI, bU,
+        euler_ok, euler_msg, chi_U, chi_exp, euler_residual = (
+            self._verify_euler_poincare(
+                betti_0_A, betti_0_B, betti_0_intersection, betti_0_union,
+                bA, bB, bI, bU,
+            )
         )
         notes.append(euler_msg)
 
-        # ── Paso 7: Métricas de defecto ───────────────────────────────────────
-        # Métrica clásica (asimétrica, mantenida por compatibilidad).
-        denominator_classic = float(max(1, abs(expected_union_betti_1), bU))
-        relative_defect = float(abs(delta_betti_1)) / denominator_classic
+        # (6) Jensen–Shannon.
+        js_report = self._compute_jensen_shannon_report(bA, bB, bI, bU, expected)
+        rel_defect = js_report.relative_defect
+        js_div = js_report.js_divergence
 
-        # Métrica Jensen-Shannon (simétrica, acotada, nueva en v3).
-        jensen_shannon_defect = self._compute_jensen_shannon_defect(
-            bU, expected_union_betti_1
+        # (7) Perfil de exactitud / snake.
+        rank_psi = bA + bB - image_rank
+        snake = abs(boundary_rank - (bU - rank_psi))
+        exactness = ExactnessProfile(
+            residual_h1_union=int(delta),
+            residual_weak=int(weak_residual),
+            residual_h0=h0_residual,
+            residual_euler=euler_residual,
+            snake_residual=int(snake),
+            is_exact_at_h1=(delta == 0 and expected >= 0),
+            is_exact_at_h0=h0_ok,
+            is_euler_additive=euler_ok,
         )
 
-        # ── Paso 8: Certificado de fusión homológica ───────────────────────────
-        is_fusion_homologous = (
-            delta_betti_1 == 0 and expected_union_betti_1 >= 0
-        )
-
-        # ── Paso 9: Vetos ─────────────────────────────────────────────────────
-        if not is_fusion_homologous and raise_on_veto:
-            raise HomologicalFusionVeto(
-                f"Paradoja topológica de pegado (Mayer-Vietoris): Δβ₁={delta_betti_1} ≠ 0. "
-                f"β₁(A)={bA}, β₁(B)={bB}, β₁(A∩B)={bI}, β₁(A∪B)={bU}. "
-                f"Predicho: {expected_union_betti_1} "
-                f"[image_rank={image_rank}, boundary_rank={boundary_rank}]. "
-                f"JS_defect={jensen_shannon_defect:.4f}."
+        # (8)–(9) Poincaré ↪ homología.
+        homo = self._homoclinic_betti_correction(orientation_seed)
+        kam_r = self._kam_homology_rigidity(orientation_seed)
+        notes.extend(
+            self._modulate_notes_from_orientation_seed(
+                orientation_seed, homo, kam_r, delta,
             )
+        )
 
-        if euler_valid is False and raise_on_veto:
+        is_homologous = bool(delta == 0 and expected >= 0)
+
+        # (10) Consistencia Poincaré–homología (diagnóstico, no veto extra).
+        notes.extend(self._poincare_homology_consistency(
+            orientation_seed, is_homologous, homo,
+        ))
+
+        # (11) Vetos fail-secure: la identidad algebraica no se relaja.
+        if not is_homologous and raise_on_veto:
+            raise HomologicalFusionVeto(
+                f"Paradoja MV: Δβ₁={delta} ≠ 0. "
+                f"β₁(A)={bA}, β₁(B)={bB}, β₁(A∩B)={bI}, β₁(A∪B)={bU}. "
+                f"Predicho: {expected} [im φ={image_rank}, ∂={boundary_rank}]. "
+                f"JS={js_div:.6f}, rel={rel_defect:.6f}, snake={snake}, "
+                f"homoclinic_pressure={homo.pressure:.3f}, "
+                f"KAM_rigid={kam_r.is_rigid}."
+            )
+        if euler_ok is False and raise_on_veto:
             raise EulerPoincareMismatchError(
-                f"Violación del invariante de Euler-Poincaré bajo fusión. "
-                f"χ(A∪B) ≠ χ(A)+χ(B)−χ(A∩B). Detalle: {euler_msg}"
+                f"Euler–Poincaré violado. {euler_msg}"
             )
 
         return MayerVietorisAuditData(
-            betti_1_A=bA,
-            betti_1_B=bB,
-            betti_1_intersection=bI,
-            betti_1_union=bU,
-            expected_union_betti_1=expected_union_betti_1,
-            delta_betti_1=delta_betti_1,
-            relative_defect=relative_defect,
-            jensen_shannon_defect=jensen_shannon_defect,
-            is_fusion_homologous=is_fusion_homologous,
-            weak_bound_satisfied=weak_bound_satisfied,
-            euler_characteristic_valid=euler_valid,
-            h0_sequence_valid=h0_valid,
+            betti_1_A=bA, betti_1_B=bB,
+            betti_1_intersection=bI, betti_1_union=bU,
+            expected_union_betti_1=expected,
+            delta_betti_1=delta,
+            relative_defect=rel_defect,
+            jensen_shannon_defect=rel_defect,   # compat v3
+            is_fusion_homologous=is_homologous,
+            weak_bound_satisfied=weak_ok,
+            euler_characteristic_valid=euler_ok,
+            h0_sequence_valid=h0_ok,
+            image_rank_phi=image_rank,
+            connecting_boundary_rank=boundary_rank,
+            snake_residual=int(snake),
+            js_divergence=js_div,
+            homoclinic_pressure=homo.pressure,
+            kam_rigid=kam_r.is_rigid if orientation_seed is not None else None,
+            chi_union=chi_U,
+            chi_expected=chi_exp,
+            orientation_seed_hash=seed_hash,
+            n3_idempotent=n3_idem,
+            exactness=exactness,
             notes=tuple(notes),
         )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # §3.8 Último método de Fase 3: síntesis del objeto final de gobernanza
-    # ──────────────────────────────────────────────────────────────────────────
+    # ── §3.2 Validación de números de Betti ─────────────────────────────
+    def _validate_betti_number(self, name: str, value: Any) -> int:
+        r"""Valida entero ≥ 0 (los booleanos de Python son subtipo de int)."""
+        if isinstance(value, (bool, np.bool_)):
+            raise MayerVietorisInputError(
+                f"{name} no puede ser booleano ({value!r})."
+            )
+        if isinstance(value, (int, np.integer)):
+            ivalue = int(value)
+        elif isinstance(value, (float, np.floating)):
+            fv = float(value)
+            if not np.isfinite(fv):
+                raise MayerVietorisInputError(f"{name} no finito: {value!r}.")
+            if not fv.is_integer():
+                raise MayerVietorisInputError(f"{name} no entero: {value!r}.")
+            ivalue = int(fv)
+        else:
+            raise MayerVietorisInputError(
+                f"{name} debe ser entero ≥ 0, recibido {value!r} "
+                f"(tipo {type(value).__name__})."
+            )
+        if ivalue < 0:
+            raise MayerVietorisInputError(f"{name} negativo: {ivalue}.")
+        return ivalue
 
+    # ── §3.3 Validación de rango opcional ───────────────────────────────
+    def _validate_optional_rank(
+        self,
+        name: str,
+        value: Optional[int],
+        upper_bound: int,
+        lower_bound: int = 0,
+    ) -> Optional[int]:
+        r"""Valida lower ≤ rank ≤ upper (cotas de rank-nullity)."""
+        if value is None:
+            return None
+        rank = self._validate_betti_number(name, value)
+        if rank < lower_bound:
+            raise MayerVietorisInputError(
+                f"{name}={rank} < cota inferior {lower_bound}."
+            )
+        if rank > upper_bound:
+            raise MayerVietorisInputError(
+                f"{name}={rank} > cota algebraica {upper_bound}."
+            )
+        return rank
+
+    # ── §3.4 Validación del OrientationSeed ─────────────────────────────
+    def _validate_orientation_seed(self, seed: OrientationSeed) -> None:
+        r"""Contrato mínimo: packet sellado, θ/α finitos, loss finita."""
+        if not isinstance(seed, OrientationSeed):
+            raise MayerVietorisInputError(
+                f"orientation_seed tipo inválido: {type(seed).__name__}."
+            )
+        if not seed.packet_hash:
+            raise MayerVietorisInputError("OrientationSeed sin packet_hash.")
+        if seed.observer_packet.packet_hash != seed.packet_hash:
+            raise MayerVietorisInputError(
+                "Incoherencia de huella: OrientationSeed.packet_hash ≠ "
+                "ObserverPacket.packet_hash (ruptura del anidamiento Φ₂∘Φ₁)."
+            )
+        if not math.isfinite(seed.final_loss):
+            raise RecursiveSelfImprovementError(
+                f"OrientationSeed.final_loss no finito: {seed.final_loss}."
+            )
+        if not np.all(np.isfinite(seed.theta_final)):
+            raise RecursiveSelfImprovementError("θ* contiene no finitos.")
+        if not np.all(np.isfinite(seed.alpha_final)):
+            raise RecursiveSelfImprovementError("α* contiene no finitos.")
+
+    # ── §3.5 Identidad exacta de rangos MV ──────────────────────────────
+    def _exact_mayer_vietoris_prediction(
+        self,
+        bA: int, bB: int, bI: int, bU: int,
+        *,
+        image_rank_h1_intersection: Optional[int],
+        connecting_boundary_rank: Optional[int],
+    ) -> Tuple[int, int, int, List[str]]:
+        r"""
+        rank(im φ) ≤ min(β₁(I), β₁(A)+β₁(B))
+        rank(∂)    ≤ min(β₁(U), β₀(I))   — sin β₀, cota β₁(U).
+
+        Contrato aditivo (por defecto, cuando los rangos no se miden):
+            rank(im φ) := β₁(I),   rank(∂) := 0
+        ⇒  expected = β₁(A)+β₁(B)−β₁(I)
+        que es el caso de φ inyectiva y ∂ nula (cubiertas acíclicas
+        en la intersección a nivel H₁, sin 1-ciclos que mueran en H₀).
+        """
+        notes: List[str] = []
+        image_rank_upper = min(bI, bA + bB)
+        if image_rank_h1_intersection is None:
+            image_rank = bI
+            notes.append(
+                f"Contrato aditivo: rank(im φ) := β₁(A∩B) = {bI} "
+                f"(cota ≤ {image_rank_upper})."
+            )
+        else:
+            validated = self._validate_optional_rank(
+                "image_rank_h1_intersection",
+                image_rank_h1_intersection,
+                upper_bound=image_rank_upper,
+            )
+            image_rank = bI if validated is None else validated
+            notes.append(
+                f"Modo exacto: rank(im φ) = {image_rank} "
+                f"(cota ≤ {image_rank_upper})."
+            )
+
+        boundary_rank_upper = bU
+        if connecting_boundary_rank is None:
+            boundary_rank = 0
+            notes.append("Contrato aditivo: rank(∂) := 0.")
+        else:
+            validated = self._validate_optional_rank(
+                "connecting_boundary_rank",
+                connecting_boundary_rank,
+                upper_bound=boundary_rank_upper,
+            )
+            boundary_rank = 0 if validated is None else validated
+            notes.append(f"Modo exacto: rank(∂) = {boundary_rank}.")
+
+        expected = int(bA + bB - image_rank + boundary_rank)
+        return image_rank, boundary_rank, expected, notes
+
+    # ── §3.6 Desigualdad débil MV ───────────────────────────────────────
+    def _verify_weak_mayer_vietoris_bound(
+        self, bA: int, bB: int, bI: int, bU: int,
+    ) -> Tuple[bool, str, int]:
+        r"""
+        |β₁(A∪B) − (β₁(A)+β₁(B))| ≤ β₁(A∩B).
+
+        Consecuencia de 0 ≤ rank(im φ) ≤ β₁(I) y 0 ≤ rank(∂) ≤ β₁(U)
+        bajo la identidad exacta; no requiere medir rangos.
+        """
+        lhs = abs(bU - (bA + bB))
+        rhs = bI
+        residual = max(0, lhs - rhs)
+        satisfied = residual == 0
+        msg = (
+            f"Desig. débil MV: |Δβ₁_raw|={lhs} "
+            f"{'≤' if satisfied else '>'} β₁(I)={rhs} "
+            f"(residual={residual})."
+        )
+        return satisfied, msg, residual
+
+    # ── §3.7 Sucesión H₀ ────────────────────────────────────────────────
+    def _verify_h0_sequence(
+        self,
+        betti_0_A: Optional[int],
+        betti_0_B: Optional[int],
+        betti_0_intersection: Optional[int],
+        betti_0_union: Optional[int],
+        connecting_boundary_rank: int,
+    ) -> Tuple[Optional[bool], str, Optional[int]]:
+        r"""
+        Exactitud en H₀:
+            β₀(A∪B) = β₀(A)+β₀(B)−β₀(A∩B)+rank(∂).
+
+        ψ₀ es epi; ker ψ₀ = im φ₀; ker φ₀ = im ∂.
+        """
+        if any(
+            b is None
+            for b in (betti_0_A, betti_0_B, betti_0_intersection, betti_0_union)
+        ):
+            return None, "Verificación H₀ omitida (β₀ faltantes).", None
+        b0A = self._validate_betti_number("betti_0_A", betti_0_A)
+        b0B = self._validate_betti_number("betti_0_B", betti_0_B)
+        b0I = self._validate_betti_number("betti_0_intersection", betti_0_intersection)
+        b0U = self._validate_betti_number("betti_0_union", betti_0_union)
+        expected = b0A + b0B - b0I + int(connecting_boundary_rank)
+        residual = int(b0U - expected)
+        valid = residual == 0
+        msg = (
+            f"H₀: β₀(A∪B)={b0U}, expected={expected}, Δβ₀={residual}. "
+            f"{'✓' if valid else '✗'}"
+        )
+        return valid, msg, residual
+
+    # ── §3.8 Euler–Poincaré ─────────────────────────────────────────────
+    def _verify_euler_poincare(
+        self,
+        betti_0_A: Optional[int],
+        betti_0_B: Optional[int],
+        betti_0_intersection: Optional[int],
+        betti_0_union: Optional[int],
+        bA: int, bB: int, bI: int, bU: int,
+    ) -> Tuple[Optional[bool], str, Optional[int], Optional[int], Optional[int]]:
+        r"""
+        Inclusión-exclusión de la característica de Euler (1-esqueletos):
+            χ(X) = β₀(X) − β₁(X),
+            χ(A∪B) = χ(A) + χ(B) − χ(A∩B).
+
+        Identidad topológica independiente de la exactitud en un grado.
+        """
+        if any(
+            b is None
+            for b in (betti_0_A, betti_0_B, betti_0_intersection, betti_0_union)
+        ):
+            return None, "Euler–Poincaré omitido: β₀ faltantes.", None, None, None
+        b0A = self._validate_betti_number("betti_0_A", betti_0_A)
+        b0B = self._validate_betti_number("betti_0_B", betti_0_B)
+        b0I = self._validate_betti_number("betti_0_intersection", betti_0_intersection)
+        b0U = self._validate_betti_number("betti_0_union", betti_0_union)
+        chi_A = b0A - bA
+        chi_B = b0B - bB
+        chi_I = b0I - bI
+        chi_U = b0U - bU
+        expected = chi_A + chi_B - chi_I
+        residual = int(chi_U - expected)
+        valid = residual == 0
+        msg = (
+            f"Euler–Poincaré: χ(A∪B)={chi_U}, expected={expected}, "
+            f"Δχ={residual}. {'✓' if valid else '✗'}"
+        )
+        return valid, msg, int(chi_U), int(expected), residual
+
+    # ── §3.9 Jensen–Shannon propio + defecto relativo ───────────────────
+    def _compute_jensen_shannon_report(
+        self,
+        bA: int, bB: int, bI: int, bU: int, expected: int,
+    ) -> JensenShannonReport:
+        r"""
+        JS(P‖Q) sobre los 4-vectores de Betti observados vs. predichos,
+        más el defecto relativo v3 (escala [0, 1)).
+        """
+        delta = abs(int(bU) - int(expected))
+        denom = 1 + max(abs(int(bU)), abs(int(expected)))
+        rel = float(delta) / float(denom)
+
+        obs = np.array([bA, bB, bI, max(bU, 0)], dtype=np.float64)
+        prd = np.array([bA, bB, bI, max(expected, 0)], dtype=np.float64)
+        p = obs + _JS_FLOOR
+        q = prd + _JS_FLOOR
+        p = p / float(np.sum(p))
+        q = q / float(np.sum(q))
+        m = 0.5 * (p + q)
+        kl_pm = float(np.sum(p * np.log(p / m)))
+        kl_qm = float(np.sum(q * np.log(q / m)))
+        js = max(0.0, min(_JS_MAX, 0.5 * (kl_pm + kl_qm)))
+        return JensenShannonReport(
+            js_divergence=js,
+            relative_defect=rel,
+            observed_simplex=tuple(float(x) for x in p),
+            predicted_simplex=tuple(float(x) for x in q),
+        )
+
+    # ── §3.10 Corrección homoclínica de Betti ───────────────────────────
+    def _homoclinic_betti_correction(
+        self,
+        seed: Optional[OrientationSeed],
+    ) -> HomoclinicBettiCorrection:
+        r"""
+        n_extra = min(transverse_zeros, cap).
+        contradicts_nilpotence ⇔ n_extra > 0 ∧ Spec(A)={0} ∧ tangle.
+        """
+        empty = HomoclinicBettiCorrection(
+            transverse_zeros=0, simple_zeros=0, splitting_distance=0.0,
+            extra_generators=0, pressure=0.0, contradicts_nilpotence=False,
+        )
+        if seed is None:
+            return empty
+        pkt = seed.observer_packet
+        tz = int(max(0, pkt.melnikov.transverse_zeros))
+        sz = int(max(0, pkt.melnikov.simple_zeros))
+        extra = int(min(tz, _HOMOCLINIC_BETTI_CAP))
+        pressure = float(min(1.0, extra / (1.0 + max(sz, 1))))
+        contradicts = bool(
+            extra > 0
+            and pkt.melnikov.tangle_detected
+            and pkt.spectra.is_strictly_nilpotent
+        )
+        return HomoclinicBettiCorrection(
+            transverse_zeros=tz,
+            simple_zeros=sz,
+            splitting_distance=float(pkt.melnikov.splitting_distance),
+            extra_generators=extra,
+            pressure=pressure,
+            contradicts_nilpotence=contradicts,
+        )
+
+    # ── §3.11 Rigidez KAM de la homología ───────────────────────────────
+    def _kam_homology_rigidity(
+        self,
+        seed: Optional[OrientationSeed],
+    ) -> KAMHomologyRigidity:
+        r"""Si KAM estable ⇒ defecto homológico admisible = 0."""
+        if seed is None:
+            return KAMHomologyRigidity(
+                is_rigid=False, epsilon_ratio=float("inf"),
+                diophantine=False, tori_persisting=0, admissible_defect=0,
+            )
+        kam = seed.observer_packet.kam
+        thr = max(float(kam.epsilon_KAM_threshold), _MACHINE_EPSILON)
+        ratio = float(kam.epsilon_perturbation) / thr
+        rigid = bool(kam.is_KAM_stable and kam.diophantine_satisfied)
+        return KAMHomologyRigidity(
+            is_rigid=rigid,
+            epsilon_ratio=ratio,
+            diophantine=bool(kam.diophantine_satisfied),
+            tori_persisting=int(kam.tori_persisting),
+            admissible_defect=0 if rigid else 0,  # fail-secure: nunca se relaja
+        )
+
+    # ── §3.12 Notas moduladas por el OrientationSeed ────────────────────
+    def _modulate_notes_from_orientation_seed(
+        self,
+        seed: Optional[OrientationSeed],
+        homo: HomoclinicBettiCorrection,
+        kam_r: KAMHomologyRigidity,
+        delta: int,
+    ) -> List[str]:
+        r"""Integra N3 / Poincaré en el certificado (sin alterar Δβ₁)."""
+        if seed is None:
+            return ["OrientationSeed ausente: Φ₃ opera en modo puramente homológico."]
+        notes = [
+            f"OrientationSeed hash={seed.packet_hash} "
+            f"loss={seed.final_loss:.4e} idem={seed.idempotent} "
+            f"‖θ*‖={float(np.linalg.norm(seed.theta_final)):.4f} "
+            f"‖α*‖={float(np.linalg.norm(seed.alpha_final)):.4f} "
+            f"‖O*‖_F={seed.O_norm:.4e} height={seed.poset_height}.",
+            f"KAM_rigid={kam_r.is_rigid} ε/ε_KAM={kam_r.epsilon_ratio:.3e} "
+            f"dio={kam_r.diophantine} tori={kam_r.tori_persisting} "
+            f"preserved={seed.kam_preserved}.",
+            f"Homoclínico: tz={homo.transverse_zeros} sz={homo.simple_zeros} "
+            f"split={homo.splitting_distance:.3e} pressure={homo.pressure:.3f} "
+            f"tangle={seed.melnikov_chaotic} "
+            f"contradicts_ν={homo.contradicts_nilpotence}.",
+        ]
+        cert = seed.n3_certificate
+        notes.append(
+            f"N3: ΔL={cert.final_loss - cert.initial_loss:.3e} "
+            f"monotone={cert.monotone_decrease} "
+            f"‖Ψz−z‖={cert.residual_fixed_point:.3e} "
+            f"Lip∇={cert.lipschitz_grad_bound:.3e}."
+        )
+        if homo.contradicts_nilpotence:
+            notes.append(
+                "TENSIÓN Φ₁/Poincaré: Spec(A)={0} pero Melnikov detecta "
+                "herradura (ceros transversales).  MV no suma esos "
+                "generadores a expected (DAG causal los prohíbe)."
+            )
+        if kam_r.is_rigid and delta != 0:
+            notes.append(
+                "TENSIÓN KAM/MV: homología debería ser rígida (toros "
+                "persistentes) pero Δβ₁≠0 — ruptura estructural, no numérica."
+            )
+        if not cert.idempotent:
+            notes.append(
+                "N3 no idempotente: el veredicto Ω₃ es estable sólo al "
+                "primer orden (punto fijo inexacto)."
+            )
+        return notes
+
+    # ── §3.13 Consistencia Poincaré ↔ homología ─────────────────────────
+    def _poincare_homology_consistency(
+        self,
+        seed: Optional[OrientationSeed],
+        is_homologous: bool,
+        homo: HomoclinicBettiCorrection,
+    ) -> List[str]:
+        r"""Diagnósticos de compatibilidad flujo celeste / 1-homología."""
+        if seed is None:
+            return []
+        notes: List[str] = []
+        pkt = seed.observer_packet
+        rm = pkt.return_map
+        if rm.is_periodic_orbit and pkt.spectra.is_strictly_nilpotent:
+            notes.append(
+                "P periódica ∧ Spec={0}: órbita de retorno con |μ|≃1 en un "
+                "flujo nilpotente — Floquet numéricamente degenerado, no un ciclo DAG."
+            )
+        lya = rm.stability_exponent
+        if lya > _LYAPUNOV_HYPERBOLIC_TOL and pkt.spectra.is_strictly_nilpotent:
+            notes.append(
+                f"λ_Lya={lya:.3e} > 0 con ρ(A)≤tol: expansión Benettin residual "
+                f"(horizonte corto), no un ciclo espectral."
+            )
+        if (not pkt.arnold.is_adiabatic) and is_homologous:
+            notes.append(
+                f"D_Arnold={pkt.arnold.total_diffusion:.3e} no adiabática pero "
+                f"Δβ₁=0: homología rígida pese a fuga inter-resonancia "
+                f"(t_Nek={pkt.arnold.nekhoroshev_time:.3e})."
+            )
+        if not rm.is_transverse_family:
+            notes.append(
+                "Σ no transversal: P mal definida; la presión homoclínica "
+                f"({homo.pressure:.3f}) es una cota superior conservadora."
+            )
+        return notes
+
+    # ── §3.14 Fiedler del 1-esqueleto ───────────────────────────────────
+    def _fiedler_from_adjacency(
+        self,
+        adjacency_matrix: NDArray[Any],
+        *,
+        zero_threshold: float = _BASE_SPECTRAL_TOLERANCE,
+    ) -> float:
+        r"""
+        λ₂ del Laplaciano simetrizado L = D − |A|.
+        λ₂ > 0 ⇔ el grafo subyacente (no dirigido) es conexo.
+        """
+        A = self._validate_and_condition_adjacency(
+            adjacency_matrix,
+            zero_threshold=zero_threshold,
+            allow_signed_weights=True,
+            require_boolean=False,
+        )
+        n = int(A.shape[0])
+        if n < 2:
+            return 0.0
+        absA = np.abs(A)
+        degree = np.sum(absA, axis=1)
+        L = np.diag(degree) - absA
+        L_sym = 0.5 * (L + L.T)
+        try:
+            evals = np.sort(np.real(np.linalg.eigvalsh(L_sym)))
+            return float(evals[1]) if evals.size > 1 else 0.0
+        except Exception:
+            return 0.0
+
+    # ── §3.15 Cota de Daleckii–Krein ────────────────────────────────────
+    def _daleckii_krein_bound(self, lambda2: float) -> float:
+        r"""
+        Lip(f) de la proyección espectral en el hueco de Fiedler:
+
+            L_max = 1 / (2 λ₂^{3/2})
+
+        (divididas diferencias de Daleckii–Krein para f = 1_{λ>0} en el
+        Laplaciano; controla cuánto puede saltar H₀/H₁ bajo ‖ΔA‖₂ ≤ 1).
+        """
+        eff = max(float(lambda2), _WILKINSON_LIMIT)
+        return float(_DALECKII_KREIN_PREFACTOR / (eff ** _DALECKII_KREIN_EXP))
+
+    # ── §3.16 Factores fallidos de Ω₃ ───────────────────────────────────
+    def _collect_failing_invariants(
+        self,
+        spectra: NilpotenceAuditData,
+        filtration: PosetFiltrationData,
+        mv: MayerVietorisAuditData,
+        seed: OrientationSeed,
+        pkt: ObserverPacket,
+    ) -> List[str]:
+        r"""Lista canónica de factores que impiden que Ω₃ sea terminal."""
+        failing: List[str] = []
+        if not spectra.is_strictly_nilpotent:
+            failing.append(f"Φ₁(ρ={spectra.spectral_radius:.4e}>{spectra.tolerance:.4e})")
+        if not filtration.is_monotonic_filtration:
+            failing.append("Φ₂(filtración no monótona)")
+        if filtration.height_nilpotence_consistent is False:
+            failing.append("Φ₂(height ≰ ν)")
+        if not mv.is_fusion_homologous:
+            failing.append(f"Φ₃(Δβ₁={mv.delta_betti_1})")
+        if mv.euler_characteristic_valid is False:
+            failing.append("Φ₃(Euler–Poincaré)")
+        if mv.weak_bound_satisfied is False:
+            failing.append("Φ₃(desigualdad débil MV)")
+        if not math.isfinite(seed.final_loss):
+            failing.append("Φ₂(N3 divergente)")
+        if not pkt.melnikov.is_admissible:
+            failing.append(f"Φ₁(Melnikov ‖M‖_∞={pkt.melnikov.max_magnitude:.3e})")
+        if not pkt.kam.is_KAM_stable:
+            failing.append(
+                f"Φ₁(KAM ε={pkt.kam.epsilon_perturbation:.3e}"
+                f"≥{pkt.kam.epsilon_KAM_threshold:.3e})"
+            )
+        return failing
+
+    # ── §3.17 Objeto terminal Ω₃ ────────────────────────────────────────
+    def _omega3_terminal_object(
+        self,
+        spectra: NilpotenceAuditData,
+        filtration: PosetFiltrationData,
+        mv: MayerVietorisAuditData,
+        seed: OrientationSeed,
+        pkt: ObserverPacket,
+    ) -> Omega3Certificate:
+        r"""
+        Pullback de los tres certificados + Poincaré + N3.
+
+        composition_hash amarra las huellas de Φ₁ (espectro), Φ₂ (packet)
+        y Φ₃ (Δβ₁, JS, Euler) en un único sello.
+        """
+        n3_finite = bool(
+            math.isfinite(seed.final_loss) and seed.n3_certificate.finite
+        )
+        poincare_adm = bool(pkt.melnikov.is_admissible and pkt.kam.is_KAM_stable)
+        phi1 = bool(spectra.is_strictly_nilpotent)
+        phi2 = bool(filtration.is_monotonic_filtration)
+        phi3 = bool(mv.is_fusion_homologous)
+        failing = self._collect_failing_invariants(spectra, filtration, mv, seed, pkt)
+        is_term = (
+            phi1 and phi2 and phi3 and n3_finite and poincare_adm
+            and (mv.euler_characteristic_valid is not False)
+            and (filtration.height_nilpotence_consistent is not False)
+            and (mv.weak_bound_satisfied is True)
+        )
+        payload = (
+            f"{spectra.spectrum_certificate_hash}|"
+            f"{pkt.packet_hash}|{seed.packet_hash}|"
+            f"{mv.delta_betti_1}|{mv.js_divergence:.12e}|"
+            f"{mv.euler_characteristic_valid}|{int(is_term)}"
+        )
+        notes = (
+            f"Ω₃={'⊤' if is_term else '⊥'} | fallos={list(failing) or '∅'} | "
+            f"JS={mv.js_divergence:.4e} | pressure={mv.homoclinic_pressure:.3f}.",
+        )
+        return Omega3Certificate(
+            phi1_nilpotent=phi1,
+            phi2_monotonic=phi2,
+            phi2_height_consistent=filtration.height_nilpotence_consistent,
+            phi3_homologous=phi3,
+            phi3_euler=mv.euler_characteristic_valid,
+            n3_finite=n3_finite,
+            n3_idempotent=bool(seed.idempotent),
+            poincare_admissible=poincare_adm,
+            kam_stable=bool(pkt.kam.is_KAM_stable),
+            melnikov_admissible=bool(pkt.melnikov.is_admissible),
+            is_terminal_object=bool(is_term),
+            composition_hash=_sha256_short(payload),
+            failing_factors=tuple(failing),
+            notes=notes,
+        )
+
+    # ══════════════════════════════════════════════════════════════════════
+    # §3.18  ÚLTIMO MÉTODO DE FASE 3: síntesis del objeto final de gobernanza
+    #        Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁   —  no hay Fase 4.
+    # ══════════════════════════════════════════════════════════════════════
     def _phase3_terminal_synthesis(
         self,
         adjacency_matrix: NDArray[Any],
@@ -2574,50 +4422,34 @@ class Phase3_MayerVietorisInterceptor(Phase2_PosetFiltrationAuditor):
         betti_0_B: Optional[int] = None,
         betti_0_intersection: Optional[int] = None,
         betti_0_union: Optional[int] = None,
+        n3_cycles: int = _N3_DEFAULT_CYCLES,
         raise_on_veto: bool = True,
+        require_transverse_section: bool = False,
     ) -> CausalGovernanceState:
         r"""
         ÚLTIMO MÉTODO DE FASE 3 — Síntesis del objeto final de gobernanza.
 
-        Composición funtorial completa:
-            Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁
-
-        El funtor Z_Causal: (A, E, S, β) → CausalGovernanceState es el
-        morfismo terminal en la categoría de objetos de gobernanza causal.
+        Composición funtorial completa:  Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁.
 
         Invariantes certificados:
-            1. Spec(A) = {0}  [aciclicidad espectral del DAG].
-            2. f: (V, ≤_DAG) → (Z, ≤) es morfismo de Posets [DIKW].
-            3. Δβ₁ = 0  [invariancia homológica de fusión].
+            1. Spec(A) = {0}                         [ciclicidad espectral]
+            2. f: (V, ≤_DAG) → (ℤ, ≤) monótona       [morfismo de Posets DIKW]
+            3. Δβ₁ = 0 ∧ χ(A∪B)=χ(A)+χ(B)−χ(A∩B)    [MV + Euler]
+            4. Kernel N3 convergente (loss finita)
+            5. Poincaré admisible (Melnikov + KAM)
+            6. ν ≤ longest_path+1 ≤ height+1         [rango del poset]
 
-        Si todas las fases certifican sus invariantes:
-            is_causally_valid = True.
-        Si alguna fase falla (y raise_on_veto=False):
-            is_causally_valid = False con diagnóstico completo.
-
-        Parámetros adicionales v3:
-            betti_0_*: β₀ opcionales para verificación de Euler-Poincaré y H₀.
-
-        Retorna:
-            CausalGovernanceState: objeto final certificado.
-
-        Lanza:
-            PipelineDirectorAgentError: si algún invariante falla y
-                raise_on_veto=True.
+        Anidamiento cerrado:
+            _phase3_terminal_synthesis
+              = Ω₃ ∘ _intercept_mayer_vietoris_sequence
+                  ∘ _phase2_terminal_bridge_to_phase3
         """
-        # ── Composición Φ₃ ∘ Φ₂ ∘ Φ₁ ─────────────────────────────────────────
         (
-            nilpotence_audit,
-            filtration_audit,
-            mayer_vietoris_audit,
+            spectra, filtration, observer_packet,
+            orientation_seed, mv_audit,
         ) = self._phase2_terminal_bridge_to_phase3(
-            adjacency_matrix,
-            edges,
-            node_strata,
-            betti_1_A,
-            betti_1_B,
-            betti_1_intersection,
-            betti_1_union,
+            adjacency_matrix, edges, node_strata,
+            betti_1_A, betti_1_B, betti_1_intersection, betti_1_union,
             adjacency_zero_threshold=adjacency_zero_threshold,
             allow_signed_weights=allow_signed_weights,
             require_boolean=require_boolean,
@@ -2629,59 +4461,53 @@ class Phase3_MayerVietorisInterceptor(Phase2_PosetFiltrationAuditor):
             cross_check_adjacency_support=cross_check_adjacency_support,
             image_rank_h1_intersection=image_rank_h1_intersection,
             connecting_boundary_rank=connecting_boundary_rank,
-            betti_0_A=betti_0_A,
-            betti_0_B=betti_0_B,
+            betti_0_A=betti_0_A, betti_0_B=betti_0_B,
             betti_0_intersection=betti_0_intersection,
             betti_0_union=betti_0_union,
+            n3_cycles=n3_cycles,
             raise_on_veto=raise_on_veto,
+            require_transverse_section=require_transverse_section,
         )
 
-        # ── Síntesis del invariante global de gobernanza ───────────────────────
-        is_causally_valid = bool(
-            nilpotence_audit.is_strictly_nilpotent
-            and filtration_audit.is_monotonic_filtration
-            and mayer_vietoris_audit.is_fusion_homologous
+        omega3 = self._omega3_terminal_object(
+            spectra, filtration, mv_audit, orientation_seed, observer_packet,
         )
+        is_valid = bool(omega3.is_terminal_object)
 
-        if not is_causally_valid and raise_on_veto:
-            failing = []
-            if not nilpotence_audit.is_strictly_nilpotent:
-                failing.append(f"Fase 1 (ρ(A)={nilpotence_audit.spectral_radius:.4e})")
-            if not filtration_audit.is_monotonic_filtration:
-                failing.append("Fase 2 (filtración Poset)")
-            if not mayer_vietoris_audit.is_fusion_homologous:
-                failing.append(f"Fase 3 (Δβ₁={mayer_vietoris_audit.delta_betti_1})")
+        if not is_valid and raise_on_veto:
             raise PipelineDirectorAgentError(
-                f"Gobernanza causal inválida. Fases fallidas: {', '.join(failing)}."
+                "Gobernanza causal inválida. Factores fallidos: "
+                + (", ".join(omega3.failing_factors) or "desconocido")
+                + f". hash={omega3.composition_hash}."
             )
 
-        # ── Construcción del artefacto final ──────────────────────────────────
-        governance_id = str(uuid.uuid4())
         state = CausalGovernanceState(
-            governance_id=governance_id,
-            nilpotence_audit=nilpotence_audit,
-            filtration_audit=filtration_audit,
-            mayer_vietoris_audit=mayer_vietoris_audit,
-            is_causally_valid=is_causally_valid,
+            governance_id=str(uuid.uuid4()),
+            nilpotence_audit=spectra,
+            filtration_audit=filtration,
+            mayer_vietoris_audit=mv_audit,
+            omega3=omega3,
+            observer_packet=observer_packet,
+            orientation_seed=orientation_seed,
+            is_causally_valid=is_valid,
+            composition_hash=omega3.composition_hash,
             generated_at_utc=_utc_timestamp(),
         )
 
         logger.info(
-            "Gobernanza causal Z_Causal = Φ₃∘Φ₂∘Φ₁ completada. "
-            "id=%s | ρ(A)=%.4e | tol=%.4e | κ₂(Q)=%.4f | ν=%s | "
-            "monotonic=%s | self_loops=%d | Δβ₁=%d | JS=%.4f | valid=%s",
-            governance_id,
-            nilpotence_audit.spectral_radius,
-            nilpotence_audit.tolerance,
-            nilpotence_audit.schur_condition_number,
-            nilpotence_audit.nilpotence_index,
-            filtration_audit.is_monotonic_filtration,
-            filtration_audit.self_loops_detected,
-            mayer_vietoris_audit.delta_betti_1,
-            mayer_vietoris_audit.jensen_shannon_defect,
-            state.is_causally_valid,
+            "Gobernanza Z_Causal=Φ₃∘Φ₂∘Φ₁ | id=%s | hash=%s | ρ(A)=%.4e | "
+            "κ₂(Q)=%.4f | ν=%s | height=%s | monotonic=%s | Δβ₁=%d | "
+            "JS=%.4e | χ_ok=%s | loss_N3=%.4e | idem=%s | KAM=%s | "
+            "pressure=%.3f | Ω₃=%s | valid=%s",
+            state.governance_id, state.composition_hash,
+            spectra.spectral_radius, spectra.schur_condition_number,
+            spectra.nilpotence_index, filtration.poset_height,
+            filtration.is_monotonic_filtration, mv_audit.delta_betti_1,
+            mv_audit.js_divergence, mv_audit.euler_characteristic_valid,
+            orientation_seed.final_loss, orientation_seed.idempotent,
+            observer_packet.kam.is_KAM_stable, mv_audit.homoclinic_pressure,
+            omega3.is_terminal_object, state.is_causally_valid,
         )
-
         return state
 
 
@@ -2689,23 +4515,19 @@ class Phase3_MayerVietorisInterceptor(Phase2_PosetFiltrationAuditor):
 # §D. ORQUESTADOR SUPREMO: PIPELINE DIRECTOR AGENT
 # ══════════════════════════════════════════════════════════════════════════════
 
-
 class PipelineDirectorAgent(Morphism, Phase3_MayerVietorisInterceptor):
     r"""
     El Custodio de la Causalidad Funtorial en la Malla Agéntica.
 
-    Herencia lineal de la cadena funtorial:
+    Herencia lineal (cadena funtorial estricta):
+
         PipelineDirectorAgent
-          → Phase3_MayerVietorisInterceptor   [Φ₃: H* → GovernanceCert]
-             → Phase2_PosetFiltrationAuditor  [Φ₂: Poset → FiltrationCert]
-                → Phase1_SpectralNilpotenceCertifier [Φ₁: Matx → NilpotenceCert]
-                   → (Morphism base)
+          → Phase3_MayerVietorisInterceptor          [Φ₃  DECIDE]
+             → Phase2_PosetFiltrationAuditor         [Φ₂  ORIENT + kernel N3]
+                → Phase1_SpectralNilpotenceCertifier [Φ₁  OBSERVE + Poincaré]
+                   → Morphism (base del Topos MIC)
 
-    El agente no añade lógica nueva: su único método público delega en
-    _phase3_terminal_synthesis, que implementa Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁.
-
-    Nuevos parámetros v3 en execute_causal_governance:
-        betti_0_*: números de Betti en H₀ para verificación completa.
+    Punto de entrada público: ``execute_causal_governance`` ≡ Φ₃∘Φ₂∘Φ₁.
     """
 
     def execute_causal_governance(
@@ -2733,60 +4555,17 @@ class PipelineDirectorAgent(Morphism, Phase3_MayerVietorisInterceptor):
         betti_0_B: Optional[int] = None,
         betti_0_intersection: Optional[int] = None,
         betti_0_union: Optional[int] = None,
+        n3_cycles: int = _N3_DEFAULT_CYCLES,
         raise_on_veto: bool = True,
+        require_transverse_section: bool = False,
     ) -> CausalGovernanceState:
         r"""
-        Ejecuta la composición funtorial estricta completa Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁.
-
-        Punto de entrada público del custodio causal. Delega completamente
-        en _phase3_terminal_synthesis, preservando la transparencia del
-        anidamiento funtorial.
-
-        Parámetros:
-            adjacency_matrix: A ∈ R^{n×n}, operador de adyacencia del DAG.
-            edges: lista de aristas dirigidas (u, v) del DAG.
-            node_strata: mapeo nodo → nivel DIKW {0,1,2,3,4}.
-            betti_1_A: β₁(A), número de loops en el subcomplejo A.
-            betti_1_B: β₁(B), número de loops en el subcomplejo B.
-            betti_1_intersection: β₁(A∩B), loops en la intersección.
-            betti_1_union: β₁(A∪B), loops observados en la unión fusionada.
-            adjacency_zero_threshold: ε para anulación de ruido en A.
-            allow_signed_weights: permitir pesos A[i,j] < 0.
-            require_boolean: exigir A ∈ {0,1}^{n×n}.
-            deep_nilpotence_audit: activar certificación profunda A^n.
-            power_audit_max_dim: límite de n para cálculo exacto de A^n.
-            allow_unknown_nodes: ignorar nodos sin estrato en edges.
-            strict_filtration: exigir stratum(u) < stratum(v) [estricto].
-            node_order: orden canónico de nodos para cross-check edges↔A.
-            cross_check_adjacency_support: activar cross-check.
-            image_rank_h1_intersection: rank(im φ) exacto (opcional).
-            connecting_boundary_rank: rank(∂) exacto (opcional).
-            betti_0_A, betti_0_B, betti_0_intersection, betti_0_union:
-                β₀ opcionales para verificación de Euler-Poincaré y H₀.
-            raise_on_veto: si True, lanza excepción ante cualquier violación.
-                si False, retorna estado con is_causally_valid=False.
-
-        Retorna:
-            CausalGovernanceState con certificados de Fases 1, 2 y 3.
-
-        Lanza:
-            CausalLoopVetoError: si ρ(A) > tol (ciclo espectral).
-            SelfLoopVetoError: si existe arista (u,u) en edges.
-            StratumMappingError: si falta un estrato requerido.
-            FiltrationViolationVeto: si stratum(u) > stratum(v).
-            AdjacencySupportVetoError: si el cross-check falla.
-            HomologicalFusionVeto: si Δβ₁ ≠ 0.
-            EulerPoincareMismatchError: si χ(A∪B) ≠ χ(A)+χ(B)−χ(A∩B).
-            PipelineDirectorAgentError: si la gobernanza global es inválida.
+        Punto de entrada público: ejecuta Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁.
+        Delega en `_phase3_terminal_synthesis`.
         """
         return self._phase3_terminal_synthesis(
-            adjacency_matrix,
-            edges,
-            node_strata,
-            betti_1_A,
-            betti_1_B,
-            betti_1_intersection,
-            betti_1_union,
+            adjacency_matrix, edges, node_strata,
+            betti_1_A, betti_1_B, betti_1_intersection, betti_1_union,
             adjacency_zero_threshold=adjacency_zero_threshold,
             allow_signed_weights=allow_signed_weights,
             require_boolean=require_boolean,
@@ -2798,11 +4577,12 @@ class PipelineDirectorAgent(Morphism, Phase3_MayerVietorisInterceptor):
             cross_check_adjacency_support=cross_check_adjacency_support,
             image_rank_h1_intersection=image_rank_h1_intersection,
             connecting_boundary_rank=connecting_boundary_rank,
-            betti_0_A=betti_0_A,
-            betti_0_B=betti_0_B,
+            betti_0_A=betti_0_A, betti_0_B=betti_0_B,
             betti_0_intersection=betti_0_intersection,
             betti_0_union=betti_0_union,
+            n3_cycles=n3_cycles,
             raise_on_veto=raise_on_veto,
+            require_transverse_section=require_transverse_section,
         )
 
     def audit_poincare_causal_pipeline(
@@ -2811,45 +4591,79 @@ class PipelineDirectorAgent(Morphism, Phase3_MayerVietorisInterceptor):
         betti_1_sub_B: int,
         betti_1_intersection: int,
         betti_1_union: int,
-        fiedler_value_lambda2: float
+        fiedler_value_lambda2: float,
+        *,
+        raise_on_veto: bool = True,
     ) -> PipelineCausalAuditState:
         r"""
-        Audita la nulidad homológica de Mayer-Vietoris Δβ₁ = 0 y la cota de Connes-DK.
+        Auditoría ligera Poincaré–Mayer–Vietoris + cota Daleckii–Krein.
 
-        Axiomas:
-          1. Mayer-Vietoris: Δβ₁ = β₁(A ∪ B) - [β₁(A) + β₁(B) - β₁(A ∩ B)] ≡ 0.
-          2. Cota Connes-Daleckii-Krein: L_max ≤ 1 / (2 λ₂^(3/2)).
+        Invariantes:
+            Δβ₁ ≡ 0     (contrato aditivo: rank φ = β₁(I), rank ∂ = 0)
+            L_max = 1 / (2 λ₂^{3/2})
+            coherencia ⇔ Δβ₁ = 0  ∧  λ₂ > ε_W  ∧  |Δβ₁| ≤ L_max  (trivial).
         """
-        # 1. Auditoría Mayer-Vietoris Δβ₁ = 0
-        expected_union_betti = betti_1_sub_A + betti_1_sub_B - betti_1_intersection
-        delta_betti_1 = float(abs(betti_1_union - expected_union_betti))
+        bA = self._validate_betti_number("betti_1_sub_A", betti_1_sub_A)
+        bB = self._validate_betti_number("betti_1_sub_B", betti_1_sub_B)
+        bI = self._validate_betti_number("betti_1_intersection", betti_1_intersection)
+        bU = self._validate_betti_number("betti_1_union", betti_1_union)
 
-        if delta_betti_1 > 0.0:
+        expected = bA + bB - bI
+        delta = float(abs(bU - expected))
+        if delta > 0.0 and raise_on_veto:
             raise TopologicalInvariantError(
-                f"[PIPELINE_CAUSAL_VETO] Bucle causal detectado vía Mayer-Vietoris: Δβ₁={delta_betti_1}"
+                f"[PIPELINE_CAUSAL_VETO] Δβ₁={delta} ≠ 0 (Mayer–Vietoris)."
             )
 
-        # 2. Cota Connes-Daleckii-Krein derivada de Fiedler λ₂
-        effective_fiedler = max(fiedler_value_lambda2, _WILKINSON_LIMIT)
-        l_max_lipschitz = float(1.0 / (2.0 * (effective_fiedler ** 1.5)))
-
-        is_coherent = (delta_betti_1 == 0.0) and (fiedler_value_lambda2 > _WILKINSON_LIMIT)
-
+        lam2 = float(fiedler_value_lambda2)
+        if not math.isfinite(lam2):
+            raise MayerVietorisInputError(
+                f"fiedler_value_lambda2 no finito: {fiedler_value_lambda2!r}."
+            )
+        l_max = self._daleckii_krein_bound(lam2)
+        lip_ok = delta <= l_max + _OMEGA3_SOFT_REL_DEFECT
+        coherent = (delta == 0.0) and (lam2 > _WILKINSON_LIMIT) and lip_ok
         return PipelineCausalAuditState(
-            mayer_vietoris_residual=delta_betti_1,
-            daleckii_krein_bound=l_max_lipschitz,
-            is_funtorially_coherent=is_coherent
+            mayer_vietoris_residual=delta,
+            daleckii_krein_bound=l_max,
+            fiedler_lambda2=lam2,
+            lipschitz_coherent=bool(lip_ok),
+            is_funtorially_coherent=bool(coherent),
+        )
+
+    def audit_poincare_causal_pipeline_from_adjacency(
+        self,
+        adjacency_matrix: NDArray[Any],
+        betti_1_sub_A: int,
+        betti_1_sub_B: int,
+        betti_1_intersection: int,
+        betti_1_union: int,
+        *,
+        adjacency_zero_threshold: float = _BASE_SPECTRAL_TOLERANCE,
+        raise_on_veto: bool = True,
+    ) -> PipelineCausalAuditState:
+        r"""
+        Variante que extrae λ₂ del Laplaciano de |A| (Daleckii–Krein
+        calibrado por el 1-esqueleto real, no por un Fiedler externo).
+        """
+        lam2 = self._fiedler_from_adjacency(
+            adjacency_matrix, zero_threshold=adjacency_zero_threshold,
+        )
+        return self.audit_poincare_causal_pipeline(
+            betti_1_sub_A, betti_1_sub_B,
+            betti_1_intersection, betti_1_union,
+            lam2, raise_on_veto=raise_on_veto,
         )
 
     def __call__(self, state: Any = None, **kwargs: Any) -> Any:
-        r"""Invocación como morfismo categórico."""
+        r"""Invocación como morfismo categórico del Topos MIC."""
         if kwargs:
             return self.execute_causal_governance(**kwargs)
         return state
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# §E. EXPORTACIÓN CANÓNICA
+# §E. EXPORTACIÓN CANÓNICA  (Fases 1 ∪ 2 ∪ 3)
 # ══════════════════════════════════════════════════════════════════════════════
 
 __all__ = [
@@ -2865,16 +4679,49 @@ __all__ = [
     "MayerVietorisInputError",
     "HomologicalFusionVeto",
     "EulerPoincareMismatchError",
-    # DTOs
+    "PoincareTransversalityError",
+    "MelnikovTangleError",
+    "KAMBreakdownError",
+    "RecursiveSelfImprovementError",
+    # DTOs Fase 1
+    "SchurBlock",
     "NilpotenceAuditData",
+    "PoincareSection",
+    "ReturnMapReport",
+    "MelnikovCertificate",
+    "KAMCertificate",
+    "ArnoldDiffusionMetric",
+    "ObserverPacket",
+    # DTOs Fase 2
+    "EdgeSlackRecord",
+    "PosetHeightCertificate",
+    "TransitiveClosureData",
     "PosetFiltrationData",
+    "ImprovementState",
+    "N3ConvergenceCertificate",
+    "OrientationSeed",
+    # DTOs Fase 3
+    "ExactnessProfile",
+    "HomoclinicBettiCorrection",
+    "KAMHomologyRigidity",
+    "JensenShannonReport",
     "PipelineCausalAuditState",
     "MayerVietorisAuditData",
+    "Omega3Certificate",
     "CausalGovernanceState",
     # Certificadores por fase
     "Phase1_SpectralNilpotenceCertifier",
     "Phase2_PosetFiltrationAuditor",
     "Phase3_MayerVietorisInterceptor",
+    # Kernel N3
+    "RecursiveSelfImprovementKernel",
     # Orquestador supremo
     "PipelineDirectorAgent",
 ]
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# FIN DEL MÓDULO  —  Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁  está cerrado.
+# Concatenar Fases 1 + 2 + 3 en
+#     app/agents/strategy/pipeline_director_agent.py
+# ══════════════════════════════════════════════════════════════════════════════

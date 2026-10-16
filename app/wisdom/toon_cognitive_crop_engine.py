@@ -4,12 +4,12 @@ r"""
 ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 ====================================================================================================
 
-Nombre: ToonCognitiveCropEngine
+Nombre   : ToonCognitiveCropEngine
 Ubicación: app/wisdom/toon_cognitive_crop_engine.py
-Versión: 7.0.0-APU-SOVEREIGN
-Función: Motor soberano de poda y focalización cognitiva mediante purificación isospectral de Brockett,
-         acotación de Poincaré-Wirtinger en B(u(n)) × CPTP(D_n) y mecánica celeste sobre métricas
-         conformes de Maupertuis-Jacobi.
+Versión  : 10.0.0-RSI-3-Inflexion-Monadic-Hodge-Lanczos-Poincare-Wirtinger-PhD
+Función  : Motor soberano de poda y focalización cognitiva mediante purificación isospectral de Brockett,
+           acotación de Poincaré-Wirtinger en B(u(n)) × CPTP(D_n) y mecánica celeste sobre métricas
+           conformes de Maupertuis-Jacobi.
 
 ----------------------------------------------------------------------------------------------------
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
@@ -21,7 +21,7 @@ simpléctica ni los invariantes topológicos del estado de conocimiento.
 
 Su respectivo agente en el plano ejecutivo es 'ToonCognitiveCropAgent' (app/agents/wisdom/toon_cognitive_crop_agent.py).
 Mientras el motor (Engine) ejecuta la cadena de tres fases anidadas (SeedCrystalPreparation ⊣ CropGrowthPipeline
-⊣ Adjudicador Ω₃⁶), orquesta la compresión KV, la purificación de Brockett dρ/dt = [ρ, [ρ, N]], la
+⊣ Adjudicador Ω₃⁶), orquesta la compresión KV, la purificación de Brockett dρ/dt = [ρ, [ρ, N]], el
 aguzamiento de Rényi, la aniquilación en el álgebra de Fock e⁻ + e⁺ → 2γ, el análisis de pequeños
 divisores KAM con condición de Bruno, la integral de Melnikov y el cálculo de multiplicadores de Floquet
 y del índice de Conley-Zehnder sobre el mapa de retorno, su respectivo Agente coordina la inoculación en

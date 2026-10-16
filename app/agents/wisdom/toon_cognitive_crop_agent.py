@@ -4,12 +4,12 @@ r"""
 ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 ====================================================================================================
 
-Nombre: ToonCognitiveCropAgent
+Nombre   : ToonCognitiveCropAgent
 Ubicación: app/agents/wisdom/toon_cognitive_crop_agent.py
-Versión: 10.0.0-APU-SOVEREIGN
-Función: Agente soberano del cultivo y poda cognitiva que gobierna la sanitización de semillas,
-         la inoculación disipativa en el suelo MAC, la aceleración metamórfica Nivel 3 y la
-         adjudicación ciber-física en Ω₃⁷ ⊕ Celeste.
+Versión  : 10.0.0-APU-SOVEREIGN
+Función  : Agente soberano del cultivo y poda cognitiva que gobierna la sanitización de semillas,
+           la inoculación disipativa en el suelo MAC, la aceleración metamórfica Nivel 3 y la
+           adjudicación ciber-física en Ω₃⁷ ⊕ Celeste.
 
 ----------------------------------------------------------------------------------------------------
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
@@ -23,7 +23,7 @@ Su respectivo motor matemático es 'TOONCognitiveCropEngine' (app/wisdom/toon_co
 Mientras el motor (Engine) ejecuta la cadena de cultivo (SeedCrystalPreparation ⊣ CropGrowthPipeline
 ⊣ Adjudicador Ω₃⁶), realiza el aguzamiento de Rényi, la purificación de Brockett y los tests celestial-KAM
 y Melnikov, este Agente sanitiza las semillas de cristal, gestiona el suelo MAC con el operador CPTP
-Φ_γ(ρ) = (1-γ) ρ_MAC + γ ρ_target, ejecuta la meta-aceleración Nivel 3 Nivel 3 μ_crop actualizando
+Φ_γ(ρ) = (1-γ) ρ_MAC + γ ρ_target, ejecuta la meta-aceleración Nivel 3 μ_crop actualizando
 C_P(t) e inyecta la respuesta ciber-física ESP32 Crowbar en GPIO14 (< 400 ns).
 
 ----------------------------------------------------------------------------------------------------
