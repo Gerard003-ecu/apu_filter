@@ -4,65 +4,70 @@ r"""
 ║ Módulo : Pipeline Director Agent (Custodio de Causalidad y Flujo Funtorial)  ║
 ║ Ruta   : app/agents/strategy/pipeline_director_agent.py                      ║
 ║ Versión: 3.1.0-Poincare-Melnikov-RecursiveN3-Strict                          ║
-║ Fase   : 1 / 3  — OBSERVE  (este archivo; Fases 2–3 se anidan a continuación)║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-FILOSOFÍA CIBER-FÍSICA (Rigor doctoral):
+MARCO TEÓRICO RIGUROSO Y GOBERNANZA CAUSAL AGÉNTICA (NIVEL DOCTORADO):
 ────────────────────────────────────────────────────────────────────────────────
-Este custodio soberano del Estrato STRATEGY (V_𝕊) impone una filtración
-estricta sobre el Poset DIKW y audita algebraicamente cualquier integración
-concurrente. La versión 3.1.0 eleva el agente a TRES capas anidadas:
 
-  (A) MECÁNICA CELESTE DE POINCARÉ sobre el espectro de Schur.
-      · Flujo discreto φ_k(v) = A^k v  y semigrupo nilpotente
-        exp(tA) = Σ_{m=0}^{n-1} (t^m / m!) A^m  (Cayley–Hamilton).
-      · Sección transversal Σ ⊂ T_v ℝ^n definida por h(v) = 0 con
-        h(v) := ‖A^k v‖₂ − tol_BF  y condición de transversabilidad
-        ⟨∇h, A v⟩ ≠ 0  (flujo no tangente a Σ).
-      · Bloques 2×2 de la RSF ≅ osciladores planos (órbitas celestes
-        con frecuencia ω = √|det − (tr/2)²|); sección de Poincaré
-        clásica θ ≡ 0 (mod 2π) en coordenadas polares del bloque.
-      · Aplicación de primer retorno P: Σ → Σ, jacobiano DP vía
-        ecuación variacional w_{k+1} = A w_k  proyectada a TΣ.
-      · Espectro de Lyapunov (Benettin–QR) y exponentes de Floquet
-        de DP: hiperbolicidad ⇔ ningún |μ| = 1.
-      · Función de Melnikov discreta
-            M(t₀) = Σ_k  (f₀ ∧ f₁)(γ_k ; t_k + t₀)
-        sobre la 2-forma inducida por el plano dominante de Schur.
-        Ceros simples con M'(t₀) ≠ 0 ⇒ tangencia homoclínica transversal.
-      · Certificado KAM: condición diofantina |⟨k, ω⟩| ≥ γ / |k|^τ
-        y razón de Greene ε / ε_KAM; persistencia de toros nulos.
-      · Difusión de Arnold / Nekhoroshev: tiempo de estabilidad
-        t_Nek ~ exp(c ε^{-1/(2n)}) y fuga inter-resonancia por bloque.
+1. CERTIFICACIÓN ESPECTRAL Y FORMES REALES DE SCHUR (RSF)
+   Sea \(A \in \mathbb{R}^{n \times n}\) el endomorfismo de adyacencia causal sobre el
+   grafo del pipeline. La descomposición real de Schur (RSF) factoriza \(A = Q T Q^\top\),
+   donde \(Q \in \mathrm{O}(n)\) es ortogonal y \(T\) es cuasi-triangular superior con
+   bloques 1×1 y 2×2 en la diagonal.
+   Un bloque 2×2 representa un par conjugado \(\lambda = \alpha \pm \mathrm{i}\omega\),
+   con frecuencia elíptica:
+       \(\omega = \sqrt{\max\left(0, |bc| - \left(\frac{a-d}{2}\right)^2\right)}\)
+   La condición de aciclicidad y estricta nilpotencia exige que \(\mathrm{Spec}(A) = \{0\}\),
+   lo cual equivale a \(\rho(A) = \max |\lambda_i| \le \delta_{\mathrm{BF}}\), siendo
+   \(\delta_{\mathrm{BF}}\) la tolerancia adaptativa ajustada por el teorema de Bauer-Fike:
+       \(\delta_{\mathrm{BF}} = \max\left(\varepsilon_{\mathrm{base}}, \, \kappa_2(Q) \cdot C \cdot \sqrt{n} \cdot \varepsilon_{\mathrm{mach}} \cdot \|A\|_F\right)\)
 
-  (B) AUTOMEJORA RECURSIVA N3 — el kernel (θ, O, α)  [Fase 2].
-      N1: ajusta los parámetros del certificador (tolerancias, umbrales).
-      N2: ajusta la topología O (bloques 2×2 de la RSF, acoplamientos).
-      N3: ajusta la meta-regla α que gobierna N1 y N2 — automejora meta-meta.
-      Fase 1 emite el ObserverPacket como semilla canónica de (θ, O, α).
+2. DINÁMICA DE POINCARÉ, SECCIONES TRANSVERSALES Y DIVERGENCIA DE MELNIKOV
+   Sobre el subespacio nulo de \(A\), el flujo discreto \(\varphi_k(v) = A^k v\) define
+   una sección transversal de Poincaré \(\Sigma = \{p \in \mathbb{R}^n : h(p) = 0\}\) con
+   función de sección \(h(p) = \|p\|_2 - \varepsilon_{\mathrm{BF}}\). La transversalidad
+   se satisface si:
+       \(\left|\frac{\mathrm{d}h}{\mathrm{d}t}\right| = |\langle \nabla h(p), A p \rangle| > \varepsilon_{\mathrm{trans}} > 0\)
+   La integral discreta de Melnikov evalúa la 2-forma sobre el plano dominante de Schur
+   \(\gamma_k = \Pi_{\mathrm{dom}} A^k v_0\):
+       \(M(t_0) = \sum_k \frac{\det\left[ f_0(\gamma_k) \;\vert\; f_1(\gamma_k, t_k + t_0) \right]}{1 + k}\)
+   donde \(f_0\) representa el campo nilpotente no perturbado y \(f_1\) la perturbación
+   de bloques 2×2. Ceros simples transversales con \(M'(t_0) \neq 0\) revelan herraduras
+   de Smale y tangencias homoclínicas.
 
-  (C) GOBERNANZA CAUSAL COMPLETA — el invariante terminal  [Fase 3].
-      Z_Causal = Φ₃ ∘ Φ₂ ∘ Φ₁  sintetiza los tres certificados en Ω₃.
+3. TEORÍA KAM, DIFUSIÓN DE ARNOLD Y ESTABILIDAD DE NEKHOROSHEV
+   Para el espectro de frecuencias de bloques 2×2, la persistencia de toros KAM requiere
+   la condición diofántica \(|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}\) y
+   una perturbación acotada \(\varepsilon < \varepsilon_{\mathrm{KAM}}\). La fuga de
+   resonancias entre bloques genera difusión de Arnold con cota de Nekhoroshev:
+       \(T_{\mathrm{Nek}} \sim \exp\left( \frac{1}{2} \varepsilon^{-\frac{1}{2n}} \right)\)
 
-JERARQUÍA DE EXCEPCIONES EXTENDIDA (Fail-Secure Boundary):
-  PipelineDirectorAgentError (TopologicalInvariantError)
-   ├── AdjacencyMatrixFormatError, CausalLoopVetoError, ...
-   ├── PoincareTransversalityError : flujo tangente a Σ (ḣ = 0).
-   ├── MelnikovTangleError         : tangencia homoclínica > cota admisible.
-   ├── KAMBreakdownError           : colapso de toros invariantes.
-   └── RecursiveSelfImprovementError : falla en el kernel N3.   [Fase 2]
+4. AUDITORÍA HOMOLÓGICA DE MAYER-VIETORIS Y DIVERGENCIA DE JENSEN-SHANNON
+   Para cubiertas causales \(A\) y \(B\), la secuencia exacta de Mayer-Vietoris en H₁:
+       \(H_1(A \cap B) \xrightarrow{\phi} H_1(A) \oplus H_1(B) \xrightarrow{\psi} H_1(A \cup B) \xrightarrow{\partial} H_0(A \cap B)\)
+   Dicta que el número de Betti \(\beta_1(A \cup B)\) debe coincidir con la predicción
+   algebraica exacta \(\beta_1^{\mathrm{exp}} = \beta_1(A) + \beta_1(B) - \mathrm{rank}(\phi) + \mathrm{rank}(\partial)\).
+   La discrepancia topológica se mide mediante la Divergencia de Jensen-Shannon sobre los
+   4-símplex de Betti observados vs. predichos:
+       \(D_{\mathrm{JS}}(P \parallel Q) = \frac{1}{2} D_{\mathrm{KL}}(P \parallel M) + \frac{1}{2} D_{\mathrm{KL}}(Q \parallel M), \quad M = \frac{1}{2}(P + Q)\)
 
-DISEÑO DEL FLUJO CATEGÓRICO — 3 FASES ANIDADAS (OODA Espectral):
-  Fase 1 OBSERVE ─► espectro Schur + Poincaré ⟹ ObserverPacket
-  Fase 2 ORIENT  ─► Poset DIKW + kernel N3   ⟹ OrientationSeed
-  Fase 3 DECIDE  ─► Mayer-Vietoris + Ω₃      ⟹ CausalGovernanceState
+5. VEREDICTO DE GOBERNANZA TERMINAL \(\Omega_3\)
+   El agente aplica el pullback Z_Causal = \(\Phi_3 \circ \Phi_2 \circ \Phi_1\), agregando
+   los tres certificados en el objeto terminal \(\Omega_3\). Si cualquier factor
+   (nilpotencia, filtración monótona, \(\Delta\beta_1 = 0\), idempotencia N3) falla, se
+   activa un veto fail-secure que bloquea la ejecución agéntica.
 
-ANIDAMIENTO FUNTORIAL (contrato de continuación):
-  El último método de esta Fase 1,
-      Phase1_SpectralNilpotenceCertifier._phase1_terminal_bridge_to_phase2
-  invoca el primer método efectivo de Fase 2,
-      _audit_poset_filtration_from_nilpotence
-  que Fase 2 sobrescribe.  Φ₂ ∘ Φ₁ queda así estrictamente anidado.
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+────────────────────────────────────────────────────────────────────────────────
+· BLINDAJE DE ESTRATEGIA Y GOBERNANZA AGÉNTICA: Evita que agentes de IA tomen decisiones
+  o ejecuten acciones automatizadas basadas en grafos causales corruptos o con ciclos
+  infinitos, eliminando riesgos de responsabilidad legal y pérdidas financieras directas.
+· CERTIFICACIÓN AUTOMÁTICA DE AUDITORÍAS: Garantiza que la consolidación de informes
+  financieros y presupuestarios cumpla con los estándares rigurosos de no duplicación,
+  reduciendo a cero los costos por multas o reprocesamientos en auditorías gubernamentales.
+· OPERACIÓN AUTÓNOMA FAIL-SECURE: Ante cualquier anomalía matemática o degradación de
+  datos, el agente aborta la transacción antes de corromper la base de datos central,
+  salvaguardando la continuidad del negocio y el valor de los activos de información.
 """
 
 from __future__ import annotations

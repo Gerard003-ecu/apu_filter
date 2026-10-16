@@ -4,53 +4,103 @@ r"""
 ║ Módulo : Pipeline Director v5.1.0 — Poincaré–Melnikov–Recursive-N3           ║
 ║ Ruta   : app/tactics/pipeline_director.py                                    ║
 ║ Versión: 5.1.0-DAG-Poincare-Melnikov-RecursiveN3-Strict                      ║
-║ Fase   : 1 / 3  (OBSERVE) — este archivo se concatena con Fases 2 y 3        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-FILOSOFÍA —──────────────────────────────────────────────────────────────────────
-Sea \(M = T^*Q\) el fibrado cotangente del espacio de configuraciones del
-pipeline (variedad simpléctica de dimensión \(2n\), forma canónica
-\(\omega = \mathrm{d}p\wedge\mathrm{d}q\)) y sea
-\(H\colon M\to\mathbb{R}\) la función Hamiltoniana de costo computacional.
-Cada ejecución es una trayectoria discreta \(\gamma\colon\mathbb{Z}\to M\)
-que interpolamos a un flujo \(\varphi_t^{X_H}\) del campo hamiltoniano
-\(X_H = \omega^\sharp(\mathrm{d}H)\).
+MARCO TEÓRICO RIGUROSO Y GOBERNANZA CIBER-FÍSICA (NIVEL DOCTORADO):
+────────────────────────────────────────────────────────────────────────────────
 
-Este módulo introduce TRES capas anidadas. La Fase 1 OBSERVA; no decide.
+1. ESPACIO DE FASE Y DENSIDAD SIMPLÉCTICA DE LIOUVILLE-DARBOUX
+   Sea \(M = T^*Q \cong \mathbb{R}^{2n}\) el fibrado cotangente del espacio de
+   configuraciones de la canalización de procesamiento de datos, equipado con la
+   2-forma simpléctica canónica de Liouville-Darboux:
+       \(\omega = \sum_{i=1}^n \mathrm{d}p_i \wedge \mathrm{d}q_i = \mathrm{d}\theta_H\)
+   donde \(\theta_H = p \, \mathrm{d}q\) es la 1-forma de Liouville-Poincaré. En la
+   representación matricial simpléctica de dimensión \(2n \times 2n\):
+       \(\Omega_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix} \in \mathrm{Sp}(2n, \mathbb{R})\)
+   La dinámica Hamiltoniana de costo computacional \(H \colon M \to \mathbb{R}\) se rige
+   por el campo vectorial hamiltoniano \(X_H = \Omega^{-1} \nabla H\), cuyo flujo
+   \(\varphi_t^{X_H}\) preserva la medida de Liouville \(\mathrm{d}\mu = \frac{1}{n!} \omega^n\):
+       \(\mathcal{L}_{X_H} \omega = 0 \implies \det \left(\mathrm{D}\varphi_t^{X_H}\right) = +1\)
+   Defecto de simplecticidad admisible: \(\|M^\top \Omega M - \Omega\|_F \le \varepsilon_{\mathrm{sym}}\).
 
-  (A) MECÁNICA CELESTE DE POINCARÉ
-      · Sección transversal \(\Sigma = \{p\in M : h(p)=0\}\) con
-        \(\mathrm{d}h(X_H)\neq 0\) (transversalidad).                     [Poincaré]
-      · Codificación hipercompleja DIKW ≅ \(\mathbb{H}\):
-            \(1\mapsto\mathrm{PHYSICS},\; i\mapsto\mathrm{TACTICS},
-             j\mapsto\mathrm{STRATEGY},\; k\mapsto\mathrm{WISDOM}\).
-        La función de sección es \(h(q)=\|{\mathrm{Im}\,q}\| - {\mathrm{Re}\,q}\).
-      · Aplicación de primer retorno \(P\colon\Sigma\to\Sigma\),
-        jacobiano variacional \(DP\) y espectro de Lyapunov normal.     [First-return]
-      · Función de Melnikov (forma de Poisson):
-            \(M(t_0)=\displaystyle\int_{\mathbb{R}}\{H_0,H_1\}(\gamma_0(t),t+t_0)\,\mathrm{d}t\).
-        Cero simple \(\Leftrightarrow M(t_*)=0\) y \(\partial M/\partial t_0|_{t_*}\neq 0\)
-        \(\Rightarrow W^s\pitchfork W^u\) (caos homoclínico).            [Melnikov]
-      · Criterio KAM diofántico:
-            \(|\langle k,\omega\rangle|\ge\gamma/|k|^\tau\), \(\varepsilon<\varepsilon_{\mathrm{KAM}}\).
-                                                                        [KAM]
-      · Difusión de Arnold + tiempo de Nekhoroshev
-            \(T_{\mathrm{Nek}}\sim\exp\bigl((1/\varepsilon)^{1/(2n)}\bigr)\).  [Arnold]
+2. GEOMETRÍA CONFORME DE MAUPERTUIS-JACOBI Y FLUJOS ESPECTRALES (R₁, R₂, R₃)
+   El principio de mínima acción de Maupertuis reparametriza las geodésicas en la
+   superficie de energía constante \(H(p,q) = E\) sobre la variedad Riemanniana
+   \((Q, g_{MJ})\) mediante la métrica conforme de Maupertuis-Jacobi:
+       \(g_{MJ} = 2 \left(E - V(q)\right) g_0\)
+   Sobre el grafo dirigido acíclico (DAG) de la canalización, la evolución topológica
+   y espectral se rige por un sistema acoplado de tres flujos no lineales:
+     (a) Flujo de Ricci Discreto \(R_1\): Preserva la masa probabilística sobre las
+         aristas ajustando la métrica combinatoria \(g_{ij}\):
+             \(\frac{\mathrm{d} g_{ij}}{\mathrm{d}\tau} = -2 \mathrm{Ric}_{ij} + \frac{2\bar{R}}{n} g_{ij}\)
+     (b) Brecha de Fiedler \(R_2\): Maximiza la conectividad algebraica del Laplaciano
+         dirigido \(L = D - A\), donde \(\lambda_2(L_{\mathrm{sym}}) > 0\) garantiza la
+         ausencia de cuellos de botella computacionales y componentes aisladas.
+     (c) Flujo Isoespectral de Brockett-Shahshahani \(R_3\): Evoluciona las matrices de
+         densidad \(\rho\) y distribuciones de peso \(p\) preservando los invariantes de
+         conservación:
+             \(\dot{p}_i = p_i \left( (K p)_i - p^\top K p \right), \quad \dot{\rho} = [\rho, [\rho, \mathrm{diag}(p)]]\)
 
-  (B) AUTOMEJORA RECURSIVA DE NIVEL 3  (preparación observacional)
-      Fase 1 NO ejecuta N1/N2/N3. Emite el vector de rasgos
-            \(\theta_{\mathrm{seed}} = (\lambda_2,\nu,\varepsilon_{\mathrm{KAM}},|M|_\infty,D_{\mathrm{Arnold}},\lambda_{\mathrm{Lyap}})\)
-      que el kernel N3 (Fase 2) ingiere como condición inicial.
-      Contrato de frontera: Protocolo ``Phase2OrientKernel``.
+3. SECCIONES TRANSVERSALES DE POINCARÉ Y MAPPING DE RETORNO
+   Sea \(\Sigma = \{x \in M : h(x) = 0\}\) una hipersuperficie de codimensión 1. La
+   sección es estrictamente transversal al flujo \(X_H\) si se satisface la condición:
+       \(\left| \langle \nabla h(x), X_H(x) \rangle \right| > \varepsilon_{\mathrm{trans}} > 0, \quad \forall x \in \Sigma\)
+   La aplicación de primer retorno de Poincaré \(P \colon \Sigma \to \Sigma\) asigna
+   a cada punto \(x_k \in \Sigma\) su siguiente intersección \(x_{k+1} = P(x_k)\).
+   El exponente de Lyapunov normal \(\lambda_{\mathrm{Lyap}}\) sobre el jacobiano variacional
+   \(\mathrm{D}P\) caracteriza la estabilidad espectral de las órbitas periódicas.
 
-  (C) 3 FASES ANIDADAS
-      Fase 1 (OBSERVE)  ─►  espectro DAG + Σ + P + M + KAM + Arnold
-                            ⟹  emite ObserverPacket
-                            ⟹  project_to_phase_2  ≡  inicio formal de Fase 2
-      Fase 2 (ORIENT)   ─►  clausura transitiva + kernel N3
-                            ⟹  emite OrientationSeed
-      Fase 3 (DECIDE)   ─►  Mayer-Vietoris + veredicto Ω₃
-                            ⟹  DataProduct terminal
+4. FUNCIÓN DE MELNIKOV Y TANGENCIAS HOMOCLÍNICAS
+   Para hamiltonianos casi-integrables \(H(x,t) = H_0(x) + \varepsilon H_1(x,t)\), la
+   función de Melnikov mide la distancia de separación entre las variedades
+   invariantes estable \(W^s\) e inestable \(W^u\) a lo largo de la órbita homoclínica
+   \(\gamma_0(t)\):
+       \(M(t_0) = \int_{-\infty}^{\infty} \{H_0, H_1\}(\gamma_0(t), t + t_0) \, \mathrm{d}t\)
+   Si \(M(t_0) = 0\) y \(\frac{\partial M}{\partial t_0}\Big|_{t_0} \neq 0\), la intersección
+   \(W^s \pitchfork W^u \neq \varnothing\) es transversal, induciendo una herradura de Smale
+   y caos homoclínico en el espacio de fase.
+
+5. TEORÍA KAM Y DILATACIÓN DE ARNOLD / NEKHOROSHEV
+   Si la frecuencia \(\omega \in \mathbb{R}^n\) satisface la condición diofántica
+   \(|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau}\) para \(k \in \mathbb{Z}^n \setminus \{0\}\),
+   y el parámetro de perturbación cumple \(\varepsilon < \varepsilon_{\mathrm{KAM}}\), los toros
+   invariantes de los estratos DIKW persisten. La tasa de difusión de Arnold \(D_{\mathrm{Arnold}}\)
+   determina el tiempo de estabilidad efectiva de Nekhoroshev:
+       \(T_{\mathrm{Nek}} \sim \exp\left( \left(\frac{1}{\varepsilon}\right)^{\frac{1}{2n}} \right)\)
+
+6. SECUENCIA EXACTA DE MAYER-VIETORIS Y ACOPLAMIENTO CONNES-DALECKII-KREIN
+   Dada una descomposición de la malla de datos en dos subcomplejos \(A\) y \(B\), la
+   sucesión exacta de Mayer-Vietoris en homología:
+       \(\cdots \to H_1(A \cap B) \xrightarrow{\phi} H_1(A) \oplus H_1(B) \xrightarrow{\psi} H_1(A \cup B) \xrightarrow{\partial} H_0(A \cap B) \to \cdots\)
+   Garantiza la anulación estricta de ciclos emergentes no causales:
+       \(\Delta \beta_1 = \beta_1(A \cup B) - \left( \beta_1(A) + \beta_1(B) - \mathrm{rank}(\phi) + \mathrm{rank}(\partial) \right) \equiv 0\)
+   Bajo perturbaciones del operador Laplaciano \(\Delta A\), la variación del espacio
+   subhomológico se acota mediante la fórmula de Lipschitz de Connes-Daleckii-Krein:
+       \(\|\Delta P_{H_1}\|_2 \le \frac{1}{2 \lambda_2^{3/2}} \|\Delta A\|_2\)
+
+7. AUTOMEJORA RECURSIVA DE NIVEL 3 (RSI LEVEL 3)
+   Se define el endofuntor de automejora sobre la fibración \(\Theta \times \mathfrak{n}_n \times A\):
+     · Nivel 1 (Paramétrico) : \(\theta_{t+1} = \theta_t - \alpha_1 \nabla_\theta L\)
+     · Nivel 2 (Topológico) : \(O_{t+1} = \Pi_{\mathfrak{n}_n}\left(O_t - \alpha_2 \nabla_O L\right)\)
+     · Nivel 3 (Meta-Regla)  : \(\alpha_{t+1} = \mathrm{clip}\left(\alpha_t - \alpha_3 \nabla_\alpha \Phi\right)\)
+   con la condición de punto fijo e idempotencia asintótica \(I_3 \circ I_3 = I_3\) y no-trivialidad
+   \(\left\|\frac{\partial I_3}{\partial \alpha}\right\|_F > 0\). La adjudicación final en la lógica
+   de Heyting \(\Omega_3\) emite el veredicto terminal.
+
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+────────────────────────────────────────────────────────────────────────────────
+· PREVENCIÓN DE PÉRDIDAS POR ERRORES EN APU: Evita desviaciones financieras e
+  inconsistencias presupuestarias al garantizar que ningún cálculo de costo se realice
+  sobre datos no validados o desfasados en el tiempo.
+· ELIMINACIÓN DE CICLOS INFINITOS Y RE-TRABAJO: La verificación estricta de
+  aciclicidad espectral (\(A^n = 0\)) bloquea dependencias circulares en los insumos,
+  ahorrando miles de dólares en cómputo fallido y tiempo operativo.
+· GARANTÍA DE INTEGRIDAD EN FUSIONES DE DATOS: La secuencia de Mayer-Vietoris evita la
+  duplicación de rubros y la pérdida inadvertida de ítems durante la consolidación de
+  presupuestos multiorigen, asegurando auditorías 100% confiables ante fiscalización.
+· OPTIMIZACIÓN AUTOMÁTICA DE RECURSOS: El kernel N3 autorregula los parámetros y tiempos
+  de caché sin intervención humana, reduciendo drásticamente el costo de mantenimiento
+  del software y previniendo caídas del servidor por cuellos de botella de memoria.
 """
 
 from __future__ import annotations
