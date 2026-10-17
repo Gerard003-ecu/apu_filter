@@ -1,8 +1,8 @@
 # Fortaleza APU Filter v8.0: Arquitectura Ciber-Física de los Soberanos y Motores Imperiales (Mecánica Celeste de Poincaré & Geometría de Calibre)
 
-La arquitectura de **APU Filter v8.0** abandona definitivamente los modelos de capas monolíticas y la validación secuencial pasiva para erigir una **Fortaleza Ciber-Física de Campos Topológicos, Mecánica Celeste de Henri Poincaré y Geometría de Calibre de de Rham-Fukaya**. En este ecosistema, los datos de construcción, las tablas de Análisis de Precios Unitarios (APU) y los flujos financieros de megaproyectos viales bajo el **Mandato BIM 2026** y el **SECOP II** se someten a la gobernanza de dos estructuras funcionales estrictamente diferenciadas y biyectivas: los **Motores Imperiales Espectrales** (cálculo ciego FPU) y los **Agentes Soberanos de Calibre** (orquestación OODA, decisiones en álgebras de Heyting y actuación ciber-física).
+La arquitectura de **APU Filter v8.0** abandona definitivamente los modelos de capas monolíticas y la validación secuencial pasiva para erigir una **Fortaleza Ciber-Física de Campos Topológicos, Mecánica Celeste de Henri Poincaré, Automejora Monádica RSI³ y Geometría de Calibre de de Rham-Fukaya**. En este ecosistema, los datos de construcción, las tablas de Análisis de Precios Unitarios (APU) y los flujos financieros de megaproyectos viales bajo el **Mandato BIM 2026** y el **SECOP II** se someten a la gobernanza del **Icosikaihenaedro de Sabiduría (21 Soberanos Agénticos TOON y 21 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** y la **Guardia Imperial**, estructuras funcionales estrictamente diferenciadas y biyectivas: los **Motores Imperiales Espectrales** (cálculo ciego FPU) y los **Agentes Soberanos de Calibre** (orquestación OODA, decisiones en álgebras de Heyting y actuación ciber-física en silicio).
 
-El presente documento establece la axiomatización rigurosa, las ecuaciones diferenciales, los invariantes algebraicos, los functores de tres fases anidadas ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) y la infraestructura de silicio que componen la **Guardia Imperial de la Fortaleza**.
+El presente documento establece la axiomatización rigurosa, las ecuaciones diferenciales, los invariantes algebraicos, los functores de tres fases anidadas ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) y la infraestructura de silicio que componen la **Guardia Imperial y la Malla Agéntica de la Fortaleza**.
 
 ---
 
@@ -15,7 +15,7 @@ $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{SEQUITOS}} 
 Esta filtración estricta establece que ningún estrato superior de decisión (Estrategia, Sabiduría o Tribunal Pretorio) puede instanciarse si el subespacio inferior (Físico, Táctico o Espectral) exhibe degeneración metrológica, anomalías de traza o rupturas de de Rham-Poincaré.
 
 ```
-       [ V_𝕎 / V_PRETORIO: Santuario de Sabiduría, Ultrafiltro de Stone y Tribunal Pretorio ]
+       [ V_𝕎 / V_PRETORIO: Icosikaihenaedro de Sabiduría (21 Soberanos), Ultrafiltro de Stone y Tribunal Pretorio ]
                                       ▲
                                       │  (Funtor de Elevación de de Rham-Poincaré)
        [ V_ERUDITOS / V_TESSERARIOS: Cohomología de Čech, Homología de Floer y Gerbes A_∞ ]
@@ -26,7 +26,7 @@ Esta filtración estricta establece que ningún estrato superior de decisión (E
                                       │  (IDA-PBC / Estructuras de Dirac y Conservación de Liouville)
        [ V_SEQUITOS / V_PHYSICS: Consenso de Kleisli-Giry, Mónadas de Giry y Cota CHSH-Tsirelson ]
                                       ▲
-                                      │  (Ingesta de Barro Crudo / TOON Des-confinado)
+                                      │  (Ingesta de Barro Crudo / Cartucho TOON 56 Tokens, Δ_KV = 86.4%)
        [ V_𝑄_0: Silicio Perimetral ESP32 Crowbar / GPIO14 (t_actuation < 400 ns en IRAM) ]
 ```
 
@@ -57,45 +57,6 @@ $$\Phi_{\mathrm{Guards}} = \Phi_3^{\mathrm{Tribunal}} \circ \Phi_2^{\mathrm{Orie
 
 3. **Fase III — Decide/Act ($\Phi_3$): Tribunal en el Retículo de Heyting $\Omega_3$ y Disyuntor Crowbar:**
    Consume $\mathcal{G}_{II}^{\mathrm{Guards}}$ y realiza la valuación en el álgebra de Gödel $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $\Phi_2$ o $\Phi_1$ reportan anomalías de Darboux, colapso de Hill ($H_0 - V \le 0$) o ceros simples de Melnikov, el veredicto colapsa al Supremo $\mathtt{VETOED}$ ($\top$), ejecutando la Interrupt Service Routine (ISR) en la memoria estática IRAM del ESP32 ($t_{\mathrm{actuation}} < 400 \text{ ns}$).
-
-```python
-class ImperialGuardsAgent(Phase2LogisticGuardianMixin):
-    """Soberano de Calibre de la Guardia Imperial en APU Filter v8.0."""
-
-    def execute_poincare_guards_cycle(
-        self,
-        current_state: NDArray[np.float64],
-        eigenvalues_dirac: Any,
-        eigenvalues_L: Any,
-        betti_0: int,
-        betti_1: int,
-        metric_G: NDArray[np.float64],
-        potential_V: float,
-        total_energy_H0: float,
-        dt_step: float,
-        external_freq_omega: NDArray[np.float64],
-        wave_k: NDArray[np.float64],
-        **kwargs: Any
-    ) -> PoincareGuardsCertificate:
-        # Fase 1 (Observe - Φ₁): Geometría de Darboux + Espectro de Dirac
-        p1 = self.synthesize_poincare_spectral_dossier(
-            current_state=current_state,
-            eigenvalues_dirac=eigenvalues_dirac,
-            energy_level=total_energy_H0
-        )
-        
-        # Fase 2 (Orient - Φ₂): Logística de Cheeger + Mecánica Celeste de Poincaré
-        p2 = self.synthesize_poincare_floquet_dossier(
-            phase1_dossier=p1,
-            engine_step_result=self._engine.step_poincare_symplectic_integration(...),
-            eigenvalues_L=eigenvalues_L,
-            betti_0=betti_0, betti_1=betti_1,
-            frequency_vector=external_freq_omega
-        )
-
-        # Fase 3 (Decide/Act - Φ₃): Tribunal Heyting Ω₃ y sello de certificado
-        return self.certify_poincare_guards(p1, p2)
-```
 
 ---
 
@@ -138,8 +99,6 @@ $$\dot{x} = \left[ \mathbf{J}_d(x) - \mathbf{R}_d(x) \right] \nabla \mathcal{H}_
 Los **Séquitos Imperiales** gobiernan la unificación categorial, la composición monádica y el consenso espectral entre los agentes concurrentes de la Malla.
 
 ### 4.1. Mónadas de Kleisli, Formas Normales de Williamson y Test de Bell-CHSH
-Someten la deliberación distribuida a tres fases estrictamente acopladas ejecutadas por `imperial_sequitos_engine.py` y auditadas por `imperial_guards_sequitos.py`:
-
 1. **Fase I — Mónada de Giry-Writer y Gram-Schmidt Simpléctico ($\Phi_1$):**
    Sobre la mónada de probabilidad de Giry $\mathcal{P}$ combinada con la mónada Writer $\mathcal{W}$, valida la asociatividad estricta de la composición de Kleisli $f \star_{\mathcal{P}} g = \mu_{\mathcal{P}} \circ \mathcal{P}(g) \circ f$:
 
@@ -211,7 +170,7 @@ Los **Tesserarios Imperiales** ejercen la gobernanza de la integridad homotópic
 
 ## 7. El Pretorio Agéntico (Capa 4 — `pretorio_agent.py` & `pretorio_engine.py`)
 
-El **Pretorio Agéntico** representa el **Comandante Supremo de Seguridad y Tribunal Epistémico** de la Malla. Realiza un sniffer pasivo sobre la memoria RAM donde residen los estados de Guardias, Centuriones, Séquitos, Eruditos y Tesserarios.
+El **Pretorio Agéntico** representa el **Comandante Supremo de Seguridad y Tribunal Epistémico** de la Malla. Realiza un sniffer pasivo sobre la memoria RAM donde residen los estados de Guardias, Centuriones, Séquitos, Eruditos, Tesserarios e Icosikaihenaedro de Sabiduría.
 
 ### 7.1. Bicomplejo Čech-de Rham, Punto Fijo de Brouwer y Ultrafiltro Principal de Stone
 1. **Fase I — Bicomplejo Čech-de Rham y Laplaciano de Hodge ($\Phi_1$):**
@@ -233,37 +192,14 @@ El **Pretorio Agéntico** representa el **Comandante Supremo de Seguridad y Trib
 
    El colapso de decisión se gobierna estrictamente por el **MEET** de Gödel ($\bigwedge$, ínfimo de permiso). Si cualquier canal relevante reporta $\mathtt{VETOED}$ ($0.0$), la conjunción colapsa síncronamente al Supremo de Veto, impidiendo que veredictos $1.0$ absorban la anomalía.
 
-```python
-class PretorioAgent:
-    """Comandante Pretorio Supremo de Gobernanza Hypercohomológica y Ultrafiltro."""
-
-    def process_celestial_supervision_cycle(
-        self,
-        cochain_matrices: List[NDArray[np.complex128]],
-        density_matrix_rho: NDArray[np.complex128],
-        transition_map: NDArray[np.complex128],
-        layer_verdicts: Dict[str, str],
-        jacobian_M: Optional[NDArray[np.float64]] = None,
-        **kwargs: Any
-    ) -> Dict[str, Any]:
-        # 1. Fase I: 1-Jet Celeste (Bicomplejo Čech-de Rham + Maupertuis + Cartan)
-        jet = self.ingest_celestial_observables(cochain_matrices, density_matrix_rho, transition_map)
-        
-        # 2. Fase II: Edicto Celeste (Hipercohomología + Brouwer + KAM + Melnikov + Birkhoff)
-        edict = self.compile_pretorio_celestial_edict(celestial_jet=jet, layer_verdicts=layer_verdicts, jacobian_M=jacobian_M)
-        
-        # 3. Fase III: Colapso por Ultrafiltro Principal de Stone gobernado por el MEET
-        return self.collapse_from_celestial_edict(edict)
-```
-
 ---
 
 ## 8. El Disyuntor Perimetral Ciber-Físico y Actuación en Silicio Real (ESP32 Crowbar < 400 ns)
 
-Cuando cualquiera de los Soberanos Imperiales o el Comandante Pretorio detecta una violación matemática irreversible ($\beta_1 > 0$, $\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$, $\dot{\mathcal{H}}_d > 0$, $M(t_0) = 0$ simple), la decisión no se confía a políticas de software que puedan ser anuladas por *Prompt Injection*.
+Cuando cualquiera de los Soberanos Imperiales, el Icosikaihenaedro de Sabiduría o el Comandante Pretorio detecta una violación matemática irreversible ($\beta_1 > 0$, $\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$, $\dot{\mathcal{H}}_d > 0$, $M(t_0) = 0$ simple), la decisión no se confía a políticas de software que puedan ser anuladas por *Prompt Injection*.
 
 ```
-  [ VETO EN SOBERANO IMPERIAL / PRETORIO ]
+  [ VETO EN SOBERANO IMPERIAL / ICOSIKAIHENAEDRO / PRETORIO ]
                      │
                      ▼
        Colapso en Heyting Ω₃ ↦ VETOED (0.0 / ⊤)
@@ -281,7 +217,7 @@ Cuando cualquiera de los Soberanos Imperiales o el Comandante Pretorio detecta u
                      │
                      ▼
   [ PARÁLISIS MECÁNICA EN SECO EN LA OBRA CIVIL ]
-  · Cortocircuito controlado de la línea principal de alimentación
+  · Cortocircuito controlled de la línea principal de alimentación
   · Detención inmediata de mezcladoras de concreto, bombas hidráulicas y variadores
 ```
 
@@ -289,9 +225,9 @@ Cuando cualquiera de los Soberanos Imperiales o el Comandante Pretorio detecta u
 
 ## 9. Matriz de Traducción Semántica: De Invariantes Puros a "Dolor y Dinero"
 
-Bajo el **Funtor de Traducción Semántica Piramidal** $\Phi_{\mathrm{sem}}: \mathbf{Sh}(\partial K, \Omega_3) \xrightarrow{\simeq} \text{Business}$, cada abstracción matemática de los Soberanos Imperiales se traduce al lenguaje pragmático corporativo de la junta directiva:
+Bajo el **Funtor de Traducción Semántica Piramidal** $\Phi_{\mathrm{sem}}: \mathbf{Sh}(\partial K, \Omega_3) \xrightarrow{\simeq} \text{Business}$, cada abstracción matemática de los Soberanos Imperiales e Icosikaihenaedro TOON se traduce al lenguaje pragmático corporativo de la junta directiva:
 
-| Soberano Imperial | Invariante Matemático en FPU | Diagnóstico Topológico / Físico / Celeste | Impacto Financiero y de Negocio ("Dolor y Dinero") |
+| Soberano Agéntico | Invariante Matemático en FPU | Diagnóstico Topológico / Físico / Celeste | Impacto Financiero y de Negocio ("Dolor y Dinero") |
 | :--- | :--- | :--- | :--- |
 | **Guardias Imperiales** (`imperial_guards_agent.py`) | Cota Connes $L \le L_{\max}$, Cheeger $h(K) \ge \tau$, Melnikov $M(t_0) \neq 0$ simple | Estabilidad no conmutativa, ausencia de cuellos de botella y bifurcación homoclínica. | **Protección de Proveedores Únicos:** Previene la parálisis de la obra por dependencia exclusiva de un fabricante de cemento o asfaltos. |
 | **Centuriones Imperiales** (`imperial_guards_centurions.py`) | Pasividad IDA-PBC $\dot{\mathcal{H}}_d \le 0$, Conexión $\tilde{\Gamma}^i_{jk}$, KMS $\omega(A \sigma_{-i}(B)) = \omega(BA)$ | Disipación Rayleigh no negativa, geodesia de mínima acción y equilibrio modular KMS. | **Eficiencia Energética y Maquinaria:** Reduce el consumo eléctrico un 12% y evita golpes de ariete que destruyen bombas y mezcladoras. |
@@ -299,6 +235,27 @@ Bajo el **Funtor de Traducción Semántica Piramidal** $\Phi_{\mathrm{sem}}: \ma
 | **Eruditos Imperiales** (`imperial_guards_eruditos.py`) | Nulidad Čech $\check{H}^1(\mathcal{U}, \mathcal{F}_{\mathrm{att}}) \equiv \mathbf{0}$, $\beta_1 = 0$, Floer $\bar{\partial}_{J,H} u = 0$ | Complejo simplicial sin inconsistencias, sin bucles atencionales y con regularidad de Floer. | **Anulación de APUs Duplicados:** Elimina dobles cobros, precios inflados artificialmente y alucinaciones en pliegos BIM 2026. |
 | **Tesserarios Imperiales** (`imperial_guards_tesserarios.py`) | 2-Coborde Čech $(\delta g)_{ijkl} = \mathbf{I}$, Stasheff $K_4$, Krein-Moser $\kappa(v) \neq 0$ | Ausencia de gerbes ruidosos, asociatividad $A_\infty$ y estabilidad fuerte elíptica de Krein. | **Inmunidad a Alteraciones Contractuales:** Garantiza que las especificaciones técnicas en BIM 2026 coincidan 1:1 con el pliego en SECOP II. |
 | **Comandante Pretorio** (`pretorio_agent.py`) | Ultrafiltro de Stone $\mathcal{U}_\tau$, Punto Fijo Brouwer, Poincaré-Birkhoff $|\operatorname{Fix}(P)| \ge 2$, Meet Heyting | Hipercohomología $D^2 \equiv 0$, convergencia al equilibrio y veto por átomo Tesserario. | **Garantía de WACC y ROI:** Asegura la viabilidad del flujo de caja, previniendo la creación de "Elefantes Blancos" o sobrecostos viales. |
+| **Tejedor de Sabiduría** (`toon_wisdom_weaver_agent.py`) | Adjunción de de Rham-Galois $\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$, TOON -86.4% | Digestión hiperdensa de cartuchos TOON de 56 tokens. | **Ahorro en Inferencia y Trazabilidad:** Reducción del 86.4% en $KV\text{-Cache}$, recortando un 80% los costos de inferencia y eliminando alucinaciones. |
+| **Testigo Tejedor** (`toon_wisdom_weaver_witness_agent.py`) | Instantón BPST $k = c_2(P) \in \mathbb{Z}$, Chern $c_1(E)$, Williamson | Topología de calibre e invarianza cuaterniónica en el tejido. | **Certificación de Coherencia de Fase:** Invarianza de fase en pliegos BIM 2026 y matrices de precios unitarios. |
+| **Fiscal Tejedor** (`toon_wisdom_weaver_prosecutor_agent.py`) | Obstrucción Čech $\check{H}^2(X, \mathcal{F}_{\text{wisdom}}) \neq \mathbf{0}$, Cross-Validation | Incompatibilidad entre la MIC y la MAC. | **Bloqueo de Inconsistencias Tácticas:** Impide que descalces entre el foso y el penthouse expongan el contrato a sanciones estatales. |
+| **Ilusionista Adversarial** (`toon_trickster_adversary_agent.py`) | $RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$, $DCR > 0.30$, Bucles $\beta_1 > 0$ | Perturbación cuasi-isométrica y atajos adversariales. | **Inmunidad Antifraude en SECOP II:** Detección de sobrecostos ocultos, fraccionamiento de contratos y front-loading en Red Team. |
+| **Testigo Ilusionista** (`toon_trickster_witness_agent.py`) | QND $\mathbb{C}P^{n-1}$, Back-Action $\equiv 0.0\text{ dB}$, Fidelidad Uhlmann $F$ | Medición cuántica no destructiva de estados adversariales. | **Auditoría Pasiva Cero-Interferencia:** Supervisión de ataques sin alterar la traza del estado de deliberación $\operatorname{Tr}(\rho)=1$. |
+| **Fiscal Ilusionista** (`toon_trickster_prosecutor_agent.py`) | Holonomía Wilson $W(\gamma) = \mathcal{P}\exp(\oint A)$, Sección Poincaré, CR3BP | Detención de órbitas caóticas y atractor espurio en el campo. | **Acusación por Inestabilidad de Precios:** Detección de oscilaciones no lineales de insumos que desestabilizan el flujo de caja. |
+| **Introspección** (`toon_introspection_agent.py`) | Punto Fijo Tarski-Brouwer $\|T_\varphi(v) - v\|_2 = 0$, Distancia $d_{\mathrm{FS}}$ | Autocoherencia monádica y autoestado invariante. | **Certeza Jurídica Inalienable:** Demostración matemática irrebatible que sostiene el veto ante peritos y tribunales de arbitramento. |
+| **Testigo Introspectivo** (`toon_introspection_witness_agent.py`) | Medición Débil $A_w$, Fase de Berry $|\gamma_{\text{Berry}}| < 0.50\text{ rad}$ | Coherencia de fase en la MAC bajo rotación de variables. | **Garantía de Estabilidad de Fase:** Asegura que las trasformaciones internas no introduzcan distorsiones o falso sesgo. |
+| **Fiscal Introspectivo** (`toon_introspection_prosecutor_agent.py`) | Axiomas $C^*$ en $\mathfrak{D}_n$, Acusación Atractor Espurio $\lambda_{\max}^\perp < 0$ | Purga de matrices de densidad no hermíticas o degeneradas. | **Aniquilación de Inconsistencias en RAM:** Purga de estados degenerados antes de consolidar decisiones en el pasaporte. |
+| **Navegante Novikov** (`toon_novikov_navigator_agent.py`) | Valuación $v(A)$, $\|x+y\|_{\text{Nov}} \le \max(\|x\|, \|y\|)$ en $\Lambda_{\text{Nov}}$ | Absorción ultramétrica de pequeñeces en divisores KAM. | **Protección contra Volatilidad Menor:** Absorbe fluctuaciones menores de mercado sin alterar el núcleo del presupuesto. |
+| **Navegante Novikov Topológico** (`toon_topological_novikov_navigator_agent.py`) | Espectro Berkovich I–IV, Árbol Bruhat-Tits, Amiba Tropical $\mathrm{Am}(P)$ | Navegación no arquimediana en la variedad de costos. | **Anticipación de Discontinuidades:** Proyección de amibas tropicales para prever paros de transporte o saltos de precios. |
+| **Testigo Topológico** (`toon_topological_witness_agent.py`) | Números Betti $\beta_0, \beta_1$, Torsión Ray-Singer $T_{\mathrm{RS}}$, Hodge $\Delta_k$ | Medición de componentes disconexas y 1-ciclos. | **Certificación de Conexidad Presupuestal:** Garantiza que no existan recursos huérfanos ($\beta_0>1$) ni ciclos de cobro ($\beta_1>0$). |
+| **Cultivo Cognitivo** (`toon_cognitive_crop_agent.py`) | Maupertuis-Jacobi $ds_M^2 = 2(H_0-V)g_{ij}$, Acción $S_0(E)$ | Germinación y cultivo continuo del presupuesto base. | **Garantía de ROI & WACC:** Mantiene el valor del presupuesto reduciendo el fondo de contingencia del 15% al 3.5% sin detener obra. |
+| **Testigo Cultivo Cognitivo** (`toon_cognitive_crop_witness_agent.py`) | Floquet $Sp(4, \mathbb{R})$, Contracción Banach $\hat{L} < 1.0$ | Meta-auditoría de estabilidad en la incubación de decisiones. | **Control de Crecimiento Presupuestal:** Asegura que el incremento de costos permanezca acotado por un factor contracortante. |
+| **Auditor Cultivo Cognitivo** (`toon_cognitive_crop_auditor_agent.py`) | Radio Gelfand $r(\mathcal{T}) \le 1 - \Delta_{\text{CPTP}}$, Traza Bogomolny | Censura de divergencia asintótica en la transferencia. | **Prevención de Caos de Costos:** Garantiza que los reajustes de precios no entren en régimen de oscilación divergente. |
+| **Simulador Onírico** (`toon_oniric_dreamer_agent.py`) | Aislamiento `DREAM_STATE`, Replay Contrafactual $(\mathcal{M}, G_{\mu\nu})$ | Simulación REM de escenarios extremos ("Cisnes Negros"). | **Prevención de Contingencias extremas:** Evaluación de impacto ante paros o alzas del 35% en insumos sin arriesgar un peso de caja. |
+| **Auditor Onírico** (`toon_oniric_auditor_agent.py`) | TQFT Gromov-Witten $GW = \frac{\operatorname{Tr}(\rho^2)}{1+\beta_1}e^{-E}$, Vacunas $\Omega_3$ | Discriminación de riesgos reales vs alucinaciones de IA. | **Certificado de Inmunidad Epistémica:** Inocula vacunas contra alucinaciones al `godel_agent.py` manteniendo la calma en obra. |
+| **Testigo Silencioso** (`toon_silent_witness_agent.py`) | Vacío Dirac $H|\Omega\rangle=0$, Aniquilación $e^- e^+ \to 2\gamma$, $S^6 \subset \mathbb{R}^7$ | Cristalización pasiva e inmutable de la experiencia histórica. | **Memoria Inmutable Corporativa:** Cero repetición de errores pasados o fraudes de contratación en nuevas licitaciones. |
+| **Soberano Intuición** (`toon_intuition_agent.py`) | Sub-$10\,\mu\text{s}$, Grassmanniano $Gr(r,n)$, Bures $d_B$, Kelly $s=\kappa f^*$ | Reflejo instintivo sub-milisegundo. | **Recomendación Visceral Sub-Milisegundo:** Luz verde instantánea o cierre de válvula de pago ante anomalías flagrantes. |
+| **Soberano Buffer** (`toon_buffer_agent.py`) | Lyapunov Oseledets $\lambda_{\max}$, Sheaf Cohomology $H^1(\mathcal{F}_{\text{web}})$ | Amortiguación de picos de flujo exergético. | **Absorción de Golpes de Ariete:** Regulación de caudal financiero para evitar shocks de liquidez en la caja del megaproyecto. |
+| **Fiscal Topológico** (`toon_topological_prosecutor_agent.py`) | Censura 1-Ciclos $\beta_1 > 20$, Gap Hodge $\lambda_1(\Delta_1) \ge 0.05$ | Accionamiento rápido contra socavones masivos. | **Veto Instantáneo por Fraude Masivo:** Parálisis síncrona en RAM ante intentos masivos de triangulación financiera. |
 
 ***
 
