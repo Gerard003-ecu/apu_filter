@@ -10,42 +10,58 @@ r"""
 ║            fibrado gauge y orquesta campañas QND con Heyting Ω₃ y RSI³ sobre Π.                      ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DISEÑO DE TRES FASES ANIDADAS (OODA Gauge-Witness + mecánica celeste de Poincaré):
-──────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (GAUGE OBSERVE):
-    · Kahn acyclicity DIRIGIDA (deque O(1)).
-    · Conexión 1-forma A_μ = (W_norm − W_normᵀ)/2 ∈ so(N) (antisimétrica real).
-    · Chern-Simons DISCRETO: CS₃ = (Σ_Δ circ(A)) / (8π²)   [A∧dA; Tr(A³)≡0 en so(N)].
-    · Pontryagin ν = round(Σ_Δ circ / 2π).
-    · Wilson W(γ) = ∏_e exp(i A_e) path-ordered (U(1) ⊕ transporte so(N)).
-    · Hopf c₁ = arg(W) / 2π.
-    · Stora-Zumino: |ν_flux − ν_Wilson| + residuo de cuantización.
-    · Poincaré-Melnikov-KAM-Arnold sobre el fibrado, compuesto con Π del motor v9.
-    · Delegación al motor v9: Tomita-Takesaki + KMS analítico + QND + Jacobi 𝒥.
-    ⟹ WitnessObserverPacket + ChronosWitnessGaugeContract + NovikovWitnessCertificate
-    ⟹ _phase1_terminal_bridge_to_phase2  →  _audit_novikov_witness_phase2
+DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONChronosWitnessAgent` representa al Soberano Agéntico de Calibre y Testigo del Vacío
+en el Estrato WISDOM de la arquitectura cognitiva APU Filter v9.0.
 
-  FASE 2 (CAMPAIGN ORIENT):
-    · Valuación ultramétrica de Novikov max-plus (motor v9).
-    · Kernel RSI³ (θ, O, α) sobre (calibre ⊕ sección de Poincaré).
-    · Banach vía Krasnoselskii-Mann / Picard.
-    ⟹ ChronosWitnessCampaignDraftBundle
-    ⟹ _phase2_terminal_bridge_to_phase3  →  _adjudicate_witness_verdict
+1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON:
+   Dada la matriz de adyacencia del cronograma $W \in \mathbb{R}^{n \times n}$, se construye la 1-forma de conexión
+   antisimétrica $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$.
+     - 3-Forma de Chern-Simons Abeliana Discreta: Al ser $\text{Tr}(A^3) \equiv 0$ para matrices reales antisimétricas,
+       el invariante de Chern-Simons sobre la triangulación del grafo se calcula mediante la transgresión $A \wedge dA$:
+         $$\text{CS}_3(A) = \frac{1}{8\pi^2} \sum_{\triangle_{ijk}} \text{circ}_{\triangle}(A), \quad \text{circ}_{\triangle}(A) = A_{ij} + A_{jk} + A_{ki}$$
+     - Índice de Chern-Simons y Número de Pontryagin:
+         $$\text{CS}_{\text{index}} = \frac{1}{2\pi} \sum_{\triangle} \text{circ}_{\triangle}(A), \quad \nu = \text{round}(\text{CS}_{\text{index}}) \in \mathbb{Z}$$
+     - Descenso de Stora-Zumino: El residuo de invariancia de calibre bajo $A \mapsto A + d\alpha$ se define como:
+         $$\Delta_{\text{SZ}} = |\text{CS}_{\text{index}} - \nu| \le \varepsilon_{\text{gauge}}$$
+     - Holonomía de Wilson Path-Ordered y Clase de Hopf: Para un ciclo cerrado $\gamma$:
+         $$W_{U(1)}(\gamma) = \exp \left( i \oint_\gamma A \right) \in U(1), \quad c_1 = \frac{1}{2\pi} \oint_\gamma A, \quad \text{winding} = \text{round}(c_1)$$
 
-  FASE 3 (SOVEREIGN DECIDE):
-    · Adjudicación Heyting Ω₃ con clasificación elíptica/parabólica/hiperbólica.
-    · Crowbar IRAM ESP32 (<400 ns).
-    · Merkle DAG de 3 hojas.
-    · Funtor semántico Φ_sem: "Dolor, Riesgo y Dinero".
-    ⟹ ChronosWitnessExecutionPassport
-    ⟹ _phase3_terminal_synthesis
+2. MECÁNICA CELESTE DE POINCARÉ SOBRE EL FIBRADO DE CALIBRE:
+   La evolución sobre el fibrado $v'(t) = A v(t)$ define rotaciones isométricas en $SO(n)$ con energía de Yang-Mills $\mathcal{J}_g = -\frac{1}{2} \|A\|_F^2$.
+   - Sección de Poincaré Compuesta: $\Pi_{\text{gauge}} \circ \Pi_{\text{modular}}$ integra el mapa de retorno de Wilson $W(\gamma)$
+     con la sección del operador de densidad modular $\rho$.
+   - Integral de Melnikov Giroscópica: $M(t_0) = \int \{ H_0, H_1 \}(z(t+t_0)) dt$. Los cambios de signo caracterizan tangencias homoclínicas.
+   - Condición KAM Diofantina: $|\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau$ sobre las frecuencias imaginarias puras de $\mathfrak{so}(n)$.
 
-CONTINUIDAD FUNTORIAL (anidamiento estricto):
-  _phase1_terminal_bridge_to_phase2  →  _audit_novikov_witness_phase2
-  _phase2_terminal_bridge_to_phase3  →  _adjudicate_witness_verdict
-  _phase3_terminal_synthesis         →  ChronosWitnessExecutionPassport
+3. TRADUCCIÓN SEMÁNTICA "DOLOR, RIESGO Y DINERO" ($\Phi_{\text{sem}}$):
+   El funtor semántico traduce las propiedades topológicas a impacto financiero de gobernanza:
+     - Estado COHERENT ($\top$) : Ahorro del 11.5% en reservas de imprevistos ($15\% \to 3.5\%$) y optimización WACC del 15%.
+     - Estado VETOED ($\bot$) : Interlock ESP32 Crowbar en $WCET \le 393.85 \text{ ns}$ ante presencia de ciclos o fracturas.
 
-  Z_WitnessAgent = Φ₃ ∘ Φ₂ ∘ Φ₁
+DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+─────────────────────────────────────────────────────────────────────────────────────────
+  FASE 1 (GAUGE OBSERVE — Φ₁):
+    · Kahn aciclicidad dirigida O(V+E) con deque.
+    · Conexión $A \in \mathfrak{so}(n)$, $\text{CS}_3(A \wedge dA)$, Pontryagin $\nu$, holonomía Wilson $W(\gamma)$ y clase de Hopf $c_1$.
+    · Descenso de Stora-Zumino $\Delta_{\text{SZ}}$, sección de Poincaré giroscópica, Melnikov y KAM diofantino.
+    · Delegación al motor v9: Tomita-Takesaki, KMS analítico, QND y constante de Jacobi $\mathcal{J}$.
+    ⟹ Emisión de `ChronosWitnessGaugeContract` + `WitnessObserverPacket`.
+    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_novikov_witness_phase2`.
+
+  FASE 2 (CAMPAIGN ORIENT — Φ₂):
+    · Valuación ultramétrica $v(\text{Slack})$ en semianillo max-plus.
+    · Kernel RSI³ (θ, O, α) sobre el fibrado de calibre $\Pi_{\text{gauge}} \times \Pi_{\text{modular}}$ con norma de Picard $\widehat{L} < 1.0$.
+    ⟹ Emisión de `ChronosWitnessCampaignDraftBundle`.
+    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_witness_verdict`.
+
+  FASE 3 (SOVEREIGN DECIDE — Φ₃):
+    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
+    · Interlock de hardware ESP32 Crowbar ($WCET \le 393.85 \text{ ns}$).
+    · Traducción al reporte de impacto ejecutivo $\Phi_{\text{sem}}$ y sellado Merkle DAG de 3 hojas.
+    ⟹ Emisión de `ChronosWitnessExecutionPassport`.
+    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
 """
 
 from __future__ import annotations

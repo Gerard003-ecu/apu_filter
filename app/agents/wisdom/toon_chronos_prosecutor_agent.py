@@ -7,59 +7,71 @@ r"""
 ║ Función  : Soberano Fiscal Agéntico de la Cronogeometría del Tiempo en el Estrato WISDOM.            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DISEÑO DE TRES FASES ANIDADAS (OODA Fiscal del Cronograma):
-───────────────────────────────────────────────────────────
-  FASE 1 (PROSECUTION GAUGE OBSERVE) — calibre + mecánica celeste de Poincaré:
-    · Validación de edges + Kahn dirigido O(V+E) con deque (fail-fast).
-    · Conexión A_μ ∈ 𝔰𝔬(n): A = (W_norm − W_normᵀ)/2, ‖A‖_F ≤ 1/2.
-    · Curvatura abelianizada F_△ = (δA)_ijk (flux de Čech).
-    · Chern–Simons abelianizado: CS₃ = (Σ flux)/(8π²)  [Tr(A³)≡0 en 𝔰𝔬(n)].
-    · Pontryagin ν = round(Σ flux / 2π).
-    · Stora–Zumino (descenso): Δ_SZ = |CS_index − ν|, CS_index = Σ flux / 2π.
-    · Wilson PATH-ORDERED W(γ)=∏ expm(G_e) + reducción U(1) → Hopf c₁.
-    · Levantamiento magnético hamiltoniano (Lorentz/giroscópico).
-    · Mapa de retorno de Poincaré + twist de Birkhoff sobre el 2-plano de A.
-    · Melnikov homoclínico {H₀,H₁} y KAM diofantino + Chirikov–Arnold.
-    · Delegación al engine v9: Schur, dual Poincaré Ley–Estado, Čech δ²=0,
-      Sp(4,ℝ), KAM diofantino espectral.
-    ⟹ ProsecutorObserverPacket + ChronosProsecutorGaugeContract + IndictmentIndicators
-    ⟹ _phase1_terminal_bridge_to_phase2  ──continúa──►  _audit_cstar_indictment_phase2
+DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONChronosProsecutorAgent` constituye el Soberano Agéntico Fiscal de la Cronogeometría
+del Tiempo en el Estrato WISDOM de la arquitectura APU Filter v9.0.
 
-  FASE 2 (PROSECUTION CAMPAIGN ORIENT) — RSI³ recursivo de profundidad 3:
-    · ρ = exp(−L)/Z (Gibbs) + auditoría C* (delegada al engine v9).
-    · Bogomol'nyi: ‖F‖²_F ≥ 8π²|k|/vol(X).
-    · RHI/DCR reales + kernel RSI³ engine (θ, O, α) N1→N2→N3.
-    · RSI³ de AGENTE (calibre): θ_g = [‖A‖, CS₃, Δ_SZ, c₁]; recursión meta-Lip.
-    · Banach vía Krasnoselskii–Mann + Lyapunov ΔV≤0.
-    ⟹ ChronosProsecutionCampaignDraftBundle
-    ⟹ _phase2_terminal_bridge_to_phase3  ──continúa──►  _adjudicate_prosecution_verdict
+1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON PATH-ORDERED:
+   La 1-forma de conexión $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$ genera el transporte
+   paralelo sobre el 1-esqueleto del cronograma.
+     - 3-Forma de Chern-Simons Abeliana Discreta: Como $\text{Tr}(A^3) \equiv 0$ en $\mathfrak{so}(n)$, la transgresión
+       de Chern-Weil abeliana sobre la 2-cocadena de Čech se calcula como:
+         $$\text{CS}_3(A) = \frac{1}{8\pi^2} \sum_{\triangle} \text{flux}_{\triangle}, \quad \text{CS}_{\text{index}} = \frac{1}{2\pi} \sum_{\triangle} \text{flux}_{\triangle}$$
+     - Número de Pontryagin y Descenso de Stora-Zumino: $\nu = \text{round}(\text{CS}_{\text{index}}) \in \mathbb{Z}$, con residuo
+       de invarianza de calibre $\Delta_{\text{SZ}} = |\text{CS}_{\text{index}} - \nu| \le \varepsilon_{\text{gauge}}$.
+     - Holonomía de Wilson Path-Ordered $SO(n)$: Para un ciclo $\gamma$, $W(\gamma) = \mathcal{P} \exp \left( \oint_\gamma A \right) = \prod_e \exp(G_e) \in SO(n)$.
 
-  FASE 3 (PROSECUTION SOVEREIGN DECIDE):
-    · Adjudicación Heyting Ω₃ (VETOED/⋆/COHERENT) con meet de átomos.
-    · Crowbar IRAM ESP32 medido (<400 ns).
-    · Merkle DAG de 3 hojas.
-    · Funtor semántico Φ_sem (“Dolor, Riesgo y Dinero” + celeste).
-    ⟹ ChronosProsecutionExecutionPassport
-    ⟹ _phase3_terminal_synthesis
+2. DINÁMICA MAGNÉTICA DE POINCARÉ Y AUTOMEJORA RECURSIVA RSI³ DE AGENTE:
+   - Flujo Giroscópico: $\dot{q} = v, \dot{v} = A v + \varepsilon \sigma_1 q$. La sección transversal en el 2-plano dominante
+     revela el mapa de retorno de Poincaré $P: \Sigma \to \Sigma$ con twist de Birkhoff.
+   - Integrales de Melnikov y Perturbación KAM: Evaluadas sobre el campo de curvatura $F$.
+   - Kernel RSI³ de Agente con Meta-Recursión: Optimización $N_1(\theta_g) \to N_2(O_g) \to N_3(\alpha_g)$
+     sobre $\theta_g = [\|A\|_F, |\text{CS}_{\text{index}}|, \Delta_{\text{SZ}}, |c_1|]$. Si la cota de Banach no se satisface,
+     la recursión de Nivel 3 re-escala $\alpha_g$ restaurando $\|\mathcal{T}(\theta_1) - \mathcal{T}(\theta_2)\|_\infty \le \widehat{L} \|\theta_1 - \theta_2\|_\infty$ con $\widehat{L} < 1.0$.
 
-CONTINUIDAD FUNTORIAL (anidamiento estricto):
-  _phase1_terminal_bridge_to_phase2  →  _audit_cstar_indictment_phase2
-  _phase2_terminal_bridge_to_phase3  →  _adjudicate_prosecution_verdict
-  _phase3_terminal_synthesis         →  ChronosProsecutionExecutionPassport
+3. FUNTOR SEMÁNTICO DE IMPACTO FINANCIERO ($\Phi_{\text{sem}}$):
+   Traduce la topología de calibre y los diagnósticos celestes en métricas de gobernanza ejecutiva:
+     - Fidelidad en WACC : Cobertura del 15% en WACC y compresión KV-cache del 86.4%.
+     - Liberación de Reserva : Reducción del 11.5% de liquidez contingency ($15\% \to 3.5\%$) en estado COHERENT ($\top$).
+     - Veto e Interlock : Disparo del hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$) en estado VETOED ($\bot$).
 
-  Z_ProsecutorAgent = Φ₃ ∘ Φ₂ ∘ Φ₁
+DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+─────────────────────────────────────────────────────────────────────────────────────────
+  FASE 1 (PROSECUTION GAUGE OBSERVE — Φ₁):
+    · Aciclicidad dirigida de Kahn $O(V+E)$ con deque (fail-fast).
+    · Conexión $A \in \mathfrak{so}(n)$, $\text{CS}_3(A)$, Pontryagin $\nu$, holonomía Wilson path-ordered $W(\gamma)$ y clase de Hopf $c_1$.
+    · Descenso Stora-Zumino $\Delta_{\text{SZ}}$, mapa giroscópico de Poincaré, Melnikov, KAM diofantino y Chirikov.
+    · Delegación al motor v9: Formas de Schur, dualidad Ley-Estado, Čech $\delta^2 = 0$, $Sp(4, \mathbb{R})$ y KAM espectral.
+    ⟹ Emisión de `ProsecutorObserverPacket` + `ChronosProsecutorGaugeContract`.
+    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_cstar_indictment_phase2`.
+
+  FASE 2 (PROSECUTION CAMPAIGN ORIENT — Φ₂):
+    · Auditoría C*-algebraica, cota de Bogomol'nyi $\|F\|_F^2 \ge 8\pi^2|k|/\text{vol}(X)$ e indicadores RHI / DCR.
+    · Kernel RSI³ de Agente con meta-recursión de profundidad 3 y restauración de contracción de Banach $\widehat{L} < 1.0$.
+    ⟹ Emisión de `ChronosProsecutionCampaignDraftBundle`.
+    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_prosecution_verdict`.
+
+  FASE 3 (PROSECUTION SOVEREIGN DECIDE — Φ₃):
+    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$ con meet de átomos de calibre y celestes.
+    · Medición de latencia de interlock ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$).
+    · Traducción semántica executiva $\Phi_{\text{sem}}$ y sellado Merkle DAG de 3 hojas.
+    ⟹ Emisión de `ChronosProsecutionExecutionPassport`.
+    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
 """
 
 from __future__ import annotations
 
 import hashlib
 import hmac
+import importlib
 import itertools
 import logging
 import math
 import time
 from collections import deque
 from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
@@ -80,7 +92,6 @@ def _try_import_engine() -> Dict[str, Any]:
     last_err: Optional[BaseException] = None
     for mod_name in candidates:
         try:
-            import importlib
             return vars(importlib.import_module(mod_name))
         except Exception as exc:  # noqa: BLE001 — fallback deliberado
             last_err = exc
@@ -252,7 +263,6 @@ _BOGOMOLNY_DEFECT_FRACTION: float = 0.30
 
 
 def _utc_timestamp() -> str:
-    from datetime import datetime, timezone
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 

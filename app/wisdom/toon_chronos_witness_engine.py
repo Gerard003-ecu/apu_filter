@@ -9,48 +9,87 @@ r"""
 ║            modular σ_t y automejora recursiva de nivel 3 (RSI³) como contracción de Picard.          ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DISEÑO DE TRES FASES ANIDADAS (OODA Cuántico del Testigo + Mecánica Celeste de Poincaré):
+DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (QUANTUM WITNESS OBSERVE):
-    · Kahn acyclicity dirigida (deque O(1); fix del bug β₁_undirected de v7).
-    · Estado de Gibbs ρ = exp(−L_sched)/Z (positive-definite, full-rank, GNS-cíclico).
-    · Tomita-Takesaki completo:
-        Δ = ρ ⊗ ρ⁻¹   (operador modular, ‖Δ‖ = κ(ρ))
-        K = −log ρ    (Hamiltoniano modular = generador del flujo de Poincaré)
-        J(A) = A*     (conjugación modular en base espectral)
-        S₀ = J·Δ^{1/2},  S₀(A|Ω⟩) = A*|Ω⟩
-    · KMS analítico (NO por ciclicidad): σ_{t−i}(B) = ρ^{it} ρ B ρ⁻¹ ρ^{−it}.
-    · Sección de Poincaré Π del flujo modular σ_t; monodromía M = DΠ; Lyapunov χ_i.
-    · Tiempo de recurrencia de Poincaré T_rec ≃ 2π / λ₂(L_sched) (gap de Fiedler).
-    · Medición débil QND de Aharonov A_w con estados NO triviales.
-    · Back-Action vía conmutador: 10·log₁₀(‖[ρ,A]‖_F / ε_floor) (signo físico).
-    · Uhlmann F = |⟨ψ_f|ψ_i⟩|², Fubini-Study d_FS = arccos(√F).
-    · Gromov c_G ≈ 2π(1 + d_FS) ≤ 12.5 (capacidad simpléctica).
-    ⟹ WitnessObserverPacket + ChronosWitnessGaugeInitialCondition
-    ⟹ _phase1_terminal_bridge_to_phase2  →  _audit_novikov_valuation_phase2
+El `TOONChronosWitnessEngine` constituye la infraestructura espectral cuántica y celeste
+para la observación no destructiva (Quantum Non-Demolition, QND) del flujo geodésico temporal
+en el Estrato WISDOM de la arquitectura cognitiva APU Filter v8.0 / v9.0.
 
-  FASE 2 (WITNESS CAMPAIGN ORIENT):
-    · Novikov ultramétrico v(Slack) en semianillo max-plus (fix de Krull v8).
-    · Kernel RSI³ (θ, O, α) con ciclo N1→N2→N3 sobre la sección de Poincaré.
-    · Banach (Krasnoselskii-Mann + Picard) para contracción L̂ < 1.
-    · Integral de Jacobi 𝒥 del flujo modular (constante de movimiento celeste).
-    ⟹ ChronosWeakObservationGerm
-    ⟹ _phase2_terminal_bridge_to_phase3  →  _adjudicate_witness_verdict
+1. CONSTRUCCIÓN GNS Y ÁLGEBRA DE TOMITA-TAKESAKI:
+   Dado el Laplaciano no dirigido $L_{\text{sched}} = B_1 B_1^\top$ del Complejo de Cadenas del Cronograma,
+   se construye el estado de Gibbs libre de singularidades:
+     $$\rho = \frac{\exp(-L_{\text{sched}})}{Z}, \quad Z = \text{Tr}(\exp(-L_{\text{sched}})) > 0$$
+   Dado que $\rho \succ 0$ es de rango completo, el vector cíclico y separador $|\Omega\rangle$ en la
+   representación GNS $(\mathcal{H}_{\text{GNS}}, \pi_{\text{GNS}}, |\Omega\rangle)$ define el Vacío de Dirac.
+   Los operadores fundamentales de la teoría de Tomita-Takesaki se especifican como:
+     - Operador Modular: $\Delta = \rho \otimes \rho^{-1}$, con número de condición $\|\Delta\| = \kappa(\rho)$.
+     - Conjugación Modular: $J(A) = A^*$, la cual es una involución anti-lineal ($J^2 = \mathbb{I}, J = J^*$).
+     - Operador Tomita $S_0 = J \Delta^{1/2}$ que satisface $S_0(A|\Omega\rangle) = A^*|\Omega\rangle$.
+     - Generador del Flujo Modular: $K = -\ln \rho = L_{\text{sched}} + \ln(Z) \cdot \mathbb{I}$.
 
-  FASE 3 (WITNESS SOVEREIGN DECIDE):
-    · Adjudicación en Heyting Ω₃ (VETOED/⋆/COHERENT) con clasificación
-      elíptica/hiperbólica/parabólica de la monodromía de Poincaré.
-    · Crowbar IRAM ESP32 (< 400 ns).
-    · Merkle DAG de 3 hojas.
-    ⟹ ChronosWitnessExecutionCertificate
-    ⟹ _phase3_terminal_synthesis
+2. CONDICIÓN KMS Y FLUIO MODULAR DE POINCARÉ:
+   El flujo de Heisenberg de Tomita-Takesaki $\sigma_t(B) = \rho^{it} B \rho^{-it} = \exp(it K) B \exp(-it K)$
+   satisface analíticamente la condición de Kubo-Martin-Schwinger (KMS) a temperatura β = 1:
+     $$\omega(A \sigma_t(B)) = \omega(\sigma_{t-i}(B) A), \quad \text{donde } \omega(X) = \text{Tr}(\rho X)$$
+   donde la extensión analítica en la franja imaginaria $\sigma_{t-i}(B) = \rho^{i(t-i)} B \rho^{-i(t-i)} = \exp((it+1)K) B \exp(-(it+1)K)$
+   garantiza la estabilidad termodinámica pura sin colapso por ciclicidad cíclica.
 
-CONTINUIDAD FUNTORIAL (anidamiento estricto):
-  _phase1_terminal_bridge_to_phase2  →  _audit_novikov_valuation_phase2
-  _phase2_terminal_bridge_to_phase3  →  _adjudicate_witness_verdict
-  _phase3_terminal_synthesis         →  ChronosWitnessExecutionCertificate
+3. MEDICIÓN DÉBIL QND, GEOMETRÍA DE UHLMANN Y DILATACIÓN DE GROMOV:
+   Para estados inicial y final $|\psi_i\rangle, |\psi_f\rangle$ y observable $A \in \mathfrak{h}_{\text{sa}}$:
+     - Valor Débil de Aharonov-Albert-Vaidman: $A_w = \frac{\langle \psi_f | A | \psi_i \rangle}{\langle \psi_f | \psi_i \rangle}$.
+     - Fidelidad de Uhlmann: $F = |\langle \psi_f | \psi_i \rangle|^2$.
+     - Distancia Geodésica de Fubini-Study: $d_{\text{FS}} = \arccos(\sqrt{F})$.
+     - Capacidad Simpléctica de Gromov (Cota Implosiva): $c_G \approx 2\pi (1 + d_{\text{FS}}) \le 12.5$.
+     - Retroacción Cuántica (Back-Action en dB):
+         $$\text{BA}_{\text{dB}} = 10 \log_{10} \left( \frac{\|[ \rho, A ]\|_F}{\varepsilon_{\text{floor}}} \right) \ge 0.0 \text{ dB}$$
+       donde el régimen QND puro exige $\|[\rho, A]\|_F \le \delta_{\text{tol}} \implies \text{BA}_{\text{dB}} \equiv 0.0 \text{ dB}$.
 
-  Z_Witness = Φ₃ ∘ Φ₂ ∘ Φ₁
+4. VALUACIÓN ULTRAMÉTRICA DE NOVIKOV EN SEMIANILLO MAX-PLUS:
+   Para un vector de holguras $s_i > 0$, con probabilidades $p_i = s_i / \sum s_k$ y grados $a_i = -\ln p_i$:
+     $$v(\text{Slack}) = \bigoplus_i a_i \equiv \min_i a_i, \quad \text{con norma de retardo } \|\text{Delay}\| = \exp(-v(\text{Slack}))$$
+   donde el semianillo Tropical Max-Plus $(\mathbb{R} \cup \{\infty\}, \max, +)$ verifica axiomáticamente
+   la desigualdad ultramétrica $v(x \oplus y) = \min(v(x), v(y))$.
+
+5. MECÁNICA CELESTE DE POINCARÉ Y INTEGRAL DE JACOBI:
+   El mapa de primer retorno de Poincaré $\Pi: \Sigma \to \Sigma$ sobre la sección transversal
+   $\Sigma = \{ A \in \mathfrak{h}_{\text{sa}} : \langle K, A \rangle_{\text{HS}} = \mathcal{J} \}$ define:
+     - Tiempo de Recurrencia de Poincaré-Zermelo: $T_{\text{rec}} \simeq \frac{2\pi}{\lambda_2(L_{\text{sched}})}$.
+     - Monodromía Simpléctica $M = D\Pi$ y Clasificación de Órbitas:
+         * Elíptica  : $|\text{Tr}(M)| < 2$ (KAM-persistente).
+         * Parabólica : $|\text{Tr}(M)| = 2$ (Resonancia armónica).
+         * Hiperbólica: $|\text{Tr}(M)| > 2$ (Caos homoclínico, veto absoluto).
+     - Integral de Jacobi Conservada: $\mathcal{J} = \text{Tr}(\rho K)$.
+
+6. AUTOMEJORA RECURSIVA RSI³ Y CONTRACCIÓN DE PICARD:
+   El kernel de optimización de Nivel 3 ejecuta la dinámica tripartita $N_1(\theta) \to N_2(O) \to N_3(\alpha)$
+   sobre la sección de Poincaré. La convergencia está garantizada por el Teorema de Punto Fijo de Banach:
+     $$\|T(\theta_1) - T(\theta_2)\|_\infty \le \widehat{L} \|\theta_1 - \theta_2\|_\infty, \quad \widehat{L} < 1.0$$
+
+DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+─────────────────────────────────────────────────────────────────────────────────────────
+  FASE 1 (QUANTUM WITNESS OBSERVE — Φ₁):
+    · Verificación de aciclicidad dirigida de Kahn $V_{\text{residual}} = 0$ (deque $O(1)$).
+    · Construcción del estado GNS de Gibbs $\rho = \exp(-L_{\text{sched}})/Z \succ 0$.
+    · Operadores modulares $(\Delta, J, S_0, K)$ de Tomita-Takesaki.
+    · Verificación analítica KMS $\sigma_{t-i}(B) = \rho^{it}\rho B \rho^{-1} \rho^{-it}$.
+    · Sección de Poincaré $\Pi_x$, matriz de monodromía $M$, espectro de Lyapunov $\chi_i$ y $T_{\text{rec}}$.
+    · Medición débil QND Aharonov $A_w$, Uhlmann $F$, Fubini-Study $d_{\text{FS}}$, Gromov $c_G \le 12.5$ y Back-Action.
+    ⟹ Emisión de `WitnessObserverPacket` + `ChronosWitnessGaugeInitialCondition`.
+    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_novikov_valuation_phase2`.
+
+  FASE 2 (WITNESS CAMPAIGN ORIENT — Φ₂):
+    · Valuación ultramétrica $v(\text{Slack})$ en semianillo max-plus.
+    · Kernel RSI³ sobre la sección de Poincaré con recorte de Picard $\widehat{L} < 1.0$.
+    · Amortiguamiento de Krasnoselskii-Mann $x_{k+1} = (1-\lambda)x_k + \lambda T(x_k)$ con $\Delta V < 0$.
+    ⟹ Emisión de `ChronosWeakObservationGerm`.
+    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_witness_verdict`.
+
+  FASE 3 (WITNESS SOVEREIGN DECIDE — Φ₃):
+    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$ (VETOED / DEGRADED / COHERENT).
+    · Interlock de hardware ESP32 Crowbar ($WCET \le 393.85 \text{ ns}$).
+    · Sello criptográfico Merkle DAG de 3 hojas y firma HMAC-SHA256.
+    ⟹ Emisión de `ChronosWitnessExecutionCertificate`.
+    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
 """
 
 from __future__ import annotations
