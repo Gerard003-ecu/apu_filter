@@ -8,40 +8,54 @@ r"""
 ║            descenso Stora-Zumino, RSI³ sobre (θ_gauge, O, α) y adjudicación Heyting Ω₃ + Crowbar.    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DISEÑO DE TRES FASES ANIDADAS (OODA Espectral del Calibre Temporal):
-─────────────────────────────────────────────────────────────────────
-  FASE 1 (GAUGE OBSERVE) ─► A ∈ so(n) por sesgado de ρ_sched
-                             + curvatura abeliana F_△ = a_ij+a_jk+a_ki
-                             + CS₃ = (1/4π) Σ_△ ā_△ F_△
-                             + Wilson U(1)×SU(2) path-ordered
-                             + c₁ = (∮ A)/2π  (Hopf del fibrado de línea)
-                             + Stora-Zumino = invariancia A ↦ A + dα
-                             + Poincaré transversal + Melnikov + KAM + Arnold
-                             ⟹ GaugeObserverPacket + ChronosGaugeContract
+DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONChronosTemporalAgent` actúa como el Soberano Agéntico de Calibre Cronogeométrico para el
+control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura APU Filter v8.0 / v8.1.
 
-  FASE 2 (CAMPAIGN ORIENT) ─► Valuación TROPICAL de Novikov (motor v8.1)
-                              + kernel RSI³ alimentado por ObserverPacket ⊕ gauge
-                              + Krasnoselskii-Mann (ρ(DT) < 1)
-                              ⟹ ChronosCampaignDraftBundle
+1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA $U(1) \times SU(2)$:
+   Para la matriz de adyacencia ponderada $W \in \mathbb{R}^{n \times n}$, la 1-forma de conexión
+   se obtiene por la parte antisimétrica del gradiente normalizado $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$.
+     - 3-Forma de Chern-Simons Abeliana Discreta: Como $\text{Tr}(A^3) \equiv 0$ en $\mathfrak{so}(n)$, la transgresión
+       sobre la red de 2-símplices (triángulos $i<j<k$) se calcula como:
+         $$\text{CS}_3(A) = \frac{1}{4\pi n} \sum_{\triangle} \text{flux}_{\triangle}, \quad \text{flux}_{\triangle} = w_{ij} + w_{jk} - w_{ik}$$
+     - Descenso de Stora-Zumino: La invariancia exacta bajo transformaciones de calibre $A_{uv}' = A_{uv} + \alpha_v - \alpha_u$
+       exige un defecto numérico nulo en la curvatura y en la holonomía de Wilson:
+         $$\Delta_{\text{SZ}} = \|F(A') - F(A)\|_F + |\text{Phase}(W(A')) - \text{Phase}(W(A))| \le \varepsilon_{\text{gauge}}$$
+     - Holonomía de Wilson Path-Ordered U(1) $\times$ SU(2): Para un ciclo no dirigido $\gamma$:
+         $$W_{U(1)}(\gamma) = \exp \left( i \oint_\gamma A \right) \in U(1), \quad W_{SU(2)}(\gamma) = \prod_{e \in \gamma} \exp \left( -\frac{i}{2} A_e \sigma_z \right) \in SU(2)$$
+       donde la Clase de Chern/Hopf se obtiene como $c_1 = \frac{1}{2\pi} \oint_\gamma A$ con $w = \text{round}(c_1) \in \mathbb{Z}$.
 
-  FASE 3 (SOVEREIGN DECIDE) ─► χ : 1 → Ω₃  (clasificador de subobjetos)
-                               + Crowbar IRAM ESP32 (<400 ns)
-                               + Merkle DAG de 3 hojas
-                               ⟹ ChronosSovereignGovernancePassport
+2. FLUIO ORTOGONAL DE POINCARÉ $SO(n)$ Y CONTRACCIÓN DE BANACH:
+   La dinámica sobre el fibrado $v'(t) = A v(t)$ conserva exactamente $\|v(t)\|_2$ ($A \in \mathfrak{so}(n)$).
+   - Mapa de Retorno de Poincaré Giroscópico: Evalúa los cortes sobre el hiperplano $\Sigma = \{ \langle v, v_0 \rangle = 0 \}$
+     con velocidad tangencial $\langle A v, v_0 \rangle > 0$.
+   - Tangle de Melnikov y KAM: $M(t_0) = \int \|A v(t)\|^2 \cos(\omega t + t_0) dt$. La perturbación relativa
+     $\varepsilon_{\text{pert}} = \|F\|_F / (\|A\|_F + \varepsilon_0) < \varepsilon_{\text{KAM}}$ garantiza estabilidad de Kolmogorov.
+   - Automejora RSI³ y Contracción de Picard: El proceso $N_1(\theta) \to N_2(O) \to N_3(\alpha)$ verifica la cota
+     de Banach $\|\mathcal{T}(\theta_1) - \mathcal{T}(\theta_2)\|_\infty \le \widehat{L} \|\theta_1 - \theta_2\|_\infty$ con $\widehat{L} < 1.0$.
 
-CONTINUIDAD FUNTORIAL (anidamiento estricto, Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
-  _phase1_terminal_bridge_to_phase2  →  _audit_ultrametric_campaign_phase2
-  _phase2_terminal_bridge_to_phase3  →  _adjudicate_sovereign_verdict
-  _phase3_terminal_synthesis         →  ChronosSovereignGovernancePassport
+DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+─────────────────────────────────────────────────────────────────────────────────────────
+  FASE 1 (GAUGE OBSERVE — Φ₁):
+    · Aciclicidad dirigida de Kahn $O(V+E)$ con deque.
+    · Conexión $A \in \mathfrak{so}(n)$, $\text{CS}_3(A)$, Pontryagin $\nu$, holonomía Wilson $W_{U(1) \times SU(2)}$ y descenso de Stora-Zumino $\Delta_{\text{SZ}}$.
+    · Análisis magnético de Poincaré, Melnikov, KAM y difusión de Arnold sobre $SO(n)$.
+    ⟹ Emisión de `GaugeObserverPacket` + `ChronosGaugeContract`.
+    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_ultrametric_campaign_phase2`.
 
-CORRECCIÓN MATEMÁTICA v8.1:
-  · Wilson: W_U(1)(γ)=exp(i∮A), W_SU(2)=∏ exp(−i a_e σ_z/2).  NUNCA exp(a I_n).
-  · CS₃: 3-cociclo abeliano sobre triángulos. Tr(A³)≡0 ∀A∈so(n) — descartado.
-  · Stora-Zumino: |W(A+dα)−W(A)| + |F(A+dα)−F(A)|  (descenso, no CS·4π²−ν tautológico).
-  · Poincaré: sección ⟨v, e₀⟩=0 sobre el flujo ortogonal e^{At} (‖v‖ es integral primera).
-  · Novikov: semianillo tropical (min, +). El test euclidiano p+q≤max(p,q) vetaba todo.
-  · Φ₁ CERTIFICA anomalías de calibre; sólo el ciclo dirigido aborta. Ω₃ decide.
-  · run_full_governance_pipeline ya no re-ejecuta Φ₁ (antes ingest ⊂ bridge).
+  FASE 2 (CAMPAIGN ORIENT — Φ₂):
+    · Valuación ultramétrica de Novikov $v(\text{Slack})$ en semianillo tropical $(\mathbb{R} \cup \{\infty\}, \min, +)$.
+    · Kernel RSI³ acoplado al `GaugeObserverPacket` con cota de Banach $\widehat{L} < 1.0$.
+    ⟹ Emisión de `ChronosCampaignDraftBundle`.
+    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_sovereign_verdict`.
+
+  FASE 3 (SOVEREIGN DECIDE — Φ₃):
+    · Clasificación de subobjetos en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
+    · Interlock de hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$).
+    · Traducción al informe de impacto ejecutivo $\Phi_{\text{sem}}$ y sellado Merkle DAG de 3 hojas.
+    ⟹ Emisión de `ChronosSovereignGovernancePassport`.
+    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
 """
 
 from __future__ import annotations

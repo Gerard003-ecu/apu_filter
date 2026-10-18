@@ -7,45 +7,70 @@ r"""
 ║ Función  : Motor fiscal e inquisidor de coherencia temporal en el Estrato WISDOM.                    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DISEÑO DE TRES FASES ANIDADAS (OODA Fiscal del Cronograma):
-──────────────────────────────────────────────────────────
-  FASE 1 (PROSECUTION OBSERVE) — mecánica celeste de Poincaré:
-    · Kahn acyclicity DIRIGIDA (deque; fix del bug β₁_undirected).
-    · Schur real de L_sched (estabilidad espectral).
-    · Wilson holonomy PATH-ORDERED (P-exp sobre el ciclo).
-    · State monodromy REAL en Sp(4,ℝ) (generador hamiltoniano 2-dof).
-    · Levantamiento hamiltoniano q̇=p, ṗ=−Lq  (análogo celeste).
-    · Mapa de retorno de Poincaré + teorema de Birkhoff (twist).
-    · Melnikov homoclínico con corchete de Poisson {H₀,H₁}.
-    · KAM diofantino |⟨k,ω⟩| ≥ γ/|k|^τ + Chirikov–Arnold.
-    · Validación Cruzada Dual: fracture = (law_class ≠ state_class).
-    · Obstrucción de Čech REAL con certificado δ²=0.
-    ⟹ ChronosProsecutionCanonicalSeed + ProsecutorObserverPacket
-    ⟹ _phase1_terminal_bridge_to_phase2  ──continúa──►  _audit_cstar_indictment_phase2
+DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONChronosProsecutorEngine` actúa como el motor fiscal e inquisidor de coherencia
+cronogeométrica en el Estrato WISDOM de la arquitectura cognitiva APU Filter v9.0.
 
-  FASE 2 (INDICTMENT ORIENT) — RSI³ recursivo de profundidad 3:
-    · ρ = exp(−L_sched)/Z  (Gibbs, proyección hermítica, C*).
-    · Auditoría C*: hermiticidad, normalización, positividad, S_vN.
-    · Cota de Bogomol'nyi discreta: ‖F‖²_F ≥ 8π²|k|/vol(X).
-    · Indicadores RHI/DCR desde señales reales (no proxies).
-    · Kernel RSI³ (θ, O, α) con ciclo N1→N2→N3 y recursión meta-Lip.
-    · Banach vía Krasnoselskii–Mann + certificado de Lyapunov ΔV<0.
-    ⟹ ChronosProsecutionIndictmentGerm
-    ⟹ _phase2_terminal_bridge_to_phase3  ──continúa──►  _adjudicate_prosecution_verdict
+1. DUALIDAD POINCARÉ LEY VS ESTADO Y ESTRUCTURA SIMPLÉCTICA $Sp(4, \mathbb{R})$:
+   - Holonomía de Wilson de la Ley: $W(\gamma) = \mathcal{P} \exp \left( \oint_\gamma A \right) \in SO(n)$, calculada
+     sobre la conexión antisimétrica $A = \frac{1}{2}(W_{\text{norm}} - W_{\text{norm}}^\top) \in \mathfrak{so}(n)$.
+   - Monodromía de Estado Hamiltoniana: $M = \exp(A_{\text{sp}} \tau) \in Sp(4, \mathbb{R})$ generada por el sistema
+     restringido 2-dof con $A_{\text{sp}}^\top J_4 + J_4 A_{\text{sp}} = 0$.
+   - Defecto Simpléctico de Poincaré: $\delta_{\text{Sp4}} = \| M^\top J_4 M - J_4 \|_F$.
+   - Fractura Ley-Estado (Law-State Fracture): Se detecta cuando la clase de Floquet de la Ley difiere de la del Estado:
+       $$\text{Fracture} \iff \text{FloquetClass}(W) \neq \text{FloquetClass}(M)$$
 
-  FASE 3 (SOVEREIGN DECIDE):
-    · Adjudicación Heyting Ω₃ (VETOED/⋆/COHERENT) con implicación.
-    · Crowbar IRAM ESP32 medido (<400 ns).
-    · Merkle DAG de 3 hojas.
-    ⟹ ChronosProsecutionExecutionCertificate
-    ⟹ _phase3_terminal_synthesis
+2. COHOMOLOGÍA DE ČECH Y EXACTITUD $\delta^2 = 0$:
+   Sobre la 1-cocadena de pesos simetrizados $g(\{i,j\}) = w_{ij} + w_{ji}$, el 2-cobordo de Čech en $\check{H}^2(X, \mathcal{F}_{\text{time}})$ es:
+     $$(\delta g)(i, j, k) = g_{ij} + g_{jk} - g_{ik}$$
+   La condición de consistencia cohomológica exige que la aplicación del operador cobordo de segundo orden satisfaga
+   identicamente $\|\delta^2 g\|_F = 0$, garantizando la ausencia de torsión o fibración temporal inconsistente.
 
-CONTINUIDAD FUNTORIAL:
-  _phase1_terminal_bridge_to_phase2  →  _audit_cstar_indictment_phase2
-  _phase2_terminal_bridge_to_phase3  →  _adjudicate_prosecution_verdict
-  _phase3_terminal_synthesis         →  ChronosProsecutionExecutionCertificate
+3. AUDITORÍA $C^*$-ALGEBRAICA DEL ESTADO DE GIBBS:
+   Para la matriz de densidad $\rho = \exp(-L_{\text{sched}}) / Z$, la representación $C^*$ impone los axiomas:
+     - Hermiticidad : $\|\rho - \rho^*\|_F \le 10^{-12}$.
+     - Normalización : $|\text{Tr}(\rho) - 1| \le 10^{-12}$.
+     - Positividad : $\lambda_{\min}(\rho) \ge -10^{-14}$.
+     - Entropía de von Neumann : $S(\rho) = -\text{Tr}(\rho \ln \rho)$.
 
-  Z_Prosecutor = Φ₃ ∘ Φ₂ ∘ Φ₁
+4. COTA DE BOGOMOL'NYI Y DISPARIDAD DE RECOMPENSA (RHI / DCR):
+   En el marco de vórtices abelianos discretos, la norma del campo satisface la desigualdad de Bogomol'nyi:
+     $$\|F\|_F^2 = \sum_{\triangle} |\text{flux}|^2 \ge \frac{8\pi^2 |k|}{\text{vol}(X)}, \quad k = \text{round}\left(\frac{\sum \text{flux}}{2\pi}\right)$$
+   Los indicadores adversariales de fraude cronológico se especifican rigurosamente como:
+     - Reward Hacking Index (RHI) : $RHI \in [0, 1]$, gatillado por ciclos dirigidos, fractura Ley-Estado o violaciones $C^*$.
+     - Disguised Cost Ratio (DCR) : $DCR \in [0, 1]$, derivado del flujo de Čech y solapamiento de Chirikov.
+     - Indictment Score : $\mathcal{S} = 0.4 \cdot DCR + 0.4 \cdot RHI + 0.2 \cdot \mathbb{I}_{\text{Fracture}}$.
+
+5. AUTOMEJORA RECURSIVA RSI³ CON META-RECURSIÓN:
+   La optimización $N_1(\theta) \to N_2(O) \to N_3(\alpha)$ incorpora meta-recursión de profundidad 3: si $\widehat{L} \ge 1 - \epsilon$,
+   se re-escala dinámicamente la tasa $\alpha$ restaurando el Teorema de Punto Fijo de Banach y garantizando decrecimiento monótono $\Delta V \le 0$.
+
+DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+─────────────────────────────────────────────────────────────────────────────────────────
+  FASE 1 (PROSECUTION OBSERVE — Φ₁):
+    · Kahn aciclicidad dirigida O(V+E) con deque.
+    · Formas normales de Schur, holonomía de Wilson $W(\gamma)$ y monodromía $Sp(4, \mathbb{R})$.
+    · Validación cruzada de dualidad Ley vs Estado (Detección de Fractura).
+    · Obstrucción cohomológica de Čech $\check{H}^2$ con certificación $\delta^2 = 0$.
+    · Análisis celeste de Poincaré: Melnikov, KAM diofantino, Chirikov y Birkhoff.
+    ⟹ Emisión de `ChronosProsecutionCanonicalSeed` + `ProsecutorObserverPacket`.
+    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_cstar_indictment_phase2`.
+
+  FASE 2 (INDICTMENT ORIENT — Φ₂):
+    · Auditoría C*-algebraica $(\text{Hermiticidad}, \text{Normalización}, \text{PSD}, S(\rho))$ de $\rho = \exp(-L_{\text{sched}})/Z$.
+    · Evaluación de cota topológica de Bogomol'nyi $\|F\|_F^2 \ge 8\pi^2|k|/\text{vol}(X)$.
+    · Computación de indicadores RHI, DCR e Indictment Score.
+    · Kernel RSI³ de profundidad 3 con restauración de Banach $\widehat{L} < 1.0$ y prueba Lyapunov.
+    ⟹ Emisión de `ChronosProsecutionIndictmentGerm`.
+    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_prosecution_verdict`.
+
+  FASE 3 (SOVEREIGN DECIDE — Φ₃):
+    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
+    · Activación de hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$).
+    · Sello criptográfico Merkle DAG de 3 hojas y firma HMAC-SHA256.
+    ⟹ Emisión de `ChronosProsecutionExecutionCertificate`.
+    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
 """
 
 from __future__ import annotations
@@ -58,6 +83,7 @@ import math
 import time
 from collections import deque
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from enum import IntEnum
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -173,7 +199,6 @@ class SymplecticViolationError(ProsecutorEngineError):
 
 
 def _utc_timestamp() -> str:
-    from datetime import datetime, timezone
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 
