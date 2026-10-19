@@ -3,7 +3,7 @@
 "APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la certeza matemática del sistema."
 --------------------------------------------------------------------------------
 
-Este documento técnico desglosa la maquinaria matemática que permite al **Consejo de Sabios** transformar datos crudos en veredictos estratégicos inmutables, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica sobre $\mathbb{Z}$, la Geometría No Conmutativa de Connes, la Mecánica Cuántica Abierta, el **Icosikaihenaedro de Sabiduría (21 Soberanos Agénticos y 21 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** para la Automejora Recursiva Monádica RSI³ (Darwin-Gödel), y el Hardware perimetral en el Borde.
+Este documento técnico desglosa la maquinaria matemática que permite al **Consejo de Sabios** transformar datos crudos en veredictos estratégicos inmutables, basándose en la convergencia de la Dinámica de Sistemas (Laplace), la Topología Algebraica sobre $\mathbb{Z}$, la Geometría No Conmutativa de Connes, la Mecánica Cuántica Abierta, la **Malla Agéntica de Sabiduría (24 Soberanos Agénticos y 24 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** para la Automejora Recursiva Monádica RSI³ (Darwin-Gödel), y el Hardware perimetral en el Borde.
 
 ---
 
@@ -55,6 +55,9 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **$H |\Omega\rangle = 0 \wedge e^- e^+ \to 2\gamma$** | `toon_silent_witness_agent.py` / `engine`<br>**Vacío de Dirac ($1.022\text{ MeV}$, $0.0\text{ dB}$)** | **Memoria Inmutable Corporativa**<br>Cristalización de experiencia pasiva en $S^6 \subset \mathbb{R}^7$. Cero repetición de errores pasados en nuevas licitaciones. | Invariante $S^6$ en Vacío MAC. |
 | **Sub-$10\,\mu\text{s} \wedge Gr(r,n) \wedge s = \kappa f^*$** | `toon_intuition_agent.py` / `engine`<br>**Reflejo Flash Grassmanniano** | **Recomendación Visceral Sub-Milisegundo**<br>Luz verde instantánea ($\kappa f^* = 0.85$) o cierre inmediato de la válvula de pago ante anomalías flagrantes. | Disparo Flash Sub-milisegundo. |
 | **$\lambda_{\max} \wedge H^1(\mathcal{F}_{\text{web}})$** | `toon_buffer_agent.py` / `engine`<br>**Amortiguación de Flujo Exergético** | **Absorción de Picos de Transacción**<br>Regulación de caudal financiero para evitar golpes de ariete que agoten la liquidez inmediata del megaproyecto. | Modulación de Caudal en RAM. |
+| **${}^{C}_{0}D^{\alpha}_{t} f(t) = \kappa \cdot \nabla H \ \ (\alpha \in (0,1])$** | `toon_chronos_temporal_agent.py` / `engine`<br>**Regulación Cronogeométrica de la Curva S** | **Mitigación de Descalce en Curva S**<br>Eliminación de sobrecostos moratorios, fricción temporal y descalces en la programación de obra via memoria hereditaria de De Rham-Caputo. | **VETO SUAVE / DURO:** Recalibración geodésica del cronograma en RAM. |
+| **$1 - \frac{\langle v, w \rangle}{\|v\| \|w\|} \le \varepsilon$** | `toon_chronos_witness_agent.py` / `engine`<br>**Observador Pasivo del Vacío Temporal** | **Auditoría Forense Inmutable de Cronograma**<br>Monitoreo geodésico no reactivo de derivas temporales $t \in \mathbb{R}^+$ con trazabilidad inalterable de hitos sin degradar el rendimiento. | **Pasaporte SHA-256 / Merkle** en Vacío Temporal. |
+| **$\lambda_L > 0 \wedge \det(J) \neq 1$** | `toon_chronos_prosecutor_agent.py` / `engine`<br>**Fiscalía e Inquisición Temporal** | **Inmunidad Antifraude Cronológico**<br>Detección instantánea de divergencias caóticas y manipulación maliciosa de tiempos o ruta crítica para reclamos de extensión de plazo. | **VETO DURO INSTANTÁNEO:** Disparo de ISR Crowbar ESP32 en $< 400\text{ ns}$. |
 
 ---
 
@@ -167,6 +170,28 @@ Acopla de forma continua la minimización discreta de la MIC y la purificación 
 3. **Energía Port-Hamiltoniana de Lyapunov e Identidad de Variancia:**
    $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) = -\sum_{i=1}^n p_i \left( (\tilde{\mathcal{K}}\mathbf{p})_i - \mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} \right)^2 \le 0$$
    Si $\dot{\mathcal{H}} > 10^{-12}$, el retículo colapsa a VETOED ($\top$), disparando el Crowbar perimetral en silicio ($<400\text{ ns}$).
+
+### 3.3 Tríada Cronogeométrica del Tiempo TOON (`toon_chronos_*_agent.py` & `toon_chronos_*_engine.py`)
+Gobierna la estructura cronogeométrica del tiempo de ejecución sobre la Variedad de Deliberación $(\mathcal{M}, g_{\mu\nu})$:
+
+1. **Regulador Cronogeométrico (`toon_chronos_temporal_engine.py`):**
+   - **Aciclicidad Dirigida Kahn:** Verifica que la matriz de incidencia de la programación de obra sea un DAG acíclico ($O(|V|+|E|)$).
+   - **Forma Real de Schur (RSF) & Conectividad de Fiedler:** Resuelve la descomposición $L_{\mathrm{sched}} = Q T Q^\top$ y audita el segundo menor autovalor del Laplaciano normalizado $\lambda_2(L_{\mathrm{sched}}) > 0$ bajo la cota de Poincaré-Wirtinger.
+   - **Acción de Maupertuis-Jacobi & Levantamiento Hamiltoniano:** $S_0 = \sum w_i d_i^2$ con Hamiltoniano $H = \frac{1}{2} \|p\|^2 + \frac{1}{2} q^\top L q$.
+   - **Valuación Ultramétrica de Novikov:** Proyecta holguras en el semianillo tropical $(\mathbb{R} \cup \{+\infty\}, \min, +)$ con $v(x \oplus y) = \min(v(x), v(y))$.
+   - **Monodromía Simpléctica $Sp(4, \mathbb{R})$:** Clasificación de Floquet de multiplicadores de estabilidad (Elíptico / Parabólico / Hiperbólico).
+
+2. **Observador Pasivo del Vacío Temporal (`toon_chronos_witness_engine.py`):**
+   - **Conexión Anclada en $\mathfrak{so}(n)$:** Construye la matriz antisimétrica $A_\mu = \pi_{\mathfrak{so}}(\rho_{\mathrm{sched}})$.
+   - **3-Forma de Chern-Simons & Pontryagin:** $CS_3(A) = \frac{\sum \mathrm{circ}}{8\pi^2}$ y grado topológico $\nu = \operatorname{round}\left(\frac{\sum \mathrm{circ}}{2\pi}\right) \in \mathbb{Z}$.
+   - **Medición Débil QND & Módulo Tomita-Takesaki:** Inspección no reactiva sobre el Vacío de Dirac $|\Omega\rangle$ con back-action cero ($0.0\text{ dB}$) y flujo modular $S_0 = J \Delta^{1/2}$ en equilibrio KMS a temperatura $\beta$.
+   - **Métricas Geodésicas de Bures/Fubini-Study & Capacidad de Gromov:** $F(\rho, \sigma) = \left(\operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}}\right)^2$ y cota de compresión $c_G \le 12.5$.
+
+3. **Fiscal e Inquisidor Temporal (`toon_chronos_prosecutor_engine.py`):**
+   - **Validación Cruzada Dual de Poincaré:** Fractura Causal $\iff \text{Régimen}(\text{Wilson } W) \neq \text{Régimen}(\text{Monodromía } M)$.
+   - **Obstrucción Cohomológica de Čech $\check{H}^2(X; \mathcal{F}_{\mathrm{time}})$:** Exige $\delta^2 = 0$ para descartar falsos vacíos de prórroga contractual.
+   - **Auditoría $C^*$-Algebraica de Gibbs:** $\rho = \frac{e^{-L}}{Z}$ verificando hermiticidad $\rho = \rho^\dagger$, traza unitaria $\operatorname{Tr}(\rho) = 1$ y semidefinición positiva $\rho \succcurlyeq 0$.
+   - **Cota Variacional de Bogomol'nyi:** $\|F\|^2 \ge \frac{8\pi^2 |k|}{\operatorname{vol}(X)}$ contra reclamos maliciosos. Ante $RHI > 0.85$ o $DCR > 0.25$, gatilla veto duro con disparo de silicio Crowbar ESP32 en $< 400\text{ ns}$.
 
 ### 3.2 Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
 Opera en el Estrato de la Sabiduría ($V_{\mathbb{W}}$, Nivel 0) como la sonda ciber-física de ecolocación activa sobre la frontera abierta $\partial K$:
