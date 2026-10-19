@@ -19,8 +19,8 @@ Para la Alta Gerencia y los Comités de Licitación, el andamiaje matemático no
 
 > *“Cuando usted adquiere un vehículo comercial de alta gama, el concesionario no le exige aprobar un examen sobre fluidodinámica de turbocompresores o la ecuación de Navier-Stokes en el bloque de cilindros. Le demuestra pragmáticamente que el vehículo consume un 40% menos de combustible y que el sistema de frenos ABS detendrá el chasis de forma milimétrica sobre piso mojado para salvar su vida. Sin embargo, para que esa promesa sea real, el vehículo tiene que estar diseñado por ingenieros que dominen impecablemente la termodinámica, la fricción y la resistencia de materiales.”*
 
-De manera análoga, para APU Filter v8.0:
-* **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
+De manera análoga, para APU Filter v9.0.0:
+* **La promesa de negocio (Dinero):** Garantizar que **no existan fugas de dinero para la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
 * **La certeza de la promesa (Rigor):** La plataforma es el primer **Sistema de Navegación Inercial Ciber-Físico para Presupuestos**, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $400\text{ ns}$.
 
 ---
