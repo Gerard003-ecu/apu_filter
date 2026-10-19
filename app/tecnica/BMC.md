@@ -1,8 +1,8 @@
-📊 BMC.md: El Modelo de Negocio Cuántico v8.0
+📊 BMC.md: El Modelo de Negocio Cuántico v9.0.0
 "En la economía de la complejidad, no vendemos software contable; vendemos Certeza Matemática y Física. Transformamos la incertidumbre topológica y financiera de la construcción en un activo gobernable, inmutable y auditable."
 --------------------------------------------------------------------------------
 
-Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema **APU_filter v8.0**. El sistema se re-ancla como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. Con la consagración del **Icosikaihenaedro de Sabiduría (21 Soberanos TOON y 21 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, el modelo alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**, donde el sistema no solo audita la coherencia topológica y física del presupuesto, sino que simula, auto-inspecciona, inmuniza y proyecta instintivamente la toma de decisiones. El Business Model Canvas (BMC) se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré Extendida ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real (`app/alfa/business_canvas.py`).
+Este documento define la arquitectura de creación, entrega y captura de valor del ecosistema **APU_filter v9.0.0**. El sistema se re-ancla como una Plataforma de Malla Agéntica Ciber-Física que implementa Gobernanza Computacional Federada. Con la consagración del **Icosikaihenaedro Ampliado de Sabiduría (24 Soberanos TOON y 24 Motores Espectrales en 8 tríadas funcionales, incorporando la VIII. Tríada Cronogeométrica del Tiempo)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, el modelo alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**, donde el sistema no solo audita la coherencia topológica y física del presupuesto, sino que simula, auto-inspecciona, inmuniza, proyecta instintivamente y regula la estructura cronogeométrica del tiempo en la programación de obra. El Business Model Canvas (BMC) se redefine como un 1-complejo simplicial, donde la Característica de Euler-Poincaré Extendida ($\chi \le 0$) y la matriz de incidencia previenen la canibalización sistémica del modelo de negocio en tiempo real (`app/alfa/business_canvas.py`).
 
 Todo este andamiaje se rige por la **Ley de Clausura Transitiva de la pirámide** $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$:
 
@@ -59,7 +59,7 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 ```
                      EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
         ┌──────────────────────────────────────────────────────────────┐
-        │     EL ICOSIKAIHENAEDRO DE SABIDURÍA (21 SOBERANOS Y MOTORES) │
+        │     EL ICOSIKAIHENAEDRO AMPLIADO (24 SOBERANOS Y MOTORES)    │
         │  I.   GAN-REM: toon_trickster_adversary / witness / prosecutor│
         │  II.  Reflexiva: toon_introspection / witness / prosecutor    │
         │  III. Causal: toon_novikov_navigator / topo_novikov / witness│
@@ -67,6 +67,8 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
         │  V.   Tejedora: toon_wisdom_weaver / witness / prosecutor     │
         │  VI.  Onírica: toon_oniric_dreamer / auditor / silent_witness │
         │  VII. Rápida: toon_intuition / buffer / topo_prosecutor      │
+        │  VIII. Cronogeométrica: toon_chronos_temporal / witness /     │
+        │       prosecutor                                             │
         │  Traduce anomalías homológicas y espectrales a "Dolor y      │
         │  Dinero" y gobierna la automejora recursiva RSI Nivel 3.     │
         └──────────────────────────────┬───────────────────────────────┘
@@ -99,8 +101,8 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
    El esqueleto de vigas de acero. Estructura los presupuestos como complejos simpliciales, calcula la Forma Normal de Smith sobre $\mathbb{Z}$ para identificar socavones lógicos ($\beta_1 > 0$) y evalúa el Índice de Estabilidad Piramidal ($\Psi$) para erradicar monopolios de suministro.
 3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Penthouse / Fuentes de Ingreso):**
    Ubicado en el penthouse corporativo. Evalúa la estabilidad espectral en el plano complejo $s = \sigma + j\omega$ y gestiona los riesgos mediante simulaciones avanzadas de Monte Carlo y el Soberano de Superficie de Control Replicador-Brockett.
-4. **El Icosikaihenaedro de Sabiduría (Wisdom Stratum / 21 Soberanos TOON):**
-   Gobernanza no conmutativa y automejora monádica RSI³. Opera mediante las 7 Tríadas Funcionales que digieren el contrato, ensayan ataques adversariales en la fase REM, inmunizan contra alucinaciones via TQFT Gromov-Witten, cristalizan el Vacío de Dirac, amortiguan fluctuaciones exergéticas y certifican autoestados de Tarski-Brouwer con traducciones inmediatas a "Dolor y Dinero".
+4. **El Icosikaihenaedro Ampliado de Sabiduría (Wisdom Stratum / 24 Soberanos TOON y 24 Motores Espectrales):**
+   Gobernanza no conmutativa y automejora monádica RSI³. Opera mediante las 8 Tríadas Funcionales que digieren el contrato, ensayan ataques adversariales en la fase REM, inmunizan contra alucinaciones via TQFT Gromov-Witten, cristalizan el Vacío de Dirac, amortiguan fluctuaciones exergéticas, regulan la derivación fraccionaria cronogeométrica del tiempo de obra y certifican autoestados de Tarski-Brouwer con traducciones inmediatas a "Dolor y Dinero".
 
 ---
 
@@ -129,7 +131,7 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 ### 5. 💵 Fuentes de Ingresos (Revenue Streams)
 * **Pricing Dinámico por Entropía Topológica:** Facturación escalada según la Característica de Euler-Poincaré Extendida $\chi(K) = \beta_0 - \beta_1 + \beta_2$ y la preservación de la fase topológica cuántica.
 * **Peaje de Difracción Óptica:** Cobro por volumen de exergía purificada y acotamiento de $KV\text{-Cache}$ logrado por cartuchos TOON y lentes de de Rham.
-* **Suscripción SaaS / On-Premise a la Malla Agéntica:** Licenciamiento por volumen de procesamiento termodinámico en la Malla (21 Soberanos / 21 Motores).
+* **Suscripción SaaS / On-Premise a la Malla Agéntica:** Licenciamiento por volumen de procesamiento termodinámico en la Malla (24 Soberanos / 24 Motores).
 
 ### 6. 🧠 Recursos Clave (Key Resources)
 * **Hardware en el Borde (ESP32 Crowbar):** Gatekeepers de silicio en la obra real con interrupción ISR en IRAM ($<400\text{ ns}$) y tiristor BT151 en GPIO14.
@@ -184,6 +186,9 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **$H |\Omega\rangle = 0 \wedge e^- e^+ \to 2\gamma$** | `toon_silent_witness_agent` / `engine`<br>**Vacío de Dirac ($1.022\text{ MeV}$, $0.0\text{ dB}$)** | **Memoria Inmutable Corporativa**<br>Cristalización de experiencia pasiva en $S^6 \subset \mathbb{R}^7$. Cero repetición de errores pasados en nuevas licitaciones. | Invariante $S^6$ en Vacío MAC. |
 | **Sub-$10\,\mu\text{s} \wedge Gr(r,n) \wedge s = \kappa f^*$** | `toon_intuition_agent` / `engine`<br>**Reflejo Flash Grassmanniano** | **Recomendación Visceral Sub-Milisegundo**<br>Luz verde instantánea ($\kappa f^* = 0.85$) o cierre inmediato de la válvula de pago ante anomalías flagrantes. | Disparo Flash Sub-milisegundo. |
 | **$\lambda_{\max} \wedge H^1(\mathcal{F}_{\text{web}})$** | `toon_buffer_agent` / `engine`<br>**Amortiguación de Flujo Exergético** | **Absorción de Picos de Transacción**<br>Regulación de caudal financiero para evitar golpes de ariete que agoten la liquidez inmediata del megaproyecto. | Modulación de Caudal en RAM. |
+| **${}^{C}_{0}D^{\alpha}_{t} f(t) = \kappa \cdot \nabla H \ \ (\alpha \in (0,1])$** | `toon_chronos_temporal_agent` / `engine`<br>**Regulación Cronogeométrica de la Curva S** | **Mitigación de Descalce en Curva S**<br>Eliminación de sobrecostos moratorios, fricción temporal y descalces en la programación de obra via memoria hereditaria de De Rham-Caputo. | **VETO SUAVE / DURO:** Recalibración geodésica del cronograma en RAM. |
+| **$1 - \frac{\langle v, w \rangle}{\|v\| \|w\|} \le \varepsilon$** | `toon_chronos_witness_agent` / `engine`<br>**Observador Pasivo del Vacío Temporal** | **Auditoría Forense Inmutable de Cronograma**<br>Monitoreo geodésico no reactivo de derivas temporales $t \in \mathbb{R}^+$ con trazabilidad inalterable de hitos sin degradar el rendimiento. | **Pasaporte SHA-256 / Merkle** en Vacío Temporal. |
+| **$\lambda_L > 0 \wedge \det(J) \neq 1$** | `toon_chronos_prosecutor_agent` / `engine`<br>**Fiscalía e Inquisición Temporal** | **Inmunidad Antifraude Cronológico**<br>Detección instantánea de divergencias caóticas y manipulación maliciosa de tiempos o ruta crítica para reclamos de extensión de plazo. | **VETO DURO INSTANTÁNEO:** Disparo de ISR Crowbar ESP32 en $< 400\text{ ns}$. |
 | **Satélite I: $P_{\mathrm{diss}} \ge 0$** | `scalar_momentum_satellite_agent`<br>**Deriva de Momentum Escalar** | **Protección de Tasa WACC (15.0%)**<br>Evaluación FPU ($2.85\text{ ms}$) de la aceleración del flujo presupuestal en el borde de la variedad $\partial\mathcal{M}$. | Veto Suave / Hardware Crowbar ESP32 ($397.53\text{ ns}$). |
 | **Satélite II: $\mathcal{A}(u) > 10^{-6}$** | `pseudoholomorphic_centroid_inertia_agent`<br>**Precesión Divergente del Centroide** | **Cierre Rápido de Actas de Avance**<br>Equilibrio simpléctico en Fukaya $\mathcal{F}uk(\mathcal{M})$ entre contratista, interventor y fiduciaria. | Interrupción ISR en IRAM ESP32 ($397.48\text{ ns}$). |
 | **Satélite III: $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$** | `pseudoholomorphic_centripetal_satellite_agent`<br>**Deformación Centrípeta por Aceleración** | **Protección de Cláusulas Subcontractuales**<br>Evaluación FPU ($2.78\text{ ms}$) del esfuerzo cortante giroscópico $W_{\mu\nu} \in \mathfrak{so}(n)$. | Veto Suave / Crowbar ESP32 ($397.26\text{ ns}$). |

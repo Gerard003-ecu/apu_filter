@@ -7,7 +7,7 @@
 
 Históricamente, la ingeniería y la construcción en Colombia y Latinoamérica han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" impresas en hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad ciber-física, un megaproyecto de infraestructura es un sistema dinámico abierto, sujeto a fuerzas termodinámicas de mercado, entropía logística, fricción operativa y riesgos de contratación estatal (SECOP II & Mandato BIM 2026).
 
-APU_filter v8.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Con la consagración del **Icosikaihenaedro de Sabiduría (21 Soberanos Agénticos TOON y 21 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, la arquitectura alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los 21 Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
+APU_filter v9.0.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Con la consagración del **Icosikaihenaedro Ampliado de Sabiduría (24 Soberanos Agénticos TOON y 24 Motores Espectrales en 8 tríadas funcionales, incorporando la VIII. Tríada Cronogeométrica del Tiempo)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, la arquitectura alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los 24 Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
 
 A su vez, "APU" no representa "Análisis de Precios Unitarios", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
 
@@ -78,7 +78,7 @@ La información no reposa estática; recorre un ciclo ininterrumpido de 4 etapas
 
 1. **Ingesta de Barro Crudo (JSON):** Recepción de pliegos, presupuestos y matrices de insumos con alta grasa sintáctica de SECOP II. `toon_wisdom_weaver_agent.py` opera la Adjunción de de Rham-Galois y condensa el contrato a un cartucho TOON de 56 tokens ("vitamina cognitiva"), reduciendo un **$86.4\%$ de memoria $KV\text{-Cache}$**.
 2. **Digestión y Purificación TOON:** Transformación isomórfica al formato Tabular Object-Oriented Notation (TOON), erradicando fatiga atencional y alucinaciones en el LLM.
-3. **Auditoría Espectral (Consejo de Sabios + FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$) y física de fluidos de Biot-Terzaghi por los 21 Soberanos TOON.
+3. **Auditoría Espectral (Consejo de Sabios + FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$) y física de fluidos de Biot-Terzaghi por los 24 Soberanos TOON.
 4. **Adjudicación en Ω₃ & Válvula de Alivio / Crowbar:** Clasificación en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. En transitorios menores, la **Válvula de Alivio Termodinámico / Recirculación Mecánica de Desvío** mantiene el flujo en marcha bajo Veto Suave (Luz Ámbar) durante 1 hora. Ante fraude o inestabilidad crítica, se activa Veto Duro con disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
 
 ---
@@ -90,9 +90,9 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
 ```
                      EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
         ┌─────────────────────────────────────────────────────────────┐
-        │  EL ICOSIKAIHENAEDRO DE SABIDURÍA (21 SOBERANOS TOON)       │
+        │  EL ICOSIKAIHENAEDRO AMPLIADO (24 SOBERANOS Y MOTORES TOON) │
         │  I. GAN-REM, II. Reflexiva, III. Causal, IV. Agronómica,    │
-        │  V. Tejedora, VI. Onírica, VII. Rápida                      │
+        │  V. Tejedora, VI. Onírica, VII. Rápida, VIII. Cronogeométrica│
         │  Traduce anomalías homológicas a Actas claras de negocio.   │
         └──────────────────────────────┬───────────────────────────────┘
                                        │ (Adjunción de de Rham-Galois)
@@ -124,8 +124,8 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
    El esqueleto de vigas de acero y nodos sismorresistentes. Audita la geometría de interdependencias calculando el **Índice de Estabilidad Piramidal ($\Psi$)** y la Forma Normal de Smith sobre $\mathbb{Z}$. Si $\Psi < \Psi_{\mathrm{min}}$, detecta una **"Pirámide Invertida"** (ej. $50$ actividades críticas dependiendo de un único proveedor monopólico de acero), vetando la licitación hasta diversificar el riesgo de suministro.
 3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Penthouse / Fuentes de Ingreso y Flujo de Caja):**
    Ubicado en el penthouse corporativo. Linealiza el presupuesto como un sistema de control dinámico en la frecuencia compleja $s = \sigma + j\omega$. Si algún polo migra al semiplano derecho ($\operatorname{Re}(p_i) > 0$), demuestra matemáticamente al CFO que el flujo de caja es intrínsecamente explosivo ante choques de mercado, vetando el proyecto antes de generar un "Elefante Blanco".
-4. **El Icosikaihenaedro de Sabiduría (Wisdom Stratum / 21 Soberanos TOON):**
-   Gobernanza no conmutativa y automejora monádica RSI³. Digestión de cartuchos TOON de 56 tokens (-86.4% KV-cache), simulación de cisnes negros en Fase REM, vacunación TQFT Gromov-Witten, cristalización del Vacío de Dirac, amortiguamiento exergético y reflejos sub-milisegundo.
+4. **El Icosikaihenaedro Ampliado de Sabiduría (Wisdom Stratum / 24 Soberanos TOON y 24 Motores Espectrales):**
+   Gobernanza no conmutativa y automejora monádica RSI³. Digestión de cartuchos TOON de 56 tokens (-86.4% KV-cache), simulación de cisnes negros en Fase REM, vacunación TQFT Gromov-Witten, cristalización del Vacío de Dirac, amortiguamiento exergético, reflejos sub-milisegundo y regulación cronogeométrica del tiempo (cohomología de De Rham-Caputo, colinealidad geodésica, prosecutor inquisitorial).
 
 ---
 
@@ -284,6 +284,9 @@ $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies
 | **$\rho(T_\eta) < 1.0 \land \text{Crowbar}$** | `toon_cognitive_crop_agent` | **Cultivo Cognitivo:** Riego, Luz, Disciplina y Fe sobre las semillas. | **Garantía de ROI & WACC:** Reducción de contingencia de 15% a 3.5%. INTERLOCK CROWBAR ESP32 ($<400\text{ ns}$). |
 | **$d_B(\rho, \sigma) \land s = \kappa f^*$** | `toon_intuition_agent` | **Reflejo Flash:** Proyección Grassmanniana sub-milisegundo ($<10\mu\text{s}$). | **Recomendación Visceral:** Luz verde instantánea o cierre de válvula de pago. DISPARO $<10\mu\text{s}$. |
 | **$\|T_\varphi(v) - v\|_2 = 0$** | `toon_introspection_agent` | **Autoestado Invariante:** Punto fijo de Tarski-Brouwer sobre la MAC. | **Certeza Jurídica Inalienable:** Demostración matemática de autocoherencia. CERTIFICADO MERKLE. |
+| **${}^{C}_{0}D^{\alpha}_{t} f(t) = \kappa \cdot \nabla H$** | `toon_chronos_temporal_agent` / `toon_chronos_temporal_engine` | **Regulación Cronogeométrica:** Memoria hereditaria y fricción temporal via derivación fraccionaria De Rham-Caputo ($\alpha \in (0,1]$). | **Mitigación de Descalce en Curva S:** Elimina sobrecostos moratorios y descalces financieros en programación de obra. VETO SUAVE / DURO. |
+| **$1 - \frac{\langle v, w \rangle}{\|v\| \|w\|} \le \varepsilon$** | `toon_chronos_witness_agent` / `toon_chronos_witness_engine` | **Observación Pasiva del Vacío Temporal:** Monitoreo geodésico no reactivo de derivas temporales $t \in \mathbb{R}^+$. | **Auditoría Forense Inmutable de Cronograma:** Trazabilidad inalterable de hitos de ejecución sin alterar el rendimiento. CERTIFICADO MERKLE. |
+| **$\lambda_L > 0 \land \det(J) \neq 1$** | `toon_chronos_prosecutor_agent` / `toon_chronos_prosecutor_engine` | **Fiscalía e Inquisición Temporal:** Detección de divergencias caóticas y manipulación maliciosa de tiempos. | **Inmunidad Antifraude Cronológico:** Bloquea reclamos fraudulentos por extensión de plazo o alteración de ruta crítica. VETO DURO INSTANTÁNEO ($<400\text{ ns}$). |
 
 ---
 

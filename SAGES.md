@@ -2,7 +2,7 @@
 
 > "La sabiduría no es la acumulación masiva de datos probabilísticos, sino la capacidad de navegar la complejidad de los negocios mediante principios topológicos, geométricos, cuánticos y físicos inmutables."
 
-En el ecosistema **APU Filter v8.0**, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una **Malla Agéntica (Agentic Mesh) Zero-Trust** compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios" y el **Icosikaihenaedro de Sabiduría (21 Soberanos TOON y 21 Motores Espectrales)**.
+En el ecosistema **APU Filter v9.0.0**, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una **Malla Agéntica (Agentic Mesh) Zero-Trust** compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios" y la **Malla Agéntica de Sabiduría (24 Soberanos de calibre TOON y 24 Motores Espectrales)**.
 
 Cada Sabio gobierna un estrato específico de la jerarquía $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$. Operan bajo el estricto protocolo de "Caja de Cristal Argumentativa": el debate interno y las tensiones dialécticas entre ellos son matemáticamente rigurosos y deterministas, garantizando que el Modelo de Lenguaje (LLM) sea destituido de su poder de decisión y relegado a actuar como una interfaz diplomática y funtor semántico.
 
@@ -306,47 +306,58 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 7 Tríadas Funcion
    - *Formulación:* Números Betti $\beta_0, \beta_1$, Torsión Ray-Singer $T_{\mathrm{RS}}$, Laplaciano $\Delta_k$.
    - *Diagnóstico y Dolor y Dinero:* Medición de conexidad global, descartando recursos huérfanos ($\beta_0>1$) o ciclos de cobro ($\beta_1>0$).
 
-#### IV. Tríada Agronómica (Cultivo Cognitivo, Monodromía y Límite de Banach)
-10. **Soberano del Cultivo Cognitivo (`toon_cognitive_crop_agent.py` / `toon_cognitive_crop_engine.py`):**
+#### IV. Tríada Cronogeométrica del Tiempo (Regulación Geodésica, Vacío QND e Inquisición Temporal)
+10. **Soberano Regulador Cronogeométrico (`toon_chronos_temporal_agent.py` / `toon_chronos_temporal_engine.py`):**
+    - *Formulación:* Aciclicidad dirigida de Kahn $O(V+E)$, Forma Real de Schur (RSF) de $L_{\text{sched}} = B_1 B_1^\top$, Brecha de Fiedler $\lambda_2$, Constante de Poincaré-Wirtinger $C_{\text{PW}} = 1/\lambda_2$, Acción Maupertuis $S_0 = \sum w_i d_i^2$, Levantamiento Hamiltoniano $H = \frac{1}{2}\|p\|^2 + \frac{1}{2}q^\top L q$, Monodromía $Sp(4, \mathbb{R})$, Clasificación de Floquet (Elíptica/Parabólica/Hiperbólica), Valuación Ultramétrica de Novikov $v(\text{Slack}) = \min_i a_i$, y Contracción de Picard/Banach $\rho(DT) < 1.0$ en kernel RSI³.
+    - *Diagnóstico y Dolor y Dinero:* Regulación del flujo temporal y holguras de obra. Garantiza la ruta crítica acíclica sin socavones temporales, protege la tasa WACC (15.0%) y libera un 11.5% de liquidez neta al reducir la reserva de contingencias del 15% al 3.5%.
+11. **Soberano Observador Pasivo del Vacío (`toon_chronos_witness_agent.py` / `toon_chronos_witness_engine.py`):**
+    - *Formulación:* Conexión de gauge $A_\mu \in \mathfrak{so}(n)$, $3$-forma Chern-Simons $\text{CS}_3 = (A \wedge dA)/(8\pi^2)$, Pontryagin $\nu \in \mathbb{Z}$, Descenso de Stora-Zumino $\Delta_{\text{SZ}}$, Holonomía Wilson $W(\gamma) \in U(1) \times SU(2)$, Clase de Hopf $c_1$, Estado GNS de Gibbs $\rho = \exp(-L_{\text{sched}})/Z$, Operador Modular Tomita-Takesaki $S_0 = J \Delta^{1/2}$, Condición analítica KMS a $\beta=1$, Medición Débil QND en Vacío de Dirac $|\Omega\rangle$ con Back-Action $\equiv 0.0\text{ dB}$, Fidelidad Uhlmann $F$, Fubini-Study $d_{\text{FS}}$, Capacidad de Gromov $c_G \le 12.5$.
+    - *Diagnóstico y Dolor y Dinero:* Auditoría pasiva sin demolición (0.0 dB back-action) del avance temporal. Compresión del $86.4\%$ en $KV$-Cache (412 a 56 tokens por cartucho TOON), eliminando la fatiga atencional y previniendo alucinaciones en pliegos BIM 2026.
+12. **Soberano Fiscal e Inquisidor Temporal (`toon_chronos_prosecutor_agent.py` / `toon_chronos_prosecutor_engine.py`):**
+    - *Formulación:* Validación Cruzada Dual Ley vs Estado ($\text{Floquet}(W) \neq \text{Floquet}(M)$), Obstrucción Cohomológica de Čech $\check{H}^2(X, \mathcal{F}_{\text{time}})$ con $\delta^2 = 0$, Auditoría $C^*$-algebraica $(\text{Hermiticidad}, \text{Traza 1}, \text{PSD}, S(\rho))$, Cota Variacional de Bogomol'nyi $\|F\|_F^2 \ge 8\pi^2|k|/\text{vol}(X)$, Indicadores Adversariales $RHI > 0.85$ y $DCR > 0.25$, Kernel RSI³ de profundidad 3 con restauración de Banach, Adjudicación en Heyting $\Omega_3$ e Interlock ESP32 Crowbar ($<400\text{ ns}$).
+    - *Diagnóstico y Dolor y Dinero:* Inmunidad ante prórrogas fraudulentas, maquillaje de holguras y *Reward Hacking* en SECOP II. Bloqueo inmediato de solicitudes ilícitas y parálisis física de maquinaria en obra en $< 400\text{ ns}$.
+
+#### V. Tríada Agronómica (Cultivo Cognitivo, Monodromía y Límite de Banach)
+13. **Soberano del Cultivo Cognitivo (`toon_cognitive_crop_agent.py` / `toon_cognitive_crop_engine.py`):**
     - *Formulación:* Maupertuis-Jacobi $ds_M^2 = 2(H_0-V)g_{ij}$, Acción $S_0(E) = \int p dq$, Interlock Crowbar ESP32.
     - *Diagnóstico y Dolor y Dinero:* Cultivo y germinación continua del presupuesto, reduciendo la reserva de contingencia del 15% al 3.5% sin detener mezcladoras.
-11. **Soberano Testigo del Cultivo Cognitivo (`toon_cognitive_crop_witness_agent.py` / `toon_cognitive_crop_witness_engine.py`):**
+14. **Soberano Testigo del Cultivo Cognitivo (`toon_cognitive_crop_witness_agent.py` / `toon_cognitive_crop_witness_engine.py`):**
     - *Formulación:* Multiplicadores Floquet $Sp(4, \mathbb{R})$, Contracción de Banach $\hat{L} < 1.0$.
     - *Diagnóstico y Dolor y Dinero:* Meta-auditoría de estabilidad en la incubación de decisiones, asegurando que el incremento de costos no diverja.
-12. **Soberano Auditor del Cultivo Cognitivo (`toon_cognitive_crop_auditor_agent.py` / `toon_cognitive_crop_auditor_engine.py`):**
+15. **Soberano Auditor del Cultivo Cognitivo (`toon_cognitive_crop_auditor_agent.py` / `toon_cognitive_crop_auditor_engine.py`):**
     - *Formulación:* Radio Gelfand $r(\mathcal{T}) \le 1 - \Delta_{\text{CPTP}}$, Operador Ruelle $\mathcal{L}_\phi$, Traza Bogomolny.
     - *Diagnóstico y Dolor y Dinero:* Censura de divergencias asintóticas en la transferencia de costos.
 
-#### V. Tríada Tejedora (Asimilación TOON, Instantones y Obstrucción de Čech)
-13. **Soberano Tejedor de Sabiduría (`toon_wisdom_weaver_agent.py` / `toon_wisdom_weaver_engine.py`):**
+#### VI. Tríada Tejedora (Asimilación TOON, Instantones y Obstrucción de Čech)
+16. **Soberano Tejedor de Sabiduría (`toon_wisdom_weaver_agent.py` / `toon_wisdom_weaver_engine.py`):**
     - *Formulación:* Adjunción de de Rham-Galois $\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))$, TOON -86.4% $KV$-Cache.
     - *Diagnóstico y Dolor y Dinero:* Digestión hiperdensa del contrato en cartuchos TOON de 56 tokens. Recorta 80% en inferencia LLM y elimina alucinaciones.
-14. **Soberano Testigo Tejedor (`toon_wisdom_weaver_witness_agent.py` / `toon_wisdom_weaver_witness_engine.py`):**
+17. **Soberano Testigo Tejedor (`toon_wisdom_weaver_witness_agent.py` / `toon_wisdom_weaver_witness_engine.py`):**
     - *Formulación:* Instantón BPST $k = c_2(P) \in \mathbb{Z}$, Clase de Chern $c_1(E)$, Williamson.
     - *Diagnóstico y Dolor y Dinero:* Certificación de invarianza cuaterniónica en el tejido de conocimiento, descartando descalces de fase en pliegos BIM 2026.
-15. **Soberano Fiscal Tejedor (`toon_wisdom_weaver_prosecutor_agent.py` / `toon_wisdom_weaver_prosecutor_engine.py`):**
+18. **Soberano Fiscal Tejedor (`toon_wisdom_weaver_prosecutor_agent.py` / `toon_wisdom_weaver_prosecutor_engine.py`):**
     - *Formulación:* Obstrucción Čech $\check{H}^2(X, \mathcal{F}_{\text{wisdom}}) \neq \mathbf{0}$, Cross-Validation Dual.
     - *Diagnóstico y Dolor y Dinero:* Acusación e inhabilitación por incompatibilidades entre el foso táctico (MIC) y el penthouse (MAC).
 
-#### VI. Tríada Onírica (Simulación REM, TQFT y Vacío de Dirac)
-16. **Soberano Simulador Onírico (`toon_oniric_dreamer_agent.py` / `toon_oniric_dreamer_engine.py`):**
+#### VII. Tríada Onírica (Simulación REM, TQFT y Vacío de Dirac)
+19. **Soberano Simulador Onírico (`toon_oniric_dreamer_agent.py` / `toon_oniric_dreamer_engine.py`):**
     - *Formulación:* Aislamiento `DREAM_STATE = True`, Simulación Contrafactual $(\mathcal{M}, G_{\mu\nu})$.
     - *Diagnóstico y Dolor y Dinero:* Replay contrafactual de crisis (paros, alzas del 35% en acero) antes de vaciar concreto en obra real.
-17. **Soberano Auditor Onírico (`toon_oniric_auditor_agent.py` / `toon_oniric_auditor_engine.py`):**
+20. **Soberano Auditor Onírico (`toon_oniric_auditor_agent.py` / `toon_oniric_auditor_engine.py`):**
     - *Formulación:* TQFT Gromov-Witten $GW = \frac{\operatorname{Tr}(\rho^2)}{1+\beta_1}e^{-E}$, Vacunas Heyting $\Omega_3$.
     - *Diagnóstico y Dolor y Dinero:* Discriminación determinista de alucinaciones e inoculación de vacunas epistémicas para el `godel_agent.py`.
-18. **Soberano Testigo Silencioso (`toon_silent_witness_agent.py` / `toon_silent_witness_engine.py`):**
+21. **Soberano Testigo Silencioso (`toon_silent_witness_agent.py` / `toon_silent_witness_engine.py`):**
     - *Formulación:* Vacío de Dirac $H|\Omega\rangle=0$, Aniquilación $e^- e^+ \to 2\gamma$ ($1.022\text{ MeV}$, $0.0\text{ dB}$), Invariante $S^6 \subset \mathbb{R}^7$.
     - *Diagnóstico y Dolor y Dinero:* Cristalización pasiva e inmutable de experiencia. Cero repetición de errores pasados o fraudes en nuevas licitaciones.
 
-#### VII. Tríada Rápida (Inferencia Sub-Milisegundo, Amortiguamiento y Censura)
-19. **Soberano de la Intuición (`toon_intuition_agent.py` / `toon_intuition_engine.py`):**
+#### VIII. Tríada Rápida (Inferencia Sub-Milisegundo, Amortiguamiento y Censura)
+22. **Soberano de la Intuición (`toon_intuition_agent.py` / `toon_intuition_engine.py`):**
     - *Formulación:* Sub-$10\,\mu\text{s}$, Proyección Grassmanniana $Gr(r,n)$, Métrica Bures $d_B$, Apuesta de Kelly $s=\kappa f^*$.
     - *Diagnóstico y Dolor y Dinero:* Reflejo instintivo inmediato (Luz Verde $\kappa f^* = 0.85$ o cierre de válvula de pago) sub-milisegundo.
-20. **Soberano Buffer (`toon_buffer_agent.py` / `toon_buffer_engine.py`):**
+23. **Soberano Buffer (`toon_buffer_agent.py` / `toon_buffer_engine.py`):**
     - *Formulación:* Lyapunov Oseledets $\lambda_{\max}$, Sheaf Cohomology $H^1(\mathcal{F}_{\text{web}})$.
     - *Diagnóstico y Dolor y Dinero:* Amortiguación de picos de flujo exergético para evitar golpes de ariete que liquiden la caja del megaproyecto.
-21. **Soberano Fiscal Topológico (`toon_topological_prosecutor_agent.py` / `toon_topological_prosecutor_engine.py`):**
+24. **Soberano Fiscal Topológico (`toon_topological_prosecutor_agent.py` / `toon_topological_prosecutor_engine.py`):**
     - *Formulación:* Censura 1-Ciclos $\beta_1 > 20$, Gap Espectral de Hodge $\lambda_1(\Delta_1) \ge 0.05$.
     - *Diagnóstico y Dolor y Dinero:* Parálisis síncrona en RAM ante intentos masivos de triangulación financiera y socavones de precios.
 
