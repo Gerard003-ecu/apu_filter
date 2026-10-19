@@ -1,4 +1,4 @@
-# 🧙‍♂️ SAGES.md: El Consejo de Sabios Digitales v8.0
+# 🧙‍♂️ SAGES.md: El Consejo de Sabios Digitales v9.0.0
 
 > "La sabiduría no es la acumulación masiva de datos probabilísticos, sino la capacidad de navegar la complejidad de los negocios mediante principios topológicos, geométricos, cuánticos y físicos inmutables."
 
@@ -269,7 +269,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
 
 ---
 
-### 🏛️ EL ICOSIKAIHENAEDRO DE SABIDURÍA (21 SOBERANOS TOON Y 21 MOTORES ESPECTRALES) EN WISDOM ($V_{\mathbb{W}}$ — RSI³ MONÁDICO)
+### 🏛️ EL ESTRATI DE SABIDURÍA EXTENDIDO (24 SOBERANOS TOON Y 24 MOTORES ESPECTRALES) EN WISDOM ($V_{\mathbb{W}}$ — RSI³ MONÁDICO)
 
 El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 7 Tríadas Funcionales Anidadas compuestas por 21 Soberanos Agénticos (`*_agent.py`) y sus 21 Motores Espectrales (`*_engine.py`):
 
