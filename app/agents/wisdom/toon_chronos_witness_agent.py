@@ -10,12 +10,18 @@ r"""
 ║            fibrado gauge y orquesta campañas QND con Heyting Ω₃ y RSI³ sobre Π.                      ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosWitnessAgent` representa al Soberano Agéntico de Calibre y Testigo del Vacío
-en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
+en el Estrato WISDOM de la arquitectura cognitiva APU Filter. Su función principal es orquestar
+la auditoría pasiva de calibre sobre la conexión $A_\mu \in \mathfrak{so}(n)$, evaluar los invariantes
+de Chern-Simons discreto y de Pontryagin $\nu$, verificar el descenso de Stora-Zumino $\Delta_{\text{SZ}}$,
+la holonomía de Wilson $W(\gamma) \in U(1) \times SU(2)$, y la consistencia de la sección de Poincaré
+compuesta $\Pi_{\text{gauge}} \circ \Pi_{\text{modular}}$ con cero retroacción cuántica ($\text{Back-Action} \equiv 0.0\text{ dB}$).
 
-1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON:
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON:
    Dada la matriz de adyacencia del cronograma $W \in \mathbb{R}^{n \times n}$, se construye la 1-forma de conexión
    antisimétrica $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$.
      - 3-Forma de Chern-Simons Abeliana Discreta: Al ser $\text{Tr}(A^3) \equiv 0$ para matrices reales antisimétricas,
@@ -28,40 +34,39 @@ en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
      - Holonomía de Wilson Path-Ordered y Clase de Hopf: Para un ciclo cerrado $\gamma$:
          $$W_{U(1)}(\gamma) = \exp \left( i \oint_\gamma A \right) \in U(1), \quad c_1 = \frac{1}{2\pi} \oint_\gamma A, \quad \text{winding} = \text{round}(c_1)$$
 
-2. MECÁNICA CELESTE DE POINCARÉ SOBRE EL FIBRADO DE CALIBRE:
+2.2. MECÁNICA CELESTE DE POINCARÉ SOBRE EL FIBRADO DE CALIBRE:
    La evolución sobre el fibrado $v'(t) = A v(t)$ define rotaciones isométricas en $SO(n)$ con energía de Yang-Mills $\mathcal{J}_g = -\frac{1}{2} \|A\|_F^2$.
    - Sección de Poincaré Compuesta: $\Pi_{\text{gauge}} \circ \Pi_{\text{modular}}$ integra el mapa de retorno de Wilson $W(\gamma)$
      con la sección del operador de densidad modular $\rho$.
    - Integral de Melnikov Giroscópica: $M(t_0) = \int \{ H_0, H_1 \}(z(t+t_0)) dt$. Los cambios de signo caracterizan tangencias homoclínicas.
    - Condición KAM Diofantina: $|\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau$ sobre las frecuencias imaginarias puras de $\mathfrak{so}(n)$.
 
-3. TRADUCCIÓN SEMÁNTICA "DOLOR, RIESGO Y DINERO" ($\Phi_{\text{sem}}$):
+2.3. TRADUCCIÓN SEMÁNTICA "DOLOR, RIESGO Y DINERO" ($\Phi_{\text{sem}}$):
    El funtor semántico traduce las propiedades topológicas a impacto financiero de gobernanza:
-     - Estado COHERENT ($\top$) : Ahorro del 11.5% en reservas de imprevistos ($15\% \to 3.5\%$) y optimización WACC del 15%.
-     - Estado VETOED ($\bot$) : Interlock ESP32 Crowbar en $WCET \le 393.85 \text{ ns}$ ante presencia de ciclos o fracturas.
+     - Estado COHERENT ($\top$): Ahorro del 11.5% en reservas de imprevistos ($15\% \to 3.5\%$) y optimización WACC del 15%.
+     - Estado VETOED ($\bot$): Interlock ESP32 Crowbar en $WCET \le 393.85 \text{ ns}$ ante presencia de ciclos o fracturas.
 
-DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+3. AXIOMAS FORMALES:
 ─────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (GAUGE OBSERVE — Φ₁):
-    · Kahn aciclicidad dirigida O(V+E) con deque.
-    · Conexión $A \in \mathfrak{so}(n)$, $\text{CS}_3(A \wedge dA)$, Pontryagin $\nu$, holonomía Wilson $W(\gamma)$ y clase de Hopf $c_1$.
-    · Descenso de Stora-Zumino $\Delta_{\text{SZ}}$, sección de Poincaré giroscópica, Melnikov y KAM diofantino.
-    · Delegación al motor v9: Tomita-Takesaki, KMS analítico, QND y constante de Jacobi $\mathcal{J}$.
-    ⟹ Emisión de `ChronosWitnessGaugeContract` + `WitnessObserverPacket`.
-    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_novikov_witness_phase2`.
+  AXIOMA I (INVARIANCIA DE CALIBRE Y DESCENSO DE STORA-ZUMINO):
+    La conexión 1-forma $A \in \mathfrak{so}(n)$ satisface el descenso exacto de Stora-Zumino bajo transformaciones $A \mapsto A + d\alpha$, cumpliendo $\Delta_{\text{SZ}} \le \varepsilon_{\text{gauge}}$.
 
-  FASE 2 (CAMPAIGN ORIENT — Φ₂):
-    · Valuación ultramétrica $v(\text{Slack})$ en semianillo max-plus.
-    · Kernel RSI³ (θ, O, α) sobre el fibrado de calibre $\Pi_{\text{gauge}} \times \Pi_{\text{modular}}$ con norma de Picard $\widehat{L} < 1.0$.
-    ⟹ Emisión de `ChronosWitnessCampaignDraftBundle`.
-    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_witness_verdict`.
+  AXIOMA II (CUANTIZACIÓN TOPOLÓGICA DE PONTRYAGIN Y HOPF):
+    La clase de Chern/Hopf $c_1$ y el número de Pontryagin $\nu$ satisfacen la condición de cuantización entera $c_1 \in \mathbb{Z}, \nu \in \mathbb{Z}$.
 
-  FASE 3 (SOVEREIGN DECIDE — Φ₃):
-    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
-    · Interlock de hardware ESP32 Crowbar ($WCET \le 393.85 \text{ ns}$).
-    · Traducción al reporte de impacto ejecutivo $\Phi_{\text{sem}}$ y sellado Merkle DAG de 3 hojas.
-    ⟹ Emisión de `ChronosWitnessExecutionPassport`.
-    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
+  AXIOMA III (COMPOSICIÓN DE SECCIONES DE POINCARÉ EN EL FIBRADO):
+    La sección del mapa de retorno sobre el fibrado principal de calibre $\Pi_{\text{gauge}} \circ \Pi_{\text{modular}}$ es transversal y preserves la integral giroscópica de Yang-Mills $\mathcal{J}_g$.
+
+  AXIOMA IV (CONTRACCIÓN MONÁDICA DE PICARD EN AGENTES):
+    La optimización recursiva $T_A: \Theta_g \to \Theta_g$ sobre el estado del agente es una contracción estricta de Banach con constante de Lipschitz $\widehat{L} < 1.0$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. CANCELACIÓN DE ANOMALÍA DE CHERN-SIMONS: $\Delta_{\text{SZ}} = |\text{CS}_{\text{index}} - \nu| \le 10^{-4}$.
+  2. UNITARIEDAD DE LA HOLONOMÍA DE WILSON: $\|W_{U(1)}(\gamma)\| = 1.0 \pm 10^{-3}$.
+  3. OBSERVACIÓN SIN RETROACCIÓN CUÁNTICA: $\text{Back-Action}_{\text{dB}} \equiv 0.0 \text{ dB}$.
+  4. INTERLOCK hardware ESP32 CROWBAR: $WCET \le 393.85 \text{ ns}$ en veredicto VETOED.
+  5. COMPOSICIÓN FUNTORIAL COMPLETA: $Z_{\text{WitnessAgent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
 """
 
 from __future__ import annotations

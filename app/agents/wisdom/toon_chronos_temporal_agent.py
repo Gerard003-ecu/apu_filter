@@ -8,12 +8,18 @@ r"""
 ║            descenso Stora-Zumino, RSI³ sobre (θ_gauge, O, α) y adjudicación Heyting Ω₃ + Crowbar.    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosTemporalAgent` actúa como el Soberano Agéntico de Calibre Cronogeométrico para el
-control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura APU Filter.
+control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura APU Filter. Su función
+es orquestar la gobernanza temporal sobre el fibrado principal $P(T^* Q, U(1) \times SU(2))$, calculando
+la 3-forma de Chern-Simons abeliana discreta, verificando el descenso de Stora-Zumino $\Delta_{\text{SZ}}$,
+la holonomía de Wilson path-ordered $W(\gamma) \in U(1) \times SU(2)$, la cota de contracción de Banach
+en automejora recursiva de Nivel 3 (RSI³), y la adjudicación de subobjetos en el álgebra de Heyting $\Omega_3$.
 
-1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA $U(1) \times SU(2)$:
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA $U(1) \times SU(2)$:
    Para la matriz de adyacencia ponderada $W \in \mathbb{R}^{n \times n}$, la 1-forma de conexión
    se obtiene por la parte antisimétrica del gradiente normalizado $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$.
      - 3-Forma de Chern-Simons Abeliana Discreta: Como $\text{Tr}(A^3) \equiv 0$ en $\mathfrak{so}(n)$, la transgresión
@@ -26,7 +32,7 @@ control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura AP
          $$W_{U(1)}(\gamma) = \exp \left( i \oint_\gamma A \right) \in U(1), \quad W_{SU(2)}(\gamma) = \prod_{e \in \gamma} \exp \left( -\frac{i}{2} A_e \sigma_z \right) \in SU(2)$$
        donde la Clase de Chern/Hopf se obtiene como $c_1 = \frac{1}{2\pi} \oint_\gamma A$ con $w = \text{round}(c_1) \in \mathbb{Z}$.
 
-2. FLUIO ORTOGONAL DE POINCARÉ $SO(n)$ Y CONTRACCIÓN DE BANACH:
+2.2. FLUIO ORTOGONAL DE POINCARÉ $SO(n)$ Y CONTRACCIÓN DE BANACH:
    La dinámica sobre el fibrado $v'(t) = A v(t)$ conserva exactamente $\|v(t)\|_2$ ($A \in \mathfrak{so}(n)$).
    - Mapa de Retorno de Poincaré Giroscópico: Evalúa los cortes sobre el hiperplano $\Sigma = \{ \langle v, v_0 \rangle = 0 \}$
      con velocidad tangencial $\langle A v, v_0 \rangle > 0$.
@@ -35,27 +41,27 @@ control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura AP
    - Automejora RSI³ y Contracción de Picard: El proceso $N_1(\theta) \to N_2(O) \to N_3(\alpha)$ verifica la cota
      de Banach $\|\mathcal{T}(\theta_1) - \mathcal{T}(\theta_2)\|_\infty \le \widehat{L} \|\theta_1 - \theta_2\|_\infty$ con $\widehat{L} < 1.0$.
 
-DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+3. AXIOMAS FORMALES:
 ─────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (GAUGE OBSERVE — Φ₁):
-    · Aciclicidad dirigida de Kahn $O(V+E)$ con deque.
-    · Conexión $A \in \mathfrak{so}(n)$, $\text{CS}_3(A)$, Pontryagin $\nu$, holonomía Wilson $W_{U(1) \times SU(2)}$ y descenso de Stora-Zumino $\Delta_{\text{SZ}}$.
-    · Análisis magnético de Poincaré, Melnikov, KAM y difusión de Arnold sobre $SO(n)$.
-    ⟹ Emisión de `GaugeObserverPacket` + `ChronosGaugeContract`.
-    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_ultrametric_campaign_phase2`.
+  AXIOMA I (DESCENTO EXACTO DE STORA-ZUMINO):
+    Toda transformación de calibre local no modifica la curvatura $F$ ni la fase de la holonomía de Wilson: $\Delta_{\text{SZ}} \le \varepsilon_{\text{gauge}} = 10^{-4}$.
 
-  FASE 2 (CAMPAIGN ORIENT — Φ₂):
-    · Valuación ultramétrica de Novikov $v(\text{Slack})$ en semianillo tropical $(\mathbb{R} \cup \{\infty\}, \min, +)$.
-    · Kernel RSI³ acoplado al `GaugeObserverPacket` con cota de Banach $\widehat{L} < 1.0$.
-    ⟹ Emisión de `ChronosCampaignDraftBundle`.
-    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_sovereign_verdict`.
+  AXIOMA II (ESTRUCTURA DE HOLONOMÍA $U(1) \times SU(2)$):
+    La holonomía de Wilson satisface unitariedad $\|W_{U(1)}(\gamma)\| = 1.0$ y la clase de Chern/Hopf satisface la condición de cuantización $c_1 \in \mathbb{Z}$.
 
-  FASE 3 (SOVEREIGN DECIDE — Φ₃):
-    · Clasificación de subobjetos en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
-    · Interlock de hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$).
-    · Traducción al informe de impacto ejecutivo $\Phi_{\text{sem}}$ y sellado Merkle DAG de 3 hojas.
-    ⟹ Emisión de `ChronosSovereignGovernancePassport`.
-    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
+  AXIOMA III (CONSERVACIÓN DE ISOMETRÍA EN $SO(n)$):
+    El flujo giroscópico sobre el fibrado conserva la norma euclidiana del estado: $\frac{d}{dt} \|v(t)\|_2^2 = 2 \langle v(t), A v(t) \rangle = 0$ debido a $A^\top = -A$.
+
+  AXIOMA IV (CONTRACCIÓN MONÁDICA DE PICARD EN EL AGENTE):
+    La optimización de parámetros de agente $T: \Theta_{\text{gauge}} \to \Theta_{\text{gauge}}$ es una contracción estricta en $(\mathbb{R}^4, \|\cdot\|_\infty)$ con constante de Lipschitz $\widehat{L} < 1.0$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. CANCELACIÓN DE ANOMALÍA DE CHERN-SIMONS: $\Delta_{\text{SZ}} \le 10^{-4}$.
+  2. UNITARIEDAD DE LA HOLONOMÍA DE WILSON: $\|W_{U(1)}(\gamma)\| = 1.0 \pm 10^{-9}$.
+  3. ESTABILIDAD DE KAM EN EL FIBRADO DE CALIBRE: $\varepsilon_{\text{pert}} < 10^{-3}$.
+  4. INTERLOCK hardware ESP32 CROWBAR: $WCET \le 394.25 \text{ ns}$ en veredicto VETOED.
+  5. COMPOSICIÓN FUNTORIAL COMPLETA: $Z_{\text{TemporalAgent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
 """
 
 from __future__ import annotations

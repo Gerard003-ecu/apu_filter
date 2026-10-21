@@ -7,12 +7,18 @@ r"""
 ║ Función  : Soberano Fiscal Agéntico de la Cronogeometría del Tiempo en el Estrato WISDOM.            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosProsecutorAgent` constituye el Soberano Agéntico Fiscal de la Cronogeometría
-del Tiempo en el Estrato WISDOM de la arquitectura APU Filter.
+del Tiempo en el Estrato WISDOM de la arquitectura APU Filter. Su función principal es fiscalizar
+y acusar irregularidades causales en el espacio-tiempo de megaproyectos, auditando la conexión
+$A_\mu \in \mathfrak{so}(n)$, el descenso de Stora-Zumino $\Delta_{\text{SZ}}$, la transgresión abeliana
+de Chern-Simons $\text{CS}_3(A)$, la holonomía de Wilson $W(\gamma) \in SO(n)$, y orquestar el kernel
+RSI³ de agente con meta-recursión de profundidad 3 y preservación de la contracción de Banach.
 
-1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON PATH-ORDERED:
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON PATH-ORDERED:
    La 1-forma de conexión $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$ genera el transporte
    paralelo sobre el 1-esqueleto del cronograma.
      - 3-Forma de Chern-Simons Abeliana Discreta: Como $\text{Tr}(A^3) \equiv 0$ en $\mathfrak{so}(n)$, la transgresión
@@ -22,7 +28,7 @@ del Tiempo en el Estrato WISDOM de la arquitectura APU Filter.
        de invarianza de calibre $\Delta_{\text{SZ}} = |\text{CS}_{\text{index}} - \nu| \le \varepsilon_{\text{gauge}}$.
      - Holonomía de Wilson Path-Ordered $SO(n)$: Para un ciclo $\gamma$, $W(\gamma) = \mathcal{P} \exp \left( \oint_\gamma A \right) = \prod_e \exp(G_e) \in SO(n)$.
 
-2. DINÁMICA MAGNÉTICA DE POINCARÉ Y AUTOMEJORA RECURSIVA RSI³ DE AGENTE:
+2.2. DINÁMICA MAGNÉTICA DE POINCARÉ Y AUTOMEJORA RECURSIVA RSI³ DE AGENTE:
    - Flujo Giroscópico: $\dot{q} = v, \dot{v} = A v + \varepsilon \sigma_1 q$. La sección transversal en el 2-plano dominante
      revela el mapa de retorno de Poincaré $P: \Sigma \to \Sigma$ con twist de Birkhoff.
    - Integrales de Melnikov y Perturbación KAM: Evaluadas sobre el campo de curvatura $F$.
@@ -30,34 +36,33 @@ del Tiempo en el Estrato WISDOM de la arquitectura APU Filter.
      sobre $\theta_g = [\|A\|_F, |\text{CS}_{\text{index}}|, \Delta_{\text{SZ}}, |c_1|]$. Si la cota de Banach no se satisface,
      la recursión de Nivel 3 re-escala $\alpha_g$ restaurando $\|\mathcal{T}(\theta_1) - \mathcal{T}(\theta_2)\|_\infty \le \widehat{L} \|\theta_1 - \theta_2\|_\infty$ con $\widehat{L} < 1.0$.
 
-3. FUNTOR SEMÁNTICO DE IMPACTO FINANCIERO ($\Phi_{\text{sem}}$):
+2.3. FUNTOR SEMÁNTICO DE IMPACTO FINANCIERO ($\Phi_{\text{sem}}$):
    Traduce la topología de calibre y los diagnósticos celestes en métricas de gobernanza ejecutiva:
-     - Fidelidad en WACC : Cobertura del 15% en WACC y compresión KV-cache del 86.4%.
-     - Liberación de Reserva : Reducción del 11.5% de liquidez contingency ($15\% \to 3.5\%$) en estado COHERENT ($\top$).
-     - Veto e Interlock : Disparo del hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$) en estado VETOED ($\bot$).
+     - Fidelidad en WACC: Cobertura del 15% en WACC y compresión KV-cache del 86.4%.
+     - Liberación de Reserva: Reducción del 11.5% de liquidez contingency ($15\% \to 3.5\%$) en estado COHERENT ($\top$).
+     - Veto e Interlock: Disparo del hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$) en estado VETOED ($\bot$).
 
-DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+3. AXIOMAS FORMALES:
 ─────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (PROSECUTION GAUGE OBSERVE — Φ₁):
-    · Aciclicidad dirigida de Kahn $O(V+E)$ con deque (fail-fast).
-    · Conexión $A \in \mathfrak{so}(n)$, $\text{CS}_3(A)$, Pontryagin $\nu$, holonomía Wilson path-ordered $W(\gamma)$ y clase de Hopf $c_1$.
-    · Descenso Stora-Zumino $\Delta_{\text{SZ}}$, mapa giroscópico de Poincaré, Melnikov, KAM diofantino y Chirikov.
-    · Delegación al motor v9: Formas de Schur, dualidad Ley-Estado, Čech $\delta^2 = 0$, $Sp(4, \mathbb{R})$ y KAM espectral.
-    ⟹ Emisión de `ProsecutorObserverPacket` + `ChronosProsecutorGaugeContract`.
-    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_cstar_indictment_phase2`.
+  AXIOMA I (FISCALIZACIÓN CAUSAL Y DIAGNÓSTICO DE SOCAVÓN):
+    Toda incoherencia en la dirección causal o presencia de ciclo orientado en el cronograma resulta en la emisión inmediata de veto atómico VETOED ($\bot$).
 
-  FASE 2 (PROSECUTION CAMPAIGN ORIENT — Φ₂):
-    · Auditoría C*-algebraica, cota de Bogomol'nyi $\|F\|_F^2 \ge 8\pi^2|k|/\text{vol}(X)$ e indicadores RHI / DCR.
-    · Kernel RSI³ de Agente con meta-recursión de profundidad 3 y restauración de contracción de Banach $\widehat{L} < 1.0$.
-    ⟹ Emisión de `ChronosProsecutionCampaignDraftBundle`.
-    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_prosecution_verdict`.
+  AXIOMA II (DUALIDAD POINCARÉ LEY VS ESTADO):
+    La clase de Floquet de la ley $W(\gamma) \in SO(n)$ y del estado $M \in Sp(4, \mathbb{R})$ deben coincidir exactamente: $\text{FloquetClass}(W) = \text{FloquetClass}(M)$.
 
-  FASE 3 (PROSECUTION SOVEREIGN DECIDE — Φ₃):
-    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$ con meet de átomos de calibre y celestes.
-    · Medición de latencia de interlock ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$).
-    · Traducción semántica executiva $\Phi_{\text{sem}}$ y sellado Merkle DAG de 3 hojas.
-    ⟹ Emisión de `ChronosProsecutionExecutionPassport`.
-    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
+  AXIOMA III (CANONICIDAD DE DENSIDAD DE PONTRYAGIN):
+    El número de Pontryagin $\nu \in \mathbb{Z}$ y el residuo de Stora-Zumino satisfacen $\Delta_{\text{SZ}} = |\text{CS}_{\text{index}} - \nu| \le \varepsilon_{\text{gauge}} = 10^{-4}$.
+
+  AXIOMA IV (META-RECURSIÓN Y RESTAURACIÓN DE BANACH):
+    Ante la pérdida de la constante de contracción $\widehat{L} \ge 1.0$, el nivel 3 de meta-recursión re-escala la tasa $\alpha_g$ hasta garantizar $\widehat{L} < 1.0$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. AUSENCIA DE FRACTURA LEY-ESTADO: $\text{FloquetClass}(W) \equiv \text{FloquetClass}(M)$.
+  2. EXACTITUD COHOMOLÓGICA DE SEGUNDO ORDEN: $\|\delta^2 g\|_F \le 10^{-12}$.
+  3. SATURACIÓN DE COTA DE BOGOMOL'NYI: $\|F\|_F^2 \ge 8\pi^2 |k| / \text{vol}(X)$.
+  4. INTERLOCK hardware ESP32 CROWBAR: $WCET \le 394.25 \text{ ns}$ en veredicto VETOED.
+  5. COMPOSICIÓN FUNTORIAL COMPLETA: $Z_{\text{ProsecutorAgent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
 """
 
 from __future__ import annotations
