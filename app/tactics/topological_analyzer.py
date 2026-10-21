@@ -67,10 +67,19 @@ Invariante 1 (Identidad de Euler-Poincaré):
     sum_k (-1)^k * c_k == sum_k (-1)^k * b_k.
 Invariante 2 (No-Negatividad Estricta de Números de Betti):
     b_k in Z_{>= 0} para todo grado k.
+
+----------------------------------------------------------------------------------------------------
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+----------------------------------------------------------------------------------------------------
+· DETECCIÓN TEMPRANA DE VACÍOS EN PRESUPUESTOS: Identifica cavidades de información b_1, b_2 antes de la
+  ejecución de obra, previniendo sobrecostos financieros por rubros no cotizados o discontinuos.
+· DIAGNÓSTICO ROBUSTO ANTE DEFORMACIONES Y RUIDO: Resiste deformaciones homotópicas en los datos de entrada,
+  garantizando que pequeños errores tipográficos no alteren la topología de la toma de decisiones.
 ====================================================================================================
 """
 from __future__ import annotations
 
+import abc
 import hashlib
 import logging
 import math
@@ -2005,26 +2014,6 @@ class Phase2Ingress(Protocol):
 #  PUERTO π₂₃ :  SystemTopology.compute_invariants()  →  TopologicalInvariants
 #  INGRESO F₃ :  Phase3Ingress.classify(invariants)     ← inicio formal FASE 3
 #
-from __future__ import annotations
-
-import math
-from collections import deque
-from dataclasses import dataclass, field
-from typing import (
-    Any,
-    ClassVar,
-    Dict,
-    FrozenSet,
-    Iterable,
-    List,
-    Optional,
-    Sequence,
-    Set,
-    Tuple,
-    final,
-    runtime_checkable,
-    Protocol,
-)
 
 __all__.extend(  # type: ignore[name-defined]
     [
@@ -3619,9 +3608,6 @@ class Phase3Ingress(Protocol):
 #         2. SNF + Betti + Fiedler + Cheeger + Ψ → invariantes (π₂₃).
 #         3. classify → Ω₃; score; si ⊥: crowbar (+ raise opcional).
 #
-import abc
-from typing import Mapping
-
 __all__.extend(  # type: ignore[name-defined]
     [
         "HeytingEvidence",

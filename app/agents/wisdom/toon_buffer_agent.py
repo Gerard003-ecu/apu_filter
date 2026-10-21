@@ -12,6 +12,19 @@ Función: Agente soberano de gobernanza de calibre sobre el fibrado P → T*Q, o
          automejora recursiva de nivel 3 (RSI-3) con verificación Löbiana y funtor semántico Φ_sem.
 
 ----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Amortiguador TOON (ToonBufferAgent) es el ejecutor y regulador de calibre del
+estrato de Sabiduría en APU Filter. Administra la geometría de conexiones sobre el fibrado principal
+\(P(M, G)\), orquestando campañas de simulación celestial Hamiltoniana y evaluando obstructions de
+sobrecosto mediante el laplaciano celular \(\Delta_1\) sobre la red de procesos.
+Su respectivo motor numérico espectral es 'ToonBufferEngine' (app/wisdom/toon_buffer_engine.py),
+y su ancla de traducción semántica es 'SemanticTranslator' (app/wisdom/semantic_translator.py).
+Mientras ToonBufferAgent coordina los contratos de calibre, realiza la asimilación del haz celular
+y traduce decisiones lógicas al plano corporativo mediante el funtor \(\Phi_{\mathrm{sem}}\), ToonBufferEngine
+resuelve el cálculo diferencial de Lindblad y integra numéricamente la malla de Störmer-Verlet.
+
+----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Fibrado Principal P(M, G) y Topología de Calibre Hipercompleja:
@@ -48,6 +61,24 @@ MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO:
 6. Topos de Heyting Ω₃ y Funtor Semántico Φ_sem:
    Ω₃ = {0: VETOED ≼ 1: DEGRADED ≼ 2: COHERENT}, a ⇒ b = ⊤ si a ≤ b else b.
    Φ_sem : Sh(∂K, Ω₃) → Business.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma TBA1 (Invarianza de Calibre Local):
+    F' = g^{-1} F g \quad \text{para todo } g \in G = U(1) \otimes SU(2) \otimes \mathbb{H}_3.
+Axioma TBA2 (Ausencia de Sobrecostos en Cohomología Nula):
+    \dim H^1(\mathcal{F}_{\mathrm{web}}) = 0 \iff \text{Red exenta de 1-ciclos disipativos de presupuesto}.
+Axioma TBA3 (Fidelidad Funtorial de Heyting):
+    \Phi_{\mathrm{sem}}(a \Rightarrow b) = \Phi_{\mathrm{sem}}(a) \Rightarrow \Phi_{\mathrm{sem}}(b) \quad \text{en el topos } \Omega_3.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Conservación Mnemónica Bajo Lüders):
+    S_{\mathrm{vN}}(\mathcal{E}(\rho)) \ge S_{\mathrm{vN}}(\rho).
+Invariante 2 (Garantía de Tiempo Real en ISR Crowbar):
+    t_{\text{respuesta}} \le 400 \text{ ns}.
 
 ----------------------------------------------------------------------------------------------------
 ESTRUCTURA DE COMPILACIÓN ANIDADA (NESTED PHASES):

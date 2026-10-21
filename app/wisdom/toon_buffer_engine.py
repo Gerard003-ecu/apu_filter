@@ -12,6 +12,21 @@ Función: Motor soberano de amortiguamiento mnemónico, filtrado disipativo Lind
          monodromía estroboscópica de Poincaré, exponente de Oseledets y automejora recursiva RSI-3.
 
 ----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Motor Mnemónico de Amortiguamiento (ToonBufferEngine) es el acumulador mnemónico y
+estabilizador disipativo del estrato de Sabiduría en APU Filter. Modela los estados de memoria
+transitorios como operadores densidad \(\rho\) sobre un espacio de Hilbert \(\mathcal{H}\) (\(\dim = 56\)),
+disipando la entropía informacional mediante la ecuación diferencial cuántica Lindblad-GKSL y mapeando
+las curvas geodésicas en el atlas simpléctico de Poincaré-Delaunay \(T^*Q\).
+Su respectivo agente en el plano ejecutivo de sabiduría es 'ToonBufferAgent'
+(app/agents/wisdom/toon_buffer_agent.py), y su ancla de matriz de conocimiento macroscópico es
+'AtomicKnowledgeMatrix' (app/wisdom/atomic_knowledge_matrix.py). Mientras ToonBufferEngine computa
+la evolución Lindblad, la monodromía estroboscópica \(M\), el residuo de Greene \(R_G\) y la tasa RSI-3, su
+respectivo Agente orquesta las campañas Hamiltonianas, resuelve la cohomología \(H^1(\mathcal{F}_{\mathrm{web}})\)
+y emite dossiers ejecutivos en respuesta a los veredictos de Heyting \(\Omega_3\).
+
+----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Espacio de Estados de Banach y Canales Cuánticos Lindblad-GKSL:
@@ -47,6 +62,24 @@ MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO:
 6. RSI-3 Löbiano:
    η_RSI3 = clip( η_base · exp(−h_KS · d_FS), 0.05, 0.45 ).
    □(□ P → P) → □ P, dω = 0, c_G ≤ c_G_max, canal CPTP monótono.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma TBE1 (Preservación de la Traza y Positividad de Lindblad-GKSL):
+    \operatorname{Tr}(\rho(t)) = 1 \quad \text{y} \quad \rho(t) \ge 0 \quad \forall t \ge 0.
+Axioma TBE2 (Conservación de la 2-Forma Simpléctica Canónica):
+    \mathrm{d}\omega = 0 \quad \text{sobre el atlas de Delaunay } T^*Q, \, M^\top J M = J.
+Axioma TBE3 (Monotonía de Contracción Mnemónica en Norma de Traza):
+    \|\mathcal{T}_t(\rho_1) - \mathcal{T}_t(\rho_2)\|_1 \le e^{-\alpha t} \|\rho_1 - \rho_2\|_1, \, \alpha > 0.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Invarianza Isoenergética de Poincaré):
+    \det(\mathcal{H}_{\text{bordeado}}) = -n^2 \neq 0.
+Invariante 2 (Acotamiento Estricto de la Tasa RSI-3):
+    0.05 \le \eta_{\mathrm{RSI3}} \le 0.45.
 
 ----------------------------------------------------------------------------------------------------
 ESTRUCTURA DE COMPILACIÓN ANIDADA (NESTED PHASES):

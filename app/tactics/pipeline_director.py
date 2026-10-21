@@ -1,11 +1,31 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Pipeline Director v5.1.0 — Poincaré–Melnikov–Recursive-N3           ║
-║ Ruta   : app/tactics/pipeline_director.py                                    ║
-║ Versión: 5.1.0-DAG-Poincare-Melnikov-RecursiveN3-Strict                      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO TÁCTICO
+====================================================================================================
 
+Nombre: PipelineDirector
+Ubicación: app/tactics/pipeline_director.py
+Versión: 5.1.0-DAG-Poincare-Melnikov-RecursiveN3-Strict
+Función: Motor táctico soberano de orquestación de la canalización de procesamiento de datos,
+         preservación simpléctica de Liouville-Darboux, geodésicas de Maupertuis-Jacobi y
+         flujos espectrales acoplados (Ricci $R_1$, Fiedler $R_2$, Brockett-Shahshahani $R_3$).
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Director de la Canalización (PipelineDirector) es el orquestador ejecutivo del estrato táctico
+en APU Filter. Su función primordial es coordinar la ejecución secuencial y declarativa de los pasos de
+procesamiento (PipelineSteps), garantizando que las transformaciones sobre los presupuestos, análisis
+de insumos y conciliación de matrices de datos conserven la volumen simpléctica y eviten singularidades.
+Su respectivo agente en el plano estratégico de gobernanza es 'PipelineDirectorAgent'
+(app/agents/strategy/pipeline_director_agent.py), su condensador físico complementario es 'DataFluxCondenser'
+(app/physics/flux_condenser.py), y su procesador de presupuesto atómico es 'APUProcessor'
+(app/tactics/apu_processor.py). Mientras PipelineDirector orquesta el flujo dinámico de los pasos de
+cálculo y evalúa los tres flujos espectrales de control ($R_1, R_2, R_3$), PipelineDirectorAgent
+audita la causalidad global del DAG mediante la descomposición de Schur y teoremas de incompletitud.
+
+----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO RIGUROSO Y GOBERNANZA CIBER-FÍSICA (NIVEL DOCTORADO):
 ────────────────────────────────────────────────────────────────────────────────
 
@@ -101,6 +121,25 @@ TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
 · OPTIMIZACIÓN AUTOMÁTICA DE RECURSOS: El kernel N3 autorregula los parámetros y tiempos
   de caché sin intervención humana, reduciendo drásticamente el costo de mantenimiento
   del software y previniendo caídas del servidor por cuellos de botella de memoria.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma PD1 (Preservación de la Volumen Simpléctica de Liouville-Darboux):
+    \det(\mathrm{D}\varphi_t^{X_H}) = +1 \quad \text{y} \quad \|M^\top \Omega M - \Omega\|_F \le \varepsilon_{\mathrm{sym}}.
+Axioma PD2 (No-Degeneración de Brecha Algebráica de Fiedler):
+    \lambda_2(L_{\mathrm{sym}}) > 0 \quad (\text{Grafo fuertemente conexo sin cuellos de botella computacionales}).
+Axioma PD3 (Anulación Exacta de Ciclos Homológicos de Mayer-Vietoris):
+    \Delta \beta_1 \equiv 0 \quad (\text{Ausencia de ciclos espurios de datos en uniones de subcomplejos}).
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Isotropía Conforme de Maupertuis-Jacobi):
+    g_{MJ} = 2(E - V(q)) g_0 \quad \text{con } E > V(q).
+Invariante 2 (Estabilidad Estroboscópica de Poincaré):
+    \lambda_{\mathrm{Lyap}} \le 0 \quad \text{sobre la sección } \Sigma.
+====================================================================================================
 """
 
 from __future__ import annotations
@@ -113,11 +152,13 @@ import logging
 import math
 import os
 import pickle
+import re
 import sys
 import time
 import uuid
 from abc import ABC, abstractmethod
 from dataclasses import asdict, dataclass, field, make_dataclass, replace
+from itertools import product as _product
 from pathlib import Path
 from typing import (
     Any, Callable, ClassVar, Dict, Final, FrozenSet, Generic, Iterator,
@@ -139,6 +180,13 @@ except Exception:                # pragma: no cover
 from app.core.constants import ColumnNames, InsumoType
 from app.physics.flux_condenser import CondenserConfig, DataFluxCondenser
 from app.physics.matter_generator import MatterGenerator
+try:
+    from app.physics.lithological_manifold import (
+        LithologicalManifold, LithologicalSingularityError,
+    )
+except ImportError:  # pragma: no cover
+    LithologicalManifold = None  # type: ignore
+    LithologicalSingularityError = None  # type: ignore
 from app.core.schemas import Stratum
 from app.core.telemetry import TelemetryContext
 from app.core.telemetry_narrative import TelemetryNarrator
@@ -1404,7 +1452,6 @@ class PipelineDirectorEngine:
         diophantine_held = True
         gamma, tau = _KAM_DIOPH_GAMMA, _KAM_DIOPH_TAU
         # Barrido acotado del retículo: k ∈ {−2,…,2}^n \ {0}, n≤4.
-        from itertools import product as _product
         bound = 2
         for k_tuple in _product(range(-bound, bound + 1), repeat=n_freq):
             if all(ki == 0 for ki in k_tuple):
@@ -3624,7 +3671,6 @@ class BaseProcessingStep(ABC):
             raise StepExecutionError(str(e), step_name, e)
 
     def _get_step_name(self) -> str:
-        import re
         name = self.__class__.__name__
         if name.endswith("Step"):
             name = name[:-4]
@@ -3659,10 +3705,6 @@ class BaseProcessingStep(ABC):
 
 
 # ── 3.4 PASOS CONCRETOS ──────────────────────────────────────────────────────
-
-from app.physics.lithological_manifold import (
-    LithologicalManifold, LithologicalSingularityError,
-)
 
 
 class LithologicalBaselineStep(BaseProcessingStep):
