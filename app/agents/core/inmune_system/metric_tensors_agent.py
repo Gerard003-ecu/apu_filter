@@ -10,73 +10,98 @@ Versión: 7.3.0  (evolución rigurosa de 7.2.0)
 Función: Soberano de Calibre Riemanniano del sistema inmune. Orquesta la gobernanza geométrica,
          el flujo de Ricci discreto normalizado con automejora recursiva RSI³ (niveles 1 ⊂ 2 ⊂ 3,
          v7.3.0 Bianchi–Darboux–QR–Lindstedt–Killing–Morse) y el mapa de retorno de Poincaré en el
-         fibrado cotangente T*M con variables acción-ángulo de Hamilton–Jacobi, monodromía
+         fibrado cotangente T^*\mathcal{M} con variables acción-ángulo de Hamilton–Jacobi, monodromía
          variacional, función de Melnikov homoclínica y cuantización geométrica prequántica.
 
 ----------------------------------------------------------------------------------------------------
-MEJORAS v7.3.0 RESPECTO A v7.2.0 (rigurosas y granulares):
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-FASE 1  (tejido 0-jet + invariantes de Noether / Kirchhoff / Weyl):
-  • `_volume_form_consistency`        : |det G − exp(logdet_Chol)| / |det G|  (forma de volumen).
-  • `_weyl_conformal_residual`        : parte conforme de Riemann 0-jet (Weyl = 0 en n = 2).
-  • `_killing_equation_residual`      : (ℒ_ξ G)_(μν) = ∇_(μ ξ_ν)  (Noether discreto).
-  • `_kirchhoff_current_residual`     : KCL ≡ ∑_ν Ein^{μν}  (dual circuito ↔ Bianchi).
-  • `_poincare_first_integrals`       : (H, C_Jacobi, L_angular) sobre la órbita RSI¹.
-  • `_select_metric_projection`       : primitiva espectral vs Cayley–Darboux (germen de RSI³).
-  • `GeometricState` / `Phase1Handoff` enriquecidos con Weyl, Killing, Kirchhoff, primeras
-    integrales y consistencia de volumen.
-  • Bianchi contraída reescrita sin hacks de cadenas (`einsum("mml->l")` canónico).
-
-FASE 2  (RSI³ de métodos + mecánica celeste de Poincaré):
-  • `_rsi3_method_selector`           : automejora de *método* (proyector + discretizador de Ricci)
-                                        según residuales Bianchi / κ₂ / defecto simpléctico.
-  • `_banach_fixed_point_certificate` : certificado (X completo, Φ:X→X, Lip Φ < 1).
-  • `_monodromy_matrix`               : matriz de monodromía D𝒯|Σ por mínimos cuadrados tangentes.
-  • `_variational_floquet`            : μ_max = ρ(M)  (radio espectral de la monodromía; ya no
-                                        cociente de normas).
-  • `_poincare_lindstedt_correction`  : corrección de periodo T = T̄(1 + ε T₁) (Lindstedt).
-  • `_poincare_recurrence_bound`      : cota inferior del tiempo de recurrencia de Poincaré.
-  • `_hamilton_jacobi_generating_function` : S(q,I) tipo 2, p = ∂S/∂q, θ = ∂S/∂I.
-  • `_symplectic_lyapunov_pairing`    : palíndromo λ_i + λ_{d−i} ≈ 0 (Hamiltoniano).
-  • Benettin reducido (subespacio QR de dim ≤ `_LYAP_DIM_CAP`) + diferencias centrales.
-  • Historiales de contracción y de sonda Lipschitz *desacoplados* (no contaminan L_Φ).
-  • Convergencia RSI³ exige `_CONSECUTIVE_CONV_STEPS` pasos consecutivos bajo umbral.
-
-FASE 3  (KAM, Melnikov homoclínica, Conley–Morse, prequantum, topos Heyting):
-  • `_melnikov_homoclinic_integral`   : M(θ₀) = ∑ ⟨J ∇H, g⟩ Δτ  a lo largo de la separatriz.
-  • `_conley_morse_index`             : índice de Conley–Morse a partir de Hopf + espectro Λ.
-  • `_geometric_quantization_prequantum` : F_∇ = ω  (curvatura del fibrado prequántico).
-  • `_polyakov_einstein_consistency`  : Gauss–Bonnet discreto (n = 2) / Polyakov vs E–H.
-  • `_heyting_lattice_axioms_check`   : + residuación (a ∧ (a → b) ≤ b) y modus ponens.
-  • `_ooda_associativity_check`       : (Φ₃ ∘ Φ₂) ∘ Φ₁  ≅  Φ₃ ∘ (Φ₂ ∘ Φ₁)  (continuidad de jets).
-  • Certificado de gobernanza ampliado: linaje de métodos, monodromía, Lindstedt, recurrencia,
-    índice de Conley, curvatura prequántica, primeras integrales.
+El Soberano de Calibre Riemanniano `MetricTensorsAgent` rige la gobernanza geométrica de la Capa 0
+(Estrato Wisdom, \mathcal{V}_{\mathbb{W}}) dentro del Sistema Inmune de APU Filter. Su cometido principal
+es la auditoría ciber-física, el control de la curvatura escalar y la verificación de invariantes
+simplécticos en la variedad de fases \mathcal{M} \subset \mathbb{R}^7. Orquesta el motor espectral mediante un
+ciclo OODA trifásico \operatorname{Auditar} = \Phi_3 \circ \Phi_2 \circ \Phi_1:
+• Fase 1 (\Phi_1 - Observe): Evaluación del tejido 0-jet, derivación no conmutativa de Connes,
+  Christoffel de Koszul, tensor de Einstein, congruencia de volumen y residuales de Noether/Kirchhoff.
+• Fase 2 (\Phi_2 - Orient): Integración del flujo de Ricci normalizado con automejora recursiva (\mathrm{RSI}^3),
+  certificación de punto fijo de Banach (L_\Phi \le 0.95), construcción del mapa de retorno de Poincaré
+  en T^*\mathcal{M}, monodromía variacional M = \mathrm{D}\mathcal{T}|_\Sigma y espectro de Lyapunov continuo.
+• Fase 3 (\Phi_3 - Decide/Act): Estabilidad de toros KAM, integral de Melnikov para ruptura homoclínica,
+  índice de Conley–Morse, cuantización prequántica F_\nabla = \omega y adjudicación trivalente en el retículo
+  de Heyting \Omega_3 con emisión de certificados inmunitarios inmutables.
 
 ----------------------------------------------------------------------------------------------------
-MARCO TEÓRICO (compacto):
+MARCO TEÓRICO:
 ----------------------------------------------------------------------------------------------------
-1. Flujo de Ricci normalizado: G_{k+1} = Π_SPD(G_k − 2Δτ(Ric − (R/n) G_k)).
-2. RSI³ anidado de *estados y métodos*: Φ⁽³⁾ ⊃ Φ⁽²⁾ ⊃ Φ⁽¹⁾ con Lip Φ < 0.95 (Banach) y
-   selector de método σ_{k+1} = σ_k ∘ α(residuales_k) (automejora de nivel 3 auténtica).
-3. Derivación de Connes: ∂_μ G_{νσ} = [X_μ, G]_{νσ}, X_μ = |e_μ⟩⟨e_μ|.
-4. Christoffel de Koszul sin torsión, simetrizado en (μ,ν); unicidad por teorema fundamental.
-5. Poincaré celeste: sección Σ = {R = R̄} ⊂ T*M, mapa 𝒯: Σ → Σ, monodromía M = D𝒯,
-   Floquet μ = eig(M), Lindstedt T = T̄(1+ε T₁), recurrencia τ_rec ≳ Vol / Vol(tubo),
-   KAM diofántico γ = inf |ω·k| |k|^τ, Melnikov M(θ₀) sobre la homoclínica.
-6. Heyting Ω₃: ⊥ = COHERENT < ½ = DEGRADED < ⊤ = VETOED, join = OR bitwise, residuación.
-7. Dual circuito: KCL ↔ ∇·Ein = 0 (Bianchi), KVL ↔ Ein = Einᵀ (simetría 0-jet).
-8. Cuantización geométrica: (L, ∇, ⟨·,·⟩) prequántico con F_∇ = ω (Kostant–Souriau).
+1. GOVERNANZA GEOMÉTRICA NO CONMUTATIVA Y TRIPLE ESPECTRAL DE CONNES:
+   El soberano evalúa las fluctuaciones Métricas sobre el álgebra de observables \mathcal{A}.
+   La derivación no conmutativa \partial_\mu G_{\nu\sigma} = [X_\mu, G]_{\nu\sigma} se combina con
+   el operador Dirac de Connes \mathcal{D} para acotar la velocidad de deformación de las métricas.
+   La cota Lipschitz exacta de Connes–Daleckii–Krein sobre el operador de densidad \rho^{-1/2} garantiza
+   que ninguna transición de estado inmunitario viole la continuidad geométrica:
+   $$L_{\mathrm{Connes}} = \max_{i < j} \left| \frac{\lambda_j^{-1/2} - \lambda_i^{-1/2}}{\lambda_j - \lambda_i} \right| \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
+
+2. AUTOMEJORA RECURSIVA DE ESTADOS Y MÉTODOS (\mathrm{RSI}^3):
+   El agente ejecuta una automejora en tres niveles anidados con selección dinámica de operadores:
+   $$\Phi^{(3)} \supset \Phi^{(2)} \supset \Phi^{(1)}$$
+   • \Phi^{(1)}: Paso de Ricci normalizado G_{k+1} = \Pi_{\mathrm{SPD}}\left(G_k - 2\Delta\tau (\operatorname{Ric} - \frac{R}{n} G)\right).
+   • \Phi^{(2)}: Adaptación de la tasa temporal \Delta\tau_{k+1} mediante el gradiente de curvatura |\nabla R_k|.
+   • \Phi^{(3)}: Adaptación del hiperparámetro \eta_{k+1} para forzar la contracción L_\Phi < 0.95, acoplado al
+     selector de método \sigma_{k+1} = (\text{Proyector Cayley-Darboux / Higham}, \text{Discretizador Koszul / Proxy})
+     según el estado del residual de Bianchi \nabla_\mu \mathrm{Ein}^{\mu\nu} y el número de condición \kappa_2(G).
+
+3. MECÁNICA CELESTE DE POINCARÉ Y ESTRUCTURA HAMILTONIANA:
+   Sobre la sección transversal de Poincaré \Sigma = \{R = \bar{R}\} \subset T^*\mathcal{M}, el agente extrae:
+   • Coordenadas de Acción-Ángulo (I, \theta): I = \frac{1}{2\pi} \oint_\Sigma p \, \mathrm{d}q, \theta = \operatorname{fase}(\operatorname{FFT}(q)).
+   • Matriz de Monodromía M = \mathrm{D}\mathcal{T}|_\Sigma \in \operatorname{Sp}(2r, \mathbb{R}) y multiplicador de Floquet \mu_{\max} = \rho(M).
+   • Espectro completo de Lyapunov \{\lambda_i\}_{i=1}^d mediante ortogonalización QR de Benettin–Shimada.
+   • Integral de Melnikov discreta: M(\theta_0) = \sum_k \langle J \nabla H(z_k^0), g(z_k^0, \theta_0) \rangle \Delta\tau \neq 0 \implies \text{Tangle Homoclínico}.
+   • Corrección de Poincaré–Lindstedt T_{\mathrm{Lindstedt}} = T_0 (1 + \varepsilon T_1) y cota de recurrencia \tau_{\mathrm{rec}} \ge \mathrm{Vol}(\mathcal{M})/\mathrm{Vol}(\mathrm{tubo}).
+
+4. CUANTIZACIÓN GEOMÉTRICA PREQUÁNTICA (KOSTANT–SOURIAU):
+   Para certificar la invarianza simpléctica del lazo de control, el agente verifica que la curvatura de la
+   conexión en el fibrado en rectas prequántico (L, \nabla, \langle \cdot, \cdot \rangle) coincida con la 2-forma de Darboux:
+   $$F_\nabla = \omega \iff \mathrm{d}\theta = \omega \quad \text{con } \theta = p_i \mathrm{d}q^i$$
+   El residual prequántico evalúa la anti-simetría \|\omega + \omega^\top\|_F y la invarianza de pullback \|M^\top \omega M - \omega\|_F \le 10^{-9}.
+
+5. ADJUDICACIÓN TRIVALENTE DE HEYTING \Omega_3 Y HARDWARE INTERLOCK:
+   Las observaciones ciber-físicas colapsan en el álgebra de Heyting \Omega_3 = \{\bot = \mathtt{COHERENT} < \frac{1}{2} = \mathtt{DEGRADED} < \top = \mathtt{VETOED}\}.
+   La combinación de veredictos utiliza la operación Join a \vee b = \max(a, b) ejecutada en un único ciclo de instrucción SIMD `OR` bitwise
+   en el microcontrolador ESP32 (máscaras: 0x00, 0x01, 0x03). Si el veredicto colapsa a \mathtt{VETOED} (0x03), se dispara la interrupción de hardware Crowbar (< 400 ns).
+
+6. EQUIVALENCIA CIRCUITO–GEOMÉTRICA:
+   • Ley de Corrientes de Kirchhoff (KCL): \sum_\nu \mathrm{Ein}^{\mu\nu} = 0 \iff \nabla_\mu \mathrm{Ein}^{\mu\nu} = 0.
+   • Ley de Tensiones de Kirchhoff (KVL): \mathrm{Ein}_{\mu\nu} = \mathrm{Ein}_{\nu\mu} \iff \text{Conservación del Momento en Cierres 0-jet}.
 
 ----------------------------------------------------------------------------------------------------
-AXIOMAS FORMALES (v7.1.0 los fija, v7.2.0 los verifica, v7.3.0 los certifica):
+AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-MTA1: λ_min(G) ≥ 1e-12.
-MTA2: Mᵀ Ω M = Ω  ⇒  det M = +1.
-MTA3: L_Φ = Lip(Φ) ≤ L★ = 0.95.
-Invariante 1: ‖∇_ρ G‖_F ≤ 1e-4 ‖G‖_F.
-Invariante 2: κ₂(G) ≤ 1e8.
-Invariante 3 (nuevo): ‖∇_μ Ein^{μν}‖₂ ≤ 1e-3 ‖Ein‖_F   (Bianchi discreta).
-Invariante 4 (nuevo): |λ_i + λ_{d−i}| ≤ 1e-2 (1+|λ_i|)  (pareado simpléctico, si dim par).
+MTA1 (Positividad Espectral Mínima):
+    \lambda_{\min}(G) \ge \lambda_\star = 10^{-12} \quad \forall G \in \operatorname{Sym}^+(n, \mathbb{R}).
+
+MTA2 (Conservación de Volumen Simpléctico):
+    M^\top \Omega M = \Omega \implies \det M = +1 \quad \text{y } \operatorname{Pf}(\Omega) = 1.
+
+MTA3 (Contracción de Banach e Invariancia de Mapeo):
+    L_\Phi = \operatorname{Lip}(\Phi) \le L_\star = 0.95 < 1.0 \quad \text{sobre el espacio completo } (\overline{\mathrm{SPD}}_n, \|\cdot\|_F).
+
+MTA4 (Acatamiento Axiomático de Heyting):
+    a \wedge (a \to b) \le b \quad \text{y } a \wedge c \le b \iff c \le (a \to b) \quad \forall a, b, c \in \Omega_3.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Techo de Condicionamiento Espectral):
+    \kappa_2(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le 10^8.
+
+Invariante 2 (Divergencia Nula Bianchi–Kirchhoff):
+    \|\nabla_\mu \mathrm{Ein}^{\mu\nu}\|_2 \le 10^{-3} \|\mathrm{Ein}\|_F.
+
+Invariante 3 (Pareado Simpléctico Palindrómico):
+    |\lambda_i + \lambda_{d-1-i}| \le 10^{-2} (1 + |\lambda_i|) \quad \text{para dimensiones pares } d = 2n.
+
+Invariante 4 (Asociatividad Categórica OODA de Jets):
+    (\Phi_3 \circ \Phi_2) \circ \Phi_1 \cong \Phi_3 \circ (\Phi_2 \circ \Phi_1).
 ====================================================================================================
 """
 

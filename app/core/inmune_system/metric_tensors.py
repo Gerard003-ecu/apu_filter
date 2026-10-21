@@ -10,69 +10,124 @@ Versión: 7.3.0  (evolución rigurosa de 7.2.0)
 Función: Motor espectral de tensores métricos riemannianos y tejido conectivo anisotrópico.
          Construye, regulariza por Tikhonov/Gershgorin, endurece por flujo de Ricci RSI³
          (v7.3.0 Bianchi–Darboux–QR–Lindstedt–Killing–Morse) y certifica campos métricos
-         G_{μν} en el hiperespacio de fase M ⊂ R^7.
+         G_{\mu\nu} en el hiperespacio de fase \mathcal{M} \subset \mathbb{R}^7.
 
 ----------------------------------------------------------------------------------------------------
-MEJORAS v7.3.0 RESPECTO A v7.2.0 (retrocompatibles, granulares y rigurosas):
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
-FASE 1  (tejido 0-jet + invariantes de Noether / Kirchhoff / Weyl):
-  • `_volume_form_consistency`        : |det G − exp(logdet_Chol)| / |det G|.
-  • `_weyl_conformal_residual`        : parte conforme de Riemann 0-jet (Weyl ≡ 0 en n ≤ 3).
-  • `_killing_equation_residual`      : (ℒ_ξ G)_(μν)  (Noether discreto del marco).
-  • `_kirchhoff_current_residual`     : KCL ≡ ∑_ν Ein^{μν}  (dual circuito ↔ Bianchi).
-  • `_poincare_first_integrals`       : (H, C_Jacobi, L_angular) sobre el 0-jet / órbita.
-  • `_select_metric_projection`       : primitiva espectral vs Cayley–Darboux (germen de RSI³).
-  • `Phase1Handoff` enriquecido con Weyl, Killing, Kirchhoff, primeras integrales y volumen.
-  • Bianchi contraída reescrita sin hacks de cadenas (`einsum("mml->l")` canónico).
-
-FASE 2  (RSI³ de métodos + mecánica celeste de Poincaré):
-  • `_rsi3_method_selector`           : automejora de *método* (proyector + discretizador de Ricci)
-                                        según residuales Bianchi / κ₂ / paridad dimensional.
-  • `_banach_fixed_point_certificate` : certificado (X completo, Φ:X→X, Lip Φ < 1).
-  • `_monodromy_matrix`               : matriz de monodromía D𝒯|Σ por mínimos cuadrados tangentes.
-  • `_variational_floquet`            : μ_max = ρ(M)  (radio espectral; ya no cociente de normas).
-  • `_poincare_lindstedt_correction`  : T = T̄(1 + ε T₁) (Lindstedt).
-  • `_poincare_recurrence_bound`      : cota inferior del tiempo de recurrencia de Poincaré.
-  • `_hamilton_jacobi_generating_function` : S(q,I) tipo 2, p = ∂S/∂q, θ = ∂S/∂I.
-  • `_symplectic_lyapunov_pairing`    : palíndromo λ_i + λ_{d−i} ≈ 0 (Hamiltoniano).
-  • Benettin reducido (subespacio QR de dim ≤ `_LYAP_DIM_CAP`) + diferencias centrales.
-  • Historiales de contracción y de sonda Lipschitz *desacoplados* (no contaminan L_Φ).
-  • Convergencia RSI³ exige `_CONSECUTIVE_CONV_STEPS` pasos consecutivos bajo umbral.
-
-FASE 3  (KAM, Melnikov homoclínica, Conley–Morse, Polyakov, topos Heyting):
-  • `_melnikov_homoclinic_integral`   : M(θ₀) = ∑ ⟨J ∇H, g⟩ Δτ  a lo largo de la separatriz.
-  • `_conley_morse_index`             : índice de Conley–Morse a partir de Hopf + espectro Λ.
-  • `_polyakov_einstein_consistency`  : Gauss–Bonnet discreto (n = 2) / Polyakov vs E–H.
-  • `_heyting_lattice_axioms_check`   : + residuación (a ∧ (a → b) ≤ b) y modus ponens.
-  • `_ooda_associativity_check`       : (Φ₃ ∘ Φ₂) ∘ Φ₁  ≅  Φ₃ ∘ (Φ₂ ∘ Φ₁)  (continuidad de jets).
-  • `HardenedCertificate` ampliado: linaje de métodos, monodromía, Lindstedt, recurrencia,
-    índice de Conley, primeras integrales, Weyl/Killing/Kirchhoff, pairing, HJ, Polyakov.
+El motor espectral `MetricTensorFactory` constituye el núcleo geométrico de la Capa 0 (Estrato
+Wisdom, \mathcal{V}_{\mathbb{W}}) de la arquitectura APU Filter. Su función matemática primordial es
+la construcción, regularización espectral y endurecimiento dinámico de la métrica riemanniana
+G \in \operatorname{Sym}^+(n, \mathbb{R}) sobre la variedad de fases \mathcal{M} \subset \mathbb{R}^7.
+Opera como un compuesto categórico trisfásico \operatorname{Auditar} = \Phi_3 \circ \Phi_2 \circ \Phi_1
+donde cada fase está interconectada por morfismos de continuación estrictos (`Phase1Handoff` y
+`Phase2Handoff`), garantizando la preservación incondicional de la positividad definida \mathrm{SPD},
+el control del número de condición \kappa_2(G) \le 10^8 y la invariancia geométrica bajo el flujo de
+Ricci normalizado anidado en el lazo de Automejora Recursiva de Nivel 3 (\mathrm{RSI}^3).
 
 ----------------------------------------------------------------------------------------------------
-MARCO TEÓRICO (compacto):
+MARCO TEÓRICO:
 ----------------------------------------------------------------------------------------------------
-1. Regularización espectral de Tikhonov: G_reg = G + δI, δ = δ_target − λ_min(G).
-2. Levantamiento de Gershgorin: G_ii ← G_ii + max(0, Σ_{j≠i}|G_ij| + ε − G_ii).
-3. Flujo de Ricci normalizado: G_{k+1} = Π_SPD(G_k − 2Δτ(Ric − (R/n) G_k)).
-4. RSI³ anidado de *estados y métodos*: Φ⁽³⁾ ⊃ Φ⁽²⁾ ⊃ Φ⁽¹⁾ con Lip Φ < 0.95 (Banach) y
-   selector de método σ_{k+1} = σ_k ∘ α(residuales_k) (automejora de nivel 3 auténtica).
-5. Derivación de Connes: ∂_μ G_{νσ} = [X_μ, G]_{νσ}, X_μ = |e_μ⟩⟨e_μ|; Christoffel de Koszul.
-6. Poincaré celeste: sección Σ = {R = R̄} ⊂ T*M, mapa 𝒯: Σ → Σ, monodromía M = D𝒯,
-   Floquet μ = eig(M), Lindstedt T = T̄(1+ε T₁), recurrencia τ_rec ≳ Vol / Vol(tubo),
-   KAM diofántico γ = inf |ω·k| |k|^τ, Melnikov M(θ₀) sobre la homoclínica.
-7. Heyting Ω₃: ⊥ = COHERENT < ½ = DEGRADED < ⊤ = VETOED, join = OR bitwise, residuación.
-8. Dual circuito: KCL ↔ ∇·Ein = 0 (Bianchi), KVL ↔ Ein = Einᵀ (simetría 0-jet).
+1. GEOMETRÍA RIEMANNIANA Y DERIVACIÓN NO CONMUTATIVA DE CONNES:
+   La estructura métrica sobre \mathcal{M} se define mediante el tensor simétrico definido positivo
+   G_{\mu\nu} = \langle e_\mu, e_\nu \rangle_G. Las derivadas no conmutativas del tensor métrico
+   en el álgebra de observables \mathcal{A} se evalúan según el formalismo del triple espectral de Connes:
+   $$\partial_\mu G_{\nu\sigma} = [X_\mu, G]_{\nu\sigma} = \delta_{\nu\mu} G_{\mu\sigma} - G_{\nu\mu} \delta_{\mu\sigma}$$
+   donde X_\mu = |e_\mu\rangle\langle e_\mu| es el operador posición no conmutativo.
+   Los símbolos de Christoffel de Koszul de primera especie sin torsión responden a:
+   $$\Gamma^r{}_{mn} = \frac{1}{2} G^{rs} \left( \partial_m G_{ns} + \partial_n G_{ms} - \partial_s G_{mn} \right)$$
+   simetrizados exactamente en (m,n) para garantizar la unicidad del Teorema Fundamental de Riemann.
+
+2. COTA EXACTA DE LIPSCHITZ DE CONNES–DALECKII–KREIN:
+   La variación del operador densidad D = \boldsymbol{\rho}^{-1/2} bajo perturbaciones métricas no
+   conmutativas se acota estrictamente por el cociente diferencial del resolvente en el espacio de Hilbert:
+   $$L_{\mathrm{Connes}} = \sup_{i \neq j} \left| \frac{f(\lambda_i) - f(\lambda_j)}{\lambda_i - \lambda_j} \right| \quad \text{con } f(\lambda) = \lambda^{-1/2}$$
+   Para el espectro ordenado \operatorname{spec}(G) = \{\lambda_1 \le \lambda_2 \le \dots \le \lambda_n\}, el valor exacto satisface:
+   $$L_{\mathrm{Connes}} = \max_{i < j} \left| \frac{\lambda_j^{-1/2} - \lambda_i^{-1/2}}{\lambda_j - \lambda_i} \right| \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
+
+3. PROYECCIÓN SIMPLÉCTICA DE CAYLEY–DARBOUX SOBRE \mathfrak{sp}(2n, \mathbb{R}):
+   Para preservar la 2-forma canónica de Darboux \omega = \sum_{i=1}^n \mathrm{d}q^i \wedge \mathrm{d}p_i en el
+   fibrado cotangente T^*\mathcal{M} \cong \mathbb{R}^{2n} durante la integración del flujo de Ricci, la métrica
+   G se mapea al álgebra de Lie simpléctica \mathfrak{sp}(2n, \mathbb{R}) mediante la transformación de Cayley:
+   $$K = (G - \mathbf{I}_{2n})(G + \mathbf{I}_{2n})^{-1} \in \mathfrak{sp}(2n, \mathbb{R}) \quad \iff \quad K^\top J + J K = \mathbf{0}$$
+   donde J = \begin{pmatrix} \mathbf{0} & \mathbf{I}_n \\ -\mathbf{I}_n & \mathbf{0} \end{pmatrix}. Tras truncar espectralmente
+   los autovalores de K en (-1, 1), se reconstruye la métrica proyectada:
+   $$G_{\mathrm{sympl}} = (\mathbf{I}_{2n} + K_{\mathrm{proj}})(\mathbf{I}_{2n} - K_{\mathrm{proj}})^{-1} \in \operatorname{Sp}(2n, \mathbb{R}) \cap \mathrm{Sym}^+(2n, \mathbb{R})$$
+   garantizando la invarianza simpléctica con precisión \delta\omega = \|G_{\mathrm{sympl}}^\top J G_{\mathrm{sympl}} - J\|_F < 10^{-15}.
+
+4. FLUJO DE RICCI NORMALIZADO Y AUTOMEJORA RECURSIVA (\mathrm{RSI}^3):
+   El flujo de Ricci discreto evoluciona la métrica hacia un punto fijo de Einstein \operatorname{Ric}(G) = \frac{R}{n} G:
+   $$G_{k+1} = \Pi_{\mathrm{SPD}} \left( G_k - 2 \Delta\tau_k \left( \operatorname{Ric}(G_k) - \frac{R_k}{n} G_k \right) \right)$$
+   El esquema de automejora de tres niveles (\mathrm{RSI}^3) anida dinámicamente:
+   • Nivel 1 (\Phi^{(1)}): Paso unitario de Ricci con proyección espectral.
+   • Nivel 2 (\Phi^{(2)}): Adaptación del paso temporal por gradiente de curvatura \Delta\tau_{k+1} = \mathrm{sat}(\Delta\tau_k \mathrm{e}^{-\eta_k |\nabla R_k|}).
+   • Nivel 3 (\Phi^{(3)}): Adaptación del parámetro de aprendizaje \eta_{k+1} = \mathrm{sat}(\eta_k \mathrm{e}^{\zeta(L_k - L_\star)}) en función de la constante de contracción de Banach L_k, combinado con el selector automático de método \sigma_{k+1} = ([\text{Proyector}], [\text{Discretizador}]).
+
+5. TEORÍA DEL PUNTO FIJO DE BANACH EN ESPACIOS DE RIEMANN:
+   La convergencia del flujo \mathrm{RSI}^3 se certifica formalmente sobre el espacio métrico completo (\overline{\mathrm{SPD}}_n, \|\cdot\|_F):
+   (i)   \overline{\mathrm{SPD}}_n es un dominio cerrado completo bajo la norma de Frobenius.
+   (ii)  \Phi(\overline{\mathrm{SPD}}_n) \subset \overline{\mathrm{SPD}}_n (automapeo garantizado por el proyector espectral \Pi_{\mathrm{SPD}}).
+   (iii) Constante de Lipschitz L_\Phi = \sup_k \frac{\|G_{k+1} - G_k\|_F}{\|G_k - G_{k-1}\|_F} \le L_\star = 0.95 < 1.0.
+
+6. MECÁNICA CELESTE DE HENRI POINCARÉ Y SECCIÓN DE RETORNO:
+   La estabilidad orbital sobre la hipersuperficie de energía \Sigma = \{R = \bar{R}\} \subset T^*\mathcal{M} se analiza mediante:
+   • Mapa de Retorno de Poincaré \mathcal{T}: \Sigma \to \Sigma con interpolación lineal del tiempo de vuelo \tau^\star.
+   • Matriz de Monodromía Variacional M = \mathrm{D}\mathcal{T}|_\Sigma \in \mathbb{R}^{r \times r} por mínimos cuadrados tangentes SVD.
+   • Multiplicador de Floquet \mu_{\max} = \rho(M) = \max_i |\mathrm{eig}(M)_i|.
+   • Espectro de Lyapunov completo \lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_d vía ortogonalización QR continua de Benettin–Shimada.
+   • Pareado Simpléctico Palindrómico: \lambda_i + \lambda_{d-1-i} \approx 0 \quad \forall i.
+   • Estabilidad KAM Diofántica: \gamma = \inf_{k \neq 0} |\omega \cdot k| \, \|k\|_1^\tau \ge \gamma_\star = 10^{-3}.
+   • Integral Homoclínica de Melnikov: M(\theta_0) = \int_{-\infty}^\infty \langle J \nabla H(z^0(t)), g(z^0(t), \theta_0) \rangle \, \mathrm{d}t \neq 0 \implies \text{Tangle Homoclínico}.
+   • Corrección de Periodo de Poincaré–Lindstedt: T = T_0 (1 + \varepsilon T_1).
+   • Cota Inferior del Tiempo de Recurrencia de Poincaré: \tau_{\mathrm{rec}} \ge \frac{\mathrm{Vol}(\mathcal{M})}{\mathrm{Vol}(\mathrm{tubo})}.
+   • Índice Topológico de Conley–Morse: h = m - \mathrm{Hopf}, donde m es la dimensión inestable.
+
+7. ADJUDICACIÓN TRIVALENTE EN EL RETÍCULO DE HEYTING \Omega_3:
+   El espacio de verdad intuicionista \Omega_3 = \{\bot = \mathtt{COHERENT} < \frac{1}{2} = \mathtt{DEGRADED} < \top = \mathtt{VETOED}\}
+   combina las obstrucciones métricas mediante la operación Join a \vee b = \max(a, b) (mapeada a `OR` bitwise SIMD de 2 bits: 0x00, 0x01, 0x03).
+   La residuación de cadena total satisface:
+   $$a \to b = \begin{cases} \mathtt{COHERENT} & \text{si } a \le b \\ b & \text{si } a > b \end{cases} \quad \implies \quad a \wedge (a \to b) \le b \quad (\text{Modus Ponens})$$
+
+8. DUALIDAD CIRCUITO–GEOMÉTRICA (KIRCHHOFF ↔ BIANCHI):
+   La Ley de Corrientes de Kirchhoff (KCL) en nodos de la malla agéntica equivale idénticamente a la Identidad de Bianchi Contraída:
+   $$\text{KCL} \iff \nabla_\mu \mathrm{Ein}^{\mu\nu} = 0 \quad \text{donde } \mathrm{Ein}_{\mu\nu} = \operatorname{Ric}_{\mu\nu} - \frac{1}{2} R G_{\mu\nu}$$
+   La Ley de Tensiones de Kirchhoff (KVL) está cifrada en la simetría del tensor de Einstein \mathrm{Ein}_{\mu\nu} = \mathrm{Ein}_{\nu\mu}.
 
 ----------------------------------------------------------------------------------------------------
-AXIOMAS FORMALES (v7.1.0 los fija, v7.2.0 los verifica, v7.3.0 los certifica):
+AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-MT1: ‖G − Gᵀ‖_F ≤ max(ε_base, ε_rtol ‖G‖_F).
-MT2: G ≻ 0 ⇔ xᵀGx > 0 ∀x≠0.
-MT3: ‖G_reg − G_orig‖_F / ‖G_orig‖_F ≤ 0.25.
-Invariante 1: κ₂(G) ≤ 1e8.
-Invariante 2: |λ_i(G_reg) − (λ_i(G) + δ)| ≤ 1e-12 max|λ_i|.
-Invariante 3 (nuevo): ‖∇_μ Ein^{μν}‖₂ ≤ 1e-3 ‖Ein‖_F   (Bianchi discreta).
-Invariante 4 (nuevo): |λ_i + λ_{d−i}| ≤ 1e-2 (1+|λ_i|)  (pareado simpléctico, si dim par).
+MT1 (Simetría Rigurosa):
+    \|G - G^\top\|_F \le \max(\varepsilon_{\mathrm{base}}, \varepsilon_{\mathrm{rtol}} \|G\|_F), \quad \varepsilon_{\mathrm{rtol}} = 10^{-14}.
+
+MT2 (Definición Positiva Estricta):
+    G \succ 0 \iff x^\top G x > 0 \quad \forall x \in \mathbb{R}^n \setminus \{\mathbf{0}\} \iff \lambda_{\min}(G) \ge \lambda_{\star} = 10^{-12}.
+
+MT3 (Cota de Deformación Regularizadora):
+    \frac{\|G_{\mathrm{reg}} - G_{\mathrm{orig}}\|_F}{\|G_{\mathrm{orig}}\|_F} \le 0.25 \quad (25\% \text{ máximo de distorsión física}).
+
+MT4 (Preservación Simpléctica de Darboux):
+    \delta\omega = \|G_{\mathrm{sympl}}^\top J G_{\mathrm{sympl}} - J\|_F \le 10^{-15} \quad \text{en } \operatorname{Sp}(2n, \mathbb{R}).
+
+MT5 (Contracción del Mapa de Ricci):
+    L_\Phi = \mathrm{Lip}(\Phi) \le L_\star = 0.95 < 1.0 \quad \text{sobre } (\overline{\mathrm{SPD}}_n, \|\cdot\|_F).
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Acatamiento de Condicionamiento Espectral):
+    \kappa_2(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le 10^8.
+
+Invariante 2 (Preservación del Espectro Tikhonov):
+    |\lambda_i(G_{\mathrm{reg}}) - (\lambda_i(G) + \delta)| \le 10^{-12} \max_i |\lambda_i|.
+
+Invariante 3 (Divergencia Nula de Bianchi–Kirchhoff):
+    \|\nabla_\mu \mathrm{Ein}^{\mu\nu}\|_2 \le 10^{-3} \|\mathrm{Ein}\|_F.
+
+Invariante 4 (Pareado Simpléctico Palindrómico):
+    |\lambda_i + \lambda_{d-1-i}| \le 10^{-2} (1 + |\lambda_i|) \quad \text{para dimensiones pares } d = 2n.
+
+Invariante 5 (Invariancia Categórica de Handoffs):
+    (\Phi_3 \circ \Phi_2) \circ \Phi_1 \cong \Phi_3 \circ (\Phi_2 \circ \Phi_1) \quad (\text{Asociatividad OODA de Jets}).
 ====================================================================================================
 """
 
@@ -2926,7 +2981,7 @@ class MetricTensorFactory:
     # ───────────────────────────────────────────────────────────────────────────
     @classmethod
     def build_physics_tensor(cls) -> np.ndarray:
-        """Tensor métrico $V_{\mathrm{phys}}\subset\mathbb{R}^3$ (v4.1.0 preservado)."""
+        r"""Tensor métrico $V_{\mathrm{phys}}\subset\mathbb{R}^3$ (v4.1.0 preservado)."""
         G_phys = np.array(
             [
                 [2.50, 0.85, 0.30],
@@ -2939,13 +2994,13 @@ class MetricTensorFactory:
 
     @classmethod
     def build_topology_tensor(cls) -> np.ndarray:
-        """Tensor métrico $V_{\mathrm{topo}}\subset\mathbb{R}^2$ (v4.1.0 preservado)."""
+        r"""Tensor métrico $V_{\mathrm{topo}}\subset\mathbb{R}^2$ (v4.1.0 preservado)."""
         G_topo = np.array([[1.00, 0.60], [0.60, 3.00]], dtype=_FLOAT_DTYPE)
         return cls._make_immutable(cls._handoff_to_phase2("G_topo", G_topo).candidate)
 
     @classmethod
     def build_thermo_tensor(cls) -> np.ndarray:
-        """Tensor métrico $V_{\mathrm{thermo}}\subset\mathbb{R}^2$ (v4.1.0 preservado)."""
+        r"""Tensor métrico $V_{\mathrm{thermo}}\subset\mathbb{R}^2$ (v4.1.0 preservado)."""
         G_thermo = np.array([[1.80, 0.75], [0.75, 2.20]], dtype=_FLOAT_DTYPE)
         return cls._make_immutable(cls._handoff_to_phase2("G_thermo", G_thermo).candidate)
 
