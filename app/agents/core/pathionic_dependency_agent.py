@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ NOMBRE   : Pathionic Dependency Agent (Soberano de Calibre Pationiónico 32D)  ║
+║ NOMBRE   : Pathionic Dependency Agent (Soberano de Calibre Pationiónico 32D) ║
 ║ MÓDULO   : app.agents.core.pathionic_dependency_agent                        ║
-║ UBICACIÓN : app/agents/core/pathionic_dependency_agent.py                     ║
+║ UBICACIÓN : app/agents/core/pathionic_dependency_agent.py                    ║
 ║ RUTA     : app/agents/core/pathionic_dependency_agent.py                     ║
-║ VERSIÓN  : 4.0.0-Doctoral-OODA-Heyting-PureState-Godel-Stasheff-RC-Nested3     ║
-║ FUNCIÓN  : Supervisor ciber-físico que impone censura categórica de        ║
+║ VERSIÓN  : 4.0.0-Doctoral-OODA-Heyting-PureState-Godel-Stasheff-RC-Nested3   ║
+║ FUNCIÓN  : Supervisor ciber-físico que impone censura categórica de          ║
 ║            predicados en la cadena de Heyting Ω_3 sobre colapsos de          ║
-║            cartelización, desajustes de coherencia pentagonal 32D, derivas de ║
+║            cartelización, desajustes de coherencia pentagonal 32D, derivas de║
 ║            submultiplicatividad, asociatividad de potencia y cono nulo N(P). ║
 ╠══════════════════════════════════════════════════════════════════════════════╣
 ║ TRATADO DE GOBERNANZA MATEMÁTICA, FÍSICA Y TOPOLÓGICA DE LAZO CERRADO:       ║
