@@ -1,4 +1,3 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -6,7 +5,7 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
 ====================================================================================================
 
 Nombre: ScalarMomentumSatelliteAgent
-Ubicación: app/agents/core/immune_system/scalar_momentum_satellite_agent.py
+Ubicación: app/agents/core/inmune_system/scalar_momentum_satellite_agent.py
 Versión: 1.0.0-APU-SOVEREIGN
 Función: Agente soberano satelital de momento escalar en el sistema inmune. Supervisa el
          balanceo cinemático de cantidad de movimiento, detecta derivas en el invariante de Casimir
@@ -19,11 +18,11 @@ El Soberano Agente Satelital de Momento Escalar (ScalarMomentumSatelliteAgent) e
 estabilidad inercial del sistema inmune del APU Filter. Su misión es vigilar activamente que los
 patrullajes satelitales mantengan su cantidad de movimiento escalar constante independientemente de
 fricciones semánticas o perturbaciones antigénicas. Aplica correcciones de control impulsivo para
-fijar el momento angular p_phi en el valor objetivo.
+fijar el momento angular p_\phi en el valor objetivo.
 Su respectivo motor de cálculo es 'ScalarMomentumSatelliteEngine'
-(app/core/immune_system/scalar_momentum_satellite_engine.py), y su complemento cotangente es
-'MusicalIsomorphismEngine' (app/core/immune_system/musical_isomorphism_engine.py). Mientras el Engine
-calcula las proyecciones del mapa de momentos mu(x), este Agente decide la amplitud y cadencia de los
+(app/core/inmune_system/scalar_momentum_satellite_engine.py), y su complemento cotangente es
+'MusicalIsomorphismEngine' (app/core/inmune_system/musical_isomorphism_engine.py). Mientras el Engine
+calcula las proyecciones del mapa de momentos \mu(x), este Agente decide la amplitud y cadencia de los
 micro-impulsos de restitución.
 
 ----------------------------------------------------------------------------------------------------
@@ -31,38 +30,40 @@ MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Control Hamiltoniano en Variedades de Poisson (P, {., .}):
    La dinámica controlada del momento escalar p bajo una ley de control u(t) obedece:
-       dot{p} = {p, H} + u(t)
+       \dot{p} = {p, H} + u(t)
    Para estabilizar p en el valor de consigna p^*, el agente genera un impulso de retroalimentación:
-       u(t) = - k_gain * (p(t) - p^*) - k_d * d(p(t) - p^*) / dt
+       u(t) = - k_{gain} (p(t) - p^*) - k_d \frac{d(p(t) - p^*)}{dt}
 
 2. Estabilidad de Lyapunov para la Deriva de Momento:
-   Definiendo la función candidata de Lyapunov V(p) = (1 / 2) * (p - p^*)^2:
-       dot{V} = (p - p^*) * ( {p, H} + u(t) ) = - k_gain * (p - p^*)^2 <= 0
-   garantizando convergencia exponencial asintótica p(t) -> p^* con tiempo de relajación tau = 1 / k_gain.
+   Definiendo la función candidata de Lyapunov V(p) = (1 / 2) (p - p^*)^2:
+       \dot{V} = (p - p^*) ( {p, H} + u(t) ) = - k_{gain} (p - p^*)^2 \le 0
+   garantizando convergencia exponencial asintótica p(t) \to p^* con tiempo de relajación \tau = 1 / k_{gain}.
 
 3. Integración en el Colector Cotangente T*M:
    El impulso de corrección se transforma canónicamente en una 1-forma cotangente de retroalimentación:
-       delta alpha = u(t) * dphi
+       \delta \alpha = u(t) d\phi
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma SMSA1 (Mínima Energía de Control de Momento):
-    int_0^T u(t)^2 dt se minimiza sujeto a |p(T) - p^*| < epsilon.
+    \int_0^T u(t)^2 dt se minimiza sujeto a |p(T) - p^*| < \epsilon.
 Axioma SMSA2 (No Inversión del Signo de Giro Inercial):
-    sign(p(t)) == sign(p^*) para todo tiempo t (preservación de la orientación de patrulla).
+    \mathrm{sign}(p(t)) == \mathrm{sign}(p^*) para todo tiempo t (preservación de la orientación de patrulla).
 Axioma SMSA3 (Inmunidad a Micro-Ruido de Alta Frecuencia):
-    Perturbaciones con |delta p| < theta_deadband no disparan ignición de corrección.
+    Perturbaciones con |\delta p| < \theta_{deadband} no disparan ignición de corrección.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Residuo de Deriva de Momento Acotado):
-    |p(t) - p^*| <= epsilon_drift = 0.05.
+    |p(t) - p^*| \le \epsilon_{drift} = 0.05.
 Invariante 2 (Estabilidad del Casimir de Coadjunción):
     d C_2 / dt == 0 en régimen estacionario.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac
@@ -114,7 +115,7 @@ try:
     )
 except ImportError:
     try:
-        from app.core.immune_system.scalar_momentum_satellite_engine import (
+        from app.core.inmune_system.scalar_momentum_satellite_engine import (
             ScalarMomentumSatelliteEngine,
             ScalarMomentumEngineState,
             ScalarMomentumKernel,
