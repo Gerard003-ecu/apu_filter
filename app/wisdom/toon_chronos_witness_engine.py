@@ -9,13 +9,18 @@ r"""
 ║            modular σ_t y automejora recursiva de nivel 3 (RSI³) como contracción de Picard.          ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosWitnessEngine` constituye la infraestructura espectral cuántica y celeste
 para la observación no destructiva (Quantum Non-Demolition, QND) del flujo geodésico temporal
-en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
+en el Estrato WISDOM de la arquitectura cognitiva APU Filter. Su función es auditar con
+cero perturbación (Back-Action $\equiv 0.0\text{ dB}$) el flujo temporal inducido por el estado de Gibbs
+mediante la representación GNS, el generador modular de Tomita-Takesaki $K = -\ln \rho$, la
+condición analítica KMS de Kubo-Martin-Schwinger, y la sección de Poincaré del flujo modular.
 
-1. CONSTRUCCIÓN GNS Y ÁLGEBRA DE TOMITA-TAKESAKI:
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. CONSTRUCCIÓN GNS Y ÁLGEBRA DE TOMITA-TAKESAKI:
    Dado el Laplaciano no dirigido $L_{\text{sched}} = B_1 B_1^\top$ del Complejo de Cadenas del Cronograma,
    se construye el estado de Gibbs libre de singularidades:
      $$\rho = \frac{\exp(-L_{\text{sched}})}{Z}, \quad Z = \text{Tr}(\exp(-L_{\text{sched}})) > 0$$
@@ -24,17 +29,17 @@ en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
    Los operadores fundamentales de la teoría de Tomita-Takesaki se especifican como:
      - Operador Modular: $\Delta = \rho \otimes \rho^{-1}$, con número de condición $\|\Delta\| = \kappa(\rho)$.
      - Conjugación Modular: $J(A) = A^*$, la cual es una involución anti-lineal ($J^2 = \mathbb{I}, J = J^*$).
-     - Operador Tomita $S_0 = J \Delta^{1/2}$ que satisface $S_0(A|\Omega\rangle) = A^*|\Omega\rangle$.
+     - Operador Tomita: $S_0 = J \Delta^{1/2}$ que satisface $S_0(A|\Omega\rangle) = A^*|\Omega\rangle$.
      - Generador del Flujo Modular: $K = -\ln \rho = L_{\text{sched}} + \ln(Z) \cdot \mathbb{I}$.
 
-2. CONDICIÓN KMS Y FLUIO MODULAR DE POINCARÉ:
+2.2. CONDICIÓN KMS Y FLUIO MODULAR DE POINCARÉ:
    El flujo de Heisenberg de Tomita-Takesaki $\sigma_t(B) = \rho^{it} B \rho^{-it} = \exp(it K) B \exp(-it K)$
-   satisface analíticamente la condición de Kubo-Martin-Schwinger (KMS) a temperatura β = 1:
+   satisface analíticamente la condición de Kubo-Martin-Schwinger (KMS) a temperatura $\beta = 1$:
      $$\omega(A \sigma_t(B)) = \omega(\sigma_{t-i}(B) A), \quad \text{donde } \omega(X) = \text{Tr}(\rho X)$$
    donde la extensión analítica en la franja imaginaria $\sigma_{t-i}(B) = \rho^{i(t-i)} B \rho^{-i(t-i)} = \exp((it+1)K) B \exp(-(it+1)K)$
-   garantiza la estabilidad termodinámica pura sin colapso por ciclicidad cíclica.
+   garantiza la estabilidad termodinámica pura sin colapso por ciclicidad.
 
-3. MEDICIÓN DÉBIL QND, GEOMETRÍA DE UHLMANN Y DILATACIÓN DE GROMOV:
+2.3. MEDICIÓN DÉBIL QND, GEOMETRÍA DE UHLMANN Y DILATACIÓN DE GROMOV:
    Para estados inicial y final $|\psi_i\rangle, |\psi_f\rangle$ y observable $A \in \mathfrak{h}_{\text{sa}}$:
      - Valor Débil de Aharonov-Albert-Vaidman: $A_w = \frac{\langle \psi_f | A | \psi_i \rangle}{\langle \psi_f | \psi_i \rangle}$.
      - Fidelidad de Uhlmann: $F = |\langle \psi_f | \psi_i \rangle|^2$.
@@ -44,13 +49,13 @@ en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
          $$\text{BA}_{\text{dB}} = 10 \log_{10} \left( \frac{\|[ \rho, A ]\|_F}{\varepsilon_{\text{floor}}} \right) \ge 0.0 \text{ dB}$$
        donde el régimen QND puro exige $\|[\rho, A]\|_F \le \delta_{\text{tol}} \implies \text{BA}_{\text{dB}} \equiv 0.0 \text{ dB}$.
 
-4. VALUACIÓN ULTRAMÉTRICA DE NOVIKOV EN SEMIANILLO MAX-PLUS:
+2.4. VALUACIÓN ULTRAMÉTRICA DE NOVIKOV EN SEMIANILLO MAX-PLUS:
    Para un vector de holguras $s_i > 0$, con probabilidades $p_i = s_i / \sum s_k$ y grados $a_i = -\ln p_i$:
-     $$v(\text{Slack}) = \bigoplus_i a_i \equiv \min_i a_i, \quad \text{con norma de retardo } \|\text{Delay}\| = \exp(-v(\text{Slack}))$$
+     $$v(\text{Slack}) = \bigoplus_i a_i \equiv \min_i a_i, \quad \|\text{Delay}\| = \exp(-v(\text{Slack}))$$
    donde el semianillo Tropical Max-Plus $(\mathbb{R} \cup \{\infty\}, \max, +)$ verifica axiomáticamente
    la desigualdad ultramétrica $v(x \oplus y) = \min(v(x), v(y))$.
 
-5. MECÁNICA CELESTE DE POINCARÉ Y INTEGRAL DE JACOBI:
+2.5. MECÁNICA CELESTE DE POINCARÉ E INTEGRAL DE JACOBI:
    El mapa de primer retorno de Poincaré $\Pi: \Sigma \to \Sigma$ sobre la sección transversal
    $\Sigma = \{ A \in \mathfrak{h}_{\text{sa}} : \langle K, A \rangle_{\text{HS}} = \mathcal{J} \}$ define:
      - Tiempo de Recurrencia de Poincaré-Zermelo: $T_{\text{rec}} \simeq \frac{2\pi}{\lambda_2(L_{\text{sched}})}$.
@@ -60,36 +65,32 @@ en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
          * Hiperbólica: $|\text{Tr}(M)| > 2$ (Caos homoclínico, veto absoluto).
      - Integral de Jacobi Conservada: $\mathcal{J} = \text{Tr}(\rho K)$.
 
-6. AUTOMEJORA RECURSIVA RSI³ Y CONTRACCIÓN DE PICARD:
+2.6. AUTOMEJORA RECURSIVA RSI³ Y CONTRACCIÓN DE PICARD:
    El kernel de optimización de Nivel 3 ejecuta la dinámica tripartita $N_1(\theta) \to N_2(O) \to N_3(\alpha)$
    sobre la sección de Poincaré. La convergencia está garantizada por el Teorema de Punto Fijo de Banach:
      $$\|T(\theta_1) - T(\theta_2)\|_\infty \le \widehat{L} \|\theta_1 - \theta_2\|_\infty, \quad \widehat{L} < 1.0$$
 
-DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+3. AXIOMAS FORMALES:
 ─────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (QUANTUM WITNESS OBSERVE — Φ₁):
-    · Verificación de aciclicidad dirigida de Kahn $V_{\text{residual}} = 0$ (deque $O(1)$).
-    · Construcción del estado GNS de Gibbs $\rho = \exp(-L_{\text{sched}})/Z \succ 0$.
-    · Operadores modulares $(\Delta, J, S_0, K)$ de Tomita-Takesaki.
-    · Verificación analítica KMS $\sigma_{t-i}(B) = \rho^{it}\rho B \rho^{-1} \rho^{-it}$.
-    · Sección de Poincaré $\Pi_x$, matriz de monodromía $M$, espectro de Lyapunov $\chi_i$ y $T_{\text{rec}}$.
-    · Medición débil QND Aharonov $A_w$, Uhlmann $F$, Fubini-Study $d_{\text{FS}}$, Gromov $c_G \le 12.5$ y Back-Action.
-    ⟹ Emisión de `WitnessObserverPacket` + `ChronosWitnessGaugeInitialCondition`.
-    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_novikov_valuation_phase2`.
+  AXIOMA I (INVOLUCIÓN MODULAR ANTI-LINEAL DE TOMITA-TAKESAKI):
+    La conjugación modular $J: \mathcal{H}_{\text{GNS}} \to \mathcal{H}_{\text{GNS}}$ satisface $J^2 = \mathbb{I}$ y $J = J^*$, actuando como una involución anti-lineal isométrica.
 
-  FASE 2 (WITNESS CAMPAIGN ORIENT — Φ₂):
-    · Valuación ultramétrica $v(\text{Slack})$ en semianillo max-plus.
-    · Kernel RSI³ sobre la sección de Poincaré con recorte de Picard $\widehat{L} < 1.0$.
-    · Amortiguamiento de Krasnoselskii-Mann $x_{k+1} = (1-\lambda)x_k + \lambda T(x_k)$ con $\Delta V < 0$.
-    ⟹ Emisión de `ChronosWeakObservationGerm`.
-    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_witness_verdict`.
+  AXIOMA II (CONDICIÓN DE KUBO-MARTIN-SCHWINGER EN LA FRANJA IMAGINARIA):
+    El estado del testimonio es KMS a temperatura $\beta = 1$, cumpliendo $\text{Tr}(\rho A \sigma_t(B)) = \text{Tr}(\rho \sigma_{t-i}(B) A)$ para todo par de observables $A, B \in \mathfrak{h}_{\text{sa}}$.
 
-  FASE 3 (WITNESS SOVEREIGN DECIDE — Φ₃):
-    · Adjudicación en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$ (VETOED / DEGRADED / COHERENT).
-    · Interlock de hardware ESP32 Crowbar ($WCET \le 393.85 \text{ ns}$).
-    · Sello criptográfico Merkle DAG de 3 hojas y firma HMAC-SHA256.
-    ⟹ Emisión de `ChronosWitnessExecutionCertificate`.
-    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
+  AXIOMA III (OBSERVACIÓN SIN DEMOLICIÓN CUÁNTICA QND):
+    La medición débil $A_w$ no introduce retroacción sobre el estado de densidad modular: $\|[\rho, A]\|_F \le \varepsilon_{\text{floor}} \implies \text{Back-Action}_{\text{dB}} \equiv 0.0 \text{ dB}$.
+
+  AXIOMA IV (CAPACIDAD IMPLOSIVA DE GROMOV):
+    La capacidad simpléctica del fibrado de estados del testimonio está estrictamente acotada por $c_G \approx 2\pi(1 + d_{\text{FS}}) \le 12.5$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. HERMITICIDAD Y RANGO COMPLETO DE LA MATRIZ DE DENSIDAD: $\rho \succ 0, \text{Tr}(\rho) = 1.0$.
+  2. CONSERVACIÓN DE LA INTEGRAL DE JACOBI MODULAR: $\mathcal{J} = \text{Tr}(\rho K) = \text{constante}$.
+  3. TIEMPO DE RECURRENCIA DE POINCARÉ-ZERMELO: $T_{\text{rec}} = 2\pi / \lambda_2(L_{\text{sched}})$.
+  4. INTERLOCK hardware ESP32 CROWBAR: $WCET \le 393.85 \text{ ns}$ en veredicto VETOED.
+  5. COMPOSICIÓN FUNTORIAL COMPLETA: $Z_{\text{Witness}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
 """
 
 from __future__ import annotations

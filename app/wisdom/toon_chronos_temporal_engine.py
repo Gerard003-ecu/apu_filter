@@ -7,75 +7,81 @@ r"""
 ║ Función  : Motor espectral y regulador cronogeométrico del tiempo de ejecución en megaproyectos.     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosTemporalEngine` constituye el motor espectral y regulador cronogeométrico
 Soberano para el control estricto de tiempos de ejecución y holguras en el Estrato WISDOM
-de la arquitectura APU Filter.
+de la arquitectura APU Filter. Su función es garantizar la coherencia causal, la estabilidad
+de Lyapunov del cronograma de megaproyectos, y la mitigación de divergencias espectrales
+mediante un flujo estroboscópico hamiltoniano en $Sp(4, \mathbb{R})$, valuaciones ultramétricas
+en semianillos tropicales $(\mathbb{R} \cup \{\infty\}, \min, +)$, y la adjudicación de
+subobjetos en el álgebra de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
 
-1. ANÁLISIS ESPECTRAL DE HODGE Y FORMA REAL DE SCHUR (RSF):
-   Dado el operador de incidencia $B_1 \in \mathbb{R}^{V \times E}$ del complejo de cadenas del cronograma:
-     - Laplaciano Combinatorio No Dirigido: $L_{\text{sched}} = B_1 B_1^\top$.
-     - Números de Betti y Característica de Euler:
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. ANÁLISIS ESPECTRAL DE HODGE Y FORMA REAL DE SCHUR (RSF):
+   Dado el operador de incidencia $B_1 \in \mathbb{R}^{V \times E}$ del complejo de cadenas 1-dimensional:
+     - Laplaciano Combinatorio No Dirigido: $L_{\text{sched}} = B_1 B_1^\top \in \mathbb{R}^{|V| \times |V|}$.
+     - Homología de Čech/Hodge y Característica de Euler:
          $$\beta_0 = \dim(\ker L_{\text{sched}}) = |V| - \text{rank}(B_1), \quad \beta_1 = |E| - \text{rank}(B_1), \quad \chi = \beta_0 - \beta_1$$
-     - Brecha Espectral de Fiedler: $\lambda_2 = \min \{ \lambda \in \sigma(L_{\text{sched}}) : \lambda > 0 \}$, definiendo la
-       Constante de Poincaré-Wirtinger $C_{\text{PW}} = 1 / \lambda_2$.
-     - Forma Real de Schur (RSF) de la Matriz de Adyacencia Dirigida $A \in \mathbb{R}^{V \times V}$:
+     - Brecha Espectral de Fiedler y Constante de Poincaré-Wirtinger:
+         $$\lambda_2 = \min \{ \lambda \in \sigma(L_{\text{sched}}) : \lambda > 0 \}, \quad C_{\text{PW}} = \frac{1}{\lambda_2}$$
+     - Descomposición Real de Schur (RSF) del Adyacente Dirigido $A \in \mathbb{R}^{V \times V}$:
          $$A = Q T Q^\top, \quad Q \in O(V)$$
        donde $T$ es cuasi-triangular por bloques $1 \times 1$ y $2 \times 2$. El índice de nilpotencia de $\text{strictly}(T)$
        mide la profundidad jerárquica causal del DAG.
 
-2. ACCIÓN REDUCIDA DE MAUPERTUIS-JACOBI:
+2.2. ACCIÓN REDUCIDA DE MAUPERTUIS-JACOBI:
    Para un vector de duraciones $d_i \ge 0$ y pesos $w_i > 0$, la acción Hamilton-Jacobi $S_0$ sobre la métrica conformal
-   $ds_M^2 = 2(E - V(q)) g_{ij} dq^i dq^j$ se calcula como:
+   $ds_M^2 = 2(E - V(q)) g_{ij} dq^i dq^j$ se expresa como:
      $$S_0 = \sum_{i=1}^{|E|} w_i d_i^2$$
 
-3. LEVANTAMIENTO HAMILTONIANO Y ESTRUCTURA SIMPLÉCTICA $Sp(4, \mathbb{R})$:
+2.3. LEVANTAMIENTO HAMILTONIANO Y ESTRUCTURA SIMPLÉCTICA $Sp(4, \mathbb{R})$:
    El flujo temporal se eleva al espacio fásico $T^* \mathbb{R}^n \cong \mathbb{R}^{2n}$ mediante el Hamiltoniano cuadrático:
-     $$H(q, p) = \frac{1}{2} p^\top p + \frac{1}{2} q^\top L_{\text{sched}} q, \quad \text{con campo } \dot{z} = J_{2n} \nabla H(z)$$
+     $$H(q, p) = \frac{1}{2} p^\top p + \frac{1}{2} q^\top L_{\text{sched}} q, \quad \dot{z} = J_{2n} \nabla H(z), \quad J_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$$
    Restringido a los modos normales elípticos principales ($\omega_a = \sqrt{\lambda_2}, \omega_b = \sqrt{\lambda_3}$),
    la matriz de monodromía del flujo estroboscópico de periodo $T = 2\pi / \omega_a$ satisface:
      $$M = M(\omega_a) \oplus M(\omega_b) \in Sp(4, \mathbb{R}), \quad M^\top J_4 M = J_4$$
-   Las firmas de Krein $\sigma(\mu_i) = \text{sign}(\text{Re}(-i v_i^* J v_i))$ sobre multiplicadores elípticos $|\mu_i| = 1$
+   Las firmas de Krein $\sigma(\mu_i) = \text{sign}(\text{Re}(-i v_i^* J_4 v_i))$ sobre multiplicadores elípticos $|\mu_i| = 1$
    detectan colisiones inestables de Krein-Moser ($\sigma_i \sigma_j < 0$).
 
-4. APLICACIÓN DE RETORNO DE POINCARÉ, MELNIKOV Y PERSISTENCIA KAM:
+2.4. APLICACIÓN DE RETORNO DE POINCARÉ, MELNIKOV Y PERSISTENCIA KAM:
    - Sección Transversal de Fiedler: $\Sigma = \{ q \in \mathbb{R}^n : \langle q, \phi_2 \rangle = 0, \langle p, \phi_2 \rangle > 0 \}$.
-   - Función de Melnikov Homoclínica: $M(t_0) = \int_{-\infty}^{\infty} \{ H_0, H_1 \}(z_h(t + t_0)) dt$. Los ceros simples
-     caracterizan tangencias homoclínicas transversales y caos temporal.
+   - Integral de Melnikov Homoclínica: $M(t_0) = \int_{-\infty}^{\infty} \{ H_0, H_1 \}(z_h(t + t_0)) dt$. Los ceros simples
+     de $M(t_0)$ caracterizan tangencias homoclínicas transversales y la presencia de caos temporal.
    - Condición Diofantina de Kolmogorov: $|\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau \quad \forall k \in \mathbb{Z}^d \setminus \{0\}$.
-   - Persistencia KAM de Toros: Invariancia garantizada para perturbaciones $\varepsilon_{\text{pert}} = \|L_{\text{off}}\| / \lambda_2 < \varepsilon_{\text{KAM}}$.
-   - Difusión de Arnold / Nekhoroshev: Suma de fugas entre modos $D_{\text{total}} = \sum \frac{(\Delta \lambda_k)^2}{\omega_k^2}$.
+   - Persistencia KAM de Toros: Invariancia garantizada bajo perturbaciones $\varepsilon_{\text{pert}} = \|L_{\text{off}}\| / \lambda_2 < \varepsilon_{\text{KAM}}$.
+   - Difusión de Arnold / Nekhoroshev: Suma de fugas entre modos normales $D_{\text{total}} = \sum \frac{(\Delta \lambda_k)^2}{\omega_k^2}$.
 
-5. VALUACIÓN TROPICAL DE NOVIKOV Y AUTOMEJORA RSI³:
-   En el Semianillo Tropical $(\mathbb{R} \cup \{\infty\}, \min, +)$, las holguras probabilísticas $p_i = s_i / \sum s$ y grados $a_i = -\ln p_i$ definen:
-     $$v(\text{Slack}) = \bigoplus_i a_i \equiv \min_i a_i, \quad \text{con } \|\text{Delay}\| = \exp(-v(\text{Slack}))$$
-   El kernel RSI³ itera $N_1(\theta) \to N_2(O) \to N_3(\alpha)$ con convergencia de Banach $\rho(DT) = \rho(\mathbb{I} - \alpha_0 \text{Hess } L) < 1.0$.
+2.5. VALUACIÓN TROPICAL DE NOVIKOV Y AUTOMEJORA RSI³:
+   En el Semianillo Tropical $(\mathbb{R} \cup \{\infty\}, \min, +)$, las holguras probabilísticas $p_i = s_i / \sum s_k$ y grados $a_i = -\ln p_i$ definen:
+     $$v(\text{Slack}) = \bigoplus_i a_i \equiv \min_i a_i, \quad \|\text{Delay}\| = \exp(-v(\text{Slack}))$$
+   El kernel RSI³ itera $N_1(\theta) \to N_2(O) \to N_3(\alpha)$ con cota de Banach sobre la constante de Lipschitz $\widehat{L} = \rho(DT) = \rho(\mathbb{I} - \alpha_0 \text{Hess } L) < 1.0$.
 
-DISEÑO DE TRES FASES ANIDADAS (Z = Φ₃ ∘ Φ₂ ∘ Φ₁):
+3. AXIOMAS FORMALES:
 ─────────────────────────────────────────────────────────────────────────────────────────
-  FASE 1 (OBSERVE — Φ₁):
-    · Kahn aciclicidad dirigida con deque $O(1)$.
-    · Análisis espectral de Hodge $(\beta_0, \beta_1, \chi, \lambda_2, C_{\text{PW}})$ y RSF de Schur.
-    · Acción HJB de Maupertuis-Jacobi $S_0$.
-    · Lift hamiltoniano, monodromía $Sp(4, \mathbb{R})$, firmas de Krein y exponentes de Lyapunov.
-    · Sección de Poincaré $\Sigma$, Melnikov, condición diofantina KAM y difusión de Arnold.
-    ⟹ Emisión de `ChronosCanonicalSeed` + `ObserverPacketChronos`.
-    ⟹ Transición terminal: `_phase1_terminal_bridge_to_phase2` $\to$ `_audit_ultrametric_valuation_phase2`.
+  AXIOMA I (ACICLICIDAD CAUSAL DE KAHN):
+    Todo cronograma admisible debe corresponder a un Grafo Acíclico Dirigido (DAG), cumpliendo $\ker(\text{InDegree}) \neq \varnothing$
+    y residuo de Kahn $V_{\text{residual}} = 0$.
 
-  FASE 2 (ORIENT — Φ₂):
-    · Valuación ultramétrica de Novikov en semianillo tropical.
-    · Kernel RSI³ acoplado al `ObserverPacketChronos` con radio espectral $\rho(DT) < 1.0$.
-    · Amortiguamiento de Krasnoselskii-Mann con decremento Lyapunov $\Delta V < 0$.
-    ⟹ Emisión de `ChronosUltrametricGerm` + `OrientationSeedChronos`.
-    ⟹ Transición terminal: `_phase2_terminal_bridge_to_phase3` $\to$ `_adjudicate_heyting_verdict`.
+  AXIOMA II (SIMPLECTICIDAD Y CONSERVACIÓN DE MEDIDA DE LIOUVILLE):
+    La matriz de monodromía estroboscópica $M \in Sp(4, \mathbb{R})$ conserva la forma simpléctica $M^\top J_4 M = J_4$,
+    implicando la conservación del volumen de Liouville $\det(M) = +1$.
 
-  FASE 3 (DECIDE — Φ₃):
-    · Clasificación de subobjetos en Retículo de Heyting $\Omega_3 = \{\bot, \star, \top\}$.
-    · Interlock de hardware ESP32 Crowbar ($WCET \le 394.25 \text{ ns}$).
-    · Sello Merkle DAG de 3 hojas y firma HMAC-SHA256.
-    ⟹ Emisión de `ChronosExecutionCertificate`.
-    ⟹ Síntesis terminal: `_phase3_terminal_synthesis`.
+  AXIOMA III (SATURACIÓN ULTRAMÉTRICA TROPICAL):
+    La valuación de Novikov en el semianillo min-plus satisface de forma exacta la desigualdad ultramétrica $v(x \oplus y) = \min(v(x), v(y))$.
+
+  AXIOMA IV (CONTRACCIÓN MONÁDICA DE PICARD-BANACH):
+    La dinámica de automejora recursiva $T: \Theta \to \Theta$ constituye una contracción estricta en $(\mathbb{R}^4, \|\cdot\|_\infty)$
+    con constante de Lipschitz $\widehat{L} \le \varepsilon_{\text{Banach}} = 0.9990$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. CARACTERÍSTICA DE EULER-POINCARÉ: $\chi = \beta_0 - \beta_1 = \text{constante}$.
+  2. BORDISMO CERO EN COMPLEJO NO DIRIGIDO: $B_1^\top L_{\text{sched}} B_1 \succeq 0$.
+  3. VOLUMEN SIMPLÉCTICO $Sp(4, \mathbb{R})$: $\det(M) \equiv 1.0$.
+  4. INTERLOCK hardware ESP32 CROWBAR: $WCET \le 394.25 \text{ ns}$ en veredicto VETOED.
+  5. COMPOSICIÓN FUNTORIAL COMPLETA: $Z_{\text{Chronos}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
 """
 
 from __future__ import annotations
