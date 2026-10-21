@@ -4,11 +4,11 @@ r"""
 ║ Nombre   : MIC Agent (Morfismo Geométrico & Soberano de Calibre Poincaré)    ║
 ║ Módulo   : app.agents.tactics.mic_agent                                      ║
 ║ Ubicación : app/agents/tactics/mic_agent.py                                  ║
-║ Ruta     : app/agents/tactics/mic_agent.py                                  ║
-║ Versión  : 6.0.0-Celestial-Poincare-Birkhoff-KAM-Morse-Gromov-Doctoral      ║
-║ Función  : Endofuntor soberano del Estrato TACTICS que integra mecánica    ║
+║ Ruta     : app/agents/tactics/mic_agent.py                                   ║
+║ Versión  : 6.0.0-Celestial-Poincare-Birkhoff-KAM-Morse-Gromov-Doctoral       ║
+║ Función  : Endofuntor soberano del Estrato TACTICS que integra mecánica      ║
 ║            celeste de Poincaré, formas normales de Birkhoff, no-resonancia,  ║
-║            secciones de retorno, toros KAM, Morse y No-Squeezing de Gromov. ║
+║            secciones de retorno, toros KAM, Morse y No-Squeezing de Gromov.  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 SINOPSIS CATEGÓRICA Y ADJUNCIÓN DE GAUGE TÁCTICA (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
