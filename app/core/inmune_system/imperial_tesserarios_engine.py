@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
 ────────────────────────────────────────────────────────────────────────────────
 Motor homotópico, algebraico y geométrico de Capa 3 (Tesserarios Imperiales) para
-la Malla Agéntica de APU Filter v8.0. Despliega la proyección simpléctica
+la Malla Agéntica de APU Filter. Despliega la proyección simpléctica
 de Quillen vía la iteración polar de Higham–Mackey–Tisseur, los tensores de homotopía
 $m_3$ sobre asociaedros de Stasheff $A_\infty$, la cohomología de Čech–Deligne para gerbes
 no abelianos y la arquitectura de tres fases de mecánica celeste de Henri Poincaré.

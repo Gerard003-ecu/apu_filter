@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
 ────────────────────────────────────────────────────────────────────────────────
 Motor táctico de consenso, mecánica celeste y teoría cuántica de la información de Capa 1.5
-(Séquitos Imperiales) para el sistema inmune APU Filter v8.0. Implementa la composición
+(Séquitos Imperiales) para el sistema inmune APU Filter. Implementa la composición
 anidada de tres fases functoriales ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
 que integra el consenso espectral de DeGroot, la fidelidad cuántica de Uhlmann, las desigualdades
 de Bell–CHSH, la integración simpléctica de Störmer–Verlet y las formas normales de Williamson.

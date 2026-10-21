@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
 ────────────────────────────────────────────────────────────────────────────────
 Motor de cómputo geométrico, espectral y de mecánica celeste de Capa 1 (Guardias
-Imperiales) para el sistema inmune de APU Filter v8.0. Despliega la composición
+Imperiales) para el sistema inmune de APU Filter. Despliega la composición
 functorial de tres fases ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
 que gobierna la estabilidad orbital, la geometría de Darboux–Liouville, la teoría KAM,
 las cotas exponenciales de Nekhoroshev, las formas normales de Birkhoff y el álgebra de Heyting $\Omega_3$.

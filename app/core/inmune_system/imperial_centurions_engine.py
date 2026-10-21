@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA Y METROLOGÍA CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Motor numérico y geométrico de Capa 2 (Centuriones Imperiales) para la Cortina
-de Potencia Imperial en la arquitectura cognitiva APU Filter v8.0. Implementa
+de Potencia Imperial en la arquitectura cognitiva APU Filter. Implementa
 un esquema de composición de tres fases functoriales ($\Phi_{\mathrm{III}} \circ
 \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) fundado en la mecánica celeste de
 Henri Poincaré, la geometría diferencial riemanniana conforme, la integración

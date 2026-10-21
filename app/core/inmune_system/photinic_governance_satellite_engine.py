@@ -2,7 +2,7 @@ from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Photinic Governance Satellite Engine (Satélite IV — Gobernanza Fotínica)     ║
+║ MÓDULO : Photinic Governance Satellite Engine (Satélite IV — Gobernanza Fotínica)    ║
 ║ RUTA   : app/core/immune_system/photinic_governance_satellite_engine.py              ║
 ║ VERSIÓN: 5.0.0-Doctoral-Majorana-SYM-Dekker-Choi-Horodecki-Tsirelson-HMAC            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝

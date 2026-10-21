@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
 ────────────────────────────────────────────────────────────────────────────────
 Motor numérico, cohomológico y de mecánica celeste de Capa 3 (Eruditos Imperiales)
-para la Malla Agéntica del sistema inmune APU Filter v8.0. Implementa una
+para la Malla Agéntica del sistema inmune APU Filter. Implementa una
 cadena anidada de tres morfismos functoriales ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}}
 \circ \Phi_{\mathrm{I}}$) que audita la regularidad elíptica de cilindros pseudo-holomorfos
 de Floer, aniquila la obstrucción cohomológica de Čech en la memoria de atención,

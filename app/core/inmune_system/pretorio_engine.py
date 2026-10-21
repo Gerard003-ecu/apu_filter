@@ -9,7 +9,7 @@ r"""
 SINOPSIS MATEMÁTICA Y METROLOGÍA DE LA FPU:
 ────────────────────────────────────────────────────────────────────────────────
 Motor supremo de cálculo epistémico, metrología de FPU y deliberación de seguridad
-de Capa 4 (El Pretorio) en la arquitectura APU Filter v8.0. Ejecuta la auditoría
+de Capa 4 (El Pretorio) en la arquitectura APU Filter. Ejecuta la auditoría
 epistémica final sobre la Malla Agéntica estructurando un functor anidado de tres
 fases ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) que
 integra la hipercohomología del bicomplejo de Čech–de Rham, los teoremas de punto

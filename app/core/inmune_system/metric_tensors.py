@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Riemannian Metric Tensors (Tejido Conectivo Anisotrópico de Fase)  ║
+║ Módulo : Riemannian Metric Tensors (Tejido Conectivo Anisotrópico de Fase)   ║
 ║ Ruta   : app/core/immune_system/metric_tensors.py                            ║
 ║ Versión: 4.1.0-Spectral-Wilkinson-Sylvester-Cholesky-Strict-PhD              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
