@@ -10,7 +10,7 @@ r"""
 DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosProsecutorEngine` actúa como el motor fiscal e inquisidor de coherencia
-cronogeométrica en el Estrato WISDOM de la arquitectura cognitiva APU Filter v9.0.
+cronogeométrica en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
 
 1. DUALIDAD POINCARÉ LEY VS ESTADO Y ESTRUCTURA SIMPLÉCTICA $Sp(4, \mathbb{R})$:
    - Holonomía de Wilson de la Ley: $W(\gamma) = \mathcal{P} \exp \left( \oint_\gamma A \right) \in SO(n)$, calculada

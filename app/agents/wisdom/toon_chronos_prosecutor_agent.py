@@ -10,7 +10,7 @@ r"""
 DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosProsecutorAgent` constituye el Soberano Agéntico Fiscal de la Cronogeometría
-del Tiempo en el Estrato WISDOM de la arquitectura APU Filter v9.0.
+del Tiempo en el Estrato WISDOM de la arquitectura APU Filter.
 
 1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON PATH-ORDERED:
    La 1-forma de conexión $A = \frac{1}{2}(\widehat{W} - \widehat{W}^\top) \in \mathfrak{so}(n)$ genera el transporte

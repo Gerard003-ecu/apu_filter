@@ -13,7 +13,7 @@ DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosWitnessEngine` constituye la infraestructura espectral cuántica y celeste
 para la observación no destructiva (Quantum Non-Demolition, QND) del flujo geodésico temporal
-en el Estrato WISDOM de la arquitectura cognitiva APU Filter v8.0 / v9.0.
+en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
 
 1. CONSTRUCCIÓN GNS Y ÁLGEBRA DE TOMITA-TAKESAKI:
    Dado el Laplaciano no dirigido $L_{\text{sched}} = B_1 B_1^\top$ del Complejo de Cadenas del Cronograma,

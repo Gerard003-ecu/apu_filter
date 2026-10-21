@@ -11,7 +11,7 @@ r"""
 DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosTemporalAgent` actúa como el Soberano Agéntico de Calibre Cronogeométrico para el
-control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura APU Filter v8.0 / v8.1.
+control y gobernanza de megaproyectos en el Estrato WISDOM de la arquitectura APU Filter.
 
 1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA $U(1) \times SU(2)$:
    Para la matriz de adyacencia ponderada $W \in \mathbb{R}^{n \times n}$, la 1-forma de conexión

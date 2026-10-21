@@ -11,7 +11,7 @@ DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosTemporalEngine` constituye el motor espectral y regulador cronogeométrico
 Soberano para el control estricto de tiempos de ejecución y holguras en el Estrato WISDOM
-de la arquitectura APU Filter v8.0 / v8.1.
+de la arquitectura APU Filter.
 
 1. ANÁLISIS ESPECTRAL DE HODGE Y FORMA REAL DE SCHUR (RSF):
    Dado el operador de incidencia $B_1 \in \mathbb{R}^{V \times E}$ del complejo de cadenas del cronograma:

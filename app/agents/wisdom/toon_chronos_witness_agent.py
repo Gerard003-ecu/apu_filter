@@ -13,7 +13,7 @@ r"""
 DEFINICIÓN FORMAL Y FUNDAMENTOS MATEMÁTICOS RIGUROSOS:
 ─────────────────────────────────────────────────────────────────────────────────────────
 El `TOONChronosWitnessAgent` representa al Soberano Agéntico de Calibre y Testigo del Vacío
-en el Estrato WISDOM de la arquitectura cognitiva APU Filter v9.0.
+en el Estrato WISDOM de la arquitectura cognitiva APU Filter.
 
 1. CONEXIÓN DE GAUGE $\mathfrak{so}(n)$, CHERN-SIMONS Y HOLONOMÍA DE WILSON:
    Dada la matriz de adyacencia del cronograma $W \in \mathbb{R}^{n \times n}$, se construye la 1-forma de conexión
