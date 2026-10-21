@@ -1,11 +1,32 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Pipeline Director Agent (Custodio de Causalidad y Flujo Funtorial)  ║
-║ Ruta   : app/agents/strategy/pipeline_director_agent.py                      ║
-║ Versión: 3.1.0-Poincare-Melnikov-RecursiveN3-Strict                          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ESTRATÉGICO
+====================================================================================================
 
+Nombre: PipelineDirectorAgent
+Ubicación: app/agents/strategy/pipeline_director_agent.py
+Versión: 3.1.0-Poincare-Melnikov-RecursiveN3-Strict
+Función: Agente soberano de gobernanza causal y flujo funtorial sobre la canalización de
+         procesamiento de datos. Ejecuta auditorías espectrales de Schur, análisis de Melnikov,
+         verificación diofántica KAM y congruencia de Mayer-Vietoris para garantizar la
+         unicidad y consistencia topológica-causal del DAG de ejecución.
+
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente Director de la Canalización (PipelineDirectorAgent) es el árbitro estratégico
+que custodia la causalidad funtorial y la transitividad estricta de las etapas de ejecución en APU
+Filter. Previene la emergencia de bucles causales, bifurcaciones de Melnikov y fugas de resonancia KAM
+mediante la descomposición espectral real de Schur (RSF) y auditorías homológicas exactas.
+Su respectivo motor de cálculo táctico es 'PipelineDirector' (app/tactics/pipeline_director.py),
+su respectivo agente táctico es 'BusinessAgent' (app/strategy/business_agent.py), y su evaluador
+topológico complementario es 'TopologicalAnalyzer' (app/tactics/topological_analyzer.py).
+Mientras PipelineDirector orquesta la ejecución física de las etapas y la condensación de flujos,
+PipelineDirectorAgent emite certificados de validez espectral (PipelineSpectraCertificate) y
+certificados de causalidad (PipelineCausalAuditState) antes de permitir la transición entre estratos.
+
+----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO RIGUROSO Y GOBERNANZA CAUSAL AGÉNTICA (NIVEL DOCTORADO):
 ────────────────────────────────────────────────────────────────────────────────
 
@@ -68,6 +89,25 @@ TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
 · OPERACIÓN AUTÓNOMA FAIL-SECURE: Ante cualquier anomalía matemática o degradación de
   datos, el agente aborta la transacción antes de corromper la base de datos central,
   salvaguardando la continuidad del negocio y el valor de los activos de información.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma PDA1 (Nilpotencia Espectral Estricta de Causalidad):
+    \operatorname{Spec}(A) = \{0\} \iff \rho(A) = 0 \quad (\text{Ausencia total de 1-ciclos de causalidad}).
+Axioma PDA2 (Transversalidad de Poincaré sobre Hipersuperficie):
+    |\langle \nabla h(p), A p \rangle| > \varepsilon_{\mathrm{trans}} > 0 \quad \forall p \in \Sigma.
+Axioma PDA3 (Consistencia Homológica de Mayer-Vietoris):
+    \Delta \beta_1 = \beta_1(A \cup B) - (\beta_1(A) + \beta_1(B) - \mathrm{rank}(\phi) + \mathrm{rank}(\partial)) \equiv 0.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Radio Espectral Acotado por Bauer-Fike):
+    \rho(A) \le \delta_{\mathrm{BF}}.
+Invariante 2 (Ausencia de Tangencias de Melnikov):
+    M(t_0) = 0 \implies M'(t_0) \neq 0.
+====================================================================================================
 """
 
 from __future__ import annotations
@@ -81,6 +121,7 @@ import logging
 import math
 import uuid
 from collections import Counter
+from itertools import product
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import (
@@ -1486,7 +1527,6 @@ class Phase1_SpectralNilpotenceCertifier:
         satisfied = True
         # Barrido de multi-índices en [-k_max, k_max]^d \ {0}, recortado.
         # Para d>3 se muestrea la esfera l1.
-        from itertools import product
         rng_k = range(-k_max, k_max + 1)
         for kvec in product(rng_k, repeat=d):
             l1 = sum(abs(ki) for ki in kvec)

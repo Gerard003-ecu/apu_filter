@@ -65,6 +65,14 @@ Invariante 1 (Preservación Incondicional de Consistencia):
     Dem_T(ulcorner bot urcorner) == False (nunca se deriva contradicción formal).
 Invariante 2 (Finitud de la Profundidad de Metalenguaje de Tarski):
     nivel_tarski <= N_max_profundidad = 10.
+
+----------------------------------------------------------------------------------------------------
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+----------------------------------------------------------------------------------------------------
+· PROTECCIÓN CONTRA PARÁLISIS COMPUTACIONAL: Desactiva bucles infinitos causados por indecidibilidad,
+  preservando la capacidad de cómputo y evitando costos de servidor por consumo desbocado de CPU.
+· FIABILIDAD METAMATEMÁTICA EN INFORMES: Garantiza que la validación sintáctica de Peano sea
+  irrefutable ante revisiones contables y legales externas.
 ====================================================================================================
 """
 from __future__ import annotations
@@ -74,7 +82,7 @@ import logging
 import math
 import time
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace as _dataclasses_replace
 from enum import IntEnum
 from fractions import Fraction
 from functools import lru_cache
@@ -83,6 +91,10 @@ from typing import Any, Callable, Deque, Dict, Final, List, Optional, Sequence, 
 import numpy as np
 import scipy.linalg as la
 from scipy import integrate
+try:
+    from scipy.integrate import simpson
+except ImportError:
+    simpson = None
 
 logger = logging.getLogger("APU.Wisdom.GodelEngine")
 
@@ -109,11 +121,12 @@ def _simpson_or_trapz(y: np.ndarray, x: np.ndarray) -> float:
     """Simpson (si SciPy lo expone) con repliegue trapezoidal."""
     y_arr = np.asarray(y, dtype=np.float64)
     x_arr = np.asarray(x, dtype=np.float64)
-    try:
-        from scipy.integrate import simpson
-        return float(simpson(y_arr, x=x_arr))
-    except Exception:
-        return _trapz(y_arr, x_arr)
+    if simpson is not None:
+        try:
+            return float(simpson(y_arr, x=x_arr))
+        except Exception:
+            return _trapz(y_arr, x_arr)
+    return _trapz(y_arr, x_arr)
 
 
 def _hermitian(matrix: np.ndarray) -> np.ndarray:
@@ -3654,11 +3667,6 @@ def seed_poincare_recurrence_from_morphism(
 # ██                                                                                              ██
 # ██████████████████████████████████████████████████████████████████████████████████████████████████
 # ══════════════════════════════════════════════════════════════════════════════════════════════════
-# NOTA DE IMPORTACIÓN (v5.2.0): añadir `replace` al bloque de imports de `dataclasses` en la
-# cabecera del módulo (`from dataclasses import dataclass, field, replace`). Se importa aquí de
-# forma local y defensiva para que esta Fase sea auto-contenida si se evalúa de forma aislada.
-from dataclasses import replace as _dataclasses_replace
-
 # ──────────────────────────────────────────────────────────────────────────────────────────────────
 # §3.1 RECURRENCIA DE POINCARÉ, LEMA DE KAC Y CONSISTENCIA ERGÓDICA DE OSELEDETS
 # ──────────────────────────────────────────────────────────────────────────────────────────────────

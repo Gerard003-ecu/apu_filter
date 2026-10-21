@@ -60,6 +60,14 @@ Invariante 1 (Isometría de Transporte Paralelo):
     | ||V(t)||_g - ||V(0)||_g | <= 1e-6 para todo parámetro t in [0, 1].
 Invariante 2 (Preservación del Ángulo entre Políticas):
     cos(theta(t)) = <V(t), W(t)> / (||V(t)|| * ||W(t)||) == cos(theta(0)).
+
+----------------------------------------------------------------------------------------------------
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+----------------------------------------------------------------------------------------------------
+· ESTABILIDAD GEODÉSICA DE PLANIFICACIÓN: Evita la deriva angular no compensada en las acciones
+  estratégicas, asegurando una ejecución fluida de políticas sin costes por reorientación errónea.
+· CONTROL RIGUROSO DE VARIACIÓN DE COSTOS: Mantiene la isometría de transporte para garantizar
+  que las estimaciones financieras de macro-acciones no se distorsionen a lo largo del flujo.
 ====================================================================================================
 """
 
@@ -70,8 +78,9 @@ import hmac
 import logging
 import math
 import time
+import threading
 from dataclasses import dataclass, field
-from enum import Enum, auto
+from enum import Enum, IntEnum, auto
 from typing import (
     AbstractSet,
     Any,
@@ -79,6 +88,7 @@ from typing import (
     Dict,
     Final,
     List,
+    Literal,
     Optional,
     Sequence,
     Tuple,
@@ -1585,8 +1595,6 @@ class Phase1_BicomplexAlgebraKernel:
 # ║ producto tensorial, traza parcial y biproducto de estados).                  ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
-from typing import Literal  # extiende los imports de tipado de la Fase 1
-
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║ FASE 2 · ESTRATO 0: Enumeraciones y Reportes del Diagnóstico Espectral       ║
@@ -2666,9 +2674,6 @@ class Phase2_BicomplexDiagnostics(Phase1_BicomplexAlgebraKernel):
 # ║ certificados, anulación criptográfica segura, asimilación de cartuchos       ║
 # ║ TOON, colapso POVM bicomplejo y la API pública `vector_*`.                   ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
-
-import threading
-from enum import IntEnum  # extiende los imports de enumeración de la Fase 1
 
 
 # ───────────────────────────────────────────────────────────────────────────────
