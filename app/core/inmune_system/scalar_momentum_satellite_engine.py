@@ -1,4 +1,3 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -6,65 +5,67 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
 ====================================================================================================
 
 Nombre: ScalarMomentumSatelliteEngine
-Ubicación: app/core/immune_system/scalar_momentum_satellite_engine.py
+Ubicación: app/core/inmune_system/scalar_momentum_satellite_engine.py
 Versión: 1.0.0-APU-SOVEREIGN
-Función: Motor de momento escalar y mapas de momento simplécticos mu: M -> g^* en variedades
-         de Poisson. Modela la conservación del momento canónico escalar p_phi = partial L / partial dot{phi},
+Función: Motor de momento escalar y mapas de momento simplécticos \mu: M \to \mathfrak{g}^* en variedades
+         de Poisson. Modela la conservación del momento canónico escalar p_\phi = \partial L / \partial \dot{\phi},
          la reducción de Marsden-Weinstein y la preservación de invariantes de Casimir.
 
 ----------------------------------------------------------------------------------------------------
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
 ----------------------------------------------------------------------------------------------------
-El Soberano de Momento Escalar (ScalarMomentumSatelliteEngine) es el regulador de inercia y cantidad
+El Soberano Motor de Momento Escalar (ScalarMomentumSatelliteEngine) es el regulador de inercia y cantidad
 de movimiento del sistema inmune en APU Filter. Su función es calcular y preservar la proyección
 escalar del momento conjugado a lo largo de las direcciones de simetría continua del espacio de
 estados cognitivos, impidiendo que choques antigénicos disipen la energía cinética acumulada.
 Su respectivo agente en el plano inmune es 'ScalarMomentumSatelliteAgent'
-(app/agents/core/immune_system/scalar_momentum_satellite_agent.py), y su complemento geométrico es
-'MusicalIsomorphismEngine' (app/core/immune_system/musical_isomorphism_engine.py). Mientras este motor
-computa el mapa de momentos mu(x) y el invariante de Casimir C_2, su respectivo Agente monitorea
+(app/agents/core/inmune_system/scalar_momentum_satellite_agent.py), y su complemento geométrico es
+'MusicalIsomorphismEngine' (app/core/inmune_system/musical_isomorphism_engine.py). Mientras este motor
+computa el mapa de momentos \mu(x) y el invariante de Casimir C_2, su respectivo Agente monitorea
 desviaciones seculares y aplica impulsos de corrección en el colector cotangente T*M.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Mapas de Momento Simplécticos y Teorema de Noether:
-   Sea (M, omega) una variedad simpléctica sobre la cual actúa un grupo de Lie G preservando omega.
-   El mapa de momento mu: M -> g^* satisface para todo generador infinitesimal xi in g:
-       d <mu(x), xi> = iota_{X_xi} omega,   donde X_xi es el campo vectorial fundamental
+   Sea (M, \omega) una variedad simpléctica sobre la cual actúa un grupo de Lie G preservando \omega.
+   El mapa de momento \mu: M \to \mathfrak{g}^* satisface para todo generador infinitesimal \xi \in \mathfrak{g}:
+       d \langle \mu(x), \xi \rangle = \iota_{X_\xi} \omega,   donde X_\xi es el campo vectorial fundamental
    Por el Teorema de Noether simpléctico, si el Hamiltoniano H es invariante bajo la acción de G
-   (X_xi(H) = 0), entonces el momento es una constante de movimiento rigurosa:
-       dot{mu} = {mu, H} = 0
+   (X_\xi(H) = 0), entonces el momento es una constante de movimiento rigurosa:
+       \dot{\mu} = \{\mu, H\} = 0
 
 2. Reducción Simpléctica de Marsden-Weinstein:
-   Para un valor regular mu_0 in g^* del mapa de momento con grupo de isotropía G_{mu_0}:
-       M_{red} = M // G = mu^{-1}(mu_0) / G_{mu_0}
+   Para un valor regular \mu_0 \in \mathfrak{g}^* del mapa de momento con grupo de isotropía G_{\mu_0}:
+       M_{red} = M // G = \mu^{-1}(\mu_0) / G_{\mu_0}
    es una variedad simpléctica reducida que elimina grados de libertad gauge irrelevantes.
 
-3. Invariante Cuadrático de Casimir en g^*:
-   Para representaciones de álgebras de Lie (como so(3) o su(2)):
-       C_2 = sum_a (mu_a)^2,   {C_2, f} = 0  forall f in C^infty(g^*)
+3. Invariante Cuadrático de Casimir en \mathfrak{g}^*:
+   Para representaciones de álgebras de Lie (como \mathfrak{so}(3) o \mathfrak{su}(2)):
+       C_2 = \sum_a (\mu_a)^2,   \{C_2, f\} = 0  \forall f \in C^\infty(\mathfrak{g}^*)
    El valor de C_2 permanece rigurosamente invariante a lo largo de toda la órbita coadjunta.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma SMSE1 (Conservación de Momento de Noether):
-    d/dt <mu(x), xi> == 0 si [H, xi] == 0.
+    d/dt \langle \mu(x), \xi \rangle == 0 si [H, \xi] == 0.
 Axioma SMSE2 (Equivarianza de Coadjunción):
-    mu(g cdot x) = Ad_g^* (mu(x)) para todo g in G.
+    \mu(g \cdot x) = \mathrm{Ad}_g^* (\mu(x)) para todo g \in G.
 Axioma SMSE3 (Invarianza Absoluta de Casimir):
-    {C_2, H} == 0 para todo Hamiltoniano simétrico.
+    \{C_2, H\} == 0 para todo Hamiltoniano simétrico.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Constancia Temporal del Momento Escalar):
-    |p_phi(t) - p_phi(0)| <= 1e-6.
+    |p_\phi(t) - p_\phi(0)| \le 10^{-6}.
 Invariante 2 (Preservación de la Hoja Simpléctica Coadjunta):
-    ||mu(t)||^2 == const.
+    ||\mu(t)||^2 == \mathrm{const}.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac

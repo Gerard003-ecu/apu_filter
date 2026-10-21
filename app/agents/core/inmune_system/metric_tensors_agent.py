@@ -1,76 +1,72 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Metric Tensors Agent v7.0.0                                         ║
-║          Soberano de Calibre Riemanniano con RSI³ + Mecánica de Poincaré     ║
-║ Ruta   : app/agents/core/inmune_system/metric_tensors_agent.py               ║
-║ Evolución: v6.0.0 → v7.0.0 (tejido anidado 1 ⊂ 2 ⊂ 3, CPS, KAM orbital)      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-Ecuaciones Teóricas Ancla (LaTeX):
-─────────────────────────────────────────────────────────────────────────────
-1. Flujo de Ricci Discreto Normalizado (RSI¹):
-   $$\mathbf{G}_{k+1} = \Pi_{\mathrm{SPD}}\!\left(\mathbf{G}_k
-     - 2\Delta\tau\left(\operatorname{Ric}(\mathbf{G}_k)
-     - \tfrac{R}{n}\mathbf{G}_k\right)\right)$$
+Nombre: MetricTensorsAgent
+Ubicación: app/agents/core/inmune_system/metric_tensors_agent.py
+Versión: 7.0.0
+Función: Soberano de Calibre Riemanniano del sistema inmune. Orquesta la gobernanza geométrica,
+         el flujo de Ricci discreto normalizado con automejora recursiva RSI³ (niveles 1 ⊂ 2 ⊂ 3)
+         y el mapa de retorno de Poincaré en el fibrado cotangente T*M sobre variedades riemannianas.
 
-2. Símbolos de Christoffel vía derivación de Connes (Koszul discreto):
-   $$\partial_\mu G_{\nu\sigma}\equiv[X_\mu,G]_{\nu\sigma},\quad
-     X_\mu=|e_\mu\rangle\langle e_\mu|$$
-   $$\Gamma^{\rho}_{\mu\nu}=\tfrac12 G^{\rho\sigma}
-     (\partial_\mu G_{\nu\sigma}+\partial_\nu G_{\mu\sigma}-\partial_\sigma G_{\mu\nu})$$
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Tensores Métricos (MetricTensorsAgent) ejerce la gobernanza de calibre
+riemanniano sobre la variedad de fase M ⊂ R^n. Su misión es auditar la coherencia métrica,
+prevenir deformaciones singulares y controlar la dinámica del flujo de Ricci mediante un esquema
+anidado de automejora recursiva RSI³ (niveles 1 ⊂ 2 ⊂ 3) acoplado a la mecánica celeste de Poincaré.
+Su respectivo motor de cálculo geométrico y endurecimiento espectral es 'MetricTensorFactory'
+(app/core/inmune_system/metric_tensors.py). Mientras el motor de tensores métricos efectúa la
+regularización de Tikhonov, la proyección espectral PSD de Higham y la verificación de Cholesky,
+este Agente orquesta la auditoría OODA de lazo cerrado, certificando la estabilidad diofántica
+KAM, la ausencia de tangles homoclínicos, los exponentes de Lyapunov dominantes y la adjudicación
+en el álgebra de Heyting Ω₃.
 
-3. Tensor de Ricci algebraico (0-jet, carta normal discreta):
-   $$\operatorname{Ric}_{\mu\nu}=\Gamma^{\rho}_{\mu\nu}\Gamma^{\sigma}_{\rho\sigma}
-     -\Gamma^{\sigma}_{\mu\rho}\Gamma^{\rho}_{\nu\sigma}$$
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Flujo de Ricci Discreto Normalizado y Automejora Recursiva RSI³:
+   La evolución de la métrica riemanniana G_k bajo el flujo de Ricci normalizado responde a:
+       G_{k+1} = \Pi_{SPD}(G_k - 2 \Delta\tau (Ric(G_k) - (R/n) G_k))
+   El operador anidado de Banach \Phi^{(3)} \supset \Phi^{(2)} \supset \Phi^{(1)} adapta dinámicamente
+   el paso temporal \Delta\tau y el parámetro \eta por gradientes de curvatura |\nabla R| y constantes de
+   contracción L_\Phi = Lip(\Phi^{(2)}) < 1.
 
-4. Compatibilidad métrica (diagnóstico de Levi-Civita):
-   $$(\nabla_\rho G)_{\mu\nu}=\partial_\rho G_{\mu\nu}
-     -\Gamma^{\lambda}_{\rho\mu}G_{\lambda\nu}-\Gamma^{\lambda}_{\rho\nu}G_{\mu\lambda}$$
+2. Derivación No Conmutativa de Connes y Símbolos de Christoffel de Koszul:
+   La derivada no conmutativa \partial_\mu G_{\nu\sigma} = [X_\mu, G]_{\nu\sigma} con X_\mu = |e_\mu\rangle\langle e_\mu|
+   sintetiza la conexión de Levi-Civita libre de torsión:
+       \Gamma^\rho_{\mu\nu} = (1/2) G^{\rho\sigma} (\partial_\mu G_{\nu\sigma} + \partial_\nu G_{\mu\sigma} - \partial_\sigma G_{\mu\nu})
 
-5. Cota de Lipschitz Connes–Daleckii–Krein sobre $D=\boldsymbol{\rho}^{-1/2}$:
-   $$L_{\max}\le\tfrac12\lambda_{\min}(\mathbf{G})^{-3/2}$$
+3. Mecánica Celeste de Poincaré y Criterio Diofántico KAM:
+   Sobre la sección transversal \Sigma = {R = \bar R}, el mapa de retorno \mathcal{T}: \Sigma \to \Sigma
+   evalúa los multiplicadores de Floquet \mu, la estabilidad diofántica KAM |\omega \cdot k| \ge \gamma / |k|^\tau
+   y el exponente de Lyapunov dominante \lambda_{max}.
 
-6. Invarianza simpléctica (Liouville–Darboux):
-   $$M^\top\mathbf{\Omega}M=\mathbf{\Omega}\;\Longrightarrow\;\det(M)=+1$$
+4. Clasificación en el Álgebra de Heyting Trivalente \Omega_3:
+   La adjudicación intuicionista integra obstrucciones geométricas, espectrales y de simetría:
+       HeytingVerdict = \bigwedge_i v_i \in \{\bot = COHERENT, (1/2) = DEGRADED, \top = VETOED\}
 
-7. RSI³ — operadores anidados en un álgebra de Banach:
-   $$\Phi^{(1)}_{\Delta\tau}(G)=\Pi_{\mathrm{SPD}}(G-2\Delta\tau\,\mathrm{Ric}^\circ(G))$$
-   $$\Phi^{(2)}_{\eta}=\Phi^{(1)}_{\Delta\tau\exp(-\eta|\nabla R|)}$$
-   $$\Phi^{(3)}_{\zeta}:\eta\mapsto\eta\exp(\zeta(L_\Phi-L_\star)),\;
-     \zeta\mapsto\zeta\cdot\sigma(\mathrm{osc}\,\eta)$$
-   $$L_\Phi=\mathrm{Lip}(\Phi^{(2)})\approx
-     \frac{\|\Phi(G+\varepsilon V)-\Phi(G)\|_F}{\varepsilon\|V\|_F}$$
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MTA1 (Positividad Definida Espectral):
+    \lambda_{min}(G) \ge 10^{-12} para toda métrica proyectada \Pi_{SPD}(G).
+Axioma MTA2 (Invarianza Simpléctica y Conservación de Volumen):
+    M^\top \Omega M = \Omega \implies \det(M) = +1 para todo jacobiano de fase M.
+Axioma MTA3 (Contracción de Banach en RSI³):
+    L_\Phi = Lip(\Phi) \le L_\star = 0.95 en el espacio métrico completo (Sym^+, ||\cdot||_F).
 
-8. Mapa de retorno de Poincaré (sección transversal interpolada):
-   $$\Sigma=\{R=\bar R\},\quad
-     \tau^\star=k-1+\alpha,\;\alpha=\frac{\bar R-R_{k-1}}{R_k-R_{k-1}}$$
-   $$\mathcal{T}:\Sigma\to\Sigma,\quad
-     \mu_{\mathrm{Floquet}}\approx\frac{\|G_{\tau_{i+1}}-G_{\tau_i}\|_F}
-                                      {\|G_{\tau_i}-G_{\tau_{i-1}}\|_F}$$
-
-9. Exponente de Lyapunov dominante (Benettin 1-D sobre $T\mathcal{M}$):
-   $$\lambda_{\max}=\lim_{N\to\infty}\tfrac1N\sum_k\log
-     \frac{\|G_{k+1}-G_k\|_F}{\|G_k-G_{k-1}\|_F}$$
-
-10. Criterio diofántico KAM sobre frecuencias orbitales $\omega$ (FFT de $R(\tau)$):
-    $$|\omega\cdot k|\ge\frac{\gamma}{|k|^{\tau}}\quad\forall k\in\mathbb{Z}^m\setminus\{0\}$$
-
-11. Índice de Poincaré–Hopf discreto:
-    $$\sum_{p\in\mathrm{Crit}(V)}\mathrm{sign}\langle v_{\mathrm{in}},v_{\mathrm{out}}\rangle
-      \;\simeq\;\chi(\mathcal{O})$$
-
-12. Acción de Einstein–Hilbert discreta y volumen logarítmico:
-    $$S[G]=R\,e^{\frac12\log\det G},\qquad
-      \mathrm{vol}=\exp(\tfrac12\log\det G)$$
-
-13. Álgebra de Heyting $\Omega_3=\{\bot,\tfrac12,\top\}$ (obstrucción):
-    $$a\vee b=\max(a,b),\quad a\wedge b=\min(a,b),\quad
-      a\Rightarrow b=\begin{cases}1&a\le b\\ b&\mathrm{si\ no}\end{cases}$$
-─────────────────────────────────────────────────────────────────────────────
-Tejido anidado (continuación estricta):
-  FASE 1.Z `_handoff_to_phase2`  ──▶  FASE 2.A `_ingest_phase1_handoff`
-  FASE 2.Z `_handoff_to_phase3`  ──▶  FASE 3.A `_ingest_phase2_handoff`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Compatibilidad Métrica Residual Acotada):
+    ||\nabla_\rho G||_F \le 10^{-4} ||G||_F.
+Invariante 2 (Acotación de Condicionamiento Espectral):
+    \kappa_2(G) = \lambda_{max} / \lambda_{min} \le 10^8.
+====================================================================================================
 """
 
 from __future__ import annotations

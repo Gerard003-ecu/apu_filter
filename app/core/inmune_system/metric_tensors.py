@@ -1,58 +1,67 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Riemannian Metric Tensors v6.0.0                                    ║
-║          Tejido Conectivo Anisotrópico + RSI³ + Mecánica de Poincaré         ║
-║ Ruta   : app/core/immune_system/metric_tensors.py                            ║
-║ Evolución: v5.0.0 → v6.0.0 (1 ⊂ 2 ⊂ 3, CPS, KAM orbital, sin monkey-patch)   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
+====================================================================================================
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA ANISOTRÓPICA (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra la definición, validación espectral, endurecimiento
-dinámico y precompilación de los tensores métricos de-confinados G_{μν}.
-Los tensores actúan como métrica Riemanniana basal del hiperespacio de fase
-M ⊂ ℝ⁷. Toda "distancia de decisión" (Mahalanobis), "fricción logística",
-"disipación de exergía" y "energía de Dirichlet" depende de forma unívoca
-de este campo métrico.
+Módulo: Riemannian Metric Tensors (MetricTensorFactory)
+Ruta: app/core/inmune_system/metric_tensors.py
+Versión: 6.0.0
+Función: Motor espectral de tensores métricos riemannianos y tejido conectivo anisotrópico.
+         Construye, regulariza por Tikhonov/Gershgorin, endurece por flujo de Ricci RSI³ y certifica
+         campos métricos G_{\mu\nu} en el hiperespacio de fase M ⊂ R^7.
 
-Sobre los tensores se impone, en tiempo de carga o bajo demanda
-(`MetricTensorFactory.harden_tensor`), el siguiente teorema triple:
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+----------------------------------------------------------------------------------------------------
+El Motor Espectral de Tensores Métricos (MetricTensorFactory) consagra la definición, validación
+espectral, endurecimiento dinámico y precompilación de los tensores métricos deconfinados G_{\mu\nu}
+del sistema inmune. Actúa como infraestructura geométrica basal sobre la cual se calculan distancias
+de Mahalanobis, disipación de exergía y energía de Dirichlet en M ⊂ R^7.
+Su respectivo agente en el plano inmune es 'MetricTensorsAgent'
+(app/agents/core/inmune_system/metric_tensors_agent.py). Mientras este motor efectúa la proyección
+espectral PSD de Higham \Pi_{SPD}, la regularización de Tikhonov post-asimetría y la verificación de
+Cholesky redundante, su respectivo Agente ejecuta el ciclo OODA de lazo cerrado, aplicando
+automejora recursiva RSI³ y evaluando secciones de Poincaré, exponentes de Lyapunov y el retículo Ω₃.
 
-  (T1) Punto fijo geométrico: defecto de Einstein
-       $$\delta_{\mathrm{Einstein}}(G)=\frac{\|\operatorname{Ric}-\frac{R}{n}G\|_F}{\|G\|_F}\to 0^+$$
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. Regularización Espectral de Tikhonov y Levantamiento de Gershgorin:
+   Para un candidato métrico G, si \lambda_{min}(G) < \delta_{target}, se aplica el desplazamiento Tikhonov:
+       G_{reg} = G + \delta I,   \delta = \delta_{target} - \lambda_{min}(G)
+   Para tensores ensamblados por bloques (G_{global}), se impone el levantamiento diagonal de Gershgorin:
+       G_{ii} \leftarrow G_{ii} + \max\left(0, \sum_{j \neq i} |G_{ij}| + \varepsilon - G_{ii}\right)
 
-  (T2) Automejora recursiva de nivel 3 (RSI³) en un álgebra de Banach:
-       $$\Phi^{(1)}_{\Delta\tau}(G)=\Pi_{\mathrm{SPD}}(G-2\Delta\tau\,\mathrm{Ric}^\circ(G))$$
-       $$\Phi^{(2)}_{\eta}=\Phi^{(1)}_{\Delta\tau\exp(-\eta|\nabla R|)}$$
-       $$\Phi^{(3)}_{\zeta}:\eta\mapsto\eta\exp(\zeta(L_\Phi-L_\star)),\;
-         \zeta\mapsto\zeta\cdot\sigma(\mathrm{osc}\,\eta)$$
-       con contracción de Banach $L_\Phi<1$ (punto fijo único).
+2. Certificación Doble SPD (Espectral Primaria + Cholesky Redundante):
+   G \in Sym^+(n) satisface \lambda_{min}(G) \ge \delta_{tol} > 0 y la descomposición L L^\top = G
+   mediante Cholesky en precisión IEEE-754 double, garantizando la inversión numéricamente estable
+   G^{-1} = (L L^\top)^{-1} y el log-volumen Riemanniano \log \sqrt{\det G} = \sum_i \log L_{ii}.
 
-  (T3) Estabilidad de Poincaré–KAM sobre la órbita $\{G_k\}_{k=0}^N$:
-       $$\lambda_{\max}=\lim_{N\to\infty}\tfrac{1}{N}\sum_k\log
-         \frac{\|G_{k+1}-G_k\|_F}{\|G_k-G_{k-1}\|_F}$$
-       $$|\omega\cdot k|\ge\gamma/|k|^\tau,\quad
-         \omega=\mathrm{FFT}(R(\tau))\ \text{(ángulo-acción)}$$
+3. Punto Fijo Geométrico y Defecto de Einstein:
+   El defecto de Einstein mide la desviación hacia la métrica de Einstein:
+       \delta_{Einstein}(G) = \frac{||Ric(G) - (R/n)G||_F}{||G||_F} \to 0^+
 
-AXIOMÁTICA RIEMANNIANA (preservada íntegra):
-  [I1] Simetría bilateral G = Gᵀ
-  [I2] Positividad definida G ≻ 0 (signatura de Sylvester estricta)
-  [I3] Acotación espectral κ₂(G) ≤ 10⁸ (estabilidad Wilkinson)
-  [I4] Isomorfismos musicales ♭/♯ (Riesz)
-  [I5] Clausura topológica de Kuratowski
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma MT1 (Simetría Bilateral Rigurosa):
+    ||G - G^\top||_F \le \max(\varepsilon_{base}, \varepsilon_{rtol} ||G||_F).
+Axioma MT2 (Positividad Definida de Sylvester):
+    G \succ 0 \iff x^\top G x > 0 \quad \forall x \in R^n \setminus \{0\}.
+Axioma MT3 (Acotación de Deformación por Regularización):
+    ||G_{reg} - G_{orig}||_F / ||G_{orig}||_F \le 0.25 (Cota de aborto por Tikhonov).
 
-RESOLUCIÓN DE LA CONTRADICCIÓN Cholesky:
-  La descomposición de Cholesky se emplea como certificación REDUNDANTE
-  (confirmación independiente) DESPUÉS de la certificación espectral exacta.
-  NO se admite Cholesky como certificación primaria (inestable ante matrices
-  casi singulares), pero SÍ como verificación cruzada (defensa en profundidad).
-  La inversa SPD se calcula SIEMPRE vía Cholesky (estabilidad numérica).
-
-Tejido anidado (continuación estricta):
-  FASE 1.Z `_handoff_to_phase2`  ──▶  FASE 2.A `_ingest_phase1_handoff`
-  FASE 2.Z `_handoff_to_phase3`  ──▶  FASE 3.A `_ingest_phase2_handoff`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Número de Condición Espectral Acotado):
+    \kappa_2(G) = \lambda_{max} / \lambda_{min} \le 10^8.
+Invariante 2 (Consistencia Espectral Post-Tikhonov):
+    |\lambda_i(G_{reg}) - (\lambda_i(G) + \delta)| \le 10^{-12} \max|\lambda_i|.
+====================================================================================================
 """
+
 from __future__ import annotations
 
 import logging
@@ -65,7 +74,7 @@ import numpy as np
 from numpy.linalg import LinAlgError
 from scipy.linalg import block_diag, cho_factor, cho_solve, eigh
 
-from app.core.immune_system.topological_watcher import (
+from app.core.inmune_system.topological_watcher import (
     COND_NUM_TOL,
     MIN_EIGVAL_TOL,
     MetricTensorError,
