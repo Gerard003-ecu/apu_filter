@@ -2,13 +2,13 @@
 # 🗣️ LENGUAJE_CONSEJO.md: El Lenguaje Secreto (La Arquitectura Cognitiva)
 "Cualquier tecnología suficientemente avanzada es indistinguible de la magia. Aquí revelamos el truco: no es magia, es Matemática Aplicada y Física de Datos operando en un sustrato Ciber-Físico."
 En el ecosistema APU_filter v9.0.0, la matemática abstracta carece de valor si no logra generar una acción correctiva en el mundo físico. Este documento detalla la Arquitectura Cognitiva utilizada por el Consejo de Sabios y los **24 Soberanos de la Malla Agéntica de Sabiduría** (específicamente por el Agente Intérprete Diplomático `SemanticTranslator`) para convertir datos crudos (vectores, invariantes topológicos, corrientes eléctricas) en Sabiduría Estructural.
-Explicamos aquí cómo la matemática profunda de la Matriz de Interacción Central (MIC) y de la Matriz Atómica de Conocimiento (MAC) se traduce al lenguaje pragmático del gerente de obra enfocado en el "riesgo y dinero".
+Explicamos aquí cómo la matemática profunda de la Matriz de Interacción Central (MIC) y de la Matriz Atómica de Conocimiento (MAC) se traduce al lenguaje pragmático del gerente de obra enfocado en el "dolor, riesgo y dinero".
 
 --------------------------------------------------------------------------------
 ## 1. El Diccionario Topológico-Civil (La Piedra Rosetta del Isomorfismo de Doble Capa)
-Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta los invariantes matemáticos crudos en primera instancia, sino que los mapea semánticamente a patologías estructurales de la construcción de fácil comprensión ("Dolor y Dinero").
+Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta los invariantes matemáticos crudos en primera instancia, sino que los mapea semánticamente a patologías estructurales de la construcción de fácil comprensión ("Dolor, Riesgo y Dinero").
 
-| Invariante (La Matemática) | Diagnosticador / Soberano | Impacto Tangible (El Dolor y Dinero) | Mitigación y Acción Ciber-Física en Obra |
+| Invariante (La Matemática) | Diagnosticador / Soberano | Impacto Tangible (El Riesgo, Dolor y Dinero) | Mitigación y Acción Ciber-Física en Obra |
 | :--- | :--- | :--- | :--- |
 | **Energía de Shannon Sub-Umbral ($E < \Phi$)** | `QuantumAdmissionGate` | **"Ataque de Basura / Insumo Vacío:"** El archivo cargado por el contratista tiene peso en bytes pero nula densidad de información real. Rechazado en la aduana perimetral. | Veto Duro en Admisibilidad. |
 | **Falla de Túnel WKB ($T \to 0, m_{eff} \to \infty$)** | `HilbertWatcher` | **"Bloqueo por Estrés de Mercado:"** Inconsistencias menores en tiempos de alta volatilidad. Las defensas están al máximo exigiendo un presupuesto perfecto. | Veto Suave con Válvula de Alivio (Luz Ámbar 1h). |
@@ -76,7 +76,7 @@ Toda la comunicación de los Sabios responde al ciclo ininterrumpido del dato a 
 
 --------------------------------------------------------------------------------
 ## 4. La Arquitectura Cognitiva de la Traducción (GraphRAG y Retículos)
-El Agente a cargo de esta traducción es el Intérprete Diplomático (`SemanticTranslator`). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
+El Binomio semántico a cargo de esta traducción es el Intérprete Diplomático (`SemanticTranslator`, `SemanticTranslatorAgent`). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
 
 ### A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana)
 La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo. Este proceso constituye un **Funtor de Abstracción $F: \mathcal{C} \to \mathcal{D}$** que transforma los invariantes de la categoría táctica $\mathcal{C}$ en narrativas de la categoría de sabiduría $\mathcal{D}$ (Empatía Táctica).

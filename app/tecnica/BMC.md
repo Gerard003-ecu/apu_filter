@@ -52,26 +52,26 @@ En el marco del BMC, los datos transaccionales del presupuesto recorren un ciclo
 
 ---
 
-## 🏛️ La Estructura de Carga del Rascacielos: Distribución del ICOSIKAIHENAEDRO DE SABIDURÍA (21 Soberanos) en el Canvas
+## 🏛️ La Estructura de Carga del Rascacielos: Distribución del ICOSITETRAEDRO DE SABIDURÍA (24 Soberanos) en el Canvas
 
-Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y el Mandato BIM 2026, los 21 Soberanos Agénticos del Estrato Wisdom ($V_{\mathbb{W}}$) se organizan en 7 Tríadas Funcionales Anidadas en el penthouse corporativo:
+Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y el Mandato BIM 2026, los 24 Soberanos Agénticos del Estrato Wisdom ($V_{\mathbb{W}}$) se organizan en 8 Tríadas Funcionales Anidadas en el penthouse corporativo:
 
 ```
                      EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
-        ┌──────────────────────────────────────────────────────────────┐
-        │     EL ICOSIKAIHENAEDRO AMPLIADO (24 SOBERANOS Y MOTORES)    │
+        ┌───────────────────────────────────────────────────────────────┐
+        │     EL ICOSITETRAEDRO (24 SOBERANOS Y MOTORES)                │
         │  I.   GAN-REM: toon_trickster_adversary / witness / prosecutor│
         │  II.  Reflexiva: toon_introspection / witness / prosecutor    │
-        │  III. Causal: toon_novikov_navigator / topo_novikov / witness│
+        │  III. Causal: toon_novikov_navigator / topo_novikov / witness │
         │  IV.  Agronómica: toon_cognitive_crop / witness / auditor     │
         │  V.   Tejedora: toon_wisdom_weaver / witness / prosecutor     │
         │  VI.  Onírica: toon_oniric_dreamer / auditor / silent_witness │
-        │  VII. Rápida: toon_intuition / buffer / topo_prosecutor      │
+        │  VII. Rápida: toon_intuition / buffer / topo_prosecutor       │
         │  VIII. Cronogeométrica: toon_chronos_temporal / witness /     │
-        │       prosecutor                                             │
-        │  Traduce anomalías homológicas y espectrales a "Dolor y      │
-        │  Dinero" y gobierna la automejora recursiva RSI Nivel 3.     │
-        └──────────────────────────────┬───────────────────────────────┘
+        │       prosecutor                                              │
+        │  Traduce anomalías homológicas y espectrales a "Dolor y       │
+        │  Dinero" y gobierna la automejora recursiva RSI Nivel 3.      │
+        └──────────────────────────────┬────────────────────────────────┘
                                        │ (Adjunción de de Rham-Galois)
                                        ▼
                   EL ÁPICE ESTRATÉGICO Y SUTURA: STRATEGY (V_S)
@@ -101,8 +101,8 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
    El esqueleto de vigas de acero. Estructura los presupuestos como complejos simpliciales, calcula la Forma Normal de Smith sobre $\mathbb{Z}$ para identificar socavones lógicos ($\beta_1 > 0$) y evalúa el Índice de Estabilidad Piramidal ($\Psi$) para erradicar monopolios de suministro.
 3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Penthouse / Fuentes de Ingreso):**
    Ubicado en el penthouse corporativo. Evalúa la estabilidad espectral en el plano complejo $s = \sigma + j\omega$ y gestiona los riesgos mediante simulaciones avanzadas de Monte Carlo y el Soberano de Superficie de Control Replicador-Brockett.
-4. **El Icosikaihenaedro Ampliado de Sabiduría (Wisdom Stratum / 24 Soberanos TOON y 24 Motores Espectrales):**
-   Gobernanza no conmutativa y automejora monádica RSI³. Opera mediante las 8 Tríadas Funcionales que digieren el contrato, ensayan ataques adversariales en la fase REM, inmunizan contra alucinaciones via TQFT Gromov-Witten, cristalizan el Vacío de Dirac, amortiguan fluctuaciones exergéticas, regulan la derivación fraccionaria cronogeométrica del tiempo de obra y certifican autoestados de Tarski-Brouwer con traducciones inmediatas a "Dolor y Dinero".
+4. **El ICOSITETRAEDRO de Sabiduría (Wisdom Stratum / 24 Soberanos TOON y 24 Motores Espectrales):**
+   Gobernanza no conmutativa y automejora monádica RSI³. Opera mediante las 8 Tríadas Funcionales que digieren el contrato, ensayan ataques adversariales en la fase REM, inmunizan contra alucinaciones via TQFT Gromov-Witten, cristalizan el Vacío de Dirac, amortiguan fluctuaciones exergéticas, regulan la derivación fraccionaria cronogeométrica del tiempo de obra y certifican autoestados de Tarski-Brouwer con traducciones inmediatas a "Riesgo, Dolor y Dinero".
 
 ---
 
@@ -153,9 +153,9 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 
 ---
 
-## 📊 Matriz de Traducción de Métricas Matemáticas a "Dolor y Dinero"
+## 📊 Matriz de Traducción de Métricas Matemáticas a "Riesgo, Dolor y Dinero"
 
-### Matriz del Icosikaihenaedro de Sabiduría (21 Soberanos y 21 Motores Espectrales)
+### Matriz del ICOSITETRAEDRO de Sabiduría (24 Soberanos y 24 Motores Espectrales)
 
 $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
@@ -198,9 +198,9 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 
 ---
 
-## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada y el Fusible de Fock
+## 🏰 La Rampa de Confianza Graduada y el Fusible de Fock
 
-Para erradicar el dolor real de obra del "secado del concreto dentro de tuberías" de impulsión hidráulica provocado por falsos positivos de software rígidos en obra civil, APU Filter v8.0 implementa formalmente la **Rampa de Confianza Graduada de de Rham** acoplada a la **Válvula de Alivio Termodinámico y Recirculación Mecánica de Desvío**:
+Para erradicar el dolor real de obra del "secado del concreto dentro de tuberías" de impulsión hidráulica provocado por falsos positivos de software rígidos en obra civil, APU Filter v9.0 implementa formalmente la **Rampa de Confianza Graduada de de Rham** acoplada a la **Válvula de Alivio Termodinámico y Recirculación Mecánica de Desvío**:
 
 ```
   [ PAYLOAD INCIDENTE EN EL REACTOR DE FRONTERA ]

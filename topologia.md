@@ -3,7 +3,7 @@
 "Un edificio no se cae porque sus ladrillos sean baratos; se cae porque sus conexiones fallan. APU_filter ignora el precio para ver la forma, revelando la fragilidad oculta que el Excel clásico no puede mostrar."
 --------------------------------------------------------------------------------
 
-En el ecosistema de la Fortaleza Matemática de **APU Filter v8.0**, el presupuesto de obra deja de ser un listado plano de ítems contables para convertirse formalmente en un **2-Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$, donde:
+En el ecosistema de la Fortaleza Matemática de **APU Filter v9.0**, el presupuesto de obra deja de ser un listado plano de ítems contables para convertirse formalmente en un **2-Complejo Simplicial Abstracto** $K$ sobre el anillo de los enteros $\mathbb{Z}$, donde:
 - **Vértices (0-símplices):** insumos atómicos y APUs individuales.
 - **Aristas (1-símplices):** dependencias binarias entre pares (APU $\to$ Proveedor / Insumo).
 - **Triángulos (2-símplices):** interdependencias ternarias (APU $\leftrightarrow$ Proveedor $\leftrightarrow$ Actividad) que emergen de compromisos contractuales trilaterales.
@@ -17,7 +17,7 @@ El **Funtor de Traducción Semántica $\Phi$** establece un homeomorfismo semán
 $$\Phi: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
 Este funtor proyecta homeomórficamente los residuos espectrales de de Rham a métricas claras de **"Dolor y Dinero"** que entiende un gerente de obra humano:
-| Nivel I: La Base (Invariantes Puros en FPU) | Nivel II: El Estrato Medio (Auditoría Técnica) | Nivel III: La Cúspide (Dolor y Dinero Ejecutivos) | Mitigación y Acción Ciber-Física en Obra |
+| Nivel I: La Base (Invariantes Puros en FPU) | Nivel II: El Estrato Medio (Auditoría Técnica) | Nivel III: La Cúspide (Riesgo, Dolor y Dinero) | Mitigación y Acción Ciber-Física en Obra |
 | :--- | :--- | :--- | :--- |
 | **$\beta_0 > 1 \ \implies \ \dim H^0(K; \, \mathbb{Z}) > 1$**<br>El núcleo del operador cofrontera discreto posee componentes disconexas flotando en el vacío. | **Islas de Datos / Recursos Huérfanos**<br>Mapea insumos presupuestales o adiciones paralelas sin trazabilidad en el grafo de APUs. | **Duplicación de Cobros y Fugas de Capital**<br>Contratistas cobrando dos veces el mismo flete o cemento, vulnerando la responsabilidad fiscal del representante legal ante demandas estatales. | **VETO DURO INSTANTÁNEO:** El Guardián bloquea síncronamente el cargue de pliegos en SECOP II en el milisegundo cero. |
 | **$\beta_1 > 0 \ \implies \ \dim H^1(K; \, \mathbb{Z}) > 0$**<br>Surgimiento de ciclos independientes no nulos en el primer grupo de homología simplicial. | **Socavones Lógicos**<br>Dependencias circulares ilegales de precios en los Análisis de Precios Unitarios (APUs) (el insumo A depende del flete de B, y el flete de B depende de A). | **Bucle de Sobrecosto y Parálisis por Bloqueo**<br>Divisiones por cero en el solver de la FPU que congelan la aprobación de la licitación pública y delatan triangulación financiera de subcontratistas. | **VETO DURO INSTANTÁNEO:** Bloqueo de la transacción en RAM. La aduana detiene de facto el avance de la licitación antes de inyectar entropía en la caja. |

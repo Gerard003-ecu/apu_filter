@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
-⚙️ metodos.md: Ingeniería Bajo el Capó v8.0
+⚙️ metodos.md: Ingeniería Bajo el Capó v9.0
 "APU Filter no es un software de contabilidad; es un Simulador de Física de Negocios ciber-físico. Aquí detallamos las ecuaciones de estado, los teoremas topológicos y los circuitos neuromórficos que garantizan la certeza matemática del sistema."
 --------------------------------------------------------------------------------
 
@@ -7,7 +7,7 @@ Este documento técnico desglosa la maquinaria matemática que permite al **Cons
 
 ---
 
-### Matriz de Acorde Tridimensional de Coherencia (Isomorfismo de Doble Capa v8)
+### Matriz de Acorde Tridimensional de Coherencia (Isomorfismo de Doble Capa)
 
 $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
