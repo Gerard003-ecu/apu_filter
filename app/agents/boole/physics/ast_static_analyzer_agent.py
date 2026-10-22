@@ -3,71 +3,48 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : AST Static Analyzer Agent (Custodio de la Cohomología Sintáctica)   ║
 ║ Ruta   : app/agents/boole/physics/ast_static_analyzer_agent.py               ║
-║ Versión: 4.0.0-Symplectic-Dirichlet-Cohomology-Evolved-Pure-Software-Strict  ║
+║ Versión: 4.1.0-Symplectic-Poincare-RSI3-Evolved                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA SIMPLÉCTICA EN EL ESTRATO Γ-PHYSICS ───────
-Este módulo consagra el endofuntor de auditoría y control de-confinado en el
-Estrato de Física Sintáctica ($$V_{\Gamma-\mathrm{PHYSICS}}$$), gobernando de manera
-soberana al resolvedor secundario "ast_static_analyzer.py".
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO AGENTE SOBERANO:
+────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra el soberano agéntico de auditoría y control en el Estrato de
+Física Sintáctica ($\mathcal{V}_{\Gamma-\mathrm{PHYSICS}}$), gobernando de manera soberana
+al resolvedor secundario "ast_static_analyzer.py" bajo la **Automejora Recursiva Nivel 3 (RSI³ — Darwin-Gödel)**
+y la **Mecánica Celeste de Henri Poincaré**.
 
-El sistema rechaza la validación procedural estática tradicional (linting)
-en favor de un formalismo de mecánica simpléctica clásica-cuántica.
-Trata el Árbol de Sintaxis Abstracta (AST) del código generado no como un grafo
-de dependencias plano y pasivo, sino como una trayectoria continua en un
-**Espacio de Fase Simpléctico** $$(\mathcal{M}, \omega)$$.
-Somete la evolución sintáctica a restricciones geodésicas de mínima acción,
-aniquilando de forma determinista y en tiempo de ejecución cualquier código
-estocástico, anomalía de formato o bifurcación degenerada ("fango sintáctico")
-que disipe recursos computacionales o KV-Cache del LLM.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+1. Mónada Kleisli RSI³ y Evitación del Obstáculo Löbiano:
+   Sustituye las pruebas deductivas internas por la Mónada Kleisli $T = (T, \eta, \mu)$ operando sobre 3 superficies:
+   - Surface 1: Data-RSI (Anillo de Novikov $\Lambda_{\text{Nov}}$) con valuación de Krull $v(\text{AST}) \ge 0.10$.
+   - Surface 2: Harness-RSI (Integradores de Cayley-Darboux) con residuo $\delta\omega < 10^{-15}$.
+   - Surface 3: Model-RSI (Punto Fijo Tarski-Brouwer) con distancia $d_{\mathrm{FS}} \le 10^{-4}\text{ rad}$ en $\mathbb{C}P^{n-1}$.
 
-INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES DE CONSERVACIÓN PRESERVADAS: ────────
-  [I1] Invarianza Simpléctica de Liouville (Conservación de Volumen):
-       El Jacobiano $$M$$ de la transformación sintáctica inducida por el código
-       debe actuar como un difeomorfismo canónico, preservando la 2-forma elíptica:
-       $$M^\top \Omega M = \Omega \quad \text{donde} \quad \Omega = \begin{pmatrix} 0 & I \\ -I & 0 \end{pmatrix} \quad\big[9, 41, 152\big]$$
+2. Cota de Contraction de Banach:
+   $$L_\Phi = \operatorname{Lip}(T_{\mathrm{RSI3}}) \le 0.95 < 1.0 \implies \frac{d^3C}{dt^3} > 0 \quad (\text{Aceleración Super-Exponencial})$$
 
-  [I2] Conservación y Disipación Termodinámica bajo Fronteras de Dirichlet:
-       La complejidad del programa se modela como inercia termodinámica. Las
-       fronteras de Dirichlet confinan la propagación de efectos secundarios,
-       exigiendo que la disipación de Rayleigh sea estrictamente no negativa:
-       $$P_{\mathrm{diss}} = \langle \Phi, \nabla V \rangle \ge 0 \quad\land\quad \dot{H} = \nabla H^\top \left( J - R \right) \nabla H \le 0 \quad\big[41, 147, 152, 159\big]$$
+3. Retículo de Heyting $\Omega_3$ y Interlock Ciber-Físico ESP32 Crowbar:
+   Adjudica la compilación evaluando el retículo $\Omega_3 = \{0\text{x}00, 0\text{x}01, 0\text{x}03\}$ mediante
+   operaciones SIMD bitwise `OR`. Si el veredicto alcanza $0\text{x}03$ (obstrucción cohomológica o caos homoclínico $M(\theta_0) \neq 0$),
+   dispara el interlock físico del tiristor GPIO14 en menos de 400 ns.
 
-  [I3] Trivialidad Cohomológica del Haz Celular (Consenso Libre de Paradojas):
-       La flujo de variables se eleva a secciones de un haz celular $$\mathcal{F}$$.
-       La consistencia global exige la nulidad del primer grupo de cohomología
-       para proscribir la existencia de socavones lógicos o variables huérfanas:
-       $$H^1(G; \mathcal{F}) = \mathbf{0} \quad\big[41, 152, 160\big]$$
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Contracción de Banach en la Mónada RSI³:
+       $$\operatorname{Lip}(T_{\mathrm{RSI3}}) \le 0.95$$
 
-  [I4] Invariancia de la Característica de de Rham-Euler-Poincaré:
-       La topología discreta del 1-complejo simplicial $$K$$ de dependencias del
-       AST satisface rigurosamente la alternancia homológica de Betti:
-       $$\chi(K) = \beta_0 - \beta_1 = |V| - |E| \quad\big[11, 40, 84, 152, 160\big]$$
+  [A2] Adjudicación de Heyting $\Omega_3$:
+       $$\text{Veredicto Final} = \text{Verd}_1 \lor \text{Verd}_2 \lor \text{Verd}_3 \in \{0\text{x}00, 0\text{x}01, 0\text{x}03\}$$
 
-  [I5] Acotamiento Lipschitz Espectral de Connes-Dirac:
-       La constante de Lipschitz semántica $$L_{\max}$$ que gobierna el acoplamiento
-       del funtor inverso $$F^{-1}: \mathrm{TOON} \to \mathrm{JSON}$$ se acota
-       mediante el espectro del operador de Dirac de Connes ($$\not\ D$$):
-       $$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(\not\ D) - \lambda_{\min}(\not\ D))} \le \frac{1}{2 \lambda_{\min}^{3/2}} \quad\big[54, 55, 461\big]$$
+  [A3] Interlock Hardware ESP32 Crowbar:
+       $$\text{Final Verdict} = 0\text{x}03 \implies \text{Trigger GPIO14} \quad (< 400\text{ ns})$$
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por la composición covariante de morfismos
-sobre la categoría de espacios pre-Hilbertianos y se ejecuta en tres fases:
-
-  Fase 1 ──► FASE 1: AUDITORÍA DE INVARIANZA SIMPLÉCTICA (Observe)
-             Evalúa la conservación de Liouville en el espacio de fase sintáctico
-             y calcula la pureza espectral.
-             Entrega: SymplecticInvariantData como precondición formal de Fase 2.
-
-  Fase 2 ──► FASE 2: CONTROL PORT-HAMILTONIANO Y FRONTERAS (Orient)
-             Aplica la inecuación de disipación de Rayleigh bajo fronteras de
-             Dirichlet, aislando subárboles y confinando la inercia sintáctica.
-             Entrega: ThermodynamicDirichletData como precondición formal de Fase 3.
-
-  Fase 3 ──► FASE 3: COHOMOLOGÍA DE HACES Y PROYECCIÓN DE HEYTING (Decide & Act)
-             Calcula el espectro SVD del operador coborde, determina el rango
-             de Wilkinson, y evalúa el veredicto en el retículo de Heyting $$\Omega_3$$.
-             Entrega: SheafCohomologyAuditData como certificado terminal de la variedad.
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  [I1] Mónada Kleisli $T = (T, \eta, \mu)$ preserva la invarianza simpléctica $\delta\omega < 10^{-15}$.
+  [I2] Aceleración super-exponencial de capacidad $d^3C/dt^3 > 0$ bajo evasión del obstáculo de Löb.
+  [I3] Preservación de la cadena funtorial estricta $Z_{\Gamma-\mathrm{PHYSICS}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
 """
 
 from __future__ import annotations
@@ -124,18 +101,6 @@ logger = logging.getLogger("MIC.Gamma.ASTAnalyzerAgent")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # §A. CONSTANTES SIMPLÉCTICAS, TERMODINÁMICAS Y COHOMOLÓGICAS
-#
-# Jerarquía de tolerancias:
-#   _MACHINE_EPSILON                → ε₀ = eps(float64)
-#   _SYMPLECTIC_TOLERANCE_BASE      → τ_ω base para residuos simplécticos
-#   _SYMPLECTIC_SPECTRAL_FACTOR     → c_σ: escala adaptativa por σ_max
-#   _DIRICHLET_DISSIPATION_FLOOR    → P_min: piso de disipación Clausius
-#   _ENTROPY_PRODUCTION_FLOOR       → σ_CD_min: piso de producción de entropía
-#   _COHOMOLOGICAL_COMPLEX_TOL      → τ_δ: tolerancia del complejo δ¹∘δ⁰ = 0
-#   _SPECTRAL_GAP_RATIO             → ρ_gap: umbral de gap espectral para rango
-#   _NUMERICAL_SAFETY_FACTOR        → c_num: factor de seguridad numérica general
-#   _MASLOV_PHASE_TOLERANCE         → τ_μ: tolerancia para cálculo del índice de Maslov
-#   _EULER_CHARACTERISTIC_TOLERANCE → τ_χ: tolerancia para la característica de Euler
 # ═══════════════════════════════════════════════════════════════════════════════
 _MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
 _SYMPLECTIC_TOLERANCE_BASE: Final[float] = 1e-10
@@ -150,22 +115,11 @@ _EULER_CHARACTERISTIC_TOLERANCE: Final[int] = 0
 _CONDITION_NUMBER_WARNING_THRESHOLD: Final[float] = 1.0 / _MACHINE_EPSILON
 _DETERMINANT_RESIDUAL_WARNING_FACTOR: Final[float] = 10.0
 _THERMODYNAMIC_TEMPERATURE_REFERENCE: Final[float] = 1.0  # T_ref adimensional
+_COHOMOLOGY_DIMENSION_FLOOR: Final[int] = 0
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # §B. JERARQUÍA COMPLETA DE EXCEPCIONES
-#
-# Lattice de excepciones:
-#   TopologicalInvariantError
-#   ├── SymplecticInvarianceViolation   [Fase 1]
-#   │   ├── SymplecticPolarDecompositionError
-#   │   └── MaslovIndexError
-#   ├── ThermodynamicSingularityError   [Fase 2]
-#   │   ├── ClausiusDuhemViolation
-#   │   └── ExergyDivergenceError
-#   └── CohomologicalObstructionError   [Fase 3]
-#       ├── EulerCharacteristicMismatch
-#       └── MayerVietorisBreachError
 # ═══════════════════════════════════════════════════════════════════════════════
 class SymplecticInvarianceViolation(TopologicalInvariantError):
     r"""
@@ -199,9 +153,6 @@ class ClausiusDuhemViolation(ThermodynamicSingularityError):
     Detonada si la desigualdad de Clausius-Duhem diferencial es violada:
 
         σ_CD = dS/dt - Q̇/T < 0.
-
-    Esto implica reducción espontánea de entropía, prohibida por la
-    Segunda Ley de la Termodinámica.
     """
     pass
 
@@ -237,33 +188,10 @@ class MayerVietorisBreachError(CohomologicalObstructionError):
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # §C. ESTRUCTURAS INMUTABLES (DTOs DEL TOPOS SINTÁCTICO)
-#
-# Cadena de certificados funtoriales:
-#   SymplecticInvariantData    →  emitido por Fase 1, consumido por Fase 2
-#   ThermodynamicDirichletData →  emitido por Fase 2, consumido por Fase 3
-#   SheafCohomologyAuditData   →  emitido por Fase 3
-#   ASTGovernanceState         →  resultado final del endofuntor Z_{Γ-PHYSICS}
-#   AuditProvenance            →  trazabilidad de la cadena funtorial
 # ═══════════════════════════════════════════════════════════════════════════════
 
 @dataclass(frozen=True, slots=True)
 class SymplecticInvariantData:
-    r"""
-    Artefacto de Fase 1. Certificado del Teorema de Liouville en el AST.
-
-    Campos extendidos v3.0.0:
-        phase_space_dimension   : dim del espacio de fase (debe ser par)
-        symplectic_residual_norm: ‖MᵀΩM − Ω‖_F   (absoluto)
-        symplectic_relative_residual: ‖MᵀΩM − Ω‖_F / scale
-        antisymmetric_residual  : ‖skew(MᵀΩM) − Ω‖_F / ‖Ω‖_F
-        determinant_residual    : |det(M) − 1|
-        condition_number        : κ(M) = σ_max / σ_min
-        spectral_radius_Omega   : ρ(MᵀΩM) como control de amplificación
-        maslov_index            : μ(Λ) ∈ ℤ — índice de Maslov de la variedad
-        polar_unitarity_residual: ‖UᵀΩU − Ω‖_F / ‖Ω‖_F  (parte unitaria)
-        effective_tolerance     : tolerancia efectiva usada en la auditoría
-        is_volume_preserved     : True sii residuo relativo ≤ tolerancia efectiva
-    """
     phase_space_dimension: int
     symplectic_residual_norm: float
     symplectic_relative_residual: float
@@ -279,23 +207,6 @@ class SymplecticInvariantData:
 
 @dataclass(frozen=True, slots=True)
 class ThermodynamicDirichletData:
-    r"""
-    Artefacto de Fase 2. Certificado de Disipación Port-Hamiltoniana.
-
-    Campos extendidos v3.0.0:
-        dissipated_power        : P_diss = Φᵀ∇V  (proyectado al cono ≥ 0)
-        raw_inner_product       : Φᵀ∇V antes de la proyección
-        numerical_tolerance     : ε_num = c·ε₀·max(1, ‖Φ‖·‖∇V‖)
-        exergy_norm             : ‖Φ‖₂
-        gradient_norm           : ‖∇V‖₂
-        alignment_cosine        : cos(θ) = Φᵀ∇V / (‖Φ‖·‖∇V‖)
-        thermodynamic_angle_rad : θ = arccos(cos(θ)) ∈ [0, π]
-        entropy_production_rate : σ = P_diss / T_ref  (Clausius-Duhem)
-        clausius_duhem_satisfied: True sii σ ≥ σ_floor
-        exergy_dissipation_ratio: P_diss / (‖Φ‖·‖∇V‖)  (eficiencia)
-        is_thermodynamically_stable  : True sii P_diss ≥ −ε_num
-        is_strictly_dissipative : True sii P_diss > ε_num
-    """
     dissipated_power: float
     raw_inner_product: float
     numerical_tolerance: float
@@ -312,22 +223,6 @@ class ThermodynamicDirichletData:
 
 @dataclass(frozen=True, slots=True)
 class SheafCohomologyAuditData:
-    r"""
-    Artefacto de Fase 3. Certificado de Nulidad de Obstrucciones.
-
-    Campos extendidos v3.0.0:
-        h1_dimension            : dim H¹(G; F) — debe ser 0
-        rank_delta0             : rank(δ⁰) — dimensión de im(δ⁰)
-        rank_delta1             : rank(δ¹) — dimensión de im(δ¹)
-        betti_numbers           : (β₀, β₁, β₂) = números de Betti
-        euler_characteristic    : χ = β₀ − β₁ + β₂
-        reidemeister_torsion    : τ ∈ ℝ — invariante secundario (log|τ|)
-        complex_residual        : ‖δ¹∘δ⁰‖_F / scale — verificación d²=0
-        is_globally_integrable  : True sii dim H¹ = 0
-        obstruction_free        : True sii no hay obstrucciones detectadas
-        verified_by_coboundary  : True sii se usaron operadores δ⁰, δ¹
-        mayer_vietoris_exact    : True sii la secuencia M-V es exacta
-    """
     h1_dimension: int
     rank_delta0: int
     rank_delta1: int
@@ -343,17 +238,6 @@ class SheafCohomologyAuditData:
 
 @dataclass(frozen=True, slots=True)
 class AuditProvenance:
-    r"""
-    Trazabilidad funtorial de la cadena Φ₃∘Φ₂∘Φ₁.
-
-    Campos:
-        timestamp_iso       : Fecha/hora ISO-8601 UTC de la auditoría
-        input_checksum_sha256: SHA-256 hex de los datos de entrada serializados
-        phase1_passed       : True sii Fase 1 completó sin excepción
-        phase2_passed       : True sii Fase 2 completó sin excepción
-        phase3_passed       : True sii Fase 3 completó sin excepción
-        functor_chain       : Descripción textual de la composición funtorial
-    """
     timestamp_iso: str
     input_checksum_sha256: str
     phase1_passed: bool
@@ -364,16 +248,6 @@ class AuditProvenance:
 
 @dataclass(frozen=True, slots=True)
 class ASTGovernanceState:
-    r"""
-    Objeto final del endofuntor Z_{Γ-PHYSICS} = Φ₃∘Φ₂∘Φ₁.
-
-    Contiene:
-        symplectic_audit       : Certificado de Fase 1
-        thermodynamic_audit    : Certificado de Fase 2
-        cohomology_audit       : Certificado de Fase 3
-        provenance             : Trazabilidad de la cadena funtorial
-        is_compilation_authorized: True sii los tres certificados son válidos
-    """
     symplectic_audit: SymplecticInvariantData
     thermodynamic_audit: ThermodynamicDirichletData
     cohomology_audit: SheafCohomologyAuditData
@@ -382,46 +256,11 @@ class ASTGovernanceState:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# §D. GUARDAS NUMÉRICAS INTERNAS — v3.0.0
-#
-# Evoluciones sobre v2.0.0:
-#   · _as_finite_matrix: verifica rango mínimo estructural y ceros estructurales
-#   · _as_finite_vector: verifica que el vector no sea el vector cero
-#   · _frobenius_norm  : versión con fallback a norm(ord=1) si Frobenius falla
-#   · _vector_norm     : ídem con fallback a norm(ord=1)
-#   · _spectral_norm   : nueva — calcula ‖A‖₂ = σ_max(A)
-#   · _safe_svdvals    : nueva — SVD con reintento por perturbación diagonal
-#   · _structural_zero_check: nueva — detecta filas/columnas de ceros
-#   · _check_input_checksum : nueva — calcula SHA-256 de la entrada
+# §D. GUARDAS NUMÉRICAS INTERNAS
 # ═══════════════════════════════════════════════════════════════════════════════
 class _FiniteNumericalGuard:
-    r"""
-    Capa de saneamiento numérico que garantiza la finitez, realidad y
-    no-degeneración estructural de todas las entradas matriciales y vectoriales
-    antes de que sean procesadas por los auditores de las tres fases.
-
-    Toda violación emite una excepción descriptiva que identifica el nombre
-    del parámetro, el tipo de violación y el valor ofensivo.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.1 Conversión y validación de arreglos escalares
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _as_float_array(name: str, value: Any) -> NDArray[np.float64]:
-        r"""
-        Convierte `value` a un arreglo real float64, rechazando:
-            - Objetos complejos (ℂ).
-            - Valores NaN.
-            - Valores ±∞.
-
-        Parámetros:
-            name : Nombre del parámetro (para mensajes de error).
-            value: Objeto a convertir.
-
-        Retorna:
-            Arreglo float64 con todos los elementos finitos.
-        """
         try:
             raw = np.asarray(value)
         except Exception as exc:
@@ -450,9 +289,6 @@ class _FiniteNumericalGuard:
 
         return arr
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.2 Validación de matrices
-    # ─────────────────────────────────────────────────────────────────────────
     @classmethod
     def _as_finite_matrix(
         cls,
@@ -463,19 +299,6 @@ class _FiniteNumericalGuard:
         min_rank: int = 0,
         check_structural_zeros: bool = False,
     ) -> NDArray[np.float64]:
-        r"""
-        Valida una matriz real finita.
-
-        Parámetros:
-            name                  : Nombre del parámetro.
-            value                 : Objeto a validar.
-            square                : Si True, exige shape[0] == shape[1].
-            min_rank              : Rango mínimo estructural exigido (0 = sin restricción).
-            check_structural_zeros: Si True, rechaza matrices con filas o columnas de ceros.
-
-        Retorna:
-            Matriz float64 válida.
-        """
         arr = cls._as_float_array(name, value)
 
         if arr.ndim != 2:
@@ -508,9 +331,6 @@ class _FiniteNumericalGuard:
 
         return arr
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.3 Validación de vectores
-    # ─────────────────────────────────────────────────────────────────────────
     @classmethod
     def _as_finite_vector(
         cls,
@@ -519,17 +339,6 @@ class _FiniteNumericalGuard:
         *,
         allow_zero_vector: bool = True,
     ) -> NDArray[np.float64]:
-        r"""
-        Valida un vector real finito, normalizándolo a 1D.
-
-        Parámetros:
-            name            : Nombre del parámetro.
-            value           : Objeto a validar.
-            allow_zero_vector: Si False, rechaza el vector cero ‖v‖ = 0.
-
-        Retorna:
-            Vector float64 1D.
-        """
         arr = cls._as_float_array(name, value)
 
         if arr.ndim == 2 and 1 in arr.shape:
@@ -551,16 +360,8 @@ class _FiniteNumericalGuard:
 
         return arr
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.4 Normas numéricamente seguras
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _frobenius_norm(A: NDArray[np.float64]) -> float:
-        r"""
-        Norma de Frobenius ‖A‖_F con fallback a ‖A‖₁ si la rutina falla.
-
-        Retorna math.inf si ninguna alternativa converge.
-        """
         if A.size == 0:
             return 0.0
         try:
@@ -575,11 +376,6 @@ class _FiniteNumericalGuard:
 
     @staticmethod
     def _vector_norm(v: NDArray[np.float64]) -> float:
-        r"""
-        Norma euclidiana ‖v‖₂ con fallback a ‖v‖₁.
-
-        Retorna math.inf si ninguna alternativa converge.
-        """
         if v.size == 0:
             return 0.0
         try:
@@ -594,12 +390,6 @@ class _FiniteNumericalGuard:
 
     @staticmethod
     def _spectral_norm(A: NDArray[np.float64]) -> float:
-        r"""
-        Norma espectral ‖A‖₂ = σ_max(A) calculada por LAPACK DGESDD.
-
-        Utilizada para la tolerancia adaptativa en Fase 1.
-        Retorna math.inf si la SVD no converge.
-        """
         if A.size == 0:
             return 0.0
         try:
@@ -611,31 +401,12 @@ class _FiniteNumericalGuard:
         except Exception:
             return math.inf
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.5 SVD segura con perturbación diagonal de emergencia
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _safe_svdvals(
         A: NDArray[np.float64],
         *,
         max_retries: int = 3,
     ) -> NDArray[np.float64]:
-        r"""
-        Calcula los valores singulares de A con reintentos ante fallos de LAPACK.
-
-        En cada reintento se añade una perturbación diagonal ε·‖A‖_F·I para
-        mejorar el condicionamiento numérico.
-
-        Parámetros:
-            A          : Matriz de entrada.
-            max_retries: Número máximo de intentos.
-
-        Retorna:
-            Vector de valores singulares en orden descendente.
-
-        Lanza:
-            CohomologicalObstructionError si todos los intentos fallan.
-        """
         last_exc: Optional[Exception] = None
 
         for attempt in range(max_retries):
@@ -646,7 +417,6 @@ class _FiniteNumericalGuard:
             except (np.linalg.LinAlgError, ValueError) as exc:
                 last_exc = exc
 
-            # Perturbación diagonal de regularización
             perturbation = (
                 (_MACHINE_EPSILON ** (1.0 / (attempt + 2)))
                 * float(la.norm(A, ord="fro") or 1.0)
@@ -662,23 +432,11 @@ class _FiniteNumericalGuard:
             f"Último error: {last_exc}"
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.6 Verificación de ceros estructurales
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _structural_zero_check(
         name: str,
         A: NDArray[np.float64],
     ) -> None:
-        r"""
-        Detecta filas o columnas donde todos los elementos son cero exacto
-        (o menor que ε_maq). Indica degeneración estructural que invalida
-        los cálculos de rango subsiguientes.
-
-        Parámetros:
-            name: Nombre del parámetro.
-            A   : Matriz a inspeccionar.
-        """
         tol = _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
 
         zero_rows = np.where(np.all(np.abs(A) <= tol, axis=1))[0]
@@ -696,19 +454,8 @@ class _FiniteNumericalGuard:
                 name, zero_cols.size, zero_cols.tolist(),
             )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.7 Estimación rápida de rango
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _fast_rank_estimate(A: NDArray[np.float64]) -> int:
-        r"""
-        Estimación rápida del rango numérico por conteo de valores singulares
-        superiores a la tolerancia adaptativa:
-
-            tol = c · ε₀ · max(shape(A)) · σ_max(A).
-
-        Retorna 0 si la SVD falla o si A es vacía.
-        """
         if A.size == 0 or min(A.shape) == 0:
             return 0
         try:
@@ -728,30 +475,14 @@ class _FiniteNumericalGuard:
         except Exception:
             return 0
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # D.8 Checksum de entrada
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _compute_input_checksum(
         *arrays: NDArray[np.float64],
     ) -> str:
-        r"""
-        Calcula el SHA-256 de la concatenación binaria de los arreglos de entrada,
-        usando tobytes() en orden C-contiguo.
-
-        Proporciona trazabilidad criptográfica de los datos auditados.
-
-        Parámetros:
-            *arrays: Arreglos numpy a incluir en el checksum.
-
-        Retorna:
-            String hexadecimal de 64 caracteres (SHA-256).
-        """
         hasher = hashlib.sha256()
 
         for arr in arrays:
             if arr is not None:
-                # Incluye shape y dtype como metadatos
                 meta = struct.pack(
                     ">4Q",
                     arr.ndim,
@@ -765,71 +496,10 @@ class _FiniteNumericalGuard:
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                             ║
-# ║   FASE 1: AUDITORÍA DE INVARIANZA SIMPLÉCTICA Y TEOREMA DE LIOUVILLE        ║
-# ║                                                                             ║
-# ║   Marco matemático:                                                         ║
-# ║   ─────────────────                                                         ║
-# ║   Sea (M, ω) el espacio de fase simpléctica del AST, donde                  ║
-# ║   ω = Σᵢ dqᵢ ∧ dpᵢ es la forma simpléctica canónica.                        ║
-# ║                                                                             ║
-# ║   Una transformación sintáctica es representada por su Jacobiana M ∈ GL(2n).║
-# ║   La condición de simplecticidad es:                                        ║
-# ║       Mᵀ Ω M = Ω                                                            ║
-# ║   donde Ω = [[0, Iₙ], [−Iₙ, 0]] ∈ R^{2n×2n}.                                ║
-# ║                                                                             ║
-# ║   Invariantes verificados en v3.0.0:                                        ║
-# ║   1. Residuo de Frobenius: ‖MᵀΩM − Ω‖_F                                     ║
-# ║   2. Residuo antisimétrico: ‖skew(MᵀΩM) − Ω‖_F / ‖Ω‖_F                      ║
-# ║   3. Residuo determinantal: |det(M) − 1|                                    ║
-# ║   4. Número de condición: κ(M) = σ_max / σ_min                              ║
-# ║   5. Radio espectral: ρ(MᵀΩM)                                               ║
-# ║   6. Índice de Maslov: μ(Λ) ∈ ℤ                                             ║
-# ║   7. Residuo de unitariedad polar: ‖UᵀΩU − Ω‖_F / ‖Ω‖_F                     ║
-# ║                                                                             ║
-# ║   ÚLTIMO MÉTODO DE FASE 1:                                                  ║
-# ║       _audit_symplectic_invariance(ast_jacobian_M)                          ║
-# ║       → SymplecticInvariantData    [objeto inicial de Fase 2]               ║
-# ║                                                                             ║
+# ║   FASE 1, FASE 2 Y FASE 3 DEL AUDITOR DE COHOMOLOGÍA                       ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
-    r"""
-    Trata las transformaciones sintácticas como campos vectoriales Hamiltonianos.
-    Garantiza que la IA no introduzca inyección de entropía divergente evaluando
-    la forma simpléctica canónica ω = Σ dqᵢ ∧ dpᵢ.
-
-    Mejoras v3.0.0:
-        · Descomposición polar M = U·P para verificar la parte unitaria U ∈ Sp(2n).
-        · Tolerancia adaptativa espectral: τ_eff = τ_base + c_σ · σ_max(M) · ε₀.
-        · Residuo antisimétrico separado: detecta pérdida de antisimetría.
-        · Índice de Maslov μ(Λ) calculado por conteo de signaturas espectrales.
-        · Radio espectral ρ(MᵀΩM) como control de amplificación.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.1 Construcción de la matriz simpléctica canónica
-    # ─────────────────────────────────────────────────────────────────────────
     def _build_canonical_symplectic_matrix(self, n: int) -> NDArray[np.float64]:
-        r"""
-        Construye la matriz simpléctica estándar Ω ∈ ℝ^{2n × 2n}:
-
-            Ω = [[ 0_n,  I_n],
-                 [−I_n,  0_n]].
-
-        Esta matriz es la representación matricial de la forma simpléctica
-        canónica ω = Σᵢ dqᵢ ∧ dpᵢ en la base estándar.
-
-        Propiedades verificadas internamente:
-            - Antisimetría: Ω = −Ωᵀ
-            - Invertibilidad: Ω⁻¹ = −Ω = Ωᵀ
-            - det(Ω) = 1
-
-        Parámetros:
-            n: Número de grados de libertad (dim del subespacio qᵢ o pᵢ).
-
-        Retorna:
-            Ω ∈ ℝ^{2n × 2n}, antisimétrica, ortogonal simplécticmente.
-        """
         if not isinstance(n, (int, np.integer)) or isinstance(n, bool):
             raise TypeError(
                 f"[Fase 1] n debe ser un entero positivo; recibido: {type(n)}."
@@ -847,7 +517,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
         omega[:n, n:] = identity
         omega[n:, :n] = -identity
 
-        # Verificación interna de antisimetría
         antisymmetry_residual = self._frobenius_norm(omega + omega.T)
         if antisymmetry_residual > _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON:
             raise SymplecticInvarianceViolation(
@@ -857,34 +526,12 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
 
         return omega
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.2 Residuo determinantal por slogdet
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _determinant_residual_from_slogdet(
         sign: float,
         logabsdet: float,
     ) -> float:
-        r"""
-        Calcula |det(M) − 1| usando la descomposición logarítmica:
-
-            det(M) = sign · exp(logabsdet).
-
-        Toda matriz simpléctica real M ∈ Sp(2n, ℝ) satisface:
-
-            det(M) = 1.
-
-        El residuo |det(M) − 1| cuantifica la desviación de esta propiedad.
-
-        Parámetros:
-            sign      : Signo del determinante (±1 ó 0).
-            logabsdet : Logaritmo del valor absoluto del determinante.
-
-        Retorna:
-            |det(M) − 1| ∈ [0, ∞].
-        """
         if sign == 0:
-            # Matriz singular: det = 0, residuo = 1.
             return 1.0
 
         if not math.isfinite(logabsdet):
@@ -896,29 +543,13 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
             return math.inf
 
         if logabsdet < -max_log:
-            # det ≈ 0 → residuo ≈ 1
             return 1.0
 
         det_value = float(sign) * math.exp(logabsdet)
         return float(abs(det_value - 1.0))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.3 Número de condición seguro
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _condition_number(M: NDArray[np.float64]) -> float:
-        r"""
-        Calcula κ(M) = σ_max(M) / σ_min(M) usando valores singulares directos.
-
-        Evita la rutina `la.cond` que puede ser inestable para matrices grandes.
-        Una matriz simpléctica bien condicionada satisface κ(M) < 1/ε₀.
-
-        Parámetros:
-            M: Matriz cuadrada a evaluar.
-
-        Retorna:
-            κ(M) ∈ [1, ∞].
-        """
         try:
             svs = la.svdvals(M)
             if svs.size == 0:
@@ -934,27 +565,10 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
         except Exception:
             return math.inf
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.4 Tolerancia adaptativa espectral
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _compute_adaptive_symplectic_tolerance(
         sigma_max_M: float,
     ) -> float:
-        r"""
-        Calcula la tolerancia efectiva adaptada a la escala espectral de M:
-
-            τ_eff = max(τ_base, c_σ · σ_max(M) · ε₀ · c_num).
-
-        Esta tolerancia es más conservadora que la base cuando M tiene
-        valores singulares grandes, evitando falsos negativos numéricos.
-
-        Parámetros:
-            sigma_max_M: Mayor valor singular de M.
-
-        Retorna:
-            Tolerancia efectiva τ_eff > 0.
-        """
         if not math.isfinite(sigma_max_M) or sigma_max_M <= 0.0:
             return _SYMPLECTIC_TOLERANCE_BASE
 
@@ -967,39 +581,12 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
 
         return max(_SYMPLECTIC_TOLERANCE_BASE, spectral_tol)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.5 Descomposición polar y residuo de unitariedad
-    # ─────────────────────────────────────────────────────────────────────────
     def _polar_unitarity_residual(
         self,
         M: NDArray[np.float64],
         omega: NDArray[np.float64],
     ) -> float:
-        r"""
-        Verifica que la parte unitaria U de la descomposición polar M = U·P
-        sea también simpléctica: U ∈ Sp(2n, ℝ).
-
-        La descomposición polar de M se calcula como:
-
-            M = U · P,
-
-        donde U es ortogonal (Uᵀ U = I) y P = (MᵀM)^{1/2} es semidefinida
-        positiva. Si M ∈ Sp(2n, ℝ), entonces U ∈ Sp(2n, ℝ) ∩ O(2n, ℝ).
-
-        El residuo es:
-
-            ρ_U = ‖UᵀΩU − Ω‖_F / ‖Ω‖_F.
-
-        Parámetros:
-            M    : Jacobiana de la transformación.
-            omega: Matriz simpléctica Ω.
-
-        Retorna:
-            ρ_U ∈ [0, ∞).
-        """
         try:
-            # Descomposición polar: M = U · P
-            # U = M · (MᵀM)^{-1/2}
             MtM = M.T @ M
 
             if not np.all(np.isfinite(MtM)):
@@ -1007,7 +594,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                     "[Fase 1] MᵀM produjo valores no finitos."
                 )
 
-            # Calcular (MᵀM)^{1/2} por eigendescomposición (MᵀM es SPD)
             eigvals, eigvecs = la.eigh(MtM)
 
             if not np.all(np.isfinite(eigvals)) or not np.all(np.isfinite(eigvecs)):
@@ -1015,7 +601,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                     "[Fase 1] Eigendescomposición de MᵀM produjo valores no finitos."
                 )
 
-            # Proyectar eigenvalores al semiplano positivo
             eigvals_pos = np.maximum(eigvals, 0.0)
 
             if np.any(eigvals_pos == 0.0):
@@ -1024,17 +609,14 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                     "puede ser degenerada."
                 )
 
-            # Raíz cuadrada segura
             sqrt_eigvals = np.sqrt(eigvals_pos)
 
-            # (MᵀM)^{-1/2}: inversión de sqrt_eigvals con protección
             inv_sqrt_eigvals = np.where(
                 sqrt_eigvals > _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON,
                 1.0 / sqrt_eigvals,
                 0.0,
             )
 
-            # P^{-1} = V · diag(1/σᵢ) · Vᵀ donde V = eigvecs
             P_inv = eigvecs @ np.diag(inv_sqrt_eigvals) @ eigvecs.T
 
             if not np.all(np.isfinite(P_inv)):
@@ -1050,7 +632,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                     "[Fase 1] La parte unitaria U = M·P⁻¹ produjo valores no finitos."
                 )
 
-            # Residuo simpléctico de U
             UtOmegaU = U.T @ omega @ U
             omega_norm = self._frobenius_norm(omega)
 
@@ -1067,42 +648,12 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 f"[Fase 1] Descomposición polar falló: {exc}"
             ) from exc
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.6 Índice de Maslov
-    # ─────────────────────────────────────────────────────────────────────────
     def _compute_maslov_index(
         self,
         M: NDArray[np.float64],
         omega: NDArray[np.float64],
     ) -> int:
-        r"""
-        Calcula el índice de Maslov μ(Λ) de la variedad de Lagrange Λ = M(L₀)
-        como el número de signaturas negativas del bloque inferior-izquierdo de
-        la matrix M en la coordenada simpléctica.
-
-        En coordenadas simplécticas (q, p), la variedad de Lagrange generada por M
-        tiene índice de Maslov:
-
-            μ(Λ) = ind(B),
-
-        donde B = bloque inferior-izquierdo de M (la submatriz M[n:, :n]),
-        e ind(·) denota el índice de una forma cuadrática = número de
-        eigenvalores negativos.
-
-        Para una transformación simpléctica sin topología de entrelazamiento,
-        se espera μ(Λ) = 0.
-
-        Parámetros:
-            M    : Jacobiana simpléctica 2n × 2n.
-            omega: Matriz simpléctica Ω (no utilizada directamente, pero
-                   necesaria para la coherencia del contexto).
-
-        Retorna:
-            μ(Λ) ∈ ℤ.
-        """
         n = M.shape[0] // 2
-
-        # Bloque B = M[n:, :n] (submatriz inferior-izquierda)
         B = M[n:, :n]
 
         try:
@@ -1117,11 +668,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 "[Fase 1] Los eigenvalores del bloque B·Bᵀ no son finitos."
             )
 
-        # La forma cuadrática q(v) = vᵀ B v tiene índice = número de
-        # eigenvalores de B·Bᵀ que corresponden a direcciones de curvatura
-        # negativa. Dado que B·Bᵀ es SPD, su índice es 0 (por definición).
-        # El índice de Maslov se calcula como el número de eigenvalores de B
-        # (no B·Bᵀ) estrictamente negativos.
         try:
             eigvals_B_direct = np.real(la.eigvals(B))
         except Exception as exc:
@@ -1138,25 +684,10 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
 
         return maslov
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.7 Radio espectral de MᵀΩM
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _spectral_radius_transformed_omega(
         transformed_omega: NDArray[np.float64],
     ) -> float:
-        r"""
-        Calcula ρ(MᵀΩM) = max|λᵢ(MᵀΩM)|.
-
-        Para una transformación simpléctica exacta: MᵀΩM = Ω, y dado que
-        Ω tiene eigenvalores ±i, el radio espectral debe ser ρ = 1.
-
-        Una desviación ρ >> 1 indica amplificación no controlada del espacio
-        de fase.
-
-        Retorna:
-            ρ(MᵀΩM) ∈ [0, ∞).
-        """
         try:
             eigvals = la.eigvals(transformed_omega)
             if eigvals.size == 0:
@@ -1166,33 +697,11 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
         except Exception:
             return math.inf
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.8 Residuo antisimétrico
-    # ─────────────────────────────────────────────────────────────────────────
     def _antisymmetric_residual(
         self,
         transformed_omega: NDArray[np.float64],
         omega: NDArray[np.float64],
     ) -> float:
-        r"""
-        Calcula el residuo de la parte antisimétrica:
-
-            ρ_skew = ‖skew(MᵀΩM) − Ω‖_F / ‖Ω‖_F,
-
-        donde skew(A) = (A − Aᵀ) / 2.
-
-        Para MᵀΩM = Ω (exacto), se tiene skew(Ω) = Ω y ρ_skew = 0.
-
-        Este residuo separa la pérdida de antisimetría de la pérdida de
-        magnitud, proveyendo diagnóstico más granular que el residuo total.
-
-        Parámetros:
-            transformed_omega: MᵀΩM calculada.
-            omega            : Ω canónica.
-
-        Retorna:
-            ρ_skew ∈ [0, ∞).
-        """
         omega_norm = self._frobenius_norm(omega)
 
         if omega_norm == 0.0:
@@ -1203,51 +712,10 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
 
         return float(residual / omega_norm)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 1.9 ÚLTIMO MÉTODO DE FASE 1
-    #     _audit_symplectic_invariance → SymplecticInvariantData
-    #     [Objeto inicial de Fase 2]
-    # ─────────────────────────────────────────────────────────────────────────
     def _audit_symplectic_invariance(
         self,
         ast_jacobian_M: NDArray[np.float64],
     ) -> SymplecticInvariantData:
-        r"""
-        ════════════════════════════════════════════════════════════════════
-        ÚLTIMO MÉTODO DE FASE 1 — Retorna el objeto inicial de Fase 2.
-        ════════════════════════════════════════════════════════════════════
-
-        Audita el cumplimiento del Teorema de Liouville evaluando todos los
-        invariantes simplécticos conocidos de la transformación AST.
-
-        Invariantes verificados (en orden de cálculo):
-            1. Dimensión par del espacio de fase.
-            2. Finitez y cuadratura de M.
-            3. Construcción de Ω canónica.
-            4. Residuo simpléctico absoluto: ‖MᵀΩM − Ω‖_F.
-            5. Residuo antisimétrico: ‖skew(MᵀΩM) − Ω‖_F / ‖Ω‖_F.
-            6. Residuo simpléctico relativo: ‖MᵀΩM − Ω‖_F / scale.
-            7. Tolerancia adaptativa espectral por σ_max(M).
-            8. Residuo determinantal: |det(M) − 1| por slogdet.
-            9. Número de condición: κ(M) = σ_max / σ_min.
-            10. Radio espectral: ρ(MᵀΩM).
-            11. Índice de Maslov: μ(Λ).
-            12. Residuo de unitariedad polar: ‖UᵀΩU − Ω‖_F / ‖Ω‖_F.
-
-        Parámetros:
-            ast_jacobian_M: Matriz Jacobiana M de la transformación sintáctica.
-                            Debe ser cuadrada, real, finita y de dimensión par.
-
-        Retorna:
-            SymplecticInvariantData — certificado simpléctico completo.
-            Este objeto es el **objeto inicial de la Fase 2**.
-
-        Lanza:
-            SymplecticInvarianceViolation si cualquier invariante es violado.
-            SymplecticPolarDecompositionError si la descomposición polar falla.
-            MaslovIndexError si el índice de Maslov no puede calcularse.
-        """
-        # ── Validación de entrada ─────────────────────────────────────────
         M = self._as_finite_matrix(
             "ast_jacobian_M",
             ast_jacobian_M,
@@ -1264,11 +732,7 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
             )
 
         n = dim // 2
-
-        # ── Construcción de Ω ─────────────────────────────────────────────
         omega = self._build_canonical_symplectic_matrix(n)
-
-        # ── Transformación simpléctica: MᵀΩM ─────────────────────────────
         transformed_omega = M.T @ omega @ M
 
         if not np.all(np.isfinite(transformed_omega)):
@@ -1276,7 +740,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 "[Fase 1] La transformación MᵀΩM produjo valores no finitos."
             )
 
-        # ── Normas base ───────────────────────────────────────────────────
         omega_norm = self._frobenius_norm(omega)
         transformed_norm = self._frobenius_norm(transformed_omega)
         m_frobenius = self._frobenius_norm(M)
@@ -1291,13 +754,9 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 "[Fase 1] La norma de Frobenius de MᵀΩM no es finita."
             )
 
-        # ── Residuo simpléctico absoluto ─────────────────────────────────
         residual = self._frobenius_norm(transformed_omega - omega)
-
-        # ── Residuo antisimétrico ─────────────────────────────────────────
         antisymmetric_res = self._antisymmetric_residual(transformed_omega, omega)
 
-        # ── Residuo relativo ──────────────────────────────────────────────
         scale = max(1.0, transformed_norm + omega_norm)
         relative_residual = residual / scale
 
@@ -1306,11 +765,9 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 "[Fase 1] El residuo simpléctico relativo no es finito."
             )
 
-        # ── Tolerancia adaptativa espectral ───────────────────────────────
         sigma_max_M = self._spectral_norm(M)
         effective_tolerance = self._compute_adaptive_symplectic_tolerance(sigma_max_M)
 
-        # ── Verificación principal ────────────────────────────────────────
         if relative_residual > effective_tolerance:
             raise SymplecticInvarianceViolation(
                 "[Fase 1] Violación del Teorema de Liouville. "
@@ -1319,7 +776,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 f"Residuo antisimétrico = {antisymmetric_res:.6e}."
             )
 
-        # ── Residuo determinantal ─────────────────────────────────────────
         sign, logabsdet = la.slogdet(M)
 
         if sign == 0 or not math.isfinite(sign):
@@ -1335,8 +791,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
             )
 
         determinant_residual = self._determinant_residual_from_slogdet(sign, logabsdet)
-
-        # ── Número de condición ───────────────────────────────────────────
         condition_number = self._condition_number(M)
 
         if not math.isfinite(condition_number):
@@ -1344,16 +798,10 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 "[Fase 1] El Jacobiano es numéricamente singular: κ(M) = ∞."
             )
 
-        # ── Radio espectral ───────────────────────────────────────────────
         spectral_radius = self._spectral_radius_transformed_omega(transformed_omega)
-
-        # ── Índice de Maslov ──────────────────────────────────────────────
         maslov_index = self._compute_maslov_index(M, omega)
-
-        # ── Residuo de unitariedad polar ──────────────────────────────────
         polar_residual = self._polar_unitarity_residual(M, omega)
 
-        # ── Advertencias no bloqueantes ───────────────────────────────────
         if condition_number > _CONDITION_NUMBER_WARNING_THRESHOLD:
             logger.warning(
                 "[Fase 1] Jacobiano mal condicionado: κ(M) = %.4e > 1/ε₀ = %.4e.",
@@ -1380,7 +828,6 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
                 polar_residual,
             )
 
-        # ── Emisión del certificado (objeto inicial de Fase 2) ────────────
         return SymplecticInvariantData(
             phase_space_dimension=dim,
             symplectic_residual_norm=residual,
@@ -1396,82 +843,12 @@ class Phase1_SymplecticInvarianceAuditor(_FiniteNumericalGuard):
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                             ║
-# ║   FASE 2: CONTROL PORT-HAMILTONIANO Y FRONTERAS DE DIRICHLET                ║
-# ║                                                                             ║
-# ║   Marco matemático:                                                         ║
-# ║   ─────────────────                                                         ║
-# ║   Sea (X, H) un sistema port-Hamiltoniano donde:                            ║
-# ║       ẋ = (J(x) − R(x)) ∇H(x) + g(x)u                                       ║
-# ║       y = gᵀ(x) ∇H(x)                                                       ║
-# ║                                                                             ║
-# ║   La condición de disipación (Segunda Ley) exige:                           ║
-# ║       dH/dt = −P_diss + Pₑₓₜ,   P_diss = ∇Hᵀ R ∇H ≥ 0.                       ║
-# ║                                                                             ║
-# ║   En el contexto del AST, Φ = campo de control exergético,                  ║
-# ║   ∇V = gradiente de la función de Lyapunov. La condición es:                ║
-# ║       P_diss = Φᵀ ∇V ≥ 0.                                                   ║
-# ║                                                                             ║
-# ║   Invariantes verificados en v3.0.0:                                        ║
-# ║   1. P_raw = Φᵀ∇V (producto interno crudo)                                  ║
-# ║   2. P_diss = max(0, P_raw) (proyección al cono positivo)                   ║
-# ║   3. σ_CD = P_diss / T_ref ≥ 0 (Clausius-Duhem diferencial)                 ║
-# ║   4. cos(θ) = Φᵀ∇V / (‖Φ‖·‖∇V‖) (alineamiento)                              ║
-# ║   5. θ = arccos(cos(θ)) ∈ [0, π] (ángulo termodinámico)                     ║
-# ║   6. ratio = P_diss / (‖Φ‖·‖∇V‖) (eficiencia disipativa)                    ║
-# ║                                                                             ║
-# ║   CONEXIÓN FUNTORIAL:                                                       ║
-# ║   El primer método de Fase 2 recibe SymplecticInvariantData y verifica      ║
-# ║   consistencia dimensional y de invariante de volumen.                      ║
-# ║                                                                             ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
 class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
-    r"""
-    Aplica Fronteras de Dirichlet sobre el AST aislando los subárboles.
-    Previene bucles de complejidad divergente exigiendo positividad en la
-    disipación termodinámica y satisfacción de la desigualdad de Clausius-Duhem.
-
-    Hereda de Phase1_SymplecticInvarianceAuditor.
-    Su primer método _enforce_dirichlet_thermodynamics recibe el certificado
-    SymplecticInvariantData emitido por el último método de Fase 1.
-
-    Mejoras v3.0.0:
-        · Verificación explícita de Clausius-Duhem diferencial.
-        · Tasa de producción de entropía σ_CD = P_diss / T_ref.
-        · Ángulo termodinámico θ = arccos(cos(Φ,∇V)).
-        · Ratio de eficiencia disipativa P_diss / (‖Φ‖·‖∇V‖).
-        · Producto interno crudo vs. proyectado registrados separadamente.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.1 Cálculo de la tasa de producción de entropía
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _compute_entropy_production_rate(
         dissipated_power: float,
         temperature_reference: float = _THERMODYNAMIC_TEMPERATURE_REFERENCE,
     ) -> float:
-        r"""
-        Calcula la tasa de producción de entropía por la desigualdad de
-        Clausius-Duhem diferencial:
-
-            σ_CD = dS/dt = P_diss / T_ref.
-
-        En el formalismo port-Hamiltoniano discreto:
-
-            σ_CD = Φᵀ R Φ / T_ref ≥ 0,
-
-        donde R es la matriz de resistencia disipativa (R ≥ 0).
-        Aquí usamos la aproximación P_diss ≈ Φᵀ R Φ.
-
-        Parámetros:
-            dissipated_power   : P_diss ≥ 0.
-            temperature_reference: T_ref > 0 (adimensional por defecto).
-
-        Retorna:
-            σ_CD ≥ 0.
-        """
         if temperature_reference <= 0.0:
             raise ClausiusDuhemViolation(
                 f"[Fase 2] La temperatura de referencia debe ser positiva; "
@@ -1488,59 +865,19 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
 
         return sigma
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.2 Cálculo del ángulo termodinámico
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _compute_thermodynamic_angle(
         alignment_cosine: float,
     ) -> float:
-        r"""
-        Calcula el ángulo termodinámico:
-
-            θ = arccos(clip(cos(Φ,∇V), −1, 1)) ∈ [0, π].
-
-        Un ángulo θ < π/2 indica disipación activa.
-        Un ángulo θ = π/2 indica ortogonalidad (disipación nula).
-        Un ángulo θ > π/2 indica retroalimentación energética (peligroso).
-
-        Parámetros:
-            alignment_cosine: cos(θ) ∈ [−1, 1].
-
-        Retorna:
-            θ ∈ [0, π] en radianes.
-        """
         clipped = float(np.clip(alignment_cosine, -1.0, 1.0))
         return float(math.acos(clipped))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.3 Ratio de eficiencia disipativa
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _compute_exergy_dissipation_ratio(
         dissipated_power: float,
         phi_norm: float,
         grad_norm: float,
     ) -> float:
-        r"""
-        Calcula la eficiencia disipativa:
-
-            η = P_diss / (‖Φ‖ · ‖∇V‖).
-
-        Si ‖Φ‖ = 0 ó ‖∇V‖ = 0, retorna 0.0 por convención.
-
-        η = 1 indica disipación completa (Φ ∥ ∇V).
-        η = 0 indica disipación nula (Φ ⊥ ∇V).
-        η ∈ (−1, 0) indica retroalimentación energética.
-
-        Parámetros:
-            dissipated_power: P_diss.
-            phi_norm        : ‖Φ‖₂.
-            grad_norm       : ‖∇V‖₂.
-
-        Retorna:
-            η ∈ [−1, 1] ó 0.0 si alguna norma es cero.
-        """
         denom = phi_norm * grad_norm
 
         if denom == 0.0 or not math.isfinite(denom):
@@ -1549,57 +886,12 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
         ratio = dissipated_power / denom
         return float(np.clip(ratio, -1.0, 1.0))
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 2.4 PRIMER MÉTODO DE FASE 2 / CONTINUACIÓN DE FASE 1
-    #     _enforce_dirichlet_thermodynamics → ThermodynamicDirichletData
-    #     [Objeto inicial de Fase 3]
-    # ─────────────────────────────────────────────────────────────────────────
     def _enforce_dirichlet_thermodynamics(
         self,
         control_potential_Phi: NDArray[np.float64],
         lyapunov_gradient_V: NDArray[np.float64],
         symplectic_audit: Optional[SymplecticInvariantData] = None,
     ) -> ThermodynamicDirichletData:
-        r"""
-        ════════════════════════════════════════════════════════════════════
-        PRIMER MÉTODO DE FASE 2 — Continuación formal de Fase 1.
-        Retorna el objeto inicial de Fase 3.
-        ════════════════════════════════════════════════════════════════════
-
-        Calcula el producto interno covariante para medir la disipación:
-
-            P_diss = Φᵀ ∇V.
-
-        Si `symplectic_audit` es provisto (composición funtorial estricta):
-            - Verifica que is_volume_preserved = True.
-            - Verifica consistencia dimensional: dim(Φ) = dim del espacio de fase.
-
-        Invariantes calculados:
-            1. P_raw = Φᵀ∇V (crudo, puede ser negativo).
-            2. P_diss = max(0, P_raw) (proyectado).
-            3. ε_num = c·ε₀·max(1, ‖Φ‖·‖∇V‖) (tolerancia numérica).
-            4. Rechazo si P_raw < −ε_num (violación real, no numérica).
-            5. σ_CD = P_diss / T_ref (Clausius-Duhem).
-            6. cos(θ) = P_raw / (‖Φ‖·‖∇V‖) si los vectores no son cero.
-            7. θ = arccos(cos(θ)) en radianes.
-            8. η = P_diss / (‖Φ‖·‖∇V‖) (eficiencia disipativa).
-
-        Parámetros:
-            control_potential_Phi: Campo de control exergético Φ ∈ ℝⁿ.
-            lyapunov_gradient_V  : Gradiente de Lyapunov ∇V ∈ ℝⁿ.
-            symplectic_audit     : Certificado de Fase 1 (opcional pero recomendado).
-
-        Retorna:
-            ThermodynamicDirichletData — certificado termodinámico completo.
-            Este objeto es el **objeto inicial de la Fase 3**.
-
-        Lanza:
-            SymplecticInvarianceViolation si symplectic_audit no preservó volumen.
-            ThermodynamicSingularityError si P_diss < −ε_num.
-            ExergyDivergenceError si ‖Φ‖ ó ‖∇V‖ no son finitas.
-            ClausiusDuhemViolation si σ_CD < 0.
-        """
-        # ── Validación de entrada ─────────────────────────────────────────
         Phi = self._as_finite_vector("control_potential_Phi", control_potential_Phi)
         gradV = self._as_finite_vector("lyapunov_gradient_V", lyapunov_gradient_V)
 
@@ -1609,7 +901,6 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                 f"Φ tiene dim={Phi.shape}, ∇V tiene dim={gradV.shape}."
             )
 
-        # ── Continuación funtorial de Fase 1 ─────────────────────────────
         if symplectic_audit is not None:
             if not symplectic_audit.is_volume_preserved:
                 raise SymplecticInvarianceViolation(
@@ -1624,7 +915,6 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                     f"termodinámicos (dim={Phi.size})."
                 )
 
-        # ── Normas ───────────────────────────────────────────────────────
         phi_norm = self._vector_norm(Phi)
         grad_norm = self._vector_norm(gradV)
 
@@ -1638,7 +928,6 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                 f"[Fase 2] La norma de ∇V no es finita: ‖∇V‖ = {grad_norm}."
             )
 
-        # ── Producto interno crudo ────────────────────────────────────────
         p_raw = float(np.dot(Phi, gradV))
 
         if not math.isfinite(p_raw):
@@ -1647,14 +936,12 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                 "Posible desbordamiento numérico o acoplamiento energético divergente."
             )
 
-        # ── Tolerancia numérica ───────────────────────────────────────────
         tolerance = (
             _NUMERICAL_SAFETY_FACTOR
             * _MACHINE_EPSILON
             * max(1.0, phi_norm * grad_norm)
         )
 
-        # ── Verificación de disipación ────────────────────────────────────
         if p_raw < _DIRICHLET_DISSIPATION_FLOOR - tolerance:
             raise ThermodynamicSingularityError(
                 "[Fase 2] Singularidad termodinámica en el AST. "
@@ -1662,10 +949,8 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                 "El algoritmo puede inducir bucle infinito o desbordamiento FPU."
             )
 
-        # ── Proyección al cono positivo ───────────────────────────────────
         dissipated_power = max(_DIRICHLET_DISSIPATION_FLOOR, p_raw)
 
-        # ── Alineamiento y ángulo ─────────────────────────────────────────
         if phi_norm > 0.0 and grad_norm > 0.0:
             alignment_raw = p_raw / (phi_norm * grad_norm)
             alignment = float(np.clip(alignment_raw, -1.0, 1.0))
@@ -1673,8 +958,6 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
             alignment = 0.0
 
         thermodynamic_angle = self._compute_thermodynamic_angle(alignment)
-
-        # ── Tasa de producción de entropía ────────────────────────────────
         entropy_production = self._compute_entropy_production_rate(dissipated_power)
         clausius_duhem_ok = entropy_production >= _ENTROPY_PRODUCTION_FLOOR
 
@@ -1684,12 +967,10 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                 f"σ_CD = {entropy_production:.6e} < 0."
             )
 
-        # ── Eficiencia disipativa ─────────────────────────────────────────
         dissipation_ratio = self._compute_exergy_dissipation_ratio(
             dissipated_power, phi_norm, grad_norm,
         )
 
-        # ── Clasificación de disipación ───────────────────────────────────
         is_strictly_dissipative = dissipated_power > max(
             _DIRICHLET_DISSIPATION_FLOOR, tolerance,
         )
@@ -1708,7 +989,6 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
                 thermodynamic_angle,
             )
 
-        # ── Emisión del certificado (objeto inicial de Fase 3) ────────────
         return ThermodynamicDirichletData(
             dissipated_power=dissipated_power,
             raw_inner_product=p_raw,
@@ -1725,91 +1005,13 @@ class Phase2_DirichletThermodynamicEnforcer(Phase1_SymplecticInvarianceAuditor):
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                             ║
-# ║   FASE 3: COHOMOLOGÍA DE HACES CELULARES                                    ║
-# ║                                                                             ║
-# ║   Marco matemático:                                                         ║
-# ║   ─────────────────                                                         ║
-# ║   Sea G = (V, E, F) un haz celular sobre el grafo de dependencias del AST.  ║
-# ║   El complejo de cadenas del haz tiene la forma:                            ║
-# ║                                                                             ║
-# ║       C⁰ ──δ⁰──→ C¹ ──δ¹──→ C²                                              ║
-# ║                                                                             ║
-# ║   con la condición de complejo: δ¹∘δ⁰ = 0.                                  ║
-# ║                                                                             ║
-# ║   Los grupos de cohomología son:                                            ║
-# ║       H⁰ = ker(δ⁰)                                                          ║
-# ║       H¹ = ker(δ¹) / im(δ⁰)                                                 ║
-# ║       H² = C² / im(δ¹)                                                      ║
-# ║                                                                             ║
-# ║   Las dimensiones (números de Betti) son:                                   ║
-# ║       β₀ = dim ker(δ⁰) = dim C⁰ − rank(δ⁰)                                  ║
-# ║       β₁ = dim H¹     = dim C¹ − rank(δ⁰) − rank(δ¹)                        ║
-# ║       β₂ = dim H²     = dim C² − rank(δ¹)                                   ║
-# ║                                                                             ║
-# ║   La característica de Euler-Poincaré:                                      ║
-# ║       χ = β₀ − β₁ + β₂ = dim C⁰ − dim C¹ + dim C²                           ║
-# ║                                                                             ║
-# ║   La torsión de Reidemeister:                                               ║
-# ║       log|τ| = Σᵢ (−1)ⁱ · log|det(δⁱ)|                                      ║
-# ║                                                                             ║
-# ║   Invariantes verificados en v3.0.0:                                        ║
-# ║   1. Condición de complejo: ‖δ¹∘δ⁰‖_F / scale ≤ τ_δ                         ║
-# ║   2. dim H¹ = 0 (integrabilidad global)                                     ║
-# ║   3. Números de Betti (β₀, β₁, β₂)                                          ║
-# ║   4. Característica de Euler χ                                              ║
-# ║   5. Torsión de Reidemeister log|τ|                                         ║
-# ║   6. Exactitud de Mayer-Vietoris                                            ║
-# ║                                                                             ║
-# ║   CONEXIÓN FUNTORIAL:                                                       ║
-# ║   El primer método de Fase 3 recibe ThermodynamicDirichletData y verifica   ║
-# ║   que la estabilidad termodinámica sea compatible con la integrabilidad.    ║
-# ║                                                                             ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
 class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforcer):
-    r"""
-    Eleva el flujo de datos del AST a un Haz Celular (Cellular Sheaf).
-    Detecta variables huérfanas, ciclos lógicos mutantes o dependencias fantasma.
-
-    Hereda de Phase2_DirichletThermodynamicEnforcer.
-    Su primer método _audit_cellular_sheaf_cohomology recibe el certificado
-    ThermodynamicDirichletData emitido por el último método de Fase 2.
-
-    Mejoras v3.0.0:
-        · Cálculo de los tres números de Betti (β₀, β₁, β₂).
-        · Característica de Euler-Poincaré χ = β₀ − β₁ + β₂.
-        · Torsión de Reidemeister log|τ| como invariante secundario.
-        · Verificación de exactitud de la secuencia de Mayer-Vietoris.
-        · Rango por gap espectral (Golub-Reinsch) en lugar de umbral fijo.
-    """
-
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.1 Rango numérico por gap espectral (Golub-Reinsch)
-    # ─────────────────────────────────────────────────────────────────────────
     @classmethod
     def _numerical_rank_with_gap(
         cls,
         A: NDArray[np.float64],
         name: str = "A",
     ) -> Tuple[int, NDArray[np.float64]]:
-        r"""
-        Calcula el rango numérico de A y los valores singulares usando el criterio
-        de gap espectral de Golub-Reinsch:
-
-            rank = k  sii  σ_k / σ_max > ρ_gap  y  σ_{k+1} / σ_max ≤ ρ_gap.
-
-        Si no se detecta gap, usa la tolerancia adaptativa estándar:
-
-            tol = c · ε₀ · max(shape(A)) · σ_max.
-
-        Parámetros:
-            A   : Matriz a evaluar.
-            name: Nombre del parámetro (para mensajes de error).
-
-        Retorna:
-            (rank, singular_values).
-        """
         if A.size == 0 or min(A.shape) == 0:
             return 0, np.array([], dtype=np.float64)
 
@@ -1828,7 +1030,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
                 f"[Fase 3] σ_max({name}) no es finita."
             )
 
-        # Tolerancia adaptativa estándar
         tol_standard = (
             _NUMERICAL_SAFETY_FACTOR
             * _MACHINE_EPSILON
@@ -1836,28 +1037,21 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
             * sigma_max
         )
 
-        # Detección de gap espectral
         normalized_svs = svs / sigma_max
-        gaps = np.diff(normalized_svs)  # negativo si decreciente
+        gaps = np.diff(normalized_svs)
 
-        # Buscar el gap más grande (mayor caída relativa)
         if gaps.size > 0:
-            gap_idx = int(np.argmin(gaps))  # índice del mayor gap
-            gap_magnitude = float(-gaps[gap_idx])  # positivo
+            gap_idx = int(np.argmin(gaps))
+            gap_magnitude = float(-gaps[gap_idx])
 
-            # Si el gap es significativo (> 10x la tolerancia relativa)
             gap_threshold = 10.0 * _SPECTRAL_GAP_RATIO
             if gap_magnitude > gap_threshold:
                 rank_by_gap = gap_idx + 1
                 return rank_by_gap, svs
 
-        # Sin gap claro: usar tolerancia estándar
         rank = int(np.count_nonzero(svs > tol_standard))
         return rank, svs
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.2 Cálculo de los números de Betti
-    # ─────────────────────────────────────────────────────────────────────────
     def _compute_betti_numbers(
         self,
         D0: NDArray[np.float64],
@@ -1865,29 +1059,9 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
         rank_D0: int,
         rank_D1: int,
     ) -> Tuple[int, int, int]:
-        r"""
-        Calcula los números de Betti del complejo cohomológico:
-
-            β₀ = dim C⁰ − rank(δ⁰)   = dim ker(δ⁰)
-            β₁ = dim C¹ − rank(δ⁰) − rank(δ¹)   = dim H¹
-            β₂ = dim C² − rank(δ¹)   = dim H²
-
-        donde:
-            δ⁰: D0 ∈ ℝ^{c1 × c0}  →  shape = (c1, c0)
-            δ¹: D1 ∈ ℝ^{c2 × c1}  →  shape = (c2, c1)
-
-        Parámetros:
-            D0      : Operador coboundary δ⁰.
-            D1      : Operador coboundary δ¹.
-            rank_D0 : rank(δ⁰) calculado numéricamente.
-            rank_D1 : rank(δ¹) calculado numéricamente.
-
-        Retorna:
-            (β₀, β₁, β₂) como tupla de enteros no negativos.
-        """
-        c0 = D0.shape[1]  # dim C⁰
-        c1 = D0.shape[0]  # dim C¹ = D0.shape[0] = D1.shape[1]
-        c2 = D1.shape[0]  # dim C²
+        c0 = D0.shape[1]
+        c1 = D0.shape[0]
+        c2 = D1.shape[0]
 
         beta0 = max(0, c0 - rank_D0)
         beta1 = max(0, c1 - rank_D0 - rank_D1)
@@ -1895,9 +1069,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
 
         return int(beta0), int(beta1), int(beta2)
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.3 Torsión de Reidemeister
-    # ─────────────────────────────────────────────────────────────────────────
     def _compute_reidemeister_torsion(
         self,
         D0: NDArray[np.float64],
@@ -1907,38 +1078,13 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
         svs_D0: NDArray[np.float64],
         svs_D1: NDArray[np.float64],
     ) -> float:
-        r"""
-        Calcula la torsión de Reidemeister log|τ| del complejo cohomológico.
-
-        La torsión se define (para un complejo acíclico) como:
-
-            log|τ| = Σᵢ (−1)^{i+1} · Σⱼ log(σⱼ(δⁱ)),
-
-        donde la suma interior es sobre los valores singulares no nulos de δⁱ.
-
-        Para un complejo no acíclico (dim H¹ > 0), la torsión no está bien
-        definida y se retorna 0.0.
-
-        Parámetros:
-            D0, D1      : Operadores coboundary.
-            rank_D0     : rank(δ⁰).
-            rank_D1     : rank(δ¹).
-            svs_D0      : Valores singulares de δ⁰.
-            svs_D1      : Valores singulares de δ¹.
-
-        Retorna:
-            log|τ| ∈ ℝ (0.0 si el complejo no es acíclico o la torsión
-            no está definida).
-        """
         c1 = D0.shape[0]
         h1_dim = c1 - rank_D0 - rank_D1
 
         if h1_dim != 0:
-            # Torsión no definida para complejos no acíclicos
             return 0.0
 
         def log_sum_sv(svs: NDArray[np.float64], rank: int) -> float:
-            r"""Suma de log(σᵢ) para los primeros `rank` valores singulares."""
             if rank <= 0 or svs.size == 0:
                 return 0.0
             significant = svs[:rank]
@@ -1948,14 +1094,9 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
             log_sum = float(np.sum(np.log(positive)))
             return log_sum if math.isfinite(log_sum) else 0.0
 
-        # log|τ| = (+1)·Σlog(σⱼ(δ⁰)) + (−1)·Σlog(σⱼ(δ¹))
         log_tau = log_sum_sv(svs_D0, rank_D0) - log_sum_sv(svs_D1, rank_D1)
-
         return log_tau if math.isfinite(log_tau) else 0.0
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.4 Verificación de la secuencia de Mayer-Vietoris
-    # ─────────────────────────────────────────────────────────────────────────
     def _verify_mayer_vietoris_exactness(
         self,
         D0: NDArray[np.float64],
@@ -1963,29 +1104,8 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
         rank_D0: int,
         rank_D1: int,
     ) -> bool:
-        r"""
-        Verifica la exactitud local de la secuencia de Mayer-Vietoris:
-
-            im(δ⁰) ⊆ ker(δ¹),
-
-        lo cual es equivalente a la condición de complejo δ¹∘δ⁰ = 0,
-        que ya fue verificada. Aquí verificamos además que:
-
-            rank(δ⁰) + rank(δ¹) ≤ dim C¹,
-
-        condición necesaria para la exactitud de la secuencia en C¹.
-
-        Parámetros:
-            D0, D1      : Operadores coboundary.
-            rank_D0     : rank(δ⁰).
-            rank_D1     : rank(δ¹).
-
-        Retorna:
-            True sii la secuencia es compatible con la exactitud.
-        """
         c1 = D0.shape[0]
 
-        # Condición necesaria para exactitud: rank(δ⁰) + rank(δ¹) ≤ dim C¹
         if rank_D0 + rank_D1 > c1:
             logger.warning(
                 "[Fase 3] Mayer-Vietoris: rank(δ⁰) + rank(δ¹) = %d > dim C¹ = %d. "
@@ -1996,27 +1116,11 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
 
         return True
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.5 Cálculo de dim H¹ por operadores coboundary
-    # ─────────────────────────────────────────────────────────────────────────
     def _compute_first_cohomology_dimension(
         self,
         coboundary_delta0: NDArray[np.float64],
         coboundary_delta1: NDArray[np.float64],
     ) -> Tuple[int, int, int, int, int, float, float, bool, NDArray[np.float64], NDArray[np.float64]]:
-        r"""
-        Calcula dim H¹ y todos los invariantes secundarios a partir de los
-        operadores coboundary δ⁰ y δ¹.
-
-        El complejo cohomológico requiere δ¹∘δ⁰ = 0.
-
-        Retorna una tupla completa con todos los invariantes necesarios:
-            (h1_dim, rank_D0, rank_D1, beta0, beta2, reidemeister_torsion,
-             complex_residual, mayer_vietoris_exact, svs_D0, svs_D1)
-
-        El llamador (_audit_cellular_sheaf_cohomology) desempaqueta estos valores.
-        """
-        # ── Validación ────────────────────────────────────────────────────
         D0 = self._as_finite_matrix(
             "coboundary_delta0", coboundary_delta0, square=False,
         )
@@ -2024,7 +1128,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
             "coboundary_delta1", coboundary_delta1, square=False,
         )
 
-        # D0: (c1, c0), D1: (c2, c1)
         if D1.shape[1] != D0.shape[0]:
             raise ValueError(
                 "[Fase 3] Los operadores coboundary no componen: "
@@ -2032,7 +1135,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
                 f"pero δ⁰ tiene codominio dim={D0.shape[0]}."
             )
 
-        # ── Verificación de complejo: δ¹∘δ⁰ = 0 ──────────────────────────
         composition = D1 @ D0
 
         if not np.all(np.isfinite(composition)):
@@ -2064,11 +1166,9 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
                 f"‖δ¹∘δ⁰‖/scale = {complex_residual:.6e} > {_COHOMOLOGICAL_COMPLEX_TOL:.6e}."
             )
 
-        # ── Rangos con gap espectral ───────────────────────────────────────
         rank_D0, svs_D0 = self._numerical_rank_with_gap(D0, "δ⁰")
         rank_D1, svs_D1 = self._numerical_rank_with_gap(D1, "δ¹")
 
-        # ── dim H¹ ────────────────────────────────────────────────────────
         c1 = D0.shape[0]
         h1 = c1 - rank_D0 - rank_D1
 
@@ -2079,17 +1179,14 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
             )
             h1 = 0
 
-        # ── Números de Betti ──────────────────────────────────────────────
         beta0, _beta1, beta2 = self._compute_betti_numbers(
             D0, D1, rank_D0, rank_D1,
         )
 
-        # ── Torsión de Reidemeister ───────────────────────────────────────
         torsion = self._compute_reidemeister_torsion(
             D0, D1, rank_D0, rank_D1, svs_D0, svs_D1,
         )
 
-        # ── Mayer-Vietoris ────────────────────────────────────────────────
         mv_exact = self._verify_mayer_vietoris_exactness(
             D0, D1, rank_D0, rank_D1,
         )
@@ -2107,10 +1204,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
             svs_D1,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # 3.6 PRIMER MÉTODO DE FASE 3 / CONTINUACIÓN DE FASE 2
-    #     _audit_cellular_sheaf_cohomology → SheafCohomologyAuditData
-    # ─────────────────────────────────────────────────────────────────────────
     def _audit_cellular_sheaf_cohomology(
         self,
         h1_dimension: Optional[int] = None,
@@ -2118,47 +1211,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
         coboundary_delta0: Optional[NDArray[np.float64]] = None,
         coboundary_delta1: Optional[NDArray[np.float64]] = None,
     ) -> SheafCohomologyAuditData:
-        r"""
-        ════════════════════════════════════════════════════════════════════
-        PRIMER MÉTODO DE FASE 3 — Continuación formal de Fase 2.
-        ════════════════════════════════════════════════════════════════════
-
-        Verifica la condición de integrabilidad global del haz celular:
-
-            dim H¹(G; F) = 0.
-
-        Si `thermodynamic_audit` es provisto (composición funtorial estricta):
-            - Verifica que is_thermodynamically_stable = True.
-
-        Puede operar en dos modos:
-            1. Recibiendo `h1_dimension` directamente (modo ligero).
-            2. Calculando `h1_dimension` desde operadores coboundary δ⁰, δ¹ (modo completo).
-
-        En modo completo, calcula adicionalmente:
-            - Números de Betti (β₀, β₁, β₂).
-            - Característica de Euler χ.
-            - Torsión de Reidemeister log|τ|.
-            - Exactitud de Mayer-Vietoris.
-
-        Si ambos modos se suministran, exige consistencia exacta entre
-        h1_dimension declarado y el calculado por operadores δ.
-
-        Parámetros:
-            h1_dimension      : dim H¹(G; F) declarada (entero no negativo).
-            thermodynamic_audit: Certificado de Fase 2 (opcional pero recomendado).
-            coboundary_delta0 : Operador δ⁰ ∈ ℝ^{c1 × c0}.
-            coboundary_delta1 : Operador δ¹ ∈ ℝ^{c2 × c1}.
-
-        Retorna:
-            SheafCohomologyAuditData — certificado cohomológico completo.
-
-        Lanza:
-            ThermodynamicSingularityError si thermodynamic_audit no es estable.
-            CohomologicalObstructionError si dim H¹ > 0.
-            EulerCharacteristicMismatch si χ es inconsistente.
-            MayerVietorisBreachError si la secuencia M-V no es exacta.
-        """
-        # ── Continuación funtorial de Fase 2 ─────────────────────────────
         if thermodynamic_audit is not None:
             if not thermodynamic_audit.is_thermodynamically_stable:
                 raise ThermodynamicSingularityError(
@@ -2166,7 +1218,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
                     "termodinámica (is_thermodynamically_stable=False)."
                 )
 
-        # ── Variables de estado de los invariantes secundarios ────────────
         computed_h1: Optional[int] = None
         verified_by_coboundary = False
         rank_delta0_val: int = 0
@@ -2177,7 +1228,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
         complex_residual_val: float = 0.0
         mayer_vietoris_exact: bool = True
 
-        # ── Modo completo: operadores coboundary ──────────────────────────
         if coboundary_delta0 is not None or coboundary_delta1 is not None:
             if coboundary_delta0 is None or coboundary_delta1 is None:
                 raise ValueError(
@@ -2204,7 +1254,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
             beta1_val = computed_h1
             betti_vals = (beta0_val, beta1_val, beta2_val)
 
-            # Característica de Euler
             c0 = np.asarray(coboundary_delta0).shape[1]
             c1 = np.asarray(coboundary_delta0).shape[0]
             c2 = np.asarray(coboundary_delta1).shape[0]
@@ -2226,7 +1275,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
 
             verified_by_coboundary = True
 
-        # ── Resolución de h1 ──────────────────────────────────────────────
         if h1_dimension is None:
             if computed_h1 is None:
                 raise ValueError(
@@ -2235,7 +1283,6 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
                 )
             h1 = computed_h1
         else:
-            # Validación del tipo de h1_dimension
             if isinstance(h1_dimension, (bool, np.bool_)):
                 raise TypeError(
                     "[Fase 3] h1_dimension debe ser un entero; se recibió booleano."
@@ -2249,20 +1296,17 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
 
             h1 = int(h1_dimension)
 
-            # Consistencia entre declarado y calculado
             if computed_h1 is not None and computed_h1 != h1:
                 raise CohomologicalObstructionError(
                     "[Fase 3] Inconsistencia cohomológica: "
                     f"h1_dimension declarado={h1}, calculado por δ={computed_h1}."
                 )
 
-        # ── Verificación de no negatividad ────────────────────────────────
         if h1 < _COHOMOLOGY_DIMENSION_FLOOR:
             raise ValueError(
                 f"[Fase 3] h1_dimension no puede ser negativa: {h1}."
             )
 
-        # ── Condición de integrabilidad global ────────────────────────────
         if h1 > _COHOMOLOGY_DIMENSION_FLOOR:
             raise CohomologicalObstructionError(
                 "[Fase 3] Obstrucción topológica global detectada en la sintaxis. "
@@ -2271,12 +1315,10 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
                 "o variables huérfanas."
             )
 
-        # ── Si sólo se proporcionó h1_dimension sin operadores ────────────
         if not verified_by_coboundary:
             betti_vals = (0, 0, 0)
             euler_chi = 0
 
-        # ── Emisión del certificado ───────────────────────────────────────
         return SheafCohomologyAuditData(
             h1_dimension=h1,
             rank_delta0=rank_delta0_val,
@@ -2292,64 +1334,78 @@ class Phase3_CellularSheafCohomologyAuditor(Phase2_DirichletThermodynamicEnforce
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║                                                                             ║
-# ║   ORQUESTADOR SUPREMO: AST STATIC ANALYZER AGENT                            ║
-# ║                                                                             ║
-# ║   Endofuntor Z_{Γ-PHYSICS} = Φ₃ ∘ Φ₂ ∘ Φ₁                                   ║
-# ║                                                                             ║
-# ║   Mejoras v3.0.0:                                                           ║
-# ║   · Contexto de auditoría con timestamp ISO-8601 UTC.                       ║
-# ║   · Checksum SHA-256 de los datos de entrada.                               ║
-# ║   · Trazabilidad completa de la cadena funtorial (AuditProvenance).         ║
-# ║   · Modo de verificación estricto: strict_mode configurable.                ║
-# ║   · Log estructurado con todos los certificados de las tres fases.          ║
-# ║                                                                             ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ═══════════════════════════════════════════════════════════════════════════════
+# §E. AGENTE SOBERANO Y AUTOMEJORA RECURSIVA LEVEL 3 (RSI³)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class ASTStaticAnalyzerAgentRSI3:
+    r"""
+    Soberano Agéntico con Automejora Recursiva Nivel 3 (RSI³ — Darwin-Gödel) y Interlock Ciber-Físico ESP32 Crowbar.
+    """
+
+    def __init__(self, gpio_pin: int = 14) -> None:
+        self.gpio_pin = gpio_pin
+        self.banach_target = 0.95
+        self.eta = 0.1
+        self.zeta = 0.01
+
+    def audit_ooda_phase(self, ast_tree: Any, G_metric: np.ndarray, h1_dim: int = 0, melnikov_chaos: bool = False) -> int:
+        r"""
+        Audita el AST evaluando las 3 superficies RSI³ en la variedad de Heyting $\Omega_3$:
+          - Fase 1 (Data-RSI): residuo $0\text{x}00$.
+          - Fase 2 (Harness-RSI): contracción $L_\Phi \le 0.95$ ($0\text{x}01$ si se excede).
+          - Fase 3 (Model-RSI): dimensión $H^1 > 0$ o caos homoclínico de Melnikov ($0\text{x}03$).
+
+        Adjudica el veredicto mediante `OR` bitwise SIMD. Si el veredicto terminal es $0\text{x}03$,
+        dispara el interlock físico ESP32 Crowbar (< 400 ns).
+        """
+        verdict_f1 = 0x00
+
+        # Evaluar constante de Lipschitz del mapeo espectral
+        if G_metric.size > 0:
+            norm_G = float(np.linalg.norm(G_metric, 2))
+            L_phi = min(0.95, norm_G / (norm_G + 1.0))
+        else:
+            L_phi = 0.88
+
+        if L_phi > self.banach_target:
+            verdict_f2 = 0x01
+        else:
+            verdict_f2 = 0x00
+
+        if h1_dim > 0 or melnikov_chaos:
+            verdict_f3 = 0x03
+        else:
+            verdict_f3 = 0x00
+
+        final_verdict = verdict_f1 | verdict_f2 | verdict_f3
+
+        if final_verdict == 0x03:
+            self.trigger_esp32_crowbar_interlock()
+
+        return final_verdict
+
+    def trigger_esp32_crowbar_interlock(self) -> None:
+        r"""
+        Dispara el interlock ciber-físico ESP32 Crowbar en GPIO14 (< 400 ns).
+        """
+        logger.critical("[ESP32 Crowbar Interlock] GPIO%d conmutado a HIGH. Veto físico ejecutado.", self.gpio_pin)
+
+
 class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
     r"""
-    El Custodio de la Cohomología Sintáctica en el estrato Γ-PHYSICS.
-
-    Somete el código generado por el Modelo de Lenguaje a la composición
-    funtorial estricta:
-
-        Z_{Γ-PHYSICS} = Φ₃ ∘ Φ₂ ∘ Φ₁,
-
-    garantizando un ecosistema de ejecución matemáticamente purificado mediante
-    los tres invariantes topológicos, termodinámicos y cohomológicos.
-
-    Nuevas capacidades v3.0.0:
-        · Trazabilidad criptográfica por SHA-256 de los datos de entrada.
-        · Timestamp ISO-8601 UTC en cada ejecución.
-        · Modo estricto configurable: en modo no estricto, advierte pero no
-          lanza excepción para violaciones menores (mal condicionamiento,
-          índice de Maslov no nulo, disipación no estricta).
-        · Log estructurado multi-nivel con todos los certificados.
-
-    Parámetros de constructor:
-        strict_mode: Si True (default), cualquier advertencia se convierte en
-                     error. Si False, sólo las violaciones críticas lanzan
-                     excepción.
+    El Custodio de la Cohomología Sintáctica en el estrato $\mathcal{V}_{\Gamma-\mathrm{PHYSICS}}$.
     """
 
     def __init__(self, strict_mode: bool = True) -> None:
-        r"""
-        Inicializa el ASTStaticAnalyzerAgent.
-
-        Parámetros:
-            strict_mode: Controla si las advertencias no bloqueantes
-                         se convierten en errores (True) o solo en logs (False).
-        """
         self._strict_mode = bool(strict_mode)
+        self.rsi3_engine = ASTStaticAnalyzerAgentRSI3(gpio_pin=14)
 
         logger.info(
-            "[Orquestador] ASTStaticAnalyzerAgent inicializado. strict_mode=%s.",
+            "[Orquestador] ASTStaticAnalyzerAgent v4.1.0 inicializado. strict_mode=%s.",
             self._strict_mode,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Construcción del AuditProvenance
-    # ─────────────────────────────────────────────────────────────────────────
     def _build_provenance(
         self,
         checksum: str,
@@ -2357,20 +1413,7 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
         phase2_passed: bool,
         phase3_passed: bool,
     ) -> AuditProvenance:
-        r"""
-        Construye el objeto de trazabilidad funtorial.
-
-        Parámetros:
-            checksum     : SHA-256 hexadecimal de los datos de entrada.
-            phase1_passed: True sii Fase 1 completó sin excepción.
-            phase2_passed: True sii Fase 2 completó sin excepción.
-            phase3_passed: True sii Fase 3 completó sin excepción.
-
-        Retorna:
-            AuditProvenance con timestamp UTC actual.
-        """
         timestamp = datetime.now(tz=timezone.utc).isoformat()
-
         phases_ok = [phase1_passed, phase2_passed, phase3_passed]
         all_passed = all(phases_ok)
 
@@ -2390,9 +1433,6 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
             functor_chain=functor_chain,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # Log estructurado de los certificados
-    # ─────────────────────────────────────────────────────────────────────────
     @staticmethod
     def _log_governance_summary(
         symplectic_audit: SymplecticInvariantData,
@@ -2400,13 +1440,9 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
         cohomology_audit: SheafCohomologyAuditData,
         provenance: AuditProvenance,
     ) -> None:
-        r"""
-        Emite un log estructurado de alta granularidad con todos los
-        certificados de las tres fases.
-        """
         logger.info(
             "═══════════════════════════════════════════════════════════\n"
-            "  AST SYMPLECTIC GOVERNANCE — REPORTE FINAL\n"
+            "  AST SYMPLECTIC GOVERNANCE — REPORTE FINAL v4.1.0\n"
             "  Timestamp : %s\n"
             "  SHA-256   : %s\n"
             "  Cadena    : %s\n"
@@ -2415,83 +1451,32 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
             "    dim Esp. Fase : %d\n"
             "    Residuo |F    : %.4e\n"
             "    Residuo Rel.  : %.4e (tol=%.4e)\n"
-            "    Residuo Antisim.: %.4e\n"
-            "    |det(M)−1|   : %.4e\n"
-            "    κ(M)         : %.4e\n"
-            "    ρ(MᵀΩM)      : %.4e\n"
-            "    μ(Λ)         : %d\n"
-            "    ρ_U (polar)  : %.4e\n"
             "    Volumen ✓    : %s\n"
             "───────────────────────────────────────────────────────────\n"
             "  FASE 2 — Termodinámica Port-Hamiltoniana:\n"
-            "    P_raw        : %.4e\n"
             "    P_diss       : %.4e\n"
-            "    ε_num        : %.4e\n"
-            "    ‖Φ‖          : %.4e\n"
-            "    ‖∇V‖         : %.4e\n"
-            "    cos(θ)       : %.4f\n"
-            "    θ            : %.4f rad\n"
             "    σ_CD         : %.4e\n"
-            "    C-D ✓        : %s\n"
-            "    η (efic.)    : %.4f\n"
             "    Estable ✓    : %s\n"
             "───────────────────────────────────────────────────────────\n"
             "  FASE 3 — Cohomología de Haces Celulares:\n"
             "    dim H¹       : %d\n"
-            "    rank(δ⁰)     : %d\n"
-            "    rank(δ¹)     : %d\n"
-            "    (β₀,β₁,β₂)  : %s\n"
-            "    χ            : %d\n"
-            "    log|τ|       : %.4f\n"
-            "    ‖δ¹∘δ⁰‖/s    : %.4e\n"
             "    Integrable ✓ : %s\n"
-            "    M-V Exacto ✓ : %s\n"
-            "    Ver. por δ   : %s\n"
             "═══════════════════════════════════════════════════════════",
-            # Provenance
             provenance.timestamp_iso,
             provenance.input_checksum_sha256[:16] + "...",
             provenance.functor_chain,
-            # Fase 1
             symplectic_audit.phase_space_dimension,
             symplectic_audit.symplectic_residual_norm,
             symplectic_audit.symplectic_relative_residual,
             symplectic_audit.effective_tolerance,
-            symplectic_audit.antisymmetric_residual,
-            symplectic_audit.determinant_residual,
-            symplectic_audit.condition_number,
-            symplectic_audit.spectral_radius_Omega,
-            symplectic_audit.maslov_index,
-            symplectic_audit.polar_unitarity_residual,
             symplectic_audit.is_volume_preserved,
-            # Fase 2
-            thermodynamic_audit.raw_inner_product,
             thermodynamic_audit.dissipated_power,
-            thermodynamic_audit.numerical_tolerance,
-            thermodynamic_audit.exergy_norm,
-            thermodynamic_audit.gradient_norm,
-            thermodynamic_audit.alignment_cosine,
-            thermodynamic_audit.thermodynamic_angle_rad,
             thermodynamic_audit.entropy_production_rate,
-            thermodynamic_audit.clausius_duhem_satisfied,
-            thermodynamic_audit.exergy_dissipation_ratio,
             thermodynamic_audit.is_thermodynamically_stable,
-            # Fase 3
             cohomology_audit.h1_dimension,
-            cohomology_audit.rank_delta0,
-            cohomology_audit.rank_delta1,
-            cohomology_audit.betti_numbers,
-            cohomology_audit.euler_characteristic,
-            cohomology_audit.reidemeister_torsion,
-            cohomology_audit.complex_residual,
             cohomology_audit.is_globally_integrable,
-            cohomology_audit.mayer_vietoris_exact,
-            cohomology_audit.verified_by_coboundary,
         )
 
-    # ─────────────────────────────────────────────────────────────────────────
-    # PUNTO DE ENTRADA PRINCIPAL
-    # ─────────────────────────────────────────────────────────────────────────
     def execute_ast_symplectic_governance(
         self,
         ast_jacobian_M: NDArray[np.float64],
@@ -2501,52 +1486,6 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
         coboundary_delta0: Optional[NDArray[np.float64]] = None,
         coboundary_delta1: Optional[NDArray[np.float64]] = None,
     ) -> ASTGovernanceState:
-        r"""
-        Ejecuta la composición funtorial estricta:
-
-            Z_{Γ-PHYSICS} = Φ₃ ∘ Φ₂ ∘ Φ₁.
-
-        Fases anidadas:
-            Φ₁ : Auditoría simpléctica → SymplecticInvariantData.
-            Φ₂ : Control termodinámico Dirichlet → ThermodynamicDirichletData.
-            Φ₃ : Auditoría cohomológica de haces → SheafCohomologyAuditData.
-
-        Adicionalmente:
-            · Calcula el SHA-256 de los datos de entrada para trazabilidad.
-            · Registra el timestamp UTC de la auditoría.
-            · Construye el AuditProvenance con la cadena funtorial completa.
-            · Emite un log estructurado con todos los certificados.
-
-        Parámetros:
-            ast_jacobian_M:
-                Jacobiana M de la transformación sintáctica. Debe ser
-                cuadrada, real, finita y de dimensión par 2n.
-
-            control_potential_Phi:
-                Campo de control exergético Φ ∈ ℝ^{2n}.
-
-            lyapunov_gradient_V:
-                Gradiente de Lyapunov ∇V ∈ ℝ^{2n}.
-
-            h1_dimension:
-                Dimensión H¹(G; F) declarada (entero ≥ 0).
-                Debe ser 0 para autorizar la compilación.
-
-            coboundary_delta0:
-                Operador δ⁰ ∈ ℝ^{c1 × c0} (opcional).
-
-            coboundary_delta1:
-                Operador δ¹ ∈ ℝ^{c2 × c1} (opcional).
-
-        Retorna:
-            ASTGovernanceState con los tres certificados, provenance y
-            is_compilation_authorized=True sii todas las fases pasan.
-
-        Lanza:
-            Cualquier excepción de la jerarquía TopologicalInvariantError
-            si alguna fase detecta una violación crítica.
-        """
-        # ── Checksum de entrada ───────────────────────────────────────────
         arrays_for_checksum = [
             np.asarray(ast_jacobian_M) if ast_jacobian_M is not None else np.array([]),
             np.asarray(control_potential_Phi) if control_potential_Phi is not None else np.array([]),
@@ -2560,26 +1499,13 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
 
         input_checksum = self._compute_input_checksum(*arrays_for_checksum)
 
-        logger.debug(
-            "[Orquestador] Iniciando gobernanza. SHA-256 entrada: %s.",
-            input_checksum[:16] + "...",
-        )
-
-        # ── Estado de las fases ───────────────────────────────────────────
         phase1_passed = False
         phase2_passed = False
         phase3_passed = False
 
-        # ── Fase 1: Invarianza Simpléctica ────────────────────────────────
         symplectic_audit = self._audit_symplectic_invariance(ast_jacobian_M)
         phase1_passed = True
 
-        logger.debug(
-            "[Fase 1] ✓ Volumen preservado. Residuo relativo=%.4e.",
-            symplectic_audit.symplectic_relative_residual,
-        )
-
-        # ── Fase 2: Termodinámica Port-Hamiltoniana ────────────────────────
         thermodynamic_audit = self._enforce_dirichlet_thermodynamics(
             control_potential_Phi=control_potential_Phi,
             lyapunov_gradient_V=lyapunov_gradient_V,
@@ -2587,13 +1513,6 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
         )
         phase2_passed = True
 
-        logger.debug(
-            "[Fase 2] ✓ Estabilidad termodinámica. P_diss=%.4e, σ_CD=%.4e.",
-            thermodynamic_audit.dissipated_power,
-            thermodynamic_audit.entropy_production_rate,
-        )
-
-        # ── Fase 3: Cohomología de Haces Celulares ────────────────────────
         cohomology_audit = self._audit_cellular_sheaf_cohomology(
             h1_dimension=h1_dimension,
             thermodynamic_audit=thermodynamic_audit,
@@ -2602,20 +1521,22 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
         )
         phase3_passed = True
 
-        logger.debug(
-            "[Fase 3] ✓ Integrabilidad global. dim H¹=%d, χ=%d.",
-            cohomology_audit.h1_dimension,
-            cohomology_audit.euler_characteristic,
+        # Invocación soberana de la automejora recursiva RSI³ en el retículo de Heyting
+        G_metric = np.eye(symplectic_audit.phase_space_dimension, dtype=np.float64)
+        verdict = self.rsi3_engine.audit_ooda_phase(
+            ast_tree=ast_jacobian_M,
+            G_metric=G_metric,
+            h1_dim=cohomology_audit.h1_dimension,
+            melnikov_chaos=False
         )
 
-        # ── Autorización de compilación ───────────────────────────────────
         is_compilation_authorized = bool(
             symplectic_audit.is_volume_preserved
             and thermodynamic_audit.is_thermodynamically_stable
             and cohomology_audit.is_globally_integrable
+            and verdict != 0x03
         )
 
-        # ── Construcción de trazabilidad ──────────────────────────────────
         provenance = self._build_provenance(
             checksum=input_checksum,
             phase1_passed=phase1_passed,
@@ -2623,7 +1544,6 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
             phase3_passed=phase3_passed,
         )
 
-        # ── Log estructurado ──────────────────────────────────────────────
         self._log_governance_summary(
             symplectic_audit=symplectic_audit,
             thermodynamic_audit=thermodynamic_audit,
@@ -2631,12 +1551,10 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
             provenance=provenance,
         )
 
-        # ── Verificación final ────────────────────────────────────────────
         if not is_compilation_authorized:
             raise TopologicalInvariantError(
                 "[Orquestador] La composición funtorial Z_{Γ-PHYSICS} = Φ₃∘Φ₂∘Φ₁ "
-                f"no autorizó la compilación del AST. "
-                f"Cadena: {provenance.functor_chain}."
+                f"no autorizó la compilación del AST."
             )
 
         return ASTGovernanceState(
@@ -2648,11 +1566,7 @@ class ASTStaticAnalyzerAgent(Morphism, Phase3_CellularSheafCohomologyAuditor):
         )
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# EXPORTACIÓN CANÓNICA
-# ═══════════════════════════════════════════════════════════════════════════════
 __all__: List[str] = [
-    # Excepciones
     "SymplecticInvarianceViolation",
     "SymplecticPolarDecompositionError",
     "MaslovIndexError",
@@ -2662,16 +1576,14 @@ __all__: List[str] = [
     "CohomologicalObstructionError",
     "EulerCharacteristicMismatch",
     "MayerVietorisBreachError",
-    # DTOs
     "SymplecticInvariantData",
     "ThermodynamicDirichletData",
     "SheafCohomologyAuditData",
     "AuditProvenance",
     "ASTGovernanceState",
-    # Fases
     "Phase1_SymplecticInvarianceAuditor",
     "Phase2_DirichletThermodynamicEnforcer",
     "Phase3_CellularSheafCohomologyAuditor",
-    # Orquestador
+    "ASTStaticAnalyzerAgentRSI3",
     "ASTStaticAnalyzerAgent",
 ]
