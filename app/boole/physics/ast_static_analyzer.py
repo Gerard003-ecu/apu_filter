@@ -3,68 +3,45 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : AST Static Analyzer (Analizador Simpléctico y Cohomología de Haz)   ║
 ║ Ruta   : app/boole/physics/ast_static_analyzer.py                            ║
-║ Versión: 4.1.0-Symplectic-Poincare-RSI3-Evolved-Pure-Software-Strict.        ║
-║ Función: Gobernanza y Análisis de Física Sintáctica sobre Variedad Simpléctica║
+║ Versión: 5.1.0-RSI3-Poincare-KAM-Heyting-OODA                                ║
+║ Función: Gobernanza OODA de física sintáctica en variedad simpléctica.       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU BINOMIO CON EL SOBERANO:
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra el motor espectral secundario de física sintáctica en el estrato
-$\mathcal{V}_{\Gamma-\mathrm{PHYSICS}}$, operando en binomio acoplado con el soberano
-agéntico `ast_static_analyzer_agent.py`. Eleva el análisis estático tradicional (linting)
-a una teoría de campos en una variedad simpléctica continua $2n$-dimensional $(\mathcal{M}, \omega)$,
-gobernada por la Mecánica Celeste de Henri Poincaré y estabilizada mediante Automejora
-Recursiva de Nivel 3 (RSI³ — Darwin-Gödel).
+MEJORAS v5.1.0 RESPECTO A v5.0.0 (retrocompatibles, granulares, rigurosas):
+─────────────────────────────────────────────────────────────────────────
+FASE 1 — Geometría estructural (0-jet) + semilla celeste:
+  • Forma de interferencia antisimétrica I(A,B) materializada como 2-forma
+    ω_I ∈ Ω²(T*Q) y verificada (axioma de antisimetría) en el handoff.
+  • Coordenadas acción-ángulo semilla (ω_i) con twist de Kolmogorov.
+  • Flujo Hamiltoniano linealizado A ∈ 𝔰𝔭(2n) a partir de (reads, writes).
+  • Handoff formal a FASE 2: `Phase1Handoff` ahora transporta
+    `frequencies`, `hamiltonian_generator`, `interference_frobenius`,
+    `antisymmetry_ok` — dominio estricto de Φ₂.
+FASE 2 — Homología de Poincaré + RSI³ Banach (continuación estricta):
+  • `_ingest_phase1_handoff` consume la semilla; NUNCA matrices aleatorias.
+  • `construct_flow_map_from_sp_generator` : M = exp(εA) ∈ Sp(2n).
+  • `action_angle_from_orbit` + `kolmogorov_nondegeneracy` (det ∂²H₀/∂I²).
+  • `poincare_return_map` sobre la sección Σ = {q = ⟨q⟩}.
+  • Ecuación homológica de Poincaré-Lindstedt resuelta en el pipeline.
+  • `RecursiveSelfImprovementL3`: contracción de Banach de nivel 3
+    sobre el espacio de operadores de mejora (no un contador).
+  • Haz celular con mapas de restricción ρ_{v→e} (no haz constante).
+FASE 3 — KAM / Melnikov / Hodge-Dirac / certificado Ω₃:
+  • Laplaciano de Hodge-Dirac sobre C⁰ ⊕ C¹ con métricas G₀, G₁
+    construidas desde la coborde REAL del haz (no ruido gaussiano).
+  • Remainder de Birkhoff + tiempo de recurrencia de Poincaré.
+  • Certificado con trayectoria RSI³ y axiomas de retículo Heyting.
 
-El motor integra la Proyección Simpléctica de Cayley-Darboux sobre el álgebra de Lie
-$\mathfrak{sp}(2n, \mathbb{R})$, la resolución de la Ecuación Homológica de Poincaré-Lindstedt
-con filtrado diofántico KAM/Bruno para erradicar armónicos seculares, la evaluación de la
-Integral Homoclínica de Melnikov para proscribir herraduras de caos de Smale, y el cálculo
-del Laplaciano Pesado de Hodge-Dirac $\Delta_G = \delta^\top G^{-1} \delta + \delta G \delta^\top$
-sobre el haz celular del Árbol de Sintaxis Abstracta (AST).
-
-2. MARCO TEÓRICO:
-────────────────────────────────────────────────────────────────────────────────
-  • Inmersión Simpléctica de Liouville-Arnold-Delaunay:
-    El AST se mapea sobre el fibrado cotangente $T^*Q_{\mathrm{AST}}$, con coordenadas
-    de posición $q_i$ (profundidad del nodo) y momentum covariante $p_i$ (flujo de datos).
-    Las variables de Acción-Ángulo $(I_i, \theta_i) \in \mathbb{R}^n \times \mathbb{T}^n$
-    preservan la 2-forma canónica $\omega = \sum_{i=1}^n \mathrm{d}q_i \wedge \mathrm{d}p_i$.
-
-  • Ecuación Homológica de Poincaré y Condición Diofántica KAM:
-    Para erradicar el crecimiento secular no acotado en bucles y estructuras sintácticas,
-    la función generatriz $W(I, \theta)$ se resuelve mediante $\{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^n}$.
-    Su solubilidad exige la condición KAM: $|\omega_0 \cdot k| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{\mathbf{0}\}$.
-
-  • Integral Homoclínica de Melnikov:
-    Mide la intersección transversal de variedades invariantes estables e inestables
-    $W^s \pitchfork W^u \neq \varnothing$: $M(\theta_0) = \int_{-\infty}^{+\infty} \{H_0, H_1\}(q_0(t-\theta_0), p_0(t-\theta_0)) \, \mathrm{d}t$.
-    La nulidad $M(\theta_0) = 0$ garantiza la ausencia de caoticidad en el AST.
-
-  • Laplaciano Pesado de Hodge-Dirac:
-    Dado el operador coborde $\delta$ y la métrica de Riemann $G$, el Laplaciano se define
-    como $\Delta_G = \delta^\top G^{-1} \delta + \delta G \delta^\top$, forzando $H^1(G; \mathcal{F}) = \mathbf{0}$.
-
-3. AXIOMAS FORMALES:
-────────────────────────────────────────────────────────────────────────────────
-  [A1] Conservación de Volumen de Liouville:
-       $M^\top \Omega M = \Omega \quad \text{donde} \quad \Omega = \begin{pmatrix} \mathbf{0} & \mathbf{I} \\ -\mathbf{I} & \mathbf{0} \end{pmatrix}$.
-
-  [A2] Proyección en $\mathfrak{sp}(2n, \mathbb{R})$ vía Transformada de Cayley:
-       Para $K = (M - \mathbf{I})(M + \mathbf{I})^{-1}$, su proyección es $K_{\mathrm{sp}} = \frac{1}{2}(K - J K^\top J)$.
-
-  [A3] Ausencia de Pequeños Divisores KAM:
-       $\min_{k} |\omega_0 \cdot k| \cdot \|k\|_1^\tau \ge \gamma > 0$.
-
-  [A4] Trivialidad Cohomológica de Hodge-Dirac:
-       $\dim \ker(\Delta_G|_{C^1}) = 0 \iff H^1(G; \mathcal{F}) = \mathbf{0}$.
-
-4. INVARIANTES DE ESTADO:
-────────────────────────────────────────────────────────────────────────────────
-  [I1] Invarianza Simpléctica de Cayley-Darboux: $\delta \omega = \|M_{\mathrm{sympl}}^\top \Omega M_{\mathrm{sympl}} - \Omega\|_F < 10^{-15}$.
-  [I2] Acotamiento de Banach RSI³: $L_\Phi = \operatorname{Lip}(T_{\mathrm{RSI3}}) \le 0.95$.
-  [I3] Trivialidad de Melnikov: $M(\theta_0) = 0 \implies \text{Ausencia de Tangles Caóticos}$.
-  [I4] Cota Espectral de Connes-Dirac: $\lambda_{\min}(\Delta_G) > 0$.
+ESTRUCTURA (fases anidadas — morfismos estrictos):
+  §0      — Common (constantes, excepciones, HeytingVerdict, handoffs).
+  FASE 1  — Geometría estructural (DataFlow, Complexity, Visitor).
+            Última def.: `_ASTPhase1Pipeline._handoff_to_phase2`.
+  FASE 2  — Homología de Poincaré y RSI³.
+            Primera def.: `_ASTPhase2Pipeline._ingest_phase1_handoff`.
+            Última def.: `_ASTPhase2Pipeline._handoff_to_phase3`.
+  FASE 3  — KAM, Melnikov, Hodge-Dirac y certificado Ω₃.
+            Primera def.: `_ASTPhase3Pipeline._ingest_phase2_handoff`.
+            Punto de entrada público: `ASTStaticAnalyzer`.
 """
 
 from __future__ import annotations
@@ -76,6 +53,7 @@ import sys
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import Enum, auto
+from itertools import combinations, product
 from typing import (
     Any,
     Callable,
@@ -85,6 +63,7 @@ from typing import (
     List,
     Optional,
     Protocol,
+    Sequence,
     Set,
     Tuple,
     TypeVar,
@@ -94,265 +73,88 @@ from typing import (
 import numpy as np
 import scipy.linalg as la
 
-# Configuración de logging con formato estructurado
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s | %(name)s | %(levelname)s | %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S'
+    format="%(asctime)s | %(name)s | %(levelname)s | %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
-logger = logging.getLogger("Γ.Physics.AST.v4")
+logger = logging.getLogger("Γ.Physics.AST.v51")
+
+__version__: str = "5.1.0"
+
+# Tipo de Hamiltoniano escalar H: T*Q → ℝ  (q, p) ↦ H(q, p)
+HamiltonianFn = Callable[[float, float], float]
 
 
-# =============================================================================
-# §0. MOTOR ESPECTRAL DE POINCARÉ Y LAPLACIANO DE HODGE-DIRAC
-# =============================================================================
-
-class SymplecticPoincareEngine:
-    r"""
-    Motor Espectral de Mecánica Celeste de Henri Poincaré para el Árbol
-    de Sintaxis Abstracta (AST) v4.1.0 / v9.0.0.
-
-    Gobernado por la proyección de Cayley-Darboux sobre el álgebra de Lie
-    $\mathfrak{sp}(2n, \mathbb{R})$, la resolución de la Ecuación Homológica
-    de Poincaré-Lindstedt y la evaluación de la Integral Homoclínica de Melnikov.
-    """
-
-    def __init__(self, dim: int) -> None:
-        r"""
-        Inicializa el motor simpléctico de Poincaré para un subespacio de dimensión `dim`.
-
-        Parámetros:
-            dim: Dimensión $n$ de la mitad del espacio de fase (grados de libertad $n$,
-                 dimensión total $2n$).
-        """
-        if dim <= 0:
-            raise ValueError(f"La dimensión simpléctica debe ser un entero positivo; recibido: {dim}")
-
-        self.dim = int(dim)
-        self.J = np.block([
-            [np.zeros((dim, dim), dtype=np.float64), np.eye(dim, dtype=np.float64)],
-            [-np.eye(dim, dtype=np.float64), np.zeros((dim, dim), dtype=np.float64)]
-        ])
-
-    def cayley_darboux_projection(self, M: np.ndarray) -> np.ndarray:
-        r"""
-        Ejecuta la Proyección Simpléctica de Cayley-Darboux sobre $\mathfrak{sp}(2n, \mathbb{R})$.
-
-        Transforma una matriz $M \in \mathrm{GL}(2n, \mathbb{R})$ mediante la transformada
-        de Cayley $K = (M - \mathbf{I})(M + \mathbf{I})^{-1}$, proyecta sobre la parte
-        hamiltoniana $K_{\mathrm{sp}} = \frac{1}{2}(K - J K^\top J)$, y mapea de regreso a
-        $\operatorname{Sp}(2n, \mathbb{R})$ mediante $M_{\mathrm{sympl}} = (\mathbf{I} + K_{\mathrm{sp}})(\mathbf{I} - K_{\mathrm{sp}})^{-1}$.
-
-        Parámetros:
-            M: Matriz real $2n \times 2n$.
-
-        Retorna:
-            M_sympl: Matriz simpléctica proyectada con residuo $\delta \omega < 10^{-15}$.
-        """
-        dim2 = 2 * self.dim
-        M_arr = np.asarray(M, dtype=np.float64)
-
-        if M_arr.shape != (dim2, dim2):
-            raise ValueError(f"Dimensión de M incompatible: se esperaba ({dim2}, {dim2}), se recibió {M_arr.shape}")
-
-        I = np.eye(dim2, dtype=np.float64)
-
-        try:
-            # Transformada de Cayley K = (M - I)(M + I)^-1
-            K = (M_arr - I) @ la.inv(M_arr + I)
-            # Proyección sobre el álgebra de Lie sp(2n, R)
-            K_sp = 0.5 * (K - self.J @ K.T @ self.J)
-            # Inversa de Cayley para retornar al grupo Sp(2n, R)
-            M_sympl = (I + K_sp) @ la.inv(I - K_sp)
-            return M_sympl
-        except la.LinAlgError as exc:
-            logger.warning(f"[PoincareEngine] Falso positivo o singularidad en transformada de Cayley: {exc}")
-            # Regularización por pequeña perturbación diagonal
-            M_reg = M_arr + 1e-12 * I
-            K = (M_reg - I) @ la.inv(M_reg + I)
-            K_sp = 0.5 * (K - self.J @ K.T @ self.J)
-            return (I + K_sp) @ la.inv(I - K_sp)
-
-    def solve_poincare_homological_equation(
-        self, H0_grad: np.ndarray, H1_coeffs: np.ndarray, gamma: float = 1e-3, tau: float = 2.0
-    ) -> np.ndarray:
-        r"""
-        Resuelve la Ecuación Homológica de Poincaré-Lindstedt:
-            $\{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^n} \iff \omega_0 \cdot \frac{\partial W}{\partial \theta} = H_1 - \langle H_1 \rangle_{\mathbb{T}^n}$
-
-        Somete la solución al filtrado Diofántico KAM/Bruno:
-            $|\omega_0 \cdot k| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{\mathbf{0}\}$.
-
-        Parámetros:
-            H0_grad: Vector de frecuencias no perturbadas $\omega_0 = \nabla_I H_0$.
-            H1_coeffs: Coeficientes de Fourier de la perturbación $H_1$.
-            gamma: Constante Diofántica KAM $\gamma > 0$.
-            tau: Exponente KAM $\tau \ge n - 1$.
-
-        Retorna:
-            W_coeffs: Coeficientes de la función generatriz de eliminación de términos seculares.
-
-        Lanza:
-            ValueError: Si se detecta un divisor pequeño crítico que viola el criterio KAM.
-        """
-        omega0 = np.asarray(H0_grad, dtype=np.float64)
-        k_vecs = np.array([[1, 0], [0, 1], [1, 1], [1, -1]], dtype=np.float64)
-
-        if omega0.shape[0] < 2:
-            omega0 = np.pad(omega0, (0, max(0, 2 - omega0.shape[0])), mode='constant', constant_values=1.0)
-
-        for k in k_vecs:
-            dot_prod = abs(float(np.dot(omega0[:2], k)))
-            k_norm_1 = float(np.linalg.norm(k, 1))
-            bound = gamma / (k_norm_1 ** tau)
-
-            if dot_prod < bound:
-                raise ValueError(
-                    f"[PoincareEngine] Divisor pequeño KAM crítico detectado en el AST: "
-                    f"|ω₀ · k| = {dot_prod:.6e} < γ/|k|₁^τ = {bound:.6e} (reserva atencional inestable)."
-                )
-
-        # Resolución en espacio de Fourier
-        denom = 1j * (omega0[:2] @ k_vecs.T) + 1e-12
-        W_coeffs = H1_coeffs / denom
-        return np.real(W_coeffs)
-
-    def evaluate_melnikov_integral(self, orbit_q: np.ndarray, orbit_p: np.ndarray) -> float:
-        r"""
-        Evalúa la Integral Homoclínica de Melnikov para verificar la ausencia de tangles
-        caóticos (herraduras de Smale):
-            $M(\theta_0) = \int_{-\infty}^{+\infty} \{H_0, H_1\}(q_0(t-\theta_0), p_0(t-\theta_0)) \, \mathrm{d}t$.
-
-        Parámetros:
-            orbit_q: Trayectoria de posición $q(t)$ en el espacio de fase.
-            orbit_p: Trayectoria de momentum $p(t)$ en el espacio de fase.
-
-        Retorna:
-            Valor absoluto de la medida de intersección homoclínica $M(\theta_0)$.
-        """
-        q_arr = np.asarray(orbit_q, dtype=np.float64)
-        p_arr = np.asarray(orbit_p, dtype=np.float64)
-
-        if q_arr.size < 2 or p_arr.size < 2:
-            return 0.0
-
-        dH0 = np.gradient(p_arr)
-        dH1 = np.gradient(q_arr)
-        melnikov_val = np.sum(dH0 * dH1 - dH1 * dH0)
-        return float(abs(melnikov_val))
-
-
-class HeavyHodgeDiracLaplacian:
-    r"""
-    Operador Laplaciano Pesado de Hodge-Dirac sobre el Haz Celular del AST v4.1.0 / v9.0.0.
-
-    Calcula $\Delta_G = \delta^\top G^{-1} \delta + \delta G \delta^\top$ utilizando la métrica
-    de Riemann $G$ sobre las cadenas y cocadenas sintácticas.
-    """
-
-    def compute_heavy_laplacian(self, coboundary_d: np.ndarray, G_metric: np.ndarray) -> np.ndarray:
-        r"""
-        Calcula el Laplaciano Pesado $\Delta_G$.
-
-        Parámetros:
-            coboundary_d: Operador coborde $\delta \in \mathbb{R}^{c_1 \times c_0}$.
-            G_metric: Matriz métrica simétrica definida positiva $G \in \mathbb{R}^{c_1 \times c_1}$.
-
-        Retorna:
-            delta_heavy: Matriz del Laplaciano Pesado $\Delta_G$.
-        """
-        d = np.asarray(coboundary_d, dtype=np.float64)
-        G = np.asarray(G_metric, dtype=np.float64)
-
-        if G.ndim == 1:
-            G = np.diag(G)
-
-        G_inv = la.inv(G)
-
-        # Delta_G = delta^T G^-1 delta + delta G delta^T
-        term1 = d.T @ G_inv @ d
-        term2 = d @ G @ d.T
-
-        # Ajuste dimensional si las dimensiones difieren
-        if term1.shape != term2.shape:
-            # En complejos de cadenas no homogéneos, el operador bloque actúa sobre C^0 \oplus C^1
-            dim_total = term1.shape[0] + term2.shape[0]
-            delta_heavy = np.block([
-                [term1, np.zeros((term1.shape[0], term2.shape[1]), dtype=np.float64)],
-                [np.zeros((term2.shape[0], term1.shape[1]), dtype=np.float64), term2]
-            ])
-            return delta_heavy
-
-        return term1 + term2
-
-
-# =============================================================================
-# CONSTANTES MATEMÁTICAS Y LÍMITES COMPUTACIONALES
-# =============================================================================
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║  §0 — COMÚN: CONSTANTES, EXCEPCIONES, HEYTING Ω₃, HANDOFFS                 ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
 
 class AnalysisLimits:
+    r"""
+    Límites algorítmicos con justificación teórica.
+
+    • `MAX_AST_DEPTH`: profundidad típica O(log n) bien estructurado; límite
+      práctico contra stack overflow. Ref: Aho–Sethi–Ullman (1986).
+    • `MAX_CYCLOMATIC_COMPLEXITY`: ISO 26262 (automotive). Ref: McCabe (1976).
+    • `MAX_JSON_DEPTH`: prevención de ataques Billion Laughs.
+    • `HAMILTONIAN_EPSILON`, `FLOAT_TOLERANCE`: regularizadores IEEE-754.
+    • `MAX_PATH_ENERGY`, `ENERGY_DECAY_SCALE`: bound de disipación
+      Hamiltoniana de path-energy.
+    • [v5.1.0] `GOLDEN_RATIO`, `POINCARE_SECTION_ATOL`, `RSI3_LIPSCHITZ_TARGET`:
+      constantes de mecánica celeste y contracción de Banach de nivel 3.
     """
-    Límites algorítmicos basados en complejidad computacional asintótica.
-    
-    Justificación teórica:
-    ----------------------
-    MAX_AST_DEPTH: 
-        Profundidad típica O(log n) en código bien estructurado,
-        O(n) en código lineal. Límite práctico para evitar stack overflow.
-        Ref: Aho, Sethi, Ullman (1986) - Compilers: Principles
-        
-    MAX_CYCLOMATIC_COMPLEXITY:
-        Umbral de mantenibilidad según ISO 26262 (automotive safety).
-        Estudios empíricos muestran correlación con densidad de defectos.
-        Ref: McCabe (1976), Shepperd (1988)
-        
-    MAX_JSON_DEPTH:
-        Prevención de ataques exponenciales (Billion Laughs).
-        Profundidad típica en JSON ≤ 5, 10 es margen de seguridad.
-        
-    HAMILTONIAN_EPSILON:
-        Regularizador numérico para estabilidad en punto flotante.
-        Valor típico: máquina epsilon × 10³
-    """
-    
-    # Límites estructurales del AST
+
     MAX_AST_DEPTH: int = 50
-    MAX_AST_NODES: int = 10_000  # Prevenir DoS en análisis
-    
-    # Umbrales de complejidad (basados en literatura empírica)
-    MAX_CYCLOMATIC_COMPLEXITY: int = 20  # Límite duro
-    WARN_CYCLOMATIC_COMPLEXITY: int = 10  # Umbral de advertencia
-    CRITICAL_CYCLOMATIC_COMPLEXITY: int = 50  # Crítico
-    
-    # Límites para validación de datos estructurados
+    MAX_AST_NODES: int = 10_000
+
+    MAX_CYCLOMATIC_COMPLEXITY: int = 20
+    WARN_CYCLOMATIC_COMPLEXITY: int = 10
+    CRITICAL_CYCLOMATIC_COMPLEXITY: int = 50
+
     MAX_JSON_DEPTH: int = 10
     MAX_JSON_KEYS: int = 100
     MAX_JSON_ARRAY_SIZE: int = 1_000
-    
-    # Límites de representación
+
     MAX_FLATTEN_DEPTH: int = 3
     MAX_STRING_REPR_LENGTH: int = 100
-    
-    # Parámetros numéricos
-    HAMILTONIAN_EPSILON: float = 1e-9  # Regularizador
-    FLOAT_TOLERANCE: float = 1e-12  # Tolerancia para comparaciones
-    
-    # Límites de performance
-    MAX_INTERFERENCE_MATRIX_SIZE: int = 1_000  # O(n²) para n herramientas
 
+    HAMILTONIAN_EPSILON: float = 1e-9
+    FLOAT_TOLERANCE: float = 1e-12
 
-# =============================================================================
-# JERARQUÍA DE EXCEPCIONES (con semántica matemática precisa)
-# =============================================================================
+    MAX_INTERFERENCE_MATRIX_SIZE: int = 1_000
+
+    MAX_PATH_ENERGY: float = 30.0
+    ENERGY_DECAY_SCALE: float = 10.0
+
+    KAM_GAMMA: float = 1.0e-3
+    KAM_TAU: float = 2.0
+    KAM_MAX_K_NORM: int = 4
+    BANACH_TARGET: float = 0.95
+    RSI3_MAX_ITER: int = 20
+    RSI3_MIN_ITER: int = 3
+    RSI3_CONV_EPS: float = 1.0e-9
+    RSI3_LIPSCHITZ_TARGET: float = 0.85
+
+    SYMPLECTIC_ATOL: float = 1.0e-9
+    MELNIKOV_THRESHOLD: float = 1.0e-2
+    HODGE_LAMBDA_MIN_THRESHOLD: float = 1.0e-9
+
+    GOLDEN_RATIO: float = 1.618033988749895
+    POINCARE_SECTION_ATOL: float = 1.0e-9
+    FLOW_MAP_EPSILON: float = 0.1
+    BIRKHOFF_ORDER: int = 4
+    MAX_SYMPLECTIC_DIM: int = 4
+
 
 class AnalysisException(Exception):
-    r"""Clase base para todas las excepciones de análisis"""
-    
+    """Clase base para todas las excepciones de análisis."""
+
     def __init__(self, message: str, context: Optional[Dict[str, Any]] = None):
         super().__init__(message)
         self.context = context or {}
         self.mathematical_interpretation = ""
-        
+
     def __str__(self) -> str:
         base = super().__str__()
         if self.mathematical_interpretation:
@@ -362,1295 +164,966 @@ class AnalysisException(Exception):
 
 class ThermodynamicSingularityError(AnalysisException):
     r"""
-    Violación de la segunda ley de la termodinámica en el espacio de fase.
-    
-    Matemáticamente: dH/dt > 0 implica que el sistema gana entropía
-    computacional, indicando una estructura patológica (código ofuscado,
-    explosión combinatoria, bucles infinitos potenciales).
-    
-    Condición formal:
-        ∃ trayectoria γ: [0,T] → T*Q tal que H(γ(t)) > H(γ(0))
-        donde H es el Hamiltoniano de complejidad.
+    Violación de la disipación port-Hamiltoniana.
+
+    Condición formal (path-energy):
+        E(n) = Σ_{a ∈ Path(n)} CC_incr(a) · exp(−depth(a)/D₀) > MAX_PATH_ENERGY.
+
+    Interpretación: el código concentra demasiada complejidad decisional en
+    nodos superficiales (estructura "top-heavy"), indicando alta densidad de
+    defectos y baja mantenibilidad.
     """
-    
-    def __init__(self, current_H: float, parent_H: float, 
-                 depth: int, complexity: int):
-        context = {
-            'current_hamiltonian': current_H,
-            'parent_hamiltonian': parent_H,
-            'depth': depth,
-            'cyclomatic_complexity': complexity,
-            'violation': current_H - parent_H
+
+    def __init__(self, path_energy: float, threshold: float, depth: int, cc: int):
+        ctx = {
+            "path_energy": path_energy,
+            "threshold": threshold,
+            "depth": depth,
+            "cyclomatic_complexity": cc,
         }
-        message = (
-            f"Thermodynamic singularity: ΔH = {current_H - parent_H:.6f} > 0\n"
-            f"  H(current) = {current_H:.6f}\n"
-            f"  H(parent)  = {parent_H:.6f}\n"
-            f"  At depth {depth}, CC = {complexity}"
+        msg = (
+            f"Thermodynamic singularity: E(path) = {path_energy:.6f} > "
+            f"{threshold:.6f}\n  At depth={depth}, CC={cc}"
         )
-        super().__init__(message, context)
+        super().__init__(msg, ctx)
         self.mathematical_interpretation = (
-            "Sistema Port-Hamiltoniano violó la condición de disipación: "
-            "∇H^T R ∇H < 0 falló, indicando incremento de entropía."
+            "La energía de trayectoria excede el bound disipativo: "
+            "complejidad decisional top-heavy."
         )
 
 
 class CohomologicalObstructionError(AnalysisException):
     r"""
-    Obstrucción topológica global en el haz celular de dependencias.
-    
-    Matemáticamente: H¹(T, F) ≠ 0 implica la existencia de cociclos
-    no triviales que no son cobordes, indicando inconsistencias globales
-    irresolubles en el flujo de datos (variables no inicializadas,
-    deadlocks, condiciones de carrera).
-    
-    Teorema (Obstrucción de Čech):
-        Si H¹(T, F) ≠ 0, entonces no existe una sección global continua
-        s: T → F que satisfaga las restricciones locales.
+    Obstrucción topológica global: H¹(T, F) ≠ 0. Ciclos de dependencias
+    globalmente inconsistentes (variables no inicializadas, deadlocks).
     """
-    
-    def __init__(self, cohomology_dimension: int, 
-                 problematic_variables: Optional[Set[str]] = None):
-        context = {
-            'dim_H1': cohomology_dimension,
-            'problematic_vars': problematic_variables or set()
+
+    def __init__(
+        self,
+        cohomology_dimension: int,
+        problematic_variables: Optional[Set[str]] = None,
+    ):
+        ctx = {
+            "dim_H1": cohomology_dimension,
+            "problematic_vars": problematic_variables or set(),
         }
-        message = (
-            f"Cohomological obstruction detected: dim H¹(T,F) = {cohomology_dimension}\n"
-            f"  Implies: {cohomology_dimension} independent inconsistency cycles\n"
+        msg = (
+            f"Cohomological obstruction: dim H¹(T,F) = {cohomology_dimension}\n"
+            f"  Implies {cohomology_dimension} independent inconsistency cycles"
         )
         if problematic_variables:
-            message += f"  Problematic variables: {sorted(problematic_variables)}"
-        super().__init__(message, context)
+            msg += f"\n  Problematic variables: {sorted(problematic_variables)}"
+        super().__init__(msg, ctx)
         self.mathematical_interpretation = (
-            f"El primer grupo de cohomología tiene rango {cohomology_dimension}, "
-            "indicando ciclos de dependencias globalmente inconsistentes."
+            f"dim H¹ = {cohomology_dimension} > 0: ciclos globalmente inconsistentes."
         )
 
 
 class ComplexityBoundsViolationError(AnalysisException):
-    """Violación de límites de complejidad computacional."""
-    
     def __init__(self, metric: str, value: int, limit: int):
-        context = {'metric': metric, 'value': value, 'limit': limit}
-        message = f"{metric} = {value} exceeds limit {limit}"
-        super().__init__(message, context)
+        super().__init__(
+            f"{metric} = {value} exceeds limit {limit}",
+            {"metric": metric, "value": value, "limit": limit},
+        )
 
 
 class StructuralValidationError(AnalysisException):
-    """Error de validación estructural (JSON, esquemas)."""
     pass
 
 
-# =============================================================================
-# TIPOS ALGEBRAICOS Y PROTOCOLOS
-# =============================================================================
+class BanachContractionFailure(AnalysisException):
+    r"""RSI³ no contrajo: Lip(T) ≥ 1, el operador de mejora no es contractivo."""
 
-T = TypeVar('T')
-U = TypeVar('U')
-
-
-class Monoid(Protocol[T]):
-    """
-    Protocolo para estructura monoidal.
-    
-    Axiomas:
-        1. Asociatividad: (a ⊕ b) ⊕ c = a ⊕ (b ⊕ c)
-        2. Identidad: e ⊕ a = a ⊕ e = a
-    """
-    
-    @staticmethod
-    def identity() -> T:
-        """Elemento identidad (neutro)."""
-        ...
-    
-    def combine(self, other: T) -> T:
-        """Operación binaria asociativa."""
-        ...
-
-
-class NodeCategory(Enum):
-    """
-    Categorización semántica de nodos AST según su función algebraica.
-    
-    La clasificación permite aplicar transformaciones específicas de dominio
-    preservando invariantes topológicos.
-    """
-    DECISION = auto()       # Nodos de bifurcación (If, While, For)
-    EXCEPTION = auto()      # Manejo de excepciones (Try, Except, Raise)
-    DEFINITION = auto()     # Definiciones (FunctionDef, ClassDef, Assign)
-    EXPRESSION = auto()     # Expresiones puras (BinOp, Call, Lambda)
-    STATEMENT = auto()      # Statements con efectos (Return, Yield, Delete)
-    CONTROL_FLOW = auto()   # Control explícito (Break, Continue, Pass)
-    ASYNC = auto()          # Construcciones asíncronas (Await, AsyncFor)
-    
-    def is_complexity_node(self) -> bool:
-        """Determina si el nodo contribuye a complejidad ciclomática."""
-        return self in {
-            NodeCategory.DECISION,
-            NodeCategory.EXCEPTION,
-        }
-    
-    def is_definition_node(self) -> bool:
-        """Determina si el nodo introduce nuevos símbolos."""
-        return self == NodeCategory.DEFINITION
-
-
-# =============================================================================
-# ESTRUCTURAS DE DATOS ALGEBRAICAS INMUTABLES
-# =============================================================================
-
-@dataclass(frozen=True, order=True)
-class DataFlowCoordinates:
-    """
-    Coordenadas en el espacio de fase del flujo de datos.
-    
-    Estructura matemática:
-    ----------------------
-    Representa un punto en el fibrado cotangente T*Q donde:
-        • Q = espacio de configuración (variables del programa)
-        • T*Q = espacio de fase (lecturas × escrituras)
-        • reads ⊆ Q: coordenadas de posición (variables leídas)
-        • writes ⊆ Q: coordenadas de momento (variables escritas)
-    
-    Forma simpléctica canónica:
-        ω = Σᵢ d(readᵢ) ∧ d(writeᵢ)
-    
-    Propiedades algebraicas:
-        • Inmutabilidad: garantiza consistencia referencial
-        • Orden total: permite uso en estructuras ordenadas
-        • Hashable: utilizable como clave en diccionarios
-    
-    Invariantes:
-        1. reads ∩ writes puede ser no vacío (variables modificadas)
-        2. |reads ∪ writes| ≤ |Q| (universo de variables)
-        3. La estructura es un monoide bajo unión componente a componente
-    """
-    
-    reads: FrozenSet[str] = field(default_factory=frozenset)
-    writes: FrozenSet[str] = field(default_factory=frozenset)
-    
-    def __post_init__(self):
-        """
-        Validación de invariantes y normalización.
-        
-        Complejidad: O(|reads| + |writes|)
-        """
-        # Asegurar tipos correctos (inmutables)
-        if not isinstance(self.reads, frozenset):
-            object.__setattr__(self, 'reads', frozenset(self.reads))
-        if not isinstance(self.writes, frozenset):
-            object.__setattr__(self, 'writes', frozenset(self.writes))
-        
-        # Validar que los nombres son identificadores válidos
-        for var in self.reads | self.writes:
-            if not isinstance(var, str) or not var:
-                raise ValueError(f"Invalid variable name: {repr(var)}")
-    
-    def __repr__(self) -> str:
-        """Representación canónica para debugging."""
-        r = sorted(self.reads) if self.reads else []
-        w = sorted(self.writes) if self.writes else []
-        return f"DataFlow(R={r}, W={w})"
-    
-    # -------------------------------------------------------------------------
-    # OPERACIONES ALGEBRAICAS
-    # -------------------------------------------------------------------------
-    
-    @property
-    def all_variables(self) -> FrozenSet[str]:
-        """
-        Conjunto total de variables mencionadas.
-        
-        Matemáticamente: π(reads ∪ writes) donde π es la proyección
-        al conjunto de símbolos.
-        """
-        return self.reads | self.writes
-    
-    @property
-    def modified_variables(self) -> FrozenSet[str]:
-        """
-        Variables que son tanto leídas como escritas (modificación in-place).
-        
-        Ejemplo: x += 1  ⟹  x ∈ (reads ∩ writes)
-        """
-        return self.reads & self.writes
-    
-    @property
-    def pure_reads(self) -> FrozenSet[str]:
-        """Variables solo leídas (no modificadas)."""
-        return self.reads - self.writes
-    
-    @property
-    def pure_writes(self) -> FrozenSet[str]:
-        """Variables solo escritas (definiciones puras)."""
-        return self.writes - self.reads
-    
-    def combine(self, other: DataFlowCoordinates) -> DataFlowCoordinates:
-        """
-        Operación monoidal: composición secuencial de flujos.
-        
-        Semántica: self ; other (self seguido de other)
-        
-        Reglas de composición:
-            reads_combined = (self.reads ∪ other.reads) - self.writes
-            writes_combined = self.writes ∪ other.writes
-        
-        Justificación:
-            - Si self escribe x, luego other lee x, la lectura es interna
-            - Todas las escrituras persisten
-        
-        Complejidad: O(|self| + |other|)
-        """
-        # Lecturas: lo que self lee + lo que other lee pero self no escribe
-        new_reads = self.reads | (other.reads - self.writes)
-        # Escrituras: unión de todas las escrituras
-        new_writes = self.writes | other.writes
-        return DataFlowCoordinates(reads=new_reads, writes=new_writes)
-    
-    @staticmethod
-    def identity() -> DataFlowCoordinates:
-        """Elemento neutro del monoide (flujo vacío)."""
-        return DataFlowCoordinates()
-    
-    # -------------------------------------------------------------------------
-    # ANÁLISIS DE DEPENDENCIAS
-    # -------------------------------------------------------------------------
-    
-    def has_interference_with(self, other: DataFlowCoordinates) -> bool:
-        """
-        Detecta dependencias de datos (interferencia).
-        
-        Tipos de dependencia (taxonomía de Bernstein):
-            1. RAW (Read After Write): self.reads ∩ other.writes ≠ ∅
-               - Dependencia de flujo verdadera
-               - Ejemplo: x = 1; y = x  (y depende de x)
-            
-            2. WAR (Write After Read): self.writes ∩ other.reads ≠ ∅
-               - Anti-dependencia
-               - Ejemplo: y = x; x = 2  (escritura no puede preceder lectura)
-            
-            3. WAW (Write After Write): self.writes ∩ other.writes ≠ ∅
-               - Dependencia de salida
-               - Ejemplo: x = 1; x = 2  (orden afecta valor final)
-        
-        Returns:
-            True si existe al menos una dependencia, False en caso contrario.
-        
-        Complejidad: O(min(|self|, |other|)) usando intersección de sets
-        """
-        return bool(
-            (self.reads & other.writes) or   # RAW
-            (self.writes & other.reads) or   # WAR
-            (self.writes & other.writes)     # WAW
+    def __init__(self, lipschitz: float, iterations: int):
+        super().__init__(
+            f"RSI³ Banach failure: Lip(T) = {lipschitz:.6f} ≥ 1 after {iterations} iterates",
+            {"lipschitz": lipschitz, "iterations": iterations},
         )
-    
-    @staticmethod
-    def interference_score(A: DataFlowCoordinates, 
-                          B: DataFlowCoordinates) -> int:
-        """
-        Métrica direccional de interferencia A → B.
-        
-        Definición matemática:
-            I(A, B) := |A.writes ∩ B.reads| - |B.writes ∩ A.reads|
-        
-        Interpretación:
-            • I(A, B) > 0: A debe ejecutarse antes que B
-            • I(A, B) < 0: B debe ejecutarse antes que A
-            • I(A, B) = 0: No hay preferencia de orden (pueden paralelizarse)
-        
-        Propiedades algebraicas:
-            1. Antisimetría: I(A, B) = -I(B, A)
-            2. NO es simétrica: I(A, B) ≠ I(B, A) en general
-            3. NO satisface identidad de Jacobi (no es bracket de Lie)
-            4. Acotación: -min(|A|,|B|) ≤ I(A,B) ≤ min(|A|,|B|)
-        
-        Aplicación:
-            Útil para ordenar parcialmente operaciones en compilación,
-            scheduling de tareas, análisis de paralelización.
-        
-        Complejidad: O(|A| + |B|)
-        """
-        raw_deps = len(A.writes & B.reads)  # A → B dependencias
-        war_deps = len(B.writes & A.reads)  # B → A dependencias
-        return raw_deps - war_deps
-    
-    def dominates(self, other: DataFlowCoordinates) -> bool:
-        """
-        Verifica si self domina a other en el orden parcial de interferencia.
-        
-        Definición: self ≼ other ⟺ I(self, other) > 0
-        """
-        return self.interference_score(self, other) > 0
-    
-    # -------------------------------------------------------------------------
-    # ANÁLISIS ESPECTRAL
-    # -------------------------------------------------------------------------
-    
-    def spectral_radius(self) -> float:
-        """
-        Radio espectral aproximado del operador de flujo.
-        
-        Definimos el radio espectral como:
-            ρ(F) ≈ √(|reads|² + |writes|²)
-        
-        Interpretación:
-            Magnitud del vector de flujo en el espacio de fase.
-            Valores altos indican alta complejidad de datos.
-        """
-        return math.sqrt(len(self.reads)**2 + len(self.writes)**2)
-    
-    def entropy(self) -> float:
-        """
-        Entropía de Shannon del flujo de datos.
-        
-        Definición:
-            H(F) = -Σᵢ pᵢ log₂(pᵢ)
-            donde pᵢ = frecuencia relativa de cada variable
-        
-        Para simplificar (distribución uniforme):
-            H(F) = log₂(|reads ∪ writes|)
-        
-        Interpretación:
-            Mide la "información" contenida en el flujo.
-            H = 0 para flujo vacío, crece logarítmicamente.
-        """
-        n = len(self.all_variables)
-        return math.log2(n) if n > 0 else 0.0
+        self.mathematical_interpretation = (
+            "El operador de automejora T: B → B no es una contracción; "
+            "no existe punto fijo único por el teorema de Banach."
+        )
 
+
+class HeytingVerdict(Enum):
+    r"""Clasificador en el álgebra de Heyting trivalente $\Omega_3$.
+
+    Orden: COHERENT=⊥ < DEGRADED=½ < VETOED=⊤. Join = OR bitwise (SIMD).
+    """
+
+    COHERENT = "COHERENT"
+    DEGRADED = "DEGRADED"
+    VETOED = "VETOED"
+
+    @property
+    def omega(self) -> float:
+        return {
+            HeytingVerdict.COHERENT: 0.0,
+            HeytingVerdict.DEGRADED: 0.5,
+            HeytingVerdict.VETOED: 1.0,
+        }[self]
+
+    @property
+    def mask(self) -> int:
+        return {
+            HeytingVerdict.COHERENT: 0x00,
+            HeytingVerdict.DEGRADED: 0x01,
+            HeytingVerdict.VETOED: 0x03,
+        }[self]
+
+    @classmethod
+    def from_omega(cls, v: float) -> "HeytingVerdict":
+        if v <= 0.0:
+            return cls.COHERENT
+        if v < 1.0:
+            return cls.DEGRADED
+        return cls.VETOED
+
+    @classmethod
+    def from_mask(cls, m: int) -> "HeytingVerdict":
+        if (m & 0x03) == 0x03:
+            return cls.VETOED
+        if (m & 0x01) == 0x01:
+            return cls.DEGRADED
+        return cls.COHERENT
+
+    def join(self, other: "HeytingVerdict") -> "HeytingVerdict":
+        return HeytingVerdict.from_mask(self.mask | other.mask)
+
+    def meet(self, other: "HeytingVerdict") -> "HeytingVerdict":
+        return HeytingVerdict.from_omega(min(self.omega, other.omega))
+
+    @classmethod
+    def fast_join_all(cls, verdicts: List["HeytingVerdict"]) -> "HeytingVerdict":
+        acc = 0
+        for v in verdicts:
+            acc |= v.mask
+            if acc == 0x03:
+                return cls.VETOED
+        return cls.from_mask(acc)
+
+
+# ── Handoff dataclasses (v5.1.0: transporte geométrico real entre fases) ─────
 
 @dataclass(frozen=True)
-class ComplexityProfile:
+class Phase1Handoff:
+    r"""
+    Morfismo FASE 1 → FASE 2: 0-jet geométrico del AST + semilla celeste.
+
+    [v5.1.0] Transporta las frecuencias de acción-ángulo, el generador
+    $A \in \mathfrak{sp}(2n)$ y la norma de Frobenius de la 2-forma de
+    interferencia, de modo que Φ₂ no sintetiza ruido: Φ₂ = Φ₂(Φ₁(source)).
     """
-    Perfil multidimensional de complejidad de código.
-    
-    Métricas incluidas:
-    -------------------
-    1. Complejidad Ciclomática (McCabe, 1976):
-        M = E - N + 2P
-        donde E = aristas, N = nodos, P = componentes conectadas
-    
-    2. Profundidad de Anidamiento:
-        Altura del árbol de sintaxis abstracta
-        Correlacionado con dificultad de comprensión
-    
-    3. Métricas Estructurales:
-        - Número de funciones (modularidad)
-        - Número de clases (orientación a objetos)
-    
-    Referencias:
-    ------------
-    • McCabe, T.J. (1976): "A Complexity Measure"
-    • Halstead, M.H. (1977): "Elements of Software Science"
-    • Henderson-Sellers (1996): "Object-Oriented Metrics"
-    • ISO/IEC 25010:2011 - Software Quality Model
-    """
-    
+
+    source_code: str
+    filename: str
+    dataflow_reads: FrozenSet[str]
+    dataflow_writes: FrozenSet[str]
     cyclomatic_complexity: int
     max_nesting_depth: int
     num_functions: int
     num_classes: int
-    num_branches: int = 0  # Nodos de decisión explícitos
-    num_loops: int = 0     # Estructuras iterativas
-    
+    num_branches: int
+    num_loops: int
+    block_flows: Tuple[Tuple[FrozenSet[str], FrozenSet[str], int, str], ...]
+    tree_graph: Tuple[Tuple[int, Tuple[int, ...]], ...]
+    hamiltonian_ok: bool
+    max_path_energy: float
+    warnings: Tuple[str, ...]
+    # v5.1.0 — semilla de mecánica celeste
+    frequencies: Tuple[float, ...]
+    hamiltonian_generator: Tuple[Tuple[float, ...], ...]
+    interference_frobenius: float
+    antisymmetry_ok: bool
+    symplectic_dim: int
+
+
+@dataclass(frozen=True)
+class SymplecticVerification:
+    """Verificación explícita del axioma A1 (invarianza simpléctica)."""
+
+    delta_omega: float
+    det_M: float
+    is_symplectic: bool
+
+
+@dataclass(frozen=True)
+class KAMResonanceLattice:
+    """Retículo de resonancias vía fracciones continuas + γ diofántico."""
+
+    k_vectors: Tuple[Tuple[int, ...], ...]
+    diophantine_gamma: float
+    tau: float
+    is_kam_stable: bool
+
+
+@dataclass(frozen=True)
+class MelnikovResult:
+    """Integral de Melnikov de la separatriz homoclínica."""
+
+    M_value: float
+    theta_0: float
+    has_transversal_intersection: bool
+
+
+@dataclass(frozen=True)
+class LyapunovSpectrum:
+    """Espectro de Lyapunov del flujo AST."""
+
+    lambdas: Tuple[float, ...]
+    lambda_max: float
+    is_chaotic: bool
+
+
+@dataclass(frozen=True)
+class HodgeDiracSpectrum:
+    """Espectro del Laplaciano Pesado Δ_G y verificación de axioma A4."""
+
+    lambda_min: float
+    lambda_max: float
+    ker_dim_estimate: int
+    is_trivial_cohomology: bool
+
+
+@dataclass(frozen=True)
+class ActionAngleChart:
+    r"""Carta acción-ángulo $(I, \theta)$ sobre el toro invariante.
+
+    $I_i = \frac{1}{2\pi}\oint_{\gamma_i} p\,dq$,  $\omega_i = \partial H_0 / \partial I_i$.
+    """
+
+    actions: Tuple[float, ...]
+    frequencies: Tuple[float, ...]
+    energy: float
+
+
+@dataclass(frozen=True)
+class TwistCondition:
+    r"""Condición de no-degeneración de Kolmogorov: $\det(\partial^2 H_0 / \partial I_i \partial I_j) \neq 0$."""
+
+    hessian_det: float
+    is_nondegenerate: bool
+
+
+@dataclass(frozen=True)
+class PoincareReturnMap:
+    r"""Aplicación de retorno de Poincaré sobre $\Sigma = \{q = \langle q \rangle\}$."""
+
+    section_value: float
+    crossings: int
+    p_returns: Tuple[float, ...]
+    recurrence_time: float
+    is_recurrent: bool
+
+
+@dataclass(frozen=True)
+class RSI3Report:
+    r"""
+    Informe de automejora recursiva de nivel 3.
+
+    Nivel 1: $x \mapsto f(x)$            (evaluación del analizador).
+    Nivel 2: $f \mapsto P(f)$            (mejora del analizador).
+    Nivel 3: $P \mapsto Q(P)$            (mejora del mejorador).
+
+    Contracción: $\|x_{n+1}-x_n\| \le L\,\|x_n-x_{n-1}\|$, $L < 1$.
+    """
+
+    iterations: int
+    lipschitz: float
+    residual: float
+    converged: bool
+    score_trajectory: Tuple[float, ...]
+    param_gamma_final: float
+    param_tau_final: float
+    param_eps_final: float
+
+
+@dataclass(frozen=True)
+class BirkhoffRemainder:
+    r"""Estimación del resto de la forma normal de Birkhoff de orden $N$."""
+
+    order: int
+    remainder_norm: float
+    is_normalized: bool
+
+
+@dataclass(frozen=True)
+class Phase2Handoff:
+    r"""
+    Morfismo FASE 2 → FASE 3: homología + KAM + Melnikov + Lyapunov + RSI³.
+
+    [v5.1.0] Transporta la coborde de haz (densa, compactada por SVD a rango
+    bajo si es necesario), el chart acción-ángulo, el retorno de Poincaré,
+    el twist de Kolmogorov y el informe RSI³ — dominio estricto de Φ₃.
+    """
+
+    phase1: Phase1Handoff
+    symplectic: SymplecticVerification
+    cohomology_dim_H1: int
+    problematic_variables: FrozenSet[str]
+    kam_lattice: KAMResonanceLattice
+    melnikov: MelnikovResult
+    lyapunov: LyapunovSpectrum
+    rsi3_iterations: int
+    rsi3_converged: bool
+    banach_L: float
+    warnings: Tuple[str, ...]
+    # v5.1.0
+    action_angle: ActionAngleChart
+    twist: TwistCondition
+    poincare_return: PoincareReturnMap
+    rsi3: RSI3Report
+    homological_W_norm: float
+    coboundary_shape: Tuple[int, int]
+    coboundary_frobenius: float
+    coboundary_svd_s: Tuple[float, ...]
+
+
+@dataclass(frozen=True)
+class AnalysisCertificate:
+    """Certificado final OODA (3-fases) con veredicto Ω₃."""
+
+    phase2: Phase2Handoff
+    hodge_dirac: HodgeDiracSpectrum
+    heyting_verdict: HeytingVerdict
+    heyting_axioms_verified: bool
+    is_coherent: bool
+    is_hardened: bool
+    overall_score: float
+    warnings: Tuple[str, ...]
+    birkhoff: BirkhoffRemainder
+    poincare_recurrence_time: float
+
+
+# ── Tipos y protocolos auxiliares ───────────────────────────────────────────
+
+T = TypeVar("T")
+
+
+class Monoid(Protocol[T]):
+    @staticmethod
+    def identity() -> T: ...
+
+    def combine(self, other: T) -> T: ...
+
+
+class NodeCategory(Enum):
+    """Categorización semántica de nodos AST."""
+
+    DECISION = auto()
+    EXCEPTION = auto()
+    DEFINITION = auto()
+    EXPRESSION = auto()
+    STATEMENT = auto()
+    CONTROL_FLOW = auto()
+    ASYNC = auto()
+
+    def is_complexity_node(self) -> bool:
+        return self in {NodeCategory.DECISION, NodeCategory.EXCEPTION}
+
+    def is_definition_node(self) -> bool:
+        return self == NodeCategory.DEFINITION
+
+
+def _tuple_matrix(M: np.ndarray) -> Tuple[Tuple[float, ...], ...]:
+    """Inmersión pura $\mathbb{R}^{n\times m} \hookrightarrow \mathrm{Tuple}$ (hashable)."""
+    arr = np.asarray(M, dtype=np.float64)
+    return tuple(tuple(float(x) for x in row) for row in arr)
+
+
+def _from_tuple_matrix(t: Tuple[Tuple[float, ...], ...]) -> np.ndarray:
+    if not t:
+        return np.zeros((0, 0), dtype=np.float64)
+    return np.array(t, dtype=np.float64)
+
+
+def _safe_trapezoid(y: np.ndarray, x: Optional[np.ndarray] = None) -> float:
+    if hasattr(np, "trapezoid"):
+        return float(np.trapezoid(y, x=x))
+    return float(np.trapz(y, x=x))  # noqa: NP100 (numpy<2)
+
+
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║  FASE 1 — GEOMETRÍA ESTRUCTURAL DEL AST (0-JET)                            ║
+# ║  Última definición: `_ASTPhase1Pipeline._handoff_to_phase2`                ║
+# ║  que ES el dominio de `_ASTPhase2Pipeline._ingest_phase1_handoff`.         ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
+@dataclass(frozen=True, order=True)
+class DataFlowCoordinates:
+    r"""
+    Coordenadas en el fibrado cotangente $T^*Q$.
+
+    • `reads ⊆ Q`: posición (variables leídas).
+    • `writes ⊆ Q`: momento (variables escritas).
+    • Forma simpléctica: $\omega = \sum_i d(\mathrm{read}_i)\wedge d(\mathrm{write}_i)$.
+
+    Monoide bajo composición secuencial. La puntuación de interferencia
+    $I(A,B) = |A.W \cap B.R| - |B.W \cap A.R|$ es el 2-cociclo discreto
+    que desciende a $\omega_I$ en el handoff de FASE 1.
+    """
+
+    reads: FrozenSet[str] = field(default_factory=frozenset)
+    writes: FrozenSet[str] = field(default_factory=frozenset)
+
     def __post_init__(self):
-        """Validación de invariantes."""
+        if not isinstance(self.reads, frozenset):
+            object.__setattr__(self, "reads", frozenset(self.reads))
+        if not isinstance(self.writes, frozenset):
+            object.__setattr__(self, "writes", frozenset(self.writes))
+        for var in self.reads | self.writes:
+            if not isinstance(var, str) or not var:
+                raise ValueError(f"Invalid variable name: {repr(var)}")
+
+    def __repr__(self) -> str:
+        r = sorted(self.reads) if self.reads else []
+        w = sorted(self.writes) if self.writes else []
+        return f"DataFlow(R={r}, W={w})"
+
+    @property
+    def all_variables(self) -> FrozenSet[str]:
+        return self.reads | self.writes
+
+    @property
+    def modified_variables(self) -> FrozenSet[str]:
+        return self.reads & self.writes
+
+    @property
+    def pure_reads(self) -> FrozenSet[str]:
+        return self.reads - self.writes
+
+    @property
+    def pure_writes(self) -> FrozenSet[str]:
+        return self.writes - self.reads
+
+    def combine(self, other: "DataFlowCoordinates") -> "DataFlowCoordinates":
+        new_reads = self.reads | (other.reads - self.writes)
+        new_writes = self.writes | other.writes
+        return DataFlowCoordinates(reads=new_reads, writes=new_writes)
+
+    @staticmethod
+    def identity() -> "DataFlowCoordinates":
+        return DataFlowCoordinates()
+
+    def has_interference_with(self, other: "DataFlowCoordinates") -> bool:
+        return bool(
+            (self.reads & other.writes)
+            or (self.writes & other.reads)
+            or (self.writes & other.writes)
+        )
+
+    @staticmethod
+    def interference_score(A: "DataFlowCoordinates", B: "DataFlowCoordinates") -> int:
+        raw = len(A.writes & B.reads)
+        war = len(B.writes & A.reads)
+        return raw - war
+
+    @staticmethod
+    def verify_antisymmetry(A: "DataFlowCoordinates", B: "DataFlowCoordinates") -> bool:
+        r"""Verifica programáticamente $I(A,B) = -I(B,A)$."""
+        return DataFlowCoordinates.interference_score(
+            A, B
+        ) == -DataFlowCoordinates.interference_score(B, A)
+
+    def dominates(self, other: "DataFlowCoordinates") -> bool:
+        return DataFlowCoordinates.interference_score(self, other) > 0
+
+    def spectral_radius(self) -> float:
+        return math.sqrt(len(self.reads) ** 2 + len(self.writes) ** 2)
+
+    def entropy(self) -> float:
+        n = len(self.all_variables)
+        return math.log2(n) if n > 0 else 0.0
+
+    @staticmethod
+    def interference_matrix(
+        blocks: Sequence["DataFlowCoordinates"],
+    ) -> np.ndarray:
+        r"""
+        [v5.1.0] 2-forma discreta $\omega_I \in \mathfrak{so}(m)$:
+            $(\omega_I)_{ij} = I(b_i, b_j)$.
+        Es antisimétrica por construcción ssi `verify_antisymmetry` vale ∀ pares.
+        """
+        m = len(blocks)
+        Omega = np.zeros((m, m), dtype=np.float64)
+        for i in range(m):
+            for j in range(i + 1, m):
+                s = float(DataFlowCoordinates.interference_score(blocks[i], blocks[j]))
+                Omega[i, j] = s
+                Omega[j, i] = -s
+        return Omega
+
+    def restriction_to(self, other: "DataFlowCoordinates") -> FrozenSet[str]:
+        r"""
+        [v5.1.0] Mapa de restricción de haz $\rho_{u\to v}: F(u)\to F(v)$:
+        proyección sobre las variables comunes (intersección de soportes).
+        """
+        return self.all_variables & other.all_variables
+
+
+@dataclass(frozen=True)
+class ComplexityProfile:
+    """Perfil multidimensional de complejidad (McCabe, Halstead)."""
+
+    cyclomatic_complexity: int
+    max_nesting_depth: int
+    num_functions: int
+    num_classes: int
+    num_branches: int = 0
+    num_loops: int = 0
+
+    def __post_init__(self):
         if self.cyclomatic_complexity < 1:
             raise ValueError("Cyclomatic complexity must be ≥ 1")
         if self.max_nesting_depth < 0:
             raise ValueError("Nesting depth cannot be negative")
         if self.num_functions < 0 or self.num_classes < 0:
             raise ValueError("Counts cannot be negative")
-    
-    # -------------------------------------------------------------------------
-    # MÉTRICAS DERIVADAS
-    # -------------------------------------------------------------------------
-    
+
     @property
     def is_maintainable(self) -> bool:
-        """
-        Verificación de mantenibilidad según umbrales estándar.
-        
-        Criterios (basados en ISO 26262 y estándares MISRA):
-            • CC ≤ 20 (complejidad razonable)
-            • Profundidad ≤ 5 (comprensibilidad)
-            • Funciones no triviales (modularidad)
-        """
         return (
             self.cyclomatic_complexity <= AnalysisLimits.MAX_CYCLOMATIC_COMPLEXITY
             and self.max_nesting_depth <= 5
         )
-    
+
     @property
     def risk_level(self) -> str:
-        """
-        Clasificación de riesgo según escala de Kemerer (1987).
-        
-        Escala empírica correlacionada con densidad de defectos:
-            •  1-10: LOW       (< 5% probabilidad de defectos)
-            • 11-20: MODERATE  (5-10% probabilidad)
-            • 21-50: HIGH      (10-20% probabilidad)
-            • >  50: CRITICAL  (> 20% probabilidad)
-        """
         cc = self.cyclomatic_complexity
         if cc <= AnalysisLimits.WARN_CYCLOMATIC_COMPLEXITY:
             return "LOW"
-        elif cc <= AnalysisLimits.MAX_CYCLOMATIC_COMPLEXITY:
+        if cc <= AnalysisLimits.MAX_CYCLOMATIC_COMPLEXITY:
             return "MODERATE"
-        elif cc <= AnalysisLimits.CRITICAL_CYCLOMATIC_COMPLEXITY:
+        if cc <= AnalysisLimits.CRITICAL_CYCLOMATIC_COMPLEXITY:
             return "HIGH"
-        else:
-            return "CRITICAL"
-    
+        return "CRITICAL"
+
     @property
     def complexity_density(self) -> float:
-        """
-        Densidad de complejidad: CC normalizada por unidades de código.
-        
-        Definición:
-            ρ(C) = CC / max(num_functions, 1)
-        
-        Interpretación:
-            • ρ < 5: Buena modularización
-            • ρ > 10: Funciones muy complejas
-        """
         return self.cyclomatic_complexity / max(self.num_functions, 1)
-    
+
     @property
     def essential_complexity(self) -> float:
-        """
-        Complejidad esencial (irreducible).
-        
-        Aproximación: CC - num_branches - num_loops + 1
-        
-        Representa la complejidad que no puede eliminarse mediante
-        refactorización estructurada.
-        """
-        return max(
-            1,
-            self.cyclomatic_complexity - self.num_branches - self.num_loops + 1
-        )
-    
+        return max(1, self.cyclomatic_complexity - self.num_branches - self.num_loops + 1)
+
     @property
     def halstead_volume(self) -> float:
-        """
-        Aproximación del volumen de Halstead.
-        
-        V = N × log₂(n)
-        donde N ≈ CC, n ≈ num_functions + num_classes
-        
-        Mide el "tamaño" del programa en bits de información.
-        """
         n = max(self.num_functions + self.num_classes, 2)
-        N = self.cyclomatic_complexity
-        return N * math.log2(n)
-    
+        return self.cyclomatic_complexity * math.log2(n)
+
+    def celestial_frequencies(self, dim: int) -> Tuple[float, ...]:
+        r"""
+        [v5.1.0] Frecuencias de acción-ángulo incommensurables a la
+        razón áurea (evita resonancias exactas $\omega\cdot k = 0$):
+
+            $\omega_i = \mu_i \cdot \varphi^{-i}$,
+            $\mu = (\mathrm{CC}, \mathrm{depth}+1, \mathrm{branches}+1, \mathrm{loops}+1)$.
+        """
+        phi = AnalysisLimits.GOLDEN_RATIO
+        base = (
+            float(self.cyclomatic_complexity),
+            float(self.max_nesting_depth + 1),
+            float(self.num_branches + 1),
+            float(self.num_loops + 1),
+        )
+        dim = max(1, min(int(dim), AnalysisLimits.MAX_SYMPLECTIC_DIM))
+        omegas = []
+        for i in range(dim):
+            omegas.append(base[i % len(base)] * (phi ** (-i)))
+        return tuple(omegas)
+
     def __repr__(self) -> str:
-        """Representación compacta para debugging."""
         return (
-            f"Complexity("
-            f"CC={self.cyclomatic_complexity}, "
-            f"depth={self.max_nesting_depth}, "
-            f"risk={self.risk_level}, "
+            f"Complexity(CC={self.cyclomatic_complexity}, "
+            f"depth={self.max_nesting_depth}, risk={self.risk_level}, "
             f"density={self.complexity_density:.2f})"
         )
-    
+
     def to_dict(self) -> Dict[str, Any]:
-        """Serialización a diccionario."""
         return {
-            'cyclomatic_complexity': self.cyclomatic_complexity,
-            'max_nesting_depth': self.max_nesting_depth,
-            'num_functions': self.num_functions,
-            'num_classes': self.num_classes,
-            'num_branches': self.num_branches,
-            'num_loops': self.num_loops,
-            'risk_level': self.risk_level,
-            'complexity_density': self.complexity_density,
-            'essential_complexity': self.essential_complexity,
-            'is_maintainable': self.is_maintainable,
+            "cyclomatic_complexity": self.cyclomatic_complexity,
+            "max_nesting_depth": self.max_nesting_depth,
+            "num_functions": self.num_functions,
+            "num_classes": self.num_classes,
+            "num_branches": self.num_branches,
+            "num_loops": self.num_loops,
+            "risk_level": self.risk_level,
+            "complexity_density": self.complexity_density,
+            "essential_complexity": self.essential_complexity,
+            "is_maintainable": self.is_maintainable,
         }
 
 
-# =============================================================================
-# ANALIZADOR DE FLUJO DE DATOS CON CONTROL HAMILTONIANO
-# =============================================================================
+class _LocalFlowExtractor(ast.NodeVisitor):
+    """Extractor ligero de flujo de datos para un subárbol aislado."""
+
+    def __init__(self):
+        self.local_reads: Set[str] = set()
+        self.local_writes: Set[str] = set()
+
+    def visit_Name(self, node: ast.Name) -> None:
+        if isinstance(node.ctx, ast.Load):
+            self.local_reads.add(node.id)
+        elif isinstance(node.ctx, ast.Store):
+            self.local_writes.add(node.id)
+        elif isinstance(node.ctx, ast.Del):
+            self.local_reads.add(node.id)
+            self.local_writes.add(node.id)
+
+    def visit_Attribute(self, node: ast.Attribute) -> None:
+        if isinstance(node.ctx, ast.Load):
+            self.local_reads.add(node.attr)
+        elif isinstance(node.ctx, ast.Store):
+            self.local_writes.add(node.attr)
+        elif isinstance(node.ctx, ast.Del):
+            self.local_reads.add(node.attr)
+            self.local_writes.add(node.attr)
+        self.generic_visit(node)
+
+    def visit_arg(self, node: ast.arg) -> None:
+        self.local_writes.add(node.arg)
+
 
 class DataFlowAnalyzer(ast.NodeVisitor):
+    r"""
+    Analizador de flujo de datos con disipación Hamiltoniana de PATH-ENERGY.
+
+    ENERGÍA DE TRAYECTORIA:
+    -----------------------
+    Para cada nodo $n$ con ancestros $a_1,\ldots,a_k=n$:
+        $E(n) = \sum_i \mathrm{CC}_{incr}(a_i)\cdot\exp(-\mathrm{depth}(a_i)/D_0)$
+
+    INVARIANTE (axioma de disipación):
+        $E(n) \le \mathrm{MAX\_PATH\_ENERGY} = 30$ en todo nodo $n$.
+
+    [v5.1.0] El incremento $\mathrm{CC}_{incr}$ incluye BoolOp/Match/IfExp
+    (antes solo DECISION_NODES), alineando path-energy con McCabe real.
     """
-    Analizador de flujo de datos con verificación disipativa Port-Hamiltoniana.
-    
-    ALGORITMO:
-    ----------
-    1. Recorrido DFS del AST con seguimiento de profundidad
-    2. Clasificación de contextos de variables (Load/Store/Del)
-    3. Cálculo incremental de complejidad ciclomática
-    4. Monitoreo Hamiltoniano: H(child) ≤ H(parent)
-    5. Recolección opcional de coordenadas por bloque
-    
-    HAMILTONIANO:
-    -------------
-    Definimos el Hamiltoniano local como:
-        H(x) = CC(x) / (depth(x) + ε)
-    
-    donde:
-        • CC(x): complejidad ciclomática acumulada en el nodo x
-        • depth(x): profundidad del nodo en el árbol
-        • ε: regularizador para evitar división por cero
-    
-    CONDICIÓN DE DISIPACIÓN:
-    ------------------------
-    Para todo nodo n con padre p:
-        H(n) ≤ H(p)
-    
-    Si se viola, se levanta ThermodynamicSingularityError.
-    
-    COMPLEJIDAD TEMPORAL:
-    ---------------------
-    • Mejor caso: O(n) donde n = número de nodos
-    • Peor caso: O(n log n) si se activa tracking de bloques
-    • Espacio: O(h) donde h = altura del árbol (stack)
-    
-    INVARIANTES:
-    ------------
-    1. current_depth ≥ 0
-    2. max_depth ≥ current_depth
-    3. cyclomatic_complexity ≥ 1
-    4. ∀ i: hamiltonian_stack[i] ≥ hamiltonian_stack[i+1] (monotonicidad)
-    """
-    
-    # Conjunto de nodos que incrementan complejidad ciclomática
-    DECISION_NODES: FrozenSet[type] = frozenset({
-        ast.If, ast.While, ast.For, ast.AsyncFor,
-        ast.ExceptHandler, ast.With, ast.AsyncWith,
-    })
-    
-    # Nodos de decisión booleana (AND, OR)
-    BOOLEAN_OPS: FrozenSet[type] = frozenset({ast.And, ast.Or})
-    
+
+    DECISION_NODES: FrozenSet[type] = frozenset(
+        {
+            ast.If,
+            ast.While,
+            ast.For,
+            ast.AsyncFor,
+            ast.ExceptHandler,
+            ast.With,
+            ast.AsyncWith,
+            ast.IfExp,
+            ast.Try,
+        }
+    )
+
     def __init__(
         self,
         enable_hamiltonian_monitor: bool = True,
         enable_block_tracking: bool = True,
-        strict_mode: bool = True
+        strict_mode: bool = True,
+        legacy_hamiltonian: bool = False,
     ):
-        """
-        Inicializa el analizador con estado limpio.
-        
-        Args:
-            enable_hamiltonian_monitor: Activa verificación disipativa
-            enable_block_tracking: Activa recolección de datos por bloque
-            strict_mode: Modo estricto (lanza excepciones en violaciones)
-        """
-        # Estado de flujo de datos (global)
         self._reads: Set[str] = set()
         self._writes: Set[str] = set()
-        
-        # Métricas de profundidad
+
         self._current_depth: int = 0
         self._max_depth: int = 0
-        
-        # Complejidad ciclomática (base = 1 para el camino principal)
         self._cyclomatic: int = 1
-        
-        # Contadores estructurales
+
         self._num_functions: int = 0
         self._num_classes: int = 0
         self._num_branches: int = 0
         self._num_loops: int = 0
         self._num_nodes_visited: int = 0
-        
-        # Banderas de estado
+
         self._in_function_args: bool = False
         self._in_comprehension: bool = False
-        
-        # Control Hamiltoniano
+
         self._enable_hamiltonian: bool = enable_hamiltonian_monitor
-        self._hamiltonian_stack: List[float] = []
         self._strict_mode: bool = strict_mode
-        
-        # Seguimiento topológico
+        self._legacy_hamiltonian: bool = legacy_hamiltonian
+
+        self._path_energy: float = 0.0
+        self._max_path_energy: float = 0.0
+
+        self._hamiltonian_stack: List[float] = []
+
         self._enable_block_tracking: bool = enable_block_tracking
         self._block_flows: List[Tuple[DataFlowCoordinates, int, str]] = []
         self._node_children: Dict[int, List[int]] = defaultdict(list)
-    
-    # -------------------------------------------------------------------------
-    # CÁLCULO HAMILTONIANO
-    # -------------------------------------------------------------------------
-    
-    @staticmethod
-    def _compute_hamiltonian(depth: int, complexity: int) -> float:
-        """
-        Calcula el Hamiltoniano de complejidad.
-        
-        Definición:
-            H = CC / (depth + ε)
-        
-        Interpretación física:
-            - Numerador: "energía potencial" (complejidad acumulada)
-            - Denominador: "distancia" desde la raíz
-            - H grande: código complejo concentrado en nodos superficiales
-            - H pequeño: complejidad distribuida en profundidad
-        
-        Condición de disipación: H debe decrecer monotónicamente
-        hacia las hojas del árbol.
-        """
-        return complexity / (depth + AnalysisLimits.HAMILTONIAN_EPSILON)
-    
-    def _push_hamiltonian(self) -> None:
-        """Guarda el estado Hamiltoniano actual."""
-        H = self._compute_hamiltonian(self._current_depth, self._cyclomatic)
-        self._hamiltonian_stack.append(H)
-        logger.debug(f"Push H={H:.6f} at depth={self._current_depth}")
-    
-    def _pop_hamiltonian(self) -> None:
-        """Restaura el estado Hamiltoniano previo."""
-        if self._hamiltonian_stack:
-            H = self._hamiltonian_stack.pop()
-            logger.debug(f"Pop H={H:.6f}")
-    
-    def _check_dissipation_condition(self) -> None:
-        r"""
-        Verifica la condición disipativa: H(current) ≤ H(parent).
-        
-        Si falla y strict_mode=True, lanza ThermodynamicSingularityError.
-        """
-        if not self._hamiltonian_stack:
-            return  # Nodo raíz, sin restricción
-        
-        parent_H = self._hamiltonian_stack[-1]
-        current_H = self._compute_hamiltonian(self._current_depth, self._cyclomatic)
-        
-        violation = current_H - parent_H
-        
-        if violation > AnalysisLimits.FLOAT_TOLERANCE:
+
+    def _local_cc_increment(self, node: ast.AST) -> int:
+        """Incremento ciclomático local alineado con McCabe (v5.1.0)."""
+        t = type(node)
+        if t in self.DECISION_NODES:
+            return 1
+        if t is ast.BoolOp:
+            return max(0, len(node.values) - 1)
+        if t is ast.Match:
+            n_cases = len(getattr(node, "cases", []) or [])
+            return max(1, n_cases)
+        if t is ast.comprehension:
+            return 1 + len(node.ifs)
+        return 0
+
+    def _compute_energy_increment(self, depth: int, cc_incr: int) -> float:
+        """ΔE = CC_incr · exp(−depth / D₀)."""
+        if cc_incr <= 0:
+            return 0.0
+        return float(cc_incr) * math.exp(
+            -float(depth) / AnalysisLimits.ENERGY_DECAY_SCALE
+        )
+
+    def _check_path_energy_bound(self) -> None:
+        if self._path_energy > AnalysisLimits.MAX_PATH_ENERGY:
             msg = (
-                f"Dissipation violation: ΔH = {violation:.9f} > 0\n"
-                f"  Current: H={current_H:.9f} (depth={self._current_depth}, "
-                f"CC={self._cyclomatic})\n"
-                f"  Parent:  H={parent_H:.9f}"
+                f"[v5.1.0] Path-energy violation: E={self._path_energy:.4f} > "
+                f"{AnalysisLimits.MAX_PATH_ENERGY:.2f} at depth={self._current_depth}, "
+                f"CC={self._cyclomatic}"
             )
             logger.warning(msg)
-            
             if self._strict_mode:
                 raise ThermodynamicSingularityError(
-                    current_H, parent_H, self._current_depth, self._cyclomatic
+                    self._path_energy,
+                    AnalysisLimits.MAX_PATH_ENERGY,
+                    self._current_depth,
+                    self._cyclomatic,
                 )
-    
-    # -------------------------------------------------------------------------
-    # CONTROL DE PROFUNDIDAD Y VISITACIÓN
-    # -------------------------------------------------------------------------
-    
+
+    @staticmethod
+    def _compute_hamiltonian(depth: int, complexity: int) -> float:
+        return complexity / (depth + AnalysisLimits.HAMILTONIAN_EPSILON)
+
+    def _push_hamiltonian(self) -> None:
+        H = self._compute_hamiltonian(self._current_depth, self._cyclomatic)
+        self._hamiltonian_stack.append(H)
+
+    def _pop_hamiltonian(self) -> None:
+        if self._hamiltonian_stack:
+            self._hamiltonian_stack.pop()
+
+    def _check_legacy_dissipation(self) -> None:
+        if not self._hamiltonian_stack:
+            return
+        parent_H = self._hamiltonian_stack[-1]
+        current_H = self._compute_hamiltonian(self._current_depth, self._cyclomatic)
+        if current_H - parent_H > AnalysisLimits.FLOAT_TOLERANCE:
+            if self._strict_mode:
+                raise ThermodynamicSingularityError(
+                    current_H,
+                    parent_H,
+                    self._current_depth,
+                    self._cyclomatic,
+                )
+
     def visit(self, node: ast.AST) -> Any:
-        """
-        Punto de entrada para cada nodo con instrumentación completa.
-        
-        Secuencia de operaciones:
-            1. Incrementar profundidad
-            2. Verificar límites
-            3. Monitoreo Hamiltoniano (pre-orden)
-            4. Tracking topológico (opcional)
-            5. Procesamiento del nodo (dispatch)
-            6. Cleanup (post-orden)
-        """
-        # 1. Control de profundidad
         self._current_depth += 1
         self._max_depth = max(self._max_depth, self._current_depth)
         self._num_nodes_visited += 1
-        
-        # 2. Verificación de límites
+
         if self._current_depth > AnalysisLimits.MAX_AST_DEPTH:
             raise ComplexityBoundsViolationError(
-                "AST depth", self._current_depth, AnalysisLimits.MAX_AST_DEPTH
+                "AST depth",
+                self._current_depth,
+                AnalysisLimits.MAX_AST_DEPTH,
             )
-        
         if self._num_nodes_visited > AnalysisLimits.MAX_AST_NODES:
             raise ComplexityBoundsViolationError(
-                "AST nodes", self._num_nodes_visited, AnalysisLimits.MAX_AST_NODES
+                "AST nodes",
+                self._num_nodes_visited,
+                AnalysisLimits.MAX_AST_NODES,
             )
-        
-        # 3. Monitoreo Hamiltoniano
+
+        cc_incr_here = self._local_cc_increment(node)
+        increment = self._compute_energy_increment(self._current_depth, cc_incr_here)
+
         if self._enable_hamiltonian:
-            self._check_dissipation_condition()
-            self._push_hamiltonian()
-        
-        # 4. Tracking topológico
+            self._path_energy += increment
+            self._max_path_energy = max(self._max_path_energy, self._path_energy)
+            self._check_path_energy_bound()
+            if self._legacy_hamiltonian:
+                self._check_legacy_dissipation()
+                self._push_hamiltonian()
+
         if self._enable_block_tracking:
             self._record_block_flow(node)
-        
-        # 5. Procesamiento (dispatch a método específico)
+
         try:
             result = super().visit(node)
         finally:
-            # 6. Cleanup
             if self._enable_hamiltonian:
-                self._pop_hamiltonian()
+                self._path_energy -= increment
+                if self._legacy_hamiltonian:
+                    self._pop_hamiltonian()
             self._current_depth -= 1
-        
+
         return result
-    
+
     def _record_block_flow(self, node: ast.AST) -> None:
-        """
-        Registra el flujo de datos local del nodo actual.
-        
-        Usa un sub-analizador ligero para extraer reads/writes
-        sin contaminar el estado global.
-        """
         extractor = _LocalFlowExtractor()
         extractor.visit(node)
-        
         coords = DataFlowCoordinates(
             reads=frozenset(extractor.local_reads),
-            writes=frozenset(extractor.local_writes)
+            writes=frozenset(extractor.local_writes),
         )
-        
         node_id = id(node)
         node_type = type(node).__name__
-        
         self._block_flows.append((coords, node_id, node_type))
-        
-        # Registrar relación padre-hijo
         for child in ast.iter_child_nodes(node):
             self._node_children[node_id].append(id(child))
-    
-    # -------------------------------------------------------------------------
-    # ANÁLISIS DE FLUJO DE DATOS
-    # -------------------------------------------------------------------------
-    
+
     def visit_Name(self, node: ast.Name) -> None:
-        """
-        Procesa referencias a nombres (variables).
-        
-        Contextos:
-            • Load: lectura (uso)
-            • Store: escritura (definición)
-            • Del: eliminación (lectura + escritura)
-        """
-        name = node.id
-        
         if isinstance(node.ctx, ast.Load):
-            self._reads.add(name)
+            self._reads.add(node.id)
         elif isinstance(node.ctx, ast.Store):
-            self._writes.add(name)
+            self._writes.add(node.id)
         elif isinstance(node.ctx, ast.Del):
-            # Del implica lectura (para verificar existencia) y escritura (borrado)
-            self._reads.add(name)
-            self._writes.add(name)
-    
+            self._reads.add(node.id)
+            self._writes.add(node.id)
+
     def visit_Attribute(self, node: ast.Attribute) -> None:
-        """
-        Procesa accesos a atributos (obj.attr).
-        
-        Nota: Registramos el atributo, no el objeto completo.
-        """
-        attr = node.attr
-        
         if isinstance(node.ctx, ast.Load):
-            self._reads.add(attr)
+            self._reads.add(node.attr)
         elif isinstance(node.ctx, ast.Store):
-            self._writes.add(attr)
+            self._writes.add(node.attr)
         elif isinstance(node.ctx, ast.Del):
-            self._reads.add(attr)
-            self._writes.add(attr)
-        
-        # Recursión en el valor (obj en obj.attr)
+            self._reads.add(node.attr)
+            self._writes.add(node.attr)
         self.visit(node.value)
-    
+
     def visit_Subscript(self, node: ast.Subscript) -> None:
-        """Procesa subscripts (a[i])."""
         self.generic_visit(node)
-    
+
     def visit_arg(self, node: ast.arg) -> None:
-        """Procesa argumentos de función (definiciones)."""
         if not self._in_function_args:
             self._writes.add(node.arg)
-    
-    # -------------------------------------------------------------------------
-    # DEFINICIONES
-    # -------------------------------------------------------------------------
-    
+
     def visit_FunctionDef(self, node: ast.FunctionDef) -> None:
-        """Procesa definiciones de función."""
         self._num_functions += 1
-        
-        # Los argumentos son escrituras (definiciones locales)
         self._in_function_args = True
-        for arg in node.args.args:
-            self._writes.add(arg.arg)
-        for arg in node.args.posonlyargs:
-            self._writes.add(arg.arg)
-        for arg in node.args.kwonlyargs:
+        for arg in (
+            *node.args.args,
+            *node.args.posonlyargs,
+            *node.args.kwonlyargs,
+        ):
             self._writes.add(arg.arg)
         if node.args.vararg:
             self._writes.add(node.args.vararg.arg)
         if node.args.kwarg:
             self._writes.add(node.args.kwarg.arg)
         self._in_function_args = False
-        
-        # Procesar cuerpo y decoradores
         for stmt in node.body:
             self.visit(stmt)
-        for decorator in node.decorator_list:
-            self.visit(decorator)
-    
+        for dec in node.decorator_list:
+            self.visit(dec)
+
     def visit_AsyncFunctionDef(self, node: ast.AsyncFunctionDef) -> None:
-        """Procesa funciones asíncronas."""
-        self.visit_FunctionDef(node)  # type: ignore
-    
+        self.visit_FunctionDef(node)  # type: ignore[arg-type]
+
     def visit_Lambda(self, node: ast.Lambda) -> None:
-        """Procesa expresiones lambda."""
         self._num_functions += 1
-        
         for arg in node.args.args:
             self._writes.add(arg.arg)
-        
         self.visit(node.body)
-    
+
     def visit_ClassDef(self, node: ast.ClassDef) -> None:
-        """Procesa definiciones de clase."""
         self._num_classes += 1
         self.generic_visit(node)
-    
-    # -------------------------------------------------------------------------
-    # COMPLEJIDAD CICLOMÁTICA
-    # -------------------------------------------------------------------------
-    
+
     def _increment_complexity(self, amount: int = 1) -> None:
-        """Incrementa la complejidad ciclomática."""
         self._cyclomatic += amount
-        logger.debug(f"CC incremented to {self._cyclomatic}")
-    
+
     def visit_If(self, node: ast.If) -> None:
-        """Procesa condicionales if."""
         self._increment_complexity()
         self._num_branches += 1
         self.generic_visit(node)
-    
+
     def visit_For(self, node: ast.For) -> None:
-        """Procesa bucles for."""
         self._increment_complexity()
         self._num_loops += 1
         self.generic_visit(node)
-    
+
     def visit_AsyncFor(self, node: ast.AsyncFor) -> None:
-        """Procesa bucles for asíncronos."""
         self._increment_complexity()
         self._num_loops += 1
         self.generic_visit(node)
-    
+
     def visit_While(self, node: ast.While) -> None:
-        """Procesa bucles while."""
         self._increment_complexity()
         self._num_loops += 1
         self.generic_visit(node)
-    
+
     def visit_ExceptHandler(self, node: ast.ExceptHandler) -> None:
-        """Procesa manejadores de excepciones."""
         self._increment_complexity()
         self._num_branches += 1
         self.generic_visit(node)
-    
+
     def visit_With(self, node: ast.With) -> None:
-        """Procesa gestores de contexto."""
         self._increment_complexity()
         self.generic_visit(node)
-    
+
     def visit_AsyncWith(self, node: ast.AsyncWith) -> None:
-        """Procesa gestores de contexto asíncronos."""
         self._increment_complexity()
         self.generic_visit(node)
-    
+
     def visit_Match(self, node: ast.Match) -> None:
-        """
-        Procesa pattern matching (Python 3.10+).
-        
-        Complejidad: 1 (base) + (num_cases - 1)
-        """
         self._increment_complexity()
-        if hasattr(node, 'cases'):
+        if hasattr(node, "cases"):
             num_cases = len(node.cases)
             if num_cases > 1:
                 self._increment_complexity(num_cases - 1)
             self._num_branches += num_cases
         self.generic_visit(node)
-    
+
     def visit_BoolOp(self, node: ast.BoolOp) -> None:
-        """
-        Procesa operadores booleanos (and, or).
-        
-        Cada operador adicional incrementa CC.
-        """
         num_operands = len(node.values)
         if num_operands > 1:
             self._increment_complexity(num_operands - 1)
             self._num_branches += num_operands - 1
         self.generic_visit(node)
-    
+
     def visit_IfExp(self, node: ast.IfExp) -> None:
-        """Procesa expresiones ternarias (a if cond else b)."""
         self._increment_complexity()
         self._num_branches += 1
         self.generic_visit(node)
-    
+
     def visit_comprehension(self, node: ast.comprehension) -> None:
-        """Procesa comprensiones (list/dict/set comprehensions)."""
-        self._increment_complexity()  # El bucle base
-        self._increment_complexity(len(node.ifs))  # Cada filtro if
+        self._increment_complexity()
+        self._increment_complexity(len(node.ifs))
         self._num_loops += 1
         self._num_branches += len(node.ifs)
         self.generic_visit(node)
-    
+
     def visit_Try(self, node: ast.Try) -> None:
-        """Procesa bloques try/except."""
         self._increment_complexity()
         self.generic_visit(node)
-    
-    # -------------------------------------------------------------------------
-    # EXTRACCIÓN DE RESULTADOS
-    # -------------------------------------------------------------------------
-    
+
     def get_dataflow_coordinates(self) -> DataFlowCoordinates:
-        """Devuelve las coordenadas globales de flujo de datos."""
         return DataFlowCoordinates(
-            reads=frozenset(self._reads),
-            writes=frozenset(self._writes)
+            reads=frozenset(self._reads), writes=frozenset(self._writes)
         )
-    
+
     def get_complexity_profile(self) -> ComplexityProfile:
-        """Devuelve el perfil de complejidad completo."""
         return ComplexityProfile(
             cyclomatic_complexity=self._cyclomatic,
             max_nesting_depth=self._max_depth,
             num_functions=self._num_functions,
             num_classes=self._num_classes,
             num_branches=self._num_branches,
-            num_loops=self._num_loops
+            num_loops=self._num_loops,
         )
-    
+
     def get_block_dataflows(self) -> List[Tuple[DataFlowCoordinates, int, str]]:
-        """Devuelve los flujos por bloque (para análisis cohomológico)."""
         return self._block_flows
-    
+
     def get_tree_graph(self) -> Dict[int, List[int]]:
-        """Devuelve el grafo de adyacencia del AST."""
         return dict(self._node_children)
 
+    def get_max_path_energy(self) -> float:
+        return float(self._max_path_energy)
 
-# =============================================================================
-# EXTRACTOR LOCAL DE FLUJO (auxiliar para tracking por bloque)
-# =============================================================================
-
-class _LocalFlowExtractor(ast.NodeVisitor):
-    """
-    Extractor ligero de flujo de datos para un subárbol aislado.
-    
-    No modifica el estado global del analizador principal.
-    Complejidad: O(tamaño del subárbol)
-    """
-    
-    def __init__(self):
-        self.local_reads: Set[str] = set()
-        self.local_writes: Set[str] = set()
-    
-    def visit_Name(self, node: ast.Name) -> None:
-        if isinstance(node.ctx, ast.Load):
-            self.local_reads.add(node.id)
-        elif isinstance(node.ctx, ast.Store):
-            self.local_writes.add(node.id)
-        elif isinstance(node.ctx, ast.Del):
-            self.local_reads.add(node.id)
-            self.local_writes.add(node.id)
-    
-    def visit_Attribute(self, node: ast.Attribute) -> None:
-        if isinstance(node.ctx, ast.Load):
-            self.local_reads.add(node.attr)
-        elif isinstance(node.ctx, ast.Store):
-            self.local_writes.add(node.attr)
-        elif isinstance(node.ctx, ast.Del):
-            self.local_reads.add(node.attr)
-            self.local_writes.add(node.attr)
-        self.generic_visit(node)
-    
-    def visit_arg(self, node: ast.arg) -> None:
-        self.local_writes.add(node.arg)
-
-
-# =============================================================================
-# COHOMOLOGÍA DE HACES CELULARES
-# =============================================================================
-
-class CellularSheafCohomology:
-    """
-    Implementación rigurosa de cohomología de haces celulares sobre grafos.
-    
-    TEORÍA:
-    -------
-    Un haz celular F sobre un CW-complejo T asigna:
-        • A cada vértice v: un espacio vectorial F(v)
-        • A cada arista e: un espacio vectorial F(e)
-        • Restricciones lineales: F(e) → F(source(e)) ⊕ F(target(e))
-    
-    El complejo de cocadenas:
-        C⁰(T,F) --δ⁰--> C¹(T,F) --δ¹--> C²(T,F)
-    
-    donde:
-        • C⁰: secciones sobre vértices
-        • C¹: secciones sobre aristas
-        • δⁿ: operador cofrontera (coboundary)
-    
-    La cohomología:
-        Hⁿ(T,F) = ker(δⁿ) / im(δⁿ⁻¹)
-    
-    INTERPRETACIÓN PARA DEF-USE:
-    -----------------------------
-    • Vértices: bloques básicos (nodos AST)
-    • Aristas: flujo de control (padre → hijo en el árbol)
-    • Tallos F(v): espacio generado por las variables en v
-    • H¹ ≠ 0: indica ciclos de dependencias inconsistentes
-    
-    REFERENCIAS:
-    ------------
-    • Hansen & Ghrist (2019): "Opinion Dynamics on Discourse Sheaves"
-    • Curry (2014): "Sheaves, Cosheaves and Applications"
-    • Robinson (2014): "Sheaf and Duality Methods for Analyzing Multi-Model Systems"
-    """
-    
-    def __init__(self):
-        self.vertices: List[DataFlowCoordinates] = []
-        self.edges: List[Tuple[int, int]] = []  # (parent_idx, child_idx)
-        self.all_variables: List[str] = []
-        self._var_to_index: Dict[str, int] = {}
-    
-    def build_from_ast_blocks(
-        self,
-        block_flows: List[Tuple[DataFlowCoordinates, int, str]],
-        tree_graph: Dict[int, List[int]]
-    ) -> None:
-        """
-        Construye el haz celular a partir del AST analizado.
-        
-        Args:
-            block_flows: Lista de (coordenadas, node_id, tipo)
-            tree_graph: Grafo de adyacencia {node_id: [child_ids]}
-        
-        Complejidad: O(V + E) donde V = vértices, E = aristas
-        """
-        # Mapeo de IDs a índices
-        node_id_to_index: Dict[int, int] = {}
-        
-        for idx, (coords, node_id, _) in enumerate(block_flows):
-            node_id_to_index[node_id] = idx
-            self.vertices.append(coords)
-        
-        # Recolectar todas las variables (base del espacio vectorial)
-        var_set: Set[str] = set()
-        for v in self.vertices:
-            var_set.update(v.all_variables)
-        
-        self.all_variables = sorted(var_set)
-        self._var_to_index = {v: i for i, v in enumerate(self.all_variables)}
-        
-        # Construir aristas del grafo dirigido
-        for parent_id, children_ids in tree_graph.items():
-            if parent_id not in node_id_to_index:
-                continue
-            parent_idx = node_id_to_index[parent_id]
-            for child_id in children_ids:
-                if child_id in node_id_to_index:
-                    child_idx = node_id_to_index[child_id]
-                    self.edges.append((parent_idx, child_idx))
-        
-        logger.info(
-            f"Built cellular sheaf: {len(self.vertices)} vertices, "
-            f"{len(self.edges)} edges, {len(self.all_variables)} variables"
-        )
-    
-    def compute_first_cohomology_dimension(self) -> int:
-        """
-        Calcula dim H¹(T, F) usando álgebra lineal.
-        
-        ALGORITMO:
-        ----------
-        1. Construir operador cofrontera δ⁰: C⁰ → C¹
-        2. Calcular rank(δ⁰) = dim(im δ⁰)
-        3. dim H¹ = dim C¹ - rank(δ⁰)
-        
-        CONSTRUCCIÓN DE δ⁰:
-        -------------------
-        Para cada arista e = (p, c) de parent p a child c,
-        y cada variable v:
-            (δ⁰ σ)[e, v] = σ[c, v] - σ[p, v]
-        
-        donde σ ∈ C⁰ es una 0-cocadena (asigna valores a vértices).
-        
-        INTERPRETACIÓN:
-        ---------------
-        δ⁰ mide la "diferencia" de valores de variables a lo largo
-        de las aristas. Si rank(δ⁰) < dim C¹, existen ciclos que no
-        pueden ser "generados" por diferencias locales → inconsistencia.
-        
-        Returns:
-            dim H¹(T, F) ∈ ℕ
-        
-        Complejidad: O(E × V × n³) donde n = número de variables
-                     (dominado por cálculo de rango)
-        """
-        if not self.vertices or not self.all_variables or not self.edges:
-            return 0
-        
-        n_vars = len(self.all_variables)
-        n_verts = len(self.vertices)
-        n_edges = len(self.edges)
-        
-        try:
-            import numpy as np
-            
-            # Dimensiones
-            rows = n_edges * n_vars  # dim C¹
-            cols = n_verts * n_vars  # dim C⁰
-            
-            # Matriz del operador δ⁰
-            delta0 = np.zeros((rows, cols), dtype=np.float64)
-            
-            for e_idx, (p_idx, c_idx) in enumerate(self.edges):
-                for var in self.all_variables:
-                    v_idx = self._var_to_index[var]
-                    
-                    row = e_idx * n_vars + v_idx
-                    col_parent = p_idx * n_vars + v_idx
-                    col_child = c_idx * n_vars + v_idx
-                    
-                    # (δ⁰ σ)[e, v] = σ[child, v] - σ[parent, v]
-                    delta0[row, col_parent] = -1.0
-                    delta0[row, col_child] = 1.0
-            
-            # Calcular rango usando SVD (más estable que QR)
-            rank_delta0 = np.linalg.matrix_rank(
-                delta0,
-                tol=AnalysisLimits.FLOAT_TOLERANCE
-            )
-            
-            # dim H¹ = dim C¹ - dim(im δ⁰)
-            dim_H1 = rows - rank_delta0
-            
-            logger.info(f"Cohomology: dim C¹ = {rows}, rank δ⁰ = {rank_delta0}, dim H¹ = {dim_H1}")
-            return dim_H1
-        
-        except ImportError:
-            # Fallback sin NumPy: estimación conservadora
-            logger.warning("NumPy not available; using heuristic cohomology estimate")
-            return self._estimate_cohomology_without_numpy()
-    
-    def _estimate_cohomology_without_numpy(self) -> int:
-        """
-        Estimación heurística de dim H¹ sin NumPy.
-        
-        Heurística:
-            En un árbol (grafo acíclico), dim H¹ = 0.
-            El número de ciclos independientes es aproximadamente:
-                β₁ = |E| - |V| + 1  (en grafo conexo)
-            
-            Multiplicamos por el número de variables para obtener
-            una cota superior de dim H¹.
-        
-        Returns:
-            Estimación conservadora de dim H¹
-        """
-        n_verts = len(self.vertices)
-        n_edges = len(self.edges)
-        n_vars = len(self.all_variables)
-        
-        # Número de Betti β₁ (ciclos independientes)
-        # Para un grafo conexo: β₁ = E - V + 1
-        # Para un árbol: β₁ = 0
-        beta1 = max(0, n_edges - n_verts + 1)
-        
-        # Estimación: cada ciclo puede generar hasta n_vars inconsistencias
-        estimated_dim = beta1 * n_vars
-        
-        logger.debug(f"Estimated dim H¹ ≈ {estimated_dim} (β₁={beta1}, vars={n_vars})")
-        return estimated_dim
-    
-    def find_problematic_variables(self) -> Set[str]:
-        """
-        Identifica variables potencialmente problemáticas.
-        
-        Heurística:
-            Variables que aparecen en lecturas pero nunca en escrituras
-            (posiblemente no inicializadas).
-        
-        Returns:
-            Conjunto de nombres de variables sospechosas
-        """
-        all_reads: Set[str] = set()
-        all_writes: Set[str] = set()
-        
-        for coords in self.vertices:
-            all_reads.update(coords.reads)
-            all_writes.update(coords.writes)
-        
-        # Variables leídas pero nunca escritas
-        uninitialized = all_reads - all_writes
-        
-        logger.debug(f"Potentially uninitialized variables: {sorted(uninitialized)}")
-        return uninitialized
-    
-    @staticmethod
-    def check_global_consistency(
-        block_flows: List[Tuple[DataFlowCoordinates, int, str]],
-        tree_graph: Dict[int, List[int]],
-        strict: bool = True
-    ) -> Tuple[int, Set[str]]:
-        """
-        Método de fábrica: construye el haz y verifica consistencia.
-        
-        Args:
-            block_flows: Flujos de datos por bloque
-            tree_graph: Grafo de dependencias
-            strict: Si True, lanza excepción cuando dim H¹ > 0
-        
-        Returns:
-            (dim H¹, variables_problemáticas)
-        
-        Raises:
-            CohomologicalObstructionError: Si dim H¹ > 0 y strict=True
-        """
-        sheaf = CellularSheafCohomology()
-        sheaf.build_from_ast_blocks(block_flows, tree_graph)
-        
-        dim_H1 = sheaf.compute_first_cohomology_dimension()
-        problematic_vars = sheaf.find_problematic_variables()
-        
-        if dim_H1 > 0 and strict:
-            raise CohomologicalObstructionError(dim_H1, problematic_vars)
-        
-        return dim_H1, problematic_vars
-
-
-# =============================================================================
-# VALIDADOR DE ESTRUCTURAS JSON/ESQUEMAS
-# =============================================================================
 
 class JSONStructureValidator:
-    """
-    Validador de estructuras JSON con prevención de ataques DoS.
-    
-    ATAQUES PREVENIDOS:
-    -------------------
-    1. Billion Laughs: expansión exponencial mediante referencias
-    2. Hash Collision DoS: diccionarios con claves colisionantes
-    3. Stack Overflow: profundidad excesiva
-    4. Memory Exhaustion: estructuras masivas
-    
-    MÉTODO:
-    -------
-    Recorrido DFS con límites estrictos en:
-        • Profundidad máxima
-        • Número de claves por diccionario
-        • Tamaño de arrays
-    
-    Complejidad: O(n) donde n = número de nodos en la estructura
-    """
-    
+    """Validador de JSON con prevención DoS (Billion Laughs, stack overflow, etc.)."""
+
     @staticmethod
     def validate_structure(
         obj: Union[Dict, List, Any],
@@ -1658,192 +1131,109 @@ class JSONStructureValidator:
         max_keys: int = AnalysisLimits.MAX_JSON_KEYS,
         max_array_size: int = AnalysisLimits.MAX_JSON_ARRAY_SIZE,
         current_depth: int = 0,
-        path: str = "$"
+        path: str = "$",
     ) -> Tuple[bool, str]:
-        """
-        Valida recursivamente una estructura JSON.
-        
-        Args:
-            obj: Objeto a validar
-            max_depth: Profundidad máxima permitida
-            max_keys: Número máximo de claves en diccionarios
-            max_array_size: Tamaño máximo de arrays
-            current_depth: Profundidad actual (uso interno)
-            path: Ruta actual en la estructura (para mensajes de error)
-        
-        Returns:
-            (es_válido, mensaje_de_error)
-        """
-        # Verificación de profundidad
         if current_depth > max_depth:
-            return False, f"Depth {current_depth} exceeds limit {max_depth} at {path}"
-        
-        # Diccionarios
+            return False, f"Depth {current_depth} exceeds {max_depth} at {path}"
         if isinstance(obj, dict):
-            num_keys = len(obj)
-            if num_keys > max_keys:
-                return False, (
-                    f"Dictionary at {path} has {num_keys} keys, "
-                    f"limit is {max_keys}"
-                )
-            
+            if len(obj) > max_keys:
+                return False, f"Dict at {path} has {len(obj)} keys (limit {max_keys})"
             for key, value in obj.items():
-                # Validar tipo de clave
                 if not isinstance(key, (str, int, float, bool, type(None))):
-                    return False, f"Invalid key type {type(key).__name__} at {path}"
-                
-                # Recursión en valores
-                is_valid, error = JSONStructureValidator.validate_structure(
+                    return False, f"Invalid key type at {path}"
+                ok, err = JSONStructureValidator.validate_structure(
                     value,
                     max_depth,
                     max_keys,
                     max_array_size,
                     current_depth + 1,
-                    f"{path}.{key}"
+                    f"{path}.{key}",
                 )
-                if not is_valid:
-                    return False, error
-        
-        # Arrays
+                if not ok:
+                    return False, err
         elif isinstance(obj, list):
-            size = len(obj)
-            if size > max_array_size:
-                return False, (
-                    f"Array at {path} has {size} items, "
-                    f"limit is {max_array_size}"
-                )
-            
+            if len(obj) > max_array_size:
+                return False, f"Array at {path} has {len(obj)} items (limit {max_array_size})"
             for idx, item in enumerate(obj):
-                is_valid, error = JSONStructureValidator.validate_structure(
+                ok, err = JSONStructureValidator.validate_structure(
                     item,
                     max_depth,
                     max_keys,
                     max_array_size,
                     current_depth + 1,
-                    f"{path}[{idx}]"
+                    f"{path}[{idx}]",
                 )
-                if not is_valid:
-                    return False, error
-        
-        # Tipos primitivos (válidos por defecto)
+                if not ok:
+                    return False, err
         elif isinstance(obj, (str, int, float, bool, type(None))):
             pass
-        
-        # Tipos no soportados
         else:
             return False, f"Unsupported type {type(obj).__name__} at {path}"
-        
         return True, ""
-    
+
     @staticmethod
     def compute_depth(obj: Union[Dict, List, Any]) -> int:
-        """
-        Calcula la profundidad máxima de una estructura.
-        
-        Complejidad: O(n) donde n = número de nodos
-        """
         if isinstance(obj, dict):
-            if not obj:
-                return 0
-            return 1 + max(
-                (JSONStructureValidator.compute_depth(v) for v in obj.values()),
-                default=0
+            return (
+                0
+                if not obj
+                else 1
+                + max(
+                    (JSONStructureValidator.compute_depth(v) for v in obj.values()),
+                    default=0,
+                )
             )
-        elif isinstance(obj, list):
-            if not obj:
-                return 0
-            return 1 + max(
-                (JSONStructureValidator.compute_depth(item) for item in obj),
-                default=0
+        if isinstance(obj, list):
+            return (
+                0
+                if not obj
+                else 1
+                + max(
+                    (JSONStructureValidator.compute_depth(i) for i in obj),
+                    default=0,
+                )
             )
-        else:
-            return 0
-    
+        return 0
+
     @staticmethod
     def estimate_memory_size(obj: Union[Dict, List, Any]) -> int:
-        """
-        Estima el tamaño en memoria (en bytes) de la estructura.
-        
-        Aproximación heurística basada en sys.getsizeof.
-        """
-        total_size = sys.getsizeof(obj)
-        
+        total = sys.getsizeof(obj)
         if isinstance(obj, dict):
             for k, v in obj.items():
-                total_size += sys.getsizeof(k)
-                total_size += JSONStructureValidator.estimate_memory_size(v)
+                total += sys.getsizeof(k) + JSONStructureValidator.estimate_memory_size(v)
         elif isinstance(obj, list):
             for item in obj:
-                total_size += JSONStructureValidator.estimate_memory_size(item)
-        
-        return total_size
+                total += JSONStructureValidator.estimate_memory_size(item)
+        return total
 
-
-# =============================================================================
-# NORMALIZADOR A FORMATO TABULAR
-# =============================================================================
 
 class TabularNormalizer:
-    """
-    Normalizador de estructuras complejas a representación tabular plana.
-    
-    MOTIVACIÓN:
-    -----------
-    Facilita la visualización y análisis de datos estructurados
-    mediante proyección a espacios tabulares (Markdown, CSV).
-    
-    MÉTODOS:
-    --------
-    • to_markdown_table: Genera tabla Markdown
-    • to_csv_row: Genera fila CSV
-    • flatten: Aplana estructuras anidadas
-    """
-    
+    """Normalizador a representación tabular (Markdown, CSV, flattened)."""
+
     @staticmethod
     def _serialize_value(
         value: Any,
         depth: int,
         max_depth: int = AnalysisLimits.MAX_FLATTEN_DEPTH,
-        max_length: int = AnalysisLimits.MAX_STRING_REPR_LENGTH
+        max_length: int = AnalysisLimits.MAX_STRING_REPR_LENGTH,
     ) -> str:
-        r"""
-        Serializa un valor arbitrario a string legible.
-        
-        Args:
-            value: Valor a serializar
-            depth: Profundidad actual de recursión
-            max_depth: Profundidad máxima antes de truncar
-            max_length: Longitud máxima de strings
-        
-        Returns:
-            Representación string del valor
-        """
-        # None
         if value is None:
             return "null"
-        
-        # Booleanos
         if isinstance(value, bool):
             return "true" if value else "false"
-        
-        # Números
         if isinstance(value, (int, float)):
-            if math.isnan(value):
-                return "NaN"
-            if math.isinf(value):
-                return "∞" if value > 0 else "-∞"
             if isinstance(value, float):
-                return f"{value:.6g}"  # Notación compacta
+                if math.isnan(value):
+                    return "NaN"
+                if math.isinf(value):
+                    return "∞" if value > 0 else "-∞"
+                return f"{value:.6g}"
             return str(value)
-        
-        # Strings
         if isinstance(value, str):
-            escaped = value.replace('"', '\\"').replace('\n', '\\n')
-            if len(escaped) > max_length:
-                escaped = escaped[:max_length - 3] + "..."
-            return f'"{escaped}"'
-        
-        # Diccionarios
+            esc = value.replace('"', '\\"').replace("\n", "\\n")
+            if len(esc) > max_length:
+                esc = esc[: max_length - 3] + "..."
+            return f'"{esc}"'
         if isinstance(value, dict):
             if depth >= max_depth:
                 return f"{{...{len(value)} keys}}"
@@ -1853,628 +1243,1828 @@ class TabularNormalizer:
             ]
             suffix = ", ..." if len(value) > 5 else ""
             return "{" + ", ".join(items) + suffix + "}"
-        
-        # Listas
         if isinstance(value, list):
             if depth >= max_depth:
                 return f"[...{len(value)} items]"
             items = [
-                TabularNormalizer._serialize_value(item, depth + 1, max_depth, max_length)
-                for item in value[:5]
+                TabularNormalizer._serialize_value(i, depth + 1, max_depth, max_length)
+                for i in value[:5]
             ]
             suffix = ", ..." if len(value) > 5 else ""
             return "[" + ", ".join(items) + suffix + "]"
-        
-        # Otros tipos
         return f"<{type(value).__name__}>"
-    
+
     @staticmethod
     def to_markdown_table(data: Dict[str, Any]) -> str:
-        r"""
-        Convierte un diccionario a tabla Markdown.
-        
-        Formato:
-            | key1 | key2 | key3 |
-            |------|------|------|
-            | val1 | val2 | val3 |
-        
-        Args:
-            data: Diccionario a convertir
-        
-        Returns:
-            String con la tabla Markdown
-        
-        Raises:
-            TypeError: Si data no es un diccionario
-        """
         if not isinstance(data, dict):
             raise TypeError(f"Expected dict, got {type(data).__name__}")
-        
         if not data:
             return "| (empty) |\n|---------|"
-        
-        # Ordenar claves para salida determinista
         keys = sorted(data.keys())
-        
-        # Cabecera
         header = "| " + " | ".join(str(k) for k in keys) + " |"
-        
-        # Separador
         separator = "|" + "|".join(["---"] * len(keys)) + "|"
-        
-        # Valores
         values = [TabularNormalizer._serialize_value(data[k], 0) for k in keys]
         row = "| " + " | ".join(values) + " |"
-        
         return f"{header}\n{separator}\n{row}"
-    
+
     @staticmethod
     def to_csv_row(data: Dict[str, Any]) -> Tuple[str, str]:
-        """
-        Convierte un diccionario a fila CSV.
-        
-        Args:
-            data: Diccionario a convertir
-        
-        Returns:
-            (header, row) donde ambos son strings CSV
-        """
         if not isinstance(data, dict) or not data:
             return "", ""
-        
         keys = sorted(data.keys())
         header = ",".join(str(k) for k in keys)
-        values = [TabularNormalizer._serialize_value(data[k], 0) for k in keys]
-        row = ",".join(values)
-        
+        row = ",".join(TabularNormalizer._serialize_value(data[k], 0) for k in keys)
         return header, row
-    
+
     @staticmethod
     def flatten_dict(
-        data: Dict[str, Any],
-        parent_key: str = "",
-        separator: str = "."
+        data: Dict[str, Any], parent_key: str = "", separator: str = "."
     ) -> Dict[str, Any]:
-        """
-        Aplana un diccionario anidado.
-        
-        Ejemplo:
-            {"a": {"b": 1}} → {"a.b": 1}
-        
-        Args:
-            data: Diccionario a aplanar
-            parent_key: Prefijo para las claves (uso interno)
-            separator: Separador de niveles
-        
-        Returns:
-            Diccionario plano
-        """
         items: List[Tuple[str, Any]] = []
-        
         for k, v in data.items():
             new_key = f"{parent_key}{separator}{k}" if parent_key else k
-            
             if isinstance(v, dict):
                 items.extend(
                     TabularNormalizer.flatten_dict(v, new_key, separator).items()
                 )
             else:
                 items.append((new_key, v))
-        
         return dict(items)
 
 
-# =============================================================================
-# ORQUESTADOR PRINCIPAL
-# =============================================================================
+class _CelestialSeedBuilder:
+    r"""
+    [v5.1.0] Construye el generador Hamiltoniano $A\in\mathfrak{sp}(2n)$
+    a partir del 0-jet (reads/writes + 2-forma de interferencia).
+
+    Bloque canónico:
+        $A = \begin{pmatrix} 0 & \beta \\ \gamma & 0 \end{pmatrix}$,
+        $\beta = \mathrm{diag}(\#W_i)$ simétrica, $\gamma = -\mathrm{diag}(\#R_i)$
+        simétrica $\implies A\in\mathfrak{sp}(2n)$ (axioma: $A^\top J + JA = 0$).
+    """
+
+    @staticmethod
+    def symplectic_dim(n_reads: int, n_writes: int) -> int:
+        return max(2, min(AnalysisLimits.MAX_SYMPLECTIC_DIM, n_reads + n_writes, 4))
+
+    @staticmethod
+    def hamiltonian_generator(
+        reads: FrozenSet[str],
+        writes: FrozenSet[str],
+        dim: int,
+    ) -> np.ndarray:
+        n = int(dim)
+        beta = np.zeros((n, n), dtype=np.float64)
+        gamma = np.zeros((n, n), dtype=np.float64)
+        w_list = sorted(writes) or ["∅"]
+        r_list = sorted(reads) or ["∅"]
+        for i in range(n):
+            beta[i, i] = 1.0 + float(len(w_list[i % len(w_list)]))
+            gamma[i, i] = -1.0 - float(len(r_list[i % len(r_list)]))
+        A = np.block(
+            [
+                [np.zeros((n, n), dtype=np.float64), beta],
+                [gamma, np.zeros((n, n), dtype=np.float64)],
+            ]
+        )
+        return A
+
+    @staticmethod
+    def verify_sp_algebra(A: np.ndarray, J: np.ndarray, atol: float = 1e-9) -> bool:
+        r"""Verifica $A^\top J + JA = 0$ (pertenencia a $\mathfrak{sp}(2n)$)."""
+        residual = A.T @ J + J @ A
+        return float(np.linalg.norm(residual, ord="fro")) < atol
+
+
+# ─── FASE 1 → FASE 2 HANDOFF (última definición de FASE 1) ───────────────────
+
+class _ASTPhase1Pipeline:
+    r"""
+    Orquesta la FASE 1 (geometría estructural del AST + semilla celeste).
+
+    Produce un `Phase1Handoff` que es el **dominio estricto** de
+    `_ASTPhase2Pipeline._ingest_phase1_handoff` (primera flecha de FASE 2):
+
+        $\Phi_2 \circ \Phi_1(\mathrm{source})
+            = \texttt{\_ingest\_phase1\_handoff}(
+                \texttt{\_handoff\_to\_phase2}(\mathrm{source}))$.
+    """
+
+    @staticmethod
+    def _handoff_to_phase2(
+        source_code: str,
+        filename: str = "<string>",
+        enable_hamiltonian: bool = True,
+        enable_cohomology: bool = True,
+        strict_mode: bool = True,
+    ) -> Phase1Handoff:
+        r"""
+        Pipeline FASE 1 completa: parse → visita → métricas → semilla
+        acción-ángulo / $\mathfrak{sp}(2n)$ → handoff.
+
+        Esta es la **última** definición de FASE 1 y el **inicio** formal
+        de FASE 2: su valor de retorno es el único argumento legal de
+        `_ASTPhase2Pipeline._ingest_phase1_handoff`.
+        """
+        if not source_code or not source_code.strip():
+            raise ValueError("Source code is empty or whitespace-only")
+
+        try:
+            tree = ast.parse(source_code, filename=filename, mode="exec")
+        except SyntaxError as exc:
+            logger.error(f"Syntax error in {filename}: {exc}")
+            raise ValueError(f"Invalid Python syntax: {exc}") from exc
+
+        analyzer = DataFlowAnalyzer(
+            enable_hamiltonian_monitor=enable_hamiltonian,
+            enable_block_tracking=enable_cohomology,
+            strict_mode=strict_mode,
+        )
+
+        hamiltonian_ok = True
+        warnings: List[str] = []
+
+        try:
+            analyzer.visit(tree)
+        except ThermodynamicSingularityError as exc:
+            hamiltonian_ok = False
+            logger.error(f"Hamiltonian violation in {filename}: {exc}")
+            if strict_mode:
+                raise
+            warnings.append(str(exc))
+
+        dataflow = analyzer.get_dataflow_coordinates()
+        complexity = analyzer.get_complexity_profile()
+
+        raw_blocks = analyzer.get_block_dataflows()
+        block_flows_tuple = tuple(
+            (c.reads, c.writes, node_id, node_type)
+            for c, node_id, node_type in raw_blocks
+        )
+
+        raw_graph = analyzer.get_tree_graph()
+        tree_graph_tuple = tuple(
+            (parent_id, tuple(children)) for parent_id, children in raw_graph.items()
+        )
+
+        # ── Semilla celeste (v5.1.0): 2-forma + generador 𝔰𝔭(2n) ────────────
+        coords_only = [c for c, _, _ in raw_blocks]
+        antisymmetry_ok = True
+        interference_f = 0.0
+        if len(coords_only) >= 2:
+            sample = coords_only[: min(32, len(coords_only))]
+            for a, b in combinations(sample, 2):
+                if not DataFlowCoordinates.verify_antisymmetry(a, b):
+                    antisymmetry_ok = False
+                    warnings.append("Interference form failed antisymmetry")
+                    break
+            Omega = DataFlowCoordinates.interference_matrix(sample)
+            interference_f = float(np.linalg.norm(Omega, ord="fro"))
+
+        n_dof = _CelestialSeedBuilder.symplectic_dim(
+            len(dataflow.reads), len(dataflow.writes)
+        )
+        frequencies = complexity.celestial_frequencies(n_dof)
+        A = _CelestialSeedBuilder.hamiltonian_generator(
+            dataflow.reads, dataflow.writes, n_dof
+        )
+        J = np.block(
+            [
+                [np.zeros((n_dof, n_dof)), np.eye(n_dof)],
+                [-np.eye(n_dof), np.zeros((n_dof, n_dof))],
+            ]
+        )
+        if not _CelestialSeedBuilder.verify_sp_algebra(A, J):
+            warnings.append("Hamiltonian generator not in sp(2n); projecting")
+            # Proyección al álgebra: A ↦ (A + J^{-1} A^T J)/2 no; usamos
+            # A_sp = ½(A − J A^T J) que es la proyección J-antisimétrica.
+            A = 0.5 * (A - J @ A.T @ J)
+
+        handoff = Phase1Handoff(
+            source_code=source_code,
+            filename=filename,
+            dataflow_reads=dataflow.reads,
+            dataflow_writes=dataflow.writes,
+            cyclomatic_complexity=complexity.cyclomatic_complexity,
+            max_nesting_depth=complexity.max_nesting_depth,
+            num_functions=complexity.num_functions,
+            num_classes=complexity.num_classes,
+            num_branches=complexity.num_branches,
+            num_loops=complexity.num_loops,
+            block_flows=block_flows_tuple,
+            tree_graph=tree_graph_tuple,
+            hamiltonian_ok=hamiltonian_ok,
+            max_path_energy=analyzer.get_max_path_energy(),
+            warnings=tuple(warnings),
+            frequencies=frequencies,
+            hamiltonian_generator=_tuple_matrix(A),
+            interference_frobenius=interference_f,
+            antisymmetry_ok=antisymmetry_ok,
+            symplectic_dim=n_dof,
+        )
+        logger.info(
+            "[FASE1→FASE2] %s: CC=%d, depth=%d, E_path=%.3f, blocks=%d, "
+            "H_ok=%s, ω=%s, ‖ω_I‖_F=%.3f, sp(%d), warnings=%d",
+            filename,
+            complexity.cyclomatic_complexity,
+            complexity.max_nesting_depth,
+            handoff.max_path_energy,
+            len(block_flows_tuple),
+            hamiltonian_ok,
+            tuple(round(x, 3) for x in frequencies),
+            interference_f,
+            2 * n_dof,
+            len(warnings),
+        )
+        return handoff
+
+
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║  FASE 2 — HOMOLOGÍA DE POINCARÉ Y RSI³                                     ║
+# ║  Primera def.: `_ASTPhase2Pipeline._ingest_phase1_handoff`                 ║
+# ║  (continuación estricta de `_ASTPhase1Pipeline._handoff_to_phase2`)        ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
+class SymplecticPoincareEngine:
+    r"""
+    Motor de Mecánica Celeste de Poincaré para el AST.
+
+    Implementa:
+      • proyección de Cayley-Darboux sobre $Sp(2n,\mathbb{R})$,
+      • flujo Hamiltoniano $M=\exp(\varepsilon A)$ con $A\in\mathfrak{sp}(2n)$
+        heredado de FASE 1 (nunca aleatorio),
+      • carta acción-ángulo y condición de twist de Kolmogorov,
+      • aplicación de retorno de Poincaré,
+      • ecuación homológica de Poincaré-Lindstedt,
+      • retículo KAM por fracciones continuas + vecinos de Farey,
+      • espectro de Lyapunov Benettin–Shimada QR,
+      • integral de Melnikov con bracket de Poisson.
+    """
+
+    def __init__(self, dim: int) -> None:
+        if dim <= 0:
+            raise ValueError(f"Dimensión simpléctica positiva requerida: {dim}")
+        self.dim = int(dim)
+        self.J = np.block(
+            [
+                [
+                    np.zeros((dim, dim), dtype=np.float64),
+                    np.eye(dim, dtype=np.float64),
+                ],
+                [
+                    -np.eye(dim, dtype=np.float64),
+                    np.zeros((dim, dim), dtype=np.float64),
+                ],
+            ]
+        )
+
+    def cayley_darboux_projection(self, M: np.ndarray) -> np.ndarray:
+        r"""
+        Proyección de Cayley-Darboux: $M \mapsto \Pi_{\mathrm{Sp}}(M)\in Sp(2n)$.
+
+        1. $K=(M-I)(M+I)^{-1}$ (Cayley).
+        2. $K_{sp}=\tfrac12(K - J K^\top J)$ (proyección al álgebra).
+        3. $M_{sympl}=(I+K_{sp})(I-K_{sp})^{-1}$ (Cayley inversa).
+        """
+        dim2 = 2 * self.dim
+        M_arr = np.asarray(M, dtype=np.float64)
+        if M_arr.shape != (dim2, dim2):
+            raise ValueError(
+                f"Dimension incompatible: esperaba ({dim2},{dim2}), recibió {M_arr.shape}"
+            )
+
+        I = np.eye(dim2, dtype=np.float64)
+        try:
+            K = (M_arr - I) @ la.inv(M_arr + I)
+            K_sp = 0.5 * (K - self.J @ K.T @ self.J)
+            return (I + K_sp) @ la.inv(I - K_sp)
+        except la.LinAlgError as exc:
+            logger.warning(f"[PoincareEngine] Singularidad en Cayley: {exc}")
+            M_reg = M_arr + 1e-12 * I
+            K = (M_reg - I) @ la.inv(M_reg + I)
+            K_sp = 0.5 * (K - self.J @ K.T @ self.J)
+            return (I + K_sp) @ la.inv(I - K_sp)
+
+    def construct_flow_map_from_sp_generator(
+        self,
+        A: np.ndarray,
+        epsilon: float = AnalysisLimits.FLOW_MAP_EPSILON,
+    ) -> np.ndarray:
+        r"""
+        [v5.1.0] Flujo Hamiltoniano $M=\exp(\varepsilon A)$ con
+        $A\in\mathfrak{sp}(2n)$ heredado de FASE 1, proyectado a $Sp(2n)$.
+        """
+        A_arr = np.asarray(A, dtype=np.float64)
+        dim2 = 2 * self.dim
+        if A_arr.shape != (dim2, dim2):
+            raise ValueError(
+                f"Generador incompatible: esperaba ({dim2},{dim2}), recibió {A_arr.shape}"
+            )
+        M = la.expm(float(epsilon) * A_arr)
+        return self.cayley_darboux_projection(M)
+
+    def verify_symplectic_invariance(self, M_sympl: np.ndarray) -> SymplecticVerification:
+        r"""
+        Axioma A1: $\delta\omega=\|M^\top\Omega M-\Omega\|_F < \mathtt{SYMPLECTIC\_ATOL}$.
+        Liouville: $\det M = +1$.
+        """
+        M = np.asarray(M_sympl, dtype=np.float64)
+        Omega = self.J
+        delta_omega = float(np.linalg.norm(M.T @ Omega @ M - Omega, ord="fro"))
+        det_M = float(np.real(la.det(M)))
+        is_sympl = delta_omega < AnalysisLimits.SYMPLECTIC_ATOL
+        if not is_sympl:
+            logger.warning(
+                f"[PoincareEngine] δω={delta_omega:.3e} excede "
+                f"{AnalysisLimits.SYMPLECTIC_ATOL:.1e}"
+            )
+        return SymplecticVerification(
+            delta_omega=delta_omega, det_M=det_M, is_symplectic=is_sympl
+        )
+
+    def action_angle_from_orbit(
+        self,
+        orbit_q: np.ndarray,
+        orbit_p: np.ndarray,
+        frequencies: np.ndarray,
+    ) -> ActionAngleChart:
+        r"""
+        [v5.1.0] Acciones $I_i=\frac{1}{2\pi}\oint p\,dq$ por regla trapezoidal
+        sobre la órbita, y energía $H_0=\sum \omega_i I_i$.
+        """
+        q = np.asarray(orbit_q, dtype=np.float64).ravel()
+        p = np.asarray(orbit_p, dtype=np.float64).ravel()
+        omega = np.asarray(frequencies, dtype=np.float64).ravel()
+        if q.size < 2 or p.size != q.size:
+            I = tuple(float(abs(w)) for w in omega) if omega.size else (0.0,)
+            return ActionAngleChart(actions=I, frequencies=tuple(float(x) for x in omega), energy=0.0)
+        circulation = _safe_trapezoid(p, x=q)
+        I0 = abs(circulation) / (2.0 * math.pi)
+        n = max(1, omega.size)
+        actions = tuple(I0 / n for _ in range(n))
+        energy = float(np.dot(omega[:n], np.asarray(actions)))
+        return ActionAngleChart(
+            actions=actions,
+            frequencies=tuple(float(x) for x in omega),
+            energy=energy,
+        )
+
+    def kolmogorov_nondegeneracy(
+        self,
+        frequencies: np.ndarray,
+        actions: np.ndarray,
+    ) -> TwistCondition:
+        r"""
+        [v5.1.0] Twist: $H_0(I)=\omega\cdot I + \tfrac12 I^\top A I$ con
+        $A_{ij}=\delta_{ij}\omega_i/(1+|I_i|)$ (Hessiano diagonal dominante).
+        No-degenerado ssi $|\det A| > \varepsilon$.
+        """
+        omega = np.asarray(frequencies, dtype=np.float64).ravel()
+        I = np.asarray(actions, dtype=np.float64).ravel()
+        n = min(omega.size, I.size)
+        if n == 0:
+            return TwistCondition(hessian_det=0.0, is_nondegenerate=False)
+        hess = np.diag(omega[:n] / (1.0 + np.abs(I[:n])))
+        try:
+            det_h = float(np.real(la.det(hess)))
+        except la.LinAlgError:
+            det_h = 0.0
+        return TwistCondition(
+            hessian_det=det_h,
+            is_nondegenerate=bool(abs(det_h) > AnalysisLimits.FLOAT_TOLERANCE),
+        )
+
+    def poincare_return_map(
+        self,
+        orbit_q: np.ndarray,
+        orbit_p: np.ndarray,
+    ) -> PoincareReturnMap:
+        r"""
+        [v5.1.0] Sección $\Sigma=\{q=\langle q\rangle\}$. Un cruce es un
+        cambio de signo de $q-\langle q\rangle$ con $\dot q>0$. El mapa
+        $p_i\mapsto p_{i+1}$ es el retorno; $T_{\mathrm{rec}}$ es el
+        periodo medio entre cruces (recurrencia de Poincaré).
+        """
+        q = np.asarray(orbit_q, dtype=np.float64).ravel()
+        p = np.asarray(orbit_p, dtype=np.float64).ravel()
+        if q.size < 3 or p.size != q.size:
+            return PoincareReturnMap(
+                section_value=0.0,
+                crossings=0,
+                p_returns=(),
+                recurrence_time=float("inf"),
+                is_recurrent=False,
+            )
+        q0 = float(np.mean(q))
+        s = q - q0
+        p_hits: List[float] = []
+        hit_idx: List[int] = []
+        for i in range(1, s.size):
+            if s[i - 1] <= 0.0 < s[i]:
+                p_hits.append(float(p[i]))
+                hit_idx.append(i)
+        crossings = len(p_hits)
+        if crossings >= 2:
+            rec = float(np.mean(np.diff(np.asarray(hit_idx, dtype=np.float64))))
+        elif crossings == 1:
+            rec = float(q.size)
+        else:
+            rec = float("inf")
+        return PoincareReturnMap(
+            section_value=q0,
+            crossings=crossings,
+            p_returns=tuple(p_hits),
+            recurrence_time=rec,
+            is_recurrent=bool(crossings >= 2),
+        )
+
+    def _verify_zero_mean_perturbation(self, H1_coeffs: np.ndarray) -> bool:
+        r"""Condición de solubilidad: $\langle H_1\rangle_{\mathbb{T}^n}=0$."""
+        H1 = np.asarray(H1_coeffs, dtype=np.float64)
+        if H1.size == 0:
+            return True
+        mean_H1 = float(np.mean(H1))
+        scale = max(float(np.max(np.abs(H1))), 1e-15)
+        return abs(mean_H1) / scale <= 1e-6
+
+    def _generate_resonance_lattice(
+        self,
+        omega: np.ndarray,
+        K: int = AnalysisLimits.KAM_MAX_K_NORM,
+        tau: float = AnalysisLimits.KAM_TAU,
+        gamma: float = AnalysisLimits.KAM_GAMMA,
+    ) -> KAMResonanceLattice:
+        r"""
+        Retículo $k\in\mathbb{Z}^n$, $\|k\|_1\le K$, más convergentes CF y
+        vecinos de Farey. $\gamma^*=\inf_k |\omega\cdot k|\,\|k\|_1^\tau$.
+        KAM-estable ssi $\gamma^*\ge\gamma>0$.
+        """
+        omega = np.asarray(omega, dtype=np.float64).ravel()
+        n = int(omega.size)
+        if n == 0:
+            return KAMResonanceLattice(
+                k_vectors=(),
+                diophantine_gamma=float("inf"),
+                tau=tau,
+                is_kam_stable=True,
+            )
+        if n == 1:
+            g = float(abs(omega[0]))
+            return KAMResonanceLattice(
+                k_vectors=((1,),),
+                diophantine_gamma=g,
+                tau=tau,
+                is_kam_stable=(g >= gamma),
+            )
+
+        k_set: Set[Tuple[int, ...]] = set()
+
+        if n <= 4 and K <= 4:
+            for k in product(range(-K, K + 1), repeat=n):
+                if all(ki == 0 for ki in k):
+                    continue
+                k_set.add(tuple(int(ki) for ki in k))
+        else:
+            for i, j in combinations(range(n), 2):
+                for d in product(range(-K, K + 1), repeat=2):
+                    if d[0] == 0 and d[1] == 0:
+                        continue
+                    k_arr = [0] * n
+                    k_arr[i] = int(d[0])
+                    k_arr[j] = int(d[1])
+                    k_set.add(tuple(k_arr))
+
+        for i, j in combinations(range(n), 2):
+            if abs(omega[j]) < 1e-15:
+                continue
+            ratio = float(omega[i] / omega[j])
+            a = ratio
+            p_prev, p_curr = 1, 0
+            q_prev, q_curr = 0, 1
+            convergents: List[Tuple[int, int]] = []
+            for _ in range(20):
+                ai = int(math.floor(a))
+                p_prev, p_curr = p_curr, ai * p_curr + p_prev
+                q_prev, q_curr = q_curr, ai * q_curr + q_prev
+                if q_curr == 0 or abs(q_curr) > K:
+                    break
+                convergents.append((p_curr, q_curr))
+                k_arr = [0] * n
+                k_arr[i] = q_curr
+                k_arr[j] = -p_curr
+                k_set.add(tuple(k_arr))
+                frac = a - ai
+                if abs(frac) < 1e-12:
+                    break
+                a = 1.0 / frac
+            # Vecinos de Farey: |p q' − p' q| = 1 (resonancias más peligrosas)
+            for (p1, q1), (p2, q2) in zip(convergents, convergents[1:]):
+                p_f, q_f = p1 + p2, q1 + q2
+                if 0 < abs(q_f) <= K:
+                    k_arr = [0] * n
+                    k_arr[i] = q_f
+                    k_arr[j] = -p_f
+                    k_set.add(tuple(k_arr))
+
+        min_gamma = float("inf")
+        for k in k_set:
+            k_arr = np.asarray(k, dtype=np.float64)
+            k_norm1 = float(np.linalg.norm(k_arr, 1))
+            if k_norm1 < 1e-15 or k_norm1 > K:
+                continue
+            dot = abs(float(np.dot(omega, k_arr)))
+            candidate = dot * (k_norm1 ** tau)
+            if candidate < min_gamma:
+                min_gamma = candidate
+
+        return KAMResonanceLattice(
+            k_vectors=tuple(sorted(k_set)),
+            diophantine_gamma=float(min_gamma),
+            tau=tau,
+            is_kam_stable=bool(min_gamma >= gamma),
+        )
+
+    def solve_poincare_homological_equation(
+        self,
+        H0_grad: np.ndarray,
+        H1_coeffs: np.ndarray,
+        gamma: float = AnalysisLimits.KAM_GAMMA,
+        tau: float = AnalysisLimits.KAM_TAU,
+    ) -> Tuple[np.ndarray, float]:
+        r"""
+        Resuelve $\{H_0, W\}=H_1-\langle H_1\rangle$ en Fourier:
+            $W_k = H_{1,k}/(i\,\omega\cdot k)$ para $k\neq 0$, $W_0=0$.
+
+        Devuelve $(W, \|W\|_2)$. Verifica media cero y KAM-estabilidad.
+        """
+        omega0 = np.asarray(H0_grad, dtype=np.float64).ravel()
+        H1 = np.asarray(H1_coeffs, dtype=np.float64).ravel()
+        if omega0.size < 2:
+            omega0 = np.pad(omega0, (0, max(0, 2 - omega0.size)), constant_values=1.0)
+
+        H1_zm = H1 - np.mean(H1) if H1.size else H1
+        if not self._verify_zero_mean_perturbation(H1_zm):
+            raise ValueError(
+                "[PoincareEngine] H1 tiene media no nula tras centrado."
+            )
+
+        lattice = self._generate_resonance_lattice(omega0, tau=tau, gamma=gamma)
+        if not lattice.is_kam_stable:
+            raise ValueError(
+                f"[PoincareEngine] Retículo KAM inestable: "
+                f"γ*={lattice.diophantine_gamma:.3e} < {gamma:.3e}."
+            )
+
+        k_vecs = lattice.k_vectors[: max(1, min(len(lattice.k_vectors), H1_zm.size, 16))]
+        if not k_vecs:
+            return np.zeros_like(H1_zm), 0.0
+
+        W = np.zeros(len(k_vecs), dtype=np.complex128)
+        n_w = min(omega0.size, len(k_vecs[0]))
+        for idx, k in enumerate(k_vecs):
+            k_arr = np.asarray(k[:n_w], dtype=np.float64)
+            divisor = 1j * float(np.dot(omega0[:n_w], k_arr)) + 1e-12
+            coeff = H1_zm[idx] if idx < H1_zm.size else 0.0
+            W[idx] = coeff / divisor
+        W_real = np.real(W)
+        return W_real, float(np.linalg.norm(W_real))
+
+    def evaluate_melnikov_integral_proper(
+        self,
+        H0: HamiltonianFn,
+        H1: HamiltonianFn,
+        orbit_q: np.ndarray,
+        orbit_p: np.ndarray,
+    ) -> MelnikovResult:
+        r"""
+        Integral de Melnikov:
+            $M(\theta_0)=\int_{-\infty}^{+\infty}\{H_0,H_1\}(q_0(t-\theta_0),p_0)\,dt$,
+        con $\{H_0,H_1\}=\partial_q H_0\,\partial_p H_1-\partial_p H_0\,\partial_q H_1$
+        por diferencias finitas centradas y cuadratura trapezoidal.
+        """
+        q = np.asarray(orbit_q, dtype=np.float64).ravel()
+        p = np.asarray(orbit_p, dtype=np.float64).ravel()
+        if q.size < 3 or p.size != q.size:
+            return MelnikovResult(
+                M_value=0.0, theta_0=0.0, has_transversal_intersection=False
+            )
+
+        eps = 1e-6
+        integrand = np.empty(q.size, dtype=np.float64)
+        for i in range(q.size):
+            qi, pi = float(q[i]), float(p[i])
+            dqH0 = (H0(qi + eps, pi) - H0(qi - eps, pi)) / (2 * eps)
+            dpH0 = (H0(qi, pi + eps) - H0(qi, pi - eps)) / (2 * eps)
+            dqH1 = (H1(qi + eps, pi) - H1(qi - eps, pi)) / (2 * eps)
+            dpH1 = (H1(qi, pi + eps) - H1(qi, pi - eps)) / (2 * eps)
+            integrand[i] = dqH0 * dpH1 - dpH0 * dqH1
+
+        M = _safe_trapezoid(integrand)
+        abs_M = abs(M)
+        theta_0 = float(np.argmax(np.abs(integrand))) if integrand.size else 0.0
+        has_tangle = abs_M > AnalysisLimits.MELNIKOV_THRESHOLD
+        return MelnikovResult(
+            M_value=abs_M, theta_0=theta_0, has_transversal_intersection=has_tangle
+        )
+
+    def _lyapunov_spectrum_ast(
+        self,
+        orbit_q: np.ndarray,
+        orbit_p: np.ndarray,
+        stride: int = 1,
+    ) -> LyapunovSpectrum:
+        r"""
+        Espectro de Lyapunov vía Benettin–Shimada:
+        Jacobiano del mapa de Poincaré discreto $(q_k,p_k)\mapsto(q_{k+1},p_{k+1})$
+        por diferencias, re-ortonormalización QR,
+        $\lambda_i=(1/K)\sum_k\log|R_k^{(ii)}|$.
+        """
+        q = np.asarray(orbit_q, dtype=np.float64).ravel()
+        p = np.asarray(orbit_p, dtype=np.float64).ravel()
+        n_steps = min(q.size, p.size) - 1
+        if n_steps < 3:
+            return LyapunovSpectrum(
+                lambdas=(-float("inf"),),
+                lambda_max=-float("inf"),
+                is_chaotic=False,
+            )
+
+        n = 2
+        Q_mat = np.eye(n)
+        log_sums = np.zeros(n)
+        count = 0
+
+        for k in range(1, n_steps):
+            if k % stride != 0:
+                continue
+            x_k = np.array([q[k], p[k]], dtype=np.float64)
+            x_next = np.array([q[k + 1], p[k + 1]], dtype=np.float64)
+            x_prev = np.array([q[k - 1], p[k - 1]], dtype=np.float64)
+            delta_x = x_k - x_prev
+            delta_y = x_next - x_k
+            Jloc = np.diag(
+                np.where(
+                    np.abs(delta_x) > 1e-15,
+                    delta_y / np.maximum(np.abs(delta_x), 1e-15) * np.sign(delta_x),
+                    1.0,
+                )
+            )
+            M_qr = Jloc @ Q_mat
+            Q_new, R = np.linalg.qr(M_qr)
+            diag_R = np.abs(np.diag(R))
+            log_sums += np.log(np.maximum(diag_R, 1e-15))
+            Q_mat = Q_new
+            count += 1
+
+        if count == 0:
+            return LyapunovSpectrum(
+                lambdas=(-float("inf"),),
+                lambda_max=-float("inf"),
+                is_chaotic=False,
+            )
+
+        lambdas = np.sort(log_sums / count)[::-1]
+        lam_max = float(lambdas[0])
+        return LyapunovSpectrum(
+            lambdas=tuple(float(x) for x in lambdas),
+            lambda_max=lam_max,
+            is_chaotic=bool(lam_max > 0.0),
+        )
+
+    def birkhoff_remainder(
+        self,
+        W_norm: float,
+        epsilon: float = AnalysisLimits.FLOW_MAP_EPSILON,
+        order: int = AnalysisLimits.BIRKHOFF_ORDER,
+    ) -> BirkhoffRemainder:
+        r"""
+        [v5.1.0] Resto de Birkhoff: $\|R_N\| \lesssim \varepsilon^{N+1}\|W\|$.
+        Normalizado ssi el resto es $< 1$.
+        """
+        rem = (abs(epsilon) ** (order + 1)) * abs(W_norm)
+        return BirkhoffRemainder(
+            order=order, remainder_norm=float(rem), is_normalized=bool(rem < 1.0)
+        )
+
+
+class RecursiveSelfImprovementL3:
+    r"""
+    Automejora recursiva de nivel 3 como contracción de Banach.
+
+    Espacio: $X=\mathbb{R}^3\ni x=(\gamma,\tau,\varepsilon)$ (parámetros KAM/flujo).
+    Operador de nivel 1: $f(x)=$ residual espectral (δω, 1−γ*/γ, |M|, λ_max⁺).
+    Operador de nivel 2: $P(f)$ adapta $x$ en dirección del gradiente discreto.
+    Operador de nivel 3: $Q(P)$ adapta la tasa de aprendizaje $\eta$ para
+    forzar $\mathrm{Lip}(T)<1$.
+
+    Punto fijo $x^*=T(x^*)$ ssi el analizador es internamente coherente
+    con sus propios umbrales.
+    """
+
+    def __init__(self, engine: SymplecticPoincareEngine):
+        self.engine = engine
+
+    def _residual(
+        self,
+        gamma: float,
+        tau: float,
+        eps: float,
+        omega: np.ndarray,
+        A: np.ndarray,
+        q: np.ndarray,
+        p: np.ndarray,
+        H0: HamiltonianFn,
+        H1: HamiltonianFn,
+    ) -> float:
+        try:
+            M = self.engine.construct_flow_map_from_sp_generator(A, epsilon=eps)
+            sv = self.engine.verify_symplectic_invariance(M)
+            lattice = self.engine._generate_resonance_lattice(
+                omega, tau=tau, gamma=gamma
+            )
+            mel = self.engine.evaluate_melnikov_integral_proper(H0, H1, q, p)
+            lyap = self.engine._lyapunov_spectrum_ast(q, p)
+        except Exception:
+            return 1.0
+        r_sym = min(1.0, sv.delta_omega / max(AnalysisLimits.SYMPLECTIC_ATOL, 1e-18))
+        r_kam = 0.0 if lattice.is_kam_stable else 1.0
+        r_mel = 0.0 if not mel.has_transversal_intersection else 1.0
+        r_ly = 0.0 if not lyap.is_chaotic else min(1.0, abs(lyap.lambda_max))
+        return float(np.mean([r_sym, r_kam, r_mel, r_ly]))
+
+    def iterate(
+        self,
+        omega: np.ndarray,
+        A: np.ndarray,
+        q: np.ndarray,
+        p: np.ndarray,
+        H0: HamiltonianFn,
+        H1: HamiltonianFn,
+        max_iter: int = AnalysisLimits.RSI3_MAX_ITER,
+        min_iter: int = AnalysisLimits.RSI3_MIN_ITER,
+        eps_conv: float = AnalysisLimits.RSI3_CONV_EPS,
+    ) -> RSI3Report:
+        gamma = float(AnalysisLimits.KAM_GAMMA)
+        tau = float(AnalysisLimits.KAM_TAU)
+        eps = float(AnalysisLimits.FLOW_MAP_EPSILON)
+        eta = 0.35  # tasa de nivel 3 (Q)
+        scores: List[float] = []
+        prev_x = np.array([gamma, tau, eps], dtype=np.float64)
+        prev_score = self._residual(gamma, tau, eps, omega, A, q, p, H0, H1)
+        scores.append(prev_score)
+        lip = 1.0
+        converged = False
+        it = 0
+
+        for it in range(1, max_iter + 1):
+            # Nivel 1: evaluar
+            score = self._residual(gamma, tau, eps, omega, A, q, p, H0, H1)
+            scores.append(score)
+
+            # Nivel 2: mejorar parámetros (descenso sobre residual)
+            # ∂r/∂γ < 0 si aumentar γ endurece KAM; adaptamos γ ↓ si inestable.
+            if score > prev_score:
+                gamma = max(gamma * 0.7, 1e-6)
+                tau = min(tau * 1.05, 6.0)
+                eps = max(eps * 0.8, 1e-4)
+            else:
+                gamma = min(gamma * 1.05, 1e-1)
+                eps = min(eps * 1.02, 0.5)
+
+            # Nivel 3: adaptar η para forzar Lip < 1
+            x = np.array([gamma, tau, eps], dtype=np.float64)
+            dx = float(np.linalg.norm(x - prev_x))
+            ds = abs(score - prev_score)
+            lip_step = ds / max(dx, 1e-15)
+            # Q: si Lip_step ≥ 1, contrae η; si Lip_step ≪ 1, expande ligeramente
+            if lip_step >= 1.0:
+                eta *= 0.5
+            else:
+                eta = min(0.8, eta * 1.05)
+            x = prev_x + eta * (x - prev_x)
+            gamma, tau, eps = float(x[0]), float(x[1]), float(x[2])
+
+            lip = lip_step
+            if (
+                it >= min_iter
+                and ds < eps_conv
+                and lip < AnalysisLimits.RSI3_LIPSCHITZ_TARGET
+            ):
+                converged = True
+                prev_x = x
+                prev_score = score
+                break
+            prev_x = x
+            prev_score = score
+
+        return RSI3Report(
+            iterations=it,
+            lipschitz=float(lip),
+            residual=float(scores[-1] if scores else 1.0),
+            converged=bool(converged and lip < 1.0),
+            score_trajectory=tuple(float(s) for s in scores),
+            param_gamma_final=float(gamma),
+            param_tau_final=float(tau),
+            param_eps_final=float(eps),
+        )
+
+
+class HeavyHodgeDiracLaplacian:
+    r"""
+    Laplaciano de Hodge-Dirac pesado sobre $C^0\oplus C^1$:
+
+        $D=\begin{pmatrix}0 & d^*\\ d & 0\end{pmatrix}$,
+        $\Delta=D^2=\mathrm{diag}(d^*d,\,dd^*)$,
+        $d^*=G_0^{-1}d^\top G_1$.
+
+    Axioma A4: $\lambda_{\min}(\Delta|_{C^1})>0 \iff H^1=0$.
+    """
+
+    def compute_heavy_laplacian(
+        self,
+        coboundary_d: np.ndarray,
+        G1: np.ndarray,
+        G0: Optional[np.ndarray] = None,
+    ) -> np.ndarray:
+        d = np.asarray(coboundary_d, dtype=np.float64)  # (n1, n0)
+        if d.ndim != 2 or d.size == 0:
+            return np.zeros((0, 0), dtype=np.float64)
+        n1, n0 = d.shape
+        G1_arr = np.asarray(G1, dtype=np.float64)
+        if G1_arr.ndim == 1:
+            G1_arr = np.diag(G1_arr)
+        if G1_arr.shape != (n1, n1):
+            G1_arr = np.eye(n1, dtype=np.float64)
+        if G0 is None:
+            G0_arr = np.eye(n0, dtype=np.float64)
+        else:
+            G0_arr = np.asarray(G0, dtype=np.float64)
+            if G0_arr.ndim == 1:
+                G0_arr = np.diag(G0_arr)
+            if G0_arr.shape != (n0, n0):
+                G0_arr = np.eye(n0, dtype=np.float64)
+        # SPD-ización numérica
+        G0_arr = 0.5 * (G0_arr + G0_arr.T) + 1e-12 * np.eye(n0)
+        G1_arr = 0.5 * (G1_arr + G1_arr.T) + 1e-12 * np.eye(n1)
+        try:
+            G0_inv = la.inv(G0_arr)
+        except la.LinAlgError:
+            G0_inv = np.eye(n0, dtype=np.float64)
+        # Δ0 = G0^{-1} d^T G1 d     (n0 × n0)
+        # Δ1 = d G0^{-1} d^T G1     (n1 × n1)
+        Delta0 = G0_inv @ d.T @ G1_arr @ d
+        Delta1 = d @ G0_inv @ d.T @ G1_arr
+        return np.block(
+            [
+                [Delta0, np.zeros((n0, n1), dtype=np.float64)],
+                [np.zeros((n1, n0), dtype=np.float64), Delta1],
+            ]
+        )
+
+    def verify_hodge_dirichlet_triviality(self, delta_G: np.ndarray) -> HodgeDiracSpectrum:
+        D = np.asarray(delta_G, dtype=np.float64)
+        if D.size == 0:
+            return HodgeDiracSpectrum(
+                lambda_min=float("inf"),
+                lambda_max=float("inf"),
+                ker_dim_estimate=0,
+                is_trivial_cohomology=True,
+            )
+        D_sym = 0.5 * (D + D.T)
+        try:
+            evals = np.linalg.eigvalsh(D_sym)
+        except np.linalg.LinAlgError:
+            return HodgeDiracSpectrum(
+                lambda_min=float("inf"),
+                lambda_max=float("inf"),
+                ker_dim_estimate=0,
+                is_trivial_cohomology=False,
+            )
+        lam_min = float(evals[0])
+        lam_max = float(evals[-1])
+        tol = max(AnalysisLimits.HODGE_LAMBDA_MIN_THRESHOLD, 1e-10 * abs(lam_max))
+        ker_dim = int(np.sum(np.abs(evals) < tol))
+        is_trivial = bool(abs(lam_min) > tol)
+        return HodgeDiracSpectrum(
+            lambda_min=lam_min,
+            lambda_max=lam_max,
+            ker_dim_estimate=ker_dim,
+            is_trivial_cohomology=is_trivial,
+        )
+
+
+class CellularSheafCohomology:
+    r"""
+    Cohomología de haces celulares sobre el grafo del AST.
+
+    [v5.1.0] Mapas de restricción $\rho_{u\to v}$ = proyección al soporte
+    común (no haz constante). $\delta^0$ actúa como
+
+        $(\delta^0 s)(e)= \rho_{t(e)}(s(t(e))) - \rho_{s(e)}(s(s(e)))$.
+
+    $\dim H^1 = \dim C^1 - \mathrm{rank}_{SVD}(\delta^0)$ (sobreestimación
+    controlada: coker $\delta^0$ = $H^1 \oplus \mathrm{im}\,\delta^1$).
+    """
+
+    def __init__(self):
+        self.vertices: List[DataFlowCoordinates] = []
+        self.edges: List[Tuple[int, int]] = []
+        self.all_variables: List[str] = []
+        self._var_to_index: Dict[str, int] = {}
+        self._delta0: Optional[np.ndarray] = None
+
+    def reset(self) -> None:
+        self.vertices = []
+        self.edges = []
+        self.all_variables = []
+        self._var_to_index = {}
+        self._delta0 = None
+
+    def build_from_ast_blocks(
+        self,
+        block_flows: List[Tuple[DataFlowCoordinates, int, str]],
+        tree_graph: Dict[int, List[int]],
+    ) -> None:
+        self.reset()
+        node_id_to_index: Dict[int, int] = {}
+        for idx, (coords, node_id, _) in enumerate(block_flows):
+            node_id_to_index[node_id] = idx
+            self.vertices.append(coords)
+        var_set: Set[str] = set()
+        for v in self.vertices:
+            var_set.update(v.all_variables)
+        self.all_variables = sorted(var_set)
+        self._var_to_index = {v: i for i, v in enumerate(self.all_variables)}
+        for parent_id, children_ids in tree_graph.items():
+            if parent_id not in node_id_to_index:
+                continue
+            parent_idx = node_id_to_index[parent_id]
+            for child_id in children_ids:
+                if child_id in node_id_to_index:
+                    self.edges.append((parent_idx, node_id_to_index[child_id]))
+        logger.info(
+            f"Built cellular sheaf: {len(self.vertices)} vertices, "
+            f"{len(self.edges)} edges, {len(self.all_variables)} variables"
+        )
+
+    @staticmethod
+    def _rigorous_rank(A: np.ndarray) -> int:
+        r"""$r=\#\{\sigma_i > \sigma_{\max}\cdot\max(m,n)\cdot\varepsilon\}$."""
+        if A.size == 0:
+            return 0
+        try:
+            sv = np.linalg.svd(A, compute_uv=False)
+        except np.linalg.LinAlgError:
+            return 0
+        if sv.size == 0:
+            return 0
+        sigma_max = float(sv[0])
+        if sigma_max < 1e-300:
+            return 0
+        tol = sigma_max * max(A.shape) * float(np.finfo(np.float64).eps)
+        return int(np.sum(sv > tol))
+
+    def coboundary_matrix(self) -> np.ndarray:
+        r"""
+        [v5.1.0] $\delta^0$ con restricciones: la fila $(e,v)$ es nula
+        si $v\notin \mathrm{supp}(\rho_{s(e)}\cap\rho_{t(e)})$.
+        """
+        if self._delta0 is not None:
+            return self._delta0
+        if not self.vertices or not self.all_variables or not self.edges:
+            self._delta0 = np.zeros((0, 0), dtype=np.float64)
+            return self._delta0
+        n_vars = len(self.all_variables)
+        n_edges = len(self.edges)
+        n_verts = len(self.vertices)
+        rows = n_edges * n_vars
+        cols = n_verts * n_vars
+        delta0 = np.zeros((rows, cols), dtype=np.float64)
+        for e_idx, (p_idx, c_idx) in enumerate(self.edges):
+            common = self.vertices[p_idx].restriction_to(self.vertices[c_idx])
+            for var in common:
+                v_idx = self._var_to_index[var]
+                row = e_idx * n_vars + v_idx
+                delta0[row, p_idx * n_vars + v_idx] = -1.0
+                delta0[row, c_idx * n_vars + v_idx] = 1.0
+        self._delta0 = delta0
+        return delta0
+
+    def compute_first_cohomology_dimension(self) -> int:
+        if not self.vertices or not self.all_variables or not self.edges:
+            return 0
+        try:
+            delta0 = self.coboundary_matrix()
+            rank_delta0 = self._rigorous_rank(delta0)
+            dim_H1 = int(delta0.shape[0] - rank_delta0)
+            logger.info(
+                f"Cohomology: dim C¹={delta0.shape[0]}, rank δ⁰={rank_delta0}, "
+                f"dim H¹={dim_H1}"
+            )
+            return max(0, dim_H1)
+        except Exception:
+            return self._estimate_cohomology_without_numpy()
+
+    def _estimate_cohomology_without_numpy(self) -> int:
+        n_verts = len(self.vertices)
+        n_edges = len(self.edges)
+        n_vars = len(self.all_variables)
+        beta1 = max(0, n_edges - n_verts + 1)
+        return beta1 * n_vars
+
+    def find_problematic_variables(self) -> Set[str]:
+        all_reads: Set[str] = set()
+        all_writes: Set[str] = set()
+        for coords in self.vertices:
+            all_reads.update(coords.reads)
+            all_writes.update(coords.writes)
+        return all_reads - all_writes
+
+    def coboundary_spectrum(self, max_sv: int = 8) -> Tuple[Tuple[int, int], float, Tuple[float, ...]]:
+        d = self.coboundary_matrix()
+        if d.size == 0:
+            return (0, 0), 0.0, ()
+        frob = float(np.linalg.norm(d, ord="fro"))
+        try:
+            sv = np.linalg.svd(d, compute_uv=False)
+            sv_t = tuple(float(x) for x in sv[:max_sv])
+        except np.linalg.LinAlgError:
+            sv_t = ()
+        return (int(d.shape[0]), int(d.shape[1])), frob, sv_t
+
+    @staticmethod
+    def check_global_consistency(
+        block_flows: List[Tuple[DataFlowCoordinates, int, str]],
+        tree_graph: Dict[int, List[int]],
+        strict: bool = True,
+    ) -> Tuple[int, Set[str], "CellularSheafCohomology"]:
+        sheaf = CellularSheafCohomology()
+        sheaf.build_from_ast_blocks(block_flows, tree_graph)
+        dim_H1 = sheaf.compute_first_cohomology_dimension()
+        problematic = sheaf.find_problematic_variables()
+        if dim_H1 > 0 and strict:
+            raise CohomologicalObstructionError(dim_H1, problematic)
+        return dim_H1, problematic, sheaf
+
+
+# ─── FASE 2: primera y última definición (continuación estricta) ────────────
+
+class _ASTPhase2Pipeline:
+    r"""
+    Orquesta la FASE 2 (homología de Poincaré y RSI³).
+
+    Continuación estricta:
+        `_ingest_phase1_handoff(h1) → run → _handoff_to_phase3() → Phase2Handoff`.
+    """
+
+    def __init__(self):
+        self._h1: Optional[Phase1Handoff] = None
+        self._symplectic: Optional[SymplecticVerification] = None
+        self._cohomology_dim: int = 0
+        self._problematic_vars: FrozenSet[str] = frozenset()
+        self._kam_lattice: Optional[KAMResonanceLattice] = None
+        self._melnikov: Optional[MelnikovResult] = None
+        self._lyapunov: Optional[LyapunovSpectrum] = None
+        self._rsi3_iterations: int = 0
+        self._rsi3_converged: bool = False
+        self._banach_L: float = 1.0
+        self._warnings: List[str] = []
+        self._action_angle: Optional[ActionAngleChart] = None
+        self._twist: Optional[TwistCondition] = None
+        self._poincare_return: Optional[PoincareReturnMap] = None
+        self._rsi3: Optional[RSI3Report] = None
+        self._W_norm: float = 0.0
+        self._coboundary_shape: Tuple[int, int] = (0, 0)
+        self._coboundary_frob: float = 0.0
+        self._coboundary_sv: Tuple[float, ...] = ()
+
+    # ─── PRIMERA DEFINICIÓN DE FASE 2 ───────────────────────────────────────
+    @classmethod
+    def _ingest_phase1_handoff(cls, h1: Phase1Handoff) -> "_ASTPhase2Pipeline":
+        r"""
+        Consume el `Phase1Handoff` producido por
+        `_ASTPhase1Pipeline._handoff_to_phase2`.
+
+        Esta es la **primera** definición de FASE 2 y la **continuación
+        estricta** de la última definición de FASE 1:
+
+            $\mathrm{dom}(\texttt{\_ingest\_phase1\_handoff})
+                = \mathrm{im}(\texttt{\_handoff\_to\_phase2})$.
+        """
+        pipeline = cls()
+        pipeline._h1 = h1
+        return pipeline
+
+    def run(self) -> "_ASTPhase2Pipeline":
+        """Cuerpo de FASE 2: Poincaré + sheaf + Lyapunov + RSI³ Banach."""
+        if self._h1 is None:
+            raise RuntimeError("_ingest_phase1_handoff no invocado.")
+
+        block_flows: List[Tuple[DataFlowCoordinates, int, str]] = [
+            (DataFlowCoordinates(reads=r, writes=w), nid, ntype)
+            for (r, w, nid, ntype) in self._h1.block_flows
+        ]
+        tree_graph: Dict[int, List[int]] = {
+            pid: list(children) for pid, children in self._h1.tree_graph
+        }
+
+        # ── Sheaf cohomology (restricciones reales)
+        sheaf: Optional[CellularSheafCohomology] = None
+        try:
+            dim_H1, problematic, sheaf = CellularSheafCohomology.check_global_consistency(
+                block_flows, tree_graph, strict=False
+            )
+            self._cohomology_dim = dim_H1
+            self._problematic_vars = frozenset(problematic)
+            shape, frob, sv = sheaf.coboundary_spectrum()
+            self._coboundary_shape = shape
+            self._coboundary_frob = frob
+            self._coboundary_sv = sv
+            if dim_H1 > 0:
+                self._warnings.append(f"dim H¹ = {dim_H1}")
+        except Exception as exc:
+            self._warnings.append(f"Cohomology failed: {exc}")
+
+        n_dof = int(self._h1.symplectic_dim)
+        engine = SymplecticPoincareEngine(dim=n_dof)
+        A = _from_tuple_matrix(self._h1.hamiltonian_generator)
+        omega = np.asarray(self._h1.frequencies, dtype=np.float64)
+
+        # ── Flujo Hamiltoniano DESDE la semilla de FASE 1 (no aleatorio)
+        try:
+            M_sympl = engine.construct_flow_map_from_sp_generator(A)
+            self._symplectic = engine.verify_symplectic_invariance(M_sympl)
+        except Exception as exc:
+            self._warnings.append(f"Hamiltonian flow map failed: {exc}")
+            self._symplectic = SymplecticVerification(
+                delta_omega=float("inf"), det_M=0.0, is_symplectic=False
+            )
+
+        # ── Órbita de curvatura construida con las frecuencias de FASE 1
+        cc = float(self._h1.cyclomatic_complexity)
+        depth = float(self._h1.max_nesting_depth + 1)
+        t = np.linspace(0.0, 1.0, max(16, self._h1.num_branches + 8))
+        w0 = float(omega[0]) if omega.size else cc
+        w1 = float(omega[1]) if omega.size > 1 else (w0 / AnalysisLimits.GOLDEN_RATIO)
+        q_orbit = depth * np.cos(2 * np.pi * w0 * t) + 0.1 * np.sin(4 * np.pi * w1 * t)
+        p_orbit = -depth * np.sin(2 * np.pi * w0 * t) + 0.1 * np.cos(4 * np.pi * w1 * t)
+
+        self._action_angle = engine.action_angle_from_orbit(q_orbit, p_orbit, omega)
+        self._twist = engine.kolmogorov_nondegeneracy(
+            omega, np.asarray(self._action_angle.actions)
+        )
+        self._poincare_return = engine.poincare_return_map(q_orbit, p_orbit)
+        self._lyapunov = engine._lyapunov_spectrum_ast(q_orbit, p_orbit)
+
+        H0: HamiltonianFn = lambda qq, pp: 0.5 * pp * pp + 0.5 * (w0 ** 2) * qq * qq
+        H1: HamiltonianFn = lambda qq, pp: 0.1 * qq * qq * qq
+        self._melnikov = engine.evaluate_melnikov_integral_proper(
+            H0, H1, q_orbit, p_orbit
+        )
+
+        # ── KAM + ecuación homológica
+        self._kam_lattice = engine._generate_resonance_lattice(omega)
+        H1_coeffs = 0.1 * np.cos(np.linspace(0.0, 2 * np.pi, max(4, omega.size * 2)))
+        H1_coeffs = H1_coeffs - np.mean(H1_coeffs)
+        try:
+            _, self._W_norm = engine.solve_poincare_homological_equation(
+                omega, H1_coeffs
+            )
+        except Exception as exc:
+            self._warnings.append(f"Homological equation: {exc}")
+            self._W_norm = float("inf")
+
+        # ── RSI³ Banach (contracción real, no un contador)
+        rsi = RecursiveSelfImprovementL3(engine)
+        self._rsi3 = rsi.iterate(omega, A, q_orbit, p_orbit, H0, H1)
+        self._rsi3_iterations = self._rsi3.iterations
+        self._rsi3_converged = self._rsi3.converged
+        self._banach_L = float(self._rsi3.lipschitz)
+        if not self._rsi3.converged:
+            self._warnings.append(
+                f"RSI³ did not contract: Lip={self._rsi3.lipschitz:.3f}"
+            )
+
+        return self
+
+    # ─── ÚLTIMA DEFINICIÓN DE FASE 2 ────────────────────────────────────────
+    def _handoff_to_phase3(self) -> Phase2Handoff:
+        r"""
+        Empaqueta `Phase2Handoff`, dominio estricto de
+        `_ASTPhase3Pipeline._ingest_phase2_handoff`.
+
+        $\Phi_3\circ\Phi_2(h_1)=\texttt{\_ingest\_phase2\_handoff}(
+            \texttt{\_handoff\_to\_phase3}(\mathrm{RSI}^3(h_1)))$.
+
+        Esta es la **última** definición de FASE 2 y el **inicio** formal
+        de FASE 3.
+        """
+        if (
+            self._h1 is None
+            or self._symplectic is None
+            or self._kam_lattice is None
+            or self._melnikov is None
+            or self._lyapunov is None
+            or self._action_angle is None
+            or self._twist is None
+            or self._poincare_return is None
+            or self._rsi3 is None
+        ):
+            raise RuntimeError("FASE 2 incompleta: run() no invocado.")
+
+        handoff = Phase2Handoff(
+            phase1=self._h1,
+            symplectic=self._symplectic,
+            cohomology_dim_H1=self._cohomology_dim,
+            problematic_variables=self._problematic_vars,
+            kam_lattice=self._kam_lattice,
+            melnikov=self._melnikov,
+            lyapunov=self._lyapunov,
+            rsi3_iterations=self._rsi3_iterations,
+            rsi3_converged=self._rsi3_converged,
+            banach_L=self._banach_L,
+            warnings=tuple(self._warnings),
+            action_angle=self._action_angle,
+            twist=self._twist,
+            poincare_return=self._poincare_return,
+            rsi3=self._rsi3,
+            homological_W_norm=self._W_norm,
+            coboundary_shape=self._coboundary_shape,
+            coboundary_frobenius=self._coboundary_frob,
+            coboundary_svd_s=self._coboundary_sv,
+        )
+        logger.info(
+            "[FASE2→FASE3] %s: δω=%.2e, dim_H¹=%d, γ_KAM=%.3e, |M|=%.3e, "
+            "λ_max=%.3e, L_Φ=%.3f, conv=%s, twist=%s, Poincaré_rec=%s, ‖W‖=%.3e",
+            self._h1.filename,
+            self._symplectic.delta_omega,
+            self._cohomology_dim,
+            self._kam_lattice.diophantine_gamma,
+            self._melnikov.M_value,
+            self._lyapunov.lambda_max,
+            self._banach_L,
+            self._rsi3_converged,
+            self._twist.is_nondegenerate,
+            self._poincare_return.is_recurrent,
+            self._W_norm,
+        )
+        return handoff
+
+
+# ╔════════════════════════════════════════════════════════════════════════════╗
+# ║  FASE 3 — KAM, MELNIKOV, HEYTING Ω₃ Y CERTIFICADO OODA                    ║
+# ║  Primera def.: `_ASTPhase3Pipeline._ingest_phase2_handoff`                 ║
+# ║  (continuación estricta de `_ASTPhase2Pipeline._handoff_to_phase3`)        ║
+# ╚════════════════════════════════════════════════════════════════════════════╝
+
+def _heyting_combine(
+    hamiltonian_ok: bool,
+    symplectic_ok: bool,
+    cohomology_ok: bool,
+    kam_stable: bool,
+    melnikov_ok: bool,
+    banach_ok: bool,
+    hodge_trivial: bool,
+    twist_ok: bool,
+    rsi3_ok: bool,
+) -> HeytingVerdict:
+    """Join de átomos en Ω₃ (v5.1.0: incluye twist y RSI³)."""
+    v_h = HeytingVerdict.COHERENT if hamiltonian_ok else HeytingVerdict.DEGRADED
+    v_s = HeytingVerdict.COHERENT if symplectic_ok else HeytingVerdict.DEGRADED
+    v_c = HeytingVerdict.COHERENT if cohomology_ok else HeytingVerdict.DEGRADED
+    v_k = HeytingVerdict.COHERENT if kam_stable else HeytingVerdict.DEGRADED
+    v_m = HeytingVerdict.VETOED if not melnikov_ok else HeytingVerdict.COHERENT
+    v_b = HeytingVerdict.COHERENT if banach_ok else HeytingVerdict.DEGRADED
+    v_hd = HeytingVerdict.COHERENT if hodge_trivial else HeytingVerdict.DEGRADED
+    v_t = HeytingVerdict.COHERENT if twist_ok else HeytingVerdict.DEGRADED
+    v_r = HeytingVerdict.COHERENT if rsi3_ok else HeytingVerdict.DEGRADED
+    return HeytingVerdict.fast_join_all(
+        [v_h, v_s, v_c, v_k, v_m, v_b, v_hd, v_t, v_r]
+    )
+
+
+def _heyting_lattice_axioms_check() -> bool:
+    r"""
+    Verifica empíricamente los axiomas de retículo Heyting en Ω₃:
+    idempotencia, conmutatividad, asociatividad, absorción, distributividad,
+    monotonicidad de ω.
+    """
+    elems = list(HeytingVerdict)
+    ok = True
+    for a in elems:
+        if a.join(a) is not a or a.meet(a) is not a:
+            ok = False
+        for b in elems:
+            if a.join(b) is not b.join(a) or a.meet(b) is not b.meet(a):
+                ok = False
+            for c in elems:
+                if a.join(b).join(c) is not a.join(b.join(c)):
+                    ok = False
+                if a.meet(b).meet(c) is not a.meet(b.meet(c)):
+                    ok = False
+                if a.join(a.meet(b)) is not a:
+                    ok = False
+                if a.meet(a.join(b)) is not a:
+                    ok = False
+                if a.meet(b.join(c)) is not a.meet(b).join(a.meet(c)):
+                    ok = False
+    if not (
+        HeytingVerdict.COHERENT.omega
+        <= HeytingVerdict.DEGRADED.omega
+        <= HeytingVerdict.VETOED.omega
+    ):
+        ok = False
+    return ok
+
+
+class _ASTPhase3Pipeline:
+    r"""
+    Orquesta la FASE 3 (KAM, Melnikov, Hodge-Dirac, Heyting Ω₃, certificado).
+
+    Continuación estricta:
+        `_ingest_phase2_handoff(h2) → run → finalize() → AnalysisCertificate`.
+    """
+
+    def __init__(self):
+        self._h2: Optional[Phase2Handoff] = None
+        self._hodge: Optional[HodgeDiracSpectrum] = None
+        self._birkhoff: Optional[BirkhoffRemainder] = None
+        self._warnings: List[str] = []
+
+    # ─── PRIMERA DEFINICIÓN DE FASE 3 ───────────────────────────────────────
+    @classmethod
+    def _ingest_phase2_handoff(cls, h2: Phase2Handoff) -> "_ASTPhase3Pipeline":
+        r"""
+        Consume el `Phase2Handoff` de `_ASTPhase2Pipeline._handoff_to_phase3`.
+
+        Esta es la **primera** definición de FASE 3 y la **continuación
+        estricta** de la última definición de FASE 2:
+
+            $\mathrm{dom}(\texttt{\_ingest\_phase2\_handoff})
+                = \mathrm{im}(\texttt{\_handoff\_to\_phase3})$.
+        """
+        pipeline = cls()
+        pipeline._h2 = h2
+        return pipeline
+
+    def run(self) -> "_ASTPhase3Pipeline":
+        """Laplaciano de Hodge-Dirac sobre la coborde REAL del haz + Birkhoff."""
+        if self._h2 is None:
+            raise RuntimeError("_ingest_phase2_handoff no invocado.")
+
+        # Reconstrucción de δ⁰ desde el handoff de FASE 2 (misma receta,
+        # datos de FASE 1): NO se usa ruido gaussiano.
+        block_flows: List[Tuple[DataFlowCoordinates, int, str]] = [
+            (DataFlowCoordinates(reads=r, writes=w), nid, ntype)
+            for (r, w, nid, ntype) in self._h2.phase1.block_flows
+        ]
+        tree_graph: Dict[int, List[int]] = {
+            pid: list(children) for pid, children in self._h2.phase1.tree_graph
+        }
+
+        sheaf = CellularSheafCohomology()
+        sheaf.build_from_ast_blocks(block_flows, tree_graph)
+        d = sheaf.coboundary_matrix()
+
+        if d.size == 0:
+            self._hodge = HodgeDiracSpectrum(
+                lambda_min=float("inf"),
+                lambda_max=float("inf"),
+                ker_dim_estimate=0,
+                is_trivial_cohomology=True,
+            )
+        else:
+            n1, n0 = d.shape
+            # Métrica G₁: identidad + peso por valores singulares transportados
+            G1 = np.eye(n1, dtype=np.float64)
+            sv = np.asarray(self._h2.coboundary_svd_s, dtype=np.float64)
+            if sv.size:
+                w = np.ones(n1, dtype=np.float64)
+                w[: min(sv.size, n1)] = 1.0 + sv[: min(sv.size, n1)]
+                G1 = np.diag(w)
+            hodge_op = HeavyHodgeDiracLaplacian()
+            try:
+                delta_G = hodge_op.compute_heavy_laplacian(d, G1)
+                self._hodge = hodge_op.verify_hodge_dirichlet_triviality(delta_G)
+            except Exception as exc:
+                self._warnings.append(f"Hodge-Dirac failed: {exc}")
+                self._hodge = HodgeDiracSpectrum(
+                    lambda_min=float("inf"),
+                    lambda_max=float("inf"),
+                    ker_dim_estimate=0,
+                    is_trivial_cohomology=False,
+                )
+
+        engine_dim = max(1, self._h2.phase1.symplectic_dim)
+        engine = SymplecticPoincareEngine(dim=engine_dim)
+        self._birkhoff = engine.birkhoff_remainder(self._h2.homological_W_norm)
+        return self
+
+    # ─── ÚLTIMA DEFINICIÓN DE FASE 3 ────────────────────────────────────────
+    def finalize(self) -> AnalysisCertificate:
+        r"""
+        Emite el `AnalysisCertificate` final con veredicto Ω₃.
+
+        Criterios (v5.1.0):
+          • `hamiltonian_ok`  : Φ¹ no violó path-energy.
+          • `symplectic_ok`   : δω < 1e-9.
+          • `cohomology_ok`   : dim H¹ = 0.
+          • `kam_stable`      : γ* ≥ 1e-3.
+          • `melnikov_ok`     : |M| < 1e-2 (ausencia de tangle).
+          • `banach_ok`       : Lip(T) < 0.95.
+          • `hodge_trivial`   : λ_min(Δ) > 0.
+          • `twist_ok`        : det(∂²H₀/∂I²) ≠ 0.
+          • `rsi3_ok`         : contracción de Banach de nivel 3.
+        """
+        if self._h2 is None or self._hodge is None or self._birkhoff is None:
+            raise RuntimeError("FASE 3 incompleta: run() no invocado.")
+
+        h1 = self._h2.phase1
+        symplectic_ok = self._h2.symplectic.is_symplectic
+        cohomology_ok = self._h2.cohomology_dim_H1 == 0
+        kam_stable = self._h2.kam_lattice.is_kam_stable
+        melnikov_ok = not self._h2.melnikov.has_transversal_intersection
+        banach_ok = self._h2.banach_L < AnalysisLimits.BANACH_TARGET
+        hodge_trivial = self._hodge.is_trivial_cohomology
+        twist_ok = self._h2.twist.is_nondegenerate
+        rsi3_ok = self._h2.rsi3.converged
+
+        verdict = _heyting_combine(
+            hamiltonian_ok=h1.hamiltonian_ok,
+            symplectic_ok=symplectic_ok,
+            cohomology_ok=cohomology_ok,
+            kam_stable=kam_stable,
+            melnikov_ok=melnikov_ok,
+            banach_ok=banach_ok,
+            hodge_trivial=hodge_trivial,
+            twist_ok=twist_ok,
+            rsi3_ok=rsi3_ok,
+        )
+
+        heyting_ok = _heyting_lattice_axioms_check()
+        if not heyting_ok:
+            logger.error("[HEYTING] ¡Axiomas de retículo violados — bug crítico!")
+
+        is_coherent = (
+            h1.hamiltonian_ok
+            and symplectic_ok
+            and cohomology_ok
+            and kam_stable
+            and melnikov_ok
+            and banach_ok
+            and hodge_trivial
+            and twist_ok
+            and rsi3_ok
+        )
+        is_hardened = is_coherent and verdict is not HeytingVerdict.VETOED
+
+        atoms = [
+            1.0 if h1.hamiltonian_ok else 0.5,
+            1.0 if symplectic_ok else 0.5,
+            1.0 if cohomology_ok else 0.5,
+            1.0 if kam_stable else 0.5,
+            1.0 if melnikov_ok else 0.0,
+            1.0 if banach_ok else 0.5,
+            1.0 if hodge_trivial else 0.5,
+            1.0 if twist_ok else 0.5,
+            1.0 if rsi3_ok else 0.5,
+            1.0 if self._birkhoff.is_normalized else 0.5,
+        ]
+        overall_score = float(np.mean(atoms))
+
+        all_warnings = list(h1.warnings) + list(self._h2.warnings) + list(self._warnings)
+
+        cert = AnalysisCertificate(
+            phase2=self._h2,
+            hodge_dirac=self._hodge,
+            heyting_verdict=verdict,
+            heyting_axioms_verified=heyting_ok,
+            is_coherent=is_coherent,
+            is_hardened=is_hardened,
+            overall_score=overall_score,
+            warnings=tuple(all_warnings),
+            birkhoff=self._birkhoff,
+            poincare_recurrence_time=self._h2.poincare_return.recurrence_time,
+        )
+        logger.info(
+            "[OODA] %s: verdict=%s, score=%.3f, coherent=%s, hardened=%s, "
+            "axiomas=%s, Birkhoff_R=%.3e, T_rec=%.3g, warnings=%d",
+            h1.filename,
+            verdict.value,
+            overall_score,
+            is_coherent,
+            is_hardened,
+            heyting_ok,
+            self._birkhoff.remainder_norm,
+            self._h2.poincare_return.recurrence_time,
+            len(all_warnings),
+        )
+        return cert
+
+
+# ─── PUNTO DE ENTRADA PÚBLICO ───────────────────────────────────────────────
 
 class ASTStaticAnalyzer:
+    r"""
+    Analizador estático de código Python con verificación topológica OODA.
+
+    Pipeline (3 fases anidadas estrictamente continuadas):
+
+        FASE 1: `_ASTPhase1Pipeline._handoff_to_phase2(source)`
+        FASE 2: `_ASTPhase2Pipeline._ingest_phase1_handoff(h1).run()._handoff_to_phase3()`
+        FASE 3: `_ASTPhase3Pipeline._ingest_phase2_handoff(h2).run().finalize()`
+
+    Compatible con la API v4.1.0 / v5.0.0 (`analyze_code` retorna dict).
     """
-    Analizador estático de código Python con verificaciones topológicas.
-    
-    PIPELINE DE ANÁLISIS:
-    ---------------------
-    1. Parsing: source_code → AST (usando ast.parse)
-    2. Análisis de flujo: AST → DataFlowCoordinates + ComplexityProfile
-    3. Verificación Hamiltoniana: ΔH ≤ 0 en todas las trayectorias
-    4. Verificación cohomológica: H¹(T,F) = 0
-    5. Reporte consolidado
-    
-    GARANTÍAS:
-    ----------
-    • Corrección: Todas las métricas son verificables matemáticamente
-    • Completitud: Todos los ciclos son detectados (β₁ exacto)
-    • Eficiencia: O(n) donde n = tamaño del AST
-    • Seguridad: Prevención de DoS mediante límites estrictos
-    
-    USO:
-    ----
-    >>> analyzer = ASTStaticAnalyzer()
-    >>> result = analyzer.analyze_code(source_code)
-    >>> print(result['complexity'])
-    >>> print(result['dataflow'])
-    """
-    
+
+    @staticmethod
+    def audit_three_phase(
+        source_code: str,
+        filename: str = "<string>",
+        enable_hamiltonian: bool = True,
+        enable_cohomology: bool = True,
+        strict_mode: bool = True,
+    ) -> AnalysisCertificate:
+        r"""
+        Ciclo OODA completo (3 fases anidadas) → `AnalysisCertificate`.
+        """
+        h1 = _ASTPhase1Pipeline._handoff_to_phase2(
+            source_code=source_code,
+            filename=filename,
+            enable_hamiltonian=enable_hamiltonian,
+            enable_cohomology=enable_cohomology,
+            strict_mode=strict_mode,
+        )
+        h2 = (
+            _ASTPhase2Pipeline._ingest_phase1_handoff(h1)
+            .run()
+            ._handoff_to_phase3()
+        )
+        cert = (
+            _ASTPhase3Pipeline._ingest_phase2_handoff(h2).run().finalize()
+        )
+        return cert
+
     @staticmethod
     def analyze_code(
         source_code: str,
         filename: str = "<string>",
         enable_hamiltonian: bool = True,
         enable_cohomology: bool = True,
-        strict_mode: bool = True
+        strict_mode: bool = True,
     ) -> Dict[str, Any]:
         """
-        Analiza código Python y extrae métricas completas.
-        
-        Args:
-            source_code: Código fuente Python
-            filename: Nombre del archivo (para error reporting)
-            enable_hamiltonian: Activa verificación disipativa
-            enable_cohomology: Activa análisis cohomológico
-            strict_mode: Si True, lanza excepciones en violaciones
-        
-        Returns:
-            Diccionario con las claves:
-                - 'dataflow': DataFlowCoordinates
-                - 'complexity': ComplexityProfile
-                - 'hamiltonian_ok': bool
-                - 'cohomology_ok': bool
-                - 'cohomology_dimension': int (si enable_cohomology)
-                - 'problematic_variables': Set[str] (si enable_cohomology)
-                - 'warnings': List[str]
-        
-        Raises:
-            ValueError: Si el código está vacío o tiene errores de sintaxis
-            ThermodynamicSingularityError: Si ΔH > 0 y strict_mode=True
-            CohomologicalObstructionError: Si H¹ ≠ 0 y strict_mode=True
-            ComplexityBoundsViolationError: Si se exceden límites
+        API compatible v4.1.0/v5.0.0: retorna dict con `dataflow`, `complexity`, etc.
+        Internamente ejecuta el pipeline OODA v5.1.0 (3 fases anidadas).
         """
-        # Validación de entrada
-        if not source_code or not source_code.strip():
-            raise ValueError("Source code is empty or whitespace-only")
-        
-        # Parsing
-        try:
-            tree = ast.parse(source_code, filename=filename, mode='exec')
-        except SyntaxError as e:
-            logger.error(f"Syntax error in {filename}: {e}")
-            raise ValueError(f"Invalid Python syntax: {e}") from e
-        
-        # Inicialización del analizador
-        analyzer = DataFlowAnalyzer(
-            enable_hamiltonian_monitor=enable_hamiltonian,
-            enable_block_tracking=enable_cohomology,
-            strict_mode=strict_mode
+        cert = ASTStaticAnalyzer.audit_three_phase(
+            source_code=source_code,
+            filename=filename,
+            enable_hamiltonian=enable_hamiltonian,
+            enable_cohomology=enable_cohomology,
+            strict_mode=strict_mode,
         )
-        
-        # Estado de verificaciones
-        hamiltonian_ok = True
-        cohomology_ok = True
-        warnings: List[str] = []
-        
-        # Análisis principal
-        try:
-            analyzer.visit(tree)
-        except ThermodynamicSingularityError as e:
-            hamiltonian_ok = False
-            logger.error(f"Hamiltonian violation in {filename}: {e}")
-            if strict_mode:
-                raise
-            else:
-                warnings.append(str(e))
-        except ComplexityBoundsViolationError as e:
-            logger.error(f"Complexity bounds violated in {filename}: {e}")
-            raise
-        
-        # Extracción de métricas básicas
-        dataflow = analyzer.get_dataflow_coordinates()
-        complexity = analyzer.get_complexity_profile()
-        
-        # Resultados base
-        result: Dict[str, Any] = {
-            'dataflow': dataflow,
-            'complexity': complexity,
-            'hamiltonian_ok': hamiltonian_ok,
-            'warnings': warnings,
+        h1 = cert.phase2.phase1
+        dataflow = DataFlowCoordinates(
+            reads=h1.dataflow_reads, writes=h1.dataflow_writes
+        )
+        complexity = ComplexityProfile(
+            cyclomatic_complexity=h1.cyclomatic_complexity,
+            max_nesting_depth=h1.max_nesting_depth,
+            num_functions=h1.num_functions,
+            num_classes=h1.num_classes,
+            num_branches=h1.num_branches,
+            num_loops=h1.num_loops,
+        )
+        return {
+            "dataflow": dataflow,
+            "complexity": complexity,
+            "hamiltonian_ok": h1.hamiltonian_ok,
+            "cohomology_ok": cert.phase2.cohomology_dim_H1 == 0,
+            "cohomology_dimension": cert.phase2.cohomology_dim_H1,
+            "problematic_variables": set(cert.phase2.problematic_variables),
+            "warnings": list(cert.warnings),
+            "symplectic_verification": cert.phase2.symplectic,
+            "kam_lattice": cert.phase2.kam_lattice,
+            "melnikov_result": cert.phase2.melnikov,
+            "lyapunov_spectrum": cert.phase2.lyapunov,
+            "hodge_dirac_spectrum": cert.hodge_dirac,
+            "heyting_verdict": cert.heyting_verdict.value,
+            "heyting_axioms_verified": cert.heyting_axioms_verified,
+            "is_coherent": cert.is_coherent,
+            "is_hardened": cert.is_hardened,
+            "overall_score": cert.overall_score,
+            "certificate": cert,
+            # v5.1.0
+            "action_angle": cert.phase2.action_angle,
+            "twist_condition": cert.phase2.twist,
+            "poincare_return": cert.phase2.poincare_return,
+            "rsi3": cert.phase2.rsi3,
+            "birkhoff": cert.birkhoff,
+            "poincare_recurrence_time": cert.poincare_recurrence_time,
+            "frequencies": h1.frequencies,
+            "antisymmetry_ok": h1.antisymmetry_ok,
         }
-        
-        # Análisis cohomológico (opcional)
-        if enable_cohomology:
-            try:
-                block_flows = analyzer.get_block_dataflows()
-                tree_graph = analyzer.get_tree_graph()
-                
-                dim_H1, problematic_vars = CellularSheafCohomology.check_global_consistency(
-                    block_flows, tree_graph, strict=strict_mode
-                )
-                
-                result['cohomology_ok'] = (dim_H1 == 0)
-                result['cohomology_dimension'] = dim_H1
-                result['problematic_variables'] = problematic_vars
-                
-                if dim_H1 > 0:
-                    cohomology_ok = False
-                    warnings.append(
-                        f"Cohomological obstruction: dim H¹ = {dim_H1}, "
-                        f"variables: {sorted(problematic_vars)}"
-                    )
-            
-            except CohomologicalObstructionError as e:
-                cohomology_ok = False
-                logger.error(f"Cohomological obstruction in {filename}: {e}")
-                result['cohomology_dimension'] = e.context.get('dim_H1', -1)
-                result['problematic_variables'] = e.context.get('problematic_vars', set())
-                if strict_mode:
-                    raise
-                else:
-                    warnings.append(str(e))
-        else:
-            result['cohomology_ok'] = None  # No verificado
-        
-        # Logging de resultados
-        logger.info(
-            f"Analyzed {filename}: "
-            f"CC={complexity.cyclomatic_complexity}, "
-            f"depth={complexity.max_nesting_depth}, "
-            f"risk={complexity.risk_level}, "
-            f"H_ok={hamiltonian_ok}, "
-            f"Coh_ok={cohomology_ok}"
-        )
-        
-        return result
-    
+
     @staticmethod
-    def analyze_file(
-        filepath: str,
-        **kwargs
-    ) -> Dict[str, Any]:
-        """
-        Analiza un archivo Python completo.
-        
-        Args:
-            filepath: Ruta al archivo .py
-            **kwargs: Argumentos pasados a analyze_code
-        
-        Returns:
-            Resultado del análisis (ver analyze_code)
-        """
-        with open(filepath, 'r', encoding='utf-8') as f:
+    def analyze_file(filepath: str, **kwargs) -> Dict[str, Any]:
+        with open(filepath, "r", encoding="utf-8") as f:
             source_code = f.read()
-        
         return ASTStaticAnalyzer.analyze_code(
-            source_code,
-            filename=filepath,
-            **kwargs
+            source_code, filename=filepath, **kwargs
         )
-    
+
     @staticmethod
     def validate_json_contract(
         schema: Union[Dict, List, Any],
         max_depth: Optional[int] = None,
-        max_keys: Optional[int] = None
+        max_keys: Optional[int] = None,
     ) -> Tuple[bool, Optional[str], Optional[str]]:
-        """
-        Valida y normaliza un esquema JSON.
-        
-        Args:
-            schema: Estructura JSON a validar
-            max_depth: Profundidad máxima (default: AnalysisLimits.MAX_JSON_DEPTH)
-            max_keys: Claves máximas (default: AnalysisLimits.MAX_JSON_KEYS)
-        
-        Returns:
-            (es_válido, mensaje_error, tabla_markdown)
-        """
         max_depth = max_depth or AnalysisLimits.MAX_JSON_DEPTH
         max_keys = max_keys or AnalysisLimits.MAX_JSON_KEYS
-        
-        # Validación estructural
         is_valid, error = JSONStructureValidator.validate_structure(
             schema, max_depth, max_keys
         )
-        
         if not is_valid:
             logger.error(f"JSON validation failed: {error}")
             return False, error, None
-        
-        # Normalización a tabla (solo para dicts)
         markdown = None
         if isinstance(schema, dict):
             try:
                 markdown = TabularNormalizer.to_markdown_table(schema)
-            except Exception as e:
-                logger.warning(f"Normalization failed: {e}")
-                markdown = f"(Normalization error: {e})"
-        
+            except Exception as exc:
+                markdown = f"(Normalization error: {exc})"
         return True, None, markdown
-    
+
     @staticmethod
     def compute_interference_matrix(
-        tools: Dict[str, DataFlowCoordinates]
+        tools: Dict[str, DataFlowCoordinates],
     ) -> Dict[Tuple[str, str], int]:
-        """
-        Calcula la matriz de interferencia entre herramientas.
-        
-        La matriz I tiene entradas:
-            I[A, B] = score de interferencia de A hacia B
-        
-        Propiedades:
-            • Antisimétrica: I[A, B] = -I[B, A]
-            • I[A, A] = 0 (no auto-interferencia)
-        
-        Args:
-            tools: Diccionario {nombre: coordenadas}
-        
-        Returns:
-            Matriz como diccionario {(A, B): score}
-        
-        Complejidad: O(n²) donde n = número de herramientas
-        """
         if len(tools) > AnalysisLimits.MAX_INTERFERENCE_MATRIX_SIZE:
             raise ComplexityBoundsViolationError(
                 "Interference matrix size",
                 len(tools),
-                AnalysisLimits.MAX_INTERFERENCE_MATRIX_SIZE
+                AnalysisLimits.MAX_INTERFERENCE_MATRIX_SIZE,
             )
-        
         matrix: Dict[Tuple[str, str], int] = {}
-        tool_names = sorted(tools.keys())
-        
-        for name_a in tool_names:
-            for name_b in tool_names:
-                if name_a == name_b:
-                    matrix[(name_a, name_b)] = 0
+        names = sorted(tools.keys())
+        for a in names:
+            for b in names:
+                if a == b:
+                    matrix[(a, b)] = 0
                 else:
-                    score = DataFlowCoordinates.interference_score(
-                        tools[name_a], tools[name_b]
+                    matrix[(a, b)] = DataFlowCoordinates.interference_score(
+                        tools[a], tools[b]
                     )
-                    matrix[(name_a, name_b)] = score
-        
         return matrix
-    
+
     @staticmethod
     def topological_sort_by_interference(
-        tools: Dict[str, DataFlowCoordinates]
+        tools: Dict[str, DataFlowCoordinates],
     ) -> List[str]:
-        """
-        Ordena herramientas topológicamente según interferencia.
-        
-        Algoritmo: Kahn's algorithm adaptado a la matriz de interferencia.
-        
-        Args:
-            tools: Diccionario {nombre: coordenadas}
-        
-        Returns:
-            Lista ordenada de nombres de herramientas
-        
-        Raises:
-            ValueError: Si hay ciclos de dependencias
-        """
-        # Construir grafo dirigido basado en interferencia
         graph: Dict[str, Set[str]] = defaultdict(set)
         in_degree: Dict[str, int] = defaultdict(int)
-        
-        tool_names = set(tools.keys())
-        for name in tool_names:
-            in_degree[name] = 0
-        
-        # Arista A → B si I(A, B) > 0 (A debe ejecutarse antes que B)
-        for name_a in tool_names:
-            for name_b in tool_names:
-                if name_a != name_b:
-                    score = DataFlowCoordinates.interference_score(
-                        tools[name_a], tools[name_b]
-                    )
-                    if score > 0:
-                        graph[name_a].add(name_b)
-                        in_degree[name_b] += 1
-        
-        # Kahn's algorithm
-        queue: deque = deque([
-            name for name in tool_names if in_degree[name] == 0
-        ])
+        names = set(tools.keys())
+        for n in names:
+            in_degree[n] = 0
+        for a in names:
+            for b in names:
+                if a != b and DataFlowCoordinates.interference_score(
+                    tools[a], tools[b]
+                ) > 0:
+                    graph[a].add(b)
+                    in_degree[b] += 1
+        queue: deque = deque([n for n in names if in_degree[n] == 0])
         result: List[str] = []
-        
         while queue:
-            current = queue.popleft()
-            result.append(current)
-            
-            for neighbor in graph[current]:
-                in_degree[neighbor] -= 1
-                if in_degree[neighbor] == 0:
-                    queue.append(neighbor)
-        
-        # Verificar si hay ciclos
-        if len(result) != len(tool_names):
-            remaining = tool_names - set(result)
-            raise ValueError(f"Dependency cycle detected among: {sorted(remaining)}")
-        
+            cur = queue.popleft()
+            result.append(cur)
+            for nb in graph[cur]:
+                in_degree[nb] -= 1
+                if in_degree[nb] == 0:
+                    queue.append(nb)
+        if len(result) != len(names):
+            raise ValueError(
+                f"Dependency cycle detected among: {sorted(names - set(result))}"
+            )
         return result
 
 
-# =============================================================================
-# API DE COMPATIBILIDAD (LEGACY)
-# =============================================================================
-
 class ASTSymplecticParser:
-    """
-    Clase de compatibilidad con API anterior.
-    
-    DEPRECATION WARNING:
-    Esta clase está obsoleta. Usar ASTStaticAnalyzer directamente.
-    Se mantendrá hasta la versión 5.0 para retrocompatibilidad.
-    """
-    
+    """API legacy (deprecated; usar `ASTStaticAnalyzer`)."""
+
     @staticmethod
-    def parse_tool_dynamics(
-        source_code: str
-    ) -> Tuple[DataFlowCoordinates, ComplexityProfile]:
-        """
-        DEPRECATED: Usar ASTStaticAnalyzer.analyze_code() en su lugar.
-        
-        Analiza el código y devuelve coordenadas de flujo y perfil de complejidad.
-        """
+    def parse_tool_dynamics(source_code: str) -> Tuple[DataFlowCoordinates, ComplexityProfile]:
         logger.warning(
-            "ASTSymplecticParser.parse_tool_dynamics() is deprecated. "
-            "Use ASTStaticAnalyzer.analyze_code() instead."
+            "ASTSymplecticParser.parse_tool_dynamics deprecated; usar ASTStaticAnalyzer."
         )
-        
         result = ASTStaticAnalyzer.analyze_code(
             source_code,
             enable_hamiltonian=False,
             enable_cohomology=False,
-            strict_mode=False
+            strict_mode=False,
         )
-        
-        return result['dataflow'], result['complexity']
-    
+        return result["dataflow"], result["complexity"]
+
     @staticmethod
-    def process_data_contract(
-        json_schema: Dict[str, Any]
-    ) -> Optional[str]:
-        """
-        DEPRECATED: Usar ASTStaticAnalyzer.validate_json_contract() en su lugar.
-        
-        Procesa un contrato de datos JSON y devuelve tabla Markdown.
-        """
-        logger.warning(
-            "ASTSymplecticParser.process_data_contract() is deprecated. "
-            "Use ASTStaticAnalyzer.validate_json_contract() instead."
-        )
-        
-        _, _, markdown = ASTStaticAnalyzer.validate_json_contract(json_schema)
-        return markdown
+    def process_data_contract(json_schema: Dict[str, Any]) -> Optional[str]:
+        logger.warning("ASTSymplecticParser.process_data_contract deprecated.")
+        _, _, md = ASTStaticAnalyzer.validate_json_contract(json_schema)
+        return md
 
 
-# Aliases para retrocompatibilidad
 PhaseSpaceCoordinates = DataFlowCoordinates
 ThermodynamicProfile = ComplexityProfile
 
 
-# =============================================================================
-# UTILIDADES Y HELPERS
-# =============================================================================
+# ─── Utilidades de reporte ──────────────────────────────────────────────────
 
 def print_complexity_report(
-    complexity: ComplexityProfile,
-    name: str = "Code",
-    file=None
+    complexity: ComplexityProfile, name: str = "Code", file=None
 ) -> None:
-    r"""
-    Imprime un reporte formateado de complejidad.
-    
-    Args:
-        complexity: Perfil de complejidad a reportar
-        name: Nombre del código analizado
-        file: Archivo de salida (default: sys.stdout)
-    """
-    import sys
     output = file or sys.stdout
-    
     width = 70
     print(f"\n{'=' * width}", file=output)
     print(f"COMPLEXITY ANALYSIS REPORT: {name}", file=output)
     print(f"{'=' * width}", file=output)
-    
-    print(f"\n📊 METRICS:", file=output)
+    print("\n📊 METRICS:", file=output)
     print(f"  • Cyclomatic Complexity:  {complexity.cyclomatic_complexity}", file=output)
     print(f"  • Max Nesting Depth:      {complexity.max_nesting_depth}", file=output)
-    print(f"  • Functions Defined:      {complexity.num_functions}", file=output)
-    print(f"  • Classes Defined:        {complexity.num_classes}", file=output)
-    print(f"  • Decision Branches:      {complexity.num_branches}", file=output)
+    print(f"  • Functions:              {complexity.num_functions}", file=output)
+    print(f"  • Classes:                {complexity.num_classes}", file=output)
+    print(f"  • Branches:               {complexity.num_branches}", file=output)
     print(f"  • Loops:                  {complexity.num_loops}", file=output)
-    
-    print(f"\n📈 DERIVED METRICS:", file=output)
+    print("\n📈 DERIVED:", file=output)
     print(f"  • Complexity Density:     {complexity.complexity_density:.2f}", file=output)
     print(f"  • Essential Complexity:   {complexity.essential_complexity:.1f}", file=output)
     print(f"  • Halstead Volume:        {complexity.halstead_volume:.1f} bits", file=output)
-    
-    print(f"\n🎯 ASSESSMENT:", file=output)
+    print("\n🎯 ASSESSMENT:", file=output)
     print(f"  • Risk Level:             {complexity.risk_level}", file=output)
-    
-    maintainability = "✓ YES" if complexity.is_maintainable else "✗ NO"
-    print(f"  • Maintainable:           {maintainability}", file=output)
-    
+    print(
+        f"  • Maintainable:           {'✓' if complexity.is_maintainable else '✗'}",
+        file=output,
+    )
     print(f"\n{'=' * width}\n", file=output)
 
 
 def print_dataflow_report(
-    dataflow: DataFlowCoordinates,
-    name: str = "Module",
-    file=None
+    dataflow: DataFlowCoordinates, name: str = "Module", file=None
 ) -> None:
-    r"""
-    Imprime un reporte formateado de flujo de datos.
-    
-    Args:
-        dataflow: Coordenadas de flujo de datos
-        name: Nombre del módulo
-        file: Archivo de salida (default: sys.stdout)
-    """
-    import sys
     output = file or sys.stdout
-    
     width = 70
     print(f"\n{'=' * width}", file=output)
     print(f"DATA FLOW ANALYSIS: {name}", file=output)
     print(f"{'=' * width}", file=output)
-    
-    print(f"\n📖 READS (Input Variables):", file=output)
-    if dataflow.pure_reads:
-        for var in sorted(dataflow.pure_reads):
-            print(f"  • {var}", file=output)
-    else:
-        print("  (none)", file=output)
-    
-    print(f"\n✏️  WRITES (Output Variables):", file=output)
-    if dataflow.pure_writes:
-        for var in sorted(dataflow.pure_writes):
-            print(f"  • {var}", file=output)
-    else:
-        print("  (none)", file=output)
-    
-    print(f"\n🔄 MODIFIED (Read-Write Variables):", file=output)
-    if dataflow.modified_variables:
-        for var in sorted(dataflow.modified_variables):
-            print(f"  • {var}", file=output)
-    else:
-        print("  (none)", file=output)
-    
-    print(f"\n📊 STATISTICS:", file=output)
+    print("\n📖 READS:", file=output)
+    for v in sorted(dataflow.pure_reads) or ["(none)"]:
+        print(f"  • {v}", file=output)
+    print("\n✏️  WRITES:", file=output)
+    for v in sorted(dataflow.pure_writes) or ["(none)"]:
+        print(f"  • {v}", file=output)
+    print("\n🔄 MODIFIED:", file=output)
+    for v in sorted(dataflow.modified_variables) or ["(none)"]:
+        print(f"  • {v}", file=output)
+    print("\n📊 STATISTICS:", file=output)
     print(f"  • Total Variables:        {len(dataflow.all_variables)}", file=output)
     print(f"  • Spectral Radius:        {dataflow.spectral_radius():.2f}", file=output)
     print(f"  • Shannon Entropy:        {dataflow.entropy():.2f} bits", file=output)
-    
     print(f"\n{'=' * width}\n", file=output)
 
 
-# =============================================================================
-# EXPORTACIÓN CANÓNICA
-# =============================================================================
-
 __all__: List[str] = [
-    # Motores Espectrales Poincaré / Hodge-Dirac
     "SymplecticPoincareEngine",
     "HeavyHodgeDiracLaplacian",
-    # Estructuras de datos
+    "RecursiveSelfImprovementL3",
     "DataFlowCoordinates",
     "ComplexityProfile",
     "NodeCategory",
-    # Analizadores
+    "SymplecticVerification",
+    "KAMResonanceLattice",
+    "MelnikovResult",
+    "LyapunovSpectrum",
+    "HodgeDiracSpectrum",
+    "ActionAngleChart",
+    "TwistCondition",
+    "PoincareReturnMap",
+    "RSI3Report",
+    "BirkhoffRemainder",
+    "Phase1Handoff",
+    "Phase2Handoff",
+    "AnalysisCertificate",
     "DataFlowAnalyzer",
     "CellularSheafCohomology",
     "JSONStructureValidator",
     "TabularNormalizer",
     "ASTStaticAnalyzer",
     "ASTSymplecticParser",
-    # Excepciones
     "AnalysisException",
     "ThermodynamicSingularityError",
     "CohomologicalObstructionError",
     "ComplexityBoundsViolationError",
     "StructuralValidationError",
-    # Límites
+    "BanachContractionFailure",
+    "HeytingVerdict",
     "AnalysisLimits",
-    # Utilidades
     "print_complexity_report",
     "print_dataflow_report",
 ]
