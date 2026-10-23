@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : AST Static Analyzer (Analizador Simpléctico y Cohomología de Haz)   ║
 ║ Ruta   : app/boole/physics/ast_static_analyzer.py                            ║
-║ Versión: 4.1.0-Symplectic-Poincare-RSI3-Evolved-Pure-Software-Strict / v9.0.0 ║
+║ Versión: 4.1.0-Symplectic-Poincare-RSI3-Evolved-Pure-Software-Strict.        ║
 ║ Función: Gobernanza y Análisis de Física Sintáctica sobre Variedad Simpléctica║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
