@@ -3,12 +3,12 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : BrachistochronePathFinder (Motor Espectral y Físico Geodésico)      ║
 ║ Ruta   : app/boole/physics/brachistochrone_path_finder.py                    ║
-║ Versión: 5.1.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-RSI3-Strict-PhD       ║
-║ Función: Motor físico y espectral soberano para el trazado de braquistócronas ║
+║ Versión: 5.1.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-RSI3-Strict-PhD      ║
+║ Función: Motor físico y espectral soberano para el trazado de braquistócronas║
 ║          en la variedad conforme de Fermat-Jacobi, integrando métrica de     ║
 ║          Fermat n²(q)G, embedding simpléctico Cayley-Darboux en Sp(2d, ℝ),   ║
 ║          estabilidad celeste de Poincaré-Lindstedt-Melnikov, Mónada Kleisli  ║
-║          RSI³ de 3 niveles y proyector Runge-Kutta 4º orden sobre la capa H₀. ║
+║          RSI³ de 3 niveles y proyector Runge-Kutta 4º orden sobre la capa H₀.║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 --------------------------------------------------------------------------------

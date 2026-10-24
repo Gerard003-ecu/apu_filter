@@ -3,13 +3,13 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : BrachistochronePathFinderAgent (Custodio Soberano Geodésico)        ║
 ║ Ruta   : app/agents/boole/omega/brachistochrone_path_finder_agent.py         ║
-║ Versión: 5.1.0-Fermat-Jacobi-RSI3-Poincare-Heyting-ESP32-Strict-PhD           ║
-║ Función: Gobernanza, auditoría OODA y supervisión ciber-física del trazado    ║
+║ Versión: 5.1.0-Fermat-Jacobi-RSI3-Poincare-Heyting-ESP32-Strict-PhD          ║
+║ Función: Gobernanza, auditoría OODA y supervisión ciber-física del trazado   ║
 ║          geodésico en la variedad de Fermat-Jacobi, integrando homología de  ║
-║          Betti β₁ ≡ 0, embedding simpléctico Cayley-Darboux, mecánica       ║
-║          celeste de Poincaré-Lindstedt-Melnikov, Mónada Kleisli RSI³ de 3   ║
-║          superficies, distancia de Wasserstein-1 y adjudicación en el       ║
-║          álgebra de Heyting Ω₃ con interlock Crowbar ESP32 (< 400 ns).        ║
+║          Betti β₁ ≡ 0, embedding simpléctico Cayley-Darboux, mecánica        ║
+║          celeste de Poincaré-Lindstedt-Melnikov, Mónada Kleisli RSI³ de 3    ║
+║          superficies, distancia de Wasserstein-1 y adjudicación en el        ║
+║          álgebra de Heyting Ω₃ con interlock Crowbar ESP32 (< 400 ns).       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 --------------------------------------------------------------------------------
