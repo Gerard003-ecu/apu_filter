@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Brachistochrone Path Finder (Motor de Descenso Rápido de Fermat)    ║
-║ Ruta   : app/physics/brachistochrone_path_finder.py                          ║
+║ Ruta   : app/boole/physics/brachistochrone_path_finder.py                    ║
 ║ Versión: 3.1.0-Fermat-Jacobi-Koszul-CSMD-RK4-FPU-Strict-PhD                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
