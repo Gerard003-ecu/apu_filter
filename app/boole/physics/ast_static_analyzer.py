@@ -1,47 +1,101 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : AST Static Analyzer (Analizador Simpléctico y Cohomología de Haz)   ║
-║ Ruta   : app/boole/physics/ast_static_analyzer.py                            ║
-║ Versión: 5.1.0-RSI3-Poincare-KAM-Heyting-OODA                                ║
-║ Función: Gobernanza OODA de física sintáctica en variedad simpléctica.       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - MOTOR ESPECTRAL AST STATIC ANALYZER
+====================================================================================================
 
-MEJORAS v5.1.0 RESPECTO A v5.0.0 (retrocompatibles, granulares, rigurosas):
-─────────────────────────────────────────────────────────────────────────
-FASE 1 — Geometría estructural (0-jet) + semilla celeste:
-  • Forma de interferencia antisimétrica I(A,B) materializada como 2-forma
-    ω_I ∈ Ω²(T*Q) y verificada (axioma de antisimetría) en el handoff.
-  • Coordenadas acción-ángulo semilla (ω_i) con twist de Kolmogorov.
-  • Flujo Hamiltoniano linealizado A ∈ 𝔰𝔭(2n) a partir de (reads, writes).
-  • Handoff formal a FASE 2: `Phase1Handoff` ahora transporta
-    `frequencies`, `hamiltonian_generator`, `interference_frobenius`,
-    `antisymmetry_ok` — dominio estricto de Φ₂.
-FASE 2 — Homología de Poincaré + RSI³ Banach (continuación estricta):
-  • `_ingest_phase1_handoff` consume la semilla; NUNCA matrices aleatorias.
-  • `construct_flow_map_from_sp_generator` : M = exp(εA) ∈ Sp(2n).
-  • `action_angle_from_orbit` + `kolmogorov_nondegeneracy` (det ∂²H₀/∂I²).
-  • `poincare_return_map` sobre la sección Σ = {q = ⟨q⟩}.
-  • Ecuación homológica de Poincaré-Lindstedt resuelta en el pipeline.
-  • `RecursiveSelfImprovementL3`: contracción de Banach de nivel 3
-    sobre el espacio de operadores de mejora (no un contador).
-  • Haz celular con mapas de restricción ρ_{v→e} (no haz constante).
-FASE 3 — KAM / Melnikov / Hodge-Dirac / certificado Ω₃:
-  • Laplaciano de Hodge-Dirac sobre C⁰ ⊕ C¹ con métricas G₀, G₁
-    construidas desde la coborde REAL del haz (no ruido gaussiano).
-  • Remainder de Birkhoff + tiempo de recurrencia de Poincaré.
-  • Certificado con trayectoria RSI³ y axiomas de retículo Heyting.
+Módulo : AST Static Analyzer (Analizador Simpléctico y Cohomología de Haz)
+Ruta   : app/boole/physics/ast_static_analyzer.py
+Versión: 5.1.0-RSI3-Poincare-KAM-Heyting-OODA
+Función: Gobernanza OODA de física sintáctica en variedad simpléctica T*Q.
 
-ESTRUCTURA (fases anidadas — morfismos estrictos):
-  §0      — Common (constantes, excepciones, HeytingVerdict, handoffs).
-  FASE 1  — Geometría estructural (DataFlow, Complexity, Visitor).
-            Última def.: `_ASTPhase1Pipeline._handoff_to_phase2`.
-  FASE 2  — Homología de Poincaré y RSI³.
-            Primera def.: `_ASTPhase2Pipeline._ingest_phase1_handoff`.
-            Última def.: `_ASTPhase2Pipeline._handoff_to_phase3`.
-  FASE 3  — KAM, Melnikov, Hodge-Dirac y certificado Ω₃.
-            Primera def.: `_ASTPhase3Pipeline._ingest_phase2_handoff`.
-            Punto de entrada público: `ASTStaticAnalyzer`.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+----------------------------------------------------------------------------------------------------
+El motor espectral `ASTStaticAnalyzer` constituye la infraestructura de física sintáctica que
+sostiene la gobernanza OODA (Observe-Orient-Decide-Act) sobre el espacio de estados del árbol de
+sintaxis abstracta (AST). Transforma la estructura de código fuente Python en una variedad simpléctica
+T*Q de dimensión 2n, proyectando la dinámica decisional a través de un pipeline trifásico anidado:
+• Fase 1 (_ASTPhase1Pipeline): Extracción del 0-jet geométrico, construcción de coordenadas en T*Q,
+  evaluación de la disipación Hamiltoniana de energía de trayectoria (path-energy), cuantificación de la
+  2-forma discreta de interferencia \omega_I \in \Omega^2(T*Q) y generación del flujo en \mathfrak{sp}(2n,\mathbb{R}).
+• Fase 2 (_ASTPhase2Pipeline): Construcción del mapa de flujo simpléctico M = \exp(\varepsilon A) \in \mathrm{Sp}(2n,\mathbb{R})
+  mediante proyección de Cayley-Darboux, análisis de coordenadas acción-ángulo (I,\theta), condición de
+  twist de Kolmogorov \det(\partial^2 H_0 / \partial I_i \partial I_j) \neq 0, mapa de retorno de Poincaré,
+  resolución de la ecuación homológica de Poincaré-Lindstedt y automejora recursiva RSI³ (Nivel 1 ⊂ Nivel 2 ⊂ Nivel 3)
+  como contracción de Banach real.
+• Fase 3 (_ASTPhase3Pipeline): Construcción de la cohomología del haz celular con mapas de restricción
+  \rho_{u \to v}, evaluación del Laplaciano de Hodge-Dirac \Delta_G = D^2 = \mathrm{diag}(d^* d, d d^*),
+  retículo KAM, integral homoclínica de Melnikov, remainder de Birkhoff y adjudicación trivalente en \Omega_3.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. FIBRADO COTANGENTE Y 2-FORMA DE INTERFERENCIA DISCRETA:
+   Las variables leídas (reads) actúan como coordenadas de posición q_i \in Q y las escritas (writes)
+   como momentos p_i \in T^*_q Q. Para dos bloques sintácticos A y B, la función de interferencia
+   I(A,B) = |A.W \cap B.R| - |B.W \cap A.R| induce la 2-forma antisimétrica \omega_I \in \mathfrak{so}(m):
+   $$(\omega_I)_{ij} = I(b_i, b_j) \implies \omega_I^\top = -\omega_I$$
+   El generador Hamiltoniano A \in \mathfrak{sp}(2n,\mathbb{R}) satisface la identidad algebraica de Lie:
+   $$A^\top J + J A = 0 \quad \text{donde} \quad J = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$$
+
+2. PROYECCIÓN DE CAYLEY-DARBOUX Y FLUJO SIMPLÉCTICO:
+   A partir de M = \exp(\varepsilon A), la preservación exacta del volumen en la variedad de fases
+   se garantiza proyectando M a \mathrm{Sp}(2n,\mathbb{R}) mediante el mapa Cayley-Darboux:
+   $$K = (M - I)(M + I)^{-1}, \quad K_{sp} = \frac{1}{2}(K - J K^\top J), \quad \Pi_{\mathrm{Sp}}(M) = (I + K_{sp})(I - K_{sp})^{-1}$$
+   Verificando el axioma de invarianza simpléctica A1:
+   $$\delta\omega = \|\Pi_{\mathrm{Sp}}(M)^\top J \Pi_{\mathrm{Sp}}(M) - J\|_F < \mathtt{SYMPLECTIC\_ATOL} = 10^{-9}$$
+
+3. ECUACIÓN HOMOLÓGICA DE POINCARÉ-LINDSTEDT Y TEORÍA KAM:
+   Se resuelve la perturbación Hamiltoniana \{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^n} en modo Fourier:
+   $$W_k = \frac{H_{1,k}}{i (\omega_0 \cdot k)} \quad (k \neq 0)$$
+   donde el vector de frecuencias \omega_0 satisface la condición Diofántica KAM de no-resonancia:
+   $$|\omega_0 \cdot k| \ge \frac{\gamma^*}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{0\}$$
+
+4. CONTRACCIÓN DE BANACH DE NIVEL 3 (RSI³):
+   Operador T: B \to B sobre el espacio de parámetros de control x = (\gamma, \tau, \varepsilon) \in \mathbb{R}^3.
+   Nivel 1: f(x) (evaluación de residuales); Nivel 2: P(f) (adaptación de x); Nivel 3: Q(P) (modulación de \eta).
+   Por el Teorema del Punto Fijo de Banach, si \mathrm{Lip}(T) \le L_\star = 0.95 < 1.0, existe un único punto fijo:
+   $$\|x_{k+1} - x_k\|_2 \le L \|x_k - x_{k-1}\|_2 \implies x^{(k)} \xrightarrow{k \to \infty} x^*$$
+
+5. LAPLACIANO DE HODGE-DIRAC SOBRE EL HAZ CELULAR:
+   Dado el operador de coborde d = \delta^0 sobre las secciones del haz con métricas G_0, G_1:
+   $$\Delta_G = \begin{pmatrix} d^* d & 0 \\ 0 & d d^* \end{pmatrix} \quad \text{donde} \quad d^* = G_0^{-1} d^\top G_1$$
+   Axioma A4: \lambda_{\min}(\Delta_G|_{C^1}) > 0 \iff H^1(T, \mathcal{F}) = 0 (integrabilidad global libre de obstrucciones).
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+A1 (Invarianza Simpléctica y Liouville):
+    M^\top J M = J \implies \det(M) = +1 \quad \forall M \in \mathrm{Sp}(2n,\mathbb{R}).
+A2 (Bound Disipativo de Path-Energy):
+    E(path) = \sum_{a \in Path(n)} \mathrm{CC}_{incr}(a) \cdot \exp(-depth(a)/D_0) \le \mathrm{MAX\_PATH\_ENERGY} = 30.0.
+A3 (No-Resonancia y KAM Stability):
+    \gamma^* = \inf_{k \neq 0} |\omega_0 \cdot k| \|k\|_1^\tau \ge \gamma_{\mathrm{target}} = 10^{-3} \implies \text{Toro KAM Persistente}.
+A4 (Cero Obstrucción Cohomológica):
+    \dim H^1(T, \mathcal{F}) = \dim C^1 - \mathrm{rank}(\delta^0) = 0 \implies \text{Cero Ciclos de Inconsistencia Global}.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Preservación Simpléctica Relativa):
+    \delta\omega_{\mathrm{rel}} = \frac{\|M^\top J M - J\|_F}{\max(1, \|M\|_F)} \le 10^{-9}.
+Invariante 2 (Trivialidad Cohomológica Global):
+    \dim H^1(T, \mathcal{F}) = 0.
+Invariante 3 (Cota Lipschitzian de Banach RSI³):
+    \mathrm{Lip}(T_{\mathrm{RSI3}}) \le 0.95.
+Invariante 4 (Consistencia en \Omega_3):
+    v_{\mathrm{final}} = \bigvee_{i=1}^{10} v_i \in \{0x00, 0x01, 0x03\}.
+
+----------------------------------------------------------------------------------------------------
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+----------------------------------------------------------------------------------------------------
+· PREVENCIÓN DE FALLOS DE COMPLEJIDAD Y DEADLOCKS: Al verificar \dim H^1 = 0 y path-energy \le 30.0,
+  se interceptan bucles infinitos, variables no inicializadas y arquitecturas "top-heavy" antes de
+  despliegue, evitando caídas catastróficas en entornos de producción.
+· SEGURO DE ESTABILIDAD ALGORÍTMICA: La contracción de Banach RSI³ garantiza que los algoritmos
+  de optimización interna convergen determinísticamente en < 20 iteraciones sin deriva caótica.
+====================================================================================================
 """
 
 from __future__ import annotations

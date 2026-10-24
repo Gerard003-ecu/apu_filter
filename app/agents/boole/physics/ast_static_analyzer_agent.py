@@ -1,39 +1,96 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : AST Static Analyzer Agent (Custodio de la Cohomología Sintáctica)   ║
-║ Ruta   : app/agents/boole/physics/ast_static_analyzer_agent.py               ║
-║ Versión: 5.1.0-RSI3-Poincare-KAM-Heyting-OODA                                ║
-║ Función: Soberano agéntico OODA (3-fases anidadas) sobre el motor v5.1.0.    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SOBERANO AGÉNTICO BOOLE/PHYSICS
+====================================================================================================
 
-MEJORAS v5.1.0 RESPECTO A v5.0.0 (retrocompatibles, granulares, rigurosas):
-─────────────────────────────────────────────────────────────────────────
-FASE 1 — Invarianza simpléctica + semilla celeste del motor:
-  • Jacobiano M = exp(εA) ∈ Sp(2n) heredado de `hamiltonian_generator`
-    (nunca identidad ni ruido). Cayley-Darboux + Liouville + Maslov.
-  • Transporte de frecuencias, antisimetría ω_I y dim simpléctica.
-  • Última def.: `Phase1_SymplecticInvarianceAuditor._handoff_to_phase2_agent`.
-FASE 2 — Dirichlet + Poincaré + RSI³ Banach real:
-  • Primera def.: `Phase2_DirichletThermodynamicEnforcer._ingest_phase1_handoff_agent`.
-  • RSI³ YA NO es órbita RNG: consume `RSI3Report` del motor v5.1.0 o
-    ejecuta contracción determinista T: ℝ³ → ℝ³ sobre (δω, 1−cos θ, e^{−σ}).
-  • Twist de Kolmogorov, retorno de Poincaré, ‖W‖ homológico, λ_max, Melnikov, γ*.
-  • Última def.: `_handoff_to_phase3_agent`.
-FASE 3 — Haz + Hodge-Dirac + Heyting Ω₃ + certificado:
-  • Primera def.: `Phase3_CellularSheafCohomologyAuditor._ingest_phase2_handoff_agent`.
-  • Hodge-Dirac sobre coborde real (o espectro transportado); Birkhoff.
-  • Adjudicación Ω₃ con 10 átomos (Liouville, Banach, H¹, KAM, Melnikov,
-    Lyapunov, Hodge, twist, RSI³, Birkhoff).
-  • `audit_ooda_phase` recorre REALMENTE Φ₁ → Φ₂ → Φ₃ (ya no bypass).
+Módulo : AST Static Analyzer Agent (Custodio de la Cohomología Sintáctica)
+Ruta   : app/agents/boole/physics/ast_static_analyzer_agent.py
+Versión: 5.1.0-RSI3-Poincare-KAM-Heyting-OODA
+Función: Soberano agéntico OODA (3-fases anidadas) sobre el motor v5.1.0.
 
-ESTRUCTURA (fases anidadas — morfismos estrictos):
-  §0      — Common (constantes, excepciones, Heyting, handoffs).
-  FASE 1  — Última def.: `_handoff_to_phase2_agent`.
-  FASE 2  — Primera def.: `_ingest_phase1_handoff_agent`.
-            Última def.: `_handoff_to_phase3_agent`.
-  FASE 3  — Primera def.: `_ingest_phase2_handoff_agent`.
-            Punto de entrada: `ASTStaticAnalyzerAgentRSI3` / `ASTStaticAnalyzerAgent`.
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+----------------------------------------------------------------------------------------------------
+El Soberano Agéntico `ASTStaticAnalyzerAgentRSI3` (y su contraparte backward-compatible `ASTStaticAnalyzerAgent`)
+actúa como el Custodio de la Cohomología Sintáctica dentro de la capa Boole/Physics de APU Filter.
+Orquesta y audita la dinámica decisional del motor espectral `ASTStaticAnalyzer` mediante la ejecución
+de un ciclo OODA de tres fases anidadas acopladas morfísicamente:
+• Fase 1 (Phase1_SymplecticInvarianceAuditor): Auditoría de Liouville M^\top \Omega M = \Omega, residuo
+  de determinante \det M = +1, descomposición polar no simpléctica y cálculo del índice de Maslov \mu(M).
+  Emite el morfismo `AgentPhase1Handoff` vía `_handoff_to_phase2_agent`.
+• Fase 2 (Phase2_DirichletThermodynamicEnforcer): Ingesta estricta `_ingest_phase1_handoff_agent`,
+  enforcement de la disipación Port-Hamiltoniana P = \Phi^\top \nabla V \ge 0, verificación del axioma
+  de Clausius-Duhem \sigma_{CD} = P / T \ge 0, análisis de retorno de Poincaré, cálculo de la amplicud de
+  Melnikov M(\theta_0) y automejora recursiva RSI³ mediante la contracción determinista de Banach
+  T: \mathbb{R}^3 \to \mathbb{R}^3 sobre (\delta\omega, 1 - \cos\theta, e^{-\sigma}).
+  Emite el morfismo `AgentPhase2Handoff` vía `_handoff_to_phase3_agent`.
+• Fase 3 (Phase3_CellularSheafCohomologyAuditor): Ingesta estricta `_ingest_phase2_handoff_agent`,
+  auditoría de la nulidad de la primera cohomología de haz \dim H^1 = 0, verificación de la secuencia exacta de
+  Mayer-Vietoris, espectro de Laplaciano de Hodge-Dirac \lambda_{\min}(\Delta_G) > 0 y adjudicación trivalente
+  en el retículo de Heyting \Omega_3 = \{0x00, 0x01, 0x03\} sobre 10 átomos independientes, activando el
+  interlock de hardware ESP32 Crowbar (< 400 ns) ante colapso a VETOED (0x03).
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
+1. INVARIANZA SIMPLÉCTICA DE LIOUVILLE Y ÍNDICE DE MASLOV:
+   El soberano evalúa el mapeo linealizado M \in \mathrm{Sp}(2n,\mathbb{R}) sobre la variedad de fases T*Q.
+   Verifica la conservación de la 2-forma canónica \Omega = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}:
+   $$M^\top \Omega M = \Omega \implies \delta\omega_{\mathrm{rel}} = \frac{\|M^\top \Omega M - \Omega\|_F}{\max(1, \|M\|_F + \|\Omega\|_F)} \le \epsilon_{\mathrm{eff}}$$
+   El índice de Maslov \mu(M) cuantifica la rotación de los subespacios Lagrangianos principales:
+   $$\mu(M) = \# \{ \lambda \in \operatorname{Spec}(B) \mid \lambda < -\epsilon_{\mathrm{Maslov}} \} \quad \text{donde} \quad M = \begin{pmatrix} A & B \\ C & D \end{pmatrix}$$
+
+2. DISSIPACIÓN PORT-HAMILTONIANA Y SEGUNDA LEY DE LA TERMODINÁMICA:
+   La potencia disipada P entre el potencial de control \Phi y el gradiente de Lyapunov \nabla V debe ser
+   estrictamente no negativa, satisfaciendo Clausius-Duhem diferencial:
+   $$P = \langle \Phi, \nabla V \rangle \ge 0 \implies \sigma_{CD} = \frac{P}{T_{\mathrm{ref}}} \ge 0$$
+   El ángulo termodinámico \theta = \arccos\left(\frac{\langle \Phi, \nabla V \rangle}{\|\Phi\|_2 \|\nabla V\|_2}\right) acota la alineación exergética.
+
+3. CONTRACCIÓN DETERMINISTA DE BANACH RSI³ EN \mathbb{R}^3:
+   Consume el `RSI3Report` del motor o ejecuta la contracción determinista T: X \to X en X = \mathbb{R}^3:
+   $$x_k = \begin{pmatrix} \delta\omega_k \\ 1 - |\cos\theta_k| \\ e^{-\sigma_k} \end{pmatrix}, \quad T(x) = \begin{pmatrix} \kappa x_1 \\ x_2^2 \\ \beta x_3 \end{pmatrix}$$
+   donde \kappa = 0.45 si Liouville se cumple y \beta = 0.70 si KAM es estable.
+   El factor de aprendizaje \eta_k se modula dinámicamente para forzar \mathrm{Lip}(T) < \mathtt{BANACH\_TARGET} = 0.95.
+
+4. ADJUDICACIÓN DE HEYTING EN \Omega_3 Y CROWBAR INTERLOCK:
+   El veredicto global es el Join bitwise OR V = \bigvee_{i=1}^{10} v_i sobre los 10 átomos:
+   $$v_1: \text{Liouville}, \, v_2: \text{Banach}, \, v_3: H^1, \, v_4: \text{KAM}, \, v_5: \text{Melnikov}, \, v_6: \text{Lyapunov}, \, v_7: \text{Hodge}, \, v_8: \text{Twist}, \, v_9: \text{RSI}^3, \, v_{10}: \text{Birkhoff}$$
+   Si V = 0x03 (\mathtt{VETOED}), el soberano conmuta el pin GPIO14 del ESP32 a HIGH en t < 400 ns, desenergizando la etapa de potencia.
+
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+SGA1 (Inviolabilidad Simpléctica de Fase 1):
+    \delta\omega_{\mathrm{rel}} \le \epsilon_{\mathrm{eff}} \quad \text{y} \quad \det(M) = +1 \quad \forall M.
+SGA2 (Estabilidad Termodinámica Clausius-Duhem):
+    P = \langle \Phi, \nabla V \rangle \ge 0 \quad \text{y} \quad \sigma_{CD} \ge 0.
+SGA3 (Contracción Conforme en \mathbb{R}^3):
+    L_\Phi = \mathrm{Lip}(T) \le 0.95 < 1.0 \implies x^{(k)} \to x^*.
+SGA4 (Causalidad Continuada OODA):
+    \operatorname{dom}(\Phi_{k+1}) \equiv \operatorname{im}(\Phi_k) \quad \forall k \in \{1, 2\}.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Residuo Simpléctico Adaptativo):
+    \delta\omega_{\mathrm{rel}} \le \epsilon_{\mathrm{eff}} = \max(10^{-10}, 10^{-10} \cdot \sigma_{\max}(M) \cdot \epsilon_{\mathrm{mach}} \cdot 128).
+Invariante 2 (No-Negatividad de Entropía):
+    \sigma_{CD} \ge 0.0.
+Invariante 3 (Trivialidad Cohomológica de Haz):
+    \dim H^1(T, \mathcal{F}) = 0 \quad \text{y} \quad \text{Mayer-Vietoris Exacta}.
+Invariante 4 (Latencia de Interlock Crowbar):
+    t_{\mathrm{Crowbar}} < 400.0 \text{ ns ante colapso } V = 0x03.
+
+----------------------------------------------------------------------------------------------------
+TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
+----------------------------------------------------------------------------------------------------
+· INMUNIDAD CIBER-FÍSICA ANTE SINGULARIDADES: La activación instantánea (< 400 ns) del interlock Crowbar
+  evita la destrucción física de actuadores y hardware de cómputo ante resonancias homoclínicas o
+  divergencias exergéticas en el software.
+· CERTIFICACIÓN AUTOMÁTICA DE CALIDAD DE CÓDIGO: Elimina el riesgo operativo de desplegar parches o
+  módulos con ciclos de inconsistencia lógica, reduciendo drásticamente los costos de mantenimiento y auditoría.
+====================================================================================================
 """
 
 from __future__ import annotations
