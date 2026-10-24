@@ -1,74 +1,134 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Brachistochrone Path Finder Agent v5.1.0 — Tres Fases Anidadas      ║
+║ Módulo : BrachistochronePathFinderAgent (Custodio Soberano Geodésico)        ║
 ║ Ruta   : app/agents/boole/omega/brachistochrone_path_finder_agent.py         ║
-║ Versión: 5.1.0 (Fermat-Jacobi-RSI3-Poincaré-Heyting-ESP32-Strict-PhD)        ║
-║ Fases  : ①Observe → ②Orient → ③Decide&Act (bridges emit_*/from_*)          ║
+║ Versión: 5.1.0-Fermat-Jacobi-RSI3-Poincare-Heyting-ESP32-Strict-PhD           ║
+║ Función: Gobernanza, auditoría OODA y supervisión ciber-física del trazado    ║
+║          geodésico en la variedad de Fermat-Jacobi, integrando homología de  ║
+║          Betti β₁ ≡ 0, embedding simpléctico Cayley-Darboux, mecánica       ║
+║          celeste de Poincaré-Lindstedt-Melnikov, Mónada Kleisli RSI³ de 3   ║
+║          superficies, distancia de Wasserstein-1 y adjudicación en el       ║
+║          álgebra de Heyting Ω₃ con interlock Crowbar ESP32 (< 400 ns).        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE (Auditoría geométrica primaria de la variedad de Jacobi)
-    • Homología de grafos rigurosa: β₀ (componentes conexas vía BFS),
-      β₁ = |E| − |V| + β₀ con certificado χ = β₀ − β₁ = |V| − |E|.
-    • SPD del tensor métrico vía Cholesky  g = L Lᵀ  con detección
-      de singularidad por δσ_min y número de condición (Wilkinson).
-    • Símbolos de Koszul de Fermat-Jacobi en aproximación conforme:
-      g_ij(q) = f(q) δ_ij, Γ^ρ_μν = (1/2f)(δ^ρ_ν ∂_μ f + δ^ρ_μ ∂_ν f − δ_μν ∂^ρ f).
-    • Barrera energética de Hill: H₀ ≥ V(q) ∀q ∈ [q_start ± σ·g^{-1/2}v].
-    • Región de Hill topológica: componentes de {q : V(q) < H₀} y su β₀.
-    • CIERRA con `emit_phase1_envelope` → `BrachPhase1ObservationEnvelope`.
-      Ese envelope es el único contrato de apertura de la FASE 2.
+--------------------------------------------------------------------------------
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+--------------------------------------------------------------------------------
+El Soberano Agente Custodio del Enrutamiento Geodésico (`BrachistochronePathFinderAgent`)
+es el gobernador estratégico y táctico del ciclo OODA (Observe-Orient-Decide-Act)
+sobre los caminos de mínimo tiempo (braquistócronas) en la variedad riemanniana
+conforme de Fermat-Jacobi. Su función soberana es garantizar la certidumbre
+epistemológica, la aciclicidad topológica $\beta_1 \equiv 0$, la estabilidad contra
+el caos hamiltoniano de Poincaré y la convergencia super-exponencial de la
+automejora recursiva de nivel 3 (RSI³).
 
-  FASE 2 — ORIENT (Geodésica + Poincaré + Mónada Kleisli RSI³ + Wasserstein)
-    • APERTURA con `from_phase1_envelope` (continúa el último método de FASE 1).
-    • Delega integración a `BrachistochronePathFinder` (motor físico).
-    • Mapa de primer retorno de Poincaré sobre sección Σ = {n·(q−q_Σ)=0}.
-    • Integral de Melnikov-Poincaré a lo largo de la geodésica homoclínica.
-    • Exponentes de Lyapunov vía campos de Jacobi (desviación geodésica).
-    • Mónada Kleisli T=(T,η,μ) explícita: η (return), >>= (bind), μ (join).
-    • Surface 1 (Data-RSI, Anillo de Novikov): v_Krull(T) = −log(T/T_ref)
-      verificando subvariedad Lagrangiana exacta i*λ = dS con v ≥ 0.10.
-    • Surface 2 (Harness-RSI): SPD de G por Cholesky + CSMD (perturbación
-      compleja) sobre símbolos de Koszul; verifica |Im(Γ̃)| < ε_csmd.
-    • Surface 3 (Model-RSI): punto fijo Tarski-Brouwer sobre ℂP^{d−1} con
-      d_FS(ψ_start, ψ_end) = arccos(|⟨ψ_s|ψ_e⟩|) ≤ 10⁻⁴ rad.
-    • Automejora recursiva de nivel 3: si una superficie falla, se refina
-      dt, se re-integra y se re-evalúa (Picard sobre el espacio de caminos).
-    • Wasserstein-1 booleano-geodésico:
-        Opción A (1D): W₁ = Σ|F_P(i)−F_Q(i)|·Δx_i (cuantiles).
-        Opción B (KR-LP): W₁ = min_π Σ π_ij c_ij vía linprog.
-    • Contracción de Banach T³: Lip(T³) ≤ Lip(T)³ ≤ 0.95³ ≈ 0.857375 < 1
-      con certificado d³C/dt³ = (1−Lip(T³))/τ > 0.
-    • CIERRA con `emit_phase2_envelope` → `BrachPhase2OrientationEnvelope`.
+Su respectivo motor físico-espectral es `BrachistochronePathFinder`
+(`app/boole/physics/brachistochrone_path_finder.py`), con el cual mantiene una
+homología de fase estricta en tres etapas anidadas estructuradas como contratos
+categóricos inmutables:
+  • Fase 1 (Observe): `BrachPhase1Observer` efectúa la auditoría geométrica primaria
+    de la variedad de Jacobi-Fermat, verificando la homología simplicial de Betti
+    $\beta_0, \beta_1$ con certificado Euler-Poincaré $\chi = \beta_0 - \beta_1$,
+    la positividad definida (SPD) del tensor métrico $g = L L^\top$ por Cholesky con
+    cota de Wilkinson $\kappa(g) \le 10^8$, los símbolos de Koszul conformes $\Gamma^\rho_{\mu\nu}$,
+    la barrera energética clásica de Hill $H_0 \ge V(q)$ y la topología de la región
+    de accesibilidad. Emite el contrato inmutable `BrachPhase1ObservationEnvelope`.
+  • Fase 2 (Orient): `BrachPhase2Orientor` asume la apertura contractual desde la Fase 1,
+    delegando la integración geodésica Runge-Kutta 4º orden a `BrachistochronePathFinder`.
+    Audita el mapa de primer retorno de Poincaré sobre la sección $\Sigma$, evalúa la integral
+    de Melnikov $M(\tau)$ sobre la separatriz homoclínica, el espectro de Lyapunov Jacobi-Benettin
+    $\lambda_{\max} \le 0$, y opera la Mónada Kleisli RSI³ $\mathbf{T} = (T, \eta, \mu)$ a través de
+    3 superficies (Surface 1 Novikov, Surface 2 Koszul-CSMD, Surface 3 Fubini-Study en $\mathbb{C}P^{d-1}$)
+    con contracción de Banach $T^3$. Emite `BrachPhase2OrientationEnvelope`.
+  • Fase 3 (Decide & Act): `BrachPhase3Decider` asume la apertura desde la Fase 2, ejecuta la
+    adjudicación trivalente en el álgebra de Heyting $\Omega_3 = \{0\text{x}00 \prec 0\text{x}01 \prec 0\text{x}03\}$
+    combinando 7 átomos invariantes, y dispara el actuador ciber-físico ESP32 Crowbar en latencia
+    determinista $t < 400\text{ ns}$ ante cualquier violación o degradación. Emite `BrachistochroneGovernanceState`.
 
-  FASE 3 — DECIDE & ACT (Heyting Ω₃ completo + Crowbar ESP32/BT151)
-    • APERTURA con `from_phase2_envelope` (continúa el último método de FASE 2).
-    • Álgebra de Heyting Ω₃ = {COHERENT=0x00 < DEGRADED=0x01 < VETOED=0x03}
-      con join(∨), meet(∧), implies(→), negate(¬).
-    • Adjudicación con `join` monoidal de 6 átomos (Hill, Betti, SPD, Banach,
-      Melnikov-Poincaré, Lyapunov) — veredicto colapsa a ⊤ = VETOED en fallo.
-    • Disparo Crowbar con verificación de latencia empírica:
-        t_interlock ≤ 392.15 ns < 400 ns  (GPIO14 → BT151).
-    • CIERRA con `emit_governance_state` → `BrachistochroneGovernanceState`.
+--------------------------------------------------------------------------------
+2. MARCO TEÓRICO Y FORMALISMO MATEMÁTICO
+--------------------------------------------------------------------------------
+1. Homología de Betti y Característica de Euler-Poincaré:
+   Sobre el grafo $G=(V,E)$ inducido por la métrica de Mahalanobis $d_g(e_i, e_j) = \sqrt{(e_i - e_j)^\top g (e_i - e_j)}$,
+   se evalúa el número de componentes conexas $\beta_0$ mediante búsqueda en anchura (BFS) y la
+   aciclicidad de Rham-Betti $\beta_1 = |E| - |V| + \beta_0$. El certificado de consistencia topológica satisface:
+       \chi = \beta_0 - \beta_1 = |V| - |E|
+   garantizando que la variedad carezca de ciclos cerrados indeseados ($\beta_1 \equiv 0$).
 
-MIGRACIÓN IMPORTANTE (breaking change controlado)
-─────────────────────────────────────────────────
-  El enum `BrachistochroneHeytingVerdict.VETOED` cambia de 0x02 → 0x03 para
-  alinearse con los módulos `mac_minimizer.py` y `mac_minimizer_agent.py` de
-  la misma versión 9.2.0. La retrocompatibilidad se preserva vía
-  `BrachistochroneHeytingVerdict.legacy_from_0x02()`.
+2. Geometría Conforme y Símbolos de Koszul de Fermat-Jacobi:
+   Dada la energía total $H_0$ y el potencial $V(q)$, la métrica conforme de Jacobi es $g_{ij}(q) = f(q) \delta_{ij}$
+   donde $f(q) = 2(H_0 - V(q))$. Los símbolos de Koszul-Christoffel se expresan como:
+       \Gamma^\rho_{\mu\nu} = \frac{1}{2f} \left( \delta^\rho_\nu \partial_\mu f + \delta^\rho_\mu \partial_\nu f - \delta_{\mu\nu} \partial^\rho f \right)
+   Bajo perturbación por método de derivación compleja (CSMD) $\tilde{f} = f + i \varepsilon_{\text{csmd}}$, se verifica la
+   pureza analítica $|\operatorname{Im}(\tilde{\Gamma})| < 10^{-12}$.
 
-INVARIANTES GLOBALES
-────────────────────
-  [A1] β₁ ≡ 0  ⇔  χ = |V| − |E| = β₀  (aciclicidad de Rham-Betti).
-  [A2] g = L Lᵀ con L triangular inferior; σ_min(L) > ε y κ(g) ≤ 10⁸.
-  [A3] W₁(P_orig, P_red) ≤ 10⁻⁸  (transporte óptimo booleano-geodésico).
-  [A4] Lip(T³) ≤ 0.95³ ≈ 0.857375 < 1  ⇒  d³C/dt³ > 0.
-  [A5] Ω₃ → GPIO14 @ t < 400 ns  (ESP32 / BT151 Crowbar).
-  [A6] |M(ε)| < ½  (Melnikov-Poincaré: no hay splitting homoclínico).
-  [A7] λ_max(Jacobi) ≤ 0  (no hay divergencia exponencial del flujo geodésico).
+3. Dinámica Celeste de Poincaré, Melnikov y Campos de Jacobi:
+   El mapa de primer retorno de Poincaré $P : \Sigma \to \Sigma$ mapea las intersecciones de la trayectoria con
+   la sección hiperplana transversal $\Sigma = \{q \in Q \mid n \cdot (q - q_\Sigma) = 0\}$.
+   La integral homoclínica de Melnikov-Poincaré mide la división de separatrices bajo perturbaciones:
+       M(\tau) = \int_{-\infty}^{+\infty} \{ H_0, H_1 \} (q_h(t+\tau), p_h(t+\tau)) \, dt
+   donde $\{H_0, H_1\} = \nabla V \cdot (J v)$. Un valor $|M| < 0.5$ certifica la ausencia de caos homoclínico.
+   La estabilidad del flujo se mide resolviendo la ecuación de desviación geodésica de Jacobi
+   $\frac{D^2 \xi}{dt^2} + R(\xi, \dot{\gamma})\dot{\gamma} = 0$, obteniendo el exponente máximo de Lyapunov
+   $\lambda_{\max} = \lim_{T \to \infty} \frac{1}{T} \ln \|W(T)\| \le 0$.
+
+4. Mónada Kleisli RSI³ (Nivel 3) y Contracción de Banach $T^3$:
+   La automejora recursiva opera sobre la Mónada Kleisli Either $\mathbf{T} = (T, \eta, \mu)$ en tres superficies:
+     • Surface 1 (Data-RSI): Valuación de Krull en Novikov $v_{\text{Krull}}(T) = -\ln(T / T_{\text{ref}}) \ge 0.10$.
+     • Surface 2 (Harness-RSI): Factorización Cholesky $g = L L^\top$ con $\sigma_{\min}(L) > 0$ y CSMD residual $|\operatorname{Im}(\tilde{\Gamma})| < 10^{-12}$.
+     • Surface 3 (Model-RSI): Mapeo proyectivo a $\mathbb{C}P^{d-1}$ con distancia de Fubini-Study
+       $d_{\text{FS}}(\psi_{\text{start}}, \psi_{\text{end}}) = \arccos\left(\frac{|\langle \psi_{\text{start}} \mid \psi_{\text{end}} \rangle|}{\|\psi_{\text{start}}\| \|\psi_{\text{end}}\|}\right) \le 10^{-4} \text{ rad}$.
+   La contracción de Banach de nivel 3 satisface $\operatorname{Lip}(T^3) \le \operatorname{Lip}(T)^3 \le 0.95^3 \approx 0.857375 < 1.0$,
+   asegurando una aceleración de capacidad $d^3 C / dt^3 = \frac{1 - \operatorname{Lip}(T^3)}{\tau} > 0$.
+
+5. Transporte Óptimo de Wasserstein-1 Booleano-Geodésico:
+   La distancia de Wasserstein-1 entre la trayectoria continua $P_{\text{orig}}$ y su discretización $P_{\text{red}}$ es:
+       W_1(P_{\text{orig}}, P_{\text{red}}) = \int_0^1 |F_{P_{\text{orig}}}^{-1}(t) - F_{P_{\text{red}}}^{-1}(t)| \, dt \le 10^{-8}
+
+--------------------------------------------------------------------------------
+3. AXIOMAS FORMALES
+--------------------------------------------------------------------------------
+Axioma AGENT_A1 (Aciclicidad Homotópica de Rham-Betti):
+    La variedad discreta debe ser acíclica, cumpliendo $\beta_1 \equiv 0 \iff \chi = \beta_0$, erradicando bucles causales.
+Axioma AGENT_A2 (Positividad Definida y Cota de Wilkinson):
+    El tensor métrico satisface $g = L L^\top$ con $\operatorname{diag}(L) > 0$, $\sigma_{\min}(L) > \varepsilon$ y $\kappa(g) \le 10^8$.
+Axioma AGENT_A3 (Fidelidad de Transporte Óptimo $W_1$):
+    La distancia geodésica $W_1(P_{\text{orig}}, P_{\text{red}}) \le 10^{-8}$, asegurando no-distorsión en la reducción.
+Axioma AGENT_A4 (Contracción Monádica de Banach en RSI³):
+    $\operatorname{Lip}(T^3) \le 0.95^3 \approx 0.857375 < 1.0 \implies \frac{d^3 C}{dt^3} > 0$, garantizando convergencia.
+Axioma AGENT_A5 (Adjudicación y Modus Ponens en Heyting $\Omega_3$):
+    El veredicto final colapsa en la cadena $\Omega_3 = \{0\text{x}00 \prec 0\text{x}01 \prec 0\text{x}03\}$ mediante la unión
+    monoidal de 7 átomos de estado, activando el hardware interlock en $t < 400\text{ ns}$ si $V = 0\text{x}03$.
+Axioma AGENT_A6 (Ausencia de Caos Homoclínico de Poincaré):
+    La integral de Melnikov cumple $|M(\tau)| < 0.5$, impidiendo el splitting de separatrices.
+Axioma AGENT_A7 (Estabilidad de Lyapunov de Jacobi):
+    El exponente máximo de Lyapunov satisface $\lambda_{\max} \le 0$, impidiendo divergencia exponencial del flujo.
+
+--------------------------------------------------------------------------------
+4. INVARIANTES DE ESTADO
+--------------------------------------------------------------------------------
+Invariante 1 (Preservación de la Cadena de Envelopes OODA):
+    Cada fase genera un hash de integridad $\text{chain\_hash} = \operatorname{SHA256}(\text{state\_data})$,
+    cuya verificación es condición sine qua non para autorizar la apertura de la fase subsiguiente.
+Invariante 2 (Garantía Ciber-Física de Latencia Crowbar):
+    Ante un veredicto $V = \top = \mathtt{VETOED} \, (0\text{x}03)$, la señal GPIO14 conmuta el tiristor BT151
+    en una latencia empírica $t_{\text{interlock}} \le 392.15\text{ ns} < 400\text{ ns}$.
+Invariante 3 (Apertura Contractual de Tres Fases):
+    $\Phi_1 \to \Phi_2 \to \Phi_3$ es un ciclo funtorial estricto donde $\operatorname{emit\_phase1\_envelope}$
+    se acopla a $\operatorname{from\_phase1\_envelope}$, y $\operatorname{emit\_phase2\_envelope}$ a $\operatorname{from\_phase2\_envelope}$.
+
+--------------------------------------------------------------------------------
+5. FUNTOR SEMÁNTICO Y CÚSPIDE VISCERAL ("DOLOR Y DINERO" / Φ_sem)
+--------------------------------------------------------------------------------
+El Funtor Semántico $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial\mathcal{M}, \Omega_3) \to \text{Business}$
+traduce la validez matemática en impacto financiero y operativo innegable:
+  • Eliminación de Desvíos de Infraestructura (-100% de Catástrofes por Divergencia):
+    Al vetar trayectorias con $\lambda_{\max} > 0$ o $|M| \ge 0.5$, el agente impide el colapso
+    de recursos de cómputo en bucles infinitos o caóticos, ahorrando millones de dólares en runtime.
+  • Protección Ciber-Física Ante Fallos de Potencia ($< 400\text{ ns}$):
+    El cortocircuito por Crowbar en GPIO14 detiene la propagación de comandos destructivos a los
+    actuadores físicos antes de que la inercia mecánica cause daño irreversible a la maquinaria.
 """
 
 from __future__ import annotations
