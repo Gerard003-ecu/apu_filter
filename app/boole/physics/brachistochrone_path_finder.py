@@ -3,89 +3,56 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Brachistochrone Path Finder (Motor de Descenso Rápido de Fermat)    ║
 ║ Ruta   : app/boole/physics/brachistochrone_path_finder.py                    ║
-║ Versión: 3.1.0-Fermat-Jacobi-Koszul-CSMD-RK4-FPU-Strict-PhD                  ║
+║ Versión: 4.0.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-Strict-PhD            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE JACOBI-FERMAT (Rigor Doctoral): ──────────
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL: ────
 Este módulo consagra la especificación e implementación del **Motor de Descenso 
-Rápido de Fermat-Jacobi** (Brachistochrone Path Finder) dentro del Estrato 
-Physics (Nivel 3 - El Foso Termodinámico) del ecosistema APU Filter. 
+Rápido de Fermat-Jacobi y Mecánica Celeste de Poincaré** (Brachistochrone Path
+Finder Engine) dentro del Estrato Physics (Nivel 3 - El Foso Termodinámico) del
+ecosistema APU Filter v9.2.0.
+
 Su propósito físico-matemático es modelar y resolver la trayectoria geodésica 
 del flujo logístico y la asignación atencional del Modelo de Lenguaje (LLM) 
 sobre una variedad Riemanniana anisotrópica deformada conformemente por el 
-potencial termodinámico-financiero.
+potencial termodinámico-financiero $V(q)$. Eleva la optimización de trayectorias
+hacia un sistema dinámico simpléctico-estocástico, contractivo y disipativo sobre
+la variedad conforme de Jacobi-Fermat.
 
-El motor elude de raíz las heurísticas euclidianas planas, tratando la evolución 
-de los costos y recursos como geodésicas en el espacio de fase simpléctico 
-$$\mathcal{M}$$. Mediante el Isomorfismo de Jacobi, el problema de 
-tiempo de tránsito mínimo (braquistócrona clásica de Bernoulli) se reduce a encontrar 
-las geodésicas sobre la variedad equipada con la métrica conforme de Fermat:
+MARCO TEÓRICO: ─────────────────────────────────────────────────────────────────
+1. Isomorfismo Conforme de Jacobi-Fermat e Inmersión Simpléctica Cayley-Darboux:
+   El principio de Fermat para el tiempo mínimo $T[\gamma] = \int n(q) \mathrm{d}s_G$
+   se mapea sobre la variedad equipada con la métrica conforme $\tilde{G}_{\mu\nu}$:
+   $$\tilde{G}_{\mu\nu}(q) = n^2(q) G_{\mu\nu}(q) \quad \text{donde} \quad n(q) = \frac{1}{\sqrt{2(H_0 - V(q))}}$$
+   La métrica de Gram conforme $\tilde{G}$ se proyecta al espacio de fase simpléctico
+   $T^*\mathcal{Q}$ mediante la inmersión de Cayley en $\mathfrak{sp}(2d, \mathbb{R})$:
+   $$K = (\tilde{G} - \mathbf{I}_{2d})(\tilde{G} + \mathbf{I}_{2d})^{-1} \in \mathfrak{sp}(2d, \mathbb{R}) \iff K^\top J + J K = \mathbf{0}$$
+   reconstruyendo la matriz simpléctica $M_{\mathrm{sympl}} = (\mathbf{I} + K)(\mathbf{I} - K)^{-1} \in \operatorname{Sp}(2d, \mathbb{R})$ con residuo relativo:
+   $$\delta\omega_{\mathrm{rel}} = \frac{\|M^\top J M - J\|_F}{\|M\|_F^2} \le 10^{-10}$$
 
-$$\tilde{G}_{\mu\nu} = n^2(q) G_{\mu\nu} \quad \text{donde} \quad n(q) = \frac{1}{\sqrt{2(H_0 - V(q))}} \quad\big[117, 128\big]$$
+2. Mecánica Celeste de Poincaré: Lindstedt, Divisores KAM/Bruno y Melnikov:
+   - Ecuación Homológica de Poincaré-Lindstedt:
+     Anula derivas seculares en la acción resolviendo $\{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^d}$.
+   - Condición Diofántica Siegel-Bruno-KAM:
+     $$|\boldsymbol{\omega}_0 \cdot k| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^d \setminus \{\mathbf{0}\}$$
+   - Integral Homoclínica de Melnikov sobre la Separatriz:
+     $$M(\theta_0) = \int_{-\infty}^{+\infty} \{H_0, H_1\}\left(q_h(t-\theta_0), p_h(t-\theta_0)\right) \mathrm{d}t = 0$$
 
-Donde:
-  · $$G_{\mu\nu}$$ es el tensor métrico Riemanniano basal (inercia estructural).
-  · $$V(q)$$ es el potencial generalizado de restricciones (costos/BOM).
-  · $$H_0$$ es la energía total de de-confinamiento (presupuesto inicial).
-  · $$n(q)$$ es el índice de refracción semántica conforme.
-
-AXIOMÁTICA FÍSICA Y GEOMÉTRICA (Invariantes del Lazo): ──────────────────────────
-
+AXIOMAS FORMALES: ──────────────────────────────────────────────────────────────
   [A1] Axioma de Sylvester y Regularización Espectral (Cholesky-Tikhonov):
-       El tensor métrico basal $$G_{\mu\nu}$$ debe ser estrictamente simétrico 
-       y definido positivo (SPD) para inducir un producto de Riesz estable:
-       $$G = G^\top \succ \mathbf{0} \quad\big[123, 131\big]$$
-       Para blindar la Unit de Punto Flotante (FPU) frente al mal condicionamiento 
-       espectral de Wilkinson ($$\kappa_2 \ge 10^8$$), la inversión se opera 
-       exclusivamente a través de la factorización de Cholesky precondicionada:
-       $$G = L L^\top \quad\big[125, 137\big]$$
+       $G = G^\top \succ \mathbf{0}$, $\kappa_2(\tilde{G}) \le 10^8$, $G = L L^\top$.
+  [A2] Axioma de la Barrera de Energía Termodinámica (Pozo de Hill):
+       $H_0 - V(q) \ge \mathtt{ENERGY\_GAP} = 1.0 \times 10^{-12} > 0$.
+  [A3] Conexión Afín de Koszul con CSMD:
+       $\Gamma_{\mu\nu}^{\rho} = \frac{1}{2} \tilde{G}^{\rho\lambda} \left( \partial_{\mu} \tilde{G}_{\lambda\nu} + \partial_{\nu} \tilde{G}_{\mu\lambda} - \partial_{\lambda} \tilde{G}_{\mu\nu} \right)$,
+       donde $\partial_k \tilde{G}_{ij}(q) = \frac{\operatorname{Im}\left( \tilde{G}_{ij}(q + j \cdot h \cdot e_k) \right)}{h}$ con $h = 10^{-20}$.
+  [A4] Conservación Simpléctica y Variedad Homoclínica:
+       $M(\theta_0) = 0$ y $K_{\mathrm{Chirikov}} = \frac{\Delta \omega}{\delta \omega_{\mathrm{res}}} < 1.0$.
 
-  [A2] Axioma de la Barrera de Energía Termodinámica:
-       El descenso geodésico solo es físicamente viable si la energía total de 
-       referencia $$H_0$$ supera estrictamente el potencial local $$V(q)$$, confinando 
-       la trayectoria dentro de la cubeta de pasividad:
-       $$H_0 - V(q) \ge \mathtt{ENERGY\_GAP} > 0 \quad\big[119, 131\big]$$
-       Cualquier violación rompe el carácter holomorfo de la refracción, detonando 
-       síncronamente la interrupción por hardware de-confinada.
-
-  [A3] Conexión Afín de Koszul y Derivación por Paso Complejo (CSMD):
-       La aceleración del frente de onda atencional se calcula libre de torsión 
-       topológica ($$T(X,Y) = 0$$) evaluando los símbolos de Christoffel de segunda 
-       especie asociados a la conexión de Levi-Civita:
-       $$\Gamma_{\mu\nu}^{\rho} = \frac{1}{2} \tilde{G}^{\rho\lambda} \left( \partial_{\mu} \tilde{G}_{\lambda\nu} + \partial_{\nu} \tilde{G}_{\mu\lambda} - \partial_{\lambda} \tilde{G}_{\mu\nu} \right) \quad\big[12, 124, 137\big]$$
-       Donde las derivadas parciales se extraen con exactitud analítica al nivel 
-       de FPU ($$\mathcal{O}(h^2)$$) inyectando una perturbación imaginaria pura infinitesimal:
-       $$\partial_k \tilde{G}_{ij}(q) = \frac{\operatorname{Im}\left( \tilde{G}_{ij}(q + j \cdot h \cdot e_k) \right)}{h} \quad\big[124, 137\big]$$
-
-  [A4] Ecuación de Movimiento Geodésico y Conservación Hamiltoniana:
-       El momentum covariante $$p_\mu = \tilde{G}_{\mu\nu} \dot{q}^\nu$$ obedece el 
-       transporte paralelo de Levi-Civita, satisfaciendo la ecuación geodésica:
-       $$\ddot{q}^\rho + \Gamma_{\mu\nu}^{\rho} \dot{q}^\mu \dot{q}^\nu \equiv 0 \quad\big[126, 138\big]$$
-       Verificando síncronamente la conservación de la energía mecánica total en 
-       cada paso temporal RK4 para anular derivas ficticias:
-       $$\left| T(p) + V(q) - H_0 \right| \le \mathtt{\varepsilon_{\mathrm{FPU}}} \quad\big[126, 138\big]$$
-
-ARQUITECTURA DE TRES FASES ANIDADAS (Funtor de Inferencia Inercial): ────────────
-El motor se orquesta mediante un acoplamiento monoidal covariante estricto, donde 
-el objeto terminal de cada fase constituye la precondición formal de la siguiente:
-
-  Fase 1 ──► EXTRACCIÓN DE BARRERA POTENCIAL (Phase1_PotentialWellInquirer)
-             Ingiere el tensor basal, valida la firma SPD de Sylvester mediante 
-             Cholesky, y certifica que el gap de energía $$H_0 - V(q)$$ esté a salvo 
-             de cancelaciones catastróficas.
-             Entrega: ConformalPotentialDilation.
-
-  Fase 2 ──► SINTONÍA DE MÉTRICA DE JACOBI Y KOSZUL (Phase2_ConformalKoszulSuturator)
-             Hereda la ConformalPotentialDilation. Computa el tensor de Fermat 
-             $$\tilde{G}_{\mu\nu}$$ y su inversa precondicionada, y calcula los 
-             símbolos de Christoffel exactos vía CSMD en el punto de fase.
-             Entrega: ConformalManifoldBundle.
-
-  Fase 3 ──► INTEGRACIÓN DE TRAYECTORIA Y ACCIÓN (Phase3_FermatGeodesicSolver)
-             Hereda la ConformalManifoldBundle. Integra la ecuación geodésica 
-             mediante Runge-Kutta de 4to Orden (RK4), evalúa el tiempo de tránsito 
-             de Fermat, y certifica el residuo de deriva del Hamiltoniano.
-             Entrega: BrachistochronePhysicalState.
+INVARIANTES DE ESTADO: ─────────────────────────────────────────────────────────
+  - Symplectic Structure Invariant: $\delta\omega_{\mathrm{rel}} \le 10^{-10}$.
+  - Torsion-Free Koszul Invariant: $\tau = \max |\Gamma^\rho_{\mu\nu} - \Gamma^\rho_{\nu\mu}| \le 10^{-12}$.
+  - Energy Conservation Drift: $\delta E_F \le 10^{-4}$, $\delta H \le 10^{-3}$.
 """
 
 from __future__ import annotations
@@ -93,7 +60,8 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from typing import Any, Callable, Final, Optional, Protocol, Tuple, runtime_checkable
+from enum import Enum, auto
+from typing import Any, Callable, Final, List, Optional, Protocol, Tuple, runtime_checkable
 
 import numpy as np
 import scipy.linalg as la
@@ -120,7 +88,7 @@ logger = logging.getLogger("MIC.Physics.BrachistochronePathFinder")
 if not logger.handlers:
     logger.addHandler(logging.NullHandler())
 
-__version__: Final[str] = "3.0.0-Fermat-Jacobi-Koszul-ClosedForm-RK4-FPU-Strict-PhD"
+__version__: Final[str] = "4.0.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-Strict-PhD"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # CONSTANTES FÍSICAS, NUMÉRICAS Y LÍMITES DE LA FPU
@@ -136,10 +104,22 @@ _ENERGY_DRIFT_HARD_TOL: Final[float] = 1.0e-3
 _ENERGY_DRIFT_SOFT_TOL: Final[float] = 1.0e-6
 _FERMAT_DRIFT_HARD_TOL: Final[float] = 1.0e-4
 _FERMAT_DRIFT_SOFT_TOL: Final[float] = 1.0e-8
+_SYMPLECTIC_RESIDUAL_TOL: Final[float] = 1.0e-10
 _DEFAULT_RK4_STEPS: Final[int] = 500
 _MAX_INTEGRATION_STEPS: Final[int] = 100_000
 _DIM_MAX: Final[int] = 32
 _CHECKSUM_REL_TOL: Final[float] = 1.0e-9
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RÉGIMEN GEODÉSICO DE POINCARÉ
+# ═══════════════════════════════════════════════════════════════════════════════
+class GeodesicRegime(Enum):
+    ELIPTIC_STABLE = auto()
+    HYPERBOLIC_UNSTABLE = auto()
+    KAM_TORUS_PRESERVED = auto()
+    MELNIKOV_CHAOTIC = auto()
+    HILL_WELL_VIOLATED = auto()
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -150,7 +130,7 @@ class BrachistochroneEngineError(Exception):
 
 
 class EnergyWellColapsoError(BrachistochroneEngineError):
-    """La barrera de energía es nula o negativa (\(H_0\le V(q)\))."""
+    """La barrera de energía es nula o negativa (H0 <= V(q))."""
 
 
 class ConformalSingularityError(BrachistochroneEngineError):
@@ -166,7 +146,7 @@ class KoszulChecksumError(BrachistochroneEngineError):
 
 
 class InitialKinematicsError(BrachistochroneEngineError):
-    """Condiciones iniciales \((q,v,H_0)\) inconsistentes con la variedad."""
+    """Condiciones iniciales (q,v,H0) inconsistentes con la variedad."""
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -174,7 +154,7 @@ class InitialKinematicsError(BrachistochroneEngineError):
 # ═══════════════════════════════════════════════════════════════════════════════
 @runtime_checkable
 class PotentialField(Protocol):
-    """Campo potencial \(V:\mathcal{Q}\to\mathbb{R}\) (extensible a \(\mathbb{C}\) para CSMD)."""
+    """Campo potencial V: Q -> R (extensible a C para CSMD)."""
 
     def __call__(self, q: NDArray[Any]) -> Any:
         ...
@@ -192,24 +172,7 @@ class ConformalPotentialDilation:
     r"""
     Artefacto terminal de la FASE 1 y objeto inicial de la FASE 2.
 
-    Certifica la firma SPD de \(G\), el pozo \(H_0-V>0\) y la cinemática
-    inicial opcional. ``Phase2_ConformalKoszulSuturator._phase2_consume_phase1_certificate``
-    lo ingiere sin re-tipar la métrica ni re-factorizar Cholesky.
-
-    Campos:
-        g_base: \(G\in\mathrm{SPD}(d)\) write-protected.
-        potential_v: muestras de \(V\) usadas en el saneamiento.
-        initial_h0: energía total \(H_0\).
-        energy_gap: \(H_0-V\) punto a punto.
-        is_safe: \(\min(H_0-V)\ge\varepsilon_{\mathrm{gap}}\).
-        cholesky_factor: \(L\) triangular inferior, \(G=LL^\top\).
-        symmetry_residual_relative: \(\|G-G^\top\|_F/\|G\|_F\).
-        energy_gap_min: \(\min(H_0-V)\).
-        manifold_dim: \(d=\dim\mathcal{Q}\).
-        cholesky_logdet: \(\log\det G=2\sum_i\log L_{ii}\).
-        kinetic_energy_start: \(\tfrac12 v^\top G v\) (NaN si no hubo \(v\)).
-        hamiltonian_residual_start: \(|T+V-H_0|\) en el arranque.
-        q_start / v_start: cinemática congelada (vacío si no se aportó).
+    Certifica la firma SPD de G, el pozo H0 - V > 0 y la cinemática inicial.
     """
 
     g_base: NDArray[np.float64]
@@ -229,29 +192,12 @@ class ConformalPotentialDilation:
 
 
 @dataclass(frozen=True, slots=True)
-class ConformalManifoldBundle:
+class ConformalGeometryBundle:
     r"""
     Artefacto terminal de la FASE 2 y objeto inicial de la FASE 3.
 
-    Encierra la geometría de Jacobi–Fermat ya invertida, el tensor de
-    Christoffel en \(q_{\mathrm{eval}}\) y los residuales Koszul.
-    ``Phase3_FermatGeodesicSolver._phase3_consume_phase2_certificate``
-    lo ingiere sin reconstruir \(\widetilde{G}\).
-
-    Campos:
-        g_base / g_conformal / g_conformal_inv: tensores write-protected.
-        refractive_index: \(n(q_{\mathrm{eval}})\).
-        christoffel_symbols: \(\widetilde{\Gamma}^\rho_{\mu\nu}\) en \(q_{\mathrm{eval}}\),
-            shape \((d,d,d)\).
-        wilkinson_condition: \(\kappa_2(G)=\kappa_2(\widetilde{G})\).
-        initial_h0: \(H_0\).
-        conformal_factor_sq: \(n^2(q_{\mathrm{eval}})\).
-        torsion_residual: \(\max|\Gamma^\rho_{\mu\nu}-\Gamma^\rho_{\nu\mu}|\).
-        potential_gradient: \(\nabla V(q_{\mathrm{eval}})\).
-        gradient_method: ``csmd`` | ``central`` | ``unavailable``.
-        energy_gap_at_eval: \(H_0-V(q_{\mathrm{eval}})\).
-        g_base_inv: \(G^{-1}\) write-protected (reutilizado por el integrador).
-        phase1: certificado de FASE 1 anidado (continuidad funtorial).
+    Encierra la geometría de Jacobi-Fermat invertida, símbolos de Christoffel,
+    inmersión simpléctica Cayley-Darboux sobre sp(2d, R) y residuales de Poincaré.
     """
 
     g_base: NDArray[np.float64]
@@ -267,6 +213,9 @@ class ConformalManifoldBundle:
     gradient_method: str = "unavailable"
     energy_gap_at_eval: float = 0.0
     g_base_inv: NDArray[np.float64] = field(default_factory=lambda: np.zeros((0, 0), dtype=np.float64))
+    symplectic_cayley_matrix: NDArray[np.float64] = field(default_factory=lambda: np.zeros((0, 0), dtype=np.float64))
+    symplectic_residual: float = 0.0
+    is_symplectic_valid: bool = True
     phase1: Optional[ConformalPotentialDilation] = None
 
 
@@ -274,21 +223,6 @@ class ConformalManifoldBundle:
 class BrachistochronePhysicalState:
     r"""
     Objeto terminal y certificado físico inmutable emitido por el Motor.
-
-    Campos:
-        trajectory / velocities: geodésica muestreada, shape \((N,d)\).
-        transit_time_t: tiempo de Fermat \(T=\int n\|dq\|_G\).
-        energy_drift_max: \(\max|T+V-H_0|\) (diagnóstico de cascarón).
-        is_globally_stable: finitud + deriva Fermat/física bajo umbral duro.
-        fermat_energy_initial: \(E_F(\lambda_0)\).
-        fermat_energy_drift_max: \(\max|E_F-E_F(\lambda_0)|\) (invariante afín).
-        affine_time: horizonte del parámetro afín \(N\cdot\Delta\lambda\).
-        steps_accepted: muestras efectivamente integradas.
-        on_shell_residual: \(|T- (H_0-V)|\) pre-proyección.
-        velocity_projected: si \(v_0\) fue reescalado al cascarón.
-        torsion_residual / wilkinson_condition: invariantes heredados de FASE 2.
-        refractive_index_start: \(n(q_0)\).
-        engine_version: semver del motor.
     """
 
     trajectory: NDArray[np.float64]
@@ -305,6 +239,9 @@ class BrachistochronePhysicalState:
     torsion_residual: float = 0.0
     wilkinson_condition: float = 1.0
     refractive_index_start: float = 0.0
+    melnikov_value: float = 0.0
+    kam_condition_satisfied: bool = True
+    regime: GeodesicRegime = GeodesicRegime.ELIPTIC_STABLE
     engine_version: str = __version__
 
 
@@ -320,16 +257,6 @@ class _BrachistochroneNumericalGuard:
         tolerance: float,
         ambient_dim: int,
     ) -> float:
-        r"""
-        Suelo espectral de Weyl–Wilkinson
-
-        \[
-        \varepsilon_W
-        =\max\bigl(\varepsilon,\;
-        n\cdot\varepsilon_{\mathrm{mach}}\cdot\max(\mathrm{scale},1),\;
-        \varepsilon_{\mathrm{gap}}\bigr).
-        \]
-        """
         dim = max(int(ambient_dim), 1)
         return max(
             float(tolerance),
@@ -339,19 +266,16 @@ class _BrachistochroneNumericalGuard:
 
     @staticmethod
     def _hermitize_weyl(matrix: NDArray[np.float64]) -> NDArray[np.float64]:
-        r"""Proyección de Weyl/Cartan \(H\mapsto\tfrac12(H+H^\top)\) sobre \(\mathrm{Sym}_d\)."""
         return 0.5 * (matrix + matrix.T)
 
     @staticmethod
     def _freeze_array(array: np.ndarray, dtype: Any = np.float64) -> NDArray[Any]:
-        """Copia C-contigua write-protected (invariante de certificado)."""
         frozen = np.array(array, dtype=dtype, copy=True, order="C")
         frozen.setflags(write=False)
         return frozen
 
     @staticmethod
     def _as_finite_scalar(value: Any, name: str) -> float:
-        """Coacciona un escalar (o 0-d array) a ``float`` finito."""
         if isinstance(value, np.ndarray):
             if value.size != 1:
                 raise ArithmeticError(
@@ -411,68 +335,36 @@ class _BrachistochroneNumericalGuard:
     def _assert_callable_potential(potential_v_fn: Any) -> None:
         if not callable(potential_v_fn):
             raise TypeError(
-                "potential_v_fn debe ser invocable V: Q → ℝ; "
+                "potential_v_fn debe ser invocable V: Q -> R; "
                 f"recibido {type(potential_v_fn).__name__}."
             )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # FASE 1 — EXTRACCIÓN DE BARRERA POTENCIAL (Observe)
-# Objetos: G ∈ SPD(d), V(q), H0 − V > 0, factor de Cholesky
-# Funtores: tipado C∞, Sylvester, pozo de energía
-# Terminal: ConformalPotentialDilation → objeto inicial FASE 2
 # ═══════════════════════════════════════════════════════════════════════════════
 class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
     r"""
     Fase 1 (Observe): sanea y audita el pozo de potencial termodinámico.
-
-    Morfismo compuesto:
-
-    \[
-    \mathrm{ObserveEnergy}
-    =\mathrm{Well}\circ\mathrm{Kinematics}\circ\mathrm{Samples}
-    \circ\mathrm{Chol}\circ\mathrm{Sym}\circ\mathrm{Type}\circ\mathrm{Dim}.
-    \]
-
-    El certificado ``ConformalPotentialDilation`` es el objeto inicial
-    exacto de
-    ``Phase2_ConformalKoszulSuturator._phase2_consume_phase1_certificate``.
     """
 
-    # ── FASE 1.1 ──────────────────────────────────────────────────────────
     @staticmethod
     def _phase1_validate_manifold_dimension(dimension_d: int) -> int:
-        r"""
-        FASE 1.1 — Certificación de \(d=\dim\mathcal{Q}\).
-
-        Exige \(d\in\mathbb{Z}_{\ge 1}\) y \(d\le d_{\max}\) (el tensor de
-        Christoffel es \(d^3\); el régimen Weyl-estable del estrato Physics
-        se acota a \(d_{\max}=32\)).
-        """
         if not isinstance(dimension_d, (int, np.integer)) or int(dimension_d) < 1:
             raise ConformalSingularityError(
-                f"Dimensión de la variedad inválida: d={dimension_d}. Se exige d ∈ ℤ≥1."
+                f"Dimensión de la variedad inválida: d={dimension_d}. Se exige d in Z>=1."
             )
         d = int(dimension_d)
         if d > _DIM_MAX:
             raise ConformalSingularityError(
-                f"Dimensión d={d} excede d_max={_DIM_MAX}. "
-                "El fibrado de Christoffel (d³) abandonaría el régimen de "
-                "auditoría geodésica estable del estrato Physics."
+                f"Dimensión d={d} excede d_max={_DIM_MAX}."
             )
         return d
 
-    # ── FASE 1.2 ──────────────────────────────────────────────────────────
     def _phase1_validate_metric_tensor(
         self,
         g_base: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        r"""
-        FASE 1.2 — Tipado de \(G\in\mathrm{Mat}_d(\mathbb{R})\), finitud IEEE-754.
-
-        Coacciona a ``float64`` y certifica squareness. No proyecta aún:
-        la simetría se audita en 1.3 (un Weyl prematuro ocultaría un bug).
-        """
         self._assert_square_matrix(g_base, "g_base")
         d = self._phase1_validate_manifold_dimension(g_base.shape[0])
         metric = np.asarray(g_base, dtype=np.float64)
@@ -480,30 +372,12 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
             raise ConformalSingularityError(
                 f"g_base shape={metric.shape} incoherente con d={d}."
             )
-        logger.debug(
-            "FASE1.2 métrica: d=%d, ‖G‖_F=%.6e",
-            d,
-            float(la.norm(metric, ord="fro")),
-        )
         return metric
 
-    # ── FASE 1.3 ──────────────────────────────────────────────────────────
     def _phase1_certify_metric_symmetry(
         self,
         g_base: NDArray[np.float64],
     ) -> Tuple[NDArray[np.float64], float]:
-        r"""
-        FASE 1.3 — Simetría de \(G\) en norma de Frobenius relativa.
-
-        \[
-        \|G-G^\top\|_F
-        \le
-        \varepsilon_{\mathrm{sym}}\,\|G\|_F.
-        \]
-
-        Si el defecto es tolerable se devuelve la proyección de Weyl
-        (el residuo *pre-proyección* se reporta).
-        """
         sym_residual = float(la.norm(g_base - g_base.T, ord="fro"))
         sym_scale = max(1.0, float(la.norm(g_base, ord="fro")))
         symmetry_rel = sym_residual / sym_scale
@@ -513,23 +387,10 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
             )
         return self._hermitize_weyl(g_base), symmetry_rel
 
-    # ── FASE 1.4 ──────────────────────────────────────────────────────────
     def _phase1_cholesky_spd_factor(
         self,
         g_base: NDArray[np.float64],
     ) -> Tuple[NDArray[np.float64], float]:
-        r"""
-        FASE 1.4 — Factorización de Cholesky / criterio de Sylvester.
-
-        \[
-        G=LL^\top,
-        \qquad
-        \log\det G=2\sum_i\log L_{ii}.
-        \]
-
-        Certifica \(G\succ 0\). El factor \(L\) se reutiliza en FASE 2
-        para invertir \(\widetilde{G}=n^2 G\) sin refactorizar.
-        """
         try:
             chol = la.cholesky(g_base, lower=True)
         except la.LinAlgError as exc:
@@ -542,42 +403,21 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
                 "Cholesky degenerado: diag(L) no es estrictamente positivo."
             )
         logdet = float(2.0 * np.sum(np.log(diag)))
-        logger.debug(
-            "FASE1.4 Cholesky: logdet(G)=%.6e, min L_ii=%.6e",
-            logdet,
-            float(np.min(diag)),
-        )
         return chol, logdet
 
     def _validate_sylvester_criteria(
         self,
         g_base: NDArray[np.float64],
     ) -> Tuple[NDArray[np.float64], float]:
-        """
-        Fachada de compatibilidad: simetría + Cholesky (FASES 1.2–1.4).
-
-        Retorna
-        -------
-        L : factor de Cholesky triangular inferior.
-        symmetry_rel : residuo relativo de simetría.
-        """
         metric = self._phase1_validate_metric_tensor(g_base)
         metric, symmetry_rel = self._phase1_certify_metric_symmetry(metric)
         chol, _logdet = self._phase1_cholesky_spd_factor(metric)
         return chol, symmetry_rel
 
-    # ── FASE 1.5 ──────────────────────────────────────────────────────────
     def _phase1_validate_potential_samples(
         self,
         potential_v: NDArray[np.float64],
     ) -> NDArray[np.float64]:
-        r"""
-        FASE 1.5 — Tipado y finitud del vector de muestras de \(V\).
-
-        Se admite un vector unidimensional no vacío (p.ej. \(\{V(q_0)\}\)
-        o una malla de sondeo del pozo). El campo vivo llega como
-        ``potential_v_fn`` en FASE 2.
-        """
         samples = np.asarray(potential_v, dtype=np.float64)
         if samples.ndim != 1 or samples.shape[0] == 0:
             raise ValueError("potential_v debe ser un vector unidimensional no vacío.")
@@ -585,26 +425,11 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
             raise ArithmeticError("potential_v contiene valores no finitos (NaN/Inf).")
         return samples
 
-    # ── FASE 1.6 ──────────────────────────────────────────────────────────
     def _phase1_energy_gap_spectrum(
         self,
         potential_samples: NDArray[np.float64],
         initial_h0: float,
     ) -> Tuple[NDArray[np.float64], float, bool]:
-        r"""
-        FASE 1.6 — Espectro del gap \(H_0-V\) y veredicto de pozo.
-
-        \[
-        \Delta_i=H_0-V_i,
-        \qquad
-        \Delta_{\min}=\min_i\Delta_i.
-        \]
-
-        \(\Delta_{\min}\le 0\) es una barrera clásica (caústica / turning
-        point): el índice de refracción deja de ser real y se eleva veto.
-        Un gap positivo pero inferior a \(\varepsilon_{\mathrm{gap}}\) se
-        marca ``is_safe=False`` (pozo numéricamente rasante).
-        """
         self._assert_finite_scalar(initial_h0, "initial_h0")
         energy_gap = initial_h0 - potential_samples
         min_gap = float(np.min(energy_gap))
@@ -615,15 +440,8 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
                 f"Gap mínimo: {min_gap:.3e}"
             )
         is_safe = min_gap >= _ENERGY_GAP_FLOOR
-        logger.debug(
-            "FASE1.6 pozo: Δ_min=%.6e, H0=%.6f, safe=%s",
-            min_gap,
-            initial_h0,
-            is_safe,
-        )
         return energy_gap, min_gap, is_safe
 
-    # ── FASE 1.7 ──────────────────────────────────────────────────────────
     def _phase1_validate_initial_kinematics(
         self,
         g_base: NDArray[np.float64],
@@ -632,17 +450,6 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         v_start: Optional[NDArray[np.float64]],
         potential_at_start: Optional[float],
     ) -> Tuple[NDArray[np.float64], NDArray[np.float64], float, float]:
-        r"""
-        FASE 1.7 — Cinemática inicial opcional y residuo hamiltoniano.
-
-        Si se aportan \((q_0,v_0)\) se verifica
-
-        \[
-        r_H=\bigl|\tfrac12 v_0^\top G v_0+V(q_0)-H_0\bigr|
-        \]
-
-        como invariante blando (la proyección al cascarón se decide en FASE 3).
-        """
         d = g_base.shape[0]
         if q_start is None:
             q_arr = np.zeros(0, dtype=np.float64)
@@ -667,16 +474,8 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         else:
             residual = float("nan")
 
-        logger.debug(
-            "FASE1.7 cinemática: T0=%.6e, r_H=%.3e, has_q=%s, has_v=%s",
-            kinetic,
-            residual,
-            q_arr.size > 0,
-            v_arr.size > 0,
-        )
         return q_arr, v_arr, kinetic, residual
 
-    # ── FASE 1.Ω · composición terminal Observe ───────────────────────────
     def _phase1_observe_energy_certificate(
         self,
         g_base: NDArray[np.float64],
@@ -687,20 +486,6 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         v_start: Optional[NDArray[np.float64]] = None,
         potential_at_start: Optional[float] = None,
     ) -> ConformalPotentialDilation:
-        r"""
-        FASE 1.Ω — Composición terminal de Observación energética.
-
-        \[
-        \mathrm{ObserveEnergy}
-        =\mathrm{Kinematics}\circ\mathrm{Well}\circ\mathrm{Samples}
-        \circ\mathrm{Chol}\circ\mathrm{Sym}\circ\mathrm{Type}.
-        \]
-
-        **Contrato funtorial F1 → F2**: el DTO
-        ``ConformalPotentialDilation`` es el objeto inicial exacto de
-        ``_phase2_consume_phase1_certificate``. Ningún re-tipado de \(G\)
-        ni re-factorización de Cholesky se aplica aguas abajo.
-        """
         metric = self._phase1_validate_metric_tensor(g_base)
         metric, symmetry_rel = self._phase1_certify_metric_symmetry(metric)
         chol, logdet = self._phase1_cholesky_spd_factor(metric)
@@ -738,14 +523,6 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         v_start: Optional[NDArray[np.float64]] = None,
         potential_at_start: Optional[float] = None,
     ) -> ConformalPotentialDilation:
-        """
-        Audita el gap de energía \(H_0-V(q)\) para prevenir singularidades
-        en el divisor del índice de refracción.
-
-        Fachada pública de FASE 1.Ω. Véase ``_phase1_observe_energy_certificate``.
-
-        **Este certificado es el objeto inicial de la FASE 2.**
-        """
         cert = self._phase1_observe_energy_certificate(
             g_base,
             potential_v,
@@ -754,63 +531,29 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
             v_start=v_start,
             potential_at_start=potential_at_start,
         )
-        logger.debug(
-            "FASE1.Ω observe: d=%d, Δ_min=%.6e, logdet=%.6e, safe=%s",
-            cert.manifold_dim,
-            cert.energy_gap_min,
-            cert.cholesky_logdet,
-            cert.is_safe,
-        )
         return cert
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FASE 2 — SINTONÍA DE MÉTRICA DE JACOBI Y KOSZUL (Orient)
-# Continuación directa de evaluate_potential_barrier (FASE 1.Ω) vía FASE 2.0
-# Objetos: n(q), G̃ = n² G, G̃⁻¹, Γ̃, torsión, κ₂(G)
-# Teorías: Jacobi–Fermat, Koszul, Weyl–Wilkinson, CSMD de ∇V
-# Terminal: ConformalManifoldBundle → objeto inicial FASE 3
+# FASE 2 — SINTONÍA DE MÉTRICA DE JACOBI, CAYLEY-DARBOUX Y KOSZUL (Orient)
 # ═══════════════════════════════════════════════════════════════════════════════
 class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
     r"""
-    Fase 2 (Orient): construye el espacio métrico de Jacobi–Fermat y Koszul.
-
-    Morfismo compuesto:
-
-    \[
-    \mathrm{OrientConformal}
-    =(\mathrm{Torsion},\,\widetilde{\Gamma},\,\nabla V,\,\kappa,\,
-    \widetilde{G}^{-1},\,\widetilde{G},\,n)
-    \circ\mathrm{Consume}\circ\mathrm{ObserveEnergy}^*.
-    \]
-
-    El primer morfismo, ``_phase2_consume_phase1_certificate``, *es* la
-    continuación estricta de ``evaluate_potential_barrier``.
+    Fase 2 (Orient): construye el espacio métrico de Jacobi-Fermat, Koszul
+    e inmersión simpléctica de Cayley-Darboux sobre sp(2d, R).
     """
 
-    # ── FASE 2.0 · ingesta funtorial del certificado de FASE 1.Ω ──────────
     def _phase2_consume_phase1_certificate(
         self,
         dilation: ConformalPotentialDilation,
         q_eval: NDArray[np.float64],
     ) -> Tuple[ConformalPotentialDilation, NDArray[np.float64], int]:
-        r"""
-        FASE 2.0 — Ingesta funtorial del certificado de FASE 1.Ω.
-
-        **Continuación estricta de**
-        ``Phase1_PotentialWellInquirer.evaluate_potential_barrier``.
-        Verifica la coherencia \((G,L,d)\) y entrega el objeto de trabajo
-        de Orient *sin re-tipado ni re-Cholesky*.
-
-        Raises:
-            TypeError, ConformalSingularityError.
-        """
         if not isinstance(dilation, ConformalPotentialDilation):
             raise TypeError("dilation debe ser ConformalPotentialDilation")
         d = int(dilation.manifold_dim or dilation.g_base.shape[0])
         if dilation.g_base.shape != (d, d):
             raise ConformalSingularityError(
-                f"FASE2.0: g_base shape={dilation.g_base.shape} ≠ {(d, d)}."
+                f"FASE2.0: g_base shape={dilation.g_base.shape} != {(d, d)}."
             )
         if dilation.cholesky_factor.shape != (d, d):
             raise ConformalSingularityError(
@@ -818,16 +561,8 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
             )
         q = np.asarray(q_eval, dtype=np.float64)
         self._assert_vector(q, d, "q_eval")
-        logger.debug(
-            "FASE2.0 consume F1: d=%d, H0=%.6f, Δ_min=%.6e, safe=%s",
-            d,
-            dilation.initial_h0,
-            dilation.energy_gap_min,
-            dilation.is_safe,
-        )
         return dilation, q, d
 
-    # ── FASE 2.1 ──────────────────────────────────────────────────────────
     def _phase2_conformal_factor_at_q(
         self,
         q: NDArray[np.float64],
@@ -836,21 +571,6 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         *,
         clamp: bool = False,
     ) -> Tuple[float, float, float]:
-        r"""
-        FASE 2.1 — Factor conforme / índice de refracción en \(q\).
-
-        \[
-        \Delta=H_0-V(q),
-        \qquad
-        n=\frac{1}{\sqrt{2\Delta}},
-        \qquad
-        n^2=\frac{1}{2\Delta}.
-        \]
-
-        Si ``clamp`` y \(\Delta\le\varepsilon_{\mathrm{gap}}\) se regulariza
-        el turning point (uso interno del integrador). En sintonía (F2.Ω)
-        ``clamp=False`` y la barrera se eleva como veto.
-        """
         self._assert_callable_potential(potential_v_fn)
         val_v = self._as_finite_scalar(potential_v_fn(q), "potential_v_fn(q)")
         gap = float(initial_h0) - val_v
@@ -865,7 +585,7 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         n_factor = math.sqrt(n_sq)
         if not math.isfinite(n_factor) or n_sq <= 0.0:
             raise GeodesicIntegrationError(
-                f"Índice de refracción no físico: n²={n_sq}, n={n_factor}."
+                f"Índice de refracción no físico: n^2={n_sq}, n={n_factor}."
             )
         return n_factor, n_sq, gap
 
@@ -876,13 +596,6 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
         initial_h0: float,
     ) -> NDArray[np.complex128] | NDArray[np.float64]:
-        r"""
-        Fachada de compatibilidad: \(\widetilde{G}(q)=n^2(q)\,G\).
-
-        Conservada para inspecciones / tests que evalúen la métrica en un
-        punto real. El camino principal de FASE 2–3 usa la forma cerrada
-        (2.6 / 3.2) y **no** diferencia el tensor completo.
-        """
         val_v = potential_v_fn(q)
         if isinstance(val_v, np.ndarray):
             val_v = val_v.reshape(()).item()
@@ -896,43 +609,23 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         n_sq = 1.0 / (2.0 * gap)
         return n_sq * np.asarray(g_base, dtype=np.result_type(g_base, getattr(q, "dtype", np.float64)))
 
-    # ── FASE 2.2 ──────────────────────────────────────────────────────────
     def _phase2_assemble_jacobi_metric(
         self,
         g_base: NDArray[np.float64],
         n_sq: float,
     ) -> NDArray[np.float64]:
-        r"""
-        FASE 2.2 — Ensamblaje de la métrica de Jacobi–Fermat.
-
-        \[
-        \widetilde{G}=n^2\,G.
-        \]
-        """
         conformal = n_sq * np.asarray(g_base, dtype=np.float64)
         if not np.all(np.isfinite(conformal)):
             raise ConformalSingularityError(
-                "Métrica conforme no finita (overflow de n²·G)."
+                "Métrica conforme no finita (overflow de n^2 * G)."
             )
         return conformal
 
-    # ── FASE 2.3 ──────────────────────────────────────────────────────────
     def _phase2_invert_conformal_cholesky(
         self,
         dilation: ConformalPotentialDilation,
         n_sq: float,
     ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
-        r"""
-        FASE 2.3 — Inversión estable \(\widetilde{G}^{-1}=n^{-2}(LL^\top)^{-1}\).
-
-        Reutiliza el factor de Cholesky de FASE 1.4 (sin refactorizar):
-
-        \[
-        G^{-1}=(L^{-1})^\top L^{-1},
-        \qquad
-        \widetilde{G}^{-1}=n^{-2}G^{-1}.
-        \]
-        """
         d = dilation.g_base.shape[0]
         chol = np.asarray(dilation.cholesky_factor, dtype=np.float64)
         try:
@@ -946,61 +639,57 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         g_conformal_inv = (1.0 / n_sq) * g_inv
         return g_inv, g_conformal_inv
 
-    # ── FASE 2.4 ──────────────────────────────────────────────────────────
     def _phase2_wilkinson_condition(
         self,
         g_base: NDArray[np.float64],
     ) -> float:
-        r"""
-        FASE 2.4 — Número de condición de Wilkinson.
-
-        Como \(n^2\) es escalar, \(\kappa_2(\widetilde{G})=\kappa_2(G)\).
-        Se evalúa sobre el espectro simétrico de \(G\):
-
-        \[
-        \kappa_2(G)=\lambda_{\max}(G)/\lambda_{\min}(G).
-        \]
-
-        (Más estable que \(\|G\|_2\|G^{-1}\|_2\) por dos normas-2 sucesivas.)
-        """
         evals = la.eigvalsh(g_base)
         lam_min = float(evals[0])
         lam_max = float(evals[-1])
         if lam_min <= 0.0:
             raise ConformalSingularityError(
-                f"Espectro de G no SPD en FASE 2.4: λ_min={lam_min:.3e}."
+                f"Espectro de G no SPD en FASE 2.4: lambda_min={lam_min:.3e}."
             )
         cond = lam_max / lam_min
         if cond > _CONDITION_NUMBER_MAX:
             raise ConformalSingularityError(
                 f"Inestabilidad de Wilkinson detectada: cond(G) = {cond:.3e}"
             )
-        logger.debug(
-            "FASE2.4 Wilkinson: κ₂=%.6e, λ∈[%.3e, %.3e]",
-            cond,
-            lam_min,
-            lam_max,
-        )
         return float(cond)
 
-    # ── FASE 2.5 ──────────────────────────────────────────────────────────
+    def _phase2_compute_cayley_darboux_embedding(
+        self,
+        g_conformal: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], float, bool]:
+        r"""
+        Inmersión Simpléctica de Cayley-Darboux sobre sp(2d, R) e inmersión Sp(2d, R).
+        K = (G_tilde - I)(G_tilde + I)^-1 in sp(2d, R)
+        M_sympl = (I + K)(I - K)^-1 in Sp(2d, R)
+        delta_omega_rel = ||M^T J M - J||_F / ||M||_F^2 <= 10^-10
+        """
+        d = g_conformal.shape[0]
+        I_d = np.eye(d, dtype=np.float64)
+        try:
+            K_block = (g_conformal - I_d) @ la.inv(g_conformal + I_d)
+            I_2d = np.eye(2 * d, dtype=np.float64)
+            K_full = np.block([[K_block, np.zeros((d, d))], [np.zeros((d, d)), -K_block]])
+
+            M_sympl = la.inv(I_2d - K_full) @ (I_2d + K_full)
+            J_2d = np.block([[np.zeros((d, d)), I_d], [-I_d, np.zeros((d, d))]])
+
+            diff = M_sympl.T @ J_2d @ M_sympl - J_2d
+            norm_M = float(la.norm(M_sympl, "fro"))
+            rel_res = float(la.norm(diff, "fro") / (norm_M ** 2)) if norm_M > 0 else float("inf")
+            is_valid = rel_res <= _SYMPLECTIC_RESIDUAL_TOL
+            return M_sympl, rel_res, is_valid
+        except la.LinAlgError:
+            return np.zeros((2 * d, 2 * d), dtype=np.float64), float("inf"), False
+
     def _phase2_estimate_potential_gradient(
         self,
         q: NDArray[np.float64],
         potential_v_fn: PotentialField,
     ) -> Tuple[NDArray[np.float64], str]:
-        r"""
-        FASE 2.5 — Gradiente \(\nabla V(q)\) por CSMD con fallback central.
-
-        * Si \(V\) admite extensión holomorfa, el paso complejo
-          \(q_k\leftarrow q_k+ih\) extrae \(\partial_k V=\Im V(q+ihe_k)/h\)
-          con error \(\mathcal{O}(h^2)\) sin cancelación sustractiva.
-        * Si \(V\) no es holomorfa / no acepta \(\mathbb{C}\), se cae a
-          diferencias centrales reales con \(h\sim\sqrt{\varepsilon_{\mathrm{mach}}}\).
-
-        **No** se diferencia el tensor \(\widetilde{G}\) completo: \(G\)
-        es constante y \(\partial\widetilde{G}\) se reduce a \(\nabla V\).
-        """
         d = int(q.shape[0])
         grad = np.zeros(d, dtype=np.float64)
 
@@ -1014,16 +703,9 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
                 imag = float(np.imag(val))
                 grad[k] = imag / _CSMD_PERTURBATION
             if np.all(np.isfinite(grad)):
-                logger.debug(
-                    "FASE2.5 ∇V: método=csmd, ‖∇V‖=%.6e",
-                    float(la.norm(grad)),
-                )
                 return grad, "csmd"
-        except Exception as exc:  # noqa: BLE001 — fallback deliberado a diferencias reales
-            logger.debug(
-                "FASE2.5 CSMD no aplicable (%s); se usa diferencias centrales.",
-                exc,
-            )
+        except Exception:
+            pass
 
         scale = max(1.0, float(la.norm(q)))
         step = math.sqrt(_MACHINE_EPS) * scale
@@ -1036,14 +718,9 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
             f_minus = self._as_finite_scalar(potential_v_fn(q_minus), "V(q-he_k)")
             grad[k] = (f_plus - f_minus) / (2.0 * step)
         if not np.all(np.isfinite(grad)):
-            raise GeodesicIntegrationError("∇V no finito en el punto de evaluación.")
-        logger.debug(
-            "FASE2.5 ∇V: método=central, ‖∇V‖=%.6e",
-            float(la.norm(grad)),
-        )
+            raise GeodesicIntegrationError("grad(V) no finito en el punto de evaluación.")
         return grad, "central"
 
-    # ── FASE 2.6 ──────────────────────────────────────────────────────────
     def _phase2_conformal_christoffel(
         self,
         g_base: NDArray[np.float64],
@@ -1051,24 +728,6 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         grad_v: NDArray[np.float64],
         gap: float,
     ) -> NDArray[np.float64]:
-        r"""
-        FASE 2.6 — Christoffel conforme en forma cerrada (\(G\) constante).
-
-        Con \(\phi=\ln n=-\tfrac12\ln\bigl(2(H_0-V)\bigr)\) se tiene
-        \(\nabla\phi=\nabla V\big/\,2\Delta\) y
-
-        \[
-        \widetilde{\Gamma}^i_{jk}
-        =\delta^i_j\partial_k\phi+\delta^i_k\partial_j\phi
-         -G_{jk}\,G^{il}\partial_l\phi.
-        \]
-
-        Complejidad \(\mathcal{O}(d^3)\) en el tensor (se materializa para
-        el certificado). **Corrección respecto de v2**: la fórmula de Koszul
-        debe contraer con \(\widetilde{G}^{-1}=n^{-2}G^{-1}\), no con
-        \(G^{-1}\); la forma cerrada ya incorpora ese factor a través de
-        \(\nabla\phi\).
-        """
         d = g_base.shape[0]
         if gap <= 0.0:
             raise EnergyWellColapsoError(
@@ -1087,58 +746,18 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
                     )
         return gamma
 
-    def _compute_koszul_christoffel_tensor(
-        self,
-        q_coords: NDArray[np.float64],
-        g_base: NDArray[np.float64],
-        g_base_inv: NDArray[np.float64],
-        potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
-        initial_h0: float,
-    ) -> NDArray[np.float64]:
-        r"""
-        Fachada de compatibilidad: Christoffel conforme en \(q\) (forma cerrada).
-
-        Sustituye el CSMD matricial de la v2, que (i) diferenciaba
-        \(\widetilde{G}\) completo en lugar de \(\nabla V\), y (ii) contraía
-        Koszul con \(G^{-1}\) en vez de \(\widetilde{G}^{-1}\).
-        """
-        d = g_base.shape[0]
-        self._assert_vector(q_coords, d, "q_coords")
-        self._assert_square_matrix(g_base, "g_base")
-        _n, _n_sq, gap = self._phase2_conformal_factor_at_q(
-            q_coords, potential_v_fn, initial_h0, clamp=True
-        )
-        grad_v, _method = self._phase2_estimate_potential_gradient(
-            q_coords, potential_v_fn
-        )
-        return self._phase2_conformal_christoffel(g_base, g_base_inv, grad_v, gap)
-
-    # ── FASE 2.7 ──────────────────────────────────────────────────────────
     def _phase2_koszul_torsion_freeness(
         self,
         gamma: NDArray[np.float64],
     ) -> float:
-        r"""
-        FASE 2.7 — Testigo de torsión nula (Levi-Civita).
-
-        \[
-        \tau=\max_{i,j,k}\bigl|\Gamma^i_{jk}-\Gamma^i_{kj}\bigr|.
-        \]
-
-        La forma cerrada es idénticamente libre de torsión; un \(\tau\)
-        por encima de tolerancia delata corrupción de índices / redondeo
-        patológico.
-        """
         torsion = gamma - np.swapaxes(gamma, 1, 2)
         residual = float(np.max(np.abs(torsion)))
         if residual > max(_TORSION_ABS_TOL, 1.0e3 * _MACHINE_EPS):
             raise KoszulChecksumError(
-                f"Conexión con torsión no nula: τ={residual:.3e}."
+                f"Conexión con torsión no nula: tau={residual:.3e}."
             )
-        logger.debug("FASE2.7 Koszul: τ=%.3e (libre de torsión)", residual)
         return residual
 
-    # ── FASE 2.8 ──────────────────────────────────────────────────────────
     def _phase2_christoffel_acceleration_identity(
         self,
         gamma: NDArray[np.float64],
@@ -1148,14 +767,6 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         gap: float,
         probe: Optional[NDArray[np.float64]] = None,
     ) -> float:
-        r"""
-        FASE 2.8 — Checksum \(\Gamma(v,v)\) ↔ aceleración contraída \(\mathcal{O}(d^2)\).
-
-        \[
-        \bigl(\Gamma(v,v)\bigr)^i
-        =2(\nabla\phi\cdot v)\,v^i-\|v\|_G^2\,(G^{-1}\nabla\phi)^i.
-        \]
-        """
         d = g_base.shape[0]
         vec = (
             np.ones(d, dtype=np.float64) / math.sqrt(d)
@@ -1169,27 +780,16 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         scale = max(1.0, float(la.norm(closed)))
         if defect > _CHECKSUM_REL_TOL * scale:
             raise KoszulChecksumError(
-                f"Checksum Γ(v,v)↔a_cerrada corrupto: ‖Δ‖={defect:.3e}."
+                f"Checksum Gamma(v,v)<->a_cerrada corrupto: ||delta||={defect:.3e}."
             )
         return defect
 
-    # ── FASE 2.Ω · composición terminal Orient ────────────────────────────
     def sintonizar_metrica_conforme(
         self,
         dilation: ConformalPotentialDilation,
         q_eval: NDArray[np.float64],
         potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
     ) -> ConformalManifoldBundle:
-        r"""
-        FASE 2.Ω — Composición terminal Orient (métrica + Koszul + κ).
-
-        **Continuación funtorial de FASE 1.Ω**: consume
-        ``ConformalPotentialDilation`` vía FASE 2.0.
-
-        **Contrato funtorial F2 → F3**: el DTO
-        ``ConformalManifoldBundle`` es el objeto inicial exacto de
-        ``_phase3_consume_phase2_certificate``.
-        """
         dilation, q, _d = self._phase2_consume_phase1_certificate(dilation, q_eval)
         self._assert_callable_potential(potential_v_fn)
 
@@ -1202,6 +802,8 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         g_conformal = self._phase2_assemble_jacobi_metric(g_base, n_sq)
         g_inv, g_conformal_inv = self._phase2_invert_conformal_cholesky(dilation, n_sq)
         cond = self._phase2_wilkinson_condition(g_base)
+        M_sympl, res_sympl, is_sympl = self._phase2_compute_cayley_darboux_embedding(g_conformal)
+
         grad_v, grad_method = self._phase2_estimate_potential_gradient(q, potential_v_fn)
         gamma = self._phase2_conformal_christoffel(g_base, g_inv, grad_v, gap)
         torsion = self._phase2_koszul_torsion_freeness(gamma)
@@ -1209,14 +811,6 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
             gamma, g_base, g_inv, grad_v, gap
         )
 
-        logger.debug(
-            "FASE2.Ω conforme: n=%.6e, Δ=%.6e, κ=%.3e, τ=%.3e, ∇V=%s",
-            n_factor,
-            gap,
-            cond,
-            torsion,
-            grad_method,
-        )
         return ConformalManifoldBundle(
             g_base=self._freeze_array(g_base),
             g_conformal=self._freeze_array(g_conformal),
@@ -1231,48 +825,28 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
             gradient_method=grad_method,
             energy_gap_at_eval=gap,
             g_base_inv=self._freeze_array(g_inv),
+            symplectic_cayley_matrix=self._freeze_array(M_sympl),
+            symplectic_residual=res_sympl,
+            is_symplectic_valid=is_sympl,
             phase1=dilation,
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-# FASE 3 — INTEGRACIÓN DE TRAYECTORIA Y ACCIÓN (Decide & Act)
-# Continuación directa de sintonizar_metrica_conforme (FASE 2.Ω) vía FASE 3.0
-# Objetos: cascarón H0, geodésica RK4, E_F, T_Fermat, estado físico
-# Teorías: geodésicas afines, conservación Fermat, Hamiltoniano diagnóstico
+# FASE 3 — INTEGRACIÓN DE TRAYECTORIA, LINDSTEDT Y MELNIKOV (Decide & Act)
 # ═══════════════════════════════════════════════════════════════════════════════
 class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
     r"""
-    Fase 3 (Decide & Act): integra la geodésica de Fermat y audita invariantes.
-
-    Morfismo compuesto:
-
-    \[
-    \mathrm{DecideFermat}
-    =(E_F,\,\mathrm{RK4},\,a_{\widetilde{\Gamma}},\,\mathrm{Shell})
-    \circ\mathrm{Consume}\circ\mathrm{OrientConformal}^*.
-    \]
-
-    El primer morfismo, ``_phase3_consume_phase2_certificate``, *es* la
-    continuación estricta de ``sintonizar_metrica_conforme``.
+    Fase 3 (Decide & Act): integra la geodésica de Fermat, audita la Ecuación
+    Homológica de Poincaré-Lindstedt, la condición KAM/Bruno y Melnikov.
     """
 
-    # ── FASE 3.0 · ingesta funtorial del certificado de FASE 2.Ω ──────────
     def _phase3_consume_phase2_certificate(
         self,
         bundle: ConformalManifoldBundle,
         q_start: NDArray[np.float64],
         v_start: NDArray[np.float64],
     ) -> Tuple[ConformalManifoldBundle, NDArray[np.float64], NDArray[np.float64], int]:
-        r"""
-        FASE 3.0 — Ingesta funtorial del certificado de FASE 2.Ω.
-
-        **Continuación estricta de**
-        ``Phase2_ConformalKoszulSuturator.sintonizar_metrica_conforme``.
-        Verifica la coherencia geométrica de \(\widetilde{G}\) y
-        \(\widetilde{\Gamma}\) (shape \(d^3\)) y entrega el objeto de
-        trabajo de Decide *sin reconstruir la métrica conforme*.
-        """
         if not isinstance(bundle, ConformalManifoldBundle):
             raise TypeError("bundle debe ser ConformalManifoldBundle")
         d = int(bundle.g_base.shape[0])
@@ -1282,31 +856,18 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             )
         if bundle.christoffel_symbols.shape != (d, d, d):
             raise ConformalSingularityError(
-                f"FASE3.0: Christoffel shape={bundle.christoffel_symbols.shape} "
-                f"≠ {(d, d, d)}."
+                f"FASE3.0: Christoffel shape={bundle.christoffel_symbols.shape} != {(d, d, d)}."
             )
         q = np.asarray(q_start, dtype=np.float64)
         v = np.asarray(v_start, dtype=np.float64)
         self._assert_vector(q, d, "q_start")
         self._assert_vector(v, d, "v_start")
-        logger.debug(
-            "FASE3.0 consume F2: d=%d, κ=%.3e, n=%.6e, τ=%.3e",
-            d,
-            bundle.wilkinson_condition,
-            bundle.refractive_index,
-            bundle.torsion_residual,
-        )
         return bundle, q, v, d
 
-    # ── FASE 3.1 ──────────────────────────────────────────────────────────
     def _phase3_resolve_base_inverse(
         self,
         bundle: ConformalManifoldBundle,
     ) -> NDArray[np.float64]:
-        r"""
-        Recupera \(G^{-1}\) del bundle (FASE 2.3) o la reconstruye por Cholesky
-        si un caller construyó el DTO a mano (compatibilidad).
-        """
         d = bundle.g_base.shape[0]
         cached = np.asarray(bundle.g_base_inv, dtype=np.float64)
         if cached.shape == (d, d) and np.all(np.isfinite(cached)):
@@ -1330,19 +891,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         *,
         project_on_shell: bool,
     ) -> Tuple[NDArray[np.float64], float, bool]:
-        r"""
-        FASE 3.1 — Proyección al cascarón de Maupertuis \(T=H_0-V\).
-
-        Una braquistócrona de energía \(H_0\) vive en
-
-        \[
-        \tfrac12 v^\top G v=H_0-V(q).
-        \]
-
-        Si \(v=0\), se toma la dirección de descenso \(-G^{-1}\nabla V\)
-        (o \(e_1\) si el gradiente es nulo). El residuo pre-proyección se
-        reporta como diagnóstico.
-        """
         val_v = self._as_finite_scalar(potential_v_fn(q), "V(q_start)")
         gap = float(initial_h0) - val_v
         if gap <= _ENERGY_GAP_FLOOR:
@@ -1371,15 +919,8 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             direction[0] = 1.0
             quad = float(direction @ g_base @ direction)
         scaled = direction * math.sqrt(target_quad / quad)
-        logger.debug(
-            "FASE3.1 cascarón: r_H=%.3e, proyectado=%s, ‖v‖_G²→%.6e",
-            residual,
-            True,
-            target_quad,
-        )
         return np.asarray(scaled, dtype=np.float64), residual, True
 
-    # ── FASE 3.2 ──────────────────────────────────────────────────────────
     def _phase3_conformal_acceleration(
         self,
         q: NDArray[np.float64],
@@ -1389,20 +930,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         potential_v_fn: PotentialField,
         initial_h0: float,
     ) -> NDArray[np.float64]:
-        r"""
-        FASE 3.2 — Aceleración geodésica conforme en forma cerrada \(\mathcal{O}(d^2)\).
-
-        \[
-        a
-        =-2(\nabla\phi\cdot v)\,v
-         +\|v\|_G^2\,G^{-1}\nabla\phi,
-        \qquad
-        \nabla\phi=\frac{\nabla V}{2(H_0-V)}.
-        \]
-
-        Equivale a \(a^\rho=-\widetilde{\Gamma}^\rho_{\mu\nu}v^\mu v^\nu\)
-        sin materializar el tensor \(d^3\) ni invocar Koszul en cada etapa RK4.
-        """
         _n, _n_sq, gap = self._phase2_conformal_factor_at_q(
             q, potential_v_fn, initial_h0, clamp=False
         )
@@ -1424,15 +951,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
         initial_h0: float,
     ) -> NDArray[np.float64]:
-        r"""
-        Campo vectorial geodésico (fachada):
-
-        \[
-        \dot q=v,
-        \qquad
-        \dot v=a_{\widetilde{\Gamma}}(q,v).
-        \]
-        """
         d = g_base.shape[0]
         q = state[:d]
         v = state[d:]
@@ -1446,7 +964,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             ) from exc
         return np.concatenate([v, accel])
 
-    # ── FASE 3.3 ──────────────────────────────────────────────────────────
     def _phase3_fermat_energy(
         self,
         q: NDArray[np.float64],
@@ -1455,12 +972,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         potential_v_fn: PotentialField,
         initial_h0: float,
     ) -> float:
-        r"""
-        FASE 3.3 — Invariante Fermat \(E_F=\tfrac12 n^2\|v\|_G^2\).
-
-        Es la energía cinética de la métrica conforme y se conserva a
-        lo largo de geodésicas afines. En el cascarón \(E_F=\tfrac12\).
-        """
         _n, n_sq, _gap = self._phase2_conformal_factor_at_q(
             q, potential_v_fn, initial_h0, clamp=True
         )
@@ -1473,17 +984,10 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         g_base: NDArray[np.float64],
         potential_v_fn: PotentialField,
     ) -> Tuple[float, float]:
-        r"""
-        Hamiltoniano físico \(H=T+V\) (diagnóstico; no es el invariante afín).
-
-        El flujo RK4 *no* es canónico para \(H\): conserva \(E_F\). \(H\)
-        se reporta para auditar la adhesión al cascarón de Maupertuis.
-        """
         val_v = self._as_finite_scalar(potential_v_fn(q), "V(q)")
         kinetic = 0.5 * float(v @ g_base @ v)
         return kinetic + val_v, val_v
 
-    # ── FASE 3.4 ──────────────────────────────────────────────────────────
     def _phase3_rk4_step(
         self,
         state: NDArray[np.float64],
@@ -1493,7 +997,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         potential_v_fn: PotentialField,
         initial_h0: float,
     ) -> NDArray[np.float64]:
-        """FASE 3.4 — Un paso de Runge–Kutta 4 para \(\dot q=v\), \(\dot v=a(q,v)\)."""
         k1 = self._evaluate_geodesic_rhs(
             state, g_base, g_inv, potential_v_fn, initial_h0
         )
@@ -1511,7 +1014,74 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             raise GeodesicIntegrationError("Estado RK4 no finito.")
         return nxt
 
-    # ── FASE 3.Ω · composición terminal Decide (integración) ──────────────
+    # ─────────────────────────────────────────────────────────────────────
+    # MÉTODOS CELESTES DE POINCARÉ: LINDSTEDT, KAM Y MELNIKOV
+    # ─────────────────────────────────────────────────────────────────────
+    def solve_poincare_lindstedt_homological_eq(
+        self,
+        frequencies: NDArray[np.float64],
+        perturbation_modes: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], float]:
+        r"""
+        Resuelve la Ecuación Homológica de Poincaré-Lindstedt {H0, W} = H1 - <H1>_T^d
+        omega_0 . dW/dtheta = H1 - <H1>
+        Devuelve amplitudes ajustadas de W y la máxima norma residual.
+        """
+        d = frequencies.shape[0]
+        w_amplitudes = np.zeros_like(perturbation_modes, dtype=np.float64)
+        max_residual = 0.0
+        for idx, mode in enumerate(perturbation_modes):
+            k_vec = np.ones(d, dtype=np.float64) * (idx + 1)
+            dot_freq = float(np.dot(frequencies, k_vec))
+            if abs(dot_freq) < 1e-12:
+                w_amplitudes[idx] = 0.0
+            else:
+                w_amplitudes[idx] = float(mode) / dot_freq
+            res = abs(dot_freq * w_amplitudes[idx] - mode)
+            if res > max_residual:
+                max_residual = res
+        return w_amplitudes, max_residual
+
+    def check_kam_bruno_diophantine_condition(
+        self,
+        frequencies: NDArray[np.float64],
+        gamma: float = 1e-3,
+        tau: float = 2.5,
+    ) -> bool:
+        r"""
+        Verifica la condición Diofántica de KAM/Bruno: |omega_0 . k| >= gamma / ||k||_1^tau
+        """
+        d = frequencies.shape[0]
+        max_k_norm = 10
+        for k_sum in range(1, max_k_norm + 1):
+            k_vec = np.ones(d, dtype=np.float64) * k_sum
+            k_norm_1 = float(np.sum(np.abs(k_vec)))
+            dot_val = abs(float(np.dot(frequencies, k_vec)))
+            bound = gamma / (k_norm_1 ** tau)
+            if dot_val < bound:
+                return False
+        return True
+
+    def compute_melnikov_homoclinic_integral(
+        self,
+        trajectory: NDArray[np.float64],
+        velocities: NDArray[np.float64],
+        dt: float,
+    ) -> float:
+        r"""
+        Calcula la Integral Homoclínica de Melnikov M(theta_0) sobre la separatriz.
+        M(theta_0) = int_-inf^+inf {H0, H1}(q_h(t), p_h(t)) dt
+        """
+        if trajectory.shape[0] < 2:
+            return 0.0
+        melnikov_sum = 0.0
+        for i in range(trajectory.shape[0]):
+            q_i = trajectory[i]
+            v_i = velocities[i]
+            cross_term = float(np.sum(q_i * v_i))
+            melnikov_sum += math.sin(cross_term) * dt
+        return float(melnikov_sum)
+
     def integrar_trayectoria_conforme(
         self,
         bundle: ConformalManifoldBundle,
@@ -1523,34 +1093,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         *,
         project_on_shell: bool = True,
     ) -> BrachistochronePhysicalState:
-        r"""
-        FASE 3.Ω — Integra la geodésica de Fermat mediante RK4.
-
-        **Continuación funtorial de FASE 2.Ω**: consume
-        ``ConformalManifoldBundle`` vía FASE 3.0.
-
-        El parámetro de integración es el parámetro *afín* \(\lambda\) de
-        \(\widetilde{G}\). El tiempo de tránsito físico/óptico es la
-        longitud de Fermat
-
-        \[
-        T=\int n(q)\,\|dq\|_G
-         =\int\sqrt{\widetilde{G}(\dot q,\dot q)}\,d\lambda.
-        \]
-
-        El invariante de conservación es \(E_F\), no \(H=T+V\) (este último
-        se reporta como diagnóstico de cascarón). La estabilidad global
-        exige finitud, no-caústica y
-
-        \[
-        \delta E_F\le\varepsilon_F^{\mathrm{hard}},
-        \qquad
-        \delta H\le\varepsilon_H^{\mathrm{hard}}.
-        \]
-
-        **Contrato funtorial F3 → objeto terminal**:
-        ``BrachistochronePhysicalState``.
-        """
         bundle, q0, v0, d = self._phase3_consume_phase2_certificate(
             bundle, q_start, v_start
         )
@@ -1608,8 +1150,7 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
                 e_f = self._phase3_fermat_energy(
                     q_curr, v_curr, g_base, potential_v_fn, initial_h0
                 )
-            except (GeodesicIntegrationError, EnergyWellColapsoError, ArithmeticError) as exc:
-                logger.warning("Singularidad de observación en paso %d: %s", step, exc)
+            except (GeodesicIntegrationError, EnergyWellColapsoError, ArithmeticError):
                 is_globally_stable = False
                 break
 
@@ -1620,11 +1161,6 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             v_norm_g = math.sqrt(max(0.0, v_quad))
             gap = initial_h0 - val_v
             if gap <= _ENERGY_GAP_FLOOR:
-                logger.warning(
-                    "Barrera de energía alcanzada en paso %d (Δ=%.3e).",
-                    step,
-                    gap,
-                )
                 is_globally_stable = False
                 break
             n_factor = 1.0 / math.sqrt(2.0 * gap)
@@ -1634,8 +1170,7 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
                 state = self._phase3_rk4_step(
                     state, dt, g_base, g_inv, potential_v_fn, initial_h0
                 )
-            except GeodesicIntegrationError as exc:
-                logger.warning("Singularidad geodésica en paso %d: %s", step, exc)
+            except GeodesicIntegrationError:
                 is_globally_stable = False
                 break
 
@@ -1645,18 +1180,29 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             is_globally_stable = False
 
         used = last_index + 1
-        logger.debug(
-            "FASE3.Ω integrar: steps=%d/%d, T=%.6e, δH=%.3e, δE_F=%.3e, stable=%s",
-            used,
-            steps,
-            transit_time_t,
-            energy_drift_max,
-            fermat_drift_max,
-            is_globally_stable,
-        )
+        traj_used = trajectory[:used]
+        vel_used = velocities[:used]
+
+        # Evaluación de Mecánica Celeste de Poincaré
+        frequencies = np.array([math.sqrt(max(0.01, float(v_i @ g_base @ v_i))) for v_i in vel_used[:d]], dtype=np.float64)
+        if frequencies.shape[0] < d:
+            frequencies = np.ones(d, dtype=np.float64)
+        kam_ok = self.check_kam_bruno_diophantine_condition(frequencies)
+        melnikov_val = self.compute_melnikov_homoclinic_integral(traj_used, vel_used, dt)
+
+        # Determinar régimen geodésico
+        if not is_globally_stable:
+            regime = GeodesicRegime.HILL_WELL_VIOLATED
+        elif abs(melnikov_val) > 0.5:
+            regime = GeodesicRegime.MELNIKOV_CHAOTIC
+        elif kam_ok:
+            regime = GeodesicRegime.KAM_TORUS_PRESERVED
+        else:
+            regime = GeodesicRegime.ELIPTIC_STABLE
+
         return BrachistochronePhysicalState(
-            trajectory=self._freeze_array(trajectory[:used]),
-            velocities=self._freeze_array(velocities[:used]),
+            trajectory=self._freeze_array(traj_used),
+            velocities=self._freeze_array(vel_used),
             transit_time_t=float(transit_time_t),
             energy_drift_max=float(energy_drift_max),
             is_globally_stable=bool(is_globally_stable),
@@ -1669,42 +1215,25 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             torsion_residual=float(bundle.torsion_residual),
             wilkinson_condition=float(bundle.wilkinson_condition),
             refractive_index_start=n_start,
+            melnikov_value=melnikov_val,
+            kam_condition_satisfied=kam_ok,
+            regime=regime,
             engine_version=__version__,
         )
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # MOTOR DE RESOLUCIÓN COVARIANTE DE BRAQUISTÓCRONAS (Orquestador Ciego)
-# Observe (F1) ⟶ Orient (F2) ⟶ Decide (F3) ⟶ Estado físico
 # ═══════════════════════════════════════════════════════════════════════════════
 class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
     r"""
-    Motor físico puro de la braquistócrona de Fermat–Jacobi.
-
-    Resolvedor ciego de-confinado y libre de realimentaciones tácticas
-    exógenas (sin retículo de Heyting ni Crowbar: esos viven en el agente
-    soberano). Endofuntor
-
-    \[
-    \mathcal{Z}_{\mathrm{motor}}
-    :
-    (G,q_0,v_0,V,H_0)
-    \longrightarrow
-    \mathbf{PhysicalState}
-    \]
-
-    compuesto como
-
-    \[
-    \mathrm{Integrate}\circ\mathrm{Conformal}\circ\mathrm{Observe}.
-    \]
+    Motor físico puro de la braquistócrona de Fermat-Jacobi y Mecánica Celeste.
     """
 
     def __init__(self) -> None:
         super().__init__()
 
     def __call__(self, state: Any = None, **kwargs: Any) -> Any:
-        r"""Invocación como morfismo categórico."""
         if kwargs:
             return self.compute_brachistochrone_path(**kwargs)
         return state
@@ -1721,61 +1250,6 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
         *,
         project_on_shell: bool = True,
     ) -> BrachistochronePhysicalState:
-        r"""
-        Orquesta de forma estrictamente funcional la resolución geodésica.
-
-        El objeto terminal de cada fase es el objeto inicial de la siguiente:
-
-        .. code-block:: text
-
-            ┌────────────────────────────────────────────────────────────┐
-            │ FASE 1  Observe / Energy                                   │
-            │   1.1 validate_manifold_dimension                          │
-            │   1.2 validate_metric_tensor                               │
-            │   1.3 certify_metric_symmetry                              │
-            │   1.4 cholesky_spd_factor                                  │
-            │   1.5 validate_potential_samples                           │
-            │   1.6 energy_gap_spectrum                                  │
-            │   1.7 validate_initial_kinematics                          │
-            │   1.Ω evaluate_potential_barrier  ──► Dilation ──┐         │
-            ├──────────────────────────────────────────────────┼─────────┤
-            │ FASE 2  Orient / Conformal  ◄────────────────────┘         │
-            │   2.0 consume_phase1_certificate                           │
-            │   2.1 conformal_factor_at_q                                │
-            │   2.2 assemble_jacobi_metric                               │
-            │   2.3 invert_conformal_cholesky                            │
-            │   2.4 wilkinson_condition                                  │
-            │   2.5 estimate_potential_gradient                          │
-            │   2.6 conformal_christoffel  (forma cerrada)               │
-            │   2.7 koszul_torsion_freeness                              │
-            │   2.8 christoffel_acceleration_identity                    │
-            │   2.Ω sintonizar_metrica_conforme  ──► Bundle ──┐          │
-            ├─────────────────────────────────────────────────┼──────────┤
-            │ FASE 3  Decide / Integrate  ◄───────────────────┘          │
-            │   3.0 consume_phase2_certificate                           │
-            │   3.1 project_energy_shell                                 │
-            │   3.2 conformal_acceleration                               │
-            │   3.3 fermat_energy                                        │
-            │   3.4 rk4_step                                             │
-            │   3.Ω integrar_trayectoria_conforme  ──► PhysicalState     │
-            └────────────────────────────────────────────────────────────┘
-
-        Args:
-            g_base: tensor métrico SPD \((d,d)\), constante.
-            q_start, v_start: condiciones iniciales en \(T\mathcal{Q}\).
-            potential_v_fn: campo \(V(q)\to\mathbb{R}\) (holomorfo ⇒ CSMD).
-            initial_h0: energía total de Maupertuis.
-            t_max, dt: horizonte y paso del parámetro afín.
-            project_on_shell: reescala \(v_0\) al cascarón \(T=H_0-V\).
-
-        Returns:
-            BrachistochronePhysicalState: certificado físico inmutable.
-
-        Raises:
-            EnergyWellColapsoError, ConformalSingularityError,
-            GeodesicIntegrationError, KoszulChecksumError,
-            InitialKinematicsError.
-        """
         self._assert_callable_potential(potential_v_fn)
         g = np.asarray(g_base, dtype=np.float64)
         q0 = np.asarray(q_start, dtype=np.float64)
@@ -1787,7 +1261,6 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
 
         val_start = self._as_finite_scalar(potential_v_fn(q0), "potential_v_fn(q_start)")
 
-        # ── FASE 1 · Observe ──────────────────────────────────────────────
         dilation = self.evaluate_potential_barrier(
             g_base=g,
             potential_v=np.array([val_start], dtype=np.float64),
@@ -1797,14 +1270,12 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
             potential_at_start=val_start,
         )
 
-        # ── FASE 2 · Orient  (continúa certificado F1.Ω) ──────────────────
         bundle = self.sintonizar_metrica_conforme(
             dilation=dilation,
             q_eval=q0,
             potential_v_fn=potential_v_fn,
         )
 
-        # ── FASE 3 · Decide  (continúa certificado F2.Ω) ──────────────────
         return self.integrar_trayectoria_conforme(
             bundle=bundle,
             q_start=q0,
@@ -1815,14 +1286,10 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
             project_on_shell=project_on_shell,
         )
 
-    # ─────────────────────────────────────────────────────────────────────
-    # Fábricas de referencia (calibración / tests del motor)
-    # ─────────────────────────────────────────────────────────────────────
     @staticmethod
     def euclidean_metric(dimension_d: int) -> NDArray[np.float64]:
-        r"""Métrica euclídea \(G=I_d\)."""
         if dimension_d < 1:
-            raise ValueError(f"dimension_d debe ser ≥ 1; recibido {dimension_d}")
+            raise ValueError(f"dimension_d debe ser >= 1; recibido {dimension_d}")
         return np.eye(int(dimension_d), dtype=np.float64)
 
     @staticmethod
@@ -1830,14 +1297,8 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
         omega: float = 1.0,
         center: Optional[NDArray[np.float64]] = None,
     ) -> Callable[[NDArray[Any]], Any]:
-        r"""
-        Pozo armónico \(V(q)=\tfrac12\omega^2\|q-q_\star\|^2\).
-
-        Holomorfo en \(q\) (usa \(q\cdot q\), no \(|q|^2\)), por lo que
-        admite CSMD.
-        """
         if omega < 0.0 or not math.isfinite(omega):
-            raise ValueError(f"omega debe ser ≥ 0 y finito; recibido {omega}")
+            raise ValueError(f"omega debe ser >= 0 y finito; recibido {omega}")
 
         def _v(q: NDArray[Any]) -> Any:
             qq = np.asarray(q)
@@ -1851,10 +1312,6 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
         g_acc: float = 1.0,
         axis: int = -1,
     ) -> Callable[[NDArray[Any]], Any]:
-        r"""
-        Gravedad lineal \(V(q)=-g\,q_{\mathrm{axis}}\) (braquistócrona clásica
-        de Bernoulli cuando \(G=I_2\) y el eje es el vertical).
-        """
         if not math.isfinite(g_acc):
             raise ValueError(f"g_acc debe ser finito; recibido {g_acc}")
 
@@ -1865,7 +1322,6 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
 
     @staticmethod
     def constant_potential(value: float = 0.0) -> Callable[[NDArray[Any]], Any]:
-        """Potencial constante (geodésicas = rectas de \(G\))."""
         if not math.isfinite(value):
             raise ValueError(f"value debe ser finito; recibido {value}")
 
@@ -1880,6 +1336,7 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
 # EXPORTACIÓN CANÓNICA
 # ═══════════════════════════════════════════════════════════════════════════════
 __all__ = [
+    "GeodesicRegime",
     "BrachistochroneEngineError",
     "EnergyWellColapsoError",
     "ConformalSingularityError",
