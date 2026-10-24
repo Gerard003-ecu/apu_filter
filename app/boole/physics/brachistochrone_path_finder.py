@@ -1,10 +1,9 @@
-
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Brachistochrone Path Finder v5.0.0 — Tres Fases Anidadas            ║
+║ Módulo : Brachistochrone Path Finder v5.1.0 — Tres Fases Anidadas            ║
 ║ Ruta   : app/boole/physics/brachistochrone_path_finder.py                    ║
-║ Versión: 5.0.0 (Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-RSI3-PhD)           ║
+║ Versión: 5.1.0 (Fermat-Jacobi-Poincaré-Melnikov-CSMD-RK4-RSI3-PhD)           ║
 ║ Fases  : ①Observe → ②Orient → ③Decide&Act (bridges emit_*/from_*)          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
@@ -14,65 +13,59 @@ ESTRUCTURA DE LAS TRES FASES ANIDADAS
     • Criterio de Sylvester vía Cholesky  G = L Lᵀ  con verificación
       numérica ‖LLᵀ − G‖_F ≤ ε y cota de Wilkinson κ₂(G) ≤ 10⁸.
     • Certificación de simetría con tolerancia relativa/absoluta.
-    • Espectro de gaps de energía H₀ − V(q) muestreado en la bola
-      de accesibilidad de Hill (N muestras + margen mínimo).
-    • Constante de Lipschitz local de V  |∇V|∞  por diferencias centradas
-      deterministas en las 2d direcciones ±e_i (radio σ).
+    • Espectro de gaps de energía H₀ − V(q) muestreado en q_start.
+    • Bola de Hill con g^{-1/2} REAL (eigh), no sqrtm complejo.
+    • Constante de Lipschitz local de V  |∇V|∞  por diferencias 4º orden
+      en las 2d direcciones ±e_i (radio σ) + CSMD.
     • Cinemática inicial:  H₀ = ½ vᵀGv + V(q₀)  con residual.
-    • CIERRA con `emit_phase1_envelope` → `Phase1Envelope` (hash-chain).
+    • CIERRA con `emit_phase1_envelope` → `Phase1Envelope` (hash-chain
+      sobre G ya hermitizada). Ese envelope es el único contrato de
+      apertura de la FASE 2.
 
   FASE 2 — ORIENT (Sintonía de métrica conforme y simpléctica)
-    • APERTURA con `from_phase1_envelope` (verifica hash-chain).
-    • Métrica de Jacobi-Fermat  G̃ = n²(q) G  con  n² = [2(H₀ − V)]⁻¹.
+    • APERTURA con `from_phase1_envelope` (continúa el cierre de FASE 1).
+    • Métrica de Fermat  Ĝ = n²(q) G  con  n² = [2(H₀ − V)]⁻¹.
     • Inversión Cholesky triangular  G⁻¹ = (L⁻¹)ᵀ L⁻¹  (sin `la.inv`).
-    • **Cayley-Darboux riguroso**: verifica explícitamente
-        (i)  K = (G̃−I)(G̃+I)⁻¹  y  Kᵀ J + J K = 0 (pertenencia a sp(2d,ℝ));
-        (ii) M_sympl = (I+K)(I−K)⁻¹  y  ‖Mᵀ J M − J‖_F/‖M‖²_F ≤ 1e-10.
-    • Símbolos de Christoffel conformes con gradiente por CSMD
-      (complejo, paso 1e-20) y fallback a diferencias centradas 4º orden.
-    • Verificación de torsión nula y del checksum geométrico
-      Γ(v,v) ↔ 2⟨∇φ,v⟩v − ‖v‖²G∇φ.
+    • Cayley-Darboux en T*Q ≅ ℝ^{2d}:
+        (i)  K = (Ĝ−I)(Ĝ+I)⁻¹,  K_full = diag(K,−K) ∈ sp(2d,ℝ);
+        (ii) M = (I−K_full)⁻¹(I+K_full) ∈ Sp(2d), ‖MᵀΩM−Ω‖_F/‖M‖²_F ≤ 1e-10;
+        (iii) J_G = [[0,−G⁻¹],[G,0]], J_G² = −I, J_G ∈ Sp(2d) (compatible).
+    • Símbolos de Christoffel conformes (Fermat, φ = log n) con ∇V por
+      CSMD (paso 1e-20) y fallback a diferencias centradas 4º orden.
+    • Torsión nula y checksum Γ(v,v) ↔ 2⟨∇φ,v⟩v − ‖v‖²_G G⁻¹∇φ.
     • CIERRA con `emit_phase2_envelope` → `Phase2Envelope`.
 
-  FASE 3 — DECIDE & ACT (Integración + Poincaré + RSI³)
-    • APERTURA con `from_phase2_envelope` (verifica hash-chain).
-    • Proyección sobre la capa de energía  H = H₀  (escalado + dirección
-      de gradiente si la cuadrática es degenerada).
-    • Integración RK4 con paso fijo, detectando colapso de barrera de Hill.
-    • **Ecuación de Poincaré-Lindstedt exhaustiva**: resuelve
-        ω·k · W_k = H₁_k  para todo k ∈ [−K, K]^d \ {0}, τ = d+1.
-    • **Condición KAM/Bruno exhaustiva**: verifica |ω·k|·‖k‖₁^τ ≥ γ
-      sobre todo k pequeño; retorna el worst-ratio.
-    • **Integral de Melnikov rigurosa**: M(θ₀) = −∫ ⟨Gv(t), ∇V(q(t))⟩ dt
-      sobre la separatriz numérica (poisson {H_kinética, V}).
-    • **Sección de Poincaré**: cuenta cruces, mide dispersión de retornos.
-    • **Contracción de Banach T³** vía proxy de Lipschitz del flujo.
-    • **RSI³ (Data/Harness/Model)**: valuación de Novikov del tiempo de
-      tránsito, SPD de G, y d_FS ≤ 10⁻⁴ rad en ℂP^{d−1}.
-    • CIERRA con `emit_governance_state` → `BrachistochronePhysicalState`
-      (enriquecido con Floquet, sección de Poincaré, KAM worst-ratio).
+  FASE 3 — DECIDE & ACT (Integración + Poincaré + RSI³ Picard)
+    • APERTURA con `from_phase2_envelope` (continúa el cierre de FASE 2).
+    • Proyección sobre la capa de energía  H = H₀.
+    • Integración RK4; automejora RSI³: si δH o δE_F superan la cota
+      blanda, dt ← dt/2 y se re-integra (Picard sobre el espacio de caminos).
+    • Poincaré-Lindstedt: W_k = H_{1,k}/(ω·k) sobre k ∈ 𝒦 \ {0}
+      (producto total si d≤4; soporte ≤2 si d>4 — evita 7^d).
+    • KAM/Bruno: |ω·k|·‖k‖₁^τ ≥ γ, τ = d+1, worst-ratio.
+    • Melnikov: M = ∫ {T,V} dt = −∫ v·∇V dt (Poisson, no ⟨Gv,∇V⟩).
+    • Sección de Poincaré transversal n·(q−q_Σ)=0 con interpolación.
+    • Monodromía variacional Ẇ = DF(q,v) W + Benettin-QR (Floquet/Lyapunov).
+    • Frecuencias elípticas: √eig₊(G⁻¹ Hess V), no ‖v‖ de las d primeras.
+    • RSI³: Novikov del tránsito, SPD de G, d_FS(v₀,v_T) ≤ 10⁻⁴ rad.
+    • CIERRA con `emit_governance_state` → `BrachistochronePhysicalState`.
 
 MIGRACIÓN Y COMPATIBILIDAD
 ──────────────────────────
-  • FIX de bug crítico: los métodos de FASE 2/3 referenciaban un tipo
-    inexistente `ConformalManifoldBundle`. Se renombra a `ConformalGeometryBundle`
-    (el nombre que define el dataclass y que consume `mac_minimizer_agent`).
-    Se añade alias `ConformalManifoldBundle = ConformalGeometryBundle` para
-    backward compat de imports externos.
-  • La API pública `compute_brachistochrone_path(...)` se preserva
-    exactamente: firma, tipos y semántica.
-  • Todos los campos de `BrachistochronePhysicalState` originales se
-    conservan; los nuevos son opcionales (con defaults).
+  • Alias `ConformalManifoldBundle = ConformalGeometryBundle`.
+  • API pública `compute_brachistochrone_path(...)` idéntica en firma.
+  • Campos originales de `BrachistochronePhysicalState` se conservan;
+    los nuevos van al final con defaults.
 
 INVARIANTES GLOBALES
 ────────────────────
   [A1] G = Gᵀ ≻ 0,  ‖LLᵀ − G‖_F ≤ ε,  κ₂(G) ≤ 10⁸.
-  [A2] H₀ − V(q) ≥ 10⁻¹² en toda la bola de Hill accesible.
-  [A3] K ∈ sp(2d,ℝ):  ‖Kᵀ J + J K‖_F ≤ 1e-10,  ‖Mᵀ J M − J‖_F/‖M‖²_F ≤ 1e-10.
-  [A4] |ω·k|·‖k‖₁^τ ≥ γ,  |M(θ₀)| ≤ 0.5,  |μ_Floquet| ≤ 1 + 1e-6.
+  [A2] H₀ − V(q) ≥ 10⁻¹² en q_start; margen de Hill reportado.
+  [A3] K ∈ sp(2d,ℝ),  M ∈ Sp(2d),  J_G² + I = 0.
+  [A4] |ω·k|·‖k‖₁^τ ≥ γ sobre 𝒦; |M| ≤ 0.5; ρ(W_monodromy) finito.
   [I1] Torsión de Koszul:  max|Γ^ρ_μν − Γ^ρ_νμ| ≤ 1e-12.
   [I2] Checksum geométrico:  ‖Γ(v,v) − a_cerrada‖_rel ≤ 1e-9.
-  [I3] Deriva energética:  δH ≤ 10⁻³,  δE_F ≤ 10⁻⁴.
+  [I3] Deriva energética:  δH ≤ 10⁻³,  δE_F ≤ 10⁻⁴ (o RSI³ refina dt).
   [I4] d_FS(ψ_start, ψ_end) ≤ 10⁻⁴ rad;  v_Krull(T) ≥ 0.10.
 """
 
@@ -85,15 +78,15 @@ import time
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from itertools import product
-from typing import Any, Callable, Dict, Final, List, Optional, Protocol, Tuple, runtime_checkable
+from typing import (
+    Any, Callable, Dict, Final, Iterator, List, Optional, Protocol, Tuple,
+    runtime_checkable,
+)
 
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ─────────────────────────────────────────────────────────────────────────────
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
 except ImportError:  # pragma: no cover
@@ -110,7 +103,7 @@ logger = logging.getLogger("MIC.Physics.BrachistochronePathFinder.v5")
 if not logger.handlers:
     logger.addHandler(logging.NullHandler())
 
-__version__: Final[str] = "5.0.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-RSI3-Strict-PhD"
+__version__: Final[str] = "5.1.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-RSI3-Strict-PhD"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -132,23 +125,30 @@ _DEFAULT_RK4_STEPS: Final[int] = 500
 _MAX_INTEGRATION_STEPS: Final[int] = 100_000
 _DIM_MAX: Final[int] = 32
 _CHECKSUM_REL_TOL: Final[float] = 1.0e-9
+_CHOLESKY_RECON_TOL: Final[float] = 1.0e-8
 
-# Poincaré (Birkhoff-Arnold-Moser)
 _KAM_GAMMA: Final[float] = 0.125
 _KAM_TAU_OFFSET: Final[float] = 1.0
 _KAM_MAX_ORDER: Final[int] = 3
+_KAM_FULL_PRODUCT_DIM: Final[int] = 4
 _MELNIKOV_TOL: Final[float] = 0.5
 _FLOQUET_UNIT_TOL: Final[float] = 1.0e-6
 _CHIRIKOV_CRITICAL: Final[float] = 1.0
+_LYAPUNOV_HYPERBOLIC: Final[float] = 1.0e-6
+_CLOSE_RETURN_REL_TOL: Final[float] = 1.0e-3
+_POINCARE_DISP_REGULAR: Final[float] = 0.5
 
-# RSI³ (Darwin-Gödel Nivel 3)
 _KRULL_NOVIKOV_FLOOR: Final[float] = 0.10
 _FUBINI_STUDY_MAX: Final[float] = 1.0e-4
 _BANACH_LIPSCHITZ_MAX: Final[float] = 0.95
+_RSI3_MAX_REFINEMENTS: Final[int] = 3
+_RSI3_DT_DECAY: Final[float] = 0.5
+_BANACH_TAU: Final[float] = 0.05
 
-# Hill accessibility
 _HILL_ACCESSIBILITY_SAMPLES: Final[int] = 32
 _LOCAL_LIPSCHITZ_RADIUS: Final[float] = 1.0
+_HOM_DIVISOR_FLOOR: Final[float] = 1.0e-12
+_BENETTIN_RENORM: Final[float] = 1.0e6
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -168,26 +168,41 @@ class GeodesicRegime(Enum):
 class BrachistochroneEngineError(Exception):
     """Excepción raíz del motor físico de la braquistócrona."""
 
+
 class EnergyWellColapsoError(BrachistochroneEngineError):
     """La barrera de energía es nula o negativa (H0 ≤ V(q))."""
+
 
 class ConformalSingularityError(BrachistochroneEngineError):
     """Tensor métrico o inversa con singularidades numéricas."""
 
+
 class GeodesicIntegrationError(BrachistochroneEngineError):
     """Divergencia numérica catastrófica o caústica durante RK4."""
+
 
 class KoszulChecksumError(BrachistochroneEngineError):
     """El isomorfismo conforme / Koszul no es fiel."""
 
+
 class InitialKinematicsError(BrachistochroneEngineError):
     """Condiciones iniciales (q,v,H0) inconsistentes con la variedad."""
+
 
 class SymplecticEmbeddingError(BrachistochroneEngineError):
     """La inmersión Cayley-Darboux no pertenece a sp(2d,ℝ)."""
 
+
 class EnvelopeChainViolationError(BrachistochroneEngineError):
     """La cadena de hashes entre fases fue corrompida."""
+
+
+class KamBrunoViolationError(BrachistochroneEngineError):
+    """Divisores pequeños: la condición diofantina de Bruno falla."""
+
+
+class MelnikovSplittingError(BrachistochroneEngineError):
+    """Splitting homoclínico: |M| supera la tolerancia de Poincaré."""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -276,12 +291,74 @@ class _BrachistochroneNumericalGuard:
             raise TypeError(
                 f"potential_v_fn debe ser invocable V: Q → ℝ ({type(potential_v_fn).__name__}).")
 
+    @staticmethod
+    def _real_spd_sqrt_inv(g: NDArray[np.float64]) -> NDArray[np.float64]:
+        r"""\(g^{-1/2}\) real simétrico vía \(Q\Lambda^{-1/2}Q^\top\). Evita `sqrtm` complejo."""
+        eig_vals, eig_vecs = la.eigh(g)
+        if float(np.min(eig_vals)) <= _MACHINE_EPS:
+            raise ConformalSingularityError(
+                f"No existe g^{{-1/2}} real: λ_min={float(np.min(eig_vals)):.3e}")
+        inv_sqrt = eig_vecs @ np.diag(1.0 / np.sqrt(eig_vals)) @ eig_vecs.T
+        return np.real(inv_sqrt).astype(np.float64)
 
-def _hash_state(*arrays: NDArray[Any]) -> str:
+    @staticmethod
+    def _cholesky_inverse(chol_lower: NDArray[np.float64]) -> NDArray[np.float64]:
+        d = chol_lower.shape[0]
+        l_inv = la.solve_triangular(chol_lower, np.eye(d, dtype=np.float64), lower=True)
+        return l_inv.T @ l_inv
+
+    @staticmethod
+    def _canonical_omega(dim_q: int) -> NDArray[np.float64]:
+        i_d = np.eye(dim_q, dtype=np.float64)
+        z = np.zeros((dim_q, dim_q), dtype=np.float64)
+        return np.block([[z, i_d], [-i_d, z]])
+
+
+def _hash_state(*arrays: Any) -> str:
     h = hashlib.sha256()
     for a in arrays:
-        h.update(np.ascontiguousarray(a).tobytes())
+        if isinstance(a, np.ndarray):
+            h.update(np.ascontiguousarray(a).tobytes())
+        else:
+            h.update(np.ascontiguousarray(np.asarray(a, dtype=np.float64)).tobytes())
     return h.hexdigest()[:16]
+
+
+def _iter_kam_wavevectors(dimension_d: int, max_order: int) -> Iterator[NDArray[np.float64]]:
+    r"""
+    Genera \(k\in\mathbb{Z}^d\setminus\{0\}\) con \(\|k\|_\infty\le K\).
+
+    Si \(d\le 4\) recorre el cubo completo (cardinal \( (2K+1)^d-1 \)).
+    Si \(d>4\) restringe a vectores de soporte \(\le 2\) — evita \(7^{32}\).
+    """
+    d = int(dimension_d)
+    k_max = int(max_order)
+    if d <= 0 or k_max <= 0:
+        return
+    if d <= _KAM_FULL_PRODUCT_DIM:
+        for k in product(range(-k_max, k_max + 1), repeat=d):
+            if any(ki != 0 for ki in k):
+                yield np.asarray(k, dtype=np.float64)
+        return
+    for i in range(d):
+        for ki in range(-k_max, k_max + 1):
+            if ki == 0:
+                continue
+            vec = np.zeros(d, dtype=np.float64)
+            vec[i] = float(ki)
+            yield vec
+    for i in range(d):
+        for j in range(i + 1, d):
+            for ki in range(-k_max, k_max + 1):
+                if ki == 0:
+                    continue
+                for kj in range(-k_max, k_max + 1):
+                    if kj == 0:
+                        continue
+                    vec = np.zeros(d, dtype=np.float64)
+                    vec[i] = float(ki)
+                    vec[j] = float(kj)
+                    yield vec
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -289,6 +366,7 @@ def _hash_state(*arrays: NDArray[Any]) -> str:
 # ══════════════════════════════════════════════════════════════════════════════
 def _empty_f64() -> NDArray[np.float64]:
     return np.zeros(0, dtype=np.float64)
+
 
 def _empty_2d() -> NDArray[np.float64]:
     return np.zeros((0, 0), dtype=np.float64)
@@ -327,7 +405,7 @@ class Phase1Envelope:
 
 @dataclass(frozen=True, slots=True)
 class ConformalGeometryBundle:
-    r"""Artefacto de FASE 2: geometría de Jacobi-Fermat + Cayley-Darboux."""
+    r"""Artefacto de FASE 2: geometría de Fermat + Cayley-Darboux."""
     g_base: NDArray[np.float64]
     g_conformal: NDArray[np.float64]
     g_conformal_inv: NDArray[np.float64]
@@ -345,10 +423,10 @@ class ConformalGeometryBundle:
     symplectic_residual: float = 0.0
     symplectic_defect: float = 0.0
     is_symplectic_valid: bool = True
+    almost_complex_residual: float = 0.0
     phase1: Optional[ConformalPotentialDilation] = None
 
 
-# Alias de compatibilidad (nombre antiguo en versiones previas)
 ConformalManifoldBundle = ConformalGeometryBundle
 
 
@@ -368,16 +446,30 @@ class PoincareSectionCertificate:
     return_dispersion: float
     is_regular: bool
     returns: Tuple[float, ...]
+    first_return_time: float = 0.0
+    close_returns: int = 0
+    return_residual: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
 class FloquetCertificate:
-    r"""Multiplicadores de Floquet μ_k = eig(M(T)) sobre la monodromía."""
+    r"""Multiplicadores de Floquet μ_k = eig(W(T)) de la monodromía variacional."""
     multipliers: NDArray[np.complex128]
     max_unit_deviation: float
     is_neutral: bool
     is_dissipative_stable: bool
     exponents: NDArray[np.float64]
+    spectral_radius: float = 1.0
+    lyapunov_max: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class LindstedtCertificate:
+    r"""Solución de la ecuación homológica de Poincaré-Lindstedt."""
+    n_modes: int
+    n_resonant: int
+    residual_max: float
+    divisor_min: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -402,7 +494,6 @@ class BrachistochronePhysicalState:
     regime: GeodesicRegime = GeodesicRegime.ELIPTIC_STABLE
     engine_version: str = __version__
 
-    # Campos v5.0.0 (opcionales, con defaults para compatibilidad)
     kam_worst_ratio: float = 0.0
     melnikov_max_abs_integrand: float = 0.0
     poincare_section_n_crossings: int = 0
@@ -414,6 +505,12 @@ class BrachistochronePhysicalState:
     banach_lipschitz_t3: float = 0.0
     fubini_study_distance: float = 0.0
     novikov_krull_valuation: float = 0.0
+    lindstedt_residual: float = 0.0
+    rsi3_refinements: int = 0
+    jacobi_lyapunov_max: float = 0.0
+    monodromy_spectral_radius: float = 1.0
+    elliptic_frequency_min: float = 0.0
+    poincare_first_return_time: float = 0.0
 
 
 # ══════════════════════════════════════════════════════════════════════════════════
@@ -421,6 +518,7 @@ class BrachistochronePhysicalState:
 # ║  F A S E   1 :   O B S E R V E                                               ║
 # ║  Auditoría del pozo de potencial termodinámico + Hill accessibility.         ║
 # ║  Cierra con `emit_phase1_envelope` → `Phase1Envelope`.                       ║
+# ║  Ese cierre ES el contrato de apertura de la FASE 2.                         ║
 # ╚════════════════════════════════════════════════════════════════════════════════╝
 # ══════════════════════════════════════════════════════════════════════════════════
 
@@ -431,12 +529,12 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
     Métodos rigurosos:
       • `_phase1_validate_manifold_dimension`
       • `_phase1_validate_metric_tensor`
-      • `_phase1_certify_metric_symmetry` — tolerancia rel/abs
+      • `_phase1_certify_metric_symmetry`
       • `_phase1_cholesky_spd_factor` — Sylvester + LLᵀ
-      • `_phase1_energy_gap_spectrum` — H₀ − V muestreado
-      • `_phase1_validate_initial_kinematics` — H₀ = T + V
-      • `_phase1_hill_accessibility_ball` (nuevo) — barrera Hill en bola
-      • `_phase1_local_lipschitz_v` (nuevo) — |∇V|∞ determinista
+      • `_phase1_energy_gap_spectrum`
+      • `_phase1_validate_initial_kinematics`
+      • `_phase1_hill_accessibility_ball` — g^{-1/2} real
+      • `_phase1_local_lipschitz_v` — |∇V|∞ 4º orden
     """
 
     @staticmethod
@@ -484,11 +582,10 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         if np.any(diag <= 0.0):
             raise ConformalSingularityError(
                 "Cholesky degenerado: diag(L) no estrictamente positivo.")
-        # Verificación numérica LLᵀ ≈ G
         recon = chol @ chol.T
-        recon_err = float(la.norm(recon - g_base, ord='fro'))
-        recon_scale = max(1.0, float(la.norm(g_base, ord='fro')))
-        if recon_err > 1e-8 * recon_scale:
+        recon_err = float(la.norm(recon - g_base, ord="fro"))
+        recon_scale = max(1.0, float(la.norm(g_base, ord="fro")))
+        if recon_err > _CHOLESKY_RECON_TOL * recon_scale:
             raise ConformalSingularityError(
                 f"LLᵀ−G no despreciable: ‖err‖_F={recon_err:.3e}.")
         logdet = float(2.0 * np.sum(np.log(diag)))
@@ -557,7 +654,6 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
             residual = float("nan")
         return q_arr, v_arr, kinetic, residual
 
-    # ── Hill accessibility (nuevo) ────────────────────────────────────────────
     def _phase1_hill_accessibility_ball(
         self,
         g_base: NDArray[np.float64],
@@ -568,31 +664,28 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         n_samples: int = _HILL_ACCESSIBILITY_SAMPLES,
     ) -> Tuple[bool, float, NDArray[np.float64]]:
         r"""
-        Verifica $H_0 \ge V(q)$ sobre la bola de accesibilidad de Hill:
-        $q(t) \in [q_s \pm \sigma g^{-1/2} v_s]$ con $\sigma\in[-1,1]$.
-
-        Retorna `(ok, margin, samples_V)`.
+        Verifica \(H_0 \ge V(q)\) sobre la bola de Hill
+        \(q(\sigma)=q_s+\sigma\, g^{-1/2}v_s\), \(\sigma\in[-1,1]\).
+        \(g^{-1/2}\) es real (eigh), jamás `sqrtm`.
         """
-        d = q_start.shape[0]
         try:
-            g_sqrt_inv = la.inv(la.sqrtm(g_base))
-        except la.LinAlgError:
-            return False, -float('inf'), np.zeros(0)
+            g_sqrt_inv = self._real_spd_sqrt_inv(g_base)
+        except (ConformalSingularityError, la.LinAlgError):
+            return False, -float("inf"), np.zeros(0, dtype=np.float64)
 
         direction = g_sqrt_inv @ v_start
         samples_v = np.zeros(n_samples, dtype=np.float64)
-        margin = float('inf')
+        margin = float("inf")
         for i, sigma in enumerate(np.linspace(-1.0, 1.0, n_samples)):
             q_test = q_start + sigma * direction
             try:
                 v_val = self._as_finite_scalar(potential_v_fn(q_test), "V(q_test)")
             except Exception:
-                v_val = float('inf')
+                v_val = float("inf")
             samples_v[i] = v_val
             margin = min(margin, float(initial_h0) - v_val)
         return (margin >= 0.0), float(margin), samples_v
 
-    # ── Lipschitz local (nuevo) ───────────────────────────────────────────────
     def _phase1_local_lipschitz_v(
         self,
         q_start: NDArray[np.float64],
@@ -600,22 +693,25 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         radius: float = _LOCAL_LIPSCHITZ_RADIUS,
     ) -> float:
         r"""
-        Estima la constante de Lipschitz local de $V$ en $B(q_s, r)$
-        por diferencias centradas en las $2d$ direcciones $\pm e_i$.
+        Lipschitz local de \(V\) en \(B(q_s,r)\) por stencil 4º orden
+        \(\bigl[-f(q+2he_i)+8f(q+he_i)-8f(q-he_i)+f(q-2he_i)\bigr]/(12h)\).
         """
-        d = q_start.shape[0]
-        f0 = self._as_finite_scalar(potential_v_fn(q_start), "V(q_start)")
+        d = int(q_start.shape[0])
+        scale = max(1.0, float(la.norm(q_start)))
+        h = max(radius * 1.0e-3, math.sqrt(math.sqrt(_MACHINE_EPS)) * scale)
         max_slope = 0.0
         for i in range(d):
-            for sign in (+1.0, -1.0):
-                delta = np.zeros(d, dtype=np.float64)
-                delta[i] = sign * radius
-                try:
-                    f_test = self._as_finite_scalar(potential_v_fn(q_start + delta), "V(q_test)")
-                    slope = abs(f_test - f0) / max(radius, _MACHINE_EPS)
-                    max_slope = max(max_slope, slope)
-                except Exception:
-                    continue
+            e_i = np.zeros(d, dtype=np.float64)
+            e_i[i] = 1.0
+            try:
+                f_p2 = self._as_finite_scalar(potential_v_fn(q_start + 2.0 * h * e_i), "V+")
+                f_p1 = self._as_finite_scalar(potential_v_fn(q_start + h * e_i), "V+")
+                f_m1 = self._as_finite_scalar(potential_v_fn(q_start - h * e_i), "V-")
+                f_m2 = self._as_finite_scalar(potential_v_fn(q_start - 2.0 * h * e_i), "V-")
+                deriv = abs((-f_p2 + 8.0 * f_p1 - 8.0 * f_m1 + f_m2) / (12.0 * h))
+                max_slope = max(max_slope, deriv)
+            except Exception:
+                continue
         return float(max_slope)
 
     def _phase1_observe_energy_certificate(
@@ -677,11 +773,11 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         initial_h0: float,
     ) -> Phase1Envelope:
         r"""
-        **Cierre formal de la FASE 1.**
+        **Cierre formal de la FASE 1 / contrato de apertura de la FASE 2.**
 
-        Ejecuta la auditoría completa del pozo de potencial (Sylvester +
-        Cholesky + Hill + Lipschitz local) y emite `Phase1Envelope`, el
-        contrato tipado con hash-chain para la FASE 2.
+        Audita el pozo (Sylvester + Cholesky + Hill + Lipschitz) y emite
+        `Phase1Envelope`. El hash se calcula sobre G ya hermitizada para
+        que `from_phase1_envelope` verifique la misma cadena.
         """
         t0 = time.perf_counter_ns()
         self._assert_callable_potential(potential_v_fn)
@@ -690,25 +786,26 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
         v0 = np.asarray(v_start, dtype=np.float64)
 
         val_start = self._as_finite_scalar(potential_v_fn(q0), "V(q_start)")
-
-        # Dilation base
         dilation = self._phase1_observe_energy_certificate(
             g_base=g,
             potential_v=np.array([val_start], dtype=np.float64),
             initial_h0=float(initial_h0),
             q_start=q0, v_start=v0, potential_at_start=val_start,
         )
-
-        # Hill accessibility (bola)
         hill_ok, hill_margin, hill_samples = self._phase1_hill_accessibility_ball(
-            g_base=g, q_start=q0, v_start=v0,
+            g_base=dilation.g_base, q_start=dilation.q_start, v_start=dilation.v_start,
             potential_v_fn=potential_v_fn, initial_h0=float(initial_h0))
+        lip = self._phase1_local_lipschitz_v(dilation.q_start, potential_v_fn)
 
-        # Lipschitz local de V
-        lip = self._phase1_local_lipschitz_v(q0, potential_v_fn)
-
-        chain = _hash_state(g, q0, v0, np.array([initial_h0, val_start, hill_margin, lip]))
-
+        chain = _hash_state(
+            dilation.g_base, dilation.q_start, dilation.v_start,
+            np.array([
+                dilation.initial_h0,
+                float(dilation.potential_v[0]) if dilation.potential_v.size else 0.0,
+                float(hill_margin),
+                float(lip),
+            ]),
+        )
         return Phase1Envelope(
             dilation=dilation,
             hill_accessibility_ok=bool(hill_ok),
@@ -723,33 +820,38 @@ class Phase1_PotentialWellInquirer(_BrachistochroneNumericalGuard):
 # ══════════════════════════════════════════════════════════════════════════════════
 # ╔════════════════════════════════════════════════════════════════════════════════╗
 # ║  F A S E   2 :   O R I E N T                                                 ║
-# ║  Sintonía de la métrica de Jacobi-Fermat y embedding Cayley-Darboux en       ║
-# ║  sp(2d,ℝ). Cierra con `emit_phase2_envelope` → `Phase2Envelope`.             ║
+# ║  Sintonía de la métrica de Fermat y embedding Cayley-Darboux en Sp(2d).      ║
+# ║  Apertura = `from_phase1_envelope` (continuación del cierre de FASE 1).      ║
+# ║  Cierre   = `emit_phase2_envelope` → `Phase2Envelope`.                       ║
 # ╚════════════════════════════════════════════════════════════════════════════════╝
 # ══════════════════════════════════════════════════════════════════════════════════
 
 class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
     r"""
-    FASE 2 (Orient): construye la métrica de Jacobi-Fermat, los símbolos de
-    Koszul conformes y la inmersión simpléctica Cayley-Darboux en sp(2d,ℝ).
+    FASE 2 (Orient): métrica de Fermat, Koszul conforme y Cayley-Darboux.
     """
 
-    # ── APERTURA FASE 2 ───────────────────────────────────────────────────────
+    # ── APERTURA FASE 2  (continuación contractual del cierre de FASE 1) ──────
     @classmethod
     def from_phase1_envelope(
         cls, env: Phase1Envelope,
-    ) -> 'Phase2_ConformalKoszulSuturator':
+    ) -> "Phase2_ConformalKoszulSuturator":
         r"""
         **Apertura formal de la FASE 2.**
 
-        Valida la cadena de hashes de la FASE 1 y prepara el suturizador
-        para consumir el certificado del pozo de potencial.
+        Continúa `emit_phase1_envelope`: valida la cadena de hashes y
+        autoriza la sintonía conforme.
         """
-        d = env.dilation
+        dlt = env.dilation
         expected = _hash_state(
-            d.g_base, d.q_start, d.v_start,
-            np.array([d.initial_h0, d.potential_v[0] if d.potential_v.size else 0.0,
-                      env.hill_accessibility_margin, env.local_lipschitz_v]))
+            dlt.g_base, dlt.q_start, dlt.v_start,
+            np.array([
+                dlt.initial_h0,
+                float(dlt.potential_v[0]) if dlt.potential_v.size else 0.0,
+                float(env.hill_accessibility_margin),
+                float(env.local_lipschitz_v),
+            ]),
+        )
         if expected != env.chain_hash:
             raise EnvelopeChainViolationError(
                 f"Cadena FASE 1 corrupta: {expected} ≠ {env.chain_hash}.")
@@ -782,6 +884,7 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         *,
         clamp: bool = False,
     ) -> Tuple[float, float, float]:
+        r"""Índice de Fermat: \(n^2=[2(H_0-V)]^{-1}\), \(n=\sqrt{n^2}\)."""
         self._assert_callable_potential(potential_v_fn)
         val_v = self._as_finite_scalar(potential_v_fn(q), "potential_v_fn(q)")
         gap = float(initial_h0) - val_v
@@ -833,12 +936,9 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         dilation: ConformalPotentialDilation,
         n_sq: float,
     ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
-        d = dilation.g_base.shape[0]
         chol = np.asarray(dilation.cholesky_factor, dtype=np.float64)
         try:
-            eye = np.eye(d, dtype=np.float64)
-            l_inv = la.solve_triangular(chol, eye, lower=True)
-            g_inv = l_inv.T @ l_inv
+            g_inv = self._cholesky_inverse(chol)
         except la.LinAlgError as exc:
             raise ConformalSingularityError("Inversión Cholesky fallida.") from exc
         g_conformal_inv = (1.0 / n_sq) * g_inv
@@ -859,50 +959,53 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
                 f"Inestabilidad de Wilkinson: κ(G) = {cond:.3e}.")
         return float(cond)
 
-    # ── Cayley-Darboux riguroso (v5.0.0) ─────────────────────────────────────
     def _phase2_compute_cayley_darboux_embedding(
         self,
         g_conformal: NDArray[np.float64],
-    ) -> Tuple[NDArray[np.float64], float, bool, float]:
+        g_base: NDArray[np.float64],
+        g_inv: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.float64], float, bool, float, float]:
         r"""
-        Inmersión simpléctica de Cayley-Darboux:
+        Inmersión simpléctica de Cayley-Darboux sobre \(T^*Q\cong\mathbb{R}^{2d}\).
 
-          $K = (G̃-I)(G̃+I)^{-1}$,  verifica $K^\top J + J K = 0$.
-          $M = (I+K)(I-K)^{-1} \in Sp(2d,\mathbb{R})$;
-          $\|M^\top J M - J\|_F/\|M\|_F^2 \le 10^{-10}$.
+        (i) \(K=(Ĝ-I)(Ĝ+I)^{-1}\) (solve triangular-equivalente, G simétrica),
+            \(K_{\mathrm{full}}=\mathrm{diag}(K,-K)\). Simétrica ⇒ \(K_{\mathrm{full}}\in\mathfrak{sp}(2d)\).
+        (ii) \(M=(I-K_{\mathrm{full}})^{-1}(I+K_{\mathrm{full}})\in\mathrm{Sp}(2d)\).
+        (iii) \(J_G=\begin{pmatrix}0&-G^{-1}\\G&0\end{pmatrix}\), \(J_G^2=-I\), \(J_G\in\mathrm{Sp}(2d)\).
 
-        Retorna `(M_sympl, rel_residual, is_valid, sp_defect)`.
+        Retorna `(M, rel_residual, is_valid, sp_defect, J²+I residual)`.
         """
-        d = g_conformal.shape[0]
-        I_d = np.eye(d, dtype=np.float64)
-        J_d = np.block([
-            [np.zeros((d, d)), I_d],
-            [-I_d, np.zeros((d, d))],
-        ])
+        d = int(g_conformal.shape[0])
+        i_d = np.eye(d, dtype=np.float64)
+        omega = self._canonical_omega(d)
         try:
-            K_block = (g_conformal - I_d) @ la.inv(g_conformal + I_d)
-            K_full = np.block([
-                [K_block, np.zeros((d, d))],
-                [np.zeros((d, d)), -K_block],
-            ])
+            k_block = la.solve(g_conformal + i_d, g_conformal - i_d, assume_a="sym")
+            k_block = 0.5 * (k_block + k_block.T)
+            z = np.zeros((d, d), dtype=np.float64)
+            k_full = np.block([[k_block, z], [z, -k_block]])
+            sp_defect = float(la.norm(k_full.T @ omega + omega @ k_full, "fro"))
 
-            # (i) Verificación de pertenencia a sp(2d,ℝ): Kᵀ J + J K = 0
-            sp_defect = float(la.norm(K_full.T @ J_d + J_d @ K_full, 'fro'))
+            i_2d = np.eye(2 * d, dtype=np.float64)
+            m_sympl = la.solve(i_2d - k_full, i_2d + k_full)
+            diff = m_sympl.T @ omega @ m_sympl - omega
+            norm_m = float(la.norm(m_sympl, "fro"))
+            rel_res = (float(la.norm(diff, "fro") / (norm_m ** 2))
+                       if norm_m > 0.0 else float("inf"))
 
-            # (ii) M_sympl y residuo de Darboux relativo
-            I_2d = np.eye(2 * d, dtype=np.float64)
-            M_sympl = la.inv(I_2d - K_full) @ (I_2d + K_full)
-            diff = M_sympl.T @ J_d @ M_sympl - J_d
-            norm_M = float(la.norm(M_sympl, 'fro'))
-            rel_res = (float(la.norm(diff, 'fro') / (norm_M ** 2))
-                       if norm_M > 0 else float('inf'))
+            j_g = np.block([[z, -g_inv], [g_base, z]])
+            j_sq_res = float(la.norm(j_g @ j_g + i_2d, "fro"))
+            j_sp_res = float(la.norm(j_g.T @ omega @ j_g - omega, "fro"))
 
-            is_valid = (rel_res <= _SYMPLECTIC_RESIDUAL_TOL
-                        and sp_defect <= _SYMPLECTIC_RESIDUAL_TOL)
-            return M_sympl, rel_res, is_valid, sp_defect
+            is_valid = bool(
+                rel_res <= _SYMPLECTIC_RESIDUAL_TOL
+                and sp_defect <= _SYMPLECTIC_RESIDUAL_TOL
+                and j_sq_res <= 1.0e-8
+                and j_sp_res <= 1.0e-8
+            )
+            return m_sympl, rel_res, is_valid, sp_defect, j_sq_res
         except la.LinAlgError:
-            return (np.zeros((2 * d, 2 * d), dtype=np.float64),
-                    float('inf'), False, float('inf'))
+            z2 = np.zeros((2 * d, 2 * d), dtype=np.float64)
+            return z2, float("inf"), False, float("inf"), float("inf")
 
     def _phase2_estimate_potential_gradient(
         self,
@@ -910,13 +1013,11 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         potential_v_fn: PotentialField,
     ) -> Tuple[NDArray[np.float64], str]:
         r"""
-        Gradiente de V(q) por CSMD (paso complejo $h=10^{-20}$) con
-        fallback a diferencias centradas de 4º orden.
+        \(\nabla V\) por CSMD (\(h=10^{-20}\)) con fallback a stencil 4º orden.
         """
         d = int(q.shape[0])
         grad = np.zeros(d, dtype=np.float64)
 
-        # Intento CSMD (requiere que potential_v_fn sea analítica en ℂ)
         try:
             for k in range(d):
                 q_c = q.astype(np.complex128, copy=True)
@@ -930,20 +1031,45 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         except Exception:
             pass
 
-        # Fallback: diferencias centradas 2º orden (deterministas)
         scale = max(1.0, float(la.norm(q)))
-        step = math.sqrt(_MACHINE_EPS) * scale
+        step = math.sqrt(math.sqrt(_MACHINE_EPS)) * scale
         for k in range(d):
-            q_plus = q.copy()
-            q_minus = q.copy()
-            q_plus[k] += step
-            q_minus[k] -= step
-            f_plus = self._as_finite_scalar(potential_v_fn(q_plus), "V(q+he_k)")
-            f_minus = self._as_finite_scalar(potential_v_fn(q_minus), "V(q−he_k)")
-            grad[k] = (f_plus - f_minus) / (2.0 * step)
+            e_k = np.zeros(d, dtype=np.float64)
+            e_k[k] = 1.0
+            f_p2 = self._as_finite_scalar(potential_v_fn(q + 2.0 * step * e_k), "V+2")
+            f_p1 = self._as_finite_scalar(potential_v_fn(q + step * e_k), "V+1")
+            f_m1 = self._as_finite_scalar(potential_v_fn(q - step * e_k), "V-1")
+            f_m2 = self._as_finite_scalar(potential_v_fn(q - 2.0 * step * e_k), "V-2")
+            grad[k] = (-f_p2 + 8.0 * f_p1 - 8.0 * f_m1 + f_m2) / (12.0 * step)
         if not np.all(np.isfinite(grad)):
             raise GeodesicIntegrationError("∇V no finito en el punto de evaluación.")
-        return grad, "central"
+        return grad, "central-4"
+
+    def _phase2_hessian_v(
+        self,
+        q: NDArray[np.float64],
+        potential_v_fn: PotentialField,
+    ) -> NDArray[np.float64]:
+        r"""Hessiano simétrico de \(V\) por diferencias mixtas de 2º orden."""
+        d = int(q.shape[0])
+        scale = max(1.0, float(la.norm(q)))
+        h = math.sqrt(_MACHINE_EPS) * scale
+        hess = np.zeros((d, d), dtype=np.float64)
+        v0 = self._as_finite_scalar(potential_v_fn(q), "V(q)")
+
+        def _v(delta: NDArray[np.float64]) -> float:
+            return self._as_finite_scalar(potential_v_fn(q + delta), "V(q+δ)")
+
+        for i in range(d):
+            e_i = np.zeros(d, dtype=np.float64)
+            e_i[i] = h
+            hess[i, i] = (_v(e_i) - 2.0 * v0 + _v(-e_i)) / (h * h)
+            for j in range(i + 1, d):
+                e_j = np.zeros(d, dtype=np.float64)
+                e_j[j] = h
+                mixed = (_v(e_i + e_j) - _v(e_i - e_j) - _v(-e_i + e_j) + _v(-e_i - e_j)) / (4.0 * h * h)
+                hess[i, j] = hess[j, i] = mixed
+        return 0.5 * (hess + hess.T)
 
     def _phase2_conformal_christoffel(
         self,
@@ -953,11 +1079,11 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         gap: float,
     ) -> NDArray[np.float64]:
         r"""
-        Símbolos de Christoffel conformes $\Gamma^\rho_{\mu\nu}$ para
-        $g_{ij}(q) = f(q)\delta_{ij}$ con $f(q) = 2(H_0 − V(q))$:
-        $$\Gamma^\rho_{\mu\nu} = \frac{1}{2f}(\delta^\rho_\nu \partial_\mu f
-                                            + \delta^\rho_\mu \partial_\nu f
-                                            - \delta_{\mu\nu} \partial^\rho f).$$
+        Christoffel de Fermat para \(\tilde g = n^2 G\), \(n^2=[2(H_0-V)]^{-1}\),
+        \(\varphi=\log n\), \(\nabla\varphi=\nabla V/(2\,\mathrm{gap})\):
+
+        \[\tilde\Gamma^i_{jk}=\delta^i_j\partial_k\varphi+\delta^i_k\partial_j\varphi
+          -G_{jk}G^{il}\partial_l\varphi.\]
         """
         d = g_base.shape[0]
         if gap <= 0.0:
@@ -1024,8 +1150,8 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         g_conformal = self._phase2_assemble_jacobi_metric(g_base, n_sq)
         g_inv, g_conformal_inv = self._phase2_invert_conformal_cholesky(dilation, n_sq)
         cond = self._phase2_wilkinson_condition(g_base)
-        M_sympl, res_sympl, is_sympl, sp_defect = (
-            self._phase2_compute_cayley_darboux_embedding(g_conformal))
+        m_sympl, res_sympl, is_sympl, sp_defect, j_res = (
+            self._phase2_compute_cayley_darboux_embedding(g_conformal, g_base, g_inv))
 
         grad_v, grad_method = self._phase2_estimate_potential_gradient(q, potential_v_fn)
         gamma = self._phase2_conformal_christoffel(g_base, g_inv, grad_v, gap)
@@ -1046,10 +1172,11 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
             gradient_method=grad_method,
             energy_gap_at_eval=gap,
             g_base_inv=self._freeze_array(g_inv),
-            symplectic_cayley_matrix=self._freeze_array(M_sympl),
+            symplectic_cayley_matrix=self._freeze_array(m_sympl),
             symplectic_residual=res_sympl,
             symplectic_defect=sp_defect,
             is_symplectic_valid=is_sympl,
+            almost_complex_residual=float(j_res),
             phase1=dilation,
         )
 
@@ -1060,21 +1187,20 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
         potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
     ) -> Phase2Envelope:
         r"""
-        **Cierre formal de la FASE 2.**
-
-        Consume el envelope de FASE 1, construye la geometría conforme y
-        emite `Phase2Envelope` con hash-chain.
+        **Cierre formal de la FASE 2 / contrato de apertura de la FASE 3.**
         """
         t0 = time.perf_counter_ns()
-        d = phase1_env.dilation
+        dlt = phase1_env.dilation
         bundle = self.sintonizar_metrica_conforme(
-            dilation=d, q_eval=d.q_start, potential_v_fn=potential_v_fn)
-
+            dilation=dlt, q_eval=dlt.q_start, potential_v_fn=potential_v_fn)
         chain = _hash_state(
             bundle.g_base, bundle.g_conformal, bundle.christoffel_symbols,
-            np.array([bundle.symplectic_residual, bundle.symplectic_defect,
-                      bundle.torsion_residual, bundle.wilkinson_condition]))
-
+            np.array([
+                bundle.symplectic_residual, bundle.symplectic_defect,
+                bundle.torsion_residual, bundle.wilkinson_condition,
+                bundle.almost_complex_residual,
+            ]),
+        )
         return Phase2Envelope(
             phase1=phase1_env, bundle=bundle,
             origin_timestamp_ns=float(time.perf_counter_ns() - t0),
@@ -1085,35 +1211,36 @@ class Phase2_ConformalKoszulSuturator(Phase1_PotentialWellInquirer):
 # ══════════════════════════════════════════════════════════════════════════════════
 # ╔════════════════════════════════════════════════════════════════════════════════╗
 # ║  F A S E   3 :   D E C I D E   &   A C T                                      ║
-# ║  Integración geodésica RK4 + Poincaré-Lindstedt + KAM/Bruno + Melnikov      ║
-# ║  + Sección de Poincaré + Floquet + RSI³.                                      ║
-# ║  Cierra con `emit_governance_state` → `BrachistochronePhysicalState`.        ║
+# ║  RK4 + Poincaré-Lindstedt + KAM/Bruno + Melnikov + sección + Floquet + RSI³. ║
+# ║  Apertura = `from_phase2_envelope` (continuación del cierre de FASE 2).      ║
+# ║  Cierre   = `emit_governance_state` → `BrachistochronePhysicalState`.        ║
 # ╚════════════════════════════════════════════════════════════════════════════════╝
 # ══════════════════════════════════════════════════════════════════════════════════
 
 class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
     r"""
-    FASE 3 (Decide & Act): integración de la geodésica de Fermat-Jacobi,
-    auditoría Poincaré-Lindstedt, KAM/Bruno, Melnikov, Poincaré-section,
-    Floquet y certificación RSI³.
+    FASE 3 (Decide & Act): geodésica de Fermat, Poincaré y RSI³ Picard.
     """
 
-    # ── APERTURA FASE 3 ───────────────────────────────────────────────────────
+    # ── APERTURA FASE 3  (continuación contractual del cierre de FASE 2) ──────
     @classmethod
     def from_phase2_envelope(
         cls, env: Phase2Envelope,
-    ) -> 'Phase3_FermatGeodesicSolver':
+    ) -> "Phase3_FermatGeodesicSolver":
         r"""
         **Apertura formal de la FASE 3.**
 
-        Valida la cadena de hashes de FASE 2 y prepara el solver para
-        integrar la geodésica.
+        Continúa `emit_phase2_envelope`: valida la cadena y autoriza RK4.
         """
         b = env.bundle
         expected = _hash_state(
             b.g_base, b.g_conformal, b.christoffel_symbols,
-            np.array([b.symplectic_residual, b.symplectic_defect,
-                      b.torsion_residual, b.wilkinson_condition]))
+            np.array([
+                b.symplectic_residual, b.symplectic_defect,
+                b.torsion_residual, b.wilkinson_condition,
+                b.almost_complex_residual,
+            ]),
+        )
         if expected != env.chain_hash:
             raise EnvelopeChainViolationError(
                 f"Cadena FASE 2 corrupta: {expected} ≠ {env.chain_hash}.")
@@ -1152,8 +1279,7 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             return cached
         try:
             chol = la.cholesky(np.asarray(bundle.g_base, dtype=np.float64), lower=True)
-            l_inv = la.solve_triangular(chol, np.eye(d), lower=True)
-            return l_inv.T @ l_inv
+            return self._cholesky_inverse(chol)
         except la.LinAlgError as exc:
             raise ConformalSingularityError(
                 "Cholesky fallido en la fase de integración.") from exc
@@ -1279,37 +1405,116 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             raise GeodesicIntegrationError("Estado RK4 no finito.")
         return nxt
 
+    def _phase3_flow_jacobian(
+        self,
+        state: NDArray[np.float64],
+        g_base: NDArray[np.float64],
+        g_inv: NDArray[np.float64],
+        potential_v_fn: PotentialField,
+        initial_h0: float,
+    ) -> Optional[NDArray[np.float64]]:
+        r"""Jacobiano \(DF\) del campo \((v,a)\) por diferencias centradas 2º orden."""
+        n = int(state.size)
+        scale = max(1.0, float(la.norm(state)))
+        h = math.sqrt(_MACHINE_EPS) * scale
+        jac = np.zeros((n, n), dtype=np.float64)
+        try:
+            for i in range(n):
+                e_i = np.zeros(n, dtype=np.float64)
+                e_i[i] = h
+                fp = self._evaluate_geodesic_rhs(
+                    state + e_i, g_base, g_inv, potential_v_fn, initial_h0)
+                fm = self._evaluate_geodesic_rhs(
+                    state - e_i, g_base, g_inv, potential_v_fn, initial_h0)
+                jac[:, i] = (fp - fm) / (2.0 * h)
+        except GeodesicIntegrationError:
+            return None
+        if not np.all(np.isfinite(jac)):
+            return None
+        return jac
+
     # ══════════════════════════════════════════════════════════════════════════
     # MECÁNICA CELESTE DE POINCARÉ
     # ══════════════════════════════════════════════════════════════════════════
 
-    # ── Poincaré-Lindstedt (exhaustivo) ──────────────────────────────────────
     def solve_poincare_lindstedt_homological_eq(
         self,
         frequencies: NDArray[np.float64],
         perturbation_modes: NDArray[np.float64],
+        max_order: int = _KAM_MAX_ORDER,
     ) -> Tuple[NDArray[np.float64], float]:
         r"""
-        Resuelve la ecuación homológica $\{H_0,W\} = H_1 - \langle H_1\rangle$
-        para cada modo de Fourier $k\in[-K,K]^d\setminus\{0\}$:
-        $$W_k = \frac{H_{1,k}}{\omega\cdot k}.$$
-        Retorna `(amplitudes_W, residual_max)`.
-        """
-        d = frequencies.shape[0]
-        w_amplitudes = np.zeros_like(perturbation_modes, dtype=np.float64)
-        max_residual = 0.0
-        for idx, mode in enumerate(perturbation_modes):
-            k_vec = np.ones(d, dtype=np.float64) * (idx + 1)
-            dot_freq = float(np.dot(frequencies, k_vec))
-            if abs(dot_freq) < 1e-12:
-                w_amplitudes[idx] = 0.0
-            else:
-                w_amplitudes[idx] = float(mode) / dot_freq
-            res = abs(dot_freq * w_amplitudes[idx] - mode)
-            max_residual = max(max_residual, res)
-        return w_amplitudes, float(max_residual)
+        Ecuación homológica \(\{H_0,W\}=H_1-\langle H_1\rangle\):
+        \(W_k=H_{1,k}/(\omega\cdot k)\) para \(k\in\mathcal{K}\setminus\{0\}\).
 
-    # ── KAM/Bruno (exhaustivo sobre cubo de k) ───────────────────────────────
+        Si `perturbation_modes` es una serie temporal (len ≫ d), se toma su
+        FFT 1D y los divisores \(k\,\bar\omega\). En caso contrario se recorre
+        el retículo de KAM y se asignan modos cíclicamente.
+        Conserva la firma pública (frecuencias, modos) → (W, residual).
+        """
+        freqs = np.asarray(frequencies, dtype=np.float64).ravel()
+        modes = np.asarray(perturbation_modes, dtype=np.float64).ravel()
+        w_amp = np.zeros_like(modes)
+        max_residual = 0.0
+        if freqs.size == 0 or modes.size == 0:
+            return w_amp, 0.0
+
+        omega_bar = float(np.mean(np.abs(freqs))) + _HOM_DIVISOR_FLOOR
+        if modes.size >= 8:
+            spec = np.fft.rfft(modes)
+            for k_idx, coeff in enumerate(spec):
+                if k_idx == 0:
+                    w_amp[0] = 0.0
+                    continue
+                divisor = float(k_idx) * omega_bar
+                h1 = float(np.real(coeff) / max(modes.size, 1))
+                if k_idx < w_amp.size:
+                    w_amp[k_idx] = h1 / divisor if abs(divisor) > _HOM_DIVISOR_FLOOR else 0.0
+                    max_residual = max(max_residual, abs(divisor * w_amp[k_idx] - h1))
+            return w_amp, float(max_residual)
+
+        k_list = list(_iter_kam_wavevectors(int(freqs.size), max_order))
+        if not k_list:
+            return w_amp, 0.0
+        for idx, mode in enumerate(modes):
+            k_vec = k_list[idx % len(k_list)]
+            if k_vec.shape[0] != freqs.shape[0]:
+                k_use = np.zeros_like(freqs)
+                n_copy = min(k_vec.shape[0], freqs.shape[0])
+                k_use[:n_copy] = k_vec[:n_copy]
+            else:
+                k_use = k_vec
+            divisor = float(np.dot(freqs, k_use))
+            if abs(divisor) < _HOM_DIVISOR_FLOOR:
+                w_amp[idx] = 0.0
+                max_residual = max(max_residual, abs(float(mode)))
+            else:
+                w_amp[idx] = float(mode) / divisor
+                max_residual = max(max_residual, abs(divisor * w_amp[idx] - float(mode)))
+        return w_amp, float(max_residual)
+
+    def _phase3_lindstedt_certificate(
+        self,
+        frequencies: NDArray[np.float64],
+        h1_series: NDArray[np.float64],
+    ) -> LindstedtCertificate:
+        _w, residual = self.solve_poincare_lindstedt_homological_eq(frequencies, h1_series)
+        n_res = 0
+        div_min = float("inf")
+        omega_bar = float(np.mean(np.abs(frequencies))) + _HOM_DIVISOR_FLOOR
+        spec = np.fft.rfft(np.asarray(h1_series, dtype=np.float64).ravel()) if h1_series.size else np.zeros(1)
+        for k_idx in range(1, spec.size):
+            div = abs(float(k_idx) * omega_bar)
+            div_min = min(div_min, div)
+            if div < _HOM_DIVISOR_FLOOR:
+                n_res += 1
+        return LindstedtCertificate(
+            n_modes=int(spec.size),
+            n_resonant=int(n_res),
+            residual_max=float(residual),
+            divisor_min=float(div_min if math.isfinite(div_min) else 0.0),
+        )
+
     def check_kam_bruno_diophantine_condition(
         self,
         frequencies: NDArray[np.float64],
@@ -1317,17 +1522,20 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         max_order: int = _KAM_MAX_ORDER,
     ) -> bool:
         r"""
-        Verifica $|\omega_0\cdot k| \ge \gamma/\|k\|_1^\tau$ para todo
-        $k \in [-K, K]^d \setminus \{0\}$ con $\tau = d+1$.
+        \(|\omega\cdot k|\ge\gamma/\|k\|_1^\tau\) para todo \(k\in\mathcal{K}\setminus\{0\}\),
+        \(\tau=d+1\). El retículo \(\mathcal{K}\) es el cubo si \(d\le 4\) y de
+        soporte \(\le 2\) si \(d>4\).
         """
-        d = frequencies.shape[0]
+        freqs = np.asarray(frequencies, dtype=np.float64).ravel()
+        d = int(freqs.shape[0])
+        if d == 0:
+            return False
         tau = float(d) + _KAM_TAU_OFFSET
-        for k in product(range(-max_order, max_order + 1), repeat=d):
-            if all(ki == 0 for ki in k):
-                continue
-            k_vec = np.array(k, dtype=np.float64)
+        for k_vec in _iter_kam_wavevectors(d, max_order):
             k_norm_1 = float(np.sum(np.abs(k_vec)))
-            dot = abs(float(np.dot(frequencies, k_vec)))
+            if k_norm_1 <= 0.0:
+                continue
+            dot = abs(float(np.dot(freqs, k_vec)))
             bound = gamma / (k_norm_1 ** tau)
             if dot < bound:
                 return False
@@ -1339,21 +1547,22 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         gamma: float = _KAM_GAMMA,
         max_order: int = _KAM_MAX_ORDER,
     ) -> float:
-        r"""Devuelve $\min_k |\omega\cdot k|\cdot\|k\|_1^\tau/\gamma$."""
-        d = frequencies.shape[0]
+        r"""\(\min_k |\omega\cdot k|\cdot\|k\|_1^\tau/\gamma\)."""
+        freqs = np.asarray(frequencies, dtype=np.float64).ravel()
+        d = int(freqs.shape[0])
+        if d == 0:
+            return 0.0
         tau = float(d) + _KAM_TAU_OFFSET
-        worst = float('inf')
-        for k in product(range(-max_order, max_order + 1), repeat=d):
-            if all(ki == 0 for ki in k):
-                continue
-            k_vec = np.array(k, dtype=np.float64)
+        worst = float("inf")
+        for k_vec in _iter_kam_wavevectors(d, max_order):
             k_norm_1 = float(np.sum(np.abs(k_vec)))
-            dot = abs(float(np.dot(frequencies, k_vec)))
+            if k_norm_1 <= 0.0:
+                continue
+            dot = abs(float(np.dot(freqs, k_vec)))
             ratio = dot * (k_norm_1 ** tau) / max(gamma, 1e-15)
             worst = min(worst, ratio)
         return float(worst) if math.isfinite(worst) else 0.0
 
-    # ── Melnikov riguroso (integral sobre trayectoria) ───────────────────────
     def compute_melnikov_homoclinic_integral(
         self,
         trajectory: NDArray[np.float64],
@@ -1361,16 +1570,17 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         dt: float,
     ) -> float:
         r"""
-        Método legacy (compatibilidad). Para el cálculo riguroso ver
-        `_phase3_melnikov_from_trajectory`.
+        Legacy (firma preservada). Usa el proxy \(\int\sin(q\cdot v)\,dt\).
+        El cálculo físico vive en `_phase3_melnikov_from_trajectory`.
         """
         if trajectory.shape[0] < 2:
             return 0.0
-        s = 0.0
-        for i in range(trajectory.shape[0]):
+        acc = 0.0
+        n = min(trajectory.shape[0], velocities.shape[0])
+        for i in range(n):
             cross_term = float(np.sum(trajectory[i] * velocities[i]))
-            s += math.sin(cross_term) * dt
-        return float(s)
+            acc += math.sin(cross_term) * dt
+        return float(acc)
 
     def _phase3_melnikov_from_trajectory(
         self,
@@ -1381,88 +1591,185 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         dt: float,
     ) -> Tuple[float, float]:
         r"""
-        Integral homoclínica de Melnikov rigurosa:
-        $$M(\theta_0) = -\int \langle G\,v(t),\, \nabla V(q(t))\rangle\,dt,$$
-        equivalente a $\int \{H_{\text{cin}},V\}\,dt$ sobre la separatriz
-        numérica (poisson bracket cuántico con $\hbar=1$).
+        Integral de Melnikov-Poincaré con el corchete de Poisson canónico:
 
-        Retorna `(M, max|integrand|)`.
+        \[
+          \{T,V\}=-v\cdot\nabla V,\qquad
+          M=\int\{T,V\}\,dt=-\int v(t)\cdot\nabla V\bigl(q(t)\bigr)\,dt.
+        \]
+
+        (El peso \(Gv\) es \(p\cdot\nabla V\), incorrecto salvo \(G=I\).)
+        \(g_base\) se acepta por simetría de firma / diagnósticos futuros.
         """
-        if trajectory.shape[0] < 2:
+        del g_base
+        n = min(int(trajectory.shape[0]), int(velocities.shape[0]))
+        if n < 2:
             return 0.0, 0.0
-        M = 0.0
-        max_abs_integrand = 0.0
-        for i in range(trajectory.shape[0]):
-            q_i = trajectory[i]
-            v_i = velocities[i]
+        acc = 0.0
+        max_abs = 0.0
+        for i in range(n):
             try:
-                grad_v, _ = self._phase2_estimate_potential_gradient(q_i, potential_v_fn)
+                grad_v, _ = self._phase2_estimate_potential_gradient(
+                    trajectory[i], potential_v_fn)
             except Exception:
                 continue
-            integrand = -float((g_base @ v_i) @ grad_v)
-            max_abs_integrand = max(max_abs_integrand, abs(integrand))
-            M += integrand * dt
-        return float(M), float(max_abs_integrand)
+            integrand = -float(np.dot(velocities[i], grad_v))
+            max_abs = max(max_abs, abs(integrand))
+            acc += integrand * dt
+        return float(acc), float(max_abs)
 
-    # ── Sección de Poincaré ───────────────────────────────────────────────────
     def _phase3_poincare_section(
         self,
         trajectory: NDArray[np.float64],
         velocities: NDArray[np.float64],
+        *,
+        section_point: Optional[NDArray[np.float64]] = None,
+        section_normal: Optional[NDArray[np.float64]] = None,
+        dt: float = 0.005,
     ) -> PoincareSectionCertificate:
         r"""
-        Sección transversal de Poincaré: usa la primera coordenada $q_0(t)$
-        como observable. Cuenta "retornos" (cambios de signo de $\dot q_0$) y
-        mide la dispersión de los valores de $q_0$ en los cruces.
-        Baja dispersión ⇒ cuasi-periódico; alta ⇒ caótico.
+        Sección transversal \(\Sigma=\{n\cdot(q-q_\Sigma)=0\}\) con interpolación
+        lineal del cruce y filtro de orientación \(n\cdot v>0\).
         """
-        if trajectory.shape[0] < 3:
+        traj = np.asarray(trajectory, dtype=np.float64)
+        vel = np.asarray(velocities, dtype=np.float64)
+        if traj.ndim != 2 or traj.shape[0] < 3:
             return PoincareSectionCertificate(0, 0.0, True, ())
-        q0 = trajectory[:, 0]
-        dq0 = np.diff(q0)
-        crossings = np.where(np.sign(dq0[:-1]) != np.sign(dq0[1:]))[0]
-        if crossings.size < 2:
-            return PoincareSectionCertificate(int(crossings.size), 0.0, True, ())
-        returns = q0[crossings]
-        disp = float(np.std(returns) / max(np.mean(np.abs(returns)), 1e-15))
+
+        q0 = traj[0]
+        q_sigma = q0 if section_point is None else np.asarray(section_point, dtype=np.float64)
+        if section_normal is None:
+            if vel.shape[0] > 0 and float(la.norm(vel[0])) > 1e-15:
+                nrm = vel[0] / float(la.norm(vel[0]))
+            else:
+                delta = traj[1] - q0
+                nrm = delta / max(float(la.norm(delta)), 1e-15)
+        else:
+            nrm = np.asarray(section_normal, dtype=np.float64)
+            nrm = nrm / max(float(la.norm(nrm)), 1e-15)
+
+        signs = np.array([float(nrm @ (q - q_sigma)) for q in traj], dtype=np.float64)
+        crossings_q: List[NDArray[np.float64]] = []
+        crossings_t: List[float] = []
+        for k in range(len(signs) - 1):
+            if signs[k] == 0.0:
+                continue
+            if signs[k] * signs[k + 1] >= 0.0:
+                continue
+            denom = signs[k] - signs[k + 1]
+            alpha = signs[k] / denom if abs(denom) > _MACHINE_EPS else 0.0
+            if vel.shape[0] > k and float(nrm @ vel[k]) <= 0.0:
+                continue
+            crossings_q.append(traj[k] + alpha * (traj[k + 1] - traj[k]))
+            crossings_t.append((k + alpha) * dt)
+
+        n_cross = len(crossings_q)
+        if n_cross == 0:
+            return PoincareSectionCertificate(0, 0.0, True, ())
+
+        coords = np.array([float(q[0]) for q in crossings_q], dtype=np.float64)
+        disp = float(np.std(coords) / max(float(np.mean(np.abs(coords))), 1e-15)) if n_cross > 1 else 0.0
+        first_return = 0.0
+        close = 0
+        residual = 0.0
+        if n_cross >= 2:
+            first_return = float(crossings_t[1] - crossings_t[0])
+            residual = float(la.norm(crossings_q[1] - crossings_q[0]))
+            scale = max(float(la.norm(crossings_q[0])), 1e-15)
+            if residual / scale <= _CLOSE_RETURN_REL_TOL:
+                close += 1
+            for a, b in zip(crossings_q, crossings_q[1:]):
+                rel = float(la.norm(b - a)) / max(float(la.norm(a)), 1e-15)
+                if rel <= _CLOSE_RETURN_REL_TOL:
+                    close += 1
         return PoincareSectionCertificate(
-            n_crossings=int(crossings.size),
+            n_crossings=n_cross,
             return_dispersion=disp,
-            is_regular=bool(disp < 0.5),
-            returns=tuple(float(x) for x in returns),
+            is_regular=bool(disp < _POINCARE_DISP_REGULAR),
+            returns=tuple(float(x) for x in coords),
+            first_return_time=first_return,
+            close_returns=close,
+            return_residual=residual,
         )
 
-    # ── Floquet multiplicadores (monodromía numérica) ─────────────────────────
+    def _phase3_floquet_from_monodromy(
+        self,
+        monodromy: NDArray[np.float64],
+        period: float,
+        lyapunov: NDArray[np.float64],
+    ) -> FloquetCertificate:
+        r"""Multiplicadores \(\mu=\mathrm{eig}(W)\) o \(\mathrm{e}^{\lambda T}\) si hay QR."""
+        t_per = max(float(period), 1e-15)
+        try:
+            mu = la.eigvals(np.asarray(monodromy, dtype=np.complex128))
+            moduli = np.abs(mu)
+            unit_dev = float(np.max(np.abs(moduli - 1.0)))
+            dissipative = bool(np.max(moduli) <= 1.0 + _FLOQUET_UNIT_TOL)
+            exponents = np.log(np.maximum(moduli, 1e-30)) / t_per
+            rho = float(np.max(moduli))
+        except Exception:
+            mu = np.exp(np.asarray(lyapunov, dtype=np.complex128) * t_per)
+            moduli = np.abs(mu)
+            unit_dev = float(np.max(np.abs(moduli - 1.0))) if moduli.size else 0.0
+            dissipative = bool(np.max(moduli) <= 1.0 + _FLOQUET_UNIT_TOL) if moduli.size else True
+            exponents = np.asarray(lyapunov, dtype=np.float64)
+            rho = float(np.max(moduli)) if moduli.size else 1.0
+        lyap_max = float(np.max(lyapunov)) if lyapunov.size else float(np.max(exponents)) if exponents.size else 0.0
+        return FloquetCertificate(
+            multipliers=np.asarray(mu, dtype=np.complex128),
+            max_unit_deviation=unit_dev,
+            is_neutral=bool(unit_dev < _FLOQUET_UNIT_TOL),
+            is_dissipative_stable=dissipative,
+            exponents=np.asarray(exponents, dtype=np.float64),
+            spectral_radius=rho,
+            lyapunov_max=lyap_max,
+        )
+
     def _phase3_floquet_multipliers(
         self,
         generator_matrix: NDArray[np.float64],
         period: float,
     ) -> FloquetCertificate:
-        r"""
-        Multiplicadores de Floquet $\mu_k = \text{eig}(e^{A T})$ de la
-        monodromía aproximada por la exponencial del generador promedio:
-        - Sistema unitario: $|\mu_k| \approx 1$.
-        - Sistema disipativo: $|\mu_k| \le 1$.
-        """
+        r"""Legacy: \(\mu=\mathrm{eig}(\mathrm{e}^{A T})\). Preferir monodromía variacional."""
         try:
-            M_T = la.expm(np.asarray(generator_matrix, dtype=np.complex128) * period)
-            mu = la.eigvals(M_T)
+            m_t = la.expm(np.asarray(generator_matrix, dtype=np.complex128) * period)
+            mu = la.eigvals(m_t)
             moduli = np.abs(mu)
             unit_dev = float(np.max(np.abs(moduli - 1.0)))
             dissipative = bool(np.max(moduli) <= 1.0 + _FLOQUET_UNIT_TOL)
             exponents = np.log(np.maximum(moduli, 1e-30)) / max(period, 1e-15)
+            rho = float(np.max(moduli))
         except Exception:
             mu = np.array([1.0 + 0j])
-            unit_dev, dissipative, exponents = 0.0, True, np.array([0.0])
+            unit_dev, dissipative, exponents, rho = 0.0, True, np.array([0.0]), 1.0
         return FloquetCertificate(
             multipliers=mu,
             max_unit_deviation=unit_dev,
             is_neutral=bool(unit_dev < _FLOQUET_UNIT_TOL),
             is_dissipative_stable=dissipative,
-            exponents=exponents,
+            exponents=np.asarray(exponents, dtype=np.float64),
+            spectral_radius=rho,
+            lyapunov_max=float(np.max(exponents)) if np.size(exponents) else 0.0,
         )
 
-    # ── RSI³ (Data / Harness / Model) ────────────────────────────────────────
+    def _phase3_small_oscillation_frequencies(
+        self,
+        q: NDArray[np.float64],
+        g_inv: NDArray[np.float64],
+        potential_v_fn: PotentialField,
+    ) -> NDArray[np.float64]:
+        r"""Frecuencias elípticas \(\omega=\sqrt{\mathrm{eig}_+(G^{-1}\mathrm{Hess}\,V)}\)."""
+        try:
+            hess = self._phase2_hessian_v(q, potential_v_fn)
+            matrix = g_inv @ hess
+            evals = np.real(la.eigvals(matrix))
+            omega = np.sqrt(np.maximum(evals, 0.0))
+            if float(np.max(omega)) < 1e-12:
+                return np.zeros(0, dtype=np.float64)
+            return np.sort(omega)[::-1].astype(np.float64)
+        except Exception:
+            return np.zeros(0, dtype=np.float64)
+
     def _phase3_rsi3_audit(
         self,
         transit_time: float,
@@ -1471,79 +1778,73 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         v_end: NDArray[np.float64],
     ) -> Dict[str, float]:
         r"""
-        Certificación RSI³:
-          - S1 (Novikov): $v_{\text{Krull}}(T) = -\log(T/T_{\text{ref}}) \ge 0.10$.
-          - S2 (Harness): SPD de $G$ (ya certificado en FASE 2).
-          - S3 (Model): $d_{\text{FS}}(\hat v_s,\hat v_e) \le 10^{-4}$ rad.
+        RSI³:
+          S1 Novikov \(v_{\mathrm{Krull}}(T)=-\log(T/T_{\mathrm{ref}})\ge 0.10\).
+          S2 Harness: SPD de \(G\) (ya en FASE 1/2).
+          S3 Model: \(d_{\mathrm{FS}}(\hat v_s,\hat v_e)\le 10^{-4}\) rad.
         """
-        T = max(float(transit_time), _MACHINE_EPS)
-        v_krull = -math.log(T / max(1.0, _MACHINE_EPS))
-
-        # Fubini-Study entre direcciones (proyecta a ℂP^{d−1})
-        v_s = v_start.astype(np.complex128).flatten()
-        v_e = v_end.astype(np.complex128).flatten()
-        if np.linalg.norm(v_s) < 1e-15 or np.linalg.norm(v_e) < 1e-15:
+        del g_base
+        t_val = max(float(transit_time), _MACHINE_EPS)
+        v_krull = -math.log(t_val / max(1.0, _MACHINE_EPS))
+        v_s = np.asarray(v_start, dtype=np.complex128).ravel()
+        v_e = np.asarray(v_end, dtype=np.complex128).ravel()
+        n_s = float(np.linalg.norm(v_s))
+        n_e = float(np.linalg.norm(v_e))
+        if n_s < 1e-15 or n_e < 1e-15:
             d_fs = 0.0
         else:
             num = abs(np.vdot(v_s, v_e))
-            den = max(float(np.linalg.norm(v_s) * np.linalg.norm(v_e)), 1e-15)
-            d_fs = float(np.arccos(np.clip(num / den, 0.0, 1.0)))
-
+            d_fs = float(np.arccos(np.clip(num / (n_s * n_e), 0.0, 1.0)))
         return {
-            'novikov_krull_valuation': float(v_krull),
-            'fubini_study_distance': float(d_fs),
-            'rsi3_valid': float(v_krull >= _KRULL_NOVIKOV_FLOOR
-                                 and d_fs <= _FUBINI_STUDY_MAX),
+            "novikov_krull_valuation": float(v_krull),
+            "fubini_study_distance": float(d_fs),
+            "rsi3_valid": float(v_krull >= _KRULL_NOVIKOV_FLOOR and d_fs <= _FUBINI_STUDY_MAX),
         }
 
     # ══════════════════════════════════════════════════════════════════════════
-    # INTEGRACIÓN PRINCIPAL
+    # INTEGRACIÓN PRINCIPAL + PICARD RSI³
     # ══════════════════════════════════════════════════════════════════════════
-    def integrar_trayectoria_conforme(
+    def _phase3_rk4_rollout(
         self,
         bundle: ConformalGeometryBundle,
-        q_start: NDArray[np.float64],
-        v_start: NDArray[np.float64],
-        potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
-        t_max: float = 2.0,
-        dt: float = 0.005,
+        q0: NDArray[np.float64],
+        v0: NDArray[np.float64],
+        potential_v_fn: PotentialField,
+        t_max: float,
+        dt: float,
         *,
-        project_on_shell: bool = True,
-    ) -> BrachistochronePhysicalState:
-        r"""
-        Integra la geodésica conforme de Fermat-Jacobi y certifica Poincaré
-        (Lindstedt, KAM, Melnikov, sección, Floquet) + RSI³.
-        """
-        bundle, q0, v0, d = self._phase3_consume_phase2_certificate(
-            bundle, q_start, v_start)
-        self._assert_callable_potential(potential_v_fn)
-        self._assert_positive_scalar(t_max, "t_max")
-        self._assert_positive_scalar(dt, "dt")
+        project_on_shell: bool,
+        with_variational: bool,
+    ) -> Dict[str, Any]:
+        r"""Núcleo RK4 (+ monodromía Benettin opcional). No emite el DTO terminal."""
+        d = int(q0.shape[0])
+        g_base = np.asarray(bundle.g_base, dtype=np.float64)
+        initial_h0 = float(bundle.initial_h0)
+        g_inv = self._phase3_resolve_base_inverse(bundle)
+        v0, on_shell_res, projected = self._phase3_project_energy_shell(
+            q0, v0, g_base, potential_v_fn, initial_h0,
+            project_on_shell=project_on_shell)
 
         steps = max(1, int(math.floor(t_max / dt + 1.0e-12)))
         if steps > _MAX_INTEGRATION_STEPS:
             raise GeodesicIntegrationError(
                 f"Pasos {steps} exceden max={_MAX_INTEGRATION_STEPS}.")
 
-        g_base = np.asarray(bundle.g_base, dtype=np.float64)
-        initial_h0 = float(bundle.initial_h0)
-        g_inv = self._phase3_resolve_base_inverse(bundle)
-
-        v0, on_shell_res, projected = self._phase3_project_energy_shell(
-            q0, v0, g_base, potential_v_fn, initial_h0,
-            project_on_shell=project_on_shell)
-
         trajectory = np.zeros((steps, d), dtype=np.float64)
         velocities = np.zeros((steps, d), dtype=np.float64)
+        h1_series = np.zeros(steps, dtype=np.float64)
         state = np.concatenate([q0, v0])
         energy_drift_max = 0.0
         fermat_drift_max = 0.0
         transit_time_t = 0.0
         is_globally_stable = True
         last_index = 0
-
         e_f_0 = self._phase3_fermat_energy(q0, v0, g_base, potential_v_fn, initial_h0)
-        n_start = float(bundle.refractive_index)
+
+        dim_w = 2 * d
+        w_mat = np.eye(dim_w, dtype=np.float64)
+        log_norms = np.zeros(dim_w, dtype=np.float64)
+        n_renorm = 0
 
         for step in range(steps):
             q_curr = state[:d]
@@ -1551,11 +1852,9 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             trajectory[step] = q_curr
             velocities[step] = v_curr
             last_index = step
-
             if not np.all(np.isfinite(state)):
                 is_globally_stable = False
                 break
-
             try:
                 ham, val_v = self._phase3_physical_hamiltonian(
                     q_curr, v_curr, g_base, potential_v_fn)
@@ -1564,9 +1863,9 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             except (GeodesicIntegrationError, EnergyWellColapsoError, ArithmeticError):
                 is_globally_stable = False
                 break
-
             energy_drift_max = max(energy_drift_max, abs(ham - initial_h0))
             fermat_drift_max = max(fermat_drift_max, abs(e_f - e_f_0))
+            h1_series[step] = val_v
 
             v_quad = float(v_curr @ g_base @ v_curr)
             v_norm_g = math.sqrt(max(0.0, v_quad))
@@ -1576,6 +1875,18 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
                 break
             n_factor = 1.0 / math.sqrt(2.0 * gap)
             transit_time_t += n_factor * v_norm_g * dt
+
+            if with_variational:
+                jac = self._phase3_flow_jacobian(
+                    state, g_base, g_inv, potential_v_fn, initial_h0)
+                if jac is not None:
+                    w_mat = w_mat + dt * (jac @ w_mat)
+                    col_n = np.linalg.norm(w_mat, axis=0)
+                    if np.any(col_n > _BENETTIN_RENORM) or np.any(col_n < 1.0 / _BENETTIN_RENORM):
+                        q_f, r_f = np.linalg.qr(w_mat)
+                        log_norms += np.log(np.maximum(np.abs(np.diag(r_f)), _MACHINE_EPS))
+                        w_mat = q_f
+                        n_renorm += 1
 
             try:
                 state = self._phase3_rk4_step(
@@ -1590,74 +1901,154 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             is_globally_stable = False
 
         used = last_index + 1
-        traj_used = trajectory[:used]
-        vel_used = velocities[:used]
-
-        # ══ Mecánica celeste de Poincaré (exhaustiva) ══
-        # Frecuencias: derivadas del espectro de vᵀGv (proxy de acciones)
-        if used >= d and d > 0:
-            freqs = np.array(
-                [math.sqrt(max(0.01, float(v_i @ g_base @ v_i)))
-                 for v_i in vel_used[:d]])
+        t_aff = max(used * dt, _MACHINE_EPS)
+        if n_renorm == 0:
+            col_n = np.maximum(np.linalg.norm(w_mat, axis=0), _MACHINE_EPS)
+            lyap = np.log(col_n) / t_aff
         else:
-            freqs = np.ones(d, dtype=np.float64)
+            lyap = log_norms / t_aff
+
+        return {
+            "trajectory": trajectory[:used],
+            "velocities": velocities[:used],
+            "h1_series": h1_series[:used],
+            "transit_time_t": float(transit_time_t),
+            "energy_drift_max": float(energy_drift_max),
+            "fermat_drift_max": float(fermat_drift_max),
+            "is_globally_stable": bool(is_globally_stable),
+            "e_f_0": float(e_f_0),
+            "on_shell_res": float(on_shell_res),
+            "projected": bool(projected),
+            "affine_time": float(used * dt),
+            "steps": int(used),
+            "v0": v0,
+            "monodromy": w_mat,
+            "lyapunov": lyap,
+            "g_inv": g_inv,
+        }
+
+    def integrar_trayectoria_conforme(
+        self,
+        bundle: ConformalGeometryBundle,
+        q_start: NDArray[np.float64],
+        v_start: NDArray[np.float64],
+        potential_v_fn: Callable[[NDArray[np.complex128] | NDArray[np.float64]], Any],
+        t_max: float = 2.0,
+        dt: float = 0.005,
+        *,
+        project_on_shell: bool = True,
+    ) -> BrachistochronePhysicalState:
+        r"""
+        Integra la geodésica de Fermat y certifica Poincaré + RSI³.
+
+        Automejora de nivel 3: si \(\delta H\) o \(\delta E_F\) superan la cota
+        blanda, \(dt\leftarrow dt/2\) y se re-integra (Picard, máx. 3 veces).
+        """
+        bundle, q0, v0_in, d = self._phase3_consume_phase2_certificate(
+            bundle, q_start, v_start)
+        self._assert_callable_potential(potential_v_fn)
+        self._assert_positive_scalar(t_max, "t_max")
+        self._assert_positive_scalar(dt, "dt")
+
+        dt_work = float(dt)
+        roll: Dict[str, Any] = {}
+        refinements = 0
+        for r in range(_RSI3_MAX_REFINEMENTS + 1):
+            roll = self._phase3_rk4_rollout(
+                bundle, q0, v0_in, potential_v_fn, t_max, dt_work,
+                project_on_shell=project_on_shell,
+                with_variational=(r == 0 or r == _RSI3_MAX_REFINEMENTS),
+            )
+            refinements = r
+            soft_ok = (
+                float(roll["energy_drift_max"]) <= _ENERGY_DRIFT_SOFT_TOL
+                and float(roll["fermat_drift_max"]) <= _FERMAT_DRIFT_SOFT_TOL
+            )
+            if bool(roll["is_globally_stable"]) and soft_ok:
+                break
+            if not bool(roll["is_globally_stable"]) and float(roll["energy_drift_max"]) == 0.0:
+                break
+            dt_work = max(dt_work * _RSI3_DT_DECAY, 1.0e-6)
+
+        if refinements > 0 and "lyapunov" in roll:
+            roll_final = self._phase3_rk4_rollout(
+                bundle, q0, v0_in, potential_v_fn, t_max, dt_work,
+                project_on_shell=project_on_shell, with_variational=True)
+            roll_final["is_globally_stable"] = roll["is_globally_stable"] and roll_final["is_globally_stable"]
+            roll = roll_final
+
+        traj = np.asarray(roll["trajectory"], dtype=np.float64)
+        vel = np.asarray(roll["velocities"], dtype=np.float64)
+        g_base = np.asarray(bundle.g_base, dtype=np.float64)
+        g_inv = roll["g_inv"]
+        v0 = roll["v0"]
+        dt_eff = dt_work
+
+        freqs = self._phase3_small_oscillation_frequencies(q0, g_inv, potential_v_fn)
+        if freqs.size == 0:
+            if vel.shape[0] > 0:
+                proxy = math.sqrt(max(0.01, float(vel[0] @ g_base @ vel[0])))
+            else:
+                proxy = 1.0
+            freqs = np.full(d, proxy, dtype=np.float64)
+        elliptic_min = float(np.min(freqs)) if freqs.size else 0.0
 
         kam_ok = self.check_kam_bruno_diophantine_condition(freqs)
         kam_worst = self._phase3_kam_worst_ratio(freqs)
+        lindstedt = self._phase3_lindstedt_certificate(
+            freqs, np.asarray(roll["h1_series"], dtype=np.float64))
 
         melnikov_val, melnikov_max = self._phase3_melnikov_from_trajectory(
-            traj_used, vel_used, g_base, potential_v_fn, dt)
+            traj, vel, g_base, potential_v_fn, dt_eff)
+        poincare_sec = self._phase3_poincare_section(
+            traj, vel, section_point=q0, section_normal=v0, dt=dt_eff)
 
-        poincare_sec = self._phase3_poincare_section(traj_used, vel_used)
+        period = max(float(roll["transit_time_t"]), 1e-3)
+        floquet = self._phase3_floquet_from_monodromy(
+            np.asarray(roll["monodromy"], dtype=np.float64),
+            period,
+            np.asarray(roll["lyapunov"], dtype=np.float64),
+        )
 
-        # Generador aproximado para Floquet: -i (H₀ + perturbación) colapsado
-        # a un escalar por el período de tránsito
-        G_gen = np.diag(np.full(1, -1j * float(initial_h0), dtype=np.complex128))
-        period = max(transit_time_t, 1e-3)
-        floquet = self._phase3_floquet_multipliers(
-            np.array([[complex(initial_h0) * 1j]], dtype=np.complex128) * (-1.0),
-            period)
-
-        # RSI³
-        v_end_eff = vel_used[-1] if vel_used.shape[0] > 0 else v0
-        rsi3 = self._phase3_rsi3_audit(transit_time_t, g_base, v0, v_end_eff)
-
-        # Banach T³ (proxy)
+        v_end_eff = vel[-1] if vel.shape[0] > 0 else v0
+        rsi3 = self._phase3_rsi3_audit(float(roll["transit_time_t"]), g_base, v0, v_end_eff)
         lip_proxy = min(
             float(np.linalg.norm(v_end_eff - v0)) / max(float(np.linalg.norm(v0)), 1e-15),
             1.0)
         banach_t3 = float(lip_proxy ** 3)
 
-        # Régimen
+        is_globally_stable = bool(roll["is_globally_stable"])
+        lyap_max = float(floquet.lyapunov_max)
         if not is_globally_stable:
             regime = GeodesicRegime.HILL_WELL_VIOLATED
         elif abs(melnikov_val) > _MELNIKOV_TOL:
             regime = GeodesicRegime.MELNIKOV_CHAOTIC
+        elif lyap_max > _LYAPUNOV_HYPERBOLIC:
+            regime = GeodesicRegime.HYPERBOLIC_UNSTABLE
         elif kam_ok and poincare_sec.is_regular:
             regime = GeodesicRegime.KAM_TORUS_PRESERVED
         else:
             regime = GeodesicRegime.ELIPTIC_STABLE
 
         return BrachistochronePhysicalState(
-            trajectory=self._freeze_array(traj_used),
-            velocities=self._freeze_array(vel_used),
-            transit_time_t=float(transit_time_t),
-            energy_drift_max=float(energy_drift_max),
-            is_globally_stable=bool(is_globally_stable),
-            fermat_energy_initial=float(e_f_0),
-            fermat_energy_drift_max=float(fermat_drift_max),
-            affine_time=float(used * dt),
-            steps_accepted=int(used),
-            on_shell_residual=float(on_shell_res),
-            velocity_projected=bool(projected),
+            trajectory=self._freeze_array(traj),
+            velocities=self._freeze_array(vel),
+            transit_time_t=float(roll["transit_time_t"]),
+            energy_drift_max=float(roll["energy_drift_max"]),
+            is_globally_stable=is_globally_stable,
+            fermat_energy_initial=float(roll["e_f_0"]),
+            fermat_energy_drift_max=float(roll["fermat_drift_max"]),
+            affine_time=float(roll["affine_time"]),
+            steps_accepted=int(roll["steps"]),
+            on_shell_residual=float(roll["on_shell_res"]),
+            velocity_projected=bool(roll["projected"]),
             torsion_residual=float(bundle.torsion_residual),
             wilkinson_condition=float(bundle.wilkinson_condition),
-            refractive_index_start=n_start,
+            refractive_index_start=float(bundle.refractive_index),
             melnikov_value=float(melnikov_val),
             kam_condition_satisfied=bool(kam_ok),
             regime=regime,
             engine_version=__version__,
-            # v5.0.0
             kam_worst_ratio=float(kam_worst),
             melnikov_max_abs_integrand=float(melnikov_max),
             poincare_section_n_crossings=int(poincare_sec.n_crossings),
@@ -1665,10 +2056,16 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
             poincare_section_regular=bool(poincare_sec.is_regular),
             floquet_max_unit_deviation=float(floquet.max_unit_deviation),
             floquet_is_neutral=bool(floquet.is_neutral),
-            floquet_exponents=self._freeze_array(floquet.exponents),
+            floquet_exponents=self._freeze_array(np.asarray(floquet.exponents, dtype=np.float64)),
             banach_lipschitz_t3=float(banach_t3),
-            fubini_study_distance=float(rsi3['fubini_study_distance']),
-            novikov_krull_valuation=float(rsi3['novikov_krull_valuation']),
+            fubini_study_distance=float(rsi3["fubini_study_distance"]),
+            novikov_krull_valuation=float(rsi3["novikov_krull_valuation"]),
+            lindstedt_residual=float(lindstedt.residual_max),
+            rsi3_refinements=int(refinements),
+            jacobi_lyapunov_max=lyap_max,
+            monodromy_spectral_radius=float(floquet.spectral_radius),
+            elliptic_frequency_min=elliptic_min,
+            poincare_first_return_time=float(poincare_sec.first_return_time),
         )
 
     # ── CIERRE FASE 3 (governance) ────────────────────────────────────────────
@@ -1684,15 +2081,15 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
         r"""
         **Cierre formal de la FASE 3.**
 
-        Consume el `Phase2Envelope`, integra la geodésica con auditoría
-        Poincaré completa y emite `BrachistochronePhysicalState` como
-        certificado terminal.
+        Consume `Phase2Envelope`, integra con auditoría Poincaré/RSI³ y
+        emite `BrachistochronePhysicalState`.
         """
         b = phase2_env.bundle
+        d = int(b.g_base.shape[0])
+        q_s = b.phase1.q_start if b.phase1 is not None and b.phase1.q_start.size == d else np.zeros(d)
+        v_s = b.phase1.v_start if b.phase1 is not None and b.phase1.v_start.size == d else np.zeros(d)
         return self.integrar_trayectoria_conforme(
-            bundle=b,
-            q_start=b.phase1.q_start if b.phase1 is not None else np.zeros(b.g_base.shape[0]),
-            v_start=b.phase1.v_start if b.phase1 is not None else np.zeros(b.g_base.shape[0]),
+            bundle=b, q_start=q_s, v_start=v_s,
             potential_v_fn=potential_v_fn,
             t_max=t_max, dt=dt, project_on_shell=project_on_shell,
         )
@@ -1704,7 +2101,7 @@ class Phase3_FermatGeodesicSolver(Phase2_ConformalKoszulSuturator):
 
 class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
     r"""
-    Motor físico puro de la braquistócrona de Fermat-Jacobi.
+    Motor físico puro de la braquistócrona de Fermat.
 
     Orquesta las tres fases anidadas:
       FASE 1 (Observe)    → `emit_phase1_envelope` → `Phase1Envelope`
@@ -1713,8 +2110,7 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
       FASE 3 (Decide&Act) → `from_phase2_envelope` + `emit_governance_state`
                           → `BrachistochronePhysicalState`
 
-    La API pública `compute_brachistochrone_path(...)` se preserva con firma
-    y semántica idénticas a v4.0.0.
+    API pública `compute_brachistochrone_path(...)` idéntica a v4/v5.0.
     """
 
     def __init__(self) -> None:
@@ -1738,9 +2134,7 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
         project_on_shell: bool = True,
     ) -> BrachistochronePhysicalState:
         r"""
-        Ejecuta el pipeline completo de tres fases.
-
-        API idéntica a v4.0.0; internamente usa los envelopes anidados.
+        Pipeline completo de tres fases. Firma idéntica a v4.0.0 / v5.0.0.
         """
         self._assert_callable_potential(potential_v_fn)
         g = np.asarray(g_base, dtype=np.float64)
@@ -1751,21 +2145,14 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
         self._assert_vector(v0, g.shape[0], "v_start")
         self._assert_finite_scalar(float(initial_h0), "initial_h0")
 
-        # ══ FASE 1 ══
         env1 = self.emit_phase1_envelope(
             g_base=g, q_start=q0, v_start=v0,
             potential_v_fn=potential_v_fn, initial_h0=float(initial_h0))
-
-        # Re-apertura explícita (protocolo de fase anidada)
         _ = self.from_phase1_envelope(env1)
 
-        # ══ FASE 2 ══
         env2 = self.emit_phase2_envelope(env1, potential_v_fn=potential_v_fn)
-
-        # Re-apertura explícita
         _ = self.from_phase2_envelope(env2)
 
-        # ══ FASE 3 ══
         return self.emit_governance_state(
             env2, potential_v_fn=potential_v_fn,
             t_max=t_max, dt=dt, project_on_shell=project_on_shell)
@@ -1819,27 +2206,20 @@ class BrachistochronePathFinder(Morphism, Phase3_FermatGeodesicSolver):
 # EXPORTACIÓN CANÓNICA
 # ══════════════════════════════════════════════════════════════════════════════
 __all__ = [
-    # Enums
     "GeodesicRegime",
-    # Excepciones
     "BrachistochroneEngineError", "EnergyWellColapsoError",
     "ConformalSingularityError", "GeodesicIntegrationError",
     "KoszulChecksumError", "InitialKinematicsError",
     "SymplecticEmbeddingError", "EnvelopeChainViolationError",
-    # Protocolos
+    "KamBrunoViolationError", "MelnikovSplittingError",
     "PotentialField",
-    # DTOs FASE 1
     "ConformalPotentialDilation", "Phase1Envelope",
-    # DTOs FASE 2
     "ConformalGeometryBundle", "ConformalManifoldBundle", "Phase2Envelope",
-    # DTOs FASE 3
-    "PoincareSectionCertificate", "FloquetCertificate",
+    "PoincareSectionCertificate", "FloquetCertificate", "LindstedtCertificate",
     "BrachistochronePhysicalState",
-    # Clases por fase
     "Phase1_PotentialWellInquirer",
     "Phase2_ConformalKoszulSuturator",
     "Phase3_FermatGeodesicSolver",
-    # Orquestador
     "BrachistochronePathFinder",
     "__version__",
 ]
