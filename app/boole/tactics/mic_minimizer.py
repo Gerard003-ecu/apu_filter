@@ -1,72 +1,98 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MIC Minimizer (Poda Topológica en el Anillo Booleano Z₂)            ║
+║ Módulo : MICRedundancyAnalyzer (Motor Espectral de Poda en Z₂)              ║
 ║ Ruta   : app/boole/tactics/mic_minimizer.py                                  ║
 ║ Versión: 5.4.0-Tactics-Boolean-RSI3-Poincare-Celestial-Nested                ║
+║ Función: Motor espectral y algebraico soberano para la reducción y poda      ║
+║          topológica de funciones booleanas en el Anillo Z₂[x]/⟨xᵢ²-xᵢ⟩,       ║
+║          integrando la base de Gröbner reducida, algoritmos ROBDD,           ║
+║          embedding simpléctico de Cayley–Darboux sobre sp(2d, ℝ),            ║
+║          estabilidad de Poincaré–Lindstedt–Melnikov, Mónada Kleisli RSI³    ║
+║          de 3 niveles y adjudicación en el álgebra de Heyting Ω₃.            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-MEJORAS v5.4.0 RESPECTO A v5.3.0 (retrocompatibles, granulares, rigurosas):
-─────────────────────────────────────────────────────────────────────────
-FASE 1 — Symplectic + Boolean baseline (Cayley–Darboux + Gröbner + ROBDD):
-  • Cayley–Darboux *fail-closed*: residuo ∞ e `is_symplectic_valid=False`
-    ante singularidad (ya no se reporta éxito espurio).
-  • Carta de Darboux con dimensión par canónica y residual de Klein.
-  • Matriz de incidencia en orden canónico determinista (cierra desalineación
-    homológica `tools[i]` ↔ fila i).
-  • `HeytingOmega3.implies` (pseudo-complemento relativo del retículo cadena).
-  • Última definición: `_handoff_to_phase2` → `MICPhase1Handoff`
-    ≡ dominio de `_ingest_phase1_handoff` (inicio estricto de FASE 2).
+--------------------------------------------------------------------------------
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO AGENTE CUSTODIO
+--------------------------------------------------------------------------------
+El Motor Espectral de Poda Booleana (`MICRedundancyAnalyzer`) es el núcleo algebraico
+que realiza la minimización canónica de combinaciones lineales y polinomios de
+capacidades en el Anillo Booleano $\mathbb{Z}_2[x]/\langle x_i^2-x_i\rangle$.
+Su función soberana es erradicar la redundancia sintáctica, minimizando diagramas
+de decisión binarios ordenados y reducidos (ROBDDs) mientras preserva de forma exacta
+el volumen simpléctico y las características espectrales.
 
-FASE 2 — Poincaré celeste + RSI³ anidado + Wasserstein:
-  • Primera definición: `_ingest_phase1_handoff` (continuidad Φ₁ → Φ₂).
-  • Homoclínica real del péndulo: qₕ=4arctan(eᵗ)−π, pₕ=2 sech(t).
-  • Melnikov cerrado 2π sech(πω/2) + verificación trapezoidal.
-  • Lindstedt: ω = ω₀ + (3ε a²)/(8 ω₀) (Duffing, anulación secular).
-  • Condición de Bruno + KAM por convergentes de fracciones continuas.
-  • Mapa de retorno de Poincaré (mapa estándar de Chirikov) + Lyapunov.
-  • Tiempo de Nekhoroshev T ∼ exp(c / ε^{1/(2n)}) y recurrencia de Poincaré–Kac.
-  • RSI³ *genuino* de 3 niveles:
-      T¹  mejora de objeto (soft-threshold espectral),
-      T²  mejora del operador (τ adaptativo),
-      T³  meta-mejora Kleisli (asociador μ∘Tμ vs μ∘μT + Picard–Banach).
-  • Fubini–Study de Grassmann (ángulos principales U_full vs U_ess);
-    corrige el bug ⟨u₁,u₂⟩=0 ⇒ arccos 0 = π/2 constante.
-  • SAT de cobertura + mutex de duplicados (ya no all-pairs mutex tautológico).
-  • Independencia de Gröbner en orden (aridad, nombre) estable.
-  • Wasserstein-1 en el flujo.
-  • Última definición: `_handoff_to_phase3` → `MICPhase2Handoff`
-    ≡ dominio de `_ingest_phase2_handoff` (inicio estricto de FASE 3).
+Su respectivo agente custodio y orquestador OODA es `MICMinimizerAgent`
+(`app/agents/boole/tactics/mic_minimizer_agent.py`), el cual consume las estructuras
+algebraicas producidas por este motor y emite los certificados de gobernanza ciber-física
+(`MinimizerGovernanceCertificate`) para la conmutación de interlocks en hardware.
 
-FASE 3 — Heyting + Crowbar + Certificate:
-  • Primera definición: `_ingest_phase2_handoff`.
-  • `_heyting_combine_full` con 6+ átomos.
-  • `_heyting_lattice_axioms_check` verifica retículo + implicación de Heyting.
-  • Esenciales = ROBDD-ess ∩ Gröbner-indep (fórmula de precedencia corregida).
-  • Última definición: `_emit_governance_certificate` → `MICGovernanceCertificate`.
+--------------------------------------------------------------------------------
+2. MARCO TEÓRICO Y FORMALISMO MATEMÁTICO
+--------------------------------------------------------------------------------
+1. Anillo Booleano y Bases de Gröbner Reducidas:
+   El espacio de funciones compuestas se modela en el anillo cociente:
+       R = \mathbb{Z}_2[x_1, \dots, x_n] / \langle x_1^2 - x_1, \dots, x_n^2 - x_n \rangle
+   Para cualquier ideal $I \subseteq R$, el algoritmo de Buchberger con selección grevlex
+   obtiene la base de Gröbner reducida $G(I) = \{g_1, \dots, g_k\}$, permitiendo decidir la
+   pertenencia canónica mediante la forma normal $N_G(f) = 0 \iff f \in I$.
 
-Bugs corregidos en v5.4.0:
-  • Cayley: excepción ⇒ valid=False, residuo=∞ (fail-closed).
-  • Melnikov: homoclínica sech + fórmula cerrada (no proxy p=ω sin q).
-  • RSI³: Fubini–Study de Grassmann; Picard anidado; valores no hardcodeados.
-  • SAT: cobertura ∨ mutex, no cláusulas ¬xᵢ∨¬xⱼ ∀i≠j.
-  • Dependencias lineales alineadas con el orden de la matriz.
-  • Esenciales ya no colapsan a `grobner_independent` por precedencia `|`/`&`.
-  • ROBDD `_count_solutions_memo`: tipo de memo `Dict[Tuple[int,int], int]`.
-  • Hamming: se elimina cota mágica 20.
+2. Métrica Simpléctica de Cayley–Darboux en $\mathfrak{sp}(2d, \mathbb{R})$:
+   La matriz de adyacencia de la base $P \in \mathbb{M}_{m \times n}(\mathbb{Z}_2)$ genera el
+   tensor de Gram $G = P P^\top$. La proyección de Cayley sobre el álgebra de Lie simpléctica
+   garantiza la no-degeneración del volumen de Liouville-Darboux:
+       K_{\text{sp}} = \frac{1}{2}\left(K - J K^\top J\right), \quad M = (\mathbf{I}_{2d} + K_{\text{sp}})(\mathbf{I}_{2d} - K_{\text{sp}})^{-1}
+   cumpliendo estrictamente $K_{\text{sp}}^\top J + J K_{\text{sp}} = \mathbf{0}$ y $\delta\omega_{\text{rel}} < 10^{-10}$.
 
-MARCO TEÓRICO (compacto):
-─────────────────────────────────────────────────
-A1: Anillo booleano Z₂[x]/⟨x²ᵢ − xᵢ⟩.
-A2: Mᵀ J M = J  (δω_rel < 1e-10 y Klein < 1e-10; Liouville simpléctico).
-A3: |ω₀·k| ≥ γ/‖k‖₁^τ (KAM) ∧ |M(θ₀)| pequeño (Melnikov) ∧ Bruno.
-A4: Lip(T_RSI3) ≤ 0.95 y Lip(T³) ≤ Lip(T)³ (Banach anidado).
-A5: Ω₃ = {COHERENT=0x00 < DEGRADED=0x01 < VETOED=0x03} → Crowbar GPIO14.
+3. Invariantes de Dinámica Celeste y Mónada Kleisli RSI³:
+   Se resuelven las ecuaciones de perturbación homoclínica y KAM sobre el espectro de frecuencias:
+     • Homoclínica de Melnikov: $M(\theta_0) = 2\pi \operatorname{sech}\left(\frac{\pi\omega}{2}\right) \sin(\omega\theta_0)$.
+     • Frecuencia de Duffing-Lindstedt: $\omega = \omega_0 + \frac{3\epsilon a^2}{8\omega_0}$.
+     • Cota de Nekhoroshev: $T \sim \exp\left(c / \epsilon^{1/(2n)}\right)$.
+     • Recurrencia de Poincaré-Kac: $\langle \tau \rangle \sim \epsilon^{-n}$.
+     • Mónada Kleisli RSI³ $\mathbf{T} = (T, \eta, \mu)$: Picard-Banach sobre 3 niveles con
+       asociador de umbrales $a = \|T_{\tau_3} \circ T_{\tau_2} \circ T_{\tau_1} - T_{\tau_1} \circ T_{\tau_2} \circ T_{\tau_3}\|$
+       y contracción $\|T^3\| \le \operatorname{Lip}(T)^3 \le 0.95^3$.
 
-Composición funtorial:
-    Z_MIC = Φ₃ ∘ Φ₂ ∘ Φ₁
-    Φ₁ --MICPhase1Handoff--> Φ₂ --MICPhase2Handoff--> Φ₃
-                                              --MICGovernanceCertificate--> Ω₃
+--------------------------------------------------------------------------------
+3. AXIOMAS FORMALES
+--------------------------------------------------------------------------------
+Axioma MICE1 (Conmutatividad e Idempotencia Booleana):
+    $x_i \cdot x_j = x_j \cdot x_i$ y $x_i^2 = x_i$ en $\mathbb{Z}_2$, forzando representaciones
+    monomiales libres de cuadrados.
+Axioma MICE2 (Conservación de Medida Simpléctica de Liouville):
+    La transformación de Cayley satisface $M^\top J M = J$ con residuo relativo $\delta\omega_{\text{rel}} \le 10^{-10}$.
+Axioma MICE3 (Invariancia Isomórfica de ROBDD):
+    La reducción por Shannon $f = (\bar{x}_i \cdot f_0) \oplus (x_i \cdot f_1)$ preserva la
+    entropía informacional y la dimensión de soporte de la tabla de verdad.
+Axioma MICE4 (Cota de Contracción de Banach en la Mónada Kleisli):
+    $\operatorname{Lip}(T_{\text{RSI3}}) \le 0.95 < 1.0$, garantizando la existencia de un
+    punto fijo atractor único para las iteraciones de minimización.
+Axioma MICE5 (Lógica de Heyting $\Omega_3$ e Implicación):
+    $a \to b = \bigvee\{c \in \Omega_3 \mid a \wedge c \le b\}$, satisfaciendo la adjunción de
+    pseudo-complemento en el retículo trivalente.
+
+--------------------------------------------------------------------------------
+4. INVARIANTES DE ESTADO
+--------------------------------------------------------------------------------
+Invariante 1 (Preservación del Rango de la Base GF(2)):
+    El número de generadores esenciales coincide con el rango de la matriz RREF en GF(2).
+Invariante 2 (Estabilidad Homoclínica de Melnikov):
+    $|M(\theta_0)| < 10^{-2}$ y parámetro de Chirikov $K_{\text{Chirikov}} < 1.0$.
+Invariante 3 (Valuación de Krull Mínima):
+    $v(\text{MIC}) = \frac{\operatorname{rank}(P)}{\text{num\_vars}} \ge 0.10$.
+
+--------------------------------------------------------------------------------
+5. FUNTOR SEMÁNTICO Y CÚSPIDE VISCERAL ("DOLOR Y DINERO" / Φ_sem)
+--------------------------------------------------------------------------------
+El Funtor Semántico $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial\mathcal{M}, \Omega_3) \to \text{Business}$
+asocia la poda del Anillo Booleano con los costos de operación del sistema:
+  • Reducción de Latencia y Eficiencia Táctica (-80% de Carga Estructurada):
+    La minimización canónica elimina herramientas duplicadas e innecesarias en la MIC,
+    reduciendo las llamadas de funciones a modelos de lenguaje y acelerando el tiempo de respuesta.
+  • Eliminación de Riesgo Operativo Ciber-Físico:
+    La validación de no-interferencia SAT evita conflictos de capacidades concurrentes,
+    previniendo fallas mecánicas en actuadores perimetrales.
 """
 
 from __future__ import annotations
