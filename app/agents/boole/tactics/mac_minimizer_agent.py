@@ -1,212 +1,203 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MAC Minimizer Agent (Custodio de la Purificación Espectral)         ║
+║ Módulo : MAC Minimizer Agent v5.1.0 — Tres Fases Anidadas (OODA)             ║
 ║ Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                     ║
-║ Versión: 4.1.0 / 9.2.0 (Categorical-Topos-Spectral-Quantum-Poincare-RSI3-PhD) ║
+║ Fases  : ①Observe → ②Orient → ③Decide&Act  (bridges emit_*/bind_*/from_*)  ║
+║ Motor  : interoperable con app.boole.tactics.mac_minimizer v5.1.0            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL ──
-El Agente Soberano y Observador Activo `mac_minimizer_agent.py` ejerce la gobernanza
-del Funtor de Purificación Espectral y Reducción Cuántica en el Estrato de la
-Sabiduría ($\mathcal{V}_{\mathbb{W}}$, Nivel 0) de APU Filter v9.2.0. Custodia la
-Matriz Atómica de Conocimiento (MAC), representada por un operador de densidad mixta
-$$\rho \in \mathcal{D}(\mathcal{H}_{\text{MAC}}) = \{ \rho \in \mathcal{B}(\mathcal{H}) : \rho = \rho^\dagger, \, \rho \succeq \mathbf{0}, \, \operatorname{Tr}(\rho) = 1.0 \}$$
-sometiéndola a la composición funtorial covariante $\mathcal{Z}_{\text{MAC-Agent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$.
+ESTRUCTURA DE LAS TRES FASES ANIDADAS
+─────────────────────────────────────
+  FASE 1 — OBSERVE
+    Sanitización Kahan (ρ†=ρ, ρ⪰0, Tr ρ=1); Nielsen ρ_orig ≺ ρ_ε;
+    Cayley–Kähler + forma KKS; split Liouville–Arnold H=H₀+εH₁;
+    ecuación homológica de Poincaré–Lindstedt con divisores pequeños.
+    CIERRA con `emit_phase1_envelope` → `MACPhase1ObservationEnvelope`.
 
-Esta refactorización acopla las decisiones de gobernanza del soberano agéntico con la
-Mecánica Celeste de Henri Poincaré (proyección de Cayley-Kähler en $\mathfrak{sp}(2d, \mathbb{R})$,
-ecuación homológica de Poincaré-Lindstedt, filtro diofántico KAM/Bruno, integral homoclínica
-de Melnikov $M(\theta_0) = 0$ y solapamiento de Chirikov $K_{\text{Chirikov}} < 1.0$), la Mónada Kleisli
-RSI³ (Darwin-Gödel Nivel 3) sobre tres superficies de transformación, el preorden de majorización
-cuántica de Nielsen ($\rho_{\text{purified}} \prec \rho_{\text{orig}}$), la fidelidad de Uhlmann ($F \ge 0.95$),
-la cota de capacidad de Holevo, la adjudicación en Heyting $\Omega_3$ y el disparo perimetral del
-Interlock Ciber-Físico ESP32 Crowbar (< 400 ns @ GPIO14 / BT151).
+  FASE 2 — ORIENT
+    Se ABRE con `from_phase1_envelope` / `bind_phase1_envelope`.
+    Uhlmann F≥0.95, Bures, traza, Hellinger; KAM/Bruno sobre ω(H₀);
+    Chirikov, Melnikov, Floquet(ℒ_GKSL), sección de Poincaré,
+    Nekhoroshev, forma normal de Kolmogorov; mónada Kleisli RSI³
+    T=Φ_GKSL∘Π_ε (NO proyección pura).
+    CIERRA con `emit_phase2_envelope` → `MACPhase2OrientationEnvelope`.
 
-2. MARCO TEÓRICO ──────────────────────────────────────────────────────────────
-• Fase 1: Majorización de Nielsen & Cayley-Kähler en $\mathfrak{sp}(2d, \mathbb{R})$ (Observe)
-  Sanea y diagonaliza el operador de densidad $\rho$, evaluando la transformación simpléctica de Cayley:
-  $$K = (\rho - \mathbf{I}_d)(\rho + \mathbf{I}_d)^{-1} \in \mathfrak{sp}(2d, \mathbb{R}) \iff K^\top J + J K = \mathbf{0}$$
-  con residuo de Darboux $\delta\omega = \|\rho_{\text{sympl}}^\top J \rho_{\text{sympl}} - J\|_F < 10^{-15}$.
-  Verifica que el espectro purificado majorice strictly al original:
-  $$\rho_{\text{purified}} \prec \rho_{\text{orig}} \iff \sum_{i=1}^k \lambda_i(\rho_{\text{purified}}) \ge \sum_{i=1}^k \lambda_i(\rho_{\text{orig}}) \quad \forall k < d$$
+  FASE 3 — DECIDE & ACT
+    Se ABRE con `from_phase2_envelope` / `bind_phase2_envelope`.
+    Entropías vN/Rényi α∈{0,1,2,∞}; cota de Holevo χ≤S(ρ_ε);
+    Heyting Ω₃; GPIO14→BT151 @ t≤392.15 ns.
+    CIERRA con `emit_governance_state` → `PurificationGovernanceState`.
 
-• Fase 2: Uhlmann, Poincaré-Lindstedt & Mónada Kleisli RSI³ (Orient)
-  Certifica la preservación del núcleo de información midiendo la fidelidad de Uhlmann $F(\rho, \sigma) = (\operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}})^2 \ge 0.95$.
-  Elimina oscilaciones atencionales resolviendo $\{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^d}$ bajo la condición KAM/Bruno
-  $|\boldsymbol{\omega}_0 \cdot k| \ge \frac{\gamma}{\|k\|_1^\tau}$ y la ausencia de caos de Melnikov ($M(\theta_0) = 0, K_{\text{Chirikov}} < 1.0$).
-  Evalúa la Mónada Kleisli RSI³ sobre 3 superficies: Data-RSI ($v(\text{MAC}) \ge 0.10$ en $\Lambda_{\text{Nov}}$),
-  Harness-RSI (positividad de Kossakowski $K \succeq \mathbf{0}$) y Model-RSI ($d_{\text{FS}} \le 10^{-4}\text{ rad}$ en $\mathbb{C}P^{d-1}$),
-  garantizando la cota de contracción de Banach $L_\Phi = \operatorname{Lip}(T_{\text{RSI3}}) \le 0.95 \implies \frac{d^3C}{dt^3} > 0$.
-
-• Fase 3: Holevo, Adjudicación Heyting $\Omega_3$ & ESP32 Crowbar Interlock (Decide & Act)
-  Enfuerza la no inflación de entropía de von Neumann ($\Delta S \le 0$) y la capacidad de Holevo $\chi(\mathcal{E}) \le S(\mathcal{E}(\rho))$.
-  Adjudica el veredicto en el álgeba de Heyting trivalente $\Omega_3 = \{0x00 = \mathtt{COHERENT}, 0x01 = \mathtt{DEGRADED}, 0x03 = \mathtt{VETOED}\}$.
-  Si se detecta violación de majorización, colapso de Uhlmann o caos de Melnikov, el estado colapsa al valor absorbente $\top = \mathtt{VETOED} (0x03)$.
-  El Join monoidal procesa una instrucción SIMD `OR` (máscara `0x03`), activando la ISR en memoria IRAM del microcontrolador ESP32
-  en latencia determinista $t \le 392.15\text{ ns} < 400\text{ ns}$ ($\mathtt{GPIO14} \mapsto \mathtt{HIGH}$), conmutando el tiristor BT151 Crowbar.
-
-3. AXIOMAS FORMALES ───────────────────────────────────────────────────────────
-  [A1] Postulados de Dirac-von Neumann: $\rho = \rho^\dagger \succeq \mathbf{0} \quad \land \quad \operatorname{Tr}(\rho) = 1.0 \pmod{\varepsilon_{\text{machine}}}$.
-  [A2] Preorden de Majorización Cuántica de Nielsen: $\rho_{\text{purified}} \prec \rho_{\text{orig}} \iff \lambda(\rho_{\text{purified}}) \succ \lambda(\rho_{\text{orig}})$.
-  [A3] Preservación Simpléctica Cayley-Kähler: $K = (\rho-\mathbf{I})(\rho+\mathbf{I})^{-1} \in \mathfrak{sp}(2d, \mathbb{R}) \implies \delta\omega < 10^{-15}$.
-  [A4] Estabilidad Celeste KAM/Bruno y Melnikov Nulo: $|\boldsymbol{\omega}_0 \cdot k| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \land \quad M(\theta_0) = 0 \quad \land \quad K_{\text{Chirikov}} < 1.0$.
-  [A5] Mónada Kleisli RSI³ y Disparo ESP32 Crowbar: $\operatorname{Lip}(T_{\text{RSI3}}) \le 0.95 \implies \frac{d^3C}{dt^3} > 0$; $\Omega_3 \to \mathtt{GPIO14} \mapsto \mathtt{HIGH} \text{ @ } < 400\text{ ns}$.
-
-4. INVARIANTES DE ESTADO ───────────────────────────────────────────────────────
-  [I1] Fidelidad de Uhlmann: $F(\rho, \sigma) = (\operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}})^2 \ge 0.95$.
-  [I2] Distancia Geodésica de Bures: $d_{\text{Bures}}(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}} \le \tau_{\text{Bures}}$.
-  [I3] Segunda Ley Termodinámica Cuántica: $\Delta S = S(\rho_{\text{purified}}) - S(\rho_{\text{orig}}) \le 0$.
-  [I4] Cota Informacional de Holevo: $\chi(\mathcal{E}) \le S(\mathcal{E}(\rho)) - \sum p_i S(\mathcal{E}(\rho_i))$.
+INVARIANTES (se CERTIFICAN; el fallo físico no aborta el OODA: Ω₃ adjudica)
+  [A1] ρ=ρ†⪰0, Tr ρ=1 (mod ε_machine).
+  [A2] ρ_orig ≺ ρ_ε  (Nielsen: el purificado es más puro).
+  [A3] δω_KKS < 1e-8.
+  [A4] |ω·k|≥γ/‖k‖₁^τ; |M|<1e-10; K_Chirikov<1; |μ_Floquet|≤1+1e-6.
+  [A5] Lip_Bures(T)≤0.95; d³C/dt³≥0; Ω₃→GPIO14<400 ns.
+  [I1] F≥0.95.  [I2] d_Bures≤τ.  [I3] ΔS≤0.  [I4] χ≤S(ρ_ε).
 """
 
 from __future__ import annotations
 
-import cmath
+import hashlib
 import logging
 import math
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum, auto
-from typing import Any, Callable, Final, List, Optional, Protocol, Tuple
+from itertools import product
+from typing import Any, Dict, Final, List, Mapping, Optional, Protocol, Sequence, Tuple
 
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §0. DEPENDENCIAS ARQUITECTÓNICAS Y PROTOCOLOS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# §0.  DEPENDENCIAS, PROTOCOLOS, INTEROPERABILIDAD CON EL MOTOR v5.1
+# ══════════════════════════════════════════════════════════════════════════════
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
     from app.wisdom.atomic_knowledge_matrix import AtomicDensityMatrix
-except ImportError:
+except ImportError:  # pragma: no cover
 
     class TopologicalInvariantError(Exception):
-        r"""Violación a un invariante topológico categórico en el Topos E_MIC."""
-        pass
+        """Violación de invariante topológico en el Topos E_MIC."""
 
     class Morphism:
-        r"""Clase base de Morfismos del Topos."""
-        pass
+        """Base de morfismos (stub)."""
 
-    class AtomicDensityMatrix:
-        r"""Marcador estructural para compatibilidad sin dependencia externa."""
-        pass
+    class AtomicDensityMatrix:  # type: ignore[no-redef]
+        """Stub estructural."""
 
-
-logger = logging.getLogger("MAC.Wisdom.MinimizerAgent.v4.1")
+        def __init__(self, matrix: Any, **_: Any) -> None:
+            self.matrix = np.asarray(matrix, dtype=np.complex128)
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Protocolos de Tipo para Matrices Cuánticas
-# ─────────────────────────────────────────────────────────────────────────────
+try:
+    from app.boole.tactics.mac_minimizer import (  # noqa: F401
+        PoincareEnvelope as EnginePoincareEnvelope,
+        RSI3Envelope as EngineRSI3Envelope,
+    )
+    _ENGINE_AVAILABLE: Final[bool] = True
+except ImportError:  # pragma: no cover
+    _ENGINE_AVAILABLE = False
+    EnginePoincareEnvelope = None  # type: ignore[assignment]
+    EngineRSI3Envelope = None  # type: ignore[assignment]
+
+logger = logging.getLogger("MAC.Wisdom.MinimizerAgent.v5.1")
+
+__version__: Final[str] = "5.1.0"
+
+_trapezoid = getattr(np, "trapezoid", np.trapz)
+
+
 class QuantumStateProtocol(Protocol):
-    """Protocolo para estados cuánticos válidos."""
-    
     def is_hermitian(self) -> bool: ...
     def is_positive_semidefinite(self) -> bool: ...
     def trace(self) -> complex: ...
     def eigenvalues(self) -> NDArray[np.float64]: ...
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §A. CONSTANTES FÍSICAS Y LÍMITES CUÁNTICOS (RIGOR DOCTORAL)
-# ═══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# §A.  CONSTANTES
+# ══════════════════════════════════════════════════════════════════════════════
 _MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
-_PLANCK_REDUCED: Final[float] = 1.054571817e-34  # ℏ en J·s (SI)
-_BOLTZMANN_CONSTANT: Final[float] = 1.380649e-23  # k_B en J/K
-
-# Tolerancias cuánticas refinadas
 _UHLMANN_FIDELITY_MIN: Final[float] = 0.95
 _ENTROPY_TOLERANCE: Final[float] = 1e-12
 _MAJORIZATION_TOLERANCE: Final[float] = 1e-10
-_HERMITIAN_TOLERANCE: Final[float] = 1e-10
-_PSD_TOLERANCE: Final[float] = 1e-10
 _TRACE_TOLERANCE: Final[float] = 1e-10
 _FIDELITY_NUMERICAL_TOLERANCE: Final[float] = 1e-12
 _COHERENCE_TOLERANCE: Final[float] = 1e-14
-_ENTANGLEMENT_TOLERANCE: Final[float] = 1e-11
-_SYMPLECTIC_RESIDUE_TOLERANCE: Final[float] = 1e-15
+_SYMPLECTIC_RECON_TOLERANCE: Final[float] = 1e-8
 _CROWBAR_TIMING_LIMIT_NS: Final[float] = 400.0
+_CROWBAR_VETO_LATENCY_NS: Final[float] = 392.15
+_CROWBAR_NOMINAL_LATENCY_NS: Final[float] = 45.0
+_CROWBAR_DEGRADED_LATENCY_NS: Final[float] = 120.0
 
-# Factor de seguridad numérica adaptativo
+_KAM_GAMMA: Final[float] = 0.125
+_KAM_TAU_OFFSET: Final[float] = 1.0
+_KAM_MAX_ORDER: Final[int] = 3
+_DIOPHANTINE_MAX_DIM: Final[int] = 6
+_CHIRIKOV_CRITICAL: Final[float] = 1.0
+_MELNIKOV_TOL: Final[float] = 1e-10
+_FLOQUET_UNIT_TOL: Final[float] = 1e-6
+_POINCARE_SECTION_SAMPLES: Final[int] = 96
+
+_KRULL_MIN_VALUATION: Final[float] = 0.10
+_FUBINI_STUDY_MAX: Final[float] = 1e-4
+_BANACH_LIPSCHITZ_MAX: Final[float] = 0.95
+_RSI3_MAX_ITER: Final[int] = 32
+_RSI3_CHANNEL_DT: Final[float] = 1e-3
+
 _NUMERICAL_SAFETY_FACTOR: Final[float] = 128.0
 _SPECTRAL_CUTOFF_RATIO: Final[float] = 1e-15
-
-# Límites físicos de información cuántica
-_MAX_VON_NEUMANN_ENTROPY_PER_QUBIT: Final[float] = math.log(2.0)
-_MIN_QUANTUM_FIDELITY: Final[float] = 0.5
+_MIN_EIGENVALUE: Final[float] = 1e-15
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §B. JERARQUÍA DE EXCEPCIONES CUÁNTICAS (ENRIQUECIDA)
-# ═══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# §B.  EXCEPCIONES (reservadas a fallos de protocolo/numerics, no a Ω₃)
+# ══════════════════════════════════════════════════════════════════════════════
 class MACMinimizerAgentError(TopologicalInvariantError):
-    r"""Excepción raíz del Custodio de la Purificación Espectral."""
-    pass
+    ...
 
 
 class DensityMatrixValidationError(MACMinimizerAgentError):
-    r"""Detonada si una matriz de densidad viola axiomas cuánticos."""
-    pass
-
-
-class QuantumMajorizationViolation(MACMinimizerAgentError):
-    r"""Detonada si ρ_purificada no majoriza a ρ_orig."""
-    pass
-
-
-class UhlmannFidelityCollapseError(MACMinimizerAgentError):
-    r"""Detonada si F(ρ, σ) < F_min. Mutilación semántica detectada."""
-    pass
-
-
-class HolevoCapacityDeficitError(MACMinimizerAgentError):
-    r"""Detonada si ΔS > 0 o si la poda destruye capacidad semántica."""
-    pass
+    ...
 
 
 class SpectralDecompositionError(MACMinimizerAgentError):
-    r"""Detonada si la descomposición espectral falla numéricamente."""
-    pass
+    ...
 
 
-class QuantumCoherenceViolation(MACMinimizerAgentError):
-    r"""Detonada si la coherencia cuántica se degrada inaceptablemente."""
-    pass
+class EnvelopeChainViolationError(MACMinimizerAgentError):
+    ...
 
 
-class EntanglementStructureError(MACMinimizerAgentError):
-    r"""Detonada si la estructura de enredo se ve comprometida."""
-    pass
+class QuantumMajorizationViolation(MACMinimizerAgentError):
+    ...
+
+
+class UhlmannFidelityCollapseError(MACMinimizerAgentError):
+    ...
+
+
+class HolevoCapacityDeficitError(MACMinimizerAgentError):
+    ...
 
 
 class SymplecticDeriftError(MACMinimizerAgentError):
-    r"""Detonada si el embedding Cayley-Kähler sufre deriva simpléctica."""
-    pass
+    ...
 
 
 class PoincareResonanceError(MACMinimizerAgentError):
-    r"""Detonada si Melnikov M(theta_0) != 0 o Chirikov >= 1.0."""
-    pass
+    ...
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §C. ENUMERACIONES PARA MÉTRICAS Y GOBERNANZA
-# ═══════════════════════════════════════════════════════════════════════════════
+class RSI3ContractionFailureError(MACMinimizerAgentError):
+    ...
+
+
+class QuantumCoherenceViolation(MACMinimizerAgentError):
+    ...
+
+
+class EntanglementStructureError(MACMinimizerAgentError):
+    ...
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §C.  ENUMS
+# ══════════════════════════════════════════════════════════════════════════════
 class QuantumDistanceMetric(Enum):
-    """Métricas de distancia en el espacio de estados cuánticos."""
-    TRACE_DISTANCE = auto()          # D_tr(ρ, σ) = (1/2)‖ρ - σ‖₁
-    FIDELITY = auto()                # F(ρ, σ) = (Tr√(√ρ σ √ρ))²
-    BURES_DISTANCE = auto()          # D_B(ρ, σ) = √(2(1 - √F(ρ,σ)))
-    HELLINGER_DISTANCE = auto()      # D_H(ρ, σ) = √(1 - F(ρ,σ))
-    RELATIVE_ENTROPY = auto()        # S(ρ‖σ) = Tr(ρ(log ρ - log σ))
+    TRACE_DISTANCE = auto()
+    FIDELITY = auto()
+    BURES_DISTANCE = auto()
+    HELLINGER_DISTANCE = auto()
+    RELATIVE_ENTROPY = auto()
 
 
 class PurificationPhase(Enum):
-    """Fases del proceso de purificación espectral."""
     PHASE_1_MAJORIZATION = auto()
     PHASE_2_FIDELITY = auto()
     PHASE_3_HOLEVO = auto()
@@ -214,163 +205,33 @@ class PurificationPhase(Enum):
 
 
 class HeytingOmega3(Enum):
+    r"""
+    Retículo de Heyting lineal (Gödel–Dummett), top = VETOED:
+        COHERENT (0x00) < DEGRADED (0x01) < VETOED (0x03).
+    \(a\to b=\top\) si \(a\le b\), si no \(b\); \(\neg a=a\to\bot\).
     """
-    Álgebra de Heyting Trivalente para Gobernanza:
-    Ω₃ = {0x00 = COHERENT, 0x01 = DEGRADED, 0x03 = VETOED}
-    """
+
     COHERENT = 0x00
     DEGRADED = 0x01
     VETOED = 0x03
 
-    def join(self, other: 'HeytingOmega3') -> 'HeytingOmega3':
+    def join(self, other: "HeytingOmega3") -> "HeytingOmega3":
         return HeytingOmega3(max(self.value, other.value))
 
+    def meet(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        return HeytingOmega3(min(self.value, other.value))
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# §D. ESTRUCTURAS INMUTABLES ENRIQUECIDAS (DTOs del Espacio de Hilbert)
-# ═══════════════════════════════════════════════════════════════════════════════
-@dataclass(frozen=True, slots=True)
-class SpectralCharacteristics:
-    dimension: int
-    effective_rank: int
-    eigenvalues: NDArray[np.float64]
-    eigenvectors: NDArray[np.complex128]
-    condition_number: float
-    spectral_gap: float
-    spectral_entropy: float
-    participation_ratio: float
-    
-    def __post_init__(self) -> None:
-        if self.dimension <= 0:
-            raise ValueError("La dimensión debe ser positiva.")
-        if self.effective_rank > self.dimension:
-            raise ValueError("El rango efectivo no puede exceder la dimensión.")
-        if self.condition_number < 1.0:
-            raise ValueError("El número de condición debe ser ≥ 1.")
+    def implies(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        return HeytingOmega3.VETOED if self.value <= other.value else other
+
+    def negate(self) -> "HeytingOmega3":
+        return self.implies(HeytingOmega3.COHERENT)
 
 
-@dataclass(frozen=True, slots=True)
-class QuantumCoherenceMetrics:
-    l1_norm_coherence: float
-    relative_entropy_coherence: float
-    robustness_of_coherence: float
-    off_diagonal_mass: float
-    
-    def is_coherence_preserved(self, tolerance: float = _COHERENCE_TOLERANCE) -> bool:
-        return self.l1_norm_coherence >= -tolerance
-
-
-@dataclass(frozen=True, slots=True)
-class MajorizationAuditData:
-    r"""Artefacto de Fase 1: Certificado de majorización cuántica y proyección Cayley-Kähler."""
-    dimension: int
-    trace_original: float
-    trace_purified: float
-    min_eigenvalue_original: float
-    min_eigenvalue_purified: float
-    max_eigenvalue_original: float
-    max_eigenvalue_purified: float
-    max_lorenz_deviation: float
-    majorization_tolerance: float
-    is_majorized: bool
-    spectral_characteristics_original: SpectralCharacteristics
-    spectral_characteristics_purified: SpectralCharacteristics
-    renyi_entropy_original: float = field(default=0.0)
-    renyi_entropy_purified: float = field(default=0.0)
-    purity_original: float = field(default=0.0)
-    purity_purified: float = field(default=0.0)
-
-    # Invariantes Simplécticos Cayley-Kähler
-    symplectic_residue: float = field(default=0.0)
-    is_symplectic_valid: bool = field(default=True)
-
-
-@dataclass(frozen=True, slots=True)
-class FidelityAuditData:
-    r"""Artefacto de Fase 2: Certificado de Fidelidad de Uhlmann, Poincaré y Mónada RSI³."""
-    uhlmann_fidelity: float
-    fidelity_tolerance: float
-    fidelity_min_required: float
-    is_fidelity_preserved: bool
-    trace_distance: float = field(default=0.0)
-    bures_distance: float = field(default=0.0)
-    hellinger_distance: float = field(default=0.0)
-    coherence_metrics_original: Optional[QuantumCoherenceMetrics] = field(default=None)
-    coherence_metrics_purified: Optional[QuantumCoherenceMetrics] = field(default=None)
-
-    # Invariantes Celestes de Poincaré, Melnikov y Chirikov
-    diophantine_satisfied: bool = field(default=True)
-    chirikov_parameter: float = field(default=0.0)
-    melnikov_integral: float = field(default=0.0)
-    is_kam_stable: bool = field(default=True)
-
-    # Invariantes Mónada Kleisli RSI³
-    krull_valuation: float = field(default=0.12)
-    fubini_study_distance: float = field(default=1e-5)
-    lipschitz_constant: float = field(default=0.85)
-    capacity_acceleration: float = field(default=1.25)
-    is_rsi3_valid: bool = field(default=True)
-    
-    def __post_init__(self) -> None:
-        if not (0.0 <= self.uhlmann_fidelity <= 1.0 + _FIDELITY_NUMERICAL_TOLERANCE):
-            raise ValueError(f"Fidelidad fuera de rango físico: {self.uhlmann_fidelity}")
-
-
-@dataclass(frozen=True, slots=True)
-class HolevoAuditData:
-    r"""Artefacto de Fase 3: Certificado Termodinámico de von Neumann, Heyting Ω₃ e Interlock ESP32 Crowbar."""
-    entropy_original: float
-    entropy_purified: float
-    entropy_delta: float
-    entropy_tolerance: float
-    is_capacity_preserved: bool
-    renyi_2_entropy_original: float = field(default=0.0)
-    renyi_2_entropy_purified: float = field(default=0.0)
-    renyi_inf_entropy_original: float = field(default=0.0)
-    renyi_inf_entropy_purified: float = field(default=0.0)
-    holevo_capacity_bound: float = field(default=0.0)
-    accessible_information: float = field(default=0.0)
-    free_energy_change: float = field(default=0.0)
-
-    # Invariantes Heyting Ω₃ y Disparo Ciber-Físico ESP32 Crowbar
-    heyting_verdict: str = field(default="COHERENT")
-    heyting_code: int = field(default=0x00)
-    hardware_crowbar_action: str = field(default="NOMINAL_EXECUTION")
-    interlock_latency_ns: float = field(default=45.0)
-    
-    def satisfies_second_law(self, allow_reversible: bool = True) -> bool:
-        if allow_reversible:
-            return True
-        return self.entropy_delta >= -self.entropy_tolerance
-
-
-@dataclass(frozen=True, slots=True)
-class PurificationGovernanceState:
-    r"""Objeto final del endofuntor Z_MAC-Agent."""
-    majorization_audit: MajorizationAuditData
-    fidelity_audit: FidelityAuditData
-    holevo_audit: HolevoAuditData
-    is_epistemologically_valid: bool
-    purification_phase: PurificationPhase = field(default=PurificationPhase.COMPLETE)
-    timestamp: Optional[float] = field(default=None)
-    overall_quality_score: float = field(default=0.0)
-    risk_assessment: str = field(default="NOMINAL")
-    
-    def __post_init__(self) -> None:
-        if self.is_epistemologically_valid:
-            if not self.majorization_audit.is_majorized:
-                raise ValueError("Inconsistencia: majorización no certificada.")
-            if not self.fidelity_audit.is_fidelity_preserved:
-                raise ValueError("Inconsistencia: fidelidad no preservada.")
-            if not self.holevo_audit.is_capacity_preserved:
-                raise ValueError("Inconsistencia: capacidad no preservada.")
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# §E. GUARDAS NUMÉRICAS ENRIQUECIDAS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# §D.  GUARDAS NUMÉRICAS
+# ══════════════════════════════════════════════════════════════════════════════
 class _AdvancedNumericalGuard:
-
     @staticmethod
     def _kahan_sum(values: NDArray[np.float64]) -> float:
         if values.size == 0:
@@ -385,54 +246,192 @@ class _AdvancedNumericalGuard:
         return s
 
     @staticmethod
-    def _check_orthonormality(vectors: NDArray[np.complex128], tolerance: Optional[float] = None) -> Tuple[bool, float]:
-        if tolerance is None:
-            tolerance = _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
-        n_vectors = vectors.shape[1] if vectors.ndim > 1 else 1
-        if n_vectors == 1:
-            norm = float(la.norm(vectors))
-            deviation = abs(norm - 1.0)
-            return deviation <= tolerance, deviation
-        gram_matrix = vectors.conj().T @ vectors
-        identity = np.eye(n_vectors, dtype=np.complex128)
-        max_deviation = float(la.norm(gram_matrix - identity, ord='fro'))
-        return max_deviation <= tolerance, max_deviation
+    def _hermitize(m: NDArray[np.complex128]) -> NDArray[np.complex128]:
+        return 0.5 * (m + m.conj().T)
 
     @staticmethod
-    def _as_finite_complex_matrix(name: str, value: Any, *, square: bool = False) -> NDArray[np.complex128]:
+    def _check_orthonormality(
+        vectors: NDArray[np.complex128],
+        tolerance: Optional[float] = None,
+    ) -> Tuple[bool, float]:
+        tol = (
+            _NUMERICAL_SAFETY_FACTOR * _MACHINE_EPSILON
+            if tolerance is None
+            else float(tolerance)
+        )
+        n_vec = vectors.shape[1] if vectors.ndim > 1 else 1
+        if n_vec == 1:
+            dev = abs(float(la.norm(vectors)) - 1.0)
+            return dev <= tol, dev
+        dev = float(la.norm(vectors.conj().T @ vectors - np.eye(n_vec), ord="fro"))
+        return dev <= tol, dev
+
+    @staticmethod
+    def _as_finite_complex_matrix(
+        name: str,
+        value: Any,
+        *,
+        square: bool = False,
+    ) -> NDArray[np.complex128]:
         try:
             arr = np.asarray(value, dtype=np.complex128)
         except Exception as exc:
-            raise TypeError(f"{name} debe ser una matriz numérica compleja.") from exc
-
-        if not np.all(np.isfinite(arr)) or arr.ndim != 2:
+            raise TypeError(f"{name} debe ser matriz compleja.") from exc
+        if arr.ndim != 2 or not np.all(np.isfinite(arr)):
             raise ValueError(f"{name} debe ser matriz 2D finita.")
         if square and arr.shape[0] != arr.shape[1]:
             raise ValueError(f"{name} debe ser cuadrada.")
         return arr
 
     @staticmethod
-    def _as_finite_real_vector(name: str, value: Any, *, positive: bool = False, normalized: bool = False) -> NDArray[np.float64]:
+    def _as_finite_real_vector(
+        name: str,
+        value: Any,
+        *,
+        positive: bool = False,
+        normalized: bool = False,
+    ) -> NDArray[np.float64]:
         raw = np.asarray(value)
         if np.iscomplexobj(raw):
             raw = np.real(raw)
         arr = raw.astype(np.float64, copy=False).flatten()
         if not np.all(np.isfinite(arr)):
-            raise ValueError(f"{name} contiene valores NaN o infinitos.")
+            raise ValueError(f"{name} contiene NaN/inf.")
         if positive:
             arr = np.clip(arr, 0.0, None)
         if normalized:
-            total = float(np.sum(arr))
-            if total <= _MACHINE_EPSILON:
-                raise ValueError(f"{name} tiene masa nula.")
-            arr = arr / total
+            tot = float(np.sum(arr))
+            if tot <= _MACHINE_EPSILON:
+                raise ValueError(f"{name} masa nula.")
+            arr = arr / tot
         return arr
 
+    @staticmethod
+    def _matrix_of(obj: Any) -> NDArray[np.complex128]:
+        if hasattr(obj, "matrix"):
+            return np.asarray(obj.matrix, dtype=np.complex128)
+        return np.asarray(obj, dtype=np.complex128)
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 1: AUDITORÍA DEL PREORDEN DE MAJORIZACIÓN Y CAYLEY-KÄHLER           ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+
+def _hash_state(*arrays: NDArray[Any]) -> str:
+    h = hashlib.sha256()
+    for a in arrays:
+        h.update(np.ascontiguousarray(a).tobytes())
+    return h.hexdigest()[:16]
+
+
+def _reconstruct_from_spectral(evals: NDArray[np.float64], evecs: NDArray[np.complex128]) -> NDArray[np.complex128]:
+    """ρ = V diag(λ) V†  (columnas de V = autovectores)."""
+    return (evecs * np.asarray(evals, dtype=np.float64)) @ evecs.conj().T
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# §E.  DATACLASSES COMUNES
+# ══════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True, slots=True)
+class SpectralCharacteristics:
+    dimension: int
+    effective_rank: int
+    eigenvalues: NDArray[np.float64]
+    eigenvectors: NDArray[np.complex128]
+    condition_number: float
+    spectral_gap: float
+    spectral_entropy: float
+    participation_ratio: float
+
+    def __post_init__(self) -> None:
+        if self.dimension <= 0:
+            raise ValueError("Dimensión debe ser positiva.")
+        if self.effective_rank > self.dimension:
+            raise ValueError("Rango efectivo > dimensión.")
+        if self.condition_number < 1.0 - 1e-12:
+            raise ValueError("Número de condición debe ser ≥ 1.")
+
+
+@dataclass(frozen=True, slots=True)
+class QuantumCoherenceMetrics:
+    l1_norm_coherence: float
+    relative_entropy_coherence: float
+    robustness_of_coherence: float
+    off_diagonal_mass: float
+
+    def is_coherence_preserved(self, tol: float = _COHERENCE_TOLERANCE) -> bool:
+        return self.l1_norm_coherence >= -tol
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  FASE 1 : OBSERVE
+#  Nielsen, Cayley–Kähler/KKS, split Liouville–Arnold, Poincaré–Lindstedt
+#  Cierre: emit_phase1_envelope → MACPhase1ObservationEnvelope
+# ══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class MajorizationAuditData:
+    """Artefacto F1: Nielsen + Cayley–Kähler/KKS."""
+
+    dimension: int
+    trace_original: float
+    trace_purified: float
+    min_eigenvalue_original: float
+    min_eigenvalue_purified: float
+    max_eigenvalue_original: float
+    max_eigenvalue_purified: float
+    max_lorenz_deviation: float
+    majorization_tolerance: float
+    is_majorized: bool
+    spectral_characteristics_original: SpectralCharacteristics
+    spectral_characteristics_purified: SpectralCharacteristics
+    renyi_entropy_original: float = 0.0
+    renyi_entropy_purified: float = 0.0
+    purity_original: float = 0.0
+    purity_purified: float = 0.0
+    symplectic_residue: float = 0.0
+    symplectic_defect: float = 0.0
+    kks_min_pairing: float = 0.0
+    is_symplectic_valid: bool = True
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareLindstedtSolution:
+    r"""Solución de \(\{H_0,W\}_q=H_1-\langle H_1\rangle_{\mathbb{T}^d}\)."""
+
+    W: NDArray[np.complex128]
+    min_resonance_gap: float
+    residual_norm: float
+    is_resonant: bool
+    n_resonant_modes: int
+    is_solved: bool
+
+
+@dataclass(frozen=True, slots=True)
+class MACPhase1ObservationEnvelope:
+    r"""
+    Contrato F1→F2. Distingue acciones \(I_k=\lambda_k(\rho)\) de
+    frecuencias \(\omega_k=E_k(H_0)\) y entrega el split integrable.
+    """
+
+    rho_original: NDArray[np.complex128]
+    rho_purified: NDArray[np.complex128]
+    majorization_audit: MajorizationAuditData
+    poincare_lindstedt: Optional[PoincareLindstedtSolution]
+    hamiltonian_H0: NDArray[np.complex128]
+    hamiltonian_H1: NDArray[np.complex128]
+    actions: NDArray[np.float64]
+    frequencies: NDArray[np.float64]
+    eigenbasis: NDArray[np.complex128]
+    jump_operators: Tuple[Tuple[float, NDArray[np.complex128]], ...]
+    engine_envelope: Optional[Any]
+    origin_timestamp_ns: float
+    chain_hash: str
+
+
 class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
+    """FASE 1 — Observe: espectro, Nielsen, KKS, Lindstedt."""
+
+    def __init__(self) -> None:
+        self._phase1_envelope: Optional[MACPhase1ObservationEnvelope] = None
+        self._phase2_envelope: Optional[MACPhase2OrientationEnvelope] = None
+        self._strict_invariants: bool = False
 
     def _compute_spectral_characteristics(
         self,
@@ -440,28 +439,35 @@ class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
         eigenvalues: NDArray[np.float64],
         eigenvectors: NDArray[np.complex128],
     ) -> SpectralCharacteristics:
-        eigenvalues = self._as_finite_real_vector(f"{name}_eigenvalues", eigenvalues, positive=True)
-        dimension = eigenvalues.size
-        spectral_cutoff = _SPECTRAL_CUTOFF_RATIO * float(np.max(eigenvalues))
-        effective_rank = int(np.sum(eigenvalues > spectral_cutoff))
-        lambda_max = float(np.max(eigenvalues))
-        lambda_min_nonzero = float(np.min(eigenvalues[eigenvalues > spectral_cutoff])) if effective_rank > 0 else lambda_max
-        condition_number = (lambda_max / lambda_min_nonzero) if lambda_min_nonzero > 0 else float('inf')
-        
-        sorted_evals = np.sort(eigenvalues)[::-1]
-        gaps = np.abs(np.diff(sorted_evals))
-        gaps_sig = gaps[gaps > spectral_cutoff]
-        spectral_gap = float(np.min(gaps_sig)) if gaps_sig.size > 0 else 0.0
-        
-        prob_eigs = eigenvalues / (float(np.sum(eigenvalues)) + _MACHINE_EPSILON)
-        prob_eigs = prob_eigs[prob_eigs > _MACHINE_EPSILON]
-        spectral_entropy = float(-np.sum(prob_eigs * np.log(prob_eigs))) if prob_eigs.size > 0 else 0.0
-        participation_ratio = 1.0 / float(np.sum(eigenvalues**2)) if np.sum(eigenvalues**2) > _MACHINE_EPSILON else 1.0
-
+        eigenvalues = self._as_finite_real_vector(
+            f"{name}_eigenvalues", eigenvalues, positive=True
+        )
+        dim = int(eigenvalues.size)
+        cutoff = _SPECTRAL_CUTOFF_RATIO * float(np.max(eigenvalues)) if dim else 0.0
+        rank = int(np.sum(eigenvalues > cutoff))
+        lmax = float(np.max(eigenvalues)) if dim else 1.0
+        nz = eigenvalues[eigenvalues > cutoff]
+        lmin_nz = float(np.min(nz)) if nz.size else lmax
+        cond = (lmax / lmin_nz) if lmin_nz > 0.0 else float("inf")
+        sorted_e = np.sort(eigenvalues)[::-1]
+        gaps = np.abs(np.diff(sorted_e))
+        gaps = gaps[gaps > cutoff]
+        spectral_gap = float(np.min(gaps)) if gaps.size else 0.0
+        tot = float(np.sum(eigenvalues)) + _MACHINE_EPSILON
+        p = eigenvalues / tot
+        p = p[p > _MACHINE_EPSILON]
+        spectral_entropy = float(-np.sum(p * np.log(p))) if p.size else 0.0
+        s2 = float(np.sum(eigenvalues ** 2))
+        pr = 1.0 / s2 if s2 > _MACHINE_EPSILON else 1.0
         return SpectralCharacteristics(
-            dimension=dimension, effective_rank=effective_rank, eigenvalues=eigenvalues,
-            eigenvectors=eigenvectors, condition_number=condition_number, spectral_gap=spectral_gap,
-            spectral_entropy=spectral_entropy, participation_ratio=participation_ratio
+            dimension=dim,
+            effective_rank=rank,
+            eigenvalues=eigenvalues,
+            eigenvectors=np.asarray(eigenvectors, dtype=np.complex128),
+            condition_number=float(cond),
+            spectral_gap=spectral_gap,
+            spectral_entropy=spectral_entropy,
+            participation_ratio=pr,
         )
 
     def _sanitize_density_matrix(
@@ -470,23 +476,23 @@ class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
         rho: NDArray[np.complex128],
     ) -> Tuple[NDArray[np.complex128], NDArray[np.float64], float, float, SpectralCharacteristics]:
         arr = self._as_finite_complex_matrix(name, rho, square=True)
-        rho_hermitian = (arr + arr.conj().T) / 2.0
-        trace_real = float(np.real(np.trace(rho_hermitian)))
-        if trace_real <= _TRACE_TOLERANCE:
-            raise DensityMatrixValidationError(f"La traza de {name} no es positiva.")
-        if abs(trace_real - 1.0) > _TRACE_TOLERANCE:
-            rho_hermitian = rho_hermitian / trace_real
-
-        eigenvalues, eigenvectors = np.linalg.eigh(rho_hermitian)
-        eigenvalues = np.clip(np.asarray(eigenvalues, dtype=np.float64), 0.0, None)
-        eigen_sum = float(np.sum(eigenvalues))
-        eigenvalues_normalized = eigenvalues / eigen_sum
-
-        rho_sanitized = (eigenvectors * eigenvalues_normalized) @ eigenvectors.conj().T
-        rho_sanitized = (rho_sanitized + rho_sanitized.conj().T) / 2.0
-        spectral_chars = self._compute_spectral_characteristics(name, eigenvalues_normalized, eigenvectors)
-
-        return rho_sanitized, eigenvalues_normalized, trace_real, float(np.min(eigenvalues)), spectral_chars
+        rho_h = self._hermitize(arr)
+        tr = float(np.real(np.trace(rho_h)))
+        if tr <= _TRACE_TOLERANCE:
+            raise DensityMatrixValidationError(f"Traza no positiva de {name}: {tr:.3e}")
+        if abs(tr - 1.0) > _TRACE_TOLERANCE:
+            rho_h = rho_h / tr
+        try:
+            ev, vec = la.eigh(rho_h)
+        except la.LinAlgError as exc:
+            raise SpectralDecompositionError(f"eigh falló en {name}: {exc}") from exc
+        ev = np.clip(np.real(np.asarray(ev, dtype=np.float64)), 0.0, None)
+        s = float(np.sum(ev))
+        if s <= _MACHINE_EPSILON:
+            raise DensityMatrixValidationError(f"Espectro nulo en {name}.")
+        ev = ev / s
+        rho_san = self._hermitize((vec * ev) @ vec.conj().T)
+        return rho_san, ev, tr, float(np.min(ev)), self._compute_spectral_characteristics(name, ev, vec)
 
     def _eval_nielsen_majorization_preorder(
         self,
@@ -494,45 +500,166 @@ class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
         spectrum_purified: NDArray[np.float64],
     ) -> Tuple[bool, float, NDArray[np.float64]]:
         r"""
-        Evalúa la condición de Nielsen: \rho_{purified} \prec \rho_{orig}.
-        Curvas de Lorenz: L(k) = \sum_{i=1}^k \lambda_i^\downarrow.
+        \(\rho_{\mathrm{orig}}\prec\rho_\varepsilon\) (el purificado es más puro):
+
+        \[
+          \sum_{i=1}^{k}\lambda^\downarrow_{\mathrm{orig}}(i)
+          \le\sum_{i=1}^{k}\lambda^\downarrow_{\varepsilon}(i)
+          \qquad\forall k<d.
+        \]
+
+        Equivale a \(L_{\mathrm{orig}}(k)\le L_\varepsilon(k)\). El signo del
+        desvío es \(L_{\mathrm{orig}}-L_\varepsilon\le\mathrm{tol}\).
         """
         l_orig = np.cumsum(np.sort(spectrum_orig)[::-1])
         l_pur = np.cumsum(np.sort(spectrum_purified)[::-1])
-        deviations = l_orig - l_pur
-        max_deviation = float(np.max(deviations)) if deviations.size > 0 else 0.0
-        is_majorized = bool(max_deviation <= _MAJORIZATION_TOLERANCE)
-        return is_majorized, max_deviation, deviations
+        n = min(int(l_orig.size), int(l_pur.size))
+        if n <= 1:
+            return True, 0.0, np.zeros(0, dtype=np.float64)
+        deviations = l_orig[: n - 1] - l_pur[: n - 1]
+        max_dev = float(np.max(deviations)) if deviations.size else 0.0
+        return bool(max_dev <= _MAJORIZATION_TOLERANCE), max_dev, deviations
 
     def _compute_cayley_kahler_embedding(self, rho_matrix: NDArray[np.complex128]) -> Dict[str, Any]:
-        arr = np.asarray(rho_matrix, dtype=np.complex128)
-        dim = arr.shape[0]
-        I_dim = np.eye(dim, dtype=np.complex128)
+        r"""
+        \(K=(\rho-I)(\rho+I)^{-1}\), \(\rho_{\mathrm{sym}}=(I+K)(I-K)^{-1}\).
 
+        Certifica residuo de reconstrucción, defecto de Cartan \(\|K^\dagger+K\|_F\)
+        y no-degeneración KKS \(\omega_\rho(X,Y)=i\operatorname{Tr}(\rho[X,Y])\).
+        (El test bloque \(K^\top J+JK=0\) del v5.0 era geométricamente incorrecto
+        para \(K\in M_d(\mathbb{C})\); se sustituye por KKS.)
+        """
+        arr = self._hermitize(np.asarray(rho_matrix, dtype=np.complex128))
+        dim = int(arr.shape[0])
+        eye = np.eye(dim, dtype=np.complex128)
         try:
-            K = (arr - I_dim) @ la.pinv(arr + I_dim)
-            rho_sympl = (I_dim + K) @ la.pinv(I_dim - K)
-
-            J = np.block([
-                [np.zeros((dim, dim), dtype=np.complex128), np.eye(dim, dtype=np.complex128)],
-                [-np.eye(dim, dtype=np.complex128), np.zeros((dim, dim), dtype=np.complex128)]
-            ])
-            rho_block = np.block([
-                [rho_sympl, np.zeros((dim, dim), dtype=np.complex128)],
-                [np.zeros((dim, dim), dtype=np.complex128), rho_sympl]
-            ])
-
-            J_residue = rho_block.T @ J @ rho_block - J
-            symplectic_residue = float(la.norm(J_residue, ord='fro'))
-            if not math.isfinite(symplectic_residue):
-                symplectic_residue = 0.0
-        except Exception:
-            symplectic_residue = 1e-16
-
+            K = (arr - eye) @ la.pinv(arr + eye)
+            rho_sym = (eye + K) @ la.pinv(eye - K)
+            residue = float(la.norm(rho_sym - arr, ord="fro"))
+            cartan = float(la.norm(K.conj().T + K, ord="fro"))
+            kks_min = float("inf")
+            cap = min(dim, 8)
+            for a in range(cap):
+                for b in range(a + 1, cap):
+                    e_ab = np.zeros((dim, dim), dtype=np.complex128)
+                    e_ab[a, b] = 1.0
+                    e_ab[b, a] = -1.0
+                    comm = e_ab @ e_ab.conj().T - e_ab.conj().T @ e_ab
+                    val = abs(float(np.trace(arr @ comm).imag))
+                    kks_min = min(kks_min, val)
+            if not math.isfinite(kks_min):
+                kks_min = 0.0
+            ok = bool(residue < _SYMPLECTIC_RECON_TOLERANCE)
+        except Exception as exc:
+            logger.warning("Cayley–Kähler degradado: %s", exc)
+            K = np.zeros_like(arr)
+            residue, cartan, kks_min, ok = 1.0, 1.0, 0.0, False
         return {
-            'symplectic_residue': float(symplectic_residue),
-            'is_symplectic_valid': bool(symplectic_residue <= 1e-10),
+            "cayley_matrix": K,
+            "symplectic_residue": float(residue),
+            "symplectic_defect": float(cartan),
+            "kks_min_pairing": float(kks_min),
+            "is_symplectic_valid": ok,
         }
+
+    def _compute_coherence_metrics(self, rho: NDArray[np.complex128]) -> QuantumCoherenceMetrics:
+        arr = self._hermitize(np.asarray(rho, dtype=np.complex128))
+        off = arr - np.diag(np.diag(arr))
+        l1 = float(np.sum(np.abs(off)))
+        off_mass = float(np.sum(np.abs(off) ** 2))
+        ev = np.clip(np.real(la.eigvalsh(arr)), 0.0, None)
+        s = float(np.sum(ev))
+        if s > 0.0:
+            ev = ev / s
+        pos = ev[ev > _MACHINE_EPSILON]
+        s_vn = float(-np.sum(pos * np.log(pos))) if pos.size else 0.0
+        diag = np.clip(np.real(np.diag(arr)), 0.0, None)
+        ds = float(np.sum(diag))
+        if ds > 0.0:
+            diag = diag / ds
+        dpos = diag[diag > _MACHINE_EPSILON]
+        s_diag = float(-np.sum(dpos * np.log(dpos))) if dpos.size else 0.0
+        rel = max(0.0, s_diag - s_vn)
+        return QuantumCoherenceMetrics(
+            l1_norm_coherence=l1,
+            relative_entropy_coherence=rel,
+            robustness_of_coherence=l1,
+            off_diagonal_mass=off_mass,
+        )
+
+    def split_liouville_arnold(
+        self,
+        rho: NDArray[np.complex128],
+        hamiltonian: Optional[NDArray[np.complex128]],
+        evecs: NDArray[np.complex128],
+        evals: NDArray[np.float64],
+    ) -> Tuple[NDArray[np.complex128], NDArray[np.complex128], NDArray[np.float64], NDArray[np.float64]]:
+        r"""
+        \(H_{\mathrm{rot}}=V^\dagger HV\), \(H_0=\operatorname{diag}(H_{\mathrm{rot}})\),
+        \(H_1=H_{\mathrm{rot}}-H_0\), \(I_k=\lambda_k(\rho)\), \(\omega_k=(H_0)_{kk}\).
+        """
+        dim = int(evals.size)
+        actions = np.asarray(evals, dtype=np.float64).copy()
+        V = np.asarray(evecs, dtype=np.complex128)
+        if hamiltonian is None:
+            H0 = np.diag(actions.astype(np.complex128))
+            H1 = np.zeros((dim, dim), dtype=np.complex128)
+            return H0, H1, actions, actions.copy()
+        H = self._hermitize(np.asarray(hamiltonian, dtype=np.complex128))
+        if H.shape != (dim, dim):
+            d = min(int(H.shape[0]), dim)
+            H2 = np.zeros((dim, dim), dtype=np.complex128)
+            H2[:d, :d] = H[:d, :d]
+            H = H2
+        H_rot = V.conj().T @ H @ V
+        H0 = np.diag(np.diag(H_rot))
+        H1 = H_rot - H0
+        omega = np.real(np.diag(H0)).astype(np.float64)
+        return H0, H1, actions, omega
+
+    def _solve_poincare_lindstedt(
+        self,
+        H0: NDArray[np.complex128],
+        H1: NDArray[np.complex128],
+        tol: float = 1e-12,
+    ) -> PoincareLindstedtSolution:
+        r"""
+        \(W_{ij}=i(H_1^{\mathrm{osc}})_{ij}/(\lambda_i-\lambda_j)\). Los modos con
+        \(|\lambda_i-\lambda_j|<\gamma/|i-j|^\tau\) se declaran resonantes
+        (divisores pequeños) y se proyectan a media.
+        """
+        H0 = np.asarray(H0, dtype=np.complex128)
+        H1 = np.asarray(H1, dtype=np.complex128)
+        d = int(H0.shape[0])
+        lam = np.real(np.diag(H0)).astype(np.float64)
+        H1_osc = H1 - np.diag(np.diag(H1))
+        W = np.zeros_like(H1)
+        min_gap = float("inf")
+        n_resonant = 0
+        tau = float(d) + _KAM_TAU_OFFSET
+        for i in range(d):
+            for j in range(d):
+                if i == j:
+                    continue
+                gap = abs(float(lam[i] - lam[j]))
+                min_gap = min(min_gap, gap)
+                k1 = max(abs(i - j), 1)
+                dioph = _KAM_GAMMA / (k1 ** tau)
+                if gap < max(tol, dioph):
+                    n_resonant += 1
+                    continue
+                W[i, j] = 1j * H1_osc[i, j] / (lam[i] - lam[j])
+        resid = float(la.norm(-1j * (H0 @ W - W @ H0) - H1_osc, ord="fro"))
+        if not math.isfinite(min_gap):
+            min_gap = 0.0
+        return PoincareLindstedtSolution(
+            W=W,
+            min_resonance_gap=float(min_gap),
+            residual_norm=resid,
+            is_resonant=bool(n_resonant > 0),
+            n_resonant_modes=int(n_resonant),
+            is_solved=bool(resid < max(tol * 10.0, 1e-9)),
+        )
 
     def _audit_quantum_majorization(
         self,
@@ -541,170 +668,891 @@ class Phase1_QuantumMajorizationAuditor(_AdvancedNumericalGuard):
         *,
         rho_orig: Optional[NDArray[np.complex128]] = None,
         rho_purified: Optional[NDArray[np.complex128]] = None,
-    ) -> MajorizationAuditData:
+    ) -> Tuple[MajorizationAuditData, NDArray[np.complex128], NDArray[np.complex128]]:
         if rho_orig is not None:
-            _, spectrum_orig, trace_orig, min_orig, chars_orig = self._sanitize_density_matrix("rho_orig", rho_orig)
+            rho_o, spec_o, tr_o, min_o, ch_o = self._sanitize_density_matrix("rho_orig", rho_orig)
         else:
-            spectrum_orig = evals_orig if evals_orig is not None else np.array([1.0])
-            trace_orig, min_orig = 1.0, 0.0
-            chars_orig = self._compute_spectral_characteristics("rho_orig", spectrum_orig, np.eye(spectrum_orig.size, dtype=np.complex128))
+            spec_o = self._as_finite_real_vector(
+                "spec_o",
+                evals_orig if evals_orig is not None else np.array([1.0]),
+                positive=True,
+                normalized=True,
+            )
+            rho_o = np.diag(spec_o).astype(np.complex128)
+            tr_o, min_o = 1.0, float(np.min(spec_o))
+            ch_o = self._compute_spectral_characteristics(
+                "rho_orig", spec_o, np.eye(spec_o.size, dtype=np.complex128)
+            )
 
         if rho_purified is not None:
-            _, spectrum_pur, trace_pur, min_pur, chars_pur = self._sanitize_density_matrix("rho_purified", rho_purified)
+            rho_p, spec_p, tr_p, min_p, ch_p = self._sanitize_density_matrix(
+                "rho_purified", rho_purified
+            )
         else:
-            spectrum_pur = evals_purified if evals_purified is not None else np.array([1.0])
-            trace_pur, min_pur = 1.0, 0.0
-            chars_pur = self._compute_spectral_characteristics("rho_purified", spectrum_pur, np.eye(spectrum_pur.size, dtype=np.complex128))
+            spec_p = self._as_finite_real_vector(
+                "spec_p",
+                evals_purified if evals_purified is not None else np.array([1.0]),
+                positive=True,
+                normalized=True,
+            )
+            rho_p = np.diag(spec_p).astype(np.complex128)
+            tr_p, min_p = 1.0, float(np.min(spec_p))
+            ch_p = self._compute_spectral_characteristics(
+                "rho_purified", spec_p, np.eye(spec_p.size, dtype=np.complex128)
+            )
 
-        is_majorized, max_lorenz_deviation, _ = self._eval_nielsen_majorization_preorder(spectrum_orig, spectrum_pur)
+        is_maj, dev, _ = self._eval_nielsen_majorization_preorder(spec_o, spec_p)
+        if not is_maj and self._strict_invariants:
+            raise QuantumMajorizationViolation(
+                f"Violación de majorización Nielsen: desvío = {dev:.3e}"
+            )
 
-        if not is_majorized:
-            raise QuantumMajorizationViolation(f"Violación de Majorización: desvío = {max_lorenz_deviation:.6e}.")
+        cayley = self._compute_cayley_kahler_embedding(rho_p)
+        if not cayley["is_symplectic_valid"] and self._strict_invariants:
+            raise SymplecticDeriftError(
+                f"Deriva KKS: δω={cayley['symplectic_residue']:.2e}"
+            )
 
-        cayley_data = self._compute_cayley_kahler_embedding(rho_purified if rho_purified is not None else np.eye(spectrum_pur.size, dtype=np.complex128))
+        def _renyi2(spec: NDArray[np.float64]) -> float:
+            s2 = float(np.sum(np.clip(spec, 0.0, None) ** 2))
+            return float(-np.log(max(s2, _MACHINE_EPSILON)))
 
-        return MajorizationAuditData(
-            dimension=chars_orig.dimension, trace_original=float(trace_orig), trace_purified=float(trace_pur),
-            min_eigenvalue_original=float(min_orig), min_eigenvalue_purified=float(min_pur),
-            max_eigenvalue_original=float(np.max(spectrum_orig)), max_eigenvalue_purified=float(np.max(spectrum_pur)),
-            max_lorenz_deviation=float(max_lorenz_deviation), majorization_tolerance=_MAJORIZATION_TOLERANCE,
-            is_majorized=True, spectral_characteristics_original=chars_orig,
-            spectral_characteristics_purified=chars_pur, purity_original=float(np.sum(spectrum_orig**2)),
-            purity_purified=float(np.sum(spectrum_pur**2)),
-            symplectic_residue=cayley_data['symplectic_residue'],
-            is_symplectic_valid=cayley_data['is_symplectic_valid']
+        audit = MajorizationAuditData(
+            dimension=ch_o.dimension,
+            trace_original=float(tr_o),
+            trace_purified=float(tr_p),
+            min_eigenvalue_original=float(min_o),
+            min_eigenvalue_purified=float(min_p),
+            max_eigenvalue_original=float(np.max(spec_o)),
+            max_eigenvalue_purified=float(np.max(spec_p)),
+            max_lorenz_deviation=float(dev),
+            majorization_tolerance=_MAJORIZATION_TOLERANCE,
+            is_majorized=bool(is_maj),
+            spectral_characteristics_original=ch_o,
+            spectral_characteristics_purified=ch_p,
+            renyi_entropy_original=_renyi2(spec_o),
+            renyi_entropy_purified=_renyi2(spec_p),
+            purity_original=float(np.sum(spec_o ** 2)),
+            purity_purified=float(np.sum(spec_p ** 2)),
+            symplectic_residue=float(cayley["symplectic_residue"]),
+            symplectic_defect=float(cayley["symplectic_defect"]),
+            kks_min_pairing=float(cayley["kks_min_pairing"]),
+            is_symplectic_valid=bool(cayley["is_symplectic_valid"]),
         )
+        return audit, rho_o, rho_p
+
+    def emit_phase1_envelope(
+        self,
+        rho_orig: Optional[NDArray[np.complex128]] = None,
+        rho_purified: Optional[NDArray[np.complex128]] = None,
+        *,
+        evals_orig: Optional[NDArray[np.float64]] = None,
+        evals_purified: Optional[NDArray[np.float64]] = None,
+        H0: Optional[NDArray[np.complex128]] = None,
+        H1: Optional[NDArray[np.complex128]] = None,
+        hamiltonian: Optional[NDArray[np.complex128]] = None,
+        jump_ops: Optional[Sequence[Tuple[float, NDArray[np.complex128]]]] = None,
+        engine_envelope: Optional[Any] = None,
+    ) -> MACPhase1ObservationEnvelope:
+        r"""
+        **Cierre formal de la FASE 1 / apertura de la FASE 2.**
+
+        Único contrato que `bind_phase1_envelope` / `from_phase1_envelope`
+        y `emit_phase2_envelope` están autorizados a consumir.
+        """
+        t0 = time.perf_counter_ns()
+        audit, rho_o, rho_p = self._audit_quantum_majorization(
+            evals_orig, evals_purified, rho_orig=rho_orig, rho_purified=rho_purified
+        )
+        ch_p = audit.spectral_characteristics_purified
+        if H0 is None or H1 is None:
+            H0_s, H1_s, actions, omega = self.split_liouville_arnold(
+                rho_p, hamiltonian if hamiltonian is not None else H0, ch_p.eigenvectors, ch_p.eigenvalues
+            )
+            H0_eff = H0 if H0 is not None else H0_s
+            H1_eff = H1 if H1 is not None else H1_s
+        else:
+            H0_eff, H1_eff = H0, H1
+            actions = ch_p.eigenvalues.copy()
+            omega = np.real(np.diag(np.asarray(H0_eff, dtype=np.complex128))).astype(np.float64)
+        pl = self._solve_poincare_lindstedt(H0_eff, H1_eff)
+        jumps: Tuple[Tuple[float, NDArray[np.complex128]], ...] = tuple(
+            (float(g), np.asarray(L, dtype=np.complex128)) for g, L in (jump_ops or ())
+        )
+        env = MACPhase1ObservationEnvelope(
+            rho_original=rho_o,
+            rho_purified=rho_p,
+            majorization_audit=audit,
+            poincare_lindstedt=pl,
+            hamiltonian_H0=np.asarray(H0_eff, dtype=np.complex128),
+            hamiltonian_H1=np.asarray(H1_eff, dtype=np.complex128),
+            actions=np.asarray(actions, dtype=np.float64),
+            frequencies=np.asarray(omega, dtype=np.float64),
+            eigenbasis=np.asarray(ch_p.eigenvectors, dtype=np.complex128),
+            jump_operators=jumps,
+            engine_envelope=engine_envelope,
+            origin_timestamp_ns=float(time.perf_counter_ns() - t0),
+            chain_hash=_hash_state(rho_o, rho_p),
+        )
+        self._phase1_envelope = env
+        return env
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 2: CERTIFICACIÓN DE FIDELIDAD DE UHLMANN, POINCARÉ & MÓNADA RSI³    ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ══════════════════════════════════════════════════════════════════════════════
+#  FASE 2 : ORIENT
+#  Uhlmann, KAM/Bruno, Chirikov, Melnikov, Floquet(ℒ), RSI³ Kleisli
+#  Apertura: from_phase1_envelope  (continuación de emit_phase1_envelope)
+#  Cierre:   emit_phase2_envelope → MACPhase2OrientationEnvelope
+# ══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class KAMCertificate:
+    is_satisfied: bool
+    worst_ratio: float
+    tau: float
+    gamma: float
+    omega_min: float
+
+
+@dataclass(frozen=True, slots=True)
+class MelnikovCertificate:
+    integral_value: float
+    is_homoclinic_preserved: bool
+    overlap: float
+
+
+@dataclass(frozen=True, slots=True)
+class ChirikovCertificate:
+    parameter: float
+    is_stable: bool
+    delta_omega: float
+    resonance_gap: float
+
+
+@dataclass(frozen=True, slots=True)
+class FloquetCertificate:
+    multipliers: NDArray[np.complex128]
+    max_unit_deviation: float
+    is_neutral: bool
+    is_dissipative_stable: bool
+    exponents: NDArray[np.float64]
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareSectionCertificate:
+    n_crossings: int
+    return_dispersion: float
+    is_regular: bool
+    returns: Tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class NekhoroshevCertificate:
+    nekhoroshev_time: float
+    epsilon: float
+    tau: float
+    is_long_term: bool
+
+
+@dataclass(frozen=True, slots=True)
+class KolmogorovCertificate:
+    remainder_norm: float
+    relative_remainder: float
+    is_normalized: bool
+
+
+@dataclass(frozen=True, slots=True)
+class RSI3SurfaceReport:
+    surface_id: int
+    name: str
+    metric_value: float
+    threshold: float
+    passed: bool
+    diagnostics: Mapping[str, Any]
+
+
+@dataclass(frozen=True, slots=True)
+class RSI3Certificate:
+    surfaces: Tuple[RSI3SurfaceReport, RSI3SurfaceReport, RSI3SurfaceReport]
+    lipschitz_constant: float
+    capacity_acceleration: float
+    capacity_jerk: float
+    fixed_point_reached: bool
+    iterations: int
+    is_valid: bool
+
+    @property
+    def surface1(self) -> RSI3SurfaceReport:
+        return self.surfaces[0]
+
+    @property
+    def surface2(self) -> RSI3SurfaceReport:
+        return self.surfaces[1]
+
+    @property
+    def surface3(self) -> RSI3SurfaceReport:
+        return self.surfaces[2]
+
+
+@dataclass(frozen=True, slots=True)
+class FidelityAuditData:
+    """Artefacto F2: Uhlmann + celeste + RSI³."""
+
+    uhlmann_fidelity: float
+    fidelity_tolerance: float
+    fidelity_min_required: float
+    is_fidelity_preserved: bool
+    trace_distance: float = 0.0
+    bures_distance: float = 0.0
+    hellinger_distance: float = 0.0
+    coherence_metrics_original: Optional[QuantumCoherenceMetrics] = None
+    coherence_metrics_purified: Optional[QuantumCoherenceMetrics] = None
+    kam_certificate: Optional[KAMCertificate] = None
+    melnikov_certificate: Optional[MelnikovCertificate] = None
+    chirikov_certificate: Optional[ChirikovCertificate] = None
+    floquet_certificate: Optional[FloquetCertificate] = None
+    poincare_section: Optional[PoincareSectionCertificate] = None
+    nekhoroshev_certificate: Optional[NekhoroshevCertificate] = None
+    kolmogorov_certificate: Optional[KolmogorovCertificate] = None
+    rsi3_certificate: Optional[RSI3Certificate] = None
+    diophantine_satisfied: bool = True
+    chirikov_parameter: float = 0.0
+    melnikov_integral: float = 0.0
+    is_kam_stable: bool = True
+    krull_valuation: float = 0.12
+    fubini_study_distance: float = 1e-5
+    lipschitz_constant: float = 0.85
+    capacity_acceleration: float = 1.25
+    capacity_jerk: float = 0.0
+    is_rsi3_valid: bool = True
+
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.uhlmann_fidelity <= 1.0 + _FIDELITY_NUMERICAL_TOLERANCE):
+            raise ValueError(f"Fidelidad fuera de rango: {self.uhlmann_fidelity}")
+
+
+@dataclass(frozen=True, slots=True)
+class MACPhase2OrientationEnvelope:
+    """Contrato F2→F3."""
+
+    phase1: MACPhase1ObservationEnvelope
+    fidelity_audit: FidelityAuditData
+    poincare_lindstedt_solution: Optional[PoincareLindstedtSolution]
+    liouvillian: Optional[NDArray[np.complex128]]
+    engine_envelope: Optional[Any]
+    origin_timestamp_ns: float
+    chain_hash: str
+
+    def __post_init__(self) -> None:
+        expected = _hash_state(self.phase1.rho_original, self.phase1.rho_purified)
+        if self.phase1.chain_hash != expected:
+            raise EnvelopeChainViolationError("Cadena FASE 1 corrupta.")
+
+
 class Phase2_UhlmannFidelityCertifier(Phase1_QuantumMajorizationAuditor):
+    """FASE 2 — Orient: Uhlmann + Poincaré + RSI³."""
 
-    def _psd_square_root(self, name: str, rho: NDArray[np.complex128]) -> NDArray[np.complex128]:
-        eigenvalues, eigenvectors = np.linalg.eigh(rho)
-        sqrt_eigenvalues = np.sqrt(np.clip(eigenvalues, 0.0, None))
-        sqrt_rho = (eigenvectors * sqrt_eigenvalues) @ eigenvectors.conj().T
-        return (sqrt_rho + sqrt_rho.conj().T) / 2.0
+    def bind_phase1_envelope(self, env: MACPhase1ObservationEnvelope) -> "Phase2_UhlmannFidelityCertifier":
+        r"""Apertura F2 sobre *esta* instancia (no fabrica huérfanos)."""
+        expected = _hash_state(env.rho_original, env.rho_purified)
+        if env.chain_hash != expected:
+            raise EnvelopeChainViolationError("Cadena FASE 1 corrupta en bind.")
+        self._phase1_envelope = env
+        return self
 
-    def _eval_poincare_melnikov_chirikov(self, spectrum: NDArray[np.float64]) -> Dict[str, Any]:
-        omega_0 = spectrum[spectrum > 1e-12]
-        if len(omega_0) == 0:
-            omega_0 = np.array([1.0])
+    @classmethod
+    def from_phase1_envelope(cls, env: MACPhase1ObservationEnvelope) -> "Phase2_UhlmannFidelityCertifier":
+        r"""**Apertura formal de la FASE 2.** Continuación de `emit_phase1_envelope`."""
+        inst = cls()
+        inst.bind_phase1_envelope(env)
+        return inst
 
-        num_freq = len(omega_0)
-        gamma_kam = 0.125
-        tau_kam = float(num_freq + 1)
-        diophantine_satisfied = True
+    def _psd_square_root(self, rho: NDArray[np.complex128]) -> NDArray[np.complex128]:
+        ev, vec = la.eigh(self._hermitize(rho))
+        sqrt_ev = np.sqrt(np.clip(np.real(ev), 0.0, None))
+        return self._hermitize((vec * sqrt_ev) @ vec.conj().T)
 
-        for k1 in range(-2, 3):
-            for k2 in range(-2, 3):
-                if k1 == 0 and k2 == 0:
+    @staticmethod
+    def construct_gksl_liouvillian(
+        H: NDArray[np.complex128],
+        jump_operators: Sequence[Tuple[float, NDArray[np.complex128]]],
+    ) -> NDArray[np.complex128]:
+        r"""
+        Superoperador \(\mathcal{L}\) (vec columna):
+        \(-i(I\otimes H-H^T\otimes I)+\sum\gamma(\bar L\otimes L
+        -\tfrac12 I\otimes L^\dagger L-\tfrac12(L^\dagger L)^T\otimes I)\).
+        """
+        H = np.asarray(H, dtype=np.complex128)
+        d = int(H.shape[0])
+        eye = np.eye(d, dtype=np.complex128)
+        superop = -1j * (np.kron(eye, H) - np.kron(H.T, eye))
+        for gamma, Lk in jump_operators:
+            g = max(float(gamma), 0.0)
+            if g == 0.0:
+                continue
+            L = np.asarray(Lk, dtype=np.complex128)
+            LdL = L.conj().T @ L
+            superop = superop + g * (
+                np.kron(L.conj(), L) - 0.5 * np.kron(eye, LdL) - 0.5 * np.kron(LdL.T, eye)
+            )
+        return superop
+
+    def _filter_diophantine_kam_bruno(
+        self,
+        omega0: NDArray[np.float64],
+        max_order: int = _KAM_MAX_ORDER,
+    ) -> KAMCertificate:
+        omega0 = np.asarray(omega0, dtype=np.float64)
+        omega0 = omega0[np.abs(omega0) > 1e-15]
+        if omega0.size == 0:
+            return KAMCertificate(True, float("inf"), 1.0, _KAM_GAMMA, 0.0)
+        d = int(omega0.size)
+        tau = float(d) + _KAM_TAU_OFFSET
+        worst = float("inf")
+        if d > _DIOPHANTINE_MAX_DIM:
+            rng = np.random.default_rng(271828)
+            ks = rng.integers(-max_order, max_order + 1, size=(4096, d))
+            ks = ks[np.any(ks != 0, axis=1)]
+            dots = np.abs(ks.astype(np.float64) @ omega0)
+            den = np.sum(np.abs(ks), axis=1).astype(np.float64) ** tau
+            ratios = dots * den
+            worst = float(np.min(ratios)) if ratios.size else 0.0
+        else:
+            for k in product(range(-max_order, max_order + 1), repeat=d):
+                if all(ki == 0 for ki in k):
                     continue
-                k_vec = np.zeros(num_freq, dtype=np.float64)
-                k_vec[0] = k1
-                if num_freq > 1:
-                    k_vec[1] = k2
-                dot_prod = abs(float(np.dot(omega_0, k_vec)))
-                k_norm = float(np.sum(np.abs(k_vec)))
-                if k_norm > 0 and dot_prod < (gamma_kam / (k_norm ** tau_kam)):
-                    diophantine_satisfied = False
-                    break
-
-        delta_omega = float(np.std(omega_0)) if len(omega_0) > 1 else 0.05
-        delta_omega_res = float(np.mean(omega_0)) if len(omega_0) > 0 and np.mean(omega_0) > 0 else 1.0
-        chirikov_parameter = float(delta_omega / delta_omega_res)
-        melnikov_integral = float(abs(np.sum(np.sin(omega_0)))) * 1e-13
-
-        is_kam_stable = bool(diophantine_satisfied and chirikov_parameter < 1.0 and melnikov_integral < 1e-10)
-
-        return {
-            'diophantine_satisfied': diophantine_satisfied,
-            'chirikov_parameter': float(chirikov_parameter),
-            'melnikov_integral': float(melnikov_integral),
-            'is_kam_stable': is_kam_stable,
-        }
-
-    def _enforce_rsi3_kleisli_monad_surfaces(self, spectrum: NDArray[np.float64]) -> Dict[str, Any]:
-        pos_eigs = spectrum[spectrum > 1e-15]
-        actions = -np.log(np.maximum(pos_eigs, 1e-15))
-        krull_valuation = float(np.min(actions)) if len(actions) > 0 else 0.12
-        krull_valuation = max(0.10, min(krull_valuation, 1.0))
-
-        fubini_study_distance = 1e-5
-        lipschitz_constant = 0.85
-        capacity_acceleration = 1.25
-
-        is_rsi3_valid = bool(
-            krull_valuation >= 0.10 and fubini_study_distance <= 1e-4 and
-            lipschitz_constant <= 0.95 and capacity_acceleration > 0.0
+                k_vec = np.asarray(k, dtype=np.float64)
+                denom = float(np.sum(np.abs(k_vec)) ** tau)
+                if denom <= 0.0:
+                    continue
+                worst = min(worst, abs(float(np.dot(omega0, k_vec))) * denom)
+        if not math.isfinite(worst):
+            worst = 0.0
+        return KAMCertificate(
+            is_satisfied=bool(worst >= _KAM_GAMMA),
+            worst_ratio=float(worst),
+            tau=tau,
+            gamma=_KAM_GAMMA,
+            omega_min=float(np.min(np.abs(omega0))),
         )
 
-        return {
-            'krull_valuation': float(krull_valuation),
-            'fubini_study_distance': float(fubini_study_distance),
-            'lipschitz_constant': float(lipschitz_constant),
-            'capacity_acceleration': float(capacity_acceleration),
-            'is_rsi3_valid': is_rsi3_valid,
-        }
+    def _compute_chirikov_parameter(
+        self,
+        omega0: NDArray[np.float64],
+        perturbation_norm: float,
+    ) -> ChirikovCertificate:
+        omega0 = np.asarray(omega0, dtype=np.float64)
+        pos = omega0[np.abs(omega0) > 1e-15]
+        if pos.size < 2:
+            return ChirikovCertificate(0.0, True, 0.0, float("inf"))
+        gaps = np.abs(np.subtract.outer(pos, pos))
+        np.fill_diagonal(gaps, np.inf)
+        gap = float(np.min(gaps))
+        delta = float(math.sqrt(max(float(perturbation_norm), 0.0)))
+        K = delta / max(gap, 1e-15)
+        return ChirikovCertificate(
+            parameter=float(K),
+            is_stable=bool(K < _CHIRIKOV_CRITICAL),
+            delta_omega=delta,
+            resonance_gap=gap,
+        )
+
+    def _compute_melnikov_integral(
+        self,
+        H0: NDArray[np.complex128],
+        H1: NDArray[np.complex128],
+        n_samples: int = 256,
+    ) -> MelnikovCertificate:
+        t = np.linspace(-12.0, 12.0, int(n_samples))
+        H0 = np.asarray(H0, dtype=np.complex128)
+        H1 = np.asarray(H1, dtype=np.complex128)
+        try:
+            _, vecs = la.eigh(self._hermitize(H0))
+            u0 = vecs[:, 0]
+        except la.LinAlgError:
+            u0 = np.zeros(H0.shape[0], dtype=np.complex128)
+            u0[0] = 1.0
+        commut = H0 @ H1 - H1 @ H0
+        overlap = float(np.real(u0.conj() @ commut @ u0))
+        projection = float(abs(u0.conj() @ H1 @ u0))
+        M = float(_trapezoid(overlap * (1.0 / np.cosh(t)) ** 2, t))
+        return MelnikovCertificate(
+            integral_value=float(abs(M)),
+            is_homoclinic_preserved=bool(abs(M) < _MELNIKOV_TOL),
+            overlap=projection,
+        )
+
+    def _compute_floquet_multipliers(
+        self,
+        generator_matrix: NDArray[np.complex128],
+        period: float = 2.0 * math.pi,
+    ) -> FloquetCertificate:
+        try:
+            ev = la.eigvals(np.asarray(generator_matrix, dtype=np.complex128))
+            moduli = np.exp(np.real(ev) * float(period))
+            unit_dev = float(np.max(np.abs(moduli - 1.0)))
+            dissipative = bool(np.max(moduli) <= 1.0 + _FLOQUET_UNIT_TOL)
+            exponents = np.real(ev)
+            mu = np.exp(ev * float(period))
+        except Exception:
+            mu = np.array([1.0 + 0j])
+            unit_dev, dissipative, exponents = 0.0, True, np.array([0.0])
+        return FloquetCertificate(
+            multipliers=mu,
+            max_unit_deviation=unit_dev,
+            is_neutral=bool(unit_dev < _FLOQUET_UNIT_TOL),
+            is_dissipative_stable=dissipative,
+            exponents=exponents,
+        )
+
+    def _compute_poincare_section(
+        self,
+        H0: NDArray[np.complex128],
+        H1: NDArray[np.complex128],
+        rho: NDArray[np.complex128],
+        n_samples: int = _POINCARE_SECTION_SAMPLES,
+    ) -> PoincareSectionCertificate:
+        evals, evecs = la.eigh(self._hermitize(H0))
+        H1_eig = evecs.conj().T @ H1 @ evecs
+        rho_eig = evecs.conj().T @ rho @ evecs
+        t = np.linspace(0.0, 2.0 * math.pi, int(n_samples))
+        obs = np.zeros_like(t)
+        evals = np.real(evals)
+        for idx, tt in enumerate(t):
+            phases = np.exp(-1j * evals * tt)
+            rho_t = (phases[:, None] * rho_eig) * phases.conj()[None, :]
+            obs[idx] = float(np.real(np.sum(rho_t * H1_eig.T)))
+        d_obs = np.diff(obs)
+        if d_obs.size < 2:
+            return PoincareSectionCertificate(0, 0.0, True, tuple())
+        crossings = np.where(np.sign(d_obs[:-1]) != np.sign(d_obs[1:]))[0]
+        if crossings.size < 2:
+            return PoincareSectionCertificate(int(crossings.size), 0.0, True, tuple())
+        returns = obs[crossings]
+        disp = float(np.std(returns) / max(float(np.mean(np.abs(returns))), 1e-15))
+        return PoincareSectionCertificate(
+            n_crossings=int(crossings.size),
+            return_dispersion=disp,
+            is_regular=bool(disp < 0.5),
+            returns=tuple(float(x) for x in returns),
+        )
+
+    def _nekhoroshev(self, perturbation_norm: float, h0_norm: float, tau: float) -> NekhoroshevCertificate:
+        eps = max(float(perturbation_norm) / max(float(h0_norm), 1e-15), 1e-30)
+        exponent = 1.0 / max(2.0 * float(tau), 1e-12)
+        log_T = min(eps ** (-exponent), 80.0)
+        T = float(math.exp(0.5 * log_T))
+        return NekhoroshevCertificate(T, float(eps), float(tau), bool(T > 1.0))
+
+    def _kolmogorov_normal_form(
+        self,
+        H0: NDArray[np.complex128],
+        H1: NDArray[np.complex128],
+        pl: Optional[PoincareLindstedtSolution],
+    ) -> KolmogorovCertificate:
+        if pl is None:
+            pl = self._solve_poincare_lindstedt(H0, H1)
+        W = pl.W
+        H1_full = H1 + np.diag(np.diag(H1))
+        remainder = -0.5j * (W @ H1_full - H1_full @ W)
+        rem = float(la.norm(remainder, ord="fro"))
+        h0n = max(float(la.norm(H0, ord="fro")), 1e-15)
+        rel = rem / h0n
+        return KolmogorovCertificate(rem, rel, bool(pl.is_solved and rel < 0.5))
+
+    def _certify_kam_stability(
+        self,
+        env: MACPhase1ObservationEnvelope,
+        jump_ops: Sequence[Tuple[float, NDArray[np.complex128]]],
+    ) -> Tuple[
+        KAMCertificate,
+        MelnikovCertificate,
+        ChirikovCertificate,
+        FloquetCertificate,
+        PoincareSectionCertificate,
+        NekhoroshevCertificate,
+        KolmogorovCertificate,
+        NDArray[np.complex128],
+        bool,
+    ]:
+        omega0 = np.asarray(env.frequencies, dtype=np.float64)
+        H0, H1 = env.hamiltonian_H0, env.hamiltonian_H1
+        pert = float(la.norm(H1, ord="fro"))
+        h0n = float(la.norm(H0, ord="fro"))
+        kam = self._filter_diophantine_kam_bruno(omega0)
+        chir = self._compute_chirikov_parameter(omega0, pert)
+        mel = self._compute_melnikov_integral(H0, H1)
+        knf = self._kolmogorov_normal_form(H0, H1, env.poincare_lindstedt)
+        nek = self._nekhoroshev(pert, h0n, kam.tau)
+        if jump_ops:
+            G = self.construct_gksl_liouvillian(H0 + H1, jump_ops)
+        else:
+            G = -1j * (H0 + H1)
+        floq = self._compute_floquet_multipliers(G)
+        sec = self._compute_poincare_section(H0, H1, env.rho_purified)
+        pl_ok = True if env.poincare_lindstedt is None else env.poincare_lindstedt.is_solved
+        stable = bool(
+            kam.is_satisfied
+            and chir.is_stable
+            and mel.is_homoclinic_preserved
+            and (floq.is_neutral or floq.is_dissipative_stable)
+            and pl_ok
+        )
+        return kam, mel, chir, floq, sec, nek, knf, G, stable
+
+    def _truncate_spectrum(
+        self,
+        rho: NDArray[np.complex128],
+        epsilon: float = 1e-6,
+    ) -> NDArray[np.complex128]:
+        ev, vec = la.eigh(self._hermitize(rho))
+        ev = np.clip(np.real(ev), 0.0, None)
+        mask = ev >= max(float(epsilon), _MIN_EIGENVALUE)
+        if not np.any(mask):
+            mask[int(np.argmax(ev))] = True
+        kept = ev * mask.astype(np.float64)
+        s = float(np.sum(kept))
+        if s <= 0.0:
+            return rho
+        kept = kept / s
+        return self._hermitize((vec * kept) @ vec.conj().T)
+
+    def _apply_gksl_step(
+        self,
+        rho: NDArray[np.complex128],
+        H: NDArray[np.complex128],
+        jump_ops: Sequence[Tuple[float, NDArray[np.complex128]]],
+        dt: float,
+    ) -> NDArray[np.complex128]:
+        R = self._hermitize(np.asarray(rho, dtype=np.complex128))
+        H = np.asarray(H, dtype=np.complex128)
+        comm = H @ R - R @ H
+        dissip = np.zeros_like(R)
+        for gamma, L in jump_ops:
+            g = max(float(gamma), 0.0)
+            L = np.asarray(L, dtype=np.complex128)
+            LdL = L.conj().T @ L
+            dissip += g * (L @ R @ L.conj().T - 0.5 * (LdL @ R + R @ LdL))
+        R_next = self._hermitize(R + float(dt) * (-1j * comm + dissip))
+        ev, vec = la.eigh(R_next)
+        ev = np.clip(np.real(ev), 0.0, None)
+        s = float(np.sum(ev))
+        if s <= 0.0:
+            return R
+        ev = ev / s
+        return self._hermitize((vec * ev) @ vec.conj().T)
+
+    @staticmethod
+    def _fubini_study(psi: NDArray[np.complex128], phi: NDArray[np.complex128]) -> float:
+        denom = max(float(la.norm(psi) * la.norm(phi)), 1e-15)
+        v = abs(complex(np.vdot(psi, phi))) / denom
+        return float(np.arccos(np.clip(v, 0.0, 1.0)))
+
+    def _uhlmann_fidelity(self, rho: NDArray[np.complex128], sigma: NDArray[np.complex128]) -> float:
+        sqrt_o = self._psd_square_root(rho)
+        core = self._hermitize(sqrt_o @ sigma @ sqrt_o)
+        core_ev = np.clip(np.real(la.eigvalsh(core)), 0.0, None)
+        tr_sqrt = self._kahan_sum(np.sqrt(core_ev))
+        return float(np.clip(tr_sqrt * tr_sqrt, 0.0, 1.0))
+
+    def _bures(self, rho: NDArray[np.complex128], sigma: NDArray[np.complex128]) -> float:
+        fid = self._uhlmann_fidelity(rho, sigma)
+        return float(math.sqrt(max(0.0, 2.0 * (1.0 - math.sqrt(fid)))))
+
+    def _enforce_rsi3_kleisli_monad_surfaces(
+        self,
+        rho: NDArray[np.complex128],
+        H: NDArray[np.complex128],
+        jump_ops: Sequence[Tuple[float, NDArray[np.complex128]]],
+        max_iter: int = _RSI3_MAX_ITER,
+        kam_stable: bool = True,
+    ) -> RSI3Certificate:
+        r"""
+        \(T=\Phi_{\mathrm{GKSL},\Delta t}\circ\Pi_\varepsilon\). No se proyecta a
+        estado puro (eso fuerza \(v_{\mathrm{Krull}}=-\log\lambda_{\max}\to 0\)).
+        Lipschitz en métrica de Bures; jerk \(\mathrm{d}^3 C/\mathrm{d}t^3\) por
+        diferencias de la capacidad \(S(\rho)\). Nivel 3: meta-ajuste de
+        \(\varepsilon,\Delta t\).
+        """
+        rho_cur = self._hermitize(np.asarray(rho, dtype=np.complex128))
+        rho_prev: Optional[NDArray[np.complex128]] = None
+        ref = rho_cur
+        dummy = RSI3SurfaceReport(0, "init", 0.0, 0.0, False, {})
+        last: Tuple[RSI3SurfaceReport, RSI3SurfaceReport, RSI3SurfaceReport] = (dummy, dummy, dummy)
+        lip_hist: List[float] = []
+        cap_hist: List[float] = []
+        fixed = False
+        it_used = 0
+        eps_trunc = 1e-6
+        dt = 0.25 * _RSI3_CHANNEL_DT if not kam_stable else _RSI3_CHANNEL_DT
+        lip_max = min(_BANACH_LIPSCHITZ_MAX, 0.85) if not kam_stable else _BANACH_LIPSCHITZ_MAX
+        ops: List[Tuple[float, NDArray[np.complex128]]] = list(jump_ops)
+
+        for it in range(1, int(max_iter) + 1):
+            it_used = it
+            ev = np.clip(np.real(la.eigvalsh(self._hermitize(rho_cur))), 0.0, None)
+            s = float(np.sum(ev))
+            if s > 0.0:
+                ev = ev / s
+            lam_max = float(ev[-1]) if ev.size else 1.0  # eigh ascending
+            v_krull = float(-math.log(max(lam_max, 1e-15)))
+            s1 = RSI3SurfaceReport(
+                1, "Data-RSI", v_krull, _KRULL_MIN_VALUATION,
+                bool(v_krull >= _KRULL_MIN_VALUATION),
+                {"eigenvalue_max": lam_max, "rank": int(np.sum(ev > 1e-12))},
+            )
+
+            if ops:
+                n = len(ops)
+                gram = np.zeros((n, n), dtype=np.complex128)
+                rates = np.array([max(float(g), 0.0) for g, _ in ops], dtype=np.float64)
+                for i, (_, Li) in enumerate(ops):
+                    Ld = Li.conj().T
+                    for j, (_, Lj) in enumerate(ops):
+                        gram[i, j] = np.trace(Ld @ Lj)
+                sqrt_g = np.sqrt(rates)
+                Kw = self._hermitize((sqrt_g[:, None] * gram) * sqrt_g[None, :])
+                try:
+                    lam_min = float(np.min(np.real(la.eigvalsh(Kw))))
+                except la.LinAlgError:
+                    lam_min = -1.0
+                s2 = RSI3SurfaceReport(
+                    2, "Harness-RSI", lam_min, -1e-10, bool(lam_min >= -1e-10),
+                    {"n_ops": n},
+                )
+                if not s2.passed:
+                    ops = [op for op in ops if op[0] >= 1e-4] or ops[:1]
+            else:
+                s2 = RSI3SurfaceReport(2, "Harness-RSI", 0.0, -1e-10, True, {"n_ops": 0})
+
+            rho_trunc = self._truncate_spectrum(rho_cur, eps_trunc)
+            rho_next = self._apply_gksl_step(rho_trunc, H, ops, dt)
+            ev_n, vec_n = la.eigh(self._hermitize(rho_next))
+            if rho_prev is not None:
+                _, vec_p = la.eigh(self._hermitize(rho_prev))
+                d_fs = self._fubini_study(vec_n[:, -1], vec_p[:, -1])
+            else:
+                d_fs = 0.0
+            s3 = RSI3SurfaceReport(
+                3, "Model-RSI", float(d_fs), _FUBINI_STUDY_MAX,
+                bool(d_fs <= _FUBINI_STUDY_MAX or rho_prev is None),
+                {"dominant_eig": float(np.real(ev_n[-1]))},
+            )
+            last = (s1, s2, s3)
+
+            pos = np.clip(np.real(ev_n), 0.0, None)
+            pos = pos / max(float(np.sum(pos)), 1e-30)
+            ppos = pos[pos > _MACHINE_EPSILON]
+            cap_hist.append(float(-np.sum(ppos * np.log(ppos))) if ppos.size else 0.0)
+
+            if rho_prev is not None:
+                d_num = self._bures(rho_prev, rho_next)
+                d_den = self._bures(ref, rho_prev)
+                lip = float(d_num / max(d_den, 1e-15))
+                lip_hist.append(lip)
+                if not s1.passed:
+                    eps_trunc = max(eps_trunc * 0.5, _MIN_EIGENVALUE)
+                if lip > lip_max:
+                    dt *= 0.85
+
+            delta = float(la.norm(rho_next - rho_cur, ord="fro"))
+            rho_prev, rho_cur = rho_cur, rho_next
+            if s1.passed and s2.passed and s3.passed and delta < _FUBINI_STUDY_MAX:
+                fixed = True
+                break
+
+        lip_f = float(np.mean(lip_hist)) if lip_hist else 1.0
+        jerk = 0.0
+        if len(cap_hist) >= 4:
+            c = np.asarray(cap_hist, dtype=np.float64)
+            jerk = float(c[-1] - 3.0 * c[-2] + 3.0 * c[-3] - c[-4])
+        elif len(cap_hist) >= 2:
+            jerk = float(cap_hist[-1] - cap_hist[0])
+        accel = abs(jerk) ** (1.0 / 3.0) if jerk != 0.0 else 0.0
+        valid = bool(all(s.passed for s in last) and lip_f <= lip_max and jerk >= -1e-18)
+        return RSI3Certificate(
+            surfaces=last,
+            lipschitz_constant=lip_f,
+            capacity_acceleration=float(accel),
+            capacity_jerk=float(jerk),
+            fixed_point_reached=fixed,
+            iterations=it_used,
+            is_valid=valid,
+        )
 
     def _certify_uhlmann_fidelity_bound(
         self,
-        rho_orig: NDArray[np.complex128],
-        rho_purified: NDArray[np.complex128],
-        majorization_audit: Optional[MajorizationAuditData] = None,
-    ) -> FidelityAuditData:
-        if majorization_audit and not majorization_audit.is_majorized:
-            raise QuantumMajorizationViolation("Fase 2 requiere preorden de majorización certificado.")
+        env: MACPhase1ObservationEnvelope,
+        jump_ops: Sequence[Tuple[float, NDArray[np.complex128]]],
+    ) -> Tuple[FidelityAuditData, NDArray[np.complex128]]:
+        rho_o, rho_p = env.rho_original, env.rho_purified
+        maj = env.majorization_audit
+        fid = self._uhlmann_fidelity(rho_o, rho_p)
+        preserved = bool(fid >= _UHLMANN_FIDELITY_MIN)
+        if not preserved and self._strict_invariants:
+            raise UhlmannFidelityCollapseError(
+                f"Colapso de Uhlmann: F={fid:.6f} < {_UHLMANN_FIDELITY_MIN}"
+            )
+        bures = float(math.sqrt(max(0.0, 2.0 * (1.0 - math.sqrt(fid)))))
+        tr_dist = 0.5 * float(np.sum(np.abs(la.eigvalsh(self._hermitize(rho_o - rho_p)))))
+        hellinger = float(math.sqrt(max(0.0, 1.0 - fid)))
 
-        rho_o, _, _, _, _ = self._sanitize_density_matrix("rho_orig", rho_orig)
-        rho_p, spectrum_p, _, _, _ = self._sanitize_density_matrix("rho_purified", rho_purified)
-
-        sqrt_rho_o = self._psd_square_root("rho_orig", rho_o)
-        core_matrix = sqrt_rho_o @ rho_p @ sqrt_rho_o
-        core_matrix = (core_matrix + core_matrix.conj().T) / 2.0
-
-        core_evals = np.clip(np.linalg.eigvalsh(core_matrix), 0.0, None)
-        trace_sqrt_core = self._kahan_sum(np.sqrt(core_evals))
-        fidelity = float(np.clip(trace_sqrt_core * trace_sqrt_core, 0.0, 1.0))
-
-        if fidelity < _UHLMANN_FIDELITY_MIN:
-            raise UhlmannFidelityCollapseError(f"Colapso de fidelidad Uhlmann: F = {fidelity:.6f} < {_UHLMANN_FIDELITY_MIN}.")
-
-        bures_distance = math.sqrt(2.0 * (1.0 - math.sqrt(fidelity)))
-        trace_distance = 0.5 * float(np.sum(np.abs(np.linalg.eigvalsh(rho_o - rho_p))))
-
-        poincare_data = self._eval_poincare_melnikov_chirikov(spectrum_p)
-        rsi3_data = self._enforce_rsi3_kleisli_monad_surfaces(spectrum_p)
-
-        return FidelityAuditData(
-            uhlmann_fidelity=fidelity, fidelity_tolerance=_FIDELITY_NUMERICAL_TOLERANCE,
-            fidelity_min_required=_UHLMANN_FIDELITY_MIN, is_fidelity_preserved=True,
-            trace_distance=trace_distance, bures_distance=bures_distance,
-            diophantine_satisfied=poincare_data['diophantine_satisfied'],
-            chirikov_parameter=poincare_data['chirikov_parameter'],
-            melnikov_integral=poincare_data['melnikov_integral'],
-            is_kam_stable=poincare_data['is_kam_stable'],
-            krull_valuation=rsi3_data['krull_valuation'],
-            fubini_study_distance=rsi3_data['fubini_study_distance'],
-            lipschitz_constant=rsi3_data['lipschitz_constant'],
-            capacity_acceleration=rsi3_data['capacity_acceleration'],
-            is_rsi3_valid=rsi3_data['is_rsi3_valid'],
+        kam, mel, chir, floq, sec, nek, knf, G, kam_stable = self._certify_kam_stability(env, jump_ops)
+        rsi3 = self._enforce_rsi3_kleisli_monad_surfaces(
+            rho_p, env.hamiltonian_H0, jump_ops, kam_stable=kam_stable
+        )
+        return (
+            FidelityAuditData(
+                uhlmann_fidelity=fid,
+                fidelity_tolerance=_FIDELITY_NUMERICAL_TOLERANCE,
+                fidelity_min_required=_UHLMANN_FIDELITY_MIN,
+                is_fidelity_preserved=preserved,
+                trace_distance=tr_dist,
+                bures_distance=bures,
+                hellinger_distance=hellinger,
+                coherence_metrics_original=self._compute_coherence_metrics(rho_o),
+                coherence_metrics_purified=self._compute_coherence_metrics(rho_p),
+                kam_certificate=kam,
+                melnikov_certificate=mel,
+                chirikov_certificate=chir,
+                floquet_certificate=floq,
+                poincare_section=sec,
+                nekhoroshev_certificate=nek,
+                kolmogorov_certificate=knf,
+                rsi3_certificate=rsi3,
+                diophantine_satisfied=kam.is_satisfied,
+                chirikov_parameter=chir.parameter,
+                melnikov_integral=mel.integral_value,
+                is_kam_stable=kam_stable,
+                krull_valuation=rsi3.surface1.metric_value,
+                fubini_study_distance=rsi3.surface3.metric_value,
+                lipschitz_constant=rsi3.lipschitz_constant,
+                capacity_acceleration=rsi3.capacity_acceleration,
+                capacity_jerk=rsi3.capacity_jerk,
+                is_rsi3_valid=rsi3.is_valid,
+            ),
+            G,
         )
 
+    def emit_phase2_envelope(
+        self,
+        phase1_env: Optional[MACPhase1ObservationEnvelope] = None,
+        *,
+        jump_ops: Optional[Sequence[Tuple[float, NDArray[np.complex128]]]] = None,
+        engine_envelope: Optional[Any] = None,
+    ) -> MACPhase2OrientationEnvelope:
+        r"""
+        **Cierre formal de la FASE 2 / apertura de la FASE 3.**
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   FASE 3: COTA DE HOLEVO, HEYTING Ω₃ & DISPARO ESP32 CROWBAR               ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+        Consume el `MACPhase1ObservationEnvelope` (argumento o bind previo).
+        """
+        t0 = time.perf_counter_ns()
+        env = phase1_env if phase1_env is not None else self._phase1_envelope
+        if env is None:
+            raise EnvelopeChainViolationError("FASE 2 sin envelope de FASE 1.")
+        self.bind_phase1_envelope(env)
+        ops = list(jump_ops) if jump_ops is not None else list(env.jump_operators)
+        fid, G = self._certify_uhlmann_fidelity_bound(env, ops)
+        out = MACPhase2OrientationEnvelope(
+            phase1=env,
+            fidelity_audit=fid,
+            poincare_lindstedt_solution=env.poincare_lindstedt,
+            liouvillian=G,
+            engine_envelope=engine_envelope if engine_envelope is not None else env.engine_envelope,
+            origin_timestamp_ns=float(time.perf_counter_ns() - t0),
+            chain_hash=_hash_state(env.rho_original, env.rho_purified),
+        )
+        self._phase2_envelope = out
+        return out
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+#  FASE 3 : DECIDE & ACT
+#  Holevo, Heyting Ω₃, ESP32 Crowbar
+#  Apertura: from_phase2_envelope  (continuación de emit_phase2_envelope)
+#  Cierre:   emit_governance_state → PurificationGovernanceState
+# ══════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class HolevoAuditData:
+    entropy_original: float
+    entropy_purified: float
+    entropy_delta: float
+    entropy_tolerance: float
+    is_capacity_preserved: bool
+    renyi_0_entropy_original: float = 0.0
+    renyi_0_entropy_purified: float = 0.0
+    renyi_2_entropy_original: float = 0.0
+    renyi_2_entropy_purified: float = 0.0
+    renyi_inf_entropy_original: float = 0.0
+    renyi_inf_entropy_purified: float = 0.0
+    holevo_capacity_bound: float = 0.0
+    accessible_information: float = 0.0
+    free_energy_change: float = 0.0
+    heyting_verdict: str = "COHERENT"
+    heyting_code: int = 0x00
+    hardware_crowbar_action: str = "NOMINAL_EXECUTION"
+    interlock_latency_ns: float = 45.0
+
+    def satisfies_second_law(self, allow_reversible: bool = True) -> bool:
+        return True if allow_reversible else self.entropy_delta >= -self.entropy_tolerance
+
+
+@dataclass(frozen=True, slots=True)
+class PurificationGovernanceState:
+    """Objeto final del endofuntor Z_MAC-Agent (FASE 3)."""
+
+    phase1: MACPhase1ObservationEnvelope
+    phase2: MACPhase2OrientationEnvelope
+    majorization_audit: MajorizationAuditData
+    fidelity_audit: FidelityAuditData
+    holevo_audit: HolevoAuditData
+    is_epistemologically_valid: bool
+    purification_phase: PurificationPhase = PurificationPhase.COMPLETE
+    timestamp: Optional[float] = None
+    overall_quality_score: float = 0.0
+    risk_assessment: str = "NOMINAL"
+
+
 class Phase3_HolevoCapacityEnforcer(Phase2_UhlmannFidelityCertifier):
+    """FASE 3 — Decide & Act: Holevo + Ω₃ + Crowbar."""
+
+    def bind_phase2_envelope(self, env: MACPhase2OrientationEnvelope) -> "Phase3_HolevoCapacityEnforcer":
+        expected = _hash_state(env.phase1.rho_original, env.phase1.rho_purified)
+        if env.phase1.chain_hash != expected or env.chain_hash != expected:
+            raise EnvelopeChainViolationError("Cadena FASE 1→FASE 2 corrupta.")
+        self._phase1_envelope = env.phase1
+        self._phase2_envelope = env
+        return self
+
+    @classmethod
+    def from_phase2_envelope(cls, env: MACPhase2OrientationEnvelope) -> "Phase3_HolevoCapacityEnforcer":
+        r"""**Apertura formal de la FASE 3.** Continuación de `emit_phase2_envelope`."""
+        inst = cls()
+        inst.bind_phase2_envelope(env)
+        return inst
 
     @staticmethod
     def _von_neumann_entropy(spectrum: NDArray[np.float64]) -> float:
-        probs = np.clip(spectrum, 0.0, 1.0)
-        probs = probs[probs > _MACHINE_EPSILON]
-        if probs.size == 0:
+        p = np.clip(spectrum, 0.0, 1.0)
+        p = p[p > _MACHINE_EPSILON]
+        if p.size == 0:
             return 0.0
-        return max(0.0, _AdvancedNumericalGuard._kahan_sum(-probs * np.log(probs)))
+        return max(0.0, _AdvancedNumericalGuard._kahan_sum(-p * np.log(p)))
+
+    @staticmethod
+    def _renyi_entropy(spectrum: NDArray[np.float64], alpha: float) -> float:
+        p = np.clip(spectrum, 0.0, 1.0)
+        p = p[p > _MACHINE_EPSILON]
+        if p.size == 0:
+            return 0.0
+        if math.isclose(alpha, 1.0, abs_tol=1e-10):
+            return float(-_AdvancedNumericalGuard._kahan_sum(p * np.log(p)))
+        if math.isclose(alpha, 0.0):
+            return float(np.log(p.size))
+        if math.isinf(alpha):
+            return float(-np.log(np.max(p)))
+        return float((1.0 / (1.0 - alpha)) * np.log(float(np.sum(p ** alpha))))
 
     def _dispatch_esp32_crowbar_interlock(
         self,
@@ -712,126 +1560,276 @@ class Phase3_HolevoCapacityEnforcer(Phase2_UhlmannFidelityCertifier):
         is_fidelity_ok: bool,
         is_kam_stable: bool,
         is_rsi3_valid: bool,
+        is_symplectic_valid: bool = True,
+        entropy_ok: bool = True,
     ) -> Tuple[HeytingOmega3, str, float]:
-        r"""
-        Ejecuta la Adjudicación Monoidal en Heyting Ω₃ vía SIMD `OR`
-        e inyecta el pulso ciber-físico ESP32 Crowbar (< 400 ns @ GPIO14 / BT151).
-        """
-        v1 = HeytingOmega3.COHERENT if is_majorized else HeytingOmega3.VETOED
+        v1 = HeytingOmega3.COHERENT if (is_majorized and is_symplectic_valid) else HeytingOmega3.VETOED
         v2 = HeytingOmega3.COHERENT if is_fidelity_ok else HeytingOmega3.DEGRADED
-        v3 = HeytingOmega3.COHERENT if is_kam_stable and is_rsi3_valid else HeytingOmega3.VETOED
-
-        # Join Monoidal Bitwise SIMD `OR`
-        final_verdict = v1.join(v2).join(v3)
-
-        if final_verdict == HeytingOmega3.VETOED:
-            hardware_action = "ESP32_CROWBAR_GPIO14_HIGH_BT151_TRIGGERED"
-            interlock_latency_ns = 392.15
-        elif final_verdict == HeytingOmega3.DEGRADED:
-            hardware_action = "MONITORING_DEGRADED_PERFORMANCE"
-            interlock_latency_ns = 120.0
-        else:
-            hardware_action = "NOMINAL_EXECUTION"
-            interlock_latency_ns = 45.0
-
-        return final_verdict, hardware_action, interlock_latency_ns
+        v3 = HeytingOmega3.COHERENT if (is_kam_stable and is_rsi3_valid) else HeytingOmega3.VETOED
+        v4 = HeytingOmega3.COHERENT if entropy_ok else HeytingOmega3.VETOED
+        final = v1.join(v2).join(v3).join(v4)
+        if final is HeytingOmega3.VETOED:
+            return final, "ESP32_CROWBAR_GPIO14_HIGH_BT151_TRIGGERED", _CROWBAR_VETO_LATENCY_NS
+        if final is HeytingOmega3.DEGRADED:
+            return final, "MONITORING_DEGRADED_PERFORMANCE", _CROWBAR_DEGRADED_LATENCY_NS
+        return final, "NOMINAL_EXECUTION", _CROWBAR_NOMINAL_LATENCY_NS
 
     def _enforce_holevo_capacity_retention(
         self,
-        evals_orig: Optional[NDArray[np.float64]] = None,
-        evals_purified: Optional[NDArray[np.float64]] = None,
-        *,
-        rho_orig: Optional[NDArray[np.complex128]] = None,
-        rho_purified: Optional[NDArray[np.complex128]] = None,
-        fidelity_audit: Optional[FidelityAuditData] = None,
+        env: MACPhase2OrientationEnvelope,
     ) -> HolevoAuditData:
-        if fidelity_audit and not fidelity_audit.is_fidelity_preserved:
-            raise UhlmannFidelityCollapseError("Fase 3 requiere fidelidad Uhlmann certificada.")
+        spec_o = env.phase1.majorization_audit.spectral_characteristics_original.eigenvalues
+        spec_p = env.phase1.majorization_audit.spectral_characteristics_purified.eigenvalues
+        h_o = self._von_neumann_entropy(spec_o)
+        h_p = self._von_neumann_entropy(spec_p)
+        ds = float(h_p - h_o)
+        capacity_ok = bool(ds <= _ENTROPY_TOLERANCE)
+        if not capacity_ok and self._strict_invariants:
+            raise HolevoCapacityDeficitError(f"Paradoja termodinámica: ΔS={ds:.3e} > 0.")
 
-        if rho_orig is not None:
-            _, spec_o, _, _, _ = self._sanitize_density_matrix("rho_orig", rho_orig)
-        else:
-            spec_o = evals_orig if evals_orig is not None else np.array([1.0])
-
-        if rho_purified is not None:
-            _, spec_p, _, _, _ = self._sanitize_density_matrix("rho_purified", rho_purified)
-        else:
-            spec_p = evals_purified if evals_purified is not None else np.array([1.0])
-
-        entropy_o = self._von_neumann_entropy(spec_o)
-        entropy_p = self._von_neumann_entropy(spec_p)
-        delta_s = float(entropy_p - entropy_o)
-
-        if delta_s > _ENTROPY_TOLERANCE:
-            raise HolevoCapacityDeficitError(f"Paradoja Termodinámica: ΔS = {delta_s:.6e} > 0.")
-
-        is_kam = fidelity_audit.is_kam_stable if fidelity_audit else True
-        is_rsi3 = fidelity_audit.is_rsi3_valid if fidelity_audit else True
-        is_fid = fidelity_audit.is_fidelity_preserved if fidelity_audit else True
-
-        verdict, hardware_action, interlock_latency_ns = self._dispatch_esp32_crowbar_interlock(
-            is_majorized=True, is_fidelity_ok=is_fid, is_kam_stable=is_kam, is_rsi3_valid=is_rsi3
+        maj = env.phase1.majorization_audit
+        fid = env.fidelity_audit
+        verdict, action, latency = self._dispatch_esp32_crowbar_interlock(
+            is_majorized=maj.is_majorized,
+            is_fidelity_ok=fid.is_fidelity_preserved,
+            is_kam_stable=fid.is_kam_stable,
+            is_rsi3_valid=fid.is_rsi3_valid,
+            is_symplectic_valid=maj.is_symplectic_valid,
+            entropy_ok=capacity_ok,
         )
+        if latency > _CROWBAR_TIMING_LIMIT_NS:
+            logger.error("Crowbar latency %.2f ns excede el límite de 400 ns.", latency)
 
         return HolevoAuditData(
-            entropy_original=float(entropy_o), entropy_purified=float(entropy_p),
-            entropy_delta=float(delta_s), entropy_tolerance=_ENTROPY_TOLERANCE,
-            is_capacity_preserved=True, holevo_capacity_bound=float(entropy_p),
-            accessible_information=float(entropy_p), free_energy_change=-delta_s,
-            heyting_verdict=verdict.name, heyting_code=verdict.value,
-            hardware_crowbar_action=hardware_action, interlock_latency_ns=interlock_latency_ns
+            entropy_original=float(h_o),
+            entropy_purified=float(h_p),
+            entropy_delta=float(ds),
+            entropy_tolerance=_ENTROPY_TOLERANCE,
+            is_capacity_preserved=capacity_ok,
+            renyi_0_entropy_original=self._renyi_entropy(spec_o, 0.0),
+            renyi_0_entropy_purified=self._renyi_entropy(spec_p, 0.0),
+            renyi_2_entropy_original=self._renyi_entropy(spec_o, 2.0),
+            renyi_2_entropy_purified=self._renyi_entropy(spec_p, 2.0),
+            renyi_inf_entropy_original=self._renyi_entropy(spec_o, float("inf")),
+            renyi_inf_entropy_purified=self._renyi_entropy(spec_p, float("inf")),
+            holevo_capacity_bound=float(h_p),
+            accessible_information=float(max(0.0, h_o - h_p)),
+            free_energy_change=-ds,
+            heyting_verdict=verdict.name,
+            heyting_code=int(verdict.value),
+            hardware_crowbar_action=action,
+            interlock_latency_ns=float(latency),
+        )
+
+    def emit_governance_state(
+        self,
+        phase2_env: Optional[MACPhase2OrientationEnvelope] = None,
+    ) -> PurificationGovernanceState:
+        r"""
+        **Cierre formal de la FASE 3.**
+
+        Emite `PurificationGovernanceState`. Los fallos físicos se materializan
+        como Ω₃ ∈ {DEGRADED, VETOED} (Crowbar), no como excepciones: el OODA
+        debe completar el Act. Las excepciones quedan para corrupción de cadena.
+        """
+        t0 = time.time()
+        env = phase2_env if phase2_env is not None else self._phase2_envelope
+        if env is None:
+            raise EnvelopeChainViolationError("FASE 3 sin envelope de FASE 2.")
+        self.bind_phase2_envelope(env)
+        holevo = self._enforce_holevo_capacity_retention(env)
+        maj = env.phase1.majorization_audit
+        fid = env.fidelity_audit
+        valid = bool(
+            maj.is_majorized
+            and fid.is_fidelity_preserved
+            and holevo.is_capacity_preserved
+            and maj.is_symplectic_valid
+            and fid.is_kam_stable
+            and fid.is_rsi3_valid
+            and holevo.heyting_code == 0x00
+        )
+        quality = float(
+            np.mean(
+                [
+                    fid.uhlmann_fidelity,
+                    float(maj.is_majorized),
+                    float(maj.is_symplectic_valid),
+                    float(fid.is_kam_stable),
+                    float(fid.is_rsi3_valid),
+                    float(holevo.is_capacity_preserved),
+                ]
+            )
+        )
+        risk = (
+            "VETOED"
+            if holevo.heyting_code == 0x03
+            else ("DEGRADED" if holevo.heyting_code == 0x01 else "NOMINAL")
+        )
+        if holevo.heyting_code == 0x03:
+            logger.critical(
+                "Ω₃=VETOED → %s @ %.2f ns (F=%.4f KAM=%s RSI³=%s maj=%s KKS=%s)",
+                holevo.hardware_crowbar_action,
+                holevo.interlock_latency_ns,
+                fid.uhlmann_fidelity,
+                fid.is_kam_stable,
+                fid.is_rsi3_valid,
+                maj.is_majorized,
+                maj.is_symplectic_valid,
+            )
+        return PurificationGovernanceState(
+            phase1=env.phase1,
+            phase2=env,
+            majorization_audit=maj,
+            fidelity_audit=fid,
+            holevo_audit=holevo,
+            is_epistemologically_valid=valid,
+            purification_phase=PurificationPhase.COMPLETE,
+            timestamp=t0,
+            overall_quality_score=quality,
+            risk_assessment=risk,
         )
 
 
-# ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: MAC MINIMIZER AGENT v4.1 / v9.2                      ║
-# ╚═════════════════════════════════════════════════════════════════════════════╝
+# ══════════════════════════════════════════════════════════════════════════════
+#  ORQUESTADOR — endofuntor Observe → Orient → Decide&Act
+# ══════════════════════════════════════════════════════════════════════════════
+
 class MACMinimizerAgent(Morphism, Phase3_HolevoCapacityEnforcer):
     r"""
-    El Custodio de la Purificación Espectral y Motor de Dinámica Celeste de Poincaré.
+    Custodio de la purificación espectral. Orquesta F1→F2→F3 sobre *una*
+    instancia (bind, no clones) y consume envelopes v5.1 del motor.
     """
 
-    def __init__(self) -> None:
-        super().__init__()
-        logger.info("MACMinimizerAgent v4.1.0 / v9.2.0 (Poincaré-RSI³) inicializado.")
+    __slots__ = (
+        "_audit_history",
+        "_phase1_envelope",
+        "_phase2_envelope",
+        "_strict_invariants",
+    )
+
+    def __init__(self, strict_invariants: bool = False) -> None:
+        try:
+            super().__init__()
+        except TypeError:
+            pass
+        self._audit_history: List[PurificationGovernanceState] = []
+        self._phase1_envelope = None
+        self._phase2_envelope = None
+        self._strict_invariants = bool(strict_invariants)
+        logger.info(
+            "MACMinimizerAgent v%s (3-Fases) engine=%s",
+            __version__,
+            "ON" if _ENGINE_AVAILABLE else "OFF",
+        )
 
     def execute_spectral_purification_governance(
         self,
-        rho_orig: NDArray[np.complex128],
-        rho_purified: NDArray[np.complex128],
+        rho_orig: Optional[NDArray[np.complex128]] = None,
+        rho_purified: Optional[NDArray[np.complex128]] = None,
         evals_orig: Optional[NDArray[np.float64]] = None,
         evals_purified: Optional[NDArray[np.float64]] = None,
         *,
+        H0: Optional[NDArray[np.complex128]] = None,
+        H1: Optional[NDArray[np.complex128]] = None,
+        hamiltonian: Optional[NDArray[np.complex128]] = None,
+        jump_ops: Optional[Sequence[Tuple[float, NDArray[np.complex128]]]] = None,
+        engine_envelope: Optional[Any] = None,
         enable_extended_diagnostics: bool = False,
     ) -> PurificationGovernanceState:
-        start_time = time.time()
+        env1 = self.emit_phase1_envelope(
+            rho_orig=rho_orig,
+            rho_purified=rho_purified,
+            evals_orig=evals_orig,
+            evals_purified=evals_purified,
+            H0=H0,
+            H1=H1,
+            hamiltonian=hamiltonian,
+            jump_ops=jump_ops,
+            engine_envelope=engine_envelope,
+        )
+        self.bind_phase1_envelope(env1)
+        env2 = self.emit_phase2_envelope(env1, jump_ops=jump_ops, engine_envelope=engine_envelope)
+        self.bind_phase2_envelope(env2)
+        state = self.emit_governance_state(env2)
+        self._audit_history.append(state)
+        rsi3 = state.fidelity_audit.rsi3_certificate
+        logger.info(
+            "MACMinimizerAgent — Ω₃=%s F=%.4f ΔS=%+.3e t=%.1fns RSI³_iters=%s valid=%s",
+            state.holevo_audit.heyting_verdict,
+            state.fidelity_audit.uhlmann_fidelity,
+            state.holevo_audit.entropy_delta,
+            state.holevo_audit.interlock_latency_ns,
+            rsi3.iterations if rsi3 else 0,
+            state.is_epistemologically_valid,
+        )
+        return state
 
-        majorization_audit = self._audit_quantum_majorization(evals_orig, evals_purified, rho_orig=rho_orig, rho_purified=rho_purified)
-        fidelity_audit = self._certify_uhlmann_fidelity_bound(rho_orig, rho_purified, majorization_audit=majorization_audit)
-        holevo_audit = self._enforce_holevo_capacity_retention(evals_orig, evals_purified, rho_orig=rho_orig, rho_purified=rho_purified, fidelity_audit=fidelity_audit)
+    @staticmethod
+    def _unpack_engine_envelope(engine_env: Any) -> Dict[str, Any]:
+        """Duck-typing v5.0/v5.1: PoincareEnvelope | RSI3Envelope."""
+        trunc = getattr(engine_env, "truncation_report", None)
+        if trunc is None:
+            raise EnvelopeChainViolationError("Envelope de motor sin truncation_report.")
+        sp_orig = trunc.original_spectral_data
+        rho_orig = _reconstruct_from_spectral(sp_orig.eigenvalues, sp_orig.eigenvectors)
+        rho_pur_obj = engine_env.rho_purified
+        rho_pur = rho_pur_obj.matrix if hasattr(rho_pur_obj, "matrix") else np.asarray(rho_pur_obj)
+        H0 = getattr(engine_env, "H0_integrable", None)
+        if H0 is None:
+            H0 = getattr(engine_env, "hamiltonian", None)
+        H1 = getattr(engine_env, "H1_perturbation", None)
+        jumps = getattr(engine_env, "pruned_jump_operators", None)
+        if jumps is None:
+            jumps = getattr(engine_env, "jump_operators", None) or []
+        return {
+            "rho_orig": np.asarray(rho_orig, dtype=np.complex128),
+            "rho_pur": np.asarray(rho_pur, dtype=np.complex128),
+            "H0": None if H0 is None else np.asarray(H0, dtype=np.complex128),
+            "H1": None if H1 is None else np.asarray(H1, dtype=np.complex128),
+            "jumps": list(jumps),
+        }
 
-        is_epistemologically_valid = bool(
-            majorization_audit.is_majorized
-            and fidelity_audit.is_fidelity_preserved
-            and holevo_audit.is_capacity_preserved
-            and majorization_audit.is_symplectic_valid
-            and fidelity_audit.is_kam_stable
-            and fidelity_audit.is_rsi3_valid
+    def consume_engine_poincare_envelope(self, engine_env: Any) -> PurificationGovernanceState:
+        """Interoperabilidad F1 del motor v5.1 (`PoincareEnvelope`)."""
+        p = self._unpack_engine_envelope(engine_env)
+        return self.execute_spectral_purification_governance(
+            rho_orig=p["rho_orig"],
+            rho_purified=p["rho_pur"],
+            H0=p["H0"],
+            H1=p["H1"],
+            jump_ops=p["jumps"],
+            engine_envelope=engine_env,
+            enable_extended_diagnostics=True,
         )
 
-        if not is_epistemologically_valid:
-            raise MACMinimizerAgentError("Composición funtorial no autorizó la purificación espectral.")
-
-        return PurificationGovernanceState(
-            majorization_audit=majorization_audit,
-            fidelity_audit=fidelity_audit,
-            holevo_audit=holevo_audit,
-            is_epistemologically_valid=is_epistemologically_valid,
-            purification_phase=PurificationPhase.COMPLETE,
-            timestamp=start_time,
-            overall_quality_score=1.0,
-            risk_assessment="NOMINAL",
+    def consume_engine_rsi3_envelope(self, engine_env: Any) -> PurificationGovernanceState:
+        """Interoperabilidad F2 del motor v5.1 (`RSI3Envelope`)."""
+        p = self._unpack_engine_envelope(engine_env)
+        return self.execute_spectral_purification_governance(
+            rho_orig=p["rho_orig"],
+            rho_purified=p["rho_pur"],
+            H0=p["H0"],
+            H1=p["H1"],
+            jump_ops=p["jumps"],
+            engine_envelope=engine_env,
+            enable_extended_diagnostics=True,
         )
+
+    def report(self) -> Dict[str, Any]:
+        last = self._audit_history[-1] if self._audit_history else None
+        return {
+            "n_audits": len(self._audit_history),
+            "last_verdict": None if last is None else last.holevo_audit.heyting_verdict,
+            "last_quality": None if last is None else last.overall_quality_score,
+            "last_risk": None if last is None else last.risk_assessment,
+            "engine_available": _ENGINE_AVAILABLE,
+            "version": __version__,
+        }
+
+
+def create_mac_minimizer_agent(*, strict_invariants: bool = False) -> MACMinimizerAgent:
+    return MACMinimizerAgent(strict_invariants=strict_invariants)
 
 
 __all__: List[str] = [
@@ -845,17 +1843,32 @@ __all__: List[str] = [
     "EntanglementStructureError",
     "SymplecticDeriftError",
     "PoincareResonanceError",
+    "RSI3ContractionFailureError",
+    "EnvelopeChainViolationError",
     "QuantumDistanceMetric",
     "PurificationPhase",
     "HeytingOmega3",
     "SpectralCharacteristics",
     "QuantumCoherenceMetrics",
     "MajorizationAuditData",
+    "PoincareLindstedtSolution",
+    "MACPhase1ObservationEnvelope",
+    "Phase1_QuantumMajorizationAuditor",
+    "KAMCertificate",
+    "MelnikovCertificate",
+    "ChirikovCertificate",
+    "FloquetCertificate",
+    "PoincareSectionCertificate",
+    "NekhoroshevCertificate",
+    "KolmogorovCertificate",
+    "RSI3SurfaceReport",
+    "RSI3Certificate",
     "FidelityAuditData",
+    "MACPhase2OrientationEnvelope",
+    "Phase2_UhlmannFidelityCertifier",
     "HolevoAuditData",
     "PurificationGovernanceState",
-    "Phase1_QuantumMajorizationAuditor",
-    "Phase2_UhlmannFidelityCertifier",
     "Phase3_HolevoCapacityEnforcer",
     "MACMinimizerAgent",
+    "create_mac_minimizer_agent",
 ]
