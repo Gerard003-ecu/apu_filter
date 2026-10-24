@@ -125,7 +125,7 @@ lo que demuestra formalmente la convergencia hacia un punto fijo atractor único
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Brachistochrone Path Finder Engine (Motor de Descenso Rápido)       ║
 ║ Ruta   : app/physics/brachistochrone_path_finder.py                          ║
-║ Versión: 4.0.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-Strict-PhD            ║
+║ Versión: 4.0.0-Fermat-Jacobi-Poincare-Melnikov-CSMD-RK4-Strict-PhD           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 DESCRIPCIÓN MATEMÁTICA Y FÍSICA:
@@ -278,7 +278,7 @@ class BrachistochronePathFinderEngine:
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Brachistochrone Path Finder Agent (Custodio de Gobernanza)          ║
 ║ Ruta   : app/agents/boole/omega/brachistochrone_path_finder_agent.py         ║
-║ Versión: 4.0.0-Fermat-Jacobi-RSI3-Heyting-ESP32-Strict-PhD                     ║
+║ Versión: 4.0.0-Fermat-Jacobi-RSI3-Heyting-ESP32-Strict-PhD                   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 DESCRIPCIÓN DE GOBERNANZA:
