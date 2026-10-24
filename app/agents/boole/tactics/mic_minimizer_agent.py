@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MICMinimizerAgent (Custodio SOBERANO de la Base Booleana de la MIC)  ║
+║ Módulo : MICMinimizerAgent (Custodio SOBERANO de la Base Booleana de la MIC) ║
 ║ Ruta   : app/agents/boole/tactics/mic_minimizer_agent.py                     ║
 ║ Versión: 5.4.0-Tactics-Boolean-RSI3-Poincare-Celestial-Nested                ║
 ║ Función: Gobernanza y auditoría OODA de minimización booleana en el Anillo   ║
-║          Z₂[x]/⟨xᵢ²-xᵢ⟩, proyectando embeddings simplécticos de Cayley–       ║
+║          Z₂[x]/⟨xᵢ²-xᵢ⟩, proyectando embeddings simplécticos de Cayley–      ║
 ║          Darboux sobre sp(2d, ℝ), estabilidad celeste de Poincaré–Lindstedt– ║
 ║          Melnikov, Mónada Kleisli RSI³ de 3 niveles y adjudicación en el     ║
 ║          álgebra de Heyting Ω₃ con interlock perimetral Crowbar ESP32        ║

@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : MACMinimizerAgent (Custodio SOBERANO de Purificación Espectral MAC) ║
-║ Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                     ║
-║ Versión: 5.1.0 / 9.2.0-Tactics-Quantum-MAC-RSI3-Poincare                     ║
-║ Función: Gobernanza y auditoría OODA de purificación espectral sobre la      ║
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : MACMinimizerAgent (Custodio SOBERANO de Purificación Espectral MAC)  ║
+║ Ruta   : app/agents/boole/tactics/mac_minimizer_agent.py                      ║
+║ Versión: 5.1.0 / 9.2.0-Tactics-Quantum-MAC-RSI3-Poincare                      ║
+║ Función: Gobernanza y auditoría OODA de purificación espectral sobre la       ║
 ║          Matriz Atómica de Conocimiento (MAC) en 𝔇(ℋ_MAC), orquestando la    ║
 ║          sanitización Kahan, preorden de majorización de Nielsen ρ_orig ≺ ρ_ε,║
-║          KKS Cayley–Kähler, split de Poincaré–Lindstedt, certificación de    ║
+║          KKS Cayley–Kähler, split de Poincaré–Lindstedt, certificación de     ║
 ║          fidelidad de Uhlmann F ≥ 0.95, Mónada Kleisli RSI³ de 3 niveles,     ║
-║          cota de Holevo χ ≤ S(ρ_ε), adjudicación en Heyting Ω₃ e interlock   ║
+║          cota de Holevo χ ≤ S(ρ_ε), adjudicación en Heyting Ω₃ e interlock    ║
 ║          ciber-físico ESP32 Crowbar (< 400 ns @ GPIO14).                      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╚═══════════════════════════════════════════════════════════════════════════════╝
 
 --------------------------------------------------------------------------------
 1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL

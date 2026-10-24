@@ -5,12 +5,12 @@ r"""
 ║ Ruta   : app/boole/tactics/mac_minimizer.py                                  ║
 ║ Versión: 5.1.0 / 9.2.0-Tactics-Quantum-MAC-RSI3-Poincare                     ║
 ║ Función: Motor espectral y cuántico-mecánico soberano para la reducción y    ║
-║          purificación del operador densidad ρ ∈ 𝔇(ℋ_MAC), integrando la       ║
+║          purificación del operador densidad ρ ∈ 𝔇(ℋ_MAC), integrando la     ║
 ║          geometría de Bures–Wasserstein, embedding simpléctico Cayley–Kähler ║
 ║          en sp(2d, ℝ) con forma KKS, dinámica celeste de Poincaré–Lindstedt– ║
-║          Melnikov con filtrado KAM/Bruno, poda de operadores de salto GKSL–   ║
-║          Lindblad con matriz de Kossakowski K ⪰ 0, Mónada Kleisli RSI³      ║
-║          sobre 3 superficies y adjudicación en el álgebra de Heyting Ω₃.    ║
+║          Melnikov con filtrado KAM/Bruno, poda de operadores de salto GKSL–  ║
+║          Lindblad con matriz de Kossakowski K ⪰ 0, Mónada Kleisli RSI³       ║
+║          sobre 3 superficies y adjudicación en el álgebra de Heyting Ω₃.     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 --------------------------------------------------------------------------------
