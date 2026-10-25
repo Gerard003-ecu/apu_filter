@@ -4,9 +4,10 @@ r"""
 ║ Módulo : TOON Exergy Portfolio Witness Engine (Motor Espectral Testigo QND)  ║
 ║ Ruta   : app/boole/physics/toon_exergy_portfolio_witness_engine.py           ║
 ║ Versión: 6.1.0-QND-KMS-Poincare-Delaunay-Octonionic-RSI3-Heyting-ESP32-PhD   ║
+║ Función: Inspección pasiva QND, simetría KMS, aciclicidad β₁≡0 y Crowbar.    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y TEORÍA ESPECTRAL DE MEDICIÓN QND (Rigor Doctoral):
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL TESTIGO QND:
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra la evolución arquitectónica del **Motor Espectral Testigo
 Exergético QND de Portafolios** (`TOONExergyPortfolioWitnessEngine`) en el Estrato
@@ -21,19 +22,22 @@ la traza unitaria de la matriz de densidad ($\operatorname{Tr}(\rho) \equiv 1.0$
 la condición KMS térmico-monetaria, la aciclicidad homológica de Betti ($\beta_1 \equiv 0$)
 ni destruya la foliación simpléctica de Poincaré-Darboux.
 
-EVOLUCIÓN 6.1.0 (RSI³ ∘ Poincaré–Delaunay):
-  • Producto octoniónico por construcción de Cayley–Dickson (asociador bien definido).
-  • Condición KMS vía continuación analítica $\sigma_{i\beta}(A)=e^{-\beta H}A e^{\beta H}$.
-  • Mecánica celeste: variables de Delaunay, mapa de retorno de Poincaré y Melnikov
-    con cuadratura de Gauss–Legendre sobre la homoclínica de Duffing.
-  • RSI³ como mónada de Kleisli sobre un álgebra de Banach, con estimación empírica
-    de $\operatorname{Lip}(T^3)$ y auto-recalibración contractiva.
-  • Fases anidadas: el método terminal de la Fase $k$ es el morfismo de arranque
-    de la Fase $k+1$ (composición Kleisli de sobres inmutables).
-  • Corrección del sello terminal (`phase2_env`) y verificación de encadenado SHA-256.
+2. MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+  • Medición Cuántica No Demoledora (QND) sobre observables compatibles $[H_{\text{net}}, A_{\text{QND}}] = \mathbf{0}$.
+  • Estado térmico de Gibbs $\rho = e^{-\beta_{\text{eff}} H} / Z$ con condición Kubo-Martin-Schwinger (KMS)
+    y continuación analítica $\sigma_{i\beta}(A) = e^{-\beta H} A e^{\beta H}$ según el álgebra de Tomita-Takesaki.
+  • Inmersión simpléctica de Cayley-Darboux $K = (G - I)(G + I)^{-1}$, $M = (I + K)(I - K)^{-1} \in \operatorname{Sp}(2n, \mathbb{R})$.
+  • Mecánica celeste de Poincaré-Delaunay: acciones $L$, movimiento medio $n = L^{-3}$, mapa de retorno de Poincaré
+    e integral homoclínica de Melnikov mediante cuadratura de Gauss-Legendre $n=16$.
+  • Álgebra no asociativa de octoniones $\mathbb{O}$ por construcción de Cayley-Dickson con asociador $[X, Y, Z]$.
+  • Homología simplicial y aciclicidad de de Rham-Betti: $\beta_1 = |E| - |V| + \beta_0 \equiv 0$.
+  • Automejora Recursiva Nivel 3 (RSI³ - Darwin-Gödel) como mónada de Kleisli sobre espacios de Banach contractivos:
+    $\operatorname{Lip}(T^3) \le 0.857375 < 1.0$, garantizando atracción única por Banach-Picard y jerk cognitivo $\mathrm{d}^3 C / \mathrm{d}t^3 > 0$.
+  • Adjudicación trivalente en el topos de Heyting $\Omega_3 = \{0x00 \prec 0x01 \prec 0x03\}$ e interlock perimetral ESP32 Crowbar en $t_{\text{act}} \le 392.15\text{ ns}$.
 
-AXIOMÁTICA FÍSICO-MATEMÁTICA Y VARIACIONAL:
-
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
   [A1] Axioma de Medición Cuántica No-Demoledora (QND) & Conservación de Traza:
        $$[H_{\text{net}}, A_{\text{QND}}] = \mathbf{0}
          \implies \frac{\mathrm{d}}{\mathrm{d}t}\langle A_{\text{QND}}\rangle
@@ -64,6 +68,15 @@ AXIOMÁTICA FÍSICO-MATEMÁTICA Y VARIACIONAL:
        $$\operatorname{Lip}(T^3)\le 0.857375<1
          \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3}>0,$$
        topos Heyting $\Omega_3$ y actuación GPIO14 en $t_{\mathrm{act}}\le 392.15\,\mathrm{ns}$.
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante de Conmutación Pasiva: $\|[H_{\text{net}}, A_{\text{QND}}]\|_F \le 1.0 \times 10^{-10}$.
+  2. Invariante de Traza Unitaria: $|\operatorname{Tr}(\rho) - 1.0| \le 1.0 \times 10^{-9}$.
+  3. Invariante Simpléctico de Cayley-Darboux: $\|M^{\text{T}} J M - J\|_F / (1 + \|M\|_F^2) \le 1.0 \times 10^{-10}$.
+  4. Invariante Topológico Acíclico: $\beta_1 \equiv 0$.
+  5. Invariante Monádico Banach-Picard: $\operatorname{Lip}(T^3) \le 0.857375$.
+  6. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\text{actuation}} \le 392.15\text{ ns} < 400.0\text{ ns}$.
 
 ARQUITECTURA DE FLUJO POR FASES ANIDADAS:
 ────────────────────────────────────────────────────────────────────────────────

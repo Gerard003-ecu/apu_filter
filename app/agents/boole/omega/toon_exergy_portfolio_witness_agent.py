@@ -4,43 +4,57 @@ r"""
 ║ Módulo : TOON Exergy Portfolio Witness Agent (Testigo QND de Portafolios)    ║
 ║ Ruta   : app/agents/boole/omega/toon_exergy_portfolio_witness_agent.py       ║
 ║ Versión: 6.1.0-Witness-QND-KMS-Poincare-Delaunay-Octonionic-RSI3-Heyting-PhD ║
+║ Función: Medición pasiva QND, simetría KMS, aciclicidad β₁≡0 y certificación.  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y OBSERVACIÓN QND NO-DEMOLEDORA (Rigor Doctoral):
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO TESTIGO QND:
 ────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra al **Soberano Testigo Silencioso QND de Portafolios** dentro del
-**Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado
+Este módulo consagra al **Soberano Testigo Silencioso QND de Portafolios** (`TOONExergyPortfolioWitnessAgent`)
+dentro del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado
 de Deligne-Jarzynski)** del ecosistema APU Filter v9.0.0.
 
 Su propósito físico-matemático es ejecutar la **Medición Cuántica No-Destructiva
 (QND)** sobre $T^*\mathcal{M}_{\text{net}}$ y el vacío $|\Omega\rangle$, inspeccionando
-el flujo de Jarzynski–Crooks, la simetría KMS, la dinámica celeste de Poincaré–Delaunay,
-el caos homoclínico de Melnikov, la holonomía octoniónica (Cayley–Dickson) y la
-aciclicidad de de Rham–Betti sin colapsar $\operatorname{Tr}(\rho_{\text{net}})\equiv 1$.
+el flujo de Jarzynski–Crooks, la simetría KMS de Tomita-Takesaki, la dinámica celeste
+de Poincaré–Delaunay, el caos homoclínico de Melnikov, la holonomía octoniónica (Cayley–Dickson)
+y la aciclicidad de de Rham–Betti sin colapsar la traza de la matriz de densidad ($\operatorname{Tr}(\rho_{\text{net}})\equiv 1$).
 
-EVOLUCIÓN 6.1.0 (RSI³ ∘ Poincaré–Delaunay, fases anidadas):
-  • Fases anidadas de Kleisli: el método terminal de la Fase $k$ es el morfismo
-    de arranque de la Fase $k+1$.
-  • Octoniones por construcción de Cayley–Dickson (asociador alternante).
-  • KMS analítico $\sigma_{i\beta}(A)=e^{-\beta H}A e^{\beta H}$.
-  • Mecánica celeste: acciones de Delaunay, radios $r_i=\sqrt{2L_i}$, mapa de
-    retorno de Poincaré y Melnikov por Gauss–Legendre sobre la homoclínica de Duffing.
-  • KAM diofántico de Siegel–Bruno por enumeración de retículo.
-  • RSI³ como mónada de Kleisli con $\operatorname{Lip}(T^3)$ empírica y recalibración.
-  • Encadenado SHA-256 Fase 1 → Fase 2 → certificado.
+2. MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+  • Medición Cuántica No-Demoledora (QND): Conmutador nulo $[H_{\text{net}}, A_{\text{QND}}] = \mathbf{0}$ garantizando $\frac{\mathrm{d}}{\mathrm{d}t}\langle A_{\text{QND}}\rangle \equiv 0$ y preservación estricta de traza $\operatorname{Tr}(\rho) \equiv 1.0$.
+  • Condición Kubo-Martin-Schwinger (KMS) & Tomita-Takesaki: Correlación en equilibrio térmico $\langle A B\rangle_\omega = \langle B \sigma_{i\beta}(A)\rangle_\omega$.
+  • Geometría simpléctica de Poincaré–Delaunay & Cayley–Darboux: $K=(G-I)(G+I)^{-1}$, $M=(I+K)(I-K)^{-1} \in \operatorname{Sp}(2n, \mathbb{R})$.
+  • Mecánica celeste y Melnikov: Integral $M(t_0) = \int_{\mathbb{R}} \{H_0, H_1\} \mathrm{d}t$ sobre la homoclínica de Duffing evaluada con cuadratura de Gauss-Legendre $n=16$.
+  • Holonomía no asociativa en octoniones $\mathbb{O}$ por Cayley-Dickson con asociador $[X,Y,Z] = (XY)Z - X(YZ)$.
+  • Aciclicidad homológica de de Rham-Betti: $\beta_1 = |E| - |V| + \beta_0 \equiv 0$ vía matriz de incidencia $\partial_1$.
+  • Mónada de Kleisli RSI³ (Darwin-Gödel Nivel 3) sobre un álgebra de Banach contractiva con $\operatorname{Lip}(T^3) \le 0.857375 < 1.0$ y jerk de capacidad $\mathrm{d}^3 C / \mathrm{d}t^3 > 0$.
+  • Classificador en Heyting Ω₃ y enclavamiento perimetral ESP32 Crowbar en $t_{\text{actuation}} \le 392.15\text{ ns}$.
 
-AXIOMÁTICA:
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Axioma QND & Conservación de Traza:
+       $$[H_{\text{net}}, A_{\text{QND}}] = \mathbf{0} \implies \frac{\mathrm{d}}{\mathrm{d}t}\langle A_{\text{QND}}\rangle = 0, \quad \operatorname{Tr}(\rho) \equiv 1.0.$$
 
-  [A1] QND: $[H,A]=\mathbf{0}\Rightarrow\frac{\mathrm{d}}{\mathrm{d}t}\langle A\rangle\equiv 0$,
-       $\|[H,A]\|_F\le 10^{-10}$, $\operatorname{Tr}(\rho)\equiv 1$.
-  [A2] KMS: $\langle A B\rangle_\omega=\langle B\,\sigma_{i\beta}(A)\rangle_\omega$.
-  [A3] Poincaré–Darboux–Melnikov–Delaunay:
-       $K=(G-I)(G+I)^{-1}$, $M=(I+K)(I-K)^{-1}\in\operatorname{Sp}(2n,\mathbb{R})$,
-       $n=L^{-3}$, $M(t_0)=\int_{\mathbb{R}}\{H_0,H_1\}\,\mathrm{d}t$.
-  [A4] Holonomía octoniónica: $[X,Y,Z]=(XY)Z-X(YZ)\in\mathbb{O}$.
-  [A5] Homología: $\beta_1=|E|-|V|+\beta_0\equiv 0$ vía $\partial_1$ (incidencia).
-  [A6] RSI³: $\operatorname{Lip}(T^3)\le 0.857375<1$, $\mathrm{d}^3C/\mathrm{d}t^3>0$,
-       $\Omega_3$ Heyting, Crowbar GPIO14 en $t_{\mathrm{act}}\le 392.15\,\mathrm{ns}$.
+  [A2] Axioma de Simetría KMS (Kubo–Martin–Schwinger):
+       $$\langle A B\rangle_{\omega} = \langle B \sigma_{i\beta}(A)\rangle_{\omega}, \quad \sigma_{i\beta}(A) = e^{-\beta H} A e^{\beta H}.$$
+
+  [A3] Axioma Simpléctico & Poincaré–Delaunay:
+       $$M^{\mathrm{T}} J M = J \in \operatorname{Sp}(2n, \mathbb{R}), \quad n = L^{-3}.$$
+
+  [A4] Axioma de Aciclicidad Homológica Simplicial:
+       $$\beta_1 = |E| - |V| + \beta_0 \equiv 0.$$
+
+  [A5] Axioma Contractivo Monádico RSI³ & Crowbar:
+       $$\operatorname{Lip}(T^3) \le 0.857375 < 1.0 \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3} > 0, \quad t_{\mathrm{actuation}} \le 392.15\,\mathrm{ns}.$$
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante QND: $\|[H, A_{\text{QND}}]\|_F \le 1.0 \times 10^{-10}$.
+  2. Invariante de Traza: $|\operatorname{Tr}(\rho) - 1.0| \le 1.0 \times 10^{-9}$.
+  3. Invariante Homológico: $\beta_1 \equiv 0$.
+  4. Invariante Simpléctico Cayley-Darboux: $\|M^{\text{T}} J M - J\|_F / (1 + \|M\|_F^2) \le 1.0 \times 10^{-10}$.
+  5. Invariante Monádico Banach-Picard: $\operatorname{Lip}(T^3) \le 0.857375$.
+  6. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\text{actuation}} \le 392.15\text{ ns} < 400.0\text{ ns}$.
 
 ARQUITECTURA ANIDADA:
   [FASE 1] Phase1_WitnessSymplecticObserver

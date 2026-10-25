@@ -4,31 +4,59 @@ r"""
 ║ Módulo : TOON Exergy Portfolio Prosecutor Engine (Motor Espectral Fiscal)    ║
 ║ Ruta   : app/boole/physics/toon_exergy_portfolio_prosecutor_engine.py        ║
 ║ Versión: 6.1.0-Prosecutor-Brachistochrone-Melnikov-Chirikov-KAM-RSI3-PhD     ║
+║ Función: Acusación dual, caos Melnikov, Chirikov, braquistócrona y Crowbar.  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA FÍSICO-MATEMÁTICA Y VARIACIONAL (Rigor Doctoral):
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL FISCAL:
 ────────────────────────────────────────────────────────────────────────────────
 Núcleo analítico de acusación del soberano fiscal en el Estrato Exergético
-($\mathcal{V}_{\mathbb{P}}$, fibrado de Deligne–Jarzynski). Combina:
+($\mathcal{V}_{\mathbb{P}}$, fibrado de Deligne–Jarzynski) de APU Filter v9.0.0.
+Construye la querella acusatoria formal evaluando el Funcional Escalar de
+Acusación Dual $J_{\text{prosecutor}}$, la forma cerrada de Melnikov en el oscilador
+de Duffing, el parámetro de solapamiento de Chirikov ($K \ge 1.0$), la geodésica
+cicloide braquistócrona de Bernoulli–Euler, la fluctuación de Jarzynski–Crooks,
+la obstrucción de Čech–Deligne y el conteo instantónico de Donaldson–Thomas.
 
-  1. Geometría simpléctica y octoniones $\mathbb{O}$ (Cayley–Dickson / Fano).
-  2. Mecánica celeste de Poincaré–Delaunay: Melnikov, Chirikov, KAM, Nekhoroshev.
-  3. Braquistócrona de Bernoulli–Euler: geodésica de menor tiempo (cicloide)
-     en el paisaje exergético; el defecto $T_{\mathrm{path}}/T_{\mathrm{cyclo}}-1$
-     cuantifica disipación geométrica irreversible.
-  4. Jarzynski–Crooks con log-sum-exp y $\beta_{\mathrm{eff}}$ adimensional.
-  5. Obstrucción de Čech–Deligne térmica (hermiticidad, traza, positividad; no
-     se exige $\rho^2=\rho$, que es exclusivo de estados puros).
-  6. Mónada Kleisli RSI³: $\operatorname{Lip}(T^3)\le 0.857375$, Picard, jerk.
-  7. Heyting $\Omega_3$ y Crowbar ESP32 GPIO14 ($t_{\mathrm{act}}\le 392.15\,\mathrm{ns}$).
+2. MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+  • Funcional Dual de Acusación Escalar $J_{\text{prosecutor}}(\rho, g, \text{DT}) = \operatorname{Tr}(\rho \Lambda_{\text{fuga}}) + \mu_1 \|\widehat{g} - I\|_F^2 + \mu_2 |\text{DT}(\nu_{\text{Behrend}})| + \mu_3 K_{\text{Chirikov}} + \mu_4 W_{\text{irr}}^{\text{rel}}$.
+  • Geometría simpléctica de Poincaré–Delaunay en $\mathfrak{sp}(2n, \mathbb{R})$ e inmersión de Cayley–Tikhonov.
+  • Caos homoclínico y separatriz de Melnikov $M(t_0) = A \sin(\omega t_0)$ con $A \propto \varepsilon \pi \omega \operatorname{csch}(\pi\omega/2)$.
+  • Solapamiento de resonancias de Chirikov $K = (\Delta\omega_1 + \Delta\omega_2)/|\omega_1 - \omega_2|$ y cota diofántica KAM de Siegel–Bruno.
+  • Geodésica braquistócrona de Bernoulli–Euler: tiempo cicloide $T_{\text{cyclo}} = \pi \sqrt{R/g}$ y defecto disipativo $D = T_{\text{path}}/T_{\text{cyclo}} - 1$.
+  • Termodinámica estocástica de Jarzynski–Crooks fuera del equilibrio $\langle e^{-\beta W}\rangle = e^{-\beta \Delta F}$ con log-sum-exp numéricamente estable.
+  • Obstrucción térmica de Čech–Deligne $\|\delta g - I\|_F \le 1.0 \times 10^{-10}$ e invariante instantónico $\text{DT}(\nu_{\text{Behrend}}) \in \mathbb{Z}$.
+  • Mónada de Kleisli RSI³ (Darwin–Gödel Nivel 3) con $\operatorname{Lip}(T^3) \le 0.857375 < 1.0$, adjudicación Heyting $\Omega_3$ e interlock ESP32 Crowbar ($t_{\text{act}} \le 392.15\text{ ns}$).
 
-EVOLUCIÓN 6.1.0:
-  • Fases anidadas: el método terminal de la Fase $k$ es el morfismo $k\to k+1$.
-  • Melnikov y Chirikov acoplados a $\varepsilon$ del portafolio (Gram + $W_{\mathrm{irr}}$).
-  • Ceros transversales de Melnikov: $M(t_0)=0$ y $M'(t_0)\ne 0$.
-  • KAM por retículo $\mathbb{Z}^2\setminus\{0\}$; Nekhoroshev con $a=1/(2n)$.
-  • RSI³ con Lip empírica y recalibración contractiva.
-  • Cadena HMAC Fase 1 → Fase 2 → Merkle/HMAC terminal.
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Axioma de Fluctuación de Jarzynski–Crooks & Exergía Irreversible:
+       $$\langle e^{-\beta W}\rangle = e^{-\beta \Delta F} \implies W_{\mathrm{irr}} = \langle W\rangle - \Delta F \ge 0.$$
+
+  [A2] Axioma de Forma Cerrada de Melnikov & Ceros Transversales Homoclínicos:
+       $$M(t_0) = \int_{-\infty}^{\infty} \{H_0, H_1\}(q_0(t), p_0(t), t + t_0) \, \mathrm{d}t = A \sin(\omega t_0),$$
+       donde ceros simples transversales ($M(t_0^*) = 0, M'(t_0^*) \ne 0, A_{\mathrm{rel}} > 0.25$) certifican caos y herraduras de Smale.
+
+  [A3] Axioma de Solapamiento Resonante de Chirikov & Barrera KAM:
+       $$K_{\mathrm{Chirikov}} = \frac{\Delta\omega_1 + \Delta\omega_2}{|\omega_1 - \omega_2|} \ge 1.0 \implies \text{Destrucción de Toros KAM y Difusión de Arnol'd.}$$
+
+  [A4] Axioma Geodésico Braquistócrono de Bernoulli–Euler:
+       $$T_{\mathrm{cyclo}} = \pi \sqrt{\frac{R}{g_{\mathrm{eff}}}}, \quad D = \frac{T_{\mathrm{path}}}{T_{\mathrm{cyclo}}} - 1 \le 0.15.$$
+
+  [A5] Axioma Instantónico de Donaldson–Thomas:
+       $$\mathrm{DT} = \int_{\mathcal{M}_{\mathrm{portafolio}}} \nu_{\mathrm{Behrend}} \, \mathrm{d}\chi \in \mathbb{Z}, \quad \mathrm{DT} \equiv 0 \implies \text{Aprobación de Desembolsos.}$$
+
+  [A6] Axioma de Contracción Monádica RSI³ & Interlock Crowbar ESP32:
+       $$\operatorname{Lip}(T^3) \le 0.857375 < 1.0 \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3} > 0, \quad t_{\mathrm{actuation}} \le 392.15\,\mathrm{ns}.$$
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante de Trabajo Irreversible: $W_{\mathrm{irr}} \le 10.0\text{ J}$.
+  2. Invariante Melnikov Transversal: $A_{\mathrm{rel}} \le 0.25$ (Ausencia de herraduras de Smale).
+  3. Invariante de Solapamiento de Chirikov: $K_{\mathrm{Chirikov}} < 1.0$ (Preservación de barrera KAM).
+  4. Invariante Geodésico Braquistócrono: Defecto $D \le 0.15$.
+  5. Invariante Instantónico Donaldson–Thomas: $\mathrm{DT} \equiv 0$.
+  6. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\text{actuation}} \le 392.15\text{ ns} < 400.0\text{ ns}$.
 
 ARQUITECTURA ANIDADA:
   [FASE 1] Phase1_ProsecutorGaugeObserver

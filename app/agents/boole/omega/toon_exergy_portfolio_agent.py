@@ -4,31 +4,44 @@ r"""
 ║ Módulo : TOON Exergy Portfolio Agent (Custodio Exergético de Portafolios)    ║
 ║ Ruta   : app/agents/boole/omega/toon_exergy_portfolio_agent.py               ║
 ║ Versión: 7.0.0-Poincare-Celestial-KAM-Melnikov-RSI3-Nested-PhD               ║
+║ Función: Orquestación OODA, Rampa de Confianza y firma DTO de Portafolios.   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE DOMINIO Y FUNDAMENTACIÓN MATEMÁTICA DOCTORAL:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO EJECUTOR:
 ────────────────────────────────────────────────────────────────────────────────
-Soberano agéntico custodio (`TOONExergyPortfolioAgent`) del Estrato Exergético
-𝒱_ℙ. Orquesta un fibrado de **tres fases anidadas** (categoría de Kleisli RSI³):
-el método terminal de la Fase *k* es el morfismo de continuación (unidad de
-Kleisli) que *inicia* la Fase *k+1*. No existe salto de fibrado: el sobre
-monádico sellado de la fase precedente es el único objeto inicial admisible
-de la fase subsiguiente.
+Soberano agéntico custodio y ejecutor (`TOONExergyPortfolioAgent`) del Estrato Exergético
+$\mathcal{V}_{\mathbb{P}}$ en APU Filter v9.0.0. Orquesta el ciclo cibernético OODA
+(Observe ⊣ Orient ⊣ Decide ⊣ Act) en tres fases anidadas (mónada de Kleisli RSI³).
+Administra la Rampa de Confianza Graduada (Veto Suave con Válvula de Alivio Termodinámico
+y Recirculación Mecánica frente a Veto Duro con Interlock ESP32 Crowbar) y firma los sobres
+inmutables DTO con SHA-256.
 
-  [P1] Mecánica celeste de Poincaré & geometría simpléctica.
-       Coordenadas de acción–ángulo de Poincaré–Delaunay (ℓ, L) ∈ 𝕋ⁿ × ℝⁿ
-       sobre (T*ℳ, ω = Σ dℓᵢ ∧ dLᵢ). Mapa de retorno, multiplicadores de
-       Floquet (λ, 1/λ), forma normal de Birkhoff, cota diofántica de
-       Siegel–Bruno–KAM, integral homoclínica de Melnikov (cuadratura RSI³
-       de Richardson) y tiempo de confinamiento de Nekhoroshev.
+2. MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+  • Ciclo OODA Fibrado: Mapeo OODA (Observe ⊣ Orient ⊣ Decide ⊣ Act) sobre la categoría de Kleisli de la Automejora Recursiva Nivel 3 (RSI³ - Darwin–Gödel).
+  • Mecánica celeste de Poincaré & geometría simpléctica: Coordenadas de acción–ángulo de Poincaré–Delaunay $(\theta, I) \in \mathbb{T}^n \times \mathbb{R}^n$,
+    multiplicadores de Floquet $(\lambda, 1/\lambda)$, forma normal de Birkhoff y cota diofántica KAM de Siegel–Bruno.
+  • Flujometría fuera del equilibrio de Jarzynski–Crooks $\langle e^{-\beta W}\rangle = e^{-\beta \Delta F}$ e invarianza de 2-cociclos en $A_\infty$ Gerbes de Čech–Deligne.
+  • Rampa de Confianza Graduada: Veto Suave (Luz Ámbar / $0x01$) que habilita la Válvula de Alivio Termodinámico por 60 min admitiendo aniquilación positrónica ($e^- + e^+ \to 2\gamma$),
+    frente a Veto Duro (Luz Roja / $0x03$) que colapsa Heyting $\Omega_3$ a `VETOED` y dispara el tiristor BT151 Crowbar en $t_{\text{actuation}} \le 392.15\text{ ns}$.
 
-  [P2] Termodinámica de no-equilibrio (Jarzynski–Crooks), gerbes de
-       Čech–Deligne y conteo instantónico de Donaldson–Thomas (Behrend).
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Axioma de Orquestación OODA Fibrada:
+       $$\Phi_{\mathrm{OODA}} = \Phi_{\mathrm{Act}} \circ \Phi_{\mathrm{Decide}} \circ \Phi_{\mathrm{Orient}} \circ \Phi_{\mathrm{Observe}}.$$
 
-  [P3] Mónada Kleisli RSI³ sobre un álgebra de Banach estrictamente
-       contractiva: Lip(T)=0.95, Lip(T²)=0.9025, Lip(T³)=0.857375<1
-       ⇒ ∃! x* : T³(x*)=x* y jerk cognitivo d³C/dt³>0. Adjudicación en el
-       retículo de Heyting Ω₃ y disparo Crowbar ESP32 (t_act ≤ 392.15 ns).
+  [A2] Axioma de Rampa de Confianza Graduada:
+       $$\text{HeytingState} = \begin{cases} \mathtt{COHERENT} (0x00) & \text{si } W_{\mathrm{irr}} \le \tau \land \check{H}^2 = \mathbf{0}, \\ \mathtt{DEGRADED} (0x01) & \text{si } W_{\mathrm{irr}} > \tau \land \check{H}^2 = \mathbf{0} \implies \text{Válvula de Alivio (1 h)}, \\ \mathtt{VETOED} (0x03) & \text{si } \check{H}^2 \ne \mathbf{0} \lor \text{Caos} \lor \mathrm{DT} \ne 0 \implies \text{Crowbar } (<400\,\mathrm{ns}). \end{cases}$$
+
+  [A3] Axioma de Contracción Monádica RSI³ & Jerk Cognitivo:
+       $$\operatorname{Lip}(T^3) \le 0.857375 < 1.0 \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3} > 0.$$
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante OODA Monádico: Invarianza de sobre DTO en cada fase $\text{Envelope}_k$.
+  2. Invariante de Veto Suave: Ventana de recirculación termodinámica $\le 60.0\text{ min}$.
+  3. Invariante Monádico Banach-Picard: $\operatorname{Lip}(T^3) \le 0.857375$.
+  4. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\text{actuation}} \le 392.15\text{ ns} < 400.0\text{ ns}$.
 
 ESTRUCTURA DE FASES ANIDADAS (continuación unívoca):
 ────────────────────────────────────────────────────────────────────────────────
