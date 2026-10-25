@@ -5,54 +5,54 @@ r"""
 ║ Ruta   : app/agents/boole/omega/toon_exergy_portfolio_prosecutor_agent.py    ║
 ║ Versión: 6.1.0-Prosecutor-Agent-Deligne-Melnikov-Chirikov-KAM-Poincare-      ║
 ║          Delaunay-Octonionic-RSI3-Heyting-ESP32-PhD                          ║
+║ Función: Acusación dual, querella de Melnikov, Chirikov y sentencia Crowbar. ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y ACUSACIÓN DUAL EN GERBES (Rigor Doctoral):
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO FISCAL AGÉNTICO:
 ────────────────────────────────────────────────────────────────────────────────
-Soberano Fiscal Agéntico Exergético de Portafolios
-(`TOONExergyPortfolioProsecutorAgent`) en el Estrato Exergético
-\(\mathcal{V}_{\mathbb{P}}\) de APU Filter v9.0.0. Opera la acreditación
-acusatoria dual (calibre de Čech–Deligne vs. estado cuántico/exergético)
-sobre redes de megaproyectos interconectados.
+Soberano Fiscal Agéntico Exergético de Portafolios (`TOONExergyPortfolioProsecutorAgent`)
+en el Estrato Exergético $\mathcal{V}_{\mathbb{P}}$ de APU Filter v9.0.0. Opera la acreditación
+acusatoria dual (calibre de Čech–Deligne vs. estado cuántico/exergético) sobre redes de megaproyectos
+interconectados. Construye la querella acusatoria formal evaluando el Funcional Dual Escalar:
 
-Funcional de acusación dual (métrica, no umbral mágico):
+$$J_{\mathrm{prosecutor}}(\rho, g, \mathrm{DT}) = \operatorname{Tr}(\rho \Lambda_{\mathrm{fuga}}) + \mu_1 \|\widehat{g} - I\|_F^2 + \mu_2 |\mathrm{DT}(\nu_{\mathrm{Behrend}})| + \mu_3 K_{\mathrm{Chirikov}} + \mu_4 W_{\mathrm{irr}}^{\mathrm{rel}}.$$
 
-\[
-J_{\mathrm{prosecutor}}(\rho,g,\mathrm{DT})
-  = \operatorname{Tr}(\rho\,\Lambda_{\mathrm{fuga}})
-  + \mu_1\|\widehat{g}-\mathrm{I}\|_F^{2}
-  + \mu_2|\mathrm{DT}(\nu_{\mathrm{Behrend}})|
-  + \mu_3 K_{\mathrm{Chirikov}}
-  + \mu_4 W_{\mathrm{irr}}^{\mathrm{rel}}
-\]
-
-AXIOMÁTICA INQUISITORIAL, MECÁNICA CELESTE Y CROWBAR:
+2. MARCO TEÓRICO:
 ────────────────────────────────────────────────────────────────────────────────
-  [A1] Jarzynski–Crooks con Log-Sum-Exp y techo \(\beta_{\mathrm{eff}}\le 40\).
-       \(W_{\mathrm{irr}}=\langle W\rangle-\Delta F\ge 0\) (Jensen).
-  [A2] Octoniones \(\mathbb{O}\) por Cayley–Dickson (no conmutativos, no
-       asociativos). Asociador \([X,Y,Z]=(XY)Z-X(YZ)\).
-  [A3] Cayley Tikhonov en \(\mathfrak{sp}(2n,\mathbb{R})\):
-       \(K=H/(1+\varepsilon_{\mathrm{Tik}}+\|H\|_2)\), \(M=(I+K)(I-K)^{-1}\),
-       Darboux \(\|M^{T}JM-J\|\le 10^{-10}\).
-  [A4] Melnikov en forma cerrada (Duffing/péndulo):
-       \(M(t_0)=A\sin(\omega t_0)\), \(A\propto\varepsilon\pi\omega\,\mathrm{csch}(\pi\omega/2)\).
-       Cero simple \(\iff\) cruce de eje \(\land M'\neq 0\land A_{\mathrm{rel}}>0.25\).
-       \(\varepsilon\) se induce de Gram off-diag + \(W_{\mathrm{irr}}\) + Wilkinson + Darboux.
-       Homoclínica de Duffing: \(q_0=\sqrt{2}\,\mathrm{sech}(t)\),
-       \(p_0=-\sqrt{2}\,\mathrm{sech}(t)\tanh(t)\).
-  [A5] Chirikov \(K=(\Delta\omega_1+\Delta\omega_2)/|\omega_1-\omega_2|\),
-       \(\Delta\omega=2\sqrt{\varepsilon\alpha}\), \(\omega\) de Delaunay/Poincaré
-       (nunca \(\sigma_W\)). KAM Siegel–Bruno en la red \(\|k\|_\infty\le 3\).
-       Delaunay: \(L=\sqrt{a}\), \(n=L^{-3}\), \(r_i=\sqrt{2L_i}\).
-  [A6] Čech–Deligne térmico: Hermiticidad + \(\operatorname{Tr}\rho\equiv 1\)
-       + \(\lambda_i\ge 0\). NO se exige \(\rho^2=\rho\) (vetaría Gibbs).
-  [A7] Mónada Kleisli RSI³: \(\eta,T,T^3\), Picard, Lip empírico sobre el
-       residual \(e=1/(1+|C|)\); reescala si \(\operatorname{Lip}(T^3)>0.857375\).
-       Jerk \(\Delta^3 C>0\). Heyting \(\Omega_3\):
-       \(\mathtt{COHERENT}(0x00)\prec\mathtt{DEGRADED}(0x01)\prec\mathtt{VETOED}(0x03)\).
-       VETOED → GPIO14 HIGH, BT151, \(t_{\mathrm{act}}=392.15\,\mathrm{ns}<400\,\mathrm{ns}\),
-       registro \(0x3FF44008\).
+  • Acusación Dual en Gerbes: Calibre de Čech–Deligne $(\delta g)_{ijkl} \equiv I \pmod{\check{H}^2(X, \mathcal{F}_{\text{wisdom}})}$ frente a fuga exergética.
+  • Geometría simpléctica de Poincaré–Delaunay en $\mathfrak{sp}(2n, \mathbb{R})$ e inmersión de Cayley–Tikhonov.
+  • Caos homoclínico y separatriz de Melnikov $M(t_0) = A \sin(\omega t_0)$ con $A \propto \varepsilon \pi \omega \operatorname{csch}(\pi\omega/2)$. Cero simple $M(t_0^*) = 0 \land M'(t_0^*) \ne 0 \land A_{\text{rel}} > 0.25$.
+  • Resonancias de Chirikov $K = (\Delta\omega_1 + \Delta\omega_2)/|\omega_1 - \omega_2|$ y cota diofántica KAM de Siegel–Bruno.
+  • Flujometría de Jarzynski–Crooks $\langle e^{-\beta W}\rangle = e^{-\beta \Delta F}$ con log-sum-exp numéricamente estable.
+  • Holonomía no asociativa en octoniones $\mathbb{O}$ por Cayley-Dickson con asociador $[X,Y,Z] = (XY)Z - X(YZ)$.
+  • Contratación monádica de Kleisli RSI³ (Darwin–Gödel Nivel 3) con $\operatorname{Lip}(T^3) \le 0.857375 < 1.0$ y jerk de capacidad $\mathrm{d}^3 C / \mathrm{d}t^3 > 0$.
+  • Adjudicación Heyting Ω₃ y sentencia de interlock ciber-físico ESP32 Crowbar ($t_{\text{actuation}} \le 392.15\text{ ns}$).
+
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Axioma de Funcional Dual Escalar de Acusación:
+       $$J_{\mathrm{prosecutor}}(\rho, g, \mathrm{DT}) = \operatorname{Tr}(\rho \Lambda_{\mathrm{fuga}}) + \mu_1 \|\widehat{g} - I\|_F^2 + \mu_2 |\mathrm{DT}(\nu_{\mathrm{Behrend}})| + \mu_3 K_{\mathrm{Chirikov}} + \mu_4 W_{\mathrm{irr}}^{\mathrm{rel}}.$$
+
+  [A2] Axioma de Melnikov Transversal & Herraduras de Smale:
+       $$M(t_0) = A \sin(\omega t_0), \quad A_{\mathrm{rel}} > 0.25 \implies \text{Existencia de Caos y Herraduras de Smale.}$$
+
+  [A3] Axioma de Solapamiento Resonante de Chirikov:
+       $$K_{\mathrm{Chirikov}} = \frac{\Delta\omega_1 + \Delta\omega_2}{|\omega_1 - \omega_2|} \ge 1.0 \implies \text{VETOED (0x03) en Heyting } \Omega_3.$$
+
+  [A4] Axioma Instantónico de Donaldson–Thomas:
+       $$\mathrm{DT} = \int_{\mathcal{M}_{\mathrm{portafolio}}} \nu_{\mathrm{Behrend}} \, \mathrm{d}\chi \in \mathbb{Z}, \quad \mathrm{DT} \ne 0 \implies \text{Parálisis Ciber-Física.}$$
+
+  [A5] Axioma de Contracción Monádica RSI³ & Sentencia Crowbar:
+       $$\operatorname{Lip}(T^3) \le 0.857375 < 1.0 \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3} > 0, \quad t_{\mathrm{actuation}} \le 392.15\,\mathrm{ns}.$$
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante de Querella Escalar: $J_{\mathrm{prosecutor}} \le 0.50$.
+  2. Invariante de Melnikov: $A_{\mathrm{rel}} \le 0.25$.
+  3. Invariante de Chirikov: $K_{\mathrm{Chirikov}} < 1.0$.
+  4. Invariante Instantónico Donaldson–Thomas: $\mathrm{DT} \equiv 0$.
+  5. Invariante Monádico Banach-Picard: $\operatorname{Lip}(T^3) \le 0.857375$.
+  6. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\text{actuation}} \le 392.15\text{ ns} < 400.0\text{ ns}$.
 
 ARQUITECTURA DE TRES FASES ANIDADAS (Categoría de Kleisli RSI³):
 ────────────────────────────────────────────────────────────────────────────────
@@ -68,9 +68,6 @@ ARQUITECTURA DE TRES FASES ANIDADAS (Categoría de Kleisli RSI³):
                  ▼
   [FASE 3] Phase3_ProsecutorAgentRSI3CrowbarDecider
            └── adjudicate_and_execute_crowbar          → PortfolioProsecutionExecutionPassport
-
-El pipeline de la fachada COMPONE morfismos; no reimplementa la lógica de fase.
-Cadena SHA-256/HMAC: fase1 → fase2 → terminal. Merkle de 6 hojas.
 """
 
 from __future__ import annotations

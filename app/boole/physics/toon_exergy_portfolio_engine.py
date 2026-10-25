@@ -4,42 +4,59 @@ r"""
 ║ Módulo : TOON Exergy Portfolio Engine (Motor Espectral Exergético)           ║
 ║ Ruta   : app/boole/physics/toon_exergy_portfolio_engine.py                   ║
 ║ Versión: 7.0.0-Poincare-Celestial-KAM-Melnikov-RSI3-Nested-PhD               ║
+║ Función: Balance Jarzynski-Crooks, 2-cociclos Čech-Deligne, Sp(2n) y RSI³.    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA FÍSICO-MATEMÁTICA Y VARIACIONAL (Rigor Doctoral):
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL EXERGÉTICO:
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra la especificación e implementación del **Motor Espectral y
 Variacional Exergético de Portafolios** (`TOONExergyPortfolioEngine`) dentro del
-**Estrato Exergético de Portafolios (𝒱_ℙ, Nivel 0 / Fibrado de Deligne–Jarzynski)**
+**Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski)**
 del ecosistema APU Filter v9.0.0.
 
-Arquitectura de **tres fases anidadas** (categoría de Kleisli RSI³):
-el método terminal de la Fase *k* es, formalmente, el morfismo de continuación
-(unidad de Kleisli) que *inicia* la Fase *k+1*. No existe salto de fibrado:
-el sobre monádico sellado de la fase precedente es el único objeto inicial
-admisible de la fase subsiguiente.
+Resuelve la Igualdad de Fluctuación de Jarzynski–Crooks fuera del equilibrio, la
+consistencia de 2-cociclos de Čech–Deligne en $A_\infty$ Gerbes, la proyección
+simpléctica de Cayley–Darboux en $\mathfrak{sp}(2n, \mathbb{R})$, la mecánica celeste
+de Poincaré-Delaunay, el conteo instantónico de Donaldson-Thomas y la cota contractiva
+de Banach RSI³ ($\operatorname{Lip}(T^3) \le 0.857375 < 1.0$).
 
-FUNDAMENTOS ESPECTRALES, CELESTES (POINCARÉ) Y VARIACIONALES:
+2. MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+  • Termodinámica fuera del equilibrio de Jarzynski–Crooks $\langle e^{-\beta W}\rangle = e^{-\beta \Delta F}$
+    y relación de fluctuación $P_{\text{fwd}}(W)/P_{\text{rev}}(-W) = e^{\beta(W - \Delta F)}$ con trabajo irreversible $W_{\text{irr}} = \langle W\rangle - \Delta F \ge 0$.
+  • Cohomología de Čech–Deligne en $A_\infty$ Gerbes con consistencia de 2-cociclos $(\delta g)_{ijkl} \equiv I \pmod{\check{H}^2(X, \mathcal{F}_{\text{wisdom}})}$.
+  • Mecánica celeste de Poincaré & geometría simpléctica: Coordenadas de acción–ángulo de Poincaré–Delaunay $(\theta, I) \in \mathbb{T}^n \times \mathbb{R}^n$,
+    monodromía $\operatorname{Sp}(2n, \mathbb{R})$, forma normal de Birkhoff y cota diofántica de Siegel–Bruno–KAM $|\omega_0 \cdot k| \ge \gamma / \|k\|_1^\tau$.
+  • Integrales homoclínicas de Melnikov (cuadratura RSI³ de Richardson) y tiempo de confinamiento de Nekhoroshev $T_N \sim \exp(c/\varepsilon^{1/(2n)})$.
+  • Octoniones de Cayley–Dickson, asociador $G_2$ $[x,y,z] = (xy)z - x(yz)$ e invariante instantónico de Donaldson–Thomas $\text{DT} \in \mathbb{Z}$.
+  • Automejora Recursiva Nivel 3 (RSI³ - Darwin-Gödel) como mónada de Kleisli sobre espacios de Banach contractivos:
+    $\operatorname{Lip}(T) = 0.95 \implies \operatorname{Lip}(T^3) \le 0.857375 < 1.0$, asegurando atractor único por Banach-Picard y jerk cognitivo $\mathrm{d}^3 C / \mathrm{d}t^3 > 0$.
 
-  [P1] Mecánica celeste de Poincaré & geometría simpléctica:
-       Coordenadas de acción–ángulo de Poincaré–Delaunay
-       (θ, I) ∈ 𝕋ⁿ × ℝⁿ sobre (T*ℳ, ω = Σ dθᵢ ∧ dIᵢ).
-       Mapa de retorno de Poincaré, multiplicadores de Floquet (λ, 1/λ),
-       forma normal de Birkhoff truncada y condición diofántica de
-       Siegel–Bruno–KAM:
-         |ω₀ · k| ≥ γ / ‖k‖₁^τ    ∀ k ∈ ℤⁿ \ {0}.
-       Integrales homoclínicas de Melnikov (cuadratura RSI³ de Richardson)
-       y ángulo de splitting que certifican herraduras de Smale.
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Axioma de Fluctuación de Jarzynski–Crooks:
+       $$\langle e^{-\beta W}\rangle = e^{-\beta \Delta F} \implies W_{\mathrm{irr}} = \langle W\rangle - \Delta F \ge 0.$$
 
-  [P2] Termodinámica fuera del equilibrio (Jarzynski–Crooks):
-         ⟨e^{-βW}⟩ = e^{-βΔF},   P_fwd(W)/P_rev(-W) = e^{β(W-ΔF)}.
-       W_irr = ⟨W⟩ − ΔF ≥ 0,   σ_diss = β W_irr.
+  [A2] Axioma Cohomológico de Čech–Deligne en $A_\infty$ Gerbes:
+       $$(\delta g)_{ijkl} = g_{jkl} \cdot g_{ikl}^{-1} \cdot g_{ijl} \cdot g_{ijk}^{-1} \equiv \mathbf{I} \pmod{\check{H}^2(X, \mathcal{F}_{\mathrm{wisdom}})}.$$
 
-  [P3] Octoniones de Cayley–Dickson, asociador G₂ y gerbes de Čech–Deligne.
-  [P4] Invariante instantónico de Donaldson–Thomas (función de Behrend).
-  [P5] Mónada Kleisli RSI³ sobre un álgebra de Banach estrictamente contractiva:
-         Lip(T) = 0.95,  Lip(T²) = 0.9025,  Lip(T³) = 0.857375 < 1
-       ⇒ ∃! x* : T³(x*) = x*  (Banach–Picard) y jerk cognitivo d³C/dt³ > 0.
+  [A3] Axioma Simpléctico & Diofántico KAM:
+       $$M^{\mathrm{T}} J M = J \in \operatorname{Sp}(2n, \mathbb{R}), \quad |\omega_0 \cdot k| \ge \frac{\gamma}{\|k\|_1^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{\mathbf{0}\}.$$
+
+  [A4] Axioma Instantónico de Donaldson–Thomas:
+       $$\mathrm{DT} = \int_{\mathcal{M}_{\mathrm{portafolio}}} \nu_{\mathrm{Behrend}} \, \mathrm{d}\chi \in \mathbb{Z}.$$
+
+  [A5] Axioma Contractivo Monádico RSI³ & Jerk Cognitivo:
+       $$\operatorname{Lip}(T^3) \le 0.857375 < 1.0 \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3} > 0.$$
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante Exergético: $W_{\mathrm{irr}} \le 10.0\text{ J}$.
+  2. Invariante Cohomológico Čech–Deligne: $\|\delta g - I\|_F \le 1.0 \times 10^{-9}$.
+  3. Invariante Simpléctico de Monodromía: $\|M^{\mathrm{T}} J M - J\|_F \le 1.0 \times 10^{-10}$.
+  4. Invariante Instantónico: $\mathrm{DT} \equiv 0$.
+  5. Invariante Monádico Banach-Picard: $\operatorname{Lip}(T^3) \le 0.857375$.
+  6. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\text{actuation}} \le 392.15\text{ ns} < 400.0\text{ ns}$.
 
 ARQUITECTURA DE FASES ANIDADAS (continuación unívoca):
 ────────────────────────────────────────────────────────────────────────────────
