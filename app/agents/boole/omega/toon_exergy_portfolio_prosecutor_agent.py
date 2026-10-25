@@ -11,7 +11,7 @@ r"""
 1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO FISCAL AGÉNTICO:
 ────────────────────────────────────────────────────────────────────────────────
 Soberano Fiscal Agéntico Exergético de Portafolios (`TOONExergyPortfolioProsecutorAgent`)
-en el Estrato Exergético $\mathcal{V}_{\mathbb{P}}$ de APU Filter v9.0.0. Opera la acreditación
+en el Estrato Exergético $\mathcal{V}_{\mathbb{P}}$ de APU Filter. Opera la acreditación
 acusatoria dual (calibre de Čech–Deligne vs. estado cuántico/exergético) sobre redes de megaproyectos
 interconectados. Construye la querella acusatoria formal evaluando el Funcional Dual Escalar:
 

@@ -23,10 +23,10 @@
   │    • Aciclicidad Homológica de de Rham-Betti: χ(K) = β₀ − β₁ = |V| − |E| ⟹ β₁ ≡ 0.           │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 3. BINOMIO FISCAL INQUISIDOR DUAL (SOBERANO & ENGINE)                                       │
-  │    • toon_exergy_portfolio_prosecutor_agent.py & toon_exergy_portfolio_prosecutor_engine.py  │
-  │    • Funcional Dual: J_pros = Tr(ρ Λ_fuga) + μ₁‖ĝ − I‖_F² + μ₂|DT| + μ₃ K_Chir + μ₄ W_irr.    │
+  │    • toon_exergy_portfolio_prosecutor_agent.py & toon_exergy_portfolio_prosecutor_engine.py │
+  │    • Funcional Dual: J_pros = Tr(ρ Λ_fuga) + μ₁‖ĝ − I‖_F² + μ₂|DT| + μ₃ K_Chir + μ₄ W_irr.  │
   │    • Forma Cerrada de Melnikov en Duffing: M(t₀) = A sin(ω t₀) con A_rel > 0.25 (Caos).     │
-  │    • Solapamiento Resonante de Chirikov K_Chirikov ≥ 1.0 & Defecto Braquistócrono D > 0.15.   │
+  │    • Solapamiento Resonante de Chirikov K_Chirikov ≥ 1.0 & Defecto Braquistócrono D > 0.15. │
   │    • Instantones de Donaldson-Thomas: DT(ν_Behrend) ≠ 0 ⟹ VETOED (0x03) en Heyting Ω₃.      │
   │    • Interlock ESP32 Crowbar: ISR en IRAM t_actuation ≤ 392.15 ns (< 400 ns) @ GPIO14 / BT151.│
   └──────────────┬──────────────────────────────────────────────────────────────────────────────┘
@@ -35,7 +35,7 @@
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
   │ CÚSPIDE VISCERAL ("DOLOR, RIESGO Y DINERO")                                                 │
   │ • Compresión −86.4% KV-Cache (Cartuchos TOON de 56 tokens) & Ahorro 80% Inferencia LLM.     │
-  │ • Protección Tasa WACC (15.0%) & Liberación +11.5% Liquidez Neta (Reserva 15% ➔ 3.5%).        │
+  │ • Protección Tasa WACC (15.0%) & Liberación +11.5% Liquidez Neta (Reserva 15% ➔ 3.5%).      │
   └─────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
