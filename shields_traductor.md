@@ -23,7 +23,7 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
   │ 🧱 ATRIBUTOS TANGIBLES (CUANTITATIVOS Y MÉTRICOS)                                           │
   │    • Complejo Simplicial Abstracto sobre ℤ & Espacio de Fock Fermiónico ℱ(ℋ)               │
   │    • Metros cúbicos de concreto, toneladas de acero, horas-máquina, rendimiento APU.        │
-  │    • Gobernados por invarianza simpléctica Sp(2n, ℝ), Liouville det(M) = 1 y Tr(ρ) ≡ 1.0.    │
+  │    • Gobernados por invarianza simpléctica Sp(2n, ℝ), Liouville det(M) = 1 y Tr(ρ) ≡ 1.0.   │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 🌀 ATRIBUTOS INTANGIBLES (TERRITORIALES, CRONOGEOMÉTRICOS Y AMBIENTALES)                   │
   │    • Anillo Universal de Novikov Λ_Nov & Geometría Ultramétrica No-Arquimediana             │
@@ -51,8 +51,8 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
   │ ESCUDO 1: RETRACTO TOON & ADJUNCIÓN DE RHAM-GALOIS                                          │
   │ 🔬 Rigor: Retracto ‖ϕ_TOON(JSON)‖ ≤ (1 − γ) ‖JSON‖  (412 ➔ 56 Tokens, Δ_KV = -86.4%).       │
-  │     Hom_D(F(MIC), MAC) ≅ Hom_C(MIC, G(MAC)) & Spec(L_text) = Spec(L_parsed).                 │
-  │ 🔑 Metáfora: "La Destiladora de Grasa Sintáctica y la Adjunción de de Rham"                  │
+  │     Hom_D(F(MIC), MAC) ≅ Hom_C(MIC, G(MAC)) & Spec(L_text) = Spec(L_parsed).                │
+  │ 🔑 Metáfora: "La Destiladora de Grasa Sintáctica y la Adjunción de de Rham"                 │
   └──────────────────────────────┬──────────────────────────────────────────────────────────────┘
                                  │
                                  ▼
