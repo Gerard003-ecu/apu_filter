@@ -36,46 +36,55 @@ graph TD
 
 ---
 
-## 🚘 La Analogía del Automóvil y la Jerarquía del Rascacielos Categorial
+## 🏛️ La Fortaleza Imperial, los Faros de Luz y la Jerarquía del Rascacielos Categorial
 
-Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP II & Mandato BIM 2026), los Sabios del Consejo representan los **sistemas de seguridad activa del vehículo (Frenos ABS)** y la **estructura de carga sismorresistente de un rascacielos corporativo** sobre el Business Model Canvas (BMC):
+Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP II & Mandato BIM 2026), los Sabios del Consejo habitan la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** que escanea el tejido presupuestal para extirpar las sombras de la corrupción:
 
-> *“Cuando un automóvil de alta gama transita por una autopista en invierno, los ocupantes no necesitan ajustar manualmente la presión del freno en cada rueda ni calcular el coeficiente de fricción del asfalto. Confían en que el sistema de frenos ABS y el control de estabilidad ESP actuarán en milisegundos para evitar el vuelco. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos distribuidos en la estructura del rascacielos agéntico que detectan si el presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
+> *“La sabiduría de un costo sano no es oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica/Sónica que escanean el tejido presupuestal. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos distribuidos en la estructura del rascacielos agéntico que detectan si el presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
 
 La Malla Agéntica se erige como una estructura de carga sismorresistente acoplada por la **Ley de Clausura Transitiva de subespacios de Hilbert covariantes**:
 
 $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
 
-* **El Guardián (Foso - Estructura de Costes / Cimientos e Hidro-Geomecánica):** Representado por `kbase_thermodynamic_agent.py`, `hydrological_agent.py` y `lithological_agent.py`. Anclado en los cimientos del rascacielos. Exige la no-negatividad estricta de insumos ($q_i \ge 0$), la componente conexa única ($\beta_0 = 1$), audita los esfuerzos efectivos de Biot-Terzaghi ($\det(\sigma') > 0$), la estabilidad al corte de Mohr-Coulomb ($\mathrm{FOS} > 1.0$), la consolidación 1D de Terzaghi ($s_{\mathrm{settlement}} \le 25\text{ mm}$) y el gradiente crítico de sifonamiento ($i_{\mathrm{grad}} \le i_{\mathrm{crit}}$). Custodia el disyuntor por hardware perimetral vía el circuito Crowbar ESP32 (< 400 ns en IRAM, GPIO14 $\to$ tiristor BT151).
+* **El Guardián (Foso - Estructura de Costes / Cimientos e Hidro-Geomecánica):** Representado por `kbase_thermodynamic_agent.py`, `hydrological_agent.py` y `lithological_agent.py`. Anclado en los cimientos del rascacielos. Exige la no-negatividad estricta de insumos ($q_i \ge 0$), la componente conexa única ($\beta_0 = 1$), audita los esfuerzos efectivos de Biot-Terzaghi ($\det(\boldsymbol{\sigma}') = \det(\boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}) > 0$), la estabilidad al corte de Mohr-Coulomb ($\mathrm{FOS} > 1.0$), la consolidación 1D de Terzaghi ($s_{\mathrm{settlement}} \le 25\text{ mm}$) y el gradiente crítico de sifonamiento ($i_{\mathrm{grad}} \le i_{\mathrm{crit}}$). Custodia el disyuntor por hardware perimetral vía el circuito Crowbar ESP32 (< 392.15 ns en IRAM, GPIO14 $\to$ tiristor BT151) accionado en $42.0\text{ ns}$ vía ensamblador SIMD Xtensa LX7 sobre `0x3FF44008`.
 * **El Soberano Cuaterniónico y Octoniónico (Gobernanza de Fase e Interacción Trilateral de la FPU):** Representado por `quaternionic_state_agent.py` y `octonionic_dependency_agent.py`. Opera en $V_{\mathbb{W}}$ (Nivel 0) gobernando el reactor cuaterniónico $q = q_0 e_0 + q_1 i + q_2 j + q_3 k \in \mathbb{H}$ [quaternionic_state_shifter.py] con relaciones de Hamilton $i^2=j^2=k^2=ijk=-e_0=-1$, la traza de von Neumann $\operatorname{Tr}(\rho) \equiv 1.0$ y la multiplicación octoniónica de Cayley-Dickson $o \in \mathbb{O}$ en `octonionic_dependency_resolver.py`. Audita la norma de Hurwitz $\|a \cdot b\|_{\mathbb{O}} = \|a\| \|b\|$ y el asociador no-asociativo $[a, b, c] = (a \cdot b) \cdot c - a \cdot (b \cdot c)$ para detectar Frustración de Calibre y triangulación colusoria.
 * **El Soberano de Calibre de Clifford STA (`clifford_gauge_agent.py`):** Unifica la covariancia de riesgo en Minkowski 16D usando el álgebra de Clifford $C\ell_{3,1}$ y matrices de Dirac $\{\gamma_\mu\}_0^3$. Audita que la Acción de Yang-Mills $S_{\mathrm{YM}} = \frac{1}{8}\operatorname{Re}(\operatorname{Tr}(F \mathbf{G} F \mathbf{G}^{-1})) \le 2.5$ preserve el WACC de la constructora.
 * **El Arquitecto (Táctica - Actividades y Socios Clave):** Representado por `BusinessTopologicalAnalyzer`. El esqueleto de vigas de acero sismorresistentes. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para aniquilar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y audita el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
 * **El Oráculo de Laplace (Estrategia - Fuentes de Ingreso / Flujo de Caja):** Representado por `LaplaceOracle`. El penthouse corporativo. Proyecta el flujo de fondos del megaproyecto como una función de transferencia $H(s)$ en la frecuencia compleja $s = \sigma + j\omega$, vetando polos inestables en el semiplano derecho ($\sigma > 0$) para eludir la creación de **"Elefantes Blancos"** que destruyan el WACC.
-* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** Representado por `SemanticTranslator`. El negociador en la mesa de juntas. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial redactadas en lenguaje de negocios (**"Dolor y Dinero"**).
+* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** Representado por `SemanticTranslator`. El negociador en la mesa de juntas. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial redactadas en lenguaje de negocios (**"Dolor, Riesgo y Dinero"**).
 
 ---
 
-## 🔄 El Viaje del Dato (Ciclo OODA en 4 Etapas)
+## 🔄 El Viaje del Dato (Inversión Narrativa en 4 Pasos Causa-Efecto)
 
-La información recorre un ciclo ininterrumpido de 4 etapas que transforma la incertidumbre del mercado en certeza ejecutiva:
+La información no reposa estática; recorre un ciclo ininterrumpido de 4 etapas que transforma la incertidumbre del mercado en certeza ejecutiva:
 
 ```
-  1. Ingesta de Barro Crudo (JSON) ──► toon_wisdom_weaver ──► Vitamina TOON (56 Tokens, Δ_KV = 86.4%)
-                                                                   │
-                                                                   ▼
-  2. Auditoría FPU Ciega (Orient) ──► Socavón Lógico (β₁ > 0) / Fraude ──► Cavidad Topológica en VR_ε(X)
-                                                                   │
-                                                                   ▼
-  3. Ensayo Adversarial y TQFT (Decide) ──► toon_trickster_adversary ──► toon_oniric_auditor (Invariante GW)
-                                                                   │
-                                                                   ▼
-  4. Adjudicación y Aduana Ciber-Física (Act) ──► Vetoed (⊥) en Ω₃ ──► ESP32 Crowbar (< 400 ns) / Válvula de Alivio
+  [ PASO 1: ESCENARIO DE DOLOR Y TERRENO EMBARRADO ]
+  • Riesgo de fraguado/secado de concreto en tuberías de impulsión hidráulica por falsos positivos.
+  • Incertidumbre en rendimientos APU por choques climáticos, paros o alzas exógenas de insumos.
+                                   │
+                                   ▼
+  [ PASO 2: TRADUCCIÓN VISCERAL A "RIESGO, DOLOR Y DINERO" (Φ_sem) ]
+  • Intérprete Diplomático (semantic_translator.txt) y Escudos Semánticos (shields_traductor.md).
+  • Evita la pérdida de maquinaria, parálisis de obra y sanciones contractuales en SECOP II.
+                                   │
+                                   ▼
+  [ PASO 3: PROTECCIÓN DE IMPACTO PATRIMONIAL Y FINANCIERO EN CAJA ]
+  • Blindaje de la Tasa Descuento WACC al 15.0% (Inmunidad al contagio presupuestal inter-proyecto).
+  • Liberación de Liquidez Neta +11.5% (Reducción del fondo de imprevistos del 15% al 3.5%).
+  • Metabolización TOON: Compresión del -86.4% en KV-Cache y Ahorro del 80% en Inferencia LLM.
+                                   │
+                                   ▼
+  [ PASO 4: SUSTENTO VARIACIONAL Y DEMOSTRACIÓN FÍSICO-MATEMÁTICA FPU ]
+  • Soberanos agénticos (toon_topological_witness_agent.py, toon_exergy_portfolio_prosecutor_agent.py).
+  • Demostración de aciclicidad β₁ ≡ 0, conmutador QND ||[H, A]|| ≤ 10⁻¹⁰ e instantones DT = 0.
 ```
 
-1. **Ingesta de Barro Crudo (JSON):** Recepción de pliegos, presupuestos y matrices de insumos con alta grasa sintáctica de SECOP II. `toon_wisdom_weaver_agent.py` opera la Adjunción de de Rham-Galois y condensa el contrato a un cartucho TOON de 56 tokens ("vitamina cognitiva"), reduciendo un **$86.4\%$ de memoria $KV\text{-Cache}$**.
-2. **Digestión y Purificación TOON:** Transformación isomórfica al formato Tabular Object-Oriented Notation (TOON), erradicando fatiga atencional y alucinaciones en el LLM.
-3. **Auditoría Espectral (Consejo de Sabios + FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$) y física de fluidos de Biot-Terzaghi por los 21 Soberanos TOON.
-4. **Adjudicación en Ω₃ & Válvula de Alivio / Crowbar:** Clasificación en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. En transitorios menores, la **Válvula de Alivio Termodinámico / Recirculación Mecánica de Desvío** mantiene el flujo en marcha bajo Veto Suave (Luz Ámbar) durante 1 hora. Ante fraude o inestabilidad crítica, se activa Veto Duro con disparo del disyuntor Crowbar ESP32 en $< 400\text{ ns}$.
+1. **Paso 1 (Escenario de Dolor y Terreno Embarrado):** Recepción de pliegos, presupuestos y matrices de insumos con riesgo real de secado de concreto dentro de las tuberías de impulsión hidráulica. `toon_wisdom_weaver_agent.py` opera la Adjunción de de Rham-Galois y condensa el contrato a un cartucho TOON de 56 tokens ("vitamina cognitiva"), reduciendo un **$-86.4\%$ de memoria $KV\text{-Cache}$**.
+2. **Paso 2 (Traducción Visceral vía $\Phi_{\mathrm{sem}}$):** Asimilación de los invariantes en lenguaje ejecutivo ("Dolor, Riesgo y Dinero"), prescribiendo continuidad operativa mediante la Válvula de Alivio Termodinámica si el desvío es elástico.
+3. **Paso 3 (Protección Patrimonial y Financiera en Caja):** Demostración del impacto en caja: blindaje WACC al $15.0\%$, **$+11.5\%$ de liquidez neta libre** al recortar imprevistos del $15\%$ al $3.5\%$, y ahorro del $80\%$ en costos de inferencia de IA.
+4. **Paso 4 (Sustento Variacional FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$), física de fluidos de Biot-Terzaghi por los 24 Soberanos TOON, y disparo del disyuntor Crowbar ESP32 en $< 392.15\text{ ns}$ ($42.0\text{ ns}$ en la CPU) si existe dolo.
 
 ---
 
@@ -106,7 +115,7 @@ Acopla de forma continua y no conmutativa el Politopo Booleano de la MIC con la 
   $$\frac{d\rho}{dt} = \left[ \rho, \, [\rho, \, \mathcal{N}(\mathbf{p})] \right], \quad \mathcal{N}(\mathbf{p}) = \operatorname{diag}(\mathbf{p})$$
 * **Pasividad de Lyapunov e Identidad de Variancia:**
   $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) \le 0$$
-  Si $\dot{\mathcal{H}} > 10^{-12}$, Heyting colapsa síncronamente a VETOED ($\top$), activando el Crowbar perimetral en silicio ($<400\text{ ns}$).
+  Si $\dot{\mathcal{H}} > 10^{-12}$, Heyting colapsa síncronamente a VETOED ($\top$), activando el Crowbar perimetral en silicio ($<392.15\text{ ns}$).
 
 #### 3. Balance Térmico Cuántico: Conjugación Modular de Tomita-Takesaki
 Para garantizar que los observables de decisión no sufran fluctuaciones térmicas espurias, el sistema implementa la **Conjugación Modular no conmutativa de Tomita-Takesaki**:
@@ -124,7 +133,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
     1. *Obstrucción Cohomológica de Čech:* Modela los transductores locales como un cubrimiento abierto $\mathcal{U} = \{U_i\}$ en $\partial K$. El descalce analógico define una 1-cocadena $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el Laplaciano elíptico $\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$.
     2. *Deformación Anisotrópica y Pullback en de Rham:* Si $\check{H}^1(\mathcal{U}; \mathcal{F}) > L_{\max} \cdot \tau_{\mathrm{margin}}$, ejecuta una amputación espectral deformando la métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, atenuando el canal ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) sin romper la conexidad de Fiedler ($\lambda_2 \ge \tau_{\mathrm{Fiedler}}$).
     3. *Traceout en Fock y Preservación de von Neumann:* Proyecta el estado cuántico $\rho \in \mathcal{D}(\mathcal{H})$ mediante $\rho_{\mathrm{surgery}} = \operatorname{Tr}_{\mathrm{isolated}}(\mathbf{P}_{\mathrm{surg}} \rho \mathbf{P}_{\mathrm{surg}}^\top) \oplus \rho_{\mathrm{vacuum}}$, garantizando $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$.
-    4. *Rampa de Confianza, Positrón de Autorización $e^+$ y Crowbar:* Si $0.3\tau_{\mathrm{margin}} < \check{H}^1 \le 0.5\tau_{\mathrm{margin}}$, activa Veto Suave con activación de Válvula de Alivio Termodinámico (Luz Ámbar, 1h de gracia para inyectar en RAM un Positrón $e^+$ ligado por HMAC que aniquila la anomalía $e^- + e^+ \to 2\gamma$). Si $\check{H}^1 > 0.5\tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para cebar el tiristor BT151 (Crowbar) en silicio [topological_surgery_cech_agent.py].
+    4. *Rampa de Confianza, Positrón de Autorización $e^+$ y Crowbar:* Si $0.3\tau_{\mathrm{margin}} < \check{H}^1 \le 0.5\tau_{\mathrm{margin}}$, activa Veto Suave con activación de Válvula de Alivio Termodinámico (Luz Ámbar, 1h de gracia para inyectar en RAM un Positrón $e^+$ ligado por HMAC que aniquila la anomalía $e^- + e^+ \to 2\gamma$). Si $\check{H}^1 > 0.5\tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 392.15\text{ ns}$) vía GPIO14 para cebar el tiristor BT151 (Crowbar) en silicio [topological_surgery_cech_agent.py].
 
 ---
 
@@ -142,7 +151,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
     3. *Reflectometría en el Dominio del Tiempo (TDR):* Evalúa la desadaptación métrica $\delta G_{\mu\nu}$ mediante la iFFT:
        $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
     4. *Rampa de Confianza Graduada, Positrón $e^+$ y Crowbar ESP32:*
-       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, activa Veto Suave (Válvula de Alivio) y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ firmado ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ e irradiando fotones de auditoría sin detener el vertido de concreto. Si $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 400\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151 (Crowbar) en silicio.
+       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, activa Veto Suave (Válvula de Alivio) y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ firmado ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ e irradiando fotones de auditoría sin detener el vertido de concreto. Si $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 392.15\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151 (Crowbar) en silicio.
 
 ---
 
@@ -218,7 +227,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
        - *FPU:* Simetría de calibre no abeliana $SU(3)_C$ sobre la tripleta APU $\boldsymbol{c} = (c_r, c_g, c_b)^\top \in \mathbb{C}^3$ (Materiales $r$, Mano de Obra $g$, Maquinaria $b$), Gell-Mann $T_a$, Casimir $C_2(\boldsymbol{c}) \le 10^{-10}$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y energía de cuerda $E_{\mathrm{string}} < 100.0$. Latencia FPU: $3.10\text{ ms}$, Actuación IRAM: $398.95\text{ ns}$.
        - *Dolor y Dinero:* Prohíbe el pago de materiales o mano de obra desarticulada (huérfana) y evita el fraccionamiento ilegal de contratos para eludir licitaciones públicas.
 *   **Dual-Control y Actuación Crowbar:**
-    Sella certificados inmutables DTO con doble firma SHA-256 (`decision_sha256` y `digital_signature_sha256`). Ante veto ($\top$), la subrutina `isVerdictCoherent()` gatilla la ISR en IRAM del ESP32 en $< 400\text{ ns}$, conmutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar la maquinaria física en obra.
+    Sella certificados inmutables DTO con doble firma SHA-256 (`decision_sha256` y `digital_signature_sha256`). Ante veto ($\top$), la subrutina `isVerdictCoherent()` gatilla la ISR en IRAM del ESP32 en $< 392.15\text{ ns}$, conmutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar la maquinaria física en obra.
 
 ---
 
@@ -234,7 +243,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
     2. *Fusible Cuántico de Fock y Aniquilación Semántica:*
        En el registro de Fock fermiónico (`SynapticFockSpaceRegistry`), si el Modelo de Lenguaje o el contratista inyecta una alucinación o sobreprecio en SECOP II, se genera un electrón de anomalía semántica $e^-$ ($a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$). Este electrón colisiona contra el positrón de autorización inmutable $e^+$ del presupuesto base, produciendo la aniquilación cuántica mutua:
        $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
-       liberando dos fotones Gamma de auditoría con firma SHA-256. Ante colapso a $\mathtt{VETOED}$ ($\top$), la subrutina `isVerdictCoherent()` ejecuta en $< 400\text{ ns}$ la ISR en IRAM del ESP32 perimetral, conmutando GPIO14 para cebar el tiristor BT151 (Crowbar) y detener la maquinaria pesada en seco.
+       liberando dos fotones Gamma de auditoría con firma SHA-256. Ante colapso a $\mathtt{VETOED}$ ($\top$), la subrutina `isVerdictCoherent()` ejecuta en $< 392.15\text{ ns}$ la ISR en IRAM del ESP32 perimetral, conmutando GPIO14 para cebar el tiristor BT151 (Crowbar) y detener la maquinaria pesada en seco.
 *   **Mapeo Ejecutivo ("Dolor y Dinero"):**
     - *Dolor:* Adición ilegal de ítems fantasma en pliegos de licitación, sobrecostos por desalineación en Análisis de Precios Unitarios y riesgo de demandas fiscales de la Contraloría.
     - *Dinero:* Anulación instantánea de la facturación fantasma y preservación del $100\%$ del flujo de caja, garantizando la certeza jurídica y la viabilidad del WACC ante el Mandato BIM 2026.
@@ -271,7 +280,7 @@ $$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \f
 
 ### 🏛️ EL ESTRATI DE SABIDURÍA EXTENDIDO (24 SOBERANOS TOON Y 24 MOTORES ESPECTRALES) EN WISDOM ($V_{\mathbb{W}}$ — RSI³ MONÁDICO)
 
-El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 7 Tríadas Funcionales Anidadas compuestas por 21 Soberanos Agénticos (`*_agent.py`) y sus 21 Motores Espectrales (`*_engine.py`):
+El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 8 Tríadas Funcionales Anidadas compuestas por 24 Soberanos Agénticos (`*_agent.py`) y sus 24 Motores Espectrales (`*_engine.py`):
 
 #### I. Tríada GAN-REM (Simulación Adversarial y Auditoría Ciega)
 1. **Soberano Ilusionista Adversarial (`toon_trickster_adversary_agent.py` / `toon_trickster_adversary_engine.py`):**
@@ -293,7 +302,7 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 7 Tríadas Funcion
    - *Diagnóstico y Dolor y Dinero:* Verifica que la rotación interna de variables no introduzca holonomía espuria ni distorsiones en la MAC.
 6. **Soberano Fiscal Introspectivo (`toon_introspection_prosecutor_agent.py` / `toon_introspection_prosecutor_engine.py`):**
    - *Formulación:* Axiomas $C^*$ en $\mathfrak{D}_n$, Acusación Atractor Espurio $\lambda_{\max}^\perp < 0$.
-   - *Diagnóstico y Dolor y Dinero:* Purga inmediata de matrices de densidad no hermíticas ($\rho \neq \rho^\dagger$) o degeneradas.
+   - *Diagnóstico y Dolor y Dinero:* Purga inmediata de matrices de densidad no hermíticas ($\rho \neq \rho^\dagger$) o singulares.
 
 #### III. Tríada Causal (Navegación Ultramétrica de Novikov y Topología de Čech)
 7. **Soberano Navegante de Novikov (`toon_novikov_navigator_agent.py` / `toon_novikov_navigator_engine.py`):**
@@ -314,8 +323,8 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 7 Tríadas Funcion
     - *Formulación:* Conexión de gauge $A_\mu \in \mathfrak{so}(n)$, $3$-forma Chern-Simons $\text{CS}_3 = (A \wedge dA)/(8\pi^2)$, Pontryagin $\nu \in \mathbb{Z}$, Descenso de Stora-Zumino $\Delta_{\text{SZ}}$, Holonomía Wilson $W(\gamma) \in U(1) \times SU(2)$, Clase de Hopf $c_1$, Estado GNS de Gibbs $\rho = \exp(-L_{\text{sched}})/Z$, Operador Modular Tomita-Takesaki $S_0 = J \Delta^{1/2}$, Condición analítica KMS a $\beta=1$, Medición Débil QND en Vacío de Dirac $|\Omega\rangle$ con Back-Action $\equiv 0.0\text{ dB}$, Fidelidad Uhlmann $F$, Fubini-Study $d_{\text{FS}}$, Capacidad de Gromov $c_G \le 12.5$.
     - *Diagnóstico y Dolor y Dinero:* Auditoría pasiva sin demolición (0.0 dB back-action) del avance temporal. Compresión del $86.4\%$ en $KV$-Cache (412 a 56 tokens por cartucho TOON), eliminando la fatiga atencional y previniendo alucinaciones en pliegos BIM 2026.
 12. **Soberano Fiscal e Inquisidor Temporal (`toon_chronos_prosecutor_agent.py` / `toon_chronos_prosecutor_engine.py`):**
-    - *Formulación:* Validación Cruzada Dual Ley vs Estado ($\text{Floquet}(W) \neq \text{Floquet}(M)$), Obstrucción Cohomológica de Čech $\check{H}^2(X, \mathcal{F}_{\text{time}})$ con $\delta^2 = 0$, Auditoría $C^*$-algebraica $(\text{Hermiticidad}, \text{Traza 1}, \text{PSD}, S(\rho))$, Cota Variacional de Bogomol'nyi $\|F\|_F^2 \ge 8\pi^2|k|/\text{vol}(X)$, Indicadores Adversariales $RHI > 0.85$ y $DCR > 0.25$, Kernel RSI³ de profundidad 3 con restauración de Banach, Adjudicación en Heyting $\Omega_3$ e Interlock ESP32 Crowbar ($<400\text{ ns}$).
-    - *Diagnóstico y Dolor y Dinero:* Inmunidad ante prórrogas fraudulentas, maquillaje de holguras y *Reward Hacking* en SECOP II. Bloqueo inmediato de solicitudes ilícitas y parálisis física de maquinaria en obra en $< 400\text{ ns}$.
+    - *Formulación:* Validación Cruzada Dual Ley vs Estado ($\text{Floquet}(W) \neq \text{Floquet}(M)$), Obstrucción Cohomológica de Čech $\check{H}^2(X, \mathcal{F}_{\text{time}})$ con $\delta^2 = 0$, Auditoría $C^*$-algebraica $(\text{Hermiticidad}, \text{Traza 1}, \text{PSD}, S(\rho))$, Cota Variacional de Bogomol'nyi $\|F\|_F^2 \ge 8\pi^2|k|/\text{vol}(X)$, Indicadores Adversariales $RHI > 0.85$ y $DCR > 0.25$, Kernel RSI³ de profundidad 3 con restauración de Banach, Adjudicación en Heyting $\Omega_3$ e Interlock ESP32 Crowbar ($<392.15\text{ ns}$).
+    - *Diagnóstico y Dolor y Dinero:* Inmunidad ante prórrogas fraudulentas, maquillaje de holguras y *Reward Hacking* en SECOP II. Bloqueo inmediato de solicitudes ilícitas y parálisis física de maquinaria en obra en $< 392.15\text{ ns}$.
 
 #### V. Tríada Agronómica (Cultivo Cognitivo, Monodromía y Límite de Banach)
 13. **Soberano del Cultivo Cognitivo (`toon_cognitive_crop_agent.py` / `toon_cognitive_crop_engine.py`):**
@@ -387,7 +396,7 @@ El Consejo de Sabios implementa la **Rampa de Confianza Graduada** basada en la 
 ```
 
 * **Veto Suave (Luz Ámbar / Ventana de 1h / Válvula de Alivio):** Se gatilla ante desvíos TDR $0.3\tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5\tau_{\mathrm{margin}}$ o desvíos de menor cuantía ($\Psi = 0.69 < 0.70$). La **Válvula de Alivio Termodinámico** abre un bypass de recirculación que mantiene la masa circulando sin golpear los actuadores. La potencia física de los actuadores se mantiene activa mientras se emite una alerta estroboscópica y se otorga **1 hora** a la interventoría para inyectar un **Positrón de Autorización Humana** $e^+$ firmado ($\operatorname{HMAC-SHA256}$) que aniquila la anomalía semántica $e^- + e^+ \to 2\gamma$.
-* **Veto Duro (Hardware Crowbar BT151 < 400 ns):** Reservado para desajuste crítico TDR $\|\Gamma(t)\|_{\max} > 0.5\tau_{\mathrm{margin}}$, rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 400\text{ ns}$ para conmutar **GPIO14** a HIGH y disparar el tiristor **BT151** (circuito Crowbar), paralizando la maquinaria pesada en seco.
+* **Veto Duro (Hardware Crowbar BT151 < 392.15 ns / SIMD LX7 $42.0\text{ ns}$):** Reservado para desajuste crítico TDR $\|\Gamma(t)\|_{\max} > 0.5\tau_{\mathrm{margin}}$, rupturas irreversibles o fraude ($\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\lambda_{\min}(C_{\mathcal{E}}) < -10^{-12}$, $\dot{\mathcal{H}} > 10^{-12}$). El retículo colapsa a VETOED ($\top$), activando la **ISR en IRAM del ESP32** en $< 392.15\text{ ns}$ con instrucción bare-metal SIMD Xtensa LX7 en $42.0\text{ ns}$ sobre `0x3FF44008` para conmutar **GPIO14** a HIGH y disparar el tiristor **BT151** (circuito Crowbar), paralizando la maquinaria pesada en seco.
 
 ---
 
@@ -402,7 +411,8 @@ La protección del capital financiero no se confía a directrices lógicas de so
      ┌─────────────────────────────────────────────────────────────┐
      │  MICROCONTROLADOR PERIMETRAL ESP32                         │
      │  · Deserialización síncrona vía ArduinoJson                │
-     │  · Rutina isVerdictCoherent() & ISR en IRAM (< 400 ns)     │
+     │  · Rutina isVerdictCoherent() & ISR en IRAM (< 392.15 ns)  │
+     │  · Instrucción Bare-Metal SIMD Xtensa LX7 (42.0 ns @ W1TS) │
      │  · Decodificación en Silicio de Residuos de Wilkinson      │
      └──────────────────────────────┬──────────────────────────────┘
                                     │ GPIO14 (Disparo de Compuerta)
@@ -418,6 +428,6 @@ La protección del capital financiero no se confía a directrices lógicas de so
 ```
 
 1. **Doble Contabilidad en `isVerdictCoherent()`:** El firmware en C++ del **ESP32** lee y deserializa el pasaporte con `ArduinoJson`, decodificando los residuos de Wilkinson, Lyapunov ($\dot{\mathcal{H}} > 10^{-12}$) y torsión homológica.
-2. **Actuación por Interrupción en IRAM (< 400 ns):** Ante un veto ($\top \mapsto 1$), la **ISR en memoria estática IRAM** se activa en menos de **$400\,\text{ns}$**.
+2. **Actuación por Interrupción en IRAM (< 392.15 ns):** Ante un veto ($\top \mapsto 1$), la **ISR en memoria estática IRAM** se activa en menos de **$392.15\,\text{ns}$** ($42.0\text{ ns}$ en la CPU).
 3. **Gatillo Físico del Tiristor Crowbar BT151 vía GPIO14:** El pin **GPIO14** conmuta a nivel alto (`HIGH`), inyectando corriente de compuerta al tiristor **BT151** (circuito Crowbar).
 4. **Parálisis Mecánica Instantánea:** Cortocircuita la línea de potencia y desenergiza la maquinaria pesada en obra en el milisegundo cero, anulando la anomalía antes de incurrir en detrimento patrimonial ante el SECOP II.
