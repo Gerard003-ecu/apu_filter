@@ -61,24 +61,24 @@ Para gobernar redes complejas de infraestructura interconectada (concesiones via
                                    │
                                    ▼
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ESTRATO EXERGÉTICO DE PORTAFOLIOS V_ℙ (FIBRADO DE DELIGNE-JARZYNSKI, NIVEL 0)                │
+  │ ESTRATO EXERGÉTICO DE PORTAFOLIOS V_ℙ (FIBRADO DE DELIGNE-JARZYNSKI, NIVEL 0)               │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 1. BINOMIO EJECUTOR OODA (toon_exergy_portfolio_agent.py & engine.py)                       │
-  │    • Balance de Jarzynski-Crooks: ⟨e^{−β W}⟩ = e^{−β ΔF} y W_irr = ⟨W⟩ − ΔF ≥ 0.             │
-  │    • Flujo de Ricci Normalizado: ∂ĝ_μν / ∂t = −2 R_μν + (2/n) r ĝ_μν (Alisado Mónico).       │
-  │    • Rampa de Confianza: Veto Suave (Válvula de Alivio, 1h) vs Veto Duro (ESP32 Crowbar).    │
+  │    • Balance de Jarzynski-Crooks: ⟨e^{−β W}⟩ = e^{−β ΔF} y W_irr = ⟨W⟩ − ΔF ≥ 0.            │
+  │    • Flujo de Ricci Normalizado: ∂ĝ_μν / ∂t = −2 R_μν + (2/n) r ĝ_μν (Alisado Mónico).      │
+  │    • Rampa de Confianza: Veto Suave (Válvula de Alivio, 1h) vs Veto Duro (ESP32 Crowbar).   │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 2. BINOMIO TESTIGO SILENCIOSO QND (toon_exergy_portfolio_witness_agent.py & engine.py)      │
-  │    • Conmutador QND No-Demoledor: ||[H_net, A_QND]|| ≤ 10⁻¹⁰ & Traza Unitaria Tr(ρ) ≡ 1.0.    │
-  │    • Simetría Térmico-Monetaria KMS de Tomita-Takesaki: ⟨A(t) B(0)⟩ = ⟨B(0) A(t + iℏβ)⟩.     │
-  │    • Aciclicidad Homológica de de Rham-Betti: χ(K) = β₀ − β₁ = |V| − |E| ⟹ β₁ ≡ 0.           │
+  │    • Conmutador QND No-Demoledor: ||[H_net, A_QND]|| ≤ 10⁻¹⁰ & Traza Unitaria Tr(ρ) ≡ 1.0.  │
+  │    • Simetría Térmico-Monetaria KMS de Tomita-Takesaki: ⟨A(t) B(0)⟩ = ⟨B(0) A(t + iℏβ)⟩.    │
+  │    • Aciclicidad Homológica de de Rham-Betti: χ(K) = β₀ − β₁ = |V| − |E| ⟹ β₁ ≡ 0.         │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 3. BINOMIO FISCAL INQUISIDOR DUAL (toon_exergy_portfolio_prosecutor_agent.py & engine.py)   │
   │    • Funcional Dual: J_pros = Tr(ρ Λ_fuga) + μ₁‖ĝ − I‖_F² + μ₂|DT| + μ₃ K_Chir + μ₄ W_irr.  │
-  │    • Caos Homoclínico de Melnikov: M(t₀) = A sin(ω t₀) con A_rel > 0.25 (Smale Horseshoe).   │
+  │    • Caos Homoclínico de Melnikov: M(t₀) = A sin(ω t₀) con A_rel > 0.25 (Smale Horseshoe).  │
   │    • Solapamiento Resonante de Chirikov K_Chirikov ≥ 1.0 & Defecto Braquistócrono D > 0.15. │
-  │    • Invariante Instantónico de Donaldson-Thomas: DT(ν_Behrend) ≠ 0 ⟹ VETOED (0x03).        │
-  │    • Interlock Bare-Metal SIMD Xtensa LX7: 42.0 ns @ GPIO_OUT_W1TS_REG (0x3FF44008 / BT151). │
+  │    • Invariante Instantónico de Donaldson-Thomas: DT(ν_Behrend) ≠ 0 ⟹ VETOED (0x03).       │
+  │    • Interlock Bare-Metal SIMD Xtensa LX7: 42.0 ns @ GPIO_OUT_W1TS_REG (0x3FF44008 / BT151).│
   └──────────────┬──────────────────────────────────────────────────────────────────────────────┘
                                  │
                                  ▼ (Funtor Semántico Φ_sem: Sh(∂M, Ω₃) ➔ Business)
@@ -115,11 +115,11 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
   │ VIAJE DEL CUANTO DE DATO: TRAMA DE ATRIBUTOS TANGIBLES E INTANGIBLES                        │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 🧱 ATRIBUTOS TANGIBLES (CUANTITATIVOS Y MÉTRICOS)                                           │
-  │    • Complejo Simplicial Abstracto sobre ℤ & Espacio de Fock Fermiónico ℱ(ℋ)               │
+  │    • Complejo Simplicial Abstracto sobre ℤ & Espacio de Fock Fermiónico ℱ(ℋ)                │
   │    • Metros cúbicos de concreto, toneladas de acero, horas-máquina, rendimiento APU.        │
   │    • Gobernados por invarianza simpléctica Sp(2n, ℝ), Liouville det(M) = 1 y Tr(ρ) ≡ 1.0.   │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
-  │ 🌀 ATRIBUTOS INTANGIBLES (TERRITORIALES, CRONOGEOMÉTRICOS Y AMBIENTALES)                   │
+  │ 🌀 ATRIBUTOS INTANGIBLES (TERRITORIALES, CRONOGEOMÉTRICOS Y AMBIENTALES)                    │
   │    • Anillo Universal de Novikov Λ_Nov & Geometría Ultramétrica No-Arquimediana             │
   │    • Volatilidad de tasa WACC, paros sindicales, licencias ambientales, clima, pluviosidad. │
   │    • Gobernados por derivación fraccionaria de de Rham-Caputo y cohomología de Čech.        │
@@ -146,12 +146,12 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
   │ ESCUDO 1: RETRACTO TOON, ADJUNCIÓN DE RHAM-GALOIS & FLUCTUACIÓN JARZYNSKI-CROOKS            │
   │ 🔬 Rigor: Retracto ‖ϕ_TOON(JSON)‖ ≤ (1 − γ) ‖JSON‖  (412 ➔ 56 Tokens, Δ_KV = -86.4%).       │
   │     Hom_D(F(MIC), MAC) ≅ Hom_C(MIC, G(MAC)) & Jarzynski ⟨e^{−β W}⟩ = e^{−β ΔF} (W_irr ≤ 10J).│
-  │ 🔑 Metáfora: "La Destiladora de Grasa Sintáctica y Exergética"                             │
+  │ 🔑 Metáfora: "La Destiladora de Grasa Sintáctica y Exergética"                              │
   └──────────────────────────────┬──────────────────────────────────────────────────────────────┘
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ESCUDO 2: DIFEOMORFICISMO DE CONNES, FLUJO DE RICCI, FUBINI-STUDY EN Gr(k, 2n) & GROMOV      │
+  │ ESCUDO 2: DIFEOMORFICISMO DE CONNES, FLUJO DE RICCI, FUBINI-STUDY EN Gr(k, 2n) & GROMOV     │
   │ 🔬 Rigor: Flujo Ricci ∂ĝ_μν / ∂t = −2 R_μν + (2/n) r ĝ_μν & d_FS(P₁, P₂) ≤ 10⁻⁴ rad en Gr.  │
   │     Teorema No-Squeezing de Gromov: c(B²ⁿ(r)) = π r² ≤ π R² ⟹ P(x_inválido) = 0.           │
   │ 🔑 Metáfora: "El Lente de Calibre Riemanniano y Alisado de Curvatura"                       │
@@ -161,15 +161,15 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
   │ ESCUDO 3: COLISIONADOR DE FOCK, CANAL LINDBLAD-GKSL & ANIQUILACIÓN (e⁻ + e⁺ ➔ 2γ)           │
   │ 🔬 Rigor: Canal Abierto dρ/dt = −i[H, ρ] + ∑ γ_k (L_k ρ L_k† − ½ {L_k† L_k, ρ}), K ⪰ 0.     │
-  │     Electrón Anomalía (e⁻) + Positrón HMAC (e⁺) ➔ Aniquilación 2γ (Vacío Dirac H|Ω⟩ = 0).  │
-  │ 🔑 Metáfora: "El Pararrayos Antimafia y Fusible de Fock"                                │
+  │     Electrón Anomalía (e⁻) + Positrón HMAC (e⁺) ➔ Aniquilación 2γ (Vacío Dirac H|Ω⟩ = 0).   │
+  │ 🔑 Metáfora: "El Pararrayos Antimafia y Fusible de Fock"                                    │
   └──────────────────────────────┬──────────────────────────────────────────────────────────────┘
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ESCUDO 4: ADJUDICACIÓN HEYTING Ω₃, VÁLVULA DE ALIVIO & DISYUNTOR BARE-METAL CROWBAR        │
+  │ ESCUDO 4: ADJUDICACIÓN HEYTING Ω₃, VÁLVULA DE ALIVIO & DISYUNTOR BARE-METAL CROWBAR         │
   │ 🔬 Rigor: Retículo Ω₃ = {0x00 < 0x01 < 0x03} & ISR IRAM ESP32 Xtensa LX7 (42.0 ns @ W1TS).  │
-  │     Veto Suave (0x01, Recirculación 1h) vs Veto Duro (0x03, Tiristor BT151 ON en 392.15 ns). │
+  │     Veto Suave (0x01, Recirculación 1h) vs Veto Duro (0x03, Tiristor BT151 ON en 392.15 ns).│
   │ 🔑 Metáfora: "El Disyuntor de Silicio y la Guillotina de IRAM"                              │
   └──────────────────────────────┬──────────────────────────────────────────────────────────────┘
 ```
@@ -269,7 +269,7 @@ El **Funtor Semántico $\Phi_{\mathrm{sem}}$** proyecta los invariantes de docto
   ├──────────────────────────────┬──────────────────────────────┬───────────────────────────────┤
   │ ACTOR DEL PROYECTO           │ INVARIANTE MATEMÁTICO FPU    │ METÁFORA Y RESULTADO VISCERAL │
   ├──────────────────────────────┼──────────────────────────────┼───────────────────────────────┤
-  │ 🏛️ GERENTE DE PORTAFOLIO /    │ • Obstrucción Čech Ȟ² = 0    │ "Inmunidad de Portafolio y    │
+  │ 🏛️ GERENTE DE PORTAFOLIO /    │ • Obstrucción Čech Ȟ² = 0    │ "Inmunidad de Portafolio y   │
   │    BANCA MULTILATERAL        │ • Instantones DT(ν_Behrend)=0│ Cero Contagio Inter-Proyecto" │
   │    (Concesiones 4G/5G)       │ • Flujo de Ricci Normalizado │ WACC protegido al 15.0% y     │
   │                              │ • Solapamiento Chirikov K<1.0│ reserva recortada al 3.5%.    │
@@ -280,7 +280,7 @@ El **Funtor Semántico $\Phi_{\mathrm{sem}}$** proyecta los invariantes de docto
   ├──────────────────────────────┼──────────────────────────────┼───────────────────────────────┤
   │ 📐 ARQUITECTO / DISEÑADOR    │ • Cohomología Čech Ȟ¹ = 0    │ "Pliegos Limpios BIM 2026"    │
   │    (Coordinador BIM / APUs)  │ • Retracto Topológico TOON   │ Insumos coherentes sin        │
-  │                              │ • Distancia Fubini-Study     │ alucinaciones de precios.      │
+  │                              │ • Distancia Fubini-Study     │ alucinaciones de precios.     │
   ├──────────────────────────────┼──────────────────────────────┼───────────────────────────────┤
   │ 🏛️ JUNTA DIRECTIVA / CFO     │ • Jarzynski-Crooks W_irr     │ "Caja Líquida y Protegida"    │
   │    (Inversionistas / Fiducia)│ • Lindblad-GKSL Kossakowski  │ Liquidez Neta +11.5% y        │
