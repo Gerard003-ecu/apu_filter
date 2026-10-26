@@ -8,19 +8,19 @@
                                    │
                                    ▼
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ESTRATO EXERGÉTICO DE PORTAFOLIOS V_ℙ : TRÍADA DE SOBERANOS Y MOTORES ESPECTRALES (v9.0.0) │
+  │ ESTRATO EXERGÉTICO DE PORTAFOLIOS V_ℙ : TRÍADA DE SOBERANOS Y MOTORES ESPECTRALES (v9.0.0)  │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 1. BINOMIO EJECUTOR (SOBERANO & ENGINE)                                                     │
-  │    • toon_exergy_portfolio_agent.py & toon_exergy_portfolio_engine.py                      │
-  │    • Balance de Jarzynski-Crooks: ⟨e^{−β W}⟩ = e^{−β ΔF} y W_irr = ⟨W⟩ − ΔF ≥ 0.             │
+  │    • toon_exergy_portfolio_agent.py & toon_exergy_portfolio_engine.py                       │
+  │    • Balance de Jarzynski-Crooks: ⟨e^{−β W}⟩ = e^{−β ΔF} y W_irr = ⟨W⟩ − ΔF ≥ 0.            │
   │    • Obstrucción Cohomológica Čech-Deligne en Gerbes A_∞: (δg)_{ijkl} ≡ I en ČH²(X, ℱ_wisdom).│
   │    • Rampa de Confianza Graduada: Veto Suave (Válvula de Alivio) vs Veto Duro.              │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 2. BINOMIO TESTIGO QND (SOBERANO & ENGINE)                                                  │
   │    • toon_exergy_portfolio_witness_agent.py & toon_exergy_portfolio_witness_engine.py       │
-  │    • Conmutador QND No-Demoledor: ||[H_net, A_QND]|| ≤ 10⁻¹⁰ & Traza Unitaria Tr(ρ) ≡ 1.0.    │
-  │    • Simetría Térmico-Monetaria KMS de Tomita-Takesaki: ⟨A(t) B(0)⟩ = ⟨B(0) A(t + iℏβ)⟩.     │
-  │    • Aciclicidad Homológica de de Rham-Betti: χ(K) = β₀ − β₁ = |V| − |E| ⟹ β₁ ≡ 0.           │
+  │    • Conmutador QND No-Demoledor: ||[H_net, A_QND]|| ≤ 10⁻¹⁰ & Traza Unitaria Tr(ρ) ≡ 1.0.  │
+  │    • Simetría Térmico-Monetaria KMS de Tomita-Takesaki: ⟨A(t) B(0)⟩ = ⟨B(0) A(t + iℏβ)⟩.    │
+  │    • Aciclicidad Homológica de de Rham-Betti: χ(K) = β₀ − β₁ = |V| − |E| ⟹ β₁ ≡ 0.         │
   ├─────────────────────────────────────────────────────────────────────────────────────────────┤
   │ 3. BINOMIO FISCAL INQUISIDOR DUAL (SOBERANO & ENGINE)                                       │
   │    • toon_exergy_portfolio_prosecutor_agent.py & toon_exergy_portfolio_prosecutor_engine.py │
