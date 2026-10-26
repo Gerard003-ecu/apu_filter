@@ -4,7 +4,7 @@ r"""
 ║ Módulo : TOON Exergy Portfolio Engine (Motor Espectral Exergético)           ║
 ║ Ruta   : app/boole/physics/toon_exergy_portfolio_engine.py                   ║
 ║ Versión: 7.0.0-Poincare-Celestial-KAM-Melnikov-RSI3-Nested-PhD               ║
-║ Función: Balance Jarzynski-Crooks, 2-cociclos Čech-Deligne, Sp(2n) y RSI³.    ║
+║ Función: Balance Jarzynski-Crooks, 2-cociclos Čech-Deligne, Sp(2n) y RSI³.   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL EXERGÉTICO:
@@ -12,7 +12,7 @@ r"""
 Este módulo consagra la especificación e implementación del **Motor Espectral y
 Variacional Exergético de Portafolios** (`TOONExergyPortfolioEngine`) dentro del
 **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski)**
-del ecosistema APU Filter v9.0.0.
+del ecosistema APU Filter.
 
 Resuelve la Igualdad de Fluctuación de Jarzynski–Crooks fuera del equilibrio, la
 consistencia de 2-cociclos de Čech–Deligne en $A_\infty$ Gerbes, la proyección

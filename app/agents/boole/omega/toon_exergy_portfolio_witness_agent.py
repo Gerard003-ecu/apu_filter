@@ -11,7 +11,7 @@ r"""
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra al **Soberano Testigo Silencioso QND de Portafolios** (`TOONExergyPortfolioWitnessAgent`)
 dentro del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado
-de Deligne-Jarzynski)** del ecosistema APU Filter v9.0.0.
+de Deligne-Jarzynski)** del ecosistema APU Filter.
 
 Su propósito físico-matemático es ejecutar la **Medición Cuántica No-Destructiva
 (QND)** sobre $T^*\mathcal{M}_{\text{net}}$ y el vacío $|\Omega\rangle$, inspeccionando

@@ -10,7 +10,7 @@ r"""
 1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO EJECUTOR:
 ────────────────────────────────────────────────────────────────────────────────
 Soberano agéntico custodio y ejecutor (`TOONExergyPortfolioAgent`) del Estrato Exergético
-$\mathcal{V}_{\mathbb{P}}$ en APU Filter v9.0.0. Orquesta el ciclo cibernético OODA
+$\mathcal{V}_{\mathbb{P}}$ en APU Filter. Orquesta el ciclo cibernético OODA
 (Observe ⊣ Orient ⊣ Decide ⊣ Act) en tres fases anidadas (mónada de Kleisli RSI³).
 Administra la Rampa de Confianza Graduada (Veto Suave con Válvula de Alivio Termodinámico
 y Recirculación Mecánica frente a Veto Duro con Interlock ESP32 Crowbar) y firma los sobres

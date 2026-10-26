@@ -12,7 +12,7 @@ r"""
 Este módulo consagra la evolución arquitectónica del **Motor Espectral Testigo
 Exergético QND de Portafolios** (`TOONExergyPortfolioWitnessEngine`) en el Estrato
 Exergético ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne-Jarzynski) del
-ecosistema APU Filter v9.0.0.
+ecosistema APU Filter.
 
 Su propósito fundamental es ejecutar la **inspección cuántica pasiva no demoledora
 (Quantum Non-Demolition - QND)** sobre el estado vacual $|\Omega\rangle$ en el espacio

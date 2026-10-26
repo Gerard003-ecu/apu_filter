@@ -10,7 +10,7 @@ r"""
 1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL FISCAL:
 ────────────────────────────────────────────────────────────────────────────────
 Núcleo analítico de acusación del soberano fiscal en el Estrato Exergético
-($\mathcal{V}_{\mathbb{P}}$, fibrado de Deligne–Jarzynski) de APU Filter v9.0.0.
+($\mathcal{V}_{\mathbb{P}}$, fibrado de Deligne–Jarzynski) de APU Filter.
 Construye la querella acusatoria formal evaluando el Funcional Escalar de
 Acusación Dual $J_{\text{prosecutor}}$, la forma cerrada de Melnikov en el oscilador
 de Duffing, el parámetro de solapamiento de Chirikov ($K \ge 1.0$), la geodésica
