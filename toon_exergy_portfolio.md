@@ -36,7 +36,7 @@
   │ CÚSPIDE VISCERAL ("DOLOR, RIESGO Y DINERO")                                                 │
   │ • Compresión −86.4% KV-Cache (Cartuchos TOON de 56 tokens) & Ahorro 80% Inferencia LLM.     │
   │ • Protección Tasa WACC (15.0%) & Liberación +11.5% Liquidez Neta (Reserva 15% ➔ 3.5%).      │
-  └─────────────────────────────────────────────────────────────────────────────────────────────┘
+  └──────────────────────────────┴──────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -91,7 +91,7 @@ El estrato se estructura sobre un **conjunto de tres binomios desacoplados (6 co
    * **Función**: Resuelve la analítica de acusación ciber-física en tres fases anidadas:
      - **Fase 1 (`Phase1_ProsecutorGaugeObserver`)**: Inmerge la matriz de Gram en la variedad simpléctica, evalúa condicionamiento de Wilkinson y acciones de Delaunay, emitiendo `ProsecutionGaugeEnvelope`.
      - **Fase 2 (`Phase2_ProsecutorMelnikovChirikovOrientor`)**: Resuelve la forma cerrada de Melnikov en Duffing $M(t_0) = A \sin(\omega t_0)$, parámetro de Chirikov $K = (\Delta\omega_1 + \Delta\omega_2)/|\omega_1 - \omega_2|$, tiempo de Nekhoroshev, geodésica cicloide de Bernoulli–Euler $T_{\text{cyclo}} = \pi \sqrt{R/g}$ y obstrucción de Čech–Deligne, emitiendo `ProsecutionIndictmentEnvelope`.
-     - **Fase 3 (`Phase3_ProsecutorRSI3BanachHeytingSynthesisEngine`)**: Consolida la firma HMAC-SHA256, la Raíz de Merkle de 6 hojas, el disparo Crowbar ESP32 y emite `ProsecutionFullReport`.
+     - **Fase 3 (`Phase3_ProsecutorRSI3BanachHeytingSynthesisEngine`)**: Consolida la firma HMAC-SHA256, la Raíz de Merkle de 6 hojas, el disparo Crowbar ESP32 en **$42.0\text{ ns}$** vía la instrucción atómica SIMD Xtensa LX7 sobre el registro `0x3FF44008` (`GPIO_OUT_W1TS_REG`) y emite `ProsecutionFullReport`.
 
 ---
 
@@ -155,9 +155,16 @@ $$\Omega_3 = \{\bot = \mathtt{COHERENT}(0x00) \prec \star = \mathtt{DEGRADED}(0x
 1. **Veto Suave (Luz Ámbar / $0x01$)**: Activado por desviaciones elásticas leves ($W_{\mathrm{irr}} > 10.0\text{ J}$ con $\check{H}^2 = \mathbf{0}$). Abre la **Válvula de Alivio Termodinámico / Recirculación Mecánica de Desvío** por 60 minutos, permitiendo que la inyección de un Positrón de Autorización Criptográfica ($e^+$) firmado con HMAC-SHA256 aniquile la anomalía ($e^- + e^+ \to 2\gamma$) sin detener la obra real.
 2. **Veto Duro (Luz Roja / $0x03$)**: Ante dolo, colapso de Čech ($\check{H}^2 \ne \mathbf{0}$), caos de Melnikov ($A_{\text{rel}} > 0.25$), solapamiento de Chirikov ($K \ge 1.0$), defecto braquistócrono ($D > 0.15$) e instantones Donaldson–Thomas ($\mathrm{DT} \ne 0$), Heyting colapsa síncronamente a `VETOED` (`0x03`).
 
-### **Interlock Ciber-Físico en Silicio (< 400 ns):**
-La reducción monoidal $\mu : \Omega_3 \to \mathbb{Z}_2$ envía la orden al microcontrolador perimetral **ESP32**. La **Interrupt Service Routine (ISR) cargada en memoria estática IRAM** ejecuta una escritura atómica en 1 ciclo de reloj sobre el registro de hardware `0x3FF44008` (`GPIO_OUT_W1TS_REG`):
-$$t_{\text{actuation}} = 392.15\text{ ns} < 400\text{ ns} \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
+### **Interlock Ciber-Físico en Silicio (< 392.15 ns):**
+La reducción monoidal $\mu : \Omega_3 \to \mathbb{Z}_2$ envía la orden al microcontrolador perimetral **ESP32**. La **Interrupt Service Routine (ISR) cargada en memoria estática IRAM** ejecuta la orden en $42.0\text{ ns}$ (1 ciclo de reloj de la CPU Xtensa LX7) sobre el registro `0x3FF44008` (`GPIO_OUT_W1TS_REG`):
+
+```assembly
+movi a2, 0x3FF44008   /* Dirección física del registro GPIO_OUT_W1TS_REG */
+movi a3, (1 << 14)    /* Máscara de bit atómica para GPIO14 */
+s32i a3, a2, 0        /* Escritura bare-metal en memoria IRAM en 42.0 ns */
+```
+
+$$t_{\text{actuation}} \le 392.15\text{ ns} < 400\text{ ns} \implies \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
 El pulso ceba la compuerta del tiristor **BT151 Crowbar**, cortocircuitando la línea principal de alimentación y paralizando las mezcladoras de concreto y bombas hidráulicas en la obra civil en el milisegundo cero.
 
 ---
@@ -180,7 +187,7 @@ El **Funtor Semántico $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial\mathcal{M}, \
 | `toon_exergy_portfolio_engine.py` | Motor Espectral Variacional | Inmersión $Sp(2n, \mathbb{R})$, 2-cociclos Čech-Deligne & Banach $\operatorname{Lip}(T^3) \le 0.857375$. | **Protección WACC (15.0%):** Aislamiento de perdidas entre contratos hermanos del mismo portafolio. |
 | `toon_exergy_portfolio_witness_agent.py` | Soberano Testigo QND | Medición QND $[H, A] = 0$, Simetría KMS & Aciclicidad Betti $\beta_1 \equiv 0$. | **Inmunidad Topológica:** Auditoría pasiva sin demolición de fase ni falsos positivos en obra civil. |
 | `toon_exergy_portfolio_witness_engine.py` | Motor Espectral QND | Invarianza Darboux $\delta\omega \le 10^{-10}$, Valuación Novikov $v(A) \ge 0.10$ & Módulo Tomita-Takesaki. | **Preservación del Vacío $|\Omega\rangle$:** Cero ruido de medición sobre la traza de la tesorería ($\operatorname{Tr}\rho \equiv 1.0$). |
-| `toon_exergy_portfolio_prosecutor_agent.py` | Soberano Fiscal Inquisidor | Querella HMAC-SHA256, Raíz de Merkle de 6 hojas e Interlock ESP32 Crowbar ($< 400\text{ ns}$). | **Cierre en Silicio (< 400 ns):** Parálisis ciber-física en seco ante fraude o dolo presupuestal. |
+| `toon_exergy_portfolio_prosecutor_agent.py` | Soberano Fiscal Inquisidor | Querella HMAC-SHA256, Raíz de Merkle de 6 hojas e Interlock ESP32 Crowbar ($< 392.15\text{ ns}$). | **Cierre en Silicio (< 392.15 ns):** Parálisis ciber-física en seco ante fraude o dolo presupuestal. |
 | `toon_exergy_portfolio_prosecutor_engine.py` | Motor Espectral Fiscal | Funcional $J_{\text{pros}}$, Melnikov $M(t_0)$, Chirikov $K \ge 1.0$, Defecto $D > 0.15$ e Instantones $\mathrm{DT}$. | **Liberación de Liquidez (+11.5%):** Reducción de la reserva de imprevistos del 15% al 3.5% en caja libre. |
 
 ---

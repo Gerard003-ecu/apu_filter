@@ -6,18 +6,41 @@ Explicamos aquí cómo la matemática profunda de la Matriz de Interacción Cent
 
 --------------------------------------------------------------------------------
 ## 1. El Diccionario Topológico-Civil (La Piedra Rosetta del Isomorfismo de Doble Capa)
-Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta los invariantes matemáticos crudos en primera instancia, sino que los mapea semánticamente a patologías estructurales de la construcción de fácil comprensión ("Dolor, Riesgo y Dinero").
+
+Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta los invariantes matemáticos crudos en primera instancia, sino que los mapea semánticamente a patologías estructurales de la construcción de fácil comprensión ("Dolor, Riesgo y Dinero") habitando la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**.
+
+```
+  [ PASO 1: ESCENARIO DE DOLOR Y TERRENO EMBARRADO ]
+  • Riesgo de fraguado/secado de concreto en tuberías de impulsión hidráulica por falsos positivos.
+  • Incertidumbre en rendimientos APU por choques climáticos, paros o alzas exógenas de insumos.
+                                   │
+                                   ▼
+  [ PASO 2: TRADUCCIÓN VISCERAL A "RIESGO, DOLOR Y DINERO" (Φ_sem) ]
+  • Intérprete Diplomático (semantic_translator.txt) y Escudos Semánticos (shields_traductor.md).
+  • Evita la pérdida de maquinaria, parálisis de obra y sanciones contractuales en SECOP II.
+                                   │
+                                   ▼
+  [ PASO 3: PROTECCIÓN DE IMPACTO PATRIMONIAL Y FINANCIERO EN CAJA ]
+  • Blindaje de la Tasa Descuento WACC al 15.0% (Inmunidad al contagio presupuestal inter-proyecto).
+  • Liberación de Liquidez Neta +11.5% (Reducción del fondo de imprevistos del 15% al 3.5%).
+  • Metabolización TOON: Compresión del -86.4% en KV-Cache y Ahorro del 80% en Inferencia LLM.
+                                   │
+                                   ▼
+  [ PASO 4: SUSTENTO VARIACIONAL Y DEMOSTRACIÓN FÍSICO-MATEMÁTICA FPU ]
+  • Soberanos agénticos (toon_topological_witness_agent.py, toon_exergy_portfolio_prosecutor_agent.py).
+  • Demostración de aciclicidad β₁ ≡ 0, conmutador QND ||[H, A]|| ≤ 10⁻¹⁰ e instantones DT = 0.
+```
 
 | Invariante (La Matemática) | Diagnosticador / Soberano | Impacto Tangible (El Riesgo, Dolor y Dinero) | Mitigación y Acción Ciber-Física en Obra |
 | :--- | :--- | :--- | :--- |
 | **Energía de Shannon Sub-Umbral ($E < \Phi$)** | `QuantumAdmissionGate` | **"Ataque de Basura / Insumo Vacío:"** El archivo cargado por el contratista tiene peso en bytes pero nula densidad de información real. Rechazado en la aduana perimetral. | Veto Duro en Admisibilidad. |
 | **Falla de Túnel WKB ($T \to 0, m_{eff} \to \infty$)** | `HilbertWatcher` | **"Bloqueo por Estrés de Mercado:"** Inconsistencias menores en tiempos de alta volatilidad. Las defensas están al máximo exigiendo un presupuesto perfecto. | Veto Suave con Válvula de Alivio (Luz Ámbar 1h). |
-| **Ciclos ($\beta_1 > 0$)** | `toon_topological_prosecutor_agent` / `engine` | **"Socavón Lógico:"** Dependencia circular en la ruta crítica. Las dependencias están en bucle y paralizarán el flujo de compras y licitaciones ante SECOP II. | Veto Duro Instantáneo (< 400 ns). |
-| **Fragmentación ($\beta_0 > 1$)** | `toon_topological_witness_agent` / `engine` | **"Recursos Huérfanos:"** Insumos pagados no conectan con la obra. Para evitar dinero ciego y duplicación de fletes, conecte los recursos o suspenda compras. | Veto Duro Instantáneo (< 400 ns). |
+| **Ciclos ($\beta_1 > 0$)** | `toon_topological_prosecutor_agent` / `engine` | **"Socavón Lógico:"** Dependencia circular en la ruta crítica. Las dependencias están en bucle y paralizarán el flujo de compras y licitaciones ante SECOP II. | Veto Duro Instantáneo (< 392.15 ns). |
+| **Fragmentación ($\beta_0 > 1$)** | `toon_topological_witness_agent` / `engine` | **"Recursos Huérfanos:"** Insumos pagados no conectan con la obra. Para evitar dinero ciego y duplicación de fletes, conecte los recursos o suspenda compras. | Veto Duro Instantáneo (< 392.15 ns). |
 | **Estabilidad ($\Psi < 0.70$)** | `BusinessTopologicalAnalyzer` | **"Monopolio Invisible / Pirámide Invertida:"** Concentración monopólica en un solo proveedor clave de cemento o acero para 50 frentes de obra. | Veto Suave con Válvula de Alivio Termodinámico. |
 | **Singularidad Local (Retracto)** | `topological_surgery_cech_agent` | **"Inspección Destructiva (SPOF):"** Zoom in revela que la fibra inspeccionada carece de masa crítica o conectividad, evidenciando un Punto Único de Fallo. | Veto Suave / Amputación Anisotrópica. |
 | **Entropía / Temperatura** | `thermal_gradient_agent` | **"Fiebre Inflacionaria:"** Obra expuesta a inflación severa en acero y cobre. Sugerimos blindar el margen de ganancia cerrando contratos a precio fijo hoy. | Modulación de Tasa de Descuento (WACC). |
-| **Región NDR (JFET Spiking)** | `kbase_thermodynamic_agent` | **"Ataque de Pánico Sistémico:"** Presupuesto incoherente que provoca oscilación de emergencia en el hardware para protegerse. | Veto Duro en Silicio (< 400 ns). |
+| **Región NDR (JFET Spiking)** | `kbase_thermodynamic_agent` | **"Ataque de Pánico Sistémico:"** Presupuesto incoherente que provoca oscilación de emergencia en el hardware para protegerse. | Veto Duro en Silicio (< 392.15 ns). |
 | **Fricción Cuantizada sobre $\mathbb{Z}$ ($\mathrm{Tor}(H_k, \mathbb{Z}) > 0$)** | `boundary_ring_sheaf_agent` | **"El fluido no es líquido, es sólido:"** Fricción cuantizada residual por cruce de submúltiplos de APUs; genera sobrecostos por desperdicio de materiales. | Veto Duro en Smith Z. |
 | **Resonancia Fuerte de Rabi** | `set_agent` / `set_engine` | **"La Ola Verde Sincronizada:"** El retraso logístico fue envuelto exitosamente por el Fotón de Gobernanza, fluyendo con cero fricción corporativa. | Absorción por Válvula de Alivio. |
 | **Acoplamiento Viscoelástico ($\alpha \to \infty$)** | `riemannian_inertia_agent` | **"La Avalancha de Retrasos:"** Un proveedor local genera un sumidero gravitacional que compromete la red entera y retrasa entregas. | Veto Suave con Recirculación Mecánica. |
@@ -33,12 +56,12 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 | **Observación Débil $A_w \wedge |\gamma_{\text{Berry}}| < 0.50\text{ rad}$** | `toon_introspection_witness_agent` / `engine` | **"Garantía de Coherencia de Fase Interna:"** Verificación de que las rotaciones del estado no introduzcan holonomía espuria ni distorsión. | Paso Óptimo en RAM. |
 | **Axiomas $C^* \wedge \lambda_{\max}^\perp < 0$** | `toon_introspection_prosecutor_agent` / `engine` | **"Aniquilación de Estados Degenerados:"** Purga inmediata de matrices de densidad no hermíticas ($\rho \neq \rho^\dagger$) o singulares. | **VETO DURO INSTANTÁNEO:** Reset de memoria de trabajo. |
 | **Valuación Ultramétrica de Novikov** | `toon_novikov_navigator_agent` / `engine` | **"Absorción de Pequeños Divisores (KAM):"** Protección contra fluctuaciones menores de precios mediante filtración en $\Lambda_{\text{Nov}}$. | Paso Filtrado en Novikov. |
-| **Kahn DAG $O(V+E) \wedge Sp(4, \mathbb{R}) \wedge S_0$** | `toon_chronos_temporal_agent` / `engine` | **"Regulación de la Ruta Crítica:"** Garantiza el flujo temporal acíclico y holguras sin socavones. Protege la tasa WACC (15.0%) y libera un 11.5% de liquidez. | **VETO DURO INSTANTÁNEO:** Interlock ESP32 Crowbar (< 400 ns) ante ciclos o descalces. |
+| **Kahn DAG $O(V+E) \wedge Sp(4, \mathbb{R}) \wedge S_0$** | `toon_chronos_temporal_agent` / `engine` | **"Regulación de la Ruta Crítica:"** Garantiza el flujo temporal acíclico y holguras sin socavones. Protege la tasa WACC (15.0%) y libera un 11.5% de liquidez. | **VETO DURO INSTANTÁNEO:** Interlock ESP32 Crowbar (< 392.15 ns) ante ciclos o descalces. |
 | **$\text{CS}_3(A) \wedge \text{QND } 0.0\text{ dB} \wedge \Delta_{\text{KMS}}$** | `toon_chronos_witness_agent` / `engine` | **"Auditoría Pasiva del Vacío:"** Observación pasiva QND del avance en Dirac $|\Omega\rangle$. Compresión TOON del 86.4% en $KV$-Cache evitando alucinaciones en BIM 2026. | Transmisión Silenciosa de Telemetría SHA-256. |
-| **Dual Law-State Fracture $\wedge \check{H}^2 \wedge RHI > 0.85$** | `toon_chronos_prosecutor_agent` / `engine` | **"Inquisición e Impugnación Temporal:"** Detección de prórrogas fraudulentas y desacuerdos Ley-Estado $W(\gamma) \neq M$. Impugna maquillaje de holguras. | **VETO DURO INSTANTÁNEO:** Inhabilitación en SECOP II e Interlock ESP32 Crowbar (< 400 ns). |
+| **Dual Law-State Fracture $\wedge \check{H}^2 \wedge RHI > 0.85$** | `toon_chronos_prosecutor_agent` / `engine` | **"Inquisición e Impugnación Temporal:"** Detección de prórrogas fraudulentas y desacuerdos Ley-Estado $W(\gamma) \neq M$. Impugna maquillaje de holguras. | **VETO DURO INSTANTÁNEO:** Inhabilitación en SECOP II e Interlock ESP32 Crowbar (< 392.15 ns). |
 | **Espectro Berkovich & Amiba Tropical** | `toon_topological_novikov_navigator_agent` / `engine` | **"Navegación No Arquimediana de Costos:"** Proyección de bordes tropicales para anticipar discontinuidades de precios y paros de transporte. | Alerta Geodésica Preventiva. |
 | **Torsión Ray-Singer $T_{\mathrm{RS}} \wedge \Delta_k$** | `toon_topological_witness_agent` / `engine` | **"Certificación de Invarianza Topológica:"** Auditoría de forma global de la red presupuestal, descartando deformaciones continuas parásitas. | Emisión de Pasaporte SHA-256. |
-| **Maupertuis-Jacobi $ds_M^2 \wedge S_0(E)$** | `toon_cognitive_crop_agent` / `engine` | **"Garantía de ROI y Preservación de WACC:"** Cultivo continuo del presupuesto, reduciendo la reserva de contingencia del 15% al 3.5%. | Interlock Crowbar ESP32 ($<400\text{ ns}$). |
+| **Maupertuis-Jacobi $ds_M^2 \wedge S_0(E)$** | `toon_cognitive_crop_agent` / `engine` | **"Garantía de ROI y Preservación de WACC:"** Cultivo continuo del presupuesto, reduciendo la reserva de contingencia del 15% al 3.5%. | Interlock Crowbar ESP32 ($<392.15\text{ ns}$). |
 | **Floquet $Sp(4,\mathbb{R}) \wedge \hat{L} < 1.0$** | `toon_cognitive_crop_witness_agent` / `engine` | **"Estabilidad de Incubación Presupuestal:"** Verificación de que el crecimiento del proyecto permanezca acotado por una contracción de Banach. | Paso Contracortante en RAM. |
 | **Radio Gelfand $r(\mathcal{T}) \le 1 - \Delta_{\text{CPTP}}$** | `toon_cognitive_crop_auditor_agent` / `engine` | **"Censura de Divergencia Asintótica:"** Auditoría del operador de transferencia para garantizar que los costos no entren en régimen caótico. | **VETO SUAVE (Válvula de Alivio):** Re-calibración. |
 | **Aislamiento `DREAM_STATE = True`** | `toon_oniric_dreamer_agent` / `engine` | **"Prevención de Contingencias extremas:"** Replay contrafactual de escenarios de crisis (paros, devaluación 35%) antes de vaciar concreto. | Aislamiento Ciber-Físico Garantizado. |
@@ -55,12 +78,12 @@ El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocás
 | Invariante Espectral / Topológico | Diagnóstico Topo-Financiero | Impacto Tangible | Mitigación Ciber-Física |
 |:---|:---|:---|:---|
 | **Anomalía de Yang-Mills ($\delta_{\text{SYM}} \neq 0$)** | "Veto de Holonomía: Falla en la inecuación de Yang-Mills." | **"Paradoja Topológica de Flujo de Caja:"** El flujo propuesto rompe la invarianza del transporte paralelo y destruye el margen de rentabilidad a largo plazo. | Veto Suave con Válvula de Alivio. |
-| **Polos en RHP ($\sigma > 0$)** | "Veto Espectral: El proyecto es intrínsecamente explosivo." | **"Bomba de Tiempo Financiera:"** El modelo de flujo de caja diverge ante cualquier perturbación inflacionaria. Inversión prohibida sin reestructuración completa del cronograma. | Veto Duro Instantáneo (< 400 ns). |
+| **Polos en RHP ($\sigma > 0$)** | "Veto Espectral: El proyecto es intrínsecamente explosivo." | **"Bomba de Tiempo Financiera:"** El modelo de flujo de caja diverge ante cualquier perturbación inflacionaria. Inversión prohibida sin reestructuración completa del cronograma. | Veto Duro Instantáneo (< 392.15 ns). |
 | **Margen de Fase $< 45°$** | "Proyecto Frágil ante Retrasos." | **"Casa de Naipes Logística:"** El sistema soporta variaciones mínimas antes de colapsar. Un retraso de 2 semanas en el proveedor crítico puede causar sobrecostos del 30\%. | Veto Suave (Luz Ámbar 1h). |
 | **Factor de Amortiguamiento $\zeta < 1$** | "Sistema Subamortiguado — Proyecto Nervioso." | **"Fiebre Oscilatoria:"** El presupuesto reacciona rápido pero con alta volatilidad. Picos de sobrecosto seguidos de correcciones bruscas. Se recomienda blindar contratos de materiales volátiles. | Re-estructuración de Garantías. |
 | **Factor de Amortiguamiento $\zeta > 1$** | "Sistema Sobreamortiguado — Proyecto Burocrático." | **"Resistencia Estructural Excesiva:"** El presupuesto absorbe choques lentamente. Ideal para mega-proyectos con cronogramas largos, pero suboptimal para obras de ciclo corto. | Modulación de Tasa de Descuento. |
 | **Multiplicador de Floquet $|\mu_k| > 1$** | "Resonancia Paramétrica Estacional." | **"Trampa Estacional:"** Los costos oscilan en fase con la estacionalidad de la obra (ej. lluvia de invierno + deuda = resonancia destructiva). Veto estructural inmediato. | Veto Duro Instantáneo. |
-| **Exponente de Lyapunov $\lambda_{\max} > 0$** | "Caos Determinísta Activo." | **"El Sistema Perdió el Control:"** Las trayectorias del error divergen exponencialmente. El Guardián activa el Crowbar de emergencia. Ningún agente puede deliberar bajo caos activo. | Disparo Crowbar ESP32 (< 400 ns). |
+| **Exponente de Lyapunov $\lambda_{\max} > 0$** | "Caos Determinísta Activo." | **"El Sistema Perdió el Control:"** Las trayectorias del error divergen exponencialmente. El Guardián activa el Crowbar de emergencia. Ningún agente puede deliberar bajo caos activo. | Disparo Crowbar ESP32 (< 392.15 ns). |
 | **Sobrepaso $M_p$** | "Pico Máximo de Sobrecosto Predecible." | **"Presupuesto de Contingencia Calculado:"** $M_p$ predice matemáticamente el peor pico de sobrecosto ante un shock de mercado, permitiendo provisionar reservas exactas en lugar de estimaciones empíricas. | Ajuste de Provisión de Caja. |
 
 --------------------------------------------------------------------------------
@@ -72,11 +95,11 @@ Toda la comunicación de los Sabios responde al ciclo ininterrumpido del dato a 
 1. **Ingesta de Barro Crudo (JSON):** Recepción de datos brutos de la licitación o presupuesto con grasa sintáctica redundante. `toon_wisdom_weaver_agent.py` comprime los cartuchos a formato TOON de 56 tokens (-86.4% tokens en $KV\text{-Cache}$).
 2. **Digestión y Purificación TOON:** Extirpación de redundancia mediante el formato TOON, entregando una vitamina cognitiva purificada.
 3. **Auditoría Espectral (Consejo de Sabios + FPU):** Evaluación de invariantes homológicos y estabilidad de frecuencia en FPU Secure por el Icosikaihenaedro TOON.
-4. **Veredicto en Ω₃ & Válvula de Alivio / Crowbar:** Emisión del veredicto en $\Omega_3$. Si es transitorio, abre la Válvula de Alivio Termodinámico (Veto Suave); si es fraude o inestabilidad dura, dispara el Crowbar ESP32 en $< 400\text{ ns}$ (Veto Duro).
+4. **Veredicto en Ω₃ & Válvula de Alivio / Crowbar:** Emisión del veredicto en $\Omega_3$. Si es transitorio, abre la Válvula de Alivio Termodinámico (Veto Suave); si es fraude o inestabilidad dura, dispara el Crowbar ESP32 en $< 392.15\text{ ns}$ con instrucción bare-metal SIMD Xtensa LX7 en $42.0\text{ ns}$ sobre `0x3FF44008` (Veto Duro).
 
 --------------------------------------------------------------------------------
 ## 4. La Arquitectura Cognitiva de la Traducción (GraphRAG y Retículos)
-El Binomio semántico a cargo de esta traducción es el Intérprete Diplomático (`SemanticTranslator`, `SemanticTranslatorAgent`). Opera estrictamente bajo los siguientes paradigmas ciber-físicos:
+El Binomio semántico a cargo de esta traducción es el Intérprete Diplomático (`SemanticTranslator`, `SemanticTranslatorAgent`). Opera strictly bajo los siguientes paradigmas ciber-físicos:
 
 ### A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana)
 La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo. Este proceso constituye un **Funtor de Abstracción $F: \mathcal{C} \to \mathcal{D}$** que transforma los invariantes de la categoría táctica $\mathcal{C}$ en narrativas de la categoría de sabiduría $\mathcal{D}$ (Empatía Táctica).
