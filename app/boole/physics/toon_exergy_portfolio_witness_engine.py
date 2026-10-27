@@ -250,7 +250,7 @@ def _quat_conj(a: Tuple[float, float, float, float]) -> Tuple[float, float, floa
 
 @dataclass(frozen=True)
 class OctonionWitnessNumber:
-    """
+    r"""
     Octonión $\mathbb{O}$ como par de cuaterniones (Cayley–Dickson):
       $(a,b)\\cdot(c,d)=(ac-\\bar d b,\\, da + b\\bar c)$.
     Garantiza $\|xy\|=\|x\|\|y\|$ y asociador alternante $[x,x,y]=0$.
@@ -514,7 +514,7 @@ class Phase1_SymplecticQNDObserver:
         self,
         h_net: NDArray[np.float64],
     ) -> Tuple[float, bool, float, float]:
-        """
+        r"""
         Inmersión de Gram $G=HH^{\\mathsf T}$ en $\\mathrm{Sp}(2d,\\mathbb{R})$ vía Cayley:
           $K=(G-I)(G+I)^{-1}$, $M=(I+K)(I-K)^{-1}$.
         Residuo de Darboux: $\|M^{\\mathsf T}JM-J\|_F / (1+\|M\|_F^2)$.
@@ -670,7 +670,7 @@ class Phase2_KMSBettiPoincareOrientor:
         h_net: NDArray[np.float64],
         a_qnd: NDArray[np.float64],
     ) -> Tuple[float, bool, float]:
-        """
+        r"""
         KMS analítico: $\\langle H A\\rangle = \\langle A\\,\\sigma_{i\\beta}(H)\\rangle$
         con $\\sigma_{i\\beta}(H)=H$ (H conmuta consigo) y, para el observable,
         $\\sigma_{i\\beta}(A)=e^{-\\beta H} A e^{\\beta H}$.
@@ -739,7 +739,7 @@ class Phase2_KMSBettiPoincareOrientor:
         p1_env: WitnessSymplecticQNDObservationEnvelope,
         perturbation_amplitude: float = 0.05,
     ) -> Tuple[float, bool, float, bool, float]:
-        """
+        r"""
         Integral de Melnikov sobre la homoclínica de Duffing con frecuencia de Delaunay
         $\\omega_0 = n = L^{-3}$ y perturbación $H_1=\\varepsilon q\\sin(\\omega_0(t+t_0))$:
           $\{H_0,H_1\\}=-p_0(t)\\,\\varepsilon\\sin(\\omega_0(t+t_0))$,

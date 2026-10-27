@@ -14,21 +14,29 @@ Variacional Exergético de Portafolios** (`TOONExergyPortfolioEngine`) dentro de
 **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski)**
 del ecosistema APU Filter.
 
-Resuelve la Igualdad de Fluctuación de Jarzynski–Crooks fuera del equilibrio, la
-consistencia de 2-cociclos de Čech–Deligne en $A_\infty$ Gerbes, la proyección
-simpléctica de Cayley–Darboux en $\mathfrak{sp}(2n, \mathbb{R})$, la mecánica celeste
-de Poincaré-Delaunay, el conteo instantónico de Donaldson-Thomas y la cota contractiva
-de Banach RSI³ ($\operatorname{Lip}(T^3) \le 0.857375 < 1.0$).
+Sosteniendo la composición anidada en 3 FASES de la categoría de Kleisli:
+  • Fase 1 (`Phase1_SymplecticSpectralObserver`): Matriz simpléctica $J \in \operatorname{Sp}(2n, \mathbb{R})$,
+    conservación $\|M^\top J M - J\|_F \le 1.0 \times 10^{-10}$, multiplicadores de Floquet sobre el círculo unidad,
+    exponentes de Lyapunov $\lambda_L$, elevación a coordenadas de Poincaré–Delaunay $(\theta, I)$,
+    cota diofántica KAM de Siegel-Bruno $|\omega_0 \cdot k| \ge \gamma / \|k\|_1^\tau$, forma normal de Birkhoff,
+    Betti simplicial $(\beta_0, \beta_1, \beta_2)$, valuación de Novikov–Krull $v(L)$ y asociador en octoniones $\mathbb{O}$.
+  • Fase 2 (`Phase2_DeligneKAMJarzynskiOrientor`): Igualdad de Jarzynski–Crooks $\langle e^{-\beta W}\rangle = e^{-\beta \Delta F}$
+    con log-sum-exp RSI³, integrales homoclínicas de Melnikov mediante cuadraturas de Richardson de orden 3,
+    tiempo de confinamiento de Nekhoroshev $T_N \sim \exp(c/\varepsilon^{1/(2n)})$, consistencia de 2-cociclos de Čech–Deligne
+    $(\delta g)_{ijkl} \equiv \mathbf{I} \pmod{\check{H}^2}$ e invariante instantónico de Donaldson–Thomas $\mathrm{DT} \in \mathbb{Z}$.
+  • Fase 3 (`Phase3_RSI3BanachHeytingSynthesisEngine`): Triple contracción monádica RSI³ ($\operatorname{Lip}(T^3) \le 0.857375 < 1.0$),
+    punto fijo único por Banach-Picard, jerk cognitivo $\mathrm{d}^3 C / \mathrm{d}t^3 > 0$, adjudicación Heyting $\Omega_3$
+    e interlock ESP32 Crowbar ($t_{\text{actuation}} \le 392.15\text{ ns}$).
 
 2. MARCO TEÓRICO:
 ────────────────────────────────────────────────────────────────────────────────
   • Termodinámica fuera del equilibrio de Jarzynski–Crooks $\langle e^{-\beta W}\rangle = e^{-\beta \Delta F}$
     y relación de fluctuación $P_{\text{fwd}}(W)/P_{\text{rev}}(-W) = e^{\beta(W - \Delta F)}$ con trabajo irreversible $W_{\text{irr}} = \langle W\rangle - \Delta F \ge 0$.
-  • Cohomología de Čech–Deligne en $A_\infty$ Gerbes con consistencia de 2-cociclos $(\delta g)_{ijkl} \equiv I \pmod{\check{H}^2(X, \mathcal{F}_{\text{wisdom}})}$.
+  • Cohomología de Čech–Deligne en $A_\infty$ Gerbes con consistencia de 2-cociclos $(\delta g)_{ijkl} = g_{jkl} g_{ikl}^{-1} g_{ijl} g_{ijk}^{-1} \equiv \mathbf{I} \pmod{\check{H}^2(X, \mathcal{F}_{\text{wisdom}})}$.
   • Mecánica celeste de Poincaré & geometría simpléctica: Coordenadas de acción–ángulo de Poincaré–Delaunay $(\theta, I) \in \mathbb{T}^n \times \mathbb{R}^n$,
     monodromía $\operatorname{Sp}(2n, \mathbb{R})$, forma normal de Birkhoff y cota diofántica de Siegel–Bruno–KAM $|\omega_0 \cdot k| \ge \gamma / \|k\|_1^\tau$.
   • Integrales homoclínicas de Melnikov (cuadratura RSI³ de Richardson) y tiempo de confinamiento de Nekhoroshev $T_N \sim \exp(c/\varepsilon^{1/(2n)})$.
-  • Octoniones de Cayley–Dickson, asociador $G_2$ $[x,y,z] = (xy)z - x(yz)$ e invariante instantónico de Donaldson–Thomas $\text{DT} \in \mathbb{Z}$.
+  • Octoniones de Cayley–Dickson, asociador $G_2$ $[x,y,z] = (xy)z - x(yz)$ e invariante instantónico de Donaldson–Thomas $\mathrm{DT} = \int \nu_{\text{Behrend}} \mathrm{d}\chi \in \mathbb{Z}$.
   • Automejora Recursiva Nivel 3 (RSI³ - Darwin-Gödel) como mónada de Kleisli sobre espacios de Banach contractivos:
     $\operatorname{Lip}(T) = 0.95 \implies \operatorname{Lip}(T^3) \le 0.857375 < 1.0$, asegurando atractor único por Banach-Picard y jerk cognitivo $\mathrm{d}^3 C / \mathrm{d}t^3 > 0$.
 
@@ -559,7 +567,7 @@ class Phase1_SymplecticSpectralObserver:
     def compute_delaunay_kam_divisors(
         self, frequencies: NDArray[np.float64]
     ) -> Tuple[float, bool]:
-        """
+        r"""
         Explora {k ∈ ℤⁿ \ {0} : ‖k‖₁ ≤ K} y evalúa
 
             ρ(k) = |ω · k| · ‖k‖₁^τ / γ    (≥ 1 ⇔ cota satisfecha).
