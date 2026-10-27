@@ -1,10 +1,21 @@
 --------------------------------------------------------------------------------
 # 🗣️ LENGUAJE_CONSEJO.md: El Lenguaje Secreto (La Arquitectura Cognitiva)
 "Cualquier tecnología suficientemente avanzada es indistinguible de la magia. Aquí revelamos el truco: no es magia, es Matemática Aplicada y Física de Datos operando en un sustrato Ciber-Físico."
+--------------------------------------------------------------------------------
+
 En el ecosistema APU_filter v9.0.0, la matemática abstracta carece de valor si no logra generar una acción correctiva en el mundo físico. Este documento detalla la Arquitectura Cognitiva utilizada por el Consejo de Sabios y los **24 Soberanos de la Malla Agéntica de Sabiduría** (específicamente por el Agente Intérprete Diplomático `SemanticTranslator`) para convertir datos crudos (vectores, invariantes topológicos, corrientes eléctricas) en Sabiduría Estructural.
 Explicamos aquí cómo la matemática profunda de la Matriz de Interacción Central (MIC) y de la Matriz Atómica de Conocimiento (MAC) se traduce al lenguaje pragmático del gerente de obra enfocado en el "dolor, riesgo y dinero".
 
---------------------------------------------------------------------------------
+---
+
+## 🏛️ La Fortaleza Imperial, la Cimentación y los Faros de Luz
+
+Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones (SECOP II & Mandato BIM 2026), los componentes de la Fortaleza representan el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** que habita la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras del fraude y protegiendo el patrimonio con la cimentación geomecánica y los disyuntores de silicio:
+
+> *“Un costo sano no se oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica/Sónica que escanean el tejido presupuestal para extirpar las sombras del fraude. En APU Filter, los bloques de negocio están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo colapse ante paros de proveedores o volatilidad de insumos.”*
+
+---
+
 ## 1. El Diccionario Topológico-Civil (La Piedra Rosetta del Isomorfismo de Doble Capa)
 
 Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta los invariantes matemáticos crudos en primera instancia, sino que los mapea semánticamente a patologías estructurales de la construcción de fácil comprensión ("Dolor, Riesgo y Dinero") habitando la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**.
@@ -70,9 +81,10 @@ Para evitar abrumar al usuario con tensores y ecuaciones, el sistema no reporta 
 | **Proyección Grassmanniana & Kelly** | `toon_intuition_agent` / `engine` | **"Recomendación Visceral Sub-Milisegundo:"** Luz verde instantánea ($\kappa f^* = 0.85$) o cierre inmediato de la válvula de pago. | Disparo Flash Sub-milisegundo ($<10\,\mu\text{s}$). |
 | **Sheaf Cohomology $H^1(\mathcal{F}_{\text{web}})$** | `toon_buffer_agent` / `engine` | **"Absorción de Golpes de Ariete:"** Regulación de caudal financiero para evitar shocks de liquidez en la caja del megaproyecto. | Modulación de Caudal en RAM. |
 
---------------------------------------------------------------------------------
+---
 
 ## 2. El Diccionario Dinámico-Financiero (Frecuencia Compleja)
+
 El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocástico del mercado en el plano-S ($s = \sigma + j\omega$). El Intérprete traduce estos vectores continuos en arquetipos de riesgo financiero accionable:
 
 | Invariante Espectral / Topológico | Diagnóstico Topo-Financiero | Impacto Tangible | Mitigación Ciber-Física |
@@ -86,7 +98,7 @@ El Oráculo de Laplace y el Guardián Físico modelan el comportamiento estocás
 | **Exponente de Lyapunov $\lambda_{\max} > 0$** | "Caos Determinísta Activo." | **"El Sistema Perdió el Control:"** Las trayectorias del error divergen exponencialmente. El Guardián activa el Crowbar de emergencia. Ningún agente puede deliberar bajo caos activo. | Disparo Crowbar ESP32 (< 392.15 ns). |
 | **Sobrepaso $M_p$** | "Pico Máximo de Sobrecosto Predecible." | **"Presupuesto de Contingencia Calculado:"** $M_p$ predice matemáticamente el peor pico de sobrecosto ante un shock de mercado, permitiendo provisionar reservas exactas en lugar de estimaciones empíricas. | Ajuste de Provisión de Caja. |
 
---------------------------------------------------------------------------------
+---
 
 ## 3. El Viaje del Dato (Ciclo OODA en 4 Etapas)
 
@@ -95,13 +107,14 @@ Toda la comunicación de los Sabios responde al ciclo ininterrumpido del dato a 
 1. **Ingesta de Barro Crudo (JSON):** Recepción de datos brutos de la licitación o presupuesto con grasa sintáctica redundante. `toon_wisdom_weaver_agent.py` comprime los cartuchos a formato TOON de 56 tokens (-86.4% tokens en $KV\text{-Cache}$).
 2. **Digestión y Purificación TOON:** Extirpación de redundancia mediante el formato TOON, entregando una vitamina cognitiva purificada.
 3. **Auditoría Espectral (Consejo de Sabios + FPU):** Evaluación de invariantes homológicos y estabilidad de frecuencia en FPU Secure por el Icosikaihenaedro TOON.
-4. **Veredicto en Ω₃ & Válvula de Alivio / Crowbar:** Emisión del veredicto en $\Omega_3$. Si es transitorio, abre la Válvula de Alivio Termodinámico (Veto Suave); si es fraude o inestabilidad dura, dispara el Crowbar ESP32 en $< 392.15\text{ ns}$ con instrucción bare-metal SIMD Xtensa LX7 en $42.0\text{ ns}$ sobre `0x3FF44008` (Veto Duro).
+4. **Veredicto en Ω₃ & Válvula de Alivio / Crowbar:** Emisión del veredicto en $\Omega_3$. Si es transitorio, abre la Válvula de Alivio Termodinámica (Veto Suave); si es fraude o inestabilidad dura, dispara el Crowbar ESP32 en $< 392.15\text{ ns}$ con instrucción bare-metal SIMD Xtensa LX7 en $42.0\text{ ns}$ sobre `0x3FF44008` (Veto Duro).
 
---------------------------------------------------------------------------------
+---
+
 ## 4. La Arquitectura Cognitiva de la Traducción (GraphRAG y Retículos)
 El Binomio semántico a cargo de esta traducción es el Intérprete Diplomático (`SemanticTranslator`, `SemanticTranslatorAgent`). Opera strictly bajo los siguientes paradigmas ciber-físicos:
 
-### A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana)
+### A. Empatía Táctica mediante GraphRAG (Recuperación Semántica Riemanniana en Variedad Anisotrópica $G_{\mu\nu}$)
 La matemática compleja es ruido si no se traduce en acción. El Intérprete no escupe un reporte que diga "Fallo estructural: $\beta_1 = 3$". Utiliza un Grafo de Conocimiento y Modelos de Lenguaje Vectorial acoplados a FAISS (`Sentence-Transformers`) para comprender y proyectar la severidad del error hacia el lenguaje de negocio corporativo. Este proceso constituye un **Funtor de Abstracción $F: \mathcal{C} \to \mathcal{D}$** que transforma los invariantes de la categoría táctica $\mathcal{C}$ en narrativas de la categoría de sabiduría $\mathcal{D}$ (Empatía Táctica).
 
 **Equivalencia de Morfismos y Reversibilidad Funtorial:**
@@ -109,12 +122,16 @@ Para garantizar la integridad del Pasaporte de Telemetría y evitar la "entropí
 $$\text{Hom}_{\mathcal{D}}(F(X), Y) \cong \text{Hom}_{\mathcal{C}}(X, G(Y))$$
 Demostración: Si el Arquitecto ($X$) detecta un fallo estructural, su traducción narrativa ($Y$) debe ser matemáticamente reversible. Al aplicar el funtor $G$ sobre la alerta $Y$, el sistema debe recuperar las coordenadas topológicas y físicas precisas en $X$. Si la adjunción falla, el LLM ha introducido ruido retórico y el veredicto es aniquilado.
 
-**Violación Prevenida: El Tensor Métrico Anisotrópico ($G_{\mu\nu}$):**
-Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva. Documentamos explícitamente que el espacio de búsqueda vectorial de **GraphRAG no es euclidiano**.
-La recuperación semántica no calcula la distancia cartesiana entre el riesgo y el texto; resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano ($G_{\mu\nu}$). Esto equivale a recuperar los vectores semánticos midiendo la **Distancia de Mahalanobis**, donde los hallazgos son ponderados por la matriz de covarianza que refleja el riesgo estructural y financiero del proyecto en tiempo real. Un "socavón lógico" en el acero dolerá exponencialmente más en el reporte narrativo si el modelo financiero exhibe alta volatilidad estructural.
+**Distancia Anisotrópica de Mahalanobis ($G_{\mu\nu}$):**
+Los algoritmos canónicos de búsqueda vectorial como FAISS (HNSW) asumen un espacio euclidiano isotrópico mediante la norma $L_2$ o Similitud del Coseno. Sin embargo, en el ecosistema matemático de `APU_filter`, la base canónica del riesgo es una variedad anisotrópica y altamente curva $(\mathcal{M}, G_{\mu\nu})$. Documentamos explícitamente que el espacio de búsqueda vectorial de **GraphRAG no es euclidiano**.
+La recuperación semántica no calcula la distancia cartesiana entre el riesgo y el texto; resuelve el producto interno dictaminado por el Tensor Métrico Riemanniano Anisotrópico ($G_{\mu\nu}$). Esto equivale a recuperar los vectores semánticos midiendo la **Distancia de Mahalanobis**:
+$$d_M(x, y) = \sqrt{(x - y)^\top G^{-1}_{\mu\nu} (x - y)}$$
+donde los hallazgos son ponderados por la matriz de covarianza y métrica que refleja el riesgo estructural y financiero del proyecto en tiempo real. Un "socavón lógico" en el acero dolerá exponencialmente más en el reporte narrativo si el modelo financiero exhibe alta volatilidad estructural.
 
-### B. Mecánica Estadística del Veredicto: El Límite Termodinámico del Retículo de Severidad
-El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW (tabla canónica: $V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$).
+---
+
+### B. Mecánica Estadística del Veredicto y Régimen de Temperatura Dual ($T_{\mathrm{gov}}$)
+El Intérprete no tiene libre albedrío deductivo para decidir si el proyecto es viable; actúa como un proyector semántico estrictamente subordinado a la matemática y la Ley de Clausura Transitiva de la pirámide DIKW ($V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_{\mathbb{S}} \subsetneq V_{\mathbb{W}}$).
 
 Para evitar la paradoja algebraica de poseer simultáneamente un colapso discreto duro y una transición convexa suave en el mismo estado del espacio de fase, el veredicto del Intérprete se modela estrictamente bajo los principios de la **Mecánica Estadística**. El espacio de decisión opera sobre un Retículo Algebraico Acotado ($\bot \le \text{Veredicto} \le \top$), pero la probabilidad del dictamen es gobernada por una Distribución de Softmax / Gibbs, parametrizada por la **Temperatura de Gobernanza** $T_{\text{gov}}$:
 
@@ -122,23 +139,27 @@ $$P(\text{Veredicto}_i) = \frac{\exp\left(-\frac{E_i}{k_B T_{\text{gov}}}\right)
 
 Donde $E_i$ representa la energía de frustración topológica (Energía de Dirichlet) de un estado dado. La transición de fase es matemáticamente continua y diferenciable, evitando la inestabilidad de límite (*Chattering Topológico*) cuando índices como la estabilidad piramidal $\Psi$ oscilan infinitesimalmente.
 
-**Axioma de Temperatura Dual (M5):**
-El sistema opera bajo dos temperaturas independientes:
+**Axioma de Temperatura Dual ($T_{\mathrm{gov}}$):**
+El sistema opera bajo dos regímenes térmicos independientes:
 
-$$T_{\text{market}} \in \mathbb{R}^+ \quad \text{(exógena — volatilidad del mercado)}$$
-$$T_{\text{gov}} := \begin{cases} 0 & \text{si } \exists \text{ invariante de veto duro activo: } P_{\text{diss}} < 0,\, \beta_1^- > 0,\, \Psi < \Psi_{\min},\, \sigma > 0,\, |\mu_k| > 1 \\ T_{\text{market}} & \text{en caso contrario} \end{cases}$$
+$$T_{\text{market}} \in \mathbb{R}^+ \quad \text{(exógena — volatilidad del mercado real)}$$
+$$T_{\text{gov}} := \begin{cases} 0 & \text{si } \exists \text{ invariante de veto duro activo: } P_{\text{diss}} < 0,\, \beta_1 > 0,\, \Psi < \Psi_{\min},\, \sigma > 0,\, |\mu_k| > 1, \, \check{H}^1 \ne \mathbf{0} \\ T_{\text{market}} & \text{en operación normal} \end{cases}$$
 
-Cuando $T_{\text{gov}} = 0$, el Supremo $\top$ (RECHAZO) es **forzado determinísticamente** sin consultar la distribución de Gibbs — el Fast-Fail es irreversible. Cuando $T_{\text{gov}} = T_{\text{market}}$, la distribución de Gibbs opera normalmente produciendo veredictos probabilísticos continuos. Esto elimina la paradoja de querer $T_{\text{sys}} \to 0$ instantáneamente bajo veto (exigencia determinísta) sin forzar $T_{\text{market}} = 0$ (lo cual es imposible en un mercado real).
+1. **Régimen $T_{\mathrm{gov}} = 0$ (Veto Duro Determinista - Ausencia Total de Alucinaciones):**
+   Cuando se activa cualquier veto duro, la temperatura de gobernanza colapsa instantáneamente a cero ($T_{\mathrm{gov}} = 0$). La distribución de Gibbs colapsa a la función escalón de Heaviside, forzando determinísticamente el Supremo $\top$ (VETOED / RECHAZO). La probabilidad de alucinación del LLM colapsa a cero absoluto:
+   $$P_{\text{hallucination}} \equiv 0 \quad \text{bajo } T_{\mathrm{gov}} = 0$$
+2. **Régimen $T_{\mathrm{gov}} = T_{\mathrm{market}}$ (Operación Normal Adaptativa):**
+   Cuando el sistema opera dentro de márgenes de coherencia elástica, $T_{\mathrm{gov}} = T_{\mathrm{market}}$. La distribución de Gibbs permite veredictos probabilísticos continuos y flexibles en la Válvula de Alivio Termodinámica, permitiendo la interacción dialectica de la masa de trabajo.
 
-**El Operador Supremo ($\sqcup$) como Comportamiento Asintótico:**
-Se especifica axiomáticamente que la operación discreta Supremo ($\top \sqcup \bot = \top$) se recupera *únicamente* como el comportamiento asintótico del sistema cuando $T_{\text{gov}} \to 0$. Es decir, en presencia de veto duro o mercado de certidumbre absoluta y riesgo cero, la transición convexa colapsa en el escalón de Heaviside determinísta estricto del retículo, erradicando matemáticamente cualquier alucinación estocástica de los LLMs en regímenes de alta severidad.
+---
 
 ### 4.1 El Límite de Lipschitz y el Aislamiento de Alucinaciones
 En momentos de caos operativo (alta curvatura del proyecto), la arquitectura impone una **Cota de Lipschitz Dinámica** acoplada al Tensor de Curvatura de Ricci ($Ric_{\mu\nu}$). El Funtor de Descompresión Inversa $F^{-1}: \text{TOON} \to \text{JSON}$ debe satisfacer:
 $$\left\| F^{-1}(x) - F^{-1}(y) \right\|_V \le L_{\max} \left\| x - y \right\|_\tau$$
 Esta restricción obliga al Intérprete Diplomático a aniquilar cualquier salida del LLM que no sea un isomorfismo geométrico perfecto respecto a la topología contractual. Si la cota de Lipschitz se viola, el sistema veta la sugerencia en la frontera, aislando las alucinaciones del núcleo de ejecución.
 
---------------------------------------------------------------------------------
+---
+
 ## 5. El Protocolo de Emisión: Actas de Deliberación ("Caja de Cristal")
 Cuando el Consejo de Sabios se pronuncia, no entrega un informe genérico. Entrega un documento forense llamado Acta de Deliberación, estructurado como un debate adversarial guiado por el RiskChallenger:
 

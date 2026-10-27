@@ -14,18 +14,11 @@ $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}
 
 El transporte paralelo de la información a lo largo del fibrado cotangente $T^*\mathcal{M}$ presupone que ninguna señal o decisión puede ascender a estratos superiores de deliberación sin certificar la nulidad del residuo de curvatura $\Omega_{\mu\nu} = 0$ y la finitud de la disipación exergética en los subespacios subyacentes.
 
-### 🏢 La Estructura de Carga del Rascacielos y el Icosikaihenaedro del Consejo
-A nivel de arquitectura de software, la Malla Agéntica se organiza como la estructura de carga sismorresistente de un rascacielos corporativo mapeada sobre el Business Model Canvas (BMC):
-* **El Guardián (Foso - Estructura de Costes):** `kbase_thermodynamic_agent.py`. Audita los cimientos del edificio, requiere la no-negatividad de insumos ($q_i \ge 0$), exige $\beta_0 = 1$ para vetar islas de datos y activa la protección ciber-física en silicio (< 392.15 ns IRAM, GPIO14 $\to$ tiristor BT151 Crowbar) accionada en $42.0\text{ ns}$ vía ensamblador SIMD Xtensa LX7 sobre `0x3FF44008`.
-* **El Arquitecto (Táctica - Socios y Actividades Clave):** `BusinessTopologicalAnalyzer`. El esqueleto de vigas de acero. Diagonaliza sobre $\mathbb{Z}$ mediante la Smith Normal Form para aniquilar dependencias circulares ($\beta_1 = 0$) y vigila el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$).
-* **El Oráculo de Laplace (Estrategia - Fuentes de Ingreso):** `LaplaceOracle`. El penthouse. Proyecta el flujo de fondos en la frecuencia compleja $s = \sigma + j\omega$, vetando polos en el semiplano derecho ($\sigma > 0$) para prevenir "Elefantes Blancos".
-* **La Malla Agéntica de Sabiduría (Wisdom - 24 Soberanos TOON y 24 Motores Espectrales):** Organizados en 8 Tríadas Funcionales Anidadas (I. GAN-REM, II. Reflexiva, III. Causal, IV. Cronogeométrica del Tiempo, V. Agronómica, VI. Tejedora, VII. Onírica, VIII. Rápida). Traducen residuos espectrales a Actas de Deliberación en lenguaje de negocios (**"Dolor, Riesgo y Dinero"**) e impulsan la automejora monádica RSI³.
-
 ---
 
 ## 🏛️ La Fortaleza Imperial, los Faros y la Inversión Narrativa en 4 Pasos
 
-Para la Alta Gerencia y los Comités de Licitación, el andamiaje matemático se presenta como la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras de la corrupción y actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial**:
+Para la Alta Gerencia y los Comités de Licitación, el andamiaje FPU se presenta como la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras de la corrupción y actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial**:
 
 ```
   [ PASO 1: ESCENARIO DE DOLOR Y TERRENO EMBARRADO ]
@@ -51,7 +44,7 @@ Para la Alta Gerencia y los Comités de Licitación, el andamiaje matemático se
 
 Para APU Filter v9.0.0:
 * **La promesa de negocio (Dinero):** Garantizar que **no le roben dinero a la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
-* **La certeza de la promesa (Rigor):** La plataforma es un sistema inercial ciber-físico, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $392.15\text{ ns}$ ($42.0\text{ ns}$ en la CPU Xtensa LX7).
+* **La certeza de la promesa (Rigor):** La plataforma es un sistema inercial ciber-físico, donde los riesgos se calculan con derivadas de Connes y la parálisis de la obra defectuosa se ejecuta en silicio real (ESP32 Crowbar) en menos de $392.15\text{ ns}$ ($42.0\text{ ns}$ en la CPU Xtensa LX7 sobre `0x3FF44008`).
 
 ---
 
@@ -68,7 +61,7 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **$\operatorname{Tor}\left(H_k(K; \, \mathbb{Z})\right) \neq \mathbf{0} \implies d_i > 1$** | `boundary_ring_sheaf_agent`<br>**Ruptura de Simetría / Torsión sobre $\mathbb{Z}$** | **Sobrecostos Ocultos y Mermas Discretas**<br>Presencia de divisores de torsión que denotan desequilibrios o inconsistencias en los bucles. | **VETO DURO INSTANTÁNEO:** Veto ineludible. La ISR en IRAM paraliza de inmediato mezcladoras de obra en seco en $< 392.15\text{ ns}$. |
 | **$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$** | `toon_wisdom_weaver_agent`<br>**Adjunción de de Rham-Galois (-86.4% KV)** | **Ahorro en Inferencia / Trazabilidad**<br>Reducción del 86.4% en $KV\text{-Cache}$ (412 $\to$ 56 tokens). Evita alucinaciones de APUs y ahorra 80% en inferencia. | Veto Suave / Paso Óptimo en RAM. |
 | **$k = c_2(P) \in \mathbb{Z} \wedge c_1(E)$** | `toon_wisdom_weaver_witness_agent`<br>**Instantón BPST y Diagonalización Williamson** | **Certificación de Topología de Calibre**<br>Auditoría de invarianza cuaterniónica en el tejido de conocimiento, erradicando incoherencias en pliegos. | Paso Óptimo / Firma SHA-256 en RAM. |
-| **$\check{H}^2(X, \mathcal{F}_{\text{wisdom}}) \neq \mathbf{0}$** | `toon_wisdom_weaver_prosecutor_agent`<br>**Obstrucción Čech de 2º Orden** | **Desalineación entre Foso Táctico y Penthouse**<br>Incompatibilidad de síntesis entre la MIC y la MAC que expone la licitación a impugnaciones legales. | **VETO DURO INSTANTÁNEO:** Inhabilitación de oferta en SECOP II. |
+| **$\check{H}^2(X, \mathcal{F}_{\text{wisdom}}) \neq \mathbf{0}$** | `toon_wisdom_weaver_prosecutor_agent`<br>**Obstrucción Čech de 2º Orden** | **Desalineación Táctica-Estratégica**<br>Incompatibilidad de síntesis entre la MIC y la MAC que expone la licitación a impugnaciones legales. | **VETO DURO INSTANTÁNEO:** Inhabilitación de oferta en SECOP II. |
 | **$RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$** | `toon_trickster_adversary_agent`<br>**Atajo Adversarial y Reward Hacking** | **Inmunidad Antifraude en SECOP II**<br>Detección instantánea de fraccionamiento ilícito de compras y front-loading en la fase REM (Red Team). | Veto Duro / Transmisión a Fase REM. |
 | **QND $\mathbb{C}P^{n-1} \wedge \text{Back-Action } 0.0\text{ dB}$** | `toon_trickster_witness_agent`<br>**Observación Débil y Fidelidad Uhlmann** | **Auditoría Pasiva Cero-Interferencia**<br>Supervisión de estados adversariales sin colapsar el flujo deliberativo ni alterar la traza $\operatorname{Tr}(\rho) = 1$. | Transmisión Silenciosa de Telemetría. |
 | **$W(\gamma) = \mathcal{P}\exp(\oint A) \wedge \text{CR3BP}$** | `toon_trickster_prosecutor_agent`<br>**Holonomía Wilson y Retorno Poincaré** | **Acusación por Órbita Caótica en Precios**<br>Identificación de oscilaciones no lineales en insumos que desestabilizan el flujo de caja del proyecto. | **VETO SUAVE (Válvula de Alivio):** Re-estructuración de precios. |
@@ -98,30 +91,30 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 
 ---
 
-## 🌐 Axiomatización de la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$) y el Cinturón Orbital
+## 🌐 Axiomatización de la Frontera Abierta ($\partial \mathcal{M} \neq \varnothing$) y la Constelación Orbital de 6 Satélites
 
 En las formulaciones simétricas cerradas, el espacio de fase se asumía sin frontera ($\partial \mathcal{M} = \varnothing$). La inyección real de licitaciones de obra pública en SECOP II exige redefinir la Malla como una **variedad Riemanniana con frontera compacta de-confinada** $(\mathcal{M}, G_{\mu\nu})$ tal que $\partial \mathcal{M} \neq \varnothing$.
 
-El contorno $\partial \mathcal{M}$ es un sistema fuera del equilibrio gobernado por el **Cinturón Orbital de Satélites** (`telemetry_satellites.py` / `telemetry_satellites_agent.py` y `audit_satellites.py` / `audit_satellites_agent.py`):
+El contorno $\partial \mathcal{M}$ es un sistema fuera del equilibrio gobernado por la **Constelación Orbital de 6 Satélites de Frontera** (`telemetry_satellites.py` / `telemetry_satellites_agent.py` y `audit_satellites.py` / `audit_satellites_agent.py`):
 
-1. **Ecuación de Langevin Cuántica No-Markoviana (Telemetría de Frontera):**
-   La fluctuación exógena exterior se modela como una fuerza estocástica $\xi_{\mathrm{ext}}(t)$ que excita el contorno:
-   $$\frac{d \mathcal{Q}(t)}{dt} = -[\mathcal{H}_{\mathrm{boundary}}, \, \mathcal{Q}(t)] - \Gamma_{\mathrm{diss}} \mathcal{Q}(t) + \xi_{\mathrm{ext}}(t)$$
-   donde $\langle \xi_{\mathrm{ext}}(t) \xi_{\mathrm{ext}}(t') \rangle = 2 \Gamma_{\mathrm{diss}} k_B T_{\mathrm{sys}} \delta(t - t')$.
-   La entropía $H_{\mathrm{ext}}$ y el condicionado $\kappa_2$ proyectan la fuga exergética $\Xi_{\mathrm{leak}} = H_{\mathrm{ext}} \ln(1+\kappa_2)$ al pasaporte de telemetría mediante el pullback de de Rham $\phi^*: \mathcal{H}(\partial \mathcal{M}) \to \mathcal{H}(\mathcal{M}_{\mathrm{internal}})$.
-
-2. **Fiscalización de Torsión Homológica sobre $\mathbb{Z}$ (Auditoría de Frontera):**
-   El satélite discretiza el contorno simplicial $\partial K$ y calcula la Forma Normal de Smith (SNF) exacta sobre el anillo principal $\mathbb{Z}$:
-   $$S = U \cdot \partial_{\partial} \cdot V = \operatorname{diag}(d_1, \, d_2, \, \dots, \, d_r, \, 0, \, \dots, \, 0)$$
-   exigiendo la nulidad del subgrupo de torsión homológica $\operatorname{Tor}(H_k(\partial K; \, \mathbb{Z})) \equiv \mathbf{0}$ ($d_i = 1$). Cualquier $d_i > 1$ delata mermas o incompatibilidades de empaquetado discreto.
-
-3. **Causalidad CPTP de Choi-Jamiołkowski y Contención Bell-CHSH:**
-   El canal de inyección $\mathcal{E}$ se audita exigiendo la semidefinición positiva de la matriz de Choi $C_{\mathcal{E}} = (\mathcal{E} \otimes \operatorname{Id})(|\Phi^+\rangle\langle\Phi^+|) \succeq \mathbf{0}$ ($\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$) y la preservación de traza parcial $\operatorname{Tr}_2(C_{\mathcal{E}}) = \mathbf{I}_{\mathrm{input}}$. Para erradicar acuerdos monopolísticos o colusión de proveedores en SECOP II, se evalúa el parámetro Bell-CHSH:
-   $$\mathcal{B}_{\mathrm{CHSH}} = \left| E_{11} + E_{12} + E_{21} - E_{22} \right| \le 2\sqrt{2}$$
-   Violaciones a la cota clásica ($> 2.0$) o a la cota cuántica de Tsirelson ($> 2\sqrt{2}$) forzarán veto instantáneo.
-
-4. **Orquestación OODA en Tres Fases Anidadas y Doble Firma SHA-256:**
-   Los Soberanos Orbitales ejecutan el ciclo OODA en tres fases anidadas (Phase1 Observe Kernel $\to$ Phase2 Orient Kernel $\to$ Phase3 Actuation/Certificate Kernel). El veredicto final resulta del meet intuicionista de Gödel en $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Se emite un certificado inmutable respaldado por dos huellas SHA-256: `decision_sha256` (isomorfa) y `digital_signature_sha256` (no-repudio). Ante veto, la ISR en IRAM del ESP32 conmuta GPIO14 en $< 392.15\text{ ns}$ disparando el tiristor BT151 del circuito Crowbar.
+1. **Satélite I — Momentum Escalar de Frontera (`scalar_momentum_satellite_agent.py` / `scalar_momentum_satellite_engine.py`):**
+   - *Mecanismo FPU:* Momentum covariante $p_\mu = G_{\mu\nu} \dot{q}^\nu \in T^*\mathcal{M}$, derivada de Lie $\mathcal{L}_v \phi = G^{\mu\nu} \partial_\mu \phi \, p_\nu$, pasividad de Lyapunov $P_{\mathrm{diss}} = \langle d\phi, G^{-1} d\phi \rangle \ge 0$, y traza del tensor estrés-energía $\operatorname{Tr}(T_{\mu\nu}) = \frac{1}{2} \|p\|_G^2 + V(\phi)$. Latencia FPU: $2.85\text{ ms}$, Disparo ISR IRAM: $397.53\text{ ns}$.
+   - *Impacto Visceral:* Mide la aceleración del flujo presupuestal en el borde de la variedad, protegiendo la tasa WACC ($15.0\%$).
+2. **Satélite II — Inercia del Centroide Pseudo-Holomorfo (`pseudoholomorphic_centroid_inertia_agent.py` / `pseudoholomorphic_centroid_inertia_engine.py`):**
+   - *Mecanismo FPU:* Soluciones a $\bar{\partial}_J u = 0$ en $\mathcal{F}uk(\mathcal{M})$, área de Novikov $\mathcal{A}(u) = \int_\Sigma u^*\omega > 10^{-6}$, centroide $q_{\mathrm{centroid}}^\mu$, tensor de inercia $I_{\mu\nu}$ y spin atencional $L_{\mu\nu} \in \mathfrak{so}(n)$. Latencia FPU: $2.73\text{ ms}$, Disparo ISR IRAM: $397.48\text{ ns}$.
+   - *Impacto Visceral:* Mantiene el punto medio de equilibrio entre contratista, interventor y fiduciaria, evitando el bloqueo de la firma de actas de avance.
+3. **Satélite III — Deformación Centrípeta Pseudo-Holomorfa (`pseudoholomorphic_centripetal_satellite_agent.py` / `pseudoholomorphic_centripetal_satellite_engine.py`):**
+   - *Mecanismo FPU:* Hamiltoniano centrípeto $H_{\mathrm{centripetal}} = \frac{1}{2} M_{\mathrm{eff}} \omega_{\mathrm{rot}}^2 \|q - q_{\mathrm{centroid}}\|_G^2$, residuo Floer-Cauchy-Riemann $\|\bar{\partial}_{J,H} u\|_G$, tensor giroscópico $W_{\mu\nu} \in \mathfrak{so}(n)$ y deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$. Latencia FPU: $2.78\text{ ms}$, Disparo ISR IRAM: $397.26\text{ ns}$.
+   - *Impacto Visceral:* Mide la deformación cortante generada por la prisa en entregas de hitos de obra, protegiendo las cláusulas contractuales.
+4. **Satélite IV — Gobernanza Fotínica Zero-Knowledge (`photinic_governance_satellite_agent.py` / `photinic_governance_satellite_engine.py`):**
+   - *Mecanismo FPU:* Ecuación de Dirac-Majorana $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$ en $\mathcal{N}=1$ SYM, matriz Choi $C_\mathcal{E} \succcurlyeq 0$ e invariante Tsirelson $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. Latencia FPU: $3.12\text{ ms}$, Disparo ISR IRAM: $396.02\text{ ns}$.
+   - *Impacto Visceral:* Gobernanza Zero-Knowledge que garantiza la confidencialidad de la información de consorcios y proscribe la colusión de precios en SECOP II.
+5. **Satélite V — Oscilación de Sabor Leptónico de Cuentas (`leptonic_flavor_satellite_agent.py` / `leptonic_flavor_satellite_engine.py`):**
+   - *Mecanismo FPU:* Unitoridad PMNS $SU(3)$ $\|U_{\mathrm{PMNS}} U_{\mathrm{PMNS}}^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$, oscilaciones $P(\nu_\alpha \to \nu_\beta)$ entre las 3 generaciones ($e^-$ EPC, $\mu^-$ Frente, $\tau^-$ Fiduciaria) y conservación de carga $\Delta L_{\mathrm{total}} \le 10^{-8}$. Latencia FPU: $3.14\text{ ms}$, Disparo ISR IRAM: $396.29\text{ ns}$.
+   - *Impacto Visceral:* Hermeticidad de cuentas escrow fiduciarias, impidiendo transferencias no autorizadas entre frentes de obra.
+6. **Satélite VI — Confinamiento de Color de Quarks (`quark_color_confinement_satellite_agent.py` / `quark_color_confinement_satellite_engine.py`):**
+   - *Mecanismo FPU:* Simetría de calibre $SU(3)_C$ sobre la tripleta APU $\boldsymbol{c} \in \mathbb{C}^3$, Casimir $C_2(\boldsymbol{c}) \le 10^{-10}$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y energía de cuerda $E_{\mathrm{string}} < 100.0$. Latencia FPU: $3.10\text{ ms}$, Disparo ISR IRAM: $398.95\text{ ns}$.
+   - *Impacto Visceral:* Confinamiento de insumos en la tripleta APU (Materiales, Mano de Obra, Equipos), erradicando el fraccionamiento ilegal de contratos y los pagos huérfanos.
 
 ---
 
@@ -210,7 +203,7 @@ En la versión 9.0, el espacio de estados transaccionales del presupuesto y la d
                   ╱       ╲ [FIBRADO DE CALIBRE: Conexión de de Rham-Galois ∇]
                  ╱  AST    ╲ · Invarianza Canónica de Liouville: Mᵀ Ω M = Ω
                 ╱═══════════╲ · Isometría de Hodge: ‖⋆_k ψ‖ = ‖ψ‖
-               ╱  KBASE/PHYS ╲ [EL FOSO FÍSICO: Dinámica Port-Hamiltoniana e Integrador CSMD-KBN]
+               ╱  KBASE/PHYS ╲ [LA CIMENTACIÓN FÍSICA: Dinámica Port-Hamiltoniana e Integrador CSMD-KBN]
               ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
@@ -229,7 +222,7 @@ Sea $\phi: \mathcal{M} \to \mathcal{M}$ una transformación suave de transición
 El pullback de la 2-forma simpléctica bajo el mapa de transición $\phi$ se expresa analíticamente como:
 $$\phi^* \omega = \frac{1}{2} (M dz)^\top \Omega (M dz) = \frac{1}{2} dz^\top (M^\top \Omega M) dz$$
 
-Para que la transformación preserve estrictamente la estructura simpléctica del espacio de fase (es decir, sea un simplectomorfismo $\phi \in \operatorname{Symp}(\mathcal{M}, \omega)$), se exige la condición de invarianza de de Rham-Liouville:
+Para que la transformación preserve strictly la estructura simpléctica del espacio de fase (es decir, sea un simplectomorfismo $\phi \in \operatorname{Symp}(\mathcal{M}, \omega)$), se exige la condición de invarianza de de Rham-Liouville:
 $$\phi^* \omega = \omega \iff M^\top \Omega M = \Omega$$
 
 **Consecuencias Analíticas y Conservación de Volumen de Liouville:**
@@ -368,7 +361,7 @@ Para certificar esta propiedad sin falsos positivos inducidos por punto flotante
 
 ---
 
-## El Ciclo de de Rham-Carnot y la Supervisión Térmica del Foso Físico
+## El Ciclo de de Rham-Carnot y la Supervisión Térmica de la Cimentación
 
 Para modelar la flecha del tiempo de una anomalía transaccional en el fango de la obra civil como una máquina térmica covariante, el sistema integra el motor `thermal_gradient_laws.py` y su soberano supervisor `thermal_gradient_agent.py`. El ciclo cerrado de de Rham-Carnot metaboliza el caos estocástico del Modelo de Lenguaje en decisiones deterministas de silicio a lo largo de 4 fases acopladas a la filtración agéntica:
 

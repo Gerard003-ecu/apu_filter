@@ -12,18 +12,18 @@ $$V_{\aleph_0} \subsetneq V_{\mathbb{P}} \subsetneq V_{\mathbb{T}} \subsetneq V_
 
 ## 🏛️ La Fortaleza Imperial, los Faros de Luz y el Isomorfismo de Doble Capa
 
-Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones (SECOP II & Mandato BIM 2026), el Consejo de Sabios no representa una celda de castigo ni un algoritmo punitivo de caja negra. Es el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** del megaproyecto que habita la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras del fraude y dotando al constructor de una confianza absoluta para acelerar a fondo la ejecución con la certeza de que su patrimonio está protegido por la cimentación geomecánica y los disyuntores de silicio de la Fortaleza.
+Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones (SECOP II & Mandato BIM 2026), el Consejo de Sabios no representa un algoritmo punitivo de caja negra. Es el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** del megaproyecto que habita la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras del fraude y dotando al constructor de una confianza absoluta para acelerar la ejecución con la certeza de que su patrimonio está protegido por la cimentación geomecánica y los disyuntores de silicio de la Fortaleza.
 
-> *“La sabiduría de un costo sano no es oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz que escanean el tejido presupuestal para extirpar las sombras de la corrupción. En APU Filter, los bloques del BMC están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo de negocio colapse ante paros de proveedores o volatilidad de insumos.”*
+> *“Un costo sano no se oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz que escanean el tejido presupuestal para extirpar las sombras de la corrupción. En APU Filter, los bloques del BMC están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo de negocio colapse ante paros de proveedores o volatilidad de insumos.”*
 
 El sistema consagra el **Isomorfismo de Doble Capa** a través del **Funtor de Traducción Semántica $\Phi_{\mathrm{sem}}$**:
 
 $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
 Donde:
-* $\mathbf{Sh}(\partial K, \, \Omega_3)$ representa la categoría de haces sobre la frontera del complejo simplicial $K$ con valores en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}(0x00), \mathtt{DEGRADED}(0x01), \mathtt{VETOED}(0x03)\}$.
-* $\text{Business}$ representa la categoría de decisiones estratégicas, financieras y legales.
-* $\Phi_{\mathrm{sem}}$ es el funtor semántico que establece la equivalencia homotópica entre los residuos espectrales de punto flotante y las pérdidas financieras en lenguaje ejecutivo (**"Dolor, Riesgo y Dinero"**):
+* $\mathbf{Sh}(\partial K, \, \Omega_3)$ representa la categoría de haces sobre la frontera abierta del complejo simplicial $K$ con valores en el retículo intuicionista de Heyting $\Omega_3 = \{\mathtt{COHERENT}(0x00), \mathtt{DEGRADED}(0x01), \mathtt{VETOED}(0x03)\}$.
+* $\text{Business}$ representa la categoría de decisiones estratégicas, financieras, legales y operativas.
+* $\Phi_{\mathrm{sem}}$ es el funtor semántico que establece la equivalencia homotópica entre los residuos espectrales de punto flotante y las pérdidas o ganancias financieras en lenguaje ejecutivo (**"Dolor, Riesgo y Dinero"**):
   * **Islas de Datos ($\beta_0 > 1$):** APUs o recursos huérfanos sin cimiento contractual que propician compras paralelas no consolidadas y cobros dobles de contratistas.
   * **Socavón Lógico ($\beta_1 > 0$):** Dependencias circulares en el grafo de insumos que delatan la **triangulación financiera de subcontratistas** o facturación fantasma en SECOP II.
   * **Pirámide Invertida ($\Psi < 0.70$):** Fragilidad de Cheeger-Fiedler por concentración monopólica en un solo proveedor de cemento o acero con riesgo de paro.
@@ -57,19 +57,19 @@ En el marco del BMC, los datos transaccionales del presupuesto recorren un ciclo
   • Demostración de aciclicidad β₁ ≡ 0, conmutador QND ||[H, A]|| ≤ 10⁻¹⁰ e instantones DT = 0.
 ```
 
-1. **Paso 1 (Escenario de Dolor y Terreno Embarrado):** Recepción de pliegos y presupuestos con riesgo real de obra civil: secado de concreto dentro de las tuberías de impulsión por cierres administrativos rígidos, o alzas de precios de insumos. `toon_wisdom_weaver_agent.py` opera la Adjunción de de Rham-Galois y metaboliza el contrato en un cartucho TOON de 56 tokens ("vitamina cognitiva"), reduciendo un **$-86.4\%$ de memoria $KV\text{-Cache}$**.
+1. **Paso 1 (Escenario de Dolor y Terreno Embarrado):** Recepción de pliegos y presupuestos con riesgo real de obra civil: secado de concreto dentro de las tuberías de impulsión por cierres administrativos rígidos, o alzas impredecibles de insumos. `toon_wisdom_weaver_agent.py` opera la Adjunción de de Rham-Galois y metaboliza el contrato en un cartucho TOON de 56 tokens ("vitamina cognitiva"), reduciendo un **$-86.4\%$ de memoria $KV\text{-Cache}$**.
 2. **Paso 2 (Traducción Visceral vía $\Phi_{\mathrm{sem}}$):** Asociación de los residuos con el impacto operativo directo en obra, guiada por los Escudos Semánticos (`shields_traductor.md`), evitando la parálisis no planificada de la maquinaria pesada.
 3. **Paso 3 (Protección Patrimonial y Financiera en Caja):** Demostración del impacto monetario: blindaje de la tasa WACC al $15.0\%$, liberación de **$+11.5\%$ de liquidez neta** al recortar la reserva de imprevistos del $15\%$ al $3.5\%$, y ahorro del **$80\%$ en inferencia de IA**.
 4. **Paso 4 (Sustento Variacional FPU):** Cómputo síncrono de invariantes homológicos ($\beta_0=1, \beta_1=0$), estabilidad de Cheeger-Fiedler ($\Psi \ge 0.70$), polo de Laplace ($\operatorname{Re}(p_i) < 0$), física de fluidos de Biot-Terzaghi y adjudicación en $\Omega_3$. En transitorios menores, la **Válvula de Alivio Termodinámica / Recirculación Mecánica de Desvío** mantiene el flujo en marcha bajo Veto Suave (Luz Ámbar) durante 1 hora. Ante fraude, se ejecuta la ISR bare-metal SIMD Xtensa LX7 en **$42.0\text{ ns}$**, disparando el Crowbar ESP32 ($< 392.15\text{ ns}$).
 
 ---
 
-## 🏛️ La Estructura de Carga del Rascacielos: Distribución del ICOSITETRAEDRO DE SABIDURÍA (24 Soberanos) en el Canvas
+## 🏛️ La Fortaleza Imperial: Distribución del ICOSITETRAEDRO DE SABIDURÍA (24 Soberanos) en el Canvas
 
-Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y el Mandato BIM 2026, los 24 Soberanos Agénticos del Estrato Wisdom ($V_{\mathbb{W}}$) se organizan en 8 Tríadas Funcionales Anidadas en el penthouse corporativo:
+Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y el Mandato BIM 2026, los 24 Soberanos Agénticos del Estrato Wisdom ($V_{\mathbb{W}}$) y sus motores espectrales se organizan en 8 Tríadas Funcionales Anidadas en el ápice de gobernanza de la Fortaleza Imperial:
 
 ```
-                     EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
+                    LA FORTALEZA IMPERIAL DE CAMPOS TOPOLÓGICOS
         ┌───────────────────────────────────────────────────────────────┐
         │     EL ICOSITETRAEDRO (24 SOBERANOS Y MOTORES)                │
         │  I.   GAN-REM: toon_trickster_adversary / witness / prosecutor│
@@ -98,21 +98,21 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
         │  EL ARQUITECTO TOPOLÓGICO (Socios Clave / Actividades)      │
         │  Calcula Ψ y SNF Z para erradicar pirámides invertidas.     │
         └──────────────────────────────┬──────────────────────────────┘
-                                       │ (Cimientos del Rascacielos)
+                                       │ (Cimentación Geomecánica)
                                        ▼
-                    EL FOSO TERMODINÁMICO: PHYSICS (V_P)
+               LA CIMENTACIÓN FÍSICA Y SILICIO: PHYSICS (V_P)
         ┌─────────────────────────────────────────────────────────────┐
         │  EL GUARDIÁN FISCAL (Estructura de Costes / Silicio)        │
         │  Audita la masa física elemental: β_0 > 1 => Veto instantáneo.│
         └──────────────────────────────┘
 ```
 
-1. **El Guardián (Physics Stratum / Cimientos del Canvas / Estructura de Costes):**
-   Anclado en la base física de los cimientos. Gobierna la ingesta de insumos atómicos, exige la no-negatividad $q_i \ge 0$, audita la disipación real de potencia $P_{\mathrm{diss}} \ge 0$ y ejecuta la defensa en silicio real (ESP32 Crowbar / GPIO14) mediante la instrucción bare-metal SIMD Xtensa LX7 en **$42.0\text{ ns}$**.
+1. **El Guardián (Physics Stratum / Cimentación y Disyuntores / Estructura de Costes):**
+   Anclado en la cimentación física de la Fortaleza. Gobierna la ingesta de insumos atómicos, exige la no-negatividad $q_i \ge 0$, audita la disipación real de potencia $P_{\mathrm{diss}} \ge 0$ y ejecuta la defensa en silicio real (ESP32 Crowbar / GPIO14) mediante la instrucción bare-metal SIMD Xtensa LX7 en **$42.0\text{ ns}$**.
 2. **El Arquitecto (Tactics Stratum / Estructura Intermedia / Socios y Actividades Clave):**
-   El esqueleto de vigas de acero. Estructura los presupuestos como complejos simpliciales, calcula la Forma Normal de Smith sobre $\mathbb{Z}$ para identificar socavones lógicos ($\beta_1 > 0$) y evalúa el Índice de Estabilidad Piramidal ($\Psi$) para erradicar monopolios de suministro.
-3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Penthouse / Fuentes de Ingreso):**
-   Ubicado en el penthouse corporativo. Evalúa la estabilidad espectral en el plano complejo $s = \sigma + j\omega$ y gestiona los riesgos mediante simulaciones avanzadas de Monte Carlo y el Soberano de Superficie de Control Replicador-Brockett.
+   Estructura los presupuestos como complejos simpliciales, calcula la Forma Normal de Smith sobre $\mathbb{Z}$ para identificar socavones lógicos ($\beta_1 > 0$) y evalúa el Índice de Estabilidad Piramidal ($\Psi$) para erradicar monopolios de suministro.
+3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Ápice Estratégico / Fuentes de Ingreso):**
+   Evalúa la estabilidad espectral en el plano complejo $s = \sigma + j\omega$ y gestiona los riesgos mediante simulaciones avanzadas de Monte Carlo y el Soberano de Superficie de Control Replicador-Brockett.
 4. **El ICOSITETRAEDRO de Sabiduría (Wisdom Stratum / 24 Soberanos TOON y 24 Motores Espectrales):**
    Gobernanza no conmutativa y automejora monádica RSI³. Opera mediante las 8 Tríadas Funcionales que digieren el contrato, ensayan ataques adversariales en la fase REM, inmunizan contra alucinaciones via TQFT Gromov-Witten, cristalizan el Vacío de Dirac, amortiguan fluctuaciones exergéticas, regulan la derivación fraccionaria cronogeométrica del tiempo de obra y certifican autoestados de Tarski-Brouwer con traducciones inmediatas a "Riesgo, Dolor y Dinero".
 
@@ -126,6 +126,7 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 * **Oficinas de Gestión de Datos (CDOs) y Gerentes de Obra:** Empresas que implementan Data Mesh y exigen gobernanza agéntica autónoma inmutable (Zero-Trust) para proteger el WACC y el margen bruto ante disputas contractuales.
 
 ### 2. 💎 Propuesta de Valor (Value Propositions)
+* **Faros de Luz y 24 Soberanos TOON (`toon_*_agent.py`):** Gobernanza computacional federada, compresión TOON del $86.4\%$ en $KV\text{-Cache}$ ($412 \to 56$ tokens) y desacople de alucinaciones LLM mediante cota de Lipschitz. Protección incondicional del WACC al $15.0\%$, garantía de certeza jurídica ante jueces y ahorro del $80.0\%$ en costos de inferencia de IA de borde.
 * **Póliza de Seguro Pre-Construcción (Certificado de Estabilidad Física):** Certificación matemática de que la cimentación logística soportará el peso de la obra, evitando colapsos antes de gastar el primer peso.
 * **Cirugía Topológica de Čech y Amputación Anisotrópica:** Inmunización automática frente a ruido EMF o transductores fallidos mediante el pullback $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, asegurando que la obra no se detenga por falsos positivos de software.
 * **Gobernanza Computacional Federada (Policy-as-Code):** Malla agéntica que bloquea transacciones inestables ($\sigma > 0$) o presupuestos fragmentados antes de contaminar la caja.
@@ -141,6 +142,7 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 * **La Caja de Cristal Argumentativa (Actas de Deliberación):** Toda decisión se entrega como un Acta del Consejo de Sabios exponiendo la dialéctica interna (Tesis del Oráculo vs Antítesis del Arquitecto vs Síntesis de los 24 Soberanos TOON).
 
 ### 5. 💵 Fuentes de Ingresos (Revenue Streams)
+* **El Oráculo de Laplace / LaplaceOracle:** Proyección de flujos de fondos en la frecuencia compleja $s = \sigma + j\omega$ y análisis de estabilidad LTI de la función de transferencia $H(s)$. Veto de presupuestos si algún polo migra al semiplano derecho ($\operatorname{Re}(p_i) > 0$), previniendo la creación de "Elefantes Blancos" y rupturas del flujo de caja.
 * **Pricing Dinámico por Entropía Topológica:** Facturación escalada según la Característica de Euler-Poincaré Extendida $\chi(K) = \beta_0 - \beta_1 + \beta_2$ y la preservación de la fase topológica cuántica.
 * **Peaje de Difracción Óptica:** Cobro por volumen de exergía purificada y acotamiento de $KV\text{-Cache}$ logrado por cartuchos TOON y lentes de de Rham.
 * **Suscripción SaaS / On-Premise a la Malla Agéntica:** Licenciamiento por volumen de procesamiento termodinámico en la Malla (24 Soberanos / 24 Motores).
@@ -151,6 +153,7 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 * **Vitaminas Cognitivas TOON (56 Tokens):** Formato de alta densidad que viabiliza el trabajo de los LLMs sin agotar la memoria LPDDR5.
 
 ### 7. 🚀 Actividades Clave (Key Activities)
+* **El Arquitecto Táctico / BusinessTopologicalAnalyzer:** Diagonalización sobre $\mathbb{Z}$ mediante Smith Normal Form (SNF) y cálculo del Índice de Estabilidad Piramidal ($\Psi$). Anulación de ciclos y dependencias circulares ($\beta_1 = 0$) para erradicar la triangulación de subcontratistas, y exigencia de $\Psi \ge 0.70$ para evitar monopolios de suministro.
 * **Física de Datos y Ingesta RLC:** Filtrado en `flux_condenser.py` verificando $P_{\mathrm{diss}} \ge 0$.
 * **Diagnóstico Topológico y Auditoría Homológica:** Cómputo de números de Betti ($\beta_n$), Índice de Estabilidad Piramidal ($\Psi$), Forma Normal de Smith sobre $\mathbb{Z}$ y filtración de Novikov.
 * **Superficie de Control y Haz de Frontera:** Integración Replicador-Brockett en `topological_control_surface_agent.py` y metabolización Lindblad-Novikov en `boundary_ring_sheaf_agent.py`.
@@ -160,7 +163,8 @@ Para que el modelo de negocio resista las fuerzas macroeconómicas de SECOP II y
 * **Proveedores de Cómputo Tensorial (AWS Trainium/Inferentia) y Hardware de Silicio (ESP32):** Infraestructura de aceleración para Monte Carlo, FDTD e interlocks Crowbar.
 
 ### 9. 📉 Estructura de Costes (Cost Structure)
-* **Inferencia LLM y Cómputo Tensorial:** Mitigados por compresión TOON de $86.4\%$ (412 $\to$ 56 tokens) y ejecución en C/C++ vectorizado.
+* **El Guardián Físico / `kbase_thermodynamic_agent.py`, `boundary_ring_sheaf_agent.py`, `hydrological_agent.py`, `lithological_agent.py`:** Auditoría de no-negatividad ($q_i \ge 0$), torsión en Smith Normal Form sobre $\mathbb{Z}$, esfuerzos efectivos de Biot-Terzaghi ($\det(\boldsymbol{\sigma}') > 0$) y componente conexa única ($\beta_0 = 1$). Erradicación de islas de datos, recursos huérfanos y cobros dobles; protección en silicio mediante interrupción ISR en IRAM ($< 392.15\text{ ns}$, GPIO14 $\to$ BT151 Crowbar) accionada en $42.0\text{ ns}$.
+* **Inferencia LLM y Cómputo Tensorial:** Mitigados por compresión TOON de $86.4\%$ ($412 \to 56$ tokens) y ejecución en C/C++ vectorizado.
 * **Amortiguamiento Espectral:** Costos de infraestructura compensados por la erradicación de multas contractuales, paros de obra civil y reducción del fondo de imprevistos del $15\%$ al $3.5\%$.
 
 ---
@@ -180,13 +184,13 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **$\operatorname{Tor}\left(H_k(K; \, \mathbb{Z})\right) \neq \mathbf{0} \implies d_i > 1$** | `boundary_ring_sheaf_agent`<br>**Ruptura de Simetría / Torsión sobre $\mathbb{Z}$** | **Sobrecostos Ocultos y Mermas Discretas**<br>Factores invariantes de torsión que denotan desequilibrios o inconsistencias en bucles de recursos. | **VETO DURO INSTANTÁNEO:** Veto ineludible. ISR en IRAM paraliza mezcladoras de obra en seco en $< 392.15\text{ ns}$. |
 | **$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$** | `toon_wisdom_weaver_agent` / `engine`<br>**Adjunción de de Rham-Galois (-86.4% KV)** | **Ahorro Masivo en Inferencia y Trazabilidad**<br>Compresión del cartucho JSON de 412 a 56 tokens. Elimina alucinaciones de APUs y ahorra 80% en inferencia LLM. | Veto Suave / Paso Óptimo en RAM. |
 | **$k = c_2(P) \in \mathbb{Z} \wedge c_1(E)$** | `toon_wisdom_weaver_witness_agent` / `engine`<br>**Instantón BPST y Diagonalización Williamson** | **Certificación de Topología de Calibre**<br>Auditoría de invarianza cuaterniónica en el tejido de conocimiento, erradicando incoherencias de fase en pliegos. | Paso Óptimo / Firma SHA-256 en RAM. |
-| **$\check{H}^2(X, \mathcal{F}_{\text{wisdom}}) \neq \mathbf{0}$** | `toon_wisdom_weaver_prosecutor_agent` / `engine`<br>**Obstrucción Čech de 2º Orden** | **Desalineación entre Foso Táctico y Penthouse**<br>Incompatibilidad de síntesis entre la MIC y la MAC que expone el contrato a disputas legales ante la Contraloría. | **VETO DURO INSTANTÁNEO:** Inhabilitación del paquete de oferta en SECOP II. |
+| **$\check{H}^2(X, \mathcal{F}_{\text{wisdom}}) \neq \mathbf{0}$** | `toon_wisdom_weaver_prosecutor_agent` / `engine`<br>**Obstrucción Čech de 2º Orden** | **Desalineación Táctica y Estratégica**<br>Incompatibilidad de síntesis entre la MIC y la MAC que expone el contrato a disputas legales ante la Contraloría. | **VETO DURO INSTANTÁNEO:** Inhabilitación del paquete de oferta en SECOP II. |
 | **$RHI = \frac{\Delta C_{\text{real}}}{\Delta C_{\text{disguised}}} > 0.85$** | `toon_trickster_adversary_agent` / `engine`<br>**Atajo Adversarial y Reward Hacking** | **Inmunidad Antifraude en SECOP II**<br>Detección instantánea de fraccionamiento ilícito de compras y front-loading en la fase REM (Red Team). | Veto Duro / Transmisión a Fase REM. |
 | **$\text{QND } \mathbb{C}P^{n-1} \wedge \text{Back-Action } 0.0\text{ dB}$** | `toon_trickster_witness_agent` / `engine`<br>**Observación Débil y Fidelidad Uhlmann** | **Auditoría Pasiva Cero-Interferencia**<br>Inspección de estados adversariales sin colapsar el flujo deliberativo ni alterar la traza $\operatorname{Tr}(\rho) = 1$. | Transmisión Silenciosa de Telemetría. |
 | **$W(\gamma) = \mathcal{P}\exp(\oint A) \wedge \text{CR3BP}$** | `toon_trickster_prosecutor_agent` / `engine`<br>**Holonomía Wilson y Retorno Poincaré** | **Acusación por Órbita Caótica en Precios**<br>Identificación de oscilaciones no lineales en insumos que desestabilizan el presupuesto a mediano plazo. | **VETO SUAVE (Válvula de Alivio):** Re-estructuración de contratos a precio fijo. |
 | **$\|T_\varphi(v) - v\|_2 = 0 \wedge d_{\mathrm{FS}}$** | `toon_introspection_agent` / `engine`<br>**Punto Fijo Tarski-Brouwer** | **Certeza Jurídica Inalienable**<br>Demostración matemática de autocoherencia como autoestado invariante que se sostiene por sí solo ante jueces. | Certificado Merkle Inmutable. |
 | **$A_w \wedge |\gamma_{\text{Berry}}| < 0.50\text{ rad}$** | `toon_introspection_witness_agent` / `engine`<br>**Observación Débil y Fase de Berry** | **Garantía de Coherencia de Fase Interna**<br>Verificación de que la rotación de variables no introduzca holonomía espuria ni distorsión en la MAC. | Paso Óptimo en RAM. |
-| **Axiomas } C^* \text{ en } \mathfrak{D}_n \wedge \lambda_{\max}^\perp < 0$** | `toon_introspection_prosecutor_agent` / `engine`<br>**Acusación por Atractor Espurio** | **Aniquilación de Estados Degenerados**<br>Identificación y purga de matrices de densidad no hermíticas ($\rho \neq \rho^\dagger$) o singulares. | **VETO DURO INSTANTÁNEO:** Reset de la memoria de trabajo del agente. |
+| **Axiomas $C^* \text{ en } \mathfrak{D}_n \wedge \lambda_{\max}^\perp < 0$** | `toon_introspection_prosecutor_agent` / `engine`<br>**Acusación por Atractor Espurio** | **Aniquilación de Estados Degenerados**<br>Identificación y purga de matrices de densidad no hermíticas ($\rho \neq \rho^\dagger$) o singulares. | **VETO DURO INSTANTÁNEO:** Reset de la memoria de trabajo del agente. |
 | **$v(A) \wedge \|x+y\|_{\text{Nov}} \le \max(\|x\|, \|y\|)$** | `toon_novikov_navigator_agent` / `engine`<br>**Valuación Ultramétrica de Novikov** | **Absorción de Pequeños Divisores (KAM)**<br>Protección contra fluctuaciones menores de precios mediante filtración en el Anillo de Novikov $\Lambda_{\text{Nov}}$. | Paso Filtrado en Novikov. |
 | **Espectro Berkovich I–IV $\wedge \mathrm{Am}(P)$** | `toon_topological_novikov_navigator_agent` / `engine`<br>**Árbol Bruhat-Tits y Amiba Tropical** | **Navegación No Arquimediana de Costos**<br>Proyección de bordes tropicales para anticipar discontinuidades de precios y paros de transporte. | Alerta Geodésica Preventiva. |
 | **$T_{\mathrm{RS}} \wedge \Delta_k \text{ en } \Lambda^* M$** | `toon_topological_witness_agent` / `engine`<br>**Torsión Ray-Singer y Laplaciano** | **Certificación de Invarianza Topológica**<br>Auditoría de forma global de la red presupuestal, descartando deformaciones continuas parásitas. | Emisión de Pasaporte SHA-256. |
@@ -256,7 +260,7 @@ cebando la compuerta del tiristor **BT151 Crowbar** en $t_{\text{actuation}} \le
 
 ## ⚡ Gobernanza del Supremo de Heyting y Veto Ciber-Físico
 
-La orquestación del Veredicto en el penthouse del Consejo se formaliza mediante el colapso síncrono multidimensional del retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ empleando la operación Supremo ($\sqcup$):
+La orquestación del Veredicto en el Consejo se formaliza mediante el colapso síncrono multidimensional del retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ empleando la operación Supremo ($\sqcup$):
 
 $$v_{\text{final}} = v_{\text{Physics}} \sqcup v_{\text{Tactics}} \sqcup v_{\text{Strategy}} \sqcup v_{\text{Wisdom}} \equiv \max(v_i)$$
 
