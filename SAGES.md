@@ -2,7 +2,7 @@
 
 > "La sabiduría no es la acumulación masiva de datos probabilísticos, sino la capacidad de navegar la complejidad de los negocios mediante principios topológicos, geométricos, cuánticos y físicos inmutables."
 
-En el ecosistema **APU Filter v9.0.0**, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una **Malla Agéntica (Agentic Mesh) Zero-Trust** compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios" y la **Malla Agéntica de Sabiduría (24 Soberanos de calibre TOON y 24 Motores Espectrales)**.
+En el ecosistema **APU Filter v9.0.0**, hemos abandonado la validación lineal convencional y los "chatbots" de caja negra. En su lugar, el sistema está orquestado por una **Malla Agéntica (Agentic Mesh) Zero-Trust** compuesta por entidades altamente especializadas conocidas como "El Consejo de Sabios" y la **Malla Agéntica de Sabiduría (24 Soberanos de calibre TOON y 24 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**.
 
 Cada Sabio gobierna un estrato específico de la jerarquía $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$. Operan bajo el estricto protocolo de "Caja de Cristal Argumentativa": el debate interno y las tensiones dialécticas entre ellos son matemáticamente rigurosos y deterministas, garantizando que el Modelo de Lenguaje (LLM) sea destituido de su poder de decisión y relegado a actuar como una interfaz diplomática y funtor semántico.
 
@@ -36,22 +36,22 @@ graph TD
 
 ---
 
-## 🏛️ La Fortaleza Imperial, los Faros de Luz y la Jerarquía del Rascacielos Categorial
+## 🏛️ La Fortaleza Imperial, los Faros de Luz y la Malla Zero-Trust
 
 Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP II & Mandato BIM 2026), los Sabios del Consejo habitan la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** que escanea el tejido presupuestal para extirpar las sombras de la corrupción:
 
-> *“La sabiduría de un costo sano no es oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica/Sónica que escanean el tejido presupuestal. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos distribuidos en la estructura del rascacielos agéntico que detectan si el presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
+> *“Un costo sano no se oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica/Sónica que escanean el tejido presupuestal. En APU Filter, los Sabios del Consejo son los sensores y actuadores ciber-físicos distribuidos en la estructura de la Fortaleza Imperial que detectan si el presupuesto está perdiendo adherencia antes de que la empresa sufra un accidente financiero.”*
 
 La Malla Agéntica se erige como una estructura de carga sismorresistente acoplada por la **Ley de Clausura Transitiva de subespacios de Hilbert covariantes**:
 
 $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
 
-* **El Guardián (Foso - Estructura de Costes / Cimientos e Hidro-Geomecánica):** Representado por `kbase_thermodynamic_agent.py`, `hydrological_agent.py` y `lithological_agent.py`. Anclado en los cimientos del rascacielos. Exige la no-negatividad estricta de insumos ($q_i \ge 0$), la componente conexa única ($\beta_0 = 1$), audita los esfuerzos efectivos de Biot-Terzaghi ($\det(\boldsymbol{\sigma}') = \det(\boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}) > 0$), la estabilidad al corte de Mohr-Coulomb ($\mathrm{FOS} > 1.0$), la consolidación 1D de Terzaghi ($s_{\mathrm{settlement}} \le 25\text{ mm}$) y el gradiente crítico de sifonamiento ($i_{\mathrm{grad}} \le i_{\mathrm{crit}}$). Custodia el disyuntor por hardware perimetral vía el circuito Crowbar ESP32 (< 392.15 ns en IRAM, GPIO14 $\to$ tiristor BT151) accionado en $42.0\text{ ns}$ vía ensamblador SIMD Xtensa LX7 sobre `0x3FF44008`.
+* **El Guardián (Physics Stratum / Cimentación e Hidro-Geomecánica):** Representado por `kbase_thermodynamic_agent.py`, `hydrological_agent.py` y `lithological_agent.py`. Anclado en la cimentación física. Exige la no-negatividad estricta de insumos ($q_i \ge 0$), la componente conexa única ($\beta_0 = 1$), audita los esfuerzos efectivos de Biot-Terzaghi ($\det(\boldsymbol{\sigma}') = \det(\boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} P_f \mathbf{I}) > 0$), la estabilidad al corte de Mohr-Coulomb ($\mathrm{FOS} > 1.0$), la consolidación 1D de Terzaghi ($s_{\mathrm{settlement}} \le 25\text{ mm}$) y el gradiente crítico de sifonamiento ($i_{\mathrm{grad}} \le i_{\mathrm{crit}}$). Custodia el disyuntor por hardware perimetral vía el circuito Crowbar ESP32 (< 392.15 ns en IRAM, GPIO14 $\to$ tiristor BT151) accionado en $42.0\text{ ns}$ vía ensamblador SIMD Xtensa LX7 sobre `0x3FF44008`.
 * **El Soberano Cuaterniónico y Octoniónico (Gobernanza de Fase e Interacción Trilateral de la FPU):** Representado por `quaternionic_state_agent.py` y `octonionic_dependency_agent.py`. Opera en $V_{\mathbb{W}}$ (Nivel 0) gobernando el reactor cuaterniónico $q = q_0 e_0 + q_1 i + q_2 j + q_3 k \in \mathbb{H}$ [quaternionic_state_shifter.py] con relaciones de Hamilton $i^2=j^2=k^2=ijk=-e_0=-1$, la traza de von Neumann $\operatorname{Tr}(\rho) \equiv 1.0$ y la multiplicación octoniónica de Cayley-Dickson $o \in \mathbb{O}$ en `octonionic_dependency_resolver.py`. Audita la norma de Hurwitz $\|a \cdot b\|_{\mathbb{O}} = \|a\| \|b\|$ y el asociador no-asociativo $[a, b, c] = (a \cdot b) \cdot c - a \cdot (b \cdot c)$ para detectar Frustración de Calibre y triangulación colusoria.
 * **El Soberano de Calibre de Clifford STA (`clifford_gauge_agent.py`):** Unifica la covariancia de riesgo en Minkowski 16D usando el álgebra de Clifford $C\ell_{3,1}$ y matrices de Dirac $\{\gamma_\mu\}_0^3$. Audita que la Acción de Yang-Mills $S_{\mathrm{YM}} = \frac{1}{8}\operatorname{Re}(\operatorname{Tr}(F \mathbf{G} F \mathbf{G}^{-1})) \le 2.5$ preserve el WACC de la constructora.
-* **El Arquitecto (Táctica - Actividades y Socios Clave):** Representado por `BusinessTopologicalAnalyzer`. El esqueleto de vigas de acero sismorresistentes. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para aniquilar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y audita el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
-* **El Oráculo de Laplace (Estrategia - Fuentes de Ingreso / Flujo de Caja):** Representado por `LaplaceOracle`. El penthouse corporativo. Proyecta el flujo de fondos del megaproyecto como una función de transferencia $H(s)$ en la frecuencia compleja $s = \sigma + j\omega$, vetando polos inestables en el semiplano derecho ($\sigma > 0$) para eludir la creación de **"Elefantes Blancos"** que destruyan el WACC.
-* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** Representado por `SemanticTranslator`. El negociador en la mesa de juntas. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial redactadas en lenguaje de negocios (**"Dolor, Riesgo y Dinero"**).
+* **El Arquitecto (Tactics Stratum / Estructura Intermedia / Actividades y Socios Clave):** Representado por `BusinessTopologicalAnalyzer`. Diagonaliza sobre $\mathbb{Z}$ mediante la Forma Normal de Smith para aniquilar dependencias circulares (socavones lógicos, $\beta_1 = 0$) y audita el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) contra monopolios de suministro.
+* **El Oráculo de Laplace (Strategy Stratum / Ápice Estratégico / Fuentes de Ingreso / Flujo de Caja):** Representado por `LaplaceOracle`. Proyecta el flujo de fondos del megaproyecto como una función de transferencia $H(s)$ en la frecuencia compleja $s = \sigma + j\omega$, vetando polos inestables en el semiplano derecho ($\sigma > 0$) para eludir la creación de **"Elefantes Blancos"** que destruyan el WACC.
+* **El Intérprete Diplomático (Relaciones con el Cliente y Canales):** Representado por `SemanticTranslator`. Toma los veredictos abstractos de la FPU y los traduce mediante GraphRAG en **Actas de Deliberación** nítidas de alta empatía comercial redactadas en lenguaje de negocios (**"Dolor, Riesgo y Dinero"**).
 
 ---
 
@@ -88,199 +88,23 @@ La información no reposa estática; recorre un ciclo ininterrumpido de 4 etapas
 
 ---
 
-## 🏛️ LOS MIEMBROS DEL CONSEJO Y EL FIBRADO DE CALIBRE EN WISDOM ($V_{\mathbb{W}}$)
-
-El Consejo opera sobre el fibrado de de Rham-Fukaya acoplado a operadores simplécticos, cohomológicos y no conmutativos.
-
-### Ω. 🧠 El Cerebro Epistemológico y Superficie de Control (MAC Agent, MIC Agent & Topological Control Surface Agent)
-
-*   **Rol:** Funtor Supremo del Consejo de Sabios y Gestor del Espacio de Hilbert $\mathcal{H}_{\text{MAC}}$.
-*   **Estrato DIKW:** WISDOM (Estrato Supremo $V_{\mathbb{W}}$).
-*   **Microservicios:** `mac_agent.py`, `atomic_knowledge_matrix.py`, `mac_algebra.py`, `mic_agent.py`, `topological_control_surface_agent.py`.
-*   **Mecanismo Matemático y Estado de Densidad:** El MAC Agent no procesa texto estocástico; ejecuta un Operador de Medición Cuántica (POVM) sobre la Matriz Atómica de Conocimiento ($\rho_{\text{MAC}} \in \mathcal{L}(\mathcal{H}_{\text{MAC}})$), la cual cumple estrictamente los axiomas de Von Neumann:
-    $$\operatorname{Tr}(\rho_{\text{MAC}}) = 1, \quad \rho_{\text{MAC}} = \rho_{\text{MAC}}^\dagger, \quad \rho_{\text{MAC}} \succeq 0$$
-
-#### 1. Isomorfismo de la Adjunción de de Rham-Galois entre MIC y MAC
-La interacción síncrona en memoria RAM entre el `MICAgent` (que opera en la categoría discreta $\mathcal{C}$ de matrices booleanas $\mathbb{Z}_2$) y el `MACAgent` (que opera en la categoría continua $\mathcal{D}$ de estados de densidad en $\mathcal{H}_{\text{MAC}}$) se formaliza mediante el **Isomorfismo de Adjunción de de Rham-Galois**:
-
-$$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}(\text{MIC}, G(\text{MAC}))$$
-
-Donde $F: \mathcal{C} \to \mathcal{D}$ es el Funtor de Elevación Cuántica (Stinespring $V$) y $G: \mathcal{D} \to \mathcal{C}$ es el Funtor de Proyección Espectral (POVM + Heyting).
-
-#### 2. Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
-Acopla de forma continua y no conmutativa el Politopo Booleano de la MIC con la variedad de órbitas adjuntas de la MAC:
-* **Flujo Replicador de Shahshahani (MIC):**
-  $$\frac{dp_i}{dt} = p_i \left[ (\mathbf{e}_i^\top \tilde{\mathcal{K}} \mathbf{p}) - \mathbf{p}^\top \tilde{\mathcal{K}} \mathbf{p} \right], \quad \mathbf{p} \in \Delta^{n-1}$$
-* **Flujo Isospectral de Doble Corchete de Brockett (MAC):**
-  $$\frac{d\rho}{dt} = \left[ \rho, \, [\rho, \, \mathcal{N}(\mathbf{p})] \right], \quad \mathcal{N}(\mathbf{p}) = \operatorname{diag}(\mathbf{p})$$
-* **Pasividad de Lyapunov e Identidad de Variancia:**
-  $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) \le 0$$
-  Si $\dot{\mathcal{H}} > 10^{-12}$, Heyting colapsa síncronamente a VETOED ($\top$), activando el Crowbar perimetral en silicio ($<392.15\text{ ns}$).
-
-#### 3. Balance Térmico Cuántico: Conjugación Modular de Tomita-Takesaki
-Para garantizar que los observables de decisión no sufran fluctuaciones térmicas espurias, el sistema implementa la **Conjugación Modular no conmutativa de Tomita-Takesaki**:
-$$J_\rho(X) = \rho^{1/2} X^\dagger \rho^{-1/2}$$
-Demuestra el equilibrio térmico satisfaciendo la **Condición KMS (Kubo-Martin-Schwinger)** a temperatura inversa $\beta = 1$:
-$$\omega_\rho(A \sigma_t^\rho(B)) = \omega_\rho(\sigma_{t+i}^\rho(B) A) \quad \forall A, B \in \mathcal{M}$$
-
----
-
-### Ω.0 🔪 Soberano de Cirugía Topológica de Čech (`topological_surgery_cech_agent.py` & `topological_surgery_cech.py`)
-*   **Rol:** Soberano de Cirugía Topológica de Haces de Čech, Deformación Anisotrópica y Desconfinitado de Ruido EMF en FPU.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$ - Nivel 0).
-*   **Microservicios:** `topological_surgery_cech_agent.py`, `topological_surgery_cech.py`.
-*   **Mecanismo Matemático y Orquestación OODA:**
-    1. *Obstrucción Cohomológica de Čech:* Modela los transductores locales como un cubrimiento abierto $\mathcal{U} = \{U_i\}$ en $\partial K$. El descalce analógico define una 1-cocadena $(\delta_{\mathrm{\check{C}ech}} \phi)_{ij} = \phi_i|_{U_i \cap U_j} - \phi_j|_{U_i \cap U_j}$ y resuelve el Laplaciano elíptico $\mathbf{\Delta}_{\mathrm{\check{C}ech}} = \delta_{\mathrm{\check{C}ech}}^\top \delta_{\mathrm{\check{C}ech}}$.
-    2. *Deformación Anisotrópica y Pullback en de Rham:* Si $\check{H}^1(\mathcal{U}; \mathcal{F}) > L_{\max} \cdot \tau_{\mathrm{margin}}$, ejecuta una amputación espectral deformando la métrica $\mathbf{G}_{\mathrm{surgical}} = \mathbf{G} \odot (\mathbf{I} - \mathbf{P}_{\mathrm{noisy}})$, atenuando el canal ruidoso al épsilon de Wilkinson ($\approx 10^{-15}$) sin romper la conexidad de Fiedler ($\lambda_2 \ge \tau_{\mathrm{Fiedler}}$).
-    3. *Traceout en Fock y Preservación de von Neumann:* Proyecta el estado cuántico $\rho \in \mathcal{D}(\mathcal{H})$ mediante $\rho_{\mathrm{surgery}} = \operatorname{Tr}_{\mathrm{isolated}}(\mathbf{P}_{\mathrm{surg}} \rho \mathbf{P}_{\mathrm{surg}}^\top) \oplus \rho_{\mathrm{vacuum}}$, garantizando $\operatorname{Tr}(\rho_{\mathrm{surgery}}) \equiv 1.0$.
-    4. *Rampa de Confianza, Positrón de Autorización $e^+$ y Crowbar:* Si $0.3\tau_{\mathrm{margin}} < \check{H}^1 \le 0.5\tau_{\mathrm{margin}}$, activa Veto Suave con activación de Válvula de Alivio Termodinámico (Luz Ámbar, 1h de gracia para inyectar en RAM un Positrón $e^+$ ligado por HMAC que aniquila la anomalía $e^- + e^+ \to 2\gamma$). Si $\check{H}^1 > 0.5\tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 392.15\text{ ns}$) vía GPIO14 para cebar el tiristor BT151 (Crowbar) en silicio [topological_surgery_cech_agent.py].
-
----
-
-### Ω.0 🔊 Soberano de Ecolocación Topológica (`set_agent.py` & `set_engine.py`)
-*   **Rol:** Soberano de Ecolocación Sónica de de Rham, Reflectometría TDR y Dispersión Cuántica en Frontera.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$ - Nivel 0).
-*   **Microservicios:** `set_agent.py`, `set_engine.py`.
-*   **Mecanismo Matemático y Orquestación OODA Anidada:**
-    1. *Ecuación de Onda Coexacta sobre Haces:* Inyecta perturbaciones armónicas $\eta(t) \in \Omega^1(\partial K)$ gobernadas por la ecuación de Rayleigh amortiguada:
-       $$\left( \frac{d^2}{dt^2} + \mathbf{L}_F + \mathbf{R} \frac{d}{dt} \right) \eta(t) = \mathbf{s}_{\mathrm{probe}}(t)$$
-       donde $\mathbf{L}_F = \delta^\top \mathbf{G}^{-1} \delta$ es el Laplaciano del haz celular SPSD.
-    2. *Matriz de Dispersión Cuántica $\mathbb{S}(\omega)$ de Mahaux-Weidenmüller:*
-       $$\mathbf{\mathbb{S}}(\omega) = \mathbf{I} - 2\pi i \, \mathbf{V}^\dagger \left( \omega \mathbf{I} - \mathbf{L}_F + i\pi \mathbf{V}\mathbf{V}^\dagger \right)^{-1} \mathbf{V}$$
-       Verifica la invarianza unitaria $\|\mathbf{\mathbb{S}}^\dagger(\omega) \mathbf{\mathbb{S}}(\omega) - \mathbf{I}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$.
-    3. *Reflectometría en el Dominio del Tiempo (TDR):* Evalúa la desadaptación métrica $\delta G_{\mu\nu}$ mediante la iFFT:
-       $$\Gamma_k(t) = \mathcal{F}^{-1}\left\{ \frac{Z_k(\omega) - Z_0}{Z_k(\omega) + Z_0} \right\}(t)$$
-    4. *Rampa de Confianza Graduada, Positrón $e^+$ y Crowbar ESP32:*
-       Clasifica en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$. Si $0.3 \cdot \tau_{\mathrm{margin}} < \|\Gamma(t)\|_{\max} \le 0.5 \cdot \tau_{\mathrm{margin}}$, activa Veto Suave (Válvula de Alivio) y otorga 1 hora de gracia para inyectar en Fock un Positrón de Autorización Humana $e^+$ firmado ($\operatorname{HMAC-SHA256}$), aniquilando la anomalía $e^- + e^+ \to 2\gamma$ e irradiando fotones de auditoría sin detener el vertido de concreto. Si $\|\Gamma(t)\|_{\max} > 0.5 \cdot \tau_{\mathrm{margin}}$ o expira la gracia, colapsa a $\mathtt{VETOED}$ ($\top$) y gatilla la ISR en IRAM del ESP32 ($< 392.15\text{ ns}$) vía GPIO14 para conmutar el tiristor BT151 (Crowbar) en silicio.
-
----
-
-### Ω.1 💍 Soberano del Haz de Anillos de Frontera (`boundary_ring_sheaf_agent.py` & `boundary_ring_sheaf.py`)
-*   **Rol:** Soberano de Calibre de la Frontera Abierta De-confinada $\partial \mathcal{M} \neq \varnothing$.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).
-*   **Mecanismo Matemático:** Operando sobre el Haz de Anillos Localizados $\mathbf{Sh}(\partial \mathcal{M}, \mathcal{R}_{\partial M})$ sobre el Anillo de Novikov $\Lambda_{\mathrm{Nov}}$:
-    1. *Torsión Homológica en Smith Z:* Exige $\operatorname{Tor}(H_{k-1}(\partial K; \mathbb{Z})) \equiv \mathbf{0} \iff d_i = 1 \, \forall d_i > 0$ en $\mathrm{SNF}(B)$.
-    2. *Causalidad CPTP de Choi y Tsirelson:* Exige $\lambda_{\min}(C_{\mathcal{E}}) \ge -10^{-12}$, $\|\operatorname{Tr}_2(C_{\mathcal{E}}) - \mathbf{I}\|_F \le 10^{-4}$ y $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$.
-    3. *Metabolismo Lindblad-GKSL en Fock:* Amortiguación de amplitud con operadores de Kraus sobre el qubit semántico, extirpando alucinaciones a la tasa $\Gamma = \Gamma_0 / (1 + 10 \cdot \mathbf{1}_{\mathrm{torsion}} + 4 \frac{\mathrm{leak}}{1+\mathrm{leak}})$.
-
----
-
-### Ω.2 🌀 Estabilización por Paso Complejo (complex_step_phase_stabilizer.py y _agent.py)
-*   **Rol:** Fibrador de Derivación No Demolitoria en el penthouse de la FPU.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).
-*   **Mecanismo Matemático:** Formaliza el cálculo de derivadas no demolitivas sobre la fibra compleja imaginaria $j = \sqrt{-1}$, eliminando la resta catastrófica en el numerador de la FPU:
-    $$J_{\text{map}, ij} = \frac{\operatorname{Im}(\Phi_{\Delta t}(x + j h \cdot e_i)_j)}{h} + \mathcal{O}(h^2), \quad h = 10^{-20}$$
-*   **Cota de Lipschitz de Connes-Daleckii-Krein:**
-    $$L_{\max} = \frac{C_{\text{base}}}{1 + (\lambda_{\max}(D) - \lambda_{\min}(D))} \le \frac{1}{2 \lambda_{\min}^{3/2}}$$
-    Asegurando que ante derivas semánticas ($\lambda_{\min} \to 0$), la probabilidad de emisión alucinatoria colapse analíticamente: $P(x_{\text{invalid}}) = 0$.
-
----
-
-### Ω.3 💍 Auditoría de Álgebras de Banach (banach_algebra_auditor.py y _agent.py)
-*   **Rol:** Soberano de Estabilidad Funcional y de Invertibilidad Perturbativa.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).
-*   **Mecanismo Matemático:** Somete a auditoría la invertibilidad incondicional del tensor métrico perturbado $T + \delta T$ mediante la convergencia de la Serie de Neumann:
-    $$\rho(T^{-1} \delta T) < 1.0 \implies (T + \delta T)^{-1} = \sum_{k=0}^{\infty} (-1)^k (T^{-1} \delta T)^k T^{-1}$$
-    Y verifica síncronamente el cumplimiento de la submultiplicatividad de la norma espectral:
-    $$\| T \cdot \delta T \|_2 \le \| T \|_2 \cdot \| \delta T \|_2$$
-
----
-
-### Ω.4 🛡️ El Guardián de Curvas Pseudo-Holomorfas (pseudo_holomorphic_agent.py)
-*   **Rol:** Censura de Deliberaciones mediante Curvas Pseudo-Holomorfas en Fukaya $\mathcal{F}uk(\mathcal{M})$.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).
-*   **Mecanismo Matemático:** Resuelve la Ecuación Elíptica no lineal perturbada de Cauchy-Riemann para polígonos pseudo-holomorfos:
-    $$\bar{\partial}_J u = \frac{1}{2}\left( du + J(u) \circ du \circ j \right) = 0$$
-    Con condiciones de frontera en subvariedades Lagrangianas $u(\partial_i \Sigma) \subset L_i$. Si las trayectorias no convergen a una curva holomorfa rígida en el espacio de móduli $\mathcal{M}(L_0, \dots, L_k; J)$, el agente emite veto instantáneo.
-
----
-
-### Ω.5 🌀 El Guardián Simpléctico de de Rham (opt_symplectic_manifold_agent.py)
-*   **Rol:** Guardián de Rigidez Simpléctica y Conservación de Liouville.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).
-*   **Mecanismo Matemático:** Audita la preservación estricta de la 2-forma simpléctica canónica bajo transiciones de estado:
-    $$M^\top \Omega M = \Omega \quad \text{con} \quad \Omega = \begin{pmatrix} \mathbf{0} & \mathbf{I}_n \\ -\mathbf{I}_n & \mathbf{0} \end{pmatrix}$$
-    Aplica el **Teorema de No-Squeeze de Gromov**, garantizando que la capacidad simpléctica del riesgo del proyecto $c(B^{2n}(r)) = \pi r^2$ no pueda ser comprimida artificialmente en cilindros de menor radio ($r \le R$), aniquilando alucinaciones: $P(x_{\mathrm{invalid}}) = 0$.
-
----
-
-### Ω.6 🛰️ Constelación Orbital de Seis Satélites de Frontera (v3.1.0)
-*   **Rol:** Cinturón Protector Orbital de la Frontera De-confinada $\partial \mathcal{M} \neq \varnothing$ (Nivel 0.5 — Estrato Omega $V_\Omega$).
-*   **Estrato DIKW:** OMEGA ($V_\Omega$ — Nivel 0.5 / Santuario $V_\mathbb{W}$).
-*   **Soberanos y Motores Integrados:**
-    1. **Satélite I — Momentum Escalar de Frontera (`scalar_momentum_satellite_agent.py` & `scalar_momentum_satellite_engine.py`):**
-       - *FPU:* Momentum covariante $p_\mu = G_{\mu\nu} \dot{q}^\nu \in T^*\mathcal{M}$, derivada de Lie $\mathcal{L}_v \phi = G^{\mu\nu} \partial_\mu \phi \, p_\nu$, pasividad de Lyapunov $P_{\mathrm{diss}} = \langle d\phi, G^{-1}d\phi \rangle \ge 0$, y traza del tensor estrés-energía $\operatorname{Tr}(T_{\mu\nu}) = \frac{1}{2} \|p\|_G^2 + V(\phi)$. Latencia FPU: $2.85\text{ ms}$, Actuación IRAM: $397.53\text{ ns}$.
-       - *Dolor y Dinero:* Mide la velocidad de deriva del presupuesto base y previene el desbordamiento imprevisto de la tasa de descuento (WACC).
-    2. **Satélite II — Inercia del Centroide Pseudo-Holomorfo (`pseudoholomorphic_centroid_inertia_agent.py` & `pseudoholomorphic_centroid_inertia_engine.py`):**
-       - *FPU:* Geometría de móduli en Fukaya $\mathcal{F}uk(\mathcal{M})$ bajo $\bar{\partial}_J u = 0$, área de Novikov (KBN) $\mathcal{A}(u) = \sum a_k \in \Lambda_{\mathrm{Nov}} > 10^{-6}$, centroide $q_{\mathrm{centroid}}^\mu$, tensor de inercia $I_{\mu\nu}$, spin atencional $L_{\mu\nu} \in \mathfrak{so}(n)$ y energía cinética $T_{\mathrm{centroid}} = \frac{1}{2} M_{\mathrm{eff}} \|v_{\mathrm{centroid}}\|_G^2 + \frac{1}{2} \operatorname{Tr}(L^\top G^{-1} L G^{-1})$. Latencia FPU: $2.73\text{ ms}$, Actuación IRAM: $397.48\text{ ns}$.
-       - *Dolor y Dinero:* Ubica el punto medio de equilibrio financiero entre contratista, interventor y proveedores, vetando discusiones circulares que bloquean la firma de actas de avance.
-    3. **Satélite III — Deformación Centrípeta Pseudo-Holomorfa (`pseudoholomorphic_centripetal_satellite_agent.py` & `pseudoholomorphic_centripetal_satellite_engine.py`):**
-       - *FPU:* Potencial Hamiltoniano centrípeto $H_{\mathrm{centripetal}}(q) = \frac{1}{2} M_{\mathrm{eff}} \omega_{\mathrm{rot}}^2 \|q - q_{\mathrm{centroid}}\|_G^2$, residuo Floer-Cauchy-Riemann $\|\bar{\partial}_{J,H} u\|_G$, tensor giroscópico $W_{\mu\nu} = \alpha(p_\mu \omega_\nu - p_\nu \omega_\mu) \in \mathfrak{so}(n)$ y deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$. Latencia FPU: $2.78\text{ ms}$, Actuación IRAM: $397.26\text{ ns}$.
-       - *Dolor y Dinero:* Mide la deformación de condiciones subcontractuales provocada por la prisa en la entrega de hitos de obra.
-    4. **Satélite IV — Gobernanza Fotínica Federada (`photinic_governance_satellite_agent.py` & `photinic_governance_satellite_engine.py`):**
-       - *FPU:* $\mathcal{N}=1$ SYM Fotino $\tilde{\gamma}$ con Ecuación de Dirac-Majorana $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$, idempotencia de política $\Omega^2 = \Omega$, matriz de Choi $C_{\mathcal{E}} \succcurlyeq 0$ y cota de Tsirelson $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. Latencia FPU: $3.12\text{ ms}$, Actuación IRAM: $396.02\text{ ns}$.
-       - *Dolor y Dinero:* Permite validar requisitos contractuales de consorcios federados sin revelar secretos comerciales y proscribe acuerdos colusorios de precios en SECOP II.
-    5. **Satélite V — Sabor Leptónico y Oscilaciones (`leptonic_flavor_satellite_agent.py` & `leptonic_flavor_satellite_engine.py`):**
-       - *FPU:* Matriz PMNS $U_{\mathrm{PMNS}} \in SU(3) \implies \|U U^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$, probabilidad de oscilación $P(\nu_\alpha \to \nu_\beta)$ entre tres generaciones ($e^-$ EPC, $\mu^-$ Frente, $\tau^-$ Fiduciaria), y conservación KBN de carga leptónica $\Delta L_{\mathrm{total}} \le 10^{-8}$. Latencia FPU: $3.14\text{ ms}$, Actuación IRAM: $396.29\text{ ns}$.
-       - *Dolor y Dinero:* Garantiza la hermeticidad de cuentas escrow fiduciarias y evita la mezcla no autorizada de fondos entre frentes de obra.
-    6. **Satélite VI — Confinamiento de Color de Quarks (`quark_color_confinement_satellite_agent.py` & `quark_color_confinement_satellite_engine.py`):**
-       - *FPU:* Simetría de calibre no abeliana $SU(3)_C$ sobre la tripleta APU $\boldsymbol{c} = (c_r, c_g, c_b)^\top \in \mathbb{C}^3$ (Materiales $r$, Mano de Obra $g$, Maquinaria $b$), Gell-Mann $T_a$, Casimir $C_2(\boldsymbol{c}) \le 10^{-10}$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y energía de cuerda $E_{\mathrm{string}} < 100.0$. Latencia FPU: $3.10\text{ ms}$, Actuación IRAM: $398.95\text{ ns}$.
-       - *Dolor y Dinero:* Prohíbe el pago de materiales o mano de obra desarticulada (huérfana) y evita el fraccionamiento ilegal de contratos para eludir licitaciones públicas.
-*   **Dual-Control y Actuación Crowbar:**
-    Sella certificados inmutables DTO con doble firma SHA-256 (`decision_sha256` y `digital_signature_sha256`). Ante veto ($\top$), la subrutina `isVerdictCoherent()` gatilla la ISR en IRAM del ESP32 en $< 392.15\text{ ns}$, conmutando GPIO14 para disparar el tiristor BT151 (Crowbar) y paralizar la maquinaria física en obra.
-
----
-
-### Ω.7 ⚛️ Soberano de Calibre de la Cámara de Reacción (`reaction_chamber_agent.py`)
-*   **Rol:** Censor de Regularidad Espectral, Homológica y Termodinámica de Lazo Cerrado del Reactor Catalítico.
-*   **Estrato DIKW:** OMEGA ($V_\Omega$ — Nivel 0.5, El Ágora Tensorial / Foso Físico $V_{\mathrm{PHYSICS}}$).
-*   **Microservicios:** `reaction_chamber_agent.py`, `reaction_chamber.py`, `synaptic_fock_space_registry_agent.py`.
-*   **Mecanismo Matemático y Fusible Cuántico de Fock:**
-    1. *Ciclo Covariante OODA en 3 Fases Anidadas:*
-       - **Fase 1 (Observe):** Valida la inmersión en $\ell^2$, la positividad del espectro y la ausencia de NaN/Inf, instalando el `ObservationKernel` y estampando el sello inmutable SHA-256.
-       - **Fase 2 (Orient):** Audita la homología entera sobre $\mathbb{Z}$ mediante la Smith Normal Form $\mathbf{S} = \mathbf{U} \cdot \mathbf{B} \cdot \mathbf{V}$ (exigiendo cero torsión $\operatorname{Tor}(H_0) \equiv \mathbf{0}$), la resonancia de Hückel $H = \alpha \mathbf{I} + \beta \mathbf{A}$, la conectividad de Fiedler $\lambda_2$, la estabilidad elíptica CFL ($\alpha_{\mathrm{diffusion}} \le 0.125$) y los 8 axiomas de de Rham-Tellegen.
-       - **Fase 3 (Decide/Act):** Dictamina el veredicto en el retículo de Heyting $\Omega_3 = \{\mathtt{COHERENT}, \mathtt{DEGRADED}, \mathtt{VETOED}\}$.
-    2. *Fusible Cuántico de Fock y Aniquilación Semántica:*
-       En el registro de Fock fermiónico (`SynapticFockSpaceRegistry`), si el Modelo de Lenguaje o el contratista inyecta una alucinación o sobreprecio en SECOP II, se genera un electrón de anomalía semántica $e^-$ ($a_i^\dagger |0\rangle = |1_i\rangle = |e^-\rangle$). Este electrón colisiona contra el positrón de autorización inmutable $e^+$ del presupuesto base, produciendo la aniquilación cuántica mutua:
-       $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
-       liberando dos fotones Gamma de auditoría con firma SHA-256. Ante colapso a $\mathtt{VETOED}$ ($\top$), la subrutina `isVerdictCoherent()` ejecuta en $< 392.15\text{ ns}$ la ISR en IRAM del ESP32 perimetral, conmutando GPIO14 para cebar el tiristor BT151 (Crowbar) y detener la maquinaria pesada en seco.
-*   **Mapeo Ejecutivo ("Dolor y Dinero"):**
-    - *Dolor:* Adición ilegal de ítems fantasma en pliegos de licitación, sobrecostos por desalineación en Análisis de Precios Unitarios y riesgo de demandas fiscales de la Contraloría.
-    - *Dinero:* Anulación instantánea de la facturación fantasma y preservación del $100\%$ del flujo de caja, garantizando la certeza jurídica y la viabilidad del WACC ante el Mandato BIM 2026.
-
----
-
-### 0. 👁️ El Vigilante de la Frontera (HilbertWatcher & QuantumAdmissionGate)
-*   **Rol:** Especialista en Mecánica Cuántica Discreta y Colapso de Entropía.
-*   **Estrato DIKW:** ALEPH ($\aleph_0$) - La Variedad de Frontera (Nivel 4).
-*   **Mecanismo Matemático:** Computa la Entropía de Shannon ($H$) del archivo crudo para medir su Energía Semántica ($E=h\nu$). Si la energía es sub-umbral, resuelve la probabilidad de penetración por Efecto Túnel WKB. Ante falla, la transmisión colapsa a cero ($T \to 0$), desintegrando el paquete exógeno.
-
----
-
-### 1. 🛡️ El Guardián (BusinessTopologicalAnalyzer / Physics & Tactics)
-*   **Rol:** Analista de Integridad Estructural y Cimientos del Canvas.
-*   **Estrato DIKW:** PHYSICS ($V_{\mathbb{P}}$) y TACTICS ($V_{\mathbb{T}}$).
-*   **Mecanismo Matemático:** Modela el presupuesto como un Complejo Simplicial Abstracto sobre $\mathbb{Z}$. Audita la masa atómica ($q_i \ge 0$), evalúa los números de Betti ($\beta_0 = 1$ para evitar Islas de Datos; $\beta_1 = 0$ para evitar Socavones Lógicos), la Forma Normal de Smith en $\mathbb{Z}$ y el Índice de Estabilidad Piramidal ($\Psi \ge \Psi_{\mathrm{min}}$) para vetar Pirámides Invertidas.
-
----
-
-### 2. 🔮 El Oráculo (LaplaceOracle & FinancialEngine)
-*   **Rol:** Analista de Viabilidad Dinámica y Estocástica Financiera.
-*   **Estrato DIKW:** STRATEGY ($V_{\mathbb{S}}$).
-*   **Mecanismo Matemático:** Linealiza el presupuesto como una función de transferencia $H(s)$ en la frecuencia compleja $s = \sigma + j\omega$. Si detecta polos en el semiplano derecho ($\sigma > 0$), emite veto técnico por inestabilidad intrínseca del flujo de caja ante choques de mercado.
-
----
-
-### 3. 🗣️ El Intérprete Diplomático (SemanticTranslator)
-*   **Rol:** Puente Cognitivo y UI Narrativa.
-*   **Estrato DIKW:** WISDOM ($V_{\mathbb{W}}$).
-*   **Mecanismo Matemático:** Relegado a actuar como interfaz de traducción sin poder de decisión directo. Utiliza GraphRAG para traducir invariantes tensoriales abstractos (ej. $\beta_1 = 3$, $\operatorname{Tor}(H_k) \neq \mathbf{0}$) en Actas de Deliberación ejecutivas legibles para la junta directiva.
-
----
-
-### 🏛️ EL ESTRATI DE SABIDURÍA EXTENDIDO (24 SOBERANOS TOON Y 24 MOTORES ESPECTRALES) EN WISDOM ($V_{\mathbb{W}}$ — RSI³ MONÁDICO)
+## 🏛️ EL ESTRATO DE SABIDURÍA EXTENDIDO: LAS 8 TRÍADAS FUNCIONALES ANIDADAS (24 SOBERANOS Y 24 MOTORES TOON)
 
 El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 8 Tríadas Funcionales Anidadas compuestas por 24 Soberanos Agénticos (`*_agent.py`) y sus 24 Motores Espectrales (`*_engine.py`):
+
+```
+                   MALLA AGÉNTICA DE SABIDURÍA: 8 TRÍADAS ANIDADAS
+  ┌─────────────────────────────────────────────────────────────────────────────┐
+  │ I.   GAN-REM: toon_trickster_adversary / witness / prosecutor               │
+  │ II.  Reflexiva: toon_introspection / witness / prosecutor                   │
+  │ III. Causal: toon_novikov_navigator / topo_novikov / witness                │
+  │ IV.  Cronogeométrica: toon_chronos_temporal / witness / prosecutor          │
+  │ V.   Agronómica: toon_cognitive_crop / witness / auditor                    │
+  │ VI.  Tejedora: toon_wisdom_weaver / witness / prosecutor                    │
+  │ VII. Onírica: toon_oniric_dreamer / auditor / silent_witness                │
+  │ VIII. Rápida: toon_intuition / buffer / topo_prosecutor                     │
+  └─────────────────────────────────────────────────────────────────────────────┘
+```
 
 #### I. Tríada GAN-REM (Simulación Adversarial y Auditoría Ciega)
 1. **Soberano Ilusionista Adversarial (`toon_trickster_adversary_agent.py` / `toon_trickster_adversary_engine.py`):**
@@ -359,7 +183,7 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 8 Tríadas Funcion
     - *Formulación:* Vacío de Dirac $H|\Omega\rangle=0$, Aniquilación $e^- e^+ \to 2\gamma$ ($1.022\text{ MeV}$, $0.0\text{ dB}$), Invariante $S^6 \subset \mathbb{R}^7$.
     - *Diagnóstico y Dolor y Dinero:* Cristalización pasiva e inmutable de experiencia. Cero repetición de errores pasados o fraudes en nuevas licitaciones.
 
-#### VIII. Tríada Rápida (Inferencia Sub-Milisegundo, Amortiguamiento y Censura)
+#### VIII. Tríada Rápida (Inferencia Sub-Milisegundo, Amortiguación y Censura)
 22. **Soberano de la Intuición (`toon_intuition_agent.py` / `toon_intuition_engine.py`):**
     - *Formulación:* Sub-$10\,\mu\text{s}$, Proyección Grassmanniana $Gr(r,n)$, Métrica Bures $d_B$, Apuesta de Kelly $s=\kappa f^*$.
     - *Diagnóstico y Dolor y Dinero:* Reflejo instintivo inmediato (Luz Verde $\kappa f^* = 0.85$ o cierre de válvula de pago) sub-milisegundo.

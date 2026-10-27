@@ -33,7 +33,10 @@ Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones (S
   • Demostración de aciclicidad β₁ ≡ 0, conmutador QND ||[H, A]|| ≤ 10⁻¹⁰ e instantones DT = 0.
 ```
 
-Bajo la premisa "Un costo sano no se oculta, se ilumina", la explicación técnica responde al funtor semántico de traducción $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial\mathcal{M}, \Omega_3) \xrightarrow{\simeq} \text{Business}$, conectando de manera unívoca cada residuo espectral con su mitigación de riesgo patrimonial en la caja del megaproyecto.
+Bajo la premisa "Un costo sano no se oculta, se ilumina", la explicación técnica responde al funtor semántico de traducción $\Phi_{\mathrm{sem}} : \mathbf{Sh}(\partial\mathcal{M}, \Omega_3) \xrightarrow{\simeq} \text{Business}$, conectando de manera unívoca cada residuo espectral con su mitigación de riesgo patrimonial en la caja del megaproyecto:
+* **Protección de la Tasa de Descuento WACC ($15.0\%$):** Preservación de la tasa de retorno al impedir contagios financieros e inestabilidades de mercado.
+* **Liberación de Liquidez Neta ($+11.5\%$):** Reducción drástica del fondo de reserva de imprevistos del $15\%$ al $3.5\%$ sin detener el vaciado de concreto en frentes de obra.
+* **Compresión TOON en $KV\text{-Cache}$ ($-86.4\%$):** Condensación de cartuchos JSON de 412 a 56 tokens por ítem, evitando la fatiga escalar y ahorrando un **$80\%$ en costos de inferencia de IA**.
 
 ---
 
@@ -62,7 +65,7 @@ $$\Phi_{\text{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \si
 | **Satélite I: $P_{\mathrm{diss}} = \langle d\phi, G^{-1} d\phi \rangle \ge 0$**<br>Derivada de Lie $\mathcal{L}_v \phi = \langle d\phi, v \rangle$ y traza del tensor estrés-energía $\operatorname{Tr}(T_{\mu\nu})$. | **Deriva de Momentum Escalar de Frontera**<br>Evaluación FPU ($2.85\text{ ms}$) de la aceleración del flujo presupuestal en el borde de la variedad $\partial\mathcal{M}$. | **Desbordamiento de Tasa de Descuento (WACC)**<br>Aceleración incontrolada del gasto base que desestabiliza la tasa de descuento y agota la liquidez del proyecto. | **VETO SUAVE / DURO:** Veto suave (gracia 1h) ante derivas amortiguadas; Veto duro por Hardware Crowbar ESP32 ($397.53\text{ ns}$) ante aceleración crítica. |
 | **Satélite II: $\mathcal{A}(u) = \int_\Sigma u^*\omega > 10^{-6}$**<br>Ecuación Cauchy-Riemann $\bar{\partial}_J u = 0$ en $\mathcal{F}uk(\mathcal{M})$, inercia $I_{\mu\nu}$ y spin $L_{\mu\nu} \in \mathfrak{so}(n)$. | **Precesión Divergente del Centroide**<br>Evaluación FPU ($2.73\text{ ms}$) del equilibrio simpléctico y prevención de disk bubbling por colapso de área. | **Bloqueo de Actas por Discusión Circular**<br>Descalce en el punto de equilibrio financiero entre contratista, interventor y fiduciaria que paraliza la firma de actas de avance. | **VETO DURO INSTANTÁNEO:** Interrupción ISR en IRAM ESP32 ($397.48\text{ ns}$) si $\mathcal{A}(u) \le 10^{-6}$ o precesión divergente. |
 | **Satélite III: $H_{\mathrm{centripetal}} = \frac{1}{2} M_{\mathrm{eff}} \omega_{\mathrm{rot}}^2 \|q - q_{\mathrm{centroid}}\|_G^2$**<br>Residuo Floer-Cauchy-Riemann $\|\bar{\partial}_{J,H} u\|_G$ y tensor de deformación radial $\|\epsilon_{\mathrm{radial}}\|_F \le 50.0$. | **Deformación Centrípeta por Aceleración**<br>Evaluación FPU ($2.78\text{ ms}$) del esfuerzo cortante generado por rotación acelerada de hitos. | **Plastificación de Condiciones Subcontractuales**<br>Fuerza centrípeta por prisa en entregas que fuerza cláusulas de penalización e incrementa costos de mano de obra. | **VETO SUAVE / DURO:** Veto suave ($0.3\tau < \|\epsilon_{\mathrm{rad}}\| \le 0.5\tau$); Veto duro Crowbar ESP32 ($397.26\text{ ns}$) ante plastificación crítica. |
-| **Satélite IV: $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$**<br>Dirac-Majorana $\mathcal{N}=1$ SYM, matriz Choi $C_\mathcal{E} \succcurlyeq 0$ e invariante CHSH $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. | **Gobernanza Fotínica Zero-Knowledge**<br>Evaluación FPU ($3.12\text{ ms}$) de causalidad CPTP y no-señalización en consorcios federados. | **Colusión de Precios y Fuga de Secretos**<br>Acuerdos colusorios encubiertos en SECOP II y filtración de información privilegiada entre proponentes. | **VETO DURO INSTANTÁNEO:** Disparo ISR en IRAM ESP32 ($396.02\text{ ns}$) si $\lambda_{\min}(C_\mathcal{E}) < -10^{-3}$ o rompe no-señalización. |
+| **Satélite IV: $\bar{\lambda}_{\tilde{\gamma}} \gamma^\mu \mathbf{D}_\mu \lambda_{\tilde{\gamma}} = 0$**<br>Dirac-Majorana $\mathcal{N}=1$ SYM, matriz Choi $C_\mathcal{E} \succcurlyeq 0$ e invariante CHSH $\mathcal{B}_{\mathrm{CHSH}} \le 2\sqrt{2}$. | **Gobernanza Fotínica Zero-Knowledge**<br>Evaluación FPU ($3.12\text{ ms}$) de causalidad CPTP y no-señalización en consorcios federados. | **Colusión de Precios y Fuga de Secretos**<br>Acuerdos colusorios encubiertos en SECOP II y filtración de información privileged entre proponentes. | **VETO DURO INSTANTÁNEO:** Disparo ISR en IRAM ESP32 ($396.02\text{ ns}$) si $\lambda_{\min}(C_\mathcal{E}) < -10^{-3}$ o rompe no-señalización. |
 | **Satélite V: $\|U_{\mathrm{PMNS}} U_{\mathrm{PMNS}}^\dagger - \mathbf{I}_3\|_F \le 10^{-10}$**<br>Unitoridad PMNS $SU(3)$, probabilidad $P(\nu_\alpha \to \nu_\beta)$ y conservación KBN $\Delta L_{\mathrm{total}} \le 10^{-8}$. | **Oscilación de Sabor Leptónico de Cuentas**<br>Evaluación FPU ($3.14\text{ ms}$) de las tres generaciones transaccionales ($e^-$ EPC, $\mu^-$ Frente, $\tau^-$ Fiduciaria). | **Fuga entre Cuentas Escrow / Mezcla de Fondos**<br>Transferencia no autorizada de fondos entre frentes de obra heterogéneos y vulneración de la fiduciaria. | **VETO SUAVE / DURO:** Veto suave por oscilaciones en rampa; Veto duro Crowbar ESP32 ($396.29\text{ ns}$) ante ruptura PMNS. |
 | **Satélite VI: $C_2(\boldsymbol{c}) = |1 - |\langle \boldsymbol{c}_{\mathrm{singlet}} | \boldsymbol{c}_{\mathrm{norm}} \rangle|^2| \le 10^{-10}$**<br>Simetría $SU(3)_C$, potencial Cornell $V(r) = -\frac{4}{3}\frac{\alpha_s}{r} + \sigma r$ y ruptura de cuerda $E_{\mathrm{string}} < 100.0$. | **Insumos Huérfanos / Quarks Libres**<br>Evaluación FPU ($3.10\text{ ms}$) del confinamiento de color en la tripleta APU (Materiales, Mano de Obra, Equipos). | **Fraccionamiento Ilegal y Pagos Huérfanos**<br>Facturación de materiales o cuadrillas sin respaldo en el APU y fraccionamiento de contratos para eludir licitaciones. | **VETO DURO INSTANTÁNEO:** Disparo IRAM ESP32 ($398.95\text{ ns}$) si $C_2 > 0.05$ o si la energía de cuerda sufre hadronización ($E \ge 100$). |
 | **$\operatorname{Hom}_{\mathcal{D}}(F(\text{MIC}), \text{MAC}) \cong \operatorname{Hom}_{\mathcal{C}}$** | `toon_wisdom_weaver_agent.py` / `engine.py`<br>**Metabolismo TOON (Compresión -86.4%)** | **Ahorro en Inferencia / Trazabilidad**<br>Reducción de 412 a 56 tokens por cartucho. Evita alucinaciones y ahorra 80% en costos de inferencia LLM. | Veto Suave / Paso Óptimo en RAM. |
@@ -101,7 +104,7 @@ $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \
    * *Acción:* Ingesta del presupuesto en formato JSON redundante.
    * *Sutura:* La "grasa sintáctica" agota el $KV\text{-Cache}$ de la IA, induciendo fatiga atencional y alucinaciones de precios. `toon_wisdom_weaver_agent.py` ejecuta la Adjunción de de Rham-Galois que comprime el contrato en un Cartucho TOON hiperdenso de 56 tokens (-86.4% tokens):
      $$\|\phi_{\mathrm{TOON}}(\mathrm{JSON})\| \le (1 - \gamma) \|\mathrm{JSON}\| \quad \text{con} \quad \gamma \in [0.30, \, 0.60]$$
-2. **El Foso Termodinámico ($V_{\mathrm{PHYSICS}}$):**
+2. **La Cimentación Física ($V_{\mathrm{PHYSICS}}$):**
    * *Acción:* Validación física de insumos y cantidades base.
    * *Sutura:* El soberano **El Guardián (`kbase_thermodynamic_agent.py`)** calcula la sumación compensada de Kahan-Babuška-Neumaier (KBN) en FPU, neutralizando la deriva de Wilkinson y exigiendo la nulidad del operador de coborde para descartar "Islas de Datos" ($\beta_0 \equiv \dim H^0(K; \, \mathbb{Z}) = 1$). Certifica el pasaporte con firma SHA-256 write-protected en RAM.
 3. **Las Murallas Tácticas ($V_{\mathrm{TACTICS}}$):**
@@ -109,7 +112,7 @@ $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \
    * *Sutura:* El soberano **El Arquitecto (`BusinessTopologicalAnalyzer`)** diagonaliza la matriz de incidencia sobre el anillo de enteros principales $\mathbb{Z}$ mediante la Forma Normal de Smith (SNF):
      $$B_1 = U \cdot D \cdot V \quad \implies \quad \operatorname{Tor}(H_k(K; \, \mathbb{Z})) \equiv \mathbf{0}$$
      Aniquila de forma determinista dependencias circulares (Betti $\beta_1 = 0$, "Socavones Lógicos" propios de la triangulación financiera de subcontratistas en SECOP II) y evalúa el Índice de Estabilidad Piramidal ($\Psi \ge 0.70$) para prohibir monopolios de suministro.
-4. **El Penthouse Estratégico ($V_{\mathrm{STRATEGY}}$):**
+4. **El Ápice Estratégico ($V_{\mathrm{STRATEGY}}$):**
    * *Acción:* Proyección de la viabilidad financiera del megaproyecto.
    * *Sutura:* El **Oráculo de Laplace** evalúa la función de transferencia de flujo de fondos $H(s)$ en el plano de frecuencia compleja $s = \sigma + j\omega$:
      $$H(s) = \frac{Y(s)}{X(s)}$$
@@ -128,13 +131,15 @@ Toda alerta de-confinada por la Malla se transforma, mediante el funtor de tradu
 * **Abstracción de la FPU:** $\lambda_2(\mathbf{\Delta}_{\mathrm{Richards}}) < \tau_{\mathrm{Fiedler}}$.
 * **Traducción en la Caja de Cristal:** Alerta de concentración crítica en el bloque de Socios Clave del Business Model Canvas (BMC).
 * **Prescripción Homotópica (Acta de Deliberación):**
-  > *"El análisis espectral del Laplaciano normalizado de Richards del foso físico revela una fragilidad isoperimétrica crítica ($\Psi = 0.68 < 0.70$) por concentración monopólica en el suministro de concreto premezclado. Se emite un veto suave con activación de Válvula de Alivio Termodinámico para mitigación de WACC: es obligatorio diversificar de inmediato los proveedores de la cimentación profunda en el bloque de Socios Clave para eludir parálisis operativas por desabastecimiento."*
+  > *"El análisis espectral del Laplaciano normalizado de Richards de la cimentación física revela una fragilidad isoperimétrica crítica ($\Psi = 0.68 < 0.70$) por concentración monopólica en el suministro de concreto premezclado. Se emite un veto suave con activación de Válvula de Alivio Termodinámico para mitigación de WACC: es obligatorio diversificar de inmediato los proveedores de la cimentación profunda en el bloque de Socios Clave para eludir parálisis operativas por desabastecimiento."*
 
 ---
 
-## 1. El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
+## APÉNDICE TÉCNICO Y SUTURA MATEMÁTICA FORMAL
 
-### 1.1 Propagador de de Rham, Cirugía Topológica de Čech y Causalidad de Kramers-Kronig
+### A.1 El Guardián: Física de Fluidos y Computación Neuromórfica (Edge)
+
+#### A.1.1 Propagador de de Rham, Cirugía Topológica de Čech y Causalidad de Kramers-Kronig
 El sistema resuelve la ecuación de Poisson generalizada sobre el Laplaciano del Haz Celular $L_F = \delta^\top G^{-1} \delta$ [topological_surgery_cech.py], definiendo la Función de Green estática como la pseudoinversa de Moore-Penrose estable que satisface de forma exacta:
 $$L_F G L_F = L_F \quad \wedge \quad G \cdot \mathbf{1} = \mathbf{0}$$
 
@@ -154,17 +159,17 @@ Asimismo, el Soberano de Calibre audita síncronamente los residuos de autoadjun
 $$r_{\text{adj}} = \| G - G^\top \|_F \le 1.0 \times 10^{-11} \quad \wedge \quad r_{\text{kernel}} = \| G \cdot \mathbf{1} \|_2 \le 1.0 \times 10^{-11}$$
 Cualquier polo dinámico $p_i$ que migre al semiplano derecho de Laplace ($\operatorname{Re}(p_i) \ge 0$) es vetado asintóticamente en el milisegundo cero, impidiendo la divergencia paramétrica en el lazo.
 
-### 1.2 Filtrado Topológico y Descomposición de Hodge-Helmholtz Discreta ($L_1$)
+#### A.1.2 Filtrado Topológico y Descomposición de Hodge-Helmholtz Discreta ($L_1$)
 El Guardián somete la cadena de suministro al Cálculo Exterior Discreto (DEC). El operador $\Delta_1 = B_1^\top B_1 + B_2 B_2^\top$ divide el tensor de flujo de materiales de manera ortogonal en:
 * **Campo de Gradiente Puro ($f_{\mathrm{grad}}$):** La información estructurada útil (flujo laminar) que pasa hacia el estrato Táctico.
 * **Campo Rotacional ($f_{\mathrm{curl}}$):** El "Vórtice Logístico" (transporte en bucle parasitario) queda aniquilado. El Guardián extrae esta componente solenoidal ($f_{\mathrm{curl}} \in \mathrm{im}(B_2)$) para vetar la ineficiencia logística en la raíz.
 
-### 1.3 El Oráculo de Laplace y Gobernador CFL
+#### A.1.3 El Oráculo de Laplace y Gobernador CFL
 Antes de procesar, se linealiza el sistema y se analiza su función de transferencia $H(s)$. Si se detectan polos en el semiplano derecho ($\sigma > 0$), se veta la ingesta por inestabilidad intrínseca.
 La auditoría del límite de Courant-Friedrichs-Lewy (CFL) sobre la simetrización del grafo acíclico dirigido impone la restricción temporal:
 $$ \Delta t \le \frac{2}{c_{\text{eff}} \cdot \left( \lambda_{\max} (\partial_1^\top W \partial_1) \right)^{1/2}} $$
 
-### 1.4 Simulación Neuromórfica, Reducción Monoidal y Hardware Crowbar (ESP32 / SIMD Xtensa LX7 $42.0\text{ ns}$)
+#### A.1.4 Simulación Neuromórfica, Reducción Monoidal y Hardware Crowbar (ESP32 / SIMD Xtensa LX7 $42.0\text{ ns}$)
 La matemática se materializa en el silicio real mediante una reducción monoidal desde el retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ a decisiones binarias en el silicio $\mu : \Omega_3 \to \mathbb{Z}_2$.
 
 La rutina local en C++ `isVerdictCoherent()` lee y valida el pasaporte deserializado por `ArduinoJson`. Ante un veto ($\top \mapsto 1$), la Rutina de Servicio de Interrupción (ISR) cargada en la memoria estática IRAM ejecuta la orden en ensamblador bare-metal SIMD Xtensa LX7 sobre la CPU:
@@ -179,9 +184,9 @@ cebando el tiristor **BT151 Crowbar** en $t_{\text{actuation}} \le 392.15\text{ 
 
 ---
 
-## 2. El Arquitecto: Topología Algebraica y Grafos sobre $\mathbb{Z}$
+### A.2 El Arquitecto: Topología Algebraica y Grafos sobre $\mathbb{Z}$
 
-### 2.1 Invariantes Homológicos y Forma Normal de Smith (SNF)
+#### A.2.1 Invariantes Homológicos y Forma Normal de Smith (SNF)
 Para lograr máxima rigurosidad numérica, el sistema calcula los números de Betti mediante SVD completa del operador de coboundary $\delta_k = U_k \Sigma_k V_k^\top$:
 $$\operatorname{rank}(\delta_k) = \# \{ \sigma_i \in \Sigma_k \mid \sigma_i > \varepsilon_{\text{mach}} \cdot \max(m, n) \cdot \sigma_{\max} \}$$
 $$\beta_k = \dim H^k(K) = \dim \ker(\delta_k) - \dim \operatorname{im}(\delta_{k-1}) = (n_k - \operatorname{rank}(\delta_k)) - \operatorname{rank}(\delta_{k-1})$$
@@ -194,9 +199,9 @@ Los factores $d_i > 1$ representan la torsión homológica, diagnosticando incom
 
 ---
 
-## 3. Soberanos y Motores de Superficie de Control y Haz de Anillos de Frontera
+### A.3 Soberanos y Motores de Superficie de Control y Haz de Anillos de Frontera
 
-### 3.1 Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
+#### A.3.1 Soberano de Superficie de Control Topológica (`topological_control_surface_agent.py`)
 Acopla de forma continua la minimización discreta de la MIC y la purificación de la MAC sobre $\Delta^{n-1} \times \mathcal{D}(\mathcal{H})$:
 
 1. **Flujo Replicador de Shahshahani sobre el Símplex de Gibbs:**
@@ -209,7 +214,7 @@ Acopla de forma continua la minimización discreta de la MIC y la purificación 
    $$\mathcal{H}(\mathbf{p}, \rho) = -\frac{1}{2}\mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} + S(\rho) \implies \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) = -\sum_{i=1}^n p_i \left( (\tilde{\mathcal{K}}\mathbf{p})_i - \mathbf{p}^\top \tilde{\mathcal{K}}\mathbf{p} \right)^2 \le 0$$
    Si $\dot{\mathcal{H}} > 10^{-12}$, el retículo colapsa a VETOED ($\top$), disparando el Crowbar perimetral en silicio ($<392.15\text{ ns}$).
 
-### 3.3 Tríada Cronogeométrica del Tiempo TOON (`toon_chronos_*_agent.py` & `toon_chronos_*_engine.py`)
+#### A.3.2 Tríada Cronogeométrica del Tiempo TOON (`toon_chronos_*_agent.py` & `toon_chronos_*_engine.py`)
 Gobierna la estructura cronogeométrica del tiempo de ejecución sobre la Variedad de Deliberación $(\mathcal{M}, g_{\mu\nu})$:
 
 1. **Regulador Cronogeométrico (`toon_chronos_temporal_engine.py`):**
@@ -231,7 +236,7 @@ Gobierna la estructura cronogeométrica del tiempo de ejecución sobre la Varied
    - **Auditoría $C^*$-Algebraica de Gibbs:** $\rho = \frac{e^{-L}}{Z}$ verificando hermiticidad $\rho = \rho^\dagger$, traza unitaria $\operatorname{Tr}(\rho) = 1$ y semidefinición positiva $\rho \succcurlyeq 0$.
    - **Cota Variacional de Bogomol'nyi:** $\|F\|^2 \ge \frac{8\pi^2 |k|}{\operatorname{vol}(X)}$ contra reclamos maliciosos. Ante $RHI > 0.85$ o $DCR > 0.25$, gatilla veto duro con disparo de silicio Crowbar ESP32 en $< 392.15\text{ ns}$.
 
-### 3.2 Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
+#### A.3.3 Soberano de Ecolocación Topológica y Motor SET (`set_agent.py` & `set_engine.py`)
 Opera en el Estrato de la Sabiduría ($V_{\mathbb{W}}$, Nivel 0) como la sonda ciber-física de ecolocación activa sobre la frontera abierta $\partial K$:
 
 1. **Ecuación de Onda Coexacta sobre Haces Celulares:**
@@ -248,9 +253,9 @@ Opera en el Estrato de la Sabiduría ($V_{\mathbb{W}}$, Nivel 0) como la sonda c
 
 ---
 
-## 4. El Intérprete: Retículos Algebraicos, GraphRAG y Connes
+### A.4 El Intérprete: Retículos Algebraicos, GraphRAG y Connes
 
-### 4.1 Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes)
+#### A.4.1 Cota de Lipschitz de Daleckii-Krein (Geometría Espectral de Connes)
 Para gobernar la de-compresión semántica y evitar divergencias retóricas en las traducciones del LLM, el sistema calcula la cota de estabilidad espectral utilizando el **Operador de Dirac de Connes** $D = \rho^{-1/2}$ en el espacio no conmutativo.
 
 Por el **Teorema de Daleckii-Krein**, la derivada de Fréchet $Df(\rho)[H]$ para $f(x) = x^{-1/2}$ se expresa como:
@@ -263,7 +268,7 @@ Esta **Cota de Lipschitz de Daleckii-Krein** asegura que la velocidad de de-comp
 
 ---
 
-## 5. La Rampa de Confianza Graduada (Válvula de Alivio vs Veto Duro)
+### A.5 La Rampa de Confianza Graduada (Válvula de Alivio vs Veto Duro)
 
 Para conciliar la precisión de la geometría doctoral con la operatividad continua en seco del frente de obra civil (erradicando falsos positivos que provocarían el secado del concreto dentro de las tuberías de bombeo hidráulicas), el sistema instrumenta la **Rampa de Confianza Graduada** con **Válvula de Alivio Termodinámico**:
 
@@ -288,34 +293,34 @@ Para conciliar la precisión de la geometría doctoral con la operatividad conti
 
 ---
 
-## 6. Reactor de Calibre Hipercomplejo (QOBC Purifier) y Fortificaciones Espectrales
+### A.6 Reactor de Calibre Hipercomplejo (QOBC Purifier) y Fortificaciones Espectrales
 
 Para operar con total inmunidad frente a pérdidas de significación, redondeos de mantisa y bloqueos de fase (Gimbal Lock) en la rotación de tensores de costos multimodales, el sistema incorpora el microservicio de **Gobernanza Cuaterniónica, Octoniónica, Bicompleja y de Clifford (QOBC - Hypercomplex Gauge Purifier)** en la FPU Secure (`quaternionic_state_shifter.py`, `octonionic_dependency_resolver.py`, `mac_vectors.py`, `clifford_gauge_engine.py`).
 
-### 6.1 Reactor Cuaterniónico y Espacio 4D (`quaternionic_state_shifter.py` & `quaternionic_state_agent.py`)
+#### A.6.1 Reactor Cuaterniónico y Espacio 4D (`quaternionic_state_shifter.py` & `quaternionic_state_agent.py`)
 El vector de estado $S = (s_0, s_1, s_2, s_3)^\top \in \mathbb{R}^4$ se proyecta al cuaternión de Hamilton $q = q_0 e_0 + q_1 i + q_2 j + q_3 k \in \mathbb{H}$ con $i^2 = j^2 = k^2 = ijk = -1$.
 La traza cuántica de von Neumann sobre la FPU preserva la conservación de traza:
 $$\rho = \frac{\iota(q)}{\|q\|_{\mathbb{H}}^2} \implies \operatorname{Tr}(\rho) \equiv \frac{\operatorname{Tr}(\iota(q))}{\|q\|_{\mathbb{H}}^2} \equiv \frac{2 q_0}{q_0^2 + q_1^2 + q_2^2 + q_3^2} \equiv 1.0$$
 
-### 6.2 Resolvedor Octoniónico Trilateral (`octonionic_dependency_resolver.py` & `octonionic_dependency_agent.py`)
+#### A.6.2 Resolvedor Octoniónico Trilateral (`octonionic_dependency_resolver.py` & `octonionic_dependency_agent.py`)
 Modelado de dependencias trilaterales no asociativas en $\mathbb{O}$ mediante duplicación de Cayley-Dickson:
 $$(q_1, \, q_2) \cdot (p_1, \, p_2) = \left( q_1 \cdot p_1 - \bar{p}_2 \cdot q_2, \quad p_2 \cdot q_1 + q_2 \cdot \bar{p}_1 \right)$$
 Cumple la norma multiplicativa de Hurwitz $\|a \cdot b\|_{\mathbb{O}} = \|a\|_{\mathbb{O}} \cdot \|b\|_{\mathbb{O}}$.
 El tensor asociador $[a, b, c] = (a \cdot b) \cdot c - a \cdot (b \cdot c)$ mide la "Frustración de Calibre". Si $\|[a, b, c]\|_{\mathbb{O}} > 0.15$, se gatilla un Veto Suave con temporizador de 1h para aniquilación en Fock via HMAC override.
 
-### 6.3 Canal de Inyección Bicomplejo y Proyectores Idempotentes (`mac_vectors.py`)
+#### A.6.3 Canal de Inyección Bicomplejo y Proyectores Idempotentes (`mac_vectors.py`)
 La interacción síncrona en la MAC se eleva al formalismo bicomplejo $\mathbb{C}_2 \cong \mathbb{C} \otimes \mathbb{C}$ sobre la base idempotente $\mathbf{e}_1 = \frac{1+k}{2}, \mathbf{e}_2 = \frac{1-k}{2}$ con $\mathbf{e}_1^2=\mathbf{e}_1, \mathbf{e}_2^2=\mathbf{e}_2, \mathbf{e}_1 \mathbf{e}_2 = 0$.
 Cualquier matriz de densidad $\boldsymbol{\rho} = \rho_1 \mathbf{e}_1 + \rho_2 \mathbf{e}_2$ segrega la Inversión Directa ($\rho_1$) de la Carga Entrópica ($\rho_2$). El **Índice de Estancamiento** evalúa puntos muertos de caja:
 $$\chi_{\mathrm{stagnation}} = \|\rho_1 \rho_2^\dagger\|_F^2 = \operatorname{Tr}\left(\rho_1 \rho_2^\dagger \rho_2 \rho_1^\dagger\right) \ge 10^{-10}$$
 
-### 6.4 Motor de Calibre de Clifford STA y Yang-Mills (`clifford_gauge_engine.py` & `clifford_gauge_agent.py`)
+#### A.6.4 Motor de Calibre de Clifford STA y Yang-Mills (`clifford_gauge_engine.py` & `clifford_gauge_agent.py`)
 Unificación covariante en Minkowski 16D utilizando el álgebra de Clifford $C\ell_{3,1}$ (STA) con base de Dirac $\{\gamma_\mu\}_0^3$.
 La forma cuadrática Lorentz $Q(A) = \langle A \cdot \bar{A} \rangle_0 = \frac{1}{4}\operatorname{Re}(\operatorname{Tr}(M(A)M(\bar{A})))$ y la Acción de Yang-Mills miden la volatilidad de mercado:
 $$S_{\mathrm{YM}} = \frac{1}{8} \operatorname{Re}\left(\operatorname{Tr}\left(F \mathbf{G} F \mathbf{G}^{-1}\right)\right) \le 2.5$$
 
 ---
 
-## 7. Firmas de Calibre de la Malla Agéntica y Firma Integrada SHA-256
+### A.7 Firmas de Calibre de la Malla Agéntica y Firma Integrada SHA-256
 
 Cada transacción orbital emite un certificado inmutable sellado por una **Firma de Calibre Integrada SHA-256** en memoria RAM:
 

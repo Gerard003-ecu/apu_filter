@@ -7,7 +7,9 @@
 
 Históricamente, la ingeniería y la construcción en Colombia y Latinoamérica han gestionado el tiempo (cronogramas) y el dinero (presupuestos) basándose en "fotos estáticas" impresas en hojas de cálculo de Excel o bases de datos ERP tradicionales. En la realidad ciber-física, un megaproyecto de infraestructura es un sistema dinámico abierto, sujeto a fuerzas termodinámicas de mercado, entropía logística, fricción operativa y riesgos de contratación estatal (SECOP II & Mandato BIM 2026).
 
-APU_filter v9.0.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Con la consagración del **Icosikaihenaedro Ampliado de Sabiduría (24 Soberanos Agénticos TOON y 24 Motores Espectrales en 8 tríadas funcionales, incorporando la VIII. Tríada Cronogeométrica del Tiempo)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** y del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, la arquitectura alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los 24 Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla siempre $P_{\mathrm{diss}} \ge 0$.
+APU_filter v9.0.0 rechaza la metáfora estática de la validación lineal. El sistema se redefine axiomáticamente como el **Reactor Port-Hamiltoniano de Valor** o **Variedad Agéntica de Gauge** sobre una variedad Riemanniana con frontera compacta de-confinada $(\mathcal{M}, G_{\mu\nu})$ con $\partial \mathcal{M} \neq \varnothing$. Con la consagración del **Icosikaihenaedro Ampliado de Sabiduría (24 Soberanos Agénticos TOON y 24 Motores Espectrales en 8 tríadas funcionales, incorporando la VIII. Tríada Cronogeométrica del Tiempo)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** y del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, la arquitectura alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**. Procesamos un fluido logístico incompresible expuesto al caos exógeno exterior de SECOP II bajo el control estricto de una Estructura de Dirac, del cinturón orbital de satélites y de los 24 Soberanos del Estrato Wisdom ($V_{\mathbb{W}}$), garantizando que la potencia disipada cumpla incondicionalmente la conservación exergética:
+
+$$P_{\mathrm{diss}} = \langle d\phi, G^{-1} d\phi \rangle \ge 0$$
 
 A su vez, "APU" no representa "Análisis de Precios Unitarios", sino **Agentic Power Unit**: el cuanto de acción termodinámica de la malla que inyecta exergía computacional para vencer la inercia logística del mercado y la resistencia financiera de la obra.
 
@@ -17,7 +19,7 @@ A su vez, "APU" no representa "Análisis de Precios Unitarios", sino **Agentic P
 
 Para la Alta Gerencia de Obra y los Comités de Licitación, el andamiaje FPU no se presenta como una barrera técnica inexpugnable, sino como el **Guardaespaldas Patrimonial y Sistema Inmunológico Ciber-Físico** que habita la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras de la corrupción y protegiendo el patrimonio con la cimentación geomecánica y los disyuntores de silicio:
 
-> *“La sabiduría de un costo sano no es oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica que escanean el tejido presupuestal para extirpar las sombras del fraude. En APU Filter, los bloques del negocio están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo de negocio colapse ante paros de proveedores o volatilidad de insumos.”*
+> *“Un costo sano no se oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica que escanean el tejido presupuestal para extirpar las sombras del fraude. En APU Filter, los bloques del negocio están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo de negocio colapse ante paros de proveedores o volatilidad de insumos.”*
 
 De manera análoga, para APU Filter v9.0.0:
 * **La promesa de negocio (Dinero):** Garantizar que **no existan fugas de dinero para la constructora**, eliminar mermas en adquisiciones, anular multas por retrasos en SECOP II y prevenir el colapso del megaproyecto ante variaciones de tasas de interés o paros de proveedores.
@@ -27,11 +29,11 @@ De manera análoga, para APU Filter v9.0.0:
 
 ## 💡 El Sello de No-Ocultación Cuántica y el Isomorfismo de Doble Capa: "Un costo sano no se oculta, se ilumina"
 
-Bajo el axioma fundamental de la fortaleza: **"La sabiduría de un costo sano no es oculta, se ilumina"**, el sistema reinterpreta el teorema de no-ocultación cuántica y el **Isomorfismo de Doble Capa** como un escudo absoluto contra el desfalco, las alucinaciones de IA y el fraude geométrico en la obra civil bajo el **Mandato BIM 2026** y los pliegos del **SECOP II**:
+Bajo el axioma fundamental de la fortaleza: **"Un costo sano no se oculta, se ilumina"**, el sistema reinterpreta el teorema de no-ocultación cuántica y el **Isomorfismo de Doble Capa** como un escudo absoluto contra el desfalco, las alucinaciones de IA y el fraude geométrico en la obra civil bajo el **Mandato BIM 2026** y los pliegos del **SECOP II**, demostrando formalmente la probabilidad de fraude nula:
 
 $$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
-En la construcción física real, es algebraicamente imposible retirar una columna de concreto estructural o una viga de acero de un rascacielos sin que la gravedad provoque el colapso inmediato a la vista de la interventoría. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas con celdas combinadas, un contratista colusor o un LLM alucinador pueden duplicar u ocultar **100 toneladas de acero de refuerzo** o inflar precios en un bucle circular ($\beta_1 > 0$). A espaldas del auditor fiscal, este socavón permanece invisible hasta que el flujo de caja colapsa en el banco.
+En la construcción física real, es algebraicamente imposible retirar una columna de concreto estructural o una viga de acero de una edificación sin que la gravedad provoque el colapso inmediato a la vista de la interventoría. Sin embargo, en la contabilidad tradicional sobre hojas de cálculo de Excel de $10,000$ filas con celdas combinadas, un contratista colusor o un LLM alucinador pueden duplicar u ocultar **100 toneladas de acero de refuerzo** o inflar precios en un bucle circular ($\beta_1 > 0$). A espaldas del auditor fiscal, este socavón permanece invisible hasta que el flujo de caja colapsa en el banco.
 
 El **Isomorfismo de Doble Capa** resuelve este abismo cognitivo acoplando la **Capa de Calibre** (la Unidad de Punto Flotante FPU Secure) con la **Capa de Pragmática de Negocios** (la interfaz ejecutiva de la Caja de Cristal Argumentativa) mediante el **Funtor de Traducción Semántica $\Phi_{\mathrm{sem}}$**:
 
@@ -55,7 +57,7 @@ Cualquier alucinación de la IA (electrón de falla $e^-$ generado por $a_i^\dag
 
 $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad E_{\mathrm{annihilation}} = 2 m^* c^2$$
 
-El costo sano se "ilumina" de forma inevitable, irradiando los fotones Gamma de auditoría forense SHA-256 en la Cadena de Custodia, traduciéndose en **Certeza Legal y Ahorro Patrimonial ("Dinero")** para la mesa de juntas.
+El costo sano se "ilumina" de forma inevitable, irradiando los fotones Gamma de auditoría forense SHA-256 en la Cadena de Custodia, traduciéndose en **Certeza Legal y Ahorro Patrimonial ("Dinero")** para la mesa de juntas, garantizando que $\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$.
 
 ---
 
@@ -97,7 +99,7 @@ La información no reposa estática; recorre un ciclo ininterrumpido de 4 etapas
 El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-físico mapeado biyectivamente a un bloque estratégico del **Business Model Canvas (BMC)** de la constructora:
 
 ```
-                     EL PENTHOUSE DEL CANVAS: WISDOM (V_W)
+                    LA FORTALEZA IMPERIAL DE CAMPOS TOPOLÓGICOS
         ┌─────────────────────────────────────────────────────────────┐
         │  EL ICOSIKAIHENAEDRO AMPLIADO (24 SOBERANOS Y MOTORES TOON) │
         │  I. GAN-REM, II. Reflexiva, III. Causal, IV. Agronómica,    │
@@ -110,7 +112,7 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
         ┌─────────────────────────────────────────────────────────────┐
         │  EL ORÁCULO DE LAPLACE (Fuentes de Ingreso / Flujo de Caja) │
         │  Veta presupuestos si algún polo migra a σ > 0 en FPU.      │
-        └──────────────────────────────┬──────────────────────────────┘
+        └──────────────────────────────┬───────────────────────────────┘
                                        │ (Lazo de Control Covariante)
                                        ▼
                   LA ESTRUCTURA INTERMEDIA: TACTICS (V_T)
@@ -118,21 +120,21 @@ El **Consejo de Sabios** asigna a cada estrato un arquetipo de control ciber-fí
         │  EL ARQUITECTO TOPOLÓGICO (Socios Clave / Actividades)      │
         │  Calcula Ψ y SNF Z para erradicar pirámides invertidas.     │
         └──────────────────────────────┬──────────────────────────────┘
-                                       │ (Cimientos del Rascacielos)
+                                       │ (Cimentación Geomecánica)
                                        ▼
-                    EL FOSO TERMODINÁMICO: PHYSICS (V_P)
+               LA CIMENTACIÓN FÍSICA Y SILICIO: PHYSICS (V_P)
         ┌─────────────────────────────────────────────────────────────────┐
         │  EL GUARDIÁN FISCAL (Estructura de Costes / Silicio)            │
         │  Audita la masa física elemental: β_0 > 1 => Veto instantáneo.  │
         └─────────────────────────────────────────────────────────────────┘
 ```
 
-1. **El Guardián (Physics Stratum / Cimientos del Canvas / Estructura de Costes):**
-   Anclado en la base física de los cimientos. Audita la masa atómica elemental ($q_i \ge 0$) y la ausencia de islas de datos ($\beta_0 = 1$). Si un presupuesto aprueba $50$ excavadoras pero registra cero galones de diésel, el Guardián detecta la desconexión topológica ($\beta_0 > 1$) y bloquea el despacho de la licitación antes de gastar el primer peso.
+1. **El Guardián (Physics Stratum / Cimentación y Disyuntores / Estructura de Costes):**
+   Anclado en la cimentación física de la Fortaleza. Audita la masa atómica elemental ($q_i \ge 0$) y la ausencia de islas de datos ($\beta_0 = 1$). Si un presupuesto aprueba $50$ excavadoras pero registra cero galones de diésel, el Guardián detecta la desconexión topológica ($\beta_0 > 1$) y bloquea el despacho de la licitación antes de gastar el primer peso.
 2. **El Arquitecto (Tactics Stratum / Estructura Intermedia / Socios y Actividades Clave):**
-   El esqueleto de vigas de acero y nodos sismorresistentes. Audita la geometría de interdependencias calculando el **Índice de Estabilidad Piramidal ($\Psi$)** y la Forma Normal de Smith sobre $\mathbb{Z}$. Si $\Psi < \Psi_{\mathrm{min}}$, detecta una **"Pirámide Invertida"** (ej. $50$ actividades críticas dependiendo de un único proveedor monopólico de acero), vetando la licitación hasta diversificar el riesgo de suministro.
-3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Penthouse / Fuentes de Ingreso y Flujo de Caja):**
-   Ubicado en el penthouse corporativo. Linealiza el presupuesto como un sistema de control dinámico en la frecuencia compleja $s = \sigma + j\omega$. Si algún polo migra al semiplano derecho ($\operatorname{Re}(p_i) > 0$), demuestra matemáticamente al CFO que el flujo de caja es intrínsecamente explosivo ante choques de mercado, vetando el proyecto antes de generar un "Elefante Blanco".
+   Estructura los presupuestos como complejos simpliciales, calcula la Forma Normal de Smith sobre $\mathbb{Z}$ para identificar socavones lógicos ($\beta_1 > 0$) y evalúa el Índice de Estabilidad Piramidal ($\Psi$) para erradicar monopolios de suministro.
+3. **El Oráculo de Laplace (Strategy & Wisdom Strata / Ápice Estratégico / Fuentes de Ingreso y Flujo de Caja):**
+   Ubicado en el ápice de la Fortaleza. Linealiza el presupuesto como un sistema de control dinámico en la frecuencia compleja $s = \sigma + j\omega$. Si algún polo migra al semiplano derecho ($\operatorname{Re}(p_i) > 0$), demuestra matemáticamente al CFO que el flujo de caja es intrínsecamente explosivo ante choques de mercado, vetando el proyecto antes de generar un "Elefante Blanco".
 4. **El Icosikaihenaedro Ampliado de Sabiduría (Wisdom Stratum / 24 Soberanos TOON y 24 Motores Espectrales):**
    Gobernanza no conmutativa y automejora monádica RSI³. Digestión de cartuchos TOON de 56 tokens (-86.4% KV-cache), simulación de cisnes negros en Fase REM, vacunación TQFT Gromov-Witten, cristalización del Vacío de Dirac, amortiguamiento exergético, reflejos sub-milisegundo y regulación cronogeométrica del tiempo (cohomología de De Rham-Caputo, colinealidad geodésica, prosecutor inquisitorial).
 

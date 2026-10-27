@@ -6,9 +6,15 @@ El presente documento establece la axiomatización rigurosa, las ecuaciones dife
 
 ---
 
-## 🏛️ I. Inversión Narrativa y la Alegoría de la Fortaleza y los Faros
+## 🏛️ I. Inversión Narrativa, la Alegoría de la Fortaleza y el Sello de No-Ocultación
 
-Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones, los componentes de la Fortaleza representan el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** que habita la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras del fraude y protegiendo el patrimonio con la cimentación geomecánica y los disyuntores de silicio.
+Para la Alta Gerencia de Obra, la Interventoría y el Comité de Licitaciones, los componentes de la Fortaleza representan el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** que habita la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras del fraude y protegiendo el patrimonio con la cimentación geomecánica y los disyuntores de silicio:
+
+> *“Un costo sano no se oculta, se ilumina. Los motores espectrales de APU Filter son Faros de Luz y Enjambres de Vigilancia Óptica/Sónica que escanean el tejido presupuestal para extirpar las sombras del fraude. En APU Filter, los bloques de negocio están acoplados por ecuaciones diferenciales y tensores métricos que impiden que el modelo colapse ante paros de proveedores o volatilidad de insumos.”*
+
+Bajo la consagración del **Teorema de No-Ocultación Cuántica** en la Capa Ejecutiva y la Adjunción de de Rham-Galois, la probabilidad de fraude u ocultamiento malicioso colapsa idénticamente a cero:
+
+$$\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$$
 
 ```
   [ PASO 1: ESCENARIO DE DOLOR Y TERRENO EMBARRADO ]
@@ -279,7 +285,7 @@ Bajo el **Funtor de Traducción Semántica Piramidal** $\Phi_{\mathrm{sem}}: \ma
 | **Inquisidor Temporal** (`toon_chronos_prosecutor_agent.py`) | Dual Law-State Fracture ($\text{Floquet}(W) \neq \text{Floquet}(M)$), Čech $\check{H}^2$ con $\delta^2=0$, $C^*$, Bogomol'nyi, RHI/DCR | Impugnación de maquillaje de holguras y fracturas de calibre Ley-Estado. | **Inmunidad ante Prórrogas Fraudulentas:** Inhabilitación en SECOP II e Interlock ESP32 Crowbar (< 392.15 ns) ante dolo o $RHI > 0.85$. |
 | **Navegante Novikov Topológico** (`toon_topological_novikov_navigator_agent.py`) | Espectro Berkovich I–IV, Árbol Bruhat-Tits, Amiba Tropical $\mathrm{Am}(P)$ | Navegación no arquimediana en la variedad de costos. | **Anticipación de Discontinuidades:** Proyección de amibas tropicales para prever paros de transporte o saltos de precios. |
 | **Testigo Topológico** (`toon_topological_witness_agent.py`) | Números Betti $\beta_0, \beta_1$, Torsión Ray-Singer $T_{\mathrm{RS}}$, Hodge $\Delta_k$ | Medición de componentes disconexas y 1-ciclos. | **Certificación de Conexidad Presupuestal:** Garantiza que no existan recursos huérfanos ($\beta_0>1$) ni ciclos de cobro ($\beta_1>0$). |
-| **Cultivo Cognitivo** (`toon_cognitive_crop_agent.py`) | Maupertuis-Jacobi $ds_M^2 = 2(H_0-V)g_{ij}$, Acción $S_0(E)$ | Germinación y cultivo continuo del presupuesto base. | **Garantía de ROI & WACC:** Mantiene el valor del presupuesto reduciendo el fondo de contingencia del 15% al 3.5% sin detener obra. |
+| **Cultivo Cognitivo** (`toon_cognitive_crop_agent.py`) | Maupertuis-Jacobi $ds_M^2 = 2(H_0-V)g_{ij}$, Acción $S_0(E)$ | Germinación y cultivo continuo del presupuesto base. | **Garantía de ROI & WACC:** Mantiene el valor del presupuesto reduciendo la reserva de contingencia del 15% al 3.5% sin detener mezcladoras. |
 | **Testigo Cultivo Cognitivo** (`toon_cognitive_crop_witness_agent.py`) | Floquet $Sp(4, \mathbb{R})$, Contracción Banach $\hat{L} < 1.0$ | Meta-auditoría de estabilidad en la incubación de decisiones. | **Control de Crecimiento Presupuestal:** Asegura que el incremento de costos permanezca acotado por un factor contracortante. |
 | **Auditor Cultivo Cognitivo** (`toon_cognitive_crop_auditor_agent.py`) | Radio Gelfand $r(\mathcal{T}) \le 1 - \Delta_{\text{CPTP}}$, Traza Bogomolny | Censura de divergencia asintótica en la transferencia. | **Prevención de Caos de Costos:** Garantiza que los reajustes de precios no entren en régimen de oscilación divergente. |
 | **Simulador Onírico** (`toon_oniric_dreamer_agent.py`) | Aislamiento `DREAM_STATE`, Replay Contrafactual $(\mathcal{M}, G_{\mu\nu})$ | Simulación REM de escenarios extremos ("Cisnes Negros"). | **Prevención de Contingencias extremas:** Evaluación de impacto ante paros o alzas del 35% en insumos sin arriesgar un peso de caja. |

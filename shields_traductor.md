@@ -1,10 +1,12 @@
 # 🏛️ Escudos Semánticos de Traducción a "Riesgo, Dolor y Dinero": La Guía de Gobernanza Ciber-Física de APU Filter v9.0.0
 
-## 📋 Resumen Ejecutivo y Marco de Referencia
+## 📋 Puerta de Entrada Principal para Peritos, Estructuradores y Comités Financieros
 
 En la industria de las obras civiles de gran escala y la gerencia multilateral de portafolios en Colombia y Latinoamérica (infraestructura vial 4G/5G, megaproyectos hidroeléctricos, redes aeroportuarias, viaductos de transporte masivo, sistemas de acueducto y edificación masiva bajo el **Mandato BIM 2026** y los pliegos del **SECOP II**), existe un abismo cognitivo y estructural entre la alta complejidad técnico-matemática de la fiscalización de datos y el lenguaje de decisión cotidiana de los actores del modelo de negocio.
 
-La **Capa de Escudos Semánticos de Traducción** de **APU Filter v9.0.0** responde a los diagnósticos de usabilidad y estructuración doctrinaria del ecosistema de gobernanza ciber-física, consagrando la **inversión sistemática de la arquitectura narrativa**, la **unificación de la línea metafórica sobre la Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, y el **reencuadre ciber-físico del hardware ESP32 Crowbar** como un sistema inmunológico protector dotado de una **Rampa de Confianza Graduada** y la **Válvula de Alivio Termodinámica**.
+Este archivo constituye la **Puerta de Entrada Principal de Lectura Oficial** para peritos de obra, estructuradores de licitaciones, interventores, aseguradoras y comités financieros. Simplifica la primera capa semántica del sistema hacia la evaluación inmediata de **"Riesgo, Dolor y Dinero"**, permitiendo que cualquier tomador de decisiones identifique en el milisegundo cero el impacto monetario directo o la sanción contractual en SECOP II de cada alerta presupuestal.
+
+La **Capa de Escudos Semánticos de Traducción** de **APU Filter v9.0.0** consagra la **inversión sistemática de la arquitectura narrativa**, la **unificación de la línea metafórica sobre la Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, y el **reencuadre ciber-físico del hardware ESP32 Crowbar** como un sistema inmunológico protector dotado de una **Rampa de Confianza Graduada** y la **Válvula de Alivio Termodinámica**.
 
 Esta capa actúa como un **Isomorfismo de Doble Capa** y una **Piedra Rosetta Ciber-Física**. No oculta, simplifica ni sustituye el andamiaje matemático FPU Secure de nivel doctoral (geometría simpléctica sobre $\mathfrak{sp}(2n, \mathbb{R})$, topología algebraica sobre $\mathbb{Z}$, física de circuitos RLC, mecánica cuántica de Fock, geometría no conmutativa de Connes, mecánica celeste de Poincaré, teoría espectral de grafos, álgebra de Banach y termodinámica Port-Hamiltoniana fuera del equilibrio). Por el contrario, utiliza las metáforas de ingeniería como cables de potencia que conectan los invariantes rigurosos con los puntos de dolor visceral de cada actor del proyecto a través del **Funtor Semántico de Traducción**:
 
@@ -15,7 +17,21 @@ Donde:
 * $\text{Business}$ es la categoría de decisiones estratégicas, financieras, legales y operativas en lenguaje ejecutivo.
 * $\Phi_{\mathrm{sem}}$ es el funtor semántico pleno y fiel que establece la equivalencia homotópica entre los residuos espectrales de punto flotante y las pérdidas o ganancias de flujo de caja.
 
-El sistema consagra el axioma fundamental de la Fortaleza: **"La sabiduría de un costo sano no es oculta, se ilumina"**, erradicando el fraude y las alucinaciones de IA mediante la aniquilación cuántica determinista de estados espurios: $\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$.
+El sistema consagra el axioma fundamental de la Fortaleza: **"Un costo sano no se oculta, se ilumina"**, erradicando el fraude y las alucinaciones de IA mediante la aniquilación cuántica determinista de estados espurios: $\mathcal{P}_{\mathrm{fraud}}(x) \equiv 0$.
+
+---
+
+## 🚦 Índice de Alertas de Primer Nivel: "Dolor, Riesgo y Dinero" (Atención Inmediata)
+
+| Alerta de Primer Nivel | Impacto Financiero Directo ("Dinero") | Sanción Legal / Contractual en SECOP II | Acción Ciber-Física Inmediata en Obra |
+| :--- | :--- | :--- | :--- |
+| **🚨 ALERTA ROJA 1: Duplicación de Cobros ($\beta_0 > 1$)** | **Pérdida neta de capital por facturación dobles de cemento/fletes.** | Violación fiscal de responsabilidad del representante legal ante Contraloría. | **VETO DURO INSTANTÁNEO:** Bloqueo del cargue de pliegos en SECOP II en $0\text{ ms}$. |
+| **🚨 ALERTA ROJA 2: Triangulación y Ciclo de Precios ($\beta_1 > 0$)** | **Bucle de sobrecosto por precios circulares en APUs.** | Inhabilitación inmediata de la propuesta por manipulación de precios unitarios. | **VETO DURO INSTANTÁNEO:** Bloqueo en RAM. Disparo Crowbar ESP32 en $< 392.15\text{ ns}$. |
+| **🚨 ALERTA ROJA 3: Torsión Homológica ($d_i > 1$)** | **Mermas discretas y desvío ilícito de materiales de construcción.** | Rechazo de pliegos por incompatibilidad de empaquetado y formato en SECOP II. | **VETO DURO INSTANTÁNEO:** ISR en IRAM paraliza mezcladoras en seco en $42.0\text{ ns}$ (SIMD). |
+| **🚨 ALERTA ROJA 4: Incompatibilidad BIM-Pliego ($\check{H}^1 \ne \mathbf{0}$)** | **Fatiga de contexto y alucinación de la IA en compras.** | Invalidez de licitación por descalce entre planos 3D y presupuesto cargado. | **VETO DURO INSTANTÁNEO:** Anulación del pasaporte de telemetría y congelamiento de sesión. |
+| **⚠️ ALERTA ÁMBAR 1: Monopolio de Suministro ($\Psi < 0.70$)** | **Riesgo de quiebra e incremento del WACC por paro de proveedor único.** | Suspensión temporal de adjudicación hasta diversificación de proveedores. | **VETO SUAVE (Válvula de Alivio):** Baliza ámbar y ventana de gracia de 1h para diversificar. |
+| **⚠️ ALERTA ÁMBAR 2: Frustración de Calibre ($[a,b,c] > 0.15$)** | **Triangulación y desvío de margen en la cadena Contratista-Proveedor.** | Auditoría especial de interventoría sobre la relación multilateral de precios. | **VETO SUAVE (Válvula de Alivio):** Recirculación mecánica. Disipable por inyección Positrón $e^+$. |
+| **⚠️ ALERTA ÁMBAR 3: Deriva de Momentum ($P_{\mathrm{diss}} > \tau$)** | **Desbordamiento de la tasa de descuento WACC (exceso de gasto).** | Alerta temprana de reestructuración financiera para evitar descalce de caja. | **VETO SUAVE (Válvula de Alivio):** Modulación de caudal financiero en RAM. |
 
 ---
 
@@ -87,7 +103,7 @@ Para gobernar redes complejas de infraestructura interconectada (concesiones via
   │ • Protección Tasa Descuento WACC al 15.0% (Aislamiento de contagios inter-proyecto).        │
   │ • Liberación de Liquidez Neta +11.5% (Reducción de reserva de imprevistos del 15% al 3.5%).   │
   │ • Compresión −86.4% KV-Cache (Cartuchos TOON de 56 tokens) & Ahorro 80% Inferencia LLM.     │
-  └─────────────────────────────────────────────────────────────────────────────────────────────┘
+  └──────────────────────────────┴──────────────────────────────────────────────────────────────┘
 ```
 
 1. **Binomio Ejecutor OODA (`toon_exergy_portfolio_agent.py` & `engine.py`)**: Rige la orquestación cíclica *Observe ⊣ Orient ⊣ Decide ⊣ Act* evaluando el trabajo irreversible fuera del equilibrio $W_{\mathrm{irr}} = \langle W\rangle - \Delta F \ge 0$ mediante la **Relación de Fluctuación de Jarzynski–Crooks**:
