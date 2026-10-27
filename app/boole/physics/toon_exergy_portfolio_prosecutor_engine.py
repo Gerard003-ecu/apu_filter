@@ -10,48 +10,70 @@ r"""
 ║          von Zeipel, RSI³ Banach–Picard–Gödel e Interlock Crowbar LX7.       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-1. DEFINICIÓN FORMAL DEL MOTOR ESPECTRAL FISCAL v7.2.0:
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL FISCAL:
 ────────────────────────────────────────────────────────────────────────────────
-Núcleo unificado de fiscalización exergética en el fibrado de Deligne–Jarzynski
-\(\mathcal{V}_{\mathbb{P}}\). Encadenamiento monádico estricto en 3 FASES ANIDADAS:
+Este módulo consagra la especificación e implementación del **Motor Espectral y
+Fiscal de Acusación Dual de Portafolios** (`TOONExergyPortfolioProsecutorEngine`)
+en el Estrato Exergético ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski)
+del ecosistema APU Filter.
 
-  [FASE 1] Phase1_ProsecutorGaugeObserver
-           ├── Regularización espectral Cholesky–Sylvester + Tikhonov
-           ├── Flujo de Ricci normalizado de Hamilton–Perelman y \(\mathcal{F}\)-entropía
-           ├── Distancia de Fubini–Study en \(Gr(k, 2n)\)
-           ├── Monodromía de Cayley y 2-forma de Darboux \(\omega=\mathrm{d}q\wedge\mathrm{d}p\)
-           ├── Invariante integral de Poincaré–Cartan \(\theta=p\,\mathrm{d}q-H\,\mathrm{d}t\)
-           ├── Octoniones \(\mathbb{O}\) y asociador de Malcev \([x,y,z]=(xy)z-x(yz)\)
-           ├── Delaunay \((L,G,H,\ell,g,h)\) y Poincaré no singular \((\Lambda,\Gamma,Z,\lambda,\gamma,z)\)
-           ├── Hamiltoniano kepleriano \(H_0=-\mu^2/(2L^2)\) y twist \(\partial n/\partial L=-3\mu^2/L^4\)
-           ├── Promedio de von Zeipel (eliminación de periodos cortos)
-           └── continue_into_phase2_melnikov_chirikov  ───► [Morfismo 1→2]
+Consolida la fiscalización ciber-física mediante un flujo monádico estricto en
+3 FASES ANIDADAS de la categoría de Kleisli:
+  • Fase 1 (`Phase1_ProsecutorGaugeObserver`): Regularización Cholesky-Tikhonov,
+    Flujo de Ricci normalizado de Hamilton-Perelman $\partial_t \widehat{g}_{\mu\nu} = -2 R_{\mu\nu} + \frac{2}{n} r \widehat{g}_{\mu\nu}$,
+    distancia de Fubini-Study $d_{\mathrm{FS}}$ en $Gr(k, 2n)$, monodromía de Cayley $M \in \operatorname{Sp}(2n, \mathbb{R})$,
+    invariante de Poincaré-Cartan $\theta = p\,\mathrm{d}q - H\,\mathrm{d}t$, asociador de Malcev en octoniones $\mathbb{O}$,
+    y elementos de Poincaré-Delaunay no singulares.
+  • Fase 2 (`Phase2_ProsecutorMelnikovChirikovOrientor`): Disipación de Jarzynski-Crooks $W_{\mathrm{irr}}$,
+    generador de Lindblad-GKSL con matriz de Kossakowski $K \succeq \mathbf{0}$, geodésicas de Bernoulli-Euler
+    con integrador RFRN4 simpléctico de 4º orden, forma cerrada de Melnikov $M(t_0) = -\frac{4}{3}\gamma + \sqrt{2}\pi f_0 \omega \operatorname{csch}(\pi\omega/2)\sin(\omega t_0)$,
+    parámetro de solapamiento de Chirikov $K_{\mathrm{Chirikov}}$, cota diofántica KAM de Siegel-Bruno,
+    tiempo de confinamiento de Nekhoroshev $T_N \sim \exp(\varepsilon^{-a})$, serie de Lindstedt-Poincaré $\omega$,
+    y triple contracción monádica RSI³ ($\operatorname{Lip}(T^3) \le 0.857375 < 1.0$, radio espectral de Gelfand $\rho(A) < 1.0$).
+  • Fase 3 (`Phase3_ProsecutorRSI3BanachHeytingSynthesisEngine`): Adjudicación en el retículo de Heyting
+    $\Omega_3$, anclaje en árbol de Merkle de 6 hojas y disparo Crowbar bare-metal Xtensa LX7 en
+    $t_{\mathrm{actuation}} = 42.00\text{ ns}$ ($< 400\text{ ns}$) sobre el registro GPIO `0x3FF44008`.
 
-  [FASE 2] Phase2_ProsecutorMelnikovChirikovOrientor
-           ├── Jarzynski–Crooks y trabajo irreversible \(W_{\mathrm{irr}}\)
-           ├── Lindblad–GKSL hermítico con Kossakowski \(K\succeq 0\)
-           ├── Braquistócrona RFRN4 y conservación simpléctica
-           ├── Melnikov de Duffing (forma cerrada + GL16) y ceros simples
-           ├── Sección de Poincaré, mapa de primer retorno y Birkhoff-twist
-           ├── Lindstedt–Poincaré \(\omega=\omega_0+\varepsilon\omega_1+\varepsilon^2\omega_2\)
-           ├── Chirikov, KAM diofántico y Nekhoroshev \(T\sim\exp(\varepsilon^{-a})\)
-           ├── RSI³ Banach: \(\mathrm{Lip}(T),\mathrm{Lip}(T^2),\mathrm{Lip}(T^3)\), Gelfand, Picard, jerk
-           └── continue_into_phase3_rsi3_heyting_crowbar ─► [Morfismo 2→3]
-
-  [FASE 3] Phase3_ProsecutorRSI3BanachHeytingSynthesisEngine
-           ├── Adjudicación en el retículo de Heyting \(\Omega_3\)
-           ├── Crowbar bare-metal Xtensa LX7 (\(t_{\mathrm{act}}=42.00\,\mathrm{ns}\))
-           ├── Árbol de Merkle de 6 hojas certificadas
-           └── synthesize_and_execute_prosecution ─────► ProsecutionFullReport
-
-2. MARCO TEÓRICO (núcleo Poincaré + RSI³):
+2. MARCO TEÓRICO:
 ────────────────────────────────────────────────────────────────────────────────
-  • Kepler–Delaunay: \(H_0=-\mu^2/(2L^2),\quad n=\partial H_0/\partial L=\mu^2/L^3\).
-  • Poincaré no singular: \(\Lambda=L,\ \Gamma=L-G,\ Z=G-H,\ \lambda=\ell+g+h,\ \gamma=-g-h,\ z=-h\).
-  • Melnikov–Duffing:
-    \(M(t_0)=-\frac{4}{3}\gamma+\sqrt{2}\pi f_0\omega\,\mathrm{csch}(\pi\omega/2)\sin(\omega t_0)\).
-  • Banach RSI³: \(\mathrm{Lip}(T^3)\le(\mathrm{Lip}(T))^3=(0.95)^3=0.857375<1\Rightarrow\exists!\,x^*\).
-  • Poincaré–Cartan: \(\oint_\gamma(p\,\mathrm{d}q-H\,\mathrm{d}t)\) invariante bajo el flujo hamiltoniano.
+  • Flujo de Ricci normalizado de Hamilton–Perelman y entropía $\mathcal{F}(g) \simeq R\,\operatorname{Vol} + \log\det g$.
+  • Distancia geodésica de Fubini-Study en $Gr(k, 2n)$ con ángulos principales $\theta_i = \arccos \sigma_i(Q_{\mathrm{nom}}^\top Q_{\mathrm{obs}})$.
+  • Mecánica celeste de Poincaré-Delaunay: acciones $L$, movimiento medio $n = \mu^2 / L^3$, twist $\partial n / \partial L = -3\mu^2 / L^4$,
+    variables de Poincaré $(\Lambda, \Gamma, Z, \lambda, \gamma, z)$, promedio de von Zeipel.
+  • Forma cerrada de Melnikov en Duffing con amortiguamiento $\gamma$, parámetro de resonancia de Chirikov y estabilidad de Nekhoroshev.
+  • Integrador simpléctico RFRN de 4º orden (Forest-Ruth-Neri) para geodésicas braquistócronas.
+  • Lindblad-GKSL con matriz de Kossakowski $K \succeq \mathbf{0}$ y consistencia de Čech-Deligne $\check{H}^2$.
+  • Mónada de Kleisli RSI³ (Darwin-Gödel Nivel 3) sobre espacio de Banach completo con radio espectral de Gelfand $\rho(A) < 1.0$.
+
+3. AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Axioma de Geometría de Calibre y Flujo de Ricci-Perelman:
+       $$\partial_t \widehat{g}_{\mu\nu} = -2 R_{\mu\nu} + \frac{2}{n} r \widehat{g}_{\mu\nu}, \quad d_{\mathrm{FS}}(Q_1, Q_2) = \sqrt{\sum \theta_i^2}.$$
+
+  [A2] Axioma de Mecánica Celeste y Poincaré–Cartan:
+       $$M \in \operatorname{Sp}(2n, \mathbb{R}), \quad \oint_\gamma (p\,\mathrm{d}q - H\,\mathrm{d}t) = \text{inv}, \quad n = \frac{\mu^2}{L^3}, \quad \frac{\partial n}{\partial L} = -\frac{3\mu^2}{L^4} \ne 0.$$
+
+  [A3] Axioma de Caos Homoclínico y Resonancia de Chirikov:
+       $$M(t_0) = -\frac{4}{3}\gamma + \sqrt{2}\pi f_0 \omega \operatorname{csch}\left(\frac{\pi\omega}{2}\right)\sin(\omega t_0) = 0 \implies \text{Smale Horseshoe},$$
+       $$K_{\mathrm{Chirikov}} = \frac{2\sqrt{\varepsilon \alpha_1} + 2\sqrt{\varepsilon \alpha_2}}{|\omega_1 - \omega_2|} \ge 1.0.$$
+
+  [A4] Axioma de Disipación de Lindblad–Kossakowski y Jarzynski:
+       $$\dot{\rho} = -i [H, \rho] + \sum_k \gamma_k \left(L_k \rho L_k^\dagger - \frac{1}{2}\{L_k^\dagger L_k, \rho\}\right), \quad K \succeq \mathbf{0}.$$
+
+  [A5] Axioma Monádico Contractivo RSI³ & Jerk Cognitivo:
+       $$\operatorname{Lip}(T^3) \le 0.857375 < 1.0, \quad \rho_{\text{Gelfand}}(T) < 1.0 \implies \frac{\mathrm{d}^3 C}{\mathrm{d}t^3} > 0.$$
+
+  [A6] Axioma de Adjudicación Heyting $\Omega_3$ & Crowbar Xtensa LX7:
+       $$\Omega_3 = \{0x00 \prec 0x01 \prec 0x03\}, \quad t_{\mathrm{actuation}} = 42.00\,\mathrm{ns} \le 400.0\,\mathrm{ns}.$$
+
+4. INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  1. Invariante de Calibre y Flujo de Ricci: $d_{\mathrm{FS}} \le 1.0 \times 10^{-4}\text{ rad}$.
+  2. Invariante Simpléctico Poincaré-Cartan: $\|M^\top J M - J\|_F / (1 + \|M\|_F^2) \le 1.0 \times 10^{-10}$.
+  3. Invariante de Caos Homoclínico: $K_{\mathrm{Chirikov}} < 1.0$ y ausencia de ceros simples transversales de Melnikov.
+  4. Invariante de Disipación Kossakowski: $K \succeq \mathbf{0}$ (valores propios $\ge 0$).
+  5. Invariante Monádico Banach-Picard: $\operatorname{Lip}(T^3) \le 0.857375$ y $\rho_{\text{Gelfand}} < 1.0$.
+  6. Invariante Ciber-Físico Latencia Hardware ESP32: $t_{\mathrm{actuation}} = 42.00\text{ ns} < 400.0\text{ ns}$.
 """
 
 from __future__ import annotations

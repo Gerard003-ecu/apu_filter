@@ -380,7 +380,7 @@ def _gauss_legendre_real_line(integrand: NDArray[np.float64], xi: NDArray[np.flo
 
 
 def _integer_lattice(dim: int, linf: int) -> List[NDArray[np.float64]]:
-    """k ∈ ℤ^d \ {0} con ‖k‖_∞ ≤ linf (d acotado a 3 por explosión combinatoria)."""
+    r"""k ∈ ℤ^d \ {0} con ‖k‖_∞ ≤ linf (d acotado a 3 por explosión combinatoria)."""
     d = max(1, min(int(dim), 3))
     lim = max(1, int(linf))
     vecs: List[NDArray[np.float64]] = []

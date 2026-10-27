@@ -491,7 +491,7 @@ class Phase1_PortfolioTopologyObserver:
     def compute_delaunay_kam_divisors(
         self, frequencies: NDArray[np.float64]
     ) -> Tuple[float, bool]:
-        """
+        r"""
         Explora {k ∈ ℤⁿ \ {0} : ‖k‖₁ ≤ K} y evalúa
             ρ(k) = |ω · k| · ‖k‖₁^τ / γ    (≥ 1 ⇔ cota satisfecha).
         """
