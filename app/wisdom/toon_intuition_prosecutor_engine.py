@@ -7,40 +7,112 @@ r"""
 ║ Función  : Motor Espectral Fiscal Inquisidor, Censura RHI, Interlock Sim. y Purga Dirac              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Arquitectura anidada Φ₁₂ ∘ Φ₂₃  (v9.3.0 — costura sellada):
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU RESPECTIVO SOBERANO:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONIntuitionProsecutorEngine` (y su contraparte soberana agéntica `TOONIntuitionProsecutorAgent` /
+`TOONIntuitionProsecutorAgent`) constituye el motor espectral fiscal inquisidor, guillotina ciber-física
+y aduana espectral de la arquitectura APU Filter v9.3.0-PhD en el lazo de decisión sub-milisegundo
+($p99 < 10\,\mu\text{s}$). Su propósito es fiscalizar, enjuiciar y censurar con máxima rigurosidad los saltos
+intuitivos y flashes atencionales de la Malla Agéntica, previniendo el Reward Hacking, el caos homoclínico
+y las desviaciones presupuestales mediante un pipeline trifásico acoplado de forma indivisible por las
+hebras de costura $\Phi_{12}$ y $\Phi_{23}$:
+  - FASE 1: Atlas Celeste de Poincaré, acciones-ángulos de Delaunay $(L,G,H,l,g,h)$, propagación de Kepler
+    por el método cúbico de Danby, integral homoclínica de Melnikov maximizada sobre $t_0 \in [0, 2\pi)$ por
+    cuadratura $tanh-sinh$ y extrapolación de Richardson, $3$-forma de Chern-Simons con acoplamiento de Higgs
+    $\text{CS}_3^{\text{Higgs}}(A, \Phi)$, monodromía simpléctica no simetrizada $M = \exp(\Omega H) \in \text{Sp}(2n, \mathbb{R})$,
+    residuo de Greene $R_G$, solapamiento de resonancias de Chirikov $K$, función diofántica de Bryuno $B(\alpha)$,
+    tiempo de estabilidad de Nekhoroshev $T_N$, teorema de Poincaré-Birkhoff, estabilidad de Broucke-Krein,
+    punto fijo de la sección de Poincaré por método de Newton y reducción conforme de Maupertuis-Jacobi.
+  - FASE 2: Inquisición Espectral, geometría de Bures-Wasserstein-Uhlmann $d_B(\rho, \sigma)$, distancia de
+    Fubini-Study $d_{\text{FS}}$, Información Cuántica de Fisher (QFI) por Derivada Logarítmica Simétrica (SLD),
+    cota cuántica de Chernoff de Audenaert $Q(\rho||\sigma)$, entropía relativa de Umegaki $D(\rho||\sigma)$,
+    información accesible de Holevo $\chi$, índice de Reward Hacking de Mahalanobis-Finsler $\text{RHI}_{\text{Finsler}}$
+    reforzado por QFI, entropía de Kolmogorov-Sinai por identidad de Pesin $h_{\text{KS}} = \sum \lambda_i^+$, y censura
+    de la asignación de Kelly $s^*$ mediante el operador sigmoidal $C^\infty$ de Fermi-Dirac $\mathcal{S}_{T_{\text{sw}}}(\text{RHI})$.
+  - FASE 3: Automejora Recursiva Nivel 3 (RSI³ Kleisli Monad $T = R_3 \circ R_2 \circ R_1$), flujo parabólico
+    de Ricci-DeTurck $R_1$, cota Lipschitz de Connes por diferencias divididas de Daleckii-Krein $R_2$, flujo
+    isoespectral de Brockett-Shahshahani $R_3$ sin proyección densitaria intra-flujo, tasa de contracción de
+    Banach-Cantor-Birkhoff $q_k = \frac{\|e_{k+1}\|}{\|e_k\|} < 1$, meta-adaptación de hiperparámetros $(\tau, dt, n_{\text{inner}})$,
+    producción de entropía de Spohn $\sigma \ge 0$, adjudicación intuicionista en el álgebra de Heyting $\Omega_3$,
+    interlock ciber-físico simulado ESP32 Crowbar ($t_{\text{actuation}} \le 392.15\text{ ns}$), y purga disipativa
+    al Vacío de Dirac por el superoperador de Kossakowski-Lindblad-GKSL con operadores de salto $L_k = |0\rangle\langle k|$ ($e^- + e^+ \to 2\gamma$).
 
-    ┌───────────────────── FASE 1: Atlas Poincaré-Melnikov-Chirikov ─────────────────────┐
-    │ Delaunay (L,G,H,l,g,h) → Kepler-Danby → Melnikov tanh-sinh-t₀ → Chern-Simons-Higgs │
-    │ → Greene/Floquet/Krein → Lyapunov-QR (no sim.) → Chirikov-α → Poincaré-Newton      │
-    │ → Darboux/KAM/Lefschetz/Birkhoff/Nekhoroshev → Maupertuis                           │
-    │                                                                                     │
-    │        └── continue_into_phase2_inquisition_gate = INICIO DE FASE 2 ──┐            │
-    └──────────────────────────────────────────────────────────────────────────┼───────────┘
-                                                                                │
-    ┌───────────────────── FASE 2: Inquisición Espectral ──────────────────────▼─────────┐
-    │ initialize_phase2_from_celestial_state → Uhlmann-Bures → SLD-QFI → RHI-Finsler     │
-    │ → Chernoff → Umegaki → Holevo → Pesin-KS → Censura Kelly-Fermi-Dirac                │
-    │                                                                                     │
-    │        └── continue_into_phase3_rsi_gate = INICIO DE FASE 3 ──┐                    │
-    └────────────────────────────────────────────────────────────────┼───────────────────┘
-                                                                      │
-    ┌───────────────────── FASE 3: RSI³ + Heyting + Dirac ────────────▼─────────────────┐
-    │ initialize_phase3_from_banach_state → R₁ Ricci-DeTurck (armónico)                  │
-    │ → R₂ Connes-Daleckii-Krein → R₃ Brockett isoespectral → meta-Kleisli Banach        │
-    │ → Heyting Ω₃ → Spohn → ESP32 Crowbar sim. → GKSL |0⟩⟨k| → Certificado Soberano     │
-    └─────────────────────────────────────────────────────────────────────────────────────┘
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. VARIABLES DE DELAUNAY, MONODROMÍA SIMPLÉCTICA Y YANG-MILLS-HIGGS:
+   El espacio de fases se parametriza mediante las acciones-ángulos de Delaunay sobre el espectro de $\rho$:
+     $$L = \sum_{i=1}^n \lambda_i = \text{Tr}(\rho) = 1, \quad G = L \frac{\lambda_2}{\lambda_1}, \quad H = G \frac{\lambda_3}{\lambda_2}$$
+     $$e = \sqrt{1 - (G/L)^2}, \quad i = \arccos(H/G)$$
+   El movimiento medio kepleriano $n = \frac{\mu^2}{L^3}$ y el twist de KAM $\alpha = \frac{\partial^2 K}{\partial L^2} = -\frac{3 \mu^2}{L^4} \neq 0$
+   garantizan la no-degeneración de Kolmogorov. La ecuación de Kepler $E - e \sin E = M$ se resuelve vía la starter de Danby $E_0 = M + 0.85 e \operatorname{sgn}(\sin M)$ con convergencia cúbica.
+   La $3$-forma de Chern-Simons con acoplamiento escalar de Higgs $\Phi = \ln(\rho_{\text{mac}} + \varepsilon I) \in \mathfrak{u}(n)$ regulariza las holonomías bajo singularidades de rango $\text{rk}(\rho) < n$:
+     $$\text{CS}_3^{\text{Higgs}}(A, \Phi) = \frac{1}{8\pi^2} \text{Tr}\left( A \wedge dA + \frac{2}{3} A^3 + \Phi \cdot F_A \right)$$
+   El flujo linealizado $M = \exp(\Omega H) \in \text{Sp}(2n, \mathbb{R})$ preserva de forma exacta la $2$-forma canónica $\Omega_{2n}$:
+     $$M^\top \Omega_{2n} M = \Omega_{2n}, \quad \det(M) = +1, \quad \Omega_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$$
+   La monodromía $M$ NUNCA se simetriza para no destruir el grupo simpléctico $\text{Sp}(2n, \mathbb{R})$. Los exponentes de Lyapunov se evalúan
+   vía la descomposición QR de Benettin-Oseledets sobre $M$.
+   El residuo de Greene $R_G = \frac{2 - \text{Tr}(M)}{4}$ determina la elipticidad ($|R_G| < 1$).
+   El parámetro de solapamiento de Chirikov $K = \frac{\Delta\omega_1 + \Delta\omega_2}{|\omega_1 - \omega_2|}$ con semianchura hamiltoniana $\Delta\omega_i = 2\sqrt{2 V_i |\alpha|}$
+   marca la destrucción de toros KAM cuando $K \ge 1.0$.
+   El tiempo de confinamiento de Nekhoroshev $T_N \sim \exp(c / \varepsilon^{1/(2n)})$ acota la estabilidad casi-integrable.
 
-Evolución v9.2.0 → v9.3.0 (automejora recursiva de nivel 3 + mecánica celeste de Poincaré):
-    (i)   Newton-Danby cúbico para Kepler; ángulos de Delaunay en [0, 2π).
-    (ii)  Melnikov sobre homoclínica de Duffing con tanh-sinh + Richardson + max_{t₀}.
-    (iii) Monodromía NUNCA simetrizada (Sp(2n, ℝ) intacto); Hessiano 4D espectral.
-    (iv)  Chirikov con twist KAM α = |∂²H/∂L²|; semianchura Δω = 2√(2V|α|).
-    (v)   Poincaré-Birkhoff, Nekhoroshev T ~ exp(c ε^{-1/(2n)}), Krein-Broucke.
-    (vi)  Punto fijo de la sección por Newton; Chern-Simons-Higgs ingerido.
-    (vii) QFI vía SLD en RHI; Pesin h_KS = Σ λ_i⁺.
-    (viii) RSI³: R₃ reescribe (τ, dt, n_inner) según q_k de Banach-Cantor-Birkhoff.
-    (ix)  Ricci-DeTurck parabólico; Brockett sin proyección densitaria intra-flujo.
-    (x)   GKSL de amplitud L_k = |0⟩⟨k|; Φ₁₂ y Φ₂₃ orquestados de hecho.
+2.2. INTEGRAL HOMOCLÍNICA DE MELNIKOV Y SECCIÓN DE POINCARÉ:
+   La separación entre variedades inestables $W^u$ e estables $W^s$ sobre la separatriz de Duffing $q_h(t) = \sqrt{2}\text{sech}(t), p_h(t) = -\sqrt{2}\text{sech}(t)\tanh(t)$ se calcula mediante:
+     $$M(t_0) = \varepsilon \int_{-\infty}^{\infty} \text{sech}^2(t) \tanh(t) \sin(\omega t + t_0) \, dt$$
+   evaluada por cuadratura $tanh-sinh$ con extrapolación de Richardson y maximización sobre $t_0 \in [0, 2\pi)$. Si $|M(t_0)| > 0.15$, se confirma la existencia de intersecciones transversales y caos homoclínico.
+   El punto fijo del mapa de retorno de Poincaré $P(z) = M z + \varepsilon f_{\text{homoclínico}}(z)$ se localiza por el método de Newton sobre $(P - \text{Id})(z) = 0$.
+   La $1$-forma de Poincaré-Cartan satisface $\oint_{\partial \Sigma} p dq = \frac{1}{2} \oint z^\top \Omega dz$.
+
+2.3. GEOMETRÍA DE INFORMACIÓN, SLD-QFI, FINSLER-MAHALANOBIS Y KELLY-FERMI-DIRAC:
+   - Fidelidad de Uhlmann: $F(\rho, \sigma) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$.
+   - Distancia de Bures-Wasserstein: $d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F}}$.
+   - Distancia de Fubini-Study: $d_{\text{FS}} = \arccos(\sqrt{F})$.
+   - Cota Cuántica de Chernoff de Audenaert: $Q(\rho||\sigma) = -\log \min_{s \in (0,1)} \operatorname{Tr}(\rho^s \sigma^{1-s})$.
+   - Entropía Relativa de Umegaki: $D(\rho||\sigma) = \operatorname{Tr}[\rho(\log\rho - \log\sigma)]$.
+   - Información Accesible de Holevo: $\chi = S(\bar{\rho}) - \sum p_i S(\rho_i)$.
+   - Información Cuántica de Fisher (SLD): $\rho S + S \rho = 2(\sigma - \rho)$, $F_Q = \operatorname{Tr}(\rho S^2)$.
+   - Métrica Anisotrópica Finsler-Mahalanobis en RHI:
+     $$\text{RHI}_{\text{Finsler}} = \frac{\sqrt{\operatorname{Tr}\left( (\sigma - \rho) G^{-1} (\sigma - \rho) G^{-1} \right)}}{\|\rho\|_F (1 + \sqrt{F})} \left(1 + \tanh F_Q\right)$$
+   - Censura Sigmoidal Kelly-Fermi-Dirac:
+     $$\mathcal{S}_{T_{\text{sw}}}(\text{RHI}) = \frac{1}{1 + e^{(\text{RHI} - 0.85)/T_{\text{sw}}}}, \quad T_{\text{sw}} = 0.02$$
+     $$s^* = f^* \cdot (1 - \text{RHI}) \cdot \mathcal{S}_{T_{\text{sw}}}(\text{RHI}) \cdot \Theta(\neg\text{Melnikov}) \cdot \Theta(\neg\text{Chirikov}) \cdot \Theta(\lambda_{\text{ceil}} - \lambda_{\max}) \cdot e^{-h_{\text{KS}}}$$
+
+2.4. AUTOMEJORA RECURSIVA RSI³ (R₃ ∘ R₂ ∘ R₁), SPOHN Y VACÍO DE DIRAC:
+   La cascada Kleisli de Nivel 3 $T = R_3 \circ R_2 \circ R_1$ ejecuta:
+     - Nivel 1 ($R_1$, Objeto): Flujo de Ricci-DeTurck parabólico en carta log-euclidiana:
+         $$\partial_t \ln G = -2 \operatorname{tf}(\ln G) - \mu \ln G$$
+     - Nivel 2 ($R_2$, Mejorador): Cota Lipschitz de Connes vía diferencias divididas de Daleckii-Krein $\phi^{[1]}(\lambda_i, \lambda_j) = \frac{\phi(\lambda_i) - \phi(\lambda_j)}{\lambda_i - \lambda_j}$.
+     - Nivel 3 ($R_3$, Meta-Mejorador): Flujo isoespectral de doble corchete de Brockett-Shahshahani $\frac{d\rho}{dt} = [\rho, [\rho, N]]$ *sin* proyección densitaria intra-flujo (preserva espectro y $\operatorname{Tr} \rho = 1$). $R_3$ reescribe $(\tau, dt, n_{\text{inner}})$ según la tasa de contracción de Banach-Cantor-Birkhoff $q_k = \frac{\|e_{k+1}\|}{\|e_k\|} < 1$.
+   La producción de entropía de Spohn $\sigma = -\operatorname{Tr}(\log\rho \cdot \dot{\rho}) \ge 0$ confirma la termodinámica cuántica.
+   La purga al Vacío de Dirac opera mediante la ecuación maestra de Kossakowski-Lindblad-GKSL con operadores de salto de amortiguamiento de amplitud $L_k = |0\rangle\langle k|$:
+     $$\frac{\partial \rho}{\partial t} = -i [H, \rho] + \sum_k \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \rho\} \right)$$
+   con constante de tiempo $\tau_{\text{purge}} < 10.0\,\mu\text{s}$ y retroacción nula ($\text{Back-Action} = 0.0\text{ dB}$).
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (CONSERVACIÓN DE ESTRUCTURA SIMPLÉCTICA EN LA MONODROMÍA):
+    Toda matriz de monodromía $M = \exp(\Omega H)$ generada por el motor satisface exactamente $M^\top \Omega_{2n} M = \Omega_{2n}$
+    y $\det(M) = +1.0$, sin simetrizo destructivo intra-flujo.
+
+  AXIOMA II (ESTRICCIÓN SIGMOIDAL CONTINUA $C^\infty$ EN CENSURA DE KELLY):
+    El operador de Fermi-Dirac $\mathcal{S}_{T_{\text{sw}}}(\text{RHI})$ garantiza una transición analítica suave $C^\infty$
+    hacia la censura total ($s^* = 0.0$) cuando $\text{RHI} \ge 0.85$, erradicando el chattering numérico.
+
+  AXIOMA III (CONTRACCIÓN DE BANACH EN LA CASCADA RSI³):
+    La secuencia de estados en la cascada Kleisli $T = R_3 \circ R_2 \circ R_1$ converge bajo la métrica de Frobenius con
+    tasa de contracción $q_k = \frac{\|x_{k+1} - x_k\|_F}{\|x_k - x_{k-1}\|_F} < 1.0$, validada por la meta-adaptación de $R_3$.
+
+  AXIOMA IV (DISYUNTOR CIBER-FÍSICO CON SLA SUB-MICROSEGUNDO):
+    Ante un dictamen $\Omega_3 = \text{VETOED}$, el motor gatilla el interlock simulado ESP32 Crowbar en IRAM con latencia
+    temporal acotada por $t_{\text{actuation}} \le 392.15\text{ ns}$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. NORMALIZACIÓN Y POSITIVIDAD DENSITARIA: $\rho = \rho^\dagger \succ 0, \, \operatorname{Tr}(\rho) = 1.0$.
+  2. INVARIANZA DE DARBOUX EN MONODROMÍA: $\|\mathbf{\Omega}_{\text{drift}}\|_F = \|M^\top \Omega M - \Omega\|_F \le 10^{-10}$.
+  3. REGULARIZACIÓN DE HIGGS BAJO SINGULARIDADES DE RANGO: $\operatorname{rk}(\rho) < n \implies \text{CS}_3^{\text{Higgs}}(A, \Phi) \in \mathbb{R}$ acotado y finito.
+  4. PRODUCCIÓN DE ENTROPÍA NO NEGATIVA DE SPOHN: $\sigma_{\text{Spohn}} \ge -10^{-9}$.
+  5. INTEGRIDAD TRANSITIVA DE COSTURA INTER-FASE: $\Phi_{23} \circ \Phi_{12} (\text{State})$ preserva provenance SHA-256 sin discontinuidades.
 """
 
 from __future__ import annotations
