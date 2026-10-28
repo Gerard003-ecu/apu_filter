@@ -10,24 +10,24 @@ r"""
 Arquitectura categórica trifásica con hebras Φ₁₂ y Φ₂₃ (nido estricto):
 
     ╔══ FASE I  : Phase1_IntuitionProsecutorGaugeTopology ═════════════════════════════════╗
-    ║   Calibre 𝔲(n), CS₃^Higgs, Wilson, Darboux, Kepler-Danby, Melnikov-max t₀,          ║
-    ║   Poincaré-Cartan ∮p dq, Lefschetz, Bryuno, Floquet-QR (Sp(2n) sin simetrizar),     ║
-    ║   Chirikov Δω=2√(2V|α|), Poincaré-Birkhoff, Nekhoroshev, Broucke-Krein, HMAC        ║
-    ║                                                                                       ║
+    ║   Calibre 𝔲(n), CS₃^Higgs, Wilson, Darboux, Kepler-Danby, Melnikov-max t₀,           ║
+    ║   Poincaré-Cartan ∮p dq, Lefschetz, Bryuno, Floquet-QR (Sp(2n) sin simetrizar),      ║
+    ║   Chirikov Δω=2√(2V|α|), Poincaré-Birkhoff, Nekhoroshev, Broucke-Krein, HMAC         ║
+    ║                                                                                      ║
     ║   ── continue_into_phase2_campaign_gate ── ▶ initialize_phase2_from_gauge_contract   ║
     ╚═══════════════════════════════════════════════════════════════════════════╤══════════╝
                                                                                  │
-    ╔══ FASE II : Phase2_TOONIntuitionProsecutorAgent ═══════════════════════════▼══════════╗
+    ╔══ FASE II : Phase2_TOONIntuitionProsecutorAgent ═══════════════════════════▼═════════╗
     ║   Uhlmann-Bures, QFI-SLD, Chernoff (Audenaert), Umegaki, Holevo,                     ║
     ║   RHI-Finsler×QFI, Pesin-KS, Kelly-Fermi-Dirac, RSI³ Kleisli T = R₃∘R₂∘R₁            ║
-    ║                                                                                       ║
+    ║                                                                                      ║
     ║   ── continue_into_phase3_adjudication_gate ── ▶ initialize_phase3_from_campaign...  ║
     ╚═══════════════════════════════════════════════════════════════════════════╤══════════╝
                                                                                  │
     ╔══ FASE III: Phase3_SovereignIntuitionProsecutorAdjudicator ════════════════▼══════════╗
-    ║   RSI³ Banach-Cantor-Birkhoff meta-adaptativo, Ricci-DeTurck parabólico,             ║
-    ║   Brockett isoespectral, Spohn σ ≥ 0, Heyting Ω₃, ESP32 Crowbar ≤ 392.15 ns,         ║
-    ║   GKSL Lindblad-Dirac L_k=|0⟩⟨k| (1022 keV), Φ_sem, Merkle-SHA-256 con dominio       ║
+    ║   RSI³ Banach-Cantor-Birkhoff meta-adaptativo, Ricci-DeTurck parabólico,              ║
+    ║   Brockett isoespectral, Spohn σ ≥ 0, Heyting Ω₃, ESP32 Crowbar ≤ 392.15 ns,          ║
+    ║   GKSL Lindblad-Dirac L_k=|0⟩⟨k| (1022 keV), Φ_sem, Merkle-SHA-256 con dominio        ║
     ╚═══════════════════════════════════════════════════════════════════════════════════════╝
 """
 
