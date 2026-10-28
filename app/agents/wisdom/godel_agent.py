@@ -13,13 +13,13 @@ Función: Agente soberano metamatemático de la capa de Sabiduría en APU Filter
          metalenguaje para garantizar la consistencia semántica global sin parálisis deductiva.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Agente Metamatemático Gödeliano (GodelAgent) es el centinela deductivo del estrato de Sabiduría
 en APU Filter. Cuando las cadenas de razonamiento analítico se aproximan a fronteras de incompletitud
 sintáctica o bucles del mentiroso ("esta sentencia es falsa"), el agente actúa como un oráculo de Turing
 externo que eleva el marco axiomático al nivel superior de Tarski, desactivando la singularidad lógica.
-Su respectivo motor de cálculo metateórico es 'GodelEngine' (app/wisdom/godel_engine.py), y su observador
+Su respectivo motor espectral metateórico es 'GodelEngine' (app/wisdom/godel_engine.py), y su observador
 cuántico pasivo complementario es 'ToonSilentWitnessAgent'
 (app/agents/wisdom/toon_silent_witness_agent.py). Mientras GodelEngine computa formalmente los números
 de Gödel y los árboles de inferencia, GodelAgent toma decisiones en tiempo real sobre aceptar, bifurcar
@@ -29,36 +29,36 @@ o elevar proposiciones problemáticas.
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Semántica de Kripke para Lógica de Provabilidad GL (Gödel-Löb):
-   Un marco de Kripke M = (W, R, V) modela GL si la relación de accesibilidad binaria R subseteq W times W
-   es transitiva (w R v y v R u ==> w R u) e inversa bien fundada (no existen cadenas infinitas
-   w_1 R w_2 R w_3 R ...). Esto asegura que todo proceso de atestación lógica converge en finitos pasos.
+   Un marco de Kripke $\mathcal{M} = (W, R, V)$ modela GL si la relación de accesibilidad binaria $R \subseteq W \times W$
+   es transitiva ($w R v \land v R u \implies w R u$) e inversa bien fundada (no existen cadenas infinitas
+   $w_1 R w_2 R w_3 R \dots$). Esto asegura que todo proceso de atestación lógica converge en finitos pasos.
 
 2. Cadena Ascendente de Teorías de Tarski:
    Para escapar de la indemostrabilidad de consistencia estipulada por el Segundo Teorema de Gödel:
-       T_0 = PA,   T_{n+1} = T_n cup { Cons(T_n) }
-   El agente asciende recursivamente en la jerarquía, manteniendo Cons(T_n) como un axioma de orden superior.
+       $$T_0 = \mathrm{PA}, \quad T_{n+1} = T_n \cup \{ \operatorname{Cons}(T_n) \}$$
+   El agente asciende recursivamente en la jerarquía, manteniendo $\operatorname{Cons}(T_n)$ como un axioma de orden superior.
 
 3. Filtrado Paraconsistente de Inconsistencias Locales:
-   Previene el principio de explosión (ex falso quodlibet: A land neg A |= B) mediante aislamiento
+   Previene el principio de explosión (ex falso quodlibet: $A \land \neg A \models B$) mediante aislamiento
    en espacios de Hilbert de estados ortogonales, evitando que una paradoja local contamine toda la base.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma GA1 (Inexistencia de Bucles Finitos en la Estructura de Kripke):
-    R es acíclica estricta (w_1 R w_2 ==> not(w_2 R w_1)).
+    $R$ es acíclica estricta ($w_1 R w_2 \implies \neg(w_2 R w_1)$).
 Axioma GA2 (Preservación del Principio de No-Contradicción):
-    neg (phi land neg phi) se mantiene axiomático en todo nivel terminal.
+    $\neg (\phi \land \neg \phi)$ se mantiene axiomático en todo nivel terminal.
 Axioma GA3 (Elevación Funtorial de Tarski):
-    Ante indecidibilidad detectada por GodelEngine, el agente transmuta T_n -> T_{n+1}.
+    Ante indecidibilidad detectada por GodelEngine, el agente transmuta $T_n \to T_{n+1}$.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Profundidad de Kripke Acotada):
-    depth(w) <= D_max = 10 en todo árbol de prueba activo.
+    $\operatorname{depth}(w) \le D_{\max} = 10$ en todo árbol de prueba activo.
 Invariante 2 (Cero Explosión de Inconsistencia):
-    tasa_contaminacion_paradogica == 0.0 tras la intervención del agente.
+    $\text{tasa\_contaminacion\_paradogica} = 0.0$ tras la intervención del agente.
 
 ----------------------------------------------------------------------------------------------------
 TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):
@@ -1482,7 +1482,7 @@ class SmallDivisorCertificate:
 
 
 class SmallDivisorEngine:
-    """Barrido de vectores de resonancia k ∈ ℤ^n \ {0}, |k|₁ ≤ K_max."""
+    r"""Barrido de vectores de resonancia k ∈ ℤ^n \ {0}, |k|₁ ≤ K_max."""
 
     @classmethod
     def analyze(

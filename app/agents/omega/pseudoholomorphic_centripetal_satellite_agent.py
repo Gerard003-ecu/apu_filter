@@ -6,22 +6,22 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CAPA OMEGA
 
 Nombre: PseudoholomorphicCentripetalSatelliteAgent
 Ubicación: app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 3.0.0-APU-SOVEREIGN
 Función: Agente soberano satelital centrípeto de la capa Omega que comanda la flotilla de satélites
-         inmunes perimetrales, modulando radios de órbita r(t), excentricidades simplécticas y
+         inmunes perimetrales, modulando radios de órbita $r(t)$, excentricidades simplécticas y
          maniobras de intercepción centrípeta frente a intrusiones de antígenos.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Agente Satelital Centrípeto de la Capa Omega (PseudoholomorphicCentripetalSatelliteAgent)
 es el comandante táctico de la primera línea de defensa periférica en APU Filter. Su misión es
 posicionar, acelerar y coordinar los nodos satelitales en órbitas pseudoholomorfas estables
 alrededor del centroide informacional, impidiendo que incursiones adversarias alcancen el núcleo.
 Su respectivo motor dinámico es 'PseudoholomorphicCentripetalSatelliteEngine'
-(app/core/immune_system/pseudoholomorphic_centripetal_satellite_engine.py), y su ancla baricéntrica
+(app/core/inmune_system/pseudoholomorphic_centripetal_satellite_engine.py), y su ancla baricéntrica
 es 'PseudoholomorphicCentroidInertiaEngine'
-(app/core/immune_system/pseudoholomorphic_centroid_inertia_engine.py). Mientras el Engine computa
+(app/core/inmune_system/pseudoholomorphic_centroid_inertia_engine.py). Mientras el Engine computa
 la cinemática diferencial Kepler-Poincaré, este Agente ajusta las directivas de velocidad y radio
 de intercepción en función del nivel de amenaza detectado.
 
@@ -29,37 +29,37 @@ de intercepción en función del nivel de amenaza detectado.
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Maniobras de Transferencia Orbital y Homotopía de Lazos:
-   Para reposicionar un satélite desde un radio de patrulla r_1 a un radio de intercepción r_2:
-       Delta v_1 = sqrt(mu / r_1) * [ sqrt(2 * r_2 / (r_1 + r_2)) - 1 ]
-       Delta v_2 = sqrt(mu / r_2) * [ 1 - sqrt(2 * r_1 / (r_1 + r_2)) ]
-   La transferencia preserva la clase homotópica del lazo en el espacio simpléctico perforado M \ {c*}.
+   Para reposicionar un satélite desde un radio de patrulla $r_1$ a un radio de intercepción $r_2$:
+       $$\Delta v_1 = \sqrt{\frac{\mu}{r_1}} \left[ \sqrt{\frac{2 r_2}{r_1 + r_2}} - 1 \right]$$
+       $$\Delta v_2 = \sqrt{\frac{\mu}{r_2}} \left[ 1 - \sqrt{\frac{2 r_1}{r_1 + r_2}} \right]$$
+   La transferencia preserva la clase homotópica del lazo en el espacio simpléctico perforado $\mathcal{M} \setminus \{c^*\}$.
 
 2. Barrido Perimetral de Reeb y Cobertura Angular:
-   Una constelación de N_sat satélites desfasados equidistantemente en delta theta = 2*pi / N_sat
+   Una constelación de $N_{\text{sat}}$ satélites desfasados equidistantemente en $\Delta \theta = \frac{2\pi}{N_{\text{sat}}}$
    garantiza una cota superior en el tiempo ciego de detección de antígenos:
-       tau_ciego = 2 * pi / (N_sat * omega_orb) <= tau_admisible
+       $$\tau_{\text{ciego}} = \frac{2\pi}{N_{\text{sat}} \cdot \omega_{\text{orb}}} \le \tau_{\text{admisible}}$$
 
 3. Resonancia Orbital Colectiva:
    La sincronización armónica entre satélites evita interferencias y colisiones mutuas mediante
-   relaciones de resonancia entera p * omega_1 = q * omega_2 con p, q in N coprimos.
+   relaciones de resonancia entera $p \cdot \omega_1 = q \cdot \omega_2$ con $p, q \in \mathbb{N}$ coprimos.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
-Axioma PCSAA1 (Cobertura Perimetral Completa 2*pi):
-    La unión de los sectores de barrido cup_{i=1}^N S_i(t) = S^1 en todo instante t.
+Axioma PCSAA1 (Cobertura Perimetral Completa $2\pi$):
+    La unión de los sectores de barrido $\bigcup_{i=1}^{N_{\text{sat}}} S_i(t) = S^1$ en todo instante $t$.
 Axioma PCSAA2 (Retención Incondicional en Órbita Confinada):
-    Ningún comando agéntico puede inducir energía orbital positiva E_orb >= 0 (órbita hiperbólica de escape).
+    Ningún comando agéntico puede inducir energía orbital positiva $E_{\text{orb}} \ge 0$ (órbita hiperbólica de escape).
 Axioma PCSAA3 (Prioridad de Intercepción Inmune):
-    La detección de un antígeno a distancia r_antigen conmuta el radio orbital al modo de barrera r_antigen.
+    La detección de un antígeno a distancia $r_{\text{antígeno}}$ conmuta el radio orbital al modo de barrera $r_{\text{antígeno}}$.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Número de Satélites Confinados Activos):
-    N_sat_activos >= N_min_defensa = 3.
+    $N_{\text{sat\_activos}} \ge N_{\min\_defensa} = 3$.
 Invariante 2 (Excentricidad Orbital Acotada):
-    0.0 <= e_eccentricity <= e_max = 0.25 (órbitas casi circulares estables).
+    $0.0 \le e_{\text{eccentricity}} \le e_{\max} = 0.25$ (órbitas casi circulares estables).
 ====================================================================================================
 """
 
@@ -832,7 +832,7 @@ class Phase2_CentripetalAgentOrienter(Phase1_CentripetalAgentObserver):
     def __init__(self, tolerance: float = _NOVIKOV_COUPLING_EPS) -> None:
         super().__init__(tolerance=tolerance)
         self._engine: Final[PseudoholomorphicCentripetalSatelliteEngine] = (
-            PseudoholomorphicCentralizedsatelliteEngine(tolerance=tolerance)
+            PseudoholomorphicCentripetalSatelliteEngine(tolerance=tolerance)
         )
         logger.info("Phase2_CentripetalAgentOrienter inicializado con motor Fukaya.")
 
@@ -1462,5 +1462,5 @@ __all__ = [
     "Phase2_CentripetalAgentOrienter",
     "Phase3_CentripetalAgentDecider",
     # Agente integrador
-    "PseudoholomorphicCentralizedsatelliteAgent",
+    "PseudoholomorphicCentripetalSatelliteAgent",
 ]

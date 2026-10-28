@@ -6,65 +6,64 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
 
 Nombre: GodelEngine
 Ubicación: app/wisdom/godel_engine.py
-Versión: 7.0.0-APU-SOVEREIGN
-Función: Motor soberano de lógica metamatemática gödeliana y contención de indecidibilidad en APU
+Versión: 7.0.0-APU-SOVEREIGN-DOCTORAL-RSI3
+Función: Motor espectral soberano de lógica metamatemática gödeliana y contención de indecidibilidad en APU
          Filter. Modela los teoremas de incompletitud de Gödel-Rosser, codificación de Gödel mediante
-         productos de números primos G(phi) = prod p_k^{a_k}, análisis de consistencia de Peano,
+         productos de números primos $G(\phi) = \prod p_k^{a_k}$, análisis de consistencia de Peano,
          condiciones de derivabilidad de Hilbert-Bernays y saltos metateóricos de Tarski.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU RESPECTIVO SOBERANO:
 ----------------------------------------------------------------------------------------------------
-El Soberano Gödeliano de Metamatemática (GodelEngine) es el guardián de la consistencia lógica fundamental
+El Motor Espectral Gödeliano de Metamatemática (GodelEngine) es el guardián de la consistencia lógica fundamental
 en APU Filter. Su cometido primordial es detectar cuando una deducción, cadena de razonamiento o
-consulta formal cae en una paradoja autorreferencial gödeliana del tipo G <-> not Dem(G), la cual
+consulta formal cae en una paradoja autorreferencial gödeliana del tipo $G \leftrightarrow \neg \operatorname{Dem}(G)$, la cual
 induciría bucles infinitos o parálisis en motores formales estándar. Activa una elevación metateórica
 al siguiente nivel de la jerarquía de verdad de Tarski para restaurar la coherencia.
-Su respectivo agente en el plano ejecutivo de sabiduría es 'GodelAgent'
-(app/agents/wisdom/godel_agent.py), y su ancla de introspección es 'ToonIntrospectionEngine'
-(app/wisdom/toon_introspection_engine.py). Mientras GodelEngine computa los números de Gödel, analiza
-la provabilidad modal Box phi y evalúa la jerarquía de Tarski, su respectivo Agente intercepta la paradoja
-en vuelo y conmuta los axiomas operacionales del sistema.
+Su respectivo soberano ejecutivo en el plano de sabiduría es 'GodelAgent' (app/agents/wisdom/godel_agent.py),
+y su ancla de introspección es 'ToonIntrospectionEngine' (app/wisdom/toon_introspection_engine.py). Mientras
+GodelEngine computa formalmente los números de Gödel, analiza la provabilidad modal $\Box \phi$ y evalúa la jerarquía
+de Tarski, su respectivo Agente intercepta la paradoja en vuelo y conmuta los axiomas operacionales del sistema.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Aritmetización de la Sintaxis y Numeración de Gödel:
-   Dada una secuencia finita de símbolos formales s = (s_1, s_2, ..., s_m) con códigos enteros c_k = cod(s_k):
-       G(s) = prod_{k=1}^m p_k^{c_k} = 2^{c_1} * 3^{c_2} * 5^{c_3} * ... * p_m^{c_m}
-   El Teorema Fundamental de la Aritmética asegura que la decodificación de G(s) es única y biyectiva.
+   Dada una secuencia finita de símbolos formales $s = (s_1, s_2, \dots, s_m)$ con códigos enteros $c_k = \operatorname{cod}(s_k)$:
+       $$G(s) = \prod_{k=1}^m p_k^{c_k} = 2^{c_1} \cdot 3^{c_2} \cdot 5^{c_3} \cdots p_m^{c_m}$$
+   El Teorema Fundamental de la Aritmética asegura que la decodificación de $G(s)$ es única y biyectiva.
 
 2. Teoremas de Incompletitud de Gödel-Rosser:
-   - Primer Teorema: Sea T una teoría recursivamente enumerable, consistente y suficientemente rica
-     para expresar la aritmética de Peano. Existe una sentencia aritmética G_T tal que:
-         T nvdash G_T   y   T nvdash neg G_T
-   - Segundo Teorema: La consistencia formal de T (Cons(T) := neg Dem_T(ulcorner 0 = 1 urcorner))
-     no puede ser demostrada dentro de la propia teoría T:
-         T nvdash Cons(T)
+   - Primer Teorema: Sea $T$ una teoría recursivamente enumerable, consistente y suficientemente rica
+     para expresar la aritmética de Peano. Existe una sentencia aritmética $G_T$ tal que:
+         $$T \nvdash G_T \quad \text{y} \quad T \nvdash \neg G_T$$
+   - Segundo Teorema: La consistencia formal de $T$ ($\operatorname{Cons}(T) \equiv \neg \operatorname{Dem}_T(\ulcorner 0 = 1 \urcorner)$)
+     no puede ser demostrada dentro de la propia teoría $T$:
+         $$T \nvdash \operatorname{Cons}(T)$$
 
 3. Lógica de Provabilidad GL (Gödel-Löb) y Condiciones de Hilbert-Bernays:
-   El operador de provabilidad modal Box phi := Dem(ulcorner phi urcorner) satisface los axiomas de GL:
-       K:   Box (phi -> psi) -> (Box phi -> Box psi)
-       4:   Box phi -> Box Box phi
-       Löb: Box (Box phi -> phi) -> Box phi
+   El operador de provabilidad modal $\Box \phi \equiv \operatorname{Dem}(\ulcorner \phi \urcorner)$ satisface los axiomas de GL:
+       $$\mathbf{K}: \quad \Box (\phi \to \psi) \to (\Box \phi \to \Box \psi)$$
+       $$\mathbf{4}: \quad \Box \phi \to \Box \Box \phi$$
+       $$\mathbf{Löb}: \quad \Box (\Box \phi \to \phi) \to \Box \phi$$
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma GE1 (Incompletitud Esencial de Sistemas Consistentes):
-    Cons(T) == True ==> Existe phi tal que T nvdash phi y T nvdash neg phi.
+    $\operatorname{Cons}(T) = \text{True} \implies \exists \phi \text{ tal que } T \nvdash \phi \text{ y } T \nvdash \neg \phi$.
 Axioma GE2 (Indemostrabilidad de Consistencia Interna):
-    Dem_T(ulcorner Cons(T) urcorner) == False para toda teoría T omega-consistente.
+    $\operatorname{Dem}_T(\ulcorner \operatorname{Cons}(T) \urcorner) = \text{False}$ para toda teoría $T$ $\omega$-consistente.
 Axioma GE3 (Teorema de Löb en el Espacio de Provabilidad):
-    Dem(ulcorner Dem(ulcorner phi urcorner) -> phi urcorner) <==> Dem(ulcorner phi urcorner).
+    $\operatorname{Dem}(\ulcorner \operatorname{Dem}(\ulcorner \phi \urcorner) \to \phi \urcorner) \iff \operatorname{Dem}(\ulcorner \phi \urcorner)$.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Preservación Incondicional de Consistencia):
-    Dem_T(ulcorner bot urcorner) == False (nunca se deriva contradicción formal).
+    $\operatorname{Dem}_T(\ulcorner \bot \urcorner) = \text{False}$ (nunca se deriva contradicción formal).
 Invariante 2 (Finitud de la Profundidad de Metalenguaje de Tarski):
-    nivel_tarski <= N_max_profundidad = 10.
+    $\text{nivel\_tarski} \le N_{\max\_profundidad} = 10$.
 
 ----------------------------------------------------------------------------------------------------
 TRADUCCIÓN A IMPACTO DE NEGOCIO ("DOLOR Y DINERO"):

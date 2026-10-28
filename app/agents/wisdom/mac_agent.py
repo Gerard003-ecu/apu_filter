@@ -13,55 +13,56 @@ Función: Agente soberano sobre la matriz atómica de conocimiento (MAC) que orq
          geodésica sobre el álgebra de Lie.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Agente de Macro-Acciones (MacAgent) es el director ejecutivo del estrato de sabiduría
 de APU Filter. Su misión soberana es integrar las directivas de alto nivel formuladas por los
 motores reflexivos e intuitivos en una secuencia coordinada de generadores de acción sin conflictos
 de fase ni interferencias parásitas.
-Su respectivo motor matemático es 'MacAlgebra' (app/wisdom/mac_algebra.py), su respectivo
-transportador geométrico es 'MacVectorsAdapter' (app/wisdom/mac_vectors.py), y su contraparte
-táctica inmediata es 'TopologicalAnalyzerAgent' (app/agents/tactics/topological_analyzer_agent.py).
-Mientras MacAlgebra computa analíticamente los corchetes [X, Y], MacAgent supervisa el ciclo de vida
-de las macro-acciones y las despacha conforme a restricciones monoidales estrictas.
+Su respectivo motor espectral/matemático es 'MacAlgebra' (app/wisdom/mac_algebra.py), su respectivo
+transportador geométrico es 'MacVectorsAdapter' (app/wisdom/mac_vectors.py) y su matriz atómica de
+conocimiento de respaldo es 'AtomicKnowledgeMatrix' (app/wisdom/atomic_knowledge_matrix.py).
+Mientras MacAlgebra y AtomicKnowledgeMatrix computan analíticamente los corchetes $[X, Y]$ y la evolución
+cuántica/simpléctica de la MAC, MacAgent supervisa el ciclo de vida de las macro-acciones y las despacha
+conforme a restricciones monoidales estrictas.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Controlabilidad en Grupos de Lie y Teorema de Chow-Rashevsky:
-   La dinámica de la macro-política en el grupo de Lie G obedece a la ecuación invariante a izquierda:
-       dot{g}(t) = g(t) * ( X_0 + sum_{i=1}^m u_i(t) * X_i ),   con X_i in g
-   Por el teorema de Chow-Rashevsky, si el álgebra de Lie generada por {X_1, ..., X_m} abarca todo
-   g (condición de rango de Lie), el sistema es completamente gobernable y puede conectar cualquier
+   La dinámica de la macro-política en el grupo de Lie $G$ obedece a la ecuación invariante a la izquierda:
+       $$\dot{g}(t) = g(t) \cdot \left( X_0 + \sum_{i=1}^m u_i(t) X_i \right), \quad \text{con } X_i \in \mathfrak{g}$$
+   Por el teorema de Chow-Rashevsky, si el álgebra de Lie generada por $\{X_1, \dots, X_m\}$ abarca todo
+   $\mathfrak{g}$ (condición de rango de Lie), el sistema es completamente gobernable y puede conectar cualquier
    par de estados de sabiduría en tiempo finito.
 
 2. Optimización Geodésica con Función de Coste Cuadrática:
    El agente minimiza el funcional de acción de control:
-       J(u) = (1 / 2) * int_0^T [ sum_{i=1}^m u_i(t)^2 + lambda_pen * d_g(g(t), g_target)^2 ] dt
+       $$J(u) = \frac{1}{2} \int_0^T \left[ \sum_{i=1}^m u_i(t)^2 + \lambda_{\text{pen}} d_g(g(t), g_{\text{target}})^2 \right] \mathrm{d}t$$
    sujeto a las ecuaciones cinemáticas del álgebra.
 
 3. Composición Monoidal de Planes de Acción:
-   El espacio de macro-acciones forma una categoría monoidal estricta (MacroActions, otimes, I) donde:
-       (A_1 otimes A_2) otimes A_3 = A_1 otimes (A_2 otimes A_3)
+   El espacio de macro-acciones forma una categoría monoidal estricta $(\mathbf{MacroActions}, \otimes, I)$ donde:
+       $$(A_1 \otimes A_2) \otimes A_3 = A_1 \otimes (A_2 \otimes A_3)$$
    asegurando asociatividad en la concatenación de objetivos tácticos.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma MACA1 (Optimalidad Geodésica de Despacho):
-    Toda macro-acción despachada sigue la curva geodésica de mínima energía de control en G.
+    Toda macro-acción despachada sigue la curva geodésica de mínima energía de control en $G$.
 Axioma MACA2 (No Interferencia Destructiva):
-    Si ||[X_i, X_j]|| > Delta_crit, el agente inserta una acción de compensación BCH intermedia.
+    Si $\|[X_i, X_j]\| > \Delta_{\text{crit}}$, el agente inserta una acción de compensación BCH intermedia.
 Axioma MACA3 (Preservación del Orden Monoidal Causal):
-    Dispatch(A_1 otimes A_2) respeta la precedencia temporal t(A_1) <= t(A_2).
+    $\operatorname{Dispatch}(A_1 \otimes A_2)$ respeta la precedencia temporal $t(A_1) \le t(A_2)$.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Residuo de Interferencia Acotado):
-    ||[X_active, X_incoming]|| <= epsilon_interference = 0.25.
+    $\|[X_{\text{active}}, X_{\text{incoming}}]\| \le \epsilon_{\text{interference}} = 0.25$.
 Invariante 2 (Preservación de Estabilidad de Lie):
-    El rango del álgebra de control rango(Lie(X_1,...,X_m)) == dim(g).
+    El rango del álgebra de control $\operatorname{rank}(\operatorname{Lie}(X_1,\dots,X_m)) = \dim(\mathfrak{g})$.
 ====================================================================================================
 """
 from __future__ import annotations
