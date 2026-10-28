@@ -1,57 +1,84 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Intuition Witness Agent (Soberano Testigo de Intuición)      ║
-║ Ubicación: app/agents/wisdom/toon_intuition_witness_agent.py                 ║
-║ Versión  : 8.0.0-SOVEREIGN-RSI3-POINCARE-GAUGE-KAM-QND-HEYTING-ESP32-PhD     ║
-║ Función  : Soberano de Calibre, Medición Débil QND y Gobernanza Agéntica     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo   : TOON Intuition Witness Agent (Soberano Testigo de Intuición)                              ║
+║ Ubicación: app/agents/wisdom/toon_intuition_witness_agent.py                                         ║
+║ Versión  : 9.0.0-SOVEREIGN-RSI3-POINCARE-GAUGE-KAM-QND-HEYTING-ESP32-PhD                             ║
+║ Función  : Soberano de Calibre, Medición Débil QND y Gobernanza Agéntica                             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-EVOLUCIÓN 8.0.0 (tejido granular Poincaré ⊕ RSI³ ⊕ calibre Chern–Wilson):
-  • FASE 1: fibrado P(Gr(r,n), U(1)), conexión anti-hermítica en 𝔲(n), curvatura
-    F = dA + A∧A, CS₃ normalizado, c₁ de Chern–Hopf, holonomía de Wilson vía
-    𝒫exp, acoplamiento geodésico de Maupertuis–Poincaré y sello HMAC-SHA-256
-    con separación de dominio.
-  • FASE 2: ingesta estricta del contrato, campañas QND (motor v8 o respaldo
-    espectral), Bures–Uhlmann, Berry–Hopf, Kelly simpléctico, agregados KAM/
-    Greene/Floquet y torre monádica RSI³ del agente.
-  • FASE 3: Ω₃, válvula de alivio (3600 s), interlock simulado ≤ 398.95 ns,
-    aniquilación e⁺ por HMAC (sin bypass de longitud), funtor Φ_sem y estado
-    sellado.
-  • Anidación estricta: el último método de la fase k es el homomorfismo de
-    continuación que abre la fase k+1 (F1→F2→F3) sin discontinuidad analítica.
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONIntuitionWitnessAgent` actúa como el Soberano Agéntico de Calibre y Gobernanza
+para el Testigo de Intuición QND. En coordinación directa con su motor espectral
+`TOONIntuitionWitnessEngine` (`app/wisdom/toon_intuition_witness_engine.py`), supervisa
+la estructura de calibre del fibrado principal $P(\text{Gr}(r,n), U(1))$, conduce campañas de
+medición débil AAV, audita la invariancia de Chern-Simons $\text{CS}_3(A)$, adjudica estados
+en el retículo distributivo de Heyting $\Omega_3$, y proyecta los resultados hacia el funtor
+semántico $\Phi_{\text{sem}}$ ("Riesgo, Dolor y Dinero").
+Su arquitectura operativa se estructura en tres fases anidadas e indivisibles:
+  - FASE 1: Topología de Calibre Grassmanniana, 1-forma de conexión $A \in \mathfrak{u}(n)$,
+    curvatura de Yang-Mills $F = dA + A \wedge A$, 3-forma de Chern-Simons $\text{CS}_3$, clase de
+    Chern-Hopf $c_1$, holonomía de Wilson $\mathcal{W}(C) = \frac{1}{n} \text{Tr} \mathcal{P} \exp \oint_C A$
+    y acoplamiento a la geodésica conforme de Maupertuis-Poincaré.
+  - FASE 2: Campañas de observación débil QND sobre saltos intuitivos flash, geometría de
+    Bures-Wasserstein-Uhlmann, holonomía de Berry sobre la fibración de Hopf y la torre
+    monádica de automejora RSI³ $\mathbb{T} = (T, \eta, \mu)$.
+  - FASE 3: Adjudicación en el álgebra de Heyting $\Omega_3$, control de la válvula de alivio
+    (3600 s), interlock ciber-físico simulado ($\le 398.95\text{ ns}$), aniquilación de positrones
+    con firma HMAC estricta ($e^- + e^+ \to 2\gamma$) y proyección del funtor semántico $\Phi_{\text{sem}}$.
 
-ARQUITECTURA DE GOBERNANZA DE CALIBRE Y MEDICIÓN QND EN 3 FASES ANIDADAS:
-══════════════════════════════════════════════════════════════════════════════════
-FASE 1: Topología de Calibre Grassmanniana, Invariante de Chern-Simons CS₃,
-        Clase de Chern-Hopf c₁ y Holonomía de Wilson Poincaré-Maupertuis.
-        - Fibrado principal P(Gr(r,n), U(1)) y conexión A ∈ Ω¹(M, 𝔲(n)).
-        - CS₃(A) = (1/(8π²)) Tr(A ∧ dA + (2/3) A∧A∧A)  (discretización matricial).
-        - c₁ = (1/(2π)) Tr(F_A),  F = dA + A∧A.
-        - Wilson 𝒲(C) = (1/n) Tr(𝒫 exp ∮_C A) vía expm.
-        - Geodésica conforme de Maupertuis y residuo tipo Greene del lazo.
-        - INTERFAZ TERMINAL / APERTURA FASE 2: `continue_into_phase2_campaign_gate`.
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. FIBRADO GRASSMANNIANO Y HOLONOMÍA DE WILSON EN CALIBRE:
+   Sobre la variedad de Grassmann $\text{Gr}(r,n)$, se define el fibrado principal $P(\text{Gr}(r,n), U(1))$
+   con la 1-forma de conexión anti-hermítica $A \in \Omega^1(\mathcal{M}, \mathfrak{u}(n))$:
+     $$A = -i \, \text{diag}(\lambda_k - \bar{\lambda} + \tau \xi_k) \in \mathfrak{u}(n)$$
+   La 2-forma de curvatura de Yang-Mills $F_A = dA + A \wedge A \cong A^2$, el invariante de Chern-Simons
+   y la primera clase de Chern $c_1$ se evalúan como:
+     $$\text{CS}_3(A) = \frac{1}{8\pi^2} \text{Tr}\left(A \wedge dA + \frac{2}{3} A \wedge A \wedge A\right)$$
+     $$c_1(F_A) = \frac{1}{2\pi} \text{Tr}(F_A)$$
+   El bucle de Wilson calcula el transporte paralelo a lo largo de un lazo cerrado $C$:
+     $$\mathcal{W}(C) = \frac{1}{n} \text{Tr}\left( \mathcal{P} \exp \oint_C A \right) = \frac{1}{n} \text{Tr}(\exp A)$$
 
-FASE 2: Campañas de Observación Débil QND, Geometría Bures-Wasserstein-Uhlmann,
-        Fase de Berry-Pancharatnam y Automejora Monádica RSI³.
-        - CONTINUACIÓN FORMAL: ingesta estricta de `IntuitionWitnessGaugeContract`.
-        - AAV: A_w = ⟨φ_f|A|φ_i⟩ / ⟨φ_f|φ_i⟩, Back-Action 0.0 dB.
-        - F(ρ,σ), d_B = √(2−2√F), d_FS = arccos(√F).
-        - Holonomía de Berry sobre S¹ ↪ S^{2n−1} → ℂP^{n−1}.
-        - Kelly simpléctico s = κ f* e^{−h_KS} y agregados Poincaré (R_G, twist).
-        - Mónada cartesiana 𝕋 = (T, η, μ) con contracción de Banach del rate RSI³.
-        - INTERFAZ TERMINAL / APERTURA FASE 3: `continue_into_phase3_adjudication_gate`.
+2.2. CAMPAÑAS QND Y MÓNADA CARTESIANA DE AUTOMEJORA RSI³:
+   La campaña de observación QND evalúa valores débiles $A_w = \frac{\langle \phi_f | A | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}$
+   con retroacción nula ($\text{Back-Action} \equiv 0.0\text{ dB}$).
+   La torre monádica RSI³ del agente actua sobre la mónada $\mathbb{T} = (T, \eta, \mu)$ adaptando la tasa de automejora:
+     $$R_1 (\text{Objeto}): r_{k+1} = 0.25 e^{-c_G / 50} F^2$$
+     $$R_2 (\text{Mejorador}): r_{k+1} = \frac{r_{k+1}}{1 + d_B}$$
+     $$R_3 (\text{Meta-Mejorador}): r_{k+1} = \frac{r_{k+1} + r_k}{2}$$
+   La contracción de Banach $|r_{k+1} - r_k| < \varepsilon_T$ certifica la estabilidad del lazo.
 
-FASE 3: Adjudicación en el Retículo de Heyting Ω₃, Válvula de Alivio,
-        Interlock simulado, Aniquilación e⁺ y Funtor Semántico Φ_sem.
-        - CONTINUACIÓN FORMAL: ingesta estricta de `IntuitionWitnessCampaignResult`.
-        - Ω₃ = {VETOED=0, DEGRADED=1, COHERENT=2} con ∧, ∨, →, ¬.
-        - Válvula de alivio: ventana de recirculación de 3600 s ante veto suave.
-        - Interlock simulado (latencia acotada ≤ 398.95 ns). No accede a GPIO real.
-        - e⁻ + e⁺ → 2γ (1022.0 keV) con HMAC de autorización humana.
-        - Φ_sem : Topos_Sheaf → Economics_WACC  (riesgo, dolor y dinero).
-        - INTERFAZ TERMINAL: `IntuitionSovereignGovernanceSealedState`.
-══════════════════════════════════════════════════════════════════════════════════
+2.3. HEYTING Ω₃, CROWBAR SIMULADO Y FOCK VACUUM ANNIHILATION:
+   La adjudicación final colapsa en el álgebra de Heyting $\Omega_3 = \{\text{VETOED}=0, \text{DEGRADED}=1, \text{COHERENT}=2\}$.
+   En caso de veto suave ($\text{DEGRADED}$), la válvula de alivio permite recirculación durante 3600 s.
+   En caso de veto duro ($\text{VETOED}$), se activa el interlock simulado en el pin GPIO14 con $t_{\text{act}} \le 398.95\text{ ns}$.
+   La aniquilación de anomalías en el Vacío de Dirac $e^- + e^+ \to 2\gamma$ ($1022.0\text{ keV}$) se autoriza únicamente
+   si el token satisface la firma de dominación $\text{HMAC-SHA-256}(K, \text{Domain} \parallel \text{AnomalyID})$ verificado por `compare_digest`.
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (INTEGRIDAD CRIPTO-TOPOLÓGICA DEL CONTRATO DE CALIBRE):
+    Todo contrato forjado en la Fase 1 incorpora la firma $\text{HMAC-SHA-256}(K_{\text{secret}}, \text{Domain} \parallel \text{Payload})$,
+    impidiendo alteraciones o adulteraciones en la transferencia inter-fase.
+
+  AXIOMA II (UNINIBICIÓN DE RETROACCIÓN CUÁNTICA EN CAMPAÑAS):
+    Toda campaña de medición débil QND conducida por el soberano verifica de manera estricta $\text{Back-Action} \equiv 0.0\text{ dB}$.
+
+  AXIOMA III (AUTENTICACIÓN INVOLUTIVA DE POSITRONES EN DIRAC):
+    La purga $e^- + e^+ \to 2\gamma$ exige verificación $\text{compare\_digest}$ del token HMAC del positrón, garantizando la imposibilidad de bypass por longitud o temporización.
+
+  AXIOMA IV (ACOTACIÓN TEMPORAL DE LA VÁLVULA DE ALIVIO):
+    La ventana de recirculación para estados $\text{DEGRADED}$ expira de manera determinista al transcurrir $t > 3600.0\text{ s}$, escalando el veredicto a $\text{VETOED}$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. PERTENENCIA AL ÁLGEBRA DE LIE ANTI-HERMÍTICA: $A \in \mathfrak{u}(n) \implies A^\dagger = -A$.
+  2. ACOTACIÓN DE HOLONOMÍA DE WILSON: $|\theta_W| \le \theta_{\text{veto}} = 1.20\text{ rad}$.
+  3. FIDELIDAD MÍNIMA DE UHLMANN: $F_{\lfloor} \ge 0.50$.
+  4. COTA DE LATENCIA DE ACTUACIÓN ESP32: $t_{\text{crowbar}} \le 398.95\text{ ns}$.
+  5. CONSERVACIÓN DEL WACC EN Φ_sem: Protección WACC del 15.0% en régimen coherente.
 """
 
 from __future__ import annotations

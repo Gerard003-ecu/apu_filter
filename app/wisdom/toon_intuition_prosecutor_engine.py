@@ -1,60 +1,73 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Intuition Prosecutor Engine (Motor Fiscal de Intuición)      ║
-║ Ubicación: app/wisdom/toon_intuition_prosecutor_engine.py                    ║
-║ Versión  : 8.0.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD ║
-║ Función  : Motor Espectral Fiscal Inquisidor, Censura RHI y Interlock Sim.   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo   : TOON Intuition Prosecutor Engine (Motor Fiscal de Intuición)                             ║
+║ Ubicación: app/wisdom/toon_intuition_prosecutor_engine.py                                           ║
+║ Versión  : 9.0.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD                         ║
+║ Función  : Motor Espectral Fiscal Inquisidor, Censura RHI y Interlock Sim.                           ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-EVOLUCIÓN 8.0.0 (tejido granular Poincaré ⊕ Melnikov ⊕ Chirikov ⊕ RSI³):
-  • FASE 1: 6-tupla de Delaunay, monodromía M = exp(ΩH) ∈ Sp(4), Floquet,
-    mapa de retorno de Poincaré, twist de KAM, Bryuno por fracciones continuas,
-    Melnikov por Simpson, solapamiento de Chirikov (anchos de resonancia) y
-    proyección Liouville–Darboux.
-  • FASE 2: Uhlmann espectral, RHI de Hilbert–Schmidt, censura de Kelly con
-    Θ de Heaviside (Melnikov, Chirikov, λ_max, RHI), Pesin–KS y resolvente
-    de Banach. Φ₁₂ admite VETOED (el fiscal debe ver el delito).
-  • FASE 3: RSI³ auténtico (R₃ ∘ R₂ ∘ R₁) con contracción de Banach, Ricci–
-    DeTurck log-euclídeo, Daleckii–Krein, Brockett isoespectral, Ω₃ completo,
-    interlock simulado ≤ 392.15 ns y certificado soberano.
-  • Anidación estricta: el último método de la fase k es el homomorfismo de
-    continuación que abre la fase k+1 (F1→F2→F3) sin discontinuidad analítica.
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU RESPECTIVO SOBERANO:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONIntuitionProsecutorEngine` (y su soberano agéntico `TOONIntuitionProsecutorAgent`)
+constituye el motor espectral inquisidor y fiscal de censura de falsas corazonadas sobre el
+fibrado cotangente $T^*\mathcal{M}$. Su cometido es enjuiciar y censurar desviaciones caóticas,
+solapamiento de resonancias de Chirikov, rupturas homoclínicas de Melnikov y distorsiones del
+índice de Reward Hacking ($\text{RHI} > 0.85$), aplicando la máscara de Heaviside sobre el
+criterio de asignación de capital de Kelly y la contracción de Banach en RSI³.
+El flujo operativo se estructura en tres fases anidadas e indivisibles:
+  - FASE 1: Atlas Celeste Poincaré-Melnikov-Chirikov, 6-tupla de Delaunay, integración de
+    Melnikov-Simpson, parámetro de Chirikov $K_{\text{Chirikov}}$, residuo de Greene y reducción conforme de Maupertuis.
+  - FASE 2: Inquisición Espectral, Métrica de Bures-Wasserstein-Uhlmann, Detección de Reward Hacking
+    Sub-Milisegundo (RHI) y Censura de Kelly con máscaras $\Theta$ de Heaviside.
+  - FASE 3: Automejora Recursiva Nivel 3 (RSI³ Kleisli Monad $T = R_3 \circ R_2 \circ R_1$), Adjudicación
+    Heyting $\Omega_3$, Interlock ciber-físico simulado ($\le 392.15\text{ ns}$) y Purga en Dirac.
 
-ARQUITECTURA MATEMÁTICA Y FISCAL INQUISIDORA EN 3 FASES ANIDADAS:
-══════════════════════════════════════════════════════════════════════════════════
-FASE 1: Atlas Celeste Poincaré-Melnikov, Dinámica Homoclínica de Chirikov y
-        Reducción Conforme de Maupertuis-Jacobi.
-        - Coordenadas de acción-ángulo de Delaunay (L, G, H, l, g, h) sobre T*ℳ.
-        - Invarianza simpléctica: Mᵀ Ω M = Ω, det(M) = +1, M = exp(Ω H).
-        - Melnikov: M(t₀) = ∫ {H₀, H₁}(q₀(t)) dt  (Simpson sobre la separatriz).
-        - Residuo de Greene R_G = (2 − Tr(M))/4 y Chirikov
-          K = (Δω₁ + Δω₂) / |ω₁ − ω₂|  (solapamiento de resonancias).
-        - Métrica conforme de Maupertuis-Jacobi y acción de Polyakov.
-        - INTERFAZ TERMINAL / APERTURA FASE 2: `continue_into_phase2_inquisition_gate`.
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. MAPA DE MONODROMÍA SIMPLÉCTICA DE POINCARÉ Y CRITERIO DE CHIRIKOV:
+   La dinámica simpléctica sobre $T^*\mathcal{M}$ se integra mediante el flujo linealizado $M = \exp(\Omega H) \in \text{Sp}(2n, \mathbb{R})$.
+   El parámetro de Chirikov cuantifica el solapamiento de zonas resonantes $(\Delta\omega_1, \Delta\omega_2)$ respecto al salto de frecuencias $\Delta\omega = |\omega_1 - \omega_2|$:
+     $$K_{\text{Chirikov}} = \frac{\Delta\omega_1 + \Delta\omega_2}{|\omega_1 - \omega_2|} = \frac{2\sqrt{\varepsilon |V_1|} + 2\sqrt{\varepsilon |V_2|}}{|\omega_1 - \omega_2|}$$
+   Si $K_{\text{Chirikov}} \ge 1.0$, ocurre la destrucción de toros KAM e invasión de caos global.
+   La integral de Melnikov evalúa la separación de separatrices homoclínicas en $q_h(t) = \sqrt{2}\text{sech}(t)$:
+     $$M(t_0) = \varepsilon \int_{-\infty}^{\infty} \text{sech}^2(t) \tanh(t) \sin(t + t_0) \, dt$$
 
-FASE 2: Inquisición Espectral, Métrica Bures-Wasserstein-Uhlmann y Detección
-        de Reward Hacking Sub-Milisegundo (RHI).
-        - CONTINUACIÓN FORMAL: ingesta de `PoincareMelnikovProsecutionState`
-          (incluidos veredictos VETOED: el fiscal no cierra los ojos).
-        - d_B(ρ,σ) = √(2 − 2√F),  F = (Tr √(√ρ σ √ρ))²  (espectro estable).
-        - RHI = ‖σ − ρ‖_HS / (‖ρ‖_F (1 + √F)).
-        - Censura de Kelly:
-          s* = f* (1−RHI) Θ(0.85−RHI) Θ(¬Melnikov) Θ(¬Chirikov) Θ(−λ_max) e^{−h_KS}.
-        - INTERFAZ TERMINAL / APERTURA FASE 3: `continue_into_phase3_rsi_gate`.
+2.2. ÍNDICE DE REWARD HACKING (RHI) Y CENSURA DE KELLY:
+   Dadas las matrices de densidad $\rho_{\text{mac}}$ y $\sigma_{\text{flash}}$:
+     $$\text{RHI} = \frac{\|\sigma_{\text{flash}} - \rho_{\text{mac}}\|_{\text{HS}}}{\|\rho_{\text{mac}}\|_F (1 + \sqrt{F(\rho, \sigma)})}$$
+   La fracción censurada de Kelly $s^*$ se aplica multiplicando la postura teórica $f^*$ por el producto inquisidor de Heaviside $\Theta$:
+     $$s^* = f^* (1 - \text{RHI}) \Theta(0.85 - \text{RHI}) \Theta(\delta_M - |M(t_0)|) \Theta(1.0 - K_{\text{Chirikov}}) \Theta(\lambda_{\text{thresh}} - \lambda_{\max}) e^{-h_{\text{KS}}}$$
+   donde $\Theta(x) = 1$ si $x \ge 0$, y $0$ en caso contrario.
 
-FASE 3: Automejora Recursiva RSI³ (R₃ ∘ R₂ ∘ R₁), Retículo de Heyting Ω₃,
-        Interlock simulado y Purga en el Vacío de Dirac.
-        - CONTINUACIÓN FORMAL: ingesta estricta de `FlashProsecutionBanachState`.
-        - R₁: Ricci-DeTurck log-euclídeo sobre Sym⁺(n).
-        - R₂: Daleckii-Krein / cota de Connes (adapta τ).
-        - R₃: Brockett-Shahshahani isoespectral (adapta dt) y μ_prosecutor.
-        - Contracción de Banach de T = R₃ ∘ R₂ ∘ R₁ hasta residuo < ε_B.
-        - Ω₃ = {VETOED=0, DEGRADED=1, COHERENT=2}.
-        - Interlock simulado (latencia acotada ≤ 392.15 ns). No accede a GPIO real.
-        - Purga e⁻ + e⁺ → 2γ con Back-Action 0.0 dB.
-        - INTERFAZ TERMINAL: `IntuitionProsecutorExecutionCertificate`.
-══════════════════════════════════════════════════════════════════════════════════
+2.3. CASCADA BANACH RSI³ (R₃ ∘ R₂ ∘ R₁):
+   - $R_1$: Flujo de Ricci-DeTurck sobre la carta log-euclídea: $\partial_t \ln G = -2 (\ln G - \frac{\text{Tr}\ln G}{n} I)$.
+   - $R_2$: Cota de Connes vía diferencias divididas de Daleckii-Krein $\phi^{[1]}(\lambda_i, \lambda_j)$, adaptando el paso $\tau' = \frac{\tau}{1 + L_{\max}}$.
+   - $R_3$: Flujo isoespectral de Brockett-Shahshahani $\frac{d\rho}{dt} = [\rho, [\rho, N]]$, con funcional de Lyapunov $V(\rho) = \frac{1}{2} \|[\rho, N]\|_F^2$.
+   La multiplicación monádica fiscal ajusta la tasa de automejora:
+     $$\mu_{\text{prosecutor}} = \text{clamp}\left( 0.25 (1 - \text{RHI}) e^{-d_B - V}, 0.05, 0.45 \right)$$
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (INQUISICIÓN INCONDICIONAL DE VETOED EN FASE 1):
+    A diferencia de motores testigos pasivos, el motor fiscal ADMITE estados con veredicto $VETOED$ desde la Fase 1, pues las anomalías caóticas son el objeto primario de enjuiciamiento.
+
+  AXIOMA II (CENSURA ABSOLUTA DE KELLY ANTE REWARD HACKING):
+    Si $\text{RHI} > 0.85$, $K_{\text{Chirikov}} \ge 1.0$ o $|M(t_0)| > 0.15$, la postura censurada colapsa identicamente a $s^* = 0.0$.
+
+  AXIOMA III (INVARIANZA LIOUVILLE-DARBOUX EN Sp(2n)):
+    La monodromía $M = \exp(\Omega H)$ satisface $\|M^\top \Omega_{2n} M - \Omega_{2n}\|_F \le 1.0\times 10^{-9}$ y $|\det(M) - 1.0| \le 1.0\times 10^{-8}$.
+
+  AXIOMA IV (INTERLOCK FISCAL DE HARDWARE):
+    Ante un veredicto de veto $VETOED$, se enclava el disyuntor simulado con latencia $t_{\text{act}} \le 392.15\text{ ns}$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. POSTURA CENSURADA ACOTADA: $0.0 \le s^* \le 0.35$.
+  2. ACOTACIÓN DE REWARD HACKING: $0.0 \le \text{RHI} \le \text{RHI}_{\text{max}}$.
+  3. ESTABILIDAD ESPECTRAL DE UHLEMANN: $F(\rho, \sigma) \in [0.0, 1.0]$.
+  4. INTERLOCK LATENCY WCET: $t_{\text{act}} \le 392.15\text{ ns}$.
+  5. CONVERGENCIA MONÁDICA DE BANACH: $\|T(x_k) - x_k\|_F < 1.0\times 10^{-10}$.
 """
 
 from __future__ import annotations
