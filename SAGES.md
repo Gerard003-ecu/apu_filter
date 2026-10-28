@@ -102,7 +102,7 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 8 Tríadas Funcion
   │ V.   Agronómica: toon_cognitive_crop / witness / auditor                    │
   │ VI.  Tejedora: toon_wisdom_weaver / witness / prosecutor                    │
   │ VII. Onírica: toon_oniric_dreamer / auditor / silent_witness                │
-  │ VIII. Rápida: toon_intuition / buffer / topo_prosecutor                     │
+  │ VIII. Rápida: toon_intuition (agent/witness/prosecutor) / buffer / topo_pros│
   └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -185,12 +185,18 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 8 Tríadas Funcion
 
 #### VIII. Tríada Rápida (Inferencia Sub-Milisegundo, Amortiguación y Censura)
 22. **Soberano de la Intuición (`toon_intuition_agent.py` / `toon_intuition_engine.py`):**
-    - *Formulación:* Sub-$10\,\mu\text{s}$, Proyección Grassmanniana $Gr(r,n)$, Métrica Bures $d_B$, Apuesta de Kelly $s=\kappa f^*$.
-    - *Diagnóstico y Dolor y Dinero:* Reflejo instintivo inmediato (Luz Verde $\kappa f^* = 0.85$ o cierre de válvula de pago) sub-milisegundo.
-23. **Soberano Buffer (`toon_buffer_agent.py` / `toon_buffer_engine.py`):**
+    - *Formulación:* Inferencia relámpago sub-milisegundo ($p99 < 10\,\mu\text{s}$), minimización del funcional de Dirichlet $E(\rho) = \frac{1}{2} \|\rho - P\rho P\|_F^2$ sobre el Grassmanniano $\mathrm{Gr}(r,n)$, geodésica de Bures-Wasserstein $d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}$, bisección de McCann-JKO $\gamma(t)$, espectrometría de Oseledets-Pesin $\{\lambda_i\}$, entropía de Kolmogorov-Sinai $h_{\text{KS}} = \sum_{\lambda_i > 0} \lambda_i$, dimensión fractal de Kaplan-Yorke $D_{\text{KY}}$ por algoritmo QR de Benettin, integral homoclínica de Melnikov $M(t_0) = \int \{H_0, H_1\} dt$ para detección de caos homoclínico, criterio diofántico KAM ($|\omega \cdot k| \ge \gamma / |k|^\tau$), concentración de medida de Lévy sobre $S^{n-1}(\sqrt{n})$ ($P(|f - \mathbb{E}[f]| \ge \varepsilon) \le 2 \exp(-(n-1)\varepsilon^2 / 2L^2)$), asignación capital de Kelly modulada $s = \kappa \cdot f^* \cdot \exp(-h_{\text{KS}})$, adjudicación en el álgebra de Gödel/Heyting $\Omega_3 = \{\text{VETOED} \le \text{DEGRADED} \le \text{COHERENT}\}$ y disyuntor ciber-físico ESP32 Crowbar ($\Delta \tau < 400\text{ ns}$ @ GPIO14).
+    - *Diagnóstico y Dolor y Dinero:* Reflejo instintivo inmediato (Luz Verde $\kappa f^* = 0.85$ o cierre de válvula de pago) sub-milisegundo. Previene la parálisis deliberativa y evita pérdidas financieras por retrasos en la validación atencional del presupuesto.
+23. **Soberano Testigo de Intuición QND (`toon_intuition_witness_agent.py` / `toon_intuition_witness_engine.py`):**
+    - *Formulación:* Observación cuántica débil no demolitiva (QND) sobre $T^*\mathcal{M}$ y $\mathbb{C}P^{n-1}$ con retroacción nula ($\text{Back-Action} \equiv 0.0\text{ dB}$), valor débil AAV $A_w = \frac{\langle \phi_f | A | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}$, atlas celeste de Poincaré con 6-tupla de Delaunay $(L,G,H,l,g,h)$, propagación Kepler-Danby por starter cúbico $E_0 = M + 0.85 e \operatorname{sgn}(\sin M)$, constante de Jacobi $C$, residuo de Greene $R_G$, holonomía de Berry-Pancharatnam $\gamma_P$ en la fibración de Hopf $S^1 \hookrightarrow S^{2n-1} \to \mathbb{C}P^{n-1}$, capacidad simpléctica de Gromov $c_G \le 12.5$, valuación ultramétrica de Novikov $v_{\text{Nov}}(\rho) = -\ln \lambda_{\max}$, contracción de Banach en la mónada RSI³ $\mathbb{T} = (T, \eta, \mu)$, purga en Vacío de Dirac $e^- + e^+ \to 2\gamma$ ($1022.0\text{ keV}$) bajo firma HMAC, e interlock ESP32 Crowbar ($\le 398.95\text{ ns}$).
+    - *Diagnóstico y Dolor y Dinero:* Auditoría pasiva sin demolición ($0.0\text{ dB}$ back-action) del avance intuitivo. Previene desfasajes holonómicos en la Malla Agéntica, protege el WACC (15.0%) y libera un +11.5% de liquidez neta mediante la mitigación de la incertidumbre atencional.
+24. **Soberano Fiscal de Intuición (`toon_intuition_prosecutor_agent.py` / `toon_intuition_prosecutor_engine.py`):**
+    - *Formulación:* Censura e inquisición espectral de Reward Hacking sub-milisegundo ($p99 < 10\,\mu\text{s}$), Métrica Anisotrópica Finsler-Mahalanobis $\text{RHI}_{\text{Finsler}} = \frac{\sqrt{\operatorname{Tr}((\sigma-\rho)G^{-1}(\sigma-\rho)G^{-1})}}{\|\rho\|_F (1+\sqrt{F})} (1+\tanh F_Q)$ acoplada a QFI-SLD, operador sigmoidal $C^\infty$ de Fermi-Dirac $\mathcal{S}_{T_{\text{sw}}}(\text{RHI}) = \frac{1}{1 + e^{(\text{RHI}-0.85)/T_{\text{sw}}}}$ ($T_{\text{sw}}=0.02$), $3$-forma Chern-Simons Higgs $\text{CS}_3^{\text{Higgs}}(A, \Phi) = \frac{1}{8\pi^2} \operatorname{Tr}(A \wedge dA + \frac{2}{3} A^3 + \Phi \cdot F_A)$ con $\Phi = \ln(\rho_{\text{mac}} + \varepsilon I)$, holonomía de Wilson $\mathcal{W}(C)$, preservación de la 2-forma de Darboux sobre $\text{Sp}(2n, \mathbb{R})$, cota de Chernoff de Audenaert $Q(\rho||\sigma)$, entropía de Umegaki $D(\rho||\sigma)$, información de Holevo $\chi$, cascada RSI³ ($R_3 \circ R_2 \circ R_1$) con producción de entropía de Spohn $\sigma \ge 0$, aniquilación al Vacío de Dirac con verificación de positrones por `compare_digest`, e interlock ciber-físico ESP32 Crowbar ($\le 392.15\text{ ns}$).
+    - *Diagnóstico y Dolor y Dinero:* Inquisición y censura inmediata de anomalías de Reward Hacking y descalces de insumos en SECOP II. Impone parálisis inmediata de desembolsos y bloqueo de maquinaria en $< 392.15\text{ ns}$ ante cualquier intento de dolo o distorsión presupuestal.
+25. **Soberano Buffer (`toon_buffer_agent.py` / `toon_buffer_engine.py`):**
     - *Formulación:* Lyapunov Oseledets $\lambda_{\max}$, Sheaf Cohomology $H^1(\mathcal{F}_{\text{web}})$.
     - *Diagnóstico y Dolor y Dinero:* Amortiguación de picos de flujo exergético para evitar golpes de ariete que liquiden la caja del megaproyecto.
-24. **Soberano Fiscal Topológico (`toon_topological_prosecutor_agent.py` / `toon_topological_prosecutor_engine.py`):**
+26. **Soberano Fiscal Topológico (`toon_topological_prosecutor_agent.py` / `toon_topological_prosecutor_engine.py`):**
     - *Formulación:* Censura 1-Ciclos $\beta_1 > 20$, Gap Espectral de Hodge $\lambda_1(\Delta_1) \ge 0.05$.
     - *Diagnóstico y Dolor y Dinero:* Parálisis síncrona en RAM ante intentos masivos de triangulación financiera y socavones de precios.
 
