@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Intuition Prosecutor Agent (Soberano Fiscal de Intuición)                            ║
-║ Ubicación: app/agents/wisdom/toon_intuition_prosecutor_agent.py                                     ║
+║ Ubicación: app/agents/wisdom/toon_intuition_prosecutor_agent.py                                      ║
 ║ Versión  : 9.0.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD                         ║
 ║ Función  : Soberano Fiscal de Calibre Inquisidor, Censura RHI y Gobernanza Agéntica                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
