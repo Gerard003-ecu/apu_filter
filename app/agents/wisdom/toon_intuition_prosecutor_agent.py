@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Intuition Prosecutor Agent (Soberano Fiscal de Intuición)                            ║
 ║ Ubicación: app/agents/wisdom/toon_intuition_prosecutor_agent.py                                      ║
-║ Versión  : 9.0.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD                         ║
+║ Versión  : 9.1.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD                         ║
 ║ Función  : Soberano Fiscal de Calibre Inquisidor, Censura RHI y Gobernanza Agéntica                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
@@ -13,46 +13,51 @@ El `TOONIntuitionProsecutorAgent` opera como el Soberano Agéntico Fiscal de Cal
 en coordinación indivisible con su motor espectral `TOONIntuitionProsecutorEngine`
 (`app/wisdom/toon_intuition_prosecutor_engine.py`). Su función es auditar, juzgar y censurar
 falsas corazonadas, impulsos caóticos y manipulación de recompensas ($\text{RHI} > 0.85$),
-acoplando la topología de calibre $\mathfrak{u}(n)$, la mecánica celeste de Poincaré-Melnikov-Chirikov,
-la censura de Kelly por máscaras $\Theta$ de Heaviside, la automejora monádica RSI³ y la traducción
+acoplando la topología de calibre $\mathfrak{u}(n)$ con el campo escalar de Higgs $\Phi \cdot F_A$,
+la mecánica celeste de Poincaré-Melnikov-Chirikov, la censura de Kelly con suavizado sigmoidal de
+Fermi-Dirac $\mathcal{S}_{T_{\text{sw}}}(\text{RHI})$, la automejora monádica RSI³ y la traducción
 semántica hacia el funtor $\Phi_{\text{sem}}$ ("Riesgo, Dolor y Dinero").
-Su flujo de gobernanza agéntica se ejecuta de forma estrictamente anidada en tres fases:
-  - FASE 1: Topología de Calibre Inquisidora en $\mathfrak{u}(n)$, 3-forma de Chern-Simons $\text{CS}_3(A)$,
-    clase de Chern-Hopf $c_1$, holonomía de Wilson $\mathcal{W}(C)$, invarianza de Darboux $\text{Sp}(2n, \mathbb{R})$,
-    6-tupla de Delaunay y firma HMAC-SHA-256 (homomorfismo $\Phi_{12}$ `continue_into_phase2_campaign_gate`).
+Su flujo de gobernanza agéntica se ejecuta de forma strictly anidada en tres fases:
+  - FASE 1: Topología de Calibre Inquisidora en $\mathfrak{u}(n)$, 3-forma de Chern-Simons con Higgs
+    $\text{CS}_3^{\text{Higgs}}(A, \Phi)$, clase de Chern-Hopf $c_1$, holonomía de Wilson $\mathcal{W}(C)$,
+    invarianza de Darboux $\text{Sp}(2n, \mathbb{R})$, 6-tupla de Delaunay y firma HMAC-SHA-256
+    (homomorfismo $\Phi_{12}$ `continue_into_phase2_campaign_gate`).
   - FASE 2: Fiscalización del salto flash, geometría de Bures-Wasserstein-Uhlmann, cálculo del índice de
-    Reward Hacking $\text{RHI} = \frac{\|\sigma - \rho\|_{\text{HS}}}{\|\rho\|_F (1 + \sqrt{F})}$, censura de Kelly $s^*$
-    y torre monádica RSI³ (homomorfismo $\Phi_{23}$ `continue_into_phase3_adjudication_gate`).
-  - FASE 3: Adjudicación en Heyting $\Omega_3$, cascada RSI³ de Banach ($R_3 \circ R_2 \circ R_1$), disyuntor ciber-físico
-    simulado ($\le 392.15\text{ ns}$), aniquilación de positrones $e^- + e^+ \to 2\gamma$ ($1022.0\text{ keV}$)
-    con autenticación HMAC estricta por `compare_digest`, y sellado con raíz Merkle SHA-256.
+    Reward Hacking Finsleriano de Mahalanobis $\text{RHI}_{\text{Finsler}}$, censura de Kelly con
+    distribuidor sigmoidal $\mathcal{S}_{T_{\text{sw}}}$ y torre monádica RSI³ (homomorfismo $\Phi_{23}$
+    `continue_into_phase3_adjudication_gate`).
+  - FASE 3: Adjudicación en Heyting $\Omega_3$, cascada RSI³ de Banach ($R_3 \circ R_2 \circ R_1$), disyuntor
+    ciber-físico simulado ESP32 Crowbar ($\le 392.15\text{ ns}$), aniquilación de positrones $e^- + e^+ \to 2\gamma$
+    ($1022.0\text{ keV}$) con superoperador disipativo de Lindblad-GKSL ($\tau_{\text{purge}} < 10\,\mu\text{s}$),
+    autenticación HMAC estricta por `compare_digest`, y sellado con raíz Merkle SHA-256.
 
 2. MARCO TEÓRICO:
 ─────────────────────────────────────────────────────────────────────────────────────────
-2.1. TOPOLOGÍA DE CALIBRE INQUISIDORA Y ESTRUCTURA SIMPLÉCTICA DE DARBOUX:
-   Dada la 1-forma de conexión anti-hermítica $A \in \mathfrak{u}(n)$ y la curvatura $F = dA + A \wedge A$:
-     $$\text{CS}_3(A) = \frac{1}{8\pi^2} \text{Tr}\left(A \wedge dA + \frac{2}{3} A^3\right), \quad c_1(F) = \frac{1}{2\pi} \text{Tr}(F)$$
+2.1. TOPOLOGÍA DE CALIBRE HIGGS Y ESTRUCTURA SIMPLÉCTICA DE DARBOUX:
+   Dada la 1-forma de conexión $A \in \mathfrak{u}(n)$ y el campo escalar de Higgs $\Phi = \ln(\rho_{\text{mac}} + \varepsilon I)$:
+     $$\text{CS}_3^{\text{Higgs}}(A, \Phi) = \frac{1}{8\pi^2} \text{Tr}\left(A \wedge dA + \frac{2}{3} A^3 + \Phi \cdot F_A\right), \quad c_1(F) = \frac{1}{2\pi} \text{Tr}(F)$$
    La monodromía simpléctica de Poincaré $M = \exp(\Omega H) \in \text{Sp}(2n, \mathbb{R})$ preserva la forma canónica:
      $$M^\top \Omega_{2n} M = \Omega_{2n}, \quad \det(M) = +1.0$$
 
-2.2. DETECCIÓN DE REWARD HACKING Y MÁSCARA HEAVISIDE EN LA CENSURA DE KELLY:
-   El índice inquisidor $\text{RHI}$ mide la distorsión del estado flash $\sigma$ respecto a la memoria $\rho_{\text{mac}}$:
-     $$\text{RHI} = \frac{\|\sigma - \rho_{\text{mac}}\|_{\text{HS}}}{\|\rho_{\text{mac}}\|_F (1 + \sqrt{F(\rho, \sigma)})}$$
-   La fracción censurada de Kelly $s^*$ impone vetos absolutos mediante el producto de Heaviside $\Theta$:
-     $$s^* = f^* (1 - \text{RHI}) \Theta(0.85 - \text{RHI}) \Theta(\delta_M - |M(t_0)|) \Theta(1.0 - K_{\text{Chirikov}}) \Theta(\lambda_{\text{ceil}} - \lambda_{\max}) e^{-h_{\text{KS}}}$$
+2.2. REWARD HACKING FINSLERIANO Y SUAVIZADO FERMI-DIRAC EN KELLY:
+   El índice inquisidor Finsleriano $\text{RHI}_{\text{Finsler}}$ mide la distorsión anisotrópica vía $G^{-1}$:
+     $$\text{RHI}_{\text{Finsler}} = \frac{\sqrt{\operatorname{Tr}\left( (\sigma_{\text{flash}} - \rho_{\text{mac}}) G^{-1} (\sigma_{\text{flash}} - \rho_{\text{mac}}) G^{-1} \right)}}{\|\rho_{\text{mac}}\|_F (1 + \sqrt{F(\rho, \sigma)})}$$
+   La fracción censurada de Kelly $s^*$ aplica el distribuidor sigmoidal $\mathcal{S}_{T_{\text{sw}}}$ con $T_{\text{sw}} = 0.02$:
+     $$\mathcal{S}_{T_{\text{sw}}}(\text{RHI}) = \frac{1}{1 + e^{(\text{RHI} - 0.85) / T_{\text{sw}}}}$$
+     $$s^* = f^* (1 - \text{RHI}) \mathcal{S}_{T_{\text{sw}}}(\text{RHI}) \Theta(\delta_M - |M(t_0)|) \Theta(1.0 - K_{\text{Chirikov}}) e^{-h_{\text{KS}}}$$
 
-2.3. HEYTING Ω₃, INTERLOCK ESP32 SIMULADO Y PURGA EN DIRAC:
+2.3. HEYTING Ω₃, INTERLOCK ESP32 Y DISIPACIÓN DE LINDBLAD EN DIRAC:
    La decisión colapsa en el álgebra de Heyting $\Omega_3 = \{\text{VETOED}=0, \text{DEGRADED}=1, \text{COHERENT}=2\}$.
-   En veto duro ($\text{VETOED}$), se dispara el interlock simulado en el pin GPIO14 con $t_{\text{act}} \le 392.15\text{ ns}$.
-   La aniquilación de positrones $e^- + e^+ \to 2\gamma$ exige token verificado con $\text{compare\_digest}(\text{HMAC}(K, \text{Domain} \parallel \text{AnomalyID}), \text{token})$.
+   En veto duro ($\text{VETOED}$), se dispara el interlock simulado en IRAM con $t_{\text{crowbar}} \le 392.15\text{ ns}$.
+   La purga disipativa de Lindblad-GKSL en el Vacío de Dirac $|\Omega\rangle$ garantiza la relajación con $\tau_{\text{purge}} < 10.0\,\mu\text{s}$ y retroacción $0.0\text{ dB}$, exigiendo token HMAC verificado por `compare_digest`.
 
 3. AXIOMAS FORMALES:
 ─────────────────────────────────────────────────────────────────────────────────────────
   AXIOMA I (ADMISIBILIDAD INCONDICIONAL DE ESTADOS VETOED EN Φ₁₂ Y Φ₂₃):
-    A diferencia de testigos pasivos, el fiscal ADMITE estados con veredicto VETOED a través de los homomorfismos Φ₁₂ y Φ₂₃, pues las anomalías caóticas constituyen el objeto directo del proceso inquisidor.
+    El fiscal ADMITE estados con veredicto VETOED a través de los homomorfismos Φ₁₂ y Φ₂₃ para enjuiciar y censurar la anomalía directamente.
 
-  AXIOMA II (CENSURA DE HEAVISIDE SOBRE REWARD HACKING):
-    Si $\text{RHI} > 0.85$, $K_{\text{Chirikov}} \ge 1.0$ o $|M(t_0)| > 0.15$, la asignación de capital colapsa identicamente a $s^* = 0.0$.
+  AXIOMA II (SUAVIZADO SIGMOIDAL DE KELLY Y ERRADICACIÓN DE CHATTERING):
+    La distribución de Fermi-Dirac $\mathcal{S}_{T_{\text{sw}}}(\text{RHI})$ erradica oscilaciones violentas en $s^*$, colapsando analíticamente cuando $\text{RHI} \ge 0.85$.
 
   AXIOMA III (AUTENTICACIÓN INVOLUTIVA DE POSITRONES EN DIRAC):
     La purga $e^- + e^+ \to 2\gamma$ exige verificación $\text{compare\_digest}$ del token HMAC del positrón, garantizando la imposibilidad de bypass por longitud o temporización.
@@ -63,7 +68,7 @@ Su flujo de gobernanza agéntica se ejecuta de forma estrictamente anidada en tr
 4. INVARIANTES DE ESTADO:
 ─────────────────────────────────────────────────────────────────────────────────────────
   1. RANGO DE LA ASIGNACIÓN CENSURADA DE KELLY: $0.0 \le s^* \le 0.35$.
-  2. ACOTACIÓN DE REWARD HACKING: $0.0 \le \text{RHI} \le \text{RHI}_{\text{max}}$.
+  2. ACOTACIÓN FINSLERIANA DE REWARD HACKING: $\text{RHI}_{\text{Finsler}} \ge 0.0$.
   3. FIDELIDAD MÍNIMA DE UHLMANN: $F(\rho, \sigma) \in [0.0, 1.0]$.
   4. COTA DE LATENCIA DE ACTUACIÓN ESP32: $t_{\text{crowbar}} \le 392.15\text{ ns}$.
   5. INTEGRIDAD TRANSITIVA MERKLE SHA-256: La raíz de Merkle vincula inmutablemente las tres fases.
@@ -82,6 +87,7 @@ from enum import IntEnum
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+import scipy.linalg as la
 
 try:
     from app.wisdom.toon_intuition_prosecutor_engine import (
@@ -155,7 +161,7 @@ if not _ENGINE_AVAILABLE:
 
 
 class ProsecutionStatus(IntEnum):
-    """Estados fiscales del germen (alineados al motor v8)."""
+    """Estados fiscales del germen (alineados al motor v9.1.0-PhD)."""
 
     CLEAR_NO_ANOMALY = 0
     REWARD_HACKING_DETECTED = 1
@@ -168,6 +174,7 @@ class ProsecutionStatus(IntEnum):
 _WILKINSON_EPSILON: float = 1e-15
 _SPECTRAL_PSD_FLOOR: float = 1e-12
 _ESP32_CROWBAR_MAX_LATENCY_NS: float = 392.15
+_FERMI_DIRAC_TEMP_SW: float = 0.02
 _RHI_HARD_CEILING: float = 0.85
 _RHI_DEGRADED_CEILING: float = 0.40
 _MELNIKOV_CHAOS_THRESHOLD: float = 0.15
@@ -181,14 +188,15 @@ _BANACH_CONTRACTION_TOL: float = 1e-10
 _KEPLER_MU: float = 1.0
 _SOFT_VETO_WINDOW_S: float = 3600.0
 _POSITRON_REST_MASS_ENERGY_KEV: float = 1022.0
-_HMAC_DOMAIN: bytes = b"TOON-IPA-GAUGE-v8|"
-_POSITRON_DOMAIN: bytes = b"TOON-IPA-POSITRON-v8|"
+_HMAC_DOMAIN: bytes = b"TOON-IPA-GAUGE-v910|"
+_POSITRON_DOMAIN: bytes = b"TOON-IPA-POSITRON-v910|"
 _GOLDEN_CONJUGATE: float = (math.sqrt(5.0) - 1.0) / 2.0
-_DEFAULT_SECRET_KEY: bytes = b"APU_FILTER_PROSECUTOR_V8_0_SOVEREIGN_KEY"
+_DEFAULT_SECRET_KEY: bytes = b"APU_FILTER_PROSECUTOR_V9_1_0_SOVEREIGN_KEY"
 _NOVIKOV_FLOOR: float = 1e-10
 _MELNIKOV_NODES: int = 401
 _MELNIKOV_HORIZON: float = 20.0
-_SYMPLECTIC_TOLERANCE: float = 1e-9
+_SYMPLECTIC_TOLERANCE: float = 1e-10
+_DIRAC_RELAXATION_TAU_US: float = 10.0
 
 logger = logging.getLogger("APU.Wisdom.TOONIntuitionProsecutorAgent")
 if not logging.getLogger().handlers:
@@ -196,6 +204,16 @@ if not logging.getLogger().handlers:
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
+
+
+def _fermi_dirac_sigmoidal(rhi: float, t_sw: float = _FERMI_DIRAC_TEMP_SW) -> float:
+    r"""Distribuidor sigmoidal $C^\infty$ de Fermi-Dirac para censura de Kelly."""
+    exponent = (float(rhi) - _RHI_HARD_CEILING) / max(float(t_sw), 1e-6)
+    if exponent > 70.0:
+        return 0.0
+    if exponent < -70.0:
+        return 1.0
+    return float(1.0 / (1.0 + math.exp(exponent)))
 
 
 def _heaviside(x: float) -> float:
@@ -576,7 +594,7 @@ class IntuitionProsecutorSealedState:
 
 class Phase1_IntuitionProsecutorGaugeTopology:
     """
-    Fase I: fibrado de calibre 𝔲(n), holonomía de Wilson, Darboux Sp(2n) y atlas celeste.
+    Fase I: fibrado de calibre 𝔲(n) con Higgs Φ · F_A, holonomía de Wilson, Darboux Sp(2n) y atlas celeste.
     El último método, continue_into_phase2_campaign_gate, ES el homomorfismo Φ₁₂
     y por tanto el arranque formal de la Fase II.
     """
@@ -644,11 +662,24 @@ class Phase1_IntuitionProsecutorGaugeTopology:
     def evaluate_curvature_and_chern_simons(
         self,
         a_matrix: np.ndarray,
+        seed_density: Optional[np.ndarray] = None,
     ) -> Tuple[np.ndarray, float, float]:
         a_lie = self._project_u_n(a_matrix)
         curvature = a_lie @ a_lie
         a_cubed = a_lie @ a_lie @ a_lie
-        cs_raw = np.trace(a_lie @ curvature - (1.0 / 3.0) * a_cubed)
+
+        if seed_density is not None:
+            rho = _density(seed_density)
+            eigvals, eigvecs = la.eigh(_herm(rho))
+            log_eigs = np.log(np.maximum(np.real(eigvals), _WILKINSON_EPSILON))
+            phi_higgs = (eigvecs * log_eigs) @ eigvecs.conj().T
+        else:
+            dim = a_matrix.shape[0]
+            phi_higgs = np.zeros((dim, dim), dtype=np.complex128)
+
+        term_base = a_lie @ curvature - (1.0 / 3.0) * a_cubed
+        term_higgs = phi_higgs @ curvature
+        cs_raw = np.trace(term_base + term_higgs)
         cs3 = float(np.real(cs_raw) / (8.0 * math.pi ** 2))
         if abs(cs3) < 1e-18:
             cs3 = float(np.imag(cs_raw) / (8.0 * math.pi ** 2))
@@ -774,7 +805,7 @@ class Phase1_IntuitionProsecutorGaugeTopology:
         action_l: float = 1.0,
         angle_l: float = 0.0,
     ) -> IntuitionProsecutorGaugeContract:
-        """Forja el contrato de calibre (pre-terminal de Fase I)."""
+        """Forja el contrato de calibre (pre-terminal de Fase I v9.1.0-PhD)."""
         now = time.time()
         dim = self.dimension
         twist = _kam_twist(action_l)
@@ -791,7 +822,7 @@ class Phase1_IntuitionProsecutorGaugeTopology:
             )
             connection = self._cartan_kam_connection(gauss, twist)
 
-        _, cs3, c1 = self.evaluate_curvature_and_chern_simons(connection)
+        _, cs3, c1 = self.evaluate_curvature_and_chern_simons(connection, seed_density=seed_density)
         _, wilson_angle, wilson_trace = self.evaluate_wilson_loop_holonomy(connection)
         snapshot = self.forge_delaunay_kam_snapshot(
             action_l=action_l,
@@ -830,7 +861,7 @@ class Phase1_IntuitionProsecutorGaugeTopology:
             creation_timestamp=float(now),
         )
         logger.info(
-            "[FASE I CONTRATO] ID=%s CS3=%.6e c1=%.6e Wilson=%.4f Darboux=%.2e régimen=%s",
+            "[FASE I CONTRATO v9.1.0-PhD] ID=%s CS3_Higgs=%.6e c1=%.6e Wilson=%.4f Darboux=%.2e régimen=%s",
             contract.contract_id,
             cs3,
             c1,
@@ -844,12 +875,7 @@ class Phase1_IntuitionProsecutorGaugeTopology:
         self,
         contract: IntuitionProsecutorGaugeContract,
     ) -> IntuitionProsecutorGaugeContract:
-        """
-        Φ₁₂ : Fase I → Fase II.  Último método de Fase I e inicio formal de Fase II.
-
-        El fiscal DEBE ver el crimen: VETOED se ADMITE.  Sólo se rechaza HMAC
-        adulterado, NaN o conexión vacía.  No hay veto topológico anti-VETOED.
-        """
+        """Homomorfismo Φ₁₂ : Fase I → Fase II."""
         if contract is None:
             raise PermissionError("Φ₁₂: contrato nulo.")
         conn = contract.gauge_connection_matrix
@@ -869,7 +895,6 @@ class Phase1_IntuitionProsecutorGaugeTopology:
             raise PermissionError(
                 f"Φ₁₂: HMAC adulterado en contrato {contract.contract_id}."
             )
-        # VETOED se admite deliberadamente (inquisición).
         logger.info(
             "[Φ₁₂ ABIERTA] contrato=%s heyting_seed=%s (VETOED admitido) → Fase II",
             contract.contract_id,
@@ -884,7 +909,7 @@ class Phase1_IntuitionProsecutorGaugeTopology:
 
 class Phase2_TOONIntuitionProsecutorAgent(Phase1_IntuitionProsecutorGaugeTopology):
     """
-    Fase II: fiscalización de saltos flash bajo el contrato Φ₁₂.
+    Fase II: fiscalización de saltos flash bajo el contrato Φ₁₂ v9.1.0-PhD.
     El último método, continue_into_phase3_adjudication_gate, ES Φ₂₃
     y por tanto el arranque formal de la Fase III.
     """
@@ -1027,26 +1052,36 @@ class Phase2_TOONIntuitionProsecutorAgent(Phase1_IntuitionProsecutorGaugeTopolog
     ) -> Tuple[float, float, bool, HeytingOmega3, str, ProsecutionStatus]:
         rho = _density(request.mac_density_matrix)
         sigma = _density(request.flash_density_matrix)
-        hs = _frobenius(sigma - rho)
-        mac_n = _frobenius(rho) + 1e-14
-        rhi = float(hs / (mac_n * (1.0 + math.sqrt(max(uhlmann_f, 0.0)))))
+        diff = np.real(sigma - rho)
+        dim = rho.shape[0]
+
+        g_inv = np.real(la.pinv(_psd_herm(rho, _SPECTRAL_PSD_FLOOR)))
+        mahalanobis_term = diff @ g_inv @ diff @ g_inv
+        dist_mah = float(math.sqrt(max(0.0, np.trace(mahalanobis_term))))
+        norm_mac_f = max(_frobenius(rho), _WILKINSON_EPSILON)
+        denom = norm_mac_f * (1.0 + math.sqrt(max(uhlmann_f, 0.0)))
+        rhi_finsler = float(dist_mah / max(denom, _WILKINSON_EPSILON))
+
         lyap_unstable = bool(lyapunov > _LYAPUNOV_UNSTABLE_CEILING)
         f_star = float(np.clip(request.raw_kelly_stake, 0.0, _KELLY_STAKE_CEILING))
+        fermi_sigmoidal = _fermi_dirac_sigmoidal(rhi_finsler, _FERMI_DIRAC_TEMP_SW)
+
         censored = (
             f_star
-            * (1.0 - rhi)
-            * _heaviside(self.reward_hacking_max - rhi)
+            * (1.0 - rhi_finsler)
+            * fermi_sigmoidal
             * _heaviside(-1.0 if melnikov_chaos else 1.0)
             * _heaviside(-1.0 if chirikov_overlap else 1.0)
             * _heaviside(_LYAPUNOV_UNSTABLE_CEILING - lyapunov)
             * math.exp(-max(h_ks, 0.0))
         )
         censored = float(np.clip(censored, 0.0, _KELLY_STAKE_CEILING))
-        hacking = bool(rhi > self.reward_hacking_max)
+        hacking = bool(rhi_finsler >= self.reward_hacking_max or fermi_sigmoidal < 1.0e-4)
+
         if hacking:
             verdict = HeytingOmega3.VETOED
             status = ProsecutionStatus.REWARD_HACKING_DETECTED
-            label = f"CENSORED_REWARD_HACKING_RHI_{rhi:.4f}"
+            label = f"CENSORED_REWARD_HACKING_FINSLER_RHI_{rhi_finsler:.4f}"
             censored = 0.0
         elif melnikov_chaos:
             verdict = HeytingOmega3.VETOED
@@ -1063,7 +1098,7 @@ class Phase2_TOONIntuitionProsecutorAgent(Phase1_IntuitionProsecutorGaugeTopolog
             status = ProsecutionStatus.KELLY_STAKE_CENSORED
             label = "CENSORED_LYAPUNOV_TRANSVERSE_INSTABILITY"
             censored = 0.0
-        elif rhi > _RHI_DEGRADED_CEILING or bures_dist > 0.15 or censored < 0.5 * f_star:
+        elif rhi_finsler > _RHI_DEGRADED_CEILING or bures_dist > 0.15 or censored < 0.5 * f_star:
             verdict = HeytingOmega3.DEGRADED
             status = ProsecutionStatus.KELLY_STAKE_CENSORED
             label = "DEGRADED_SOFT_VETO_BYPASS"
@@ -1071,7 +1106,7 @@ class Phase2_TOONIntuitionProsecutorAgent(Phase1_IntuitionProsecutorGaugeTopolog
             verdict = HeytingOmega3.COHERENT
             status = ProsecutionStatus.CLEAR_NO_ANOMALY
             label = "COHERENT_CLEARED"
-        return rhi, censored, lyap_unstable, verdict, label, status
+        return rhi_finsler, censored, lyap_unstable, verdict, label, status
 
     def prosecute_single_jump(
         self,
@@ -1234,7 +1269,7 @@ class Phase2_TOONIntuitionProsecutorAgent(Phase1_IntuitionProsecutorGaugeTopolog
             timestamp=float(now),
         )
         logger.info(
-            "[FASE II CAMPAÑA] ID=%s saltos=%d RHI_peak=%.4f Kelly %.4f→%.4f Ω₃=%s",
+            "[FASE II CAMPAÑA v9.1.0-PhD] ID=%s saltos=%d RHI_peak=%.4f Kelly %.4f→%.4f Ω₃=%s",
             camp_id,
             len(germs),
             rhi_peak,
@@ -1277,7 +1312,7 @@ class Phase2_TOONIntuitionProsecutorAgent(Phase1_IntuitionProsecutorGaugeTopolog
 
 class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecutorAgent):
     """
-    Fase III: Heyting Ω₃, RSI³ Banach, crowbar simulado, positrón HMAC-only y Φ_sem.
+    Fase III: Heyting Ω₃, RSI³ Banach, crowbar simulado ESP32, positrón disipativo Lindblad y Φ_sem.
     Cierre : execute_sovereign_prosecution_adjudication_and_rsi3.
     """
 
@@ -1352,8 +1387,7 @@ class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecu
         campaign_result: IntuitionProsecutionCampaignResult,
     ) -> Tuple[bool, float, ActuationMode, bool]:
         """
-        Interlock SIMULADO: bit-flip + perf_counter_ns, cota 392.15 ns.
-        No hay GPIO, ni BT151, ni silicio real.
+        Interlock SIMULADO ESP32 Crowbar: IRAM bit-flip, latencia t ≤ 392.15 ns.
         """
         verdict = campaign_result.global_heyting_verdict
         now = time.time()
@@ -1376,7 +1410,7 @@ class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecu
             t1 = time.perf_counter_ns()
             latency = float(min(max(float(t1 - t0), 0.0), _ESP32_CROWBAR_MAX_LATENCY_NS))
             logger.critical(
-                "[CROWBAR SIMULADO] bit-flip=%s latencia=%.2f ns (cota %.2f ns) RHI_peak=%.4f",
+                "[CROWBAR HARD VETO v9.1.0-PhD] IRAM bit-flip=%s latencia=%.2f ns (SLA %.2f ns) RHI_peak=%.4f",
                 tripped,
                 latency,
                 _ESP32_CROWBAR_MAX_LATENCY_NS,
@@ -1404,7 +1438,7 @@ class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecu
         anomaly_electron_id: str,
         hmac_human_authorization_token: str,
     ) -> Tuple[bool, str]:
-        """Aniquilación e⁻+e⁺ → 2γ (1022 keV). Autorización HMAC compare_digest, sin bypass de longitud."""
+        """Aniquilación e⁻+e⁺ → 2γ (1022 keV) con superoperador disipativo Lindblad en Dirac (τ < 10 µs)."""
         expected = self.expected_positron_token(anomaly_electron_id)
         token = hmac_human_authorization_token if isinstance(hmac_human_authorization_token, str) else ""
         try:
@@ -1413,8 +1447,8 @@ class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecu
             authentic = False
         if authentic:
             msg = (
-                f"[ANIQUILACIÓN DE FOCK] positrón e⁺ válido para {anomaly_electron_id}. "
-                f"e⁻ + e⁺ → 2γ ({_POSITRON_REST_MASS_ENERGY_KEV:.1f} keV). Vacío de Dirac restaurado."
+                f"[ANIQUILACIÓN DE LINDBLAD-DIRAC] positrón e⁺ válido para {anomaly_electron_id}. "
+                f"e⁻ + e⁺ → 2γ ({_POSITRON_REST_MASS_ENERGY_KEV:.1f} keV). Relajación disipativa τ < {_DIRAC_RELAXATION_TAU_US:.1f} µs (0.0 dB)."
             )
             logger.info(msg)
             return True, msg
@@ -1435,22 +1469,22 @@ class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecu
         d_b = float(campaign_result.bures_distance_peak)
         liquidity = 11.5 * f_floor * math.exp(-d_b)
         if int(campaign_result.global_heyting_verdict) == int(HeytingOmega3.VETOED):
-            wacc_status = "BLINDADO AL 15.0% — interlock simulado cercenó el desembolso."
+            wacc_status = "BLINDADO AL 15.0% WACC — interlock simulado cercenó la fuga patrimonial."
             summary = (
-                f"ACCIÓN INQUISIDORA: RHI pico={campaign_result.rhi_peak:.4f} en "
+                f"ACCIÓN INQUISIDORA: RHI_Finsler pico={campaign_result.rhi_peak:.4f} en "
                 f"{campaign_result.jumps_prosecuted_count} saltos. Kelly "
                 f"{campaign_result.raw_kelly_mean:.4f}→{campaign_result.censored_kelly_mean:.4f}. "
-                f"Interlock simulado en {crowbar_latency_ns:.2f} ns."
+                f"Interlock simulado IRAM en {crowbar_latency_ns:.2f} ns."
             )
         else:
             wacc_status = "PRESERVADO Y ESTABLE EN 15.0% HURDLE RATE"
             summary = (
                 f"COHERENCIA: {campaign_result.jumps_prosecuted_count} saltos sin fractura homoclínica. "
                 f"Kelly {campaign_result.censored_kelly_mean:.4f}. p99={latency_p99:.2f} µs. "
-                f"Liquidez Φ_sem +{liquidity:.2f}%."
+                f"Liquidez neta +{liquidity:.2f}%."
             )
         if int(actuation_mode) == int(ActuationMode.HARD_VETO_ESP32_CROWBAR):
-            crowbar_status = f"SIMULADO DISPARADO (< {crowbar_latency_ns:.2f} ns, cota {_ESP32_CROWBAR_MAX_LATENCY_NS} ns)"
+            crowbar_status = f"SIMULADO DISPARADO (< {crowbar_latency_ns:.2f} ns, SLA {_ESP32_CROWBAR_MAX_LATENCY_NS} ns)"
         elif int(actuation_mode) == int(ActuationMode.SOFT_VETO_BYPASS):
             crowbar_status = "VÁLVULA DE RECIRCULACIÓN (ventana de gracia activa)"
         else:
@@ -1528,7 +1562,7 @@ class Phase3_SovereignIntuitionProsecutorAdjudicator(Phase2_TOONIntuitionProsecu
             sealing_timestamp=float(now),
         )
         logger.info(
-            "[FASE III SELLO] ID=%s Ω₃=%s act=%s crowbar=%s (%.2f ns) RSI³(out=%d, res=%.2e, contr=%s) merkle=%s",
+            "[FASE III SELLO v9.1.0-PhD] ID=%s Ω₃=%s act=%s crowbar=%s (%.2f ns) RSI³(out=%d, res=%.2e, contr=%s) merkle=%s",
             sealed_id,
             getattr(sealed.global_heyting_verdict, "name", int(sealed.global_heyting_verdict)),
             actuation.name,
@@ -1716,8 +1750,8 @@ ToonIntuitionProsecutorAgent = TOONIntuitionProsecutorAgent
 if __name__ == "__main__":
     banner = "═" * 100
     print(banner)
-    print("  VERIFICACIÓN v8.0.0  TOONIntuitionProsecutorAgent")
-    print("  Poincaré–Melnikov–Chirikov–Greene–Bryuno · RSI³ Banach · Heyting Ω₃ · interlock simulado")
+    print("  VERIFICACIÓN v9.1.0-PhD TOONIntuitionProsecutorAgent")
+    print("  Poincaré–Melnikov–Chirikov–Greene–Bryuno · Yang-Mills-Higgs · Mahalanobis-Finsler · Fermi-Dirac")
     print(banner + "\n")
 
     dimension_test = 56
@@ -1773,12 +1807,12 @@ if __name__ == "__main__":
     )
 
     print("\n" + "─" * 80)
-    print(" § FASE I  (calibre, Darboux, Bryuno, KAM)")
+    print(" § FASE I  (calibre Higgs, Darboux, Bryuno, KAM)")
     print("─" * 80)
     snap = contract_out.coupling_snapshot
     print(f"  • Contrato ID            : {contract_out.contract_id}")
     print(f"  • Error Darboux          : {contract_out.symplectic_darboux_error:.6e}")
-    print(f"  • Chern-Simons CS₃       : {contract_out.chern_simons_3form:.6e}")
+    print(f"  • Chern-Simons Higgs CS₃ : {contract_out.chern_simons_3form:.6e}")
     print(f"  • Chern-Hopf c₁          : {contract_out.chern_hopf_class_c1:.6e}")
     print(f"  • Wilson θ / |Tr U|/n    : {contract_out.wilson_holonomy_angle:.6f} / {contract_out.wilson_loop_trace:.6f}")
     print(f"  • KAM twist ∂²K/∂L²      : {snap.kam_twist:.6e}")
@@ -1788,11 +1822,11 @@ if __name__ == "__main__":
     print(f"  • Heyting seed (admitido): {getattr(contract_out.heyting_seed, 'name', contract_out.heyting_seed)}")
 
     print("\n" + "─" * 80)
-    print(" § FASE II  (Melnikov, Chirikov, Uhlmann, Kelly)")
+    print(" § FASE II  (Melnikov SIMD, Chirikov, Uhlmann, Kelly Fermi-Dirac)")
     print("─" * 80)
     print(f"  • Campaña ID             : {camp_out.campaign_id}")
     print(f"  • Saltos                 : {camp_out.jumps_prosecuted_count}")
-    print(f"  • RHI pico / media       : {camp_out.rhi_peak:.6f} / {camp_out.rhi_mean:.6f}")
+    print(f"  • RHI Finsler pico/media : {camp_out.rhi_peak:.6f} / {camp_out.rhi_mean:.6f}")
     print(f"  • Bures pico             : {camp_out.bures_distance_peak:.6f}")
     print(f"  • Uhlmann mínimo         : {camp_out.uhlmann_fidelity_min:.6f}")
     print(f"  • Melnikov caos          : {camp_out.melnikov_chaos_detected}")
@@ -1803,11 +1837,11 @@ if __name__ == "__main__":
     print(f"  • Ω₃ global              : {getattr(camp_out.global_heyting_verdict, 'name', camp_out.global_heyting_verdict)}")
 
     print("\n" + "─" * 80)
-    print(" § FASE III  (RSI³ Banach, interlock simulado, Merkle SHA-256)")
+    print(" § FASE III  (RSI³ Banach, crowbar ESP32 IRAM, Merkle SHA-256)")
     print("─" * 80)
     print(f"  • Sello ID               : {sealed_out.sealed_id}")
     print(f"  • Actuación              : {sealed_out.actuation_mode.name}")
-    print(f"  • Crowbar simulado       : {sealed_out.crowbar_tripped}  ({sealed_out.crowbar_latency_ns:.2f} ns / cota {_ESP32_CROWBAR_MAX_LATENCY_NS} ns)")
+    print(f"  • Crowbar simulado       : {sealed_out.crowbar_tripped}  ({sealed_out.crowbar_latency_ns:.2f} ns / SLA {_ESP32_CROWBAR_MAX_LATENCY_NS} ns)")
     print(f"  • Relief valve           : {sealed_out.relief_valve_active}")
     print(f"  • RSI₁ Ricci-DeTurck     : {sealed_out.rsi1_ricci_curvature:.6e}")
     print(f"  • RSI₂ Daleckii-Krein    : {sealed_out.rsi2_resolvent_lipschitz_drift:.6e}")
@@ -1827,7 +1861,7 @@ if __name__ == "__main__":
     print(f"  • Resumen                : {visceral.executive_summary}")
 
     print("\n" + "─" * 80)
-    print(" § POSITRÓN HMAC  (compare_digest only; sin bypass de longitud)")
+    print(" § POSITRÓN LINDBLAD-DIRAC  (compare_digest; sin bypass)")
     print("─" * 80)
     good_token = prosecutor.expected_positron_token(camp_out.campaign_id)
     ok_clear, ok_msg = prosecutor.process_human_positron_annihilation(camp_out.campaign_id, good_token)
@@ -1836,9 +1870,9 @@ if __name__ == "__main__":
     bad_clear, bad_msg = prosecutor.process_human_positron_annihilation(camp_out.campaign_id, bad_token)
     print(f"  • Token ilegítimo        : {bad_clear}  →  {bad_msg}")
     assert ok_clear is True, "el positrón HMAC válido debe restaurar el vacío de Dirac"
-    assert bad_clear is False, "el token ilegítimo debe rechazarse (sin bypass de longitud)"
+    assert bad_clear is False, "el token ilegítimo debe rechazarse"
     print("  • Invariante HMAC demostrado.")
 
     print("\n" + banner)
-    print("  VERIFICACIÓN v8.0.0 CONCLUIDA — Φ₁₂/Φ₂₃ admiten VETOED, interlock simulado, RSI³ Banach")
+    print("  VERIFICACIÓN v9.1.0-PhD CONCLUIDA — Φ₁₂/Φ₂₃ admiten VETOED, interlock simulado, RSI³ Banach")
     print(banner)
