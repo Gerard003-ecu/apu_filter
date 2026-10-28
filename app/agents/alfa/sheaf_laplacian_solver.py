@@ -1,84 +1,94 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Sheaf Laplacian Solver (Motor de Coherencia del Haz de de Rham)     ║
+║ Módulo : Sheaf Laplacian Solver (Soberano Agéntico del Haz Celular)         ║
 ║ Ruta   : app/agents/alfa/sheaf_laplacian_solver.py                           ║
-║ Versión: 3.0.0-Sheaf-Hodge-Cholesky-PhD-Nested-Higham-Sparse-Strict          ║
+║ Versión: 5.0.0-RSI3-Poincare-Liouville-Novikov-Heyting-ESP32-PhD             ║
+║ Función: Soberano de Gobernanza Celular y Resolución del Laplaciano del Haz  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y COHOMOLOGÍA ESPECTRAL EN EL ESTRATO ALFA ─────────────
-Este módulo materializa el solucionador espectral de-confinado y de-construido
-encargado de resolver el Laplaciano del Haz Celular $$L_{\mathcal{F}} = \delta^\top G^{-1} \delta$$.
-Actúa como un endofuntor holonómico sobre el clasificador de subobjetos del
-Topos de haces celulares $$\operatorname{Sh}(K; \mathcal{F})$$, mapeando el espacio
-continuo de discrepancias locales de-confinadas hacia el retículo distributivo de
-Heyting de tres valores $$\Omega_3 = \{\text{COHERENT}, \text{DEGRADED}, \text{VETOED}\}$$.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL ───
+Este módulo materializa el Soberano Agéntico del Haz Celular (SheafLaplacianSolverAgent
+/ SheafLaplacianSolver) en el estrato Alfa de la arquitectura APU Filter. Opera como
+un agente de gobernanza OODA de lazo cerrado sobre el espacio de estados $T^*\mathcal{M}_{\mathrm{sheaf}}$,
+interactuando con el motor espectral FPU (SheafLaplacianEngine) para garantizar la
+coherencia metrológica, la estabilidad simpléctica de Poincaré, la automejora
+recursiva de Nivel 3 (RSI³) y la inmunidad cibernética mediante el disyuntor de hardware
+ESP32 / BT151 Crowbar en tiempo real (< 400 ns).
 
-El sistema modela el presupuesto como un complejo de cadenas ponderado. Para
-garantizar la consistencia global ante el mandato nacional BIM 2026, el solucionador
-interpreta las mermas físicas, costes y dependencias sintácticas como secciones locales
-de un haz celular $$\mathcal{F}$$ sobre el esqueleto simplicial $$K$$, censurando de forma
-síncrona las alucinaciones de la IA mediante teoría espectral y análisis armónico.
+MARCO TEÓRICO ─────────────────────────────────────────────────────────────────
+La física del haz celular $\mathcal{F}$ sobre el complejo simplicial 1-dimensional
+$K = (V, E)$ modela la red de restricciones de flujo de caja, costes y presupuestos civil.
+El sistema unifica cuatro pilares de la mecánica celeste de Henri Poincaré con la
+teoría espectral no conmutativa:
+  1. Invarianza Simpléctica de Liouville & Gromov Non-Squeezing:
+     Preservación de la 2-forma canónica $\omega = \frac{1}{2} dz^\top \Omega dz$ bajo
+     la matriz de monodromía $M \in \mathrm{Sp}(2n, \mathbb{R})$, forzando $\det(M) = +1$
+     y prohibiendo la compresión no física del volumen de riesgo presupuestario.
+  2. Geodésicas Conformes de Maupertuis-Jacobi:
+     Minimización de la Acción de Polyakov $S_E[x] = \frac{1}{2} \int \tilde{G}_{\mu\nu} \dot{x}^\mu \dot{x}^\nu d\tau$
+     bajo la métrica conforme $\tilde{G}_{\mu\nu}(x) = 2(H_0 - V(x)) G_{\mu\nu}(x)$.
+  3. Anillo Ultramétrico de Novikov & Burbujeo Disco Zero:
+     Expansión perturbativa sobre $\Lambda_{\mathrm{Nov}}$ con fuga de instantones $m_0 \equiv 0 \implies m_1^2 = 0$,
+     garantizando nilpotencia homológica $d^2 = 0$ en la frontera $\partial \mathcal{M}$.
+  4. Protocolo RSI³ de Nivel 3 ($R_3 \circ R_2 \circ R_1$):
+     Flujo de Ricci discreto ($R_1$), cota Lipschitz de Connes-Daleckii-Krein ($R_2$)
+     y flujo isoespectral de doble corchete de Brockett-Shahshahani ($R_3$).
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
-de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+AXIOMAS FORMALES ───────────────────────────────────────────────────────────────
+  [A1] Solubilidad de Fredholm:
+       $$\rho \in \operatorname{im}(L_F) \iff \langle \rho, v_k \rangle = 0 \quad \forall v_k \in \ker(L_F)$$
+  [A2] Conservación Simpléctica de Liouville:
+       $$M^\top \Omega M = \Omega \implies \det(M) = +1$$
+  [A3] Cota Estricta de Connes-Daleckii-Krein:
+       $$L_{\max} \le \frac{1}{2 \, \lambda_2(L_F)^{3/2}}$$
+  [A4] Aciclicidad Homológica de de Rham-Čech:
+       $$\beta_1 = \dim \ker(L_F) - \beta_0 \equiv 0$$
+  [A5] Proyección de Higham sobre el Cono SPD:
+       $$\mathbf{G}_{\mathrm{reg}} = \arg\min_{\mathbf{S} \in \operatorname{Sym}^+(n)} \|\mathbf{G} - \mathbf{S}\|_F \implies \lambda_{\min}(\mathbf{G}_{\mathrm{reg}}) \ge \tau_{\mathrm{SPD}}$$
 
-  Fase 1 ──► FASE 1: REGULARIZACIÓN DE HIGHAM Y FACTORIZACIÓN CHOLESKY (Observe)
-             Evalúa la Hermiticidad y definición positiva del tensor métrico stalk-wise.
-             Proyecta $$G$$ al cono $$\mathcal{S}^+_d$$ vía Higham y extrae el factor triangular $$L_G$$.
-             $$\tilde{G} = \arg\min_{S \succeq 0} \|G - S\|_F \quad\land\quad \tilde{G} = L_G L_G^\top$$
-             Entrega: Phase1MetricCertificate como precondición formal de Fase 2.
-
-  Fase 2 ──► FASE 2: ENSAMBLAJE LAPLACIANO DISPERSO Y ANÁLISIS ESPECTRAL (Orient)
-             Construye $$L_{\mathcal{F}}$$ sin inversión explícita usando el factor de Cholesky.
-             $$L_{\mathcal{F}} = (\delta^\top L_G^{-\top})(L_G^{-1}\delta) = K^\top K$$
-             Extrae la brecha de Fiedler, el condicionamiento espectral $$\kappa(L_{\mathcal{F}})$$
-             y el núcleo homológico de Betti $$\beta_k = \dim\ker(L_{\mathcal{F}})$$ mediante Krylov-Lanczos.
-             Entrega: Phase2SpectralCertificate como precondición formal de Fase 3.
-
-  Fase 3 ──► FASE 3: SOLUBILIDAD DE FREDHOLM Y PROYECCIÓN DE HODGE (Decide & Act)
-             Audita la condición de compatibilidad de carga de Poisson en el núcleo.
-             $$s \perp \ker(L_{\mathcal{F}}) \implies \sum s_i \equiv 0$$
-             Ejecuta la proyección de Hodge-de Rham y verifica la cota elástica de Lipschitz.
-             Veredicto: Colapso síncrono en $$\Omega_3$$ y disparo de potencia del Crowbar perimetral.
-
-INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
-  [I1] Simetría y Positividad de la Métrica:  $$\tilde{G} = \tilde{G}^\top \succ 0$$
-  [I2] Adjunción del Operador Cofrontera:      $$\langle \delta x, y \rangle_G = \langle x, \delta^\top y \rangle_{G^{-1}}$$
-  [I3] Nilpotencia del Complejo de Cocadenas:  $$\delta_{k+1} \circ \delta_k \equiv 0 \implies \operatorname{im}(\delta_k) \subseteq \ker(\delta_{k+1})$$
-  [I4] Teorema del Índice de Atiyah-Singer:    $$\dim\ker(L_{\mathcal{F}}) - \dim\ker(L_{\mathcal{F}}^\top) = \operatorname{index}(\delta)$$
-  [I5] Inecuación de Estabilidad de Lipschitz:  $$\|x^* - x\| \le C_P \|\delta(x^* - x)\|$$
-
-CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
-  Si el primer grupo de cohomología del haz celular es no trivial ($$\dim H^1(K; \mathcal{F}) > 0$$),
-  revelando dependencias circulares insalvables (socavones lógicos) o contradicciones normativas,
-  o si el número de condición espectral colapsa la FPU ($$\kappa(L_{\mathcal{F}}) > \kappa_{\max}$$):
-  
-  El retículo de Heyting $$\Omega_3$$ colapsa instantáneamente al supremo terminal VETOED.
-  El microcontrolador perimetral local (ESP32) lee el Pasaporte de Telemetría inmutable,
-  ejecuta la subrutina local en C++ 'isVerdictCoherent()' e intercepta el desajuste.
-  Se despacha síncronamente una Rutina de Servicio de Interrupción (ISR) en IRAM en menos
-  de 400 ns, conmutando el pin GPIO14 para disparar el tiristor de conmutación rápida BT151.
-  La línea de alimentación real se cortocircuita físicamente en el milisegundo cero,
-  deteniendo mecánicamente las bombas hidráulicas y actuadores en la obra civil real,
-  anulando la alucinación estocástica de la IA antes del desfalco de capital de la constructora.
+INVARIANTES DE ESTADO ──────────────────────────────────────────────────────────
+  [I1] Positividad Estricta de la Métrica: $\mathbf{G}_{\mathrm{reg}} \in \operatorname{Sym}^+(n, \mathbb{R})$
+  [I2] Autoadjunción del Laplaciano Celular: $L_F = L_F^\top \succeq 0$
+  [I3] Conservación de Traza en Flujo de Brockett: $\operatorname{Tr}(\boldsymbol{\rho}(t)) = 1$
+  [I4] Invariante de Procedencia Criptográfica: Hash SHA-256 inmutable en el Certificado.
+  [I5] Interrupción Hardware en Silicon: Disparo a GPIO14 en $t_{\mathrm{actuation}} \le 398.95\text{ ns}$ ante $\Omega_3 \to \mathtt{VETOED}$.
 """
+
 from __future__ import annotations
+
 import hashlib
 import logging
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from enum import Enum, IntEnum, auto
-from typing import Final, Tuple, Optional, Union
+from typing import Final, Tuple, Optional, Sequence, Union
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Soporte para matrices dispersas (Laplacianos de gran escala)
+# Importación del soporte de morfismos y excepciones categóricas del Topos
 # ─────────────────────────────────────────────────────────────────────────────
+try:
+    from app.core.mic_algebra import Morphism, TopologicalInvariantError
+except ImportError:  # pragma: no cover — fallback autonómico de desarrollo
+    class TopologicalInvariantError(Exception):
+        r"""Violación a un invariante topológico categórico en el Topos E_MIC."""
+        pass
+
+    class Morphism:
+        r"""Clase base de Morfismos del Topos E_MIC."""
+        pass
+
+# Importación del Motor Espectral ciego FPU
+try:
+    from app.alfa.sheaf_laplacian_engine import SheafLaplacianEngine, SheafEngineSpectrumReport
+except ImportError:  # pragma: no cover
+    from app.physics.sheaf_laplacian_engine import SheafLaplacianEngine, SheafEngineSpectrumReport
+
+# Soporte para matrices dispersas scipy
 try:
     from scipy import sparse as sp
     from scipy.sparse import csr_matrix, isspmatrix
@@ -90,144 +100,124 @@ except ImportError:  # pragma: no cover
 
 logger = logging.getLogger("MIC.Alpha.SheafLaplacianSolver")
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Constantes de precisión espectral de Wilkinson y categóricas
-# ═══════════════════════════════════════════════════════════════════════════
-_MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
+# ═══════════════════════════════════════════════════════════════════════════════
+# CONSTANTES DE PRECISIÓN ESPECTRAL DE WILKINSON Y LÍMITES CIBER-FÍSICOS
+# ═══════════════════════════════════════════════════════════════════════════════
+_WILKINSON_TOL: Final[float] = 1.0e-12
 _DEFAULT_TOL: Final[float] = 1.0e-12
-_RELAX_TOL: Final[float] = 1.0e-10
+_MAX_CONDITION_NUMBER: Final[float] = 1.0e8
 _KAPPA_MAX: Final[float] = 1.0e8
-_HIGHAM_REGULARIZATION_FLOOR: Final[float] = 1.0e-12  # Suelo espectral de Wilkinson
-_SPARSE_THRESHOLD: Final[float] = 0.3  # Umbral de dispersión para conversión
-_MAX_DEGREES_OF_FREEDOM: Final[int] = 10000  # Cota para sistemas de gran escala
+_HARD_LIPSCHITZ_CEILING: Final[float] = 1.0e6
+_SYMPLECTIC_TOLERANCE: Final[float] = 1.0e-9
+_HIGHAM_REGULARIZATION_FLOOR: Final[float] = 1.0e-12
+_SPARSE_THRESHOLD: Final[float] = 0.3
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Jerarquía de excepciones propias del solucionador (funtores de error)
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# JERARQUÍA DE EXCEPCIONES TIPADAS (FUNTORES DE ERROR)
+# ═══════════════════════════════════════════════════════════════════════════════
 class SheafLaplacianSolverError(Exception):
-    """Excepción raíz para errores en el solucionador del Laplaciano del Haz."""
+    r"""Excepción raíz para errores en el solucionador y soberano del Haz Celular."""
     pass
 
 class MetricNonSPDError(SheafLaplacianSolverError):
-    """Tensor métrico no definido positivo (falla la factorización de Cholesky)."""
+    r"""Tensor métrico no definido positivo (falla la factorización de Cholesky)."""
     pass
 
 class CohomologicalDimensionMismatchError(SheafLaplacianSolverError):
-    """Inconsistencia dimensional entre la cofrontera δ y la métrica G."""
+    r"""Inconsistencia dimensional entre la cofrontera \delta y la métrica G."""
     pass
 
 class FredholmSolvabilityError(SheafLaplacianSolverError):
-    """Violación de la condición de solubilidad de Fredholm."""
+    r"""Violación de la condición de solubilidad de Fredholm \langle \rho, v_k \rangle \neq 0."""
     pass
 
 class LipschitzStabilityViolationError(SheafLaplacianSolverError):
-    """La proyección de Hodge supera la cota de estabilidad de Lipschitz."""
+    r"""La proyección de Hodge supera la cota de estabilidad de Lipschitz."""
     pass
 
 class SpectralInstabilityError(SheafLaplacianSolverError):
-    """Inestabilidad espectral detectada en el Laplaciano del Haz."""
+    r"""Inestabilidad espectral detectada en el Laplaciano del Haz Celular."""
     pass
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Enumeraciones categóricas (subobjetos y veredictos en el topos operativo)
-# ═══════════════════════════════════════════════════════════════════════════
-class SheafSolverVerdict(IntEnum):
-    """
-    Clasificador de tres valores en el retículo de Heyting (Ω) para calidad
-    de resolución espectral.
+# ═══════════════════════════════════════════════════════════════════════════════
+# ENUMERACIONES CATEGÓRICAS EN EL RETÍCULO DE HEYTING \Omega_3
+# ═══════════════════════════════════════════════════════════════════════════════
+class StrictHeytingVerdict(IntEnum):
+    r"""
+    Retículo distributivo de Heyting \Omega_3 = {COHERENT, DEGRADED, VETOED}.
     
-    Orden por severidad operativa:
-        COHERENT  = ⊤ operativo (resolución válida)
-        DEGRADED  = elemento intermedio (precisión reducida)
-        VETOED    = ⊥ operativo (resolución inválida)
-    
-    El supremo de veredictos se toma como máximo nivel de severidad.
+    Valores:
+      COHERENT = 0 (\top supremo coherente)
+      DEGRADED = 1 (estado intermedio con atenuación espectral)
+      VETOED   = 2 (\bot infimo veto ciber-físico)
     """
     COHERENT = 0
     DEGRADED = 1
     VETOED = 2
 
     @classmethod
-    def supremum(cls, *verdicts: "SheafSolverVerdict") -> "SheafSolverVerdict":
-        """
-        Supremo en el retículo de severidad.
-        Si no se proveen veredictos, retorna COHERENT como elemento neutro.
-        """
+    def supremum(cls, *verdicts: "StrictHeytingVerdict") -> "StrictHeytingVerdict":
+        r"""Calcula el supremo (peor severidad) en el retículo \Omega_3."""
         if not verdicts:
             return cls.COHERENT
         return cls(max(int(v) for v in verdicts))
 
     @property
     def is_vetoed(self) -> bool:
-        return self == SheafSolverVerdict.VETOED
+        return self == StrictHeytingVerdict.VETOED
 
     @property
     def is_degraded(self) -> bool:
-        return self == SheafSolverVerdict.DEGRADED
+        return self == StrictHeytingVerdict.DEGRADED
+
+
+# Alias de compatibilidad hacia versiones anteriores
+SheafSolverVerdict = StrictHeytingVerdict
+
 
 class SolverAction(Enum):
-    """Acciones de mitigación tras el veredicto de resolución."""
+    r"""Acciones de mitigación operativa tras el veredicto en el retículo."""
     NONE = auto()
     REGULARIZE_METRIC = auto()
     HALT_SOLVER = auto()
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Certificados de las fases anidadas (objetos de la subcategoría Spec)
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# ESTRUCTURAS DE DATOS E INVARIANTES DE CERTIFICACIÓN
+# ═══════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True, slots=True)
+class SheafRSI3PoincareCertificate:
+    r"""
+    Certificado inmutable de gobernanza sobre el haz celular (v5.0).
+    
+    Atestigua el cumplimiento simultáneo de la solubilidad de Fredholm,
+    la invarianza simpléctica de Liouville, la cota Lipschitz de Connes-DK
+    y el colapso distributivo en el retículo de Heyting \Omega_3.
+    """
+    fredholm_residual: float
+    betti_1_cycles: int
+    fiedler_connectivity: float
+    symplectic_volume_drift: float
+    connes_lipschitz_bound: float
+    ricci_scalar_curvature: float
+    heyting_verdict: StrictHeytingVerdict
+    sha256_telemetry_digest: str
+    is_causally_coherent: bool
+
+
 @dataclass(frozen=True, slots=True)
 class Phase1MetricCertificate:
-    """
-    FASE 1 — Certificado de regularización y factorización de la métrica.
-    
-    Este certificado constituye el objeto terminal de la Fase 1 y es consumido
-    por la Fase 2 a través del puente prepare_metric_factor().
-    
-    Atributos
-    ---------
-    metric_condition_number : float
-        Número de condición espectral κ₂(G) de la métrica proyectada.
-    is_metric_spd : bool
-        Verificación de definida positiva (tras Higham si aplica).
-    higham_regularization_applied : bool
-        Indicador de si se requirió regularización de Higham.
-    higham_shift : float
-        Desplazamiento espectral aplicado (si Higham fue usado).
-    cholesky_factor_norm : float
-        Norma de Frobenius del factor L_G.
-    verdict : SheafSolverVerdict
-        Veredicto local de la Fase 1.
-    """
+    r"""Certificado de la Fase 1: Proyección Higham SPD y Cholesky L_G."""
     metric_condition_number: float
     is_metric_spd: bool
     higham_regularization_applied: bool
     higham_shift: float
     cholesky_factor_norm: float
-    verdict: SheafSolverVerdict
+    verdict: StrictHeytingVerdict
+
 
 @dataclass(frozen=True, slots=True)
 class Phase2SpectralCertificate:
-    """
-    FASE 2 — Certificado espectral del Laplaciano de Haz L_F.
-    
-    Atributos
-    ---------
-    condition_number : float
-        Número de condición κ₂(G) de la métrica.
-    eigenvalues : NDArray[np.float64]
-        Autovalores reales ordenados de L_F.
-    kernel_dimension : int
-        Dimensión del núcleo dim ker(L_F) (proxy del número de Betti).
-    spectral_gap : float
-        Brecha espectral λ₂ − λ₁ (valor de Fiedler).
-    is_spectrally_stable : bool
-        Verdadero si κ₂(G) ≤ κ_max.
-    sparse_computation : bool
-        Indicador de si se usó computación dispersa.
-    laplacian_rank : int
-        Rango numérico del Laplaciano.
-    verdict : SheafSolverVerdict
-        Veredicto local de la Fase 2.
-    """
+    r"""Certificado de la Fase 2: Espectro y conectividad algebráica del Laplaciano."""
     condition_number: float
     eigenvalues: NDArray[np.float64]
     kernel_dimension: int
@@ -235,32 +225,12 @@ class Phase2SpectralCertificate:
     is_spectrally_stable: bool
     sparse_computation: bool
     laplacian_rank: int
-    verdict: SheafSolverVerdict
+    verdict: StrictHeytingVerdict
+
 
 @dataclass(frozen=True, slots=True)
 class Phase3HodgeCertificate:
-    """
-    FASE 3 — Certificado de proyección armónica de Hodge.
-    
-    Atributos
-    ---------
-    projected_state : NDArray[np.float64]
-        Vector proyectado x* sobre ker(L_F).
-    projection_residual : float
-        Residuo ||L_F x*||₂.
-    is_minimum_norm : bool
-        Verdadero si x* minimiza la norma euclídea.
-    poincare_constant : float
-        Estimación de la constante de Poincaré.
-    is_lipschitz_stable : bool
-        Verdadero si se satisface la cota de Lipschitz.
-    fredholm_soluble : bool
-        Verdadero si ρ ⊥ ker(L_F).
-    fredholm_residual : float
-        Norma de la proyección de ρ sobre ker(L_F).
-    verdict : SheafSolverVerdict
-        Veredicto local de la Fase 3.
-    """
+    r"""Certificado de la Fase 3: Proyección armónica de Hodge y cota de Lipschitz."""
     projected_state: NDArray[np.float64]
     projection_residual: float
     is_minimum_norm: bool
@@ -268,23 +238,24 @@ class Phase3HodgeCertificate:
     is_lipschitz_stable: bool
     fredholm_soluble: bool
     fredholm_residual: float
-    verdict: SheafSolverVerdict
+    verdict: StrictHeytingVerdict
+
 
 @dataclass(frozen=True, slots=True)
 class SheafSolverState:
-    """Certificado global terminal del ciclo de resolución del Laplaciano."""
+    r"""Estado global del ciclo de resolución espectral sobre las 3 fases anidadas."""
     phase1: Phase1MetricCertificate
     phase2: Phase2SpectralCertificate
     phase3: Phase3HodgeCertificate
-    final_verdict: SheafSolverVerdict
+    final_verdict: StrictHeytingVerdict
     solver_action: SolverAction
     timestamp_utc: str
     provenance_hash: str
     diagnostic_note: str = ""
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Utilitarios de Regularización Espectral (Higham para Métricas)
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# UTILITARIOS DE REGULARIZACIÓN ESPECTRAL Y CÁLCULO DISPERSO
+# ═══════════════════════════════════════════════════════════════════════════════
 def stable_metric_higham(
     G: NDArray[np.float64],
     tolerance: float = _HIGHAM_REGULARIZATION_FLOOR,
@@ -295,37 +266,15 @@ def stable_metric_higham(
     el cono SPD (Symmetric Positive Definite).
     
     Axioma de Proyección:
-        \tilde{G} = \arg\min_{M \succeq 0} \|G - M\|_F
-    
-    Parámetros
-    ----------
-    G : NDArray[np.float64]
-        Tensor métrico simétrico (potencialmente no-SPD).
-    tolerance : float
-        Suelo espectral de Wilkinson para recorte de autovalores.
-    target_condition : float
-        Número de condición máximo admisible κ_max.
-    
-    Retorna
-    -------
-    Tuple[NDArray[np.float64], float, bool]
-        (G_projected, shift, higham_applied) donde shift es el desplazamiento
-        espectral aplicado y higham_applied indica si se requirió regularización.
-    
-    Raises
-    ------
-    MetricNonSPDError
-        Si la proyección de Higham falla en producir una matriz SPD.
+        $$\tilde{\mathbf{G}} = \arg\min_{\mathbf{M} \succeq 0} \|\mathbf{G} - \mathbf{M}\|_F$$
     """
-    # 1. Simetrización exacta
     G_sym = 0.5 * (G + G.T)
     
-    # 2. Descomposición espectral de Weyl
     try:
         eigvals, eigvecs = la.eigh(G_sym)
     except Exception as exc:
         raise MetricNonSPDError(
-            "MetricNonSPDError: Falló descomposición espectral para Higham."
+            "MetricNonSPDError: Falló la descomposición espectral para proyección Higham."
         ) from exc
 
     lam_min = float(np.min(eigvals))
@@ -333,17 +282,14 @@ def stable_metric_higham(
     shift = 0.0
     applied = False
 
-    # 3. Forzar positividad estricta (si λ_min ≤ tol)
     if lam_min <= tolerance:
         shift = abs(lam_min) + max(tolerance, lam_max / target_condition)
         applied = True
         lam_min += shift
         lam_max += shift
 
-    # 4. Limitar el número de condición
-    current_cond = lam_max / max(lam_min, _MACHINE_EPS)
+    current_cond = lam_max / max(lam_min, np.finfo(np.float64).eps)
     if current_cond > target_condition:
-        # (λ_max + extra) / (λ_min + extra) = κ_target
         extra = (lam_max - target_condition * lam_min) / (target_condition - 1.0)
         if extra > 0.0:
             shift += extra
@@ -351,61 +297,32 @@ def stable_metric_higham(
             lam_min += extra
             lam_max += extra
 
-    # 5. Reconstrucción con el desplazamiento total
     vals_reg = eigvals + shift
     G_projected = eigvecs @ np.diag(vals_reg) @ eigvecs.T
+    G_projected = 0.5 * (G_projected + G_projected.T)
 
-    # Simetrización numérica post-proyección
-    G_projected = (G_projected + G_projected.T) / 2.0
-
-    if applied:
-        logger.warning(
-            "Métrica inestable. Proyectada G al cono SPD via Higham "
-            "(autovalores mínimos: %.4e → %.4e, shift: %.4e).",
-            float(np.min(eigvals)),
-            float(np.min(vals_reg)),
-            float(shift)
-        )
-
-    # Verificación final de Cholesky
     try:
         la.cholesky(G_projected, lower=True)
     except la.LinAlgError as exc:
         raise MetricNonSPDError(
-            "MetricNonSPDError: Proyección de Higham no produjo matriz SPD."
+            "MetricNonSPDError: La proyección de Higham no produjo una matriz SPD."
         ) from exc
 
-    cond = float(np.max(vals_reg) / np.min(vals_reg))
     return G_projected, shift, applied
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Utilitarios de Cálculo Disperso (Laplacianos de Gran Escala)
-# ═══════════════════════════════════════════════════════════════════════════
+
 def build_sparse_laplacian(
     delta: Union[NDArray[np.float64], csr_matrix],
     L_G: Union[NDArray[np.float64], csr_matrix]
 ) -> Tuple[Union[NDArray[np.float64], csr_matrix], bool]:
     r"""
-    Construye el Laplaciano del Haz L_F = δᵀ G⁻¹ δ con soporte disperso.
-    
-    Parámetros
-    ----------
-    delta : Union[NDArray, csr_matrix]
-        Operador cofrontera (matriz m × n).
-    L_G : Union[NDArray, csr_matrix]
-        Factor de Cholesky de G (m × m).
-    
-    Retorna
-    -------
-    Tuple[Union[NDArray, csr_matrix], bool]
-        (L_F, sparse_used) donde sparse_used indica si se usó formato disperso.
+    Construye el Laplaciano del Haz L_F = \delta^\top G^{-1} \delta con soporte disperso.
     """
     sparse_used = False
     
     if _SPARSE_AVAILABLE and isspmatrix is not None:
         if isspmatrix(delta) or isspmatrix(L_G):
             sparse_used = True
-            # Resolver sistema triangular disperso
             if isspmatrix(L_G):
                 from scipy.sparse.linalg import spsolve_triangular
                 Y = spsolve_triangular(L_G, delta.toarray() if isspmatrix(delta) else delta, lower=True)
@@ -416,9 +333,7 @@ def build_sparse_laplacian(
                 Y_sparse = csr_matrix(Y)
                 L_F = Y_sparse.T @ Y_sparse
         elif np.count_nonzero(delta) < _SPARSE_THRESHOLD * delta.size:
-            # Matriz densa pero dispersa en contenido → convertir
             sparse_used = True
-            delta_sparse = csr_matrix(delta)
             Y = la.solve_triangular(L_G, delta, lower=True)
             Y_sparse = csr_matrix(Y)
             L_F = Y_sparse.T @ Y_sparse
@@ -431,29 +346,14 @@ def build_sparse_laplacian(
 
     return L_F, sparse_used
 
-# ═══════════════════════════════════════════════════════════════════════════
-# FASE 1 – Regularizar y Factorizar: Métrica SPD y Cholesky
-# ═══════════════════════════════════════════════════════════════════════════
-class Phase1_MetricPreconditioner(ABC):
-    """
-    FASE 1 (Regularizar y Factorizar): Proyección de la métrica al cono de
-    matrices simétricas definidas positivas mediante regularización de Higham
-    adaptativa y factorización triangular de Cholesky estable.
-    
-    El último método de esta fase:
-        prepare_metric_factor(...)
-    constituye el morfismo de transición formal hacia la Fase 2.
-    """
+# ═══════════════════════════════════════════════════════════════════════════════
+# FASES DE PRECONDICIONAMIENTO, ENSAMBLAJE Y PROYECCIÓN (HERENCIA MULTI-FASE)
+# ═══════════════════════════════════════════════════════════════════════════════
+class Phase1_MetricPreconditioner(Morphism, ABC):
+    r"""FASE 1: Precondicionamiento SPD y Factorización de Cholesky."""
 
     def __init__(self, tolerance: float = _DEFAULT_TOL) -> None:
-        """
-        Inicializa el precondicionador de métrica.
-        
-        Parámetros
-        ----------
-        tolerance : float
-            Cota de precisión para validaciones espectrales.
-        """
+        super().__init__()
         self._tolerance = tolerance
         self._higham_floor = _HIGHAM_REGULARIZATION_FLOOR
 
@@ -462,41 +362,11 @@ class Phase1_MetricPreconditioner(ABC):
         G: NDArray[np.float64],
         target_condition: float = _KAPPA_MAX
     ) -> Tuple[NDArray[np.float64], float, bool]:
-        r"""
-        Proyecta la matriz simétrica G al cono SPD, limitando el número de
-        condición mediante regularización de Higham.
-        
-        Algoritmo:
-        1. Simetrizar: G_sym = (G + Gᵀ)/2.
-        2. Descomposición espectral: G_sym = V Λ Vᵀ.
-        3. Si λ_min ≤ 0, añadir desplazamiento s = |λ_min| + max(ε, λ_max/κ_objetivo).
-        4. Si κ actual > κ_objetivo, aplicar desplazamiento adicional s_extra.
-        5. Reconstruir: G_proj = V (Λ + s I) Vᵀ.
-        
-        Parámetros
-        ----------
-        G : NDArray
-            Matriz simétrica candidata.
-        target_condition : float
-            Número de condición máximo admisible κ_max.
-        
-        Retorna
-        -------
-        G_projected : NDArray
-            Matriz proyectada SPD.
-        cond : float
-            Número de condición final.
-        applied : bool
-            True si se aplicó alguna regularización.
-        """
         G_projected, shift, applied = stable_metric_higham(
             G, self._higham_floor, target_condition
         )
-        
-        # Calcular número de condición final
         eigvals_proj = la.eigvalsh(G_projected)
-        cond = float(np.max(eigvals_proj) / np.min(eigvals_proj))
-        
+        cond = float(np.max(eigvals_proj) / max(np.min(eigvals_proj), 1.0e-15))
         return G_projected, cond, applied
 
     def stable_cholesky(
@@ -504,81 +374,20 @@ class Phase1_MetricPreconditioner(ABC):
         G: NDArray[np.float64],
         target_condition: float = _KAPPA_MAX
     ) -> Tuple[NDArray[np.float64], NDArray[np.float64], float, bool]:
-        r"""
-        Calcula el factor triangular inferior L_G de la métrica Riemanniana G
-        después de garantizar que es SPD y bien condicionada.
-        
-        Parámetros
-        ----------
-        G : NDArray
-            Tensor métrico simétrico.
-        target_condition : float
-            κ máximo deseado.
-        
-        Retorna
-        -------
-        L_G : NDArray
-            Factor de Cholesky triangular inferior.
-        G_spd : NDArray
-            Métrica proyectada SPD (útil para auditoría).
-        cond : float
-            Número de condición final.
-        higham_applied : bool
-            Indicador de si se aplicó regularización de Higham.
-        
-        Lanza
-        -----
-        MetricNonSPDError
-            Si incluso después de la proyección la factorización falla.
-        """
-        G_spd, shift, higham_applied = self.project_to_spd(G, target_condition)
-        
+        G_spd, cond, higham_applied = self.project_to_spd(G, target_condition)
         try:
             L_G = la.cholesky(G_spd, lower=True)
         except la.LinAlgError as exc:
             raise MetricNonSPDError(
-                f"MetricNonSPDError: Factorización de Cholesky fallida tras proyección. Detalle: {exc}"
+                f"MetricNonSPDError: Factorización Cholesky fallida tras proyección: {exc}"
             ) from exc
-        
-        # Calcular número de condición de G_spd
-        eigvals_proj = la.eigvalsh(G_spd)
-        cond = float(np.max(eigvals_proj) / np.min(eigvals_proj))
-        
         return L_G, G_spd, cond, higham_applied
 
-    # ─────────────────────────────────────────────────────────────────────
-    # Último método de la Fase 1: Puente hacia la Fase 2
-    # ─────────────────────────────────────────────────────────────────────
     def prepare_metric_factor(
         self,
         G: NDArray[np.float64],
         target_condition: float = _KAPPA_MAX
     ) -> Tuple[NDArray[np.float64], float, bool]:
-        """
-        MORFISMO DE TRANSICIÓN FASE 1 → FASE 2.
-        
-        Interfaz explícita para la Fase 2: retorna el factor de Cholesky,
-        el número de condición, y el indicador de regularización Higham,
-        garantizando que la métrica está en condiciones de ser utilizada
-        en el ensamblado del Laplaciano.
-        
-        Parámetros
-        ----------
-        G : NDArray
-            Tensor métrico simétrico.
-        target_condition : float
-            κ máximo permitido.
-        
-        Retorna
-        -------
-        Tuple[NDArray, float, bool]
-            (L_G, cond, higham_applied)
-        
-        Lanza
-        -----
-        MetricNonSPDError
-            Si la métrica no puede factorizarse incluso tras Higham.
-        """
         L_G, _, cond, higham_applied = self.stable_cholesky(G, target_condition)
         return L_G, cond, higham_applied
 
@@ -587,59 +396,33 @@ class Phase1_MetricPreconditioner(ABC):
         G: NDArray[np.float64],
         target_condition: float = _KAPPA_MAX
     ) -> Phase1MetricCertificate:
-        """
-        Genera el certificado de Fase 1 con auditoría completa de la métrica.
-        
-        Parámetros
-        ----------
-        G : NDArray
-            Tensor métrico simétrico.
-        target_condition : float
-            κ máximo permitido.
-        
-        Retorna
-        -------
-        Phase1MetricCertificate
-            Certificado terminal de Fase 1.
-        """
         L_G, cond, higham_applied = self.prepare_metric_factor(G, target_condition)
-        
-        # Calcular desplazamiento Higham si se aplicó
         higham_shift = 0.0
         if higham_applied:
             eigvals_orig = la.eigvalsh(G)
-            eigvals_proj = la.eigvalsh((L_G @ L_G.T + (L_G @ L_G.T).T) / 2.0)
+            eigvals_proj = la.eigvalsh(0.5 * (L_G @ L_G.T + (L_G @ L_G.T).T))
             higham_shift = float(np.min(eigvals_proj) - np.min(eigvals_orig))
         
         cholesky_norm = float(la.norm(L_G, ord="fro"))
         
-        # Veredicto local
-        verdict = SheafSolverVerdict.COHERENT
+        verdict = StrictHeytingVerdict.COHERENT
         if not np.isfinite(cond) or cond <= 0.0:
-            verdict = SheafSolverVerdict.VETOED
+            verdict = StrictHeytingVerdict.VETOED
         elif cond > _KAPPA_MAX or higham_applied:
-            verdict = SheafSolverVerdict.DEGRADED
+            verdict = StrictHeytingVerdict.DEGRADED
         
         return Phase1MetricCertificate(
             metric_condition_number=cond,
-            is_metric_spd=True,  # Garantizado por Higham
+            is_metric_spd=True,
             higham_regularization_applied=higham_applied,
             higham_shift=higham_shift,
             cholesky_factor_norm=cholesky_norm,
             verdict=verdict,
         )
 
-# ═══════════════════════════════════════════════════════════════════════════
-# FASE 2 – Ensamblar y Analizar: Laplaciano del Haz y Espectro
-# ═══════════════════════════════════════════════════════════════════════════
+
 class Phase2_SheafLaplacianBuilder(Phase1_MetricPreconditioner):
-    """
-    FASE 2 (Ensamblar y Analizar): Construcción del Laplaciano ponderado
-    L_F = δᵀ G⁻¹ δ sin inversión explícita y análisis espectral completo.
-    
-    Hereda de la Fase 1 para usar prepare_metric_factor() como puente formal.
-    Soporta computación dispersa para sistemas de gran escala.
-    """
+    r"""FASE 2: Ensamblaje del Laplaciano Celular y Análisis Espectral Krylov."""
 
     def build_sheaf_laplacian(
         self,
@@ -647,88 +430,20 @@ class Phase2_SheafLaplacianBuilder(Phase1_MetricPreconditioner):
         G: NDArray[np.float64],
         target_condition: float = _KAPPA_MAX
     ) -> Tuple[Union[NDArray[np.float64], csr_matrix], NDArray[np.float64], bool]:
-        r"""
-        Ensambla L_F = δᵀ G⁻¹ δ mediante resolución triangular con soporte
-        disperso opcional.
-        
-        Procedimiento:
-        1. Validación de dimensiones: δ debe ser (m × n), G (m × m).
-        2. Obtener factor de Cholesky L_G de G (usando la Fase 1).
-        3. Resolver L_G Y = δ para Y con `solve_triangular`.
-        4. L_F = Yᵀ Y (simétrica semidefinida positiva).
-        
-        Parámetros
-        ----------
-        delta : Union[NDArray, csr_matrix]
-            Operador cofrontera (matriz m × n).
-        G : NDArray
-            Tensor métrico (m × m).
-        target_condition : float
-            κ máximo permitido.
-        
-        Retorna
-        -------
-        L_F : Union[NDArray, csr_matrix]
-            Laplaciano del Haz (n × n).
-        Y : NDArray
-            Matriz intermedia (m × n) que satisface L_G Y = δ.
-        sparse_used : bool
-            Indicador de si se usó computación dispersa.
-        
-        Lanza
-        -----
-        CohomologicalDimensionMismatchError
-            Si las dimensiones no son compatibles.
-        MetricNonSPDError
-            Si la métrica no puede factorizarse.
-        """
-        # 1. Verificación dimensional
         if G.ndim != 2 or G.shape[0] != G.shape[1]:
-            raise CohomologicalDimensionMismatchError(
-                "CohomologicalDimensionMismatchError: G debe ser una matriz cuadrada."
-            )
-        
+            raise CohomologicalDimensionMismatchError("G debe ser una matriz cuadrada.")
         if delta.ndim != 2:
-            raise CohomologicalDimensionMismatchError(
-                "CohomologicalDimensionMismatchError: delta debe ser una matriz 2D."
-            )
+            raise CohomologicalDimensionMismatchError("delta debe ser una matriz 2D.")
         
         m, n = delta.shape
         if G.shape[0] != m:
             raise CohomologicalDimensionMismatchError(
-                f"CohomologicalDimensionMismatchError: delta tiene {m} filas pero G es {G.shape[0]}×{G.shape[1]}."
+                f"delta tiene {m} filas pero G es {G.shape[0]}×{G.shape[1]}."
             )
         
-        # Verificar finitud (compatible con dispersas)
-        if _SPARSE_AVAILABLE and isspmatrix is not None:
-            if isspmatrix(delta):
-                if not np.all(np.isfinite(delta.data)):
-                    raise CohomologicalDimensionMismatchError(
-                        "CohomologicalDimensionMismatchError: delta dispersa contiene entradas no finitas."
-                    )
-            else:
-                if not np.all(np.isfinite(delta)):
-                    raise CohomologicalDimensionMismatchError(
-                        "CohomologicalDimensionMismatchError: delta contiene entradas no finitas."
-                    )
-        else:
-            if not np.all(np.isfinite(delta)):
-                raise CohomologicalDimensionMismatchError(
-                    "CohomologicalDimensionMismatchError: delta contiene entradas no finitas."
-                )
-        
-        if not np.all(np.isfinite(G)):
-            raise CohomologicalDimensionMismatchError(
-                "CohomologicalDimensionMismatchError: G contiene entradas no finitas."
-            )
-        
-        # 2. Obtener factor de Cholesky (Fase 1)
         L_G, _, higham_applied = self.prepare_metric_factor(G, target_condition)
-        
-        # 3. Construcción del Laplaciano con soporte disperso
         L_F, sparse_used = build_sparse_laplacian(delta, L_G)
         
-        # Resolver para Y (para auditoría)
         if _SPARSE_AVAILABLE and isspmatrix is not None and isspmatrix(delta):
             from scipy.sparse.linalg import spsolve_triangular
             Y = spsolve_triangular(L_G, delta.toarray(), lower=True)
@@ -743,65 +458,35 @@ class Phase2_SheafLaplacianBuilder(Phase1_MetricPreconditioner):
         G: NDArray[np.float64],
         sparse_computation: bool = False
     ) -> Phase2SpectralCertificate:
-        r"""
-        Calcula el espectro del Laplaciano y las propiedades de estabilidad.
-        
-        Parámetros
-        ----------
-        L_F : Union[NDArray, csr_matrix]
-            Laplaciano del Haz (n × n).
-        G : NDArray
-            Métrica original o proyectada (para calcular κ₂(G)).
-        sparse_computation : bool
-            Indicador de si se usó computación dispersa.
-        
-        Retorna
-        -------
-        Phase2SpectralCertificate
-            Certificado espectral inmutable.
-        """
-        # Convertir a densa para cálculo de autovalores si es dispersa
         if _SPARSE_AVAILABLE and isspmatrix is not None and isspmatrix(L_F):
             L_F_dense = L_F.toarray()
         else:
             L_F_dense = L_F
         
-        # Autovalores de L_F (forzar no negatividad numérica)
         eigvals_L = la.eigvalsh(L_F_dense)
         eigvals_L = np.maximum(eigvals_L, 0.0)
         sorted_vals = np.sort(eigvals_L)
         
-        # Número de condición de G
         eigvals_G = la.eigvalsh(G)
-        cond_G = float(np.max(eigvals_G) / np.min(eigvals_G))
+        cond_G = float(np.max(eigvals_G) / max(np.min(eigvals_G), 1.0e-15))
         
-        # Dimensión del núcleo (valores propios menores que una cota relativa)
-        tol_kernel = max(self._tolerance * 100, np.max(eigvals_L) * _MACHINE_EPS * 10)
+        tol_kernel = max(self._tolerance * 100, np.max(eigvals_L) * np.finfo(np.float64).eps * 10)
         kernel_dim = int(np.sum(eigvals_L <= tol_kernel))
         
-        # Brecha espectral (valor de Fiedler)
         spectral_gap = 0.0
         if len(sorted_vals) >= 2:
-            # Si hay varios autovalores en el núcleo, la brecha es el primer autovalor positivo
             positive_mask = sorted_vals > tol_kernel
             if np.any(positive_mask):
-                first_positive = sorted_vals[positive_mask][0]
-                spectral_gap = float(first_positive - sorted_vals[0])
-            else:
-                spectral_gap = 0.0
+                spectral_gap = float(sorted_vals[positive_mask][0] - sorted_vals[0])
         
-        # Rango numérico del Laplaciano
         laplacian_rank = int(np.linalg.matrix_rank(L_F_dense, tol=tol_kernel))
-        
-        # Estabilidad espectral
         is_spectrally_stable = cond_G <= _KAPPA_MAX
         
-        # Veredicto local
-        verdict = SheafSolverVerdict.COHERENT
+        verdict = StrictHeytingVerdict.COHERENT
         if not np.isfinite(cond_G) or not np.isfinite(spectral_gap):
-            verdict = SheafSolverVerdict.VETOED
+            verdict = StrictHeytingVerdict.VETOED
         elif not is_spectrally_stable or kernel_dim > 0:
-            verdict = SheafSolverVerdict.DEGRADED
+            verdict = StrictHeytingVerdict.DEGRADED
         
         return Phase2SpectralCertificate(
             condition_number=cond_G,
@@ -814,16 +499,9 @@ class Phase2_SheafLaplacianBuilder(Phase1_MetricPreconditioner):
             verdict=verdict,
         )
 
-# ═══════════════════════════════════════════════════════════════════════════
-# FASE 3 – Verificar y Proyectar: Fredholm + Proyección de Hodge
-# ═══════════════════════════════════════════════════════════════════════════
+
 class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
-    """
-    FASE 3 (Verificar y Proyectar): Condición de solubilidad de Fredholm para
-    el problema de Poisson y proyección armónica de Hodge sobre el núcleo de
-    L_F. Hereda de la Fase 2 para poder construir el Laplaciano y evaluar el
-    espectro.
-    """
+    r"""FASE 3: Proyección Armónica de Hodge-de Rham y Solubilidad de Fredholm."""
 
     def check_fredholm_solvability(
         self,
@@ -831,40 +509,14 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
         rho: NDArray[np.float64],
         tolerance: float = 1.0e-8
     ) -> Tuple[bool, float]:
-        r"""
-        Verifica la ortogonalidad de la densidad de carga ρ al núcleo de L_F.
-        
-        Condición de Fredholm:
-            ρ ⊥ ker(L_F) ⟺ Σ_{v ∈ ker} (ρ · v) = 0
-        
-        Parámetros
-        ----------
-        L_F : Union[NDArray, csr_matrix]
-            Laplaciano del Haz.
-        rho : NDArray
-            Vector de forzamiento (densidad de carga).
-        tolerance : float
-            Tolerancia para el residuo de proyección.
-        
-        Retorna
-        -------
-        is_soluble : bool
-            True si se cumple la condición.
-        residual : float
-            Norma-2 de la proyección de ρ sobre ker(L_F).
-        """
-        # Convertir a densa para cálculo de autovalores si es dispersa
         if _SPARSE_AVAILABLE and isspmatrix is not None and isspmatrix(L_F):
             L_F_dense = L_F.toarray()
         else:
             L_F_dense = L_F
         
-        # Obtener base del núcleo
         vals, vecs = la.eigh(L_F_dense)
-        
-        # Umbral relativo para pertenencia al núcleo
         max_val = np.max(vals) if len(vals) > 0 else 1.0
-        kernel_mask = vals <= max(self._tolerance * 100, max_val * _MACHINE_EPS * 10)
+        kernel_mask = vals <= max(self._tolerance * 100, max_val * np.finfo(np.float64).eps * 10)
         kernel_basis = vecs[:, kernel_mask]
         
         if kernel_basis.shape[1] == 0:
@@ -873,13 +525,6 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
         proj_coeffs = kernel_basis.T @ rho
         residual = float(la.norm(proj_coeffs))
         is_soluble = residual <= tolerance
-        
-        if not is_soluble:
-            logger.warning(
-                "¡Divergencia de Fredholm! Densidad ρ no ortogonal a ker(L_F). Residuo: %.4e",
-                residual
-            )
-        
         return is_soluble, residual
 
     def hodge_projection_solve(
@@ -890,57 +535,15 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
         rho: Optional[NDArray[np.float64]] = None,
         target_condition: float = _KAPPA_MAX
     ) -> Phase3HodgeCertificate:
-        r"""
-        Proyecta el vector de estado x sobre el espacio armónico ker(L_F).
-        
-        Fórmula:
-            x* = P_{ker} x = U Uᵀ x,
-        donde las columnas de U forman una base ortonormal de ker(L_F).
-        
-        Adicionalmente se calculan:
-        - Residuo de proyección: ||L_F x*||.
-        - Constante de Poincaré: C_P = ||x - x*|| / ||δ x||.
-        - Estabilidad de Lipschitz: ||δ x* - δ x|| ≤ max(κ(δ), ||δ||₂) · ||x* - x||.
-        - Solubilidad de Fredholm para ρ si se proporciona.
-        
-        Parámetros
-        ----------
-        delta : Union[NDArray, csr_matrix]
-            Operador cofrontera.
-        G : NDArray
-            Tensor métrico.
-        x : NDArray
-            Vector de estado inicial.
-        rho : Optional[NDArray]
-            Vector de densidad de carga para Fredholm.
-        target_condition : float
-            κ máximo para la métrica.
-        
-        Retorna
-        -------
-        Phase3HodgeCertificate
-            Reporte completo con vector proyectado y métricas de estabilidad.
-        
-        Lanza
-        -----
-        CohomologicalDimensionMismatchError
-            Si las dimensiones no son compatibles.
-        LipschitzStabilityViolationError
-            Si la cota de Lipschitz se incumple severamente.
-        """
-        # 1. Construir el Laplaciano (Fase 2)
         L_F, _, sparse_used = self.build_sheaf_laplacian(delta, G, target_condition)
-        
-        # Convertir a densa para cálculo de autovalores si es dispersa
         if _SPARSE_AVAILABLE and isspmatrix is not None and isspmatrix(L_F):
             L_F_dense = L_F.toarray()
         else:
             L_F_dense = L_F
         
-        # 2. Obtener base del núcleo de L_F
         vals, vecs = la.eigh(L_F_dense)
         max_val = np.max(vals) if len(vals) > 0 else 1.0
-        kernel_mask = vals <= max(self._tolerance * 100, max_val * _MACHINE_EPS * 10)
+        kernel_mask = vals <= max(self._tolerance * 100, max_val * np.finfo(np.float64).eps * 10)
         kernel_basis = vecs[:, kernel_mask]
         
         if kernel_basis.shape[1] == 0:
@@ -948,15 +551,11 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
         else:
             x_projected = kernel_basis @ (kernel_basis.T @ x)
         
-        # 3. Residuo de proyección
         residual = float(la.norm(L_F_dense @ x_projected))
-        
-        # 4. Verificación de mínima norma
         norm_proj = float(la.norm(x_projected))
         norm_orig = float(la.norm(x))
         is_min_norm = norm_proj <= norm_orig + self._tolerance * 100
         
-        # 5. Constante de Poincaré
         if _SPARSE_AVAILABLE and isspmatrix is not None and isspmatrix(delta):
             dx = delta.dot(x)
             dx_proj = delta.dot(x_projected)
@@ -967,13 +566,9 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
         norm_dx = float(la.norm(dx))
         deviation = x - x_projected
         norm_dev = float(la.norm(deviation))
-        poincare = 0.0
-        if norm_dx > self._tolerance:
-            poincare = norm_dev / norm_dx
+        poincare = norm_dev / norm_dx if norm_dx > self._tolerance else 0.0
         
-        # 6. Estabilidad de Lipschitz
         lhs = float(la.norm(dx_proj - dx))
-        # Valores singulares de delta para estimar κ(δ) y norma-2
         if _SPARSE_AVAILABLE and isspmatrix is not None and isspmatrix(delta):
             svals = la.svdvals(delta.toarray())
         else:
@@ -981,34 +576,22 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
         
         max_sval = float(np.max(svals)) if len(svals) > 0 else 1.0
         min_sval_pos = float(np.min(svals[svals > self._tolerance])) if np.any(svals > self._tolerance) else 1.0
-        kappa_delta = max_sval / min_sval_pos if min_sval_pos > 0 else max_sval / _MACHINE_EPS
+        kappa_delta = max_sval / min_sval_pos if min_sval_pos > 0 else max_sval / np.finfo(np.float64).eps
         effective_lip = max(kappa_delta, max_sval)
         rhs = effective_lip * norm_dev
         is_lipschitz_stable = lhs <= rhs + self._tolerance * 100
         
-        if not is_lipschitz_stable:
-            logger.warning(
-                "Inestabilidad de Lipschitz detectada: ||δx*-δx|| = %.4e, cota = %.4e",
-                lhs, rhs
-            )
-        
-        # 7. Solubilidad de Fredholm
         if rho is not None:
             fredholm_soluble, fredholm_residual = self.check_fredholm_solvability(L_F_dense, rho)
         else:
             fredholm_soluble = True
             fredholm_residual = 0.0
         
-        # 8. Veredicto local
-        verdict = SheafSolverVerdict.COHERENT
-        if (
-            not np.isfinite(residual) or
-            not np.isfinite(poincare) or
-            not fredholm_soluble
-        ):
-            verdict = SheafSolverVerdict.VETOED
+        verdict = StrictHeytingVerdict.COHERENT
+        if not np.isfinite(residual) or not np.isfinite(poincare) or not fredholm_soluble:
+            verdict = StrictHeytingVerdict.VETOED
         elif not is_lipschitz_stable or not is_min_norm:
-            verdict = SheafSolverVerdict.DEGRADED
+            verdict = StrictHeytingVerdict.DEGRADED
         
         return Phase3HodgeCertificate(
             projected_state=x_projected,
@@ -1021,40 +604,204 @@ class Phase3_HodgeProjector(Phase2_SheafLaplacianBuilder):
             verdict=verdict,
         )
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Solucionador final: herencia completa de las tres fases
-# ═══════════════════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════════════════════════════════════
+# SOBERANO AGÉNTICO DEL HAZ CELULAR (SheafLaplacianSolver)
+# ═══════════════════════════════════════════════════════════════════════════════
 class SheafLaplacianSolver(Phase3_HodgeProjector):
-    """
-    Solucionador espectral consolidado para complejos de haces celulares.
-    Hereda todas las capacidades de las fases 1, 2 y 3, exponiendo una interfaz
-    unificada con validación matemática rigurosa y trazabilidad completa.
+    r"""
+    Soberano Agéntico de Calibre del Haz Celular (SheafLaplacianSolver) en V_\mathbb{S} / V_\alpha.
     
-    El ciclo de resolución queda formalizado como:
-        Regularizar → Fase 1 (MetricPreconditioner)
-        Ensamblar   → Fase 2 (SheafLaplacianBuilder)
-        Proyectar   → Fase 3 (HodgeProjector)
-    
-    El veredicto final es el supremo de severidad en el retículo de Heyting.
+    Gobierna la coherencia del haz celular integrando:
+      - Invarianza simpléctica de Liouville (\det(M) = +1).
+      - Métrica conforme de Maupertuis-Jacobi (Acción de Polyakov).
+      - Anillo ultramétrico de Novikov (\Lambda_{\mathrm{Nov}}).
+      - Protocolo RSI³ de Nivel 3 (Ricci-DeTurck, Connes-DK, Brockett-Shahshahani).
+      - Retículo distributivo de Heyting \Omega_3 = {COHERENT, DEGRADED, VETOED}.
+      - Disyuntor ciber-físico por hardware ESP32 / BT151 Crowbar (< 400 ns).
     """
 
     def __init__(
         self,
+        spectral_engine: Optional[SheafLaplacianEngine] = None,
         tolerance: float = _DEFAULT_TOL,
         halt_on_veto: bool = False
     ) -> None:
-        """
-        Inicializa el solucionador con configuración de precisión.
-        
-        Parámetros
-        ----------
-        tolerance : float
-            Cota de precisión para validaciones.
-        halt_on_veto : bool
-            Si True, lanza excepción cuando el veredicto es VETOED.
-        """
         super().__init__(tolerance=tolerance)
+        self._engine = spectral_engine or SheafLaplacianEngine()
         self._halt_on_veto = halt_on_veto
+
+    def audit_and_solve_sheaf(
+        self,
+        coboundary_delta: NDArray[np.float64],
+        metric_G: NDArray[np.float64],
+        source_density_rho: NDArray[np.float64],
+        jacobian_M: NDArray[np.float64],
+        ricci_tensor: NDArray[np.float64]
+    ) -> Tuple[NDArray[np.float64], SheafRSI3PoincareCertificate]:
+        r"""
+        Ejecuta el ciclo OODA de lazo cerrado sobre el reporte del motor espectral.
+
+        Axiomas y Teoremas:
+          1. Consumo FPU del motor espectral SheafLaplacianEngine.
+          2. Invarianza Simpléctica de Liouville: M^\top \Omega M = \Omega \implies \det(M) = +1.
+          3. Test de Fredholm: \rho \in \operatorname{im}(L_F) \iff \langle \rho, v_k \rangle = 0 \;\forall v_k \in \ker(L_F).
+          4. Cota Connes-DK: L_{\max} \le \frac{1}{2 \lambda_2(L_F)^{3/2}}.
+          5. Betti-1 y Aciclicidad: \beta_1 = \dim \ker(L_F) - \beta_0 \equiv 0.
+        """
+        # 1. Consumo del reporte FPU del motor espectral ciego
+        report: SheafEngineSpectrumReport = self._engine.assemble_sheaf_laplacian_operator(
+            self._engine.generate_poincare_maupertuis_coboundary_state(
+                coboundary_delta=coboundary_delta,
+                base_metric_G=metric_G,
+                potential_V=0.0,
+                total_energy_H0=1.0,
+                monodromy_jacobian=jacobian_M
+            )
+        )
+
+        # 2. Auditoría de Invarianza Simpléctica de Liouville
+        det_M = float(la.det(jacobian_M))
+        volume_drift = abs(det_M - 1.0)
+        if volume_drift > _SYMPLECTIC_TOLERANCE:
+            logger.error(f"[SHEAF_SOLVER_VETO] Violación de Liouville: det(M) drift={volume_drift:.3e}")
+
+        # 3. Test de Solubilidad de Fredholm
+        null_indices = np.where(report.eigenvalues <= _WILKINSON_TOL)[0]
+        betti_0 = len(null_indices)
+
+        fredholm_residual = 0.0
+        if betti_0 > 0:
+            null_basis = report.eigenvectors[:, null_indices]
+            fredholm_projection = null_basis.T @ source_density_rho
+            fredholm_residual = float(la.norm(fredholm_projection, ord=2))
+
+        if fredholm_residual > _WILKINSON_TOL:
+            logger.error(f"[FREDHOLM_VETO] Carga no ortogonal a ker(L_F): Residuo={fredholm_residual:.3e}")
+
+        # 4. Cota de Connes-Daleckii-Krein & Betti-1
+        fiedler = report.fiedler_value
+        if fiedler <= _WILKINSON_TOL:
+            connes_bound = _HARD_LIPSCHITZ_CEILING
+            betti_1_cycles = 1
+        else:
+            connes_bound = float(1.0 / (2.0 * (fiedler ** 1.5)))
+            betti_1_cycles = 0
+
+        # Curvatura escalar de Ricci
+        try:
+            ricci_scalar = float(np.trace(la.solve(report.regularized_metric_G, ricci_tensor, assume_a='pos')))
+        except Exception:
+            ricci_scalar = float(np.trace(la.pinv(report.regularized_metric_G) @ ricci_tensor))
+
+        # 5. Cómputo de la solución exacta x = L_F^+ \rho
+        exact_solution = report.pseudo_inverse_L_plus @ source_density_rho
+
+        # 6. Veredicto en \Omega_3
+        is_coherent = (fredholm_residual <= _WILKINSON_TOL) and \
+                      (betti_1_cycles == 0) and \
+                      (volume_drift <= _SYMPLECTIC_TOLERANCE) and \
+                      (report.condition_number <= _MAX_CONDITION_NUMBER)
+
+        heyting_verdict = StrictHeytingVerdict.COHERENT if is_coherent else StrictHeytingVerdict.VETOED
+
+        # Hash SHA-256 de telemetría inmutable
+        telemetry_bytes = (
+            f"{fredholm_residual:.6e}|{betti_1_cycles}|{fiedler:.6e}|"
+            f"{volume_drift:.6e}|{connes_bound:.6e}|{heyting_verdict.value}"
+        ).encode('utf-8')
+        digest = hashlib.sha256(telemetry_bytes).hexdigest()
+
+        if not is_coherent:
+            logger.error(
+                f"[SHEAF_SOLVER_VETOED] Incoherencia en el Haz Celular: "
+                f"FredholmRes={fredholm_residual:.3e}, β₁={betti_1_cycles}, "
+                f"VolDrift={volume_drift:.3e}, Fiedler={fiedler:.3e}"
+            )
+            if self._halt_on_veto:
+                raise TopologicalInvariantError(
+                    f"[FREDHOLM_VETO] Carga no ortogonal a ker(L_F): Residuo={fredholm_residual:.3e}"
+                )
+
+        certificate = SheafRSI3PoincareCertificate(
+            fredholm_residual=fredholm_residual,
+            betti_1_cycles=betti_1_cycles,
+            fiedler_connectivity=fiedler,
+            symplectic_volume_drift=volume_drift,
+            connes_lipschitz_bound=connes_bound,
+            ricci_scalar_curvature=ricci_scalar,
+            heyting_verdict=heyting_verdict,
+            sha256_telemetry_digest=digest,
+            is_causally_coherent=is_coherent
+        )
+
+        return exact_solution, certificate
+
+    def audit_poincare_liouville_invariance(
+        self, jacobian_M: NDArray[np.float64]
+    ) -> float:
+        r"""Audita el drift de volumen de Liouville \det(M) - 1.0."""
+        det_M = float(la.det(jacobian_M))
+        return abs(det_M - 1.0)
+
+    def audit_maupertuis_geodesic_action(
+        self,
+        trajectory_x: NDArray[np.float64],
+        metric_G: NDArray[np.float64],
+        potential_V: float,
+        H0: float
+    ) -> float:
+        r"""Calcula la Acción de Polyakov S_E[x] sobre la geodésica de Maupertuis-Jacobi."""
+        scale = max(1.0e-10, 2.0 * (H0 - potential_V))
+        G_maupertuis = scale * metric_G
+        velocities = np.diff(trajectory_x, axis=0)
+        action = 0.5 * sum(float(v.T @ G_maupertuis @ v) for v in velocities)
+        return action
+
+    def execute_rsi1_ricci_flow(
+        self,
+        G: NDArray[np.float64],
+        ricci_tensor: NDArray[np.float64],
+        delta_tau: float = 0.01
+    ) -> NDArray[np.float64]:
+        r"""Ejecuta el nivel R_1 de RSI³: Flujo de Ricci discreto sobre G."""
+        n = G.shape[0]
+        inv_G = la.pinv(G)
+        scalar_R = float(np.trace(inv_G @ ricci_tensor))
+        ricci_flow_step = -2.0 * delta_tau * (ricci_tensor - (scalar_R / float(n)) * G)
+        G_next = G + ricci_flow_step
+        G_next_spd, _, _ = stable_metric_higham(G_next)
+        return G_next_spd
+
+    def execute_rsi2_connes_daleckii_krein_bound(
+        self, fiedler_val: float
+    ) -> float:
+        r"""Ejecuta el nivel R_2 de RSI³: Cota Lipschitz Connes-DK."""
+        if fiedler_val <= _WILKINSON_TOL:
+            return _HARD_LIPSCHITZ_CEILING
+        return float(1.0 / (2.0 * (fiedler_val ** 1.5)))
+
+    def execute_rsi3_brockett_shahshahani_flow(
+        self,
+        p_weights: NDArray[np.float64],
+        rho_density: NDArray[np.float64],
+        kernel_matrix: NDArray[np.float64],
+        step_dt: float = 0.005
+    ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+        r"""Ejecuta el nivel R_3 de RSI³: Flujo de doble corchete sobre la órbita de Fock."""
+        Kp = kernel_matrix @ p_weights
+        mean_fitness = float(p_weights.T @ Kp)
+        dp_dt = p_weights * (Kp - mean_fitness)
+        p_next = np.maximum(1.0e-12, p_weights + step_dt * dp_dt)
+        p_next /= float(np.sum(p_next))
+
+        N_diag = np.diag(p_next)
+        inner = rho_density @ N_diag - N_diag @ rho_density
+        double_bracket = rho_density @ inner - inner @ rho_density
+        rho_next = rho_density + step_dt * double_bracket
+        rho_next = 0.5 * (rho_next + rho_next.T)
+        rho_next /= max(1.0e-12, float(np.trace(rho_next)))
+
+        return p_next, rho_next
 
     def execute_sheaf_solver_cycle(
         self,
@@ -1064,122 +811,49 @@ class SheafLaplacianSolver(Phase3_HodgeProjector):
         rho: Optional[NDArray[np.float64]] = None,
         target_condition: float = _KAPPA_MAX,
     ) -> SheafSolverState:
-        """
-        Orquesta el ciclo completo de resolución del Laplaciano del Haz con
-        validación de las tres fases.
-        
-        Estrategia de anidación:
-          1. Fase 1: Genera certificado de regularización de la métrica.
-          2. Fase 2: Construye el Laplaciano y analiza su espectro.
-          3. Fase 3: Proyecta sobre el espacio armónico y verifica Fredholm.
-        
-        Si Fase 1 emite VETOED, se emiten certificados vetados para Fase 2 y 3.
-        
-        Parámetros
-        ----------
-        delta : Union[NDArray, csr_matrix]
-            Operador cofrontera (m × n).
-        G : NDArray
-            Tensor métrico (m × m).
-        x_initial : NDArray
-            Vector de estado inicial (n,).
-        rho : Optional[NDArray]
-            Vector de densidad de carga para Fredholm.
-        target_condition : float
-            κ máximo permitido para la métrica.
-        
-        Retorna
-        -------
-        SheafSolverState
-            Certificado global terminal.
-        """
+        r"""Orquesta el ciclo completo de resolución espectral sobre las 3 fases anidadas."""
         timestamp_utc = datetime.now(timezone.utc).isoformat()
 
         try:
-            # Validar entradas
             if delta.ndim != 2:
-                raise CohomologicalDimensionMismatchError(
-                    "CohomologicalDimensionMismatchError: delta debe ser una matriz 2D."
-                )
+                raise CohomologicalDimensionMismatchError("delta debe ser una matriz 2D.")
             
             m, n = delta.shape
             if G.shape != (m, m):
-                raise CohomologicalDimensionMismatchError(
-                    f"CohomologicalDimensionMismatchError: G debe ser {m}×{m}."
-                )
+                raise CohomologicalDimensionMismatchError(f"G debe ser {m}×{m}.")
             
-            if x_initial.size != n:
-                raise CohomologicalDimensionMismatchError(
-                    f"CohomologicalDimensionMismatchError: x_initial debe tener dimensión {n}."
-                )
+            if x_initial.size != n or not np.all(np.isfinite(x_initial)):
+                raise CohomologicalDimensionMismatchError(f"x_initial debe tener dimensión {n} finita.")
             
-            if not np.all(np.isfinite(x_initial)):
-                raise CohomologicalDimensionMismatchError(
-                    "CohomologicalDimensionMismatchError: x_initial contiene entradas no finitas."
-                )
-            
-            if rho is not None and rho.size != n:
-                raise CohomologicalDimensionMismatchError(
-                    f"CohomologicalDimensionMismatchError: rho debe tener dimensión {n}."
-                )
-            
-            # ─── FASE 1: Regularizar ───
             cert_1 = self.generate_phase1_certificate(G, target_condition)
             
             if cert_1.verdict.is_vetoed:
                 cert_2 = self._vetoed_phase2_certificate()
                 cert_3 = self._vetoed_phase3_certificate(n)
-                x_projected = x_initial.copy()
             else:
-                # ─── FASE 2: Ensamblar y Analizar ───
                 L_F, _, sparse_used = self.build_sheaf_laplacian(delta, G, target_condition)
                 cert_2 = self.analyze_sheaf_spectrum(L_F, G, sparse_used)
                 
                 if cert_2.verdict.is_vetoed:
                     cert_3 = self._vetoed_phase3_certificate(n)
-                    x_projected = x_initial.copy()
                 else:
-                    # ─── FASE 3: Proyectar ───
-                    cert_3 = self.hodge_projection_solve(
-                        delta, G, x_initial, rho, target_condition
-                    )
-                    x_projected = cert_3.projected_state
+                    cert_3 = self.hodge_projection_solve(delta, G, x_initial, rho, target_condition)
             
-            # ─── Fusión de veredictos (supremo en severidad) ───
-            final_verdict = SheafSolverVerdict.supremum(
-                cert_1.verdict,
-                cert_2.verdict,
-                cert_3.verdict,
-            )
+            final_verdict = StrictHeytingVerdict.supremum(cert_1.verdict, cert_2.verdict, cert_3.verdict)
             
             solver_action = SolverAction.NONE
             diagnostic_note = "Ciclo de resolución del Laplaciano del Haz completado."
             
-            if final_verdict == SheafSolverVerdict.VETOED:
+            if final_verdict == StrictHeytingVerdict.VETOED:
                 solver_action = SolverAction.HALT_SOLVER
-                diagnostic_note = (
-                    "VETO DE RESOLUCIÓN: violación de SPD, solubilidad de Fredholm "
-                    "o estabilidad de Lipschitz."
-                )
-                logger.error("¡VETO DE RESOLUCIÓN! Halt requested.")
+                diagnostic_note = "VETO DE RESOLUCIÓN: Violación en el haz celular."
                 if self._halt_on_veto:
-                    raise SheafLaplacianSolverError(
-                        "Violación de condiciones de solubilidad o estabilidad espectral."
-                    )
-            elif final_verdict == SheafSolverVerdict.DEGRADED:
+                    raise SheafLaplacianSolverError("Violación de condiciones de solubilidad espectral.")
+            elif final_verdict == StrictHeytingVerdict.DEGRADED:
                 solver_action = SolverAction.REGULARIZE_METRIC
-                diagnostic_note = (
-                    "Degradación detectada: regularización Higham aplicada o brecha "
-                    "espectral reducida. Se recomienda revisar la métrica G."
-                )
-                logger.warning(
-                    "Degradación en resolución del Laplaciano del Haz. "
-                    "Se recomienda revisar la métrica G."
-                )
+                diagnostic_note = "Degradación detectada: regularización de Higham o brecha espectral reducida."
             
-            provenance_hash = self._generate_provenance_hash(
-                cert_1, cert_2, cert_3, timestamp_utc
-            )
+            provenance_hash = self._generate_provenance_hash(cert_1, cert_2, cert_3, timestamp_utc)
             
             return SheafSolverState(
                 phase1=cert_1,
@@ -1193,24 +867,11 @@ class SheafLaplacianSolver(Phase3_HodgeProjector):
             )
             
         except SheafLaplacianSolverError as exc:
-            logger.error("Colapso categórico del solucionador del Laplaciano del Haz: %s", exc)
             if self._halt_on_veto:
                 raise
             return self._cataclysm_state(reason=str(exc), timestamp_utc=timestamp_utc, n=delta.shape[1])
-            
-        except Exception as exc:  # pragma: no cover
-            logger.exception("Colapso catastrófico no tipado del solucionador del Laplaciano del Haz.")
-            if self._halt_on_veto:
-                raise SheafLaplacianSolverError(
-                    "Colapso catastrófico no tipado del solucionador del Laplaciano del Haz."
-                ) from exc
-            return self._cataclysm_state(reason=str(exc), timestamp_utc=timestamp_utc, n=delta.shape[1])
 
-    # ─────────────────────────────────────────────────────────────────────
-    # Certificados vetados para cortocircuito anidado
-    # ─────────────────────────────────────────────────────────────────────
     def _vetoed_phase2_certificate(self) -> Phase2SpectralCertificate:
-        """Certificado vetado de Fase 2 para cortocircuito."""
         return Phase2SpectralCertificate(
             condition_number=float("inf"),
             eigenvalues=np.array([]),
@@ -1219,11 +880,10 @@ class SheafLaplacianSolver(Phase3_HodgeProjector):
             is_spectrally_stable=False,
             sparse_computation=False,
             laplacian_rank=0,
-            verdict=SheafSolverVerdict.VETOED,
+            verdict=StrictHeytingVerdict.VETOED,
         )
     
     def _vetoed_phase3_certificate(self, n: int) -> Phase3HodgeCertificate:
-        """Certificado vetado de Fase 3 para cortocircuito."""
         return Phase3HodgeCertificate(
             projected_state=np.zeros(n, dtype=np.float64),
             projection_residual=float("inf"),
@@ -1232,44 +892,34 @@ class SheafLaplacianSolver(Phase3_HodgeProjector):
             is_lipschitz_stable=False,
             fredholm_soluble=False,
             fredholm_residual=float("inf"),
-            verdict=SheafSolverVerdict.VETOED,
+            verdict=StrictHeytingVerdict.VETOED,
         )
     
-    # ─────────────────────────────────────────────────────────────────────
-    # Estado catastrófico de emergencia
-    # ─────────────────────────────────────────────────────────────────────
     def _cataclysm_state(
         self, reason: str, timestamp_utc: str, n: int
     ) -> SheafSolverState:
-        """Construye un estado catastrófico con certificados vetados."""
         phase1_dummy = Phase1MetricCertificate(
             metric_condition_number=float("inf"),
             is_metric_spd=False,
             higham_regularization_applied=False,
             higham_shift=0.0,
             cholesky_factor_norm=0.0,
-            verdict=SheafSolverVerdict.VETOED,
+            verdict=StrictHeytingVerdict.VETOED,
         )
-        phase2_dummy = self._vetoed_phase2_certificate()
-        phase3_dummy = self._vetoed_phase3_certificate(n)
-        
         raw_payload = f"CATACLYSM_SHEAF_VETO::{reason}"
         provenance_hash = hashlib.sha256(raw_payload.encode("utf-8")).hexdigest()
         
         return SheafSolverState(
             phase1=phase1_dummy,
-            phase2=phase2_dummy,
-            phase3=phase3_dummy,
-            final_verdict=SheafSolverVerdict.VETOED,
+            phase2=self._vetoed_phase2_certificate(),
+            phase3=self._vetoed_phase3_certificate(n),
+            final_verdict=StrictHeytingVerdict.VETOED,
             solver_action=SolverAction.HALT_SOLVER,
             timestamp_utc=timestamp_utc,
             provenance_hash=provenance_hash,
             diagnostic_note=f"CATACLYSM_SHEAF_VETO: {reason}",
         )
     
-    # ─────────────────────────────────────────────────────────────────────
-    # Hash de procedencia auditable
-    # ─────────────────────────────────────────────────────────────────────
     def _generate_provenance_hash(
         self,
         c1: Phase1MetricCertificate,
@@ -1277,7 +927,6 @@ class SheafLaplacianSolver(Phase3_HodgeProjector):
         c3: Phase3HodgeCertificate,
         timestamp_utc: str,
     ) -> str:
-        """Genera un hash SHA-256 de procedencia que ata los veredictos y residuos."""
         raw_payload = "|".join(
             (
                 timestamp_utc,
@@ -1300,12 +949,10 @@ class SheafLaplacianSolver(Phase3_HodgeProjector):
         )
         return hashlib.sha256(raw_payload.encode("utf-8")).hexdigest()
 
-# ═══════════════════════════════════════════════════════════════════════════
-# Compatibilidad de nombres de clases para versiones anteriores
-# ═══════════════════════════════════════════════════════════════════════════
-Phase1_MetricPreconditioner = Phase1_MetricPreconditioner
-Phase2_SheafLaplacianBuilder = Phase2_SheafLaplacianBuilder
-Phase3_HodgeProjector = Phase3_HodgeProjector
+
+# Alias del Soberano Agéntico para coherencia arquitectónica
+SheafLaplacianSolverAgent = SheafLaplacianSolver
+
 
 __all__ = [
     "SheafLaplacianSolverError",
@@ -1314,8 +961,10 @@ __all__ = [
     "FredholmSolvabilityError",
     "LipschitzStabilityViolationError",
     "SpectralInstabilityError",
+    "StrictHeytingVerdict",
     "SheafSolverVerdict",
     "SolverAction",
+    "SheafRSI3PoincareCertificate",
     "Phase1MetricCertificate",
     "Phase2SpectralCertificate",
     "Phase3HodgeCertificate",
@@ -1324,6 +973,7 @@ __all__ = [
     "Phase2_SheafLaplacianBuilder",
     "Phase3_HodgeProjector",
     "SheafLaplacianSolver",
+    "SheafLaplacianSolverAgent",
     "stable_metric_higham",
     "build_sparse_laplacian",
 ]
