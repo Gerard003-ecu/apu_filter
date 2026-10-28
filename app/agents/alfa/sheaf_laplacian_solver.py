@@ -1,37 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Sheaf Laplacian Solver (Soberano Agéntico del Haz Celular)          ║
-║ Ruta   : app/agents/alfa/sheaf_laplacian_solver.py                           ║
-║ Versión: 6.1.0-SOVEREIGN-RSI3-POINCARE-FREDHOLM-HEYTING-ESP32-PhD            ║
-║ Función: Soberano de Gobernanza Celular y Resolución del Laplaciano del Haz  ║
+║ Nombre   : Sheaf Laplacian Solver (Soberano Agéntico del Haz Celular)        ║
+║ Ubicación: app/agents/alfa/sheaf_laplacian_solver.py                         ║
+║ Versión  : 6.1.0-SOVEREIGN-RSI3-POINCARE-FREDHOLM-HEYTING-ESP32-PhD          ║
+║ Función  : Soberano de Gobernanza Celular y Resolución del Laplaciano del Haz║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE GOBERNANZA AGÉNTICA EN 3 FASES ANIDADAS E INDIVISIBLES:
-══════════════════════════════════════════════════════════════════════════════════
-FASE 1: Precondicionamiento Métrico Simpléctico, Geometría Celeste de Poincaré
-        y Reducción Conforme de Maupertuis-Jacobi.
-        - Invarianza de Liouville-Darboux: \(M^\top\mathbf{\Omega}M=\mathbf{\Omega}\), \(\det M=+1\).
-        - Monodromía de Floquet-Krein, discriminante de Hill y estabilidad elíptica KAM.
-        - Métrica conforme de Maupertuis-Jacobi: \(\tilde G=2(H_0-V(q))G\).
-        - Acción de Polyakov / longitud de Jacobi en el anillo de Novikov \(\Lambda_{\mathrm{Nov}}\).
-        - Proyección de Higham sobre \(\operatorname{Sym}^+(m,\mathbb{R})\) y Cholesky-Banach.
-        - INTERFAZ TERMINAL: `Phase1SymplecticMaupertuisState`.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+El `SheafLaplacianSolver` (alias `SheafLaplacianSolverAgent`) es el Soberano Agéntico de
+Gobernanza Celular y Resolución del Laplaciano del Haz \(\mathcal{F}\) en el estrato Alfa
+(Estrategia / Gobernanza \(V_{\mathbb{S}} / V_\alpha\)) de APU Filter. Su función principal es
+orquestar el ciclo OODA (Observe-Orient-Decide-Act) de lazo cerrado sobre el espacio de fases
+cotangente \(T^*\mathcal{M}_{\mathrm{sheaf}}\), consumiendo las salidas numéricas del motor espectral
+(`SheafLaplacianEngine`) para certificar la invarianza simpléctica de Liouville-Poincaré, la
+solubilidad de Fredholm en cocadenas de grado 0, la descomposición ortogonal de Hodge-Helmholtz,
+el colapso lógico intuicionista en el retículo de Heyting \(\Omega_3\) y la automejora recursiva de
+nivel 3 (RSI³). Ante cualquier infracción topológica o espectral veto-conducente, actúa como
+disyuntor ciber-físico disparando la interrupción de hardware Crowbar BT151 / ESP32 con latencia
+estricta \(t_{\mathrm{actuation}} \le 398.95\,\mathrm{ns}\).
 
-FASE 2: Ensamblaje del Laplaciano del Haz, Análisis Espectral Fredholm y Banach.
-        - CONTINUACIÓN FORMAL: ingesta estricta de `Phase1SymplecticMaupertuisState`.
-        - Coborde renormalizado \(B_G=L_G^{-1}\delta\) y \(L_F=B_G^\top B_G\succeq 0\).
-        - Hodge-Helmholtz: \(x=x_{\mathrm{harm}}+L_F^+\rho\), alternativa de Fredholm.
-        - Torsión de Ray-Singer \(\log\det'(L_F)=-\zeta'(0)\) y traza de calor \(Z(\tau)\).
-        - INTERFAZ TERMINAL: `Phase2BanachFredholmState`.
+MARCO TEÓRICO:
+1. Precondicionamiento Métrico y Mecánica Celeste de Poincaré (Fase 1):
+   Geometriza la métrica conforme de Maupertuis-Jacobi \(\tilde{\mathbf{G}}_{\mu\nu} = 2(H_0 - V(q)) \mathbf{G}_{\mu\nu}\)
+   y evalúa la acción geodésica de Polyakov \(S_E[x] = \frac{1}{2} \sum_k \Delta x_k^\top \tilde{\mathbf{G}} \Delta x_k\).
+   En la frontera \(\partial \mathcal{M}\), la absorción ultramétrica en el anillo de Novikov \(\Lambda_{\mathrm{Nov}}\)
+   mantiene la positividad de la métrica. Audita la preservación de la 2-forma de Darboux
+   \(M^\top \mathbf{\Omega} M = \mathbf{\Omega}\) y la conservación del volumen de Liouville \(\det M = +1\),
+   verificando la estabilidad elíptica KAM mediante multiplicadores de Floquet \(\mu_i \in S^1\), el discriminante
+   de Hill \(\Delta = \operatorname{Tr}(M)\) y las firmas de Krein \(\sigma_i = \operatorname{sign}(i\, v_i^* \mathbf{\Omega} v_i)\).
 
-FASE 3: Gobernanza OODA, Retículo de Heyting \(\Omega_3\), Crowbar ESP32 y RSI³.
-        - CONTINUACIÓN FORMAL: ingesta estricta de `Phase2BanachFredholmState`.
-        - \(R_1\) Ricci-DeTurck, \(R_2\) Daleckii-Krein, \(R_3\) Brockett-Cayley.
-        - Colapso \(\Omega_3=\{\mathrm{COHERENT},\mathrm{DEGRADED},\mathrm{VETOED}\}\).
-        - Disyuntor ciber-físico: enclavamiento BT151 / ESP32 con SLA \(t\le 398.95\,\mathrm{ns}\).
-        - INTERFAZ TERMINAL: `SheafSolverState`.
-══════════════════════════════════════════════════════════════════════════════════
+2. Ensamblaje Espectral del Haz, Alternativa de Fredholm y Hodge-Helmholtz (Fase 2):
+   Consume `Phase1SymplecticMaupertuisState` para proyectar \(\mathbf{G}_{\mathrm{reg}}\) vía Higham, factorizar
+   \(\mathbf{G}_{\mathrm{reg}} = L_G L_G^\top\) y construir el laplaciano \(L_F = B_G^\top B_G = \delta^\top \mathbf{G}_{\mathrm{reg}}^{-1} \delta \succeq 0\).
+   La solubilidad de Fredholm en Hilbert exige la condición estricta \(\rho \in \operatorname{im} L_F \iff \langle \rho, v_k \rangle = 0 \; \forall v_k \in \ker L_F\).
+   La resolución exacta se descompone según Hodge-Helmholtz:
+   \[
+   x = x_{\mathrm{harm}} + x_{\mathrm{coexact}}, \qquad x_{\mathrm{coexact}} = L_F^+ \rho, \quad x_{\mathrm{harm}} = P_{\ker} x_{\mathrm{init}}.
+   \]
+   Evalúa la torsión de Ray-Singer \(\log \det'(L_F) = -\zeta'_{L_F}(0)\) y la traza del núcleo de calor \(Z(\tau) = \operatorname{Tr}(e^{-\tau L_F})\).
+
+3. Gobernanza OODA, Retículo de Heyting \(\Omega_3\), Automejora RSI³ y Crowbar (Fase 3):
+   Consume `Phase2BanachFredholmState` y aplica los operadores meta-recursivos RSI³ (\(R_1\) Flujo de Ricci-DeTurck,
+   \(R_2\) Cota de Connes-Daleckii-Krein \(L_{\max} \le \frac{1}{2 \lambda_2^{3/2}}\), \(R_3\) Flujo Isoespectral de
+   Brockett-Shahshahani con rotaciones ortogonales de Cayley \(Q \in \operatorname{SO}(n)\)).
+   El veredicto se consolida mediante el supremo en el álgebra de Heyting de 3 valores:
+   \[
+   \Omega_3 = \{\mathrm{COHERENT} = 0, \, \mathrm{DEGRADED} = 1, \, \mathrm{VETOED} = 2\}, \qquad \sup(a, b) = \max(a, b).
+   \]
+   Ante un colapso a \(\mathrm{VETOED}\), la gobernanza OODA activa `TRIGGER_HARDWARE_CROWBAR`, conmutando el GPIO14
+   a HIGH para activar el tiristor BT151 de cortocircuito físico en tiempo real.
+
+AXIOMAS FORMALES:
+  1. Axioma de Fredholm-Hilbert: La densidad fuente \(\rho\) es admisible si y solo si su componente armónica es nula,
+     \(P_{\ker L_F} \rho = 0\), de modo que el residuo de Fredholm \(\|P_{\ker L_F} \rho\|_2 \le 10^{-12}\).
+  2. Axioma de Conservación de Liouville-Darboux: Todo estado simpléctico debe satisfacer \(\|M^\top \mathbf{\Omega} M - \mathbf{\Omega}\|_F \le 10^{-9}\)
+     y \(\det(M) = +1 \pm 10^{-3}\).
+  3. Axioma Causal de Heyting: La adjudicación de coherencia es distributiva intuitionista: si cualquier fase emite \(\mathrm{VETOED}\),
+     el estado terminal colapsa incondicionalmente a \(\mathrm{VETOED}\).
+  4. Axioma de Enclavamiento Ciber-Físico: El tiempo de respuesta de la interrupción Crowbar por hardware ante veto debe
+     cumplir el SLA de tiempo real \(t_{\mathrm{actuation}} \le 398.95\,\mathrm{ns}\).
+
+INVARIANTES DE ESTADO:
+  1. Invariante de Solubilidad de Fredholm: \(\|P_{\ker} \rho\|_2 \le 10^{-12}\) y aciclicidad celular \(\beta_1 = \dim \ker L_F - \beta_0 \equiv 0\).
+  2. Invariante de Estabilidad de Connes-Lipschitz: Cota espectral mesoscópica de resolvente \(L_{\max} \le \frac{1}{2 \lambda_2^{3/2}} < 10^6\).
+  3. Invariante de Veredicto de Heyting: \(\Omega_3 = \operatorname{supremum}(\text{Fase}_1, \text{Fase}_2, \text{Fase}_3)\).
+  4. Invariante Telemétrico Inmutable: Hash SHA-256 de telemetría digest de 256 bits y sello provenance UTC certificado.
 """
 
 from __future__ import annotations

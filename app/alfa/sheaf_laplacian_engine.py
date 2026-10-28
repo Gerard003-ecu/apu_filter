@@ -1,38 +1,82 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Sheaf Laplacian Engine (Motor Espectral del Haz Celular)            ║
-║ Ruta   : app/alfa/sheaf_laplacian_engine.py                                  ║
-║ Versión: 6.1.0-SOVEREIGN-RSI3-POINCARE-LIOUVILLE-RICCI-BROCKETT-PHD          ║
-║ Autor  : APU Filter v6.1 - High-Precision FPU Spectral Computing Core        ║
+║ Nombre   : Sheaf Laplacian Engine (Motor Espectral del Haz Celular)          ║
+║ Ubicación: app/alfa/sheaf_laplacian_engine.py                                ║
+║ Versión  : 6.1.0-SOVEREIGN-RSI3-POINCARE-LIOUVILLE-RICCI-BROCKETT-PHD        ║
+║ Función  : Motor Espectral FPU de Alta Precisión para el Haz Celular y RSI³  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Arquitectura Matemática Unificada en 3 Fases Anidadas:
-══════════════════════════════════════════════════════════════════════════════════
-FASE 1: Fundamento Simpléctico, Geometría Celular de Poincaré y Métrica Conforme
-        de Maupertuis-Jacobi.
-        - Invarianza de Liouville-Darboux: \(M^\top \mathbf{\Omega} M = \mathbf{\Omega}\), \(\det(M)=+1\).
-        - Análisis de Estabilidad de Floquet-Poincaré (multiplicadores, Hill, Krein).
-        - Estructura casi-compleja compatible \(J\) con \(J^2=-\mathrm{Id}\), \(\omega(u,v)=g(Ju,v)\).
-        - Regularización ultramétrica en el anillo de Novikov \(\Lambda_{\mathrm{Nov}}\).
-        - Métrica conforme de Maupertuis-Jacobi: \(\tilde{\mathbf{G}}=2(H_0-V(q))\mathbf{G}\).
-        - Interfaz Final: ensamblaje y emisión de `PoincareMaupertuisSheafState`.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+El `SheafLaplacianEngine` opera como el núcleo numérico de punto flotante de alta
+precisión (FPU) del haz celular \(\mathcal{F}\) sobre el complejo simplicial 1-dimensional
+\(K = (V, E)\) en el estrato Alfa de APU Filter. Su cometido exclusivo es la computación
+determinista e indivisible de la geometría simpléctica de Henri Poincaré, la
+factorización de Cholesky ponderada, la descomposición espectral de Kato-Banach, la
+torsión analítica de Ray-Singer \(\det'(L_F)\), la termodinámica de núcleos de calor
+\(Z(\tau) = \operatorname{Tr}(e^{-\tau L_F})\) y la evolución meta-recursiva de nivel 3
+(RSI³: Flujo de Ricci-DeTurck \(R_1\), Respuesta Funcional de Connes-Daleckii-Krein \(R_2\)
+y Flujo Isoespectral de Doble Corchete de Brockett-Shahshahani \(R_3\)).
 
-FASE 2: Análisis Espectral de Haz Celular, Cuantización y Operadores de Banach-Fredholm.
-        - Consumo directo e indivisible de `PoincareMaupertuisSheafState`.
-        - Proyección convexa de Higham en \(\operatorname{Sym}^+(n,\mathbb{R})\).
-        - Factorización de Cholesky ponderada: \(L_F=B_G^\top B_G\succeq 0\).
-        - Kato-Rellich, resolvente de Banach, \(\zeta_{L_F}\) y torsión de Ray-Singer.
-        - Trazas de núcleo de calor \(Z(\tau)=\operatorname{Tr}(\exp(-\tau L_F))\).
-        - Interfaz Final: síntesis y emisión de `SpectralBanachSheafState`.
+MARCO TEÓRICO:
+1. Geometría Simpléctica Celeste y Conforme de Poincaré:
+   El espacio de fases cotangente \(T^*\mathcal{M}_{\mathrm{sheaf}}\) equipado con coordenadas
+   canónicas de Darboux \(z = (q, p)^\top \in \mathbb{R}^{2n}\) preserva la 2-forma simpléctica
+   canónica \(\omega = \sum_{i=1}^n dq_i \wedge dp_i = \frac{1}{2} dz^\top \mathbf{\Omega} dz\)
+   bajo la jacobiana de monodromía de Floquet \(M = \frac{\partial z_{t+T}}{\partial z_t}\):
+   \[
+   M^\top \mathbf{\Omega} M = \mathbf{\Omega}, \qquad \det(M) = +1.
+   \]
+   Bajo el teorema de capacidad simpléctica de Gromov, la contracción o compresión no física del
+   volumen en el espacio de fases queda prohibida. La trayectoria geodésica de Maupertuis-Jacobi
+   bajo energía total \(H_0\) y potencial cinemático \(V(q)\) reparametriza el espacio de
+   configuraciones mediante la métrica conforme \(\tilde{\mathbf{G}}_{\mu\nu} = 2(H_0 - V(q)) \mathbf{G}_{\mu\nu}\).
+   En regiones de frontera \(\partial \mathcal{M}\) con intersección nula o energía cinemática
+   subcrítica \(H_0 \le V(q)\), se aplica la regularización ultramétrica en el anillo de Novikov
+   \(\Lambda_{\mathrm{Nov}}\), garantizando la analiticidad del operador de Jacobi.
 
-FASE 3: Motor de Automejora Recursiva de Nivel 3 (RSI³: Ricci-DeTurck, Daleckii-Krein, Brockett).
-        - Consumo directo e indivisible de `SpectralBanachSheafState`.
-        - Nivel 1 (\(R_1\)): flujo de Ricci-DeTurck discreto con calibración de gauge.
-        - Nivel 2 (\(R_2\)): fórmula espectral de Daleckii-Krein (diferencias divididas).
-        - Nivel 3 (\(R_3\)): flujo isoespectral de doble corchete con integrador de Cayley.
-        - Bucle cerrado meta-recursivo: contracción en el espacio de moduli y Lyapunov de Brockett.
-══════════════════════════════════════════════════════════════════════════════════
+2. Análisis Espectral del Haz Celular y Operadores de Banach-Fredholm:
+   Dada la métrica conforme regulada \(\mathbf{G}_{\mathrm{reg}} \in \operatorname{Sym}^+(m, \mathbb{R})\)
+   factorizada mediante Cholesky \(\mathbf{G}_{\mathrm{reg}} = L_G L_G^\top\), el coborde celular
+   renormalizado de Wilkinson es \(B_G = L_G^{-1} \delta\). El operador laplaciano autoadjunto
+   no negativo del haz se ensambla como:
+   \[
+   L_F = \delta^\top \mathbf{G}_{\mathrm{reg}}^{-1} \delta = B_G^\top B_G \succeq 0.
+   \]
+   La función zeta espectral de Minakshisundaram-Pleijel-Ray-Singer \(\zeta_{L_F}(s) = \sum_{\lambda_i > 0} \lambda_i^{-s}\)
+   determina la torsión analítica y el determinante regularizado mediante
+   \(\log \det'(L_F) = -\zeta'_{L_F}(0) = \sum_{\lambda_i > 0} \log \lambda_i\). El operador
+   resolvente de Banach \(R(z, L_F) = (z I - L_F)^{-1} \in \mathcal{B}(\mathcal{H})\) define
+   las proyecciones armónicas de Riesz sobre el núcleo \(\ker L_F\).
+
+3. Motor de Automejora Recursiva de Nivel 3 (RSI³: \(R_3 \circ R_2 \circ R_1\)):
+   - Nivel \(R_1\) (Microescala - Ricci-DeTurck): Evoluciona la métrica con fijación de gauge
+     \(\frac{\partial G}{\partial \tau} = -2 \operatorname{Ric}(G) + \mathcal{L}_W G - \frac{R_{\mathrm{avg}}}{n} G\),
+     preservando la invariancia de volumen de Liouville.
+   - Nivel \(R_2\) (Mesoescala - Connes-Daleckii-Krein): Computa la derivada de Fréchet no conmutativa
+     \(Df(L_F)[H] = Q (f^{[1]}(\lambda_i, \lambda_j) \circ (Q^\top H Q)) Q^\top\) a través de la matriz de
+     diferencias divididas \(f^{[1]}\), actualizando la cota de Lipschitz de Connes \(L_{\max} \le \frac{1}{2 \lambda_2^{3/2}}\).
+   - Nivel \(R_3\) (Macroescala - Brockett-Shahshahani): Ejecuta el flujo isoespectral de doble corchete
+     \(\dot{L} = [L, [L, \operatorname{diag}(p)]]\) sobre la órbita coadjunta mediante integradores ortogonales
+     de Cayley \(Q_k = \operatorname{Cayley}(-h [L_k, N]) \in \operatorname{SO}(n)\), garantizando la estricta
+     monotonía de Lyapunov \(\dot{\mathcal{H}} = \|[L, \operatorname{diag}(p)]\|_F^2 \ge 0\) y la conservación
+     de los invariantes de Casimir \(\operatorname{Tr}(L^k)\).
+
+AXIOMAS FORMALES:
+  1. Axioma de Darboux-Liouville: Todo flujo en el espacio de fases cotangente debe satisfacer
+     \(M^\top \mathbf{\Omega} M = \mathbf{\Omega}\) y \(\det(M) = +1\), garantizando la conservación del volumen simpléctico.
+  2. Axioma de Positividad Métrica de Higham: Toda métrica de haz \(\mathbf{G}\) debe ser proyectada sobre
+     \(\operatorname{Sym}^+(m, \mathbb{R})\) con autovalor mínimo \(\lambda_{\min}(\mathbf{G}) \ge \tau_{\mathrm{SPD}} = 10^{-12}\).
+  3. Axioma de Continuidad Espectral de Daleckii-Krein: La variación espectral bajo perturbaciones métricas
+     autoadjuntas satisface la cota de Weyl-Lidskii \(|\lambda_i(L+H) - \lambda_i(L)| \le \|H\|_2\).
+  4. Axioma Isoespectral de Brockett: El flujo de doble corchete conserva los autovalores de \(L_F\) e invariantes de
+     Casimir \(\operatorname{Tr}(L_F^k)\) mediante transformaciones ortogonales de Cayley \(Q \in \operatorname{SO}(n)\).
+
+INVARIANTES DE ESTADO:
+  1. Invariante de Liouville-Darboux: \(\|M^\top \mathbf{\Omega} M - \mathbf{\Omega}\|_F \le 10^{-9}\) y \(\det(M) = +1 \pm 10^{-3}\).
+  2. Invariante de Connes-Daleckii-Krein: Cota de Lipschitz no conmutativa \(L_{\max} \le \frac{1}{2 \lambda_2^{3/2}}\).
+  3. Invariante de Casimir-Brockett: \(\max_i |\lambda_i(L^{(R_3)}) - \lambda_i(L^{(0)})| \le 10^{-12}\).
+  4. Invariante de Monotonía de Lyapunov: \(\Delta \mathcal{H}_{\mathrm{Brockett}} = \operatorname{Tr}(L_{\mathrm{final}} N) - \operatorname{Tr}(L_{\mathrm{inicial}} N) \ge 0\).
 """
 
 from __future__ import annotations
@@ -1357,13 +1401,13 @@ class SheafLaplacianEngine:
             diffusion_time_tau=diffusion_time_tau,
         )
         logger.info(
-            "RSI³ iter=%d  |ΔG|_F=%.3e  H=%.6e  gap=%.3e  Cayley⊥=%.1e  Casimir=%.1e",
-            converged_iters,
-            moduli_delta,
-            lyapunov_now,
-            current.spectrum_report.spectral_gap,
-            brockett_state.orthogonality_residual,
-            brockett_state.isoespectral_trace_error,
+            "RSI³ pipeline completado: iter=%d  |ΔG|_F=%.3e  H=%.6e  gap=%.3e  Cayley⊥=%.1e  Casimir=%.1e",
+            phase3.iterations_converged,
+            phase3.moduli_distance_delta,
+            phase3.global_lyapunov_energy,
+            phase3.spectral_gap_final,
+            phase3.brockett_state.orthogonality_residual,
+            phase3.brockett_state.isoespectral_trace_error,
         )
         return phase3
 
