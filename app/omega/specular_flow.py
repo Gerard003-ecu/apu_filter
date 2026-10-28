@@ -4,10 +4,10 @@ r"""
 ║ Nombre   : Specular Flow Engine (Motor del Flujo Especular)                              ║
 ║ Módulo   : app.omega.specular_flow                                                       ║
 ║ Ubicación : app/omega/specular_flow.py                                                   ║
-║ Ruta     : app/omega/specular_flow.py                                                   ║
+║ Ruta     : app/omega/specular_flow.py                                                    ║
 ║ Versión  : 6.0.0-Allievi-Householder-Tellegen-Spectral-Kahan-Sparse                      ║
 ║ Función  : Motor físico y solucionador numérico de transitorios de Allievi, reflexiones  ║
-║            covariantes de Householder con regularización espectral de Cholesky-Tikhonov y  ║
+║            covariantes de Householder con regularización espectral de Cholesky-Tikhonov y║
 ║            verificación de conservación de Tellegen vía suma de Kahan y B1 disperso.     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
 NATURALEZA CIBER-FÍSICA Y RIGOR MATEMÁTICO (FASES ANIDADAS + SUTURAS)
