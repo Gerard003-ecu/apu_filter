@@ -193,16 +193,10 @@ El Estrato Wisdom ($V_{\mathbb{W}}$ - Nivel 0) se articula en 8 Tríadas Funcion
 24. **Soberano Fiscal de Intuición (`toon_intuition_prosecutor_agent.py` / `toon_intuition_prosecutor_engine.py`):**
     - *Formulación:* Censura e inquisición espectral de Reward Hacking sub-milisegundo ($p99 < 10\,\mu\text{s}$), Métrica Anisotrópica Finsler-Mahalanobis $\text{RHI}_{\text{Finsler}} = \frac{\sqrt{\operatorname{Tr}((\sigma-\rho)G^{-1}(\sigma-\rho)G^{-1})}}{\|\rho\|_F (1+\sqrt{F})} (1+\tanh F_Q)$ acoplada a QFI-SLD, operador sigmoidal $C^\infty$ de Fermi-Dirac $\mathcal{S}_{T_{\text{sw}}}(\text{RHI}) = \frac{1}{1 + e^{(\text{RHI}-0.85)/T_{\text{sw}}}}$ ($T_{\text{sw}}=0.02$), $3$-forma Chern-Simons Higgs $\text{CS}_3^{\text{Higgs}}(A, \Phi) = \frac{1}{8\pi^2} \operatorname{Tr}(A \wedge dA + \frac{2}{3} A^3 + \Phi \cdot F_A)$ con $\Phi = \ln(\rho_{\text{mac}} + \varepsilon I)$, holonomía de Wilson $\mathcal{W}(C)$, preservación de la 2-forma de Darboux sobre $\text{Sp}(2n, \mathbb{R})$, cota de Chernoff de Audenaert $Q(\rho||\sigma)$, entropía de Umegaki $D(\rho||\sigma)$, información de Holevo $\chi$, cascada RSI³ ($R_3 \circ R_2 \circ R_1$) con producción de entropía de Spohn $\sigma \ge 0$, aniquilación al Vacío de Dirac con verificación de positrones por `compare_digest`, e interlock ciber-físico ESP32 Crowbar ($\le 392.15\text{ ns}$).
     - *Diagnóstico y Dolor y Dinero:* Inquisición y censura inmediata de anomalías de Reward Hacking y descalces de insumos en SECOP II. Impone parálisis inmediata de desembolsos y bloqueo de maquinaria en $< 392.15\text{ ns}$ ante cualquier intento de dolo o distorsión presupuestal.
-25. **Soberano Buffer (`toon_buffer_agent.py` / `toon_buffer_engine.py`):**
-    - *Formulación:* Lyapunov Oseledets $\lambda_{\max}$, Sheaf Cohomology $H^1(\mathcal{F}_{\text{web}})$.
-    - *Diagnóstico y Dolor y Dinero:* Amortiguación de picos de flujo exergético para evitar golpes de ariete que liquiden la caja del megaproyecto.
-26. **Soberano Fiscal Topológico (`toon_topological_prosecutor_agent.py` / `toon_topological_prosecutor_engine.py`):**
-    - *Formulación:* Censura 1-Ciclos $\beta_1 > 20$, Gap Espectral de Hodge $\lambda_1(\Delta_1) \ge 0.05$.
-    - *Diagnóstico y Dolor y Dinero:* Parálisis síncrona en RAM ante intentos masivos de triangulación financiera y socavones de precios.
 
 ---
 
-## 🏰 Sutura de la Fortaleza: La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
+## 🏰 La Rampa de Confianza Graduada (Veto Suave vs Veto Duro)
 
 El Consejo de Sabios implementa la **Rampa de Confianza Graduada** basada en la **Válvula de Alivio Termodinámico y Recirculación Mecánica de Desvío** para resolver la brecha entre la abstracción matemática y la operación continua en seco del frente de obra civil:
 
