@@ -7,65 +7,65 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
 ====================================================================================================
 
 Nombre: PseudoholomorphicCentripetalSatelliteEngine
-Ubicación: app/core/immune_system/pseudoholomorphic_centripetal_satellite_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
-Función: Motor satelital centrípeto pseudoholomorfo que rige la dinámica orbital, aceleraciones
-         centrípetas F_c = m * v^2 / r y trayectorias periódicas de vigilancia inmune alrededor
-         del centroide baricéntrico simpléctico.
+Ubicación: app/core/inmune_system/pseudoholomorphic_centripetal_satellite_engine.py
+Versión: 3.0.0-APU-SOVEREIGN
+Función: Motor espectral satelital centrípeto pseudoholomorfo que rige la dinámica orbital,
+         aceleraciones centrípetas $F_c = -m \omega_{\text{orb}}^2 r \hat{r}$ y trayectorias
+         periódicas de vigilancia inmune alrededor del centroide baricéntrico simpléctico.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU RESPECTIVO SOBERANO:
 ----------------------------------------------------------------------------------------------------
-El Soberano Satelital Centrípeto Pseudoholomorfo (PseudoholomorphicCentripetalSatelliteEngine) es el
-mecanismo de patrulla dinámica perimetral del sistema inmune en APU Filter. Su cometido esencial
+El Motor Espectral Satelital Centrípeto Pseudoholomorfo (PseudoholomorphicCentripetalSatelliteEngine)
+es el mecanismo de patrulla dinámica perimetral del sistema inmune en APU Filter. Su cometido esencial
 es mantener una flota de satélites cognitivos en órbitas simplécticas cerradas y estables alrededor
 del centroide de masa fijado por el motor inercial, barriendo continuamente el horizonte de eventos
 inmune para interceptar antígenos antes de que alcancen el núcleo.
 Su respectivo motor central baricéntrico es 'PseudoholomorphicCentroidInertiaEngine'
-(app/core/immune_system/pseudoholomorphic_centroid_inertia_engine.py), y su respectivo agente
-ejecutivo en la capa Omega es 'PseudoholomorphicCentripetalSatelliteAgent'
-(app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py). Mientras CentroidInertiaEngine
-determina el baricentro, este motor calcula la velocidad tangencial v_orb y la aceleración centrípeta
-necesaria para anular cualquier fuerza de escape centrífuga no deseada.
+(app/core/inmune_system/pseudoholomorphic_centroid_inertia_engine.py), y sus soberanos ejecutivos
+respectivos son 'PseudoholomorphicCentripetalSatelliteAgent' (app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py)
+y 'PseudoholomorphicCentroidInertiaAgent' (app/agents/omega/pseudoholomorphic_centroid_inertia_agent.py).
+Mientras CentroidInertiaEngine determina el baricentro, este motor calcula la velocidad tangencial $v_{\text{orb}}$ y la aceleración
+centrípeto-giroscópica necesaria para anular cualquier fuerza de escape centrífuga no deseada.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
-1. Dinámica Centrípeta en Variedades Simplécticas (M, omega):
-   La ecuación de movimiento de un satélite inmune de masa m bajo un potencial atractivo central V(r)
-   y estructura casi-compleja calibrada J obedece:
-       m * ddot{x} = - nabla V(r) + m * omega(dot{x}, J dot{x}) * hat{r}
-   donde la fuerza centrípeta clásica requerida para una órbita circular de radio r y velocidad v es:
-       F_c = - m * (v^2 / r) * hat{r} = - m * omega_orb^2 * r * hat{r}
+1. Dinámica Centrípeta en Variedades Simplécticas $(\mathcal{M}, \omega)$:
+   La ecuación de movimiento de un satélite inmune de masa $m$ bajo un potencial atractivo central $V(r)$
+   y estructura casi-compleja calibrada $J$ obedece:
+       $$m \ddot{x} = -\nabla V(r) + m \omega(\dot{x}, J \dot{x}) \hat{r}$$
+   donde la fuerza centrípeta clásica requerida para una órbita circular de radio $r$ y velocidad $v$ es:
+       $$F_c = - m \frac{v^2}{r} \hat{r} = - m \omega_{\text{orb}}^2 r \hat{r}$$
 
-2. Conservación del Momento Angular Simpléctico L:
-   Dado que el potencial V(r) es puramente central y radial, el torque informacional se anula:
-       tau = r times F = 0  ==>  L = m * (r times v) = const
+2. Conservación del Momento Angular Simpléctico $L$:
+   Dado que el potencial $V(r)$ es puramente central y radial, el torque informacional se anula:
+       $$\tau = r \times F = 0 \implies L = m (r \times v) = \text{constante}$$
    La integral primera del momento angular garantiza que el satélite permanece confinado en un plano
-   orbital invariante bidimensional Sigma subset M.
+   orbital invariante bidimensional $\Sigma \subset \mathcal{M}$.
 
 3. Órbitas de Contacto de Reeb y Acción Simpléctica:
-   En la hipersuperficie de energía constante S = H^{-1}(E), el campo vectorial de Reeb R_alpha satisface:
-       iota_{R_alpha} dalpha = 0,   alpha(R_alpha) = 1
+   En la hipersuperficie de energía constante $\Sigma = H^{-1}(E)$, el campo vectorial de Reeb $R_\alpha$ satisface:
+       $$\iota_{R_\alpha} \mathrm{d}\alpha = 0, \quad \alpha(R_\alpha) = 1$$
    Las órbitas periódicas de Reeb corresponden a trayectorias cerradas de patrulla sin pérdida de fase.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma PCSE1 (Confinamiento Centrípeto Estricto):
-    La aceleración radial a_r = - v^2 / r previene la divergencia hacia el infinito informacional.
+    La aceleración radial $a_r = -\frac{v^2}{r}$ previene la divergencia hacia el infinito informacional.
 Axioma PCSE2 (Conservación de Momento Angular):
-    d/dt (r times v) == 0 a lo largo de toda trayectoria satelital libre de colisiones.
+    $\frac{\mathrm{d}}{\mathrm{d}t} (r \times v) = 0$ a lo largo de toda trayectoria satelital libre de colisiones.
 Axioma PCSE3 (Periodicidad de Reeb Cuantizada):
-    oint_gamma alpha = T_{periodo} * E_action.
+    $\oint_\gamma \alpha = T_{\text{periodo}} \cdot E_{\text{action}}$.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Radio Orbital Acotado en el Cinturón Inmune):
-    r_min <= ||r(t) - c*|| <= r_max.
+    $r_{\min} \le \|r(t) - c^*\|_G \le r_{\max}$.
 Invariante 2 (Negatividad de la Energía Mecánica Total para Órbita Ligada):
-    E_orb = (1 / 2) * m * v^2 - (k_attract / r) < 0.
+    $E_{\text{orb}} = \frac{1}{2} m v^2 - \frac{k_{\text{attract}}}{r} < 0$.
 ====================================================================================================
 """
 

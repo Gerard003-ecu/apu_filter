@@ -1,27 +1,44 @@
 from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Pseudoholomorphic Centroid Inertia Agent (Soberano del Satélite II)         ║
-║ RUTA   : app/agents/omega/pseudoholomorphic_centroid_inertia_agent.py                ║
-║ VERSIÓN: 2.0.0-Doctoral-Fukaya-Novikov-HeytingTopos-Casimir-ESP32Secure              ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+====================================================================================================
+ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO CAPA OMEGA
+====================================================================================================
 
-Agente supervisor ciber-físico en el Estrato de Sabiduría ($V_{\mathbb{W}}$) / Omega ($V_\Omega$).
-Gobernanza síncrona en lazo cerrado para la Inercia Centroidal Pseudo-Holomorfa en la Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$.
+Nombre: PseudoholomorphicCentroidInertiaAgent
+Ubicación: app/agents/omega/pseudoholomorphic_centroid_inertia_agent.py
+Versión: 2.0.0-APU-SOVEREIGN
+Función: Agente soberano de inercia baricéntrica pseudoholomorfa que ejerce la gobernanza síncrona
+         en lazo cerrado para la estabilidad del centroide informacional sobre variedades simplécticas casi-complejas.
 
-Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
-──────────────────────────────────────────────────────────────
+----------------------------------------------------------------------------------------------------
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+----------------------------------------------------------------------------------------------------
+El Soberano Agente de Inercia Baricéntrica Pseudoholomorfa (PseudoholomorphicCentroidInertiaAgent)
+es el supervisor ciber-físico en la Capa Omega / Sabiduría ($V_\Omega \subset V_{\mathbb{W}}$) encargado de mantener
+el baricentro informacional inmutable $c^*$. Cuando perturbaciones o antígenos cognitivos amenazan con
+desplazar el centro de gravedad del razonamiento, este agente orquesta el ciclo OODA continuo,
+evaluando la tensión elástica y activando la disipación en espacio de Fock o el interlock de hardware BT151.
+Su respectivo motor espectral central es 'PseudoholomorphicCentroidInertiaEngine'
+(app/core/inmune_system/pseudoholomorphic_centroid_inertia_engine.py), su motor satelital respectivo es
+'PseudoholomorphicCentripetalSatelliteEngine' (app/core/inmune_system/pseudoholomorphic_centripetal_satellite_engine.py)
+y su agente satelital respectivo es 'PseudoholomorphicCentripetalSatelliteAgent'
+(app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py). Mientras el Engine computa la
+inercia y el espín en FPU, este Agente clasifica el subobjeto en el topos de Heyting $\Omega_3$ y ejecuta la acción.
+
+----------------------------------------------------------------------------------------------------
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+----------------------------------------------------------------------------------------------------
 1. Categoría de Fukaya $\mathcal{F}uk(\mathcal{M})$ y Curvatura $A_\infty$:
    El espacio de móduli $\overline{\mathcal{M}}_{0,k+1}(\mathcal{M}, J)$ de discos pseudo-holomorfos posee estructura $A_\infty$.
    La curvatura cuántica $\mu^0(1) \in CF^*(L, L)$ mide la obstrucción por Burbujeo de Discos.
    Cuando $\mathcal{A}(u) \le \tau_{\mathrm{Maslov}}$, la pérdida de compacidad de Gromov desencadena una singularidad de Maslov.
 
 2. Retículo de Heyting Trivalente $\Omega_3 = \{\bot, \mathfrak{m}, \top\}$:
-   - $\top = \mathtt{COHERENT}$ (2) : Régimen elástico estable en el interior abierto.
-   - $\mathfrak{m} = \mathtt{DEGRADED} (1)$ : Luz Ámbar / Subobjeto de frontera con ventana de gracia (3600 s).
-   - $\bot = \mathtt{VETOED} (0)$ : Colapso topológico / Singularidad de Maslov / Veto duro.
-   Operaciones: Ínfimo $a \wedge b = \min(a,b)$, Supremo $a \vee b = \max(a,b)$, e Implicación de Heyting $a \Rightarrow b$.
+   - $\top = \mathtt{COHERENT} (2)$: Régimen elástico estable en el interior abierto.
+   - $\mathfrak{m} = \mathtt{DEGRADED} (1)$: Subobjeto de frontera / Luz Ámbar con ventana de gracia (3600 s).
+   - $\bot = \mathtt{VETOED} (0)$: Colapso topológico / Singularidad de Maslov / Veto duro de hardware.
+   Las operaciones del topos son Ínfimo $a \wedge b = \min(a,b)$, Supremo $a \vee b = \max(a,b)$ e Implicación $a \Rightarrow b$.
 
 3. Álgebra de Lie $\mathfrak{so}(n)$, Tensor de Inercia y Casimir:
    Tensor de Inercia $I_{\mu\nu} \in \mathcal{S}^+_n(\mathbb{R})$, Bivector de Spin Atencional $L_{\mu\nu} \in \mathfrak{so}(n)$
@@ -32,19 +49,24 @@ Fundamentación Matemática, Categórica y Ciber-Física Rigurosa:
    - Ante colapso a $\bot$, despacho de la ISR en IRAM en $t_{\mathrm{act}} < 400\,\mathrm{ns}$ al pin GPIO14,
      disparando el tiristor BT151 (Crowbar) para desenergizar actuadores mecánicos en el milisegundo cero.
 
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Desalineaciones del centroide de datos durante procesos de agregación masiva producen distorsiones
-  en el cómputo de rendimientos y costos unitarios, induciendo sobrecostos operacionales.
-• Dinero: El control de inercia centroidal en lazo cerrado estabiliza los baricentros de datos y aborta
-  transacciones corruptas en tiempo real (< 400 ns), previniendo pérdidas financieras por liquidaciones erogadas por error.
+----------------------------------------------------------------------------------------------------
+AXIOMAS FORMALES:
+----------------------------------------------------------------------------------------------------
+Axioma PCIAA1 (Estabilidad Baricéntrica Incondicional):
+    Toda acción agéntica preserva el baricentro de Fréchet-Karcher $c^*$ salvo perturbaciones acotadas en $\Omega_3$.
+Axioma PCIAA2 (Disparo Inmediato de Hardware en Veto):
+    $\text{Veredicto} = \bot \implies \text{Crowbar\_GPIO14\_Asserted} = \text{True}$ en latencia $< 400\,\text{ns}$.
+Axioma PCIAA3 (Invarianza de Cero por Canal Lateral):
+    La validación de tokens de positrón $e^+$ se ejecuta en tiempo constante independiente del contenido.
 
-Estructura Functorial OODA:
-───────────────────────────
-- Observe  : `observe_centroid_mesh`         -> Salida: `CentroidObservationKernel`
-- Orient   : `orient_from_kernel`            -> Salida: `CentroidOrientationReport`
-- Act      : `decide_and_act_from_report`    -> Salida: `PseudoholomorphicCentroidAgentCertificate`
-- Composición Síncrona Lazo Cerrado         : `audit_centroid_inertia_cycle`
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO:
+----------------------------------------------------------------------------------------------------
+Invariante 1 (Garantía de Tiempo de Respuesta IRAM):
+    $t_{\text{actuation}} < 400.0\,\text{ns}$.
+Invariante 2 (Consistencia del Retículo de Heyting):
+    $\text{Preservación de las relaciones de orden } \bot < \mathfrak{m} < \top \text{ en todo ciclo OODA}$.
+====================================================================================================
 """
 
 import hashlib

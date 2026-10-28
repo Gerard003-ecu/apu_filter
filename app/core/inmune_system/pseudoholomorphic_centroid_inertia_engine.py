@@ -6,66 +6,73 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
 ====================================================================================================
 
 Nombre: PseudoholomorphicCentroidInertiaEngine
-Ubicación: app/core/immune_system/pseudoholomorphic_centroid_inertia_engine.py
+Ubicación: app/core/inmune_system/pseudoholomorphic_centroid_inertia_engine.py
 Versión: 1.0.0-APU-SOVEREIGN
-Función: Motor soberano de inercia baricéntrica pseudoholomorfa en el sistema inmune cognitivo.
+Función: Motor espectral soberano de inercia baricéntrica pseudoholomorfa en el sistema inmune cognitivo.
          Modela la estabilidad del centroide informacional sobre variedades simplécticas casi-complejas
-         (M, omega, J) mediante curvas pseudoholomorfas de Gromov partial_J u = 0, calculando el
-         tensor de inercia simpléctica y fijando el baricentro contra derivas estocásticas antigénicas.
+         $(\mathcal{M}, \omega, J)$ mediante curvas pseudoholomorfas de Gromov $\bar{\partial}_J u = 0$, calculando el
+         tensor de inercia simpléctico y fijando el baricentro contra derivas estocásticas antigénicas.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU RESPECTIVO SOBERANO:
 ----------------------------------------------------------------------------------------------------
-El Soberano de Inercia Baricéntrica Pseudoholomorfa (PseudoholomorphicCentroidInertiaEngine) es el
-ancla geométrica central del sistema inmune de APU Filter. Cuando antígenos cognitivos o
+El Motor Espectral de Inercia Baricéntrica Pseudoholomorfa (PseudoholomorphicCentroidInertiaEngine) es
+el ancla geométrica central del sistema inmune de APU Filter. Cuando antígenos cognitivos o
 perturbaciones adversarias intentan desplazar el centro de gravedad del razonamiento, este motor
 calcula el centroide de Fréchet-Karcher sobre la variedad simpléctica dotada de estructura
-casi-compleja J calibrada y genera una fuerza de inercia restauradora proporcional al tensor de inercia.
-Su respectivo satelital en el estrato dinámico es 'PseudoholomorphicCentripetalSatelliteEngine'
-(app/core/immune_system/pseudoholomorphic_centripetal_satellite_engine.py), y su agente respectivo
-es 'PseudoholomorphicCentripetalSatelliteAgent' (app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py).
-Mientras CentroidInertiaEngine fija el punto baricéntrico inmutable c*, el satélite centrípeto
-mantiene en órbita estable a los efectores de patrulla inmune alrededor de dicho centroide.
+casi-compleja $J$ calibrada y genera una fuerza de inercia restauradora proporcional al tensor de inercia.
+Su respectivo motor satelital en el estrato dinámico es 'PseudoholomorphicCentripetalSatelliteEngine'
+(app/core/inmune_system/pseudoholomorphic_centripetal_satellite_engine.py), y sus soberanos ejecutivos
+respectivos son 'PseudoholomorphicCentroidInertiaAgent' (app/agents/omega/pseudoholomorphic_centroid_inertia_agent.py)
+y 'PseudoholomorphicCentripetalSatelliteAgent' (app/agents/omega/pseudoholomorphic_centripetal_satellite_agent.py).
+Mientras PseudoholomorphicCentroidInertiaEngine fija el punto baricéntrico inmutable $c^*$, el satélite
+centrípeto mantiene en órbita estable a los efectores de patrulla inmune alrededor de dicho centroide.
 
 ----------------------------------------------------------------------------------------------------
 MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
 ----------------------------------------------------------------------------------------------------
 1. Variedades Casi-Complejas Calibradas y Curvas de Gromov:
-   Sea (M, omega) una variedad simpléctica dotada de una estructura casi-compleja J in End(TM) tal que:
-       J^2 = - I,   omega(v, Jv) > 0  forall v != 0,   g_J(u, v) = omega(u, Jv)
-   Una curva pseudoholomorfa u: (Sigma, j) -> (M, J) de una superficie de Riemann (Sigma, j) satisface
-   la ecuación de Cauchy-Riemann no lineal:
-       bar{partial}_J u = (1 / 2) * (du + J circ du circ j) = 0
-   La energía simpléctica de Gromov E(u) coincide con el área simpléctica:
-       E(u) = (1 / 2) * int_Sigma |du|_{g_J}^2 dvol = int_Sigma u^* omega >= 0
+   Sea $(\mathcal{M}, \omega)$ una variedad simpléctica dotada de una estructura casi-compleja $J \in \operatorname{End}(T\mathcal{M})$ tal que:
+       $$J^2 = -I, \quad \omega(v, Jv) > 0 \quad \forall v \neq 0, \quad g_J(u, v) = \omega(u, Jv)$$
+   donde $g_J$ define una métrica Riemanniana $G$-compatible. Una curva pseudoholomorfa $u: (\Sigma, j) \to (\mathcal{M}, J)$
+   desde una superficie de Riemann $(\Sigma, j)$ satisface la ecuación no lineal de Cauchy-Riemann-Floer:
+       $$\bar{\partial}_J u = \frac{1}{2} (du + J \circ du \circ j) = 0$$
+   donde $du$ es el diferencial del mapa $u$, y $j$ es la estructura compleja de la superficie de dominio $\Sigma$.
+   La energía simpléctica de Gromov $E(u)$ coincide con el área simpléctica integrada:
+       $$E(u) = \frac{1}{2} \int_\Sigma \|du\|_{g_J}^2 \mathrm{dvol} = \int_\Sigma u^*\omega \ge 0$$
 
 2. Centroide Baricéntrico de Fréchet-Karcher:
-   Dados N puntos {p_i} con masas informacionales {m_i} en una bola convexa normal B_r(M):
-       c^* = argmin_{c in M} Psi(c),   donde Psi(c) = (1 / 2) * sum_{i=1}^N m_i * d_{g_J}^2(c, p_i)
-   La condición de estaciónaridad del gradiente de Karcher satisface la anulación vectorial:
-       nabla Psi(c^*) = sum_{i=1}^N m_i * exp_{c^*}^{-1}(p_i) = 0
+   Dados $N$ puntos $\{p_i\}_{i=1}^N$ con masas/áreas informacionales $a_i \ge 0$ en una bola convexa normal $B_R(\mathcal{M})$:
+       $$c^* = \arg\min_{c \in \mathcal{M}} \Psi(c), \quad \text{donde } \Psi(c) = \frac{1}{2 \mathcal{A}(u)} \sum_{i=1}^N a_i d_{g_J}^2(c, p_i)$$
+   con $\mathcal{A}(u) = \sum_{i=1}^N a_i$ representando el área simpléctica de Novikov. La condición de estacionariedad
+   del gradiente de Karcher satisface la anulación del vector suma tangente:
+       $$\nabla \Psi(c^*) = -\frac{1}{\mathcal{A}(u)} \sum_{i=1}^N a_i \exp_{c^*}^{-1}(p_i) = 0$$
 
-3. Tensor de Inercia Simpléctico:
-   El tensor de inercia respecto al centroide c* se expresa en coordenadas simplécticas Darboux (q, p):
-       I_{ab} = sum_{i=1}^N m_i * [ ||x_i - c^*||^2 * delta_{ab} - (x_{i,a} - c^*_a) * (x_{i,b} - c^*_b) ]
+3. Tensor de Inercia Simpléctico Riemanniano y Bivector de Spin:
+   El tensor de inercia $I_{\mu\nu}$ respecto al centroide $c^*$ en coordenadas $q \in T_c \mathcal{M}$ viene dado por:
+       $$I_{\mu\nu} = \frac{1}{\mathcal{A}(u)} \sum_{i=1}^N a_i \left( \|\delta q_i\|_G^2 G_{\mu\nu} - (G \delta q_i)_\mu (G \delta q_i)_\nu \right)$$
+   donde $\delta q_i = p_i - c^*$. El bivector de spin en el álgebra de Lie $\mathfrak{so}(n)$ se expresa como:
+       $$L_{\mu\nu} = \frac{1}{\mathcal{A}(u)} \sum_{i=1}^N a_i \left( \delta q_{i,\mu} p_{i,\nu} - \delta q_{i,\nu} p_{i,\mu} \right)$$
+   y posee un Invariante Cuadrático de Casimir $\mathcal{C}_2(L) = -\frac{1}{2} \operatorname{Tr}((G^{-1} L)^2) \ge 0$.
 
 ----------------------------------------------------------------------------------------------------
 AXIOMAS FORMALES:
 ----------------------------------------------------------------------------------------------------
 Axioma PCIE1 (Condición Pseudoholomorfa de Estabilidad):
-    bar{partial}_J u == 0 en toda trayectoria estacionaria del centroide inmune.
+    $\bar{\partial}_J u = 0$ en toda trayectoria estacionaria del centroide inmune sobre el espacio de móduli.
 Axioma PCIE2 (Unicidad y Convexidad de Karcher):
-    Si el radio de soporte R < pi / (2 * sqrt(kappa_max)), existe un único mínimo global c*.
-Axioma PCIE3 (Conservación de Momento Baricéntrico Inmune):
-    d/dt [ sum_{i=1}^N m_i * dot{x}_i ] == 0 en ausencia de torques externos disonantes.
+    Si el radio de soporte $R < \frac{\pi}{2 \sqrt{\kappa_{\max}}}$, donde $\kappa_{\max}$ es la cota superior de curvatura
+    seccional Riemanniana de $(\mathcal{M}, g_J)$, existe un único mínimo global $c^*$.
+Axioma PCIE3 (Conservación del Momento Baricéntrico Inmune):
+    $\frac{\mathrm{d}}{\mathrm{d}t} \left[ \sum_{i=1}^N a_i v_i^\mu \right] = 0$ en ausencia de torques externos disonantes.
 
 ----------------------------------------------------------------------------------------------------
 INVARIANTES DE ESTADO:
 ----------------------------------------------------------------------------------------------------
 Invariante 1 (Cota Superior de Energía Simpléctica de Gromov):
-    E(u) = int u^* omega <= E_threshold < infty.
+    $E(u) = \int_\Sigma u^*\omega \le E_{\text{threshold}} < \infty$.
 Invariante 2 (Preservación del Baricentro de Karcher):
-    ||sum_i m_i * (p_i - c*)|| <= 1e-6.
+    $\|\sum_i a_i (p_i - c^*)\|_G \le 1.0 \times 10^{-6}$.
 ====================================================================================================
 """
 
