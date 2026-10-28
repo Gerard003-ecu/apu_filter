@@ -1,4 +1,3 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -75,6 +74,8 @@ Invariante 2 (Preservación del Baricentro de Karcher):
     $\|\sum_i a_i (p_i - c^*)\|_G \le 1.0 \times 10^{-6}$.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac

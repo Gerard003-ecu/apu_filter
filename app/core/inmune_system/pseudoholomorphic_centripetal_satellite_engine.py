@@ -1,5 +1,3 @@
-
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -68,6 +66,8 @@ Invariante 2 (Negatividad de la Energía Mecánica Total para Órbita Ligada):
     $E_{\text{orb}} = \frac{1}{2} m v^2 - \frac{k_{\text{attract}}}{r} < 0$.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac

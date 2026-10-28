@@ -1,4 +1,3 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -68,6 +67,8 @@ Invariante 2 (Consistencia del Retículo de Heyting):
     $\text{Preservación de las relaciones de orden } \bot < \mathfrak{m} < \top \text{ en todo ciclo OODA}$.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac
