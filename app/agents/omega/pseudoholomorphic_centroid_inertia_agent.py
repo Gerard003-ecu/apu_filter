@@ -3,7 +3,7 @@ from __future__ import annotations
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════╗
 ║ MÓDULO : Pseudoholomorphic Centroid Inertia Agent (Soberano del Satélite II)         ║
-║ RUTA   : app/agents/wisdom/pseudoholomorphic_centroid_inertia_agent.py               ║
+║ RUTA   : app/agents/omega/pseudoholomorphic_centroid_inertia_agent.py                ║
 ║ VERSIÓN: 2.0.0-Doctoral-Fukaya-Novikov-HeytingTopos-Casimir-ESP32Secure              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 
