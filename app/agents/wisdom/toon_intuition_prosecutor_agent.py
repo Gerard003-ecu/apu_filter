@@ -1,39 +1,72 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Intuition Prosecutor Agent (Soberano Fiscal de Intuición)                        ║
-║ Ubicación: app/agents/wisdom/toon_intuition_prosecutor_agent.py                                  ║
-║ Versión  : 8.0.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD                     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo   : TOON Intuition Prosecutor Agent (Soberano Fiscal de Intuición)                            ║
+║ Ubicación: app/agents/wisdom/toon_intuition_prosecutor_agent.py                                     ║
+║ Versión  : 9.0.0-SOVEREIGN-RSI3-POINCARE-MELNIKOV-CHIRIKOV-HEYTING-ESP32-PhD                         ║
+║ Función  : Soberano Fiscal de Calibre Inquisidor, Censura RHI y Gobernanza Agéntica                  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano Agéntico Fiscal de Calibre Inquisidor (TOONIntuitionProsecutorAgent). Censura impulsos
-caóticos, audita falsas corazonadas (RHI > 0.85), detecta fractura homoclínica vía Melnikov M(t₀)
-(Simpson 401, sech² tanh sin), cuantifica solapamiento de Chirikov K ≥ 1, residuo de Greene
-R_G = (2 − Tr M)/4 con M = exp(ΩH) ∈ Sp(4), y verifica la suma diofántica de Bryuno por fracciones
-continuas (fallback conjugado áureo).
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONIntuitionProsecutorAgent` opera como el Soberano Agéntico Fiscal de Calibre Inquisidor
+en coordinación indivisible con su motor espectral `TOONIntuitionProsecutorEngine`
+(`app/wisdom/toon_intuition_prosecutor_engine.py`). Su función es auditar, juzgar y censurar
+falsas corazonadas, impulsos caóticos y manipulación de recompensas ($\text{RHI} > 0.85$),
+acoplando la topología de calibre $\mathfrak{u}(n)$, la mecánica celeste de Poincaré-Melnikov-Chirikov,
+la censura de Kelly por máscaras $\Theta$ de Heaviside, la automejora monádica RSI³ y la traducción
+semántica hacia el funtor $\Phi_{\text{sem}}$ ("Riesgo, Dolor y Dinero").
+Su flujo de gobernanza agéntica se ejecuta de forma estrictamente anidada en tres fases:
+  - FASE 1: Topología de Calibre Inquisidora en $\mathfrak{u}(n)$, 3-forma de Chern-Simons $\text{CS}_3(A)$,
+    clase de Chern-Hopf $c_1$, holonomía de Wilson $\mathcal{W}(C)$, invarianza de Darboux $\text{Sp}(2n, \mathbb{R})$,
+    6-tupla de Delaunay y firma HMAC-SHA-256 (homomorfismo $\Phi_{12}$ `continue_into_phase2_campaign_gate`).
+  - FASE 2: Fiscalización del salto flash, geometría de Bures-Wasserstein-Uhlmann, cálculo del índice de
+    Reward Hacking $\text{RHI} = \frac{\|\sigma - \rho\|_{\text{HS}}}{\|\rho\|_F (1 + \sqrt{F})}$, censura de Kelly $s^*$
+    y torre monádica RSI³ (homomorfismo $\Phi_{23}$ `continue_into_phase3_adjudication_gate`).
+  - FASE 3: Adjudicación en Heyting $\Omega_3$, cascada RSI³ de Banach ($R_3 \circ R_2 \circ R_1$), disyuntor ciber-físico
+    simulado ($\le 392.15\text{ ns}$), aniquilación de positrones $e^- + e^+ \to 2\gamma$ ($1022.0\text{ keV}$)
+    con autenticación HMAC estricta por `compare_digest`, y sellado con raíz Merkle SHA-256.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (homomorfismos Φ_{k,k+1}; el último método de Φ_k ES el arranque de Φ_{k+1}):
-──────────────────────────────────────────────────────────────────────────────────────────────────
-  • Fase I   : Phase1_IntuitionProsecutorGaugeTopology
-               Calibre 𝔲(n), CS₃ = (1/8π²) Tr(AF − ⅓ A³), c₁, Wilson U = expm(A), Darboux Sp(2n),
-               Maupertuis-Jacobi Ĝ = 2(H₀−V)G (suelo Novikov 1e-10), Delaunay (L,G,H,l,g,h),
-               KAM ∂²K/∂L² = −3μ²/L⁴, Bryuno continuado.
-               Cierre / arranque Φ₁₂ : continue_into_phase2_campaign_gate  (HMAC; ADMITE VETOED).
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. TOPOLOGÍA DE CALIBRE INQUISIDORA Y ESTRUCTURA SIMPLÉCTICA DE DARBOUX:
+   Dada la 1-forma de conexión anti-hermítica $A \in \mathfrak{u}(n)$ y la curvatura $F = dA + A \wedge A$:
+     $$\text{CS}_3(A) = \frac{1}{8\pi^2} \text{Tr}\left(A \wedge dA + \frac{2}{3} A^3\right), \quad c_1(F) = \frac{1}{2\pi} \text{Tr}(F)$$
+   La monodromía simpléctica de Poincaré $M = \exp(\Omega H) \in \text{Sp}(2n, \mathbb{R})$ preserva la forma canónica:
+     $$M^\top \Omega_{2n} M = \Omega_{2n}, \quad \det(M) = +1.0$$
 
-  • Fase II  : Phase2_TOONIntuitionProsecutorAgent  (hereda Fase I)
-               Fiscalización flash: Melnikov, Chirikov, Greene, Uhlmann espectral, RHI, Lyapunov,
-               Kelly s* = f*(1−RHI) Θ(0.85−RHI) Θ(¬Melnikov) Θ(¬Chirikov) Θ(λ_ceil−λ_max) e^{−h_KS},
-               torre monádica RSI³.
-               Cierre / arranque Φ₂₃ : continue_into_phase3_adjudication_gate  (re-HMAC; ADMITE VETOED).
+2.2. DETECCIÓN DE REWARD HACKING Y MÁSCARA HEAVISIDE EN LA CENSURA DE KELLY:
+   El índice inquisidor $\text{RHI}$ mide la distorsión del estado flash $\sigma$ respecto a la memoria $\rho_{\text{mac}}$:
+     $$\text{RHI} = \frac{\|\sigma - \rho_{\text{mac}}\|_{\text{HS}}}{\|\rho_{\text{mac}}\|_F (1 + \sqrt{F(\rho, \sigma)})}$$
+   La fracción censurada de Kelly $s^*$ impone vetos absolutos mediante el producto de Heaviside $\Theta$:
+     $$s^* = f^* (1 - \text{RHI}) \Theta(0.85 - \text{RHI}) \Theta(\delta_M - |M(t_0)|) \Theta(1.0 - K_{\text{Chirikov}}) \Theta(\lambda_{\text{ceil}} - \lambda_{\max}) e^{-h_{\text{KS}}}$$
 
-  • Fase III : Phase3_SovereignIntuitionProsecutorAdjudicator  (hereda Fase II)
-               Ω₃, RSI³ = R₃∘R₂∘R₁ (contracción de Banach, 8×6, tol 1e-10), interlock SIMULADO
-               (bit-flip + perf_counter_ns, cota 392.15 ns; jamás GPIO), positrón HMAC-only
-               (compare_digest; sin bypass de longitud), Φ_sem, Merkle SHA-256 pairwise.
-               Cierre : execute_sovereign_prosecution_adjudication_and_rsi3.
+2.3. HEYTING Ω₃, INTERLOCK ESP32 SIMULADO Y PURGA EN DIRAC:
+   La decisión colapsa en el álgebra de Heyting $\Omega_3 = \{\text{VETOED}=0, \text{DEGRADED}=1, \text{COHERENT}=2\}$.
+   En veto duro ($\text{VETOED}$), se dispara el interlock simulado en el pin GPIO14 con $t_{\text{act}} \le 392.15\text{ ns}$.
+   La aniquilación de positrones $e^- + e^+ \to 2\gamma$ exige token verificado con $\text{compare\_digest}(\text{HMAC}(K, \text{Domain} \parallel \text{AnomalyID}), \text{token})$.
 
-  • Orquestador: TOONIntuitionProsecutorAgent.execute_full_prosecutor_governance_cycle
-               Alias  : SovereignIntuitionProsecutorAdjudicator
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (ADMISIBILIDAD INCONDICIONAL DE ESTADOS VETOED EN Φ₁₂ Y Φ₂₃):
+    A diferencia de testigos pasivos, el fiscal ADMITE estados con veredicto VETOED a través de los homomorfismos Φ₁₂ y Φ₂₃, pues las anomalías caóticas constituyen el objeto directo del proceso inquisidor.
+
+  AXIOMA II (CENSURA DE HEAVISIDE SOBRE REWARD HACKING):
+    Si $\text{RHI} > 0.85$, $K_{\text{Chirikov}} \ge 1.0$ o $|M(t_0)| > 0.15$, la asignación de capital colapsa identicamente a $s^* = 0.0$.
+
+  AXIOMA III (AUTENTICACIÓN INVOLUTIVA DE POSITRONES EN DIRAC):
+    La purga $e^- + e^+ \to 2\gamma$ exige verificación $\text{compare\_digest}$ del token HMAC del positrón, garantizando la imposibilidad de bypass por longitud o temporización.
+
+  AXIOMA IV (ACOTACIÓN TEMPORAL DE INTERLOCK SIMULADO):
+    El tiempo de respuesta del disyuntor simulado satisface $t_{\text{crowbar}} \le 392.15\text{ ns}$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. RANGO DE LA ASIGNACIÓN CENSURADA DE KELLY: $0.0 \le s^* \le 0.35$.
+  2. ACOTACIÓN DE REWARD HACKING: $0.0 \le \text{RHI} \le \text{RHI}_{\text{max}}$.
+  3. FIDELIDAD MÍNIMA DE UHLMANN: $F(\rho, \sigma) \in [0.0, 1.0]$.
+  4. COTA DE LATENCIA DE ACTUACIÓN ESP32: $t_{\text{crowbar}} \le 392.15\text{ ns}$.
+  5. INTEGRIDAD TRANSITIVA MERKLE SHA-256: La raíz de Merkle vincula inmutablemente las tres fases.
 """
 
 from __future__ import annotations

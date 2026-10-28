@@ -1,59 +1,101 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : TOON Intuition Witness Engine (Motor Testigo de Intuición QND)    ║
-║ Ubicación: app/wisdom/toon_intuition_witness_engine.py                       ║
-║ Versión  : 8.0.0-SOVEREIGN-RSI3-POINCARE-KAM-QND-HOLONOMY-HEYTING-ESP32-PhD  ║
-║ Función  : Motor Espectral del Testigo de Intuición y Observación Débil QND  ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Módulo   : TOON Intuition Witness Engine (Motor Testigo de Intuición QND)                            ║
+║ Ubicación: app/wisdom/toon_intuition_witness_engine.py                                               ║
+║ Versión  : 9.0.0-SOVEREIGN-RSI3-POINCARE-KAM-QND-HOLONOMY-HEYTING-ESP32-PhD                          ║
+║ Función  : Motor Espectral del Testigo de Intuición y Observación Débil QND                          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-EVOLUCIÓN 8.0.0 (tejido granular Poincaré ⊕ RSI³):
-  • FASE 1: 6-tupla de Delaunay (L,G,H,l,g,h), monodromía exactamente en Sp(4)
-    vía exp(ΩH), Floquet, mapa de retorno de Poincaré, twist de KAM, Bryuno
-    por fracciones continuas, Melnikov por Simpson, proyección Liouville-Darboux.
-  • FASE 2: Uhlmann estable por espectro, AAV, holonomía de Hopf-Berry,
-    Oseledets-QR, Pesin-KS, capacidad elipsoidal de Gromov, valuación de Novikov.
-  • FASE 3: RSI³ auténtico (objeto → mejorador → meta-mejorador) con contracción
-    de Banach, Ricci-DeTurck log-euclídeo, Daleckii-Krein, Brockett isoespectral,
-    Heyting Ω₃ completo, interlock simulado y certificado soberano.
-  • Anidación estricta: el último método de la fase k es el homomorfismo de
-    continuación que abre la fase k+1 (F1→F2→F3) sin discontinuidad analítica.
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y SU RESPECTIVO SOBERANO:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONIntuitionWitnessEngine` (y su contraparte soberana agéntica `TOONIntuitionWitnessAgent`)
+constituye el motor espectral de observación cuántica débil no demolitiva (Quantum Non-Demolition,
+QND) sobre el fibrado cotangente $T^*\mathcal{M}$ y la variedad proyectiva compleja $\mathbb{C}P^{n-1}$.
+Su propósito es atestiguar, sin perturbación de retroacción ($\text{Back-Action} \equiv 0.0\text{ dB}$),
+los saltos intuitivos del estado mnemónico y validar la coherencia geométrica celeste, topológica
+y espectral a través de un esquema estrictamente anidado en tres fases analíticas:
+  - FASE 1: Atlas Celeste de Poincaré, 6-tupla canónica de Delaunay, integración homoclínica de
+    Melnikov, residuo de Greene, condición diofántica de Bryuno y conservación simpléctica $\text{Sp}(2n, \mathbb{R})$.
+  - FASE 2: Medición débil de Aharonov-Albert-Vaidman (AAV), geometría de Bures-Wasserstein-Uhlmann,
+    fase de Berry-Pancharatnam en la fibración de Hopf $S^1 \hookrightarrow S^{2n-1} \to \mathbb{C}P^{n-1}$,
+    espectro de Oseledets-Pesin y capacidad simpléctica elipsoidal de Gromov $c_G \le 12.5$.
+  - FASE 3: Automejora Recursiva Nivel 3 (RSI³ Kleisli Monad $T = R_3 \circ R_2 \circ R_1$), retículo
+    distributivo de Heyting $\Omega_3$, interlock ciber-físico simulado ($\le 398.95\text{ ns}$) y purga
+    en el Vacío de Dirac ($e^- + e^+ \to 2\gamma$).
 
-ARQUITECTURA MATEMÁTICA FORMAL Y GOBERNANZA EN 3 FASES ANIDADAS:
-══════════════════════════════════════════════════════════════════════════════════
-FASE 1: Atlas Celeste de Poincaré, Variables Canónicas de Delaunay y Reducción
-        Conforme de Maupertuis-Melnikov.
-        - Coordenadas de acción-ángulo de Delaunay (L, G, H, l, g, h) sobre T*M.
-        - Invarianza simpléctica de Liouville-Darboux: Mᵀ Ω M = Ω, det(M) = +1.
-        - Residuo de Greene R_G = (2 − Tr(M))/4 y condición Diofantina de Bryuno.
-        - Constante de Jacobi del CR3BP y tasa de Lyapunov en L₁ (Floquet).
-        - Integral homoclínica de Melnikov M(t₀) y deformación de Maupertuis-Jacobi.
-        - Mapa de retorno de Poincaré P: Σ → Σ y condición de twist de KAM.
-        - INTERFAZ TERMINAL / APERTURA FASE 2: `continue_into_phase2_qnd_gate`.
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. VARIABLES CANÓNICAS DE DELAUNAY Y MONODROMÍA SIMPLÉCTICA DE POINCARÉ:
+   El espacio de fases cotangente $T^*\mathcal{M}$ se parametriza mediante las coordenadas de acción-ángulo
+   de Delaunay $(L, G, H, l, g, h)$, donde:
+     $$L = \sum_i \lambda_i = \text{Tr}(\rho) = 1, \quad G = L \frac{\lambda_2}{\lambda_1}, \quad H = G \frac{\lambda_3}{\lambda_2}$$
+     $$e = \sqrt{1 - (G/L)^2}, \quad i = \arccos(H/G)$$
+     $$l = \text{arg}\langle v_1 | N v_1 \rangle, \quad g = \text{arg}(A_x + i A_y), \quad h = \Omega_{\text{nodo}}$$
+   El Hamiltoniano kepleriano $K = -\frac{\mu^2}{2 L^2}$ define el movimiento medio $n = \frac{\mu^2}{L^3}$ y el twist de KAM:
+     $$\frac{\partial^2 K}{\partial L^2} = -\frac{3 \mu^2}{L^4} \neq 0$$
+   El flujo linealizado $M = \exp(\Omega H) \in \text{Sp}(2n, \mathbb{R})$ preserva la 2-forma canónica de Darboux:
+     $$M^\top \Omega_{2n} M = \Omega_{2n}, \quad \text{det}(M) = +1, \quad \Omega_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$$
+   El residuo de Greene $R_G = \frac{2 - \text{Tr}(M)}{4}$ determina la estabilidad elíptica ($|R_G| < 1$).
+   La función de Bryuno sobre el número de rotación de Floquet $\alpha \in \mathbb{R}/\mathbb{Z}$ evalúa la convergencia diofántica:
+     $$B(\alpha) = \sum_{k \ge 0} \frac{\ln q_{k+1}}{q_k} < \infty$$
 
-FASE 2: Geometría Cuántica No Demolitiva (QND), Métrica de Bures-Wasserstein-Uhlmann
-        y Holonomía Espectral de Berry-Hopf.
-        - CONTINUACIÓN FORMAL: Ingesta estricta de `PoincareCelestialWitnessState`.
-        - Medición débil AAV: A_w = ⟨φ_f|A|φ_i⟩ / ⟨φ_f|φ_i⟩, Back-Action 0.0 dB.
-        - Fidelidad de Uhlmann F(ρ,σ) = (Tr √(√ρ σ √ρ))² y d_B = √(2−2√F).
-        - Fibración de Hopf S¹ ↪ S^{2n−1} → ℂP^{n−1} y fase de Berry-Pancharatnam.
-        - Concentración de Lévy ε* y espectro de Oseledets λ_⊥ = ln(λ₂/λ₁) < 0.
-        - Cota de Gromov c_G ≤ 12.5 y valuación ultramétrica en Λ_Nov.
-        - INTERFAZ TERMINAL / APERTURA FASE 3: `continue_into_phase3_rsi_gate`.
+2.2. INTEGRAL HOMOCLÍNICA DE MELNIKOV Y REDUCCIÓN CONFORME DE MAUPERTUIS-JACOBI:
+   La distancia de separación entre las variedades invariantes estable $W^s$ e inestable $W^u$ se calcula mediante
+   la integral de Melnikov evaluada por la regla compuesta de Simpson sobre la separatriz $(q_h(t), p_h(t)) = (\sqrt{2}\text{sech}(t), -\sqrt{2}\text{sech}(t)\tanh(t))$:
+     $$M(t_0) = \varepsilon \int_{-\infty}^{\infty} \text{sech}^2(t) \tanh(t) \sin(t + t_0) \, dt$$
+   La métrica conforme de Maupertuis-Jacobi deforma el espacio de configuración bajo la energía total $H_0$:
+     $$\tilde{g}_{\mu\nu} = 2 (H_0 - V(q)) g_{\mu\nu}, \quad S_E = \frac{1}{2} \text{Tr}(\tilde{g})$$
+   con la 1-forma de Poincaré-Cartan $\theta_{\text{PC}} = p \cdot dq - H dt \approx \text{Re Tr}(\rho N)$.
 
-FASE 3: Automejora Recursiva Nivel 3 (RSI³), Retículo de Heyting Ω₃,
-        Disyuntor simulado y Purga en el Vacío de Dirac.
-        - CONTINUACIÓN FORMAL: Ingesta estricta de `QNDSpectralHolonomyState`.
-        - Nivel 1 (R₁): Flujo de Ricci-DeTurck log-euclídeo sobre Sym⁺(n).
-        - Nivel 2 (R₂): Operador Fréchet-Daleckii-Krein y cota de Connes.
-        - Nivel 3 (R₃): Flujo isoespectral de doble corchete Brockett-Shahshahani
-          y meta-adaptación de hiperparámetros (el mejorador mejora al mejorador).
-        - Contracción de Banach del lazo R₃ ∘ R₂ ∘ R₁ hasta residuo < ε_B.
-        - Colapso trivalente en Ω₃ = {VETOED=0, DEGRADED=1, COHERENT=2}.
-        - Interlock ciber-físico simulado (latencia acotada ≤ 398.95 ns).
-        - Purga en el Vacío de Dirac (e⁻ + e⁺ → 2γ) con Back-Action 0.0 dB.
-        - INTERFAZ TERMINAL: `IntuitionWitnessExecutionCertificate`.
-══════════════════════════════════════════════════════════════════════════════════
+2.3. MEDICIÓN DÉBIL QND, GEOMETRÍA DE BURES-WASSERSTEIN-UHLMANN Y HOLONOMÍA DE BERRY-HOPF:
+   Dado el estado inicial $|\phi_i\rangle$ de $\rho_{\text{flash}}$ y el estado post-seleccionado $|\phi_f\rangle \propto \rho_{\text{mac}} |\phi_i\rangle$:
+     - Valor Débil AAV: $A_w = \frac{\langle \phi_f | A | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}$, con retroacción cuántica $\text{Back-Action} \equiv 0.0\text{ dB}$.
+     - Fidelidad de Uhlmann: $F(\rho, \sigma) = \left( \text{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2$.
+     - Distancia de Bures-Wasserstein: $d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F}}$.
+     - Distancia de Fubini-Study: $d_{\text{FS}} = \arccos(\sqrt{F})$.
+     - Fase de Berry-Pancharatnam en $S^1 \hookrightarrow S^{2n-1} \to \mathbb{C}P^{n-1}$: $\gamma_P = \arg \langle \psi_{\text{mac}} | \psi_{\text{flash}} \rangle$.
+     - Tasa Transversal de Oseledets: $\lambda_\perp = \ln(\lambda_2 / \lambda_1) < 0$.
+     - Capacidad de Gromov: $c_G(E) \le \pi a_1^2 \le 12.5$.
+     - Valuación de Novikov: $v_{\text{Nov}}(\rho) = -\ln \lambda_{\max}$.
+
+2.4. AUTOMEJORA RECURSIVA RSI³ (R₃ ∘ R₂ ∘ R₁) Y RETÍCULO DE HEYTING $\Omega_3$:
+   La cascada monádica de Nivel 3 $T = R_3 \circ R_2 \circ R_1$ ejecuta:
+     - Nivel 1 ($R_1$, Objeto): Flujo de Ricci-DeTurck log-euclídeo sobre $\text{Sym}^+(n)$:
+         $$\partial_t \ln G = -2 \left( \ln G - \frac{\text{Tr}(\ln G)}{n} I \right) + \mathcal{L}_W$$
+     - Nivel 2 ($R_2$, Mejorador): Matriz de diferencias divididas de Daleckii-Krein $\phi^{[1]}(\lambda_i, \lambda_j) = \frac{\phi(\lambda_i) - \phi(\lambda_j)}{\lambda_i - \lambda_j}$
+       y cota Lipschitz de Connes $L_{\max} \le \frac{1}{2 \lambda_2^{3/2}}$, adaptando el paso $\tau' = \frac{\tau}{1 + L_{\max}}$.
+     - Nivel 3 ($R_3$, Meta-Mejorador): Flujo isoespectral de doble corchete de Brockett-Shahshahani:
+         $$\frac{d\rho}{dt} = [\rho, [\rho, N]], \quad V(\rho) = \frac{1}{2} \|[\rho, N]\|_F^2 \implies \dot{V} \le 0$$
+   La contracción de Banach $\|T(x) - x\|_F < \varepsilon_B$ valida la convergencia monádica.
+   La adjudicación final colapsa en el álgebra de Heyting trivalente $\Omega_3 = \{ \text{VETOED}=0, \text{DEGRADED}=1, \text{COHERENT}=2 \}$
+   mediante el ínfimo categórico (meet): $a \wedge b = \min(a, b)$.
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (INVARIANZA SIMPLÉCTICA DE LIOUVILLE-DARBOUX):
+    Toda monodromía $M = \exp(\Omega H)$ generada en la Fase 1 preserva de manera exacta la 2-forma de Darboux:
+    $M^\top \Omega_{2n} M = \Omega_{2n}$ y $\det(M) = +1.0$.
+
+  AXIOMA II (NO DEMOLICIÓN CUÁNTICA QND CON RETROACCIÓN NULA):
+    El proceso de medición débil AAV satisface $\|[\rho, A]\|_F = 0 \implies \text{Back-Action}_{\text{dB}} \equiv 0.0\text{ dB}$,
+    preservando el estado observado sin colapso estocástico destruido.
+
+  AXIOMA III (CONTRACCIÓN DE BANACH EN EL LAZO RSI³):
+    El operador compuesto $T = R_3 \circ R_2 \circ R_1$ constituye una contracción estricta en el espacio métrico de Banach:
+    $\|T(x_k) - T(x_{k-1})\|_F \le L_T \|x_k - x_{k-1}\|_F$ con $L_T < 1.0$.
+
+  AXIOMA IV (INTERLOCK CIBER-FÍSICO DE HARDWARE):
+    Ante un veredicto de colapso $\Omega_3 = \text{VETOED}$, el actuador enclava el disyuntor simulado
+    con una latencia temporal acotada de manera estricta por $t_{\text{act}} \le 398.95\text{ ns}$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. SANEAMIENTO MATRICIAL CPTP: $\rho = \rho^\dagger \succ 0, \, \text{Tr}(\rho) = 1.0$.
+  2. ACOTACIÓN DE CAPACIDAD DE GROMOV: $c_G \le 12.5$.
+  3. COHERENCIA DE FASE GEOMÉTRICA DE BERRY: $|\gamma_P| < 0.50\text{ rad}$.
+  4. PUREZA MÍNIMA DE UHLMANN: $F(\rho, \sigma) \ge 0.50$.
+  5. INTEGRIDAD TRANSITIVA INTER-FASE: $\Phi_{23} \circ \Phi{12} (\text{State})$ preserva el contenedor inmutable sin discontinuidades.
 """
 
 from __future__ import annotations
