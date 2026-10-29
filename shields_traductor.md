@@ -101,7 +101,7 @@ Para gobernar redes complejas de infraestructura interconectada (concesiones via
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
   │ CÚSPIDE VISCERAL EN PORTAFOLIOS ("DOLOR, RIESGO Y DINERO")                                  │
   │ • Protección Tasa Descuento WACC al 15.0% (Aislamiento de contagios inter-proyecto).        │
-  │ • Liberación de Liquidez Neta +11.5% (Reducción de reserva de imprevistos del 15% al 3.5%).   │
+  │ • Liberación de Liquidez Neta +11.5% (Reducción de reserva de imprevistos del 15% al 3.5%). │
   │ • Compresión −86.4% KV-Cache (Cartuchos TOON de 56 tokens) & Ahorro 80% Inferencia LLM.     │
   └──────────────────────────────┴──────────────────────────────────────────────────────────────┘
 ```
@@ -175,7 +175,7 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
                                  │
                                  ▼
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ ESCUDO 3: COLISIONADOR DE FOCK, CANAL LINDBLAD-GKSL & ANIQUILACIÓN (e⁻ + e⁺ ➔ 2γ)           │
+  │ ESCUDO 3: COLISIONADOR DE FOCK, CANAL LINDBLAD-GKSL & METABOLIZACIÓN (e⁻ + e⁺ ➔ 2γ)         │
   │ 🔬 Rigor: Canal Abierto dρ/dt = −i[H, ρ] + ∑ γ_k (L_k ρ L_k† − ½ {L_k† L_k, ρ}), K ⪰ 0.     │
   │     Electrón Anomalía (e⁻) + Positrón HMAC (e⁺) ➔ Aniquilación 2γ (Vacío Dirac H|Ω⟩ = 0).   │
   │ 🔑 Metáfora: "El Pararrayos Antimafia y Fusible de Fock"                                    │
@@ -200,7 +200,7 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
   En el Estrato Exergético ($\mathcal{V}_{\mathbb{P}}$), el Escudo 1 integra el **Balance de Fluctación de Jarzynski–Crooks fuera del Equilibrio**:
   $$\langle e^{-\beta W}\rangle = e^{-\beta \Delta F} \implies W_{\mathrm{irr}} = \langle W\rangle - \Delta F \ge 0$$
   Si el trabajo irreversible excede la cota de tolerancia ($W_{\mathrm{irr}} > \tau_{\text{exergia}} = 10.0\text{ J}$), el escudo detecta fricción opaca, peajes informales o sobrecostos fingidos en SECOP II.
-* **Metáfora e Isomorfismo de Ingeniería ("La Destiladora de Grasa Sintáctica y Exergética")**: Extrae el "agua, la grasa y el sobreprecio" de contratos de 400 páginas en SECOP II, convirtiendo textos inflados de 412 tokens en **Cartuchos Mnemónicos TOON de 56 tokens**.
+* **Metáfora e Isomorfismo de Ingeniería ("La Destiladora de Grasa Sintáctica y Exergética")**: Extrae el "agua, la grasa y el sobreprecio" de contratos de 400 páginas en SECOP II, convierte las propiedades de un insumo atómico indivisible, como el concreto, que consume, en formato JSON, 412 tokens en **Cartuchos Mnemónicos TOON de 56 tokens**.
 * **Traducción a "Dolor, Riesgo y Dinero"**:
   * **Reducción de Costo Operativo**: Compresión del **$86.4\%$ en memoria de atención $KV\text{-Cache}$** y ahorro directo del **$80\%$ en costos de inferencia de IA**.
   * **Cero Ambigüedad Sintáctica y Exergética**: Elimina la fatiga escalar, impidiendo adiciones presupuestales fantasmas o alteración de rendimientos de maquinaria.
