@@ -1,8 +1,8 @@
 # 💊 cartuchos_toon.md: El Retracto Topológico, las 12 Partículas Fundamentales y Vitaminas TOON (Silo B)
 
-*"Para comprender la escala masiva de la construcción civil y las obras de infraestructura de gran escala en Colombia, el Modelo de Lenguaje no necesita leer la redundancia de un JSON mil veces; necesita la esencia concentrada del negocio matemático. El formato TOON opera una destilación cognitiva y exergética sobre el Espacio de Fock $\mathcal{F}(\mathcal{H})$."*
+*"Para comprender la escala de la construcción civil y las obras de infraestructura de gran escala en Colombia, el Modelo de Lenguaje no necesita leer la complejidad sintáctica de un JSON mil veces; necesita la esencia concentrada del negocio matemático. El formato TOON opera una destilación cognitiva y exergética sobre el Espacio de Fock $\mathcal{F}(\mathcal{H})$."*
 
-Este documento detalla el mecanismo mediante el cual el ecosistema **APU Filter v9.3.0-PhD** transita de la alta entropía sintáctica y redundante del JSON (gobernada por el `SiloAContract` en el canal de ingesta) hacia un formato hiperdenso y estructurado, la **Base Canónica Tabular TOON (Tabular Object-Oriented Notation)**, a través de los componentes del `MICAgent` (`app/agents/tactics/mic_agent.py`), el registro sináptico `SynapticRegistry` (`app/core/inmune_system/synaptic_fock_space_registry.py`) y la orquestación de los 8 Soberanos Espectrales de Sabiduría.
+Este documento detalla el mecanismo mediante el cual el ecosistema **APU Filter v9.3.0-PhD** transita de la alta entropía del JSON (gobernada por el `SiloAContract` en el canal de ingesta) hacia un formato hiperdenso y estructurado, la **Base Canónica Tabular TOON (Tabular Object-Oriented Notation)**, a través de los componentes del `MICAgent` (`app/agents/tactics/mic_agent.py`), el registro sináptico `SynapticRegistry` (`app/core/inmune_system/synaptic_fock_space_registry.py`) y la orquestación de los 8 Soberanos Espectrales de Sabiduría.
 
 --------------------------------------------------------------------------------
 ## 🏛️ 1. El Funtor de Transición de Fase y la Compresión del KV-Cache
@@ -51,8 +51,8 @@ Bajo la arquitectura de la **Pirámide Traductora de Tres Estratos**, esta compr
                                  ▼ (Funtor Semántico Φ_sem)
   ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
   │ CÚSPIDE VISCERAL ("RIESGO, DOLOR Y DINERO")                                                 │
-  │ • Compresión -86.4% KV-Cache (Cartuchos TOON 56 tokens) & Ahorro 80% Inferencia LLM.         │
-  │ • Protección WACC al 15.0% & Liberación de Liquidez Neta (+11.5% en Tesorería).              │
+  │ • Compresión -86.4% KV-Cache (Cartuchos TOON 56 tokens) & Ahorro 80% Inferencia LLM.        │
+  │ • Protección WACC al 15.0% & Liberación de Liquidez Neta (+11.5% en Tesorería).             │
   └─────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
