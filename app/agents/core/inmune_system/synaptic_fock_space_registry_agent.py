@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Nombre   : SynapticFockSpaceRegistryAgent                                    ║
+╔════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : SynapticFockSpaceRegistryAgent                                      ║
 ║ Módulo   : Synaptic Fock Space Registry Agent (Soberano de Memoria Cuántica)   ║
 ║ Ubicación: app/agents/core/inmune_system/synaptic_fock_space_registry_agent.py ║
 ║ Ruta     : app/agents/core/inmune_system/synaptic_fock_space_registry_agent.py ║
 ║ Versión  : 9.3.0-PhD (RSI³ Picard-Banach + Poincaré-KS-Melnikov-Chirikov)      ║
-║ Función  : Soberano Agéntico y Observador Activo de Memoria Cuántica.       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+║ Función  : Soberano Agéntico y Observador Activo de Memoria Cuántica.          ║
+╚════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO Y MOTOR OODA:
 ────────────────────────────────────────────────────────────────────────────────

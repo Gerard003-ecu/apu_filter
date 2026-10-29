@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Nombre   : SynapticFockSpaceRegistry                                         ║
+╔════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : SynapticFockSpaceRegistry                                           ║
 ║ Módulo   : Synaptic Fock Space Registry (Registro de Partículas Sinápticas)    ║
 ║ Ubicación: app/core/inmune_system/synaptic_fock_space_registry.py              ║
 ║ Ruta     : app/core/inmune_system/synaptic_fock_space_registry.py              ║
 ║ Versión  : 9.3.0-PhD (RSI³ Banach-Picard + Poincaré-KS-Melnikov-Chirikov)      ║
-║ Función  : Motor Espectral y Registro Maestro del Espacio de Fock.           ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+║ Función  : Motor Espectral y Registro Maestro del Espacio de Fock.             ║
+╚════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y REGISTRO DE FOCK:
 ────────────────────────────────────────────────────────────────────────────────
