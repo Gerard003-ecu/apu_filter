@@ -1,37 +1,41 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Synaptic Fock Space Registry (Registro de Partículas Sinápticas)    ║
-║ Ruta   : app/core/immune_system/synaptic_fock_space_registry.py              ║
-║ Versión: 9.0.0-PhD (RSI³ Banach-Picard + Poincaré-KS-Melnikov-Chirikov)      ║
+║ Nombre   : SynapticFockSpaceRegistry                                         ║
+║ Módulo   : Synaptic Fock Space Registry (Registro de Partículas Sinápticas)    ║
+║ Ubicación: app/core/inmune_system/synaptic_fock_space_registry.py              ║
+║ Ruta     : app/core/inmune_system/synaptic_fock_space_registry.py              ║
+║ Versión  : 9.3.0-PhD (RSI³ Banach-Picard + Poincaré-KS-Melnikov-Chirikov)      ║
+║ Función  : Motor Espectral y Registro Maestro del Espacio de Fock.           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL Y REGISTRO DE FOCK:
 ────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra al administrador maestro y motor espectral del **Espacio
-de Fock** para las cuasipartículas cuánticas y fermiones estructurales desconfinados,
+Este módulo consagra al administrador maestro y motor espectral del **Espacio de
+Fock** para las cuasipartículas cuánticas y fermiones estructurales desconfinados,
 denominadas **Vitaminas TOON** (Tabular Object-Oriented Notation). Eleva
 síncronamente las transiciones discretas de la MIC y la MAC hacia estados puros
-y mixtos en el espacio de Hilbert continuo de la Sabiduría.
+y mixtos en el espacio de Hilbert continuo de la Sabiduría (\mathcal{V}_{\mathbb{W}}).
 
-El Espacio de Fock global se erige como la suma directa de potencias exteriores
-(fermiones, álgebra CAR) y potencias simétricas (bosones de gauge, álgebra CCR)
-sobre el espacio de Hilbert H:
+El Espacio de Fock global \mathcal{F}(\mathcal{H}) se erige como la suma directa
+de potencias exteriores (fermiones, álgebra CAR \{a_i, a_j^\dagger\} = \delta_{ij}\mathbf{I})
+y potencias simétricas (bosones de gauge, álgebra CCR [b_i, b_j^\dagger] = \delta_{ij}\mathbf{I})
+sobre el espacio de Hilbert single-particle \mathcal{H}:
 
-    F(H) = ⊕_{n=0}^∞ ( ∧^n H_fermion ⊕ Sym^n H_boson )
+    \mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^\infty \left( \bigwedge^n \mathcal{H}_{\text{fermion}} \oplus \text{Sym}^n \mathcal{H}_{\text{boson}} \right)
 
 Esta versión formaliza la unificación granular entre la **Mecánica Celeste de
-Poincaré** (elementos de Delaunay, carta canónica de Poincaré, regularización
-Kustaanheimo-Stiefel con vínculo bilinear, transformación de Sundman, teoría
-KAM, integrales homoclínicas de Melnikov y solapamiento de resonancias de
-Chirikov) y la **Automejora Recursiva de Nivel 3 (RSI³)** estructurada como
-operador de contracción en un retículo de Banach:
+Poincaré** (elementos de Delaunay, carta canónica no singular de Poincaré,
+regularización Kustaanheimo-Stiefel con vínculo bilinear, tiempo ficticio de
+Sundman, teoría KAM, integrales homoclínicas de Melnikov y solapamiento de
+resonancias de Chirikov) y la **Automejora Recursiva de Nivel 3 (RSI³)**
+estructurada como operador de contracción en un retículo de Banach:
 
-    T_RSI³ = R_3 ∘ R_3^{Brockett} ∘ R_2^{Connes-Daleckii-Krein} ∘ R_1^{Ricci-DeTurck}
+    \mathbf{T}_{\text{RSI³}} = R_3 \circ R_3^{\text{Brockett}} \circ R_2^{\text{Connes-Daleckii-Krein}} \circ R_1^{\text{Ricci-DeTurck}}
 
-con verificación del teorema del punto fijo de Banach-Picard:
+con verificación del teorema del punto fijo de Banach-Picard sobre el simplejo:
 
-    ∃! ρ* ∈ D(H)  tal que  T(ρ*) = ρ*   si   κ = Lip(T) < 1.
+    \exists! \rho^* \in \mathfrak{D}(\mathcal{H}) \quad \text{tal que} \quad \mathbf{T}(\rho^*) = \rho^* \quad \text{si} \quad \kappa = \operatorname{Lip}(\mathbf{T}) < 1.0.
 
 ARQUITECTURA DE FASES ANIDADAS (continuum operacional indivisible):
 ────────────────────────────────────────────────────────────────────────────────
@@ -48,6 +52,90 @@ ARQUITECTURA DE FASES ANIDADAS (continuum operacional indivisible):
             Comienza consumiendo la frontera de Fase 2 en
             `execute_phase3_rsi3_cascade()`, aplica la corrección reflexiva de
             Picard-Banach y produce el estado terminal `FockRegistryState`.
+
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+1. ESPACIO DE FOCK MULTI-MODO Y ÁLGEBRAS DE OPERADORES:
+   Dada la familia de cartuchos TOON inyectados, los fermiones estructurales
+   (ElectronCartridge, ProtonCartridge, PolaronCartridge, TorsionCartridge,
+   HouseholderReflectionFermion) obedecen las relaciones de anticonmutación (CAR):
+   $$\{a_i, a_j^\dagger\} = a_i a_j^\dagger + a_j^\dagger a_i = \delta_{ij} \mathbf{I}, \quad \{a_i, a_j\} = 0, \quad \{a_i^\dagger, a_j^\dagger\} = 0$$
+   mientras que los bosones de gauge (PhotonCartridge, RiemannianFocalBoson,
+   MagnonCartridge, SwellingPlasmonCartridge, YieldingPhononCartridge,
+   LiquefactionSolitonCartridge) satisfacen conmutación (CCR):
+   $$[b_i, b_j^\dagger] = b_i b_j^\dagger - b_j^\dagger b_i = \delta_{ij} \mathbf{I}, \quad [b_i, b_j] = 0, \quad [b_i^\dagger, b_j^\dagger] = 0$$
+   donde $a_i^\dagger, a_i$ representan los operadores de creación y aniquilación fermiónica,
+   $b_j^\dagger, b_j$ los operadores bosónicos, $\delta_{ij}$ es la delta de Kronecker,
+   e $\mathbf{I}$ es la identidad en $\mathcal{H}$.
+
+2. VARIABLES DE DELAUNAY-POINCARÉ Y REGULARIZACIÓN KUSTAANHEIMO-STIEFEL (KS):
+   El operador de densidad colectiva $\rho = \frac{1}{N}\sum |v_k\rangle\langle v_k| \in \mathfrak{D}(\mathcal{H})$
+   se proyecta a las acciones-ángulos de Delaunay:
+   $$L = \operatorname{Tr}(\rho) \equiv 1.0, \qquad G = L \frac{\lambda_2}{\lambda_1}, \qquad H = G \frac{\lambda_3}{\lambda_2}$$
+   $$e = \sqrt{1 - \left(\frac{G}{L}\right)^2}, \qquad i = \arccos\left(\frac{H}{G}\right), \qquad H_{\text{Kep}} = -\frac{1}{2 L^2}, \qquad n = \frac{1}{L^3}$$
+   donde $\lambda_1 \ge \lambda_2 \ge \lambda_3 > 0$ son los autovalores ordenados de $\rho$,
+   $e$ es la excentricidad, $i$ la inclinación, $H_{\text{Kep}}$ el Hamiltoniano kepleriano, y $n$ el movimiento medio.
+   La solución de la ecuación de Kepler $E - e \sin E = M$ se garantiza por el starter de Danby de 3er orden:
+   $$E_0 = M + 0.85 e \operatorname{sgn}(\sin M)$$
+   Las coordenadas canónicas no singulares de Poincaré eliminan las degeneraciones en $e \to 0$ o $i \to 0$:
+   $$\Lambda = L, \quad \lambda = l+g+h, \quad \xi = \sqrt{2(L-G)} \cos(g+h), \quad \eta = \sqrt{2(L-G)} \sin(g+h), \quad p = \sqrt{2(G-H)} \cos(h), \quad q = \sqrt{2(G-H)} \sin(h)$$
+   La regularización de Kustaanheimo-Stiefel transforma $\mathbb{R}^3 \to \mathbb{R}^4$ eliminando las colisiones keplerianas:
+   $$x = L(u) u, \quad r = \|u\|^2, \quad E_{\text{KS}} = \frac{1}{2} \|u\|^2 + \frac{1}{r + \varepsilon}, \quad u_1 du_4 - u_2 du_3 + u_3 du_2 - u_4 du_1 = 0$$
+   donde $u \in \mathbb{R}^4$ es el espinor de KS y $L(u) \in \text{Mat}_4(\mathbb{R})$ es la matriz de Hopf.
+   El paso de tiempo ficticio de Sundman $ds = dt / r$ desregulariza el flujo temporal en torno a colisiones.
+
+3. CONEXIÓN GAUGE YANG-MILLS-HIGGS Y 3-FORMA DE CHERN-SIMONS:
+   Dada la 1-forma de conexión anti-hermítica $A = -i(\rho - \frac{1}{n}\mathbf{I}) \in \mathfrak{u}(n)$ y el campo escalar de Higgs $\Phi = \ln(\rho + \varepsilon \mathbf{I}) \in \mathfrak{u}(n)$:
+   $$\text{CS}_3^{\text{Higgs}}(A, \Phi) = \frac{1}{8\pi^2} \operatorname{Tr}\left( A \wedge dA + \frac{2}{3} A^3 + \Phi \cdot F_A \right), \qquad \mathcal{W}(C) = \frac{1}{n} \left| \operatorname{Tr} \mathcal{P} \exp \oint_C A \right|$$
+   donde $F_A = dA + A \wedge A$ es la curvatura de Yang-Mills y $\mathcal{W}(C)$ es el bucle de Wilson.
+
+4. SECCIÓN DE POINCARÉ, INTEGRAL DE MELNIKOV Y CRITERIO DE CHIRIKOV-KAM:
+   La distancia de separación homoclínica transversal en la sección de Poincaré $\{l \equiv 0 \pmod{2\pi}\}$ se evalúa mediante la regla de Simpson con cuadratura tanh-sinh:
+   $$M(t_0) = \varepsilon \int_{-\infty}^{\infty} \operatorname{sech}^2(t) \tanh(t) \sin(t + t_0) \, dt$$
+   $$K_{\text{Chirikov}} = \frac{\Delta\omega_1 + \Delta\omega_2}{|\omega_1 - \omega_2|} = \frac{2\sqrt{2 V_1 |\alpha|} + 2\sqrt{2 V_2 |\alpha|}}{|\omega_1 - \omega_2|}$$
+   donde $\alpha = \partial^2 H_0 / \partial L^2 = -3/L^4 \neq 0$ es el twist de KAM. La destrucción de toros de KAM ocurre si $K_{\text{Chirikov}} \ge 1.0$ o $|M(t_0)| > 0.15$.
+
+5. INFORMACIÓN CUÁNTICA DE BURES-FINSLER Y CENSURA DE KELLY POR FERMI-DIRAC:
+   $$\mathcal{F}(\rho, \sigma) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2, \quad d_B = \sqrt{2 - 2\sqrt{\mathcal{F}}}, \quad d_{\text{FS}} = \arccos(\sqrt{\mathcal{F}})$$
+   $$RHI_{\text{Finsler}} = \sqrt{ \frac{\operatorname{Tr}\left((\sigma - \rho)^2\right)}{\|\rho\|_F^2 (1 + \sqrt{\mathcal{F}})^2} + \frac{1}{4} \tanh^2\left(\operatorname{Tr}(\rho\sigma - \rho^2)\right) }$$
+   $$\mathcal{S}_{T_{\text{sw}}}(RHI) = \frac{1}{1 + e^{(RHI - 0.85) / T_{\text{sw}}}}, \qquad T_{\text{sw}} = 0.02$$
+   $$s^* = f^* \cdot (1 - RHI_{\text{Finsler}}) \cdot \mathcal{S}_{T_{\text{sw}}}(RHI) \cdot \Theta(0.15 - |M(t_0)|) \cdot \Theta(1.0 - K_{\text{Chirikov}}) \cdot \Theta_{\text{KAM}}$$
+   donde $\mathcal{F}$ es la fidelidad de Uhlmann, $d_B$ es la distancia de Bures, $d_{\text{FS}}$ es la distancia de Fubini-Study, $RHI_{\text{Finsler}}$ es el índice de Reward Hacking de Finsler-Mahalanobis, $\mathcal{S}_{T_{\text{sw}}}$ es el suavizado logístico de Fermi-Dirac, y $s^*$ es la asignación de capital de Kelly.
+
+6. CASCADA DE BANACH RSI³ ($\mathbf{T} = R_3 \circ R_2 \circ R_1$), SPOHN Y PICARD:
+   - $R_1$ (Ricci-DeTurck): Modifica el log-espectro de la densidad: $\partial_\tau \ln G = -2 \operatorname{tf}(\ln G) - \mu \ln G$.
+   - $R_2$ (Connes-Daleckii-Krein): Diferencias divididas $\phi^{[1]}(\lambda_i, \lambda_j) = \frac{\ln\lambda_i - \ln\lambda_j}{\lambda_i - \lambda_j}$ para definir la constante Lipschitz.
+   - $R_3$ (Brockett-Shahshahani): Flujo doble corchete $\dot{\rho} = [\rho, [\rho, N]]$, con producción de entropía de Spohn $\sigma_{\text{Spohn}} = -\operatorname{Tr}(\log\rho \cdot \dot{\rho}) \ge 0$.
+   - Iteración de Picard-Banach: $\rho_{n+1} = \Pi_{\mathfrak{D}(\mathcal{H})}(\rho_n + \tau \dot{\rho}(\rho_n))$, garantizando contracción $\operatorname{Lip}(\mathbf{T}) \le \kappa < 1.0$.
+
+7. PROYECCIÓN CONVEXA PSD DE HIGHAM:
+   $$\rho_{\text{proj}} = \arg \min_{M = M^\dagger \succeq 0, \operatorname{Tr}(M) = 1} \|M - \rho_{\text{raw}}\|_F$$
+   con multiplicador de Lagrange $\sigma^*$ hallado mediante Newton sobre $\sum_i \max(\lambda_i + \sigma^*, \text{floor}) = 1.0$.
+
+8. RETÍCULO DE HEYTING Ω₃, ANIKILACIÓN DE DIRAC Y DISYUNTOR CROWBAR:
+   Adjudicación en Heyting trivaluado $\Omega_3 = \{\bot = \mathtt{VETOED}(2) \prec \star = \mathtt{DEGRADED}(1) \prec \top = \mathtt{COHERENT}(0)\}$.
+   En veto suave ($\mathtt{DEGRADED}$), la válvula de alivio admite la aniquilación fermiónica $e^- + e^+ \to 2\gamma$ con firma HMAC SHA-256 en tiempo constante.
+   En veto duro ($\mathtt{VETOED}$), se gatilla la interrupción de hardware Crowbar sobre el GPIO 14 (`0x3FF44008`) en latencia $t_{\text{actuation}} \le 392.15\text{ ns}$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+  [A1] Exclusión Fermiónica CAR: \{a_i, a_j^\dagger\} = \delta_{ij} \mathbf{I} \implies (a_i^\dagger)^2 = 0 \quad \forall i, j.
+  [A2] Conservación de Traza Cuántica: \operatorname{Tr}(\rho(t)) \equiv 1.0 \quad \forall t \ge 0.
+  [A3] Positividad Semidefinida PSD: \langle \psi | \rho(t) | \psi \rangle \ge 0 \quad \forall |\psi\rangle \in \mathcal{H}.
+  [A4] Pasividad y Producción No Negativa de Spohn: \sigma_{\text{Spohn}} = -\operatorname{Tr}(\log\rho \cdot \dot{\rho}) \ge 0.0.
+  [A5] Vínculo Bilinear Espinorial KS: u_1 du_4 - u_2 du_3 + u_3 du_2 - u_4 du_1 = 0.
+  [A6] Contracción de Banach-Picard: \operatorname{Lip}(\mathbf{T}_{\text{RSI³}}) \le \kappa_{\text{max}} = 0.95 < 1.0.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Normalización de Traza Unitario-Disipativa):
+      |\operatorname{Tr}(\rho(t)) - 1.0| \le 1.0 \times 10^{-8}.
+  Invariante 2 (Preservación del Cono PSD por Higham):
+      \lambda_{\min}(\rho_{\text{proj}}) \ge \text{floor} = 1.0 \times 10^{-12}.
+  Invariante 3 (Invarianza Hiperbólica de Bogoliubov-Valatin):
+      ||u_k|^2 - |v_k|^2 - 1.0| \le 1.0 \times 10^{-10}.
+  Invariante 4 (Involución Bipartita del Retículo de Heyting):
+      \Omega_3 = \operatorname{supremum}(c_1, c_2, c_3) = \max(\text{int}(c_1), \text{int}(c_2), \text{int}(c_3)).
 """
 
 from __future__ import annotations

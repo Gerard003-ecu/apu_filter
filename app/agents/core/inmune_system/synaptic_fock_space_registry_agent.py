@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Synaptic Fock Space Registry Agent (Soberano de Memoria Cuántica)   ║
-║ Ruta   : app/agents/core/immune_system/synaptic_fock_space_registry_agent.py ║
-║ Versión: 9.0.0-PhD (RSI³ Picard-Banach + Poincaré-KS-Melnikov-Chirikov)      ║
+║ Nombre   : SynapticFockSpaceRegistryAgent                                    ║
+║ Módulo   : Synaptic Fock Space Registry Agent (Soberano de Memoria Cuántica)   ║
+║ Ubicación: app/agents/core/inmune_system/synaptic_fock_space_registry_agent.py ║
+║ Ruta     : app/agents/core/inmune_system/synaptic_fock_space_registry_agent.py ║
+║ Versión  : 9.3.0-PhD (RSI³ Picard-Banach + Poincaré-KS-Melnikov-Chirikov)      ║
+║ Función  : Soberano Agéntico y Observador Activo de Memoria Cuántica.       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO Y MOTOR OODA:
@@ -14,22 +17,22 @@ cuántica de la inyección de "Vitaminas TOON" (ToonCartridges) en la Malla Agé
 Actúa como un endofuntor en la categoría de haces sobre el sitio de Grothendieck
 con valores en el retículo de Heyting:
 
-    Ω₃ = { ⊥ = VETOED(2)  ≺  ★ = DEGRADED(1)  ≺  ⊤ = COHERENT(0) }
+    \Omega_3 = \{ \bot = \mathtt{VETOED}(2) \prec \star = \mathtt{DEGRADED}(1) \prec \top = \mathtt{COHERENT}(0) \}
 
 El Espacio de Fock auditado es
 
-    F(H) = ⊕_{n=0}^∞ ( ∧^n H_fermion ⊕ Sym^n H_boson )
+    \mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^\infty \left( \bigwedge^n \mathcal{H}_{\text{fermion}} \oplus \text{Sym}^n \mathcal{H}_{\text{boson}} \right)
 
-con álgebra CAR fermiónica {a_i, a_j^†} = δ_ij I  y  CCR bosónica.
+con álgebra CAR fermiónica \{a_i, a_j^\dagger\} = \delta_{ij} \mathbf{I} y CCR bosónica [b_i, b_j^\dagger] = \delta_{ij} \mathbf{I}.
 
 Unificación con la mecánica celeste de Poincaré (Delaunay, carta canónica no
 singular, regularización Kustaanheimo-Stiefel con vínculo bilinear, tiempo
 ficticio de Sundman, KAM, Melnikov, Chirikov) y con RSI³ como contracción de
-Banach-Picard sobre el simplejo de densidades D(H):
+Banach-Picard sobre el simplejo de densidades \mathfrak{D}(\mathcal{H}):
 
-    T_RSI³ = R₃ ∘ R₃^{Brockett} ∘ R₂^{Connes-Daleckii-Krein} ∘ R₁^{Ricci-DeTurck}
+    \mathbf{T}_{\text{RSI³}} = R_3 \circ R_3^{\text{Brockett}} \circ R_2^{\text{Connes-Daleckii-Krein}} \circ R_1^{\text{Ricci-DeTurck}}
 
-    ∃! ρ* ∈ D(H)  tal que  T(ρ*) = ρ*   si   κ = Lip(T) < 1.
+    \exists! \rho^* \in \mathfrak{D}(\mathcal{H}) \quad \text{tal que} \quad \mathbf{T}(\rho^*) = \rho^* \quad \text{si} \quad \kappa = \operatorname{Lip}(\mathbf{T}) < 1.0.
 
 ARQUITECTURA DE FASES ANIDADAS (CONTINUUM OODA INDIVISIBLE):
 ────────────────────────────────────────────────────────────────────────────────
@@ -51,13 +54,63 @@ ARQUITECTURA DE FASES ANIDADAS (CONTINUUM OODA INDIVISIBLE):
     Si Ω₃ = ⊥, señala el interlock ciber-físico simulado (GPIO14 / registro
     0x3FF44008) sin I/O de hardware.
 
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────
+1. ISOMETRÍA DEL ESPACIO DE FOCK Y ISOMORFISMO DE BOGOLIUBOV-VALATIN:
+   El soberano audita la inyección de cartuchos en $\mathcal{F}(\mathcal{H})$. Para modos fermiónicos,
+   la ocupación está restringida por la regla de Pauli: $n_i \in \{0, 1\}$.
+   Bajo transformaciones canónicas de Bogoliubov-Valatin para bosones en $\operatorname{Sp}(2, \mathbb{R})$:
+   $$\alpha_k = u_k a_k + v_k a_k^\dagger, \qquad \alpha_k^\dagger = v_k^* a_k + u_k^* a_k^\dagger, \qquad |u_k|^2 - |v_k|^2 \equiv 1.0$$
+   donde $u_k, v_k \in \mathbb{C}$ son coeficientes de mezcla Bogoliubov, y $a_k, a_k^\dagger$ son los operadores base.
+
+2. ANIQUILACIÓN FERMIÓNICA $e^- + e^+ \to 2\gamma$ Y TIMING-SAFE HMAC:
+   La aniquilación de pares electrón-positrón exige conservación estricta de la carga homológica $q_{e^-} + q_{e^+} = 0$
+   y validación criptográfica de la firma de autorización mediante `hmac.compare_digest`:
+   $$\text{HMAC}_{\text{SHA-256}}(K, \text{"AUTH:"} \parallel \text{positron\_id}) \equiv \text{signature}$$
+   La reacción genera dos fotones gamma coplanares en direcciones opuestas con energía $E_\gamma = \frac{1}{2}(m_{e^-} + m_{e^+})$.
+
+3. COTA HOLOGRÁFICA DE BEKENSTEIN Y EVICCIÓN POR ENTROPÍA DE CONFIGURACIÓN:
+   La capacidad máxima del registro $N_{\text{max}} = 1024$ satura la cota holográfica de Bekenstein:
+   $$S_{\text{Bekenstein}} = \frac{2\pi k_B R E}{\hbar c} \le N_{\text{max}} \ln(2)$$
+   La evicción selecciona la partícula que minimiza la similitud cosenoidal respecto del ket de sondeo:
+   $$k^* = \arg \min_k \frac{\langle u, v_k \rangle}{\|u\| \|v_k\|}$$
+
+4. GEOMETRÍA DE BURES-FINSLER Y CENSURA DE KELLY DE FERMI-DIRAC:
+   $$\mathcal{F}(\rho, \sigma) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2, \quad d_B = \sqrt{2 - 2\sqrt{\mathcal{F}}}, \quad d_{\text{FS}} = \arccos(\sqrt{\mathcal{F}})$$
+   $$RHI_{\text{Finsler}} = \sqrt{ \frac{\operatorname{Tr}((\sigma - \rho)^2)}{\|\rho\|_F^2 (1 + \sqrt{\mathcal{F}})^2} + \frac{1}{4} \tanh^2\left(\operatorname{Tr}(\rho\sigma - \rho^2)\right) }$$
+   $$\mathcal{S}_{T_{\text{sw}}}(RHI) = \frac{1}{1 + e^{(RHI - 0.85) / T_{\text{sw}}}}, \qquad T_{\text{sw}} = 0.02$$
+   $$s^* = f^* \cdot (1 - RHI_{\text{Finsler}}) \cdot \mathcal{S}_{T_{\text{sw}}}(RHI) \cdot \Theta(0.15 - |M(t_0)|) \cdot \Theta(1.0 - K_{\text{Chirikov}}) \cdot \Theta_{\text{KAM}}$$
+
+5. DINÁMICA DE LINDBLAD-GKSL, COTA DE FREDHOLM Y PASIVIDAD DE LYAPUNOV-SPOHN:
+   La evolución disipativa del operador densidad sigue la ecuación maestra de Gorini-Kossakowski-Sudarshan-Lindblad:
+   $$\frac{d\rho}{dt} = -i[H, \rho] + \sum_k \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \rho\} \right)$$
+   Solubilidad de Fredholm sobre el kernel del Hamiltoniano: $\operatorname{Tr}(P_{\operatorname{ker} H} \rho) \le \varepsilon_{\text{tol}}$.
+   Pasividad de Lyapunov-Spohn: $\frac{d}{dt}\langle H \rangle_\rho \le 0$ y producción no negativa de entropía $\sigma_{\text{Spohn}} = -\operatorname{Tr}(\log\rho \cdot \dot{\rho}) \ge 0$.
+
+6. CASCADA DE BANACH RSI³ Y PUNTO FIJO DE PICARD:
+   - $R_1$: Flujo de Ricci-DeTurck $\partial_\tau \ln G = -2 \operatorname{tf}(\ln G)$.
+   - $R_2$: Cota de Connes-Daleckii-Krein $\phi^{[1]}(\lambda_i, \lambda_j) = \frac{\ln\lambda_i - \ln\lambda_j}{\lambda_i - \lambda_j}$.
+   - $R_3$: Flujo isospectral de Brockett $\dot{\rho} = [\rho, [\rho, N]]$.
+   - Contracción Picard-Banach: $\rho_{n+1} = \Pi_{\mathfrak{D}(\mathcal{H})}(\rho_n + \tau \dot{\rho}(\rho_n))$, con $\operatorname{Lip}(\mathbf{T}) \le \kappa < 1.0$.
+
 AXIOMAS FORMALES:
 ────────────────────────────────────────────────────────────────────────────────
-  [A1] CAR fermiónica: {a_i, a_j^†} = δ_ij I  ⇒  (a_i^†)² = 0
-  [A2] Traza: Tr(ρ(t)) ≡ 1  (mod ε_machine)
-  [A3] Cono PSD: ρ(t) ∈ D_n  ⇔  ⟨ψ|ρ(t)|ψ⟩ ≥ 0  ∀|ψ⟩
-  [A4] Pasividad de Spohn: σ_Spohn = -Tr(log ρ · ρ̇) ≥ 0
-  [A5] Interlock: Ω₃ = VETOED  ⇒  señal de crowbar (simulación de gobernanza)
+  [A1] Exclusión de Pauli CAR: \{a_i, a_j^\dagger\} = \delta_{ij} \mathbf{I} \implies (a_i^\dagger)^2 = 0 \quad \forall i, j.
+  [A2] Conservación de Traza Cuántica: \operatorname{Tr}(\rho(t)) \equiv 1.0 \quad \forall t \ge 0.
+  [A3] Positividad Semidefinida PSD: \langle \psi | \rho(t) | \psi \rangle \ge 0 \quad \forall |\psi\rangle \in \mathcal{H}.
+  [A4] Pasividad y Producción No Negativa de Spohn: \sigma_{\text{Spohn}} = -\operatorname{Tr}(\log\rho \cdot \dot{\rho}) \ge 0.0.
+  [A5] Interlock Ciber-Físico: \Omega_3 = \mathtt{VETOED} \implies \text{disparo de señal Crowbar GPIO14 (0x3FF44008)}.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Normalización de Traza Unitario-Disipativa):
+      |\operatorname{Tr}(\rho(t)) - 1.0| \le 1.0 \times 10^{-4}.
+  Invariante 2 (Preservación del Cono PSD por Higham):
+      \lambda_{\min}(\rho_{\text{proj}}) \ge \text{floor} = 1.0 \times 10^{-12}.
+  Invariante 3 (Invarianza Hiperbólica de Bogoliubov-Valatin):
+      ||u_k|^2 - |v_k|^2 - 1.0| \le 1.0 \times 10^{-10}.
+  Invariante 4 (Involución Bipartita del Retículo de Heyting):
+      \Omega_3 = \operatorname{supremum}(c_1, c_2, c_3) = \max(\text{int}(c_1), \text{int}(c_2), \text{int}(c_3)).
 """
 
 from __future__ import annotations
@@ -116,12 +169,15 @@ except ImportError:  # pragma: no cover
 # ─────────────────────────────────────────────────────────────────────────────
 _CORE: Optional[ModuleType] = None
 try:
-    from app.core.immune_system import synaptic_fock_space_registry as _CORE
+    from app.core.inmune_system import synaptic_fock_space_registry as _CORE
 except ImportError:
     try:
-        import synaptic_fock_space_registry as _CORE  # type: ignore
+        from app.core.immune_system import synaptic_fock_space_registry as _CORE
     except ImportError:
-        _CORE = None
+        try:
+            import synaptic_fock_space_registry as _CORE  # type: ignore
+        except ImportError:
+            _CORE = None
 
 
 def _core_attr(name: str, default: Any = None) -> Any:
