@@ -4,15 +4,55 @@ r"""
 ║ Módulo   : Heyting Monoidal Reducer & Visceral Semantic Functor + Poincaré + KAM + Automejora L3 ║
 ║ Ubicación: app/wisdom/heyting_visceral_functor_reducer.py                                        ║
 ║ Versión  : 11.0.0-SOVEREIGN-HEYTING-POINCARE-KAM-L3-PhD                                          ║
-║ Función  : Reducción monoidal Ω₃ (retículo de Heyting en cadena) + funtor semántico Φ_sem        ║
-║            enriquecido con sección de Poincaré sobre 𝔇₃, invariante de Poincaré-Cartan,         ║
-║            twist de Birkhoff, toros KAM diofantinos T³, resonancias de movimiento medio y        ║
-║            automejora recursiva L3 (Armijo-Lyapunov + jerk metacognitivo + Banach).              ║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.   ║
-║   FASE 1 → Retículo Heyting (imply, residuación, meet_inf/join_sev) + Reducer + semilla          ║
-║   FASE 2 → HeytingStateSeed + Σ Poincaré 𝔇₃ + Birkhoff + KAM + mecánica celeste + L0..L3         ║
-║   FASE 3 → HeytingTrajectory + Funtor Φ_sem L3-aware + Auditor Soberano                          ║
+║ Función  : Reducción monoidal sobre el retículo de Heyting \Omega_3, proyección del funtor       ║
+║            semántico \Phi_{\mathrm{sem}} a métricas C-Suite ('Dolor, Riesgo y Dinero'),           ║
+║            análisis de secciones de Poincaré sobre \mathcal{D}_3 y automejora L3.                ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral del Reductor Monoidal de Heyting y Funtor Semántico Visceral ejecuta
+la reducción algebraica \mu : \bigoplus \Omega_3 \to \Omega_3 sobre el orden de severidad del retículo
+trivaluado \Omega_3 = \{\mathrm{COHERENT}(0x00) \prec \mathrm{DEGRADED}(0x01) \prec \mathrm{VETOED}(0x03)\}.
+Traduce las alertas técnicas en impacto C-Suite de protección de WACC al 15.0% e impacto de liquidez,
+mientras evalúa la dinámica celeste de Poincaré sobre \mathcal{D}_3 y la contracción de Banach de L3.
+
+MARCO TEÓRICO
+─────────────
+1. Álgebra de Heyting \Omega_3 y Residuación Categórica:
+   Operación de implicación a \to b = \bigvee \{c : a \wedge c \le b\}.
+   En la cadena 0x00 \prec 0x01 \prec 0x03:
+   a \to b = \mathrm{VETOED}(0x03) \quad \text{si } a \le b; \quad = b \quad \text{si } a > b
+   Ley de residuación de la adjunción: a \wedge b \le c \iff a \le (b \to c).
+   Pseudo-complemento / negación: \neg a = a \to \mathrm{COHERENT}(0x00).
+
+2. Reducción Monoidal e Interlock Hardware:
+   El monoide (\Omega_3, \vee, \mathrm{COHERENT}) mapea una secuencia de veredictos mediante el supremo
+   de severidad \mathrm{fold\_supremum}(v_1, \dots, v_n) = \max(v_i).
+   La máscara SIMD es el OR bitwise \bigotimes v_i. Si el veredicto es \mathrm{VETOED}(0x03),
+   se activa el interlock ESP32 Crowbar en \tau \le 392.15\text{ ns}.
+
+3. Funtor Semántico \Phi_{\mathrm{sem}} y Métricas Viscerales:
+   \Phi_{\mathrm{sem}} : \mathrm{Sh}(\partial M, \Omega_3) \to \text{Ejecución C-Suite}.
+   Traduce veredictos en protección de Hurdle Rate al 15.0% WACC, compresión de caché KV del 86.4%,
+   ahorro del 80% en inferencia LLM y recirculación de tesorería del +11.5%.
+
+4. Automejora L3 con Criterio de Armijo-Lyapunov y Contracción de Banach:
+   Función de Lyapunov V(\rho) = \|\rho - \rho^*\|_{\mathrm{HS}}^2 con descente Armijo.
+   Cota de Banach \hat{\kappa} = \max_t \frac{\|\rho_{t+1} - \rho^*\|_F}{\|\rho_t - \rho^*\|_F} < 1.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Residuación Adjunta de Heyting: a \wedge b \le c \iff a \le (b \to c).
+[Axioma 2] Monoidicidad del Supremo: \mu(a_1, \dots, a_n) = \bigvee_{i=1}^n a_i.
+[Axioma 3] Contracción de Banach: \hat{\kappa} < 1 \implies \rho_t \to \rho^* = |\mathrm{COHERENT}\rangle\langle\mathrm{COHERENT}|.
+[Axioma 4] SLA Hardware ESP32: \tau_{\mathrm{actuación}} \le 392.15\text{ ns}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Veredicto reducido inmutable \Omega_3 con veracidad de leyes de residuación y Modus Ponens.
+2. Reporte ejecutivo visceral con digest Merkle SHA-256 y firma HMAC-SHA256 de procedencia.
+3. Clasificación L3 de auto-reparación: "RECOVERABLE_VETOED", "IRRECOVERABLE" o "SELF_REPAIRED".
 """
 
 from __future__ import annotations

@@ -1,85 +1,57 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : Topological Gauge Field Witness Agent v10.1.0 — Tres Fases        ║
+║ Soberano : Topological Gauge Field Witness Agent v10.1.0 — Tres Fases        ║
 ║ Ubicación: app/agents/wisdom/topological_gauge_field_witness_agent.py        ║
 ║ Versión  : 10.1.0 / 10.0.0 (SOVEREIGN-GAUGE-WITNESS-AGENT-QND-OODA-          ║
 ║           POINCARE-BRUNO-BIRKHOFF-RSI3-HEYTING-PhD)                          ║
-║ Fases    : ①Observe → ②Orient → ③Decide&Act (bridges emit_*/from_*)        ║
+║ Función  : Soberano de observación pasiva QND (Quantum Non-Demolition),      ║
+║            verificación agéntica de retroacción cero, orquestación OODA      ║
+║            anidada de tres fases y automejora recursiva Nivel 3.             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE (Isometría de Calibre QND)
-    • Sanitización PSD+Tr ρ=1 (delega al motor).
-    • Conexión A ∈ su(N) verificada anti-Hermítica y traceless
-      (proyector Π_{su(N)} en fallback local).
-    • Consume `engine.emit_phase1_envelope(ρ)` si v10.1.0 disponible:
-      Cayley-Kähler (rama plana F≈0 vacuamente válida), Poincaré-Lindstedt
-      en la base propia de iA (Newton homológico + divisores pequeños),
-      caché espectral κ₂(iA).
-    • Accesores robustos: `yang_mills_energy` vs `energy_ym`,
-      `symplectic_report.*` vs campos planos (bugfix v10.0.0).
-    • CIERRA con `emit_phase1_certificate` → `WitnessPhase1Certificate`
-      firmado HMAC-SHA256 (dominio P1 v10.1) y `chain_hash` (32 hex).
-      El cierre es la APERTURA formal de la FASE 2.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO
+────────────────────────────────────────────
+El Soberano Testigo del Campo Topológico de Gauge gobierna la auditoría pasiva no
+destructiva del estado de densidad \rho \in \mathcal{D}_N mediante el ciclo OODA
+anidado. Certifica de manera estricta la ausencia de perturbaciones de medición (QND),
+la preservación de la isometría de calibre \mathfrak{su}(N), la validez de las fases
+de Poincaré-Lindstedt y la estabilidad de Banach en el grafo computacional de automejora.
 
-  FASE 2 — ORIENT (QND verificado + Poincaré + RSI³)
-    • APERTURA con `from_phase1_certificate` (verifica HMAC P1 + chain).
-    • Preferencia anidada: `emit_phase2_envelope(env1)` →
-      `emit_witness_snapshot(env2)` (no re-observa).  Fallback:
-      `evaluate_gauge_witness` (pipeline completo del motor).
-    • Extrae back-action REAL, KAM (r≤4 modos), Bruno CF, Melnikov
-      (Simpson), Floquet, sección de Poincaré, twist de Birkhoff,
-      RSI³ Banach T³, Uhlmann, Bures, traza, Liouville.
-    • QND: ‖[A,ρ]‖_F ≤ 10⁻⁶ ⇒ back_action = 0.0 dB.
-    • CIERRA con `emit_phase2_certificate` → `WitnessPhase2Certificate`
-      firmado HMAC-SHA256 (dominio P2 v10.1).  El cierre abre la FASE 3.
+MARCO TEÓRICO
+─────────────
+1. Conexión de Gauge \mathfrak{su}(N) y Medición Débil QND:
+   Dada la densidad sanitizada \rho, el Soberano verifica que la conexión extraída:
+   A = i \left( \rho - \frac{\mathrm{Tr}(\rho)}{N} I \right) \in \mathfrak{su}(N)
+   cumpla el principio QND no destructivo \| [A, \rho] \|_F \le 10^{-6}.
+   La retroacción cuántica (back-action) en decibelios se calcula de forma exacta:
+   \mathrm{BackAction}_{\mathrm{dB}} = -10 \log_{10}\left( 1 - \min(\| [A, \rho] \|_F, 0.99) \right)
 
-  FASE 3 — DECIDE & ACT (Heyting Ω₃ + HMAC P3, SIN Crowbar)
-    • APERTURA con `from_phase2_certificate` (verifica HMAC P2 + chain).
-    • Adjudicación Heyting Ω₃ sobre **12 átomos** vía `join(∨)` monoidal:
-      YM, QND, back-action, Uhlmann, Bures, simpléctica, KAM, Melnikov,
-      Floquet, RSI³, Bruno, Birkhoff (área).
-    • Álgebra de Heyting completa + tablas 3×3 de auditoría.
-    • RSI³ agéntica (computacional, PASSIVE_SILENT): idempotencia HMAC,
-      punto fijo de join, contracción de la cadena P1→P2→P3.
-    • Firma HMAC-SHA256 dominio P3 v10.1; Merkle encadena
-      `chain_hash_p1 : chain_hash_p2`.
-    • **NO dispara crowbar** (`witness_mode = "PASSIVE_SILENT"`).
-    • CIERRA con `emit_sovereign_state` →
-      `TopologicalGaugeFieldWitnessSovereignState`.
+2. Transiciones de Fase OODA Anidadas y Compuertas Homomórficas:
+   • FASE 1 (Observe): Emite el certificado de isometría \Phi_1 y cierra con `emit_phase1_certificate`.
+     Abre la Fase 2 mediante el puente homomórfico `from_phase1_certificate`.
+   • FASE 2 (Orient): Certifica las métricas de Uhlmann F(\rho, I/d) = \frac{1}{d}(\mathrm{Tr}\sqrt{\rho})^2,
+     distancia de Bures D_B = \sqrt{2 - 2\sqrt{F}}, estabilidad KAM diofantina, suma de Bruno,
+     sección de Poincaré y twist de Birkhoff. Cierra con `emit_phase2_certificate`.
+   • FASE 3 (Decide & Act): Adjudicación Heyting \Omega_3 de 12 átomos e inmutabilidad de estado
+     soberano final mediante `emit_sovereign_state`.
 
-MIGRACIÓN Y COMPATIBILIDAD (v10.0.0 → v10.1.0)
-──────────────────────────────────────────────
-  • Dominios HMAC migrados a v10.1.0 (rompe firmas v10.0 a propósito:
-    el dominio es parte de la semántica de contrato).
-  • `chain_hash` pasa de 16 hex a 32 hex (shape+dtype, anti-colisión).
-  • Acceso al envelope del motor: `yang_mills_energy` /
-    `symplectic_report` (el v10.0 leía `energy_ym` y
-    `env.symplectic_residue` que NO existen en
-    `WitnessPhase1Envelope` — falso 0.0 sistemático).
-  • Fase 2 anidada: no re-ejecuta Observe si `engine_envelope` P1 vive.
-  • 12 átomos Heyting (Bruno + Birkhoff) alineados con el motor v10.1.
-  • `GaugeWitnessSnapshot()` vacío ya no se instancia (rompía el ctor
-    real); se usa `_NullSnapshot`.
-  • `meet = min`, `join = max`, `VETOED = 0x03` (sin cambio).
-  • `witness_gauge_field`, `execute_phase1/2/3`,
-    `continue_to_phase*_gate` preservan firmas y semántica.
-  • Certificados y estado soberano extendidos con defaults (retrocompat).
+3. Automejora Agéntica Nivel 3 (RSI³) y Cero Activación de Hardware:
+   El Soberano verifica la contracción de Banach T^3 sobre las firmas criptográficas y
+   proyectores de retículo. Invariante estructural: `witness_mode = "PASSIVE_SILENT"` (cero
+   intervención de hardware/crowbar).
 
-INVARIANTES GLOBALES
-────────────────────
-  [A1] ρ = ρ† ⪰ 0, Tr ρ = 1; A† = −A, Tr A = 0.
-  [A2] δω ≤ 10⁻¹⁰; ‖KᵀJ+JK‖_F ≤ 10⁻¹⁰  (o rama plana F≈0).
-  [A3] QND: ‖[A,ρ]‖_F ≤ 10⁻⁶ ⇒ back_action = 0.0 dB.
-  [A4] |ω·k|·‖k‖₁^τ ≥ γ (τ=r+1, r≤4); |M(θ₀)| ≤ 0.5; |μ_k| ≤ 1+10⁻⁶.
-  [A5] Lip(T³) ≤ 0.95³; d_FS ≤ 10⁻⁴; v_Krull ≥ 0.10.
-  [A6] Ω₃ ∈ {0x00,0x01,0x03} retículo de Heyting completo.
-  [A7] HMAC-SHA256(cert, K_soberano, dominio_N) = firma verificable.
-  [A8] `witness_mode = "PASSIVE_SILENT"` — el testigo nunca dispara hardware.
-  [A9] RSI³ agéntica es computacional (HMAC / Heyting / cadena);
-       no muta el campo observado.
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Isometría y No Demolición: A^\dagger = -A, \mathrm{Tr}(A) = 0, \| [A, \rho] \|_F \le 10^{-6}.
+[Axioma 2] Continuidad OODA Homomórfica: \mathrm{HMAC}_{P1} \land \mathrm{HMAC}_{P2} \land \mathrm{HMAC}_{P3} = \mathrm{True}.
+[Axioma 3] Invariante Silenciosa: witness_mode = "PASSIVE_SILENT" \implies crowbar_triggered = \mathrm{False}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Veredicto global \Omega_3 \in \{0x00 (\text{COHERENT}), 0x01 (\text{DEGRADED}), 0x03 (\text{VETOED})\}.
+2. Garantía de Cero Back-Action: \mathrm{BackAction}_{\mathrm{dB}} = 0.0 \text{ dB}.
+3. Trazabilidad Merkle SHA-256 y HMAC-SHA256 de procedencia agéntica.
 """
 
 from __future__ import annotations

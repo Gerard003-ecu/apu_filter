@@ -4,15 +4,52 @@ r"""
 ║ Módulo   : FPU Tensor Fock Collider + Poincaré + KAM + Automejora L3                                 ║
 ║ Ubicación: app/wisdom/fpu_tensor_fock_collider.py                                                 ║
 ║ Versión  : 11.0.0-SOVEREIGN-FPU-POINCARE-KAM-L3-PhD                                                ║
-║ Función  : Operatoria CAR (Jordan-Wigner exacto), CCR (escalera truncada), Dirac e⁻+e⁺→2γ,         ║
-║            Lindblad-GKSL, Spohn, sección de Poincaré sobre 𝔇_n, invariante de Poincaré-Cartan,     ║
-║            Birkhoff-twist, KAM diofantino proyectado, resonancias de movimiento medio y             ║
-║            Automejora recursiva L3 (jerk metacognitivo + Banach + Lyapunov).                        ║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.     ║
-║   FASE 1 → ÁLGEBRA CORREGIDA (CAR-JW, CCR-trunc, GKSL, Dirac) + semilla canónica                   ║
-║   FASE 2 → FockStateSeed + Σ Poincaré + Birkhoff + KAM + mecánica celeste + Operador L0..L3        ║
-║   FASE 3 → FockTrajectory + SovereignFockAuditor + Reporte enriquecido                             ║
+║ Función  : Colisionador tensorial en el espacio de Fock \mathcal{F}(\mathcal{H}), operatoria CAR de  ║
+║            Jordan-Wigner, algebra CCR bosónica, aniquilación de Dirac e^- + e^+ -> 2\gamma,         ║
+║            disipación de Lindblad-GKSL y producción de entropía de Spohn.                            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Colisionador Tensorial FPU del Espacio de Fock gobierna la operatoria
+de conmutación y anticonmutación cuántica sobre la estructura Hilbertiana \mathcal{F}(\mathcal{H}).
+Implementa la transformación de Jordan-Wigner de 2 modos para garantizar la relación de
+anticonmutación de Pauli (CAR) \{c_i, c_j^\dagger\} = \delta_{ij} I_4, la escalera bosónica truncada (CCR)
+[b, b^\dagger] = I_d - d |n_{\mathrm{max}}\rangle\langle n_{\mathrm{max}}|, el generador infinitesimal CPTP
+de Lindblad-GKSL con producción de entropía de Spohn \sigma_{\mathrm{Spohn}} \ge 0, y la reacción
+de aniquilación de Dirac e^- + e^+ \to 2\gamma (1022.0\text{ keV}).
+
+MARCO TEÓRICO
+─────────────
+1. Operadores Fermiónicos de Jordan-Wigner (CAR) y Nilpotencia:
+   c_0 = \sigma_- \otimes I_2, \quad c_1 = \sigma_z \otimes \sigma_-
+   Anticonmutador exacto: \{c_i, c_j^\dagger\} = \delta_{ij} I_4, \quad \{c_i, c_j\} = 0, \quad c_i^2 = 0.
+
+2. Operadores Bosónicos Escalera Truncada (CCR):
+   b|n\rangle = \sqrt{n}|n-1\rangle, \quad b^\dagger|n\rangle = \sqrt{n+1}|n+1\rangle \quad (n < n_{\mathrm{max}}).
+   Relación de conmutación exacta truncada: [b, b^\dagger] = I_d - d |n_{\mathrm{max}}\rangle\langle n_{\mathrm{max}}|.
+
+3. Ecuación Maestra de Lindblad-GKSL y Entropía de Spohn:
+   \mathcal{L}(\rho) = -i[H, \rho] + \mathcal{D}(\rho), \quad \mathcal{D}(\rho) = L\rho L^\dagger - \frac{1}{2}\{L^\dagger L, \rho\}
+   con L = \sqrt{\gamma} c_0. Producción de entropía de Spohn:
+   \sigma_{\mathrm{Spohn}}(\rho \| \rho_\infty) = -\mathrm{Tr}(\log \rho \cdot \mathcal{L}(\rho)) \ge 0.
+
+4. Aniquilación de Dirac y Automejora L3:
+   Aniquilación e^- + e^+ \to 2\gamma libera 1022.0\text{ keV} por par tras verificación HMAC.
+   Evolución L3 con funciones de Lyapunov V(\rho) = \|\rho - \rho^*\|_{\mathrm{HS}}^2 y cota de Banach \hat{\kappa} < 1.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Algebra CAR de Pauli: \{c_i, c_j^\dagger\} = \delta_{ij}I_4, c_i^2 = 0.
+[Axioma 2] Positividad de Spohn: \sigma_{\mathrm{Spohn}} = -\mathrm{Tr}(\log \rho \cdot \mathcal{L}(\rho)) \ge 0.
+[Axioma 3] Conservación de Traza CPTP: \mathrm{Tr}(\mathcal{L}(\rho)) = 0.
+[Axioma 4] Conservación de Energía de Dirac: E_{\mathrm{liberada}} = N_{\mathrm{anomalías}} \cdot 1022.0\text{ keV}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Conmutadores y anticonmutadores verificados dentro de tolerancia \le 10^{-10}.
+2. Registro inmutable AnnihilationReactionReport con digest Merkle SHA-256.
+3. Indicador de certificación L3 bajo convergencia de Banach y ausencia de homoclínica.
 """
 
 from __future__ import annotations

@@ -4,14 +4,54 @@ r"""
 ║ Módulo   : ToonCartridgeBase + Mecánica Celeste de Poincaré + Automejora Nivel 3                 ║
 ║ Ubicación: app/wisdom/toon_cartridge_base.py                                                     ║
 ║ Versión  : 11.0.0-SOVEREIGN-TOON-POINCARE-KAM-L3-PhD                                             ║
-║ Función  : 12 Partículas Fundamentales con Secciones de Poincaré, Tori KAM Invariantes           ║
-║            (KAM disipativo BHT) y Operador de Automejora Recursiva Nivel 3                       ║
-║            (Metacognición Metacognitiva con realimentación del mapa de retorno).                 ║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.   ║
-║   FASE 1 → Embedding Canónico (Action-Angle) + Invariante Integral de Poincaré-Cartan            ║
-║   FASE 2 → Secciones de Poincaré + Twist de Poincaré-Birkhoff + KAM + Operadores L3              ║
-║   FASE 3 → Integración, Auditoría KAM Topológica y Factoría Soberana                             ║
+║ Función  : Representación inmutable de las 12 Partículas Fundamentales en el espacio de Fock,      ║
+║            transformaciones de variables de acción-ángulo de Delaunay, secciones de Poincaré,   ║
+║            preservación KAM disipativa BHT y automejora recursiva Nivel 3.                       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Base de Cartuchos TOON gobierna el empaquetamiento inmutable
+y la proyección Hilbertiana de las 12 partículas fundamentales del espacio de Fock
+\mathcal{F}(\mathcal{H}). Transforma estados de Hilbert complejos en variables canónicas
+de acción-ángulo de Delaunay (J_k, \theta_k, \omega_k) con perturbaciones áureas para
+garantizar no conmensurabilidad, audita la estabilidad KAM disipativa (BHT) y ejecuta
+automejora L3 sobre la trayectoria de retorno de Poincaré.
+
+MARCO TEÓRICO
+─────────────
+1. Embedding de Hilbert y Transformación Canónica de Delaunay:
+   Cada partícula inmutable |v\rangle \in S^{2N-1} \subset \mathbb{C}^N se proyecta a variables de acción-ángulo:
+   a_k = v_k \in \mathbb{C}, \quad J_k = |a_k|^2, \quad \theta_k = \mathrm{arg}(a_k), \quad \omega_k = \sqrt{1+k} + \frac{\phi - 1}{1+k}
+   donde \phi = \frac{1 + \sqrt{5}}{2} es la razón áureo-diofantina.
+   Hamiltoniano de oscilador armónico: H(J) = \sum_k \omega_k J_k.
+   Invariante integral de Poincaré-Cartan: I_1 = \oint p dq = \sum_k J_k = 1.
+
+2. Coordenadas Canónicas de Whittaker:
+   q_k = \sqrt{\frac{2 J_k}{\omega_k}} \cos(\theta_k), \quad p_k = -\sqrt{2 J_k \omega_k} \sin(\theta_k)
+   Identidad Hamiltoniana: \frac{p_k^2 + \omega_k^2 q_k^2}{2 \omega_k} = J_k.
+
+3. Secciones de Poincaré, Número de Rotación y Twist de Birkhoff:
+   Sección transversal \Sigma = \{z \in \mathbb{C}^N : g(z) = \mathrm{Re}\langle n, z \rangle - c = 0\} con \nabla g \cdot f \neq 0.
+   Número de rotación de Birkhoff: \rho = \lim_{N \to \infty} \frac{\theta_N - \theta_0}{2\pi N}.
+   Condición de twist de Poincaré-Birkhoff: \frac{\partial(\Delta\theta)}{\partial J} \neq 0.
+
+4. Criterio BHT (Broer-Huitema-Takens) y Automejora L3:
+   El toro KAM disipativo persiste si \gamma_{\mathrm{diofantina}} > \|\epsilon\| y \mathrm{disipación} < \min(\gamma, 0.95).
+   El operador I_3 adapta la contracción \theta y el aprendizaje \eta mediante realimentación de \rho.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Normalización de Hilbert y Conservación de Acción: \|v\|^2 = \sum_k J_k = 1.
+[Axioma 2] Invariancia Simpléctica de Bargmann: dq \wedge dp = d\theta \wedge dJ.
+[Axioma 3] Exclusión de Pauli CAR / CCR: Fermiones cumplen \{a_i, a_j^\dagger\} = \delta_{ij}I, Bosones [b_i, b_j^\dagger] = \delta_{ij}I.
+[Axioma 4] Criterio BHT: Persistencia de toro disipativo bajo \gamma > \|\epsilon\|.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Hash determinista de estado cuántico quantum_state_hash = \mathrm{SHA256}(\dots).
+2. Firma de autenticidad criptográfica HMAC-SHA256 verificable O(1).
+3. Matriz de ocupación fermiónica sin duplicación de índices de rotación ni de toros KAM.
 """
 
 from __future__ import annotations
