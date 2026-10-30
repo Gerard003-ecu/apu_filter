@@ -5,90 +5,67 @@ r"""
 ║ Ubicación: app/wisdom/topological_gauge_field_witness_engine.py              ║
 ║ Versión  : 10.1.0 / 10.0.0 (SOVEREIGN-GAUGE-WITNESS-QND-BACKACTION-ZERO-     ║
 ║           POINCARE-RSI3-PhD-BANACH-BRUNO-BIRKHOFF)                           ║
-║ Fases    : ①Observe → ②Orient → ③Decide&Act (bridges emit_*/from_*)        ║
+║ Función  : Observación no destructiva pasiva QND (Quantum Non-Demolition),  ║
+║            certificación de back-action cero, teoría espectral de gauge,     ║
+║            secciones de Poincaré y automejora recursiva Nivel 3.             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE (Conexión de Gauge, Curvatura, Cayley-Kähler, Lindstedt)
-    • Sanitización PSD+Tr ρ=1 con clamps espectrales de Wilkinson.
-    • Conexión A ∈ su(N) **verificada** anti-Hermítica y traceless
-      (proyector de álgebra de Lie Π_{su(N)}).
-    • Caché espectral de iA (Hermítica): ω, V, κ₂(iA).  A = −i V Ω V†.
-    • Curvatura F = [A, ρ_h] (anti-Hermítica) con energía
-      E_YM = −½Tr(F²) ≥ 0.  Por construcción QND, F ≡ 0 teóricamente;
-      el residual es un testigo de integridad numérica.
-    • Cayley-Kähler en sp(2d,ℂ): rama plana (‖F‖≈0) vacuamente válida;
-      si no, verifica δω = ‖MᵀJM−J‖_F/‖M‖²_F y ‖KᵀJ+JK‖_F, con
-      proyección de un paso al álgebra de Lie 𝔰𝔭(2d).
-    • Poincaré-Lindstedt en la **base propia de iA** (no en diag(A)):
-      {H₀,W} = H₁ − ⟨H₁⟩, H₀ = Ω = eig(iA), regularización de divisores
-      pequeños W_{ij} = i (H₁^osc)_{ij} · Δω / (Δω² + ε²).
-      Newton homológico (automejora del gráfico de Lindstedt).
-    • CIERRA con `emit_phase1_envelope` → `WitnessPhase1Envelope`.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral del Testigo Silencioso del Campo Topológico de Gauge ejecuta la
+medición débil de no demolición cuántica (QND) sobre el estado de densidad
+\rho \in \mathcal{D}_N. Evalúa de manera pasiva y no invasiva la preservación de la
+isometría de calibre \mathfrak{su}(N), la geometría simpléctica de Cayley-Kähler
+\mathfrak{sp}(2d, \mathbb{C}), el invariante de Poincaré-Lindstedt y la convergencia
+de Banach de automejora recursiva Nivel 3 (RSI³) sobre 3 superficies topológicas.
 
-  FASE 2 — ORIENT (QND verificado, Uhlmann, Poincaré, RSI³)
-    • APERTURA con `from_phase1_envelope` (verifica chain_hash).
-    • **QND verificado**: se computa [A, ρ] y se certifica el back-action
-      REAL (identidad teórica [A,ρ]=0; el residual es integridad FP):
-        - [A, ρ] ≈ 0  ⇒  back_action_db = 0.0  (QND preservada)
-        - [A, ρ] ≠ 0  ⇒  back_action_db = −10·log₁₀(1 − min(‖[A,ρ]‖, 0.99))
-    • Fidelidad de Uhlmann F(ρ, I/d) = (Tr√ρ)²/d (sin sqrtm).
-    • Distancia de Bures, traza, deriva del volumen de Liouville.
-    • Stora-Zumino residual |Tr(F²)|.
-    • Órbitas unitarias por **una** diagonalización (no T llamadas a expm):
-      exp(tA) = V diag(e^{−i t ω}) V†.
-    • KAM/Bruno sobre los r≤4 modos dominantes (evita 7^d combinatorio):
-      |ω·k|·‖k‖₁^τ ≥ γ, τ=r+1; condición aritmética de Bruno sobre CF.
-    • Melnikov sobre separatriz φ(t)=e^{tA}φ₀, regla de Simpson.
-    • Floquet: μ_k = eig(e^{T·F}), |μ_k|≤1; espectro de Lyapunov.
-    • Sección de Poincaré transversal + interpolación lineal de cruces.
-    • Twist de Poincaré-Birkhoff (∂θ'/∂I ≳ 0 ⇒ ≥2 puntos fijos).
-    • RSI³ (Novikov/Harness/Model) + Lipschitz sonda de Banach T³=T₃∘T₂∘T₁
-      y Newton homológico como automejora computacional (PASSIVE_SILENT).
-    • CIERRA con `emit_phase2_envelope` → `WitnessPhase2Envelope`.
+MARCO TEÓRICO
+─────────────
+1. Conexión de Gauge \mathfrak{su}(N) y Curvatura de Yang-Mills:
+   Dada la matriz de densidad sanitizada \rho \in \mathcal{D}_N (\rho = \rho^\dagger \ge 0, \mathrm{Tr}(\rho) = 1),
+   la conexión anti-Hermítica y de traza nula se extrae mediante la proyección:
+   A = i \left( \rho - \frac{\mathrm{Tr}(\rho)}{N} I \right) \in \mathfrak{su}(N)
+   La curvatura de Yang-Mills F se define como el conmutador:
+   F = [A, \rho] = A \rho - \rho A \in \mathfrak{su}(N)
+   con densidad de energía asociada E_{\mathrm{YM}} = -\frac{1}{2} \mathrm{Tr}(F^2) \ge 0.
 
-  FASE 3 — DECIDE & ACT (Heyting Ω₃ completo + HMAC, SIN Crowbar)
-    • APERTURA con `from_phase2_envelope` (verifica chain_hash).
-    • Adjudicación Heyting Ω₃ sobre **12 átomos** vía `join(∨)` monoidal.
-    • Álgebra de Heyting completa: join, meet, implies, negate, fold_supremum,
-      fold_infimum.
-    • Firma HMAC-SHA256 con dominio v10.1.0; verificación pública.
-    • **NO dispara crowbar** (invariante del "Testigo Silencioso" preservada).
-    • CIERRA con `emit_witness_snapshot` → `GaugeWitnessSnapshot`.
+2. Medición Débil QND (Aharonov-Albert-Vaidman) y Back-Action:
+   Para estados inicial |\phi_i\rangle y final |\phi_f\rangle, el valor débil de A es:
+   A_w = \frac{\langle \phi_f | A | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}
+   El conmutador [A, \rho] mide el impacto de retroacción (back-action) en decibelios:
+   \mathrm{BackAction}_{\mathrm{dB}} = -10 \log_{10}\left( 1 - \min(\| [A, \rho] \|_F, 0.99) \right)
 
-MIGRACIÓN Y CAMBIOS (v10.0.0 → v10.1.0, breaking change controlado)
-────────────────────────────────────────────────────────────────────
-  • Poincaré-Lindstedt migrado de `Im diag(A)` (base original, incorrecto)
-    a la base propia de iA (Hermítica). Regularización de divisores pequeños.
-  • KAM restringido a r≤4 frecuencias dominantes: el producto
-    `[-K,K]^d` con d=56 era 7^{56} (indecidible). Bruno CF añadido.
-  • Cayley-Kähler: rama plana ‖F‖_F≈0 ⇒ residuo vacuamente 0 (antes
-    K=−I ⇒ ‖KᵀJ+JK‖=2‖J‖ ≠ 0, falso negativo sistemático).
-  • Órbitas de Poincaré/Melnikov/sección via una sola `eigh`, no `expm`×T.
-  • RSI³: Lipschitz sonda de Π_{su}∘Π_{ah}∘Π_{sp}; Newton homológico
-    real (no un bucle idempotente).
-  • `consume_engine_phase2_envelope(None)` ya no hace `raise DTO`.
-  • `HeytingOmega3.VETOED` permanece 0x03.
-  • `meet = min`, `join = max` (retículo de cadena).
-  • `audit_liouville_symplectic_volume` y `evaluate_gauge_witness`
-    preservan firma y semántica.
-  • `GaugeWitnessSnapshot` extendido con campos Poincaré/Bruno/Birkhoff
-    (defaults, retrocompat).
+3. Invariantes Geométricos de Uhlmann, Bures y Liouville:
+   Fidelidad de Uhlmann respecto al estado maximalmente mixto I/d:
+   F(\rho, I/d) = \frac{1}{d} \left( \mathrm{Tr}\sqrt{\rho} \right)^2
+   Distancia Bures: D_B(\rho, I/d) = \sqrt{2 - 2\sqrt{F}}
+   Deriva de volumen de Liouville: \Delta_{\mathrm{Liouville}} = |\mathrm{Tr}(\rho) - 1|.
 
-INVARIANTES GLOBALES
-────────────────────
-  [A1] ρ = ρ† ⪰ 0, Tr ρ = 1 ± 10⁻²; A† = −A, Tr A = 0.
-  [A2] δω ≤ 10⁻¹⁰; ‖KᵀJ+JK‖_F ≤ 10⁻¹⁰  (o rama plana F≈0).
-  [A3] QND: ‖[A,ρ]‖_F ≤ 10⁻⁶ ⇒ back_action = 0.0 dB.
-  [A4] |ω·k|·‖k‖₁^τ ≥ γ (τ=r+1, r≤4); |M(θ₀)| ≤ 0.5; |μ_k| ≤ 1+10⁻⁶.
-  [A5] Lip(T³) ≤ 0.95³; d_FS ≤ 10⁻⁴; v_Krull ≥ 0.10.
-  [A6] Ω₃ ∈ {0x00,0x01,0x03} es retículo de Heyting completo.
-  [A7] HMAC-SHA256(snapshot, K_soberano) = firma verificable.
-  [A8] Invariante del Testigo: `witness_mode = "PASSIVE_SILENT"`;
-       nunca dispara hardware (crowbar es responsabilidad del agente).
-  [A9] Automejora RSI³ es computacional (gráfico de Lindstedt / proyectores);
-       no muta el campo observado (PASSIVE_SILENT).
+4. Mecánica Celeste de Poincaré, KAM, Bruno y Twist de Birkhoff:
+   Ecuación homológica de Poincaré-Lindstedt en la base propia de iA:
+   \{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^r} \implies -i(\omega_i - \omega_j)W_{ij} = (H_1^{\mathrm{osc}})_{ij}
+   Condición diofantina de Bruno-Rüssmann:
+   |\omega \cdot k| \|k\|_1^\tau \ge \gamma, \quad \tau = r + 1, \quad r \le 4
+   Suma aritmética de Bruno sobre fracciones continuas: \Omega(\theta) = \sum_{n=0}^N \frac{\log(q_{n+1})}{q_n} < \infty
+   Integral de Melnikov: M(\theta_0) = -\int_{\mathbb{R}} \mathrm{Re}\langle F \varphi(t), \varphi(t) \rangle \mathrm{sech}^2(t) dt
+
+5. Automejora Recursiva Nivel 3 (RSI³) y Contracción de Banach:
+   Composición de proyectores no expansivos T^3 = T_3 \circ T_2 \circ T_1 con cota
+   \mathrm{Lip}(T^3) \le 0.95^3 \approx 0.857.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Unicidad y Positividad de la Densidad: \rho = \rho^\dagger \ge 0, \mathrm{Tr}(\rho) = 1.
+[Axioma 2] Hermiticidad de la Conexión: A^\dagger = -A, \mathrm{Tr}(A) = 0.
+[Axioma 3] No Demolición Cuántica (QND): \| [A, \rho] \|_F \le 10^{-6} \implies \mathrm{BackAction} = 0.0 \text{ dB}.
+[Axioma 4] Conservación del Volumen de Liouville: \Delta_{\mathrm{Liouville}} \le 10^{-2}.
+[Axioma 5] Contracción de Banach: \mathrm{Lip}(T^3) \le 0.95^3.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Veredicto de Adjudicación Heyting \Omega_3 \in \{0x00 (\text{COHERENT}), 0x01 (\text{DEGRADED}), 0x03 (\text{VETOED})\}.
+2. Modo de Operación Invariante: witness_mode = "PASSIVE_SILENT" (cero activación de hardware/crowbar).
+3. Firma criptográfica HMAC-SHA256 e integridad Merkle digest SHA-256.
 """
 
 from __future__ import annotations

@@ -4,16 +4,55 @@ r"""
 ║ Módulo   : OODA Triphasic Homomorphic Pipeline + Poincaré + KAM/BHT + Automejora L3                  ║
 ║ Ubicación: app/wisdom/ooda_triphasic_homomorphic_pipeline.py                                         ║
 ║ Versión  : 11.0.0-SOVEREIGN-OODA-POINCARE-KAM-BHT-L3-PhD                                             ║
-║ Función  : Ciclo OODA invariable con compuertas homomórficas Φ₁₂ y Φ₂₃, enriquecido con              ║
-║            complejo de de Rham matricial (Yang–Mills / Chern–Simons / Wilson / instantones),         ║
-║            mapa de Poincaré transversal sobre 𝔇_N, twist de Poincaré–Birkhoff, forma normal          ║
-║            de Birkhoff, tori KAM diofantinos (criterio BHT disipativo) y operador de automejora      ║
-║            recursiva Nivel 3 (metacognición metacognitiva realimentada por el mapa de retorno).      ║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.       ║
-║   FASE 1 → Certificados Ω₃, Observadores, Compuertas Φ₁₂/Φ₂₃, Orientación de Gauge + Seed            ║
-║   FASE 2 → Semilla Canónica + Σ Poincaré + Twist P–B + KAM/BHT + Operador L0..L3                     ║
-║   FASE 3 → Trayectoria + Auditor Soberano + Decisor L3-Aware + Pipeline Unificado                    ║
+║ Función  : Pipeline homomórfico trifásico OODA (Observe, Orient, Decide & Act) enriquecido con       ║
+║            complejo de de Rham matricial, secciones transversales de Poincaré sobre \mathcal{D}_N,    ║
+║            preservación KAM disipativa BHT y automejora de nivel 3.                                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Pipeline Homomórfico Trifásico OODA ejecuta el ciclo decisional completo a través
+de tres fases anidadas acopladas por compuertas homomórficas \Phi_{12} y \Phi_{23} sobre el
+retículo de Heyting \Omega_3. Audita la conservación de traza en la conexión \mathfrak{su}(N),
+calcula los invariantes de Chern-Weil (Yang-Mills, Chern-Simons, Wilson, Pontryagin), proyecta
+secciones de Poincaré y evalúa la estabilidad disipativa BHT y automejora L3.
+
+MARCO TEÓRICO
+─────────────
+1. Retículo de Heyting \Omega_3 y Homomorfismos de Compuerta:
+   \Omega_3 = \{\mathrm{COHERENT}(0x00), \mathrm{DEGRADED}(0x01), \mathrm{VETOED}(0x03)\}.
+   Compuerta \Phi_{12} (Observe \to Orient): h(a \wedge b) = h(a) \wedge h(b) (preserva el ínfimo).
+   Compuerta \Phi_{23} (Orient \to Decide & Act): Revalida HMAC y verifica la contracción de Banach
+   \mathrm{Lip}_{\mathrm{emp}} \le 0.999.
+
+2. Complejo de de Rham Matricial sobre \mathfrak{u}(N):
+   Curvatura F = A^2 \in \Omega^2(\mathfrak{u}(N)) en la trivialización de Maurer-Cartan.
+   Identidad de Bianchi d_A F = [A, F] = [A, A^2] = 0.
+   Acción de Yang-Mills: \mathrm{YM}(A) = \frac{1}{2} \|F\|_{\mathrm{HS}}^2.
+   3-forma de Chern-Simons-Higgs: \mathrm{CS}_3 = \frac{1}{8\pi^2} \mathrm{Tr}\left(A F - \frac{1}{3}A^3 + \Phi F\right).
+   Número de instantón de Pontryagin: k = \left\lfloor \frac{1}{8\pi^2} \mathrm{Re}\mathrm{Tr}(F^2) + \frac{1}{2} \right\rfloor.
+
+3. Mecánica Celeste de Poincaré y Criterio BHT:
+   Invariante integral de Poincaré-Cartan: I_1 = \sum_k J_k = \mathrm{Tr}(\rho) = 1.
+   Toro KAM disipativo BHT: Persiste como variedad normalmente hiperbólica si
+   \gamma_{\mathrm{diofantina}} > \|\epsilon\| \quad \land \quad \text{disipación} < \min(\gamma, 0.95).
+
+4. Automejora L3 y Disparo de Hardware:
+   El operador I_3 adapta la contracción \theta y el metaaprendizaje \eta_meta evaluando la respuesta
+   del mapa de retorno. En caso de \mathrm{VETOED}, ejecuta el interlock ESP32 Crowbar en \tau \le 392.15\text{ ns}.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Unitaridad de Traza: \mathrm{Tr}(\rho) = 1 \implies I_1 = 1.
+[Axioma 2] Homomorfismo de Compuertas: \Phi_{12}(a \wedge b) = \Phi_{12}(a) \wedge \Phi_{12}(b).
+[Axioma 3] Contracción de Banach: \mathrm{Lip}(T^3) \le 0.857.
+[Axioma 4] SLA de Crowbar: \tau_{\mathrm{crowbar}} \le 392.15\text{ ns}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Veredicto global \Omega_3 de adjudicación trifásica fold_supremum / meet.
+2. Trazabilidad criptográfica HMAC-SHA256 y raíz de Merkle digest SHA-256.
+3. Certificación L3-Aware de protección WACC al 15.0% y liquidez libre de tesorería.
 """
 
 from __future__ import annotations

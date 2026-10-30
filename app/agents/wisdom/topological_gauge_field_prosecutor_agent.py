@@ -1,70 +1,52 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : Topological Gauge Field Prosecutor Agent v10.1.0 — Tres Fases     ║
+║ Soberano : Topological Gauge Field Prosecutor Agent v10.1.0 — Tres Fases     ║
 ║ Ubicación: app/agents/wisdom/topological_gauge_field_prosecutor_agent.py     ║
 ║ Versión  : 10.1.0 (SOVEREIGN-GAUGE-PROSECUTOR-AGENT-FINSLER-                 ║
 ║           CROWBAR-POINCARE-RSI3-HEYTING-PhD)                                 ║
-║ Fases    : ①Observe → ②Orient → ③Decide&Act (bridges emit_*/from_*)        ║
+║ Función  : Soberano de investigación fiscal de calibre, auditoría de RHI     ║
+║            Finsleriano, censura Fermi-Dirac de Kelly, juzgamiento OODA       ║
+║            y activación del hardware Crowbar ESP32/BT151 en silicio.          ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE (Isometría fiscal de calibre)
-    • Sanitización PSD+Tr ρ=1; conexión A ∈ su(N) verificada anti-Herm.
-    • Consume `engine.emit_phase1_envelope(ρ)` si v10.1.0 (SpectralGaugeCache,
-      Cayley rama plana, Lindstedt en base propia de iA).
-    • Accessors defensivos: yang_mills_energy|energy_ym, symplectic_report|flat,
-      poincare_lindstedt|flat, spectral_cache.κ.
-    • CIERRA con `emit_phase1_certificate` → `ProsecutorPhase1Certificate`
-      firmado HMAC-SHA256 (dominio P1 v10.1) + chain_hash 32-hex.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO
+────────────────────────────────────────────
+El Soberano Fiscal del Campo Topológico de Gauge ejecuta la inquisición punitiva
+sobre inestabilidades de gauge, manipulación de incentivos y desviaciones de RHI.
+Gobierna el ciclo OODA anidado de tres fases, aplicando la métrica de Mahalanobis-Finsler,
+la censura Fermi-Dirac de Kelly, la adjudicación Heyting \Omega_3 de 12 átomos y la
+activación del interlock de hardware ESP32 Crowbar (\tau_{\mathrm{crowbar}} \le 392.15\text{ ns}).
 
-  FASE 2 — ORIENT (Fiscalización + Poincaré + RSI³, SIN re-Observe)
-    • APERTURA con `from_phase1_certificate` (verifica HMAC P1).
-    • Pipeline anidado (nunca re-ejecuta Observe si hay envelope):
-        "nested"           emit_phase2_envelope(env1) [+ snapshot opcional]
-        "evaluate"         prosecute_gauge_field (fallback legacy)
-        "consume_snapshot" interop de snapshot ya emitido
-        "null"             stub / motor ausente
-    • Extrae CS, Wilson, Pontryagin, Kelly, KAM r≤4, Bruno, Melnikov,
-      Floquet, sección, Birkhoff, RSI³ Lip+Newton del envelope P2.
-    • CIERRA con `emit_phase2_certificate` → `ProsecutorPhase2Certificate`
-      firmado HMAC-SHA256 (dominio P2 v10.1) + chain_hash 32-hex.
+MARCO TEÓRICO
+─────────────
+1. Conexión de Gauge \mathfrak{su}(N), RHI Finsleriano y Censura de Kelly:
+   A = i\left(\rho - \frac{\mathrm{Tr}(\rho)}{N}I\right) \in \mathfrak{su}(N), \quad F = [A, \rho_h] \in \mathfrak{su}(N)
+   RHI = \sqrt{R_{\mathrm{base}}^2 + \frac{1}{4}\tanh^2(E_{\mathrm{YM}})} \in [0, 1]
+   Fracción censurada Fermi-Dirac: s^*(R) = s_{\mathrm{raw}}(1 - R) \sigma\left(\frac{R_c - R}{T_{\mathrm{sw}}}\right)
 
-  FASE 3 — DECIDE & ACT (Heyting Ω₃ 12 átomos + Crowbar + HMAC P3)
-    • APERTURA con `from_phase2_certificate` (verifica HMAC P2 completa).
-    • Adjudicación Heyting Ω₃ sobre **12 átomos** (Bruno nuevo; Birkhoff
-      de área plegado en el átomo simpléctico) — espejo del motor.
-    • RSI³ del agente: HMAC P1∧P2, hex-chain 32, join idempotente,
-      firma P3 idempotente. Solo grafo computacional.
-    • Crowbar ESP32/BT151, latencia IRAM ≤ 392.15 ns < 400 ns.
-    • CIERRA con `emit_sovereign_state`
-      → `TopologicalGaugeFieldProsecutorSovereignState`.
+2. Transiciones de Fase OODA Anidadas y Adjudicación Fiscal:
+   • FASE 1 (Observe): Emite el certificado de isometría fiscal \Phi_1.
+   • FASE 2 (Orient): Certifica topología (Chern-Simons, instantón de Pontryagin k), KAM, Bruno,
+     Melnikov, Floquet, sección de Poincaré y twist de Birkhoff.
+   • FASE 3 (Decide & Act): Adjudica \Omega_3 sobre 12 átomos, dispara Crowbar ESP32 GPIO14 en
+     \tau_{\mathrm{crowbar}} \le 392.15\text{ ns} si \mathrm{VETOED} y emite el estado soberano final.
 
-MIGRACIÓN v10.0.0 → v10.1.0 (breaking change controlado)
-────────────────────────────────────────────────────────
-  • HMAC domain P1/P2/P3: `...-v10|` → `...-v10.1|` (no mezclar).
-  • chain_hash: 16 hex → 32 hex + shape + dtype.
-  • Accessors v10.0 leían campos inexistentes en envelopes
-    (`energy_ym`, `symplectic_residue` plano) → 0.0 sistemático.
-    Ahora symplectic_report / rhi_finsler / poincare_lindstedt / spectral_cache.
-  • Fase 2 v10.0 re-ejecutaba `prosecute_gauge_field` (re-Observe).
-    Preferir `emit_phase2_envelope(env1)` → `emit_prosecutor_snapshot(env2)`.
-  • Instantiar snapshot vacío rompe ctors frozen: usar `_NullSnapshot`.
-  • `consume_*(None)` levanta `ProsecutorAgentError`, nunca un DTO.
-  • 11 átomos → 12 (Bruno; Birkhoff área ⊂ simpléctica).
-  • DTOs extendidos con defaults (retrocompat de nombres).
+3. Automejora Agéntica Nivel 3 (RSI³) y Disparo de Hardware:
+   El Soberano verifica la contracción de Banach T^3 sobre el grafo de certificados.
+   En caso de \mathrm{VETOED}, ejecuta el interlock de silicio perimetral de hardware.
 
-INVARIANTES GLOBALES
-────────────────────
-  [A1] ρ=ρ†⪰0, Tr ρ=1; A†=−A, Tr A=0; F†=−F, Tr F=0.
-  [A2] RHI ∈ [0,1]; IPR ∈ [1/n,1]; ‖KᵀJ+JK‖_F ≤ 1e-10 (o rama plana).
-  [A3] |p₁−k| ≤ 1e-6; E_YM ≥ 0; |W| ≤ 1.
-  [A4] |ω·k|·‖k‖₁^τ ≥ γ (r≤4); |M(θ₀)| ≤ 0.5; |μ_k| ≤ 1+1e-6.
-  [A5] Lip(T³) ≤ 0.95³; d_FS ≤ 1e-4; v_Krull ≥ 0.10.
-  [A6] Ω₃ ∈ {0x00,0x01,0x03} retículo de Heyting completo.
-  [A7] Crowbar GPIO14 @ t ≤ 392.15 ns < 400 ns (acto del fiscal).
-  [A8] HMAC-SHA256(cert, K_soberano, dominio_v10.1) = firma verificable.
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Isometría y RHI Acotado: A^\dagger = -A, \mathrm{Tr}(A) = 0, \mathrm{RHI} \in [0, 1].
+[Axioma 2] Continuidad OODA Homomórfica: \mathrm{HMAC}_{P1} \land \mathrm{HMAC}_{P2} \land \mathrm{HMAC}_{P3} = \mathrm{True}.
+[Axioma 3] Disparo de Hardware: global_verdict = \mathrm{VETOED} \implies crowbar_triggered = \mathrm{True}, \tau_{\mathrm{crowbar}} \le 392.15\text{ ns}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Veredicto global \Omega_3 basado en join(\vee) monoidal de 12 átomos.
+2. Interlock Crowbar latched en GPIO14 con SLA de latencia \le 392.15\text{ ns}.
+3. Trazabilidad Merkle SHA-256 y HMAC-SHA256 de procedencia agéntica fiscal.
 """
 
 from __future__ import annotations

@@ -4,16 +4,57 @@ r"""
 ║ Módulo   : De Rham-Galois Adjunction Bridge + Poincaré + KAM/BHT + Automejora L3                 ║
 ║ Ubicación: app/wisdom/de_rham_galois_adjunction_bridge.py                                        ║
 ║ Versión  : 11.0.0-SOVEREIGN-DERHAM-GALOIS-POINCARE-KAM-BHT-L3-PhD                                ║
-║ Función  : Isomorfismo categórico F ⊣ G (Hom_𝒟(F(X),Y) ≅ Hom_𝒞(X,G(Y))) enriquecido con         ║
-║            complejo de de Rham matricial, holonomía de Pancharatnam–Berry, mecánica celeste      ║
-║            de Poincaré, tori KAM diofantinos (criterio BHT disipativo) y operador de             ║
-║            automejora recursiva Nivel 3 (metacognición metacognitiva sobre el ciclo de           ║
-║            adjunción, realimentada por el mapa de retorno).                                      ║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.   ║
-║   FASE 1 → Fundación Categórica (F, G, η, ε, Δ_△, A_μ, F_dR, ρ_MAC) + Uhlmann + Report          ║
-║   FASE 2 → Semilla Canónica + Poincaré Σ + Twist P-B + KAM/BHT + Operador L3                     ║
-║   FASE 3 → Trayectoria + Auditor Soberano + Reporte Enriquecido                                  ║
+║ Función  : Puente de Adjunción Categórica F \dashv G entre la categoría MIC discreta \mathcal{C}  ║
+║            y la categoría MAC continua \mathcal{D}, holonomía de Pancharatnam-Berry,             ║
+║            complejo de de Rham, fidelidad de Uhlmann, distancia Bures y automejora L3.           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral del Puente de Adjunción de de Rham-Galois establece el isomorfismo
+categórico de adjunción F \dashv G entre la categoría discreta de minitérminos MIC \mathcal{C}
+y la categoría continua de operadores densidad de Hilbert MAC \mathcal{D}:
+\mathrm{Hom}_{\mathcal{D}}(F(X), Y) \cong \mathrm{Hom}_{\mathcal{C}}(X, G(Y)).
+Cuantifica las desviaciones numéricas de la unidad \eta, counidad \epsilon, brecha de Galois \Delta,
+identidades del triángulo \Delta_\triangle e idempotencia de mónada T = G \circ F, evaluando la
+fidelidad de Uhlmann y la estabilidad BHT/L3 de la órbita de adjunción.
+
+MARCO TEÓRICO
+─────────────
+1. Adjunción F \dashv G y Funtores Adjoint:
+   • Funtor de Elevación (Left Adjoint) F: \mathcal{C} \to \mathcal{D}:
+     F(X) = \mathrm{arg\,min}_{\rho = \rho^\dagger \ge 0, \mathrm{Tr}(\rho) = 1} \left\| \rho - \sum_i |v_i\rangle\langle v_i| \right\|_F
+   • Funtor de Olvido (Right Adjoint) G: \mathcal{D} \to \mathcal{C}:
+     G(\rho) = \mathbf{1}\left( \mathrm{Re}(\mathrm{diag}(\rho)) \ge \frac{1}{N} \right) \in \{0, 1\}^N
+   • Unidad \eta : 1_{\mathcal{C}} \Rightarrow G \circ F \quad \text{y Counidad } \epsilon : F \circ G \Rightarrow 1_{\mathcal{D}}.
+   • Brecha de Galois (Reciprocidad de Frobenius):
+     \Delta_{\mathrm{Galois}} = | \langle F(X), Y \rangle_{\mathrm{HS}} - \langle X, G(Y) \rangle_{\mathbb{R}} | = | \mathrm{Tr}(\rho_F \rho_Y) - \langle \mathrm{diag}(\rho_F), \mathrm{diag}(\rho_Y) \rangle |.
+
+2. Identidades del Triángulo y Mónada T = G \circ F:
+   Defectos de las identidades triangulares:
+   \Delta_L = \|\rho_F - F(G(\rho_F))\|_F, \quad \Delta_R = \|G(\rho_F) - G(F(G(\rho_F)))\|_2
+   Defecto de idempotencia de mónada: T^2 = T \iff \Delta_R = 0.
+
+3. Fidelidad de Uhlmann y Distancia de Bures:
+   F(\rho, \sigma) = \|\sqrt{\rho}\sqrt{\sigma}\|_1^2 = \left[ \mathrm{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}} \right]^2 \in [0, 1]
+   Distancia Bures: d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}.
+
+4. Complejo de de Rham, Holonomía Berry y Automejora L3:
+   Curvatura F = A^2 con A \in \mathfrak{su}(N). Accion Yang-Mills \mathrm{YM}(A) = \frac{1}{2}\|F\|_{\mathrm{HS}}^2.
+   Fase geométrica de Pancharatnam-Berry: \gamma_{\mathrm{geom}} = \sum_t \mathrm{arg}\langle \psi_t | \psi_{t+1} \rangle.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Adjunción Isomórfica: \mathrm{Hom}_{\mathcal{D}}(F(X), Y) \cong \mathrm{Hom}_{\mathcal{C}}(X, G(Y)).
+[Axioma 2] Cota de Fidelidad de Uhlmann: F(\rho, \sigma) \ge 0.95 \implies \text{Isomorfismo Perfecto}.
+[Axioma 3] Idempotencia de Mónada: T^2 = T \iff \Delta_{\mathrm{monad}} \le 10^{-6}.
+[Axioma 4] Unitaridad de Traza: \mathrm{Tr}(\rho_F) = 1.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Estado de Coherencia Categórica AdjunctionCoherenceStatus (\mathrm{PERFECT\_ISOMORPHISM}, \mathrm{DEGRADED\_DISCREPANCY}, \mathrm{HOLONOMY\_BREAKAGE}, \mathrm{META\_STABLE\_L3}).
+2. Raíz Merkle SHA-256 de procedencia y firma HMAC-SHA256.
+3. Fidelidad de Uhlmann L3 post-automejora F_{\mathrm{L3}}(\rho_T, \rho^*).
 """
 
 from __future__ import annotations
@@ -35,16 +76,16 @@ from numpy.typing import NDArray
 _TOON_AVAILABLE: bool
 _TOON_V10: bool
 try:
-    from toon_cartridge_base import ToonCartridge, ToonParticleFactory  # type: ignore
+    from app.wisdom.toon_cartridge_base import (  # type: ignore
+        ToonCartridge,
+        ToonParticleFactory,
+    )
 
     _TOON_AVAILABLE = True
     _TOON_V10 = hasattr(ToonParticleFactory, "create_polaron")
 except ImportError:
     try:
-        from app.wisdom.toon_cartridge_base import (  # type: ignore
-            ToonCartridge,
-            ToonParticleFactory,
-        )
+        from toon_cartridge_base import ToonCartridge, ToonParticleFactory  # type: ignore
 
         _TOON_AVAILABLE = True
         _TOON_V10 = hasattr(ToonParticleFactory, "create_polaron")

@@ -5,72 +5,59 @@ r"""
 ║ Ubicación: app/wisdom/topological_gauge_field_prosecutor_engine.py           ║
 ║ Versión  : 10.1.0 (SOVEREIGN-GAUGE-PROSECUTOR-FINSLER-MAHALANOBIS-           ║
 ║           CROWBAR-POINCARE-RSI3-HEYTING-PhD)                                  ║
-║ Fases    : ①Observe → ②Orient → ③Decide&Act (bridges emit_*/from_*)          ║
+║ Función  : Auditoría incondicional de desgarro de calibre, cálculo del        ║
+║            Reward Hacking Index en métricas de Mahalanobis-Finsler,          ║
+║            censura Fermi-Dirac de Kelly, invariantes topológicos y            ║
+║            activación de hardware Crowbar en silicio ESP32.                  ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE (Conexión, curvatura, RHI-Finsler, Cayley-Kähler, Lindstedt)
-    • Sanitización PSD+Tr ρ=1 (Weyl + clamps espectrales + renorm).
-    • Conexión A ∈ su(N) verificada anti-Hermítica y traceless.
-    • Curvatura F = [A, ρ_h] (anti-Hermítica); E_YM = −½Tr(F²) ≥ 0.
-    • RHI-Finsler acotado: IPR ∈ [1/n,1], R_base ∈ [0,1],
-      RHI = √(R_base² + ¼ tanh²(E_YM)) ∈ [0,1].
-    • SpectralGaugeCache: un único eigh(iA) ⇒ A = −i V diag(ω) V†,
-      exp(tA) = V diag(e^{−i t ω}) V†.  Prohíbe expm×T.
-    • Cayley-Kähler: rama plana explícita si ‖F‖_F ≈ 0 (evita K=−I falso).
-    • Poincaré-Lindstedt en la *base propia* de iA, Tikhonov + Newton (8).
-    • CIERRA con `emit_phase1_envelope` → `ProsecutorPhase1Envelope`.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral del Fiscal Auditor de Calibre ejecuta la investigación punitiva
+sobre desviaciones topológicas, manipulación de incentivos e inestabilidades de gauge.
+Combina geometría Finsleriana, invariantes de Chern-Simons y Pontryagin, censura
+de Kelly suavizada por Fermi-Dirac y adjudicación Heyting \Omega_3 de 12 átomos para
+ejecutar el interlock de hardware ESP32 Crowbar en latencia Bare-Metal \le 392.15\text{ ns}.
 
-  FASE 2 — ORIENT (Chern-Simons, Wilson, Pontryagin, Kelly, Poincaré, RSI³)
-    • APERTURA con `from_phase1_envelope` (verifica chain_hash 32-hex).
-    • CS coeficiente 2/3 + anomalía |Tr(F³)|/(8π²).
-    • Wilson W = (∑_k e^{−i ω_k})/N vía cache (sin expm).
-    • Pontryagin p₁, k=round(p₁), integralidad + Stora-Zumino.
-    • Fermi-Dirac Kelly censoring + ds*/dRHI analítico.
-    • KAM sobre r≤4 modos dominantes (nunca 7^{56}).
-    • Bruno Σ_k log(Ω_k)/2^k sobre la misma red recortada.
-    • Melnikov Simpson n=129 sobre la órbita espectral.
-    • Floquet μ_k = e^{−i T ω_F} vía eigh(iF).
-    • Sección de Poincaré + tiempo medio de retorno.
-    • Birkhoff twist (β, residual de área).
-    • RSI³: Lip(Π_PSD-tr, Π_su, Π_ah) + Newton homológico en el grafo
-      computacional (no muta el campo). Banach Lip(T³) ≤ 0.95³.
-    • CIERRA con `emit_phase2_envelope` → `ProsecutorPhase2Envelope`.
+MARCO TEÓRICO
+─────────────
+1. Conexión de Gauge \mathfrak{su}(N), Curvatura F y Métrica de Finsler:
+   Conexión A = i\left(\rho - \frac{\mathrm{Tr}(\rho)}{N}I\right) \in \mathfrak{su}(N).
+   Curvatura F = [A, \rho_h] \in \mathfrak{su}(N) con energía E_{\mathrm{YM}} = -\frac{1}{2}\mathrm{Tr}(F^2) \ge 0.
+   Reward Hacking Index (RHI) en espacio de Finsler:
+   \mathrm{IPR} = \frac{\sum_i \lambda_i^2}{\left(\sum_i \lambda_i\right)^2} \in \left[\frac{1}{n}, 1\right], \quad R_{\mathrm{base}} = \frac{n \cdot \mathrm{IPR} - 1}{n - 1} \in [0, 1]
+   \mathrm{RHI} = \sqrt{R_{\mathrm{base}}^2 + \frac{1}{4}\tanh^2(E_{\mathrm{YM}})} \in [0, 1]
 
-  FASE 3 — DECIDE & ACT (Heyting Ω₃, Crowbar verificado, HMAC)
-    • APERTURA con `from_phase2_envelope` (verifica chain_hash).
-    • Adjudicación Heyting Ω₃ sobre **12 átomos** vía join(∨) monoidal.
-    • Crowbar ESP32/BT151 con latencia modelada IRAM ≤ 392.15 ns < 400 ns.
-    • Firma HMAC-SHA256 dominio v10.1.0 (ruptura de contrato v10.0.0).
-    • CIERRA con `emit_prosecutor_snapshot` → `GaugeProsecutorSnapshot`.
+2. Invariantes Topológicos Diferenciales (Chern-Simons, Pontryagin, Stora-Zumino):
+   Acción de Chern-Simons-Higgs: \mathrm{CS}_3^{\mathrm{Higgs}} = \frac{1}{8\pi^2}\mathrm{Tr}\left(A F - \frac{2}{3}A^3 + \Phi F\right)
+   Número de instantón de Pontryagin: p_1 = -\frac{1}{8\pi^2}\mathrm{Tr}(F^2) \implies k = \mathrm{round}(p_1) \in \mathbb{Z}
+   Residuo de Stora-Zumino: \Delta_{\mathrm{SZ}} = |8\pi^2 \mathrm{CS} - \mathrm{Tr}(F^2)|
 
-MIGRACIÓN v10.0.0 → v10.1.0 (breaking change controlado)
-────────────────────────────────────────────────────────
-  • Lindstedt: Im diag(A) en la base original ERA INCORRECTO.
-    Ahora se diagonaliza iA y se resuelve en la base propia.
-  • KAM: product([-K,K]^d) con d=56 es 7^{56}. Recorte a r≤4 modos.
-  • Cayley: F≈0 ⇒ K=−I ⇒ ‖KᵀJ+JK‖_F = 2‖J‖_F (falso defecto).
-    Rama plana explícita (`is_flat_branch`).
-  • Órbitas: un `eigh(iA)` sustituye a expm×T (Melnikov/Floquet/sección/Wilson).
-  • RSI³: el bucle v10.0 era idempotente. Ahora Lip-probe + Newton homológico.
-  • chain_hash: 16 hex → 32 hex + shape + dtype.
-  • HMAC domain: `...-v10.0.0|` → `...-v10.1.0|` (no mezclar).
-  • consume_*(None) levanta `GaugeProsecutorError`, nunca un DTO.
-  • DTOs extendidos con defaults (retrocompat de nombres).
-  • Heyting Ω₃: VETOED=0x03, meet=min, join=max (sin cambio).
+3. Censura Fermi-Dirac de Criterio de Kelly:
+   Fracción de Kelly suavizada por sigmoide Fermi-Dirac:
+   s^*(R) = s_{\mathrm{raw}}(1 - R) \sigma\left(\frac{R_c - R}{T_{\mathrm{sw}}}\right), \quad \sigma(x) = \frac{1}{1 + e^{-x}}
+   Sensibilidad analítica \frac{ds^*}{dR} = -s_{\mathrm{raw}}\sigma \left[ 1 + \frac{(1 - R)(1 - \sigma)}{T_{\mathrm{sw}}} \right]
 
-INVARIANTES GLOBALES
-────────────────────
-  [A1] ρ = ρ† ⪰ 0, Tr ρ = 1; A† = −A, Tr A = 0; F† = −F, Tr F = 0.
-  [A2] RHI ∈ [0, 1]; IPR ∈ [1/n, 1]; RHI_base ∈ [0, 1].
-  [A3] δω ≤ 10⁻¹⁰; ‖KᵀJ+JK‖_F ≤ 10⁻¹⁰ (o rama plana).
-  [A4] |p₁ − k| ≤ 10⁻⁶; E_YM ≥ 0; |W| ≤ 1.
-  [A5] |ω·k|·‖k‖₁^τ ≥ γ (τ=r+1, r≤4); |M(θ₀)| ≤ 0.5; |μ_k| ≤ 1+10⁻⁶.
-  [A6] Lip(T³) ≤ 0.95³; d_FS ≤ 10⁻⁴; v_Krull ≥ 0.10.
-  [A7] Ω₃ ∈ {0x00,0x01,0x03} retículo de Heyting completo.
-  [A8] Crowbar GPIO14 @ t ≤ 392.15 ns < 400 ns (modelo IRAM).
-  [A9] HMAC-SHA256(snapshot, K_soberano, dominio_v10.1.0) = firma verificable.
+4. Mecánica Celeste de Poincaré y Automejora RSI³:
+   Solución homológica de Lindstedt-Newton, condición KAM diofantina, suma de Bruno,
+   integral de Melnikov M(\theta_0) y contracción de Banach \mathrm{Lip}(T^3) \le 0.95^3.
+
+5. Interlock Crowbar Bare-Metal ESP32 / BT151:
+   En caso de veredicto \mathrm{VETOED} (0x03), la instrucción IRAM commuta GPIO14 HIGH en
+   \tau_{\mathrm{crowbar}} \le 392.15\text{ ns} < 400.0\text{ ns} \text{ SLA}.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Traza y Hermiticidad Invariante: \rho = \rho^\dagger \ge 0, \mathrm{Tr}(\rho) = 1.
+[Axioma 2] Métrica RHI Acotada: \mathrm{RHI} \in [0, 1], \mathrm{IPR} \in [1/n, 1].
+[Axioma 3] Integralidad del Instantón: |p_1 - k| \le 10^{-6}.
+[Axioma 4] Latencia SLA Crowbar: \tau_{\mathrm{crowbar}} \le 392.15\text{ ns} < 400.0\text{ ns}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Veredicto Heyting \Omega_3 basado en join(\vee) monoidal de 12 átomos.
+2. Autenticidad criptográfica HMAC-SHA256 y digest Merkle SHA-256 de 32 hex.
+3. Certificado de acción de hardware: "ESP32_CROWBAR_GPIO14_HIGH_BT151_TRIGGERED" si VETOED.
 """
 
 from __future__ import annotations
