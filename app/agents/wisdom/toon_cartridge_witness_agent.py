@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Cartridge Witness Agent v13.0.0-PhD                                                  ║
-║ Ubicación: app/wisdom/toon_cartridge_witness_agent.py                                                ║
+║ Ubicación: app/agents/wisdom/toon_cartridge_witness_agent.py                                                ║
 ║ Versión  : 13.0.0-SOVEREIGN-TOON-CARTRIDGE-WITNESS-AGENT-QND-OODA-PhD                                 ║
 ║ Función  : Soberano Agéntico Testigo Silencioso de Cartuchos TOON que atestigua y certifica         ║
 ║            pasivamente la consistencia isométrica y cuántica en Fock ℱ(ℋ) con retroacción nula      ║
@@ -32,6 +31,40 @@ ESTRUCTURA DE LAS TRES FASES ANIDADAS OODA:
    Adjudica en el topos de Heyting Ω₃ = {0x00 = COHERENT ≺ 0x01 = DEGRADED ≺ 0x03 = VETOED}.
    INVARIANTE PASSIVE_SILENT: El testigo NUNCA conmuta hardware ESP32 Crowbar; reporta la señal limpia
    a la directiva C-Suite a través del Funtor Semántico Visceral Φ_sem ("Dolor, Riesgo y Dinero").
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Medición Débil QND sin Demolición Cuántica en Fock:
+   El observable del testigo A_cart conmuta con el Hamiltoniano libre [A_cart, H_free] = 0,
+   garantizando retroacción nula Back-Action == 0.0 dB sobre el vector de ondas.
+   Fidelidad de Uhlmann F(rho_MAC, rho_cart) >= 0.95 y distancia de Bures d_B = sqrt(2 - 2 sqrt(F)).
+
+2. Exclusión de Pauli CAR y Acumulación Bosónica CCR:
+   Audita la anticonmutación fermiónica {c_i, c_j^dagger} = delta_ij I_4 y conmutación bosónica
+   [b, b^dagger] = I - d|d-1><d-1| sin perturbar el estado de pureza Tr(rho^2).
+
+3. Compuertas Homomórficas OODA Phi_12 y Phi_23:
+   Compuerta Phi_12: preserva el ínfimo de veredictos h(a wedge b) = h(a) wedge h(b).
+   Compuerta Phi_23: revalida el HMAC de origen y transfiere el estado de fase hacia la atestación soberana.
+
+AXIOMAS FORMALES
+────────────────
+Axioma TCAW-A1 (Invarianza Pasiva QND):
+    La medición del testigo conmuta con el Hamiltoniano del filtro, asegurando Back-Action == 0.0 dB.
+Axioma TCAW-A2 (No-Demolición Fermiónica):
+    La observación de números de ocupación fermiónicos no altera las relaciones anticonmutativas de Pauli.
+Axioma TCAW-A3 (Preservación de Traza):
+    El estado observado satisface idénticamente Tr(rho) == 1.0 +- 1.0e-5 en todo el ciclo OODA.
+Axioma TCAW-A4 (Inmutabilidad de Firma):
+    Cada transición de compuerta Phi_12/Phi_23 exige verificación criptográfica HMAC-SHA256 en tiempo constante.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TCAW-I1: Back-Action QND == 0.0 dB certificado en todo snapshot emitido por el testigo.
+Invariante TCAW-I2: Normalización de traza cuántica Tr(rho) == 1.0 con espectro acotado por Wilkinson floor.
+Invariante TCAW-I3: Fidelidad cuántica de Uhlmann F(rho_MAC, rho_cart) >= 0.95 en estado de coherencia.
+Invariante TCAW-I4: El agente testigo opera en estricta pasividad y NUNCA dispara el disyuntor ESP32 Crowbar.
+Invariante TCAW-I5: Firma criptográfica HMAC-SHA256 en cada CartridgeWitnessPhase2Certificate expedido.
 """
 
 from __future__ import annotations
@@ -53,14 +86,14 @@ sys.path.insert(0, "/workspace/scratch")
 sys.path.append("/workspace/artifacts")
 
 try:
-    from toon_cartridge_witness_engine import (
+    from app.wisdom.toon_cartridge_witness_engine import (
         CartridgeWitnessSnapshot,
         HeytingOmega3,
         TOONCartridgeWitnessEngine,
     )
 except ImportError:
     try:
-        from app.wisdom.toon_cartridge_witness_engine import (
+        from toon_cartridge_witness_engine import (
             CartridgeWitnessSnapshot,
             HeytingOmega3,
             TOONCartridgeWitnessEngine,
@@ -80,7 +113,7 @@ except ImportError:
         TOONCartridgeWitnessEngine = None  # type: ignore
 
 try:
-    from toon_cartridge_base import (
+    from app.wisdom.toon_cartridge_base import (
         _DEFAULT_HILBERT_DIM,
         _GAUGE_SECRET_KEY,
         PauliExclusionAuditorCAR,
@@ -88,8 +121,17 @@ try:
         ToonParticleFactory,
     )
 except ImportError:
-    _DEFAULT_HILBERT_DIM = 56
-    _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
+    try:
+        from toon_cartridge_base import (
+            _DEFAULT_HILBERT_DIM,
+            _GAUGE_SECRET_KEY,
+            PauliExclusionAuditorCAR,
+            ToonCartridge,
+            ToonParticleFactory,
+        )
+    except ImportError:
+        _DEFAULT_HILBERT_DIM = 56
+        _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
 
 logger = logging.getLogger("APU.Wisdom.TOONCartridgeWitnessAgent")
 

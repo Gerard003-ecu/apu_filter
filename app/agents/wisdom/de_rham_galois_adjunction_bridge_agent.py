@@ -1,49 +1,72 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Sovereign Agent v12.0.0-PhD                                     ║
-║ Ubicación: app/agents/wisdom/de_rham_galois_adjunction_bridge_agent.py                               ║
+║ Ubicación: app/agents/wisdom/de_rham_galois_adjunction_bridge_agent.py                              ║
 ║ Versión  : 12.0.0-SOVEREIGN-DERHAM-GALOIS-POINCARE-RSI3-MONAD-PhD                                    ║
 ║ Función  : Soberano de Calibre que gobierna la Adjunción F ⊣ G, la isometría de De Rham, el          ║
-║            complejo de Maurer-Cartan, la mecánica celeste de Poincaré en la variedad de              ║
-║            densidades 𝔇_N, la automejora recursiva de nivel 3 (RSI-3 con Banach) y el disparo        ║
-║            ciber-físico ESP32 Crowbar < 392.15 ns, con anidación formal por puentes Φ₁₂'/Φ₂₃'.       ║
+║            complejo de Maurer-Cartan, la mecánica celeste de Poincaré en la variedad de densidades 𝔇_N,║
+║            la automejora recursiva de nivel 3 (RSI-3 con Banach) y el disparo ciber-físico           ║
+║            ESP32 Crowbar < 392.15 ns, con anidación formal por puentes Φ₁₂'/Φ₂₃' firmados HMAC-SHA256.║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS (OODA LOOP v12.0.0)
-─────────────────────────────────────────────────────────
-  FASE 1 — OBSERVE (DeRhamGaloisPhase1Observer)
-    • Ingesta un ensamble discreto de cartuchos TOON (MIC en ℤ₂ⁿ).
-    • Invoca Funtor F: MIC ➔ MAC para construir ρ_F ∈ 𝔇_N con Tr(ρ) ≡ 1.0.
-    • Extrae la 1-forma de conexión anti-hermítica A_μ ∈ 𝔲(N).
-    • Evalúa η, ε, Galois Gap Δ_Galois.
-    • [v12.0] Snapshot profundo de POINCARÉ sobre ρ_F: Delaunay-Deprit (L,G,H,l,g,h,e,i),
-      monodromía M ∈ Sp(2,ℝ) con Tr M = 2cos(2πν), Greene R_G = sin²(πν),
-      Melnikov M(t₀) = 4πω² sech(πω/2)·sin(ω t₀)·ε con detección de tangle,
-      Bryuno B(ω) = ∑ ln(q_{k+1})/q_k por fracción continua,
-      Morse-Bott χ(ℂPⁿ⁻¹) = n por estratificación espectral, θ_PC = Tr(ρ dN).
-    • [v12.0] Bootstrap RSI-3 (Banach ||T||<1, residuo punto fijo, umbrales adaptativos).
-    • Compuerta Φ₁₂: ADMITE VETOED.
-    • ÚLTIMO MÉTODO: `handoff_to_phase2_orbit_context(cert1)` → Phase1ToPhase2Bridge.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre de Adjunción De Rham-Galois () gobierna
+ejecutivamente el ciclo de decisión OODA sobre el motor espectral
+(app/wisdom/de_rham_galois_adjunction_bridge.py). Orquesta la verificación continua de la adjunción
+categórica F ⊣ G entre formas diferenciales de de Rham y representaciones de Galois en Fock. Opera a
+través de tres fases anidadas acopladas por puentes homomórficos Φ₁₂' y Φ₂₃' firmados vía HMAC-SHA256,
+evaluando la curvatura de Maurer-Cartan, secciones transversales de Poincaré sobre 𝔇_N, la contracción
+monádica de Banach en RSI-3, y gobernando la activación del interlock ciber-físico ESP32 Crowbar.
 
-  FASE 2 — ORIENT (DeRhamGaloisPhase2Orientor)
-    • [v12.0] PRIMER MÉTODO: `consume_phase1_bridge(bridge)` (verifica Φ₁₂').
-    • Delaunay-Whittaker, F_A = A², Yang-Mills E_YM, Berry, sección de Poincaré.
-    • Criterio KAM/BHT, Lyapunov, twist de Birkhoff, Banach κ.
-    • [v12.0] Fusión extendida con Poincaré y RSI-3.
-    • Compuerta Φ₂₃: revalida HMAC P2 + cota Banach κ < 1.
-    • ÚLTIMO MÉTODO: `handoff_to_phase3_sovereign_context(bridge12, cert2)` → Phase2ToPhase3Bridge.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Adjunción Funtorial F ⊣ G y Complejo de Maurer-Cartan:
+   La adjunción entre la categoría de variedades suaves con formas diferenciales de de Rham \mathbf{Diff}(M)
+   y la categoría de representaciones de Galois de Fock \mathbf{Gal}(\mathcal{F}) satisface la biyección natural:
+       \mathrm{Hom}_{\mathbf{Gal}}(F(A), B) \cong \mathrm{Hom}_{\mathbf{Diff}}(A, G(B)).
+   La unidad \eta: \mathrm{Id} \to G \circ F y la counidad \varepsilon: F \circ G \to \mathrm{Id} verifican
+   las identidades de adjunción de Mac Lane:
+       (\varepsilon F) \circ (F \eta) = \mathrm{id}_F, \quad (G \varepsilon) \circ (\eta G) = \mathrm{id}_G.
+   La forma de Maurer-Cartan \theta = g^{-1} dg en la conexión de calibre \mathfrak{su}(N) satisface:
+       d\theta + \frac{1}{2} [\theta, \theta] = 0.
 
-  FASE 3 — DECIDE & ACT (DeRhamGaloisPhase3Decider)
-    • [v12.0] PRIMER MÉTODO: `consume_phase2_bridge(bridge)` (verifica Φ₂₃').
-    • [v12.0] `verify_rsi3_banach_certificate(rsi3)`.
-    • Adjudicación Heyting Ω₃, Crowbar ESP32 < 392.15 ns @ GPIO14, Φ_sem.
-    • Cierra con `emit_sovereign_state(...)`.
+2. Mecánica Celeste de Poincaré y Secciones de Cruce en 𝔇_N:
+   La evolución en el espacio de fase se proyecta sobre la variedad de operadores de densidad 𝔇_N.
+   Sección transversal de Poincaré: \Sigma = \{ \rho \in \mathcal{D}_N : \mathrm{Re}\mathrm{Tr}(H_{\mathrm{probe}} \rho) - c = 0 \}.
+   El mapa de retorno P: \Sigma \to \Sigma preserva la 2-forma simpléctica canónica de Darboux \omega = \sum dq_i \wedge dp_i.
+   El tensor métrico de Fubini-Study / Bures mide la separación geodésica:
+       d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}.
 
-  ORQUESTADOR (DeRhamGaloisSovereignAgent)
-    • `run_derham_galois_cycle(...)`: pipeline con handoffs formales.
-    • `monadic_compose_sovereign_states(...)`: μ: T·T → T.
-    • `verify_sovereign_state(...)`.
+3. Automejora Recursiva Nivel 3 (RSI-3) y Contracción de Banach:
+   Mónada T = (T, \eta, \mu) con transformación de multiplicación \mu: T^2(A) \to T(A).
+   El operador de mejora satisface la cota de contracción de Banach:
+       ||T(\rho_1) - T(\rho_2)||_F \le \kappa_B ||\rho_1 - \rho_2||_F, \quad \kappa_B < 1.0.
+   La convergencia al punto fijo \rho^* garantiza estabilidad asintótica de la adjunción.
+
+4. Topos de Heyting Ω₃ y Disparo ESP32 Crowbar:
+   El retículo de adjudicación intuicionista \Omega_3 = \{\mathrm{COHERENT}(0x00) \prec \mathrm{DEGRADED}(0x01) \prec \mathrm{VETOED}(0x03)\}
+   gobierna la censura de anomalías. Ante veredicto VETOED, el agente valida la firma HMAC y comanda el interlock
+   en silicio ESP32 Crowbar sobre GPIO14 / tiristor BT151 en t \le 392.15 ns.
+
+AXIOMAS FORMALES
+────────────────
+Axioma DRGA-A1 (Identidad Triangular de Adjunción):
+    Las transformaciones naturales η y ε satisfacen rigurosamente las ecuaciones de Mac Lane en todo el espectro.
+Axioma DRGA-A2 (Curvatura Nula de Maurer-Cartan):
+    La 2-forma de curvatura evaluada sobre la conexión plana satisface dθ + ½[θ, θ] = 0 con tolerancia Wilkinson.
+Axioma DRGA-A3 (Contracción Estricta de Banach):
+    El operador de automejora recursiva T en el espacio métrico completo de Banach posee módulo Lipschitz κ_B < 1.0.
+Axioma DRGA-A4 (Inmutabilidad de la Firma de Fase):
+    Ninguna transición de fase Φ₁₂' o Φ₂₃' es válida sin un certificado de sellado HMAC-SHA256 intacto.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante DRGA-I1: Traza cuántica conservada Tr(ρ) ≡ 1.0 y preservación de positividad espectral sobre 𝔇_N.
+Invariante DRGA-I2: Brecha de adjunción Galoisiana acotada por ||G(F(ρ)) - ρ||_F ≤ 1.0e-6 para estado COHERENT.
+Invariante DRGA-I3: Fidelidad cuántica de Uhlmann mínima F(ρ, ρ_ref) ≥ 0.95 en régimen coherente.
+Invariante DRGA-I4: Latencia certificada de actuación ESP32 Crowbar acotada en [42.0, 392.15] ns.
+Invariante DRGA-I5: Verificación criptográfica en tiempo constante (compare_digest) en todos los puentes de fase.
 """
 
 from __future__ import annotations
@@ -69,14 +92,14 @@ from numpy.typing import NDArray
 
 # ─── Importaciones del motor y utilidades ──────────────────────────────────────
 try:
-    from de_rham_galois_adjunction_bridge import (
+    from app.wisdom.de_rham_galois_adjunction_bridge import (
         AdjunctionCoherenceStatus,
         DeRhamGaloisAdjunctionBridge,
         DeRhamGaloisAdjunctionReport,
     )
 except ImportError:
     try:
-        from app.wisdom.de_rham_galois_adjunction_bridge import (
+        from de_rham_galois_adjunction_bridge import (
             AdjunctionCoherenceStatus,
             DeRhamGaloisAdjunctionBridge,
             DeRhamGaloisAdjunctionReport,
@@ -85,10 +108,10 @@ except ImportError:
         raise ImportError("No se pudo importar de_rham_galois_adjunction_bridge.")
 
 try:
-    from toon_cartridge_base import ParticleCategory, ToonCartridge, ToonParticleFactory
+    from app.wisdom.toon_cartridge_base import ParticleCategory, ToonCartridge, ToonParticleFactory
 except ImportError:
     try:
-        from app.wisdom.toon_cartridge_base import ParticleCategory, ToonCartridge, ToonParticleFactory
+        from toon_cartridge_base import ParticleCategory, ToonCartridge, ToonParticleFactory
     except ImportError:
         raise ImportError("No se pudo importar toon_cartridge_base.")
 

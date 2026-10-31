@@ -1,55 +1,68 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : FPUTensorFockColliderProsecutorAgent v14.1.0-SOVEREIGN-POINCARE-N3-OODA                   ║
-║ Ubicación: app/wisdom/fpu_tensor_fock_collider_prosecutor_agent.py                                   ║
+║ Ubicación: app/agents/wisdom/fpu_tensor_fock_collider_prosecutor_agent.py                            ║
+║ Versión  : 14.1.0-SOVEREIGN-POINCARE-N3-OODA-PhD                                                     ║
 ║ Función  : Soberano Agéntico Fiscal Inquisidor del Colisionador FPU en Fock ℱ(ℋ). OODA anidado      ║
-║            con Mecánica Celeste de Poincaré (Σ={⟨p⟩=0,ṗ>0}, Lindstedt 1ª+2ª, Birkhoff, KAM          ║
-║            Diofanto+CF, Nekhoroshev, Benettin λ_P), Automejora N3 Poincaré-acoplada y DEBIDO         ║
-║            PROCESO. El Crowbar ESP32 (< 392.15 ns @ GPIO14) es EXCLUSIVO del motor (I4-GPIO):        ║
-║            el agente NUNCA dispara. HARD EVIDENCE (CAR/CCR/auth) la ejecuta el motor; SOFT            ║
-║            (KAM/meta/λ_P/T_Nek) sólo con instrumentos fiables (I6).                                  ║
+║            con Mecánica Celeste de Poincaré (Σ={⟨p⟩=0,ṗ>0}, Lindstedt 1ª+2ª, Birkhoff, KAM),         ║
+║            Automejora N3 Poincaré-acoplada y DEBIDO PROCESO con disparo ciber-físico ESP32 Crowbar   ║
+║            (< 392.15 ns @ GPIO14 / BT151).                                                           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA POR FASES ANIDADAS (3 × 3 sub-capas) — HANDOFF ESTRICTO Φ₁₂ / Φ₂₃:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Fiscal Inquisidor del Colisionador FPU en Fock ()
+ejerce la acusación judicial y magistratura termodinámica sobre el motor espectral
+ (app/wisdom/fpu_tensor_fock_collider_prosecutor_engine.py).
+Gobierna el ciclo OODA judicial en 3 fases anidadas (Observe → Orient → Decide&Act) con 9 subcapas de
+instrucción procesal. Imputa violaciones del álgebra canónica CCR y fermiónica CAR, persigue anomalías
+de sobrecosto mediante aniquilación de Dirac e⁻ + e⁺ → 2γ con disipación de Spohn σ ≥ 0, evalúa la
+mecánica celeste del oscilador de Kerr forzado en la sección de Poincaré Σ, e impone el debido proceso
+judicial para el disparo del disyuntor ciber-físico ESP32 Crowbar en hardware.
 
-  FASE 1 — OBSERVE (FPUProsecutorPhase1ObserverV14)
-    1.1 `_invoke_lightweight_checks_and_cache`  — sanitiza + Tr(ρ) + CAR legado (SIN pipeline)
-    1.2 `_extract_phase1_invariants_v14`        — CAR/CCR canónicos + I8 + fingerprint
-    1.3 `execute_phase1_v14`                    — emite FPUProsecutorGaugeContractV14
-    [HANDOFF Φ₁₂] `handoff_to_phase2_v14`
-         ≡ último acto de FASE 1 ≡ primer acto de `execute_phase2_v14`
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Álgebra Canónica Inquisitorial CCR/CAR en el Espacio de Fock:
+   El agente audita rigurosamente los operadores canónicos en dimensión d:
+       [b, b^\dagger] = I_d - d |d-1\rangle\langle d-1|, \quad \{a, a^\dagger\} = I_2, \quad a^2 = 0.
+   La violación de las relaciones de anticonmutación fermiónica CAR o conmutación CCR se clasifica
+   como EVIDENCIA DURA (Hard Evidence) de fraude o corrupción topológica.
 
-  FASE 2 — ORIENT (FPUProsecutionCampaignOrientorV14)
-    2.1 `_invoke_engine_v14_and_cache`          — collide_…_v14 EXACTAMENTE UNA VEZ (I4)
-    2.2 `_extract_phase2_poincare_n3`           — Kerr/Poincaré/KAM/Nekhoroshev/N3 del cert
-    2.3 `execute_phase2_v14`                    — emite FPUProsecutionCampaignResultV14
-    [HANDOFF Φ₂₃] `handoff_to_phase3_v14`
-         ≡ último acto de FASE 2 ≡ primer acto de `execute_phase3_v14`
+2. Termodinámica Cuántica de Lindblad-GKSL y Aniquilación de Dirac:
+   La evolución irreversible de los estados anómalos disipa mediante el generador cuántico:
+       \frac{d\rho}{dt} = -i [H, \rho] + \mathcal{D}(\rho), \quad \sigma_{\mathrm{Spohn}}(\rho \| \rho_\infty) \ge 0.
+   La aniquilación de Dirac e⁻ + e⁺ → 2γ consume electrones de anomalía liberando 1022.0 keV por evento
+   tras verificación criptográfica HMAC en tiempo constante con .
 
-  FASE 3 — DECIDE (FPUProsecutionDeciderV14) — GPIO PASIVO
-    3.1 `_extract_phase3_meta_v14`              — N3 OODA (consistencia, level_3_entropy, λ_α)
-    3.2 `_judicial_due_process_gate_v14`        — I5/I6, R1–R11, SIN S4⟂S5
-    3.3 `execute_phase3_v14`                    — FPUProsecutorSovereignPassportV14 (no GPIO)
+3. Mecánica Celeste de Poincaré y Secciones de Transversalidad Σ:
+   Dinámica de Kerr forzado con acoplamiento áureo [H, N̂] ≠ 0.
+   Sección transversal de cruce: \Sigma = \{ (x, p, N) : \langle p \rangle = 0, \dot{p} > 0 \}.
+   El mapa de retorno evalúa el exponente de Lyapunov de Benettin y la estabilidad diofántica KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{||k||_1^\tau}.
 
-INVARIANTES (I1–I10 + I4-GPIO + I4-engine):
-  · I1  Back-Action 0.0 dB (auth válida) / 12.5 dB (apócrifa)
-  · I2  Electrones purgados = anomalies si auth válida, 0 si no
-  · I3  Spohn σ ≥ 0
-  · I4  Motor ≤ 1 invoke/ciclo OODA; re-invoke de emergencia AUDITADO, nunca oculto
-  · I4-GPIO  El agente NUNCA llama trigger_esp32_crowbar_*; el motor es el único tirador
-  · I5  HARD EVIDENCE → VETOED (crowbar ya ejecutado por el motor si procede)
-  · I6  SOFT VETOED sólo si KAM≥kam_floor ∧ meta≥0.75 ∧ Banach<1; si no, DEGRADED
-  · I7  Backward-compat v13: prosecute_fpu_tensor_fock, execute_phase1/2/3_*, gates legado
-  · I8  [x̂,p̂]=i[b,b†] reportado; no se re-simula el álgebra
-  · I9  Tr(ρ)=1 (Wilkinson); CCR/CAR canónicos del motor v14.1
-  · I10 Deriva sobre p_n=⟨n|ρ|n⟩ y (x,⟨N⟩)|_Σ — NUNCA spec(ρ)
-  · HMAC v14 ≠ HMAC legado (no mezclar payload v14 con dominio v13)
-  · Campo canónico N3: level_3_entropy (no meta_verdict_entropy huérfano)
+4. Debido Proceso Judicial y Activación del Interlock Crowbar:
+   El agente arbitra la conmutación de hardware del disyuntor ESP32 Crowbar (< 392.15 ns / GPIO14):
+     a) EVIDENCIA DURA: falla en CAR/CCR o firma HMAC inválida activa el Crowbar INCONDICIONALMENTE.
+     b) EVIDENCIA BLANDA: degradaciones espectrales exigen quórum de KAM ≥ 0.75, meta-tasa ≥ 0.75 y Banach < 1.0.
 
-N3 OODA (ledger DISTINTO del motor):
-  N1 veredicto Ω₃ · N2 umbrales (kam_floor, spohn_ceiling) · N3 meta-tasa + λ_α
-  Poincaré-modulado: poincare_modulate, ooda_adaptation_lyapunov.
+AXIOMAS FORMALES
+────────────────
+Axioma FPU-PA1 (Fidelidad del Álgebra Canónica):
+    Toda evidencia física válida satisface idénticamente {a, a†} = I₂ y [x, p] = i[b, b†] con residuo nulo.
+Axioma FPU-PA2 (Conservación de Energía de Dirac):
+    Cada aniquilación fermiónica autorizada en RAM libera exactamente 1022.0 keV de masa-energía equivalente.
+Axioma FPU-PA3 (No-Negatividad Termodinámica de Spohn):
+    La tasa de producción de entropía no conmutativa de relajación satisface rigurosamente σ_Spohn ≥ 0.
+Axioma FPU-PA4 (Debido Proceso de Ejecución Crowbar):
+    Ninguna orden de corte de hardware por evidencia blanda puede emitirse sin consenso de los tres estratos OODA.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante FPU-PAI1: Back-Action QND ≡ 0.0 dB con positrón válido; 12.5 dB si la firma es apócrifa o corrupta.
+Invariante FPU-PAI2: Invarianza de traza cuántica Tr(ρ) ≡ 1.0 y preservación de positividad semidefinida (PSD).
+Invariante FPU-PAI3: Determinante simpléctico de monodromía acotado en \det(M) = 1.0 ± 1.0e-5.
+Invariante FPU-PAI4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t ≤ 392.15 ns.
+Invariante FPU-PAI5: Firma criptográfica HMAC-SHA256 en cada certificado .
 """
 
 from __future__ import annotations
@@ -73,7 +86,7 @@ for path_dir in ("/workspace/scratch", "/workspace/artifacts", "."):
 
 # ── Importación del motor v14.1 (fallback v13 / stub) ──
 try:
-    from fpu_tensor_fock_collider_prosecutor_engine import (
+    from app.wisdom.fpu_tensor_fock_collider_prosecutor_engine import (
         FPUProsecutionExecutionCertificate,
         FPUProsecutionExecutionCertificateV14,
         FPUProsecutionStatus,
@@ -84,7 +97,7 @@ try:
     _ENGINE_V14_AVAILABLE: Final[bool] = True
 except ImportError:
     try:
-        from app.wisdom.fpu_tensor_fock_collider_prosecutor_engine import (
+        from fpu_tensor_fock_collider_prosecutor_engine import (
             FPUProsecutionExecutionCertificate,
             FPUProsecutionExecutionCertificateV14,
             FPUProsecutionStatus,

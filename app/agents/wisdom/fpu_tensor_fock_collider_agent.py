@@ -1,47 +1,68 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : FPUTensorFockColliderAgent v12.0.0-PhD — Soberano Agéntico Colisionador FPU               ║
 ║ Ubicación: app/agents/wisdom/fpu_tensor_fock_collider_agent.py                                       ║
 ║ Versión  : 12.0.0-SOVEREIGN-FPU-TENSOR-AGENT-POINCARE-RSI3-MONAD-PhD                                 ║
-║ Gobernanza: OODA trifásico anidado con puentes Φ₁₂'/Φ₂₃' firmados HMAC-SHA256, Poincaré-deep         ║
-║            (Delaunay-Deprit, monodromía Sp(2,ℝ), Greene R_G, Melnikov M₀, Bryuno B(ω),               ║
-║            Morse-Bott χ(ℂPⁿ⁻¹)=n), RSI-3 Banach (||T||<1, residuo<10⁻², certificado HMAC)            ║
-║            y mónada cartesiana μ: T·T→T sobre estados soberanos.                                     ║
+║ Función  : Soberano de Calibre que gobierna el Colisionador Tensorial FPU en el espacio de Fock ℱ(ℋ), ║
+║            con gobernanza OODA trifásica anidada (puentes Φ₁₂'/Φ₂₃' firmados HMAC-SHA256),            ║
+║            mecánica celeste de Poincaré profunda (Delaunay-Deprit, monodromía Sp(2,ℝ), KAM),        ║
+║            automejora recursiva RSI-3 con contracción de Banach y disparo ciber-físico ESP32 Crowbar.║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA OODA TRIFÁSICA ANIDADA (v12.0.0)
-────────────────────────────────────────────────────────────────────────────
-  FASE 1 — OBSERVE (FPUPhase1Observer)
-    • Sanitización PSD (Higham), isometría Tr(ρ)≡1.0±10⁻⁵.
-    • Auditoría CAR (Jordan-Wigner) {c_i,c_j†}=δ_ij I; CCR [b,b†]=I_d−d|n_max⟩⟨n_max|.
-    • [v12.0] Snapshot profundo de Poincaré sobre ρ (Delaunay-Deprit, monodromía
-      M∈Sp(2,ℝ), Greene R_G=sin²(πν), Melnikov M(t₀)=4πω²sech(πω/2)sin(ωt₀)ε,
-      Bryuno B(ω), Morse-Bott χ(ℂPⁿ⁻¹)=n, θ_PC=Tr(ρdN)).
-    • [v12.0] Bootstrap RSI-3 (Banach ||T||<1, residuo<10⁻², umbrales adaptativos).
-    • Compuerta Φ₁₂: revalida HMAC P1 (ADMITE VETOED).
-    • ÚLTIMO MÉTODO: handoff_to_phase2_orbit_context(cert1) → Phase1ToPhase2FPUBridge.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Colisionador FPU en Fock () ejerce el mando
+ejecutivo y la orquestación holonómica sobre el motor espectral
+(app/wisdom/fpu_tensor_fock_collider.py). Gobierna la evolución no lineal de Fermi-Pasta-Ulam en el espacio
+de Fock ℱ(ℋ), orquesta el ciclo OODA trifásico (Observe → Orient → Decide) acoplado por puentes homomórficos
+Φ₁₂' y Φ₂₃' firmados vía HMAC-SHA256, computa variables canónicas de Delaunay-Deprit, audita la estabilidad
+diofántica KAM bajo perturbaciones áureas, garantiza la contracción de Banach en la cascada de automejora
+recursiva de Nivel 3 (RSI-3), y gobierna la activación del disyuntor ciber-físico ESP32 Crowbar en silicio.
 
-  FASE 2 — ORIENT (FPUPhase2Orientor)
-    • [v12.0] PRIMER MÉTODO: consume_phase1_bridge(bridge) (verifica Φ₁₂').
-    • GKSL Lindblad, Spohn σ≥0, Dirac e⁻+e⁺→2γ @1022keV, Delaunay-Whittaker, KAM/BHT.
-    • [v12.0] Fusión extendida con Poincaré (tangle∧Greene>0.25 ⇒ VETOED, Bryuno
-      inestable ⇒ VETOED) y RSI-3 (no certificado ⇒ DEGRADED).
-    • Compuerta Φ₂₃: revalida HMAC P2 + Lipschitz κ<1.
-    • ÚLTIMO MÉTODO: handoff_to_phase3_sovereign_context(bridge12, cert2) →
-      Phase2ToPhase3FPUBridge.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Dinámica No Lineal FPU en Fock y Álgebra Tensorial:
+   El espacio de estados cuántico se construye mediante el producto tensorial de modos de Fock:
+       \mathcal{F}(\mathcal{H}) = \bigoplus_{n=0}^\infty \mathcal{H}^{\otimes n}.
+   El Hamiltoniano de Fermi-Pasta-Ulam modela osciladores acoplados con no linealidad cúbica y cuártica:
+       H_{\mathrm{FPU}} = \sum_j \frac{p_j^2}{2m} + \sum_j \left( \frac{k}{2}(q_{j+1} - q_j)^2 + \frac{\alpha}{3}(q_{j+1} - q_j)^3 + \frac{\beta}{4}(q_{j+1} - q_j)^4 \right).
+   La descomposición modal en ondas estacionarias revela el fenómeno de recurrencia cuasi-periódica de FPU.
 
-  FASE 3 — DECIDE & ACT (FPUPhase3Decider)
-    • [v12.0] PRIMER MÉTODO: consume_phase2_bridge(bridge) (verifica Φ₂₃').
-    • [v12.0] verify_rsi3_banach_certificate(rsi3).
-    • Adjudicación Ω₃, Crowbar ESP32 <392.15ns @GPIO14, Φ_sem.
-    • Cierra con execute_phase3_decision(...) → FPUTensorSovereignState.
+2. Mecánica Celeste de Poincaré y Variables de Delaunay-Deprit:
+   Las coordenadas canónicas se transforman a variables de acción-ángulo de Delaunay (J_k, \theta_k, \omega_k).
+   Sección transversal de Poincaré: \Sigma = \{ z : \mathrm{Re}\langle n, z \rangle - c = 0 \}.
+   El mapa de retorno P: \Sigma \to \Sigma preserva la 2-forma simpléctica de Darboux y satisface la
+   condición de no-degeneración isoenergética de Poincaré: \det(\text{Hess}_I H_0) \neq 0.
 
-  ORQUESTADOR (FPUTensorFockColliderAgent)
-    • execute_sovereign_pipeline(...) [API v11.0.0 preservada].
-    • run_fpu_collider_cycle(...) [pipeline formal con handoffs].
-    • monadic_compose_sovereign_states(s1, s2) [μ: T·T→T].
-    • verify_sovereign_state(state).
+3. Teorema KAM Diofántico y Multiplicadores de Greene:
+   La persistencia de toros invariantes exige la condición diofántica de Bruno sobre las frecuencias:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^n \setminus \{0\}.
+   El residuo de Greene R_G determina la frontera de destruccion de toros y formación de cantori.
+
+4. Mónada Cartesiana RSI-3 y Topos de Heyting Ω₃:
+   Mónada T = (T, \eta, \mu) con transformación de multiplicación \mu: T^2(A) \to T(A).
+   Contracción de Banach iterativa: ||T(\rho_1) - T(\rho_2)||_F \le \kappa_B ||\rho_1 - \rho_2||_F, con \kappa_B < 1.0.
+   Adjudicación sobre el retículo de Heyting \Omega_3 = \{\mathrm{COHERENT}(0x00) \prec \mathrm{DEGRADED}(0x01) \prec \mathrm{VETOED}(0x03)\}.
+   Disparo ciber-físico Crowbar en IRAM a t \le 392.15 ns sobre GPIO14 / BT151 ante veredicto VETOED.
+
+AXIOMAS FORMALES
+────────────────
+Axioma FPU-AA1 (Recurrencia Cuasi-Periódica FPU):
+    La energía en modos normales exhibe recurrencia de Poincaré sin equipartición térmica en escalas subcríticas.
+Axioma FPU-AA2 (Preservación Simpléctica de Darboux):
+    El mapa de transición temporal preserva exactamente la 2-forma simpléctica M^T J M = J en el espacio cotangente.
+Axioma FPU-AA3 (Contracción Estricta de Banach):
+    El operador de automejora recursiva T en el álgebra de Banach posee módulo de Lipschitz κ_B < 1.0.
+Axioma FPU-AA4 (Inmutabilidad Criptográfica de Compuerta):
+    Todo relevo de fase a través de Φ₁₂' y Φ₂₃' exige autenticación estricta HMAC-SHA256 sin fuga Hamming.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante FPU-AAI1: Traza normalizada Tr(ρ) ≡ 1.0 y preservación estricta de positividad espectral sobre ℱ(ℋ).
+Invariante FPU-AAI2: Fidelidad cuántica de Uhlmann F(ρ, ρ_ref) ≥ 0.95 requerida para la certificación COHERENT.
+Invariante FPU-AAI3: Monodromía simpléctica acotada con determinante \det(M) = 1.0 ± 1.0e-5.
+Invariante FPU-AAI4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t ≤ 392.15 ns.
+Invariante FPU-AAI5: Sello de integridad HMAC-SHA256 y firma criptográfica en todo estado soberano emitido.
 """
 
 from __future__ import annotations
@@ -68,14 +89,14 @@ for path_dir in ["/workspace/artifacts", "/workspace/scratch", "."]:
 
 # Importación robusta del motor colisionador
 try:
-    from fpu_tensor_fock_collider import (
+    from app.wisdom.fpu_tensor_fock_collider import (
         AnnihilationReactionReport,
         FPUTensorFockCollider,
         ParticleStatisticsCategory,
     )
 except ImportError:
     try:
-        from app.wisdom.fpu_tensor_fock_collider import (
+        from fpu_tensor_fock_collider import (
             AnnihilationReactionReport,
             FPUTensorFockCollider,
             ParticleStatisticsCategory,

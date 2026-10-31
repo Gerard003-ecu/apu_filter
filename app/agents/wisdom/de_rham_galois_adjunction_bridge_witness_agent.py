@@ -1,36 +1,69 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Bridge Witness Agent v12.1.0-SOVEREIGN-POINCARE-N3-OODA         ║
 ║ Ubicación: app/agents/wisdom/de_rham_galois_adjunction_bridge_witness_agent.py                       ║
+║ Versión  : 12.1.0-SOVEREIGN-POINCARE-N3-OODA-PhD                                                     ║
 ║ Función  : Soberano Agéntico Testigo Silencioso que orquesta OODA pasivo sobre el isomorfismo F ⊣ G, ║
 ║            enriquecido con Mecánica Celeste de Poincaré (secciones, Lindstedt, Birkhoff, KAM,        ║
-║            twist, no-degeneración isoenergética, Oseledets) y Automejora Recursiva N3                ║
-║            (N1: veredicto · N2: umbrales · N3: meta-tasa · N3-celeste: recurrencia del OODA).        ║
+║            twist, no-degeneración isoenergética, Oseledets) y Automejora Recursiva N3               ║
+║            (N1: veredicto · N2: umbrales · N3: meta-tasa · N3-celeste: recurrencia del OODA).       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-FASES ANIDADAS DEL AGENTE v12.1 (3 × 3 sub-capas):
-  FASE 1 — OBSERVE (DeRhamGaloisWitnessPhase1ObserverV12):
-    1.1 sanitización e invocación ÚNICA del motor v12.1 → snapshot maestro cacheado
-    1.2 extracción de invariantes F1 (acción-ángulo, H_ent, Kolmogorov, Lyapunov espectral)
-    1.3 emisión de Phase1CertificateV12 firmado HMAC-canónico
-             [HANDOFF] continue_to_phase2_witness_gate_v12  →  Φ₁₂  →  execute_phase2_v12
-  FASE 2 — ORIENT (DeRhamGaloisWitnessPhase2OrientorV12):
-    2.1 extracción de F2 (cruces interpolados, KAM, Lindstedt O(ε²), Birkhoff, twist, Oseledets)
-    2.2 extracción de TuningPolicy N2/N3/N3-celeste (umbrales + recurrencia + λ_Φ)
-    2.3 emisión de Phase2CertificateV12 firmado HMAC-canónico
-             [HANDOFF] continue_to_phase3_witness_gate_v12  →  Φ₂₃  →  execute_phase3_v12
-  FASE 3 — DECIDE&ACT (DeRhamGaloisWitnessPhase3DeciderV12):
-    3.1 extracción de MetaWitnessReport F3 + stats del ledger del motor
-    3.2 adjudicación celestial R1–R9 (Heyting ⊓ KAM ⊓ twist ⊓ isoenergética ⊓ Oseledets ⊓ Liouville)
-    3.3 emisión de SovereignStateV12 + órbita Poincaré del OODA + invariante PASSIVE_SILENT
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Testigo Silencioso de Adjunción De Rham-Galois ()
+ejecuta la atestación observacional pasiva sin demolición cuántica (QND AAV, Back-Action ≡ 0.0 dB)
+sobre el flujo de inferencia de la adjunción F ⊣ G gobernando el motor espectral
+ (app/wisdom/de_rham_galois_adjunction_bridge_witness_engine.py).
+Orquesta un ciclo OODA trifásico (Observe → Orient → Decide&Act) compuesto por 9 subcapas de análisis
+espectral, computa invariantes integrales de Poincaré-Cartan, descompone coordenadas canónicas de acción-ángulo,
+audita la estabilidad de toros KAM diofánticos, y modula adaptativamente los umbrales de monitoreo mediante
+el operador de automejora recursiva Nivel 3.
 
-INVARIANTES PRESERVADOS / REFORZADOS:
-  · Back-Action QND ≡ 0.0 dB (nunca mide destructivamente)
-  · Tr(ρ) ≡ 1.0 ± 10⁻⁵  y  |det U| − 1 ≤ 10⁻⁸  (isometría + Liouville)
-  · El testigo NUNCA conmuta el disyuntor ESP32 Crowbar (PASSIVE_SILENT)
-  · El motor se invoca EXACTAMENTE UNA VEZ por ciclo OODA (integridad del ledger N3)
-  · Firmas HMAC-SHA256 canónicas encadenadas P1 → P2 → P3 + merkle HMAC raíz
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Observación Débil Cuántica QND AAV sin Retroacción:
+   La interacción pasiva entre el aparato observador y el estado del filtro garantiza:
+       [A_{\mathrm{witness}}, H_{\mathrm{free}}] = 0 \implies \text{Back-Action} \equiv 0.0\text{ dB}.
+   El valor débil de Aharonov-Albert-Vaidman para observables canónicos se evalúa mediante:
+       A_w = \frac{\langle \phi | A | \psi \rangle}{\langle \phi | \psi \rangle}.
+   Fidelidad cuántica de Uhlmann: F(\rho, \sigma) = (\mathrm{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}})^2 \ge 0.95.
+
+2. Mecánica Celeste de Poincaré y Estabilidad KAM:
+   Sección transversal de Poincaré: \Sigma = \{ \rho \in \mathcal{D}_N : \mathrm{Re}\mathrm{Tr}(H_{\mathrm{probe}} \rho) - c = 0 \}.
+   El mapa de Poincaré P: \Sigma \to \Sigma preserva el invariante integral de Hilbert-Poincaré \oint p dq.
+   La condición diofántica de Kolmogorov-Arnold-Moser (KAM) para la persistencia de toros exige:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{||k||_1^\tau}, \quad \forall k \in \mathbb{Z}^n \setminus \{0\}, \quad \tau > n - 1.
+
+3. Espectro de Oseledets y Formas Normales de Birkhoff:
+   El exponente máximo de Lyapunov se obtiene mediante el cociente de crecimiento de variación tangente:
+       \lambda_{\max} = \lim_{t \to \infty} \frac{1}{t} \ln \frac{||\delta z(t)||_2}{||\delta z(0)||_2}.
+   La forma normal de Birkhoff linealiza la vecindad del punto fijo hasta orden cuadrático en acciones J.
+
+4. Automejora Recursiva N3 y Modulación OODA:
+   El agente aplica una política de autotuning adaptativo:
+     N1: clasificación de veredicto sobre el retículo intuicionista \Omega_3.
+     N2: adaptación de umbrales espectrales (kam_floor, fidelity_floor).
+     N3: meta-tasa de aprendizaje y contracción de Banach acoplada a la recurrencia del ledger.
+
+AXIOMAS FORMALES
+────────────────
+Axioma DRGWA-A1 (Pasividad Espectral QND):
+    La medición del agente testigo preserva la pureza y entropía cuántica de von Neumann del sistema bajo prueba.
+Axioma DRGWA-A2 (No Resonancia de Kolmogorov):
+    El sistema permanece en régimen cuasi-periódico estable siempre que la estimación diofántica γ_KAM ≥ 0.01.
+Axioma DRGWA-A3 (Simetría Simpléctica de Retorno):
+    La transformación tangente del mapa de Poincaré satisface M^T J M = J con error de norma Frobenius inferior a 1.0e-6.
+Axioma DRGWA-A4 (Convergencia Monótona del Ledger):
+    La función de Lyapunov del ledger de estados V_t satisface V_{t+1} ≤ V_t con contracción Lipschitz κ < 1.0.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante DRGWA-I1: Back-Action QND ≡ 0.0 dB idénticamente certificado en todo snapshot emitido.
+Invariante DRGWA-I2: Normalización de traza cuántica Tr(ρ) ≡ 1.0 con piso de densidad Wilkinson floor ≥ 1.0e-12.
+Invariante DRGWA-I3: Fidelidad de Uhlmann F(ρ, ρ_ref) ≥ 0.95 requerida para la certificación COHERENT.
+Invariante DRGWA-I4: El agente testigo opera en estricta pasividad y NUNCA dispara el disyuntor ESP32 Crowbar.
+Invariante DRGWA-I5: Firma criptográfica HMAC-SHA256 en cada certificado .
 """
 
 from __future__ import annotations
@@ -48,7 +81,7 @@ from numpy.typing import NDArray
 
 # ── Importación del motor v12.1 (con fallback a v11 y a stub) ──
 try:
-    from de_rham_galois_adjunction_bridge_witness_engine import (
+    from app.wisdom.de_rham_galois_adjunction_bridge_witness_engine import (
         ActionAngleDecomposition,
         DeRhamGaloisAdjunctionWitnessEngine,
         DeRhamGaloisAdjunctionWitnessEngineV12,
@@ -62,7 +95,7 @@ try:
     _ENGINE_V12_AVAILABLE: Final[bool] = True
 except ImportError:
     try:
-        from app.wisdom.de_rham_galois_adjunction_bridge_witness_engine import (
+        from de_rham_galois_adjunction_bridge_witness_engine import (
             ActionAngleDecomposition,
             DeRhamGaloisAdjunctionWitnessEngine,
             DeRhamGaloisAdjunctionWitnessEngineV12,

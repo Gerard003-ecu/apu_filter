@@ -1,47 +1,70 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : FPUTensorFockColliderWitnessAgent v14.1.0-SOVEREIGN-POINCARE-N3-OODA                      ║
-║ Ubicación: app/wisdom/fpu_tensor_fock_collider_witness_agent.py                                      ║
+║ Ubicación: app/agents/wisdom/fpu_tensor_fock_collider_witness_agent.py                               ║
+║ Versión  : 14.1.0-SOVEREIGN-POINCARE-N3-OODA-PhD                                                     ║
 ║ Función  : Soberano Agéntico Testigo Silencioso del Colisionador FPU en Fock ℱ(ℋ). Ciclo OODA        ║
-║            pasivo (Observe → Orient → Decide&Act) con Mecánica Celeste de Poincaré (secciones        ║
-║            (x̂,p̂)/N̂, Lindstedt 1º+2º, Birkhoff, KAM, Nekhoroshev, Benettin) y Automejora Recursiva   ║
-║            N3 de DOS capas: (i) ledger del motor, (ii) ledger OODA del agente, acoplado al mapa de   ║
-║            retorno. El motor se invoca EXACTAMENTE UNA VEZ por ciclo.                                ║
+║            pasivo (Observe → Orient → Decide&Act) con Mecánica Celeste de Poincaré (secciones       ║
+║            (x̂,p̂)/N̂, Lindstedt 1º+2º, Birkhoff, KAM, Nekhoroshev, Benettin) y Automejora N3          ║
+║            de DOS capas acopladas al retorno simpléctico.                                            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-FASES ANIDADAS DEL AGENTE v14.1 (3 × 3 sub-capas) — HANDOFF ESTRICTO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Testigo Silencioso del Colisionador FPU en Fock ()
+gobierna la observación pasiva sin demolición cuántica (QND AAV, Back-Action ≡ 0.0 dB) sobre el motor
+espectral  (app/wisdom/fpu_tensor_fock_collider_witness_engine.py).
+Orquesta un ciclo OODA de atestación pasiva estructurado en 3 fases anidadas (Observe → Orient → Decide&Act)
+con 9 subcapas de análisis tensorial en el espacio de Fock graduado ℱ(ℋ). Evalúa el álgebra canónica CCR
+y fermiónica CAR, calcula secciones de Poincaré transversales sobre cuadraturas conjugadas (x̂, p̂), computa
+multiplicadores de Floquet y exponentes de Benettin, audita la estabilidad diofántica KAM y tiempos de
+Nekhoroshev, y modula adaptativamente los umbrales de monitoreo mediante automejora recursiva de Nivel 3.
 
-  FASE 1 — OBSERVE (FPUWitnessPhase1ObserverV14)
-    1.1 `_invoke_engine_v14_and_cache`       — invocación ÚNICA; huella de ρ; cache de snapshot.
-    1.2 `_extract_phase1_invariants_v14`     — isometría + F1 celeste (J_i, (x,p), simpléctica, Lyapunov).
-    1.3 `execute_phase1_v14`                 — emite FPUWitnessPhase1CertificateV14 (HMAC-SHA256).
-    [HANDOFF] `handoff_to_phase2_v14`  ≡  `continue_to_phase2_witness_gate_v14`
-        ※ Último acto formal de FASE 1 = primer acto formal de FASE 2.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Representación Canónica en el Espacio de Fock y Medición Débil QND:
+   El álgebra de operadores de Fock se define sobre la base {|n⟩}_{n=0}^{d-1} con dimensión finita:
+       b |n\rangle = \sqrt{n} |n-1\rangle, \quad b^\dagger |n\rangle = \sqrt{n+1} |n+1\rangle, \quad [b, b^\dagger] = I_d - d |d-1\rangle\langle d-1|.
+   Operadores de cuadratura hermíticos:
+       \hat{x} = \frac{1}{\sqrt{2}}(b + b^\dagger), \quad \hat{p} = \frac{i}{\sqrt{2}}(b^\dagger - b), \quad [\hat{x}, \hat{p}] = i [b, b^\dagger].
+   La medición débil de Aharonov-Albert-Vaidman (AAV) sobre observables A_fock garantiza Back-Action ≡ 0.0 dB.
 
-  FASE 2 — ORIENT (FPUWitnessPhase2OrientorV14)
-    2.1 `_extract_phase2_poincare_invariants_v14` — AAV/Bures/Spohn + crossings, drift, Lindstedt,
-                                                    Birkhoff, KAM, ν, T_ret, λ_P, T_Nekhoroshev.
-    2.2 `_extract_phase2_n3_tuning_v14`           — TuningPolicy N2/N3 + λ_α del motor.
-    2.3 `execute_phase2_v14`                      — consume el HANDOFF de 1.3; NO re-invoca el motor.
-    [HANDOFF] `handoff_to_phase3_v14`  ≡  `continue_to_phase3_witness_gate_v14`
-        ※ Último acto formal de FASE 2 = primer acto formal de FASE 3.
+2. Mecánica Celeste de Poincaré sobre Cuadraturas Conjugadas:
+   Sección transversal de Poincaré: \Sigma = \{ (x, p, N) : p = 0, \dot{p} > 0 \}.
+   El mapa de retorno P: \Sigma \to \Sigma preserva la 2-forma simpléctica canónica de Darboux \omega = dx \wedge dp.
+   El espectro de exponentes de Lyapunov se estima por el método de Benettin sobre la matriz fundamental:
+       \lambda_P = \lim_{t \to \infty} \frac{1}{t} \ln \frac{||\delta z(t)||_2}{||\delta z(0)||_2}.
 
-  FASE 3 — DECIDE & ACT (FPUWitnessPhase3DeciderV14)
-    3.1 `_extract_phase3_meta_witness_v14`   — meta N3 motor + ledger OODA del agente.
-    3.2 `_adjudicate_kam_aware_v14`          — 10 reglas Heyting (KAM + λ_P + sección + Nekhoroshev + N3).
-    3.3 `execute_phase3_v14`                 — Estado Soberano v14.1 + PASSIVE_SILENT + cadena HMAC P1→P2→P3.
+3. Teoría de Perturbaciones de Lindstedt-Poincaré y Estabilidad KAM:
+   Desarrollo asintótico libre de resonancias seculares:
+       \omega(\epsilon) = \omega_0 + \epsilon \omega_1 + \epsilon^2 \omega_2 + \mathcal{O}(\epsilon^3).
+   La condición diofántica KAM noble asegura la persistencia de toros invariantes:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{||k||_1^\tau}, \quad \forall k \in \mathbb{Z}^n \setminus \{0\}.
+   El tiempo de estabilidad exponencial de Nekhoroshev acota la difusión de Arnold en el espacio de acciones.
 
-INVARIANTES:
-  · I1  Back-Action QND ≡ 0.0 dB (nunca mide destructivamente)
-  · I2  Tr(ρ) ≡ 1.0 ± 10⁻⁵ (isometría)
-  · I3  PASSIVE_SILENT: NUNCA dispara hardware ESP32 (verificado y reportado)
-  · I4  Motor invocado ≤ 1 vez por ciclo OODA (engine_invocations auditado)
-  · I5  HMAC chain P1v14 → P2v14 → P3v14 con dominios renovados (sin colisión v13)
-  · I6  Merkle raíz incluye KAM, λ_P, T_Nek, meta, PASSIVE_SILENT
-  · I7  Contrato backward-compat v13: execute_phase1/2/3 y witness_fpu_tensor_field
-  · I8  Sección de Poincaré transversal certificada (cruces + drift en p_n, no en spec(ρ))
-  · I9  Ledger OODA N3 distinto del ledger del motor; Poincaré modula umbrales de adjudicación
+4. Automejora Recursiva Nivel 3 de Dos Capas:
+   El agente implementa un doble ledger OODA acoplado al mapa de retorno de Poincaré:
+     (i) Ledger espectral del motor para el ajuste local de umbrales (N2).
+     (ii) Ledger decisional del agente para meta-tasa de aprendizaje y contracción de Banach (N3).
+
+AXIOMAS FORMALES
+────────────────
+Axioma FPU-WA1 (Invarianza Observacional Pasiva):
+    El conmutador del observable del testigo con el generador de Kerr forzado es nulo [A_w, H_Kerr] = 0.
+Axioma FPU-WA2 (Conmutación Cuántica de Cuadraturas):
+    El conmutador satisface ||[\hat{x}, \hat{p}] - i[b, b^\dagger]||_F < 1.0e-6 con precisión Wilkinson.
+Axioma FPU-WA3 (No-Degeneración de Kolmogorov):
+    El determinante del hessiano de frecuencias canónicas respecto a las acciones es idénticamente no nulo.
+Axioma FPU-WA4 (Contracción del Doble Ledger):
+    La meta-adaptación en la capa N3 garantiza convergencia monótona hacia el atractor de coherencia óptima.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante FPU-WAI1: Back-Action de medición débil QND acotado estrictamente en 0.0 dB.
+Invariante FPU-WAI2: Normalización de traza cuántica Tr(ρ) ≡ 1.0 con preservación de positividad PSD.
+Invariante FPU-WAI3: Fidelidad cuántica de Uhlmann F(ρ, ρ_ref) ≥ 0.95 en régimen de coherencia certificada.
+Invariante FPU-WAI4: El agente testigo opera en estricta pasividad y NUNCA dispara el disyuntor ESP32 Crowbar.
+Invariante FPU-WAI5: Firma criptográfica HMAC-SHA256 en cada snapshot .
 """
 
 from __future__ import annotations
@@ -64,7 +87,7 @@ for path_dir in ["/workspace/scratch", "/workspace/artifacts", "."]:
 
 # ── Importación del motor v14.1 (con fallback al v13) ──
 try:
-    from fpu_tensor_fock_collider_witness_engine import (
+    from app.wisdom.fpu_tensor_fock_collider_witness_engine import (
         FPUTensorFockColliderWitnessEngine,
         FPUTensorFockColliderWitnessEngineV14,
         FPUTensorWitnessSnapshot,
@@ -77,7 +100,7 @@ try:
     _ENGINE_V14_AVAILABLE: Final[bool] = True
 except ImportError:
     try:
-        from app.wisdom.fpu_tensor_fock_collider_witness_engine import (
+        from fpu_tensor_fock_collider_witness_engine import (
             FPUTensorFockColliderWitnessEngine,
             FPUTensorFockColliderWitnessEngineV14,
             FPUTensorWitnessSnapshot,

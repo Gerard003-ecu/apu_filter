@@ -1,24 +1,73 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Bridge Witness Engine v12.1.0-SOVEREIGN-POINCARE-N3             ║
 ║ Ubicación: app/wisdom/de_rham_galois_adjunction_bridge_witness_engine.py                             ║
+║ Versión  : 12.1.0-SOVEREIGN-POINCARE-N3-PhD                                                          ║
 ║ Función  : Motor Espectral Testigo QND sin demolición cuántica (Back-Action ≡ 0.0 dB) con            ║
 ║            integración de Mecánica Celeste de Poincaré (secciones, KAM, Lindstedt, Birkhoff,         ║
 ║            twist, no-degeneración isoenergética, Oseledets) y Automejora Recursiva de Nivel 3        ║
 ║            (meta-meta-adaptación de umbrales + recurrencia de Poincaré del ledger).                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA POR FASES ANIDADAS:
-  FASE 1 — FUNDAMENTOS: coordenadas acción-ángulo, Hamiltoniano de entrelazamiento,
-                       mapa de frecuencias ω(J), Lyapunov espectral, ledger N3.
-             [HANDOFF] Último método: extract_action_angle_decomposition → ActionAngleDecomposition.
-  FASE 2 — OPERADORES: mapa de retorno de Poincaré (cruce interpolado + jacobiano),
-                       Lindstedt-Poincaré O(ε²), Birkhoff matricial, KAM Diophantine,
-                       twist de Poincaré-Birkhoff, autotuning N2/N3 celeste.
-             [HANDOFF] Último método: recursive_self_tune_parameters → TuningPolicy.
-  FASE 3 — META-VERIFICACIÓN: witness del witness, auditoría recursiva N3,
-                       recurrencia de Poincaré del ledger, snapshot final v12.1.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Testigo del Puente de Adjunción De Rham-Galois ejecuta la inspección observacional
+pasiva sin demolición cuántica (Quantum Non-Demolition - QND AAV) sobre el haz de estados cuánticos y
+formas diferenciales de de Rham en adjunción con el grupo de Galois F ⊣ G. Modela la cinemática de
+información mediante descomposiciones canónicas de acción-ángulo (J, θ, ω), evalúa la estabilidad celeste
+de Poincaré mediante secciones de cruce transversal y formas normales de Birkhoff O(ε²), audita la
+condición diofántica KAM no resonante, y autoadapta los hiperparámetros de monitoreo mediante un operador
+de automejora recursiva de Nivel 3 (RSI-3) acoplado a la recurrencia del ledger espectral.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Medición Débil sin Demolición Cuántica (QND) y Valor Débil de AAV:
+   Sea A un observable Hermítico y |ψ⟩, |ϕ⟩ los estados de pre-selección y post-selección en H (dim = 56).
+   El valor débil de Aharonov-Albert-Vaidman (AAV) se define como:
+       A_w = ⟨ϕ|A|ψ⟩ / ⟨ϕ|ψ⟩.
+   La condición QND de Braginsky exige que el conmutador de interacción [A, H_int] = 0 garantice
+   retroacción idénticamente nula (Back-Action ≡ 0.0 dB) sobre el canal cognitivo.
+
+2. Variables Canónicas de Acción-Ángulo de Poincaré-Delaunay:
+   El operador densidad ρ se proyecta en la base modal mediante variables canónicas:
+       J_k = |c_k|², \quad θ_k = \arg(c_k), \quad ω_k = \partial H / \partial J_k.
+   El Hamiltoniano no perturbado H₀(J) = Σ_k ω_k J_k satisface la condición de no-degeneración
+   isoenergética de Poincaré:
+       \det \begin{pmatrix} \partial^2 H_0 / \partial J_i \partial J_j & \partial H_0 / \partial J_i \ (\partial H_0 / \partial J_j)^T & 0 \end{pmatrix} \neq 0.
+
+3. Secciones Transversales de Poincaré y Perturbación de Lindstedt-Poincaré:
+   En la sección transversal Σ = {ρ ∈ 𝔇_N : Re Tr(H_probe · ρ) - c = 0}, la aplicación de Poincaré
+   P: Σ → Σ produce una serie asintótica libre de divisores seculares vía Lindstedt-Poincaré:
+       ω(ε) = ω₀ + ε ω₁ + ε² ω₂ + \mathcal{O}(ε³).
+   Forma normal de Birkhoff para sistemas Hamiltonianos integrables perturbados:
+       H_{BNF} = H_0(J) + ε Z_1(J) + \dots + ε^k Z_k(J) + \mathcal{O}(|J|^{k+1}).
+
+4. Teorema de Kolmogorov-Arnold-Moser (KAM) y Condición Diofántica:
+   La preservación de toros invariantes cuasi-periódicos exige que las frecuencias nobles satisfagan:
+       |\langle k, ω \rangle| \ge \frac{\gamma}{||k||_1^\tau}, \quad \forall k \in \mathbb{Z}^n \setminus \{0\}, \quad \tau > n - 1.
+
+5. Automejora Recursiva Nivel 3 (RSI-3) y Modulación del Ledger:
+   El operador de meta-aprendizaje N3 adapta los umbrales (kam_floor, fidelity_floor) minimizando la función
+   de Lyapunov V(Ledger) = ||ρ_ledger - ρ*||_F² con factor de contracción de Banach κ_B < 1.0.
+
+AXIOMAS FORMALES
+────────────────
+Axioma DRGW-A1 (Invarianza Pasiva QND):
+    La medición del testigo no altera el estado de pureza Tr(ρ²) del sistema cuántico bajo inspección.
+Axioma DRGW-A2 (No-Degeneración de Poincaré):
+    El hessiano de entrelazamiento respecto a las acciones canónicas es invertible en todo el dominio cuasi-periódico.
+Axioma DRGW-A3 (Estabilidad Diofántica KAM):
+    Un toro invariante se certifica COHERENT si y solo si la constante diofántica estimada satisface γ ≥ 0.01.
+Axioma DRGW-A4 (Contracción Asintótica RSI-3):
+    La meta-adaptación de hiperparámetros en el espacio de Banach garantiza convergencia hacia el punto fijo óptimo.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante DRGW-I1: Back-Action de la medición débil satisface Back-Action ≡ 0.0 dB de forma estricta.
+Invariante DRGW-I2: Tr(ρ) ≡ 1.0 y espectro acotado por debajo mediante el piso de Wilkinson floor ≥ 1.0e-12.
+Invariante DRGW-I3: Fidelidad de Uhlmann mínima F(ρ, ρ_ref) ≥ 0.95 para certificación COHERENT.
+Invariante DRGW-I4: Residuo de conmutación simpléctico acotado por ||M^T J M - J||_F ≤ 1.0e-6.
+Invariante DRGW-I5: Integridad criptográfica certificada mediante firma HMAC-SHA256 sobre cada snapshot emitido.
 """
 
 from __future__ import annotations
@@ -39,14 +88,14 @@ from numpy.typing import NDArray
 
 # ── Importación de la base inmutable de cartuchos TOON y motor de adjunción ──
 try:
-    from de_rham_galois_adjunction_bridge import (
+    from app.wisdom.de_rham_galois_adjunction_bridge import (
         AdjunctionCoherenceStatus,
         DeRhamGaloisAdjunctionBridge,
         ToonCartridge,
     )
 except ImportError:
     try:
-        from app.wisdom.de_rham_galois_adjunction_bridge import (
+        from de_rham_galois_adjunction_bridge import (
             AdjunctionCoherenceStatus,
             DeRhamGaloisAdjunctionBridge,
             ToonCartridge,

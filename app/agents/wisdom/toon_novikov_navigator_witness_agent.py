@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Novikov Navigator Witness Agent v13.0.0-PhD                                                   ║
@@ -18,6 +17,55 @@ r"""
 ║            ÚLTIMO método: handoff_to_phase3_sovereign_context → Phase2ToPhase3Continuation                   ║
 ║   FASE 3 → Decide & Act + adjudicación Ω₃ + Φ_sem (PASSIVE_SILENT)                                           ║
 ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Testigo Silencioso de Navegación Novikov (TOONNovikovNavigatorWitnessAgent)
+ejerce la atestación observacional pasiva sin demolición cuántica (QND AAV, Back-Action == 0.0 dB)
+sobre el motor espectral TOONNovikovNavigatorWitnessEngine (app/wisdom/toon_novikov_navigator_witness_engine.py).
+Orquesta un ciclo OODA trifásico (Observe -> Orient -> Decide&Act) compuesto por 3 fases anidadas acopladas
+por compuertas homomórficas Phi_12 y Phi_23 sobre el topos de Heyting Omega3, integrando la mecánica celeste
+de Poincaré (secciones de corte sobre D_n, Melnikov con ceros simples, toros KAM no resonantes, invariantes
+de Jacobi y tangles homoclínicos) y automejora recursiva de Nivel 3 (RSI-3: contracción de Banach y self-repair QND).
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Valuación Ultramétrica de Novikov y Árbol de Bruhat-Tits:
+   Sobre el anillo universal Lambda_Nov dotado de valuación no arquimediana v(A) = -log(lambda_max):
+       ||A||_Nov = exp(-v(A)) = lambda_max.
+   La distancia ultramétrica sobre los autovalores satisface la desigualdad hiper-triangular:
+       d(i, k) <= max(d(i, j), d(j, k)).
+
+2. Frecuencias Nobles Diofánticas KAM (Besicovitch + Hurwitz):
+   omega_k = sqrt(p_k) + phi^{-(k+1)}, con {sqrt(p_k)} linealmente independientes sobre Q.
+   Persistencia KAM garantizada por la cota diofántica |k . omega| >= gamma / |k|_1^tau.
+
+3. Mecánica Celeste de Poincaré e Invariantes Integrales:
+   Sección transversal de Poincaré sobre D_n: Sigma = { rho : Re <H_probe, rho> - c = 0 }.
+   El mapa de Poincaré preserva el invariante integral de Hilbert-Poincaré y la 2-forma simpléctica de Darboux.
+
+4. Automejora Recursiva Nivel 3 (RSI-3) y Topos de Heyting Omega3:
+   Mónada cartesiana T = (T, eta, mu) con operador de contracción ||T(x) - T(y)||_F <= kappa_B ||x - y||_F.
+   Adjudicación en Omega3: COHERENT (0x00) < DEGRADED (0x01) < VETOED (0x03).
+
+AXIOMAS FORMALES
+────────────────
+Axioma TNWA-A1 (Ultrametría Causal Estricta):
+    La distancia de dispersión en el árbol de Bruhat-Tits satisface d(x, z) <= max(d(x, y), d(y, z)).
+Axioma TNWA-A2 (No Resonancia de Besicovitch):
+    Para todo k en Z^n no nulo, la combinación k . omega != 0 es idénticamente no nula.
+Axioma TNWA-A3 (Zero Back-Action QND):
+    La medición del testigo Novikov conmuta con el Hamiltoniano libre, preservando el estado (Back-Action == 0.0 dB).
+Axioma TNWA-A4 (Estabilidad de Lyapunov Nivel 3):
+    La función de Lyapunov del bucle L3 satisface decrecimiento monótono dV/dt <= -alpha V.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TNWA-I1: Back-Action QND == 0.0 dB certificado en todo snapshot emitido por el testigo.
+Invariante TNWA-I2: Normalización de traza cuántica Tr(rho) == 1.0 con piso de densidad Wilkinson floor.
+Invariante TNWA-I3: Fidelidad cuántica de Uhlmann mínima F(rho, rho_ref) >= 0.95 en régimen coherente.
+Invariante TNWA-I4: El agente testigo opera en estricta pasividad y NUNCA dispara el disyuntor ESP32 Crowbar.
+Invariante TNWA-I5: Firma criptográfica HMAC-SHA256 en cada certificado de atestación expedido.
 """
 
 from __future__ import annotations

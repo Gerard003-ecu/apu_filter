@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Cartridge Witness Engine v13.0.0-PhD                                                 ║
@@ -9,30 +8,49 @@ r"""
 ║            del Espacio de Fock ℱ(ℋ) (dimensión N=56) y la geometría de Uhlmann-Bures.               ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR TESTIGO DE CARTUCHOS TOON
-─────────────────────────────────────────────────────────────────
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
 El Motor Espectral Testigo Silencioso de Cartuchos TOON (TOONCartridgeWitnessEngine)
 garantiza la inspección pasiva, continua y no invasiva de las 12 partículas fundamentales
-y estados de densidad en el espacio de Fock ℱ(ℋ).
+y estados de densidad en el espacio de Fock ℱ(ℋ). Evalúa el valor débil de Aharonov-Albert-Vaidman (AAV)
+para observables de cartuchos sin demolición cuántica, audita la exclusión de Pauli (CAR) y acumulación (CCR)
+sin inducir perturbación sobre la coherencia del estado, calcula la distancia de Bures y entropía de von Neumann,
+y emite snapshots de coherencia atestiguados criptográficamente.
 
-MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
 1. Medición Débil de Aharonov-Albert-Vaidman (AAV) sin Demolición Cuántica (QND):
-   Dado el estado inicial |φ_i⟩ (preparado por MAC) y el estado post-seleccionado |φ_f⟩ (contrafactual):
-       A_w = ⟨φ_f | A_cart | φ_i⟩ / ⟨φ_f | φ_i⟩
-   Verificación QND: ||[A_cart, ρ]||_F ≤ 10⁻⁶ ⟹ Back-Action ≡ 0.0 dB en RAM.
+   Dado el estado inicial |\phi_i\rangle (preparado por MAC) y el estado post-seleccionado |\phi_f\rangle:
+       A_w = \frac{\langle \phi_f | A_{\mathrm{cart}} | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}.
+   Verificación QND: ||[A_{\mathrm{cart}}, \rho]||_F \le 1.0\times 10^{-6} \implies \text{Back-Action} \equiv 0.0\text{ dB}.
 
 2. Atestación de Exclusión CAR de Pauli en O(1) y Acumulación CCR:
    Audita la no-duplicación fermiónica en el espacio de Hilbert sin alterar los números de ocupación.
 
 3. Métrica de Uhlmann-Bures y Deriva del Volumen de Liouville:
-   Fidelidad: F(ρ_MAC, ρ_cart) = [Tr √(√ρ_MAC ρ_cart √ρ_MAC)]² ≥ 0.95.
-   Distancia de Bures: d_B = √(2 − 2√F).
-   Entropía de von Neumann / Kolmogorov-Sinai: S_vN = −Tr(ρ ln ρ).
+   Fidelidad cuántica de Uhlmann:
+       F(\rho_{\mathrm{MAC}}, \rho_{\mathrm{cart}}) = \left( \mathrm{Tr}\sqrt{ \sqrt{\rho_{\mathrm{MAC}}} \rho_{\mathrm{cart}} \sqrt{\rho_{\mathrm{MAC}}} } \right)^2 \ge 0.95.
+   Distancia geodésica de Bures:
+       d_B = \sqrt{2 - 2\sqrt{F}}.
+   Entropía cuántica de von Neumann:
+       S_{\mathrm{vN}} = -\mathrm{Tr}(\rho \ln \rho).
 
-AXIOMAS FORMALES:
-[Axioma QND-C1] Observación Invariante de Traza: Tr(ρ) = 1.0 ± 10⁻⁵ y Back-Action == 0.0 dB.
-[Axioma QND-C2] No-Invasividad Fermiónica: Medición pasiva sin colapso del vector de ondas.
-[Axioma QND-C3] Pasividad Ciber-Física: El motor testigo NUNCA conmuta el disyuntor ESP32 Crowbar.
+AXIOMAS FORMALES
+────────────────
+Axioma QND-C1 (Observación Invariante de Traza):
+    Tr(ρ) = 1.0 ± 1.0e-5 y Back-Action == 0.0 dB idénticamente.
+Axioma QND-C2 (No-Invasividad Fermiónica):
+    Medición pasiva sin colapso del vector de ondas ni perturbación del principio de exclusión.
+Axioma QND-C3 (Pasividad Ciber-Física):
+    El motor testigo opera en estricta pasividad y NUNCA conmuta el disyuntor ciber-físico ESP32 Crowbar.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante QND-I1: Back-Action de monitoreo QND acotado estrictamente en 0.0 dB.
+Invariante QND-I2: Fidelidad de Uhlmann F(ρ_MAC, ρ_cart) ≥ 0.95 para certificación de COHERENT.
+Invariante QND-I3: Preservación de positividad semidefinida (PSD) con piso espectral Wilkinson floor ≥ 1.0e-12.
+Invariante QND-I4: Invarianza de conmutación simpléctica sobre los modos bosónicos fundamentales.
+Invariante QND-I5: Firma criptográfica HMAC-SHA256 en cada CartridgeWitnessSnapshot emitido.
 """
 
 from __future__ import annotations
@@ -56,7 +74,7 @@ sys.path.insert(0, "/workspace/scratch")
 sys.path.append("/workspace/artifacts")
 
 try:
-    from toon_cartridge_base import (
+    from app.wisdom.toon_cartridge_base import (
         _DEFAULT_HILBERT_DIM,
         _GAUGE_SECRET_KEY,
         _WILKINSON_EPSILON,
@@ -66,9 +84,20 @@ try:
         ToonParticleFactory,
     )
 except ImportError:
-    _DEFAULT_HILBERT_DIM = 56
-    _WILKINSON_EPSILON = 1.0e-15
-    _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
+    try:
+        from toon_cartridge_base import (
+            _DEFAULT_HILBERT_DIM,
+            _GAUGE_SECRET_KEY,
+            _WILKINSON_EPSILON,
+            ParticleCategory,
+            PauliExclusionAuditorCAR,
+            ToonCartridge,
+            ToonParticleFactory,
+        )
+    except ImportError:
+        _DEFAULT_HILBERT_DIM = 56
+        _WILKINSON_EPSILON = 1.0e-15
+        _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
 
 logger = logging.getLogger("APU.Wisdom.TOONCartridgeWitnessEngine")
 

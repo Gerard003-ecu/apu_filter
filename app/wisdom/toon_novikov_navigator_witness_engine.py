@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Novikov Navigator Witness Engine + Poincaré + KAM + Automejora L3                    ║
@@ -9,11 +8,66 @@ r"""
 ║            Birkhoff del punto fijo testigo, Tori KAM Diofantinos NO RESONANTES (ω_k = √p_k + φ^{-k}),║
 ║            mecánica celeste de Poincaré (invariante integral, Jacobi, recurrencia, homoclínicos) y   ║
 ║            Operador de Automejora Recursiva Nivel 3 (self-repair QND + metacognición del metacódigo).║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.       ║
-║   FASE 1 → Heyting Ω₃ + QND AAV + Uhlmann FIX + Ultrametría FIX + Report + export seed               ║
-║   FASE 2 → NovikovStateSeed + Σ Poincaré 𝔇_n + Celeste + Birkhoff + KAM noble + Operador L0..L3      ║
-║   FASE 3 → NovikovTrajectory + SovereignNovikovAuditor + QND dinámica                                ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Testigo de Navegación Novikov (TOONNovikovNavigatorWitnessEngine) garantiza la
+observación cuántica débil sin demolición (QND AAV, Back-Action ≡ 0.0 dB) a lo largo de las geodésicas
+causales del anillo universal de Novikov \Lambda_{\mathrm{Nov}} y el árbol ultramétrico de Bruhat-Tits.
+Calcula secciones transversales de Poincaré sobre la variedad de operadores densidad 𝔇_n, sintetiza formas
+normales de Birkhoff para puntos fijos cuasi-periódicos, audita la preservación diofántica KAM mediante
+frecuencias nobles algebraicamente independientes (\omega_k = \sqrt{p_k} + \phi^{-k}), evalúa invariantes
+integrales de Poincaré-Cartan, y ejecuta automejora recursiva de Nivel 3 mediante self-repair cuántico.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Valuación Ultramétrica de Novikov y Árbol de Bruhat-Tits:
+   Sobre el anillo \Lambda_{\mathrm{Nov}} dotado de valuación no arquimediana v(A) = \min a_i = -\log(\lambda_{\max}):
+       ||A||_{\mathrm{Nov}} = \exp(-v(A)) = \lambda_{\max}.
+   La distancia ultramétrica sobre los autovalores satisface la desigualdad hiper-triangular:
+       d(i, k) \le \max( d(i, j), d(j, k) ) \quad \text{con } d(i, j) = \exp(-\min(a_i, a_j)).
+   Esto proyecta los estados hacia una estructura de árbol métrico de Bruhat-Tits sin dispersión.
+
+2. Frecuencias Nobles Diofánticas KAM (Besicovitch + Hurwitz):
+   El diseño noble garantiza la no resonancia diofántica exacta en todas las dimensiones:
+       \omega_k = \sqrt{p_k} + \phi^{-(k+1)}, \quad p_k \text{ k-ésimo número primo}, \quad \phi = \frac{1+\sqrt{5}}{2}.
+   Por el teorema de Besicovitch, el conjunto \{\sqrt{p_k}\} es linealmente independiente sobre \mathbb{Q},
+   evitando resonancias seculares:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^n \setminus \{0\}.
+
+3. Mecánica Celeste de Poincaré y Secciones sobre 𝔇_n:
+   Sección transversal \Sigma = \{ \rho \in \mathcal{D}_n : g(\rho) = \mathrm{Re}\langle H_{\mathrm{probe}}, \rho \rangle - c = 0 \}.
+   El mapa de Poincaré P: \Sigma \to \Sigma preserva el invariante integral de Hilbert-Poincaré:
+       I_P = \frac{1}{2} \sum_i (J_i + J_{i+1}) \Delta\theta_i.
+   La forma normal de Birkhoff linealiza la vecindad del punto fijo hasta orden cuadrático en acciones J.
+
+4. Automejora Recursiva Nivel 3 (RSI-3) y Self-Repair Cuántico:
+   Evolución adaptativa multinivel:
+     L1: mezcla convexa proyectiva \Pi_{\mathrm{PSD}}((1-\theta)\rho + \theta \rho_{\mathrm{MAC}}).
+     L2: aceleración adaptativa de la tasa de aprendizaje mediante el residuo r = ||e_t|| / ||e_{t-1}||.
+     L3: self-repair QND mediante generador de medición continua de Lindblad:
+         \rho \leftarrow \Pi_{\mathrm{PSD}}\left( \rho - \kappa [A, [A, \rho]] \right).
+   Certificado de Lyapunov: V(\rho) = ||\rho - \rho_{\mathrm{MAC}}||_F^2 con decrecimiento monótono.
+
+AXIOMAS FORMALES
+────────────────
+Axioma TNNW-A1 (Ultrametría Causal Estricta):
+    Toda métrica de distancia de dispersión satisface la propiedad fuerte de ultrametría d(x, z) ≤ max(d(x, y), d(y, z)).
+Axioma TNNW-A2 (No Resonancia Algebraica de Besicovitch):
+    Para todo k ∈ ℤⁿ \ {0}, la combinación ⟨k, ω⟩ ≠ 0 es idénticamente no nula gracias a la independencia sobre ℚ de {√p_i}.
+Axioma TNNW-A3 (Zero Back-Action QND):
+    La medición del testigo Novikov conmuta con el Hamiltoniano libre, preservando el estado observado (Back-Action ≡ 0.0 dB).
+Axioma TNNW-A4 (Estabilidad de Lyapunov Nivel 3):
+    La derivada temporal de la función de Lyapunov en el bucle L3 satisface dV/dt ≤ -α V con α > 0.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TNNW-I1: Back-Action de observación cuántica débil estrictamente nulo (0.0 dB).
+Invariante TNNW-I2: Normalización de traza cuántica Tr(ρ) ≡ 1.0 y espectro acotado por piso de Wilkinson.
+Invariante TNNW-I3: Fidelidad cuántica de Uhlmann mínima F(ρ, ρ_ref) ≥ 0.95 en régimen coherente.
+Invariante TNNW-I4: Constante diofántica estimada γ_KAM ≥ 0.01 certificada sobre el toro invariante noble.
+Invariante TNNW-I5: Firma criptográfica HMAC-SHA256 en cada snapshot emitido por el testigo.
 """
 
 from __future__ import annotations
@@ -821,8 +875,8 @@ class KAMNovikovTorus:
             span = min(n, 24)
             for i in range(span):
                 for j in range(i + 1, span):
-                    for si in (−1.0, 1.0):
-                        for sj in (−1.0, 1.0):
+                    for si in (-1.0, 1.0):
+                        for sj in (-1.0, 1.0):
                             kvec = np.zeros(n, dtype=np.float64)
                             kvec[i] = si
                             kvec[j] = sj

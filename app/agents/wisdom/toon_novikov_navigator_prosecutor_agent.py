@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔═══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Novikov Navigator Prosecutor Agent v13.0.0-PhD                                                ║
@@ -60,6 +59,44 @@ cuyo tipo de retorno es el dominio del PRIMER método de la Fase k+1.
       y agregación RSI-3 REAL de la campaña (no el estado de Fase I).
     • η_unit_sovereign_passport / μ_novikov_agent / verify_monad_laws (M1–M3).
     • verify_sovereign_passport: reconstrucción Merkle ATOMIC|FUSED + HMAC.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Valuación Ultramétrica de Novikov y Árbol de Bruhat-Tits:
+   Series de Novikov A = sum c_j T^{lambda_j} con valuación v(A) = min lambda_j.
+   La norma ultramétrica ||A||_Nov = exp(-v(A)) define una métrica no arquimediana en D_n.
+
+2. Mecánica Celeste de Poincaré y Perturbaciones Homoclínicas de Melnikov:
+   Variables canónicas de Delaunay-Deprit en Sp(2d, R) e integral de Jacobi C_J.
+   La integral de Melnikov M(t_0) = int {H_0, H_1} dt con ceros simples detecta caos homoclínico.
+
+3. Automejora Recursiva Nivel 3 (RSI-3) y Mónada Cartesiana:
+   Mónada T = (T, eta, mu) con ley asociativa mu o T mu = mu o mu T.
+   La contracción de Banach iterada Lip(T^3) < 1.0 asegura convergencia asintótica.
+
+4. Topos de Heyting Omega3, Proyección Visceral Phi_sem y Crowbar:
+   Retículo Omega3: COHERENT (0x00) < DEGRADED (0x01) < VETOED (0x03).
+   Proyección Phi_sem hacia WACC 15.0%, liquidez +11.5% y compresión KV 86.4%.
+   Disparo ciber-físico ESP32 Crowbar en latencia t <= 392.15 ns ante veredicto VETOED.
+
+AXIOMAS FORMALES
+────────────────
+Axioma TNPA-A1 (Ultrametría Causal Estricta):
+    La valuación no arquimediana satisface la desigualdad triangular fuerte v(A + B) >= min(v(A), v(B)).
+Axioma TNPA-A2 (Transversalidad Homoclínica de Melnikov):
+    Ceros simples en la integral de Melnikov implican intersección transversal y dinámica caótica.
+Axioma TNPA-A3 (No-Negatividad Termodinámica de Spohn):
+    La relajación disipativa GKSL en el Vacío de Dirac satisface la cota entrópica sigma_Spohn >= 0.
+Axioma TNPA-A4 (Consistencia Mónadica RSI-3):
+    La composición de automejora recursiva conmuta según la ley asociativa de la mónada cartesiana.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TNPA-I1: Back-Action QND == 0.0 dB con credencial válida; 12.5 dB si la firma es apócrifa.
+Invariante TNPA-I2: Fidelidad cuántica de Uhlmann mínima F(rho, rho_ref) >= 0.95 en régimen coherente.
+Invariante TNPA-I3: Conservación del determinante simpléctico det(M) = 1.0 +- 1.0e-5 bajo integración canónica.
+Invariante TNPA-I4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t <= 392.15 ns.
+Invariante TNPA-I5: Firma HMAC-SHA256 y sellado Merkle en cada pasaporte soberano expedido por el agente.
 """
 
 from __future__ import annotations
@@ -82,7 +119,7 @@ import scipy.linalg as la
 
 # ─── Importación resiliente del motor inquisidor v12.0.0 ──────────────────────
 try:
-    from toon_novikov_navigator_prosecutor_engine import (
+    from app.wisdom.toon_novikov_navigator_prosecutor_engine import (
         ActuationMode,
         HeytingOmega3,
         NovikovProsecutionCanonicalSeed,
@@ -94,7 +131,7 @@ try:
     )
 except ImportError:
     try:
-        from scratch.toon_novikov_navigator_prosecutor_engine import (
+        from toon_novikov_navigator_prosecutor_engine import (
             ActuationMode,
             HeytingOmega3,
             NovikovProsecutionCanonicalSeed,
@@ -105,16 +142,7 @@ except ImportError:
             TOONNovikovNavigatorProsecutorEngine,
         )
     except ImportError:
-        from app.wisdom.toon_novikov_navigator_prosecutor_engine import (
-            ActuationMode,
-            HeytingOmega3,
-            NovikovProsecutionCanonicalSeed,
-            NovikovProsecutionExecutionCertificate,
-            NovikovProsecutionIndictmentGerm,
-            NovikovProsecutionStatus,
-            NovikovProsecutorRSI3State,
-            TOONNovikovNavigatorProsecutorEngine,
-        )
+        pass
 
 logger = logging.getLogger("APU.Wisdom.TOONNovikovNavigatorProsecutorAgent")
 if not logger.handlers:

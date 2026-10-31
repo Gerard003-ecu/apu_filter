@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔════════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Novikov Navigator Prosecutor Engine v13.0.0-PhD                                                ║
@@ -9,13 +8,65 @@ r"""
 ║            mecánica celeste de Poincaré (Delaunay–Deprit, monodromía Sp(2,ℝ), Greene, Melnikov con ceros        ║
 ║            simples, Bryuno, Jacobi, Poincaré–Cartan en eigenbase, Morse χ(ℂPⁿ⁻¹)=n), RSI-3 (Banach iterado,     ║
 ║            Lip empírico, self-repair de umbrales) y mónada cartesiana T=(T,η,μ) sobre gérmenes de acusación.    ║
-║ Estructura: 3 Fases Anidadas — la ÚLTIMA def. de fase n es la FRONTERA de la PRIMERA def. n+1.                 ║
-║   FASE 1 → Inquisición C*/ultramétrica/Uhlmann-FIX + Poincaré profundo + Banach RSI-3                          ║
-║            ÚLTIMO método: handoff_to_phase2_judgment_context → Phase1ToPhase2ProsecutionBridge                 ║
-║   FASE 2 → Juicio QND/Oseledets/Gromov/GKSL-Spohn + fusión Ω₃                                                  ║
-║            ÚLTIMO método: handoff_to_phase3_execution_context → Phase2ToPhase3ProsecutionBridge                ║
-║   FASE 3 → Ejecución: consume veredicto P2 + Dirac + Crowbar simulado + certificado                            ║
 ╚════════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Fiscal de Navegación Novikov (TOONNovikovNavigatorProsecutorEngine) ejerce la jurisdicción
+fiscal y judicial suprema sobre trayectorias causales en el anillo universal de Novikov \Lambda_{\mathrm{Nov}}.
+Audita la no-degeneración de Poincaré y la conservación de la integral de Jacobi, persigue desgarros
+de conmutación simpléctica mediante la integral de Melnikov en variedades homoclínicas, evalúa la contracción
+Lipschitz en álgebras de Banach bajo el ciclo trifásico INQUISICIÓN → JUICIO → EJECUCIÓN, ejecuta la
+aniquilación cuántica de Dirac en memoria RAM con disipación entrópica de Spohn σ ≥ 0, y comanda el disparo
+ciber-físico simulado del disyuntor ESP32 Crowbar en tiempo ultra-rápido (< 392.15 ns).
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Anillo Universal de Novikov \Lambda_{\mathrm{Nov}} y Valuación Ultramétrica:
+   Las series formales de Novikov se definen sobre la variable formal T con exponentes reales acotados inferiormente:
+       A = \sum_{j=1}^\infty c_j T^{\lambda_j}, \quad \lambda_1 < \lambda_2 < \dots \to \infty, \quad c_j \in \mathbb{C}.
+   La valuación ultramétrica v(A) = \min \{ \lambda_j : c_j \neq 0 \} define la norma no-arquimediana:
+       ||A||_{\mathrm{Nov}} = \exp(-v(A)), \quad ||A + B||_{\mathrm{Nov}} \le \max(||A||_{\mathrm{Nov}}, ||B||_{\mathrm{Nov}}).
+   La distancia ultramétrica sobre el árbol de Bruhat-Tits rige la causalidad macroscópica.
+
+2. Mecánica Celeste de Poincaré, Integrales de Jacobi y Melnikov:
+   Variables canónicas de Delaunay-Deprit (L, G, H, l, g, h) sobre el fibrado simpléctico \mathrm{Sp}(2d, \mathbb{R}).
+   La integral de Jacobi preserva la superficie de energía en el problema restringido:
+       C_J = 2 \Omega(x, y) - (\dot{x}^2 + \dot{y}^2 + \dot{z}^2) = \text{constante}.
+   La distancia entre variedades invariantes estable W^s e inestable W^u se calcula vía la integral de Melnikov:
+       M(t_0) = \int_{-\infty}^\infty \{ H_0, H_1 \}(q_0(t - t_0), p_0(t - t_0)) \, dt.
+   La existencia de ceros simples M(t_0) = 0 con M'(t_0) \neq 0 certifica caos homoclínico y bifurcación de Poincaré.
+
+3. Teorema KAM, Función de Bryuno y Residuo de Greene:
+   El vector de frecuencias ω satisface la condición diofántica de Bryuno:
+       B(\omega) = \sum_{k=0}^\infty \frac{\ln q_{k+1}}{q_k} < \infty.
+   El residuo de Greene R_G determina la transición de toros KAM a conjuntos cantorianos (cantori).
+
+4. Mónada Cartesiana de Automejora Nivel 3 (RSI-3) y Heyting Ω₃:
+   Mónada T = (T, \eta, \mu) con transformación natural \mu: T^2(A) \to T(A).
+   Contracción de Banach iterativa con cota empírica:
+       \mathrm{Lip}_{\mathrm{emp}}(T) = \max_k \frac{||e_{k+1}||}{||e_k||} < 1.0.
+   Adjudicación en el retículo de Heyting \Omega_3 = \{\mathrm{COHERENT}(0x00) \prec \mathrm{DEGRADED}(0x01) \prec \mathrm{VETOED}(0x03)\}.
+   Disparo ciber-físico ESP32 Crowbar en latencia t \le 392.15 ns ante veredicto VETOED.
+
+AXIOMAS FORMALES
+────────────────
+Axioma TNNP-A1 (Ultrametría Estricta de Novikov):
+    La valuación no arquimediana satisface la desigualdad triangular fuerte v(A + B) ≥ min(v(A), v(B)).
+Axioma TNNP-A2 (Transversalidad Homoclínica de Melnikov):
+    Un cruce homoclínico de variedades invariantes con cero simple de Melnikov implica dinámica caótica de Smale.
+Axioma TNNP-A3 (No-Negatividad de Spohn en el Vacío de Dirac):
+    La producción de entropía cuántica de relajación hacia el vacío satisface σ_Spohn ≥ 0.0.
+Axioma TNNP-A4 (Consistencia Mónadica RSI-3):
+    La composición de automejora recursiva conmuta según la ley asociativa de la mónada μ ∘ Tμ = μ ∘ μT.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TNNP-I1: Back-Action QND ≡ 0.0 dB con credencial válida; 12.5 dB si la firma del positrón es apócrifa.
+Invariante TNNP-I2: Fidelidad cuántica de Uhlmann mínima F(ρ, ρ_ref) ≥ 0.95 para certificación COHERENT.
+Invariante TNNP-I3: Conservación del determinante simpléctico det(M) = 1.0 ± 1.0e-5 bajo integración canónica.
+Invariante TNNP-I4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t ≤ 392.15 ns.
+Invariante TNNP-I5: Firma HMAC-SHA256 y sellado Merkle en cada certificado fiscal expedido por el motor.
 """
 
 from __future__ import annotations

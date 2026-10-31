@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : Heyting Visceral Functor Reducer Witness Agent v15.0.0-PhD        ║
@@ -9,6 +8,43 @@ r"""
 ║            mediante un bucle OODA trifásico anidado, geometría de Poincaré,  ║
 ║            topología espectral de Hodge y automejora recursiva de Nivel 3.   ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Testigo Silencioso del Reductor de Heyting (HeytingVisceralFunctorReducerWitnessAgent)
+ejerce la atestación observacional pasiva (Quantum Non-Demolition - QND AAV, Back-Action ≡ 0.0 dB) sobre
+el motor espectral HeytingVisceralFunctorReducerWitnessEngine (app/wisdom/heyting_visceral_functor_reducer_witness_engine.py).
+Orquesta un ciclo OODA de atestación pasiva estructurado en 3 fases anidadas (Observe → Orient → Decide&Act),
+certificando la coherencia topológica de haces celulares de de Rham mediante la teoría espectral de Hodge,
+integrando la dinámica simpléctica de Poincaré con el algoritmo de Ruth-Forest-Yoshida O(4), auditando la
+persistencia diofántica KAM sobre toros invariantes en R3, y estabilizando el flujo mediante automejora recursiva L3.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Observación Débil Cuántica QND AAV en el Retículo de Heyting Omega3:
+   El agente monitorea el álgebra trivaluada Omega3 = {COHERENT (0x00), DEGRADED (0x01), VETOED (0x03)}.
+   La condición QND garantiza que el conmutador con el observable del testigo sea nulo:
+       [A_witness, H_free] = 0  =>  Back-Action == 0.0 dB.
+   Fidelidad cuántica de Uhlmann: F(rho, sigma) = (Tr sqrt(sqrt(rho) sigma sqrt(rho)))^2 >= 0.95.
+
+2. Mecánica Celeste de Poincaré y Estabilidad KAM:
+   Flujo simpléctico integrado por Ruth-Forest-Yoshida O(4) preservando omega = sum dq_i wedge dp_i.
+   Sección transversal de Poincaré: Sigma_P = { (q_0, p_0) : q_perp = 0, p_perp > 0 }.
+   El mapa de retorno P: Sigma_P -> Sigma_P calcula exponentes de Lyapunov y frecuencias fundamentales
+   bajo la condición diofántica de Kolmogorov-Arnold-Moser (KAM):
+       |k . omega| >= gamma / ||k||^tau,  para todo k en Z^3 no nulo.
+   Residuo simpléctico acotado por ||M^T J M - J||_F <= 1.0e-6.
+
+3. Topología Espectral de Hodge y Laplaciano Heavy:
+   Sobre el complejo celular de cadenas se define el Laplaciano de Hodge-Dirac: Delta_k = d_{k-1} d_{k-1}^* + d_k^* d_k.
+   El valor propio de Fiedler lambda_2(Delta_0) mide la conectividad del haz celular.
+   La obstrucción de Cech en H^1(F) cuantifica la holonomía no conmutativa del funtor.
+
+4. Automejora Recursiva Nivel 3 (RSI-3) y Modulación OODA:
+   El agente ejecuta autotuning en tres escalas:
+     L1: contracción local de Lipschitz en el álgebra de Banach.
+     L2: aceleración espectral por flujo geodésico de Bures.
+     L3: meta-aprendizaje y reflexión modal sobre la variedad compacta de Calabi-Yau.
 
 ARQUITECTURA DE LAS TRES FASES ANIDADAS OODA (morfismos Φ₁₂ y Φ₂₃):
 
@@ -45,6 +81,25 @@ ARQUITECTURA DE LAS TRES FASES ANIDADAS OODA (morfismos Φ₁₂ y Φ₂₃):
 ACOPLAMIENTO AL MOTOR v15:
   HeytingVisceralFunctorReducerWitnessEngine.evaluate_heyting_witness
   reinyecta symplectic_dt del gen L3; el agente lee λ_max, ω-residual, KAM y CY (h¹¹,h²¹).
+
+AXIOMAS FORMALES
+────────────────
+Axioma HVRA-W1 (Pasividad Espectral QND):
+    La medición del agente testigo no perturba el estado de pureza cuántica del reductor de Heyting.
+Axioma HVRA-W2 (Simplecticidad de Monodromía):
+    El integrador de Yoshida preserva el volumen del espacio de fase simpléctico det(M) = +1.0.
+Axioma HVRA-W3 (No Resonancia Diofántica KAM):
+    El vector de frecuencias intrínseco satisface la cota diofántica con exponente de Bruno tau >= 2.
+Axioma HVRA-W4 (Covarianza Semántica):
+    La proyección semántica es covariante bajo transformaciones conformes de la variedad base.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante HVRA-WI1: Back-Action QND == 0.0 dB certificado en todo snapshot emitido por el testigo.
+Invariante HVRA-WI2: Traza cuántica conservada Tr(rho) == 1.0 y preservación de positividad espectral.
+Invariante HVRA-WI3: Fidelidad de Uhlmann F(rho, rho_ref) >= 0.95 en estado de coherencia certificada.
+Invariante HVRA-WI4: El agente testigo opera en estricta pasividad y NUNCA dispara el disyuntor ESP32 Crowbar.
+Invariante HVRA-WI5: Firma criptográfica HMAC-SHA256 en cada snapshot de atestación emitido.
 """
 
 from __future__ import annotations

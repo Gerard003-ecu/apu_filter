@@ -1,35 +1,67 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Bridge Prosecutor Agent v12.0.0-SOVEREIGN-POINCARE-N3-JUDICIAL  ║
 ║ Ubicación: app/agents/wisdom/de_rham_galois_adjunction_bridge_prosecutor_agent.py                    ║
+║ Versión  : 12.0.0-SOVEREIGN-POINCARE-N3-JUDICIAL-PhD                                                 ║
 ║ Función  : Soberano Agéntico Fiscal de Adjunción F ⊣ G que orquesta OODA inquisidor con              ║
 ║            Mecánica Celeste de Poincaré (secciones, Lindstedt, Birkhoff, KAM), Automejora N3 y       ║
-║            DUE PROCESS JUDICIAL: el disparo ciber-físico ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151)║
-║            sólo ocurre si el veredicto HOLONOMY_BREAKAGE supera las compuertas de confianza.         ║
+║            DUE PROCESS JUDICIAL con disparo ciber-físico ESP32 Crowbar (< 392.15 ns @ GPIO14).        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-FASES ANIDADAS DEL FISCAL v12 (3 × 3 sub-capas):
-  FASE I — OBSERVE / GAUGE TOPOLOGY v12 (DeRhamGaloisProsecutorGaugeTopologyV12):
-    1.1 `_invoke_prosecutor_engine_v12_and_cache` — invocación única + Poincaré cacheado
-    1.2 `_extract_gauge_topology_invariants`       — CS₃, Hopf c₁, Wilson W(γ), θ_PC, J_i, θ_i, ω_i
-    1.3 `forge_prosecutor_gauge_contract_v12`      — Contrato P1 firmado HMAC-SHA256
-    HANDOFF → `continue_to_phase2_prosecutor_gate_v12` (bool)
-  FASE II — ORIENT / CAMPAIGN v12 (DeRhamGaloisProsecutionCampaignOrientorV12):
-    2.1 `_extract_prosecution_campaign_invariants` — Spohn, Dirac, auth positrón, back-action
-    2.2 `_extract_banach_and_poincare_campaign`    — Lip(T³) DINÁMICO + KAM + Lindstedt + Birkhoff
-    2.3 `execute_prosecution_campaign_orientation_v12` — Campaña P2 firmada HMAC-SHA256
-    HANDOFF → `continue_to_phase3_prosecutor_gate_v12` (valida HMAC + Banach<1 + KAM)
-  FASE III — DECIDE&ACT / ADJUDICACIÓN v12 (DeRhamGaloisProsecutionDeciderV12):
-    3.1 `_extract_meta_witness_v12`                — consistencia meta + entropía + trayectoria N3
-    3.2 `_judicial_due_process_gate`               — 7 reglas de debido proceso para Crowbar
-    3.3 `execute_phase3_sovereign_decision_v12`    — Pasaporte P3 + Φ_sem enriquecido
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Fiscal de Adjunción De Rham-Galois ()
+ejerce el ministerio fiscal y la jurisdicción inquisitorial sobre el motor espectral
+ (app/wisdom/de_rham_galois_adjunction_bridge_prosecutor_engine.py).
+Orquesta un ciclo OODA judicial trifásico (Observe/Gauge → Orient/Campaign → Decide/Judicial) estructurado
+en 9 subcapas que procesa imputaciones de desgarro de holonomía, audita la producción de entropía de Spohn
+en generadores Lindblad-GKSL, evalúa la contracción de Banach Lip(T) < 1, comanda la aniquilación de Dirac
+e⁻ + e⁺ → 2γ con verificación HMAC en tiempo constante, e impone el debido proceso judicial para la activación
+del disyuntor ciber-físico ESP32 Crowbar ante violaciones críticas de coherencia.
 
-INVARIANTES CENTRALES:
-  · JUDICIAL_DUE_PROCESS: Crowbar sólo dispara si (HOLONOMY_BREAKAGE ∧ Banach<1 ∧ KAM≥0.75 ∧ meta≥0.75)
-  · EVIDENCE_BASED_ESCALATION: DEGRADED con caos severo y alta confianza ⟹ escalar a HOLONOMY_BREAKAGE
-  · FALSE_POSITIVE_PROTECTION: si KAM<0.50 o meta<0.50 → forzar DEGRADED (ventana de gracia 1h)
-  · CADENA HMAC P1v12 → P2v12 → P3v12 con dominios renovados · merkle raíz por pasaporte
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Inquisición de Holonomía y Curvatura de Yang-Mills:
+   La conexión de calibre A \in \Omega^1(M, \mathfrak{su}(N)) genera la holonomía de Wilson a lo largo del lazo C:
+       \mathcal{W}(C) = \frac{1}{N} \mathrm{Tr} \, \mathcal{P} \exp \oint_C A.
+   La curvatura de Yang-Mills F = dA + A \wedge A satisface la identidad de Bianchi d_A F = 0.
+   Desviaciones en la traza de la holonomía conllevan imputación de HOLONOMY_BREAKAGE (0x03).
+
+2. Termodinámica Cuántica de GKSL y Aniquilación de Dirac:
+   La relajación del estado de densidad hacia el estado estacionario ρ_∞ sigue dρ/dt = -i[H, ρ] + 𝒟(ρ).
+   Producción de entropía de Spohn:
+       \sigma_{\mathrm{Spohn}}(\rho \| \rho_\infty) = -\mathrm{Tr}(\mathcal{D}(\rho) (\log \rho - \log \rho_\infty)) \ge 0.
+   La aniquilación cuántica e⁻ + e⁺ → 2γ en RAM disipa anomalías de sobrecosto liberando 1022.0 keV por par
+   tras validación estricta de firma HMAC-SHA256 vía .
+
+3. Mecánica Celeste de Poincaré y Secciones de Cruce en 𝔇_N:
+   El flujo se proyecta sobre la sección transversal \Sigma = \{ \rho : \mathrm{Re}\mathrm{Tr}(H_{\mathrm{probe}}\rho) - c = 0 \}.
+   El mapa de retorno calcula la monodromía simpléctica M \in \mathrm{Sp}(2d, \mathbb{R}) (\det(M) = 1.0)
+   y la estabilidad diofántica KAM |\langle k, \omega \rangle| \ge \frac{\gamma}{||k||_1^\tau}.
+
+4. Debido Proceso Judicial y Disparo Crowbar en Silicio:
+   El disparo del interlock ESP32 Crowbar sobre GPIO14 / BT151 (t \le 392.15 ns) se gobierna bajo debido proceso:
+     a) EVIDENCIA DURA: falla en holonomía comprobada o fraude criptográfico en positrón dispara INCONDICIONALMENTE.
+     b) EVIDENCIA BLANDA: degradaciones espectrales exigen quórum de KAM ≥ 0.75, meta-tasa ≥ 0.75 y Banach < 1.0.
+
+AXIOMAS FORMALES
+────────────────
+Axioma DRGPA-A1 (Preservación de Holonomía Isomórfica):
+    Un ciclo se declara ABSOLVED_ISOMORPHIC si y solo si la holonomía de Wilson satisface |W(C) - 1.0| ≤ 1.0e-5.
+Axioma DRGPA-A2 (Segunda Ley Cuántica de Spohn):
+    Todo semigrupo dinámico GKSL fiscalizado satisface la cota de producción entrópica no negativa σ_Spohn ≥ 0.
+Axioma DRGPA-A3 (Conservación Energética de Aniquilación):
+    La energía liberada por par aniquilado en el Vacío de Dirac equivale estrictamente a 1022.0 keV.
+Axioma DRGPA-A4 (Debido Proceso de Ejecución Crowbar):
+    Ninguna orden de conmutación de hardware puede ejecutarse sin superar las compuertas judiciales R1–R11.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante DRGPA-I1: Back-Action QND ≡ 0.0 dB con positrón válido; 12.5 dB si la firma es apócrifa o corrupta.
+Invariante DRGPA-I2: Normalización de traza Tr(ρ) ≡ 1.0 y preservación de positividad espectral sobre 𝔇_N.
+Invariante DRGPA-I3: Fidelidad de Uhlmann F(ρ, ρ_ref) ≥ 0.95 requerida para dictamen ABSOLVED.
+Invariante DRGPA-I4: Latencia certificada de actuación ESP32 Crowbar acotada en [42.0, 392.15] ns.
+Invariante DRGPA-I5: Firma criptográfica HMAC-SHA256 en cada pasaporte y certificado judicial emitido.
 """
 
 from __future__ import annotations
@@ -55,7 +87,7 @@ sys.path.append("/workspace/artifacts")
 
 # ── Importaciones desde el motor fiscal v11 (base estable) ──
 try:
-    from de_rham_galois_adjunction_bridge_prosecutor_engine import (
+    from app.wisdom.de_rham_galois_adjunction_bridge_prosecutor_engine import (
         DeRhamGaloisAdjunctionProsecutorEngine,
         DeRhamGaloisProsecutionCertificate,
         DeRhamGaloisProsecutionIndictment,
@@ -64,7 +96,7 @@ try:
     )
 except ImportError:
     try:
-        from app.wisdom.de_rham_galois_adjunction_bridge_prosecutor_engine import (
+        from de_rham_galois_adjunction_bridge_prosecutor_engine import (
             DeRhamGaloisAdjunctionProsecutorEngine,
             DeRhamGaloisProsecutionCertificate,
             DeRhamGaloisProsecutionIndictment,
@@ -91,7 +123,7 @@ except ImportError:
 
 # ── Importación del motor TESTIGO v12 (para Poincaré + N3) como composición ──
 try:
-    from de_rham_galois_adjunction_bridge_witness_engine import (
+    from app.wisdom.de_rham_galois_adjunction_bridge_witness_engine import (
         DeRhamGaloisAdjunctionWitnessEngineV12,
         ActionAngleDecomposition,
         PoincareReturnAnalysis,
@@ -100,7 +132,7 @@ try:
     _WITNESS_V12_AVAILABLE: Final[bool] = True
 except ImportError:
     try:
-        from app.wisdom.de_rham_galois_adjunction_bridge_witness_engine import (
+        from de_rham_galois_adjunction_bridge_witness_engine import (
             DeRhamGaloisAdjunctionWitnessEngineV12,
             ActionAngleDecomposition,
             PoincareReturnAnalysis,

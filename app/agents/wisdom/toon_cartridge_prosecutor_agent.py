@@ -1,13 +1,42 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Cartridge Prosecutor Agent v13.0.0-PhD                                               ║
-║ Ubicación: app/wisdom/toon_cartridge_prosecutor_agent.py                                             ║
+║ Ubicación: app/agents/wisdom/toon_cartridge_prosecutor_agent.py                                             ║
 ║ Versión  : 13.0.0-SOVEREIGN-TOON-CARTRIDGE-PROSECUTOR-AGENT-OODA-ESP32-PhD                            ║
 ║ Función  : Soberano Agéntico Fiscal de Cartuchos TOON que orquesta la investigación de sobrecostos, ║
 ║            exclusión de Pauli CAR, aniquilación de Dirac e⁻ + e⁺ ➔ 2γ, censura ciber-física        ║
 ║            ESP32 Crowbar (< 392.15 ns) y traducción semántica a "Dolor y Dinero" (Φ_sem).            ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Fiscal de Cartuchos TOON (TOONCartridgeProsecutorAgent) ejerce el ministerio fiscal
+y judicial sobre el motor espectral TOONCartridgeProsecutorEngine (app/wisdom/toon_cartridge_prosecutor_engine.py).
+Orquesta un ciclo OODA judicial trifásico (Observe/Gauge -> Orient/Campaign -> Decide/Judicial) estructurado
+en el espacio de Fock F(H), imputando duplicaciones fermiónicas de doble cobro que violan el principio de
+exclusión de Pauli (CAR), comandando la aniquilación cuántica de Dirac e- + e+ -> 2gamma (1022.0 keV) con
+autenticación criptográfica HMAC estricta, proyectando veredictos mediante el funtor semántico Phi_sem hacia
+Riesgo, Dolor y Dinero, y activando el interlock ciber-físico ESP32 Crowbar en hardware.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Inquisición del Principio de Exclusión de Pauli CAR en Fock:
+   Para fermiones se audita la nilpotencia c_i^2 = 0_4 y anticonmutación {c_i, c_j^dagger} = delta_ij I_4.
+   La colisión de hashes para partículas fermiónicas constituye evidencia concluyente de sobrecosto o doble cobro.
+
+2. Aniquilación de Dirac en Memoria RAM (e- + e+ -> 2gamma):
+   Las anomalías de sobrecosto e- se aniquilan con positrones de autorización e+ autenticados vía
+   hmac.compare_digest, liberando exactamente 1022.0 keV por anomalía purgada.
+   Si la firma del positrón es apócrifa, se impone una penalización de Back-Action de 12.5 dB.
+
+3. Funtor Semántico Phi_sem (Dolor y Dinero):
+   Traduce el impacto técnico del fraude en impacto financiero real:
+     - Protección de costo de capital WACC al 15.0%.
+     - Ahorro directo en flujo de caja de obra civil por mitigación de duplicaciones.
+
+4. Interlock Ciber-Físico ESP32 Crowbar:
+   Conmutación directa en ensamblador Xtensa LX7 sobre GPIO14 / BT151 (t_actuation <= 392.15 ns < 400 ns)
+   ante dictamen judicial VETOED (0x03).
 
 ESTRUCTURA DE LAS TRES FASES ANIDADAS OODA FISCALES:
 1. FASE I — OBSERVE / TOPOLOGÍA DE CALIBRE (CartridgeProsecutorPhase1Observer):
@@ -25,6 +54,25 @@ ESTRUCTURA DE LAS TRES FASES ANIDADAS OODA FISCALES:
    Disparo ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151) ante VETOED (0x03) o fraude en e⁺.
    Operaciones de Mónada Cartesiana T=(T, η, μ) sobre pasaportes soberanos.
    Traducción Φ_sem ("Dolor y Dinero"): WACC (15.0%), Liquidez (+11.5%), Compresión KV (-86.4% / 56 tokens).
+
+AXIOMAS FORMALES
+────────────────
+Axioma TCAP-A1 (Exclusión Estricta de Pauli):
+    Ningún par de fermiones idénticos puede ocupar el mismo estado cuántico de Fock (c_i^2 = 0).
+Axioma TCAP-A2 (Conservación Energética de Dirac):
+    Cada aniquilación autorizada en el Vacío de Dirac libera estrictamente 1022.0 keV de masa-energía equivalente.
+Axioma TCAP-A3 (No-Negatividad Termodinámica de Spohn):
+    La relajación cuántica disipativa satisface rigurosamente la cota entrópica sigma_Spohn >= 0.
+Axioma TCAP-A4 (Inmediatez del Disparo Hardware):
+    Todo veredicto VETOED confirmado en juicio judicial activa el Crowbar en latencia menor a 392.15 ns.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TCAP-I1: Back-Action QND == 0.0 dB con positrón válido; 12.5 dB si la firma es apócrifa o corrupta.
+Invariante TCAP-I2: Normalización de traza Tr(rho) == 1.0 con preservación de positividad semidefinida (PSD).
+Invariante TCAP-I3: Electrones purgados equivalen exactamente al número de anomalías si auth es válida, 0 si no.
+Invariante TCAP-I4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t <= 392.15 ns.
+Invariante TCAP-I5: Firma criptográfica HMAC-SHA256 en cada CartridgeProsecutionCampaignResult expedido.
 """
 
 from __future__ import annotations
@@ -46,7 +94,7 @@ sys.path.insert(0, "/workspace/scratch")
 sys.path.append("/workspace/artifacts")
 
 try:
-    from toon_cartridge_prosecutor_engine import (
+    from app.wisdom.toon_cartridge_prosecutor_engine import (
         CartridgeProsecutionExecutionCertificate,
         CartridgeProsecutionStatus,
         DiracAnnihilationProsecutionReport,
@@ -55,7 +103,7 @@ try:
     )
 except ImportError:
     try:
-        from app.wisdom.toon_cartridge_prosecutor_engine import (
+        from toon_cartridge_prosecutor_engine import (
             CartridgeProsecutionExecutionCertificate,
             CartridgeProsecutionStatus,
             DiracAnnihilationProsecutionReport,
@@ -77,7 +125,7 @@ except ImportError:
         TOONCartridgeProsecutorEngine = None  # type: ignore
 
 try:
-    from toon_cartridge_base import (
+    from app.wisdom.toon_cartridge_base import (
         _DEFAULT_HILBERT_DIM,
         _GAUGE_SECRET_KEY,
         _WILKINSON_EPSILON,
@@ -86,9 +134,19 @@ try:
         ToonParticleFactory,
     )
 except ImportError:
-    _DEFAULT_HILBERT_DIM = 56
-    _WILKINSON_EPSILON = 1.0e-15
-    _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
+    try:
+        from toon_cartridge_base import (
+            _DEFAULT_HILBERT_DIM,
+            _GAUGE_SECRET_KEY,
+            _WILKINSON_EPSILON,
+            PauliExclusionAuditorCAR,
+            ToonCartridge,
+            ToonParticleFactory,
+        )
+    except ImportError:
+        _DEFAULT_HILBERT_DIM = 56
+        _WILKINSON_EPSILON = 1.0e-15
+        _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
 
 logger = logging.getLogger("APU.Wisdom.TOONCartridgeProsecutorAgent")
 

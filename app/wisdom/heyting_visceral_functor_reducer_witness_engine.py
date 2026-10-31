@@ -1,68 +1,68 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : Heyting Visceral Functor Reducer Witness Engine v15.0.0-PhD-Sovereign                     ║
 ║ Ubicación: app/wisdom/heyting_visceral_functor_reducer_witness_engine.py                             ║
-║ Versión  : 15.0.0-SOVEREIGN-HEYTING-WITNESS-ENGINE-QND-POINCARE-RECURSIVE-L3-PhD                     ║
-║ Función  : Motor espectral testigo observador pasivo QND (Quantum Non-Demolition) de retroacción    ║
-║            estricta nula (Back-Action ≡ 0.0 dB) con reducción monoidal en álgebra de Heyting Ω₃,    ║
-║            geometría simpléctica de Poincaré celeste, topología espectral de Hodge y síntesis de     ║
-║            automejora recursiva de Nivel 3.                                                          ║
+║ Versión  : 15.0.0-SOVEREIGN-HEYTING-WITNESS-ENGINE-QND-POINCARE-RECURSIVE-L3-PhD                      ║
+║ Función  : Motor espectral testigo observador pasivo QND (Quantum Non-Demolition) de la Reducción     ║
+║            Monoidal en Ω₃ y Proyección Visceral Φ_sem, con Mecánica Celeste de Poincaré               ║
+║            (secciones, Lyapunov, KAM diofántico), Topología Espectral de Hodge y Automejora L3.      ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-TEORÍA INTEGRADA Y FUNDAMENTACIÓN MATEMÁTICA MULTIDISCIPLINAR:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Testigo Silencioso del Reductor Monoidal de Heyting y Funtor Visceral ejecuta
+la observación pasiva (Quantum Non-Demolition, Back-Action ≡ 0.0 dB) del estado de reducción monoidal
+sobre el retículo de Heyting Ω₃ y su proyección visceral Φ_sem. Certifica la coherencia topológica de
+haces celulares de de Rham mediante la teoría espectral de Hodge, integra la dinámica simpléctica de Poincaré
+mediante el algoritmo de Ruth-Forest-Yoshida de orden 4, audita la estabilidad diofántica KAM sobre toros
+invariantes en ℝ³, y ejecuta automejora recursiva de Nivel 3 para estabilizar el flujo disipativo.
 
-1. Álgebra de Heyting y Funtor Semántico Visceral Φ_sem:
-   Sea (Ω₃, ∧, ∨, ⇒, 0, 1) el retículo de Heyting canónico trivaluado de coherencia:
-       Ω₃ = {COHERENT (0x00), DEGRADED (0x01), VETOED (0x03)}
-   Orden de verdad (topos): VETOED ≤_t DEGRADED ≤_t COHERENT, con 1 = COHERENT, 0 = VETOED.
-   Codificación de error: mayor entero ⇒ menor verdad. Entonces:
-       a ∧ b  = OR  bitwise  (ínfimo de coherencia = peor degradación)
-       a ∨ b  = AND bitwise  (supremo de coherencia = mejor degradación)
-       a ⇒ b  = max { c ∈ Ω₃ | a ∧ c ≤_t b }  ≡  COHERENT si error(a) ≥ error(b) no...
-   En el orden de error e(·)=int(·): e(COHERENT)<e(DEGRADED)<e(VETOED).
-   Implicación intuicionista de cadena en el orden de coherencia:
-       a ⇒ b = COHERENT  si  e(a) ≥ e(b) es FALSO cuando a es más coherente...
-   Convención operativa (cadena de coherencia, 1=COHERENT):
-       a ⇒ b = COHERENT si e(a) ≤ e(b)  (a no es más degradado que b ⇒ tautología)
-                 else b.
-   Pseudocomplemento: ¬a = a ⇒ VETOED.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Álgebra de Heyting Ω₃ y Medición Débil QND AAV:
+   El testigo observa el retículo trivaluado Ω₃ = {COHERENT (0x00), DEGRADED (0x01), VETOED (0x03)}.
+   La medición débil sin demolición cuántica (Aharonov-Albert-Vaidman) garantiza:
+       [A_{\mathrm{witness}}, H_{\mathrm{system}}] = 0 \implies \text{Back-Action} \equiv 0.0\text{ dB}.
+   La fidelidad de Uhlmann sobre el haz de estados satisface F(\rho, \sigma) = (\mathrm{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}})^2 \ge 0.95.
 
-2. Física de Circuitos Cuánticos y Medición Débil QND (AAV):
-   [A_Heyting, H_int] = 0  ⟹  Back-Action ≡ 0.0 dB.
-   Protocolo Aharonov–Albert–Vaidman:
-       A_w = ⟨φ_f | A_Heyting | φ_i⟩ / ⟨φ_f | φ_i⟩,
-       P_ps = |⟨φ_f | φ_i⟩|²  (probabilidad de post-selección).
-   Densidad de Callen–Welton (Johnson–Nyquist cuántico) con expm1.
+2. Mecánica Celeste de Poincaré y Estabilidad KAM:
+   Flujo simpléctico \Phi_t^H integrado por Ruth-Forest-Yoshida O(4) preservando \omega = \sum dq_i \wedge dp_i.
+   Sección transversal de Poincaré: \Sigma_P = \{ (q_0, p_0) : q_\perp = 0, p_\perp > 0 \}.
+   El mapa de retorno P: \Sigma_P \to \Sigma_P calcula exponentes de Lyapunov y frecuencias fundamentales
+   bajo la condición diofántica de Kolmogorov-Arnold-Moser (KAM):
+       |k \cdot \omega| \ge \frac{\gamma}{||k||^\tau}, \quad \forall k \in \mathbb{Z}^3 \setminus \{0\}.
+   Residuo simpléctico acotado por ||M^T J M - J||_F \le 1.0e-6.
 
-3. Mecánica Celeste de Poincaré y Sistemas Hamiltonianos:
-   H(q,p) = Σ_i ||p_i||²/(2 m_i) + V_Plummer(q),
-   V = −Σ_{i<j} m_i m_j / √(||q_i−q_j||² + ε²).
-   Flujo simpléctico Φ_t^H por Ruth–Forest–Yoshida O(4); ω = Σ dq_i ∧ dp_i, dω=0.
-   Sección de Poincaré Σ_P = {(q₀,p₀) | q_⊥=0, p_⊥>0}.
-   Mapa de retorno P: Σ_P → Σ_P, promedios de Birkhoff, exponentes de Lyapunov,
-   frecuencias fundamentales por FFT y condición diofántica KAM:
-       |k·ω| ≥ γ / ||k||^τ ,  k ∈ ℤ³ \ {0}.
-   Residuo simpléctico: ||Mᵀ J M − J||_F  (J bloque canónico).
+3. Topología Espectral de Hodge y Laplaciano Heavy:
+   Sobre el complejo de cadenas celulares se define el Laplaciano de Hodge-Dirac:
+       \Delta_k = d_{k-1} d_{k-1}^* + d_k^* d_k.
+   El salto espectral de Fiedler \lambda_2(\Delta_0) mide la conectividad del haz celular.
+   La obstrucción de Čech en H^1(\mathcal{F}) cuantifica la holonomía no conmutativa del funtor.
 
-4. Topología Algebraica y Teoría Espectral de Hodge:
-   Complejo simplicial K de dim 2; Δ_k = ∂_{k+1}∂_{k+1}^* + ∂_k^* ∂_k.
-   β_k vía rango numérico SVD. Descomposición de Hodge:
-       Ω^k = im d_{k-1} ⊕ im d_k^* ⊕ ker Δ_k.
+4. Automejora Recursiva Nivel 3 (RSI-3) y Reflexión Modal:
+   Evolución adaptativa en tres escalas:
+     L1: contracción local de Lipschitz en el álgebra de Banach.
+     L2: aceleración espectral por flujo geodésico de Bures.
+     L3: meta-aprendizaje y reflexión modal sobre la variedad compacta de Calabi-Yau.
 
-5. Automejora Recursiva de Nivel 3 (Gödel–Löb):
-   □(□P ⇒ P) ⇒ □P, con P = {Tr ρ=1, PSD, Δβ_k=0, dω=0, Tr ℒ(ρ)=0, BA=0 dB}.
-   L1: dt y damping adaptados por Lyapunov/KAM/Poincaré.
-   L2: curación espectral por flujo de Bures.
-   L3: reflexión modal y volumen de compactificación Calabi–Yau.
+AXIOMAS FORMALES
+────────────────
+Axioma HVR-W1 (Zero Back-Action de la Medición):
+    La acción de observación del testigo satisface ⟨Ψ | [A, H] | Ψ⟩ = 0 para todo observable del filtro.
+Axioma HVR-W2 (Preservación Simpléctica de Monodromía):
+    El integrador de Yoshida preserva el volumen del espacio de fase \det(M) = +1.0 (teorema de Liouville).
+Axioma HVR-W3 (No Resonancia Diofántica KAM):
+    El vector de frecuencias intrínseco satisface la cota diofántica con exponente de Bruno τ ≥ 2.
+Axioma HVR-W4 (Isotropía del Funtor Semántico):
+    La proyección semántica Φ_sem es covariante bajo difeomorfismos de la variedad base.
 
-ORGANIZACIÓN ESTRUCTURAL EN 3 FASES ANIDADAS:
-  • FASE 1: Fundamentos hipercomplejos, geometría simpléctica de Poincaré, red ciber-física y QND.
-            Cierra con PoincareSymplecticHeytingManifold.export_phase1_bridge → VisceralSheafPhase1Bridge.
-  • FASE 2: Hodge, perturbación celeste KAM/Melnikov y dinámica GKSL.
-            Se inicia desde VisceralSheafPhase1Bridge y cierra en RecursiveReflectionSeedPhase2Bridge.
-  • FASE 3: Automejora recursiva L3, compactificación Calabi–Yau y motor testigo soberano.
-            Evoluciona RecursiveReflectionSeedPhase2Bridge en HeytingWitnessSnapshot.
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante HVR-WI1: Back-Action de monitoreo QND acotado exactamente en 0.0 dB.
+Invariante HVR-WI2: Traza del estado cuántico Tr(ρ) ≡ 1.0 y espectro definido positivo.
+Invariante HVR-WI3: Fidelidad cuántica de Uhlmann F(ρ, ρ_MAC) ≥ 0.95 en estado de coherencia.
+Invariante HVR-WI4: Residuo de la estructura simpléctica ||M^T J M - J||_F < 1.0e-6.
+Invariante HVR-WI5: Firma criptográfica HMAC-SHA256 en cada snapshot de atestación emitido.
 """
 
 from __future__ import annotations
