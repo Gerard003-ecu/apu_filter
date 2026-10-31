@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : OODA Triphasic Homomorphic Pipeline Witness Agent v15.0.0-PhD                             ║
@@ -10,6 +9,35 @@ r"""
 ║            acoplando mecánica celeste de Poincaré (Yoshida O(4), KAM, Nekhoroshev, Floquet)          ║
 ║            con automejora recursiva de nivel 3 (operador T y meta-operador S de Banach).             ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Testigo del Pipeline OODA (OODATriphasicHomomorphicPipelineWitnessAgentPhD)
+gobierna la observación pasiva sin demolición cuántica (QND AAV, Back-Action == 0.0 dB) sobre el motor
+espectral OODATriphasicHomomorphicPipelineWitnessEnginePhD (app/wisdom/ooda_triphasic_homomorphic_pipeline_witness_engine.py).
+Orquesta un ciclo OODA de atestación estructurado en 3 fases continuas acopladas por compuertas homomórficas
+Phi_12 y Phi_23, cuantizando estados de densidad hacia el fibrado cotangente simpléctico T*(M), evaluando
+la integración simpléctica de Yoshida O(4), auditando la estabilidad de toros KAM diofánticos y tiempos de
+Nekhoroshev, y gobernando la meta-adaptación de nivel 3 (RSI-L3) mediante atestación criptográfica HMAC-SHA384.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Álgebra C* y Cuantización de Weyl-Williamson en T*(M):
+   El estado de densidad cuántico rho se proyecta al espacio de fases simpléctico mediante la transformada de Wigner:
+       W_rho(q, p) = 1/(2pi)^n int exp(i p . y) <q - y/2| rho |q + y/2> dy.
+   La condición QND garantiza Back-Action == 0.0 dB mediante conmutación libre [A_w, H] = 0.
+
+2. Integración Simpléctica de Yoshida O(4) y Monodromía:
+   El flujo simpléctico preserva la 2-forma canónica omega = sum dq_i wedge dp_i.
+   La monodromía simpléctica M en Sp(2d, R) satisface M^T J M = J con det(M) = 1.0.
+
+3. Teorema KAM Diofántico y Confinamiento de Nekhoroshev:
+   El vector de frecuencias intrínsecas omega satisface la cota diofántica de Bruno:
+       |k . omega| >= gamma / |k|_1^tau,  para todo k en Z^d no nulo.
+   La persistencia de toros y tiempos de Nekhoroshev T_Nek = T_0 exp((epsilon_0/epsilon)^a) acotan la difusión de Arnold.
+
+4. Mónada de Automejora Recursiva L3 (RSI-L3):
+   El operador de contracción T es punto fijo de un meta-operador S en el álgebra de Banach: S(T) = T, Lip(S) < 1.0.
 
 ARQUITECTURA DE TRES FASES ANIDADAS CONTINUAS
 (el morfismo terminal de la fase k es el objeto inicial de la fase k+1; no hay discontinuidad
@@ -30,6 +58,25 @@ functorial ni reparametrización oculta):
   • FASE 3 — DECIDE & ACT
       Compuerta Φ₂₃, RSI-L3 (T y S anidados), clasificador de Heyting Ω₄,
       funtor semántico visceral Φ_sem, atestación Merkle-HMAC.
+
+AXIOMAS FORMALES
+────────────────
+Axioma OODA-WA1 (Invarianza Pasiva QND):
+    La medición del testigo conmuta con el Hamiltoniano libre, garantizando Back-Action == 0.0 dB.
+Axioma OODA-WA2 (Conservación de Volumen Simpléctico):
+    La matriz tangente de monodromía satisface estrictamente det(M) = 1.0 sin disipación artificial de volumen.
+Axioma OODA-WA3 (Persistencia de Toros KAM):
+    Un régimen se certifica COHERENT si y solo si la distancia a variedades de resonancia supera gamma_KAM >= 0.01.
+Axioma OODA-WA4 (Contracción Anidada de Banach):
+    El meta-operador S opera como contracción estricta en el espacio métrico completo de Banach.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante OODA-WAI1: Back-Action QND == 0.0 dB certificado en todo snapshot emitido.
+Invariante OODA-WAI2: Normalización de traza cuántica Tr(rho) == 1.0 y positividad semidefinida PSD.
+Invariante OODA-WAI3: Fidelidad cuántica de Uhlmann F(rho, rho_ref) >= 0.95 en estado de coherencia.
+Invariante OODA-WAI4: El agente testigo opera en estricta pasividad y NUNCA dispara el disyuntor ESP32 Crowbar.
+Invariante OODA-WAI5: Sello de integridad criptográfica HMAC-SHA384 en cada certificado de atestación expedido.
 """
 
 from __future__ import annotations
@@ -59,7 +106,7 @@ for path_dir in ("/workspace/scratch", "/workspace/artifacts", ".", "app/wisdom"
 # ────────────────────────────────────────────────────────────────────────────────────────────────────
 _ENGINE_AVAILABLE: bool = True
 try:
-    from ooda_triphasic_homomorphic_pipeline_witness_engine import (  # type: ignore
+    from app.wisdom.ooda_triphasic_homomorphic_pipeline_witness_engine import (  # type: ignore
         HeytingOmega4,
         HomomorphicGateCertificate,
         KAMAuditResult,
@@ -75,7 +122,7 @@ try:
     )
 except ImportError:
     try:
-        from app.wisdom.ooda_triphasic_homomorphic_pipeline_witness_engine import (  # type: ignore
+        from ooda_triphasic_homomorphic_pipeline_witness_engine import (  # type: ignore
             HeytingOmega4,
             HomomorphicGateCertificate,
             KAMAuditResult,

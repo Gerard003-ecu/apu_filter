@@ -1,58 +1,77 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : FPU Tensor Fock Collider Prosecutor Engine v14.1.0-SOVEREIGN-POINCARE-N3-PhD              ║
 ║ Ubicación: app/wisdom/fpu_tensor_fock_collider_prosecutor_engine.py                                  ║
-║ Función  : Motor fiscal inquisidor de ℱ(ℋ) con (a) verificación CAR/CCR CANÓNICA rigurosa sobre      ║
-║            operadores b/b† (bosón truncado) y a/a† (JW fermión 1-modo), (b) Mecánica Celeste de      ║
-║            Poincaré sobre el oscilador de Kerr forzado — NUNCA sobre spec(ρ) —, (c) Automejora N3    ║
-║            Poincaré-acoplada y (d) DEBIDO PROCESO: el Crowbar ESP32 (< 392.15 ns @ GPIO14) sólo      ║
-║            dispara con HARD EVIDENCE (CAR/CCR/auth deterministas) o con evidencia espectral          ║
-║            suficiente Y fiable (I6).                                                                 ║
+║ Versión  : 14.1.0-SOVEREIGN-POINCARE-N3-PhD                                                          ║
+║ Función  : Motor fiscal inquisidor de ℱ(ℋ) con verificación CAR/CCR CANÓNICA rigurosa sobre          ║
+║            operadores b/b† (bosón truncado) y a/a† (JW fermión 1-modo), Mecánica Celeste de          ║
+║            Poincaré sobre el oscilador de Kerr forzado, Automejora N3 Poincaré-acoplada y            ║
+║            DEBIDO PROCESO con disparo ciber-físico Crowbar ESP32 (< 392.15 ns @ GPIO14).              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA POR FASES ANIDADAS (3 × 3 sub-capas) — HANDOFF ESTRICTO Φ₁₂ / Φ₂₃:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Fiscal del Colisionador FPU en el Espacio de Fock ℱ(ℋ) actúa como la jurisdicción
+fiscal y tribunal termodinámico de la arquitectura APU Filter. Su misión es detectar e imputar desgarros
+en el álgebra no conmutativa de creación y aniquilación fermiónica (CAR) y bosónica (CCR). Evalúa la dinámica
+no lineal de Fermi-Pasta-Ulam mediante un oscilador no autónomo de Kerr forzado, audita la recurrencia
+espectral de Poincaré sobre el plano de fase transversal, procesa aniquilaciones de Dirac e⁻ + e⁺ → 2γ con
+disipación monótona de Spohn σ ≥ 0, e impone el debido proceso judicial para la activación del disyuntor
+ciber-físico Crowbar en silicio ESP32 en tiempo ultra-rápido (< 392.15 ns).
 
-  FASE 1 — FOUNDATIONS (álgebra canónica + primitivas termodinámicas + aniquilación Dirac)
-    1.1 `build_canonical_fock_operators_v14`          — b, b†, a, a†, x̂, p̂, N̂
-    1.2 `compute_spohn_and_dirac_primitives_v14`      — Spohn≥0 + Dirac + auth_confidence
-    1.3 [HANDOFF Φ₁₂] `extract_fpu_prosecution_primitives_v14`
-         ≡ primer acto de FASE 2 (`build_fock_poincare_return_map_v14`)
-         → FPUProsecutionPrimitivesBundle  (incluye FockActionAngleDecomposition)
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Álgebra Canónica en el Espacio de Fock ℱ(ℋ):
+   Sea ℱ(ℋ) el espacio de Fock graduado. Se definen operadores bosónicos truncados a dimensión d = N:
+       b |n\rangle = \sqrt{n} |n-1\rangle, \quad b^\dagger |n\rangle = \sqrt{n+1} |n+1\rangle \quad (n < d-1).
+   Relación Canónica de Conmutación (CCR) truncada:
+       [b, b^\dagger] = I_d - d |d-1\rangle\langle d-1|.
+   Operadores fermiónicos de Jordan-Wigner (CAR):
+       \{a_i, a_j^\dagger\} = \delta_{ij} I_2, \quad \{a_i, a_j\} = 0, \quad a_i^2 = 0.
+   Cuadraturas canónicas de posición y momento:
+       \hat{x} = \frac{1}{\sqrt{2}} (b + b^\dagger), \quad \hat{p} = \frac{i}{\sqrt{2}} (b^\dagger - b).
+   Conmutador simpléctico canónico: [\hat{x}, \hat{p}] = i [b, b^\dagger].
 
-  FASE 2 — SPECTRAL EVIDENCE (Kerr forzado + Poincaré + KAM + Banach dinámico + N2)
-    2.1 `build_fock_poincare_return_map_v14`           — continuación de Φ₁₂; Σ={p=0, ṗ>0}
-    2.2 `recursive_self_tune_parameters`              — N2 umbrales Poincaré-modulados
-    2.3 [HANDOFF Φ₂₃] `synthesize_fpu_spectral_evidence_v14`
-         ≡ primer acto de FASE 3 (`run_phase3_meta_verification_v14`)
-         → FPUSpectralEvidenceBundle
+2. Dinámica Celeste de Poincaré en el Oscilador de Kerr Forzado:
+   El colisionador implementa un Hamiltoniano no integrable con excitación armónica áurea:
+       H(t) = \omega \hat{N} + \chi \hat{N}(\hat{N} - I) + \epsilon \cos(\omega_d t)(\hat{b} + \hat{b}^\dagger), \quad \omega_d / \omega = \phi^{-1}.
+   Dado que [H(t), \hat{N}] \neq 0, la sección transversal de Poincaré se define rigurosamente sobre:
+       \Sigma = \{ (x, p, N) \in \mathbb{R}^3 : p = 0, \quad \dot{p} > 0 \}.
+   El mapa de retorno P: \Sigma \to \Sigma registra cruces transversales, calcula multiplicadores
+   de monodromía simpléctica Sp(2, \mathbb{R}), coeficientes de Lindstedt O(ε²) y tiempo de Nekhoroshev T_{Nek}.
 
-  FASE 3 — CERTIFICATION (meta N3 + debido proceso + adjudicación)
-    3.1 `run_phase3_meta_verification_v14`            — continuación de Φ₂₃; N3 meta-tasa
-    3.2 `_judicial_due_process_gate_v14`              — HARD vs SOFT (I5 / I6, sin R3⟂R5)
-    3.3 [SALIDA] `collide_prosecute_and_annihilate_dirac_v14`
-         → FPUProsecutionExecutionCertificateV14
+3. Termodinámica de Lindblad-GKSL, Producción de Spohn y Aniquilación:
+   La evolución irreversible sigue la ecuación diferencial maestra cuántica:
+       \frac{d\rho}{dt} = -i [H, \rho] + \mathcal{D}(\rho), \quad \mathcal{D}(\rho) = \gamma \left( b \rho b^\dagger - \frac{1}{2}\{b^\dagger b, \rho\} \right).
+   Producción de entropía de Spohn:
+       \sigma_{\mathrm{Spohn}}(\rho \| \rho_\infty) = -\mathrm{Tr}( \mathcal{D}(\rho) (\log \rho - \log \rho_\infty) ) \ge 0.
+   La aniquilación de positrones espurios e⁻ + e⁺ → 2γ libera 1022.0 keV por par y disipa la anomalía.
 
-INVARIANTES PRESERVADOS Y AMPLIADOS (I1–I10):
-  · I1  Back-Action 0.0 dB (auth válida) / 12.5 dB (auth apócrifa) — inalterado
-  · I2  Electrones purgados = electron_anomalies si auth valida, 0 si no
-  · I3  Spohn σ ≥ 0 (GKSL clamp) — inalterado
-  · I4  Crowbar ≤ 392.15 ns certificado — inalterado
-  · I5  HARD EVIDENCE (CAR/CCR fail, auth fail) → Crowbar INCONDICIONAL
-  · I6  SOFT EVIDENCE (KAM, meta, λ_P, T_Nek) → Crowbar SOLO si
-        KAM≥kam_floor ∧ meta≥0.75 ∧ Banach<1  (y únicamente sobre VETOED blando)
-  · I7  Contrato backward-compat v13: `collide_prosecute_and_annihilate_dirac` intacto
-  · I8  [x̂, p̂] = i[b, b†]  (residuo simpléctico < 1e-6)
-  · I9  Tr(ρ)=1, ρ ⪰ 0 (Wilkinson floor); CCR [b,b†]=I−N|N−1⟩⟨N−1|
-        CAR JW 1-modo {a,a†}=I₂
-  · I10 Deriva de ocupación sobre p_n=⟨n|ρ|n⟩ y mapa (x,⟨N⟩)|_Σ —
-        NUNCA sobre spec(ρ) (unitariamente invariante, idénticamente nula)
-  · H   Kerr forzado H(t)=ωN̂+χN̂(N̂−I)+ε cos(ω_d t)(b+b†), ω_d/ω=φ⁻¹;
-        [H, N̂]≠0.  Se PROHÍBE H_eff=−ρ+(trρ/N)I.
+4. Debido Proceso Judicial y Disparo Crowbar en Hardware:
+   El interlock ESP32 Crowbar sobre GPIO14 / BT151 (t_{actuation} \le 392.15\text{ ns}) se rige por:
+     a) EVIDENCIA DURA (Hard Evidence): Falla en CAR/CCR o falla en autenticación HMAC de positrón
+        conlleva activación INCONDICIONAL del Crowbar.
+     b) EVIDENCIA BLANDA (Soft Evidence): Resonancias KAM o inestabilidad espectral requieren
+        convergencia de KAM \ge kam\_floor, confianza meta \ge 0.75 y contracción de Banach Lip < 1.0.
 
-N3 (recursivo nivel 3):
-  N1 veredicto Ω₃ · N2 umbrales (kam_floor, spohn_ceiling) · N3 meta-tasa
-  Ledger Poincaré-acoplado: poincare_modulate, adaptation_lyapunov.
+AXIOMAS FORMALES
+────────────────
+Axioma FPU-P1 (Fidelidad de Álgebra Canónica):
+    Toda representación física en ℱ(ℋ) satisface idénticamente {a, a†} = I₂ y ||[x, p] - i[b, b†]||_F < 1.0e-6.
+Axioma FPU-P2 (No-Trivialidad del Flujo de Poincaré):
+    El generador Hamiltoniano no conmuta con el operador de número [H, N̂] ≠ 0, asegurando transversalidad.
+Axioma FPU-P3 (Segunda Ley Termodinámica de Spohn):
+    La tasa instantánea de producción de entropía no conmutativa satisface rigurosamente σ_Spohn ≥ 0.0.
+Axioma FPU-P4 (Debido Proceso Judicial):
+    Ninguna orden de ejecución Crowbar por evidencia blanda puede emitirse sin consenso de los tres estratos OODA.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante FPU-PI1: Back-Action QND ≡ 0.0 dB con positrón válido, 12.5 dB ante intrusión o firma apócrifa.
+Invariante FPU-PI2: Tr(ρ) ≡ 1.0 y preservación de positividad semidefinida (PSD) con piso espectral Wilkinson.
+Invariante FPU-PI3: Deriva de poblaciones de ocupación evaluada en p_n = ⟨n|ρ|n⟩ sobre la sección Σ.
+Invariante FPU-PI4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t ≤ 392.15 ns.
+Invariante FPU-PI5: Masa-energía de aniquilación de Dirac calibrada a exactamente 1022.0 keV por par de electrones.
 """
 
 from __future__ import annotations

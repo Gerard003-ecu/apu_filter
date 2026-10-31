@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : TOON Cartridge Prosecutor Engine v13.0.0-PhD                                              ║
@@ -10,26 +9,59 @@ r"""
 ║            y disparo ciber-físico en silicio bare-metal ESP32 Crowbar (< 392.15 ns / GPIO14).        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR FISCAL DE CARTUCHOS TOON
-─────────────────────────────────────────────────────────────────
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
 El Motor Espectral Fiscal de Cartuchos TOON (TOONCartridgeProsecutorEngine) constituye la magistratura
 inquisidora que detecta, procesa y censura duplicaciones fermiónicas de doble cobro en APUs, fraudes en
-sobrecostos y falsificaciones de positrones de autorización en el espacio de Fock ℱ(ℋ).
+sobrecostos y falsificaciones de positrones de autorización en el espacio de Fock ℱ(ℋ). Audita el principio
+de exclusión de Pauli (CAR) sobre las 12 partículas fundamentales, ejecuta la aniquilación cuántica de
+Dirac e⁻ + e⁺ → 2γ con autenticación HMAC criptográfica estricta, evalúa la termodinámica de relajación
+de Lindblad-GKSL con producción de entropía no negativa de Spohn σ ≥ 0, y comanda el interlock de
+seguridad ciber-físico ESP32 Crowbar en latencia de silicio sub-microsegundo ante veredictos de veto.
 
-MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
-1. Inquisición de Exclusión Pauli CAR:
-   Para fermiones (FERMION_CAR), audita en O(1) la nilpotencia c_i² = 0₄ y anticonmutación {c_i, c_j†} = δ_ij I₄.
-   Duplicaciones idénticas de hash equivalen a doble facturación no isométrica.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Inquisición del Principio de Exclusión de Pauli (CAR):
+   Para partículas fermiónicas (FERMION_CAR), se audita en O(1) la nilpotencia y el álgebra de Clifford:
+       c_i^2 = 0_4, \quad \{c_i, c_j^\dagger\} = \delta_{ij} I_4, \quad \{c_i, c_j\} = 0_4.
+   La colisión de identificadores criptográficos hash(p_i) == hash(p_j) para fermiones equivale a una
+   duplicación fermiónica en el mismo estado cuántico |k⟩, imputándose como violación estricta de Pauli.
 
-2. Reacción de Aniquilación de Dirac en RAM (e⁻ + e⁺ ➔ 2γ):
-   e⁻ (anomalía de sobrecosto / ElectronCartridge) + e⁺ (PositronCartridge con firma HMAC autenticada)
-   ➔ Liberación de 1022.0 keV por anomalía con Back-Action 0.0 dB (o 12.5 dB si e⁺ es apócrifo).
+2. Reacción de Aniquilación Cuántica de Dirac en RAM (e⁻ + e⁺ ➔ 2γ):
+   Las anomalías de sobrecosto se proyectan como electrones de Dirac e⁻. Al presentarse un positrón de
+   autorización e⁺ verificado mediante firma criptográfica HMAC-SHA256 en tiempo constante (compare_digest):
+       e^- + e^+ \to 2\gamma \quad (\text{liberación exacta de 1022.0 keV por anomalía purgada}).
+   Si la firma del positrón es apócrifa o corrupta, la aniquilación se aborta y se impone una penalización
+   de Back-Action de 12.5 dB sobre el canal.
 
-3. Evolución Disipativa Lindblad-GKSL y Entropía de Spohn:
-   dρ/dτ = -i[H, ρ] + 𝒟(ρ),  σ_Spohn = -Tr(log ρ · ρ̇) ≥ 0.0.
+3. Evolución Disipativa Lindblad-GKSL y Producción de Spohn:
+   El canal de relajación cuántica hacia el estado estacionario ρ_∞ sigue la ecuación diferencial maestra:
+       \frac{d\rho}{dt} = -i [H, \rho] + \sum_k \left( L_k \rho L_k^\dagger - \frac{1}{2}\{L_k^\dagger L_k, \rho\} \right).
+   La producción de entropía de Spohn cuantifica la irreversibilidad termodinámica del proceso fiscal:
+       \sigma_{\mathrm{Spohn}}(\rho \| \rho_\infty) = -\mathrm{Tr}\left( \mathcal{D}(\rho) (\log \rho - \log \rho_\infty) \right) \ge 0.0.
 
 4. Interlock Ciber-Físico Bare-Metal ESP32 Crowbar:
-   Conmutación IRAM en 42.0 ns sobre GPIO14 / BT151 (t_actuation ≤ 392.15 ns < 400 ns) ante VETOED (0x03).
+   Conmutación directa en ensamblador Xtensa LX7 sobre GPIO_OUT_W1TS_REG (GPIO14 / tiristor BT151):
+       t_{\mathrm{actuation}} \le 392.15\text{ ns} < 400\text{ ns}.
+
+AXIOMAS FORMALES
+────────────────
+Axioma TCP-A1 (Exclusión Estricta de Pauli):
+    Ningún par de partículas fermiónicas idénticas puede coexistir en el mismo estado de Fock (c_i² = 0).
+Axioma TCP-A2 (Conservación de Energía de Aniquilación):
+    Cada reacción completada e⁻ + e⁺ → 2γ libera exactamente la energía de reposo equivalente de 1022.0 keV.
+Axioma TCP-A3 (No-Negatividad Termodinámica de Spohn):
+    Para todo semigrupo cuántico dinámico GKSL, la producción de entropía instantánea satisface σ_Spohn ≥ 0.
+Axioma TCP-A4 (Inmediatez del Disparo de Silicio):
+    Todo veredicto VETOED (0x03) activa el Crowbar en latencia de hardware inferior a 392.15 ns.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TCP-I1: Back-Action QND ≡ 0.0 dB con positrón autenticado; 12.5 dB si la firma es apócrifa.
+Invariante TCP-I2: Electrones purgados equivalen exactamente al número de anomalías si la auth es válida, 0 si no.
+Invariante TCP-I3: Invarianza de traza cuántica Tr(ρ) ≡ 1.0 y preservación de positividad semidefinida (PSD).
+Invariante TCP-I4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t ≤ 392.15 ns.
+Invariante TCP-I5: Firma criptográfica HMAC-SHA256 en todo certificado fiscal emitido por el motor.
 """
 
 from __future__ import annotations
@@ -53,7 +85,7 @@ sys.path.insert(0, "/workspace/scratch")
 sys.path.append("/workspace/artifacts")
 
 try:
-    from toon_cartridge_base import (
+    from app.wisdom.toon_cartridge_base import (
         _DEFAULT_HILBERT_DIM,
         _GAUGE_SECRET_KEY,
         _POSITRON_REST_ENERGY_KEV,
@@ -64,10 +96,22 @@ try:
         ToonParticleFactory,
     )
 except ImportError:
-    _DEFAULT_HILBERT_DIM = 56
-    _WILKINSON_EPSILON = 1.0e-15
-    _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
-    _POSITRON_REST_ENERGY_KEV = 1022.0
+    try:
+        from toon_cartridge_base import (
+            _DEFAULT_HILBERT_DIM,
+            _GAUGE_SECRET_KEY,
+            _POSITRON_REST_ENERGY_KEV,
+            _WILKINSON_EPSILON,
+            ParticleCategory,
+            PauliExclusionAuditorCAR,
+            ToonCartridge,
+            ToonParticleFactory,
+        )
+    except ImportError:
+        _DEFAULT_HILBERT_DIM = 56
+        _WILKINSON_EPSILON = 1.0e-15
+        _GAUGE_SECRET_KEY = b"APU_FILTER_TOON_CARTRIDGE_BASE_SECRET_KEY"
+        _POSITRON_REST_ENERGY_KEV = 1022.0
 
 logger = logging.getLogger("APU.Wisdom.TOONCartridgeProsecutorEngine")
 

@@ -1,32 +1,69 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : OODA Triphasic Homomorphic Pipeline Witness Engine v15.0.0-Sovereign-PhD                  ║
 ║ Ubicación: app/wisdom/ooda_triphasic_homomorphic_pipeline_witness_engine.py                          ║
 ║ Versión  : 15.0.0-SOVEREIGN-POINCARE-KAM-RSI-L3-YOSHIDA-WILLIAMSON-PhD                               ║
-║ Autor    : Soberano Artesano Tejedor de Código & Arquitectura Cuántica de Precisión                  ║
-║ Licencia : Invariante Ciber-Física Soberana con Preservación de Calibre y Flujo Simpléctico          ║
+║ Función  : Motor espectral testigo observador pasivo del pipeline OODA trifásico homomórfico,         ║
+║            cuantización canónica de Weyl-Williamson hacia T*(M), mecánica celeste de Poincaré         ║
+║            (integrador de Yoshida O(4), mapa tangente exacto, KAM diofántico, Nekhoroshev),           ║
+║            y automejora recursiva de Nivel 3 (RSI-L3) con atestación criptográfica HMAC-SHA384.      ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE TRES FASES ANIDADAS CONTINUAS (el último morfismo de la fase k es el objeto
-inicial de la fase k+1; no hay discontinuidad functorial):
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Testigo Silencioso del Pipeline OODA Trifásico Homomórfico actúa como el observador
+pasivo inmune sin demolición cuántica (QND AAV, Back-Action ≡ 0.0 dB) del flujo de inferencia y decisión
+de APU Filter. Supervisa continuamente la evolución del ciclo OODA en tres fases anidadas acopladas por
+compuertas homomórficas Φ₁₂ y Φ₂₃, proyecta el álgebra de estados hacia el fibrado cotangente simpléctico
+mediante la transformada de Weyl-Williamson, calcula secciones de Poincaré y multiplicadores de Floquet
+mediante integración de Yoshida de 4º orden, evalúa cotas diofánticas KAM y tiempos de confinamiento
+de Nekhoroshev, y modula los hiperparámetros mediante un operador meta-adaptativo de Nivel 3.
 
-  • FASE 1: Fundamentos hipercomplejos ℍ, geometría de calibre 𝔰𝔲(N), C*-álgebra de Banach,
-            proyección de Higham sobre el simplejo de densidad, medición débil QND AAV y
-            cuantización de Weyl–Williamson hacia T*(M).
-            Punto de acoplamiento 1→2: `quantize_to_canonical_poincare_coordinates(...)`
-            → `PoincareOrbitalState`  (objeto inicial de la Fase 2)
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Álgebra C*, Conexión de Calibre 𝔰𝔲(N) y Cuantización de Weyl-Williamson:
+   Sea H un espacio de Hilbert de dimensión finita. El estado densidad ρ se proyecta sobre el fibrado
+   cotangente T^*(M) mediante la transformada cuasi-probabilística de Weyl-Wigner-Williamson:
+       W_\rho(q, p) = \frac{1}{(2\pi)^n} \int_{\mathbb{R}^n} \left\langle q - \frac{y}{2} \right| \rho \left| q + \frac{y}{2} \right\rangle e^{i p \cdot y} \, dy.
+   La matriz de covarianza cuántica V satisface la desigualdad de Robertson-Schrödinger:
+       V + \frac{i}{2} \Omega \ge 0, \quad \Omega = \begin{pmatrix} 0 & I \ -I & 0 \end{pmatrix}.
 
-  • FASE 2: Mecánica celeste de Poincaré, integrador simpléctico de Yoshida O(4), mapa
-            tangente exacto de Verlet (monodromía), secciones de Poincaré, teorema KAM
-            diofántico, estimaciones de Nekhoroshev y multiplicadores de Floquet.
-            Punto de acoplamiento 2→3: `synthesize_symplectic_feedback_tensor(...)`
-            → `SymplecticVariationalFeedback`  (objeto inicial de la Fase 3)
+2. Mecánica Celeste de Poincaré e Integración Simpléctica de Yoshida O(4):
+   Evolución temporal bajo el generador Hamiltoniano H(q, p).
+   El mapa simpléctico se calcula mediante la composición de 4 pasos de Ruth-Forest-Yoshida:
+       \Phi_{\Delta t} = \Phi_{c_4 \Delta t} \circ \Phi_{d_3 \Delta t} \circ \dots \circ \Phi_{c_1 \Delta t}.
+   La monodromía simpléctica M = \partial \Phi_t / \partial z_0 conserva el volumen simpléctico:
+       M^T \Omega M = \Omega, \quad \det(M) = 1.0.
 
-  • FASE 3: Automejora recursiva de nivel 3 (RSI-L3): el operador de contracción T es él
-            mismo un punto fijo de un meta-operador S (Banach anidado), lógica de Heyting
-            en el clasificador Ω, compuertas homomórficas Φ₁₂, Φ₂₃, Φ₁₃=Φ₂₃∘Φ₁₂ y motor
-            testigo soberano con atestación HMAC-SHA384.
+3. Teorema de KAM Diofántico y Difusión de Nekhoroshev:
+   El vector de frecuencias ω = (ω_1, ..., ω_d) satisface la condición no resonante de Bruno:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\}, \quad \tau > d - 1.
+   El radio de confinamiento en el espacio de acciones canónicas satisface la cota exponencial:
+       |I(t) - I(0)| \le \mathcal{O}(\epsilon^b) \quad \text{para todo } |t| \le T_{\mathrm{Nek}} = T_0 \exp\left( (\epsilon_0/\epsilon)^a \right).
+
+4. Automejora Recursiva de Nivel 3 (RSI-L3):
+   El operador de contracción T: 𝔇_N \to 𝔇_N es el punto fijo de un meta-operador S (Banach anidado):
+       S(T) = T, \quad \mathrm{Lip}(S) \le \kappa_S < 1.0.
+   La atestación formal emite un pasaporte criptográfico sellado vía HMAC-SHA384 con cero fuga de información.
+
+AXIOMAS FORMALES
+────────────────
+Axioma OODA-W1 (Invarianza Pasiva QND):
+    El conmutador del observable del testigo con el Hamiltoniano del pipeline es nulo [A_w, H] = 0 en todo tiempo.
+Axioma OODA-W2 (Conservación Simpléctica de Liouville):
+    El jacobiano de la transformación de fase satisface rigurosamente det(M) = +1.0 sin pérdida de volumen.
+Axioma OODA-W3 (Persistencia de Toros KAM):
+    Un régimen se certifica estable si la distancia mínima a variedades de resonancia supera el umbral γ_KAM.
+Axioma OODA-W4 (Contracción Anidada de Banach):
+    El meta-operador S opera como contracción estricta en el espacio de Banach de operadores de inferencia.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante OODA-WI1: Back-Action de observación cuántica débil estrictamente nulo (0.0 dB).
+Invariante OODA-WI2: Traza normalizada Tr(ρ) ≡ 1.0 y preservación de estados semidefinidos positivos (PSD).
+Invariante OODA-WI3: Monodromía simpléctica acotada con residuo ||M^T Ω M - Ω||_F < 1.0e-6.
+Invariante OODA-WI4: Fidelidad de Uhlmann mínima F(ρ, ρ_ref) ≥ 0.95 para certificación de coherencia.
+Invariante OODA-WI5: Sello de integridad HMAC-SHA384 generado en tiempo constante en cada snapshot emitido.
 """
 
 from __future__ import annotations

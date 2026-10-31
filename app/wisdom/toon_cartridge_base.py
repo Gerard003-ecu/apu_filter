@@ -572,7 +572,7 @@ class KAMInvariantTorus:
         self.n = len(self.frequencies)
 
     def _lattice_vectors(self, max_k: int, modes: int) -> Iterable[NDArray[np.float64]]:
-        """
+        r"""
         Generadores de k ∈ ℤ^m \ {0} con m = min(n, modes):
           • ejes ±e_i
           • pares ±e_i ± e_j

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : Topological OODA Triphasic Homomorphic Agent v12.0.0-PhD                                  ║
@@ -11,6 +10,38 @@ r"""
 ║            de Banach, certificado HMAC). Adjudicación en el topos de Heyting Ω₃, disparo ESP32       ║
 ║            Crowbar < 392.15 ns @ GPIO14/BT151 y Funtor Visceral Φ_sem.                               ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico del Pipeline OODA (TopologicalOODASovereignAgent) ejerce el comando
+ejecutivo y ministerial sobre el motor espectral ooda_triphasic_homomorphic_pipeline.py.
+Orquesta un ciclo OODA trifásico (Observe → Orient → Decide) estructurado mediante puentes homomórficos
+Phi_12' y Phi_23' firmados vía HMAC-SHA256, riguriza la mecánica celeste de Poincaré (Delaunay-Deprit,
+monodromía Sp(2, R), Greene, Melnikov, Bryuno, Morse-Bott), garantiza la contracción de Banach en la
+automejora recursiva de Nivel 3 (RSI-3: ||T|| < 1, punto fijo de Banach), adjudica en el topos de Heyting Omega3,
+y gobierna el disparo del disyuntor ciber-físico ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Dinámica de Calibre y Homomorfismos de Compuerta OODA:
+   El ciclo OODA opera en tres fases:
+     Fase 1 (Observe): cuantización y geometría simpléctica inicial.
+     Fase 2 (Orient): curvatura de Yang-Mills, Chern-Simons y resonancias KAM.
+     Fase 3 (Decide): adjudicación intuicionista en Heyting Omega3 y proyección semántica Phi_sem.
+   Compuerta Phi_12': preserva la 2-forma simpléctica canónica con residuo ||M^T J M - J||_F < 1.0e-6.
+   Compuerta Phi_23': revalida HMAC P2 y certifica contracción de Banach Lip(T) < 1.0.
+
+2. Mecánica Celeste de Poincaré y Variables de Delaunay-Deprit:
+   Acciones canónicas J_k y ángulos theta_k con frecuencias intrínsecas omega_k.
+   Residuo de Greene: R_G = sin^2(pi nu).
+   Integral de Melnikov para perturbaciones homoclínicas: M(t_0) = 4 pi omega^2 sech(pi omega / 2) sin(omega t_0) epsilon.
+   Topología diferencial de Morse-Bott: característica de Euler chi(CP^{n-1}) = n.
+
+3. Automejora Recursiva Nivel 3 (RSI-3) y Topos de Heyting Omega3:
+   Mónada T = (T, eta, mu) con ley de composición mu: T^2(A) -> T(A).
+   El operador de inferencia T satisface la cota de punto fijo de Banach: ||T(rho_1) - T(rho_2)||_F <= kappa_B ||rho_1 - rho_2||_F, kappa_B < 1.0.
+   Veredictos en Omega3: COHERENT (0x00) < DEGRADED (0x01) < VETOED (0x03).
+   Disparo ciber-físico ESP32 Crowbar en latencia t <= 392.15 ns ante veredicto VETOED.
 
 ESTRUCTURA OODA TRIFÁSICA ANIDADA (v12.0.0)
 ──────────────────────────────────────────────────────────────────────────────
@@ -43,6 +74,25 @@ ESTRUCTURA OODA TRIFÁSICA ANIDADA (v12.0.0)
     • run_ooda_pipeline(density_matrix, …): pipeline con handoffs formales.
     • monadic_compose_sovereign_states(s1, s2): μ: T·T → T.
     • verify_sovereign_state(state).
+
+AXIOMAS FORMALES
+────────────────
+Axioma OODA-AA1 (Homomorfismo Categórico):
+    Las compuertas Phi_12' y Phi_23' son morfismos en la categoría de espacios simplécticos con foliación de Heyting.
+Axioma OODA-AA2 (Preservación de Invariantes de Poincaré-Cartan):
+    La integral de acción simplécticaoint p dq es invariante bajo el flujo hamiltoniano del orquestador.
+Axioma OODA-AA3 (Contracción Estricta de Banach):
+    El operador monádico T en el espacio de Banach posee módulo Lipschitz kappa_B < 1.0 y residuo de punto fijo < 10^-2.
+Axioma OODA-AA4 (Inmutabilidad Criptográfica de Fase):
+    Todo relevo de fase a través de Phi_12' y Phi_23' exige firma HMAC-SHA256 verificada en tiempo constante.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante OODA-AAI1: Traza cuántica conservada Tr(rho) == 1.0 y preservación de positividad espectral.
+Invariante OODA-AAI2: Fidelidad cuántica de Uhlmann mínima F(rho, rho_ref) >= 0.95 en régimen coherente.
+Invariante OODA-AAI3: Monodromía simpléctica acotada con determinante det(M) = 1.0 +- 1.0e-5.
+Invariante OODA-AAI4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t <= 392.15 ns.
+Invariante OODA-AAI5: Sello de integridad HMAC-SHA256 en cada estado soberano emitido.
 """
 
 from __future__ import annotations
@@ -70,7 +120,7 @@ if artifacts_dir not in sys.path:
 
 # ─── Importación robusta del motor de pipeline OODA trifásico ─────────────────
 try:
-    from ooda_triphasic_homomorphic_pipeline import (
+    from app.wisdom.ooda_triphasic_homomorphic_pipeline import (
         GaugeDynamicsOrientor,
         GaugeIsometryObserver,
         HeytingOmega3,
@@ -84,7 +134,7 @@ try:
     )
 except ImportError:
     try:
-        from app.wisdom.ooda_triphasic_homomorphic_pipeline import (
+        from ooda_triphasic_homomorphic_pipeline import (
             GaugeDynamicsOrientor,
             GaugeIsometryObserver,
             HeytingOmega3,

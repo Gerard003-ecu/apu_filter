@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : ToonCartridgeAgent v13.0.0-PhD                                                        ║
@@ -10,6 +9,32 @@ r"""
 ║            Greene R_G=sin²(πν), Melnikov, Bryuno, Morse–Bott χ(ℂPⁿ⁻¹)=n) y                       ║
 ║            AUTOMEJORA RECURSIVA DE NIVEL 3 (RSI-3 Banach: T, T², T³, Lip(T)<1).                  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Cartuchos TOON (ToonCartridgeAgent) ejerce el gobierno y comando
+ejecutivo sobre el motor espectral toon_cartridge_base.py (ToonCartridgeBase). Orquesta un ciclo
+OODA de 3 fases anidadas (Observe -> Orient -> Decide) acopladas mediante puentes homomórficos
+Phi_12' y Phi_23' firmados vía HMAC-SHA256, riguriza la mecánica celeste de Poincaré profunda
+(variables de Delaunay-Deprit Lie-I, monodromía simpléctica Sp(2, R) con det=1, residuo de Greene
+R_G=sin^2(pi nu), integral de Melnikov, función diofántica de Bryuno y topología de Morse-Bott),
+y gobierna la automejora recursiva de Nivel 3 (RSI-3 Banach: Lip(T) < 1, punto fijo de Banach).
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Embedding de Hilbert y Variables Canónicas de Delaunay-Deprit:
+   Proyección de las 12 partículas fundamentales sobre la esfera S^{2N-1} en C^N:
+       J_k = |a_k|^2,  theta_k = arg(a_k),  omega_k = sqrt(1+k) + (phi - 1)/(1+k).
+   Transformaciones de Lie-Deprit para absorber perturbaciones no lineales conservando la 2-forma de Darboux.
+
+2. Monodromía Simpléctica Sp(2, R) y Criterio KAM/BHT:
+   La matriz fundamental de monodromía M satisface M^T Omega M = Omega y det(M) = 1.0.
+   El toro invariante disipativo persiste bajo el criterio BHT si gamma_diofantica > ||epsilon||.
+
+3. Automejora Recursiva Nivel 3 (RSI-3) y Topos de Heyting Omega3:
+   Mónada cartesiana T = (T, eta, mu) con operador de contracción ||T(x) - T(y)||_F <= kappa_B ||x - y||_F.
+   Adjudicación sobre el retículo Omega3: COHERENT (0x00) < DEGRADED (0x01) < VETOED (0x03).
+   Disparo ciber-físico ESP32 Crowbar en latencia t <= 392.15 ns ante veredicto VETOED.
 
 ESTRUCTURA OODA TRIFÁSICA ANIDADA (v13.0.0)
 ────────────────────────────────────────────────────────────────────────
@@ -42,6 +67,25 @@ ESTRUCTURA OODA TRIFÁSICA ANIDADA (v13.0.0)
   ORQUESTADOR (ToonCartridgeAgent  ⊃  Fase 3)
     • `run_cartridge_cycle(...)`: pipeline completo con handoffs formales anidados.
     • `monadic_compose_sovereign_states(...)`: μ: T·T → T (Kleisli).
+
+AXIOMAS FORMALES
+────────────────
+Axioma TCAA-A1 (Preservación del Volumen Simpléctico de Liouville):
+    La monodromía temporal de fase satisface rigurosamente det(M) = 1.0 sin pérdida de información.
+Axioma TCAA-A2 (No Resonancia Diofántica KAM):
+    El vector de frecuencias nobles preserva toros invariantes cuasi-periódicos con exponente tau >= 2.
+Axioma TCAA-A3 (Contracción Estricta de Banach):
+    El operador monádico T en el espacio de Banach posee módulo Lipschitz kappa_B < 1.0.
+Axioma TCAA-A4 (Inmutabilidad Criptográfica de Fase):
+    Todo relevo de fase a través de Phi_12' y Phi_23' exige firma HMAC-SHA256 verificada en tiempo constante.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante TCAA-I1: Traza cuántica conservada Tr(rho) == 1.0 y preservación de positividad espectral sobre F(H).
+Invariante TCAA-I2: Fidelidad cuántica de Uhlmann mínima F(rho, rho_ref) >= 0.95 en régimen coherente.
+Invariante TCAA-I3: Monodromía simpléctica acotada con determinante det(M) = 1.0 +- 1.0e-5.
+Invariante TCAA-I4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t <= 392.15 ns.
+Invariante TCAA-I5: Sello de integridad HMAC-SHA256 en cada estado soberano ToonCartridgeSovereignState expedido.
 """
 
 from __future__ import annotations

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : OODA Triphasic Homomorphic Pipeline Prosecutor Agent v15.0.0-PhD                          ║
@@ -16,6 +15,60 @@ r"""
 ║   Fase II ──► synthesize_prosecution_symplectic_feedback   ──► Fase III                              ║
 ║   Φ₁₃ := Φ₂₃ ∘ Φ₁₂  (defecto funtorial |i₁₃ − i₁₂ i₂₃|)                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Fiscal del Pipeline OODA (OODATriphasicHomomorphicPipelineProsecutorAgentPhD)
+ejerce la jurisdicción inquisitorial y acusación formal sobre el motor espectral
+OODATriphasicHomomorphicPipelineProsecutorEnginePhD (app/wisdom/ooda_triphasic_homomorphic_pipeline_prosecutor_engine.py).
+Orquesta un ciclo OODA judicial trifásico anidado en el retículo de Heyting Omega4, imputando desgarros
+simplécticos en compuertas homomórficas Phi_12/Phi_23, auditando la reacción de Dirac e- + e+ -> 2gamma
+en el espacio de Fock con producción entrópica no negativa de Spohn sigma >= 0, evaluando la dinámica
+celeste de Poincaré (Yoshida O(4), secciones de Henon, KAM, Nekhoroshev), y gobernando el disparo
+ciber-físico simulado del interlock ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Geometría de Calibre su(N) y Complejo de de Rham:
+   Conexión de calibre A y curvatura F = dA + A wedge A.
+   Identidad de Bianchi diferencial: d_A F = 0.
+   La 3-forma de Chern-Simons con acoplamiento escalar de Higgs satisface:
+       CS_3^Higgs(A, Phi) = 1/(8 pi^2) int Tr( A wedge dA + 2/3 A^3 + Phi F ).
+
+2. Dinámica Celeste de Poincaré e Integración Simpléctica:
+   Integrador de Yoshida de 4º orden para el mapa de fase (q, p).
+   Monodromía simpléctica M en Sp(2n) con det(M) = 1.0.
+   Sección transversal de Henon y persistencia KAM bajo la cota de Bruno: |k . omega| >= gamma / |k|_1^tau.
+
+3. Reacción Cuántica de Dirac y Entropía de Spohn:
+   Aniquilación de anomalías e- mediante positrones e+ autenticados vía HMAC-SHA256 en tiempo constante:
+       e- + e+ -> 2gamma (1022.0 keV por par).
+   Producción de entropía de Spohn sigma_Spohn >= 0 en relajación GKSL.
+
+4. Retículo de Heyting Omega4 y Disparo ESP32 Crowbar:
+   Retículo: COHERENT=0, DEGRADED=1, CRITICAL=2, VETOED=3.
+   Compuerta homomórfica Phi_12: preserva ínfimos de verdad.
+   Compuerta Phi_23: valida contracción de Banach Lip <= 0.999.
+   Disparo ESP32 Crowbar en IRAM a t <= 392.15 ns ante veredicto VETOED.
+
+AXIOMAS FORMALES
+────────────────
+Axioma OODA-PA1 (Homomorfismo Estricto de Compuerta):
+    Las compuertas Phi_12 y Phi_23 conmutan con la negación pseudocomplementaria del retículo Omega4.
+Axioma OODA-PA2 (Conservación de Energía de Dirac):
+    Cada aniquilación autorizada en el Vacío de Dirac libera estrictamente 1022.0 keV de energía equivalente.
+Axioma OODA-PA3 (Segunda Ley Cuántica de Spohn):
+    La tasa instantánea de producción entrópica no conmutativa satisface rigurosamente sigma_Spohn >= 0.
+Axioma OODA-PA4 (Debido Proceso de Veredicto):
+    El veredicto VETOED exige consenso estricto en compuertas homomórficas o evidencia dura comprobada.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante OODA-PAI1: Back-Action QND == 0.0 dB con positrón válido; 12.5 dB si la firma es apócrifa o corrupta.
+Invariante OODA-PAI2: Invarianza de traza cuántica Tr(rho) == 1.0 y positividad espectral sobre el álgebra de Fock.
+Invariante OODA-PAI3: Determinante simpléctico de monodromía acotado en det(M) = 1.0 +- 1.0e-5.
+Invariante OODA-PAI4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t <= 392.15 ns.
+Invariante OODA-PAI5: Firma criptográfica HMAC-SHA384 en todo certificado judicial emitido por el agente.
 """
 
 from __future__ import annotations
@@ -94,7 +147,7 @@ _ENGINE_AVAILABLE: bool = False
 _engine_dirac_hmac: Any = None
 
 try:
-    from ooda_triphasic_homomorphic_pipeline_prosecutor_engine import (  # type: ignore
+    from app.wisdom.ooda_triphasic_homomorphic_pipeline_prosecutor_engine import (  # type: ignore
         BanachGaugeDiracProsecutionCore,
         HeytingOmega4,
         OODAProsecutionExecutionCertificatePhD,
@@ -111,15 +164,40 @@ try:
     )
 
     try:
-        from ooda_triphasic_homomorphic_pipeline_prosecutor_engine import (  # type: ignore
+        from app.wisdom.ooda_triphasic_homomorphic_pipeline_prosecutor_engine import (  # type: ignore
             dirac_positron_hmac as _engine_dirac_hmac,
         )
     except ImportError:
         _engine_dirac_hmac = None
     _ENGINE_AVAILABLE = True
 except ImportError:
-    _ENGINE_AVAILABLE = False
-    _engine_dirac_hmac = None
+    try:
+        from ooda_triphasic_homomorphic_pipeline_prosecutor_engine import (  # type: ignore
+            BanachGaugeDiracProsecutionCore,
+            HeytingOmega4,
+            OODAProsecutionExecutionCertificatePhD,
+            OODAProsecutionIndictmentGermPhD,
+            OODAProsecutionStatus,
+            OODATriphasicHomomorphicPipelineProsecutorEnginePhD,
+            PoincareCelestialProsecutorEngine,
+            PoincareProsecutionOrbitalCarrier,
+            ProsecutionKAMAuditResult,
+            ProsecutionMonodromyResult,
+            ProsecutionRSIL3DecisionCore,
+            ProsecutionSymplecticFeedbackCarrier,
+            ProsecutorRSIConfiguration,
+        )
+
+        try:
+            from ooda_triphasic_homomorphic_pipeline_prosecutor_engine import (  # type: ignore
+                dirac_positron_hmac as _engine_dirac_hmac,
+            )
+        except ImportError:
+            _engine_dirac_hmac = None
+        _ENGINE_AVAILABLE = True
+    except ImportError:
+        _ENGINE_AVAILABLE = False
+        _engine_dirac_hmac = None
 
     # ── Retículo de Heyting Ω₄ (verdad, no severidad): ⊥=VETOED ≺ CRITICAL ≺ DEGRADED ≺ COHERENT=⊤
     class HeytingOmega4(IntEnum):  # type: ignore[no-redef]
@@ -145,11 +223,16 @@ except ImportError:
             return other
 
     try:
-        from ooda_triphasic_homomorphic_pipeline_witness_engine import HeytingOmega4 as _WHeyting  # type: ignore
+        from app.wisdom.ooda_triphasic_homomorphic_pipeline_witness_engine import HeytingOmega4 as _WHeyting  # type: ignore
 
         HeytingOmega4 = _WHeyting  # type: ignore[misc, assignment]
     except ImportError:
-        pass
+        try:
+            from ooda_triphasic_homomorphic_pipeline_witness_engine import HeytingOmega4 as _WHeyting  # type: ignore
+
+            HeytingOmega4 = _WHeyting  # type: ignore[misc, assignment]
+        except ImportError:
+            pass
 
     class OODAProsecutionStatus(IntEnum):  # type: ignore[no-redef]
         PENDING = 0

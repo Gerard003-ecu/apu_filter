@@ -1,47 +1,71 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : FPU Tensor Fock Collider Witness Engine v14.1.0-SOVEREIGN-POINCARE-N3-PhD                 ║
 ║ Ubicación: app/wisdom/fpu_tensor_fock_collider_witness_engine.py                                     ║
+║ Versión  : 14.1.0-SOVEREIGN-POINCARE-N3-PhD                                                          ║
 ║ Función  : Motor espectral observador pasivo de Medición Débil QND (Back-Action ≡ 0.0 dB) sobre      ║
-║            el espacio de Fock ℱ(ℋ) con (a) Mecánica Celeste de Poincaré (secciones N̂/cuadraturas,   ║
-║            Lyapunov–Benettin, Lindstedt, Birkhoff, KAM, Nekhoroshev), (b) Automejora Recursiva N3    ║
-║            (N1 veredicto, N2 umbrales, N3 meta-tasa + Lyapunov del ledger) y (c) verificación        ║
-║            CAR/CCR sobre operadores CANÓNICOS b/b† (bosónico) y a/a† Jordan-Wigner (fermiónico).     ║
+║            el espacio de Fock ℱ(ℋ) con Mecánica Celeste de Poincaré (secciones N̂/cuadraturas,       ║
+║            Lyapunov–Benettin, Lindstedt, Birkhoff, KAM, Nekhoroshev), Automejora Recursiva N3        ║
+║            y verificación CAR/CCR sobre operadores CANÓNICOS b/b† (bosónico) y a/a† (fermiónico).    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA POR FASES ANIDADAS (3 × 3 sub-capas) — HANDOFF ESTRICTO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Testigo del Colisionador FPU en el Espacio de Fock ℱ(ℋ) garantiza la observación
+no perturbativa (Quantum Non-Demolition) del estado cuántico global y la dinámica no lineal FPU.
+Descompone el estado de densidad en variables canónicas de acción-ángulo de Fock, evalúa la geometría
+celeste de Poincaré a través de secciones transversales sobre cuadraturas conjugadas (x̂, p̂), analiza la
+estabilidad cuasi-periódica bajo el régimen de Kolmogorov-Arnold-Moser (KAM) y tiempos de confinamiento
+de Nekhoroshev, y modula los hiperparámetros de monitoreo mediante automejora recursiva de Nivel 3.
 
-  FASE 1 — FUNDAMENTOS (Fock action-angle, Lyapunov espectral, ledger N3)
-    1.1 `build_fock_canonical_operators`              — b, b†, a, a†, x̂, p̂, N̂
-    1.2 `extract_fock_action_angle_decomposition`     — J_i, θ_i, ω_i, hist, Lyapunov, cuadraturas
-    1.3 [HANDOFF] → FockActionAngleDecomposition
-        ※ El objeto devuelto ES el primer argumento formal de FASE 2.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Estructura Cuántica y Relaciones Canónicas (CCR / CAR):
+   El álgebra de Fock se construye sobre la base de Fock {|0⟩, |1⟩, ..., |d-1⟩}.
+   Operador bosónico de aniquilación y creación:
+       b |n\rangle = \sqrt{n} |n-1\rangle, \quad b^\dagger |n\rangle = \sqrt{n+1} |n+1\rangle.
+   Relación de conmutación canónica truncada: [b, b^\dagger] = I_d - d |d-1\rangle\langle d-1|.
+   Operador fermiónico de Jordan-Wigner 1-modo: \{a, a^\dagger\} = I_2, \quad a^2 = 0.
+   Operadores hermíticos conjugados:
+       \hat{x} = \frac{b + b^\dagger}{\sqrt{2}}, \quad \hat{p} = \frac{i(b^\dagger - b)}{\sqrt{2}}, \quad [\hat{x}, \hat{p}] = i [b, b^\dagger].
 
-  FASE 2 — OPERADORES (Poincaré sobre Fock, Lindstedt, Birkhoff, KAM, tuning N3)
-    2.1 `build_fock_poincare_return_map(decomposition, …)`  — continúa 1.3
-    2.2 `lindstedt_poincare_fock` + `birkhoff_fock` + `compute_kam_stability_fock`
-    2.3 [HANDOFF] `recursive_self_tune_parameters` → FockTuningPolicy
-        ※ La política devuelta ES el primer argumento adaptativo de FASE 3.
+2. Descomposición de Acción-Ángulo en Fock y Mecánica Celeste:
+   Para cada modo k del espacio de Fock, las acciones canónicas y fases se obtienen mediante:
+       J_k = \langle k | \rho | k \rangle, \quad \theta_k = \arg(\langle k-1 | \rho | k \rangle), \quad \omega_k = \frac{\partial \langle H \rangle}{\partial J_k}.
+   El espectro de Lyapunov se computa mediante el algoritmo de Benettin sobre la evolución del mapa
+   de variación tangente:
+       \lambda_{\max} = \lim_{t \to \infty} \frac{1}{t} \ln \frac{||\delta z(t)||_2}{||\delta z(0)||_2}.
 
-  FASE 3 — META-VERIFICACIÓN (witness del witness, N3 audit, snapshot v14)
-    3.1 `meta_witness_evaluation(tuning, …)`          — continúa 2.3
-    3.2 `recursive_level_3_audit`
-    3.3 [SALIDA] `evaluate_fpu_witness_v14` → FPUTensorWitnessSnapshotV14
+3. Secciones de Poincaré Transversales y Confinamiento de Nekhoroshev:
+   La sección de Poincaré se define como \Sigma = \{ (x, p, N) : p = 0, \dot{p} > 0 \}.
+   El tiempo de difusión de Arnold / Nekhoroshev se estima asintóticamente mediante:
+       T_{\mathrm{Nek}} = T_0 \exp\left( \left(\frac{\epsilon_0}{\epsilon}\right)^a \right), \quad a = \frac{1}{2n}.
+   La persistencia de toros diofánticos KAM exige el cumplimiento de |\langle k, \omega \rangle| \ge \frac{\gamma}{||k||_1^\tau}.
 
-INVARIANTES PRESERVADOS Y AMPLIADOS:
-  · I1  Back-Action QND ≡ 0.0 dB (base v13, inalterado)
-  · I2  Tr(ρ) ≡ 1.0, PSD Higham (base v13, inalterado)
-  · I3  σ_Spohn ≥ 0 (GKSL, base v13, inalterado)
-  · I4  [b, b†] = I − N·|N−1⟩⟨N−1| (truncación) — verificación rigurosa
-  · I5  {a, a†} = I (2-modo JW) — verificación rigurosa
-  · I6  KAM ≥ 0.75 para certificar COHERENT con KAM-aware
-  · I7  Trayectoria N3 reproducible y auditable
-  · I8  [x̂, p̂] = i[b, b†]  (estructura compleja / simpléctica de Poincaré)
-  · I9  Flujo generado por H_Kerr = ωN̂ + χN̂(N̂−I) + ε(e^{-iφ}b + e^{iφ}b†)
-        con [H, N̂] ≠ 0  ⇒  sección Σ transversal (d⟨N⟩/dt ≱ 0 genéricamente)
-  · I10 Autovalores de ρ son invariantes unitarios; el drift se mide en la
-        población de Fock p_n = ⟨n|ρ|n⟩ y en el mapa de retorno (x, ⟨N⟩)|_Σ
+4. Automejora Recursiva N3 y Modulación del Ledger:
+   El motor implementa dos capas de auditoría:
+     a) Ledger de estado interno del motor espectral.
+     b) Meta-aprendizaje de Nivel 3 que adapta los umbrales de KAM y Spohn mediante un gradiente
+        de Lyapunov V(\rho) = ||\rho - \rho^*||_F^2 con factor de amortiguamiento Armijo-Goldstein.
+
+AXIOMAS FORMALES
+────────────────
+Axioma FPU-W1 (Invarianza Observacional QND):
+    La acción de monitoreo del testigo satisface rigurosamente [H_{\mathrm{free}}, \rho] = 0 durante la medición.
+Axioma FPU-W2 (Conmutación Simpléctica de Cuadraturas):
+    El conmutador cuántico satisface [\hat{x}, \hat{p}] = i [b, b^\dagger] con residuo menor a 1.0e-6.
+Axioma FPU-W3 (No-Degeneración de Kolmogorov):
+    El gradiente de frecuencias respecto a las acciones canónicas \det(\partial \omega / \partial J) ≠ 0 no se anula.
+Axioma FPU-W4 (Producción Positiva de Spohn):
+    Todo proceso de relajación disipativa GKSL satisface idénticamente \sigma_{\mathrm{Spohn}} \ge 0.
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante FPU-WI1: Back-Action de medición débil QND idénticamente nula (0.0 dB).
+Invariante FPU-WI2: Normalización de traza cuántica Tr(ρ) ≡ 1.0 y espectro acotado por piso de Wilkinson.
+Invariante FPU-WI3: Monodromía simpléctica acotada con determinante \det(M) = 1.0 ± 1.0e-5.
+Invariante FPU-WI4: Estabilidad KAM certificada COHERENT únicamente si índice KAM ≥ 0.75.
+Invariante FPU-WI5: Sello criptográfico HMAC-SHA256 en cada snapshot de atestación emitido.
 """
 
 from __future__ import annotations

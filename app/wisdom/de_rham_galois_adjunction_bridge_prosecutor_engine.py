@@ -1,44 +1,74 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Bridge Prosecutor Engine v12.1.0-SOVEREIGN-POINCARE-N3-PhD      ║
 ║ Ubicación: app/wisdom/de_rham_galois_adjunction_bridge_prosecutor_engine.py                          ║
-║ Función  : Motor Espectral Fiscal que audita F ⊣ G mediante (a) aniquilación Dirac e⁻+e⁺→2γ en RAM,  ║
-║            (b) producción de Spohn del semigrupo GKSL, (c) mecánica celeste de Poincaré (retorno     ║
-║            interpolado, Lindstedt O(ε²), Birkhoff, KAM, twist, isoenergética, Oseledets),            ║
-║            (d) cota de Banach–Caccioppoli DINÁMICA Lip(T) < 1 sobre el semigrupo GKSL,               ║
-║            (e) ledger N3-celeste (recurrencia de Poincaré + λ_Φ) y (f) adjudicación fiscal con       ║
-║            certificación de latencia del disyuntor ESP32 Crowbar (≤ 392.15 ns @ GPIO14, I5).         ║
+║ Versión  : 12.1.0-SOVEREIGN-POINCARE-N3-PhD                                                          ║
+║ Función  : Motor Espectral Fiscal que audita F ⊣ G mediante aniquilación Dirac e⁻+e⁺→2γ en RAM,       ║
+║            entropía Spohn σ≥0, mecánica celeste de Poincaré (sección Σ, Lindstedt, Birkhoff, KAM),   ║
+║            contracción de Banach Lip(T)<1 y disparo condicional Crowbar ESP32 en [42.0, 392.15] ns.  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA POR FASES ANIDADAS (3 × 3 sub-capas):
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Fiscal del Puente de Adjunción De Rham-Galois ejecuta la magistratura inquisidora
+sobre la coherencia categórica entre el funtor de de Rham y el funtor de Galois F ⊣ G. Audita la preservación
+isomórfica del álgebra diferencial y espectral en el espacio de Hilbert H (dimensión 56), enjuicia desgarros
+de holonomía mediante la ecuación maestra de Lindblad-GKSL, audita la producción de entropía no negativa de
+Spohn σ(ρ‖ρ_∞) ≥ 0, ejecuta aniquilaciones de Dirac e⁻ + e⁺ → 2γ con verificación HMAC criptográfica, calcula
+secciones transversales de Poincaré sobre la variedad de operadores densidad 𝔇_N, y activa el interlock
+ciber-físico ESP32 Crowbar en latencia sub-microsegundo ante violaciones de coherencia holonómica.
 
-  FASE 1 — OBSERVE / FOUNDATIONS:
-    1.1 `compute_spohn_entropy_production_v12` — GKSL no conmutativo + Spohn + purity.
-    1.2 `execute_dirac_annihilation_reaction_v12` — HMAC constant-time + aniquilación.
-    1.3 `extract_prosecution_primitives_v12` → ProsecutionPrimitivesBundle.
-             [HANDOFF] último método F1 ≡ primer acto F2 (compute_dynamic_banach_lipschitz).
-  FASE 2 — ORIENT / SPECTRAL EVIDENCE:
-    2.1 `compute_dynamic_banach_lipschitz` — Lip(T) por diferencia canónica + Oseledets.
-    2.2 `analyze_poincare_return_map_native` — cruces interpolados, Lindstedt, Birkhoff, KAM.
-    2.3 `synthesize_spectral_evidence_v12` → SpectralEvidenceBundle.
-             [HANDOFF] último método F2 ≡ primer acto F3 (_evaluate_meta_witness_n3).
-  FASE 3 — DECIDE / CERTIFICATION:
-    3.1 `_evaluate_meta_witness_n3` — consistencia + entropía + recurrencia del ledger.
-    3.2 `_judicial_verdict_gate_v12` — R1–R11 (clásico + espectral + celestial).
-    3.3 `prosecute_adjunction_coherence_v12` → DeRhamGaloisProsecutionCertificateV12.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Álgebra de Banach C* y Adjunción Categórica F ⊣ G:
+   Sea B(H) el álgebra de Banach de operadores lineales sobre H (dim = 56). La adjunción categórica
+   establece la biyección natural Hom_C(F(A), B) ≅ Hom_D(A, G(B)). La unidad η: Id → G ∘ F y counidad
+   ε: F ∘ G → Id satisfacen las identidades triangulares (εF) ∘ (Fη) = id_F y (Gε) ∘ (ηG) = id_G.
+   El defecto de isomorfismo Galoisiano se mide mediante la brecha espectral:
+       Δ_Galois = ||(G ∘ F)(ρ) - ρ||_F.
+   Fidelidad cuántica de Uhlmann: F(ρ, σ) = (Tr √(√ρ σ √ρ))² ≥ 0.95.
 
-INVARIANTES FISCALES v12.1:
-  · I1  Δ_Galois > 1e-6 ∨ Uhlmann F < 0.95           ⟹ DEGRADED mínimo
-  · I2  Holonomía rota ∨ auth positrón inválida       ⟹ HOLONOMY_BREAKAGE
-  · I3  Spohn σ_rel(ρ‖I/d) se reporta crudo; 2ª ley   ⟹ σ_clamp = max(0, σ_raw)
-  · I4  Back-Action QND ≡ 0.0 dB si auth válida, 12.5 dB si apócrifa
-  · I5  Crowbar HARDWARE solo si HOLONOMY_BREAKAGE ∧
-        (fraude HMAC clásico  ∨  (Banach Lip<1 ∧ KAM≥0.75 ∧ meta≥0.75))
-  · I6  Latencia Crowbar certificada ∈ [42.0, 392.15] ns
-  · I7  Contrato backward-compat v11 (nombres/firmas/campos)
-  · I8  HMAC de positrón es compare_digest (sin fuga Hamming)
-  · I9  Flujo Poincaré generado por H_probe ∤ ρ (no trivial)
+2. Ecuación Maestra Lindblad-GKSL y Entropía de Spohn:
+   La disipación no conmutativa evoluciona según dρ/dt = -i[H, ρ] + 𝒟(ρ), donde el disipador es
+       𝒟(ρ) = Σ_k ( L_k ρ L_k† - ½ {L_k† L_k, ρ} ).
+   Producción de entropía de Spohn para generadores GKSL:
+       σ_Spohn(ρ ‖ ρ_∞) = -Tr( (𝒟(ρ)) (log ρ - log ρ_∞) ) ≥ 0.
+   La segunda ley de la termodinámica no conmutativa exige el acotamiento σ_clamp = max(0, σ_raw).
+
+3. Aniquilación de Dirac en Memoria RAM (e⁻ + e⁺ → 2γ):
+   Los gérmenes espurios de sobrecosto se identifican como fermiones de Dirac e⁻. Al presentarse un positrón
+   de autorización e⁺ autenticado vía HMAC-SHA256 con tiempo constante (compare_digest), se ejecuta la reacción:
+       e⁻ + e⁺ → 2γ  (liberación de energía equivalente 1022.0 keV por par).
+   Si la autenticación HMAC falla, se clasifica como intento de fraude y se emite Back-Action de 12.5 dB.
+
+4. Mecánica Celeste de Poincaré, Secciones Transversales y Teoría KAM:
+   Se define la sección de Poincaré Σ = {ρ ∈ 𝔇_N : Re Tr(H_probe · ρ) - c = 0}.
+   El mapa de retorno P: Σ → Σ calcula multiplicadores de Floquet, exponentes de Lyapunov por algoritmo
+   de Benettin y formas normales de Birkhoff. La persistencia de toros diofánticos se evalúa según
+   |⟨k, ω⟩| ≥ γ / ||k||^τ para todo k ∈ ℤ^n \ {0}.
+
+5. Contracción de Banach y Cascada de Automejora L3:
+   El operador de inferencia T: 𝔇_N → 𝔇_N se evalúa en norma Lipschitz:
+       Lip(T) = sup_{ρ₁ ≠ ρ₂} ||T(ρ₁) - T(ρ₂)||_F / ||ρ₁ - ρ₂||_F < 1.0.
+
+AXIOMAS FORMALES
+────────────────
+Axioma DRGP-A1 (Preservación Isomórfica de Adjunción):
+    F ⊣ G constituye un isomorfismo de categorías perfecto si y solo si Δ_Galois ≤ 1.0e-6 y F(ρ, G(F(ρ))) ≥ 0.95.
+Axioma DRGP-A2 (No-Negatividad de Spohn):
+    Para todo semigrupo dinámico cuántico GKSL con estado estacionario fiel ρ_∞, σ_Spohn(ρ ‖ ρ_∞) ≥ 0.
+Axioma DRGP-A3 (Invarianza de Carga en Aniquilación):
+    La masa-energía liberada en la aniquilación de Dirac e⁻ + e⁺ → 2γ satisface rigurosamente E = 1022.0 keV.
+Axioma DRGP-A4 (Adjudicación Monótona en Heyting Ω₃):
+    El orden del retículo de veredictos satisface COHERENT (0x00) ≺ DEGRADED (0x01) ≺ HOLONOMY_BREAKAGE (0x03).
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante DRGP-I1: Δ_Galois > 1e-6 ∨ Uhlmann F < 0.95 ⟹ veredicto mínimo DEGRADED.
+Invariante DRGP-I2: Ruptura de holonomía o falla de autenticación en positrón ⟹ HOLONOMY_BREAKAGE.
+Invariante DRGP-I3: Back-Action QND ≡ 0.0 dB si auth es válida; 12.5 dB si auth es apócrifa.
+Invariante DRGP-I4: Disparo ciber-físico Crowbar en hardware solo ante HOLONOMY_BREAKAGE verificado.
+Invariante DRGP-I5: Latencia certificada de actuación ESP32 Crowbar acotada en [42.0, 392.15] ns.
 """
 
 from __future__ import annotations
@@ -59,14 +89,14 @@ from numpy.typing import NDArray
 
 # ── Base de adjunción (heredada v11) ──
 try:
-    from de_rham_galois_adjunction_bridge import (  # type: ignore
+    from app.wisdom.de_rham_galois_adjunction_bridge import (  # type: ignore
         AdjunctionCoherenceStatus,
         DeRhamGaloisAdjunctionBridge,
         ToonCartridge,
     )
 except ImportError:
     try:
-        from app.wisdom.de_rham_galois_adjunction_bridge import (  # type: ignore
+        from de_rham_galois_adjunction_bridge import (  # type: ignore
             AdjunctionCoherenceStatus,
             DeRhamGaloisAdjunctionBridge,
             ToonCartridge,

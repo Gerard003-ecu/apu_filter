@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : Heyting Visceral Functor Reducer Sovereign Agent v12.0.0-PhD                              ║
@@ -10,6 +9,16 @@ r"""
 ║            cartesiana μ: T·T → T, y Proyección Visceral Φ_sem ("Riesgo, Dolor y Dinero"). Anidación  ║
 ║            formal por puentes Φ₁₂'/Φ₂₃' firmados HMAC-SHA256.                                        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico Reductor Visceral de Heyting (SovereignHeytingVisceralFunctorAgent) ostenta la
+gobernanza ejecutiva y ministerial sobre el motor espectral heyting_visceral_functor_reducer.py
+(MonoidalHeytingReducer, VisceralSemanticFunctor). Orquesta un ciclo OODA trifásico (Observe → Orient → Decide)
+acoplado por puentes homomórficos Φ₁₂' y Φ₂₃' firmados vía HMAC-SHA256, computa la reducción monoidal μ
+en el topos trivaluado de Heyting Ω₃, proyecta el funtor visceral Φ_sem hacia métricas ejecutivas C-Suite
+de salvaguarda de WACC y tesorería, audita la dinámica de Poincaré sobre el símplex de Bloch 𝔇₃, y
+gobierna la cascada de automejora recursiva de Nivel 3 garantizando contracción de Banach.
 
 MARCO TEÓRICO Y GOBERNANZA OODA v12.0.0
 ────────────────────────────────────────
@@ -55,6 +64,15 @@ AXIOMAS DE HEYTING Y LÓGICA INTUICIONISTA
 [Axioma 3] Involución de Doble Negación Interrumpida: ¬¬a ≠ a salvo {⊥, ⊤}.
 [Axioma 4] Criterio BHT: toro disipativo persiste si γ_diofántica > ‖ε‖ ∧ disipación < min(γ, 0.95).
 [Axioma 5] Cota de Banach L3: κ̂ = máx_t ‖ρ_{t+1}−ρ*‖ / ‖ρ_t−ρ*‖ < 1.0.
+
+
+INVARIANTES DE ESTADO
+─────────────────────
+Invariante HVR-AAI1: Traza cuántica conservada Tr(ρ) ≡ 1.0 y preservación de positividad espectral sobre 𝔇₃.
+Invariante HVR-AAI2: Fidelidad cuántica de Uhlmann mínima F(ρ, ρ_ref) ≥ 0.95 en régimen coherente.
+Invariante HVR-AAI3: Monodromía simpléctica acotada con determinante det(M) = 1.0 ± 1.0e-5.
+Invariante HVR-AAI4: Latencia certificada de disparo ESP32 Crowbar estrictamente acotada en t ≤ 392.15 ns.
+Invariante HVR-AAI5: Sello de integridad HMAC-SHA256 en cada estado soberano y dossier ejecutivo expedido.
 """
 
 from __future__ import annotations
@@ -76,7 +94,7 @@ from numpy.typing import NDArray
 
 # ─── Importación resiliente del motor espectral ───────────────────────────────
 try:
-    from heyting_visceral_functor_reducer import (
+    from app.wisdom.heyting_visceral_functor_reducer import (
         HeytingOmega3,
         MonoidalHeytingReducer,
         MonoidalReductionReport,
@@ -85,7 +103,7 @@ try:
     )
 except ImportError:
     try:
-        from app.wisdom.heyting_visceral_functor_reducer import (
+        from heyting_visceral_functor_reducer import (
             HeytingOmega3,
             MonoidalHeytingReducer,
             MonoidalReductionReport,
