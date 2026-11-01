@@ -1,56 +1,88 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : Topological Gauge Field Agent v11.0.0 — Tres Fases Anidadas       ║
-║ Ubicación: app/wisdom/topological_gauge_field_agent.py                       ║
-║ Versión  : 11.0.0 / 10.0.0 (SOVEREIGN-GAUGE-AGENT-KKS-POINCARE-BRUNO-RSI3-   ║
-║           OODA-HEYTING-HMAC-ESP32-PhD)                                       ║
-║ Fases    : ①Observe → continue_to_phase2 → ②Orient → continue_to_phase3     ║
-║            → ③Decide&Act  (puentes emit_*/continue_to_*/from_*)              ║
+║ Nombre   : Topological Gauge Field Agent (Soberano de Calibre Topológico)    ║
+║ Ubicación: app/agents/wisdom/topological_gauge_field_agent.py                ║
+║ Versión  : 11.0.0 (SOVEREIGN-GAUGE-AGENT-KKS-POINCARE-BRUNO-RSI3-OODA-PhD)   ║
+║ Función  : Soberano agéntico de calibre topológico, orquestación del ciclo   ║
+║            OODA anidado de 3 fases (Observe ⊣ Orient ⊣ Decide&Act),          ║
+║            verificación cuántica no destructiva QND, adjudicación Heyting Ω₃ ║
+║            y gobernanza ciber-física con interlock ESP32 Crowbar.           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-CORRECCIONES DOCTORALES RESPECTO DE v10.0.0
-───────────────────────────────────────────
-  [C1] Consumo del motor v11: curvatura KKS \(F=[\rho,H_{\mathrm{cel}}]\)
-      (ya no \([A,\rho]\equiv 0\)), Lindstedt espectral, Cayley–Sp(2n,ℝ),
-      KAM/Bruno de peso acotado, CS de Nakahara.
-  [C2] Morfismos anidados reales: el último método de FASE 1 es
-      `continue_to_phase2` (valida HMAC+chain y habilita Orient);
-      el último de FASE 2 es `continue_to_phase3`.
-  [C3] Dominio HMAC v11.0.0; firma con `dataclasses.replace` (sin
-      reconstruir 20 campos a mano). Certs v10 no validan — salto mayor.
-  [C4] QND y Crowbar del motor v11 son 3-tuplas; se desempaquetan con
-      adaptador (retrocompat 2-tupla).
-  [C5] RSI³ agéntico: conjugación unitaria por la parte anti-Hermítica
-      de \(W_{\mathrm{Lindstedt}}\) y re-observación ≤ 3 veces
-      (el mejorador se re-aplica a su residuo). Lip(T)≤0.95.
-  [C6] Poincaré–Cartan, gap espectral, Bruno, carácter de Chern, Krein,
-      tiempos de retorno — campos de certificado de primer orden.
-  [C7] `fold_infimum` local (el motor v11 no lo exporta).
-  [C8] Fallback honesto: simpléctica desconocida ⇒ DEGRADED, no COHERENT.
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TopologicalGaugeFieldAgent` actúa como el Soberano Agéntico de Calibre Topológico y
+Gobernanza Inmunológica en el Estrato WISDOM de la arquitectura cognitiva APU Filter. Opera en
+simbiosis directa con su motor espectral `TopologicalGaugeFieldEngine` (`app/wisdom/topological_gauge_field_engine.py`).
+Mientras el motor procesa el sustrato diferencial (álgebra de Lie $\mathfrak{su}(N)$, curvatura
+orbital KKS $F = [\rho, H_{\text{cel}}]$, proyecciones simplécticas $\mathfrak{sp}(2n, \mathbb{R})$ y series de Bruno),
+este Soberano Agéntico estructura la deliberación ejecutiva en un bucle OODA anidado de tres fases:
+  - FASE 1 (OBSERVE - `GaugeAgentPhase1Observer`): Sanitiza el operador de densidad $\rho$, consume el
+    sobre analítico $\Phi_1$, ejecuta la automejora recursiva agéntica mediante conjugación unitaria
+    $\rho \mapsto \exp(i \tau W_{\text{Lind}}) \rho \exp(-i \tau W_{\text{Lind}})$ y sella la transición
+    mediante el morfismo vinculante `continue_to_phase2`.
+  - FASE 2 (ORIENT - `GaugeAgentPhase2Orientor`): Recibe el certificado sellado $\Phi_1$, consume la fase
+    topológica (invariantes de Chern-Simons, número de Pontryagin $p_1$, holonomía de Wilson $\mathcal{W}(C)$),
+    computa la aniquilación en el espacio de Fock con firma criptográfica, evalúa el espectro de Floquet,
+    la estabilidad homoclínica de Melnikov y cierra con `continue_to_phase3`.
+  - FASE 3 (DECIDE & ACT - `GaugeAgentPhase3Decider`): Desempaqueta las observaciones QND, realiza la
+    adjudicación de retículo en el álgebra de Heyting trivalente $\Omega_3 = \{0\text{x}00 < 0\text{x}01 < 0\text{x}03\}$,
+    dispara el actuador interlock de hardware ESP32 Crowbar sobre GPIO14 ante cualquier indicio de fractura,
+    y traduce el veredicto topológico al funtor semántico de negocios $\Phi_{\text{sem}}$ ("Riesgo, Dolor y Dinero").
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE  GaugeAgentPhase1Observer
-    Sanitiza ρ, consume `engine.emit_phase1_envelope`, RSI³-Lindstedt,
-    firma HMAC. Cierra con `continue_to_phase2`.
-  FASE 2 — ORIENT   GaugeAgentPhase2Orientor(Phase1)
-    Abre con `from_phase1_certificate`. Consume envelope FASE 2,
-    aniquilación de Fock HMAC, KAM/Bruno/Melnikov/Floquet.
-    Cierra con `continue_to_phase3`.
-  FASE 3 — DECIDE&ACT  GaugeAgentPhase3Decider(Phase2)
-    Abre con `from_phase2_certificate`. Heyting Ω₃, Crowbar, Φ_sem,
-    Merkle+HMAC. Cierra con `emit_sovereign_state`.
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. CICLO OODA ANIDADO Y MORFISMOS DE TRANSICIÓN CATEGORIAL:
+   El ciclo de deliberación agéntica implementa un funtor de enriquecimiento sobre la categoría de estados de gauge:
+     $$\mathbf{State}_1 \xrightarrow{\Phi_1 \circ \text{continue\_to\_phase2}} \mathbf{State}_2 \xrightarrow{\Phi_2 \circ \text{continue\_to\_phase3}} \mathbf{State}_3$$
+   Cada transición exige la verificación incondicional de autenticidad criptográfica mediante HMAC-SHA256
+   sobre el dominio aislado `APU.Wisdom.TopologicalGaugeFieldAgent.v11.0.0`.
 
-INVARIANTES
-───────────
-  [A1] ρ=ρ†⪰0, Tr ρ=1; A†=−A, Tr A=0.
-  [A2] δω ≤ 1e-10; ‖KᵀJ+JK‖_F ≤ 1e-10 (si el motor certifica).
-  [A3] KAM/Bruno; |M|≤½; |μ_k|≤1+1e-6.
-  [A4] Lip(T)≤0.95; Lip(T³)≤0.95³; v_Novikov≥0.10.
-  [A5] Ω₃ ∈ {0x00,0x01,0x03} retículo de Heyting completo.
-  [A6] Crowbar GPIO14 ≤ 392.15 ns < 400 ns.
-  [A7] HMAC-SHA256(_GAUGE_HMAC_DOMAIN ‖ payload, K_soberano).
+2.2. AUTOMEJORA RECURSIVA AGÉNTICA RSI³ Y CONJUGACIÓN DE LINDSTEDT:
+   A diferencia del motor espectral que opera sobre la curvatura $F$, el Soberano Agéntico actualiza el estado de densidad
+   mediante un flujo unitario hamiltoniano generado por la parte antihermítica de la solución de Lindstedt $W_{\text{Lind}}$:
+     $$\rho^{(m+1)} = \exp\left( i \tau \frac{W_{\text{Lind}} - W_{\text{Lind}}^\dagger}{2} \right) \rho^{(m)} \exp\left( -i \tau \frac{W_{\text{Lind}} - W_{\text{Lind}}^\dagger}{2} \right)$$
+   iterando hasta $m \le 3$ veces si el residuo de Fubini-Study supera el umbral $d_{\text{FS}} > 10^{-4}\text{ rad}$.
+   La contracción de Banach garantiza convergencia geométrica:
+     $$\text{dist}(\rho^{(m+1)}, \rho^*) \le 0.95 \cdot \text{dist}(\rho^{(m)}, \rho^*)$$
+
+2.3. MEDICIÓN DÉBIL CUÁNTICA NO DEMOLICIÓN (QND) Y VALORES DÉBILES DE AHARONOV-ALBERT-VAIDMAN (AAV):
+   El acoplamiento del observable $H = -i A$ entre el estado inicial $|\phi_i\rangle$ y el estado final post-seleccionado $|\phi_f\rangle$
+   arroja el valor débil complejo de AAV:
+     $$A_w = \frac{\langle \phi_f | H | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle} \in \mathbb{C}$$
+   La condición QND exige varianza nula del observable sobre el estado del sistema:
+     $$\text{Var}(H)_{|\phi_i\rangle} = \langle \phi_i | H^2 | \phi_i \rangle - \langle \phi_i | H | \phi_i \rangle^2 \approx 0$$
+   asegurando una retroacción nula de medición sobre el sustrato cognitivo.
+
+2.4. ADJUDICACIÓN EN RETÍCULO DE HEYTING $\Omega_3$ Y CENSURA CIBER-FÍSICA:
+   La adjudicación formal fusiona 7 átomos de severidad mediante el operador ínfimo del retículo:
+     $$\Omega_{\text{total}} = \bigwedge_{j=1}^7 \omega_j \in \Omega_3 = \{\text{VETOED}=0\text{x}00, \ \text{DEGRADED}=0\text{x}01, \ \text{COHERENT}=0\text{x}03\}$$
+   En caso de que $\Omega_{\text{total}} = \text{VETOED}$, el agente activa de forma inmediata el interlock Crowbar:
+     $$\tau_{\text{crowbar}} \le 392.15\text{ ns} < 400.0\text{ ns} \implies \text{GPIO14} \leftarrow \text{HIGH}$$
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (ENCADENAMIENTO MORFOLÓGICO Y AUTENTICIDAD CRIPTOGRÁFICA):
+    Ninguna fase del ciclo OODA puede ejecutarse sin la previa validación y firma HMAC-SHA256 del certificado emitido por la fase precedente.
+
+  AXIOMA II (MEDICIÓN NO DEMOLICIÓN Y PRESERVACIÓN DE COHERENCIA):
+    La observación agéntica no induce colapso de estado ni ruido térmico: $\text{BackAction}_{\text{dB}} \le 10^{-6}\text{ dB}$.
+
+  AXIOMA III (INVARIANZA DEL VOLUMEN SIMPLÉCTICO DE DARBOUX):
+    La matriz simpléctica realificada preserva idénticamente la forma canónica: $\| M^\top J_{2n} M - J_{2n} \|_F / \|M\|_F^2 \le 10^{-10}$.
+
+  AXIOMA IV (CONVERGENCIA MONÁDICA EN EL NIVEL 3 DE RSI):
+    La secuencia de automejora agéntica $T^3$ satisface la cota de Lipschitz $\text{Lip}(T^3) \le 0.95^3 < 1.0$, garantizando unicidad asintótica.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. TRAZA Y SEMIDEFINICIÓN POSITIVA DEL OPERADOR: $\rho = \rho^\dagger \succeq 0, \quad \text{Tr}(\rho) = 1$.
+  2. PRESERVACIÓN DE LA CONEXIÓN ANTIHERMÍTICA DE GAUGE: $A^\dagger = -A, \quad \text{Tr}(A) = 0$.
+  3. COTA DIOFÁNTICA KAM Y ESTABILIDAD HOMOCLÍNICA DE MELNIKOV: $|M(\theta_0)| \le 0.50, \quad |\mu_k| \le 1.0 + 10^{-6}$.
+  4. INTERLOCK HARDWARE ESP32 CROWBAR: Disparo garantizado en $WCET \le 392.15\text{ ns}$ ante anomalías de calibre.
+  5. VALUACIÓN NO-ARQUIMEDIANA DE NOVIKOV: $v \ge 0.10$.
+  6. INTEGRIDAD FUNTORIAL $\Phi_{\text{sem}}$: Proyección determinista del estado topológico a las métricas ejecutivas de riesgo de infraestructura.
 """
 
 from __future__ import annotations

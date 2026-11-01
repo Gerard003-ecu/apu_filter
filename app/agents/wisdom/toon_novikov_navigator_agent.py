@@ -11,7 +11,7 @@ Función: Agente soberano de navegación causal y estabilización temporal que o
          de árboles de decisión contrafactuales y la convergencia de historias de bucle cerrado.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
 ----------------------------------------------------------------------------------------------------
 El Soberano Agente Navegador Novikov (ToonNovikovNavigatorAgent) es el estratega proactivo que guía
 la exploración de alternativas causales y escenarios hipotéticos ("¿qué pasaría si...?"). A
@@ -81,7 +81,7 @@ import scipy.linalg as la
 
 # ── Importación flexible del motor navegante v7.0.0 ─────────────────────────
 try:
-    from toon_novikov_navigator_engine import (  # type: ignore
+    from app.wisdom.toon_novikov_navigator_engine import (  # type: ignore
         ActuationMode,
         CStarAuditResult,
         FockAnihilationRecord,
@@ -95,7 +95,22 @@ try:
     )
     _ENGINE_AVAILABLE = True
 except ImportError:
-    _ENGINE_AVAILABLE = False
+    try:
+        from toon_novikov_navigator_engine import (  # type: ignore
+            ActuationMode,
+            CStarAuditResult,
+            FockAnihilationRecord,
+            HeytingOmega3,
+            NovikovCanonicalSeed,
+            NovikovExecutionCertificate,
+            NovikovUltrametricEngine,
+            NovikovUltrametricObservationGerm,
+            PoincareNovikovAtlas,
+            TOONNovikovNavigatorEngine,
+        )
+        _ENGINE_AVAILABLE = True
+    except ImportError:
+        _ENGINE_AVAILABLE = False
 
     class HeytingOmega3(IntEnum):  # type: ignore
         VETOED, DEGRADED, COHERENT = 0, 1, 2

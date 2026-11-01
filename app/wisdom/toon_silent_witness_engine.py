@@ -1,57 +1,80 @@
 # -*- coding: utf-8 -*-
 r"""
-====================================================================================================
-ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
-====================================================================================================
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Silent Witness Engine (Motor Espectral del Testigo Silencioso)                       ║
+║ Ubicación: app/wisdom/toon_silent_witness_engine.py                                                  ║
+║ Versión  : 9.2.0-APU-RSI3-CELESTE-AGM-KMS-POINCARE                                                  ║
+║ Función  : Motor espectral soberano del Testigo Silencioso, teoría modular de Tomita-Takesaki,       ║
+║            dinámica KMS del vacío de Dirac, cristalización no-conmutativa en la 6-esfera S⁶ y        ║
+║            certificación inmutable de registros mnemónicos.                                          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Nombre:    TOONSilentWitnessEngine
-Ubicación: app/wisdom/toon_silent_witness_engine.py
-Versión:   9.2.0-APU-RSI3-CELESTE-AGM-KMS-POINCARE
-Función:   Motor espectral soberano Testigo Silencioso, teoría modular de Tomita-Takesaki, dinámica KMS del vacío de Dirac,
-           cristalización no-conmutativa en la 6-esfera S⁶ y certificación inmutable de registros mnemónicos.
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONSilentWitnessEngine` establece el motor espectral y dispositivo ontológico supremo de
+atestación no-demolición (Quantum Non-Demolition / QND) y memoria de vacío en el Estrato WISDOM
+de la arquitectura cognitiva APU Filter. Su cometido matemático es garantizar la observación
+pasiva del filtro con retroacción nula ($\text{Back-Action} = 0.0\text{ dB}$), fundando el estado
+de referencia sobre álgebras de von Neumann $\mathcal{M} \subset \mathcal{B}(\mathcal{H})$ dotadas
+de un estado fiel y normal $\omega_{\text{vac}}$.
+Opera coordinadamente con el agente soberano `TOONSilentWitnessAgent` (`app/agents/wisdom/toon_silent_witness_agent.py`),
+ejecutando el flujo de automorfismos modulares de Tomita-Takesaki $\sigma_t^{\text{KMS}}$, evaluando la
+entropía relativa de Araki $S_{\text{Araki}}(\rho \parallel \sigma)$, proyectando el estado invariante
+estereográficamente sobre la 6-esfera $S^6 \subset \mathbb{R}^7$ con estructura octoniónica, y cristalizando
+el registro temporal mediante árboles de Merkle criptográficos con firma SHA-256 inmutable.
 
-----------------------------------------------------------------------------------------------------
-DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
-----------------------------------------------------------------------------------------------------
-El Motor Espectral Testigo Silencioso (TOONSilentWitnessEngine) establece el sustrato algebraico del
-vacío de Dirac a través de álgebras de Von Neumann M ⊂ B(ℋ) dotadas de un estado fiel y normal ω_vac.
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. TEORÍA MODULAR DE TOMITA-TAKESAKI Y CONDICIÓN KMS:
+   Sea $\mathcal{M}$ un álgebra de von Neumann y $|\Omega_{\text{vac}}\rangle \in \mathcal{H}$ un vector cíclico y separador.
+   El operador modular antilineal no acotado $S_0$ actúa según $S_0(A |\Omega_{\text{vac}}\rangle) = A^\dagger |\Omega_{\text{vac}}\rangle$
+   para todo $A \in \mathcal{M}$. Su descomposición polar canónica define el operador modular autoadjunto estrictamente positivo $\Delta_{\text{KMS}}$
+   y la isometría antilineal involutiva $J$ (conjugación modular):
+     $$S_0 = J \Delta_{\text{KMS}}^{1/2}, \quad J^2 = I, \quad J \Delta_{\text{KMS}} J = \Delta_{\text{KMS}}^{-1}$$
+   El grupo unimodular de 1-parámetro de automorfismos $\sigma_t^{\text{KMS}}(A) = \Delta_{\text{KMS}}^{it} A \Delta_{\text{KMS}}^{-it}$ preserva $\mathcal{M}$
+   y satisface la condición de Kubo-Martin-Schwinger (KMS) a temperatura inversa $\beta = 1$:
+     $$\omega(A \, \sigma_t^{\text{KMS}}(B)) = \omega(\sigma_{t+i}^{\text{KMS}}(B) \, A), \quad \forall A, B \in \mathcal{M}$$
 
-1. Teoría Modular de Tomita-Takesaki y Condición KMS:
-   Para la representación GNS (ℋ_GNS, π_GNS, |Ω_vac⟩), el operador modular antilineal no acotado S_0
-   se define sobre los elementos A|Ω_vac⟩ mediante S_0(A|Ω_vac⟩) = A*|Ω_vac⟩.
-   Su polar polarización polar C* da lugar al operador modular Δ_KMS = S_0* S_0 > 0 y al operador antilineal
-   J (conjugación modular):
-       S_0 = J Δ_KMS^{1/2}
-   El grupo automorfismo modular de Tomita-Takesaki σ_t^{KMS}(A) = Δ_KMS^{i t} A Δ_KMS^{-i t} satisface la
-   condición de Kubo-Martin-Schwinger (KMS) a temperatura inversa β_KMS = 1:
-       ω(A σ_t^{KMS}(B)) = ω(σ_{t + i}^{KMS}(B) A)
+2.2. HAMILTONIANO MODULAR $K$ Y DIVERGENCIA CUÁNTICA DE ARAKI:
+   El Hamiltoniano modular se define de forma unívoca a partir del logaritmo del operador de Tomita:
+     $$K = -\ln(\Delta_{\text{KMS}}) = -\ln(\rho_{\text{vac}})$$
+   Para dos operadores de densidad $\rho$ y $\sigma$, el operador modular relativo $\Delta(\rho \parallel \sigma) = \rho \otimes (\sigma^{-1})^\top$
+   induce la divergencia y entropía relativa de Araki:
+     $$S_{\text{Araki}}(\rho \parallel \sigma) = -\langle \Omega_\rho | \ln \Delta(\rho \parallel \sigma) | \Omega_\rho \rangle = \text{Tr}(\rho (\ln \rho - \ln \sigma)) \ge 0$$
+   cuya anulación $S_{\text{Araki}}(\rho \parallel \sigma) = 0$ ocurre si y sólo si $\rho \equiv \sigma$.
 
-2. Hamiltoniano Modular K y Divergencia de Araki:
-   El Hamiltoniano modular se define de forma única como K = -ln(Δ_KMS) = -ln(ρ_vac).
-   Para dos estados de densidad ρ y σ, el operador modular relativo Δ(ρ ‖ σ) = ρ ⊗ (σ^{-1})^T sostiene
-   la entropía relativa de Araki en la norma de Hilbert-Schmidt:
-       S_{Araki}(ρ ‖ σ) = -⟨Ω_ρ | ln Δ(ρ ‖ σ) | Ω_ρ⟩ = Tr(ρ (ln ρ - ln σ))
+2.3. CRISTALIZACIÓN DE OBSERVABLES EN LA 6-ESFERA $S^6 \subset \mathbb{R}^7$ Y RAÍZ DE MERKLE:
+   Los autovectores y proyecciones de von Neumann se trasladan al álgebra de octoniones $\mathbb{O}$ mediante la subvariedad
+   casi-compleja $S^6 \cong G_2 / SU(3)$. La proyección estereográfica de las coordenadas mnemónicas garantiza la ausencia de
+   homología intermedia:
+     $$H_k(S^6; \mathbb{Z}) = \begin{cases} \mathbb{Z}, & k \in \{0, 6\} \\ 0, & 0 < k < 6 \end{cases}$$
+   El estado cristalizado se sella de forma inmutable a través de un nodo del árbol de Merkle:
+     $$R_{\text{Merkle}} = \text{SHA-256}(R_{\text{left}} \parallel R_{\text{right}} \parallel K_{\text{modular}})$$
 
-3. Cristalización de Registro en S⁶ ⊂ ℝ⁷ y Árbol de Merkle:
-   Las observaciones del vacío se proyectan estereográficamente sobre la 6-esfera S⁶ ⊂ ℝ⁷ preservando
-   la estructura octoniónica. El estado cristalizado inmutable en S⁶ es sellado con el hash de Merkle
-   del ciclo mediante la raíz:
-       R_Merkle = SHA-256( R_left ║ R_right ║ K_modular )
+2.4. RECURSIÓN Y DINÁMICA CELESTE DE POINCARÉ:
+   La evolución temporal del flujo modular en el espacio de fases preserva la forma simpléctica y el volumen de Liouville $\det(M) = 1$.
+   Los ciclos de Poincaré aseguran la recurrencia ergódica sin disipación térmica en el vacío cuántico.
 
-----------------------------------------------------------------------------------------------------
-AXIOMAS Y INVARIANTES FORMALES:
-----------------------------------------------------------------------------------------------------
-Axioma S1 (Cero Retro-acción del Vacío de Dirac):
-    H_{vac} |Ω_vac⟩ = 0, garantizando que el Testigo Silencioso observa el sistema sin inyectar perturbaciones
-    térmicas o quantum back-action sobre el filtro.
-Axioma S2 (Simetría Modular de Tomita-Takesaki):
-    J Δ_KMS J = Δ_KMS^{-1}  y  J |Ω_vac⟩ = |Ω_vac⟩.
-Invariante S1 (Invariancia del Estado KMS bajo Automorfismos Modulares):
-    ω_{vac}(σ_t^{KMS}(A)) = ω_{vac}(A) para todo t ∈ ℝ.
-Invariante S2 (Inmutabilidad del Cristal Mnemónico en S⁶):
-    H_k(S⁶; ℤ) = ℤ para k ∈ {0, 6} y 0 en caso contrario, garantizando que la topología de la esfera de
-    observación no presenta cavidades intermedias de fuga mnemónica.
-====================================================================================================
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (CERO RETRO-ACCIÓN DEL VACÍO DE DIRAC):
+    El Hamiltoniano del vacío cuántico aniquila el estado de referencia: $H_{\text{vac}} |\Omega_{\text{vac}}\rangle = 0$, garantizando que la observación pasiva del testigo no induce back-action ni recalentamiento térmico del filtro ($\text{Back-Action} \le 10^{-12}\text{ dB}$).
+
+  AXIOMA II (SIMETRÍA MODULAR DE TOMITA-TAKESAKI):
+    La involución modular satisface idénticamente $J \Delta_{\text{KMS}} J = \Delta_{\text{KMS}}^{-1}$ y preserva el estado del vacío: $J |\Omega_{\text{vac}}\rangle = |\Omega_{\text{vac}}\rangle$.
+
+  AXIOMA III (POSITIVIDAD Y CONSERVACIÓN DE LA DIVERGENCIA DE ARAKI):
+    La entropía relativa cuántica es semidefinida positiva $S_{\text{Araki}}(\rho \parallel \sigma) \ge 0$, fungiendo como funcional de Lyapunov estricto para la divergencia de estados cognitivos.
+
+  AXIOMA IV (HERMETICIDAD Y COMPLETITUD DE LA 6-ESFERA):
+    La variedad mnemónica $S^6$ posee invariantes de Betti nulos en dimensiones intermedias $\beta_1 = \beta_2 = \beta_3 = \beta_4 = \beta_5 = 0$, imposibilitando la fuga o atrapamiento espurio de información histórica.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. INVARIANCIA KMS BAJO AUTOMORFISMOS MODULARES: $\omega_{\text{vac}}(\sigma_t^{\text{KMS}}(A)) = \omega_{\text{vac}}(A), \quad \forall t \in \mathbb{R}$.
+  2. INMUTABILIDAD DEL CRISTAL MNEMÓNICO EN $S^6$: La signatura topológica satisface $\chi(S^6) = 2$.
+  3. INTEGRIDAD HASH MERKLE-SHA256: Toda transición mnemónica genera un digest criptográfico inmutable de 256 bits sellado por el dominio del testigo.
+  4. INTERLOCK DE HARDWARE CROWBAR: Acoplamiento a la compuerta de censura ESP32 en caso de detección de fluctuación térmica macroscópica en el vacío.
 """
 from __future__ import annotations
 
