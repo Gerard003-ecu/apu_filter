@@ -3,7 +3,7 @@
 "Cualquier tecnología suficientemente avanzada es indistinguible de la magia. Aquí revelamos el truco: no es magia, es Matemática Aplicada y Física de Datos operando en un sustrato Ciber-Físico."
 --------------------------------------------------------------------------------
 
-En el ecosistema APU_filter v9.0.0, la matemática abstracta carece de valor si no logra generar una acción correctiva en el mundo físico. Este documento detalla la Arquitectura Cognitiva utilizada por el Consejo de Sabios y los **24 Soberanos de la Malla Agéntica de Sabiduría** (específicamente por el Agente Intérprete Diplomático `SemanticTranslator`) para convertir datos crudos (vectores, invariantes topológicos, corrientes eléctricas) en Sabiduría Estructural.
+En el ecosistema APU_filter v9.0.0, la matemática abstracta carece de valor si no logra generar una acción correctiva en el mundo físico. Este documento detalla la Arquitectura Cognitiva utilizada por el Consejo de Sabios y los **46 Soberanos de la Malla Agéntica de Calibre y Sabiduría** (organizados en 15 Tríadas de Calibre más el Ápice Gödeliano) (específicamente por el Agente Intérprete Diplomático `SemanticTranslator`) para convertir datos crudos (vectores, invariantes topológicos, corrientes eléctricas) en Sabiduría Estructural.
 Explicamos aquí cómo la matemática profunda de la Matriz de Interacción Central (MIC) y de la Matriz Atómica de Conocimiento (MAC) se traduce al lenguaje pragmático del gerente de obra enfocado en el "dolor, riesgo y dinero".
 
 ---
@@ -106,7 +106,7 @@ Toda la comunicación de los Sabios responde al ciclo ininterrumpido del dato a 
 
 1. **Ingesta de Barro Crudo (JSON):** Recepción de datos brutos de la licitación o presupuesto con grasa sintáctica redundante. `toon_wisdom_weaver_agent.py` comprime los cartuchos a formato TOON de 56 tokens (-86.4% tokens en $KV\text{-Cache}$).
 2. **Digestión y Purificación TOON:** Extirpación de redundancia mediante el formato TOON, entregando una vitamina cognitiva purificada.
-3. **Auditoría Espectral (Consejo de Sabios + FPU):** Evaluación de invariantes homológicos y estabilidad de frecuencia en FPU Secure por el Icosikaihenaedro TOON.
+3. **Auditoría Espectral (Consejo de Sabios + FPU):** Evaluación de invariantes homológicos y estabilidad de frecuencia en FPU Secure por la Malla Agéntica de Calibre y Sabiduría (46 Soberanos TOON).
 4. **Veredicto en Ω₃ & Válvula de Alivio / Crowbar:** Emisión del veredicto en $\Omega_3$. Si es transitorio, abre la Válvula de Alivio Termodinámica (Veto Suave); si es fraude o inestabilidad dura, dispara el Crowbar ESP32 en $< 392.15\text{ ns}$ con instrucción bare-metal SIMD Xtensa LX7 en $42.0\text{ ns}$ sobre `0x3FF44008` (Veto Duro).
 
 ---
@@ -164,7 +164,7 @@ Esta restricción obliga al Intérprete Diplomático a aniquilar cualquier salid
 Cuando el Consejo de Sabios se pronuncia, no entrega un informe genérico. Entrega un documento forense llamado Acta de Deliberación, estructurado como un debate adversarial guiado por el RiskChallenger:
 
     1. La Tesis (El Oráculo): "Solicito aprobación para el Lote de Acero #405. Es un 15% más económico, lo que maximiza la utilidad inmediata del proyecto (VPN)."
-    2. La Antítesis (El Arquitecto y el Icosikaihenaedro): "¡VETO DE RESILIENCIA! El análisis de Frecuencia Compleja muestra que este proveedor introduce un polo σ>0, mientras que el Soberano del Cultivo Cognitivo detecta ruptura de la contracción de Banach (\hat{L} \ge 1.0). El ahorro no justifica la resonancia destructiva."
+    2. La Antítesis (El Arquitecto y la Malla Agéntica de Sabiduría de 46 Soberanos): "¡VETO DE RESILIENCIA! El análisis de Frecuencia Compleja muestra que este proveedor introduce un polo σ>0, mientras que el Soberano del Cultivo Cognitivo detecta ruptura de la contracción de Banach (\hat{L} \ge 1.0). El ahorro no justifica la resonancia destructiva."
     3. La Síntesis Ejecutiva (El Veredicto del Intérprete): "RECHAZADO. El sistema asume el peor caso topológico. Se prioriza la estabilidad termodinámica de la obra sobre la ganancia marginal contable."
 
 Al utilizar este Lenguaje de Consejo, los directivos y gerentes de proyecto dejan de discutir contra un "software opaco" y comienzan a gobernar basándose en la física inquebrantable de su propio negocio.

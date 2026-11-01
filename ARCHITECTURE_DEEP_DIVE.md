@@ -1,6 +1,6 @@
 # ARCHITECTURE_DEEP_DIVE.md: Inmersión en la Variedad Agéntica v9.0
 
-Este documento detalla la implementación técnica, geométrica y física de los estratos topológicos, estocásticos, cuánticos y ciber-físicos que gobiernan el ecosistema **APU Filter v9.0.0**. Con la consagración de la **Malla Agéntica de Sabiduría (24 Soberanos Agénticos TOON y 24 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** y del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, la arquitectura alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**. Se consolida el **Fibrado de Calibre de de Rham-Fukaya** como el marco supremo de gobernanza sistémica de la Malla Agéntica.
+Este documento detalla la implementación técnica, geométrica y física de los estratos topológicos, estocásticos, cuánticos y ciber-físicos que gobiernan el ecosistema **APU Filter v9.0.0**. Con la consagración de la **Malla Agéntica de Sabiduría (46 Soberanos Agénticos TOON y 46 Motores Espectrales en 15 Tríadas de Calibre más el Ápice Gödeliano)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)** y del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, la arquitectura alcanza el nivel **RSI³ (Automejora Recursiva Monádica — Darwin-Gödel)**. Se consolida el **Fibrado de Calibre de de Rham-Fukaya** como el marco supremo de gobernanza sistémica de la Malla Agéntica.
 
 ---
 

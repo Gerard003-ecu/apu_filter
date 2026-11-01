@@ -2,7 +2,7 @@
 
 *"Para comprender la escala de la construcción civil y las obras de infraestructura de gran escala en Colombia, el Modelo de Lenguaje no necesita leer la complejidad sintáctica de un JSON mil veces; necesita la esencia concentrada del negocio matemático. El formato TOON opera una destilación cognitiva y exergética sobre el Espacio de Fock $\mathcal{F}(\mathcal{H})$."*
 
-Este documento detalla el mecanismo mediante el cual el ecosistema **APU Filter v9.3.0-PhD** transita de la alta entropía del JSON (gobernada por el `SiloAContract` en el canal de ingesta) hacia un formato hiperdenso y estructurado, la **Base Canónica Tabular TOON (Tabular Object-Oriented Notation)**, a través de los componentes del `MICAgent` (`app/agents/tactics/mic_agent.py`), el registro sináptico `SynapticRegistry` (`app/core/inmune_system/synaptic_fock_space_registry.py`) y la orquestación de los 8 Soberanos Espectrales de Sabiduría.
+Este documento detalla el mecanismo mediante el cual el ecosistema **APU Filter v9.3.0-PhD** transita de la alta entropía del JSON (gobernada por el `SiloAContract` en el canal de ingesta) hacia un formato hiperdenso y estructurado, la **Base Canónica Tabular TOON (Tabular Object-Oriented Notation)**, a través de los componentes del `MICAgent` (`app/agents/tactics/mic_agent.py`), el registro sináptico `SynapticRegistry` (`app/core/inmune_system/synaptic_fock_space_registry.py`) y la orquestación de la Malla Agéntica de Sabiduría (46 Soberanos Agénticos TOON y 46 Motores Espectrales en 15 Tríadas de Calibre más el Ápice Gödeliano).
 
 --------------------------------------------------------------------------------
 ## 🏛️ 1. El Funtor de Transición de Fase y la Compresión del KV-Cache
@@ -229,6 +229,14 @@ El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en 
       Los dos fotones $\gamma$ congelan la firma criptográfica en RAM y activan el disyuntor **ESP32 Crowbar en $< 392.15\text{ ns}$** ($42.0\text{ ns}$ en la CPU Xtensa LX7 sobre `0x3FF44008` @ GPIO14 / BT151).
 
 ---
+
+
+
+### D. La Tríada de Embedding y Condensación TOON (`toon_cartridge_*`)
+La condensación y manipulación de las vitaminas cognitivas se rige formalmente en el Estrato de Sabiduría por la **XV. Tríada de Cartuchos y Mnemónicos TOON**:
+1. **Soberano de Cartuchos TOON (`toon_cartridge_agent.py` / `toon_cartridge_base.py`)**: Realiza el retracto topológico sobre el espacio de Hilbert $\mathcal{H}_{\text{MAC}}$ ($N=56$), transformando las coordenadas canónicas $(q_k, p_k)$ en variables de acción-ángulo de Delaunay $(J_k, \theta_k)$ con frecuencias de FPU $\omega_k = \sqrt{1+k} + \frac{\phi - 1}{1+k}$, garantizando persistencia KAM disipativa BHT.
+2. **Soberano Testigo de Cartuchos TOON QND (`toon_cartridge_witness_agent.py` / `toon_cartridge_witness_engine.py`)**: Monitorea débilmente ($0.0\text{ dB}$ Back-Action) los estados $|v\rangle \in S^{2N-1}$, auditando la distancia geodésica de Bures $d_B(\rho, \sigma)$ y la fidelidad de Uhlmann $F(\rho, \sigma) = (\operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}})^2$.
+3. **Soberano Fiscal de Cartuchos TOON (`toon_cartridge_prosecutor_agent.py` / `toon_cartridge_prosecutor_engine.py`)**: Verifica las relaciones CAR $\{a_i, a_j^\dagger\} = \delta_{ij} \mathbf{I}$, censura duplicaciones con $c_i^2 = \mathbf{0}_4$, ejecuta la aniquilación cuántica $e^- + e^+ \to 2\gamma$ ($1022.0\text{ keV}$) en RAM y dispara el interlock ciber-físico ESP32 Crowbar en $< 392.15\text{ ns}$ ante cualquier violación de integridad.
 
 ## 2.1 El Colisionador Catadióptrico y la Aniquilación de Alucinaciones
 

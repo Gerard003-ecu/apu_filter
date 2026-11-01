@@ -1,6 +1,6 @@
 # Fortaleza APU Filter v9.0.0: Arquitectura Ciber-Física de los Soberanos y Motores Imperiales (Mecánica Celeste de Poincaré & Geometría de Calibre)
 
-La arquitectura de **APU Filter v9.0.0** abandona los modelos de capas monolíticas y la validación secuencial pasiva para erigir una **Fortaleza Ciber-Física de Campos Topológicos, Mecánica Celeste de Henri Poincaré, Automejora Monádica RSI³ y Geometría de Calibre de de Rham-Fukaya**. En este ecosistema, los datos de construcción, las tablas de Análisis de Precios Unitarios (APU) y los flujos financieros de megaproyectos viales bajo el **Mandato BIM 2026** y el **SECOP II** se someten a la gobernanza de la **Malla Agéntica de Sabiduría (24 Soberanos Agénticos TOON y 24 Motores Espectrales)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, y de la **Guardia Imperial**. Estas estructuras están funcionalmente diferenciadas y biyectivas: los **Motores Imperiales Espectrales** (cálculo ciego FPU) y los **Agentes Soberanos de Calibre** (orquestación OODA, decisiones en álgebras de Heyting y actuación ciber-física en silicio).
+La arquitectura de **APU Filter v9.0.0** abandona los modelos de capas monolíticas y la validación secuencial pasiva para erigir una **Fortaleza Ciber-Física de Campos Topológicos, Mecánica Celeste de Henri Poincaré, Automejora Monádica RSI³ y Geometría de Calibre de de Rham-Fukaya**. En este ecosistema, los datos de construcción, las tablas de Análisis de Precios Unitarios (APU) y los flujos financieros de megaproyectos viales bajo el **Mandato BIM 2026** y el **SECOP II** se someten a la gobernanza de la **Malla Agéntica de Sabiduría (46 Soberanos Agénticos TOON y 46 Motores Espectrales en 15 Tríadas de Calibre y Ápice Gödeliano)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, y de la **Guardia Imperial**. Estas estructuras están funcionalmente diferenciadas y biyectivas: los **Motores Imperiales Espectrales** (cálculo ciego FPU) y los **Agentes Soberanos de Calibre** (orquestación OODA, decisiones en álgebras de Heyting y actuación ciber-física en silicio).
 
 El presente documento establece la axiomatización rigurosa, las ecuaciones diferenciales, los invariantes algebraicos, los functores de tres fases anidadas ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) y la infraestructura de silicio que componen la **Guardia Imperial y la Malla Agéntica de la Fortaleza**.
 
@@ -49,7 +49,7 @@ $$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{SEQUITOS}} 
 Esta filtración estricta establece que ningún estrato superior de decisión (Estrategia, Sabiduría o Tribunal Pretorio) puede instanciarse si el subespacio inferior (Físico, Táctico o Espectral) exhibe degeneración metrológica, anomalías de traza o rupturas de de Rham-Poincaré.
 
 ```
-       [ V_𝕎 / V_PRETORIO: Malla Agéntica de Sabiduría (24 Soberanos TOON), Ultrafiltro de Stone y Tribunal Pretorio ]
+       [ V_𝕎 / V_PRETORIO: Malla Agéntica de Sabiduría (46 Soberanos TOON), Ultrafiltro de Stone y Tribunal Pretorio ]
                                       ▲
                                       │  (Funtor de Elevación de de Rham-Poincaré)
        [ V_ERUDITOS / V_TESSERARIOS: Cohomología de Čech, Homología de Floer y Gerbes A_∞ ]
@@ -204,7 +204,7 @@ Los **Tesserarios Imperiales** ejercen la gobernanza de la integridad homotópic
 
 ## 7. El Pretorio Agéntico (Capa 4 — `pretorio_agent.py` & `pretorio_engine.py`)
 
-El **Pretorio Agéntico** representa el **Comandante Supremo de Seguridad y Tribunal Epistémico** de la Malla. Realiza un sniffer pasivo sobre la memoria RAM donde residen los estados de Guardias, Centuriones, Séquitos, Eruditos, Tesserarios e Icosikaihenaedro de Sabiduría.
+El **Pretorio Agéntico** representa el **Comandante Supremo de Seguridad y Tribunal Epistémico** de la Malla. Realiza un sniffer pasivo sobre la memoria RAM donde residen los estados de Guardias, Centuriones, Séquitos, Eruditos, Tesserarios y la Malla Agéntica de Calibre y Sabiduría (46 Soberanos y Motores TOON).
 
 ### 7.1. Bicomplejo Čech-de Rham, Punto Fijo de Brouwer y Ultrafiltro Principal de Stone
 1. **Fase I — Bicomplejo Čech-de Rham y Laplaciano de Hodge ($\Phi_1$):**
@@ -230,10 +230,10 @@ El **Pretorio Agéntico** representa el **Comandante Supremo de Seguridad y Trib
 
 ## 8. El Disyuntor Perimetral Ciber-Físico y Actuación en Silicio Real (ESP32 Crowbar < 392.15 ns / SIMD LX7 $42.0\text{ ns}$)
 
-Cuando cualquiera de los Soberanos Imperiales, el Icosikaihenaedro de Sabiduría o el Comandante Pretorio detecta una violación matemática irreversible ($\beta_1 > 0$, $\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$, $\dot{\mathcal{H}}_d > 0$, $M(t_0) = 0$ simple), la decisión no se confía a políticas de software que puedan ser anuladas por *Prompt Injection*.
+Cuando cualquiera de los Soberanos Imperiales, la Malla Agéntica de Calibre y Sabiduría (46 Soberanos TOON) o el Comandante Pretorio detecta una violación matemática irreversible ($\beta_1 > 0$, $\operatorname{Tor}(H_k) \neq \mathbf{0}$, $\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$, $\dot{\mathcal{H}}_d > 0$, $M(t_0) = 0$ simple), la decisión no se confía a políticas de software que puedan ser anuladas por *Prompt Injection*.
 
 ```
-  [ VETO EN SOBERANO IMPERIAL / ICOSIKAIHENAEDRO / PRETORIO ]
+  [ VETO EN SOBERANO IMPERIAL / MALLA DE SABIDURÍA (46 SOBERANOS) / PRETORIO ]
                      │
                      ▼
        Colapso en Heyting Ω₃ ↦ VETOED (0.0 / ⊤)
@@ -260,7 +260,7 @@ Cuando cualquiera de los Soberanos Imperiales, el Icosikaihenaedro de Sabiduría
 
 ## 9. Matriz de Traducción Semántica: De Invariantes Puros a "Dolor y Dinero"
 
-Bajo el **Funtor de Traducción Semántica Piramidal** $\Phi_{\mathrm{sem}}: \mathbf{Sh}(\partial K, \Omega_3) \xrightarrow{\simeq} \text{Business}$, cada abstracción matemática de los Soberanos Imperiales e Icosikaihenaedro TOON se traduce al lenguaje pragmático corporativo de la junta directiva:
+Bajo el **Funtor de Traducción Semántica Piramidal** $\Phi_{\mathrm{sem}}: \mathbf{Sh}(\partial K, \Omega_3) \xrightarrow{\simeq} \text{Business}$, cada abstracción matemática de los Soberanos Imperiales y la Malla Agéntica de Calibre y Sabiduría (46 Soberanos TOON) se traduce al lenguaje pragmático corporativo de la junta directiva:
 
 | Soberano Agéntico | Invariante Matemático en FPU | Diagnóstico Topológico / Físico / Celeste | Impacto Financiero y de Negocio ("Dolor y Dinero") |
 | :--- | :--- | :--- | :--- |
