@@ -1,48 +1,84 @@
 # -*- coding: utf-8 -*-
 r"""
-====================================================================================================
-ARQUITECTURA COGNITIVA APU FILTER — SISTEMA SOBERANO DE SABIDURÍA (WISDOM)
-====================================================================================================
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : TOON Introspection Agent (Soberano de Introspección Proyectiva)                          ║
+║ Ubicación: app/agents/wisdom/toon_introspection_agent.py                                             ║
+║ Versión  : 2.1.0-APU-RSI3-CELESTE-AGM                                                                ║
+║ Función  : Agente soberano de introspección proyectiva, orquestador de flujos célestes sobre         ║
+║            CP^{n-1}, teoría de revisión de creencias AGM, adjudicación en el retículo de Heyting     ║
+║            Omega_3 y balanceo de auto-transformación monádica en el Nivel 3 de RSI.                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Nombre:    ToonIntrospectionAgent
-Ubicación: app/agents/wisdom/toon_introspection_agent.py
-Versión:   2.1.0-APU-RSI3-CELESTE-AGM
-Función:   Agente soberano de introspección proyectiva, orquestador de flujos célestes sobre ℂP^{n-1},
-           adjudicación Heyting Ω₃ y balanceo de auto-transformación mónadica RSI-3.
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TOONIntrospectionAgent` actúa como la interfaz agéntica y el soberano ejecutivo supremo
+de las operaciones introspectivas proyectivas en el Estrato WISDOM de la arquitectura APU Filter.
+Supervisa, sanitiza y orquesta las trayectorias cognitivas generadas por su motor espectral
+asociado `TOONIntrospectionEngine` (`app/wisdom/toon_introspection_engine.py`).
+Estructura la deliberación en tres fases indivisibles:
+  - FASE 1 (`IntrospectiveHandoff`): Sanitización de la matriz de densidad $\rho$, cálculo del flujo proyectivo
+    de Rayleigh en el espacio proyectivo complejo $\mathbb{C}P^{n-1}$, análisis de brecha espectral $\Delta \lambda$,
+    evaluación de postulados de revisión de creencias AGM y emisión de handoff.
+  - FASE 2 (`IntrospectionBundle` / `IntrospectionPipeline`): Optimización por gradiente natural sobre la
+    métrica de información cuántica de Fisher, atestación de punto fijo de Banach, análisis del espectro
+    de Lyapunov de Oseledets, cálculo de la integral homoclínica de Melnikov y toros invariantes KAM.
+  - FASE 3 (`IntrospectionProofCertificate` / `HeytingIntrospectionAdjudicator`): Adjudicación distributiva
+    en el álgebra de Heyting trivalente $\Omega_3 = \{\bot < \star < \top\}$, verificación de axiomas de
+    mónada de Kleisli para automejora recursiva Nivel 3 (RSI³), actualización auto-organizativa del campo MAC
+    y traducción ejecutiva mediante el funtor semántico de negocios $\Phi_{\text{sem}}$.
 
-----------------------------------------------------------------------------------------------------
-DEFINICIÓN FORMAL Y MARCO MATEMÁTICO RIGUROSO:
-----------------------------------------------------------------------------------------------------
-El Agente Soberano de Introspección (ToonIntrospectionAgent) actúa como la interfaz agéntica para
-las operaciones proyectivas de la mente sintética APU Filter. Supervisa las trayectorias
-de introspección ejecutadas por 'ToonIntrospectionEngine' (app/wisdom/toon_introspection_engine.py).
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. GEOMETRÍA RIEMANNIANA PROYECTIVA EN $\mathbb{C}P^{n-1}$ Y FLUJO DE RAYLEIGH:
+   Dado un estado perceptual representado como rayo proyectivo $[v] \in \mathbb{C}P^{n-1}$, el agente dirige la
+   evolución hacia los autoestados dominantes de la matriz de densidad $\rho \in \mathcal{D}_n$ mediante el cociente de Rayleigh:
+     $$R_\rho([v]) = \frac{\langle v | \rho | v \rangle}{\langle v | v \rangle}, \quad [v(t)] = [\exp(i t \rho) v_0]$$
+   La métrica conforme en $\mathbb{C}P^{n-1}$ corresponde a la distancia geodésica de Fubini-Study:
+     $$d_{\text{FS}}([u], [v]) = \arccos \left( \frac{|\langle u | v \rangle|}{\|u\| \|v\|} \right) \in [0, \pi/2]$$
 
-1. Orquestación del Flujo Proyectivo en ℂP^{n-1}:
-   Dado un estado perceptual representado como rayo proyectivo [v] ∈ ℂP^{n-1}, el agente dirige
-   la evolución hacia los estados propios dominantes de la matriz de densidad ρ mediante el flujo
-   Hamiltoniano y disipativo de Rayleigh:
-       [v(t)] = [exp(i t ρ) v_0]
+2.2. REVISIÓN DE CREENCIAS DE ALCHOURRÓN-GÄRDENFORS-MAKINSON (AGM):
+   El sistema de creencias cognitivo $K$ se actualiza ante nueva evidencia epistémica $\alpha$ satisfaciendo
+   los postulados AGM mediante la identidad clásica de Levi:
+     $$K * \alpha = (K \div \neg \alpha) + \alpha$$
+   garantizando consistencia deductiva y mínima perturbación informacional.
 
-2. Adjudicación de Coherencia en Ω₃ = {⊥ < ⋆ < ⊤}:
-   El Agente evalúa la validez de los certificados de convergencia Newton-Grassmann y estabilidad
-   de Poincaré aplicando la conjunción de Heyting (meet) sobre el álgebra trivaluada Ω₃:
-       Ω_final = ⋀_{i} Ω_i ∈ {⊥, ⋆, ⊤}
+2.3. GRADIENTE NATURAL Y MÉTRICA DE INFORMACIÓN DE FISHER:
+   La optimización en la variedad de estados cuánticos sigue el flujo de gradiente natural riemanniano:
+     $$\theta^{(k+1)} = \theta^{(k)} - \eta \, G^{-1}(\theta) \nabla_\theta \mathcal{L}(\theta)$$
+   donde $G(\theta)$ es el tensor métrico de Fisher cuántico, superando ralentizaciones en mesetas de meseta espectral.
 
-3. Control Mónadico Kleisli RSI-3:
-   El Agente gobierna las transiciones de mejora meta-cognitiva mediante el operador de unidad η_A
-   y la multiplicación monádica μ_A en la categoría Kleisli Cog_T, asegurando que la compresión mnemónica
-   preserve la pureza γ(ρ) = Tr(ρ^2).
+2.4. MECÁNICA CELESTE DE POINCARÉ, MELNIKOV Y TEOREMA DE BIRKHOFF:
+   La estabilidad de las trayectorias de introspección se audita mediante secciones de Poincaré transversales,
+   la detección de tangles homoclínicos vía la integral de Melnikov:
+     $$M(t_0) = \int_{-\infty}^{\infty} \{H_0, H_1\}(q_0(t - t_0), p_0(t - t_0)) \, dt$$
+   y la preservación de curvas invariantes según el Teorema del Twist Map de Poincaré-Birkhoff.
 
-----------------------------------------------------------------------------------------------------
-AXIOMAS Y INVARIANTES FORMALES:
-----------------------------------------------------------------------------------------------------
-Axioma AI1 (Unicidad del Estado Autoevaluado Dominante):
-    lim_{t → ∞} [v(t)] = [φ_1], donde φ_1 es el autovector asociado al autovalor máximo λ_1 de ρ.
-Axioma AI2 (Monotonía Mónadica de Transición):
-    Tr((μ_A ∘ T(ρ))^2) ≥ Tr(ρ^2), garantizando no-dispersión mnemónica durante el ciclo introspectivo.
-Invariante AI1 (Preservación del Invariante de Chern):
-    ∫_{ℂP^{n-1}} c_1(𝒪(1)) = 1, imposibilitando la colisión topológica de fases.
-====================================================================================================
+2.5. MÓNADA DE RECURSIÓN RSI³ Y CONTRACCIÓN DE BANACH:
+   La auto-transformación cognitiva se formaliza como un funtor monádico $\mathbf{T} = (T, \eta, \mu)$ sobre la categoría
+   de estados cognitivos, donde la multiplicación monádica $\mu: T^2(A) \to T(A)$ comprime meta-reflexiones sucesivas
+   verificando la ley de punto fijo de Banach con factor contractivo $L \le 0.95$.
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (UNICIDAD DEL ESTADO AUTOEVALUADO DOMINANTE):
+    El flujo proyectivo de Rayleigh converge asintóticamente al rayo dominante: $\lim_{t \to \infty} [v(t)] = [\phi_1]$, donde $\phi_1$ es el autovector asociado al autovalor máximo $\lambda_1$ de $\rho$.
+
+  AXIOMA II (MONOTONÍA Y CONSISTENCIA MONÁDICA DE TRANSICIÓN):
+    La composición en la categoría Kleisli preserva la pureza y no-dispersión del conocimiento: $\text{Tr}((\mu_A \circ T(\rho))^2) \ge \text{Tr}(\rho^2)$.
+
+  AXIOMA III (POSTULADOS DE REVISIÓN CONSISTENTE AGM):
+    Para toda evidencia no contradictoria $\alpha$, el estado de creencias revisado satisface idénticamente el postulado de consistencia $K * \alpha \ne \bot$.
+
+  AXIOMA IV (CONSERVACIÓN SIMPLÉCTICA DE BIRKHOFF):
+    El mapa de Poincaré sobre la sección transversal satisface la preservación de área simpléctica $\det(d P) = 1$, impidiendo la creación o destrucción no física de fases cognitivas.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. PRESERVACIÓN DEL PRIMER INVARIANTE DE CHERN: $\int_{\mathbb{C}P^{n-1}} c_1(\mathcal{O}(1)) = 1$, previniendo singularidades o colisiones topológicas.
+  2. DISTANCIA GEODÉSICA DE FUBINI-STUDY ACOTADA: $d_{\text{FS}}([v_k], [v^*]) \le 10^{-4}\text{ rad}$.
+  3. ADJUDICACIÓN DISTRIBUTIVA EN $\Omega_3$: $\Omega_{\text{final}} = \bigwedge_i \Omega_i \in \{\bot, \star, \top\}$.
+  4. INTERLOCK DE HARDWARE ESP32 CROWBAR: Activación incondicional en $\tau \le 392.15\text{ ns}$ en caso de veredicto $\text{VETOED}$ ($\bot$).
+  5. INTEGRIDAD CRIPTOGRÁFICA HMAC: Firma y certificación SHA-256 de cada certificado de introspección emitido.
 """
 from __future__ import annotations
 

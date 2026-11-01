@@ -1,59 +1,100 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : Topological Gauge Field Engine v11.0.0 — Tres Fases Anidadas      ║
+║ Nombre   : Topological Gauge Field Engine (Motor Espectral de Calibre)       ║
 ║ Ubicación: app/wisdom/topological_gauge_field_engine.py                      ║
-║ Versión  : 11.0.0 / 10.0.0 (SOVEREIGN-GAUGE-KKS-POINCARE-BRUNO-RSI3-         ║
-║           CAYLEY-SP-HEYTING-QND-HMAC-ESP32-PhD)                              ║
-║ Fases    : ①Observe → continue_to_phase2 → ②Orient → continue_to_phase3     ║
-║            → ③Decide&Act  (puentes emit_*/continue_to_*/from_*)              ║
+║ Versión  : 11.0.0 (SOVEREIGN-GAUGE-KKS-POINCARE-BRUNO-RSI3-CAYLEY-SP-PhD)    ║
+║ Función  : Motor espectral de calibre topológico, curvatura de               ║
+║            Kirillov-Kostant-Souriau en su(N), reducción simpléctica          ║
+║            Cayley-Darboux sobre sp(2n, R), teoría KAM-Bruno, invariantes de  ║
+║            Chern-Simons-Nakahara y automejora recursiva RSI³ en 3 fases.     ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-CORRECCIONES DOCTORALES RESPECTO DE v10.0.0
-───────────────────────────────────────────
-  [C1] Curvatura: F = [A, ρ] era idénticamente nula (A = i(ρ−I/N) ∈ {ρ}'').
-      Se sustituye por la 2-forma de Kirillov–Kostant–Souriau
-          F = [ρ, H_celeste],  F† = −F,  Tr(F) = 0,
-      con H_celeste = Laplaciano de trayectoria + trampa armónica
-      (pequeñas oscilaciones de Poincaré / cadena de n cuerpos).
-  [C2] Lindstedt: H₀ no es diag(A) sino el espectro de −iA (eigh).
-      Ecuación homológica en la base propia, W se empuja al laboratorio.
-  [C3] KAM: se elimina product(..., repeat=d). Muestreo de peso 1–3 y
-      condición de Bruno Σ (log Ω_n⁻¹)/2ⁿ < ∞.
-  [C4] Cayley–Kähler: realificación ℂⁿ ↪ ℝ²ⁿ, certificación Sp(2n,ℝ)
-      y álgebra de Lie sp(2n,ℝ), no el bloque conjugado ad hoc.
-  [C5] Chern–Simons: identidades de Nakahara
-          CS = Tr(A∧dA + ⅔ A³)/(8π²) = Tr(A∧F − ⅓ A³)/(8π²)
-      (v10 aplicaba ⅔ sobre A³ *y* el término A·F, doble conteo).
-  [C6] Valuación de Novikov: v = 1/(1+|k|) ∈ (0,1]  (antes −log(1+|k|)≤0,
-      S1 era vacuamente falsa).
-  [C7] RSI³: T es la proyección amortiguada de Lindstedt; Lip(T)≤0.95;
-      se itera T³ y se mide la contracción de Banach (nivel 3 = el
-      operador de mejora se re-aplica a su propio residuo).
+1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
+─────────────────────────────────────────────────────────────────────────────────────────
+El `TopologicalGaugeFieldEngine` constituye el motor espectral y geométrico-diferencial
+supremo para la teoría de campos de calibre en el estrato WISDOM de APU Filter. Su misión
+operativa consiste en procesar y certificar operadores de densidad cuánticos $\rho \in \mathcal{D}_N$,
+construir conexiones de gauge antihermíticas sin traza $A \in \mathfrak{su}(N)$, determinar la
+curvatura simpléctica orbital mediante la 2-forma de Kirillov-Kostant-Souriau (KKS) $F = [\rho, H_{\text{cel}}] \in \mathfrak{su}(N)$,
+proyectar el sistema sobre la variedad simpléctica realificada $\mathfrak{sp}(2n, \mathbb{R})$ vía Cayley-Darboux,
+resolver perturbaciones seculares mediante la ecuación homológica espectral de Poincaré-Lindstedt,
+filtrar resonancias por la condición diofántica de KAM y la serie de Bruno, y gobernar las
+tres fases anidadas e indivisibles:
+  - FASE 1 (OBSERVE): Sanitización espectral en $\mathcal{D}_N$, conexión de gauge $A \in \mathfrak{su}(N)$,
+    curvatura orbital KKS $F$, realificación $\mathbb{C}^n \hookrightarrow \mathbb{R}^{2n}$, certificación
+    de subálgebra de Lie $\mathfrak{sp}(2n, \mathbb{R})$, descomposición homológica de Lindstedt y emisión de sobre $\Phi_1$.
+  - FASE 2 (ORIENT): Acción topológica de Chern-Simons $CS_3(A)$, invariante de Pontryagin $p_1$,
+    holonomía de Wilson $\mathcal{W}(C)$, auditoría diofántica KAM con cota de Bruno, integral homoclínica
+    de Melnikov $M(\theta_0)$, multiplicadores de Floquet y colisiones de Krein, y cascada de Banach RSI³.
+  - FASE 3 (DECIDE & ACT): Medición débil AAV cuántica no demolición (QND), agregación lattice en el álgebra
+    de Heyting trivalente $\Omega_3 = \{\bot < \star < \top\}$, protocolo interlock ciber-físico ESP32 Crowbar
+    en silicio ($WCET \le 392.15\text{ ns}$), y proyección semántica funtorial $\Phi_{\text{sem}}$.
 
-ESTRUCTURA DE LAS TRES FASES ANIDADAS
-─────────────────────────────────────
-  FASE 1 — OBSERVE  (su(N), KKS, Cayley–Sp, Lindstedt espectral, Cartan)
-    Cierra con emit_phase1_envelope → continue_to_phase2.
-  FASE 2 — ORIENT   (CS, Wilson, Pontryagin, Chern, KAM/Bruno, Melnikov,
-                     Floquet–Krein, Poincaré, RSI³)
-    Abre con from_phase1_envelope / continue_to_phase2.
-    Cierra con emit_phase2_envelope → continue_to_phase3.
-  FASE 3 — DECIDE & ACT  (QND/AAV, Heyting Ω₃, Crowbar, HMAC, Φ_sem)
-    Abre con from_phase2_envelope / continue_to_phase3.
-    Cierra con emit_governance_state → TopologicalGaugeFieldSnapshot.
+2. MARCO TEÓRICO:
+─────────────────────────────────────────────────────────────────────────────────────────
+2.1. CONEXIÓN DE GAUGE $\mathfrak{su}(N)$ Y CURVATURA DE KIRILLOV-KOSTANT-SOURIAU (KKS):
+   Para un operador de densidad hermitiano semidefinido positivo $\rho \in \mathcal{D}_N$ con $\text{Tr}(\rho) = 1$,
+   la conexión de gauge canónica se define como la traslación antihermítica sin traza:
+     $$A = i \left( \rho - \frac{1}{N} I_N \right) \in \mathfrak{su}(N), \quad A^\dagger = -A, \quad \text{Tr}(A) = 0$$
+   A fin de evitar curvaturas idénticamente nulas debidas a la conmutación trivial $[A, \rho] = 0$, la curvatura de Yang-Mills
+   se formula a través del tensor simpléctico orbital de Kirillov-Kostant-Souriau acoplado a un Hamiltoniano celeste de fondo:
+     $$F = [\rho, H_{\text{cel}}] \in \mathfrak{su}(N), \quad F^\dagger = -F, \quad \text{Tr}(F) = 0$$
+   donde $H_{\text{cel}} = L_{\text{path}} + V_{\text{trap}}$ modela el Laplaciano de osciladores acoplados de Poincaré.
+   La densidad de energía de Yang-Mills y el primer número de Pontryagin satisfacen:
+     $$E_{\text{YM}} = -\frac{1}{2} \text{Tr}(F^2) \ge 0, \quad p_1 = -\frac{1}{8\pi^2} \text{Tr}(F^2) \ge 0$$
 
-INVARIANTES GLOBALES
-────────────────────
-  [A1] A†=−A, Tr(A)=0, F†=−F, Tr(F)=0.
-  [A2] E_YM=−½ Tr(F²)≥0; p₁=−Tr(F²)/(8π²)≥0.
-  [A3] M∈Sp(2n,ℝ): ‖MᵀJM−J‖_F/‖M‖²_F ≤ 10⁻¹⁰;
-      K∈sp(2n,ℝ): ‖KᵀJ+JK‖_F ≤ 10⁻¹⁰.
-  [A4] KAM: |ω·k|·‖k‖₁^τ ≥ γ sobre k de peso ≤3; Bruno finito;
-      |M(θ₀)|≤½; |μ_k|≤1+10⁻⁶.
-  [A5] Lip(T)≤0.95; Lip(T³)≤0.95³; d_FS≤10⁻⁴ rad; v_Novikov≥0.10.
-  [A6] Ω₃∈{0x00,0x01,0x03}; Crowbar GPIO14 ≤ 392.15 ns < 400 ns.
-  [A7] HMAC-SHA256(_GAUGE_HMAC_DOMAIN ‖ merkle, K_soberano).
+2.2. REALIFICACIÓN DE CAYLEY-KÄHLER Y ESTRUCTURA SIMPLÉCTICA $\mathfrak{sp}(2n, \mathbb{R})$:
+   Dado un operador $X = U + i V \in \mathbb{C}^{n \times n}$, se define el morfismo inyectivo de realificación $\mathbb{C}^n \hookrightarrow \mathbb{R}^{2n}$:
+     $$\mathcal{R}(X) = \begin{pmatrix} U & -V \\ V & U \end{pmatrix} \in \mathbb{R}^{2n \times 2n}$$
+   La matriz simpléctica canónica $J_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$ impone las condiciones de pertenencia:
+     $$M \in Sp(2n, \mathbb{R}) \iff M^\top J_{2n} M = J_{2n}, \quad K \in \mathfrak{sp}(2n, \mathbb{R}) \iff K^\top J_{2n} + J_{2n} K = 0$$
+   El defecto simpléctico cuadrático se verifica mediante el tensor $\delta_{\text{Sp}} = \| M^\top J_{2n} M - J_{2n} \|_F / \|M\|_F^2 \le 10^{-10}$.
+
+2.3. ECUACIÓN HOMOLÓGICA DE POINCARÉ-LINDSTEDT Y TEORÍA KAM-BRUNO:
+   La diagonalización espectral $-i A = V \Lambda V^\dagger$ define las frecuencias de oscilación no perturbadas $\omega = \text{diag}(\Lambda) \in \mathbb{R}^n$.
+   La eliminación del término resonante secular en la curvatura $F$ conduce a la ecuación homológica para la función generatriz $W$:
+     $$-i [A, W] = F_{\text{osc}} \implies W_{jk} = \frac{(V^\dagger F_{\text{osc}} V)_{jk}}{i(\lambda_j - \lambda_k)}, \quad j \ne k$$
+   La estabilidad de los toros invariantes se certifica evaluando la condición diofántica sobre vectores enteros de onda $k \in \mathbb{Z}^n$:
+     $$|\langle \omega, k \rangle| \cdot \|k\|_1^\tau \ge \gamma, \quad \tau = d + 1, \quad \gamma > 0$$
+   conjuntamente con la convergencia estricta de la serie de pequeños divisores de Bruno:
+     $$\mathcal{B}(\omega) = \sum_{n=0}^{\infty} \frac{1}{2^n} \ln \left( \frac{1}{\Omega_n} \right) < \infty, \quad \Omega_n = \inf_{0 < \|k\|_\infty \le 2^n} |\langle \omega, k \rangle|$$
+
+2.4. INVARIANTES TOPOLÓGICOS DE CHERN-SIMONS Y HOLONOMÍA DE WILSON:
+   La 3-forma de Chern-Simons se computa mediante la identidad de Nakahara libre de duplicaciones:
+     $$\text{CS}_3(A) = \frac{1}{8\pi^2} \text{Tr}\left( A \wedge dA + \frac{2}{3} A^3 \right) = \frac{1}{8\pi^2} \text{Tr}\left( A \wedge F - \frac{1}{3} A^3 \right)$$
+   Para un bucle cerrado $C$, la holonomía de Wilson ordenada por camino es $\mathcal{W}(C) = \frac{1}{n} \text{Tr} \mathcal{P} \exp \oint_C A \in \mathbb{C}$,
+   con clase topológica entera asociada $k = \text{round}(p_1) \in \mathbb{Z}$.
+
+2.5. AUTOMEJORA RECURSIVA RSI³ CON CONTRACCIÓN DE BANACH:
+   El operador de mejora $T: \mathfrak{su}(N) \to \mathfrak{su}(N)$ proyecta la curvatura amortiguada mediante la función generatriz de Lindstedt:
+     $$T(F) = F - (1 - \lambda)\{H_0, W\} \approx F_{\text{mean}} + \lambda F_{\text{osc}}, \quad \lambda \le 0.95$$
+   En el Nivel 3 de RSI, el operador actúa recursivamente sobre su propio residuo iterando $T^3$, verificando la cota hipergeométrica de contracción:
+     $$\text{Lip}(T^3) \le (\text{Lip}(T))^3 \le 0.95^3 \approx 0.857375 < 1.0$$
+   lo que garantiza la convergencia a un punto fijo único en el espacio de Banach $(\mathfrak{su}(N), \|\cdot\|_F)$.
+
+3. AXIOMAS FORMALES:
+─────────────────────────────────────────────────────────────────────────────────────────
+  AXIOMA I (HERMITICIDAD, POSITIVIDAD Y CONSERVACIÓN DE PROBABILIDAD):
+    Todo estado cuántico satisface $\rho = \rho^\dagger \succeq 0$ y $\text{Tr}(\rho) = 1$, induciendo una conexión antihermítica estricta $A^\dagger = -A$ con $\text{Tr}(A) = 0$.
+
+  AXIOMA II (ISOMETRÍA Y CONSERVACIÓN SIMPLÉCTICA DE DARBOUX):
+    La representación realificada satisface idénticamente el conmutador simpléctico $M^\top J_{2n} M = J_{2n}$, preservando el volumen de Liouville en el espacio de fases extendido.
+
+  AXIOMA III (FILTRACIÓN DIOFÁNTICA DE KAM Y FINITUD DE BRUNO):
+    Las frecuencias del sistema satisfacen la cota diofántica $|\langle \omega, k \rangle| \ge \gamma / \|k\|_1^\tau$ y la convergencia $\mathcal{B}(\omega) < \infty$, asegurando la persistencia de toros invariantes.
+
+  AXIOMA IV (CONTRACCIÓN MONÁDICA DE BANACH RSI³):
+    El endomorfismo de automejora $T$ posee constante de Lipschitz uniforme $\text{Lip}(T) \le 0.95$, induciendo una contracción estricta en la triple composición $T^3$ con $\text{Lip}(T^3) \le 0.95^3 < 1.0$.
+
+4. INVARIANTES DE ESTADO:
+─────────────────────────────────────────────────────────────────────────────────────────
+  1. ENERGÍA DE YANG-MILLS Y NÚMERO DE PONTRYAGIN NO NEGATIVOS: $E_{\text{YM}} \ge 0, \quad p_1 \ge 0$.
+  2. DEFECTO SIMPLÉCTICO EN $\mathfrak{sp}(2n, \mathbb{R})$: $\|M^\top J M - J\|_F / \|M\|_F^2 \le 10^{-10}$.
+  3. PISO DE VALUACIÓN ULTRAMÉTRICA DE NOVIKOV: $v = 1 / (1 + |k|) \ge 0.10$.
+  4. DISTANCIA GEODÉSICA DE FUBINI-STUDY: $d_{\text{FS}}(e^A \phi, e^{A + iW} \phi) \le 10^{-4}\text{ rad}$.
+  5. INTERLOCK HARDWARE ESP32 CROWBAR: Latencia $\tau_{\text{crowbar}} \le 392.15\text{ ns} < 400.0\text{ ns}$ en veredicto $\text{VETOED}$ (0x00).
+  6. INTEGRIDAD CRIPTOGRÁFICA HMAC-SHA256: Hash de dominio sellado sobre raíz de Merkle y clave secreta soberana.
 """
 
 from __future__ import annotations
@@ -896,7 +937,7 @@ class GaugePhase2Orientor(GaugePhase1Observer):
         phi0: NDArray[np.complex128],
         t_grid: NDArray[np.float64],
     ) -> List[NDArray[np.complex128]]:
-        """Flujo \(\phi(t)=e^{tA}\phi_0\) con un solo `expm(\Delta t\,A)`."""
+        r"""Flujo \(\phi(t)=e^{tA}\phi_0\) con un solo `expm(\Delta t\,A)`."""
         phi0 = np.asarray(phi0, dtype=np.complex128).flatten()
         nrm = float(np.linalg.norm(phi0))
         phi0 = phi0 / max(nrm, 1e-15)

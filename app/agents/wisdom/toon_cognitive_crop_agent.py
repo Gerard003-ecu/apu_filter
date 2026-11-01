@@ -2614,7 +2614,11 @@ class TOONCognitiveCropAgent:
             from app.wisdom.toon_cognitive_crop_engine import MetaCognitiveCropEngine
             self.meta_engine = MetaCognitiveCropEngine(dimension=self.dimension_mac)
         except ImportError:
-            self.meta_engine = None
+            try:
+                from toon_cognitive_crop_engine import MetaCognitiveCropEngine
+                self.meta_engine = MetaCognitiveCropEngine(dimension=self.dimension_mac)
+            except ImportError:
+                self.meta_engine = None
 
     def execute_rsi3_meta_crop_step(self, d_dirichlet_dt: float) -> float:
         r"""

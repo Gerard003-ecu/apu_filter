@@ -86,7 +86,7 @@ import scipy.linalg as la
 
 # ── Importación flexible del motor testigo v6.0.0 ───────────────────────────
 try:
-    from toon_introspection_witness_engine import (  # type: ignore
+    from app.wisdom.toon_introspection_witness_engine import (  # type: ignore
         ActuationMode,
         CStarAuditResult,
         FockAnihilationRecord,
@@ -100,7 +100,22 @@ try:
     )
     _ENGINE_AVAILABLE = True
 except ImportError:
-    _ENGINE_AVAILABLE = False
+    try:
+        from toon_introspection_witness_engine import (  # type: ignore
+            ActuationMode,
+            CStarAuditResult,
+            FockAnihilationRecord,
+            HeytingOmega3,
+            IntrospectionWeakObservationGerm,
+            IntrospectionWitnessCanonicalSeed,
+            IntrospectionWitnessExecutionCertificate,
+            IntrospectionWitnessQNDEngine,
+            PoincareIntrospectionWitnessAtlas,
+            TOONIntrospectionWitnessEngine,
+        )
+        _ENGINE_AVAILABLE = True
+    except ImportError:
+        _ENGINE_AVAILABLE = False
 
     class HeytingOmega3(IntEnum):  # type: ignore
         VETOED, DEGRADED, COHERENT = 0, 1, 2
