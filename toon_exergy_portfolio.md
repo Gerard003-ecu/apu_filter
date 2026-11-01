@@ -1,4 +1,4 @@
-# 🏛️ Documentación Granular y Rigurosa: Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski)
+# 🏛️ Documentación Granular y Rigurosa: Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski — Enlazado con la Malla Agéntica de Sabiduría de 46 Soberanos TOON)
 ## *Soberanos TOON, Motores Espectrales, Tríada de Gobernanza y Métodos de Mecánica Celeste en APU Filter v9.0.0*
 
 ---
@@ -44,7 +44,7 @@
 
 ## **1. Introducción y Ontología del Estrato Exergético ($\mathcal{V}_{\mathbb{P}}$)**
 
-El **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski)** constituye la capa de gobernanza ciber-física multilateral dentro de **APU Filter v9.0.0**. Eleva la capacidad de fiscalización e inmunología algorítmica desde la auditoría de contratos aislados hacia el **blindaje holístico, topológico y termodinámico de redes de megaproyectos de infraestructura interconectados** (concesiones viales 4G/5G, sistemas de acueductos, redes aeroportuarias y parques energéticos).
+El **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0 / Fibrado de Deligne–Jarzynski — Enlazado con la Malla Agéntica de Sabiduría de 46 Soberanos TOON)** constituye la capa de gobernanza ciber-física multilateral dentro de **APU Filter v9.0.0**. Eleva la capacidad de fiscalización e inmunología algorítmica desde la auditoría de contratos aislados hacia el **blindaje holístico, topológico y termodinámico de redes de megaproyectos de infraestructura interconectados** (concesiones viales 4G/5G, sistemas de acueductos, redes aeroportuarias y parques energéticos).
 
 El estrato se estructura sobre un **conjunto de tres binomios desacoplados (6 componentes en total)** que implementan una Tríada de Gobernanza Ciber-Física (Ejecutor, Testigo QND y Fiscal Inquisidor Dual) acoplada monádicamente mediante la categoría de Kleisli de la **Automejora Recursiva Nivel 3 (RSI³ — Darwin–Gödel)**.
 

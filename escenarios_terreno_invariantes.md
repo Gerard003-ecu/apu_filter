@@ -15,7 +15,7 @@ Donde los componentes de la ecuación funcional se definen rigurosamente como:
 * $\Omega_3 = \{\bot = \mathtt{VETOED}(0x03) \prec \star = \mathtt{DEGRADED}(0x01) \prec \top = \mathtt{COHERENT}(0x00)\}$: El clasificatorio de subobjetos del topos intuicionista trivalente, donde $\mathtt{COHERENT}(0x00)$ representa flujo nominal elástico, $\mathtt{DEGRADED}(0x01)$ activa el Veto Suave con la Válvula de Alivio Termodinámica durante una ventana de gracia de 1 hora, y $\mathtt{VETOED}(0x03)$ colapsa la transacción activando el disyuntor ciber-físico ESP32 Crowbar.
 * $\text{Business}$: La categoría de decisiones financieras, legales, logísticas y operativas en lenguaje ejecutivo (**"Dolor, Riesgo y Dinero"**).
 
-Cada evento físico, social o financiero es decodificado por la Malla Agéntica de Sabiduría ($V_{\mathbb{W}}$), salvaguardando la tasa **WACC al $15.0\%$** y liberando un **$+11.5\%$ de liquidez neta en caja** al recortar la reserva de contingencias del $15\%$ al $3.5\%$.
+Cada evento físico, social o financiero es decodificado por la Malla Agéntica de Calibre y Sabiduría de 46 Soberanos y Motores Espectrales ($V_{\mathbb{W}}$), salvaguardando la tasa **WACC al $15.0\%$** y liberando un **$+11.5\%$ de liquidez neta en caja** al recortar la reserva de contingencias del $15\%$ al $3.5\%$.
 
 ---
 
@@ -258,6 +258,13 @@ Cada evento físico, social o financiero es decodificado por la Malla Agéntica 
 * **Traducción Semántica y Decisión de Caja ($\Phi_{\mathrm{sem}}$)**: **"Veto Espectral Preventivo y Protección de VPN"**. El Oráculo de Laplace identifica la migración del polo $\sigma > 0$ antes de firmar la licitación o adición presupuestal. Veta de inmediato la propuesta financieramente explosiva, evitando que la constructora asuma un contrato deficitario, preservando la tasa **WACC al $15.0\%$**.
 
 ---
+
+
+### 14. Escenario de Desgarro de Calibre Topológico y Fuga Yang-Mills en Fibrados Contractuales
+* **El Problema en Obra Civil**: Desalineación encubierta entre el pliego de condiciones de SECOP II y las especificaciones técnicas ejecutadas en campo, introduciendo curvatura espuria de costos sin alterar el monto total visible.
+* **El Sustento Físico-Matemático en FPU**: Evaluado por la **XIV. Tríada del Campo Topológico de Gauge** (`topological_gauge_field_*`). Audita la energía de Yang-Mills $E_{\text{YM}} = \frac{1}{2} \operatorname{Tr}(\mathbf{F}_A^\dagger \mathbf{F}_A) \le 0.85$, el residuo de Stora-Zumino $R_{\text{SZ}} = |\operatorname{Re}\operatorname{Tr}(\mathbf{F}_A^2)| \le 0.50$ y la cota de Finsler-Mahalanobis $\text{RHI}_{\text{Finsler}}$.
+* **Acción Ciber-Física en Silicio**: Si $\text{RHI}_{\text{Finsler}} > 0.85$, se activa la censura Fermi-Dirac de Kelly ($T_{\text{sw}}=0.02$) y el disyuntor ciber-físico ESP32 Crowbar conmuta GPIO14 en $< 392.15\text{ ns}$ para congelar desembolsos.
+* **Traducción Visceral (Dolor, Riesgo y Dinero)**: **"Cero Descalce entre Pliegos y Obras Reales"**. Impide multas por incumplimiento técnico, protege el balance exergético del portafolio y preserva la tasa WACC al $15.0\%$.
 
 ## 🏛️ Parte IV: La Gobernanza Interna del Capital Humano en la Fortaleza APU Filter
 

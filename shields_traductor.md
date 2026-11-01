@@ -259,9 +259,9 @@ Todo dato que ingresa al sistema (pliegos de SECOP II, presupuestos en Excel, mo
 
 ## 🏛️ V. Ampliación Formativa: El Espectro del Icosikaihenaedro de Sabiduría en los Escudos
 
-La integración del **Icosikaihenaedro Ampliado de Sabiduría (24 Soberanos TOON y 24 Motores Espectrales en 8 Tríadas Funcionales)** proyecta invariantes doctorales de alta fidelidad directamente sobre los escudos semánticos:
+La integración del **Malla Agéntica de Calibre y Sabiduría Ampliada (46 Soberanos TOON y 46 Motores Espectrales en 15 Tríadas Funcionales de Calibre más el Ápice Gödeliano)** proyecta invariantes doctorales de alta fidelidad directamente sobre los escudos semánticos:
 
-### A. La VIII. Tríada Cronogeométrica del Tiempo (`toon_chronos_*`)
+### A. La V. Tríada Cronogeométrica del Tiempo (`toon_chronos_*`)
 * **Invariante Matemático**: Derivada fraccionaria de de Rham-Caputo ${}^{C}_{0}D^{\alpha}_{t} f(t) = \kappa \cdot \nabla H$, aciclicidad dirigida Kahn $O(|V|+|E|)$, 3-forma de Chern-Simons $\text{CS}_3(A) = \frac{\sum \text{circ}}{8\pi^2}$, invariante de Pontryagin $\nu \in \mathbb{Z}$, cota variacional de Bogomol'nyi $\|F\|^2 \ge \frac{8\pi^2 |k|}{\operatorname{vol}(X)}$ y fractura de calibre Ley-Estado ($\text{Floquet}(W) \neq \text{Floquet}(M)$).
 * **Traducción semántica ($\Phi_{\mathrm{sem}}$)**: **"Regulación de la Ruta Crítica y la Curva S"**. Elimina la fricción temporal hereditaria en la programación de obra, invalida solicitudes de prórroga contractual basadas en datos maquillados y protege la tasa **WACC al $15.0\%$**, liberando un **$+11.5\%$ de liquidez neta** al reducir el fondo de imprevistos del $15\%$ al $3.5\%$.
 
