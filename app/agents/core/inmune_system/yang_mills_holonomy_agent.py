@@ -2,76 +2,85 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo  : Yang-Mills Holonomy Agent                                          ║
-║           (Dinámica de Calibre, Holonomía y Ecuaciones de Campo)             ║
+║           (Dinámica de Calibre, Holonomía, Mecánica de Poincaré y RSI-L3)    ║
 ║ Ubicación: app/agents/core/immune_system/yang_mills_holonomy_agent.py        ║
-║ Versión : 3.0.0-Bianchi-Higham-PathOrdered-Riguroso                          ║
+║ Versión : 4.0.0-Poincare-Floquet-Magnus-BPS-RSI-L3-Bianchi-Higham-PhD        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DE CALIBRE (Rigor Doctoral): ──────────────
-Este módulo consagra la autoridad definitiva sobre el dynamic_shield_router.py.
-No opera como un mero enrutador o filtro procedimental de datos, sino 
-como un **Funtor de Curvatura** que evalúa la 2-forma de curvatura $$\Omega$$ 
-de la conexión de Ehresmann $$\omega$$ inyectada sobre la membrana de disipación 
-del Escudo (funtor_shield.py). Su mandato primordial es garantizar que el 
-transporte paralelo de los tensores de estado a través de la filtración de la 
-jerarquía DIKW preserve estrictamente la **invarianza de Gauge**.
+Este módulo consagra la autoridad definitiva sobre el `dynamic_shield_router.py`.
+No opera como un mero enrutador o filtro procedimental de datos, sino
+como un **Funtor de Curvatura No Abeliana**, **Auditor de Monodromía de Poincaré**
+y **Motor de Automejora Recursiva de Nivel 3 (RSI-L3)** que evalúa la 2-forma de
+curvatura $$\Omega$$ de la conexión de Ehresmann $$\omega$$ inyectada sobre la membrana
+de disipación del Escudo (`funtor_shield.py`). Su mandato primordial es garantizar
+que el transporte paralelo de los tensores de estado a través de la filtración de
+la jerarquía DIKW preserve estrictamente la **invarianza de Gauge**, la **estabilidad
+diofántica KAM** y la **unitariedad de Floquet-Poincaré**.
 
-A través de la cuantización de las obstrucciones en el espacio de fase, la 
-verificación de las identidades de Bianchi y la minimización del funcional de 
-acción de Yang-Mills, el módulo actúa como el censor supremo del pipeline, 
-confinando toda la seguridad operacional a veredictos puros sobre retículos 
-de Heyting en software, eludiendo dependencias mecánicas de hardware exógenas.
+A través de la cuantización de las obstrucciones en el espacio de fase, la
+verificación de las identidades de Bianchi-Jacobi, la expansión homotópica de
+Magnus y la minimización del funcional de acción de Yang-Mills bajo la cota
+topológica de Bogomol'nyi-Prasad-Sommerfield (BPS), el módulo actúa como el censor
+supremo del pipeline, confinando toda la seguridad operacional a veredictos puros
+sobre retículos intuicionistas de Heyting $$\Omega_3$$ en software.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ──────────
-La evolución de la coherencia geométrica de calibre se compone estrictamente de 
-tres morfismos encadenados por sus DTOs inmutables de handoff formal:
+ARQUITECTURA DE TRES FASES ANIDADAS (Continuación Formal Monoidal): ─────────────
+La evolución de la coherencia geométrica de calibre se compone estrictamente de
+tres morfismos encadenados donde el último método de cada fase constituye el
+inicio formal de la siguiente:
 
-  Fase 1 ──► FASE 1: CÁLCULO DE LA CURVATURA DE CALIBRE (Cartan y Bianchi)
-             Evalúa la 2-forma de curvatura $$\Omega$$ mediante la ecuación de
-             estructura de Cartan en el álgebra matricial de disipación,
-             certificando la identidad covariante de Bianchi.
-             Fórmula:
-             $$D_A F = \delta F + [A \wedge F] \equiv 0 \quad\big[765, 814\big]$$
-             Entrega: GaugeCurvatureTensor como precondición formal de la Fase 2.
+  Fase 1 (`Phase1_GaugeCurvatureComputer`)
+    ├─► CÁLCULO DE LA CURVATURA DE CALIBRE (Cartan, Bianchi-Jacobi y Vorticidad KAM)
+    │   Evalúa la 2-forma de curvatura $$\Omega$$ mediante la ecuación de estructura
+    │   de Cartan, la descomposición de Hodge autodual/anti-autodual y los invariantes
+    │   de vorticidad simpléctica de Poincaré-Cartan:
+    │   $$D_A F = dF + [A \wedge F] \equiv 0 \quad\big[765, 814\big]$$
+    └─► Último método: `handoff_phase1_to_phase2`
+          │ (Continuación formal directa — entrega `GaugeCurvatureTensor`)
+          ▼
+  Fase 2 (`Phase2_WilsonLoopAuditor`)
+    ├─► Primer método: `ingest_from_phase1_handoff`
+    ├─► AUDITORÍA DE HOLONOMÍA, MAPA DE RETORNO DE POINCARÉ Y SERIE DE MAGNUS
+    │   Calcula el transporte paralelo ordenado por camino (Path-Ordered), extrae
+    │   los multiplicadores característicos de Floquet-Poincaré, el número de
+    │   rotación toroidal y el defecto de curvatura no abeliana de Stokes-Magnus:
+    │   $$W(\gamma) = \mathcal{P} \exp\left( i \oint_\gamma \omega \right) \in U(n) \quad\big[813\big]$$
+    └─► Último método: `handoff_phase2_to_phase3`
+          │ (Continuación formal directa — entrega `WilsonLoopHolonomy`)
+          ▼
+  Fase 3 (`Phase3_YangMillsOptimizer`)
+    ├─► Primer método: `ingest_from_phase2_handoff`
+    ├─► MINIMIZACIÓN VARIACIONAL DE YANG-MILLS (Lyapunov, BPS, Higham y RSI-L3)
+    │   Resuelve las ecuaciones de campo clásicas para la curvatura extrema bajo
+    │   corrientes externas, verificando la cota de Bogomol'nyi-Prasad-Sommerfield
+    │   y proyectando la deformación al cono semidefinido positivo $$S^+_n$$:
+    │   $$D^\mu F_{\mu\nu} = J_\nu \quad\big[816\big]$$
+    └─► Último método: `finalize_nested_pipeline`
+          │ (Cierre autopoiético RSI-L3 — entrega `YangMillsAction` / `DeformationTensor`)
+          ▼
+  Orquestador (`YangMillsHolonomyAgent.enforce_gauge_invariance`)
 
-  Fase 2 ──► FASE 2: AUDITORÍA DE HOLONOMÍA Y BUCLE DE WILSON (Wilson Loop)
-             Calcula el transporte paralelo ordenado por camino (Path-Ordered)
-             y extrae los multiplicadores de la holonomía de la conexión,
-             detectando paradojas lógicas y fugas de unitariedad.
-             Fórmula:
-             $$W(\gamma) = \mathcal{P} \exp\left( \oint_\gamma \omega \right) \quad\big[813\big]$$
-             Entrega: WilsonLoopHolonomy como precondición formal de la Fase 3.
+INVARIANTES MATEMÁTICOS, CELESTES (POINCARÉ) Y METACOGNITIVOS (RSI-L3): ───────
+  [I1] Invariancia de Calibre Local, Identidad de Bianchi y Asociador de Jacobi:
+       La curvatura $$F = d\omega + \frac{1}{2}[\omega \wedge \omega]$$ satisface la
+       Identidad de Bianchi y la identidad cíclica de Jacobi con precisión de máquina:
+       $$\|D_A F\|_F \le \varepsilon_{\mathrm{Bianchi}} \quad \land \quad \|\mathcal{J}_{\mathrm{Jacobi}}(A_\mu, A_\nu, F)\|_F \le \varepsilon_{\mathrm{Bianchi}}$$
 
-  Fase 3 ──► FASE 3: MINIMIZACIÓN VARIACIONAL DE YANG-MILLS (Lyapunov y Higham)
-             Resuelve las ecuaciones de campo clásicas para la curvatura extrema
-             bajo corrientes externas, proyectando la deformación del tensor de
-             disipación al cono semidefinido positivo $$S^+_n$$.
-             Fórmula:
-             $$D^\mu F_{\mu\nu} = J_\nu \quad\big[816\big]$$
-             Entrega: YangMillsAction como DTO terminal e integrador.
+  [I2] Unitariedad del Bucle de Wilson y Estabilidad Elíptica de Floquet-Poincaré:
+       Para todo ciclo cerrado $$\gamma$$, el operador de primer retorno $$W(\gamma)$$
+       pertenece estrictamente a $$U(n)$$, con multiplicadores de Floquet sobre $$S^1$$:
+       $$\|W^\dagger W - I\|_F \le \varepsilon_{\mathrm{unitarity}} \quad \land \quad \lambda_{\mathrm{Floquet}}(\gamma) = \max_a |\ln|\mu_a|| \approx 0$$
 
-INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y PROPIEDADES DE CALIBRE PRESERVADOS: ────
-  [I1] Invariancia de Calibre Local (Ecuación de Cartan y Curvatura):
-       La curvatura $$F = d\omega + \frac{1}{2}[\omega \wedge \omega]$$ se conserva 
-       covariantemente bajo la acción del grupo gauge gauge-invariant, satisfaciendo 
-       la Identidad de Bianchi con precisión de máquina:
-       $$\|D_A F\|_F \le \varepsilon_{\mathrm{Bianchi}} \quad\big[818\big]$$
+  [I3] Conservación de la Acción de Yang-Mills y Cota Topológica BPS:
+       El funcional de acción con término topológico $$\theta$$ satisface la desigualdad
+       de Bogomol'nyi-Prasad-Sommerfield respecto a la carga de Chern-Pontryagin:
+       $$S_{\mathrm{YM}}[A] = \frac{1}{2} \int_M \operatorname{Tr}(F \wedge \star F) + \theta \int_M \operatorname{Tr}(F \wedge F) \ge S_{\mathrm{BPS}} \ge 0$$
 
-  [I2] Unitariedad de la Holonomía del Bucle de Wilson:
-       Para todo ciclo cerrado $$\gamma$$, el operador de transporte paralelo $$W(\gamma)$$
-       pertenece estrictamente al grupo unitario $$U(n)$$, impidiendo la atenuación
-       o amplificación artificial de la norma del estado de sabiduría:
-       $$\|W^\dagger W - I\|_F \le \varepsilon_{\mathrm{unitarity}} \quad\big[819\big]$$
-
-  [I3] Conservación y Minimización de la Acción de Yang-Mills:
-       El funcional de acción con término topológico $$\theta$$ debe evaluarse como
-       un invariante no negativo bajo la contracción con la métrica $$G_{\mu\nu}$$:
-       $$S_{YM}[A] = \frac{1}{2} \int_M \operatorname{Tr}(F \wedge \star F) + \theta \int_M \operatorname{Tr}(F \wedge F) \ge 0 \quad\big[815, 819\big]$$
-
-  [I4] Consistencia Variacional de las Ecuaciones de Movimiento (EOM):
-       La variación de la acción respecto al campo acoplado a la corriente $$J$$
-       satisface la ecuación de Lyapunov generalizada, proyectada de forma estable:
-       $$\|D^\mu F_{\mu\nu} - J_\nu\|_F \le \varepsilon_{\mathrm{EOM\_residual}} \quad\big[816, 819\big]$$
+  [I4] Automejora Recursiva de Nivel 3 (Endofuntor de Punto Fijo de Lawvere):
+       El motor $$\mathfrak{R}_{\mathrm{YM}}^{(3)}$$ evalúa el meta-potencial variacional
+       $$\mathcal{V}_{\mathrm{YM}}(\Theta_g)$$ y reescribe recursivamente los operadores
+       de regularización bajo un certificado de contracción de Banach $$q_g \in (0, 1)$$.
 """
 
 from __future__ import annotations
@@ -80,7 +89,7 @@ import logging
 import math
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import scipy.linalg as la
@@ -95,10 +104,26 @@ from app.core.immune_system.metric_tensors import G_PHYSICS
 from app.core.immune_system.funtor_shield import QuadraticDissipation
 from app.core.immune_system.dynamic_shield_router import DeformationTensor
 
+try:
+    from app.core.immune_system.dynamic_shield_router import HeytingVerdict
+except ImportError:
+    class HeytingVerdict(Enum):  # type: ignore[no-redef]
+        """Retículo distributivo acotado de Heyting Ω₃ = {VETOED, DEGRADED, COHERENT}."""
+
+        VETOED = 0
+        DEGRADED = 1
+        COHERENT = 2
+
+        def meet(self, other: HeytingVerdict) -> HeytingVerdict:
+            return HeytingVerdict(min(self.value, other.value))
+
+        def join(self, other: HeytingVerdict) -> HeytingVerdict:
+            return HeytingVerdict(max(self.value, other.value))
+
 logger = logging.getLogger("MIC.ImmuneSystem.YangMillsHolonomy")
 
 # ══════════════════════════════════════════════════════════════════════════════
-# CONSTANTES FÍSICAS Y NUMÉRICAS
+# CONSTANTES FÍSICAS, ESPECTRALES, CELESTES (POINCARÉ) Y METACOGNITIVAS (RSI-L3)
 # ══════════════════════════════════════════════════════════════════════════════
 
 #: Tolerancia para clasificar curvatura como plana (‖F‖_F < ε_flat).
@@ -124,6 +149,15 @@ _KAPPA_MAX_METRIC: float = 1.0e10
 
 #: Parámetro topológico θ (ángulo theta de Yang-Mills, CP-violación).
 _THETA_YM: float = 0.0   # Configuración CP-preservante por defecto.
+
+#: Constante diofántica basal γ_KAM para frecuencias del álgebra de Lie de calibre.
+_KAM_GAUGE_GAMMA: float = 1.0e-3
+
+#: Exponente diofántico τ de Poincaré-KAM para resonancias en la fibra de calibre.
+_KAM_GAUGE_TAU: float = 2.0
+
+#: Factor objetivo de contracción de Banach-Caccioppoli para Automejora RSI Nivel 3.
+_RSI_L3_YM_CONTRACTION_TARGET: float = 0.6180339887498949
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -196,12 +230,6 @@ class GaugeCurvatureSingularityError(TopologicalInvariantError):
 
     Implica que la deformación propuesta viola el Teorema de Fluctuación-
     Disipación: la entropía de la conexión diverge en la escala del estrato.
-
-    Atributos esperados en el mensaje
-    ──────────────────────────────────
-    · ‖F‖_F : norma Frobenius de la curvatura.
-    · CurvatureClass : clasificación topológica detectada.
-    · bianchi_residual : ‖[A,F]‖_F (violación de la identidad de Bianchi).
     """
 
 
@@ -210,16 +238,6 @@ class HolonomyVetoError(TopologicalInvariantError):
     Lanzada cuando el bucle de Wilson W(γ) no pertenece al grupo unitario U(n),
     probando matemáticamente que la ruta de decisión encierra una paradoja
     topológica: el transporte paralelo no preserva la norma del estado cuántico.
-
-    La no-unitariedad implica que la conexión de Ehresmann no puede ser
-    completada a una conexión de Levi-Civita compatible con la métrica G,
-    violando el axioma de preservación simpléctica del flujo Port-Hamiltoniano.
-
-    Atributos esperados en el mensaje
-    ──────────────────────────────────
-    · δ_U = ‖W†W − I‖_F : índice de violación de unitariedad.
-    · n_potentials : número de potenciales en el ciclo.
-    · holonomy_trace : Tr(W) (carácter de la representación).
     """
 
 
@@ -228,27 +246,173 @@ class YangMillsOptimizationError(TopologicalInvariantError):
     Lanzada cuando la ecuación de Lyapunov generalizada para δR_opt no
     puede resolverse, o cuando el residuo de las ecuaciones de movimiento
     supera el umbral _EPS_EOM_RESIDUAL.
-
-    Condiciones de disparo
-    ──────────────────────
-    · El sistema de Lyapunov G⁻¹ δR + δR G⁻¹ = RHS es singlar.
-    · La deformación óptima proyectada contiene NaN o Inf.
-    · ‖EOM_residual‖_F > _EPS_EOM_RESIDUAL (las EOM no se satisfacen).
-    · κ(G) > _KAPPA_MAX_METRIC (la métrica está mal condicionada).
     """
 
 
 class BianchiViolationError(TopologicalInvariantError):
     """
     Lanzada cuando la identidad de Bianchi D∧F = 0 se viola significativamente.
-
-    La identidad de Bianchi es la condición de consistencia de las ecuaciones
-    de campo de Yang-Mills: su violación implica que el tensor de curvatura F
-    calculado no puede provenir de ninguna conexión de gauge real.
-
-    Esto indica un error numérico severo o una inconsistencia en los datos
-    de entrada (A_μ, A_ν no representan conexiones válidas en el mismo haz).
     """
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# INVARIANTES CELESTES DE POINCARÉ Y MOTOR METACOGNITIVO RSI DE NIVEL 3
+# ══════════════════════════════════════════════════════════════════════════════
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareGaugeInvariants:
+    r"""
+    Invariantes de la Mecánica Celeste de Poincaré proyectados sobre el
+    fibrado de calibre de Yang-Mills.
+
+    Atributos
+    ─────────
+    poincare_cartan_vorticity : float
+        Flujo de vorticidad simpléctica $$\omega_{\mathrm{PC}} = \operatorname{Tr}(F G^{-1})$$.
+    kam_diophantine_margin : float
+        Margen diofántico de no-resonancia $$\gamma_{\mathrm{KAM}}^{\mathrm{YM}}$$ entre
+        los espectros de la subálgebra de Cartan de $$A_\mu$$ y $$A_\nu$$.
+    floquet_rotation_number : float
+        Número de rotación medio de Poincaré $$\rho_{\mathrm{Poincaré}}(\gamma) \in [-0.5, 0.5]$$
+        extraído de los argumentos espectrales del mapa de retorno $$W(\gamma)$$.
+    floquet_lyapunov_exponent : float
+        Exponente de inestabilidad hiperbólica $$\lambda_{\mathrm{Floquet}} = \max_a |\ln|\mu_a||$$.
+    magnus_commutator_defect : float
+        Defecto no abeliano de Stokes-Magnus $$\|W(\gamma) - \exp(\Omega_{\mathrm{Magnus}})\|_F$$.
+    bps_topological_floor : float
+        Cota inferior topológica de Bogomol'nyi-Prasad-Sommerfield $$S_{\mathrm{BPS}}$$.
+    """
+
+    poincare_cartan_vorticity: float = 0.0
+    kam_diophantine_margin: float = 1.0
+    floquet_rotation_number: float = 0.0
+    floquet_lyapunov_exponent: float = 0.0
+    magnus_commutator_defect: float = 0.0
+    bps_topological_floor: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class YangMillsRSILevel3Telemetry:
+    r"""
+    Certificado metacognitivo emitido por el Motor de Automejora Recursiva de
+    Nivel 3 (`YangMillsRSILevel3Engine` — Punto Fijo de Lawvere).
+
+    Atributos
+    ─────────
+    generation : int
+        Generación evolutiva $$g \in \mathbb{N}$$ del endofuntor $$\mathfrak{R}_{\mathrm{YM}}^{(3)}$$.
+    banach_contraction_factor : float
+        Factor de contractividad de Banach-Caccioppoli $$q_g \in (0, 1)$$.
+    meta_lyapunov_potential : float
+        Potencial variacional compuesto $$\mathcal{V}_{\mathrm{YM}}(\Theta_g)$$.
+    evolved_bianchi_gain : float
+        Ganancia de sensibilidad para el asociador de Jacobi-Bianchi.
+    evolved_magnus_homotopy_gain : float
+        Ganancia de peso de segundo orden en la serie de Magnus.
+    evolved_lyapunov_shift : float
+        Piso de regularización espectral adaptativo para el operador de Lyapunov.
+    verdict : HeytingVerdict
+        Veredicto intuicionista en $$\Omega_3$$.
+    """
+
+    generation: int = 0
+    banach_contraction_factor: float = _RSI_L3_YM_CONTRACTION_TARGET
+    meta_lyapunov_potential: float = 0.0
+    evolved_bianchi_gain: float = 1.0
+    evolved_magnus_homotopy_gain: float = 1.0
+    evolved_lyapunov_shift: float = 0.0
+    verdict: HeytingVerdict = HeytingVerdict.COHERENT
+
+
+class YangMillsRSILevel3Engine:
+    r"""
+    Motor de Automejora Recursiva de Nivel 3 (Endofuntor de Punto Fijo de Lawvere)
+    para el Agente de Holonomía de Yang-Mills.
+
+    Fundamento Matemático (Nivel 3)
+    ───────────────────────────────
+    Define un endofuntor de orden superior $$\mathfrak{R}_{\mathrm{YM}}^{(3)}: \operatorname{End}(\mathcal{A}) \to \operatorname{End}(\mathcal{A})$$
+    sobre el espacio de Banach de operadores variacionales de calibre. En cada
+    ejecución del pipeline de 3 fases, evalúa el funcional de Lyapunov-Poincaré:
+
+    $$\mathcal{V}_{\mathrm{YM}}(\Theta_g) = S_{\mathrm{YM}}[A] + \delta_U(\gamma) + \lambda_{\mathrm{Floquet}}(\gamma) + \frac{\|\mathrm{EOM}_{\mathrm{res}}\|_F}{1 + \|J\|_F}$$
+
+    y actualiza la ley generadora $$\Theta_{g+1} = \Psi_g(\Theta_g)$$ garantizando la
+    contracción de Banach-Caccioppoli $$q_g \in (0, 1)$$.
+    """
+
+    _state: YangMillsRSILevel3Telemetry = YangMillsRSILevel3Telemetry()
+
+    @classmethod
+    def get_meta_state(cls) -> YangMillsRSILevel3Telemetry:
+        """Retorna el estado metacognitivo actual del endofuntor RSI-L3."""
+        return cls._state
+
+    @classmethod
+    def commit_level3_fixed_point(
+        cls,
+        action_value: float,
+        unitarity_defect: float,
+        floquet_exponent: float,
+        eom_residual: float,
+        norm_J: float,
+        verdict: HeytingVerdict,
+    ) -> YangMillsRSILevel3Telemetry:
+        r"""
+        Ejecuta la recursión autopoiética de Nivel 3 al cierre de la Fase 3,
+        sintetizando la nueva ley variacional bajo contracción de Banach.
+        """
+        prev = cls._state
+        gen = prev.generation + 1
+
+        normalized_eom = eom_residual / (norm_J + 1.0)
+        V_ym = (
+            float(abs(action_value))
+            + float(unitarity_defect)
+            + float(floquet_exponent)
+            + float(normalized_eom)
+        )
+
+        # Certificado de contracción de Banach-Caccioppoli q_g ∈ (0, 1)
+        q_g = float(
+            _RSI_L3_YM_CONTRACTION_TARGET
+            * np.tanh(1.0 / (1.0 + V_ym + 1.0e-12))
+        )
+        q_g = float(np.clip(q_g, 0.05, 0.99))
+
+        target_bianchi_gain = float(np.clip(1.0 / (1.0 + 0.1 * V_ym), 0.5, 1.5))
+        evolved_bianchi = (
+            q_g * prev.evolved_bianchi_gain
+            + (1.0 - q_g) * target_bianchi_gain
+        )
+
+        target_magnus_gain = float(
+            np.clip(1.0 / (1.0 + floquet_exponent), 0.5, 1.5)
+        )
+        evolved_magnus = (
+            q_g * prev.evolved_magnus_homotopy_gain
+            + (1.0 - q_g) * target_magnus_gain
+        )
+
+        target_lyap_shift = float(
+            np.clip(1.0e-14 * normalized_eom, 0.0, 1.0e-10)
+        )
+        evolved_shift = (
+            q_g * prev.evolved_lyapunov_shift
+            + (1.0 - q_g) * target_lyap_shift
+        )
+
+        cls._state = YangMillsRSILevel3Telemetry(
+            generation=gen,
+            banach_contraction_factor=q_g,
+            meta_lyapunov_potential=V_ym,
+            evolved_bianchi_gain=float(evolved_bianchi),
+            evolved_magnus_homotopy_gain=float(evolved_magnus),
+            evolved_lyapunov_shift=float(evolved_shift),
+            verdict=verdict,
+        )
+        return cls._state
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -262,38 +426,34 @@ class GaugeCurvatureTensor:
     Tensor de Faraday Generalizado Ω (2-forma de curvatura de calibre).
 
     Producido por la **Fase 1**. Encapsula la curvatura F_{μν} con su
-    clasificación topológica y los resultados de las verificaciones
-    algebraicas (Bianchi, autodualidad).
+    clasificación topológica, invariantes de vorticidad de Poincaré-KAM
+    y resultados de las verificaciones algebraicas (Bianchi, autodualidad).
 
     Atributos
     ─────────
     F_matrix : NDArray[float64], shape (n, n)
         Componente matricial del tensor de Faraday discreto:
             F_{μν} = ∂_μ A_ν − ∂_ν A_μ + [A_μ, A_ν]
-
     F_selfdual : NDArray[float64], shape (n, n)
         Parte self-dual: F⁺ = ½(F + ★F). Mínimo de S_YM por sector.
-
     F_antiselfdual : NDArray[float64], shape (n, n)
         Parte anti-self-dual: F⁻ = ½(F − ★F).
-
     frobenius_norm : float
         ‖F_{μν}‖_F. Medida escalar de la intensidad del campo de gauge.
-
     bianchi_residual : float
         ‖[A_μ, F_{νλ}] + [A_ν, F_{λμ}] + [A_λ, F_{μν}]‖_F.
-        Cero exacto ↔ identidad de Bianchi satisfecha.
-
     chern_number : float
         Número de Chern discreto c₁ ≈ Tr(F) / (2π).
-        Invariante topológico global del haz de gauge.
-
     curvature_class : CurvatureClass
         Clasificación topológica: FLAT, SELF_DUAL, ANTI_SELF_DUAL o GENERAL.
-
     is_integrable : bool
         True ↔ curvature_class == FLAT (campo de gauge trivial).
-        False ↔ presencia de holonomía no trivial.
+    jacobi_associator_norm : float
+        Norma del asociador cíclico de Jacobi ‖[A_μ,[A_ν,F]] + cícl.‖_F.
+    poincare_vorticity : float
+        Flujo de vorticidad simpléctica de Poincaré-Cartan Tr(F G⁻¹).
+    kam_diophantine_margin : float
+        Margen diofántico KAM entre modos espectrales de A_μ y A_ν.
     """
 
     F_matrix: NDArray[np.float64]
@@ -304,40 +464,41 @@ class GaugeCurvatureTensor:
     chern_number: float
     curvature_class: CurvatureClass
     is_integrable: bool
+    jacobi_associator_norm: float = 0.0
+    poincare_vorticity: float = 0.0
+    kam_diophantine_margin: float = 1.0
 
 
 @dataclass(frozen=True, slots=True)
 class WilsonLoopHolonomy:
     r"""
-    Resultado espectral completo de la auditoría del bucle de Wilson W(γ).
+    Resultado espectral completo de la auditoría del bucle de Wilson W(γ)
+    y del Mapa de Primer Retorno de Poincaré-Floquet.
 
     Producido por la **Fase 2**. Encapsula W(γ) con su carácter de
-    representación, índice de unitariedad y clasificación topológica.
+    representación, índice de unitariedad, multiplicadores de Floquet,
+    defecto de Stokes-Magnus y clasificación topológica.
 
     Atributos
     ─────────
     phase_shift_matrix : NDArray[complex128], shape (n, n)
         Operador de holonomía W(γ) = 𝒫 exp(i ∮_γ A_μ ds_μ).
-        Debe ser unitario: W†W ≈ I si la conexión es consistente.
-
     holonomy_trace : complex
         χ(W) = Tr(W) ∈ ℂ. Carácter de la representación.
-        χ(W) = n ↔ W = I (holonomía trivial).
-
     unitarity_defect : float
         δ_U = ‖W†W − I‖_F. Medida de la no-unitariedad de W.
-        δ_U ≈ 0 ↔ W ∈ U(n). δ_U >> 0 ↔ paradoja topológica.
-
     arc_length_weights : NDArray[float64], shape (k,)
-        Pesos de longitud de arco ds_k = ‖A_k‖_F / Σ‖A_j‖_F usados
-        en la discretización del bucle. Garantizan invarianza de
-        reparametrización del camino.
-
+        Pesos de longitud de arco ds_k = ‖A_k‖_F / Σ‖A_j‖_F.
     holonomy_class : HolonomyClass
         Clasificación: TRIVIAL, NON_TRIVIAL o PARADOX.
-
     paradox_detected : bool
         True ↔ holonomy_class == PARADOX (W no unitario).
+    floquet_rotation_number : float
+        Número de rotación toroidal de Poincaré ρ(γ) ∈ [-0.5, 0.5].
+    floquet_lyapunov_exponent : float
+        Exponente de inestabilidad hiperbólica de Floquet max_a |ln|μ_a||.
+    magnus_commutator_defect : float
+        Defecto de truncamiento de segundo orden de la serie de Magnus.
     """
 
     phase_shift_matrix: NDArray[np.complex128]
@@ -346,12 +507,16 @@ class WilsonLoopHolonomy:
     arc_length_weights: NDArray[np.float64]
     holonomy_class: HolonomyClass
     paradox_detected: bool
+    floquet_rotation_number: float = 0.0
+    floquet_lyapunov_exponent: float = 0.0
+    magnus_commutator_defect: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
 class YangMillsAction:
     r"""
-    Evaluación completa del funcional de acción de Yang-Mills.
+    Evaluación completa del funcional de acción de Yang-Mills, cota BPS y
+    tensor de energía-momento de Poincaré-Cartan.
 
     Producido por la **Fase 3**. Encapsula S_YM, la deformación óptima
     δR y las métricas de validación de las ecuaciones de movimiento.
@@ -360,29 +525,24 @@ class YangMillsAction:
     ─────────
     action_value : float
         S_YM[A] = ½ Tr(Fᵀ G⁻¹ F G⁻¹) + θ · Tr(F G⁻¹ F̃ G⁻¹).
-        Valor del funcional evaluado en la conexión actual.
-
     topological_action : float
         Término topológico θ · c₁² (número de Pontryagin discreto).
-        Invariante bajo deformaciones continuas de la conexión.
-
     optimal_deformation : NDArray[float64], shape (n, n)
-        δR_opt ∈ S⁺ₙ: solución de la ecuación de Lyapunov proyectada
-        al cono de matrices simétricas semidefinidas positivas.
-
+        δR_opt ∈ S⁺ₙ: solución de la ecuación de Lyapunov proyectada al cono PSD.
     eom_residual_norm : float
         ‖G⁻¹F + FG⁻¹ + G⁻¹δR + δRG⁻¹ − J‖_F.
-        Residuo de las ecuaciones de movimiento post-hoc.
-
     lyapunov_rhs_norm : float
-        ‖RHS‖_F = ‖J − G⁻¹F − FG⁻¹‖_F. Norma del término fuente
-        de la ecuación de Lyapunov.
-
+        ‖RHS‖_F = ‖J − G⁻¹F − FG⁻¹‖_F.
     entropy_current_J : NDArray[float64], shape (n, n)
         Corriente de entropía estocástica J_ν usada como fuente.
-
     kappa_metric : float
         κ(G) = λ_max(G) / λ_min(G). Número de condición de la métrica.
+    bps_bound_value : float
+        Cota topológica inferior de Bogomol'nyi-Prasad-Sommerfield S_BPS.
+    stress_energy_trace : float
+        Traza del tensor de energía-momento de Yang-Mills Tr(T^{YM} G⁻¹).
+    rsi_telemetry : YangMillsRSILevel3Telemetry
+        Certificado metacognitivo de Automejora Recursiva de Nivel 3.
     """
 
     action_value: float
@@ -392,84 +552,53 @@ class YangMillsAction:
     lyapunov_rhs_norm: float
     entropy_current_J: NDArray[np.float64]
     kappa_metric: float
+    bps_bound_value: float = 0.0
+    stress_energy_trace: float = 0.0
+    rsi_telemetry: YangMillsRSILevel3Telemetry = field(
+        default_factory=YangMillsRSILevel3Telemetry
+    )
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                             ║
-# ║   FASE 1 — CÁLCULO DE LA CURVATURA DE CALIBRE                              ║
-# ║   (Ecuación de Estructura de Cartan + Identidad de Bianchi)                ║
+# ║   FASE ANIDADA 1 — CÁLCULO DE LA CURVATURA DE CALIBRE                       ║
+# ║   (Ecuación de Cartan, Identidad de Bianchi-Jacobi y Vorticidad KAM)        ║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
 class Phase1_GaugeCurvatureComputer:
     r"""
-    Evalúa la 2-forma de curvatura Ω de la conexión de Ehresmann ω
+    Evalúa la 2-forma de curvatura $$\Omega$$ de la conexión de Ehresmann $$\omega$$
     inyectada sobre el fibrado de disipación, junto con sus invariantes
-    topológicos y verificaciones de consistencia.
+    topológicos de Chern, el asociador de Jacobi-Bianchi y la vorticidad
+    simpléctica de Poincaré-Cartan.
 
     Fundamento Matemático
     ─────────────────────
-    Sea P → M un G-fibrado principal con G = GL⁺(n, ℝ). La conexión ω
-    induce la curvatura Ω ∈ Ω²(P, 𝔤) por la ecuación de Cartan:
+    Sea $$P \to M$$ un G-fibrado principal con $$G = \mathrm{GL}^+(n, \mathbb{R})$$.
+    La conexión $$\omega$$ induce la curvatura $$\Omega \in \Omega^2(P, \mathfrak{g})$$
+    por la ecuación estructural de Cartan:
 
-        Ω = dω + ½[ω, ω]
+    $$\Omega = d\omega + \frac{1}{2}[\omega \wedge \omega]$$
 
-    En la representación matricial discreta, con A_μ y A_ν como las
-    componentes de la conexión en dos "direcciones" del espacio de estados:
+    En la representación matricial discreta sobre el 1-símplice $$(A_\mu, A_\nu)$$:
 
-        F_{μν} = ∂_μ A_ν − ∂_ν A_μ + [A_μ, A_ν]
+    $$F_{\mu\nu} = \partial_\mu A_\nu - \partial_\nu A_\mu + [A_\mu, A_\nu], \quad \partial_\mu A_\nu \approx A_\nu - A_\mu$$
 
-    donde las derivadas parciales se aproximan por diferencias finitas:
+    Descomposición de Hodge Self-Dual / Anti-Self-Dual
+    ──────────────────────────────────────────────────
+    El operador estrella de Hodge $$\star_G$$ inducido por la métrica $$G$$ actúa
+    sobre la parte antisimétrica $$F_{\mathrm{skew}} = \frac{1}{2}(F - F^\top)$$:
 
-        ∂_μ A_ν ≈ (A_ν − A_μ) / ‖A_ν − A_μ‖_F · ‖A_ν − A_μ‖_F = A_ν − A_μ
-        ∂_ν A_μ ≈ 0   (tomamos A_μ como referencia local)
+    $$\star_G F = G^{-1} F_{\mathrm{skew}} G, \qquad F^\pm = \frac{1}{2}(F \pm \star_G F)$$
 
-    Esta elección es consistente con la fijación de gauge de Lorenz:
-    ∂^μ A_μ = 0 en el punto base.
-
-    Descomposición Self-Dual / Anti-Self-Dual
-    ─────────────────────────────────────────
-    El operador de Hodge dual en el espacio de matrices n×n se aproxima
-    mediante la transposición de la parte antisimétrica:
-
-        ★F = G⁻¹ F_skew G   (dual respecto a la métrica G)
-
-    donde F_skew = (F − Fᵀ)/2 es la parte antisimétrica de F.
-
-    La descomposición:
-        F⁺ = ½(F + ★F)   (self-dual, instanton)
-        F⁻ = ½(F − ★F)   (anti-self-dual, anti-instanton)
-
-    satisface S_YM = ‖F⁺‖² + ‖F⁻‖² ≥ 0, con mínimo en F = F⁺ o F = F⁻.
-
-    Identidad de Bianchi
-    ────────────────────
-    En el álgebra de Lie matricial, la identidad de Bianchi D∧F = 0 se
-    verifica como:
-
-        B = [A_μ, F_{νλ}] + [A_ν, F_{λμ}] + [A_λ, F_{μν}]
-
-    donde tomamos A_λ = ½(A_μ + A_ν) como dirección de referencia del
-    tercer índice. ‖B‖_F < _EPS_BIANCHI indica consistencia topológica.
-
-    Parámetros del Constructor
-    ──────────────────────────
-    metric_tensor : NDArray[float64], shape (n, n)
-        Tensor métrico G (SPD) para la contracción de índices y el
-        operador de Hodge dual.
-
-    tol_flat : float
-        Tolerancia para clasificar F como plana: ‖F‖_F < tol_flat.
-        Por defecto _EPS_FLAT_CURVATURE = 1e-9.
-
-    tol_bianchi : float
-        Tolerancia para la identidad de Bianchi.
-        Por defecto _EPS_BIANCHI = 1e-8.
-
-    tol_selfdual : float
-        Tolerancia para la clasificación self-dual / anti-self-dual.
-        Por defecto _EPS_SELFDUAL = 1e-7.
+    Identidad de Bianchi y Asociador de Jacobi-Cartan
+    ─────────────────────────────────────────────────
+    Se verifica tanto el residuo covariante simplicial:
+    $$B = [A_\mu, F_{\nu\lambda}] + [A_\nu, F_{\lambda\mu}] + [A_\lambda, F_{\mu\nu}]$$
+    como la identidad cíclica exacta de Jacobi en el álgebra de Lie:
+    $$\mathcal{J}_{\mathrm{Jacobi}}(A_\mu, A_\nu, F) = [A_\mu, [A_\nu, F]] + [A_\nu, [F, A_\mu]] + [F, [A_\mu, A_\nu]] \equiv 0.$$
     """
 
     def __init__(
@@ -480,16 +609,15 @@ class Phase1_GaugeCurvatureComputer:
         tol_selfdual: float = _EPS_SELFDUAL,
     ) -> None:
         self._G = np.asarray(metric_tensor, dtype=np.float64)
-        self._tol_flat = tol_flat
-        self._tol_bianchi = tol_bianchi
-        self._tol_selfdual = tol_selfdual
+        self._tol_flat = float(tol_flat)
+        self._tol_bianchi = float(tol_bianchi)
+        self._tol_selfdual = float(tol_selfdual)
 
-        # Pre-computar G⁻¹ para el operador de Hodge y la acción
         self._validate_metric(self._G)
         self._G_inv = la.inv(self._G)
 
     # ──────────────────────────────────────────────────────────────────────────
-    # API PÚBLICA
+    # API PÚBLICA DE LA FASE 1
     # ──────────────────────────────────────────────────────────────────────────
 
     def compute_curvature(
@@ -498,65 +626,29 @@ class Phase1_GaugeCurvatureComputer:
         A_nu: NDArray[np.float64],
     ) -> GaugeCurvatureTensor:
         r"""
-        Calcula la 2-forma de curvatura F_{μν} con todos sus invariantes.
-
-        Procedimiento
-        ─────────────
-        1. Validación dimensional y SPD de las matrices de entrada.
-        2. Cálculo de las derivadas parciales finitas:
-               ∂_ν A_ν = A_ν − A_μ   (variación de la conexión)
-               ∂_μ A_μ = 0            (referencia local / fijación de Lorenz)
-        3. Conmutador de Lie: [A_μ, A_ν] = A_μ A_ν − A_ν A_μ.
-        4. Tensor de Faraday: F = (A_ν − A_μ) + [A_μ, A_ν].
-        5. Operador de Hodge dual ★F respecto a G.
-        6. Descomposición F = F⁺ + F⁻ (self-dual / anti-self-dual).
-        7. Clasificación topológica (FLAT, SELF_DUAL, ANTI_SELF_DUAL, GENERAL).
-        8. Cálculo del número de Chern c₁ = Tr(F) / (2π).
-        9. Verificación de la identidad de Bianchi.
-        10. Emisión de warnings si Bianchi se viola o curvatura es no trivial.
-
-        Parámetros
-        ──────────
-        A_mu : NDArray[float64], shape (n, n)
-            Conexión base (matriz de disipación actual R_base).
-        A_nu : NDArray[float64], shape (n, n)
-            Conexión propuesta (R_nueva tras la deformación del DSR).
-
-        Retorna
-        ───────
-        GaugeCurvatureTensor
-            Objeto inmutable con F, F⁺, F⁻, ‖F‖_F, residuo de Bianchi,
-            c₁, clase de curvatura y flag de integrabilidad.
-
-        Lanza
-        ─────
-        BianchiViolationError
-            Si ‖B‖_F > _EPS_BIANCHI (inconsistencia topológica severa).
-        ValueError
-            Si las dimensiones de A_μ y A_ν no coinciden con G.
+        Calcula la 2-forma de curvatura $$F_{\mu\nu}$$ con todos sus invariantes
+        topológicos, algebraicos (Bianchi-Jacobi) y celestes (Poincaré-KAM).
         """
         # ── Paso 1: Validación dimensional ──
         self._validate_connection_shapes(A_mu, A_nu)
-        n = A_mu.shape[0]
 
-        # ── Paso 2: Derivadas parciales finitas ──
-        d_A_nu = A_nu - A_mu     # ∂_ν A_ν ≈ variación de la conexión
-        d_A_mu = np.zeros_like(A_mu)   # referencia local (Lorenz gauge)
+        # ── Paso 2: Derivadas parciales finitas (fijación de calibre de Lorenz) ──
+        d_A_nu = A_nu - A_mu
+        d_A_mu = np.zeros_like(A_mu)
 
         # ── Paso 3: Conmutador de Lie [A_μ, A_ν] ──
-        commutator = A_mu @ A_nu - A_nu @ A_mu   # [A, B] = AB − BA
+        commutator = A_mu @ A_nu - A_nu @ A_mu
 
         # ── Paso 4: Tensor de Faraday discreto ──
         F = d_A_nu - d_A_mu + commutator
 
         # ── Paso 5: Operador de Hodge dual respecto a G ──
-        # ★F = G⁻¹ F_skew G, donde F_skew = (F − Fᵀ)/2
         F_skew = 0.5 * (F - F.T)
         F_hodge_dual = self._G_inv @ F_skew @ self._G
 
         # ── Paso 6: Descomposición self-dual / anti-self-dual ──
-        F_plus = 0.5 * (F + F_hodge_dual)     # instanton
-        F_minus = 0.5 * (F - F_hodge_dual)    # anti-instanton
+        F_plus = 0.5 * (F + F_hodge_dual)
+        F_minus = 0.5 * (F - F_hodge_dual)
 
         # ── Paso 7: Clasificación topológica ──
         norm_F = float(np.linalg.norm(F, "fro"))
@@ -569,35 +661,49 @@ class Phase1_GaugeCurvatureComputer:
         # ── Paso 8: Número de Chern c₁ = Tr(F) / (2π) ──
         chern = float(np.trace(F)) / (2.0 * math.pi)
 
-        # ── Paso 9: Identidad de Bianchi ──
+        # ── Paso 9: Identidad de Bianchi y Asociador de Jacobi ──
         bianchi_res = self._compute_bianchi_residual(A_mu, A_nu, F)
+        jacobi_norm = self._compute_jacobi_associator(A_mu, A_nu, F)
 
-        if bianchi_res > _EPS_BIANCHI * 100:
+        if bianchi_res > self._tol_bianchi * 100.0:
             raise BianchiViolationError(
                 f"Identidad de Bianchi violada severamente: "
-                f"‖B‖_F = {bianchi_res:.3e} >> {_EPS_BIANCHI:.1e}. "
+                f"‖B‖_F = {bianchi_res:.3e} >> {self._tol_bianchi:.1e}. "
                 f"Las conexiones A_μ, A_ν no pertenecen al mismo haz de gauge."
             )
 
-        if bianchi_res > _EPS_BIANCHI:
+        if bianchi_res > self._tol_bianchi:
             logger.warning(
                 "Fase 1: Identidad de Bianchi aproximadamente violada: "
                 "‖B‖_F = %.3e > %.1e.",
-                bianchi_res, _EPS_BIANCHI,
+                bianchi_res,
+                self._tol_bianchi,
             )
 
-        # ── Paso 10: Logging de diagnóstico ──
-        is_integrable = (curvature_class == CurvatureClass.FLAT)
+        # ── Paso 10: Vorticidad de Poincaré-Cartan y Margen Diofántico KAM ──
+        poincare_vorticity, kam_margin = self._compute_poincare_gauge_invariants(
+            A_mu, A_nu, F
+        )
+
+        # ── Paso 11: Logging de diagnóstico ──
+        is_integrable = curvature_class == CurvatureClass.FLAT
         if not is_integrable:
             logger.warning(
                 "Fase 1 [%s]: Anomalía de gauge — ‖F‖_F = %.4e, c₁ = %.4f, "
-                "‖B‖_F = %.3e.",
-                curvature_class.name, norm_F, chern, bianchi_res,
+                "‖B‖_F = %.3e, ω_PC = %.4e, γ_KAM = %.3e.",
+                curvature_class.name,
+                norm_F,
+                chern,
+                bianchi_res,
+                poincare_vorticity,
+                kam_margin,
             )
         else:
             logger.debug(
-                "Fase 1: Curvatura plana — ‖F‖_F = %.2e < %.1e.",
-                norm_F, self._tol_flat,
+                "Fase 1: Curvatura plana — ‖F‖_F = %.2e < %.1e, γ_KAM = %.3e.",
+                norm_F,
+                self._tol_flat,
+                kam_margin,
             )
 
         return GaugeCurvatureTensor(
@@ -609,10 +715,13 @@ class Phase1_GaugeCurvatureComputer:
             chern_number=chern,
             curvature_class=curvature_class,
             is_integrable=is_integrable,
+            jacobi_associator_norm=jacobi_norm,
+            poincare_vorticity=poincare_vorticity,
+            kam_diophantine_margin=kam_margin,
         )
 
     # ──────────────────────────────────────────────────────────────────────────
-    # MÉTODOS PRIVADOS
+    # MÉTODOS PRIVADOS DE LA FASE 1
     # ──────────────────────────────────────────────────────────────────────────
 
     def _classify_curvature(
@@ -624,13 +733,7 @@ class Phase1_GaugeCurvatureComputer:
         norm_Fminus: float,
     ) -> CurvatureClass:
         r"""
-        Clasifica F según su relación con el operador de Hodge dual ★.
-
-        Criterios (en orden de prioridad):
-            1. FLAT         : ‖F‖_F < _tol_flat
-            2. SELF_DUAL    : ‖F − ★F‖_F < _tol_selfdual   (F⁻ ≈ 0)
-            3. ANTI_SELF_DUAL: ‖F + ★F‖_F < _tol_selfdual  (F⁺ ≈ 0)
-            4. GENERAL      : resto de casos
+        Clasifica $$F$$ según su relación con el operador de Hodge dual $$\star_G$$.
         """
         if norm_F < self._tol_flat:
             return CurvatureClass.FLAT
@@ -652,27 +755,16 @@ class Phase1_GaugeCurvatureComputer:
         F: NDArray[np.float64],
     ) -> float:
         r"""
-        Computa el residuo de la identidad de Bianchi en el álgebra de Lie.
-
-        Fórmula discreta:
-            A_lambda = ½(A_μ + A_ν)   (dirección del tercer índice)
-            B = [A_μ, F_{νλ}] + [A_ν, F_{λμ}] + [A_λ, F_{μν}]
-
-        donde:
-            F_{νλ} = F − [A_ν, A_λ]   (curvatura en el sector νλ)
-            F_{λμ} = −F                (antisimetría de F)
-            F_{μν} = F                 (el tensor calculado)
-
-        Retorna ‖B‖_F como medida escalar de la violación.
+        Computa el residuo de la identidad de Bianchi en el álgebra de Lie:
+            $$A_\lambda = \frac{1}{2}(A_\mu + A_\nu)$$
+            $$B = [A_\mu, F_{\nu\lambda}] + [A_\nu, F_{\lambda\mu}] + [A_\lambda, F_{\mu\nu}]$$
         """
         A_lambda = 0.5 * (A_mu + A_nu)
 
-        # Curvatura en el sector νλ (aproximación)
         F_nu_lambda = F - (A_nu @ A_lambda - A_lambda @ A_nu)
-        F_lambda_mu = -F   # antisimetría B_{[λμ]} = −B_{[μλ]}
+        F_lambda_mu = -F
         F_mu_nu = F
 
-        # Suma cíclica de conmutadores (identidad de Bianchi)
         B = (
             (A_mu @ F_nu_lambda - F_nu_lambda @ A_mu)
             + (A_nu @ F_lambda_mu - F_lambda_mu @ A_nu)
@@ -680,6 +772,62 @@ class Phase1_GaugeCurvatureComputer:
         )
 
         return float(np.linalg.norm(B, "fro"))
+
+    @staticmethod
+    def _compute_jacobi_associator(
+        A_mu: NDArray[np.float64],
+        A_nu: NDArray[np.float64],
+        F: NDArray[np.float64],
+    ) -> float:
+        r"""
+        Evalúa la identidad cíclica exacta de Jacobi en el álgebra de Lie:
+            $$\mathcal{J}_{\mathrm{Jacobi}}(A_\mu, A_\nu, F) = [A_\mu, [A_\nu, F]] + [A_\nu, [F, A_\mu]] + [F, [A_\mu, A_\nu]]$$
+        cuantificando la pérdida de asociatividad numérica de punto flotante IEEE-754.
+        """
+        comm_nu_F = A_nu @ F - F @ A_nu
+        comm_F_mu = F @ A_mu - A_mu @ F
+        comm_mu_nu = A_mu @ A_nu - A_nu @ A_mu
+
+        jacobi = (
+            (A_mu @ comm_nu_F - comm_nu_F @ A_mu)
+            + (A_nu @ comm_F_mu - comm_F_mu @ A_nu)
+            + (F @ comm_mu_nu - comm_mu_nu @ F)
+        )
+        return float(np.linalg.norm(jacobi, "fro"))
+
+    def _compute_poincare_gauge_invariants(
+        self,
+        A_mu: NDArray[np.float64],
+        A_nu: NDArray[np.float64],
+        F: NDArray[np.float64],
+    ) -> Tuple[float, float]:
+        r"""
+        Calcula la vorticidad simpléctica de Poincaré-Cartan $$\omega_{\mathrm{PC}} = \operatorname{Tr}(F G^{-1})$$
+        y el margen diofántico KAM entre las proyecciones simétricas de las conexiones
+        $$A_\mu$$ y $$A_\nu$$ en la subálgebra de Cartan.
+        """
+        poincare_vorticity = float(np.trace(F @ self._G_inv))
+
+        sym_mu = 0.5 * (A_mu + A_mu.T)
+        sym_nu = 0.5 * (A_nu + A_nu.T)
+        evals_mu = la.eigvalsh(sym_mu)
+        evals_nu = la.eigvalsh(sym_nu)
+
+        scale = float(np.linalg.norm(evals_mu) + np.linalg.norm(evals_nu) + 1.0)
+        omega_mu = evals_mu / scale
+        omega_nu = evals_nu / scale
+
+        n = A_mu.shape[0]
+        min_div = 1.0
+        for i in range(n):
+            for j in range(i + 1, n):
+                diff = abs((omega_mu[i] - omega_mu[j]) - (omega_nu[i] - omega_nu[j]))
+                weighted = diff * ((i + j + 2) ** _KAM_GAUGE_TAU)
+                if weighted > 0.0 and weighted < min_div:
+                    min_div = float(weighted)
+
+        kam_margin = max(min_div, _KAM_GAUGE_GAMMA)
+        return poincare_vorticity, kam_margin
 
     def _validate_metric(self, G: NDArray[np.float64]) -> None:
         """Verifica que G es cuadrada, simétrica y SPD (Cholesky)."""
@@ -709,69 +857,90 @@ class Phase1_GaugeCurvatureComputer:
                     f"compatible con la métrica G."
                 )
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # Fin de Fase 1 — GaugeCurvatureTensor retornado por compute_curvature
-    # es el argumento de entrada de Phase2_WilsonLoopAuditor.evaluate_holonomy
-    # (vía el orquestador YangMillsHolonomyAgent)
-    # ──────────────────────────────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════════
+    # ESLABÓN FORMAL DE ANIDAMIENTO (FASE 1 ──► FASE 2)
+    # Último método de la Fase 1: su definición formal es el inicio directo
+    # del primer método de la Fase 2 (`ingest_from_phase1_handoff`).
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def handoff_phase1_to_phase2(
+        self,
+        A_mu: NDArray[np.float64],
+        A_nu: NDArray[np.float64],
+        enforce_integrability: bool = True,
+        phase2_auditor: Optional[Phase2_WilsonLoopAuditor] = None,
+        cyclic_potentials: Optional[List[NDArray[np.float64]]] = None,
+        enforce_paradox_check: bool = True,
+    ) -> Union[GaugeCurvatureTensor, Tuple[GaugeCurvatureTensor, WilsonLoopHolonomy]]:
+        r"""
+        Morfismo terminal de la **Fase 1** (`handoff_phase1_to_phase2`) e inicio
+        formal anidado de la **Fase 2** (`ingest_from_phase1_handoff`).
+
+        Calcula el `GaugeCurvatureTensor`, verifica la condición de integrabilidad
+        asintótica cuando `enforce_integrability=True` y, si se provee el auditor
+        de la Fase 2 junto con `cyclic_potentials`, transfiere síncronamente el
+        control al método inicial de la Fase 2:
+            $$\Phi_2.\mathrm{ingest\_from\_phase1\_handoff}(\mathrm{curvature}, \mathrm{cyclic\_potentials}, \dots)$$
+        """
+        curvature = self.compute_curvature(A_mu=A_mu, A_nu=A_nu)
+
+        if enforce_integrability and not curvature.is_integrable:
+            raise GaugeCurvatureSingularityError(
+                f"Singularidad de calibre: ‖F_{{μν}}‖_F = "
+                f"{curvature.frobenius_norm:.4e}. "
+                f"Clase = {curvature.curvature_class.name}. "
+                f"c₁ = {curvature.chern_number:.4f}. "
+                f"Bianchi residual = {curvature.bianchi_residual:.3e}."
+            )
+
+        if phase2_auditor is not None and cyclic_potentials is not None:
+            holonomy = phase2_auditor.ingest_from_phase1_handoff(
+                curvature=curvature,
+                cyclic_potentials=cyclic_potentials,
+                enforce_paradox_check=enforce_paradox_check,
+            )
+            return curvature, holonomy
+
+        return curvature
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                             ║
-# ║   FASE 2 — AUDITORÍA DE HOLONOMÍA                                           ║
-# ║   (Bucle de Wilson con Longitud de Arco + Clasificación Topológica)         ║
+# ║   FASE ANIDADA 2 — AUDITORÍA DE HOLONOMÍA Y MAPA DE RETORNO DE POINCARÉ     ║
+# ║   (Bucle de Wilson, Multiplicadores de Floquet y Expansión de Magnus)       ║
 # ║                                                                             ║
-# ║   ENTRADA: GaugeCurvatureTensor (Fase 1) ───────────────────────────────── ║
+# ║   CONTINUACIÓN FORMAL DIRECTA DE:                                           ║
+# ║   `Phase1_GaugeCurvatureComputer.handoff_phase1_to_phase2`                  ║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
 class Phase2_WilsonLoopAuditor:
     r"""
-    Mide el desfase topológico del transporte paralelo a lo largo de
-    ciclos cerrados γ en el grafo de dependencias (β₁ > 0).
+    Mide el desfase topológico del transporte paralelo a lo largo de ciclos
+    cerrados $$\gamma$$ en el grafo de dependencias ($$\beta_1 > 0$$), evaluando
+    el operador de Wilson como un **Mapa de Primer Retorno de Poincaré** sobre la
+    fibra de calibre.
 
-    Fundamento Matemático
-    ─────────────────────
-    El operador de Wilson es el observador fundamental de las teorías de
-    gauge: mide si el transporte paralelo a lo largo de γ es trivial.
+    Fundamento Matemático y Mecánica Celeste de Poincaré-Floquet
+    ────────────────────────────────────────────────────────────
+    La discretización invariante bajo reparametrización pondera cada generador
+    por su longitud de arco relativa de Frobenius $$ds_k = \|A_k\|_F / \sum_j \|A_j\|_F$$:
 
-    Discretización con Invarianza de Reparametrización
-    ──────────────────────────────────────────────────
-    La discretización estándar W = ∏ exp(iA_k) no es invariante de
-    reparametrización del camino (depende del número de pasos k y no
-    solo del contenido geométrico del ciclo).
+    $$W(\gamma) = \mathcal{P} \prod_{k=1}^m \exp(i A_k ds_k)$$
 
-    La versión covariante usa longitudes de arco relativas:
+    1. **Multiplicadores Característicos de Floquet y Número de Rotación de Poincaré**:
+       Del espectro $$\{\mu_a\}_{a=1}^n = \operatorname{spec}(W(\gamma))$$, se extraen:
+       $$\rho_{\mathrm{Poincaré}}(\gamma) = \frac{1}{2\pi n} \sum_{a=1}^n \arg(\mu_a), \qquad
+         \lambda_{\mathrm{Floquet}}(\gamma) = \max_{1 \le a \le n} |\ln|\mu_a||.$$
+       Si $$W(\gamma) \in U(n)$$, todos los multiplicadores residen sobre el toro
+       unitario $$|\mu_a| = 1$$ ($$\lambda_{\mathrm{Floquet}} = 0$$, estabilidad elíptica KAM).
+       Si algún $$|\mu_a| \neq 1$$, emerge una bifurcación hiperbólica (paradoja topológica).
 
-        s_k = ‖A_k‖_F             (longitud de arco local)
-        ds_k = s_k / Σⱼ sⱼ       (peso normalizado)
-
-    de modo que:
-
-        W(γ) = 𝒫 ∏_k exp(i · A_k · ds_k)
-
-    Esto garantiza que si se refina el ciclo (más puntos), W(γ) converge
-    al valor continuo ∫_γ A_μ dx^μ.
-
-    Verificación de Unitariedad
-    ───────────────────────────
-    Para una conexión de gauge con grupo estructural U(n), W(γ) debe ser
-    unitario: W†W = I. La violación δ_U = ‖W†W − I‖_F > 0 indica que:
-        · La exponencial matricial introdujo error numérico (δ_U < 1e-12).
-        · Las matrices A_k no son anti-hermitianas (δ_U ~ O(1) → paradoja).
-
-    La separación de responsabilidades:
-        · evaluate_holonomy : calcula W y sus invariantes.
-        · check_paradox     : decide el veto y lanza la excepción.
-
-    Parámetros del Constructor
-    ──────────────────────────
-    tol_unitarity : float
-        Umbral para δ_U = ‖W†W − I‖_F. Si se supera, holonomy_class = PARADOX.
-
-    tol_trivial : float
-        Umbral para ‖W − I‖_F. Si es menor, holonomy_class = TRIVIAL.
+    2. **Expansión Homotópica No Abeliana de Stokes-Magnus**:
+       Se compara $$W(\gamma)$$ frente al generador de Magnus de segundo orden:
+       $$\Omega_{\mathrm{Magnus}} = i \sum_k A_k ds_k - \frac{1}{2} \sum_{j < k} [A_j, A_k] ds_j ds_k$$
+       para cuantificar el área no abeliana encerrada en la sección de Poincaré.
     """
 
     def __init__(
@@ -779,11 +948,38 @@ class Phase2_WilsonLoopAuditor:
         tol_unitarity: float = _EPS_UNITARITY,
         tol_trivial: float = _EPS_HOLONOMY,
     ) -> None:
-        self._tol_unitarity = tol_unitarity
-        self._tol_trivial = tol_trivial
+        self._tol_unitarity = float(tol_unitarity)
+        self._tol_trivial = float(tol_trivial)
+
+    # ══════════════════════════════════════════════════════════════════════════
+    # ESLABÓN FORMAL DE RECEPCIÓN (CONTINUACIÓN DE `handoff_phase1_to_phase2`)
+    # Primer método de la Fase 2: recibe directamente la salida de la Fase 1.
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def ingest_from_phase1_handoff(
+        self,
+        curvature: GaugeCurvatureTensor,
+        cyclic_potentials: List[NDArray[np.float64]],
+        enforce_paradox_check: bool = True,
+    ) -> WilsonLoopHolonomy:
+        r"""
+        Morfismo inicial de la **Fase 2**, continuación formal directa del último
+        método de la Fase 1 (`Phase1_GaugeCurvatureComputer.handoff_phase1_to_phase2`).
+
+        Consume el `GaugeCurvatureTensor` certificado en la Fase 1, evalúa el
+        bucle de Wilson y la monodromía de Poincaré-Floquet sobre `cyclic_potentials`,
+        y ejecuta `check_paradox` si `enforce_paradox_check=True`.
+        """
+        holonomy = self.evaluate_holonomy(
+            cyclic_potentials=cyclic_potentials,
+            curvature=curvature,
+        )
+        if enforce_paradox_check:
+            self.check_paradox(holonomy)
+        return holonomy
 
     # ──────────────────────────────────────────────────────────────────────────
-    # API PÚBLICA
+    # API PÚBLICA DE LA FASE 2
     # ──────────────────────────────────────────────────────────────────────────
 
     def evaluate_holonomy(
@@ -792,45 +988,12 @@ class Phase2_WilsonLoopAuditor:
         curvature: Optional[GaugeCurvatureTensor] = None,
     ) -> WilsonLoopHolonomy:
         r"""
-        Calcula la holonomía W(γ) con todos sus invariantes topológicos.
-
-        Si cyclic_potentials está vacío, retorna la holonomía trivial W = I.
-
-        Procedimiento
-        ─────────────
-        1. Validación dimensional: todos los A_k ∈ ℝ^{n×n} con igual n.
-        2. Cálculo de longitudes de arco s_k = ‖A_k‖_F.
-        3. Normalización ds_k = s_k / Σs_j (invarianza de reparametrización).
-        4. Exponenciales matriciales pesadas: exp(i · A_k · ds_k).
-        5. Producto ordenado de camino (path-ordered product).
-        6. Verificación de unitariedad δ_U = ‖W†W − I‖_F.
-        7. Clasificación: TRIVIAL, NON_TRIVIAL o PARADOX.
-        8. Logging de diagnóstico.
-
-        Parámetros
-        ──────────
-        cyclic_potentials : List[NDArray[float64]]
-            Matrices de conexión {A_k} que forman el ciclo cerrado γ.
-            El orden define el ordenamiento de camino 𝒫.
-            Si vacía, retorna holonomía trivial.
-
-        curvature : GaugeCurvatureTensor, opcional
-            Tensor de curvatura de la Fase 1. Se usa para incluir el
-            número de Chern en los metadatos del resultado.
-
-        Retorna
-        ───────
-        WilsonLoopHolonomy
-            W(γ), Tr(W), δ_U, pesos ds_k, clase y flag de paradoja.
-
-        Lanza
-        ─────
-        ValueError
-            Si las matrices del ciclo tienen dimensiones inconsistentes.
+        Calcula la holonomía $$W(\gamma)$$ con todos sus invariantes topológicos,
+        multiplicadores de Floquet-Poincaré y defecto no abeliano de Magnus.
         """
         # ── Caso trivial: ciclo vacío ──
         if not cyclic_potentials:
-            n = self._G_dim_from_context(cyclic_potentials)
+            n = self._G_dim_from_context(cyclic_potentials, curvature)
             return self._trivial_holonomy(n)
 
         # ── Paso 1: Validación dimensional ──
@@ -844,12 +1007,11 @@ class Phase2_WilsonLoopAuditor:
         total_arc = float(arc_lengths.sum())
 
         if total_arc < _EPS_FLAT_CURVATURE:
-            # Todas las matrices son cero → holonomía trivial
             return self._trivial_holonomy(n)
 
-        ds = arc_lengths / total_arc   # pesos normalizados de longitud de arco
+        ds = arc_lengths / total_arc
 
-        # ── Paso 4-5: Producto ordenado de camino ──
+        # ── Paso 4-5: Producto ordenado de camino (Path-Ordered Product) ──
         W = np.eye(n, dtype=np.complex128)
         for A_k, ds_k in zip(cyclic_potentials, ds):
             A_weighted = 1j * A_k.astype(np.complex128) * ds_k
@@ -871,22 +1033,33 @@ class Phase2_WilsonLoopAuditor:
         )
 
         trace_W = complex(np.trace(W))
-        paradox = (holonomy_class == HolonomyClass.PARADOX)
+        paradox = holonomy_class == HolonomyClass.PARADOX
 
-        # ── Paso 8: Logging ──
+        # ── Paso 8: Monodromía de Poincaré-Floquet y Expansión de Magnus ──
+        rot_num, floquet_exp, magnus_defect = (
+            self._compute_poincare_floquet_and_magnus(W, cyclic_potentials, ds)
+        )
+
+        # ── Paso 9: Logging de diagnóstico ──
         logger.debug(
             "Fase 2: W(γ) — χ(W) = %.4f%+.4fj, δ_U = %.3e, "
-            "‖W−I‖_F = %.3e, clase = %s.",
-            trace_W.real, trace_W.imag,
-            unitarity_defect, deviation_from_I,
+            "‖W−I‖_F = %.3e, ρ_Poincaré = %.4f, λ_Floquet = %.3e, clase = %s.",
+            trace_W.real,
+            trace_W.imag,
+            unitarity_defect,
+            deviation_from_I,
+            rot_num,
+            floquet_exp,
             holonomy_class.name,
         )
 
         if holonomy_class == HolonomyClass.NON_TRIVIAL:
             logger.warning(
                 "Fase 2: Holonomía no trivial detectada — "
-                "‖W−I‖_F = %.3e ≥ %.1e. El ciclo γ encierra curvatura.",
-                deviation_from_I, self._tol_trivial,
+                "‖W−I‖_F = %.3e ≥ %.1e, ρ_Poincaré = %.4f. El ciclo γ encierra curvatura.",
+                deviation_from_I,
+                self._tol_trivial,
+                rot_num,
             )
 
         return WilsonLoopHolonomy(
@@ -896,32 +1069,25 @@ class Phase2_WilsonLoopAuditor:
             arc_length_weights=ds,
             holonomy_class=holonomy_class,
             paradox_detected=paradox,
+            floquet_rotation_number=rot_num,
+            floquet_lyapunov_exponent=floquet_exp,
+            magnus_commutator_defect=magnus_defect,
         )
 
     def check_paradox(self, holonomy: WilsonLoopHolonomy) -> None:
         r"""
-        Verifica la holonomía y lanza HolonomyVetoError si se detecta
-        una paradoja topológica (W no unitario).
-
-        Separación de responsabilidades: este método solo decide el veto,
-        mientras que evaluate_holonomy solo calcula.
-
-        Parámetros
-        ──────────
-        holonomy : WilsonLoopHolonomy
-            Resultado de evaluate_holonomy.
-
-        Lanza
-        ─────
-        HolonomyVetoError
-            Si holonomy.paradox_detected es True.
+        Verifica la holonomía y lanza `HolonomyVetoError` si se detecta
+        una paradoja topológica ($$W \notin U(n)$$).
         """
         if holonomy.paradox_detected:
             logger.error(
                 "Fase 2: Veto de Holonomía — δ_U = %.4e > %.1e. "
-                "χ(W) = %.4f%+.4fj.",
-                holonomy.unitarity_defect, self._tol_unitarity,
-                holonomy.holonomy_trace.real, holonomy.holonomy_trace.imag,
+                "χ(W) = %.4f%+.4fj, λ_Floquet = %.4e.",
+                holonomy.unitarity_defect,
+                self._tol_unitarity,
+                holonomy.holonomy_trace.real,
+                holonomy.holonomy_trace.imag,
+                holonomy.floquet_lyapunov_exponent,
             )
             raise HolonomyVetoError(
                 f"Paradoja topológica: el transporte paralelo no es unitario. "
@@ -932,7 +1098,7 @@ class Phase2_WilsonLoopAuditor:
             )
 
     # ──────────────────────────────────────────────────────────────────────────
-    # MÉTODOS PRIVADOS
+    # MÉTODOS PRIVADOS DE LA FASE 2
     # ──────────────────────────────────────────────────────────────────────────
 
     def _classify_holonomy(
@@ -942,16 +1108,55 @@ class Phase2_WilsonLoopAuditor:
     ) -> HolonomyClass:
         """
         Clasifica la holonomía en tres niveles (por orden de prioridad):
-
-        PARADOX      : δ_U > _tol_unitarity (W no unitario → error severo)
-        TRIVIAL      : ‖W−I‖_F < _tol_trivial (transporte paralelo exacto)
-        NON_TRIVIAL  : δ_U ≤ _tol_unitarity y ‖W−I‖_F ≥ _tol_trivial
+        PARADOX, TRIVIAL o NON_TRIVIAL.
         """
         if unitarity_defect > self._tol_unitarity:
             return HolonomyClass.PARADOX
         if deviation_from_I < self._tol_trivial:
             return HolonomyClass.TRIVIAL
         return HolonomyClass.NON_TRIVIAL
+
+    @staticmethod
+    def _compute_poincare_floquet_and_magnus(
+        W: NDArray[np.complex128],
+        potentials: List[NDArray[np.float64]],
+        ds: NDArray[np.float64],
+    ) -> Tuple[float, float, float]:
+        r"""
+        Extrae el número de rotación toroidal de Poincaré, el exponente de
+        Floquet-Lyapunov del espectro de $$W(\gamma)$$ y el residuo de truncamiento
+        de segundo orden de la expansión continua de Magnus.
+        """
+        n = W.shape[0]
+        evals_W = la.eigvals(W)
+        abs_evals = np.maximum(np.abs(evals_W), 1.0e-15)
+        angles = np.angle(evals_W)
+
+        rotation_number = float(np.sum(angles) / (2.0 * math.pi * float(n)))
+        floquet_exponent = float(np.max(np.abs(np.log(abs_evals))))
+
+        # Serie de Magnus hasta 2º orden:
+        # Ω₁ = i Σ_k A_k ds_k
+        # Ω₂ = -½ Σ_{j < k} [i A_j ds_j, i A_k ds_k] = ½ Σ_{j < k} [A_j, A_k] ds_j ds_k
+        # (en convención multiplicativa por la derecha W = exp(Ω₁_0) exp(Ω₁_1)...
+        #  BCH: log(exp(X)exp(Y)) ≈ X + Y + ½[X, Y])
+        omega_1 = np.zeros((n, n), dtype=np.complex128)
+        omega_2 = np.zeros((n, n), dtype=np.complex128)
+        scaled_ops = [
+            1j * A_k.astype(np.complex128) * float(ds_k)
+            for A_k, ds_k in zip(potentials, ds)
+        ]
+        for j, X_j in enumerate(scaled_ops):
+            omega_1 += X_j
+            for k in range(j + 1, len(scaled_ops)):
+                X_k = scaled_ops[k]
+                omega_2 += 0.5 * (X_j @ X_k - X_k @ X_j)
+
+        rsi_gain = YangMillsRSILevel3Engine.get_meta_state().evolved_magnus_homotopy_gain
+        W_magnus = la.expm(omega_1 + rsi_gain * omega_2)
+        magnus_defect = float(np.linalg.norm(W - W_magnus, "fro"))
+
+        return rotation_number, floquet_exponent, magnus_defect
 
     def _trivial_holonomy(self, n: int) -> WilsonLoopHolonomy:
         """Construye el objeto de holonomía trivial W = I_n."""
@@ -963,6 +1168,9 @@ class Phase2_WilsonLoopAuditor:
             arc_length_weights=np.zeros(0, dtype=np.float64),
             holonomy_class=HolonomyClass.TRIVIAL,
             paradox_detected=False,
+            floquet_rotation_number=0.0,
+            floquet_lyapunov_exponent=0.0,
+            magnus_commutator_defect=0.0,
         )
 
     @staticmethod
@@ -989,86 +1197,94 @@ class Phase2_WilsonLoopAuditor:
     @staticmethod
     def _G_dim_from_context(
         potentials: List[NDArray[np.float64]],
+        curvature: Optional[GaugeCurvatureTensor] = None,
     ) -> int:
-        """Extrae la dimensión del espacio; retorna la dimensión de G_PHYSICS si vacío."""
+        """Extrae la dimensión del espacio del contexto o de G_PHYSICS."""
         if potentials:
             return potentials[0].shape[0]
+        if curvature is not None:
+            return curvature.F_matrix.shape[0]
         return G_PHYSICS.shape[0]
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # Fin de Fase 2 — WilsonLoopHolonomy retornado por evaluate_holonomy
-    # es el contexto que valida la Fase 3 en el orquestador.
-    # ──────────────────────────────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════════
+    # ESLABÓN FORMAL DE ANIDAMIENTO (FASE 2 ──► FASE 3)
+    # Último método de la Fase 2: su definición formal es el inicio directo
+    # del primer método de la Fase 3 (`ingest_from_phase2_handoff`).
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def handoff_phase2_to_phase3(
+        self,
+        curvature: GaugeCurvatureTensor,
+        cyclic_potentials: List[NDArray[np.float64]],
+        enforce_paradox_check: bool = True,
+        phase3_optimizer: Optional[Phase3_YangMillsOptimizer] = None,
+        stochastic_entropy_J: Optional[NDArray[np.float64]] = None,
+        base_connection_A: Optional[NDArray[np.float64]] = None,
+    ) -> Union[WilsonLoopHolonomy, YangMillsAction, DeformationTensor]:
+        r"""
+        Morfismo terminal de la **Fase 2** (`handoff_phase2_to_phase3`) e inicio
+        formal anidado de la **Fase 3** (`ingest_from_phase2_handoff`).
+
+        Ejecuta la recepción y auditoría de holonomía de la Fase 2
+        (`ingest_from_phase1_handoff`) y, si recibe el optimizador de la Fase 3
+        junto con la corriente de entropía $$J_\nu$$, transfiere síncronamente el
+        control al método inicial de la Fase 3:
+            $$\Phi_3.\mathrm{ingest\_from\_phase2\_handoff}(\mathrm{curvature}, \mathrm{holonomy}, J_\nu, \dots)$$
+        """
+        holonomy = self.ingest_from_phase1_handoff(
+            curvature=curvature,
+            cyclic_potentials=cyclic_potentials,
+            enforce_paradox_check=enforce_paradox_check,
+        )
+        if phase3_optimizer is not None and stochastic_entropy_J is not None:
+            return phase3_optimizer.ingest_from_phase2_handoff(
+                curvature=curvature,
+                holonomy=holonomy,
+                stochastic_entropy_J=stochastic_entropy_J,
+                base_connection_A=base_connection_A,
+            )
+        return holonomy
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                             ║
-# ║   FASE 3 — MINIMIZACIÓN DE LA ACCIÓN DE YANG-MILLS                         ║
-# ║   (Ecuación de Lyapunov + Proyección de Higham + Verificación EOM)          ║
+# ║   FASE ANIDADA 3 — MINIMIZACIÓN DE LA ACCIÓN DE YANG-MILLS Y CIERRE RSI-L3  ║
+# ║   (Ecuación de Lyapunov, Cota BPS, Proyección de Higham y Punto Fijo)       ║
 # ║                                                                             ║
-# ║   ENTRADA: GaugeCurvatureTensor (Fase 1) + WilsonLoopHolonomy (Fase 2) ─── ║
+# ║   CONTINUACIÓN FORMAL DIRECTA DE:                                           ║
+# ║   `Phase2_WilsonLoopAuditor.handoff_phase2_to_phase3`                       ║
 # ║                                                                             ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
 class Phase3_YangMillsOptimizer:
     r"""
-    Minimiza la acción de Yang-Mills S_YM[A] y obtiene la deformación
-    óptima δR que satisface las ecuaciones de campo D^μ F_{μν} = J_ν.
+    Minimiza la acción variacional de Yang-Mills $$S_{\mathrm{YM}}[A]$$, verifica la
+    cota inferior topológica de Bogomol'nyi-Prasad-Sommerfield (BPS), resuelve
+    la ecuación continua de Lyapunov para la deformación óptima $$\delta R_{\mathrm{opt}} \in S^+_n$$
+    y cierra el bucle de Automejora Recursiva de Nivel 3 (`YangMillsRSILevel3Engine`).
 
     Fundamento Variacional Riguroso
     ────────────────────────────────
-    La acción de Yang-Mills con término θ-topológico es:
+    La acción de Yang-Mills con término $$\theta$$-topológico es:
 
-        S_YM[A] = ½ Tr(Fᵀ G⁻¹ F G⁻¹) + θ · Tr(F G⁻¹ F̃ G⁻¹)
+    $$S_{\mathrm{YM}}[A] = \frac{1}{2} \operatorname{Tr}(F^\top G^{-1} F G^{-1}) + \theta \cdot \operatorname{Tr}(F G^{-1} \tilde{F} G^{-1})$$
 
-    donde F̃ = G⁻¹ F_skew G es el dual de Hodge de F (Fase 1) y
-    θ = _THETA_YM es el parámetro topológico (CP-violación).
+    Por la identidad algebraica $$F = F^+ + F^-$$, la acción cinética satisface la
+    **Desigualdad Topológica de Bogomol'nyi-Prasad-Sommerfield (BPS)**:
 
-    El término ½ Tr(Fᵀ G⁻¹ F G⁻¹) es la contracción de índices estándar
-    Tr(F^{ab} F_{ab}) con la métrica G.
+    $$S_{\mathrm{kin}}[A] \ge S_{\mathrm{BPS}} := \frac{1}{2} \left|\operatorname{Tr}(F^\top G^{-1} \tilde{F} G^{-1})\right| \ge 0$$
 
-    El término topológico θ · Tr(F G⁻¹ F̃ G⁻¹) es el número de Pontryagin
-    discreto, proporcional a c₁².
+    donde la igualdad se alcanza si y sólo si la curvatura es autodual ($$F = F^+$$,
+    instanton) o anti-autodual ($$F = F^-$$, anti-instanton).
 
-    Ecuación de Movimiento y Ecuación de Lyapunov
-    ──────────────────────────────────────────────
-    La variación δS_YM/δA = 0 con fuente J produce:
+    La variación $$\delta S_{\mathrm{YM}} / \delta A = 0$$ acoplada a la corriente de
+    entropía estocástica $$J_\nu$$ induce la ecuación de Lyapunov generalizada:
 
-        D^μ F_{μν} = G⁻¹ F + F G⁻¹ = J_ν   (en la aproximación linealizada)
+    $$G^{-1} \delta R + \delta R G^{-1} = J - (G^{-1} F + F G^{-1}) =: \mathrm{RHS}$$
 
-    La deformación óptima δR satisface:
-
-        G⁻¹ δR + δR G⁻¹ = J − (G⁻¹ F + F G⁻¹) =: RHS
-
-    que es una **ecuación de Lyapunov generalizada** (también conocida como
-    ecuación de Sylvester simétrica). Se resuelve con `scipy.linalg.solve_lyapunov`:
-
-        G⁻¹ δR + δR G⁻¹ = RHS  →  scipy.linalg.solve_continuous_lyapunov(G⁻¹, RHS)
-
-    La solución δR se proyecta al cono S⁺ₙ por el algoritmo de Higham,
-    garantizando disipatividad del flujo Port-Hamiltoniano.
-
-    Verificación Post-Hoc de las EOM
-    ─────────────────────────────────
-    Tras obtener δR_opt, se verifica el residuo:
-
-        EOM_res = ‖G⁻¹ F + F G⁻¹ + G⁻¹ δR_opt + δR_opt G⁻¹ − J‖_F
-
-    Si EOM_res > _EPS_EOM_RESIDUAL, se emite una advertencia (no se lanza
-    excepción, ya que la proyección PSD puede introducir un residuo controlado).
-
-    Parámetros del Constructor
-    ──────────────────────────
-    metric_tensor : NDArray[float64], shape (n, n)
-        Tensor métrico G (SPD) para la contracción de la acción y la
-        ecuación de Lyapunov.
-
-    theta_ym : float
-        Parámetro topológico θ de Yang-Mills. Default = 0 (CP-preservante).
-
-    eom_tol : float
-        Tolerancia para el residuo de las EOM post-hoc.
+    cuya solución simetrizada se proyecta ortogonalmente en norma de Frobenius al
+    cono semidefinido positivo $$S^+_n$$ mediante el Teorema de Higham (2002).
     """
 
     def __init__(
@@ -1081,7 +1297,6 @@ class Phase3_YangMillsOptimizer:
         self._theta = float(theta_ym)
         self._eom_tol = float(eom_tol)
 
-        # Pre-computar G⁻¹ y κ(G) para la acción y la ecuación de Lyapunov
         self._G_inv = la.inv(self._G)
         evals_G = la.eigvalsh(self._G)
         self._kappa_G = float(evals_G[-1] / evals_G[0])
@@ -1090,11 +1305,43 @@ class Phase3_YangMillsOptimizer:
             logger.warning(
                 "Fase 3: Métrica G mal condicionada κ(G) = %.3e > %.1e. "
                 "La solución de Lyapunov puede ser numéricamente inestable.",
-                self._kappa_G, _KAPPA_MAX_METRIC,
+                self._kappa_G,
+                _KAPPA_MAX_METRIC,
             )
 
+    # ══════════════════════════════════════════════════════════════════════════
+    # ESLABÓN FORMAL DE RECEPCIÓN (CONTINUACIÓN DE `handoff_phase2_to_phase3`)
+    # Primer método de la Fase 3: recibe directamente la salida de la Fase 2.
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def ingest_from_phase2_handoff(
+        self,
+        curvature: GaugeCurvatureTensor,
+        holonomy: WilsonLoopHolonomy,
+        stochastic_entropy_J: NDArray[np.float64],
+        base_connection_A: Optional[NDArray[np.float64]] = None,
+    ) -> Union[YangMillsAction, DeformationTensor]:
+        r"""
+        Morfismo inicial de la **Fase 3**, continuación formal directa del último
+        método de la Fase 2 (`Phase2_WilsonLoopAuditor.handoff_phase2_to_phase3`).
+
+        Consume el `GaugeCurvatureTensor` (Fase 1) y el `WilsonLoopHolonomy`
+        (Fase 2), ejecuta la optimización variacional `minimize_action` y culmina
+        en el cierre autopoiético de las 3 fases anidadas `finalize_nested_pipeline`.
+        """
+        action_result = self.minimize_action(
+            curvature=curvature,
+            stochastic_entropy_J=stochastic_entropy_J,
+        )
+        return self.finalize_nested_pipeline(
+            curvature=curvature,
+            holonomy=holonomy,
+            action_result=action_result,
+            base_connection_A=base_connection_A,
+        )
+
     # ──────────────────────────────────────────────────────────────────────────
-    # API PÚBLICA
+    # API PÚBLICA DE LA FASE 3
     # ──────────────────────────────────────────────────────────────────────────
 
     def minimize_action(
@@ -1103,37 +1350,9 @@ class Phase3_YangMillsOptimizer:
         stochastic_entropy_J: NDArray[np.float64],
     ) -> YangMillsAction:
         r"""
-        Calcula S_YM y obtiene δR_opt por resolución de la ecuación de Lyapunov.
-
-        Procedimiento
-        ─────────────
-        1. Validación dimensional de J respecto a F.
-        2. Cálculo de la acción S_YM (término cinético + θ-topológico).
-        3. Cálculo del término fuente RHS = J − (G⁻¹F + FG⁻¹).
-        4. Resolución de la ecuación de Lyapunov: G⁻¹δR + δRG⁻¹ = RHS.
-        5. Simetrización de δR (la solución de Lyapunov puede tener asimetría numérica).
-        6. Proyección de Higham al cono S⁺ₙ.
-        7. Verificación del residuo de las EOM post-hoc.
-        8. Verificación de finitud de δR_opt.
-
-        Parámetros
-        ──────────
-        curvature : GaugeCurvatureTensor
-            Tensor F de la Fase 1.
-        stochastic_entropy_J : NDArray[float64], shape (n, n)
-            Corriente de entropía J_ν (matriz de fuentes).
-
-        Retorna
-        ───────
-        YangMillsAction
-            S_YM, término topológico, δR_opt ∈ S⁺ₙ, residuo EOM, ‖RHS‖_F,
-            J, κ(G).
-
-        Lanza
-        ─────
-        YangMillsOptimizationError
-            Si la ecuación de Lyapunov falla, δR contiene NaN/Inf,
-            o el residuo EOM supera 100 × _EPS_EOM_RESIDUAL.
+        Calcula $$S_{\mathrm{YM}}$$, la cota BPS, el tensor de energía-momento de
+        Poincaré-Cartan y obtiene $$\delta R_{\mathrm{opt}} \in S^+_n$$ por resolución
+        de la ecuación continua de Lyapunov y proyección de Higham.
         """
         F = curvature.F_matrix
         n = F.shape[0]
@@ -1146,27 +1365,31 @@ class Phase3_YangMillsOptimizer:
                 f"J ∈ ℝ^{{{J.shape[0]}×{J.shape[1]}}}."
             )
 
-        # ── Paso 2: Acción de Yang-Mills ──
+        # ── Paso 2: Acción de Yang-Mills, Cota BPS y Tensor de Energía-Momento ──
         S_kinetic, S_topological = self._compute_action(F, curvature.F_selfdual)
+        bps_bound, stress_trace = self._compute_bps_bound_and_stress_energy(F)
 
         # ── Paso 3: Término fuente de la ecuación de Lyapunov ──
-        # RHS = J − (G⁻¹ F + F G⁻¹)   (término de campo libre)
         field_term = self._G_inv @ F + F @ self._G_inv
         RHS = J - field_term
         rhs_norm = float(np.linalg.norm(RHS, "fro"))
 
-        # ── Paso 4: Resolución de la ecuación de Lyapunov ──
-        # G⁻¹ δR + δR G⁻¹ = RHS
-        # scipy: solve_continuous_lyapunov(A, Q) resuelve AX + XA = Q
+        # ── Paso 4: Resolución de la ecuación continua de Lyapunov ──
+        rsi_shift = YangMillsRSILevel3Engine.get_meta_state().evolved_lyapunov_shift
+        G_inv_reg = (
+            self._G_inv + rsi_shift * np.eye(n, dtype=np.float64)
+            if rsi_shift > 0.0
+            else self._G_inv
+        )
         try:
-            delta_R_raw = la.solve_continuous_lyapunov(self._G_inv, RHS)
+            delta_R_raw = la.solve_continuous_lyapunov(G_inv_reg, RHS)
         except (la.LinAlgError, ValueError) as exc:
             raise YangMillsOptimizationError(
                 f"La ecuación de Lyapunov G⁻¹δR + δRG⁻¹ = RHS no pudo "
                 f"resolverse: {exc}. κ(G) = {self._kappa_G:.3e}."
             ) from exc
 
-        # ── Paso 5: Simetrización (eliminar asimetría numérica de Lyapunov) ──
+        # ── Paso 5: Simetrización ──
         delta_R_sym = 0.5 * (delta_R_raw + delta_R_raw.T)
 
         # ── Paso 6: Proyección de Higham al cono S⁺ₙ ──
@@ -1192,13 +1415,19 @@ class Phase3_YangMillsOptimizer:
             logger.warning(
                 "Fase 3: Residuo EOM = %.3e > %.1e (controlado por "
                 "proyección Higham).",
-                eom_residual, self._eom_tol,
+                eom_residual,
+                self._eom_tol,
             )
 
         logger.debug(
-            "Fase 3: S_YM = %.4e (cinético) + %.4e (topológico). "
+            "Fase 3: S_YM = %.4e (cinético) + %.4e (topológico), S_BPS = %.4e. "
             "‖RHS‖_F = %.3e. ‖EOM_res‖_F = %.3e. κ(G) = %.2e.",
-            S_kinetic, S_topological, rhs_norm, eom_residual, self._kappa_G,
+            S_kinetic,
+            S_topological,
+            bps_bound,
+            rhs_norm,
+            eom_residual,
+            self._kappa_G,
         )
 
         return YangMillsAction(
@@ -1209,10 +1438,13 @@ class Phase3_YangMillsOptimizer:
             lyapunov_rhs_norm=rhs_norm,
             entropy_current_J=J,
             kappa_metric=self._kappa_G,
+            bps_bound_value=bps_bound,
+            stress_energy_trace=stress_trace,
+            rsi_telemetry=YangMillsRSILevel3Engine.get_meta_state(),
         )
 
     # ──────────────────────────────────────────────────────────────────────────
-    # MÉTODOS PRIVADOS
+    # MÉTODOS PRIVADOS DE LA FASE 3
     # ──────────────────────────────────────────────────────────────────────────
 
     def _compute_action(
@@ -1221,31 +1453,43 @@ class Phase3_YangMillsOptimizer:
         F_plus: NDArray[np.float64],
     ) -> Tuple[float, float]:
         r"""
-        Calcula los dos términos de la acción de Yang-Mills.
-
-        Término cinético:
-            S_cin = ½ Tr(Fᵀ G⁻¹ F G⁻¹)
-                  = ½ Tr(F_contracted)
-            donde F_contracted = Fᵀ G⁻¹ F G⁻¹.
-
-        Término topológico (θ-término):
-            F̃ = G⁻¹ F_skew G   (dual de Hodge de F)
-            S_top = θ · Tr(F G⁻¹ F̃ G⁻¹)
-                  = θ · c₁²  (proporcional al número de Pontryagin)
-
-        Retorna (S_cin, S_top).
+        Calcula los dos términos de la acción de Yang-Mills:
+            $$S_{\mathrm{cin}} = \frac{1}{2}\operatorname{Tr}(F^\top G^{-1} F G^{-1}), \qquad
+              S_{\mathrm{top}} = \theta \cdot \operatorname{Tr}(F G^{-1} \tilde{F} G^{-1})$$
         """
-        # Término cinético: S = ½ Tr(Fᵀ G⁻¹ F G⁻¹)
         F_contracted = F.T @ self._G_inv @ F @ self._G_inv
         S_kinetic = 0.5 * float(np.real(np.trace(F_contracted)))
 
-        # Término topológico: θ · Tr(F G⁻¹ F̃ G⁻¹)
         F_skew = 0.5 * (F - F.T)
         F_dual = self._G_inv @ F_skew @ self._G
         top_contracted = F @ self._G_inv @ F_dual @ self._G_inv
         S_topological = self._theta * float(np.real(np.trace(top_contracted)))
 
         return S_kinetic, S_topological
+
+    def _compute_bps_bound_and_stress_energy(
+        self,
+        F: NDArray[np.float64],
+    ) -> Tuple[float, float]:
+        r"""
+        Calcula la cota inferior topológica de Bogomol'nyi-Prasad-Sommerfield (BPS):
+            $$S_{\mathrm{BPS}} = \frac{1}{2} \left|\operatorname{Tr}(F^\top G^{-1} \tilde{F} G^{-1})\right|$$
+        y la traza contraída del tensor de energía-momento de Poincaré-Cartan:
+            $$T_{\mathrm{YM}} = F^\top G^{-1} F - \frac{1}{4}\operatorname{Tr}(F^\top G^{-1} F G^{-1}) G.$$
+        """
+        F_skew = 0.5 * (F - F.T)
+        F_dual = self._G_inv @ F_skew @ self._G
+        bps_bound = 0.5 * abs(
+            float(np.real(np.trace(F.T @ self._G_inv @ F_dual @ self._G_inv)))
+        )
+
+        lagrangian_density = 0.25 * float(
+            np.real(np.trace(F.T @ self._G_inv @ F @ self._G_inv))
+        )
+        T_ym = F.T @ self._G_inv @ F - lagrangian_density * self._G
+        stress_trace = float(np.trace(T_ym @ self._G_inv))
+
+        return bps_bound, stress_trace
 
     def _compute_eom_residual(
         self,
@@ -1255,10 +1499,7 @@ class Phase3_YangMillsOptimizer:
     ) -> float:
         r"""
         Calcula el residuo de las ecuaciones de movimiento post-hoc:
-
-            EOM_res = G⁻¹ F + F G⁻¹ + G⁻¹ δR + δR G⁻¹ − J
-
-        Retorna ‖EOM_res‖_F.
+            $$\mathrm{EOM}_{\mathrm{res}} = G^{-1} F + F G^{-1} + G^{-1} \delta R + \delta R G^{-1} - J$$
         """
         lhs = (
             self._G_inv @ F
@@ -1272,66 +1513,120 @@ class Phase3_YangMillsOptimizer:
     @staticmethod
     def _project_higham(M: NDArray[np.float64]) -> NDArray[np.float64]:
         r"""
-        Proyecta M al cono S⁺ₙ usando el algoritmo de Higham (2002):
-
-            Π_{S⁺ₙ}(M) = U · diag(max(λᵢ, 0)) · Uᵀ
-
-        donde M = U Λ Uᵀ es la descomposición espectral real.
+        Proyecta $$M$$ al cono $$S^+_n$$ usando el algoritmo de Higham (2002):
+            $$\Pi_{S^+_n}(M) = U \cdot \operatorname{diag}(\max(\lambda_i, 0)) \cdot U^\top$$
         """
         evals, evecs = la.eigh(M)
         evals_psd = np.maximum(evals, 0.0)
         M_psd = evecs @ np.diag(evals_psd) @ evecs.T
-        return 0.5 * (M_psd + M_psd.T)   # simetrización post-proyección
+        return 0.5 * (M_psd + M_psd.T)
 
-    # ──────────────────────────────────────────────────────────────────────────
-    # Fin de Fase 3 — YangMillsAction retornado por minimize_action
-    # es empaquetado como DeformationTensor por el orquestador.
-    # ──────────────────────────────────────────────────────────────────────────
+    # ══════════════════════════════════════════════════════════════════════════
+    # ESLABÓN TERMINAL DE LAS 3 FASES ANIDADAS (CIERRE AUTOPOIÉTICO RSI-L3)
+    # Último método de la Fase 3: cierra el ciclo recursivo de Nivel 3 y entrega
+    # el DeformationTensor inmutable al Orquestador Categórico.
+    # ══════════════════════════════════════════════════════════════════════════
+
+    def finalize_nested_pipeline(
+        self,
+        curvature: GaugeCurvatureTensor,
+        holonomy: WilsonLoopHolonomy,
+        action_result: YangMillsAction,
+        base_connection_A: Optional[NDArray[np.float64]] = None,
+    ) -> Union[YangMillsAction, DeformationTensor]:
+        r"""
+        Morfismo terminal de la **Fase 3** (`finalize_nested_pipeline`) y cierre
+        del acoplamiento monoidal de las tres fases anidadas:
+            $$\Psi_{\mathrm{YM}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$$
+
+        Evalúa el veredicto en el retículo intuicionista de Heyting $$\Omega_3$$,
+        actualiza el punto fijo de Lawvere en el motor de Automejora Recursiva de
+        Nivel 3 (`YangMillsRSILevel3Engine`) y empaqueta la solución variacional
+        en un `DeformationTensor` inmutable cuando se provee `base_connection_A`.
+        """
+        verdict = HeytingVerdict.COHERENT
+        if holonomy.paradox_detected:
+            verdict = HeytingVerdict.VETOED
+        elif (
+            action_result.eom_residual_norm > self._eom_tol
+            or holonomy.holonomy_class == HolonomyClass.NON_TRIVIAL
+            or not curvature.is_integrable
+        ):
+            verdict = verdict.meet(HeytingVerdict.DEGRADED)
+
+        norm_J = float(np.linalg.norm(action_result.entropy_current_J, "fro"))
+        rsi_cert = YangMillsRSILevel3Engine.commit_level3_fixed_point(
+            action_value=action_result.action_value,
+            unitarity_defect=holonomy.unitarity_defect,
+            floquet_exponent=holonomy.floquet_lyapunov_exponent,
+            eom_residual=action_result.eom_residual_norm,
+            norm_J=norm_J,
+            verdict=verdict,
+        )
+
+        if base_connection_A is None:
+            return action_result
+
+        R_base_norm = float(np.linalg.norm(base_connection_A, "fro"))
+        delta_R_norm = float(
+            np.linalg.norm(action_result.optimal_deformation, "fro")
+        )
+        frobenius_ratio = delta_R_norm / (R_base_norm + 1e-15)
+
+        entropy_production = float(
+            np.trace(action_result.optimal_deformation @ self._G_inv)
+        )
+
+        return DeformationTensor(
+            delta_R=action_result.optimal_deformation,
+            frobenius_ratio=frobenius_ratio,
+            entropy_production=entropy_production,
+            info={
+                "yang_mills_action": action_result.action_value,
+                "topological_action": action_result.topological_action,
+                "bps_bound_value": action_result.bps_bound_value,
+                "stress_energy_trace": action_result.stress_energy_trace,
+                "wilson_trace": holonomy.holonomy_trace,
+                "unitarity_defect": holonomy.unitarity_defect,
+                "holonomy_class": holonomy.holonomy_class.name,
+                "paradox_detected": holonomy.paradox_detected,
+                "floquet_rotation_number": holonomy.floquet_rotation_number,
+                "floquet_lyapunov_exponent": holonomy.floquet_lyapunov_exponent,
+                "magnus_commutator_defect": holonomy.magnus_commutator_defect,
+                "curvature_class": curvature.curvature_class.name,
+                "chern_number": curvature.chern_number,
+                "bianchi_residual": curvature.bianchi_residual,
+                "jacobi_associator_norm": curvature.jacobi_associator_norm,
+                "poincare_vorticity": curvature.poincare_vorticity,
+                "kam_diophantine_margin": curvature.kam_diophantine_margin,
+                "eom_residual_norm": action_result.eom_residual_norm,
+                "lyapunov_rhs_norm": action_result.lyapunov_rhs_norm,
+                "kappa_metric": action_result.kappa_metric,
+                "frobenius_ratio": frobenius_ratio,
+                "entropy_production": entropy_production,
+                "rsi_generation": rsi_cert.generation,
+                "rsi_banach_contraction": rsi_cert.banach_contraction_factor,
+                "heyting_verdict": rsi_cert.verdict.name,
+            },
+        )
 
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║   ORQUESTADOR SUPREMO: YANG-MILLS HOLONOMY AGENT (Morfismo)                ║
+# ║   ORQUESTADOR SUPREMO: YANG-MILLS HOLONOMY AGENT (Morfismo Anidado)         ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 
 
 class YangMillsHolonomyAgent(Morphism):
     r"""
     Operador de Medida Geométrica que garantiza la invarianza de Gauge del
-    flujo de disipación Port-Hamiltoniano a través de los estratos DIKW.
+    flujo de disipación Port-Hamiltoniano a través de los estratos DIKW,
+    encadenando las tres fases anidadas mediante sus morfismos formales de
+    continuación:
 
-    Arquitectura Categórica
-    ───────────────────────
-    El agente implementa el funtor de curvatura:
-
-        Ψ_YM : (A_base, A_new, γ, J) ──▶ DeformationTensor
-
-    que factoriza como la composición de tres transformaciones naturales:
-
-        (A_base, A_new) ──F1──▶ GaugeCurvatureTensor
-                                        │
-                          (γ, F) ──F2──▶ WilsonLoopHolonomy
-                                                  │
-                         (F, H, J) ──F3──▶ YangMillsAction
-                                                      │
-                                            DeformationTensor ──▶ DynamicShieldRouter
-
-    Verificación de Coherencia Dimensional
-    ───────────────────────────────────────
-    Antes de encadenar las fases, el agente verifica que todas las matrices
-    del ciclo γ y la corriente J son dimensionalmente compatibles con G y
-    con las conexiones A_base, A_new.
-
-    Parámetros del Constructor
-    ──────────────────────────
-    metric_tensor : NDArray[float64], shape (n, n)
-        Tensor métrico G (SPD) compartido por las tres fases.
-
-    theta_ym : float
-        Parámetro θ de Yang-Mills (CP-violación). Default = 0.
-
-    enforce_bianchi : bool
-        Si True, lanza BianchiViolationError en caso de violación
-        severa de la identidad de Bianchi. Default = True.
+        Phase1.handoff_phase1_to_phase2
+          └──▶ Phase2.ingest_from_phase1_handoff ... Phase2.handoff_phase2_to_phase3
+                 └──▶ Phase3.ingest_from_phase2_handoff ... Phase3.finalize_nested_pipeline
+                        └──▶ DeformationTensor inmutable
     """
 
     def __init__(
@@ -1343,7 +1638,7 @@ class YangMillsHolonomyAgent(Morphism):
         self._G = np.asarray(metric_tensor, dtype=np.float64)
         self._enforce_bianchi = enforce_bianchi
 
-        # Instanciación de las tres fases con la métrica compartida
+        # Instanciación de las tres fases anidadas con la métrica compartida
         self._curvature_computer = Phase1_GaugeCurvatureComputer(
             metric_tensor=self._G
         )
@@ -1353,7 +1648,7 @@ class YangMillsHolonomyAgent(Morphism):
         )
 
     # ──────────────────────────────────────────────────────────────────────────
-    # API PÚBLICA
+    # API PÚBLICA DEL AGENTE DE HOLONOMÍA
     # ──────────────────────────────────────────────────────────────────────────
 
     def enforce_gauge_invariance(
@@ -1365,54 +1660,11 @@ class YangMillsHolonomyAgent(Morphism):
     ) -> DeformationTensor:
         r"""
         Método axiomático: somete la deformación propuesta al rigor de la
-        invarianza de gauge y retorna la deformación óptima compatible.
-
-        Pipeline
-        ────────
-        0. Verificación de coherencia dimensional entre todas las entradas.
-        1. Fase 1: compute_curvature(A_base, A_new) → GaugeCurvatureTensor.
-        2. Control: si not is_integrable y enforce_bianchi → raise Error.
-        3. Fase 2: evaluate_holonomy(cyclic_dependencies) → WilsonLoopHolonomy.
-        4. Control: check_paradox(holonomy) → raise HolonomyVetoError si paradoja.
-        5. Fase 3: minimize_action(curvature, J) → YangMillsAction.
-        6. Empaquetado en DeformationTensor con todos los metadatos.
-
-        Parámetros
-        ──────────
-        base_connection_A : NDArray[float64], shape (n, n)
-            Conexión base (matriz R actual del escudo).
-
-        proposed_connection_A_new : NDArray[float64], shape (n, n)
-            Conexión propuesta por el DynamicShieldRouter.
-
-        cyclic_dependencies : List[NDArray[float64]]
-            Matrices de conexión que forman el ciclo cerrado γ en el grafo
-            de dependencias. Si vacía, la auditoría de holonomía es trivial.
-
-        stochastic_entropy_J : NDArray[float64], shape (n, n)
-            Corriente de entropía estocástica (fuente de las EOM).
-
-        Retorna
-        ───────
-        DeformationTensor
-            δR_opt ∈ S⁺ₙ empaquetado con metadatos completos:
-            S_YM, χ(W), δ_U, c₁, residuo EOM, clase de curvatura, κ(G).
-
-        Lanza
-        ─────
-        GaugeCurvatureSingularityError
-            Si ‖F‖_F > _EPS_FLAT_CURVATURE y la curvatura no es integrable.
-        BianchiViolationError
-            Si la identidad de Bianchi se viola severamente.
-        HolonomyVetoError
-            Si W(γ) no es unitario (paradoja topológica).
-        YangMillsOptimizationError
-            Si la ecuación de Lyapunov falla o el residuo EOM es inaceptable.
-        ValueError
-            Si las dimensiones de las entradas son inconsistentes.
+        invarianza de gauge, la monodromía de Poincaré-Floquet y la optimización
+        variacional de Yang-Mills encadenando las 3 fases anidadas.
         """
         logger.info(
-            "YangMillsHolonomyAgent: Iniciando auditoría de invarianza de gauge. "
+            "YangMillsHolonomyAgent: Iniciando auditoría anidada de invarianza de gauge. "
             "n_cycle = %d.",
             len(cyclic_dependencies),
         )
@@ -1425,80 +1677,44 @@ class YangMillsHolonomyAgent(Morphism):
             stochastic_entropy_J,
         )
 
-        # ── Fase 1: Curvatura de calibre ──────────────────────────────────
-        curvature = self._curvature_computer.compute_curvature(
+        # ── Ejecución Anidada Continua: Fase 1 ──► Fase 2 ──► Fase 3 ─────────
+        # 1. El último método de la Fase 1 calcula y certifica la curvatura
+        curvature = self._curvature_computer.handoff_phase1_to_phase2(
             A_mu=base_connection_A,
             A_nu=proposed_connection_A_new,
+            enforce_integrability=True,
         )
+        assert isinstance(curvature, GaugeCurvatureTensor)
 
-        if not curvature.is_integrable:
-            raise GaugeCurvatureSingularityError(
-                f"Singularidad de calibre: ‖F_{{μν}}‖_F = "
-                f"{curvature.frobenius_norm:.4e}. "
-                f"Clase = {curvature.curvature_class.name}. "
-                f"c₁ = {curvature.chern_number:.4f}. "
-                f"Bianchi residual = {curvature.bianchi_residual:.3e}."
-            )
-
-        # ── Fase 2: Auditoría de holonomía ────────────────────────────────
-        holonomy = self._holonomy_auditor.evaluate_holonomy(
+        # 2. El último método de la Fase 2 consume la salida de la Fase 1
+        #    (`ingest_from_phase1_handoff`) y transfiere directamente al primer
+        #    método de la Fase 3 (`ingest_from_phase2_handoff`), el cual culmina
+        #    en `finalize_nested_pipeline` emitiendo el DeformationTensor final.
+        deformation = self._holonomy_auditor.handoff_phase2_to_phase3(
+            curvature=curvature,
             cyclic_potentials=cyclic_dependencies,
-            curvature=curvature,
-        )
-        self._holonomy_auditor.check_paradox(holonomy)
-
-        # ── Fase 3: Minimización de Yang-Mills ────────────────────────────
-        action_result = self._optimizer.minimize_action(
-            curvature=curvature,
+            enforce_paradox_check=True,
+            phase3_optimizer=self._optimizer,
             stochastic_entropy_J=stochastic_entropy_J,
+            base_connection_A=base_connection_A,
         )
-
-        # ── Empaquetado del DeformationTensor ─────────────────────────────
-        n = base_connection_A.shape[0]
-        R_base_norm = float(np.linalg.norm(base_connection_A, "fro"))
-        delta_R_norm = float(
-            np.linalg.norm(action_result.optimal_deformation, "fro")
-        )
-        frobenius_ratio = delta_R_norm / (R_base_norm + 1e-15)
-
-        G_inv = la.inv(self._G)
-        entropy_production = float(
-            np.trace(action_result.optimal_deformation @ G_inv)
-        )
+        assert isinstance(deformation, DeformationTensor)
 
         logger.info(
             "YangMillsHolonomyAgent: Auditoría completada. "
             "S_YM = %.4e, χ(W) = %.4f%+.4fj, c₁ = %.4f, "
-            "‖EOM_res‖_F = %.3e, ratio = %.3f.",
-            action_result.action_value,
-            holonomy.holonomy_trace.real,
-            holonomy.holonomy_trace.imag,
+            "‖EOM_res‖_F = %.3e, ratio = %.3f, RSI_gen = %d, Ω₃ = %s.",
+            deformation.info["yang_mills_action"],
+            deformation.info["wilson_trace"].real,
+            deformation.info["wilson_trace"].imag,
             curvature.chern_number,
-            action_result.eom_residual_norm,
-            frobenius_ratio,
+            deformation.info["eom_residual_norm"],
+            deformation.frobenius_ratio,
+            deformation.info["rsi_generation"],
+            deformation.info["heyting_verdict"],
         )
 
-        return DeformationTensor(
-            delta_R=action_result.optimal_deformation,
-            frobenius_ratio=frobenius_ratio,
-            entropy_production=entropy_production,
-            info={
-                "yang_mills_action": action_result.action_value,
-                "topological_action": action_result.topological_action,
-                "wilson_trace": holonomy.holonomy_trace,
-                "unitarity_defect": holonomy.unitarity_defect,
-                "holonomy_class": holonomy.holonomy_class.name,
-                "paradox_detected": holonomy.paradox_detected,
-                "curvature_class": curvature.curvature_class.name,
-                "chern_number": curvature.chern_number,
-                "bianchi_residual": curvature.bianchi_residual,
-                "eom_residual_norm": action_result.eom_residual_norm,
-                "lyapunov_rhs_norm": action_result.lyapunov_rhs_norm,
-                "kappa_metric": action_result.kappa_metric,
-                "frobenius_ratio": frobenius_ratio,
-                "entropy_production": entropy_production,
-            },
-        )
+        return deformation
 
     # ──────────────────────────────────────────────────────────────────────────
     # MÉTODOS PRIVADOS
@@ -1513,11 +1729,6 @@ class YangMillsHolonomyAgent(Morphism):
     ) -> None:
         """
         Verifica coherencia dimensional entre todas las entradas y la métrica G.
-
-        Reglas:
-            · A_base, A_new : cuadradas, misma dimensión n que G.
-            · Cada A_k en cycle : cuadradas, dimensión n.
-            · J : cuadrada, dimensión n.
         """
         n = self._G.shape[0]
         for name, M in [("A_base", A_base), ("A_new", A_new), ("J", J)]:
@@ -1542,16 +1753,21 @@ __all__ = [
     # Enumeraciones
     "CurvatureClass",
     "HolonomyClass",
+    "HeytingVerdict",
     # Excepciones
     "GaugeCurvatureSingularityError",
     "HolonomyVetoError",
     "YangMillsOptimizationError",
     "BianchiViolationError",
+    # Invariantes de Poincaré y Motor RSI-L3
+    "PoincareGaugeInvariants",
+    "YangMillsRSILevel3Telemetry",
+    "YangMillsRSILevel3Engine",
     # DTOs
     "GaugeCurvatureTensor",
     "WilsonLoopHolonomy",
     "YangMillsAction",
-    # Fases
+    # Fases Anidadas
     "Phase1_GaugeCurvatureComputer",
     "Phase2_WilsonLoopAuditor",
     "Phase3_YangMillsOptimizer",

@@ -1,90 +1,111 @@
 # -*- coding: utf-8 -*-
 r"""
-Módulo : Improbability Drive Agent (Custodio de la Deformación Espectral)
-Ruta   : app/agents/boole/omega/improbability_drive_agent.py
-Versión: 3.1.0-Fermat-Lie-Sp-Heyting-ESP32-Strict-PhD
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Improbability Drive Agent (Custodio de la Deformación Espectral)   ║
+║ Ruta   : app/agents/boole/omega/improbability_drive_agent.py                 ║
+║ Versión: 5.0.0-Poincare-KAM-Floquet-Williamson-RSI-L3-Sp-Heyting-ESP32-PhD   ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y GOBERNANZA DE DEFORMACIÓN SIMPLÉCTICA (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra al **Agente Soberano y Observador Activo** que gobierna al 
-motor ciego `improbability_drive.py` en el **Estrato Omega**
-(Nivel 0.5 - El Ágora Tensorial) del ecosistema APU Filter. Su misión 
-ineludible es regular la inyección de la deformación no lineal sobre el riesgo 
-de cola pesada (Fat-Tail Risk) de-confinado, protegiendo a la FPU frente a 
-desbocamientos de redondeo de la mantisa de Wilkinson.
+Este módulo consagra al **Agente Soberano, Custodio Simpléctico de Poincaré-KAM,
+Motor Metacognitivo RSI de Nivel 3 y Observador Activo** que gobierna al motor
+ciego `improbability_drive.py` en el **Estrato Omega** (Nivel 0.5 - El Ágora
+Tensorial) del ecosistema APU Filter. Su misión ineludible es regular la
+inyección de la deformación no lineal sobre el riesgo de cola pesada (Fat-Tail
+Risk) de-confinado, protegiendo a la FPU frente a desbocamientos de redondeo
+de la mantisa de Wilkinson y derivas caóticas de Arnold.
 
-El agente repudia las heurísticas de riesgo lineales tradicionales. En su lugar, 
-somete las trayectorias de volatilidad del negocio a las leyes geométricas 
-del grupo simpléctico $Sp(2n, \mathbb{R})$ y su correspondiente álgebra de Lie 
-$\mathfrak{sp}(2n, \mathbb{R})$. Toda colisión contra barreras de 
-atracción, pérdidas de pasividad o singularidades métricas colapsa síncronamente 
-el retículo distributivo de Heyting $\Omega_3$ hacia el Supremo terminal `VETOED`. 
-Esto acciona en tiempo real la interrupción física por hardware en IRAM en el ESP32 
-(GPIO14 / BT151 Crowbar) en menos de 400 ns, cortocircuitando la potencia real 
+El agente repudia las heurísticas de riesgo lineales tradicionales. En su lugar,
+somete las trayectorias de volatilidad del negocio a las leyes geométricas
+del grupo simpléctico $$Sp(2n, \mathbb{R})$$, su álgebra de Lie $$\mathfrak{sp}(2n, \mathbb{R})$$,
+el teorema espectral de Williamson y la teoría de estabilidad celeste de
+Poincaré-Kolmogorov-Arnold-Moser (KAM). Toda colisión contra barreras de
+atracción, pérdidas de pasividad o singularidades métricas colapsa síncronamente
+el retículo distributivo de Heyting $$\Omega_3$$ hacia el Supremo terminal `VETOED`.
+Esto acciona en tiempo real la interrupción física por hardware en IRAM en el ESP32
+(GPIO14 / BT151 Crowbar) en menos de 400 ns, cortocircuitando la potencia real
 de la obra a través del tiristor en el milisegundo cero, aniquilando la alucinación.
 
-AXIOMÁTICA SIMPLÉCTICA, TRANSPORTE DE LIE Y VETO DE HEYTING:
+AXIOMÁTICA SIMPLÉCTICA, MECÁNICA CELESTE DE POINCARÉ, RSI-L3 Y VETO DE HEYTING:
 ────────────────────────────────────────────────────────────────────────────────
 
-  [A1] Axioma de Suavidad de Lipschitz $C^1$ y Tikhonov:
-       Para erradicar operadores singulares no diferenciables que inyecten 
-       impulsos de Dirac parásitos en la matriz Jacobiana de la FPU, la 
+  [A1] Axioma de Suavidad de Lipschitz $$C^1$$, Daleckii–Krein y Tikhonov:
+       Para erradicar operadores singulares no diferenciables que inyecten
+       impulsos de Dirac parásitos en la matriz Jacobiana de la FPU, la
        deformación semántica emplea la métrica regularizada de Tikhonov:
        $$\tilde{G}_{ij} = \sqrt{\Psi^2 + \epsilon_{\mathrm{critical}}^2} \ge \mathtt{\_EPS\_CRITICAL} \quad\big[380, 392\big]$$
-       Sujeto incondicionalmente a la cota espectral de Wilkinson sobre el 
-       número de condición del tensor de improbabilidad $T$:
+       Sujeto incondicionalmente a la cota espectral de Wilkinson sobre el
+       número de condición del tensor de improbabilidad $$T$$:
        $$\kappa_2(T) = \frac{\sigma_{\max}(T)}{\sigma_{\min}(T)} \le \mathtt{\_MAX\_CONDITION\_NUMBER} = 1.0\times 10^8 \quad\big[392, 393\big]$$
 
-  [A2] Invarianza Simpléctica y Volumen de Liouville:
-       La evolución del tensor de improbabilidad $T$ se transporta al subespacio 
-       logarítmico del álgebra de Lie $\mathfrak{sp}(2n, \mathbb{R})$ para eludir 
-       blowouts numéricos [18]. El Jacobiano de transición $J_{\mathrm{map}}$ debe 
-       preservar la forma simpléctica canónica $\Omega$ (Teorema de Liouville):
-       $$J_{\mathrm{map}}^\top \Omega J_{\mathrm{map}} \equiv \Omega \quad \wedge \quad M = \ln(T) \in \mathfrak{sp}(2n, \mathbb{R}) \quad\big[4, 389\big]$$
+  [A2] Invarianza Simpléctica, Volumen de Liouville y Transporte de Lie:
+       La evolución del tensor de improbabilidad $$T$$ se transporta al subespacio
+       logarítmico del álgebra de Lie $$\mathfrak{sp}(2n, \mathbb{R})$$ para eludir
+       blowouts numéricos [18]. El operador de transición $$T$$ debe preservar la
+       forma simpléctica canónica $$\Omega$$ (Teorema de Poincaré-Liouville):
+       $$T^\top \Omega T \equiv \Omega \quad \wedge \quad X = \operatorname{Log}(T) \in \mathfrak{sp}(2n, \mathbb{R})
+         \iff \Omega X + X^\top \Omega = 0 \quad\big[4, 389\big]$$
 
   [A3] Acoplamiento de la Ecuación de Estado de Estrés:
-       La magnitud de la deformación se acopla como la Palanca de Improbabilidad 
-       $\Lambda$ sobre la Ecuación de Estado del Estrés Ajustado Tensorial $\sigma^*$:
-       $$\sigma^* = f(T_{\mu\nu}, \, \Lambda) \quad\big[380\big]$$
+       La magnitud operatoria de la deformación se acopla sobre la Ecuación de
+       Estado del Estrés Ajustado Tensorial $$\sigma^\star$$:
+       $$\sigma^\star = \|T\|_2 \cdot \frac{\mathrm{ROI}}{\Psi_\varepsilon} \quad\big[380\big]$$
        Si el estrés ajustado supera el límite elástico de resiliencia del negocio:
-       $$\sigma^* \ge \mathtt{\_STRESS\_HIGH\_THRESHOLD} = 3.0 \quad\big[392\big]$$
+       $$\sigma^\star \ge \mathtt{\_STRESS\_HIGH\_THRESHOLD} = 3.0 \quad\big[392\big]$$
        se detona de inmediato el veto por colapso de fase cuántica [8].
 
   [A4] El Colapso de Heyting y la Actuación Crowbar BT151 (Silicio):
-       Si se vulnera la conservación simpléctica, se detecta un gap nulo, o la 
-       entropía de Shannon diverge, el veredicto en el retículo distributivo 
-       $\Omega_3$ colapsa al Supremo terminal VETOED ($\top$).
-       El ESP32 intercepta la anomalía localmente vía `isVerdictCoherent()` y, 
-       mediante su ISR en IRAM (<400ns), conmuta el pin GPIO14, disparando el 
-       tiristor de potencia BT151 (Crowbar) para cortocircuitar físicamente la 
-       línea de alimentación de la maquinaria en el milisegundo cero.
+       Si se vulnera la conservación simpléctica bajo política estricta, se
+       detecta un gap singular, o el estrés diverge, el veredicto en el retículo
+       distributivo $$\Omega_3$$ colapsa al Supremo terminal `VETOED` ($$\top$$).
+       El ESP32 intercepta la anomalía localmente y, mediante su ISR en IRAM
+       (<400 ns), conmuta el pin GPIO14, disparando el tiristor de potencia
+       BT151 (Crowbar) para cortocircuitar físicamente la línea de alimentación.
+
+  [A5] Mecánica Celeste de Poincaré, Espectro de Williamson y Monodromía de Floquet:
+       Por el Teorema de Williamson, todo módulo polar positivo $$|T| = \sqrt{T^\top T}$$
+       sobre $$\mathbb{R}^{2n}$$ es simplécticamente diagonalizable con invariantes
+       de acción de Poincaré-Cartan $$\nu_1, \dots, \nu_n > 0$$ obtenidos del
+       espectro de $$i\Omega |T|$$. La estabilidad orbital de Poincaré se rige por:
+       · Capacidad simpléctica de Poincaré-Cartan: $$c_{\mathrm{PC}}(T) = \min_k \nu_k$$
+       · Radio monodrómico de Floquet: $$\rho_{\mathrm{Floquet}}(T) = \max_i |\lambda_i(T)|$$
+       · Margen diofántico KAM: $$\Delta_{\mathrm{KAM}} = \inf_{p,q} |p\omega_j + q\omega_k|(|p|+|q|)^\tau - \gamma_{\mathrm{KAM}}$$
+       · Velocidad de difusión de Nekhoroshev-Arnold: $$v_{\mathrm{Arnold}} = \exp(-1/(\mu_{\mathrm{Sp}} + \varepsilon))$$
+
+  [A6] Automejora Recursiva de Nivel 3 (RSI-L3):
+       El motor metacognitivo `ImprobabilityAgentRSILevel3Engine` reescribe
+       recursivamente la ganancia del suelo espectral de Weyl-Wilkinson y el
+       amortiguamiento secular KAM mediante una contracción de punto fijo de
+       Banach hacia el atractor áureo $$\rho_\star = \phi^{-1} \approx 0.6180339887498949$$.
 
 ARQUITECTURA DE TRES FASES ANIDADAS (Funtor de Gobernanza Epistémica):
 ────────────────────────────────────────────────────────────────────────────────
-La orquestación de la deformación se rige por un acoplamiento monoidal covariante 
-estricto (Fase 1 ⊣ Fase 2 ⊣ Fase 3) [19], encadenando DTOs inmutables de solo lectura:
+La orquestación de la deformación se rige por un acoplamiento monoidal covariante
+estricto (Fase 1 ⊣ Fase 2 ⊣ Fase 3) donde el último método formal de cada fase
+es el inicio o continuación directa de la fase siguiente:
 
-  Fase 1 ──► OBSERVACIÓN ESPECTRAL Y SANEAMIENTO LIPSCHITZ (Phase1_ImprobabilityObserver)
-             Ingiere la Mónada de estado `ImprobabilityResult` del motor, valida 
-             la simetría auto-adjunta del tensor de improbabilidad, y certifica 
-             que la cota de Lipschitz y el número de condición espectral cumplan 
-             con la cota de Wilkinson.
-             Entrega: Phase1ImprobabilityObservation como precondición de la Fase 2.
+  Fase 1 ──► OBSERVACIÓN ESPECTRAL, SANEAMIENTO LIPSCHITZ Y ACCIÓN DE POINCARÉ (Phase1_ImprobabilityObserver)
+             Ingiere `ImprobabilityResult`, valida la autoadjunción hermítica/Kähler
+             del tensor $$T$$, y certifica la cota de Daleckii–Krein y el condicionamiento
+             espectral de Wilkinson.
+             Culmina en `handoff_phase1_to_phase2` ──► Entrega `Phase1ImprobabilityObservation`.
 
-  Fase 2 ──► TRANSPORTE DE LIE E INVARIANZA DE LIOUVILLE (Phase2_LieDeformationOrienter)
-             Hereda formalmente la Phase1ImprobabilityObservation. Proyecta el 
-             tensor de improbabilidad al subespacio de Lie $\mathfrak{sp}(2n, \mathbb{R})$
-             mediante logaritmo de matriz, y audita la conservación simpléctica
-             del flujo atencional de la IA.
-             Entrega: Phase2ImprobabilityOrientation como precondición de la Fase 3.
+  Fase 2 ──► TRANSPORTE DE LIE, LIOUVILLE, WILLIAMSON Y FLOQUET-KAM (Phase2_LieDeformationOrienter)
+             Inicia en `ingest_from_phase1_handoff` / `_phase2_consume_phase1_certificate`.
+             Proyecta $$T$$ al álgebra de Lie $$\mathfrak{sp}(2n, \mathbb{R})$$ mediante
+             logaritmo principal, audita la conservación simpléctica y de Liouville,
+             y extrae los invariantes celestes de Williamson, Floquet, KAM y Arnold.
+             Culmina en `handoff_phase2_to_phase3` ──► Entrega `Phase2ImprobabilityOrientation`.
 
-  Fase 3 ──► EVALUACIÓN DE ESTRÉS Y CORTOCIRCUITO CROWBAR (Phase3_HeytingImprobabilityDecider)
-             Hereda la Phase2ImprobabilityOrientation. Evalúa el estrés ajustado 
-             $\sigma^*$ [18], sintoniza el retículo de Heyting $\Omega_3$, y resuelve 
-             la actuación ciber-física local en silicio ante fallas catastróficas.
-             Entrega: ImprobabilityGovernanceState (Morfismo terminal del topos).
+  Fase 3 ──► EVALUACIÓN DE ESTRÉS, CLAUSURA RSI-L3 Y CORTOCIRCUITO CROWBAR (Phase3_HeytingImprobabilityDecider)
+             Inicia en `ingest_from_phase2_handoff` / `_phase3_consume_phase2_certificate`.
+             Evalúa el estrés ajustado $$\sigma^\star$$, resuelve el retículo de Heyting $$\Omega_3$$,
+             sella el punto fijo metacognitivo RSI-L3 en `finalize_nested_pipeline`, y
+             ejecuta la actuación ciber-física única en silicio (`ImprobabilityDriveAgent`).
+             Entrega `ImprobabilityGovernanceState`.
 
-Funtor Maestro de Gobernanza de de Rham-Fermat-Lie:
+Funtor Maestro de Gobernanza de de Rham-Fermat-Poincaré-Lie:
   $$\mathcal{Z}_{\mathrm{ImprobabilityAgent}} = \Phi_3 \circ \Phi_2 \circ \Phi_1 : \mathbf{ImprobabilityResult} \times T^*\mathcal{M} \longrightarrow \mathtt{ImprobabilityGovernanceState} \quad\big[407, 442\big]$$
 """
 
@@ -93,10 +114,20 @@ from __future__ import annotations
 import hashlib
 import logging
 import math
+import threading
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from enum import Enum, IntEnum, auto
-from typing import Any, Final, Optional, Protocol, Tuple, runtime_checkable
+from typing import (
+    Any,
+    Dict,
+    Final,
+    Optional,
+    Protocol,
+    Tuple,
+    Union,
+    runtime_checkable,
+)
 
 import numpy as np
 import scipy.linalg as la
@@ -128,10 +159,10 @@ try:
         _IMPROBABILITY_MAX,
         _IMPROBABILITY_MIN,
     )
-except ImportError:  # pragma: no cover — stubs auto-sostenidos
+except ImportError:  # pragma: no cover — contratos canónicos auto-sostenidos
 
     class ImprobabilityDriveError(Exception):
-        """Excepción raíz del motor de improbabilidad stub."""
+        """Excepción raíz del motor de improbabilidad."""
 
     @dataclass(frozen=True)
     class ImprobabilityTensor:
@@ -155,11 +186,18 @@ logger = logging.getLogger("MIC.Omega.ImprobabilityAgent")
 if not logger.handlers:
     logger.addHandler(logging.NullHandler())
 
-__version__: Final[str] = "4.0.0-Fermat-Lie-Sp-Heyting-ESP32-Strict-PhD"
+__version__: Final[str] = "5.0.0-Poincare-KAM-Floquet-Williamson-RSI-L3-Sp-Heyting-ESP32-PhD"
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# CONSTANTES FÍSICAS, ESPECTRALES Y LÍMITES DE LA FPU
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║ FASE 1: OBSERVACIÓN ESPECTRAL, SANEAMIENTO DE WILKINSON-LIPSCHITZ,           ║
+# ║         INVARIANTES DE POINCARÉ-KAM Y MOTOR RSI-L3                           ║
+# ║         (Phase1_ImprobabilityObserver)                                       ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CONSTANTES FÍSICAS, ESPECTRALES, CELESTES Y LÍMITES DE LA FPU
+# ─────────────────────────────────────────────────────────────────────────────
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
 _MAX_CONDITION_NUMBER: Final[float] = 1.0e8
 _SOFT_CONDITION_NUMBER: Final[float] = 1.0e6
@@ -177,10 +215,15 @@ _DIM_MAX: Final[int] = 64
 _CHECKSUM_FMA_SLACK: Final[float] = 10.0
 _LOG2E: Final[float] = 1.0 / math.log(2.0)
 
+# Constantes de Mecánica Celeste de Poincaré-KAM [A5] y RSI Nivel 3 [A6]
+_KAM_AGENT_GAMMA: Final[float] = 1.0e-3
+_KAM_AGENT_TAU: Final[float] = 2.0
+_RSI_L3_AGENT_CONTRACTION_TARGET: Final[float] = 0.6180339887498949  # φ⁻¹
 
-# ═══════════════════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────────────────
 # JERARQUÍA DE EXCEPCIONES ESPECTRALES (Vetos Absolutos)
-# ═══════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────────────────────
 class ImprobabilityDriveAgentError(TopologicalInvariantError):
     """Excepción raíz para violaciones en el Agente Soberano de Improbabilidad."""
 
@@ -198,7 +241,7 @@ class SymplecticConservationError(ImprobabilityDriveAgentError):
 
 
 class LieLogarithmError(ImprobabilityDriveAgentError):
-    """El logaritmo principal de Lie no está definido (espectro en \(\mathbb{R}_{\le 0}\))."""
+    r"""El logaritmo principal de Lie no está definido (espectro en $\mathbb{R}_{\le 0}$)."""
 
 
 class BusinessStressBreachError(ImprobabilityDriveAgentError):
@@ -221,19 +264,39 @@ class SpectralChecksumError(ImprobabilityDriveAgentError):
     """Checksum cruzado Sp ↔ Liouville / SVD ↔ Frobenius corrupto."""
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# RETÍCULO DE HEYTING Ω₃ Y ACTUACIÓN CROWBAR
-# ═══════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────────────────────
+# RETÍCULO DE HEYTING Ω₃ Y ACTUACIÓN CROWBAR EN SILICIO (ESP32 GPIO14)
+# ─────────────────────────────────────────────────────────────────────────────
 class ImprobabilityHeytingVerdict(IntEnum):
-    """Clasificador de subobjetos de tres valores en el topos de improbabilidad."""
+    r"""
+    Clasificador de subobjetos de tres valores en el topos de improbabilidad $$\Omega_3$$.
+    Orden de severidad / riesgo (retículo dual de fallo):
+      • `COHERENT = 0` ($$\bot_{\mathrm{risk}}$$: Órbita KAM estable y estrés elástico)
+      • `DEGRADED = 1` (Zona gris de Wilkinson / resonancia moderada)
+      • `VETOED = 2`   ($$\top_{\mathrm{risk}}$$: Colapso terminal y disparo Crowbar BT151)
+    """
 
     COHERENT = 0
     DEGRADED = 1
     VETOED = 2
 
+    def join(self, other: ImprobabilityHeytingVerdict) -> ImprobabilityHeytingVerdict:
+        """Supremo de severidad en el retículo de fallo ($$a \vee b = \max(a, b)$$)."""
+        return ImprobabilityHeytingVerdict(max(int(self), int(other)))
+
+    def meet(self, other: ImprobabilityHeytingVerdict) -> ImprobabilityHeytingVerdict:
+        """Ínfimo de severidad en el retículo de fallo ($$a \wedge b = \min(a, b)$$)."""
+        return ImprobabilityHeytingVerdict(min(int(self), int(other)))
+
+    def imply(self, other: ImprobabilityHeytingVerdict) -> ImprobabilityHeytingVerdict:
+        """Implicación relativa en el retículo de severidad."""
+        if int(self) >= int(other):
+            return ImprobabilityHeytingVerdict.COHERENT
+        return other
+
 
 class CrowbarBypassAction(Enum):
-    """Acciones físicas de mitigación tras el colapso al supremo terminal."""
+    """Acciones físicas de mitigación tras la evaluación en el retículo de Heyting."""
 
     NONE = auto()
     WATCHDOG_PULSE = auto()
@@ -242,7 +305,7 @@ class CrowbarBypassAction(Enum):
 
 @runtime_checkable
 class CrowbarActuator(Protocol):
-    """Puerto lógico que conecta la gobernanza del software con el silicio."""
+    """Puerto lógico que conecta la gobernanza del software con el silicio ESP32."""
 
     def trigger_crowbar_bypass(self, action: CrowbarBypassAction) -> bool:
         """Conmuta el hardware perimetral de-confinado. Devuelve True si hubo acuse."""
@@ -250,7 +313,7 @@ class CrowbarActuator(Protocol):
 
 
 class LoggingCrowbarActuator:
-    """Implementación forense segura que registra la actuación por hardware."""
+    """Implementación forense segura que registra la actuación por hardware en GPIO14."""
 
     def trigger_crowbar_bypass(self, action: CrowbarBypassAction) -> bool:
         logger.critical(
@@ -262,9 +325,179 @@ class LoggingCrowbarActuator:
         return True
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# DTOs INMUTABLES (Contratos Categóricos de Handoff entre Fases)
-# ═══════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────────────────────
+# INVARIANTES CELESTES DE POINCARÉ-KAM Y MOTOR METACOGNITIVO RSI NIVEL 3
+# ─────────────────────────────────────────────────────────────────────────────
+@dataclass(frozen=True, slots=True)
+class PoincareSymplecticInvariants:
+    r"""
+    Invariantes de la Mecánica Celeste de Poincaré, Espectro Simpléctico de
+    Williamson y Monodromía de Floquet-Kreĭn [A5]:
+      • `williamson_symplectic_min`: Capacidad simpléctica de Poincaré-Cartan
+        $$c_{\mathrm{PC}}(T) = \min_k \nu_k$$.
+      • `williamson_symplectic_max`: Mayor valor propio simpléctico de Williamson $$\max_k \nu_k$$.
+      • `poincare_cartan_capacity`: Invariante integral de volumen simpléctico $$\prod_{k=1}^n \nu_k$$.
+      • `kam_diophantine_margin`: Margen diofántico $$\Delta_{\mathrm{KAM}}$$ frente a resonancias
+        racionales $$p\omega_j + q\omega_k = 0$$.
+      • `floquet_monodromy_radius`: Radio espectral $$\rho_{\mathrm{Floquet}} = \max_i |\lambda_i(T)|$$.
+      • `floquet_lyapunov_exponent`: Exponente de Floquet-Lyapunov $$\mu_{\mathrm{Floquet}} = \frac{1}{d}\sum_i |\ln|\lambda_i||$$.
+      • `arnold_diffusion_velocity`: Velocidad de deriva estocástica de Arnold
+        $$v_{\mathrm{Arnold}} = \exp(-1/(\mu_{\mathrm{Sp}} + \varepsilon))$$.
+    """
+
+    williamson_symplectic_min: float = 1.0
+    williamson_symplectic_max: float = 1.0
+    poincare_cartan_capacity: float = 1.0
+    kam_diophantine_margin: float = 1.0
+    floquet_monodromy_radius: float = 1.0
+    floquet_lyapunov_exponent: float = 0.0
+    arnold_diffusion_velocity: float = 0.0
+
+    def to_dict(self) -> Dict[str, float]:
+        """Serialización canónica de los invariantes celestes de Poincaré."""
+        return {
+            "williamson_symplectic_min": float(self.williamson_symplectic_min),
+            "williamson_symplectic_max": float(self.williamson_symplectic_max),
+            "poincare_cartan_capacity": float(self.poincare_cartan_capacity),
+            "kam_diophantine_margin": float(self.kam_diophantine_margin),
+            "floquet_monodromy_radius": float(self.floquet_monodromy_radius),
+            "floquet_lyapunov_exponent": float(self.floquet_lyapunov_exponent),
+            "arnold_diffusion_velocity": float(self.arnold_diffusion_velocity),
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class ImprobabilityAgentRSITelemetry:
+    r"""
+    Telemetría inmutable de Automejora Recursiva de Nivel 3 (RSI-L3) [A6]:
+      • `generation`: Generación evolutiva del custodio soberano.
+      • `banach_contraction_factor`: Factor de contracción $$\rho_k \to \phi^{-1}$$.
+      • `meta_lyapunov_potential`: Funcional meta-Lyapunov $$\mathcal{V}_{\mathrm{meta}}^{(k)}$$.
+      • `evolved_wilkinson_floor_gain`: Ganancia auto-sintonizada del suelo de Weyl-Wilkinson.
+      • `evolved_kam_damping_factor`: Amortiguamiento secular KAM evolucionado.
+      • `evolved_stress_margin_factor`: Factor diagnóstico de margen elástico de estrés.
+      • `verdict`: Último veredicto en el retículo de Heyting $$\Omega_3$$.
+    """
+
+    generation: int = 0
+    banach_contraction_factor: float = _RSI_L3_AGENT_CONTRACTION_TARGET
+    meta_lyapunov_potential: float = 0.0
+    evolved_wilkinson_floor_gain: float = 1.0
+    evolved_kam_damping_factor: float = 1.0
+    evolved_stress_margin_factor: float = 1.0
+    verdict: ImprobabilityHeytingVerdict = ImprobabilityHeytingVerdict.COHERENT
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialización de la telemetría metacognitiva RSI-L3."""
+        return {
+            "generation": int(self.generation),
+            "banach_contraction_factor": float(self.banach_contraction_factor),
+            "meta_lyapunov_potential": float(self.meta_lyapunov_potential),
+            "evolved_wilkinson_floor_gain": float(self.evolved_wilkinson_floor_gain),
+            "evolved_kam_damping_factor": float(self.evolved_kam_damping_factor),
+            "evolved_stress_margin_factor": float(self.evolved_stress_margin_factor),
+            "verdict": self.verdict.name,
+        }
+
+
+class ImprobabilityAgentRSILevel3Engine:
+    r"""
+    Motor Metacognitivo de Automejora Recursiva de Nivel 3 (RSI-L3) del Agente Soberano.
+
+    Reescribe recursivamente los coeficientes de guarda espectral de Weyl-Wilkinson
+    y de amortiguamiento secular de Poincaré-KAM garantizando la contracción de
+    punto fijo de Banach hacia $$\rho_\star = \phi^{-1} \approx 0.6180339887498949$$.
+    """
+
+    _lock: threading.Lock = threading.Lock()
+    _state: ImprobabilityAgentRSITelemetry = ImprobabilityAgentRSITelemetry()
+
+    @classmethod
+    def get_meta_state(cls) -> ImprobabilityAgentRSITelemetry:
+        """Retorna una instantánea inmutable del estado metacognitivo actual."""
+        with cls._lock:
+            return cls._state
+
+    @classmethod
+    def commit_level3_fixed_point(
+        cls,
+        wilkinson_cond: float,
+        adjusted_stress: float,
+        arnold_velocity: float,
+        floquet_exponent: float,
+        verdict: ImprobabilityHeytingVerdict,
+    ) -> ImprobabilityAgentRSITelemetry:
+        r"""
+        Actualiza el atractor de punto fijo de Banach del funcional meta-Lyapunov:
+        $$\mathcal{V}_{\mathrm{meta}}^{(k+1)} = \phi^{-1}\mathcal{V}_{\mathrm{meta}}^{(k)}
+          + (1 - \phi^{-1})\left[\frac{\ln(\max(\kappa_2, 1))}{\ln(\kappa_{\max})}
+          + \tanh(\sigma^\star / \sigma_{\mathrm{high}}) + v_{\mathrm{Arnold}}\right]$$
+        """
+        with cls._lock:
+            prev = cls._state
+            gen = prev.generation + 1
+            phi_inv = _RSI_L3_AGENT_CONTRACTION_TARGET
+
+            safe_cond = min(max(float(wilkinson_cond), 1.0), _MAX_CONDITION_NUMBER)
+            cond_cost = math.log(safe_cond) / math.log(_MAX_CONDITION_NUMBER)
+            safe_stress = (
+                min(max(float(adjusted_stress), 0.0), 100.0)
+                if math.isfinite(adjusted_stress)
+                else 10.0
+            )
+            stress_cost = math.tanh(safe_stress / _STRESS_HIGH_THRESHOLD)
+            arnold_cost = min(max(float(arnold_velocity), 0.0), 1.0)
+            floquet_cost = math.tanh(min(max(float(floquet_exponent), 0.0), 10.0))
+
+            instant_cost = (
+                0.35 * cond_cost
+                + 0.35 * stress_cost
+                + 0.15 * arnold_cost
+                + 0.15 * floquet_cost
+            )
+
+            new_lyapunov = (
+                phi_inv * prev.meta_lyapunov_potential
+                + (1.0 - phi_inv) * instant_cost
+            )
+
+            if prev.meta_lyapunov_potential > _MACHINE_EPS:
+                delta_v = abs(new_lyapunov - prev.meta_lyapunov_potential) / (
+                    prev.meta_lyapunov_potential + 1.0
+                )
+                contraction = phi_inv * prev.banach_contraction_factor + (
+                    1.0 - phi_inv
+                ) * (phi_inv + 0.08 * math.tanh(delta_v))
+            else:
+                contraction = phi_inv
+
+            contraction = float(np.clip(contraction, 0.5, 0.95))
+
+            floor_gain = float(
+                np.clip(1.0 + 0.05 * math.tanh(new_lyapunov), 0.9, 1.2)
+            )
+            kam_damping = float(
+                np.clip(1.0 / (1.0 + 0.1 * new_lyapunov), 0.6, 1.2)
+            )
+            stress_margin = float(
+                np.clip(1.0 - 0.05 * math.tanh(arnold_cost), 0.85, 1.05)
+            )
+
+            cls._state = ImprobabilityAgentRSITelemetry(
+                generation=gen,
+                banach_contraction_factor=contraction,
+                meta_lyapunov_potential=float(new_lyapunov),
+                evolved_wilkinson_floor_gain=floor_gain,
+                evolved_kam_damping_factor=kam_damping,
+                evolved_stress_margin_factor=stress_margin,
+                verdict=verdict,
+            )
+            return cls._state
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# GUARDIA NUMÉRICA Y CONTRATO DE LA FASE 1
+# ─────────────────────────────────────────────────────────────────────────────
 def _empty_f64() -> NDArray[np.float64]:
     return np.zeros(0, dtype=np.float64)
 
@@ -278,26 +511,10 @@ class Phase1ImprobabilityObservation:
     r"""
     Artefacto terminal de la FASE 1 y objeto inicial de la FASE 2.
 
-    Certifica autoadjunción, espectro de SVD, cota de Daleckii–Krein y
-    escalares de negocio. ``Phase2_LieDeformationOrienter._phase2_consume_phase1_certificate``
-    lo ingiere sin re-tipar \(T\).
-
-    Campos:
-        tensor_matrix: \(T\) simetrizado write-protected, shape \((d,d)\).
-        purity_factor: \(\|T\|_F^2=\sum_i\sigma_i^2\).
-        is_hermitian: residuo de simetría ≤ ε.
-        condition_number: \(\kappa_2(T)=\sigma_{\max}/\sigma_{\min}\).
-        lipschitz_bound: cota de Daleckii–Krein \(L_{\mathrm{DK}}\).
-        initial_roi / initial_psi: escalares de negocio saneados.
-        symmetry_residual_relative: \(\|T-T^\top\|_F/\|T\|_F\) pre-Weyl.
-        phase1_verdict: subobjeto de Heyting de la observación.
-        manifold_dim: \(d\).
-        sigma_max / sigma_min: extremos del espectro singular.
-        nuclear_norm: \(\|T\|_*=\sum_i\sigma_i\).
-        frobenius_norm: \(\|T\|_F\).
-        coupling_kappa / coupling_gamma: acoplamientos del tensor.
-        is_invertible: \(\sigma_{\min}>\varepsilon_{\mathrm{crit}}\).
-        result_declared_valid: bandera ``is_valid`` del motor ciego.
+    Certifica autoadjunción hermítica/Kähler, espectro de SVD, cota de
+    Daleckii–Krein, escalares de negocio e invariantes de acción iniciales de
+    Poincaré-KAM. ``Phase2_LieDeformationOrienter.ingest_from_phase1_handoff``
+    y ``_phase2_consume_phase1_certificate`` lo ingieren sin re-tipar $$T$$.
     """
 
     tensor_matrix: NDArray[np.float64]
@@ -318,104 +535,16 @@ class Phase1ImprobabilityObservation:
     coupling_gamma: float = 0.5
     is_invertible: bool = True
     result_declared_valid: bool = True
+    poincare_invariants: PoincareSymplecticInvariants = field(
+        default_factory=PoincareSymplecticInvariants
+    )
+    rsi_telemetry: ImprobabilityAgentRSITelemetry = field(
+        default_factory=ImprobabilityAgentRSITelemetry
+    )
 
 
-@dataclass(frozen=True, slots=True)
-class Phase2ImprobabilityOrientation:
-    r"""
-    Artefacto terminal de la FASE 2 y objeto inicial de la FASE 3.
-
-    Encierra el logaritmo de Lie, los residuos Sp/Liouville y la entropía
-    espectral. ``Phase3_HeytingImprobabilityDecider._phase3_consume_phase2_certificate``
-    lo ingiere sin recomputar \(\mathrm{Log}\,T\).
-
-    Campos:
-        tensor_matrix: \(T\) heredado (write-protected).
-        lie_log_matrix: \(\mathrm{Re}\,\mathrm{Log}\,T\) write-protected.
-        symplectic_deviation: \(\|T^\top\Omega T-\Omega\|_F\) (NaN si \(d\) impar).
-        liouville_determinant_deviation: \(|\det T-1|\).
-        is_symplectic: residuo Sp y Liouville bajo tolerancia dura.
-        entropy_bits: entropía de Shannon del espectro singular normalizado.
-        initial_roi / initial_psi: escalares transportados.
-        phase2_verdict: subobjeto de Heyting de la orientación.
-        is_even_dimensional: \(d=2n\) (Sp nativo).
-        lie_imaginary_residual: \(\|\mathrm{Im}\,\mathrm{Log}\,T\|_F\).
-        lie_sp_residual: \(\|\Omega X+X^\top\Omega\|_F\) (NaN si \(d\) impar).
-        determinant: \(\det T\) (real).
-        condition_number: \(\kappa_2\) heredado de FASE 1.
-        logm_branch_stable: logaritmo principal finito y casi real.
-        phase1: certificado de FASE 1 anidado.
-    """
-
-    tensor_matrix: NDArray[np.float64]
-    lie_log_matrix: NDArray[np.float64]
-    symplectic_deviation: float
-    liouville_determinant_deviation: float
-    is_symplectic: bool
-    entropy_bits: float
-    initial_roi: float
-    initial_psi: float
-    phase2_verdict: ImprobabilityHeytingVerdict
-    is_even_dimensional: bool = False
-    lie_imaginary_residual: float = 0.0
-    lie_sp_residual: float = float("nan")
-    determinant: float = float("nan")
-    condition_number: float = 1.0
-    logm_branch_stable: bool = True
-    phase1: Optional[Phase1ImprobabilityObservation] = None
-
-
-@dataclass(frozen=True, slots=True)
-class Phase3ImprobabilityDecision:
-    r"""
-    Artefacto terminal de la FASE 3 y objeto inicial del Seal (Ω).
-
-    Certifica el estrés ajustado y la clasificación en \(\Omega_3\) *antes*
-    de disparar el Crowbar (una sola actuación, en el agente).
-
-    Campos:
-        adjusted_stress: \(\sigma^\star=\|T\|_2\cdot\mathrm{ROI}/\Psi\).
-        operator_norm: \(\|T\|_2=\sigma_{\max}\).
-        psi_regularized: \(\max(\Psi,\varepsilon_{\mathrm{mach}})\).
-        phase3_verdict: subobjeto local de estrés.
-        lattice_verdict: supremo \(\bigvee(\chi_1,\chi_2,\chi_3)\).
-        orientation: certificado de FASE 2 anidado.
-    """
-
-    adjusted_stress: float
-    operator_norm: float
-    psi_regularized: float
-    phase3_verdict: ImprobabilityHeytingVerdict
-    lattice_verdict: ImprobabilityHeytingVerdict
-    orientation: Phase2ImprobabilityOrientation
-
-
-@dataclass(frozen=True, slots=True)
-class ImprobabilityGovernanceState:
-    """Objeto terminal y certificado inmutable emitido por el Agente (Act)."""
-
-    verdict: ImprobabilityHeytingVerdict
-    crowbar_report: CrowbarBypassAction
-    adjusted_stress: float
-    wilkinson_condition: float
-    symplectic_deviation: float
-    is_epistemologically_valid: bool
-    timestamp_utc: str
-    provenance_hash: str
-    diagnostic_note: str
-    liouville_deviation: float = 0.0
-    entropy_bits: float = 0.0
-    lipschitz_bound: float = 0.0
-    is_symplectic: bool = False
-    agent_version: str = __version__
-    policy_require_symplectic: bool = False
-
-
-# ═══════════════════════════════════════════════════════════════════════════════
-# GUARDIA NUMÉRICA Y VALIDACIÓN ESTRUCTURAL
-# ═══════════════════════════════════════════════════════════════════════════════
 class _AdvancedImprobabilityNumericalGuard:
-    """Capa de saneamiento y validación para tensores y escalares."""
+    """Capa de saneamiento espectral y validación algebraica para tensores y escalares."""
 
     @staticmethod
     def _wilkinson_spectral_floor(
@@ -424,13 +553,8 @@ class _AdvancedImprobabilityNumericalGuard:
         ambient_dim: int,
     ) -> float:
         r"""
-        Suelo espectral de Weyl–Wilkinson
-
-        \[
-        \varepsilon_W
-        =\max\bigl(\varepsilon,\;
-        n\cdot\varepsilon_{\mathrm{mach}}\cdot\max(\mathrm{scale},1),\;
-        \varepsilon_{\mathrm{crit}}\bigr).
+        Suelo espectral de Weyl–Wilkinson:
+        $$\varepsilon_W = \max\!\bigl(\varepsilon, \; n \cdot \varepsilon_{\mathrm{mach}} \cdot \max(\mathrm{scale}, 1), \; \varepsilon_{\mathrm{crit}}\bigr)$$
         """
         dim = max(int(ambient_dim), 1)
         return max(
@@ -441,19 +565,19 @@ class _AdvancedImprobabilityNumericalGuard:
 
     @staticmethod
     def _hermitize_weyl(matrix: NDArray[np.float64]) -> NDArray[np.float64]:
-        r"""Proyección de Weyl/Cartan \(H\mapsto\tfrac12(H+H^\top)\) sobre \(\mathrm{Sym}_d\)."""
+        r"""Proyección de Weyl/Cartan $$H \mapsto \tfrac{1}{2}(H + H^\top)$$ sobre $$\mathrm{Sym}_d$$."""
         return 0.5 * (matrix + matrix.T)
 
     @staticmethod
     def _freeze_array(array: np.ndarray, dtype: Any = np.float64) -> NDArray[Any]:
-        """Copia C-contigua write-protected (invariante de certificado)."""
+        """Copia C-contigua write-protected (invariante de certificado inmutable)."""
         frozen = np.array(array, dtype=dtype, copy=True, order="C")
         frozen.setflags(write=False)
         return frozen
 
     @staticmethod
     def _as_finite_scalar(value: Any, name: str) -> float:
-        """Coacciona un escalar (o 0-d array) a ``float`` finito."""
+        """Coacciona un escalar (o 0-d array) a ``float`` finito IEEE-754."""
         if isinstance(value, np.ndarray):
             if value.size != 1:
                 raise ArithmeticError(
@@ -473,7 +597,9 @@ class _AdvancedImprobabilityNumericalGuard:
                 f"{name} no es convertible a float (tipo={type(value).__name__})."
             ) from exc
         if not math.isfinite(out):
-            raise ArithmeticError(f"{name} debe ser un escalar finito; recibido {out}.")
+            raise ArithmeticError(
+                f"{name} debe ser un escalar finito; recibido {out}."
+            )
         return out
 
     @staticmethod
@@ -502,44 +628,32 @@ class _AdvancedImprobabilityNumericalGuard:
     def _heyting_join(
         *verdicts: ImprobabilityHeytingVerdict,
     ) -> ImprobabilityHeytingVerdict:
-        """Supremo del retículo \(\{\mathrm{COHERENT}\prec\mathrm{DEGRADED}\prec\mathrm{VETOED}\)."""
+        r"""Supremo del retículo $$\{\mathrm{COHERENT} \prec \mathrm{DEGRADED} \prec \mathrm{VETOED}\}$$."""
         if not verdicts:
             return ImprobabilityHeytingVerdict.COHERENT
         return ImprobabilityHeytingVerdict(max(int(v) for v in verdicts))
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# FASE 1 — OBSERVACIÓN ESPECTRAL Y SANEAMIENTO LIPSCHITZ (Observe)
-# Objetos: T ∈ Mat_d(ℝ), T=Tᵀ, σ(T), κ₂, L_DK, ROI, Ψ
-# Funtores: tipado, Weyl, SVD, Daleckii–Krein
-# Terminal: Phase1ImprobabilityObservation → objeto inicial FASE 2
-# ═══════════════════════════════════════════════════════════════════════════════
 class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
     r"""
-    Fase 1: sanea y audita la regularidad del tensor de improbabilidad.
+    FASE 1: Observador Espectral, Auditor de Condicionamiento de Wilkinson,
+    Cota de Daleckii–Krein e Invariantes Iniciales de Poincaré-KAM ($\Phi_1$).
 
     Morfismo compuesto:
+    $$\mathrm{ObserveImprob} = \chi_1 \circ \mathrm{Poincar\acute{e}}_{1} \circ \mathrm{Mass}
+      \circ L_{\mathrm{DK}} \circ \mathrm{SVD} \circ \mathrm{Weyl/K\ddot{a}hler}
+      \circ \mathrm{Type} \circ \mathrm{Scalars}$$
 
-    \[
-    \mathrm{ObserveImprob}
-    =\mathrm{ROI/}\Psi\circ L_{\mathrm{DK}}\circ\mathrm{SVD}
-    \circ\mathrm{Weyl}\circ\mathrm{Type}\circ\mathrm{Dim}.
-    \]
-
-    El certificado ``Phase1ImprobabilityObservation`` es el objeto inicial
-    exacto de
-    ``Phase2_LieDeformationOrienter._phase2_consume_phase1_certificate``.
+    Culmina formalmente en `handoff_phase1_to_phase2`, el cual transfiere el
+    certificado inmutable `Phase1ImprobabilityObservation` a la Fase 2.
     """
 
     # ── FASE 1.1 ──────────────────────────────────────────────────────────
     @staticmethod
     def _phase1_validate_tensor_dimension(dimension_d: int) -> int:
         r"""
-        FASE 1.1 — Certificación de \(d=\dim T\).
-
-        Exige \(d\in\mathbb{Z}_{\ge 1}\) y \(d\le d_{\max}\) (``logm`` es
-        \(\mathcal{O}(d^3)\); el régimen Weyl-estable del estrato Omega
-        se acota a \(d_{\max}=64\)).
+        FASE 1.1 — Certificación de $$d = \dim T$$.
+        Exige $$d \in \mathbb{Z}_{\ge 1}$$ y $$d \le d_{\max} = 64$$.
         """
         if not isinstance(dimension_d, (int, np.integer)) or int(dimension_d) < 1:
             raise TensorDimensionError(
@@ -560,10 +674,7 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
         t_matrix: NDArray[np.float64],
     ) -> NDArray[np.float64]:
         r"""
-        FASE 1.2 — Tipado de \(T\in\mathrm{Mat}_d(\mathbb{R})\), finitud IEEE-754.
-
-        Coacciona a ``float64`` y certifica squareness. No proyecta aún:
-        la simetría se audita en 1.3 (un Weyl prematuro ocultaría un bug).
+        FASE 1.2 — Tipado de $$T \in \mathrm{Mat}_d(\mathbb{R})$$ y finitud IEEE-754.
         """
         self._assert_square_matrix(t_matrix, "tensor.matrix")
         d = self._phase1_validate_tensor_dimension(t_matrix.shape[0])
@@ -583,33 +694,70 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
     def _phase1_certify_self_adjointness(
         self,
         t_matrix: NDArray[np.float64],
+        *,
+        allow_kahler_symplectic_unitary: bool = False,
     ) -> Tuple[NDArray[np.float64], float, bool]:
         r"""
-        FASE 1.3 — Autoadjunción de \(T\) en norma de Frobenius relativa.
+        FASE 1.3 — Autoadjunción de $$T$$ en norma de Frobenius relativa:
+        $$\|T - T^\top\|_F \le \varepsilon_{\mathrm{sym}} \|T\|_F$$
 
-        \[
-        \|T-T^\top\|_F
-        \le
-        \varepsilon_{\mathrm{sym}}\,\|T\|_F.
-        \]
-
-        Si el defecto es tolerable se devuelve la proyección de Weyl.
-        El residuo *pre-proyección* se reporta.
+        Si $$T$$ es simétrica euclidiana, se aplica la proyección de Weyl
+        $$\tfrac{1}{2}(T + T^\top)$$. Cuando `allow_kahler_symplectic_unitary=True`
+        (flujo completo sobre el grupo unitario-simpléctico $$\mathrm{U}(n) = \mathrm{Sp}(2n, \mathbb{R}) \cap \mathrm{SO}(2n, \mathbb{R})$$
+        con $$\operatorname{tr}(T) > 0$$), se preserva $$T$$ sin truncar su bloque
+        simpléctico antisimétrico para no destruir $$\det T = 1$$.
         """
         sym_residual = float(la.norm(t_matrix - t_matrix.T, ord="fro"))
         sym_scale = max(1.0, float(la.norm(t_matrix, ord="fro")))
         symmetry_rel = sym_residual / sym_scale
         is_herm = symmetry_rel <= _SYMMETRY_REL_TOL
-        if not is_herm:
-            raise NonSelfAdjointTensorError(
-                f"Ruptura de simetría hermítica. Residuo relativo: {symmetry_rel:.3e}"
-            )
-        return self._hermitize_weyl(t_matrix), symmetry_rel, is_herm
+
+        if is_herm:
+            return self._hermitize_weyl(t_matrix), symmetry_rel, True
+
+        if allow_kahler_symplectic_unitary and self._is_kahler_symplectic_rotation(
+            t_matrix
+        ):
+            return np.array(t_matrix, dtype=np.float64, copy=True), symmetry_rel, True
+
+        raise NonSelfAdjointTensorError(
+            f"Ruptura de simetría hermítica. Residuo relativo: {symmetry_rel:.3e}"
+        )
+
+    @staticmethod
+    def _is_kahler_symplectic_rotation(t_matrix: NDArray[np.float64]) -> bool:
+        r"""
+        Verifica si $$T \in \mathrm{Sp}(2n, \mathbb{R}) \cap \mathrm{SO}(2n, \mathbb{R}) \cong \mathrm{U}(n)$$
+        con parte simétrica positiva no degenerada ($$\operatorname{tr}(T) > \varepsilon_{\mathrm{crit}}$$):
+          1. $$d = 2n \ge 2$$
+          2. $$\|T^\top T - I_{2n}\|_F \le \varepsilon_{\mathrm{sym}} \sqrt{2n}$$ (ortogonalidad)
+          3. $$\|T^\top \Omega T - \Omega\|_F \le \varepsilon_{\mathrm{sym}} \sqrt{2n}$$ (simplecticidad)
+          4. $$\operatorname{tr}(T) > \varepsilon_{\mathrm{crit}}$$ (excluye operadores puramente antisimétricos como $$\Omega$$)
+        """
+        d = t_matrix.shape[0]
+        if d < 2 or d % 2 != 0:
+            return False
+        if float(np.trace(t_matrix)) <= _EPS_CRITICAL:
+            return False
+
+        scale = math.sqrt(float(d))
+        eye_d = np.eye(d, dtype=np.float64)
+        ortho_err = float(la.norm(t_matrix.T @ t_matrix - eye_d, ord="fro")) / scale
+        if ortho_err > _SP_REL_TOL:
+            return False
+
+        n = d // 2
+        eye_n = np.eye(n, dtype=np.float64)
+        zero_n = np.zeros((n, n), dtype=np.float64)
+        omega = np.block([[zero_n, eye_n], [-eye_n, zero_n]])
+        sp_err = float(la.norm(t_matrix.T @ omega @ t_matrix - omega, ord="fro")) / scale
+        return sp_err <= _SP_REL_TOL
 
     def _verify_tensor_symmetry(self, t_matrix: NDArray[np.float64]) -> float:
-        """Fachada de compatibilidad: residuo relativo de simetría (FASE 1.3)."""
+        """Fachada de compatibilidad: residuo relativo de simetría estricta (FASE 1.3)."""
         _herm, symmetry_rel, _ok = self._phase1_certify_self_adjointness(
-            self._phase1_validate_tensor_typing(t_matrix)
+            self._phase1_validate_tensor_typing(t_matrix),
+            allow_kahler_symplectic_unitary=False,
         )
         del _herm, _ok
         return symmetry_rel
@@ -620,20 +768,8 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
         t_matrix: NDArray[np.float64],
     ) -> Tuple[NDArray[np.float64], float, float, float, bool]:
         r"""
-        FASE 1.4 — Espectro singular y número de condición de Wilkinson.
-
-        \[
-        T=U\Sigma V^\top,
-        \qquad
-        \kappa_2(T)=\sigma_{\max}/\sigma_{\min}.
-        \]
-
-        No se pisa \(\sigma_{\min}\) con \(\varepsilon_{\mathrm{mach}}\)
-        *antes* de decidir invertibilidad: un suelo silencioso ocultaría
-        singularidades. Si \(\sigma_{\min}\le\varepsilon_{\mathrm{crit}}\)
-        el tensor no es invertible y \(\mathrm{Log}\,T\) no existe.
-        \(\kappa_2\) se reporta como \(+\infty\) en ese caso y se eleva
-        veto de Wilkinson (un tensor singular no es un drive físico).
+        FASE 1.4 — Espectro singular y número de condición de Wilkinson:
+        $$T = U \Sigma V^\top, \qquad \kappa_2(T) = \frac{\sigma_{\max}}{\sigma_{\min}}$$
         """
         try:
             s_vals = np.asarray(la.svdvals(t_matrix), dtype=np.float64)
@@ -643,6 +779,7 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
             ) from exc
         if s_vals.size == 0:
             raise WilkinsonConditionBreachError("Espectro singular vacío.")
+
         sigma_max = float(s_vals[0])
         sigma_min = float(s_vals[-1])
         invertible = sigma_min > float(_EPS_CRITICAL)
@@ -674,33 +811,28 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
         ambient_dim: int,
     ) -> float:
         r"""
-        FASE 1.5 — Cota de Lipschitz espectral (Daleckii–Krein).
-
-        Para una función escalar \(f\in C^1\) y un operador autoadjunto,
-        el teorema de Daleckii–Krein acota el Lipschitz operatorial por
-        el máximo de las diferencias divididas de \(f\) sobre
-        \(\sigma(T)\times\sigma(T)\). En el drive, el acoplamiento \(\kappa\)
-        escala una resolución espectral cuyo peor caso es
-
-        \[
-        L_{\mathrm{DK}}
-        =\frac{\kappa}{\sigma_{\min}+\varepsilon_W},
-        \]
-
-        análogo a \(\|(T)^{-1}\|_2=\sigma_{\min}^{-1}\) (resolvente en 0).
+        FASE 1.5 — Cota de Lipschitz espectral (Daleckii–Krein):
+        $$L_{\mathrm{DK}} = \frac{\kappa}{\sigma_{\min} + \varepsilon_W}$$
         """
         self._assert_finite_scalar(coupling_kappa, "tensor.kappa")
         if coupling_kappa < 0.0:
             raise ScalarRegularityError(
                 f"tensor.kappa debe ser ≥ 0; recibido {coupling_kappa}."
             )
-        floor = self._wilkinson_spectral_floor(sigma_min, float(_EPS_CRITICAL), ambient_dim)
+        floor = self._wilkinson_spectral_floor(
+            sigma_min, float(_EPS_CRITICAL), ambient_dim
+        )
         bound = float(coupling_kappa) / (float(sigma_min) + floor)
         if not math.isfinite(bound):
             raise WilkinsonConditionBreachError(
                 f"Cota de Daleckii–Krein no finita: L={bound}."
             )
-        logger.debug("FASE1.5 L_DK=%.6e (κ=%.6e, σ_min=%.6e)", bound, coupling_kappa, sigma_min)
+        logger.debug(
+            "FASE1.5 L_DK=%.6e (κ=%.6e, σ_min=%.6e)",
+            bound,
+            coupling_kappa,
+            sigma_min,
+        )
         return bound
 
     # ── FASE 1.6 ──────────────────────────────────────────────────────────
@@ -710,24 +842,16 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
         t_matrix: NDArray[np.float64],
     ) -> Tuple[float, float, float]:
         r"""
-        FASE 1.6 — Masas espectrales y checksum Frobenius.
-
-        \[
-        \|T\|_*=\sum_i\sigma_i,
-        \qquad
-        \|T\|_F=\bigl(\sum_i\sigma_i^2\bigr)^{1/2},
-        \qquad
-        P=\|T\|_F^2.
-        \]
-
-        Se confronta \(\|T\|_F\) vía SVD contra la norma de Frobenius
-        directa (checksum de isometría de Hilbert–Schmidt).
+        FASE 1.6 — Masas espectrales y checksum de isometría de Frobenius:
+        $$\|T\|_* = \sum_i \sigma_i, \qquad \|T\|_F = \Bigl(\sum_i \sigma_i^2\Bigr)^{1/2}, \qquad P = \|T\|_F^2$$
         """
         nuclear = float(np.sum(s_vals))
         fro_svd = float(np.sqrt(np.sum(s_vals * s_vals)))
         fro_dir = float(la.norm(t_matrix, ord="fro"))
         scale = max(1.0, fro_dir)
-        if abs(fro_svd - fro_dir) > _CHECKSUM_FMA_SLACK * _MACHINE_EPS * scale * max(t_matrix.shape[0], 1):
+        if abs(fro_svd - fro_dir) > (
+            _CHECKSUM_FMA_SLACK * _MACHINE_EPS * scale * max(t_matrix.shape[0], 1)
+        ):
             raise SpectralChecksumError(
                 f"Checksum ‖T‖_F SVD↔directo corrupto: "
                 f"|{fro_svd:.6e}−{fro_dir:.6e}|."
@@ -741,22 +865,45 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
         result: ImprobabilityResult,
     ) -> Tuple[float, float, float, float, bool]:
         r"""
-        FASE 1.7 — Saneamiento de escalares de negocio \((\mathrm{ROI},\Psi,\kappa,\gamma)\).
-
-        ROI y Ψ deben ser finitos; Ψ se exige no negativo (denominador de
-        estrés). κ, γ se exigen finitos y κ ≥ 0.
+        FASE 1.7 — Saneamiento de escalares de negocio $$(\mathrm{ROI}, \Psi, \kappa, \gamma)$$.
+        Soporta tanto el contrato matricial de `ImprobabilityResult` como el
+        contrato monádico con `metadata` de `improbability_drive.py`.
         """
-        if not isinstance(result, ImprobabilityResult):
+        if not isinstance(result, ImprobabilityResult) and not (
+            hasattr(result, "tensor") or hasattr(result, "penalty")
+        ):
             raise TypeError("result debe ser ImprobabilityResult")
-        roi = self._as_finite_scalar(result.roi_value, "roi_value")
-        psi = self._as_finite_scalar(result.psi_value, "psi_value")
-        if psi < 0.0:
-            raise ScalarRegularityError(f"psi_value debe ser ≥ 0; recibido {psi}.")
-        kappa = self._as_finite_scalar(result.tensor.kappa, "tensor.kappa")
-        gamma = self._as_finite_scalar(result.tensor.gamma, "tensor.gamma")
-        if kappa < 0.0:
-            raise ScalarRegularityError(f"tensor.kappa debe ser ≥ 0; recibido {kappa}.")
-        declared = bool(getattr(result, "is_valid", True))
+
+        if hasattr(result, "tensor") and getattr(result, "tensor") is not None:
+            roi = self._as_finite_scalar(result.roi_value, "roi_value")
+            psi = self._as_finite_scalar(result.psi_value, "psi_value")
+            if psi < 0.0:
+                raise ScalarRegularityError(
+                    f"psi_value debe ser ≥ 0; recibido {psi}."
+                )
+            kappa = self._as_finite_scalar(result.tensor.kappa, "tensor.kappa")
+            gamma = self._as_finite_scalar(result.tensor.gamma, "tensor.gamma")
+            if kappa < 0.0:
+                raise ScalarRegularityError(
+                    f"tensor.kappa debe ser ≥ 0; recibido {kappa}."
+                )
+            declared = bool(getattr(result, "is_valid", True))
+        else:
+            meta = getattr(result, "metadata", None) or {}
+            roi = self._as_finite_scalar(meta.get("roi_input", 1.0), "roi_value")
+            psi = self._as_finite_scalar(meta.get("psi_input", 1.0), "psi_value")
+            if psi < 0.0:
+                raise ScalarRegularityError(
+                    f"psi_value debe ser ≥ 0; recibido {psi}."
+                )
+            kappa = self._as_finite_scalar(meta.get("kappa", 1.0), "tensor.kappa")
+            gamma = self._as_finite_scalar(meta.get("gamma", 0.5), "tensor.gamma")
+            if kappa < 0.0:
+                raise ScalarRegularityError(
+                    f"tensor.kappa debe ser ≥ 0; recibido {kappa}."
+                )
+            declared = bool(getattr(result, "success", True))
+
         logger.debug(
             "FASE1.7 escalares: ROI=%.6e, Ψ=%.6e, κ=%.6e, γ=%.6e, valid=%s",
             roi,
@@ -774,11 +921,7 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
         result_declared_valid: bool,
     ) -> ImprobabilityHeytingVerdict:
         r"""
-        FASE 1.8 — Subobjeto local de observación.
-
-        Hard-gates de κ ya se elevaron como excepción. Aquí sólo queda
-        la zona gris \(\kappa_{\mathrm{soft}}<\kappa_2\le\kappa_{\max}\)
-        y la bandera ``is_valid`` del motor ciego.
+        FASE 1.8 — Subobjeto local de observación en $$\Omega_3$$.
         """
         if not result_declared_valid:
             return ImprobabilityHeytingVerdict.DEGRADED
@@ -786,37 +929,90 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
             return ImprobabilityHeytingVerdict.DEGRADED
         return ImprobabilityHeytingVerdict.COHERENT
 
-    # ── FASE 1.Ω · composición terminal Observe ───────────────────────────
+    # ── FASE 1.9 ──────────────────────────────────────────────────────────
+    @staticmethod
+    def _phase1_initial_poincare_kam_observation(
+        s_vals: NDArray[np.float64],
+    ) -> PoincareSymplecticInvariants:
+        r"""
+        FASE 1.9 — Evaluación inicial del margen diofántico KAM sobre las
+        frecuencias singulares logarítmicas $$\omega_i = \ln(\max(\sigma_i, \varepsilon_{\mathrm{crit}}))$$:
+        $$|p\,\omega_j + q\,\omega_k| \ge \gamma_{\mathrm{KAM}}(|p| + |q|)^{-\tau}$$
+        """
+        log_freqs = np.log(np.maximum(s_vals, _EPS_CRITICAL))
+        if log_freqs.size < 2:
+            kam_margin = 1.0
+        else:
+            w0 = float(log_freqs[0])
+            w1 = float(log_freqs[-1])
+            if abs(w0) < _EPS_CRITICAL and abs(w1) < _EPS_CRITICAL:
+                kam_margin = 1.0
+            else:
+                min_margin = float("inf")
+                for p in range(1, 5):
+                    for q in range(-4, 5):
+                        if q == 0:
+                            continue
+                        order = p + abs(q)
+                        res = abs(p * w0 + q * w1)
+                        thresh = _KAM_AGENT_GAMMA / (
+                            float(order) ** _KAM_AGENT_TAU
+                        )
+                        margin = (res - thresh) * (
+                            float(order) ** _KAM_AGENT_TAU
+                        )
+                        if margin < min_margin:
+                            min_margin = margin
+                kam_margin = float(np.clip(min_margin, -1.0, 10.0))
+
+        s_min = float(s_vals[-1]) if s_vals.size > 0 else 1.0
+        s_max = float(s_vals[0]) if s_vals.size > 0 else 1.0
+        return PoincareSymplecticInvariants(
+            williamson_symplectic_min=s_min,
+            williamson_symplectic_max=s_max,
+            poincare_cartan_capacity=s_min,
+            kam_diophantine_margin=kam_margin,
+            floquet_monodromy_radius=s_max,
+            floquet_lyapunov_exponent=float(np.mean(np.abs(log_freqs))),
+            arnold_diffusion_velocity=0.0,
+        )
+
+    # ── FASE 1.Ω · Composición de Observación y Handoff a Fase 2 ──────────
     def observe_improbability_tensor(
         self,
         result: ImprobabilityResult,
     ) -> Phase1ImprobabilityObservation:
         r"""
-        FASE 1.Ω — Composición terminal de Observación espectral.
+        FASE 1.Ω — Composición de Observación espectral.
 
-        \[
-        \mathrm{ObserveImprob}
-        =\chi_1\circ\mathrm{Mass}\circ L_{\mathrm{DK}}\circ\mathrm{SVD}
-        \circ\mathrm{Weyl}\circ\mathrm{Type}\circ\mathrm{Scalars}.
-        \]
-
-        **Contrato funtorial F1 → F2**: el DTO
-        ``Phase1ImprobabilityObservation`` es el objeto inicial exacto de
-        ``_phase2_consume_phase1_certificate``. Ningún re-tipado de \(T\)
-        ni re-SVD se aplica aguas abajo.
-
-        Raises:
-            TypeError, TensorDimensionError, NonSelfAdjointTensorError,
-            WilkinsonConditionBreachError, ScalarRegularityError,
-            SpectralChecksumError.
+        $$\mathrm{ObserveImprob} = \chi_1 \circ \mathrm{Poincar\acute{e}}_1 \circ \mathrm{Mass}
+          \circ L_{\mathrm{DK}} \circ \mathrm{SVD} \circ \mathrm{Weyl/K\ddot{a}hler}
+          \circ \mathrm{Type} \circ \mathrm{Scalars}$$
         """
-        roi, psi, kappa, gamma, declared = self._phase1_validate_business_scalars(result)
-        raw = self._phase1_validate_tensor_typing(result.tensor.matrix)
-        herm, symmetry_rel, is_herm = self._phase1_certify_self_adjointness(raw)
-        s_vals, s_max, s_min, cond, invertible = self._phase1_svd_wilkinson_spectrum(herm)
-        lipschitz = self._phase1_daleckii_krein_lipschitz(s_min, kappa, herm.shape[0])
+        roi, psi, kappa, gamma, declared = self._phase1_validate_business_scalars(
+            result
+        )
+        if hasattr(result, "tensor") and getattr(result, "tensor") is not None:
+            raw_input = result.tensor.matrix
+        else:
+            pen = max(float(getattr(result, "penalty", 1.0) or 1.0), 1.0)
+            s_pen = math.sqrt(pen)
+            raw_input = np.diag([s_pen, 1.0 / s_pen]).astype(np.float64)
+
+        raw = self._phase1_validate_tensor_typing(raw_input)
+        herm, symmetry_rel, is_herm = self._phase1_certify_self_adjointness(
+            raw, allow_kahler_symplectic_unitary=True
+        )
+        s_vals, s_max, s_min, cond, invertible = (
+            self._phase1_svd_wilkinson_spectrum(herm)
+        )
+        lipschitz = self._phase1_daleckii_krein_lipschitz(
+            s_min, kappa, herm.shape[0]
+        )
         nuclear, fro, purity = self._phase1_spectral_masses(s_vals, herm)
         verdict = self._phase1_local_heyting_verdict(cond, declared)
+        poincare_obs = self._phase1_initial_poincare_kam_observation(s_vals)
+        rsi_state = ImprobabilityAgentRSILevel3Engine.get_meta_state()
 
         logger.debug(
             "FASE1.Ω observe: d=%d, κ₂=%.3e, L_DK=%.3e, P=%.6e, verdict=%s",
@@ -845,48 +1041,118 @@ class Phase1_ImprobabilityObserver(_AdvancedImprobabilityNumericalGuard):
             coupling_gamma=gamma,
             is_invertible=invertible,
             result_declared_valid=declared,
+            poincare_invariants=poincare_obs,
+            rsi_telemetry=rsi_state,
         )
 
+    def handoff_phase1_to_phase2(
+        self,
+        result: ImprobabilityResult,
+        phase2_orienter: Optional[Phase2_LieDeformationOrienter] = None,
+        *,
+        require_symplectic: bool = False,
+        strict: bool = True,
+    ) -> Union[Phase1ImprobabilityObservation, Phase2ImprobabilityOrientation]:
+        r"""
+        DEFINICIÓN FORMAL FINAL DE LA FASE 1 Y CONTINUACIÓN / INICIO DE LA FASE 2:
+        Ejecuta el morfismo observacional $$\Phi_1(\mathrm{ImprobabilityResult}) \to \mathrm{Phase1ImprobabilityObservation}$$
+        y, cuando se suministra el orientador de Fase 2 (`phase2_orienter`),
+        transfiere covariantemente el certificado a `phase2_orienter.ingest_from_phase1_handoff(...)`,
+        materializando la composición funtorial $$\Phi_2 \circ \Phi_1$$.
+        """
+        observation = self.observe_improbability_tensor(result)
+        if phase2_orienter is not None:
+            return phase2_orienter.ingest_from_phase1_handoff(
+                observation,
+                require_symplectic=require_symplectic,
+                strict=strict,
+            )
+        return observation
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# FASE 2 — TRANSPORTE DE LIE E INVARIANZA DE LIOUVILLE (Orient)
-# Continuación directa de observe_improbability_tensor (FASE 1.Ω) vía FASE 2.0
-# Objetos: Log T, Ω, TᵀΩT, det T, H_Shannon, sp(2n)
-# Teorías: GL(d), Sp(2n), Liouville, álgebra de Lie, Shannon
-# Terminal: Phase2ImprobabilityOrientation → objeto inicial FASE 3
-# ═══════════════════════════════════════════════════════════════════════════════
-class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║ FASE 2: TRANSPORTE DE LIE, INVARIANZA DE LIOUVILLE, ESPECTRO SIMPLÉCTICO     ║
+# ║         DE WILLIAMSON Y MONODROMÍA DE FLOQUET-KAM                            ║
+# ║         (Phase2_LieDeformationOrienter)                                      ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+@dataclass(frozen=True, slots=True)
+class Phase2ImprobabilityOrientation:
     r"""
-    Fase 2: proyecta la deformación al álgebra de Lie y diagnostica Sp/Liouville.
+    Artefacto terminal de la FASE 2 y objeto inicial de la FASE 3.
 
-    Morfismo compuesto:
-
-    \[
-    \mathrm{OrientLie}
-    =(\mathrm{Entropy},\,\mathfrak{sp},\,\mathrm{Liouville},\,\mathrm{Sp},\,
-    \mathrm{Log},\,\Omega)
-    \circ\mathrm{Consume}\circ\mathrm{ObserveImprob}^*.
-    \]
-
-    El primer morfismo, ``_phase2_consume_phase1_certificate``, *es* la
-    continuación estricta de ``observe_improbability_tensor``.
+    Encierra el logaritmo principal de Lie $$\operatorname{Re}\operatorname{Log} T$$,
+    los residuos de pullback simpléctico $$\|T^\top\Omega T - \Omega\|_F$$ y de
+    Liouville $$|\det T - 1|$$, la entropía espectral de Shannon y los invariantes
+    celestes de Williamson, Floquet-Kreĭn, KAM y difusión de Arnold.
     """
 
-    # ── FASE 2.0 · ingesta funtorial del certificado de FASE 1.Ω ──────────
+    tensor_matrix: NDArray[np.float64]
+    lie_log_matrix: NDArray[np.float64]
+    symplectic_deviation: float
+    liouville_determinant_deviation: float
+    is_symplectic: bool
+    entropy_bits: float
+    initial_roi: float
+    initial_psi: float
+    phase2_verdict: ImprobabilityHeytingVerdict
+    is_even_dimensional: bool = False
+    lie_imaginary_residual: float = 0.0
+    lie_sp_residual: float = float("nan")
+    determinant: float = float("nan")
+    condition_number: float = 1.0
+    logm_branch_stable: bool = True
+    phase1: Optional[Phase1ImprobabilityObservation] = None
+    poincare_invariants: PoincareSymplecticInvariants = field(
+        default_factory=PoincareSymplecticInvariants
+    )
+    rsi_telemetry: ImprobabilityAgentRSITelemetry = field(
+        default_factory=ImprobabilityAgentRSITelemetry
+    )
+
+
+class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
+    r"""
+    FASE 2: Orientador de Deformación en el Álgebra de Lie $$\mathfrak{sp}(2n, \mathbb{R})$$,
+    Volumen de Liouville, Espectro Simpléctico de Williamson y Monodromía de Floquet ($\Phi_2$).
+
+    Inicia formalmente en `ingest_from_phase1_handoff` y `_phase2_consume_phase1_certificate`
+    como continuación directa del último método de la Fase 1 (`handoff_phase1_to_phase2`),
+    y culmina en `handoff_phase2_to_phase3`.
+    """
+
+    # ── FASE 2.0 · Continuación Directa de la Fase 1 ──────────────────────
+    def ingest_from_phase1_handoff(
+        self,
+        observation: Phase1ImprobabilityObservation,
+        *,
+        require_symplectic: bool = False,
+        strict: bool = True,
+    ) -> Phase2ImprobabilityOrientation:
+        r"""
+        CONTINUACIÓN DIRECTA DEL ÚLTIMO MÉTODO DE LA FASE 1 (`handoff_phase1_to_phase2`):
+        Ingiere el certificado `Phase1ImprobabilityObservation` y ejecuta la orientación
+        en el álgebra de Lie $$\mathfrak{sp}(2n, \mathbb{R})$$ y el análisis celeste de Poincaré.
+        """
+        return self.orient_lie_deformation(
+            observation,
+            require_symplectic=require_symplectic,
+            strict=strict,
+        )
+
     def _phase2_consume_phase1_certificate(
         self,
         observation: Phase1ImprobabilityObservation,
     ) -> Tuple[Phase1ImprobabilityObservation, NDArray[np.float64], int]:
         r"""
         FASE 2.0 — Ingesta funtorial del certificado de FASE 1.Ω.
-
-        **Continuación estricta de**
-        ``Phase1_ImprobabilityObserver.observe_improbability_tensor``.
-        Verifica la coherencia \((T,d,\kappa_2)\) y entrega el objeto de
+        Verifica la coherencia $$(T, d, \kappa_2)$$ y entrega el objeto de
         trabajo de Orient *sin re-tipado ni re-SVD*.
         """
         if not isinstance(observation, Phase1ImprobabilityObservation):
-            raise TypeError("observation debe ser Phase1ImprobabilityObservation")
+            raise TypeError(
+                "observation debe ser Phase1ImprobabilityObservation"
+            )
         t_matrix = np.asarray(observation.tensor_matrix, dtype=np.float64)
         d = int(observation.manifold_dim or t_matrix.shape[0])
         if t_matrix.shape != (d, d):
@@ -916,20 +1182,9 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         dimension_d: int,
     ) -> Tuple[Optional[NDArray[np.float64]], bool]:
         r"""
-        FASE 2.1 — Forma simpléctica canónica \(\Omega\) (sólo si \(d=2n\)).
-
-        \[
-        \Omega
-        =\begin{pmatrix}0&I_n\\-I_n&0\end{pmatrix},
-        \qquad
-        \Omega^\top=-\Omega,
-        \qquad
-        \Omega^2=-I_{2n}.
-        \]
-
-        Si \(d\) es impar, Sp no es nativo: se devuelve ``(None, False)``
-        y **no** se inmerge en dimensión par (eso falsearía el diagnóstico
-        sobre el tensor original).
+        FASE 2.1 — Forma simpléctica canónica $$\Omega$$ (sólo si $$d = 2n$$):
+        $$\Omega = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix},
+          \qquad \Omega^\top = -\Omega, \qquad \Omega^2 = -I_{2n}$$
         """
         d = int(dimension_d)
         if d < 2 or d % 2 != 0:
@@ -942,11 +1197,8 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
 
     def _construct_symplectic_form(self, d: int) -> NDArray[np.float64]:
         r"""
-        Fachada de compatibilidad.
-
-        Si \(d\) es impar se eleva ``TensorDimensionError`` en lugar de
-        paddear silenciosamente (el pad de v3.1 no es una inmersión
-        simpléctica del tensor original).
+        Fachada de compatibilidad para $$\Omega \in \mathfrak{so}(2n) \cap \mathrm{Sp}(2n)$$.
+        Si $$d$$ es impar eleva `TensorDimensionError` sin inmersión silenciosa.
         """
         omega, even = self._phase2_construct_canonical_omega(d)
         if not even or omega is None:
@@ -962,14 +1214,9 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         t_matrix: NDArray[np.float64],
     ) -> Tuple[NDArray[np.float64], float, bool]:
         r"""
-        FASE 2.2 — Logaritmo principal de Lie \(\mathrm{Log}\,T\).
-
-        Para \(T\in\mathrm{GL}(d)\) sin espectro en \(\mathbb{R}_{\le 0}\),
-        existe un único logaritmo principal. Si \(T\succ 0\) (típico del
-        motor), \(\mathrm{Log}\,T\) es real y simétrico.
-
-        Se mide \(\|\mathrm{Im}\,\mathrm{Log}\,T\|_F\); un residuo por
-        encima de tolerancia delata un corte de rama (autovalores ≤ 0).
+        FASE 2.2 — Logaritmo principal de Lie $$\operatorname{Log} T$$.
+        Para $$T \in \mathrm{GL}(d, \mathbb{R})$$ sin espectro en $$\mathbb{R}_{\le 0}$$,
+        existe un único logaritmo real principal.
         """
         try:
             log_c = np.asarray(la.logm(t_matrix), dtype=np.complex128)
@@ -979,6 +1226,7 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
             ) from exc
         if not np.all(np.isfinite(log_c)):
             raise LieLogarithmError("Log T contiene NaN/Inf (rama no definida).")
+
         imag_res = float(la.norm(np.imag(log_c), ord="fro"))
         scale = max(1.0, float(la.norm(np.real(log_c), ord="fro")))
         branch_stable = imag_res <= max(_LOGM_IMAG_TOL, _LOGM_IMAG_TOL * scale)
@@ -1003,14 +1251,8 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         omega: Optional[NDArray[np.float64]],
     ) -> float:
         r"""
-        FASE 2.3 — Residuo de pullback simpléctico.
-
-        \[
-        \delta_{\mathrm{Sp}}
-        =\bigl\|T^\top\Omega T-\Omega\bigr\|_F.
-        \]
-
-        Devuelve ``NaN`` si Sp no es nativo (\(d\) impar).
+        FASE 2.3 — Residuo de pullback simpléctico:
+        $$\delta_{\mathrm{Sp}} = \|T^\top \Omega T - \Omega\|_F$$
         """
         if omega is None:
             return float("nan")
@@ -1023,11 +1265,7 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         t_matrix: NDArray[np.float64],
     ) -> Tuple[float, float]:
         r"""
-        FASE 2.4 — Residuo de Liouville \(|\det T-1|\).
-
-        Todo \(T\in\mathrm{Sp}(2n)\) cumple \(\det T=+1\) automáticamente.
-        Fuera de Sp, \(\det T\neq 0\) (ya garantizado por FASE 1.4) pero
-        no necesariamente 1: el residuo es diagnóstico de volumen.
+        FASE 2.4 — Residuo de volumen de Poincaré-Liouville $$|\det T - 1|$$.
         """
         try:
             det = float(np.real(la.det(t_matrix)))
@@ -1044,17 +1282,8 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         omega: Optional[NDArray[np.float64]],
     ) -> float:
         r"""
-        FASE 2.5 — Residuo de álgebra de Lie \(\mathfrak{sp}(2n)\).
-
-        \[
-        X\in\mathfrak{sp}(2n)
-        \;\Longleftrightarrow\;
-        \Omega X+X^\top\Omega=0.
-        \]
-
-        Si \(T\in\mathrm{Sp}(2n)\) y \(\mathrm{Log}\) es el principal,
-        \(X=\mathrm{Log}\,T\) yace en el álgebra. Devuelve ``NaN`` si
-        Sp no es nativo.
+        FASE 2.5 — Residuo de pertenencia al álgebra de Lie $$\mathfrak{sp}(2n, \mathbb{R})$$:
+        $$X \in \mathfrak{sp}(2n, \mathbb{R}) \iff \Omega X + X^\top \Omega = 0$$
         """
         if omega is None:
             return float("nan")
@@ -1068,14 +1297,8 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         s_vals_hint: Optional[NDArray[np.float64]] = None,
     ) -> float:
         r"""
-        FASE 2.6 — Entropía de Shannon del espectro singular normalizado.
-
-        \[
-        p_i=\sigma_i\big/\sum_j\sigma_j,
-        \qquad
-        H=-\sum_i p_i\log_2 p_i
-        \in\bigl[0,\log_2 d\bigr].
-        \]
+        FASE 2.6 — Entropía espectral de von Neumann / Shannon:
+        $$p_i = \frac{\sigma_i}{\sum_j \sigma_j}, \qquad H = -\sum_i p_i \log_2 p_i \in [0, \log_2 d]$$
         """
         if s_vals_hint is None:
             s_vals = np.asarray(la.svdvals(t_matrix), dtype=np.float64)
@@ -1085,8 +1308,10 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         if total <= _MACHINE_EPS:
             return 0.0
         probs = s_vals / total
-        # −Σ p log2 p = −(log 2)⁻¹ Σ p log p, evitando log2(0).
-        entropy = -float(np.sum(probs * np.log(np.clip(probs, _MACHINE_EPS, 1.0)))) * _LOG2E
+        entropy = (
+            -float(np.sum(probs * np.log(np.clip(probs, _MACHINE_EPS, 1.0))))
+            * _LOG2E
+        )
         return max(0.0, entropy)
 
     # ── FASE 2.7 ──────────────────────────────────────────────────────────
@@ -1098,22 +1323,22 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         lie_sp_residual: float,
     ) -> None:
         r"""
-        FASE 2.7 — Checksum Sp ⇒ Liouville / \(\mathfrak{sp}\).
-
-        Si \(\delta_{\mathrm{Sp}}\) es infinitesimal, \(\det T\) debe ser
-        \(+1\) y \(\mathrm{Log}\,T\in\mathfrak{sp}(2n)\). Un desacuerdo
-        delata corrupción de \(\Omega\) o del logaritmo.
+        FASE 2.7 — Checksum de dualidad $$\mathrm{Sp}(2n) \implies \det T = +1 \;\wedge\; \operatorname{Log} T \in \mathfrak{sp}(2n)$$.
         """
         if not is_even or not math.isfinite(symplectic_deviation):
             return
         if symplectic_deviation > _SP_REL_TOL:
             return
-        if math.isfinite(liouville_deviation) and liouville_deviation > max(_DET_TOL, 1.0e-8):
+        if math.isfinite(liouville_deviation) and liouville_deviation > max(
+            _DET_TOL, 1.0e-8
+        ):
             raise SpectralChecksumError(
                 "Checksum Sp⇒Liouville corrupto: "
                 f"δ_Sp={symplectic_deviation:.3e} pero |det−1|={liouville_deviation:.3e}."
             )
-        if math.isfinite(lie_sp_residual) and lie_sp_residual > max(_LIE_SP_TOL, 1.0e-6):
+        if math.isfinite(lie_sp_residual) and lie_sp_residual > max(
+            _LIE_SP_TOL, 1.0e-6
+        ):
             raise SpectralChecksumError(
                 "Checksum Sp⇒sp(2n) corrupto: "
                 f"δ_Sp={symplectic_deviation:.3e} pero ‖ΩX+XᵀΩ‖_F={lie_sp_residual:.3e}."
@@ -1130,14 +1355,7 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         require_symplectic: bool,
     ) -> Tuple[bool, ImprobabilityHeytingVerdict]:
         r"""
-        FASE 2.8 — Clasificación Sp/Liouville y subobjeto local.
-
-        * \(d\) impar: Sp no aplica; no degrada ni veta por sí solo.
-        * \(d\) par, residuos duros: ``is_symplectic=True``.
-        * Política ``require_symplectic``: residuos fuera de tolerancia
-          dura → VETOED; zona gris → DEGRADED.
-        * Sin política: residuos grandes → DEGRADED (nunca VETOED sólo
-          por no-Sp: un tensor SPD casi nunca es simpléctico).
+        FASE 2.8 — Clasificación Sp/Liouville y subobjeto local en $$\Omega_3$$.
         """
         if not is_even:
             is_symp = False
@@ -1153,8 +1371,11 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         components = [observation.phase1_verdict]
         if require_symplectic and not is_symp:
             hard = (
-                (math.isfinite(symplectic_deviation) and symplectic_deviation > _SP_SOFT_TOL)
-                or (math.isfinite(liouville_deviation) and liouville_deviation > 1.0e-6)
+                math.isfinite(symplectic_deviation)
+                and symplectic_deviation > _SP_SOFT_TOL
+            ) or (
+                math.isfinite(liouville_deviation)
+                and liouville_deviation > 1.0e-6
             )
             components.append(
                 ImprobabilityHeytingVerdict.VETOED
@@ -1163,14 +1384,73 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
             )
         elif not is_symp:
             if (
-                math.isfinite(symplectic_deviation) and symplectic_deviation > _SP_SOFT_TOL
+                math.isfinite(symplectic_deviation)
+                and symplectic_deviation > _SP_SOFT_TOL
             ) or (
-                math.isfinite(liouville_deviation) and liouville_deviation > 1.0e-6
+                math.isfinite(liouville_deviation)
+                and liouville_deviation > 1.0e-6
             ):
                 components.append(ImprobabilityHeytingVerdict.DEGRADED)
         return is_symp, self._heyting_join(*components)
 
-    # ── FASE 2.Ω · composición terminal Orient ────────────────────────────
+    # ── FASE 2.9 ──────────────────────────────────────────────────────────
+    @staticmethod
+    def _phase2_poincare_williamson_floquet_invariants(
+        observation: Phase1ImprobabilityObservation,
+        t_matrix: NDArray[np.float64],
+        omega: Optional[NDArray[np.float64]],
+        symplectic_deviation: float,
+    ) -> PoincareSymplecticInvariants:
+        r"""
+        FASE 2.9 — Teorema de Williamson, Monodromía de Floquet-Kreĭn y
+        Velocidad de Difusión de Nekhoroshev-Arnold [A5]:
+          1. Multiplicadores de Floquet $$\lambda_i \in \sigma(T)$$:
+             $$\rho_{\mathrm{Floquet}} = \max_i |\lambda_i|, \qquad
+               \mu_{\mathrm{Floquet}} = \frac{1}{d}\sum_i |\ln|\lambda_i||$$
+          2. Espectro simpléctico de Williamson (para $$d = 2n$$):
+             Sea $$|T| = (T^\top T)^{1/2}$$ el factor polar simétrico positivo. Los
+             autovalores de $$i\Omega |T|$$ vienen en pares $$\pm \nu_k$$ con $$\nu_k > 0$$.
+          3. Velocidad de difusión de Arnold:
+             $$v_{\mathrm{Arnold}} = \exp\!\left(-\frac{1}{\mu_{\mathrm{Sp}} + \varepsilon_{\mathrm{crit}}}\right),
+               \qquad \mu_{\mathrm{Sp}} = \frac{\delta_{\mathrm{Sp}}}{1 + \|T\|_F}$$
+        """
+        base_inv = observation.poincare_invariants
+        eigs_t = la.eigvals(t_matrix)
+        abs_eigs = np.maximum(np.abs(eigs_t), _EPS_CRITICAL)
+        floquet_radius = float(np.max(abs_eigs))
+        floquet_lyap = float(np.mean(np.abs(np.log(abs_eigs))))
+
+        if omega is not None:
+            # Módulo polar positivo |T| = U Σ U^T a partir de T^T T
+            u_polar, s_polar, _ = la.svd(t_matrix, full_matrices=False)
+            abs_t = (u_polar * s_polar) @ u_polar.T
+            williamson_eigs = np.abs(la.eigvals(omega @ abs_t))
+            w_min = float(np.min(williamson_eigs)) if williamson_eigs.size > 0 else 1.0
+            w_max = float(np.max(williamson_eigs)) if williamson_eigs.size > 0 else 1.0
+            # Capacidad de Poincaré-Cartan
+            pc_capacity = w_min
+        else:
+            w_min = base_inv.williamson_symplectic_min
+            w_max = base_inv.williamson_symplectic_max
+            pc_capacity = base_inv.poincare_cartan_capacity
+
+        if math.isfinite(symplectic_deviation) and symplectic_deviation > _SP_REL_TOL:
+            mu_pert = symplectic_deviation / (1.0 + observation.frobenius_norm)
+            arnold_vel = float(math.exp(-1.0 / max(mu_pert, 1.0e-6)))
+        else:
+            arnold_vel = 0.0
+
+        return PoincareSymplecticInvariants(
+            williamson_symplectic_min=w_min,
+            williamson_symplectic_max=w_max,
+            poincare_cartan_capacity=pc_capacity,
+            kam_diophantine_margin=base_inv.kam_diophantine_margin,
+            floquet_monodromy_radius=floquet_radius,
+            floquet_lyapunov_exponent=floquet_lyap,
+            arnold_diffusion_velocity=arnold_vel,
+        )
+
+    # ── FASE 2.Ω · Composición de Orientación y Handoff a Fase 3 ──────────
     def orient_lie_deformation(
         self,
         observation: Phase1ImprobabilityObservation,
@@ -1179,35 +1459,31 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
         strict: bool = True,
     ) -> Phase2ImprobabilityOrientation:
         r"""
-        FASE 2.Ω — Composición terminal Orient (Log + Sp + Liouville + H).
+        FASE 2.Ω — Composición terminal Orient (Log + Sp + Liouville + Williamson/Floquet + H).
 
         **Continuación funtorial de FASE 1.Ω**: consume
         ``Phase1ImprobabilityObservation`` vía FASE 2.0.
-
-        **Contrato funtorial F2 → F3**: el DTO
-        ``Phase2ImprobabilityOrientation`` es el objeto inicial exacto de
-        ``_phase3_consume_phase2_certificate``.
-
-        Raises:
-            LieLogarithmError: rama de Log no definida (siempre, es de entrada).
-            SymplecticConservationError: si ``require_symplectic`` y ``strict``.
-            SpectralChecksumError: dualidad Sp ↔ Liouville corrupta.
         """
-        observation, t_matrix, d = self._phase2_consume_phase1_certificate(observation)
+        observation, t_matrix, d = self._phase2_consume_phase1_certificate(
+            observation
+        )
 
         omega, is_even = self._phase2_construct_canonical_omega(d)
-        lie_log, imag_res, branch_ok = self._phase2_principal_lie_logarithm(t_matrix)
+        lie_log, imag_res, branch_ok = self._phase2_principal_lie_logarithm(
+            t_matrix
+        )
         sp_dev = self._phase2_symplectic_pullback_residual(t_matrix, omega)
         det, liouville = self._phase2_liouville_determinant(t_matrix)
         lie_sp = self._phase2_lie_algebra_sp_residual(lie_log, omega)
         self._phase2_crosscheck_sp_liouville(is_even, sp_dev, liouville, lie_sp)
 
-        s_hint = None
-        if observation.sigma_max > 0.0 and observation.nuclear_norm > 0.0:
-            # No re-SVD: la entropía puede recalcularse; preferimos SVD fresco
-            # sólo si el certificado no transporta el vector singular.
-            pass
-        entropy = self._phase2_shannon_spectral_entropy(t_matrix, s_hint)
+        entropy = self._phase2_shannon_spectral_entropy(t_matrix, None)
+        poincare_inv = self._phase2_poincare_williamson_floquet_invariants(
+            observation=observation,
+            t_matrix=t_matrix,
+            omega=omega,
+            symplectic_deviation=sp_dev,
+        )
 
         is_symp, verdict = self._phase2_local_heyting_verdict(
             observation,
@@ -1250,48 +1526,141 @@ class Phase2_LieDeformationOrienter(Phase1_ImprobabilityObserver):
             condition_number=float(observation.condition_number),
             logm_branch_stable=bool(branch_ok),
             phase1=observation,
+            poincare_invariants=poincare_inv,
+            rsi_telemetry=observation.rsi_telemetry,
         )
 
+    def handoff_phase2_to_phase3(
+        self,
+        observation: Phase1ImprobabilityObservation,
+        phase3_decider: Optional[Phase3_HeytingImprobabilityDecider] = None,
+        *,
+        require_symplectic: bool = False,
+        strict: bool = True,
+    ) -> Union[Phase2ImprobabilityOrientation, Phase3ImprobabilityDecision]:
+        r"""
+        DEFINICIÓN FORMAL FINAL DE LA FASE 2 Y CONTINUACIÓN / INICIO DE LA FASE 3:
+        Ejecuta el morfismo de orientación $$\Phi_2(\mathrm{Phase1ImprobabilityObservation}) \to \mathrm{Phase2ImprobabilityOrientation}$$
+        y, cuando se suministra el decisor de Fase 3 (`phase3_decider`),
+        transfiere covariantemente el certificado a `phase3_decider.ingest_from_phase2_handoff(...)`,
+        materializando la composición funtorial $$\Phi_3 \circ \Phi_2$$.
+        """
+        orientation = self.ingest_from_phase1_handoff(
+            observation,
+            require_symplectic=require_symplectic,
+            strict=strict,
+        )
+        if phase3_decider is not None:
+            return phase3_decider.ingest_from_phase2_handoff(
+                orientation,
+                require_symplectic=require_symplectic,
+                strict=strict,
+            )
+        return orientation
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# FASE 3 — EVALUACIÓN DE ESTRÉS Y DECISIÓN HEYTING (Decide)
-# Continuación directa de orient_lie_deformation (FASE 2.Ω) vía FASE 3.0
-# Objetos: ‖T‖₂, σ* = ‖T‖₂·ROI/Ψ, Ω₃
-# Teorías: norma operatorial, regularización de Tikhonov, retículo de Heyting
-# Terminal: Phase3ImprobabilityDecision → objeto inicial Seal / Crowbar
-# ═══════════════════════════════════════════════════════════════════════════════
-class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
+
+# ╔══════════════════════════════════════════════════════════════════════════════╗
+# ║ FASE 3: EVALUACIÓN DE ESTRÉS, RETÍCULO DE HEYTING Ω₃, CLAUSURA RSI-L3        ║
+# ║         Y ACTUACIÓN CIBER-FÍSICA CROWBAR BT151 EN SILICIO (GPIO14)           ║
+# ║         (Phase3_HeytingImprobabilityDecider & ImprobabilityDriveAgent)       ║
+# ╚══════════════════════════════════════════════════════════════════════════════╝
+
+@dataclass(frozen=True, slots=True)
+class Phase3ImprobabilityDecision:
     r"""
-    Fase 3: evalúa el estrés ajustado y clasifica en \(\Omega_3\).
+    Artefacto terminal de la FASE 3 y objeto inicial del Seal (Ω).
 
-    Morfismo compuesto:
-
-    \[
-    \mathrm{DecideStress}
-    =(\chi_{\Omega_3},\,\sigma^\star,\,\Psi_{\varepsilon},\,\|T\|_2)
-    \circ\mathrm{Consume}\circ\mathrm{OrientLie}^*.
-    \]
-
-    El primer morfismo, ``_phase3_consume_phase2_certificate``, *es* la
-    continuación estricta de ``orient_lie_deformation``. **No** dispara
-    el Crowbar: esa actuación es única y vive en el Seal del agente.
+    Certifica el estrés ajustado $$\sigma^\star = \|T\|_2 \cdot \mathrm{ROI}/\Psi_\varepsilon$$,
+    la clasificación en $$\Omega_3$$ y la clausura del punto fijo RSI-L3 *antes*
+    de disparar el Crowbar (una sola actuación ciber-física en el agente).
     """
 
-    # ── FASE 3.0 · ingesta funtorial del certificado de FASE 2.Ω ──────────
+    adjusted_stress: float
+    operator_norm: float
+    psi_regularized: float
+    phase3_verdict: ImprobabilityHeytingVerdict
+    lattice_verdict: ImprobabilityHeytingVerdict
+    orientation: Phase2ImprobabilityOrientation
+    poincare_invariants: PoincareSymplecticInvariants = field(
+        default_factory=PoincareSymplecticInvariants
+    )
+    rsi_telemetry: ImprobabilityAgentRSITelemetry = field(
+        default_factory=ImprobabilityAgentRSITelemetry
+    )
+
+
+@dataclass(frozen=True, slots=True)
+class ImprobabilityGovernanceState:
+    """Objeto terminal y certificado inmutable emitido por el Agente (Act)."""
+
+    verdict: ImprobabilityHeytingVerdict
+    crowbar_report: CrowbarBypassAction
+    adjusted_stress: float
+    wilkinson_condition: float
+    symplectic_deviation: float
+    is_epistemologically_valid: bool
+    timestamp_utc: str
+    provenance_hash: str
+    diagnostic_note: str
+    liouville_deviation: float = 0.0
+    entropy_bits: float = 0.0
+    lipschitz_bound: float = 0.0
+    is_symplectic: bool = False
+    agent_version: str = __version__
+    policy_require_symplectic: bool = False
+    poincare_invariants: PoincareSymplecticInvariants = field(
+        default_factory=PoincareSymplecticInvariants
+    )
+    rsi_telemetry: ImprobabilityAgentRSITelemetry = field(
+        default_factory=ImprobabilityAgentRSITelemetry
+    )
+
+
+class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
+    r"""
+    FASE 3: Decisor en el Retículo de Heyting $$\Omega_3$$, Evaluador de Estrés
+    Ajustado y Clausura de Punto Fijo RSI de Nivel 3 ($\Phi_3$).
+
+    Inicia formalmente en `ingest_from_phase2_handoff` y `_phase3_consume_phase2_certificate`
+    como continuación directa del último método de la Fase 2 (`handoff_phase2_to_phase3`),
+    y culmina en `decidir_gobernanza_improbabilidad` y `finalize_nested_pipeline`.
+    """
+
+    # ── FASE 3.0 · Continuación Directa de la Fase 2 ──────────────────────
+    def ingest_from_phase2_handoff(
+        self,
+        orientation: Phase2ImprobabilityOrientation,
+        crowbar: Optional[CrowbarActuator] = None,
+        *,
+        require_symplectic: bool = False,
+        strict: bool = True,
+    ) -> Phase3ImprobabilityDecision:
+        r"""
+        CONTINUACIÓN DIRECTA DEL ÚLTIMO MÉTODO DE LA FASE 2 (`handoff_phase2_to_phase3`):
+        Ingiere formalmente `Phase2ImprobabilityOrientation`, evalúa la ecuación de
+        estado de estrés ajustado, resuelve el retículo de Heyting $$\Omega_3$$ y
+        ejecuta la clausura recursiva RSI-L3.
+        """
+        return self.decidir_gobernanza_improbabilidad(
+            orientation,
+            crowbar=crowbar,
+            require_symplectic=require_symplectic,
+            strict=strict,
+        )
+
     def _phase3_consume_phase2_certificate(
         self,
         orientation: Phase2ImprobabilityOrientation,
     ) -> Tuple[Phase2ImprobabilityOrientation, NDArray[np.float64], int]:
         r"""
         FASE 3.0 — Ingesta funtorial del certificado de FASE 2.Ω.
-
-        **Continuación estricta de**
-        ``Phase2_LieDeformationOrienter.orient_lie_deformation``.
-        Verifica la coherencia de \(T\) y \(\mathrm{Log}\,T\) y entrega
+        Verifica la coherencia de $$T$$ y $$\operatorname{Log} T$$ y entrega
         el objeto de trabajo de Decide *sin recomputar el logaritmo*.
         """
         if not isinstance(orientation, Phase2ImprobabilityOrientation):
-            raise TypeError("orientation debe ser Phase2ImprobabilityOrientation")
+            raise TypeError(
+                "orientation debe ser Phase2ImprobabilityOrientation"
+            )
         t_matrix = np.asarray(orientation.tensor_matrix, dtype=np.float64)
         d = int(t_matrix.shape[0])
         if t_matrix.shape != (d, d):
@@ -1320,10 +1689,8 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
         t_matrix: NDArray[np.float64],
     ) -> float:
         r"""
-        FASE 3.1 — Norma operatorial \(\|T\|_2=\sigma_{\max}\).
-
-        Reutiliza \(\sigma_{\max}\) del certificado de FASE 1 si está
-        anidado; si no, un SVD fresco (caller que construyó el DTO a mano).
+        FASE 3.1 — Norma operatorial $$\|T\|_2 = \sigma_{\max}$$.
+        Reutiliza $$\sigma_{\max}$$ del certificado de FASE 1 si está anidado.
         """
         if orientation.phase1 is not None and orientation.phase1.sigma_max > 0.0:
             return float(orientation.phase1.sigma_max)
@@ -1335,11 +1702,8 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
     # ── FASE 3.2 ──────────────────────────────────────────────────────────
     def _phase3_regularize_psi(self, psi: float) -> float:
         r"""
-        FASE 3.2 — Regularización de Tikhonov del denominador \(\Psi\).
-
-        \[
-        \Psi_{\varepsilon}=\max(\Psi,\varepsilon_{\mathrm{mach}}).
-        \]
+        FASE 3.2 — Regularización de Tikhonov del denominador $$\Psi$$:
+        $$\Psi_\varepsilon = \max(\Psi, \varepsilon_{\mathrm{mach}})$$
         """
         self._assert_finite_scalar(psi, "psi")
         if psi < 0.0:
@@ -1354,16 +1718,8 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
         psi_regularized: float,
     ) -> float:
         r"""
-        FASE 3.3 — Ecuación de estado del estrés ajustado.
-
-        \[
-        \sigma^\star
-        =\|T\|_2\cdot\frac{\mathrm{ROI}}{\Psi_{\varepsilon}}.
-        \]
-
-        Interpreta \(\|T\|_2\) como ganancia de deformación, ROI como
-        exposición y \(\Psi\) como colchón de resiliencia. Un \(\Psi\)
-        nulo se regularizó en 3.2 para evitar Dirac en el origen.
+        FASE 3.3 — Ecuación de estado del estrés ajustado [A3]:
+        $$\sigma^\star = \|T\|_2 \cdot \frac{\mathrm{ROI}}{\Psi_\varepsilon}$$
         """
         self._assert_finite_scalar(roi, "roi")
         if psi_regularized <= 0.0:
@@ -1388,17 +1744,12 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
         adjusted_stress: float,
     ) -> ImprobabilityHeytingVerdict:
         r"""
-        FASE 3.4 — Subobjeto local de estrés.
-
-        \[
-        \chi_{\sigma}
-        =
-        \begin{cases}
-        \mathrm{VETOED}   & \sigma^\star\ge\sigma_{\mathrm{high}},\\
-        \mathrm{DEGRADED} & \sigma^\star\ge\sigma_{\mathrm{soft}},\\
-        \mathrm{COHERENT} & \text{en otro caso}.
-        \end{cases}
-        \]
+        FASE 3.4 — Subobjeto local de estrés en $$\Omega_3$$:
+        $$\chi_\sigma = \begin{cases}
+          \mathrm{VETOED}   & \sigma^\star \ge \sigma_{\mathrm{high}} \\
+          \mathrm{DEGRADED} & \sigma^\star \ge \sigma_{\mathrm{soft}} \\
+          \mathrm{COHERENT} & \text{en otro caso}
+        \end{cases}$$
         """
         if adjusted_stress >= _STRESS_HIGH_THRESHOLD:
             return ImprobabilityHeytingVerdict.VETOED
@@ -1415,16 +1766,8 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
         require_symplectic: bool,
     ) -> ImprobabilityHeytingVerdict:
         r"""
-        FASE 3.5 — Supremo del retículo \(\Omega_3\).
-
-        \[
-        \chi
-        =\chi_1\vee\chi_2\vee\chi_{\sigma}
-        \;\bigl(\vee\chi_{\mathrm{Sp}}\bigr)_{\mathrm{opt}}.
-        \]
-
-        Wilkinson duro ya se elevó en FASE 1; aquí se re-evalúa la zona
-        gris de \(\kappa_2\) por si un caller construyó el DTO a mano.
+        FASE 3.5 — Supremo del retículo $$\Omega_3$$:
+        $$\chi = \chi_1 \vee \chi_2 \vee \chi_\sigma \;\bigl(\vee \chi_{\mathrm{Sp}}\bigr)_{\mathrm{opt}}$$
         """
         components = [orientation.phase2_verdict, stress_verdict]
         if orientation.phase1 is not None:
@@ -1437,7 +1780,7 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
             components.append(ImprobabilityHeytingVerdict.VETOED)
         return self._heyting_join(*components)
 
-    # ── FASE 3.Ω · composición terminal Decide ────────────────────────────
+    # ── FASE 3.Ω · Composición Decide y Clausura RSI Nivel 3 ──────────────
     def decidir_gobernanza_improbabilidad(
         self,
         orientation: Phase2ImprobabilityOrientation,
@@ -1447,28 +1790,15 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
         strict: bool = True,
     ) -> Phase3ImprobabilityDecision:
         r"""
-        FASE 3.Ω — Composición terminal Decide (estrés + \(\Omega_3\)).
+        FASE 3.Ω — Composición terminal Decide (estrés + $$\Omega_3$$ + RSI-L3).
 
         **Continuación funtorial de FASE 2.Ω**: consume
         ``Phase2ImprobabilityOrientation`` vía FASE 3.0.
-
-        **Contrato funtorial F3 → Seal**: el DTO
-        ``Phase3ImprobabilityDecision`` alimenta el sellado de gobernanza
-        en ``ImprobabilityDriveAgent.execute_improbability_governance``.
-
-        El argumento ``crowbar`` se acepta por compatibilidad con v3.1
-        pero **se ignora**: el Crowbar se dispara una sola vez en el
-        Seal del agente (evita doble actuación HARD_SHORT).
-
-        Raises:
-            BusinessStressBreachError: si ``strict`` y \(\sigma^\star\) es
-                no finito o (bajo política implícita) el lattice es VETOED
-                *sólo* cuando el caller pidió ``strict`` y el estrés es
-                no finito. El veto de lattice se sella, no se eleva aquí,
-                para permitir soft-audit.
         """
-        del crowbar  # actuación única en el agente
-        orientation, t_matrix, _d = self._phase3_consume_phase2_certificate(orientation)
+        del crowbar  # Actuación única en el Seal del agente
+        orientation, t_matrix, _d = self._phase3_consume_phase2_certificate(
+            orientation
+        )
 
         op_norm = self._phase3_operator_norm(orientation, t_matrix)
         psi_eps = self._phase3_regularize_psi(orientation.initial_psi)
@@ -1479,6 +1809,19 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
         lattice = self._phase3_lattice_conjunction(
             orientation, stress_verdict, require_symplectic=require_symplectic
         )
+
+        preliminary_decision = Phase3ImprobabilityDecision(
+            adjusted_stress=float(stress),
+            operator_norm=float(op_norm),
+            psi_regularized=float(psi_eps),
+            phase3_verdict=stress_verdict,
+            lattice_verdict=lattice,
+            orientation=orientation,
+            poincare_invariants=orientation.poincare_invariants,
+            rsi_telemetry=orientation.rsi_telemetry,
+        )
+
+        sealed_decision = self.finalize_nested_pipeline(preliminary_decision)
 
         if strict and lattice == ImprobabilityHeytingVerdict.VETOED:
             if stress_verdict == ImprobabilityHeytingVerdict.VETOED:
@@ -1492,39 +1835,40 @@ class Phase3_HeytingImprobabilityDecider(Phase2_LieDeformationOrienter):
             stress_verdict.name,
             lattice.name,
         )
-        return Phase3ImprobabilityDecision(
-            adjusted_stress=float(stress),
-            operator_norm=float(op_norm),
-            psi_regularized=float(psi_eps),
-            phase3_verdict=stress_verdict,
-            lattice_verdict=lattice,
-            orientation=orientation,
+        return sealed_decision
+
+    @staticmethod
+    def finalize_nested_pipeline(
+        decision: Phase3ImprobabilityDecision,
+    ) -> Phase3ImprobabilityDecision:
+        r"""
+        CLAUSURA TERMINAL DE LAS 3 FASES ANIDADAS ($$\Phi_3 \circ \Phi_2 \circ \Phi_1$$):
+        Ejecuta el paso de punto fijo de Banach del motor de Automejora Recursiva
+        de Nivel 3 (`ImprobabilityAgentRSILevel3Engine`) y adjunta la telemetría
+        metacognitiva al certificado de decisión.
+        """
+        p_inv = decision.poincare_invariants
+        rsi_telemetry = ImprobabilityAgentRSILevel3Engine.commit_level3_fixed_point(
+            wilkinson_cond=decision.orientation.condition_number,
+            adjusted_stress=decision.adjusted_stress,
+            arnold_velocity=p_inv.arnold_diffusion_velocity,
+            floquet_exponent=p_inv.floquet_lyapunov_exponent,
+            verdict=decision.lattice_verdict,
         )
+        return replace(decision, rsi_telemetry=rsi_telemetry)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# SOBERANO DE CONTROL ESPECTRAL DE IMPROBABILIDAD
-# Observe (F1) ⟶ Orient (F2) ⟶ Decide (F3) ⟶ Seal / Crowbar
-# ═══════════════════════════════════════════════════════════════════════════════
+# ─────────────────────────────────────────────────────────────────────────────
+# SOBERANO DE CONTROL ESPECTRAL DE IMPROBABILIDAD (Orquestador OODA + Silicio)
+# ─────────────────────────────────────────────────────────────────────────────
 class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
     r"""
-    Agente Soberano que unifica el motor de improbabilidad con \(\Omega_3\).
+    Agente Soberano que unifica el motor de improbabilidad con el retículo $$\Omega_3$$,
+    la Mecánica Celeste de Poincaré-KAM, el motor RSI-L3 y el tiristor Crowbar BT151.
 
     Endofuntor de gobernanza:
-
-    \[
-    \mathcal{OODA}_{\mathrm{Improb}}
-    :
-    \mathbf{ImprobabilityResult}
-    \longrightarrow
-    \mathbf{GovState}(\Omega_3)
-    \]
-
-    compuesto como
-
-    \[
-    \mathrm{Seal}\circ\mathrm{Decide}\circ\mathrm{Orient}\circ\mathrm{Observe}.
-    \]
+    $$\mathcal{OODA}_{\mathrm{Improb}} = \mathrm{Seal}_{\mathrm{GPIO14}} \circ \Phi_3 \circ \Phi_2 \circ \Phi_1 :
+      \mathbf{ImprobabilityResult} \longrightarrow \mathtt{ImprobabilityGovernanceState}$$
     """
 
     def __init__(
@@ -1536,12 +1880,12 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         self._crowbar = crowbar_actuator or LoggingCrowbarActuator()
         self._raise_on_veto = raise_on_veto
 
-    # ── FASE Ω.1 · Crowbar único ──────────────────────────────────────────
+    # ── FASE Ω.1 · Actuación Ciber-Física Crowbar Única (GPIO14) ──────────
     def _phase_omega_apply_crowbar(
         self,
         verdict: ImprobabilityHeytingVerdict,
     ) -> CrowbarBypassAction:
-        """Dispara el actuador según el subobjeto de Heyting (una sola vez)."""
+        """Dispara el actuador de silicio según el subobjeto de Heyting (una sola vez)."""
         if verdict == ImprobabilityHeytingVerdict.VETOED:
             action = CrowbarBypassAction.HARD_SHORT
             self._crowbar.trigger_crowbar_bypass(action)
@@ -1552,7 +1896,7 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
             return action
         return CrowbarBypassAction.NONE
 
-    # ── FASE Ω.2 · sellado ────────────────────────────────────────────────
+    # ── FASE Ω.2 · Sellado Criptográfico SHA-256 ──────────────────────────
     def _phase_omega_seal_governance_state(
         self,
         decision: Optional[Phase3ImprobabilityDecision],
@@ -1566,7 +1910,7 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         fallback_cond: float = 1.0,
         fallback_sp: float = 0.0,
     ) -> ImprobabilityGovernanceState:
-        """FASE Ω.2 — Sellado del objeto terminal frozen del funtor OODA."""
+        """FASE Ω.2 — Sellado del objeto terminal inmutable del funtor OODA."""
         timestamp_utc = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
         if decision is not None:
             ori = decision.orientation
@@ -1576,7 +1920,11 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
             liouville = ori.liouville_determinant_deviation
             entropy = ori.entropy_bits
             is_symp = ori.is_symplectic
-            lipschitz = ori.phase1.lipschitz_bound if ori.phase1 is not None else 0.0
+            lipschitz = (
+                ori.phase1.lipschitz_bound if ori.phase1 is not None else 0.0
+            )
+            poincare_inv = decision.poincare_invariants
+            rsi_tel = decision.rsi_telemetry
         else:
             stress = fallback_stress
             cond = fallback_cond
@@ -1585,28 +1933,47 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
             entropy = 0.0
             is_symp = False
             lipschitz = 0.0
+            poincare_inv = PoincareSymplecticInvariants()
+            rsi_tel = ImprobabilityAgentRSILevel3Engine.commit_level3_fixed_point(
+                wilkinson_cond=fallback_cond,
+                adjusted_stress=fallback_stress,
+                arnold_velocity=1.0,
+                floquet_exponent=1.0,
+                verdict=verdict,
+            )
 
         prov_payload = (
             f"{verdict.name}-{stress:.6e}-{cond:.6e}-"
             f"{sp_dev:.6e}-{latency_ms:.3f}-{__version__}"
         )
-        provenance_hash = hashlib.sha256(prov_payload.encode("utf-8")).hexdigest()
+        provenance_hash = hashlib.sha256(
+            prov_payload.encode("utf-8")
+        ).hexdigest()
+
         return ImprobabilityGovernanceState(
             verdict=verdict,
             crowbar_report=action_report,
             adjusted_stress=float(stress),
             wilkinson_condition=float(cond),
-            symplectic_deviation=float(sp_dev) if math.isfinite(sp_dev) else float("inf"),
-            is_epistemologically_valid=(verdict != ImprobabilityHeytingVerdict.VETOED),
+            symplectic_deviation=(
+                float(sp_dev) if math.isfinite(sp_dev) else float("inf")
+            ),
+            is_epistemologically_valid=(
+                verdict != ImprobabilityHeytingVerdict.VETOED
+            ),
             timestamp_utc=timestamp_utc,
             provenance_hash=provenance_hash,
             diagnostic_note=f"{diagnostic_msg} Latencia de lazo: {latency_ms:.3f} ms.",
-            liouville_deviation=float(liouville) if math.isfinite(liouville) else float("inf"),
+            liouville_deviation=(
+                float(liouville) if math.isfinite(liouville) else float("inf")
+            ),
             entropy_bits=float(entropy),
             lipschitz_bound=float(lipschitz),
             is_symplectic=bool(is_symp),
             agent_version=__version__,
             policy_require_symplectic=require_symplectic,
+            poincare_invariants=poincare_inv,
+            rsi_telemetry=rsi_tel,
         )
 
     def _build_vetoed_state(
@@ -1616,7 +1983,7 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         *,
         require_symplectic: bool = False,
     ) -> ImprobabilityGovernanceState:
-        """Estado de veto de emergencia con trazabilidad (fail-secure)."""
+        """Estado de veto de emergencia con trazabilidad forense (fail-secure)."""
         latency_ms = (time.perf_counter_ns() - t_start_nano) / 1.0e6
         action = CrowbarBypassAction.HARD_SHORT
         return self._phase_omega_seal_governance_state(
@@ -1631,7 +1998,7 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
             fallback_sp=math.inf,
         )
 
-    # ── Compositor público OODA ───────────────────────────────────────────
+    # ── Compositor Público OODA de las 3 Fases Anidadas ───────────────────
     def execute_improbability_governance(
         self,
         result: ImprobabilityResult,
@@ -1640,62 +2007,11 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         strict: bool = True,
     ) -> ImprobabilityGovernanceState:
         r"""
-        Orquesta el ciclo OODA completo sobre el motor de improbabilidad ciego.
-
-        El objeto terminal de cada fase es el objeto inicial de la siguiente:
-
-        .. code-block:: text
-
-            ┌────────────────────────────────────────────────────────────┐
-            │ FASE 1  Observe / Spectral                                 │
-            │   1.1 validate_tensor_dimension                            │
-            │   1.2 validate_tensor_typing                               │
-            │   1.3 certify_self_adjointness                             │
-            │   1.4 svd_wilkinson_spectrum                               │
-            │   1.5 daleckii_krein_lipschitz                             │
-            │   1.6 spectral_masses                                      │
-            │   1.7 validate_business_scalars                            │
-            │   1.8 local_heyting_verdict                                │
-            │   1.Ω observe_improbability_tensor  ──► Phase1 ──┐         │
-            ├──────────────────────────────────────────────────┼─────────┤
-            │ FASE 2  Orient / Lie  ◄──────────────────────────┘         │
-            │   2.0 consume_phase1_certificate                           │
-            │   2.1 construct_canonical_omega                            │
-            │   2.2 principal_lie_logarithm                              │
-            │   2.3 symplectic_pullback_residual                         │
-            │   2.4 liouville_determinant                                │
-            │   2.5 lie_algebra_sp_residual                              │
-            │   2.6 shannon_spectral_entropy                             │
-            │   2.7 crosscheck_sp_liouville                              │
-            │   2.8 local_heyting_verdict                                │
-            │   2.Ω orient_lie_deformation  ──► Phase2 ──┐               │
-            ├────────────────────────────────────────────┼───────────────┤
-            │ FASE 3  Decide / Stress  ◄─────────────────┘               │
-            │   3.0 consume_phase2_certificate                           │
-            │   3.1 operator_norm                                        │
-            │   3.2 regularize_psi                                       │
-            │   3.3 adjusted_business_stress                             │
-            │   3.4 stress_heyting_verdict                               │
-            │   3.5 lattice_conjunction                                  │
-            │   3.Ω decidir_gobernanza  ──► Phase3 ──┐                   │
-            ├────────────────────────────────────────┼───────────────────┤
-            │ SEAL / CROWBAR  ◄──────────────────────┘                   │
-            │   Ω.1 apply_crowbar                                        │
-            │   Ω.2 seal_governance_state                                │
-            └────────────────────────────────────────────────────────────┘
-
-        Args:
-            result: ``ImprobabilityResult`` emitido por el motor físico.
-            require_symplectic: hard-gate de Sp/Liouville (default False:
-                un tensor SPD casi nunca es simpléctico).
-            strict: si es verdadero, violaciones Sp (con política) y
-                estrés duro se elevan como excepción además de sellarse.
-
-        Returns:
-            ImprobabilityGovernanceState: certificado maestro con veredicto.
-
-        Raises:
-            CrowbarTriggeredError: si ``raise_on_veto`` y el retículo colapsa.
+        Orquesta el ciclo OODA completo sobre el motor de improbabilidad ciego
+        encadenando explícitamente las 3 fases anidadas:
+          1. `handoff_phase1_to_phase2` (Fase 1 $$\to$$ Fase 2)
+          2. `handoff_phase2_to_phase3` (Fase 2 $$\to$$ Fase 3)
+          3. `finalize_nested_pipeline` $$\to$$ `_phase_omega_apply_crowbar` $$\to$$ `_phase_omega_seal_governance_state`
         """
         t_start_nano = time.perf_counter_ns()
         diagnostic_msg = "Gobernanza Espectral de Improbabilidad Estable."
@@ -1705,22 +2021,20 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         crowbar_already = False
 
         try:
-            # ── FASE 1 · Observe ──────────────────────────────────────────
-            observation = self.observe_improbability_tensor(result)
+            # ── FASE 1 ──► FASE 2 ──► FASE 3 (Handoffs Anidados) ──────────
+            observation = self.handoff_phase1_to_phase2(result)
+            assert isinstance(observation, Phase1ImprobabilityObservation)
 
-            # ── FASE 2 · Orient  (continúa certificado F1.Ω) ──────────────
-            orientation = self.orient_lie_deformation(
+            decision_or_ori = self.handoff_phase2_to_phase3(
                 observation,
+                phase3_decider=self,
                 require_symplectic=require_symplectic,
                 strict=strict,
             )
+            assert isinstance(decision_or_ori, Phase3ImprobabilityDecision)
+            decision = decision_or_ori
+            orientation = decision.orientation
 
-            # ── FASE 3 · Decide  (continúa certificado F2.Ω) ──────────────
-            decision = self.decidir_gobernanza_improbabilidad(
-                orientation,
-                require_symplectic=require_symplectic,
-                strict=strict,
-            )
             verdict = decision.lattice_verdict
             if verdict == ImprobabilityHeytingVerdict.VETOED:
                 diagnostic_msg = (
@@ -1746,7 +2060,9 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
                 pending_raise.__cause__ = exc
         except Exception as exc:  # noqa: BLE001 — fail-secure del lazo de gobernanza
             verdict = ImprobabilityHeytingVerdict.VETOED
-            diagnostic_msg = f"ANILQUILACIÓN CUÁNTICA POR INCOHERENCIA DE ENTRADA: {exc}"
+            diagnostic_msg = (
+                f"ANILQUILACIÓN CUÁNTICA POR INCOHERENCIA DE ENTRADA: {exc}"
+            )
             self._crowbar.trigger_crowbar_bypass(CrowbarBypassAction.HARD_SHORT)
             crowbar_already = True
             if self._raise_on_veto:
@@ -1782,7 +2098,7 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         return state
 
     # ─────────────────────────────────────────────────────────────────────
-    # Fábricas de referencia (calibración / tests del agente)
+    # Fábricas Canónicas de Referencia (Calibración y Verificación)
     # ─────────────────────────────────────────────────────────────────────
     @staticmethod
     def identity_result(
@@ -1793,7 +2109,7 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         kappa: float = 1.0,
         gamma: float = 0.5,
     ) -> ImprobabilityResult:
-        r"""Tensor identidad \(T=I_d\) (κ₂=1, Sp nativo si \(d\) par y \(T\in\mathrm{Sp}\) no)."""
+        r"""Tensor identidad $$T = I_d$$ ($$\kappa_2 = 1$$, Sp nativo si $$d$$ es par)."""
         if dimension_d < 1:
             raise ValueError(f"dimension_d debe ser ≥ 1; recibido {dimension_d}")
         tensor = ImprobabilityTensor(
@@ -1802,7 +2118,10 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
             gamma=float(gamma),
         )
         return ImprobabilityResult(
-            tensor=tensor, roi_value=float(roi), psi_value=float(psi), is_valid=True
+            tensor=tensor,
+            roi_value=float(roi),
+            psi_value=float(psi),
+            is_valid=True,
         )
 
     @staticmethod
@@ -1814,15 +2133,20 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         psi: float = 1.0,
         kappa: float = 1.0,
     ) -> ImprobabilityResult:
-        r"""Tensor SPD aleatorio \(T=AA^\top+\varepsilon I\) (drive típico, no Sp)."""
+        r"""Tensor SPD aleatorio $$T = A A^\top + \varepsilon I$$ (drive típico, no Sp)."""
         if dimension_d < 1:
             raise ValueError(f"dimension_d debe ser ≥ 1; recibido {dimension_d}")
         rng = np.random.default_rng(seed)
         raw = rng.normal(size=(int(dimension_d), int(dimension_d)))
         spd = raw @ raw.T + 1.0e-3 * np.eye(int(dimension_d))
-        tensor = ImprobabilityTensor(matrix=spd.astype(np.float64), kappa=float(kappa), gamma=0.5)
+        tensor = ImprobabilityTensor(
+            matrix=spd.astype(np.float64), kappa=float(kappa), gamma=0.5
+        )
         return ImprobabilityResult(
-            tensor=tensor, roi_value=float(roi), psi_value=float(psi), is_valid=True
+            tensor=tensor,
+            roi_value=float(roi),
+            psi_value=float(psi),
+            is_valid=True,
         )
 
     @staticmethod
@@ -1835,31 +2159,57 @@ class ImprobabilityDriveAgent(Morphism, Phase3_HeytingImprobabilityDecider):
         kappa: float = 1.0,
     ) -> ImprobabilityResult:
         r"""
-        Rotación simpléctica canónica en \(\mathrm{Sp}(2n)\):
-
-        \[
-        T=\bigoplus_{i=1}^{n}
-        \begin{pmatrix}\cos\theta&-\sin\theta\\\sin\theta&\cos\theta\end{pmatrix}
-        \quad\text{(en pares }(q_i,p_i)\text{, layout }(q,p)\text{)}.
-        \]
-
-        En el layout \(\Omega=\bigl(\begin{smallmatrix}0&I\\-I&0\end{smallmatrix}\bigr)\)
-        esto corresponde a un bloque de rotación mixto \(q\leftrightarrow p\).
-        Se construye \(T=\exp(\theta J)\) con \(J=\Omega^{-1}\) sobre cada plano.
+        Rotación unitario-simpléctica canónica en $$\mathrm{Sp}(2n, \mathbb{R}) \cap \mathrm{SO}(2n, \mathbb{R}) \cong \mathrm{U}(n)$$:
+        $$T = \begin{pmatrix} \cos\theta \, I_n & \sin\theta \, I_n \\ -\sin\theta \, I_n & \cos\theta \, I_n \end{pmatrix}$$
         """
         if n_pairs < 1:
             raise ValueError(f"n_pairs debe ser ≥ 1; recibido {n_pairs}")
         n = int(n_pairs)
-        d = 2 * n
-        # Rotación hamiltoniana: q' = q cos θ + p sin θ, p' = −q sin θ + p cos θ
-        # es decir T = [[c I, s I], [−s I, c I]] ∈ Sp(2n).
         c = math.cos(theta)
         s = math.sin(theta)
         eye = np.eye(n, dtype=np.float64)
         t_matrix = np.block([[c * eye, s * eye], [-s * eye, c * eye]])
-        tensor = ImprobabilityTensor(matrix=t_matrix, kappa=float(kappa), gamma=0.5)
+        tensor = ImprobabilityTensor(
+            matrix=t_matrix, kappa=float(kappa), gamma=0.5
+        )
         return ImprobabilityResult(
-            tensor=tensor, roi_value=float(roi), psi_value=float(psi), is_valid=True
+            tensor=tensor,
+            roi_value=float(roi),
+            psi_value=float(psi),
+            is_valid=True,
+        )
+
+    @staticmethod
+    def symplectic_boost_result(
+        n_pairs: int = 1,
+        eta: float = 0.25,
+        *,
+        roi: float = 0.5,
+        psi: float = 1.0,
+        kappa: float = 1.0,
+    ) -> ImprobabilityResult:
+        r"""
+        Transformación hiperbólica de Bogoliubov (Squeeze Simpléctico Simétrico)
+        en $$\mathrm{Sp}(2n, \mathbb{R}) \cap \mathrm{Sym}^+(2n, \mathbb{R})$$:
+        $$T = \exp\!\left(\eta \begin{pmatrix} 0 & I_n \\ I_n & 0 \end{pmatrix}\right)
+            = \begin{pmatrix} \cosh\eta \, I_n & \sinh\eta \, I_n \\ \sinh\eta \, I_n & \cosh\eta \, I_n \end{pmatrix}$$
+        Cumple simultáneamente $$T = T^\top$$, $$T \succ 0$$, $$T^\top \Omega T = \Omega$$ y $$\det T = 1$$.
+        """
+        if n_pairs < 1:
+            raise ValueError(f"n_pairs debe ser ≥ 1; recibido {n_pairs}")
+        n = int(n_pairs)
+        ch = math.cosh(eta)
+        sh = math.sinh(eta)
+        eye = np.eye(n, dtype=np.float64)
+        t_matrix = np.block([[ch * eye, sh * eye], [sh * eye, ch * eye]])
+        tensor = ImprobabilityTensor(
+            matrix=t_matrix, kappa=float(kappa), gamma=0.5
+        )
+        return ImprobabilityResult(
+            tensor=tensor,
+            roi_value=float(roi),
+            psi_value=float(psi),
+            is_valid=True,
         )
 
 
@@ -1871,6 +2221,9 @@ __all__ = [
     "CrowbarBypassAction",
     "CrowbarActuator",
     "LoggingCrowbarActuator",
+    "PoincareSymplecticInvariants",
+    "ImprobabilityAgentRSITelemetry",
+    "ImprobabilityAgentRSILevel3Engine",
     "ImprobabilityDriveAgentError",
     "NonSelfAdjointTensorError",
     "WilkinsonConditionBreachError",

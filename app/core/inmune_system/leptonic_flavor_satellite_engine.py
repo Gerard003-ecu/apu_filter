@@ -1,4 +1,3 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -68,6 +67,8 @@ Invariante 2 (Preservación del Determinante de Mezcla):
     |det(U_{PMNS})| == 1.0.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac

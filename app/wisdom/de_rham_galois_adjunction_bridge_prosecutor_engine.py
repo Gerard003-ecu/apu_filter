@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Bridge Prosecutor Engine v12.1.0-SOVEREIGN-POINCARE-N3-PhD      ║
