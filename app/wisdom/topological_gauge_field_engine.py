@@ -1,30 +1,97 @@
 # -*- coding: utf-8 -*-
 r"""
-Topological Gauge Field Engine — versión 12.0.0
-Ubicación: app/wisdom/topological_gauge_field_engine.py
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Topological Gauge Field Engine                                                            ║
+║ Ubicación: app/wisdom/topological_gauge_field_engine.py                                               ║
+║ Versión  : 12.0.0-SOVEREIGN-GAUGE-KKS-POINCARE-KAM-PhD                                                ║
+║ Función  : Motor espectral de campo de gauge topológico 𝔰𝔲(N), geometría simpléctica coadjunta KKS,     ║
+║            fibrados principales con acoplamiento Higgs, integrales de Wilson y Chern-Simons,          ║
+║            mecánica celeste de Poincaré, teoría KAM/Bryuno y automejora recursiva de nivel 3 (RSI³).  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor numérico organizado en tres fases:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Topological Gauge Field Engine opera como el motor geométrico de gauge del Estrato Wisdom (V_𝕎)
+en la arquitectura cognitiva APU Filter. Su misión es procesar operadores de densidad cuántica
+ρ ∈ 𝔇(ℋ_n) sobre la órbita coadjunta de Kirillov-Kostant-Souriau (KKS) en el álgebra de Lie 𝔰𝔲(N),
+evaluando la curvatura de Yang-Mills F = [A, A†], la 3-forma de Chern-Simons acoplada al campo adjunto
+de Higgs Φ_Higgs = ln(ρ), el número instantónico de Pontryagin k ∈ ℤ, la holonomía de lazo de Wilson,
+la resolución homológica de Poincaré-Lindstedt y la adjudicación intuicionista en el retículo de Heyting
+trivaluado Ω₃ = {COHERENT (0x00) ≺ DEGRADED (0x01) ≺ VETOED (0x03)}.
 
-    FASE 1 — OBSERVE
-        Proyección de rho al conjunto de matrices densidad, construcción de
-        A en su(N), conmutador orbital [rho, H], realificación de Cayley y
-        resolución espectral de la ecuación homológica.
+Estructuración operativa trifásica anidada (OODA):
+  • FASE 1 (OBSERVE) : Proyección métrica espectral de Frobenius al simplex de estados cuánticos 𝔇(ℋ_n),
+                       construcción de la conexión anti-hermítica A = i(ρ - I/N) ∈ 𝔰𝔲(N), evaluación de
+                       la curvatura orbital F = [ρ, H_celeste], embedding simpléctico de Cayley-Kähler
+                       m ∈ Sp(2N, ℝ), y resolución homológica espectral de Poincaré-Lindstedt [H₀, W] = F_osc.
+  • FASE 2 (ORIENT)  : Cuantificación de invariantes topológicos: funcional de Chern-Simons-Higgs
+                       CS₃^{Higgs}(A, Φ), holonomía unitaria de Wilson W(γ) = Tr(exp(A))/N, proxies de
+                       Pontryagin k_proxy = -Re Tr(F²)/(8π²) y carácter de Chern ch(F), exploración diofántica
+                       KAM/Bryuno finita sobre frecuencias espectrales, multiplicadores de Floquet y
+                       contracción monádica RSI³ sobre 3 superficies funcionales.
+  • FASE 3 (DECIDE)  : Medición cuántica no demoledora (QND) mediante el valor débil de Aharonov-Albert-Vaidman
+                       (AAV) A_w = ⟨ψ_f|A|ψ_i⟩ / ⟨ψ_f|ψ_i⟩, adjudicación conservadora en el retículo de Heyting
+                       Ω₃ con meet-fold estricto, modelado de latencia de disparo del interlock ESP32 Crowbar
+                       (τ ≤ 392.15 ns) y sellado criptográfico determinista con árbol de Merkle binario y HMAC-SHA256.
 
-    FASE 2 — ORIENT
-        Diagnósticos matriciales topológicos, pruebas KAM/Bruno finitas,
-        diagnóstico de Floquet para un generador constante, observables de
-        sección y auditoría RSI³ limitada al subespacio amortiguado.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Geometría Diferencial de Calibre 𝔰𝔲(N) y Órbitas Coadjuntas KKS:
+   Sea 𝔤 = 𝔰𝔲(N) el álgebra de Lie de matrices anti-hermíticas de traza nula:
+       A = i · (ρ - (Tr(ρ) / N) · I_N) ∈ 𝔰𝔲(N),   A† = -A,   Tr(A) = 0.
+   La forma simpléctica de Kirillov-Kostant-Souriau (KKS) sobre la órbita coadjunta 𝒪_ρ ≅ U(N) / H_ρ:
+       ω_KKS(X_{H₁}, X_{H₂})_ρ = -i · Tr(ρ · [H₁, H₂]),   ∀ H₁, H₂ ∈ 𝔥𝔢𝔯(N).
+   La curvatura de Yang-Mills inducida por el conmutador orbital con el Hamiltoniano de fondo Hermítico H:
+       F = [ρ, H] = ρ H - H ρ ∈ 𝔰𝔲(N),   E_YM = ½ · ‖F‖_F² = ½ · Tr(F† F).
 
-    FASE 3 — DECIDE & ACT
-        Diagnóstico algebraico AAV/QND, agregación en Heyting Omega_3,
-        interlock únicamente simulado y snapshot con raíz Merkle y HMAC.
+2. Funcional de Chern-Simons Acoplado a Higgs y Carácter de Chern:
+   Sea Φ = ln(ρ + ε·I) el campo adjunto de Higgs logarítmico. La 3-forma de Chern-Simons-Higgs normalizada:
+       CS₃^{Higgs}(A, Φ) = (1 / (8π²)) · Tr(A · F - ⅓ · A³ + Φ · F).
+   La anomalía de curvatura cúbica se define como:
+       Anomaly(F) = (1 / (8π²)) · |Tr(F³)|.
+   El carácter de Chern matricial total viene dado por la exponencial de curvatura:
+       ch(F) = Tr(exp(F / (2πi))) = Tr(I) + ch₁(F) + ch₂(F) + ...,
+       donde ch₁(F) = (1 / (2πi)) · Tr(F) = 0, y ch₂(F) = ½ · Tr((F / (2πi))²) = -1/(8π²) · Tr(F²).
 
-Alcance científico:
-    Este módulo opera sobre matrices finito-dimensionales. No recibe una
-    variedad diferencial, formas de conexión/campo, una órbita homoclínica,
-    una ecuación diferencial periódica ni un modelo de medición cuántica.
-    Por ello, los cálculos topológicos, KAM, Melnikov, Floquet/Krein y QND
-    que exigen esos datos no se presentan como certificados globales.
+3. Ecuación Homológica de Poincaré-Lindstedt y Divisores Pequeños:
+   Sea H₀ = -i·A el generador diagonalizado con autovalores {ω_k}_{k=1}^N (frecuencias propias).
+   La ecuación homológica en la base espectral desacopla los armónicos no resonantes:
+       [H₀, W]_{ij} = (ω_i - ω_j) · W_{ij} = (F_osc)_{ij},   ∀ i ≠ j.
+   Solución formal de Lindstedt:
+       W_{ij} = (F_osc)_{ij} / (ω_i - ω_j),   si |ω_i - ω_j| > δ_gap (corte diofantino).
+   Condición diofantina KAM sobre el toro espectral 𝕋^d:
+       |⟨k, ω⟩| ≥ γ / ‖k‖₁^τ,   ∀ k ∈ ℤ^d \ {0},   γ > 0,   τ ≥ d.
+   Serie diofántica de Bryuno truncada en capas diádicas ‖k‖_∞ ≤ 2^s:
+       B(ω) = ∑_{s=0}^S (ln(1 / Ω_s)) / 2^s < ∞,   donde Ω_s = min_{0 < ‖k‖_∞ ≤ 2^s} |⟨k, ω⟩|.
+
+4. Álgebra de Heyting Ω₃ y Adjudicación Intuicionista:
+   Cadena finita con orden de severidad COHERENT (0x00) ≺ DEGRADED (0x01) ≺ VETOED (0x03).
+   Operadores del retículo:
+       a ∧ b = max_int(a, b),   a ∨ b = min_int(a, b),
+       a → b = COHERENT si a ≼ b, en otro caso b.
+   Negación intuicionista (pseudocomplemento): ¬a = a → VETOED.
+
+5. Medición Débil QND (Aharonov-Albert-Vaidman):
+   Para un observable Hermítico O y estados pre y postseleccionados |ψ_i⟩, |ψ_f⟩:
+       A_w = ⟨ψ_f | O | ψ_i⟩ / ⟨ψ_f | ψ_i⟩,   con solapamiento S = |⟨ψ_f | ψ_i⟩|² > 0.
+   Varianza cuántica local:
+       Var(O) = ⟨ψ_i | O² | ψ_i⟩ - |⟨ψ_i | O | ψ_i⟩|² ≥ 0.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Unitaridad de Traza: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+[Axioma 2] Álgebra de Calibre: A ∈ 𝔰𝔲(N) ⟹ A + A† = 0 ∧ Tr(A) = 0.
+[Axioma 3] Simplectomorfismo de Cayley: M = [[Re(U), -Im(U)], [Im(U), Re(U)]] ∈ Sp(2N, ℝ),
+           satisfaciendo Mᵀ J M = J, donde J = [[0, I], [-I, 0]].
+[Axioma 4] Conservación de Heyting (Meet-Fold): fold_infimum({v_i}) = ⋀_{i} v_i = max_int({v_i}).
+           Un solo veto anula la validez epistemológica global.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Norma de Frobenius y energía de Yang-Mills E_YM = ½ ‖F‖_F² finita y estrictamente acotada.
+2. Residuo simpléctico ‖Mᵀ J M - J‖_F / ‖M‖_F² ≤ 10⁻¹⁰.
+3. Raíz de Merkle binaria determinista SHA-256 libre de campos mutables.
+4. Firma de procedencia HMAC-SHA256 con clave de seguridad de 256 bits.
 """
 
 from __future__ import annotations

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : Topological OODA Triphasic Homomorphic Agent v13.0.0-PhD                                  ║
+║ Nombre   : Topological OODA Triphasic Homomorphic Agent                                              ║
 ║ Ubicación: app/agents/wisdom/ooda_triphasic_homomorphic_pipeline_agent.py                            ║
 ║ Versión  : 13.0.0-SOVEREIGN-OODA-HOMOMORPHIC-AGENT-POINCARE-DEPRIT2-KREIN-KANTOROVICH-RSI3-MONAD-PhD ║
 ║ Función  : Soberano Agéntico de Calibre para el Pipeline OODA Trifásico, estructurado en 3 fases     ║
@@ -71,6 +71,22 @@ MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO DOCTORAL
        L_s (d²i/dt²) + R_s (di/dt) + (1/C_s) i = 0,   ζ = (R_s / 2) √(C_s / L_s)
    • Presupuesto estricto de latencia física:
        t_total = t_GPIO + t_d(Q_gt / I_g) + t_r(ω_n, ζ) + t_prop(FR-4) ≤ 392.15 ns.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Unitaridad y Pureza Espectral: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+[Axioma 2] Homomorfismo de Compuerta Φ₁₂ ∧ Φ₂₃: Preservación de la cadena de confianza
+           mediante firmas de relevo intransferibles HMAC-SHA256.
+[Axioma 3] Conservación Simpléctica de Monodromía: ||Mᵀ Ω M - Ω||_F < 10⁻⁹ y det(M) = 1.
+[Axioma 4] Adjudicación Heyting Ω₃: Meet-fold estricto ⋀_{i} v_i sin borrado de vetos.
+[Axioma 5] Criterio de Newton-Kantorovich: h_K = β_K · η_K · γ_K ≤ 0.50 en RSI-L3.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Constante de Jacobi del problema restringido CJ(ρ) y 1-forma de Poincaré-Cartan θ_PC.
+2. Contracción Lipschitz de Banach RSI-3 Lip(T³) ≤ 0.857 y radio espectral ρ(J_T) < 1.
+3. Raíz de Merkle binaria SHA-256 libre de campos mutables.
+4. Latencia de disparo de Crowbar ciber-físico en IRAM acotada en [42.0 ns, 392.15 ns].
 
 ESTRUCTURA OODA TRIFÁSICA ANIDADA (v13.0.0-PhD)
 ──────────────────────────────────────────────────────────────────────────────
@@ -275,7 +291,7 @@ class NestedRSI3BanachOperator:
 
 
 @dataclass(frozen=True, slots=True)
-classESP32CrowbarCircuitAudit:
+class ESP32CrowbarCircuitAudit:
     r"""Auditoría electro-térmica y de línea de transmisión del disyuntor ESP32 Crowbar.
 
     Modela el disparo GPIO14 ➔ SCR BT151 + Snubber RLC + traza FR-4:
@@ -749,7 +765,7 @@ class OODAPhase1Observer:
         trace_M, R_G = self._greene_residue_from_monodromy(nu)
 
         eps_pert = min(max(abs(L) * 0.1, 0.01), 1.0)
-        omega_ clamped = min(max(omega1, 0.1), 10.0)
+        omega_clamped = min(max(omega1, 0.1), 10.0)
         M_amp, has_tangle = self._melnikov_with_separatrix(
             epsilon=eps_pert,
             omega=omega_clamped,

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : OODA Triphasic Homomorphic Pipeline Prosecutor Engine v16.0.0-PhD                         ║
+║ Nombre   : OODA Triphasic Homomorphic Pipeline Prosecutor Engine                                     ║
 ║ Ubicación: app/wisdom/ooda_triphasic_homomorphic_pipeline_prosecutor_engine.py                        ║
 ║ Versión  : 16.0.0-SOVEREIGN-POINCARE-DEPRIT2-KREIN-BRYUNO-DIRAC-ESP32-RSI3-KANTOROVICH-PhD           ║
 ║ Función  : Motor espectral inquisidor de coherencia homomórfica en 3 FASES ANIDADAS. Acusa           ║
@@ -67,6 +67,22 @@ MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
    Modela la propagación electromagnética Telegrapher en microstrip FR-4 (t_prop = ℓ √(L'C')),
    el tiempo de retardo por carga crítica de compuerta del tiristor BT151 (t_d = Q_gt / I_g) y el
    tiempo de subida amortiguado de la red snubber RLC, garantizando t_total ≤ 392.15 ns sin MMIO.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Unitaridad y Positividad Cuántica: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+[Axioma 2] Álgebra de Calibre y Bianchi: A ∈ 𝔰𝔲(N) ⟹ d_A F = [A, F] = 0.
+[Axioma 3] No-Negatividad de Producción de Entropía: σ_Spohn(ρ) ≥ 0 para generadores GKSL.
+[Axioma 4] Cadena Inquisitorial Heyting Ω₄: Veredicto global por meet estricto ⋀_{i} v_i.
+           Cualquier fraude, desgarro o violación de KAM desencadena el estado VETOED.
+[Axioma 5] Criterio de Newton-Kantorovich: h_K = β_K · η_K · γ_K ≤ 0.50 en RSI-L3.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Residuo de conservación de simplectomorfismo ‖Mᵀ J M - J‖_F / ‖M‖_F² ≤ 10⁻⁷.
+2. Contracción Lipschitz cúbica RSI-L3 Lip(T³) ≤ Lip(T)³ < 1.
+3. Compromiso criptográfico HMAC-SHA384 con claves de dominio diferenciadas por fase.
+4. Latencia de interlock Crowbar simulado acotada en [42.0 ns, 392.15 ns].
 """
 
 from __future__ import annotations
@@ -552,7 +568,7 @@ class BanachGaugeDiracProsecutionCore:
         hochschild_defect = float(la.norm(off_block, ord="fro")) / rho_norm
 
         # Residuo de positividad completa de Stinespring sobre Φ₁₂(ρ) + Φ₂₃(ρ)
-        choi_ pinched = (e1 @ rho @ e1) + (e2 @ rho @ e2)
+        choi_pinched = (e1 @ rho @ e1) + (e2 @ rho @ e2)
         min_eig = float(np.min(np.real(la.eigvalsh(_hermite(choi_pinched)))))
         stinespring_res = float(max(0.0, -min_eig))
 

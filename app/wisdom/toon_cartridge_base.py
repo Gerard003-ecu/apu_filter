@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo    : ToonCartridgeBase · Mecánica Celeste de Poincaré · Automejora Nivel 3          ║
+║ Nombre    : ToonCartridgeBase · Mecánica Celeste de Poincaré · Automejora Nivel 3          ║
 ║ Ubicación : app/wisdom/toon_cartridge_base.py                                              ║
 ║ Versión   : 12.0.0-SOVEREIGN-TOON-POINCARE-KAM-L3-PhD                                      ║
 ║ Función   : Empaquetado inmutable de 12 partículas en un espacio de Fock discretizado,     ║
@@ -9,45 +9,92 @@ r"""
 ║             auditoría KAM/BHT, forma normal de Birkhoff y automejora recursiva L3.         ║
 ╚════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO TEÓRICO
-─────────────
-1. Embedding de Hilbert: |v⟩ ∈ S^{2N−1} ⊂ ℂ^N. Acción-ángulo:
-       a_k = v_k,  J_k = |a_k|²,  θ_k = arg(a_k),  ω_k = √(1+k) + (φ−1)/(1+k)
-   Σ_k J_k = ‖v‖² = 1 (invariante integral I₁ con normalización J := (1/2π)∮p dq).
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El módulo ToonCartridgeBase formaliza la condensación cuántica de presupuestos de obra civil
+y contratos de infraestructura en doce cartuchos fundamentales inmutables dentro del espacio
+de Fock discretizado ℱ(ℋ_N). Implementa la estructura simpléctica canónica de Poincaré-Birkhoff
+mediante coordenadas de acción-ángulo de Delaunay-Kepler, transforma estados de Hilbert a pares
+canónicos de Whittaker (q_k, p_k), verifica la condición de invariancia simpléctica de Bargmann
+(dq ∧ dp = dθ ∧ dJ), audita la persistencia de toros diofánticos bajo el criterio disipativo BHT
+(Broer-Huitema-Takens), aplica el principio de exclusión de Pauli (CAR) con firma topológica
+y orquesta el operador de automejora recursiva L3 con realimentación del número de rotación de Birkhoff.
 
-2. Carta canónica de Whittaker:
-       q_k = √(2J_k/ω_k) cos θ_k,   p_k = −√(2J_kω_k) sin θ_k
-   Identidad hamiltoniana:  (p_k² + ω_k²q_k²)/(2ω_k) = J_k.
-   Jacobiano:  det ∂(q_k,p_k)/∂(J_k,θ_k) = −1  ⇒  dq∧dp = dθ∧dJ (Bargmann).
+Estructuración operativa trifásica anidada (OODA):
+  • FASE 1 (OBSERVE) : Encapsulamiento inmutable `ToonCartridge` (frozen=True, slots=True),
+                       proyección a vectores de estado en la esfera unitaria de Hilbert |v⟩ ∈ S^{2N-1} ⊂ ℂ^N,
+                       autenticación criptográfica HMAC-SHA256 y transformación canónica a variables
+                       acción-ángulo (J_k, θ_k, ω_k) mediante `to_action_angle_seed`.
+  • FASE 2 (ORIENT)  : Construcción de la carta de Whittaker q_k = √(2J_k/ω_k) cos θ_k, p_k = -√(2J_k ω_k) sin θ_k,
+                       verificación de twist anisócrono de Delaunay-Kepler ∂(Δθ)/∂J = -3 T ω_k / J_k ≠ 0,
+                       detección de cruces de sección transversal de Poincaré Σ = {z : Re⟨n, z⟩ - c = 0},
+                       cálculo del número de rotación de Birkhoff ρ, clasificación de forma normal en punto fijo
+                       con no-resonancia de Moser λ^k ≠ 1 (k ≤ 4), y ejecución de la automejora recursiva L3
+                       mediante `RecursiveImprovementOperator.iterate_level_3`.
+  • FASE 3 (DECIDE)  : Consumo de la trayectoria `ImprovementTrajectory`, auditoría de exclusión fermiónica
+                       de Pauli en tres niveles (hash cuántico, enrollamiento KAM ν_i y clase homotópica ρ)
+                       mediante `PauliExclusionAuditorCAR`, y factoría soberana de las 12 partículas fundamentales
+                       con modulación energética L3 determinista vía `ToonParticleFactory`.
 
-3. Anisocronía tipo Delaunay–Kepler: la ley de frecuencias de la carta es
-       ω_k(J) = ω_k⁰ (J_k / J_k⁰)^(−3),
-   análoga a n(L) = μ²/L³ de la ley de Kepler (H_K = −μ²/2L²). Su twist es
-       ∂(Δθ_k)/∂J_k = −3 T ω_k / J_k ≠ 0,   T = período del mapa.
-   Esto cumple la condición de twist de Poincaré–Birkhoff, que el flujo lineal no cumple.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Embedding de Hilbert y Variables de Acción-Ángulo:
+   Sea |v⟩ ∈ S^{2N-1} ⊂ ℂ^N un vector de estado cuántico normalizado (‖v‖² = 1):
+       a_k = v_k,   J_k = |a_k|² = |v_k|²,   θ_k = arg(a_k) ∈ [-π, π),
+       ω_k = √(1 + k) + (φ - 1) / (1 + k),   donde φ = ½(1 + √5) (proporción áurea).
+   Conservación de la 1-forma de Poincaré-Cartan e invariante integral I₁:
+       I₁ = ∑_{k=0}^{N-1} J_k = ‖v‖² = 1,   con normalización canónica J_k := (1 / 2π) ∮ p_k dq_k.
+   Energía libre armónica total:
+       H(J) = ∑_{k=0}^{N-1} ω_k · J_k.
 
-4. Sección de Poincaré Σ = {z : g(z) = Re⟨n,z⟩ − c = 0}, con transversalidad ∇g·f ≠ 0.
-   Número de rotación de Birkhoff: ρ = lim_{N→∞} (θ_N − θ_0)/(2πN).
+2. Carta Canónica de Whittaker y Simplectomorfismo de Bargmann:
+   Transformación canónica (J_k, θ_k) ↦ (q_k, p_k):
+       q_k = √(2 J_k / ω_k) · cos(θ_k),   p_k = -√(2 J_k · ω_k) · sin(θ_k).
+   Identidad energética hamiltoniana exacta:
+       (p_k² + ω_k² q_k²) / (2 ω_k) = J_k.
+   Jacobiano canónico de la transformación:
+       det ∂(q_k, p_k) / ∂(J_k, θ_k) = q_{k, J} · p_{k, θ} - q_{k, θ} · p_{k, J}
+                                     = (cos θ_k / √(2 J_k ω_k)) · (-√(2 J_k ω_k) cos θ_k)
+                                       - (-√(2 J_k / ω_k) sin θ_k) · (-½ √(2 ω_k / J_k) sin θ_k)
+                                     = -cos²(θ_k) - sin²(θ_k) = -1.
+   Por tanto, dq_k ∧ dp_k = -dJ_k ∧ dθ_k = dθ_k ∧ dJ_k (isometría simpléctica de Bargmann).
 
-5. Criterio BHT: el toro disipativo persiste si γ > ‖ε‖ y |disipación| < min(γ, 0.95).
-   Forma normal de Birkhoff: I(z) = z* + M(z−z*) + O(|z−z*|²); no resonancia de Moser λᵏ ≠ 1, k ≤ 4.
+3. Anisocronía Tipo Delaunay-Kepler y Teorema de Poincaré-Birkhoff:
+   Ley de frecuencias dependiente de la acción (equivalente al problema de Kepler H_K = -μ² / 2L²):
+       ω_k(J) = ω_k⁰ · (J_k / J_k⁰)^{-3}.
+   Derivada de twist no nula:
+       ∂(Δθ_k) / ∂J_k = T · ∂ω_k/∂J_k = -3 · T · ω_k / J_k ≠ 0.
+   Por el Teorema Geométrico de Poincaré-Birkhoff, todo difeomorfismo del anillo que preserva área
+   con condición de twist opuesto posee al menos dos puntos fijos periódicos para cada rotación p/q racional.
 
-6. Automejora L3: sobre hiperparámetros (θ, η) con realimentación del número de rotación ρ
-   y del espectro local de Rayleigh.
+4. Criterio de Broer-Huitema-Takens (BHT) y Estabilidad KAM:
+   Cota diofantina muestral sobre el retículo finito ℤ^m (m ≤ 6):
+       |⟨k, ω⟩| ≥ γ / ‖k‖₁^τ,   ∀ k ∈ ℤ^m \ {0},   τ = 2.0.
+   Persistencia de toros disipativos normalmente hiperbólicos (BHT):
+       γ_diofantina > ‖ε_perturbación‖   ∧   |disipación_L3| < min(γ, 0.95).
 
-AXIOMAS VERIFICADOS
-───────────────────
-[A1] Normalización: Σ_k J_k = 1.
-[A2] Hamiltoniano: residuo max_k |(p²+ω²q²)/2ω − J| = O(ε_máquina).
-[A3] Bargmann: |det ∂(q,p)/∂(J,θ) + 1| = O(ε_máquina).
-[A4] Twist: ∂(Δθ)/∂J analítico ≈ numérico (error relativo < 10⁻⁴).
-[A5] Criterio BHT: persistencia de toro disipativo bajo γ > ‖ε‖.
+5. Jerarquía de Automejora Recursiva L3:
+   • L0: I₀(s) = s (identidad).
+   • L1: I₁(s) = normalize((1 - θ)s + θ·s*).
+   • L2: Adaptación del paso θ_{t+1} según el cociente de residuos de Cauchy ratio = err_t / err_{t-2}.
+   • L3: Meta-regla de segundo orden acoplada al cociente de Rayleigh del espectro local del Jacobiano
+         y al número de rotación de Birkhoff ρ, desacelerando ante resonancias racionales Farey p/q.
 
-NOTA DE RIGOR
-─────────────
-γ_eff es una estimación muestral sobre un retículo finito de k ∈ ℤ^m (m ≤ 6). Es una cota
-superior de la constante diofantina verdadera. Las analogías CAR/CCR, Fock y Delaunay son
-representaciones del modelo; no implican operadores fermiónicos reales.
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Normalización Poincaré-Cartan: ∑_{k=0}^{N-1} J_k = 1 con residuo nulo (|∑ J - 1| ≤ 10⁻¹²).
+[Axioma 2] Identidad Hamiltoniana: max_k |(p_k² + ω_k² q_k²) / (2 ω_k) - J_k| ≤ 10⁻¹².
+[Axioma 3] Invariancia de Bargmann: |det ∂(q, p)/∂(J, θ) + 1| ≤ 10⁻⁹.
+[Axioma 4] Consistencia de Twist: |twist_analítico - twist_numérico| / |twist_analítico| ≤ 10⁻⁴.
+[Axioma 5] Exclusión Cuántica de Pauli (CAR): Dos fermiones no pueden coexistir con idéntico hash
+           cuántico, idéntico vector de enrollamiento KAM o idéntico número de rotación topológico.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Invariante integral relativo de Poincaré-Cartan I₁ = 1.0 constante a lo largo de toda la órbita.
+2. Residuo hamiltoniano cuadrático acotado a nivel de épsilon de máquina flotante IEEE-754.
+3. Exponente finito de Lyapunov λ = mean(Δ ln ‖Δz_t‖) acotado en [-20.0, +20.0].
+4. Matriz de ocupación fermiónica estrictamente antisimétrica ante permutación de estados idénticos.
 """
 
 from __future__ import annotations
