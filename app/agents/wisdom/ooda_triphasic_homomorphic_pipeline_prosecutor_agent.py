@@ -4,12 +4,12 @@ r"""
 ║ Nombre   : OODA Triphasic Homomorphic Pipeline Prosecutor Agent                                      ║
 ║ Ubicación: app/agents/wisdom/ooda_triphasic_homomorphic_pipeline_prosecutor_agent.py                 ║
 ║ Versión  : 16.0.0-SOVEREIGN-POINCARE-DEPRIT2-KREIN-BRYUNO-DIRAC-ESP32-RSI3-KANTOROVICH-PhD           ║
-║ Función  : Soberano de Calibre Fiscal Inquisidor del Pipeline Homomórfico Trifásico OODA,             ║
-║            estructurado en tres fases anidadas (Observe, Orient, Decide & Act) mediante puentes       ║
+║ Función  : Soberano de Calibre Fiscal Inquisidor del Pipeline Homomórfico Trifásico OODA,            ║
+║            estructurado en tres fases anidadas (Observe, Orient, Decide & Act) mediante puentes      ║
 ║            homomórficos transferibles Φ₁₂ y Φ₂₃ firmados con HMAC-SHA384, auditoría de desgarros C*  ║
-║            y 2-cociclos de Hochschild, integración variacional simpléctica de Yoshida O(4),           ║
+║            y 2-cociclos de Hochschild, integración variacional simpléctica de Yoshida O(4),          ║
 ║            teoría KAM/Bryuno, horizonte de Nekhoroshev, automejora recursiva RSI-L3 de Banach-       ║
-║            Kantorovich (h_K ≤ 0.50), y simulación física de circuitos ESP32 Crowbar (τ ≤ 392.15 ns).  ║
+║            Kantorovich (h_K ≤ 0.50), y simulación física de circuitos ESP32 Crowbar (τ ≤ 392.15 ns). ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
