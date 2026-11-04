@@ -1,78 +1,52 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Watcher Agent (Funtor Covariante de Propagación Tensorial)          ║
+║ Módulo : Watcher Agent — validación tensorial y propagación                  ║
 ║ Ruta   : app/agents/core/immune_system/watcher_agent.py                      ║
-║ Versión: 5.0.0-Nested-Spectral-Topos-Cauchy-Strict-NoHardware                ║
+║ Versión: 6.0.0-Nested-Refined-Hamiltonian                                    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y PROPAGACIÓN COVARIANTE EN EL ESTRATO COGNITIVO ───────
-Este módulo consagra la aduana de observabilidad y control tensorial primario,
-operando formalmente como el Funtor Covariante de Propagación Tensorial:
+Arquitectura ejecutable en tres fases estrictamente anidadas:
 
-                         𝒲_agent: \mathcal{C}_{\mathrm{states}} \longrightarrow \mathcal{C}_{\mathrm{topos}}
+    Phase1_StressTensorValidation
+        └── Phase2_CohomologyPushforward
+                └── Phase3_ToposPullback
 
-Su mandato axiomático es interceptar, validar y transportar el **Tensor de Estrés 
-de Cauchy-Momentum** $$\mathcal{T}^{\mu\nu}$$ (sección en el fibrado tensorial 
-simétrico de segundo orden $$\Gamma(\operatorname{Sym}^2 T\mathcal{M})$$) hacia el Topos 
-de Grothendieck (MICAgent) y el Interferómetro de Holonomía de la Malla 
-($$\text{SheafCohomologyOrchestrator}$$). 
+FASE 1 — VALIDACIÓN TENSORIAL Y REFINAMIENTO NUMÉRICO
+    Comprueba dimensiones, simetrías, positividad de la métrica y divergencia
+    covariante. La divergencia se evalúa mediante tres pasadas recursivas
+    acotadas: contracción float64, acumulación longdouble y suma compensada
+    Neumaier. El refinamiento no cambia los datos ni relaja la tolerancia.
 
-El agente rechaza de forma categórica las aproximaciones lineales planas. Modela 
-la fricción y la inercia del sistema como deformaciones en una **Membrana Viscoelástica 
-p-Laplaciana**. Subordina la viabilidad de la transacción al cumplimiento 
-estricto de las leyes de conservación covariante, la firma métrica base y el 
-acotamiento de la energía deformada de Dirichlet, confinando la mitigación y 
-contención de fallos exclusivamente al plano de la lógica de software síncrona, 
-sin recurrir a disyuntores mecánicos exógenos.
+FASE 2 — PUSHFORWARD Y MECÁNICA CELESTE OPCIONAL
+    Calcula la forma cuadrática para una coforma delta_x y una cota de Rayleigh
+    compatible con la métrica. Opcionalmente integra un estado canónico
+    newtoniano de N cuerpos mediante kick-drift-kick / Störmer–Verlet, método
+    simpléctico de paso fijo para Hamiltonianos separables.
 
-INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
-  [I1] Conservación Tensorial de Cauchy (Divergencia Covariante Nula):
-       La masa financiera y el flujo logístico transportados por el tensor de
-       estrés $$\mathcal{T}^{\mu\nu}$$ no presentan fugas ni sumideros espurios en el
-       espacio de fase, satisfaciendo estrictamente la ley de conservación:
-       $$\nabla_\mu \mathcal{T}^{\mu\nu} = \partial_\mu \mathcal{T}^{\mu\nu} + \Gamma^\mu_{\mu\lambda} \mathcal{T}^{\lambda\nu} + \Gamma^\nu_{\mu\lambda} \mathcal{T}^{\mu\lambda} \equiv 0 \pmod{\varepsilon_{\mathrm{machine}}} \quad\big[867, 870\big]$$
+FASE 3 — GOBERNANZA
+    Combina severidades en una cadena distributiva finita y aplica una política
+    de veto determinista. El resultado es un DTO de gobernanza; el nombre
+    "topos" describe la interfaz arquitectónica, no una construcción completa
+    de un topos de Grothendieck.
 
-  [I2] Simetría Hermítica de Cauchy-Noether:
-       El tensor de estrés es estrictamente simétrico y autoadjunto respecto al
-       isomorfismo musical inducido por el tensor métrico Riemanniano $$G_{\mu\nu}$$:
-       $$\mathcal{T}^{\mu\nu} = \mathcal{T}^{\nu\mu} \iff \|\mathcal{T} - \mathcal{T}^\top\|_F \le \tau_{\mathrm{symmetry}} \quad\big[866, 867\big]$$
+Convenciones:
+  • T_mu_nu almacena las componentes de 𝒯^{μν}, simétricas.
+  • G_mu_nu almacena las componentes de la métrica covariante G_{μν}.
+  • Christoffel[ρ, μ, ν] = Γ^ρ_{μν}.
+  • partial_T[ρ, μ, ν] = ∂_ρ 𝒯^{μν}.
+  • delta_x se interpreta como coforma α_μ. Por tanto, la energía es
+        αᵀ T α
+    y su norma geométrica es
+        αᵀ G⁻¹ α.
+  • Si partial_G no se entrega, la compatibilidad métrica de la conexión no
+    puede certificarse; se comprueba, en todo caso, la simetría de sus índices
+    inferiores (torsión nula).
 
-  [I3] Invariancia de Firma del Colector Base (Métrica Riemanniana SPD):
-       El tensor métrico $$G_{\mu\nu}$$ que dota de geometría al espacio de fase es
-       estrictamente simétrico definido positivo, limitando su mal condicionamiento
-       al límite espectral de Wilkinson:
-       $$G_{\mu\nu} \succ \mathbf{0} \quad\land\quad \kappa(G) = \frac{\lambda_{\max}(G)}{\lambda_{\min}(G)} \le \kappa_{\max} \quad\big[866, 868\big]$$
-
-  [I4] Acotamiento de la Energía de Deformación de Dirichlet:
-       La energía disipada por la deformación del campo de secciones de-confinado
-       no puede exceder el límite elástico tolerable por la conductancia del haz:
-       $$\mathcal{E}_{\mathcal{T}}(x) = \langle \delta x, \delta x \rangle_{\mathcal{T}, G^{-1}} = \operatorname{Tr}\left( (\delta x)^\top G^{-1} (\delta x) \mathcal{T} \right) \le \mathcal{C}_{\mathrm{sheaf}} \quad\big[868, 870, 871\big]$$
-
-  [I5] Homomorfismo en el Retículo Distributivo de Heyting:
-       Los veredictos de severidad espectral se evalúan algebraicamente sobre el
-       retículo de Heyting completo de cuatro valores de-confinados:
-       $$\Omega_4 = \{\mathrm{NOMINAL}, \mathrm{ELEVATED}, \mathrm{CRITICAL}, \mathrm{SINGULAR}\} \quad\big[869, 871\big]$$
-       Garantizando que la composición de estados converja al peor de los casos ($$\sqcup$$).
-
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por la composición covariante de morfismos
-en la categoría de haces de módulos y se ejecuta síncronamente en tres fases:
-
-  Fase 1 ──► FASE 1: VALIDACIÓN TENSORIAL ESPECTRAL (Phase1_StressTensorValidation)
-             Audita el tensor de estrés $$\mathcal{T}^{\mu\nu}$$ y la métrica de fondo $$G_{\mu\nu}$$,
-             calcula los autovalores generalizados del par, y verifica [I1] e [I2].
-             Entrega: ValidatedStressTensor como precondición de la Fase 2.
-
-  Fase 2 ──► FASE 2: PUSHFORWARD COVARIANTE DE ENERGÍA (Phase2_CovariantPushforward)
-             Calcula el empuje tensorial, estima la cota de Rayleigh y evalúa
-             el acotamiento de la energía deformada de Dirichlet.
-             Entrega: PushforwardResult como precondición de la Fase 3.
-
-  Fase 3 ──► FASE 3: CLAUSURA EN EL TOPOS Y VETO LÓGICO (Phase3_ToposGovernanceState)
-             Proyecta los resultados hacia el pullback de-confinado del clasificador
-             de subobjetos del retículo de Heyting, decidiendo el veredicto final.
-             Entrega: TensorialGovernanceState como certificado terminal del funtor.
+La integración celeste es opcional y no altera los datos tensoriales.
+Störmer–Verlet preserva la estructura simpléctica en aritmética exacta, pero
+no conserva exactamente la energía a paso finito; por eso se informan deriva
+energética y deriva del momento angular/lineal.
 """
 
 from __future__ import annotations
@@ -80,409 +54,1032 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass
-from enum import Enum, auto
-from typing import Any, Dict, Optional, Tuple, Final
+from enum import IntEnum
+from typing import Any, Dict, Final, Optional, Tuple
 
 import numpy as np
-import scipy.linalg as la
 from numpy.typing import NDArray
 
+
 # ══════════════════════════════════════════════════════════════════════════════
-# DEPENDENCIAS ESTRUCTURALES DEL ECOSISTEMA APU FILTER
+# DEPENDENCIAS DEL ECOSISTEMA
 # ══════════════════════════════════════════════════════════════════════════════
+
 try:
-    from app.core.mic_algebra import Morphism, CategoricalState, TopologicalInvariantError
-    from app.core.schemas import Stratum
+    from app.core.mic_algebra import (
+        CategoricalState,
+        Morphism,
+        TopologicalInvariantError,
+    )
 except ImportError:
     class TopologicalInvariantError(Exception):
-        """Violación a invariante topológico categórico."""
-        pass
+        """Fallback de la excepción categórica del ecosistema."""
 
     class Morphism:
-        """Morfismo base del 2-categoría de agentes."""
-        pass
+        """Fallback de la interfaz Morphism del ecosistema."""
 
     class CategoricalState:
-        pass
+        """Fallback de compatibilidad para consumidores del módulo."""
+
 
 try:
     from app.core.immune_system.metric_tensors import G_PHYSICS
 except ImportError:
-    # Tensor métrico euclídeo de dimensión canónica 7 (fallback unitario).
+    # Fallback de conveniencia. El pipeline no lo asigna implícitamente a datos.
     G_PHYSICS: NDArray[np.float64] = np.eye(7, dtype=np.float64)
+
 
 logger = logging.getLogger("MIC.ImmuneSystem.WatcherAgent")
 
+
 # ══════════════════════════════════════════════════════════════════════════════
-# CONSTANTES NUMÉRICAS, ESPECTRALES Y TERMODINÁMICAS
+# CONSTANTES NUMÉRICAS Y LÍMITES DE RECURSOS
 # ══════════════════════════════════════════════════════════════════════════════
+
 _MACHINE_EPSILON: Final[float] = float(np.finfo(np.float64).eps)
-_KAPPA_0: Final[float] = 1.0                    # Escala de Lipschitz base
-_DEFAULT_TOL: Final[float] = 1e-8               # Tolerancia absoluta de conservación
-_COND_MAX: Final[float] = 1e12                  # Umbral de mal-condicionamiento de G
-_RHO_CRIT: Final[float] = 1e6                   # Radio espectral crítico de 𝒯
-_LOCKDOWN_EPS_FACTOR: Final[float] = 1e4        # Factor de umbral de paranoia
-_SYMMETRY_REL_TOL: Final[float] = 1e-10         # Simetría relativa Frobenius
+_DEFAULT_TOL: Final[float] = 1e-8
+_COND_MAX: Final[float] = 1e12
+_RHO_CRIT: Final[float] = 1e6
+_KAPPA_0: Final[float] = 1.0
+_LOCKDOWN_EPS_FACTOR: Final[float] = 1e4
+_SYMMETRY_REL_TOL: Final[float] = 1e-10
+
+_REFINEMENT_LEVELS: Final[int] = 3
+_MAX_CELESTIAL_STEPS: Final[int] = 10_000
+_MAX_CELESTIAL_BODIES: Final[int] = 64
+_DEFAULT_CELESTIAL_DRIFT_LIMIT: Final[float] = 1e-6
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# EXCEPCIONES TENSORIALES (jerarquía categórica de fallos de invariantes)
+# EXCEPCIONES
 # ══════════════════════════════════════════════════════════════════════════════
+
 class WatcherAgentError(TopologicalInvariantError):
-    """Excepción raíz del Funtor Covariante de Propagación 𝒲_agent."""
-    pass
+    """Excepción raíz del pipeline del Watcher Agent."""
 
 
-class TensorConservationError(WatcherAgentError):
-    """Divergencia covariante ∇_μ 𝒯^{μν} no nula (fuga de exergía)."""
-    pass
-
-
-class TensorSymmetryError(WatcherAgentError):
-    """Violación de simetría 𝒯^{μν} = 𝒯^{νμ} (o de la métrica)."""
-    pass
-
-
-class MetricSignatureError(WatcherAgentError):
-    """Métrica no definida positiva o mal condicionada (firma riemanniana rota)."""
-    pass
-
-
-class DeformationEnergyOverflowError(WatcherAgentError):
-    """Energía de Dirichlet deformada supera la conductancia del haz celular."""
-    pass
+class InputValidationError(WatcherAgentError):
+    """Entrada no finita, no numérica o con una configuración inválida."""
 
 
 class DimensionMismatchError(WatcherAgentError):
-    """Inconsistencia dimensional entre tensores, métrica y cofrontera δx."""
-    pass
+    """Dimensiones tensoriales incompatibles."""
+
+
+class TensorSymmetryError(WatcherAgentError):
+    """Violación de simetría del tensor o de su derivada."""
+
+
+class MetricSignatureError(WatcherAgentError):
+    """La métrica no es simétrica definida positiva."""
+
+
+class ConnectionCompatibilityError(WatcherAgentError):
+    """La conexión no satisface las condiciones estructurales solicitadas."""
+
+
+class TensorConservationError(WatcherAgentError):
+    """La divergencia covariante excede la tolerancia configurada."""
+
+
+class NumericalStabilityError(WatcherAgentError):
+    """Un resultado intermedio no puede certificarse numéricamente."""
+
+
+class DeformationEnergyOverflowError(WatcherAgentError):
+    """La energía excede la capacidad o la envolvente configurada."""
+
+
+class PoincareStateError(WatcherAgentError):
+    """Estado o configuración inválidos para la integración celeste."""
+
+
+class CelestialCollisionError(PoincareStateError):
+    """Colisión puntual no regularizada en el modelo de N cuerpos."""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ENUMERACIONES AUXILIARES (álgebra de Boole de severidad espectral)
+# ENUMERACIONES Y OPERACIONES DE SEVERIDAD
 # ══════════════════════════════════════════════════════════════════════════════
-class SpectralSeverity(Enum):
-    """Severidad del espectro del par (𝒯, G) en el espacio de secciones."""
-    NOMINAL = auto()
-    ELEVATED = auto()
-    CRITICAL = auto()
-    SINGULAR = auto()
+
+class SpectralSeverity(IntEnum):
+    """
+    Cadena ordenada de severidad.
+
+    Esta estructura es un retículo distributivo finito; join y meet son,
+    respectivamente, el máximo y el mínimo. No se presenta como un álgebra
+    booleana de cuatro elementos.
+    """
+
+    NOMINAL = 0
+    ELEVATED = 1
+    CRITICAL = 2
+    SINGULAR = 3
+
+
+def join_severity(*values: SpectralSeverity) -> SpectralSeverity:
+    """Join de la cadena de severidad: el peor de los estados recibidos."""
+    if not values:
+        return SpectralSeverity.NOMINAL
+    return SpectralSeverity(max(int(value) for value in values))
+
+
+def meet_severity(*values: SpectralSeverity) -> SpectralSeverity:
+    """Meet de la cadena de severidad: el menos severo de los estados."""
+    if not values:
+        return SpectralSeverity.SINGULAR
+    return SpectralSeverity(min(int(value) for value in values))
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# ESTRUCTURAS INMUTABLES (DTOs TENSORIALES / OBJETOS DEL TOPOS)
+# UTILIDADES NUMÉRICAS Y DE INMUTABILIDAD
 # ══════════════════════════════════════════════════════════════════════════════
+
+def _finite_scalar(value: Any, name: str) -> float:
+    """Convierte a float y rechaza booleanos, NaN e infinitos."""
+    if isinstance(value, (bool, np.bool_)):
+        raise InputValidationError(f"{name} debe ser un escalar real, no booleano.")
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise InputValidationError(f"{name} no es un escalar real válido.") from exc
+    if not math.isfinite(result):
+        raise InputValidationError(f"{name} debe ser finito.")
+    return result
+
+
+def _readonly_float64(value: Any, name: str) -> NDArray[np.float64]:
+    """
+    Copia una entrada real a float64, la valida y la marca como solo lectura.
+
+    La copia impide que una mutación externa invalide silenciosamente un DTO
+    congelado después de su construcción.
+    """
+    try:
+        raw = np.asarray(value)
+    except (TypeError, ValueError) as exc:
+        raise InputValidationError(f"{name} no es convertible a un arreglo.") from exc
+
+    if raw.dtype.kind == "c":
+        raise InputValidationError(f"{name} debe ser real; no se aceptan complejos.")
+
+    try:
+        result = np.array(raw, dtype=np.float64, copy=True, order="C")
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise InputValidationError(f"{name} no puede convertirse a float64.") from exc
+
+    if not np.all(np.isfinite(result)):
+        raise InputValidationError(f"{name} contiene NaN o valores infinitos.")
+
+    result.setflags(write=False)
+    return result
+
+
+def _long_norm(values: Any) -> np.longdouble:
+    """Norma euclídea con escalado, acumulada en longdouble."""
+    array = np.asarray(values, dtype=np.longdouble).ravel()
+    if array.size == 0:
+        return np.longdouble(0.0)
+    if not np.all(np.isfinite(array)):
+        return np.longdouble(np.inf)
+
+    magnitudes = np.abs(array)
+    scale = np.max(magnitudes)
+    if scale == 0:
+        return np.longdouble(0.0)
+
+    with np.errstate(over="ignore", invalid="ignore", under="ignore"):
+        scaled = magnitudes / scale
+        return scale * np.sqrt(np.sum(scaled * scaled, dtype=np.longdouble))
+
+
+def _diagnostic_float(value: Any) -> float:
+    """Convierte una magnitud diagnóstica; valores no representables dan inf."""
+    value_ld = np.longdouble(value)
+    if np.isnan(value_ld):
+        return math.inf
+    if np.isinf(value_ld):
+        return math.inf
+    if abs(value_ld) > np.longdouble(np.finfo(np.float64).max):
+        return math.inf
+    return float(value_ld)
+
+
+def _ld_to_float(value: Any, name: str) -> float:
+    """Convierte un resultado extendido a float64 o falla de forma explícita."""
+    value_ld = np.longdouble(value)
+    if not np.isfinite(value_ld):
+        raise NumericalStabilityError(f"{name} no es finito en precisión extendida.")
+    if abs(value_ld) > np.longdouble(np.finfo(np.float64).max):
+        raise NumericalStabilityError(f"{name} excede el rango representable en float64.")
+    return float(value_ld)
+
+
+def _neumaier_sum(values: Any) -> np.longdouble:
+    """Suma compensada de Neumaier en la precisión disponible de longdouble."""
+    total = np.longdouble(0.0)
+    correction = np.longdouble(0.0)
+
+    for raw_value in values:
+        value = np.longdouble(raw_value)
+        if not np.isfinite(value):
+            return np.longdouble(np.inf)
+
+        updated = total + value
+        if not np.isfinite(updated):
+            return np.longdouble(np.inf)
+
+        if abs(total) >= abs(value):
+            correction += (total - updated) + value
+        else:
+            correction += (value - updated) + total
+        total = updated
+
+    result = total + correction
+    if not np.isfinite(result):
+        return np.longdouble(np.inf)
+    return result
+
+
+def _cross_longdouble(
+    left: NDArray[np.longdouble],
+    right: NDArray[np.longdouble],
+) -> NDArray[np.longdouble]:
+    """Producto vectorial tridimensional calculado componente a componente."""
+    return np.asarray(
+        (
+            left[1] * right[2] - left[2] * right[1],
+            left[2] * right[0] - left[0] * right[2],
+            left[0] * right[1] - left[1] * right[0],
+        ),
+        dtype=np.longdouble,
+    )
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# DTOs DE ENTRADA, RESULTADOS E INVARIANTES
+# ══════════════════════════════════════════════════════════════════════════════
+
 @dataclass(frozen=True, slots=True)
 class StressTensorData:
     r"""
-    Encapsula el Tensor de Estrés de Cauchy-Momentum evaluado localmente
-    junto con la geometría de fondo (métrica + conexión de Levi-Civita).
+    Entrada tensorial.
 
-    Convenciones de índices (notación abstracta de índices de Penrose):
-      • T_mu_nu     : 𝒯^{μν}  — (2,0) simétrico, dim×dim
-      • G_mu_nu     : G_{μν}  — (0,2) riemanniano, dim×dim
-      • Christoffel : Γ^ρ_{μν} — (1,2), dim×dim×dim
-      • partial_T   : ∂_ρ 𝒯^{μν} — dim×dim×dim  (ρ, μ, ν)
+    partial_G es opcional. Si se entrega, se comprueba ∇G = 0 con la convención
+    Christoffel[ρ, μ, ν] = Γ^ρ_{μν}; si no se entrega, esa compatibilidad queda
+    explícitamente como no verificada.
     """
+
     T_mu_nu: NDArray[np.float64]
     G_mu_nu: NDArray[np.float64]
     Christoffel: NDArray[np.float64]
     partial_T: NDArray[np.float64]
+    partial_G: Optional[NDArray[np.float64]] = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "T_mu_nu", _readonly_float64(self.T_mu_nu, "T_mu_nu")
+        )
+        object.__setattr__(
+            self, "G_mu_nu", _readonly_float64(self.G_mu_nu, "G_mu_nu")
+        )
+        object.__setattr__(
+            self, "Christoffel", _readonly_float64(self.Christoffel, "Christoffel")
+        )
+        object.__setattr__(
+            self, "partial_T", _readonly_float64(self.partial_T, "partial_T")
+        )
+        if self.partial_G is not None:
+            object.__setattr__(
+                self, "partial_G", _readonly_float64(self.partial_G, "partial_G")
+            )
+
+
+@dataclass(frozen=True, slots=True)
+class RefinementPass:
+    """Diagnóstico de una pasada del refinamiento recursivo de nivel 3."""
+
+    level: int
+    method: str
+    residual_absolute: float
+    residual_relative: float
+    change_relative: float
+
+
+@dataclass(frozen=True, slots=True)
+class RefinementReport:
+    """Certificado de las tres evaluaciones numéricas de la divergencia."""
+
+    passes: Tuple[RefinementPass, ...]
+    selected_level: int
 
 
 @dataclass(frozen=True, slots=True)
 class SpectralInvariants:
-    r"""
-    Invariantes espectrales del par (𝒯, G) extraídos en Fase 1.
-    Forman el objeto de datos que viaja funtorialmente a las fases anidadas.
-    """
-    trace_mixed: float              # Tr_G(𝒯) = 𝒯^{μν} G_{μν}  (traza mixta)
-    lambda_max_G: float             # λ_max(G)  (máximo autovalor de la métrica)
-    lambda_min_G: float             # λ_min(G)  (mínimo autovalor — gap espectral)
-    cond_G: float                   # κ(G) = λ_max / λ_min  (número de condición)
-    rho_T: float                    # ρ(𝒯) = max |λ_i(𝒯)|  (radio espectral)
-    op_norm_T: float                # ‖𝒯‖_{op} = σ_max(𝒯)  (norma de operador 2)
-    frobenius_T: float              # ‖𝒯‖_F
-    christoffel_contracted: NDArray[np.float64]  # Γ^μ_{μλ} ∈ ℝ^{dim}
+    """Invariantes espectrales extraídos en la Fase 1."""
+
+    trace_mixed: float
+    lambda_max_G: float
+    lambda_min_G: float
+    cond_G: float
+    rho_T: float
+    op_norm_T: float
+    metric_op_norm_T: float
+    frobenius_T: float
+    christoffel_contracted: NDArray[np.float64]
     severity: SpectralSeverity
+    connection_metric_compatible: Optional[bool] = None
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "christoffel_contracted",
+            _readonly_float64(
+                self.christoffel_contracted, "christoffel_contracted"
+            ),
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareNBodyState:
+    """
+    Estado canónico newtoniano de N cuerpos en coordenadas cartesianas 3D.
+
+    positions[i] = q_i; momenta[i] = p_i, con p_i = m_i v_i.
+    """
+
+    positions: NDArray[np.float64]
+    momenta: NDArray[np.float64]
+    masses: NDArray[np.float64]
+    gravitational_constant: float = 1.0
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "positions", _readonly_float64(self.positions, "positions")
+        )
+        object.__setattr__(
+            self, "momenta", _readonly_float64(self.momenta, "momenta")
+        )
+        object.__setattr__(self, "masses", _readonly_float64(self.masses, "masses"))
+
+        gravitational_constant = _finite_scalar(
+            self.gravitational_constant, "gravitational_constant"
+        )
+        if gravitational_constant <= 0.0:
+            raise PoincareStateError("gravitational_constant debe ser > 0.")
+        object.__setattr__(self, "gravitational_constant", gravitational_constant)
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareSimulationRequest:
+    """Solicitud de integración Hamiltoniana simpléctica a paso fijo."""
+
+    state: PoincareNBodyState
+    time_step: float
+    steps: int
+    softening: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.state, PoincareNBodyState):
+            raise PoincareStateError("state debe ser PoincareNBodyState.")
+
+        time_step = _finite_scalar(self.time_step, "time_step")
+        if time_step <= 0.0:
+            raise PoincareStateError("time_step debe ser estrictamente positivo.")
+        object.__setattr__(self, "time_step", time_step)
+
+        if isinstance(self.steps, (bool, np.bool_)) or not isinstance(
+            self.steps, (int, np.integer)
+        ):
+            raise PoincareStateError("steps debe ser un entero.")
+        steps = int(self.steps)
+        if steps <= 0 or steps > _MAX_CELESTIAL_STEPS:
+            raise PoincareStateError(
+                f"steps debe estar en [1, {_MAX_CELESTIAL_STEPS}]."
+            )
+        object.__setattr__(self, "steps", steps)
+
+        softening = _finite_scalar(self.softening, "softening")
+        if softening < 0.0:
+            raise PoincareStateError("softening no puede ser negativo.")
+        object.__setattr__(self, "softening", softening)
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareDiagnostics:
+    """Derivas conservativas observadas en una integración de N cuerpos."""
+
+    hamiltonian_initial: float
+    hamiltonian_final: float
+    relative_energy_drift: float
+    angular_momentum_initial: NDArray[np.float64]
+    angular_momentum_final: NDArray[np.float64]
+    relative_angular_momentum_drift: float
+    relative_linear_momentum_drift: float
+    steps: int
+    time_step: float
+    method: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "angular_momentum_initial",
+            _readonly_float64(
+                self.angular_momentum_initial, "angular_momentum_initial"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "angular_momentum_final",
+            _readonly_float64(
+                self.angular_momentum_final, "angular_momentum_final"
+            ),
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class ValidatedStressTensor:
-    """
-    Producto canónico de la Fase 1: tensor validado + invariantes espectrales.
-    Constituye el dominio formal del morfismo de la Fase 2.
-    """
+    """Producto certificado de la Fase 1 y dominio de la Fase 2."""
+
     T_mu_nu: NDArray[np.float64]
     G_mu_nu: NDArray[np.float64]
     invariants: SpectralInvariants
-    residual_relative: float        # Residuo relativo de ∇𝒯
+    residual_relative: float
+    refinement_report: RefinementReport
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self, "T_mu_nu", _readonly_float64(self.T_mu_nu, "validated.T_mu_nu")
+        )
+        object.__setattr__(
+            self, "G_mu_nu", _readonly_float64(self.G_mu_nu, "validated.G_mu_nu")
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class PushforwardResult:
-    """
-    Producto canónico de la Fase 2: energía deformada + cota de Rayleigh
-    + invariantes heredados. Dominio formal del morfismo de la Fase 3.
-    """
+    """Producto de la Fase 2 y dominio de la Fase 3."""
+
     deformed_energy: float
     rayleigh_bound: float
     energy_is_bounded: bool
     invariants: SpectralInvariants
+    metric_dual_norm_squared: float
+    celestial_diagnostics: Optional[PoincareDiagnostics] = None
+
+
+@dataclass(frozen=True, slots=True)
+class PoincarePushforwardData:
+    """Resumen de la integración celeste para telemetría y gobernanza."""
+
+    relative_energy_drift: float
+    relative_angular_momentum_drift: float
+    relative_linear_momentum_drift: float
+    steps: int
 
 
 @dataclass(frozen=True, slots=True)
 class CohomologyPushforwardData:
-    r"""Deformación inyectada al SheafCohomologyOrchestrator (H¹-push)."""
+    """DTO de salida consumible por el orquestador de cohomología."""
+
     deformed_dirichlet_energy: float
     stress_trace: float
     operator_norm: float
     spectral_radius: float
+    rayleigh_bound: float = 0.0
+    metric_dual_norm_squared: float = 0.0
+    energy_is_bounded: bool = True
+    celestial: Optional[PoincarePushforwardData] = None
 
 
 @dataclass(frozen=True, slots=True)
-class ToposPullbackData:
-    r"""Restricción inyectada al MICAgent (pullback en el topos de Grothendieck)."""
+class TensorialGovernanceState:
+    """Certificado terminal de la política de gobernanza."""
+
     L_max: float
     zero_trust_lockdown: bool
     severity: SpectralSeverity
     condition_number: float
+    reasons: Tuple[str, ...] = ()
+    celestial_stable: Optional[bool] = None
+    celestial_energy_drift: Optional[float] = None
+    celestial_angular_momentum_drift: Optional[float] = None
+    celestial_linear_momentum_drift: Optional[float] = None
+
+
+# Alias para compatibilidad con la interfaz de versiones anteriores.
+ToposPullbackData = TensorialGovernanceState
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 1 – VALIDACIÓN TENSORIAL ESPECTRAL Y EXTRACCIÓN DE INVARIANTES
+# FASE 1 — VALIDACIÓN TENSORIAL Y REFINAMIENTO RECURSIVO DE NIVEL 3
 # ══════════════════════════════════════════════════════════════════════════════
+
 class Phase1_StressTensorValidation:
     r"""
-    Primera fase del pipeline tensorial (morfismo monádico de validación).
+    Valida el tensor, la métrica y la divergencia covariante.
 
-    Verifica:
-      (i)   consistencia dimensional del 4-tuplo (𝒯, G, Γ, ∂𝒯);
-      (ii)  simetría de 𝒯 y de G (álgebra de tensores simétricos);
-      (iii) firma riemanniana de G (definida positiva vía Cholesky + espectro);
-      (iv)  conservación covariante ∇_μ 𝒯^{μν} = 0 (residuo relativo);
-      (v)   extracción del espectro completo (λ(G), ρ(𝒯), ‖𝒯‖_{op}, κ(G)).
+    El refinamiento de nivel 3 es determinista y acotado:
+      nivel 1: contracciones vectorizadas float64;
+      nivel 2: productos y acumulación longdouble;
+      nivel 3: suma compensada de Neumaier en longdouble.
 
-    El método público terminal `validate_tensor` devuelve un
-    `ValidatedStressTensor` que es el objeto de entrada formal de la
-    Fase 2 anidada (`Phase2_CohomologyPushforward`).
+    No cambia el tensor, no genera código y nunca relaja la tolerancia.
     """
 
     def __init__(self, tolerance: float = _DEFAULT_TOL) -> None:
-        if tolerance <= 0.0:
-            raise ValueError("tolerance debe ser estrictamente positiva.")
-        self._tol: float = float(tolerance)
-
-    # ─── utilidades de álgebra lineal numérica ───────────────────────────────
-
-    @staticmethod
-    def _frobenius_norm(A: NDArray[np.float64]) -> float:
-        """‖A‖_F = √(Σ_{ij} A_{ij}²) — norma de Hilbert-Schmidt."""
-        return float(np.linalg.norm(A, ord="fro"))
+        tolerance = _finite_scalar(tolerance, "tolerance")
+        if not 0.0 < tolerance < 1.0:
+            raise ValueError("tolerance debe satisfacer 0 < tolerance < 1.")
+        self._tol = tolerance
 
     @staticmethod
-    def _relative_symmetry_error(A: NDArray[np.float64]) -> float:
-        r"""
-        Error de simetría relativo: ‖A − Aᵀ‖_F / (‖A‖_F + ε_mach).
-        Invariante bajo escalado global del tensor.
-        """
-        fro = float(np.linalg.norm(A, ord="fro"))
-        skew = float(np.linalg.norm(A - A.T, ord="fro"))
-        return skew / (fro + _MACHINE_EPSILON)
+    def _relative_swap_error(
+        array: NDArray[np.float64],
+        axis_1: int,
+        axis_2: int,
+    ) -> float:
+        """Error relativo Frobenius frente al intercambio de dos ejes."""
+        array_ld = np.asarray(array, dtype=np.longdouble)
+        difference = array_ld - np.swapaxes(array_ld, axis_1, axis_2)
+        denominator = _long_norm(array_ld)
+        numerator = _long_norm(difference)
 
-    @staticmethod
-    def _safe_eigvalsh(A: NDArray[np.float64]) -> NDArray[np.float64]:
-        """
-        Autovalores de matriz hermitiana con re-simetrización previa
-        (proyección de Frobenius al subespacio simétrico) para estabilidad.
-        """
-        A_sym = 0.5 * (A + A.T)
-        return la.eigvalsh(A_sym)
-
-    # ─── chequeos estructurales ──────────────────────────────────────────────
+        if denominator == 0:
+            return 0.0 if numerator == 0 else math.inf
+        return _diagnostic_float(numerator / denominator)
 
     def _assert_dimensions(self, data: StressTensorData) -> int:
-        """
-        Verifica que todos los tensores compartan la misma dimensión n
-        y que los tensores de rango 3 tengan forma (n, n, n).
-        Devuelve n.
-        """
+        if not isinstance(data, StressTensorData):
+            raise InputValidationError("data debe ser StressTensorData.")
+
         T = data.T_mu_nu
         G = data.G_mu_nu
-        Gamma = data.Christoffel
-        dT = data.partial_T
+        gamma = data.Christoffel
+        partial_T = data.partial_T
 
         if T.ndim != 2 or T.shape[0] != T.shape[1]:
             raise DimensionMismatchError(
-                f"𝒯 debe ser cuadrado; recibido shape={T.shape}."
+                f"T debe ser cuadrado; recibido shape={T.shape}."
             )
+
         n = T.shape[0]
+        if n == 0:
+            raise DimensionMismatchError("La dimensión del tensor no puede ser cero.")
         if G.shape != (n, n):
             raise DimensionMismatchError(
-                f"G shape {G.shape} incompatible con dim(𝒯)={n}."
+                f"G tiene shape={G.shape}; se esperaba ({n}, {n})."
             )
-        if Gamma.shape != (n, n, n):
+        if gamma.shape != (n, n, n):
             raise DimensionMismatchError(
-                f"Christoffel shape {Gamma.shape} ≠ ({n},{n},{n})."
+                f"Christoffel tiene shape={gamma.shape}; "
+                f"se esperaba ({n}, {n}, {n})."
             )
-        if dT.shape != (n, n, n):
+        if partial_T.shape != (n, n, n):
             raise DimensionMismatchError(
-                f"partial_T shape {dT.shape} ≠ ({n},{n},{n})."
+                f"partial_T tiene shape={partial_T.shape}; "
+                f"se esperaba ({n}, {n}, {n})."
             )
-        if n == 0:
-            raise DimensionMismatchError("Dimensión nula del fibrado tangente.")
+        if data.partial_G is not None and data.partial_G.shape != (n, n, n):
+            raise DimensionMismatchError(
+                f"partial_G tiene shape={data.partial_G.shape}; "
+                f"se esperaba ({n}, {n}, {n})."
+            )
         return n
 
-    def _check_symmetry(self, T: NDArray[np.float64]) -> None:
-        """Exige simetría de 𝒯 con tolerancia relativa Frobenius."""
-        err = self._relative_symmetry_error(T)
-        if err > max(self._tol, _SYMMETRY_REL_TOL):
-            raise TensorSymmetryError(
-                f"𝒯 no es simétrico: error relativo Frobenius = {err:.3e}."
+    def _check_matrix_symmetry(
+        self,
+        matrix: NDArray[np.float64],
+        name: str,
+        exception_type: type[WatcherAgentError],
+    ) -> None:
+        error = self._relative_swap_error(matrix, 0, 1)
+        threshold = max(self._tol, _SYMMETRY_REL_TOL)
+        if not math.isfinite(error) or error > threshold:
+            raise exception_type(
+                f"{name} no es simétrica: error relativo={error:.3e}."
             )
 
-    def _check_metric(self, G: NDArray[np.float64]) -> Tuple[float, float, float]:
-        r"""
-        Verifica simetría y definidad positiva de G.
-        Usa Cholesky (fallo ⇒ no PD) + espectro para λ_min, λ_max, κ(G).
-        Devuelve (λ_min, λ_max, cond).
+    def _check_metric(
+        self,
+        metric: NDArray[np.float64],
+    ) -> Tuple[float, float, float]:
         """
-        err = self._relative_symmetry_error(G)
-        if err > max(self._tol, _SYMMETRY_REL_TOL):
+        Comprueba positividad definida por espectro y Cholesky.
+
+        κ(G) por encima del umbral se conserva como diagnóstico de severidad;
+        no se confunde con la pérdida de positividad definida.
+        """
+        try:
+            eigenvalues = np.linalg.eigvalsh(metric)
+        except np.linalg.LinAlgError as exc:
+            raise MetricSignatureError("No se pudo calcular el espectro de G.") from exc
+
+        if not np.all(np.isfinite(eigenvalues)):
+            raise MetricSignatureError("El espectro de G no es finito.")
+
+        lambda_min = float(eigenvalues[0])
+        lambda_max = float(eigenvalues[-1])
+        if lambda_min <= 0.0:
             raise MetricSignatureError(
-                f"G no es simétrica: error relativo Frobenius = {err:.3e}."
+                f"λ_min(G)={lambda_min:.3e}; se requiere G ≻ 0."
             )
 
-        # Test de Cholesky (O(n³/3), más estable que solo autovalores para PD).
         try:
-            la.cholesky(G, lower=True, overwrite_a=False, check_finite=True)
-        except la.LinAlgError as exc:
+            np.linalg.cholesky(metric)
+        except np.linalg.LinAlgError as exc:
             raise MetricSignatureError(
-                "G no es definida positiva (fallo de Cholesky)."
+                "La factorización de Cholesky de G falló."
             ) from exc
 
-        eigvals = self._safe_eigvalsh(G)
-        lam_min = float(eigvals[0])
-        lam_max = float(eigvals[-1])
+        condition_ld = np.longdouble(lambda_max) / np.longdouble(lambda_min)
+        condition_number = _diagnostic_float(condition_ld)
 
-        if lam_min <= 0.0:
-            # Redundante tras Cholesky, pero cierra el invariante espectral.
-            raise MetricSignatureError(
-                f"λ_min(G) = {lam_min:.3e} ≤ 0: firma no riemanniana."
-            )
-
-        cond = lam_max / lam_min
-        if cond > _COND_MAX:
+        if condition_number > _COND_MAX:
             logger.warning(
-                "Métrica mal condicionada: κ(G)=%.3e > κ_max=%.1e",
-                cond, _COND_MAX,
+                "Métrica mal condicionada: κ(G)=%.3e > %.1e",
+                condition_number,
+                _COND_MAX,
             )
-        return lam_min, lam_max, cond
 
-    # ─── divergencia covariante (conexión de Levi-Civita) ────────────────────
+        return lambda_min, lambda_max, condition_number
 
-    def _compute_divergence(
-        self, data: StressTensorData
-    ) -> NDArray[np.float64]:
-        r"""
-        Calcula el vector (∇_μ 𝒯)^{ν} mediante contracciones de Einstein
-        vectorizadas (einsum), respetando la fórmula de la conexión afín:
-
-            (∇𝒯)^ν = ∂_μ 𝒯^{μν}
-                     + Γ^μ_{μλ} 𝒯^{λν}
-                     + Γ^ν_{μλ} 𝒯^{μλ}
-
-        Índices de entrada:
-          partial_T[ρ, μ, ν] = ∂_ρ 𝒯^{μν}
-          Christoffel[ρ, μ, ν] = Γ^ρ_{μν}
-          T[μ, ν] = 𝒯^{μν}
+    def _check_connection(
+        self,
+        gamma_input: NDArray[np.float64],
+        metric: NDArray[np.float64],
+        partial_G_input: Optional[NDArray[np.float64]],
+    ) -> Tuple[NDArray[np.float64], Optional[bool]]:
         """
-        T = data.T_mu_nu
-        Gamma = data.Christoffel
-        partial_T = data.partial_T
+        Comprueba torsión nula y, cuando existe partial_G, ∇G = 0.
 
-        # ∂_μ 𝒯^{μν}  → contracción del índice de derivada con el primer índice
-        # de 𝒯 (μ). Resultado: vector en ν.
-        div_partial = np.einsum("mmn->n", partial_T, optimize=True)
+        Devuelve una conexión proyectada a la simetría de sus índices
+        inferiores, siempre que la desviación original esté dentro de tol.
+        """
+        torsion_error = self._relative_swap_error(gamma_input, 1, 2)
+        threshold = max(self._tol, _SYMMETRY_REL_TOL)
+        if not math.isfinite(torsion_error) or torsion_error > threshold:
+            raise ConnectionCompatibilityError(
+                "Christoffel no es simétrico en los índices inferiores: "
+                f"error relativo={torsion_error:.3e}."
+            )
 
-        # Γ^μ_{μλ}  → contracción de los dos primeros índices de Γ (ρ=μ).
-        # Resultado: covector en λ.
-        gamma_contracted = np.einsum("mml->l", Gamma, optimize=True)
+        gamma = 0.5 * gamma_input + 0.5 * np.swapaxes(gamma_input, 1, 2)
+        if partial_G_input is None:
+            return gamma, None
 
-        # (Γ^μ_{μλ}) 𝒯^{λν}  → producto matriz-vector (λ→ν).
-        term1 = gamma_contracted @ T
+        metric_derivative_error = self._relative_swap_error(
+            partial_G_input, 1, 2
+        )
+        if (
+            not math.isfinite(metric_derivative_error)
+            or metric_derivative_error > threshold
+        ):
+            raise TensorSymmetryError(
+                "partial_G no es simétrica en sus dos índices métricos: "
+                f"error relativo={metric_derivative_error:.3e}."
+            )
 
-        # Γ^ν_{μλ} 𝒯^{μλ}  → contracción total de los dos índices de 𝒯
-        # con los dos índices covariantes de Γ, libre en ν.
-        term2 = np.einsum("nml,ml->n", Gamma, T, optimize=True)
+        partial_G = (
+            0.5 * partial_G_input
+            + 0.5 * np.swapaxes(partial_G_input, 1, 2)
+        )
 
-        return div_partial + term1 + term2
+        gamma_ld = np.asarray(gamma, dtype=np.longdouble)
+        metric_ld = np.asarray(metric, dtype=np.longdouble)
+        partial_G_ld = np.asarray(partial_G, dtype=np.longdouble)
+        n = metric.shape[0]
 
-    # ─── espectro completo del par (𝒯, G) ────────────────────────────────────
+        covariant_derivative = np.zeros((n, n, n), dtype=np.longdouble)
+        gamma_metric_first = np.zeros_like(covariant_derivative)
+        gamma_metric_second = np.zeros_like(covariant_derivative)
+
+        for rho in range(n):
+            for mu in range(n):
+                for nu in range(n):
+                    first_terms = [
+                        gamma_ld[lam, rho, mu] * metric_ld[lam, nu]
+                        for lam in range(n)
+                    ]
+                    second_terms = [
+                        gamma_ld[lam, rho, nu] * metric_ld[mu, lam]
+                        for lam in range(n)
+                    ]
+                    gamma_metric_first[rho, mu, nu] = _neumaier_sum(first_terms)
+                    gamma_metric_second[rho, mu, nu] = _neumaier_sum(second_terms)
+                    covariant_derivative[rho, mu, nu] = (
+                        partial_G_ld[rho, mu, nu]
+                        - gamma_metric_first[rho, mu, nu]
+                        - gamma_metric_second[rho, mu, nu]
+                    )
+
+        residual = _long_norm(covariant_derivative)
+        scale = (
+            _long_norm(partial_G_ld)
+            + _long_norm(gamma_metric_first)
+            + _long_norm(gamma_metric_second)
+        )
+        if scale == 0:
+            compatibility_error = 0.0 if residual == 0 else math.inf
+        else:
+            compatibility_error = _diagnostic_float(residual / scale)
+
+        if (
+            not math.isfinite(compatibility_error)
+            or compatibility_error > self._tol
+        ):
+            raise ConnectionCompatibilityError(
+                "La conexión no es compatible con G: "
+                f"residuo relativo={compatibility_error:.3e}."
+            )
+
+        return gamma, True
+
+    @staticmethod
+    def _divergence_terms_for_component(
+        T: NDArray[np.float64],
+        gamma: NDArray[np.float64],
+        partial_T: NDArray[np.float64],
+        nu: int,
+    ) -> list[np.longdouble]:
+        """Genera los términos de la componente ν de ∇_μ T^{μν}."""
+        n = T.shape[0]
+        terms: list[np.longdouble] = []
+
+        for mu in range(n):
+            terms.append(np.longdouble(partial_T[mu, mu, nu]))
+
+        for mu in range(n):
+            for lam in range(n):
+                terms.append(
+                    np.longdouble(gamma[mu, mu, lam])
+                    * np.longdouble(T[lam, nu])
+                )
+
+        for mu in range(n):
+            for lam in range(n):
+                terms.append(
+                    np.longdouble(gamma[nu, mu, lam])
+                    * np.longdouble(T[mu, lam])
+                )
+
+        return terms
+
+    def _compute_divergence_at_level(
+        self,
+        T: NDArray[np.float64],
+        gamma: NDArray[np.float64],
+        partial_T: NDArray[np.float64],
+        level: int,
+    ) -> NDArray[np.longdouble]:
+        """
+        Calcula ∇_μ T^{μν} con una de las tres acumulaciones anidadas.
+        """
+        n = T.shape[0]
+
+        if level == 1:
+            with np.errstate(over="ignore", invalid="ignore"):
+                derivative_term = np.einsum(
+                    "mmn->n", partial_T, optimize=True
+                )
+                gamma_contracted = np.einsum(
+                    "mml->l", gamma, optimize=True
+                )
+                connection_term_1 = gamma_contracted @ T
+                connection_term_2 = np.einsum(
+                    "nml,ml->n", gamma, T, optimize=True
+                )
+                result = (
+                    derivative_term
+                    + connection_term_1
+                    + connection_term_2
+                )
+            return np.asarray(result, dtype=np.longdouble)
+
+        result = np.zeros(n, dtype=np.longdouble)
+        for nu in range(n):
+            terms = self._divergence_terms_for_component(
+                T, gamma, partial_T, nu
+            )
+            if level == 2:
+                result[nu] = np.sum(
+                    np.asarray(terms, dtype=np.longdouble),
+                    dtype=np.longdouble,
+                )
+            elif level == 3:
+                result[nu] = _neumaier_sum(terms)
+            else:
+                raise ValueError("El nivel de refinamiento debe ser 1, 2 o 3.")
+
+        return result
+
+    @staticmethod
+    def _divergence_source_scale(
+        T: NDArray[np.float64],
+        gamma: NDArray[np.float64],
+        partial_T: NDArray[np.float64],
+    ) -> np.longdouble:
+        """
+        Escala relativa basada en las magnitudes de los tres sumandos de la
+        divergencia. Evita comparar cantidades con dimensiones distintas
+        contra una tolerancia absoluta sobre ||T||.
+        """
+        norm_partial = _long_norm(partial_T)
+        norm_gamma = _long_norm(gamma)
+        norm_T = _long_norm(T)
+        with np.errstate(over="ignore", invalid="ignore"):
+            return norm_partial + np.longdouble(2.0) * norm_gamma * norm_T
+
+    @staticmethod
+    def _relative_residual(
+        divergence: NDArray[np.longdouble],
+        source_scale: np.longdouble,
+    ) -> np.longdouble:
+        numerator = _long_norm(divergence)
+        if not np.isfinite(numerator) or not np.isfinite(source_scale):
+            return np.longdouble(np.inf)
+        if source_scale == 0:
+            return np.longdouble(0.0) if numerator == 0 else np.longdouble(np.inf)
+        return numerator / source_scale
+
+    def _recursive_self_improvement(
+        self,
+        T: NDArray[np.float64],
+        gamma: NDArray[np.float64],
+        partial_T: NDArray[np.float64],
+        level: int = 1,
+        previous: Optional[NDArray[np.longdouble]] = None,
+        records: Optional[list[RefinementPass]] = None,
+        source_scale: Optional[np.longdouble] = None,
+    ) -> Tuple[NDArray[np.longdouble], RefinementReport]:
+        """
+        Refinamiento recursivo finito: cada nivel reevalúa la misma expresión
+        con acumulación más resistente; no modifica el problema ni sus reglas.
+        """
+        if level < 1 or level > _REFINEMENT_LEVELS:
+            raise ValueError("Nivel recursivo fuera del intervalo permitido.")
+
+        if records is None:
+            records = []
+        if source_scale is None:
+            source_scale = self._divergence_source_scale(T, gamma, partial_T)
+
+        candidate = self._compute_divergence_at_level(
+            T, gamma, partial_T, level
+        )
+        residual_absolute = _long_norm(candidate)
+        residual_relative = self._relative_residual(candidate, source_scale)
+
+        if previous is None:
+            change_relative = np.longdouble(0.0)
+        else:
+            change = _long_norm(candidate - previous)
+            denominator = max(
+                source_scale,
+                _long_norm(candidate),
+                _long_norm(previous),
+                np.finfo(np.longdouble).tiny,
+            )
+            change_relative = change / denominator
+
+        method_names = {
+            1: "einsum-float64",
+            2: "longdouble-pairwise",
+            3: "longdouble-neumaier",
+        }
+        records.append(
+            RefinementPass(
+                level=level,
+                method=method_names[level],
+                residual_absolute=_diagnostic_float(residual_absolute),
+                residual_relative=_diagnostic_float(residual_relative),
+                change_relative=_diagnostic_float(change_relative),
+            )
+        )
+
+        if level < _REFINEMENT_LEVELS:
+            return self._recursive_self_improvement(
+                T=T,
+                gamma=gamma,
+                partial_T=partial_T,
+                level=level + 1,
+                previous=candidate,
+                records=records,
+                source_scale=source_scale,
+            )
+
+        return candidate, RefinementReport(
+            passes=tuple(records),
+            selected_level=level,
+        )
 
     def _compute_spectral_invariants(
         self,
-        data: StressTensorData,
-        lam_min_G: float,
-        lam_max_G: float,
+        T: NDArray[np.float64],
+        G: NDArray[np.float64],
+        gamma: NDArray[np.float64],
+        lambda_min_G: float,
+        lambda_max_G: float,
         cond_G: float,
+        connection_metric_compatible: Optional[bool],
     ) -> SpectralInvariants:
-        r"""
-        Extrae el paquete completo de invariantes espectrales:
+        """Calcula invariantes euclídeos y métricos del tensor validado."""
+        try:
+            eigenvalues_G, eigenvectors_G = np.linalg.eigh(G)
+            sqrt_G = (
+                eigenvectors_G * np.sqrt(eigenvalues_G)[None, :]
+            ) @ eigenvectors_G.T
 
-          • Tr_G(𝒯) = 𝒯^{μν} G_{μν}          (traza mixta / contracción métrica)
-          • ρ(𝒯)    = max |λ_i(𝒯)|            (radio espectral)
-          • ‖𝒯‖_op  = σ_max(𝒯)                (norma de operador inducida por ℓ₂)
-          • ‖𝒯‖_F                              (norma de Frobenius)
-          • Γ^μ_{μλ}                           (contracción de Christoffel)
-          • Severidad espectral (álgebra de Boole de umbrales)
-        """
-        T = data.T_mu_nu
-        G = data.G_mu_nu
+            metric_weighted_T = sqrt_G @ T @ sqrt_G
+            metric_weighted_T = (
+                0.5 * metric_weighted_T
+                + 0.5 * metric_weighted_T.T
+            )
+            eigenvalues_metric_T = np.linalg.eigvalsh(metric_weighted_T)
+            eigenvalues_euclidean_T = np.linalg.eigvalsh(T)
+        except np.linalg.LinAlgError as exc:
+            raise NumericalStabilityError(
+                "No se pudieron extraer los invariantes espectrales."
+            ) from exc
 
-        # Traza mixta: 𝒯^{μν} G_{μν}. No requiere invertir G.
-        # (Equivalente a Tr(𝒯 · G^♭) si 𝒯 es (2,0) y G es (0,2).)
-        trace_mixed = float(np.einsum("ij,ij->", T, G, optimize=True))
+        if not (
+            np.all(np.isfinite(eigenvalues_metric_T))
+            and np.all(np.isfinite(eigenvalues_euclidean_T))
+        ):
+            raise NumericalStabilityError("El espectro del tensor no es finito.")
 
-        # Espectro de 𝒯 (re-simetrizado).
-        eig_T = self._safe_eigvalsh(T)
-        rho_T = float(np.max(np.abs(eig_T)))
+        metric_operator_norm = float(
+            np.max(np.abs(eigenvalues_metric_T))
+        )
+        rho_T = metric_operator_norm
+        euclidean_operator_norm = float(
+            np.max(np.abs(eigenvalues_euclidean_T))
+        )
 
-        # Norma de operador 2 = mayor valor singular.
-        # Para simétricas: σ_max = max |λ_i|; usamos SVD genérico por robustez.
-        op_norm_T = float(np.linalg.norm(T, ord=2))
+        trace_terms = (
+            np.longdouble(T[i, j]) * np.longdouble(G[i, j])
+            for i in range(T.shape[0])
+            for j in range(T.shape[1])
+        )
+        trace_mixed = _ld_to_float(
+            _neumaier_sum(trace_terms), "trace_mixed"
+        )
 
-        frobenius_T = self._frobenius_norm(T)
+        frobenius_T = _ld_to_float(_long_norm(T), "frobenius_T")
 
-        gamma_contracted = np.einsum("mml->l", data.Christoffel, optimize=True)
+        gamma_contracted_ld = np.asarray(
+            [
+                _neumaier_sum(
+                    gamma[mu, mu, lam]
+                    for mu in range(gamma.shape[0])
+                )
+                for lam in range(gamma.shape[0])
+            ],
+            dtype=np.longdouble,
+        )
+        gamma_contracted = np.asarray(
+            [
+                _ld_to_float(value, "christoffel_contracted")
+                for value in gamma_contracted_ld
+            ],
+            dtype=np.float64,
+        )
 
-        # Predicado booleano de severidad (álgebra de Boole de umbrales).
-        severity = self._classify_severity(cond_G, rho_T, lam_min_G)
+        severity = self._classify_severity(
+            cond_G=cond_G,
+            rho_T=rho_T,
+            lambda_min_G=lambda_min_G,
+            lambda_max_G=lambda_max_G,
+        )
 
         return SpectralInvariants(
             trace_mixed=trace_mixed,
-            lambda_max_G=lam_max_G,
-            lambda_min_G=lam_min_G,
+            lambda_max_G=lambda_max_G,
+            lambda_min_G=lambda_min_G,
             cond_G=cond_G,
             rho_T=rho_T,
-            op_norm_T=op_norm_T,
+            op_norm_T=euclidean_operator_norm,
+            metric_op_norm_T=metric_operator_norm,
             frobenius_T=frobenius_T,
             christoffel_contracted=gamma_contracted,
             severity=severity,
+            connection_metric_compatible=connection_metric_compatible,
         )
 
     @staticmethod
     def _classify_severity(
-        cond_G: float, rho_T: float, lam_min_G: float
+        cond_G: float,
+        rho_T: float,
+        lambda_min_G: float,
+        lambda_max_G: float,
     ) -> SpectralSeverity:
-        """
-        Clasificación booleana de severidad espectral:
-          SINGULAR  ⇔ λ_min ≈ 0  (gap colapsado)
-          CRITICAL  ⇔ κ(G) > κ_max  ∨  ρ(𝒯) > ρ_crit
-          ELEVATED  ⇔ κ(G) > √κ_max  ∨  ρ(𝒯) > √ρ_crit
-          NOMINAL   ⇔ en otro caso
-        """
-        if lam_min_G < _MACHINE_EPSILON * 10.0:
+        """Clasificación monotónica de la severidad espectral."""
+        singular_gap = (
+            10.0
+            * _MACHINE_EPSILON
+            * max(lambda_max_G, np.finfo(np.float64).tiny)
+        )
+        if lambda_min_G <= singular_gap:
             return SpectralSeverity.SINGULAR
         if cond_G > _COND_MAX or rho_T > _RHO_CRIT:
             return SpectralSeverity.CRITICAL
@@ -490,230 +1087,678 @@ class Phase1_StressTensorValidation:
             return SpectralSeverity.ELEVATED
         return SpectralSeverity.NOMINAL
 
-    # ─── método terminal de la Fase 1 (contrato de entrada de la Fase 2) ─────
-
-    def validate_tensor(self, data: StressTensorData) -> ValidatedStressTensor:
+    def validate_tensor(
+        self,
+        data: StressTensorData,
+    ) -> ValidatedStressTensor:
         r"""
-        Ejecuta la validación completa del 4-tuplo (𝒯, G, Γ, ∂𝒯) y devuelve
-        el objeto `ValidatedStressTensor` que constituye el dominio formal
-        del morfismo de pushforward cohomológico de la Fase 2.
+        Método terminal de la Fase 1.
 
-        Pipeline interno (composición de monomorfismos de validación):
-          dim ✓ → simetría(𝒯) ✓ → métrica(G) ✓ → ∇𝒯 ≈ 0 ✓ → espectro(𝒯,G)
-
-        Este es el último método público de la Fase 1; su tipo de retorno
-        `ValidatedStressTensor` es exactamente el tipo de entrada del método
-        principal de la clase anidada `Phase2_CohomologyPushforward`.
+        Emite ValidatedStressTensor únicamente después de comprobar dimensiones,
+        simetrías, métrica SPD, estructura de conexión y divergencia covariante.
         """
-        # (i) Dimensiones
         n = self._assert_dimensions(data)
 
-        # (ii) Simetría de 𝒯
-        self._check_symmetry(data.T_mu_nu)
+        self._check_matrix_symmetry(
+            data.T_mu_nu, "T", TensorSymmetryError
+        )
+        self._check_matrix_symmetry(
+            data.G_mu_nu, "G", MetricSignatureError
+        )
 
-        # (iii) Métrica riemanniana + espectro de G
-        lam_min_G, lam_max_G, cond_G = self._check_metric(data.G_mu_nu)
+        derivative_symmetry_error = self._relative_swap_error(
+            data.partial_T, 1, 2
+        )
+        if (
+            not math.isfinite(derivative_symmetry_error)
+            or derivative_symmetry_error
+            > max(self._tol, _SYMMETRY_REL_TOL)
+        ):
+            raise TensorSymmetryError(
+                "partial_T no conserva la simetría de T en sus índices "
+                f"tensoriales: error={derivative_symmetry_error:.3e}."
+            )
 
-        # (iv) Conservación covariante (residuo absoluto y relativo)
-        div_cov = self._compute_divergence(data)
-        residual_abs = float(np.linalg.norm(div_cov, ord=2))
-        scale = self._frobenius_norm(data.T_mu_nu) + _MACHINE_EPSILON
-        residual_rel = residual_abs / scale
+        # Proyecciones simétricas solo después de verificar que el residuo
+        # original está dentro de la tolerancia declarada.
+        T = 0.5 * data.T_mu_nu + 0.5 * data.T_mu_nu.T
+        G = 0.5 * data.G_mu_nu + 0.5 * data.G_mu_nu.T
+        partial_T = (
+            0.5 * data.partial_T
+            + 0.5 * np.swapaxes(data.partial_T, 1, 2)
+        )
 
-        if residual_rel > self._tol:
+        if not (
+            np.all(np.isfinite(T))
+            and np.all(np.isfinite(G))
+            and np.all(np.isfinite(partial_T))
+        ):
+            raise NumericalStabilityError(
+                "La proyección simétrica produjo valores no finitos."
+            )
+
+        lambda_min_G, lambda_max_G, cond_G = self._check_metric(G)
+        gamma, connection_metric_compatible = self._check_connection(
+            gamma_input=data.Christoffel,
+            metric=G,
+            partial_G_input=data.partial_G,
+        )
+
+        divergence_ld, refinement_report = self._recursive_self_improvement(
+            T=T,
+            gamma=gamma,
+            partial_T=partial_T,
+        )
+        residual_relative = refinement_report.passes[-1].residual_relative
+
+        if not np.all(np.isfinite(divergence_ld)):
+            raise NumericalStabilityError(
+                "La divergencia final no es finita tras el refinamiento."
+            )
+        if np.max(np.abs(divergence_ld)) > np.longdouble(
+            np.finfo(np.float64).max
+        ):
+            raise NumericalStabilityError(
+                "La divergencia excede el rango representable en float64."
+            )
+
+        if residual_relative > self._tol:
             logger.critical(
-                "Divergencia covariante no nula: ‖∇𝒯‖₂=%.3e, rel=%.3e (n=%d)",
-                residual_abs, residual_rel, n,
+                "Conservación covariante fallida | n=%d | res_rel=%.3e",
+                n,
+                residual_relative,
             )
             raise TensorConservationError(
-                f"Fuga de exergía: ∇_μ 𝒯^{{μν}} ≠ 0 "
-                f"(residuo abs={residual_abs:.3e}, rel={residual_rel:.3e})."
+                "∇_μ T^{μν} excede la tolerancia relativa: "
+                f"{residual_relative:.3e} > {self._tol:.3e}."
             )
 
-        # (v) Invariantes espectrales
         invariants = self._compute_spectral_invariants(
-            data, lam_min_G, lam_max_G, cond_G
+            T=T,
+            G=G,
+            gamma=gamma,
+            lambda_min_G=lambda_min_G,
+            lambda_max_G=lambda_max_G,
+            cond_G=cond_G,
+            connection_metric_compatible=connection_metric_compatible,
         )
 
         logger.debug(
-            "Fase 1 OK | n=%d | Tr_G(𝒯)=%.4e | λ_max(G)=%.4e | κ(G)=%.2e | "
-            "ρ(𝒯)=%.4e | ‖𝒯‖_op=%.4e | sev=%s | res_rel=%.3e",
+            "Fase 1 OK | n=%d | Tr_G(T)=%.4e | κ(G)=%.3e | "
+            "ρ_G(T)=%.3e | sev=%s | res_rel=%.3e | refinement=L%d",
             n,
             invariants.trace_mixed,
-            invariants.lambda_max_G,
             invariants.cond_G,
             invariants.rho_T,
-            invariants.op_norm_T,
             invariants.severity.name,
-            residual_rel,
+            residual_relative,
+            refinement_report.selected_level,
         )
 
         return ValidatedStressTensor(
-            T_mu_nu=data.T_mu_nu,
-            G_mu_nu=data.G_mu_nu,
+            T_mu_nu=T,
+            G_mu_nu=G,
             invariants=invariants,
-            residual_relative=residual_rel,
+            residual_relative=residual_relative,
+            refinement_report=refinement_report,
         )
 
-    # =========================================================================
-    # FASE 2 (ANIDADA EN FASE 1) – PUSHFORWARD COHOMOLÓGICO DE DIRICHLET
-    # =========================================================================
+    # ══════════════════════════════════════════════════════════════════════════
+    # FASE 2, ANIDADA EN FASE 1 — PUSHFORWARD MÉTRICO Y N-CUERPOS
+    # ══════════════════════════════════════════════════════════════════════════
+
     class Phase2_CohomologyPushforward:
         r"""
-        Segunda fase anidada: morfismo de pushforward en la cohomología de
-        haces H¹(X; 𝒮_𝒯).
+        Calcula la forma cuadrática deformada y su cota métrica de Rayleigh.
 
-        Recibe el `ValidatedStressTensor` producido por
-        `Phase1_StressTensorValidation.validate_tensor` y el vector
-        cofrontera δx ∈ Γ(Tℳ), y produce la energía de Dirichlet deformada
+        Para una coforma α:
+            E = αᵀ T α
+            ||α||²_{G⁻¹} = αᵀ G⁻¹ α
+            |E| ≤ ||G^(1/2) T G^(1/2)||₂ ||α||²_{G⁻¹}
 
-            ℰ_deform(δx) = 𝒯_{μν} (δx)^μ (δx)^ν = ⟨δx, 𝒯♭ δx⟩
-
-        junto con la cota de Rayleigh |ℰ| ≤ ‖𝒯‖_{op} ‖δx‖₂² y la verificación
-        de acotación (conductancia del haz celular).
-
-        El método terminal `compute_pushforward` devuelve un `PushforwardResult`
-        que es el dominio formal de la Fase 3 anidada.
+        La integración celeste es opcional y usa variables canónicas (q, p).
         """
 
         def __init__(
             self,
             energy_overflow_factor: float = 1e8,
+            energy_capacity: Optional[float] = None,
         ) -> None:
-            """
-            energy_overflow_factor: múltiplo de ‖𝒯‖_op · ‖δx‖₂² a partir del
-            cual se considera desbordamiento de la conductancia del haz.
-            """
-            if energy_overflow_factor <= 0.0:
+            factor = _finite_scalar(
+                energy_overflow_factor, "energy_overflow_factor"
+            )
+            if factor <= 0.0:
                 raise ValueError("energy_overflow_factor debe ser > 0.")
-            self._overflow_factor = float(energy_overflow_factor)
+            self._energy_overflow_factor = factor
 
+            if energy_capacity is None:
+                self._energy_capacity = None
+            else:
+                capacity = _finite_scalar(energy_capacity, "energy_capacity")
+                if capacity < 0.0:
+                    raise ValueError("energy_capacity no puede ser negativa.")
+                self._energy_capacity = capacity
+
+        @staticmethod
         def _assert_delta_dimension(
-            self,
             validated: ValidatedStressTensor,
-            delta_x: NDArray[np.float64],
-        ) -> None:
-            """δx debe ser un vector de longitud n = dim(𝒯)."""
+            delta_x: Any,
+        ) -> NDArray[np.float64]:
+            """Valida que delta_x sea una coforma finita de dimensión n."""
+            dx = _readonly_float64(delta_x, "delta_x")
             n = validated.T_mu_nu.shape[0]
-            if delta_x.ndim != 1 or delta_x.shape[0] != n:
+            if dx.ndim != 1 or dx.shape[0] != n:
                 raise DimensionMismatchError(
-                    f"δx shape {delta_x.shape} incompatible con dim={n}."
+                    f"delta_x tiene shape={dx.shape}; se esperaba ({n},)."
                 )
+            return dx
 
+        @staticmethod
         def _dirichlet_energy(
-            self,
             T: NDArray[np.float64],
             delta_x: NDArray[np.float64],
         ) -> float:
-            r"""
-            Forma bilineal de Dirichlet deformada:
-                ℰ = Σ_{μ,ν} 𝒯^{μν} (δx)_μ (δx)_ν = δxᵀ 𝒯 δx
-            Evaluada con einsum de contracción total (estable y legible).
-            """
-            return float(np.einsum("i,ij,j->", delta_x, T, delta_x, optimize=True))
+            """Evalúa delta_xᵀ T delta_x con productos en longdouble."""
+            T_ld = np.asarray(T, dtype=np.longdouble)
+            dx_ld = np.asarray(delta_x, dtype=np.longdouble)
+            with np.errstate(over="ignore", invalid="ignore"):
+                value = dx_ld @ (T_ld @ dx_ld)
+            return _ld_to_float(value, "deformed_energy")
 
-        def _rayleigh_bound(
-            self,
-            op_norm_T: float,
+        @staticmethod
+        def _metric_dual_norm_squared(
+            G: NDArray[np.float64],
             delta_x: NDArray[np.float64],
         ) -> float:
-            r"""
-            Cota de Rayleigh-Ritz para la forma cuadrática:
-                |δxᵀ 𝒯 δx| ≤ ‖𝒯‖_{op} ‖δx‖₂²
-            donde ‖𝒯‖_{op} = σ_max(𝒯) es la norma de operador inducida por ℓ₂.
             """
-            dx_sq = float(np.dot(delta_x, delta_x))
-            return op_norm_T * dx_sq
+            Evalúa αᵀG⁻¹α sin formar la inversa explícita.
+
+            Si G = L Lᵀ, entonces αᵀG⁻¹α = ||L⁻¹α||².
+            """
+            try:
+                lower = np.linalg.cholesky(G)
+                transformed = np.linalg.solve(lower, delta_x)
+            except np.linalg.LinAlgError as exc:
+                raise MetricSignatureError(
+                    "No se pudo resolver la norma dual respecto de G."
+                ) from exc
+
+            transformed_ld = np.asarray(transformed, dtype=np.longdouble)
+            norm_squared = np.sum(
+                transformed_ld * transformed_ld,
+                dtype=np.longdouble,
+            )
+            return _ld_to_float(
+                norm_squared, "metric_dual_norm_squared"
+            )
+
+        @staticmethod
+        def _validate_celestial_request(
+            request: PoincareSimulationRequest,
+        ) -> Tuple[
+            NDArray[np.float64],
+            NDArray[np.float64],
+            NDArray[np.float64],
+        ]:
+            if not isinstance(request, PoincareSimulationRequest):
+                raise PoincareStateError(
+                    "celestial_request debe ser PoincareSimulationRequest."
+                )
+
+            state = request.state
+            q = np.asarray(state.positions, dtype=np.float64)
+            p = np.asarray(state.momenta, dtype=np.float64)
+            masses = np.asarray(state.masses, dtype=np.float64)
+
+            if q.ndim != 2 or q.shape[1] != 3:
+                raise DimensionMismatchError(
+                    f"positions debe tener shape (N, 3); recibido {q.shape}."
+                )
+            n = q.shape[0]
+            if n < 2:
+                raise PoincareStateError(
+                    "La integración celeste requiere al menos dos cuerpos."
+                )
+            if n > _MAX_CELESTIAL_BODIES:
+                raise PoincareStateError(
+                    f"N={n} excede el límite {_MAX_CELESTIAL_BODIES}."
+                )
+            if p.shape != (n, 3):
+                raise DimensionMismatchError(
+                    f"momenta debe tener shape ({n}, 3); recibido {p.shape}."
+                )
+            if masses.shape != (n,):
+                raise DimensionMismatchError(
+                    f"masses debe tener shape ({n},); recibido {masses.shape}."
+                )
+            if np.any(masses <= 0.0):
+                raise PoincareStateError("Todas las masas deben ser positivas.")
+
+            return (
+                np.array(q, dtype=np.float64, copy=True),
+                np.array(p, dtype=np.float64, copy=True),
+                np.array(masses, dtype=np.float64, copy=True),
+            )
+
+        @staticmethod
+        def _nbody_forces(
+            positions: NDArray[np.float64],
+            masses: NDArray[np.float64],
+            gravitational_constant: float,
+            softening: float,
+        ) -> NDArray[np.float64]:
+            """
+            Fuerzas newtonianas de pares para el potencial Plummer opcional:
+                V_ij = -G m_i m_j / sqrt(r_ij² + softening²).
+            """
+            n = positions.shape[0]
+            q_ld = np.asarray(positions, dtype=np.longdouble)
+            m_ld = np.asarray(masses, dtype=np.longdouble)
+            force = np.zeros((n, 3), dtype=np.longdouble)
+
+            G_ld = np.longdouble(gravitational_constant)
+            soft_ld = np.longdouble(softening)
+            soft_squared = soft_ld * soft_ld
+
+            with np.errstate(over="ignore", invalid="ignore", divide="ignore"):
+                for i in range(n):
+                    for j in range(i + 1, n):
+                        displacement = q_ld[i] - q_ld[j]
+                        radius_squared = (
+                            np.sum(
+                                displacement * displacement,
+                                dtype=np.longdouble,
+                            )
+                            + soft_squared
+                        )
+
+                        if radius_squared <= 0:
+                            raise CelestialCollisionError(
+                                f"Colisión puntual entre cuerpos {i} y {j}."
+                            )
+
+                        radius = np.sqrt(radius_squared)
+                        scale = (
+                            -G_ld
+                            * m_ld[i]
+                            * m_ld[j]
+                            / (radius_squared * radius)
+                        )
+                        pair_force = scale * displacement
+                        force[i] += pair_force
+                        force[j] -= pair_force
+
+            if not np.all(np.isfinite(force)):
+                raise NumericalStabilityError(
+                    "Las fuerzas de N cuerpos no son finitas."
+                )
+            if np.max(np.abs(force)) > np.longdouble(
+                np.finfo(np.float64).max
+            ):
+                raise NumericalStabilityError(
+                    "Las fuerzas exceden el rango float64."
+                )
+            return np.asarray(force, dtype=np.float64)
+
+        @staticmethod
+        def _hamiltonian_and_scale(
+            positions: NDArray[np.float64],
+            momenta: NDArray[np.float64],
+            masses: NDArray[np.float64],
+            gravitational_constant: float,
+            softening: float,
+        ) -> Tuple[float, float]:
+            """Calcula H = K + V y una escala energética de referencia."""
+            n = positions.shape[0]
+            q_ld = np.asarray(positions, dtype=np.longdouble)
+            p_ld = np.asarray(momenta, dtype=np.longdouble)
+            m_ld = np.asarray(masses, dtype=np.longdouble)
+            G_ld = np.longdouble(gravitational_constant)
+            soft_ld = np.longdouble(softening)
+            soft_squared = soft_ld * soft_ld
+
+            kinetic_terms: list[np.longdouble] = []
+            potential_magnitudes: list[np.longdouble] = []
+
+            for i in range(n):
+                kinetic_terms.append(
+                    np.sum(p_ld[i] * p_ld[i], dtype=np.longdouble)
+                    / (np.longdouble(2.0) * m_ld[i])
+                )
+
+            for i in range(n):
+                for j in range(i + 1, n):
+                    displacement = q_ld[i] - q_ld[j]
+                    radius_squared = (
+                        np.sum(
+                            displacement * displacement,
+                            dtype=np.longdouble,
+                        )
+                        + soft_squared
+                    )
+                    if radius_squared <= 0:
+                        raise CelestialCollisionError(
+                            f"Colisión puntual entre cuerpos {i} y {j}."
+                        )
+                    radius = np.sqrt(radius_squared)
+                    potential_magnitudes.append(
+                        G_ld * m_ld[i] * m_ld[j] / radius
+                    )
+
+            kinetic = _neumaier_sum(kinetic_terms)
+            potential_magnitude = _neumaier_sum(potential_magnitudes)
+            hamiltonian = kinetic - potential_magnitude
+            scale = kinetic + potential_magnitude
+
+            return (
+                _ld_to_float(hamiltonian, "Hamiltonian"),
+                _ld_to_float(scale, "Hamiltonian scale"),
+            )
+
+        @staticmethod
+        def _total_momentum(
+            momenta: NDArray[np.float64],
+        ) -> NDArray[np.float64]:
+            p_ld = np.asarray(momenta, dtype=np.longdouble)
+            components = [
+                _neumaier_sum(p_ld[:, axis])
+                for axis in range(3)
+            ]
+            return np.asarray(
+                [_ld_to_float(value, "total_linear_momentum") for value in components],
+                dtype=np.float64,
+            )
+
+        @staticmethod
+        def _total_angular_momentum(
+            positions: NDArray[np.float64],
+            momenta: NDArray[np.float64],
+        ) -> NDArray[np.float64]:
+            q_ld = np.asarray(positions, dtype=np.longdouble)
+            p_ld = np.asarray(momenta, dtype=np.longdouble)
+            component_terms = [[], [], []]
+
+            for body in range(q_ld.shape[0]):
+                angular = _cross_longdouble(q_ld[body], p_ld[body])
+                for axis in range(3):
+                    component_terms[axis].append(angular[axis])
+
+            return np.asarray(
+                [
+                    _ld_to_float(
+                        _neumaier_sum(component_terms[axis]),
+                        "total_angular_momentum",
+                    )
+                    for axis in range(3)
+                ],
+                dtype=np.float64,
+            )
+
+        def integrate_celestial(
+            self,
+            request: PoincareSimulationRequest,
+        ) -> PoincareDiagnostics:
+            """
+            Integra el Hamiltoniano separable de N cuerpos con kick-drift-kick.
+
+            El paso temporal es fijo: no se aplica adaptación automática de paso,
+            pues una adaptación genérica puede destruir la simplécticidad.
+            """
+            q, p, masses = self._validate_celestial_request(request)
+            state = request.state
+            dt = request.time_step
+
+            hamiltonian_initial, energy_scale_initial = (
+                self._hamiltonian_and_scale(
+                    q,
+                    p,
+                    masses,
+                    state.gravitational_constant,
+                    request.softening,
+                )
+            )
+            angular_initial = self._total_angular_momentum(q, p)
+            momentum_initial = self._total_momentum(p)
+
+            forces = self._nbody_forces(
+                q,
+                masses,
+                state.gravitational_constant,
+                request.softening,
+            )
+
+            for _ in range(request.steps):
+                with np.errstate(over="ignore", invalid="ignore"):
+                    p_half = p + (0.5 * dt) * forces
+                    q_next = q + dt * (
+                        p_half / masses[:, np.newaxis]
+                    )
+
+                if not (
+                    np.all(np.isfinite(q_next))
+                    and np.all(np.isfinite(p_half))
+                ):
+                    raise NumericalStabilityError(
+                        "El estado intermedio de Störmer–Verlet no es finito."
+                    )
+
+                forces_next = self._nbody_forces(
+                    q_next,
+                    masses,
+                    state.gravitational_constant,
+                    request.softening,
+                )
+
+                with np.errstate(over="ignore", invalid="ignore"):
+                    p_next = p_half + (0.5 * dt) * forces_next
+
+                if not np.all(np.isfinite(p_next)):
+                    raise NumericalStabilityError(
+                        "El momento final de Störmer–Verlet no es finito."
+                    )
+
+                q, p, forces = q_next, p_next, forces_next
+
+            hamiltonian_final, energy_scale_final = (
+                self._hamiltonian_and_scale(
+                    q,
+                    p,
+                    masses,
+                    state.gravitational_constant,
+                    request.softening,
+                )
+            )
+            angular_final = self._total_angular_momentum(q, p)
+            momentum_final = self._total_momentum(p)
+
+            q_initial_ld = np.asarray(state.positions, dtype=np.longdouble)
+            p_initial_ld = np.asarray(state.momenta, dtype=np.longdouble)
+            q_final_ld = np.asarray(q, dtype=np.longdouble)
+            p_final_ld = np.asarray(p, dtype=np.longdouble)
+
+            angular_scale_initial = _neumaier_sum(
+                _long_norm(
+                    _cross_longdouble(q_initial_ld[i], p_initial_ld[i])
+                )
+                for i in range(q_initial_ld.shape[0])
+            )
+            angular_scale_final = _neumaier_sum(
+                _long_norm(
+                    _cross_longdouble(q_final_ld[i], p_final_ld[i])
+                )
+                for i in range(q_final_ld.shape[0])
+            )
+            angular_denominator = max(
+                _long_norm(angular_initial),
+                _long_norm(angular_final),
+                angular_scale_initial,
+                angular_scale_final,
+                np.finfo(np.longdouble).tiny,
+            )
+
+            momentum_scale = _neumaier_sum(
+                _long_norm(p_initial_ld[i])
+                for i in range(p_initial_ld.shape[0])
+            )
+            momentum_denominator = max(
+                _long_norm(momentum_initial),
+                _long_norm(momentum_final),
+                momentum_scale,
+                np.finfo(np.longdouble).tiny,
+            )
+
+            energy_denominator = max(
+                np.longdouble(energy_scale_initial),
+                np.longdouble(energy_scale_final),
+                abs(np.longdouble(hamiltonian_initial)),
+                np.finfo(np.longdouble).tiny,
+            )
+
+            energy_drift = (
+                abs(
+                    np.longdouble(hamiltonian_final)
+                    - np.longdouble(hamiltonian_initial)
+                )
+                / energy_denominator
+            )
+            angular_drift = (
+                _long_norm(
+                    np.asarray(angular_final, dtype=np.longdouble)
+                    - np.asarray(angular_initial, dtype=np.longdouble)
+                )
+                / angular_denominator
+            )
+            linear_drift = (
+                _long_norm(
+                    np.asarray(momentum_final, dtype=np.longdouble)
+                    - np.asarray(momentum_initial, dtype=np.longdouble)
+                )
+                / momentum_denominator
+            )
+
+            return PoincareDiagnostics(
+                hamiltonian_initial=hamiltonian_initial,
+                hamiltonian_final=hamiltonian_final,
+                relative_energy_drift=_ld_to_float(
+                    energy_drift, "relative_energy_drift"
+                ),
+                angular_momentum_initial=angular_initial,
+                angular_momentum_final=angular_final,
+                relative_angular_momentum_drift=_ld_to_float(
+                    angular_drift,
+                    "relative_angular_momentum_drift",
+                ),
+                relative_linear_momentum_drift=_ld_to_float(
+                    linear_drift,
+                    "relative_linear_momentum_drift",
+                ),
+                steps=request.steps,
+                time_step=dt,
+                method="kick-drift-kick / Störmer-Verlet",
+            )
 
         def compute_pushforward(
             self,
             validated: ValidatedStressTensor,
-            delta_x: NDArray[np.float64],
+            delta_x: Any,
+            celestial_request: Optional[PoincareSimulationRequest] = None,
         ) -> PushforwardResult:
             r"""
-            Calcula ℰ_deform y la cota espectral de Rayleigh a partir del
-            tensor validado de la Fase 1 y del vector cofrontera δx.
-
-            Invariantes heredados (espectro de (𝒯, G)) se reenvían intactos
-            al `PushforwardResult` para consumo exclusivo de la Fase 3.
-
-            Este es el último método público de la Fase 2; su tipo de retorno
-            `PushforwardResult` es exactamente el tipo de entrada del método
-            principal de la clase anidada `Phase3_ToposPullback`.
+            Calcula la energía deformada, la cota métrica de Rayleigh y,
+            opcionalmente, diagnósticos Hamiltonianos de N cuerpos.
             """
-            self._assert_delta_dimension(validated, delta_x)
-
-            inv = validated.invariants
-            T = validated.T_mu_nu
-
-            # Energía de Dirichlet deformada
-            energy = self._dirichlet_energy(T, delta_x)
-
-            # Cota de Rayleigh
-            bound = self._rayleigh_bound(inv.op_norm_T, delta_x)
-
-            # Verificación de acotación (conductancia del haz)
-            # Si |ℰ| excede overflow_factor · cota, hay desbordamiento patológico
-            # (posible singularidad del haz o δx fuera de la sección admisible).
-            abs_energy = abs(energy)
-            energy_is_bounded = abs_energy <= (self._overflow_factor * bound + _MACHINE_EPSILON)
-
-            if not energy_is_bounded:
-                logger.error(
-                    "Desbordamiento de energía deformada: |ℰ|=%.3e > factor·bound=%.3e",
-                    abs_energy, self._overflow_factor * bound,
+            if not isinstance(validated, ValidatedStressTensor):
+                raise InputValidationError(
+                    "validated debe ser ValidatedStressTensor."
                 )
+
+            dx = self._assert_delta_dimension(validated, delta_x)
+            invariants = validated.invariants
+
+            energy = self._dirichlet_energy(validated.T_mu_nu, dx)
+            dual_norm_squared = self._metric_dual_norm_squared(
+                validated.G_mu_nu, dx
+            )
+
+            bound_ld = (
+                np.longdouble(invariants.metric_op_norm_T)
+                * np.longdouble(dual_norm_squared)
+            )
+            rayleigh_bound = _ld_to_float(bound_ld, "rayleigh_bound")
+
+            absolute_energy = abs(np.longdouble(energy))
+            rounding_slack = (
+                np.longdouble(64.0 * _MACHINE_EPSILON)
+                * max(
+                    absolute_energy,
+                    np.longdouble(rayleigh_bound),
+                    np.longdouble(np.finfo(np.float64).tiny),
+                )
+            )
+
+            # Cota matemática de Rayleigh en la geometría inducida por G.
+            if absolute_energy > np.longdouble(rayleigh_bound) + rounding_slack:
+                raise NumericalStabilityError(
+                    "|delta_xᵀ T delta_x| excede la cota métrica de Rayleigh: "
+                    f"{float(absolute_energy):.3e} > {rayleigh_bound:.3e}."
+                )
+
+            # Envolvente de compatibilidad histórica; la cota estricta anterior
+            # es más fuerte para los parámetros usuales (factor >= 1).
+            legacy_envelope = (
+                np.longdouble(self._energy_overflow_factor)
+                * np.longdouble(rayleigh_bound)
+                + rounding_slack
+            )
+            if absolute_energy > legacy_envelope:
                 raise DeformationEnergyOverflowError(
-                    f"|ℰ_deform|={abs_energy:.3e} supera la conductancia del haz "
-                    f"(bound={bound:.3e}, factor={self._overflow_factor:.1e})."
+                    "La energía excede la envolvente relativa configurada."
                 )
 
-            # Consistencia numérica débil: |ℰ| no debería superar bound + holgura.
-            # Si lo hace levemente, lo registramos (redondeo / no-simetría residual).
-            if abs_energy > bound * (1.0 + 1e-6) + _MACHINE_EPSILON:
-                logger.warning(
-                    "Rayleigh violado levemente: |ℰ|=%.6e > bound=%.6e "
-                    "(posible residual de simetría o redondeo).",
-                    abs_energy, bound,
+            if (
+                self._energy_capacity is not None
+                and absolute_energy
+                > np.longdouble(self._energy_capacity) + rounding_slack
+            ):
+                raise DeformationEnergyOverflowError(
+                    f"|E|={abs(energy):.3e} excede energy_capacity="
+                    f"{self._energy_capacity:.3e}."
+                )
+
+            celestial_diagnostics = None
+            if celestial_request is not None:
+                celestial_diagnostics = self.integrate_celestial(
+                    celestial_request
                 )
 
             logger.info(
-                "Fase 2 OK | ℰ_deform=%.6e | Rayleigh_bound=%.6e | bounded=%s",
-                energy, bound, energy_is_bounded,
+                "Fase 2 OK | E=%.6e | Rayleigh=%.6e | dual_norm²=%.6e",
+                energy,
+                rayleigh_bound,
+                dual_norm_squared,
             )
 
             return PushforwardResult(
                 deformed_energy=energy,
-                rayleigh_bound=bound,
-                energy_is_bounded=energy_is_bounded,
-                invariants=inv,
+                rayleigh_bound=rayleigh_bound,
+                energy_is_bounded=True,
+                invariants=invariants,
+                metric_dual_norm_squared=dual_norm_squared,
+                celestial_diagnostics=celestial_diagnostics,
             )
 
-        # =====================================================================
-        # FASE 3 (ANIDADA EN FASE 2) – PULLBACK AL TOPOS DE GROTHENDIECK
-        # =====================================================================
+        # ══════════════════════════════════════════════════════════════════════
+        # FASE 3, ANIDADA EN FASE 2 — GOBERNANZA Y VETO
+        # ══════════════════════════════════════════════════════════════════════
+
         class Phase3_ToposPullback:
             r"""
-            Tercera fase anidada: morfismo de pullback en el topos de
-            Grothendieck ℰ = Sh(𝒞, J) del MICAgent.
+            Proyecta los resultados a una decisión de gobernanza determinista.
 
-            Recibe el `PushforwardResult` de la Fase 2 y determina:
+            L_max = κ₀ / (sqrt(|Tr_G(T)|) + ε λ_max(G) sqrt(κ(G))).
 
-              L_max(𝒯) = κ₀ / ( √|Tr_G(𝒯)| + ε_mach · λ_max(G) · √κ(G) )
-
-            El denominador combina:
-              • la escala de traza mixta √|Tr_G(𝒯)|  (intensidad del estrés);
-              • la regularización espectral ε·λ_max·√κ  (estabilidad numérica
-                y penalización del mal-condicionamiento de la métrica).
-
-            El predicado de lockdown (álgebra de Boole de predicados estables):
-
-              ZeroTrust ⇔ (L_max < θ_crit)
-                         ∨ (severity ∈ {CRITICAL, SINGULAR})
-                         ∨ (κ(G) > κ_max)
-                         ∨ (ρ(𝒯) > ρ_crit)
-
-            cierra la cadena anidada Fase1 → Fase2 → Fase3.
+            Un exceso de deriva celeste respecto de celestial_drift_limit eleva
+            la severidad a CRITICAL y activa el veto.
             """
 
             def __init__(
@@ -721,123 +1766,233 @@ class Phase1_StressTensorValidation:
                 kappa0: float = _KAPPA_0,
                 epsilon: float = _MACHINE_EPSILON,
                 lockdown_eps_factor: float = _LOCKDOWN_EPS_FACTOR,
+                celestial_drift_limit: float = (
+                    _DEFAULT_CELESTIAL_DRIFT_LIMIT
+                ),
             ) -> None:
-                if kappa0 <= 0.0:
-                    raise ValueError("kappa0 debe ser estrictamente positivo.")
-                if epsilon <= 0.0:
-                    raise ValueError("epsilon debe ser estrictamente positivo.")
-                self._kappa0 = float(kappa0)
-                self._epsilon = float(epsilon)
-                self._lockdown_eps_factor = float(lockdown_eps_factor)
-
-            def _compute_L_max(self, inv: SpectralInvariants) -> float:
-                r"""
-                Estima la cota de Lipschitz homomórfica:
-
-                    L_max = κ₀ / ( √|Tr_G(𝒯)| + ε · λ_max(G) · √κ(G) )
-
-                El término √κ(G) penaliza métricas mal condicionadas,
-                elevando el denominador y reduciendo L_max (más restrictivo),
-                lo cual es coherente con la pérdida de control geométrico.
-                """
-                safe_trace = abs(inv.trace_mixed)
-                sqrt_trace = math.sqrt(safe_trace) if safe_trace > 0.0 else 0.0
-                sqrt_cond = math.sqrt(max(inv.cond_G, 1.0))
-                denominator = (
-                    sqrt_trace
-                    + self._epsilon * inv.lambda_max_G * sqrt_cond
+                self._kappa0 = _finite_scalar(kappa0, "kappa0")
+                self._epsilon = _finite_scalar(epsilon, "epsilon")
+                self._lockdown_eps_factor = _finite_scalar(
+                    lockdown_eps_factor, "lockdown_eps_factor"
                 )
-                # Evitar división por cero patológica (aunque ε·λ_max·√κ > 0).
-                denominator = max(denominator, self._epsilon)
-                return self._kappa0 / denominator
+                self._celestial_drift_limit = _finite_scalar(
+                    celestial_drift_limit, "celestial_drift_limit"
+                )
+
+                if self._kappa0 <= 0.0:
+                    raise ValueError("kappa0 debe ser > 0.")
+                if self._epsilon <= 0.0:
+                    raise ValueError("epsilon debe ser > 0.")
+                if self._lockdown_eps_factor <= 0.0:
+                    raise ValueError("lockdown_eps_factor debe ser > 0.")
+                if self._celestial_drift_limit < 0.0:
+                    raise ValueError(
+                        "celestial_drift_limit no puede ser negativo."
+                    )
+
+            def _compute_L_max(self, invariants: SpectralInvariants) -> float:
+                """Evalúa L_max en precisión extendida y satura al rango float64."""
+                trace = abs(np.longdouble(invariants.trace_mixed))
+                lambda_max = np.longdouble(invariants.lambda_max_G)
+                condition = max(
+                    np.longdouble(invariants.cond_G),
+                    np.longdouble(1.0),
+                )
+
+                with np.errstate(over="ignore", invalid="ignore"):
+                    denominator = (
+                        np.sqrt(trace)
+                        + np.longdouble(self._epsilon)
+                        * lambda_max
+                        * np.sqrt(condition)
+                    )
+
+                if np.isnan(denominator):
+                    return 0.0
+                if np.isinf(denominator):
+                    return 0.0
+                if denominator <= 0:
+                    return float(np.finfo(np.float64).max)
+
+                value = np.longdouble(self._kappa0) / denominator
+                maximum = np.longdouble(np.finfo(np.float64).max)
+                if not np.isfinite(value) or value > maximum:
+                    return float(np.finfo(np.float64).max)
+                return float(value)
 
             def _boolean_lockdown_predicate(
                 self,
                 L_max: float,
-                inv: SpectralInvariants,
+                invariants: SpectralInvariants,
+                energy_is_bounded: bool,
+                celestial_stable: Optional[bool],
+                effective_severity: SpectralSeverity,
             ) -> bool:
-                r"""
-                Predicado de Zero-Trust en el álgebra de Boole de umbrales:
-
-                    P₁ = (L_max < ε · lockdown_eps_factor)
-                    P₂ = (severity ∈ {CRITICAL, SINGULAR})
-                    P₃ = (κ(G) > κ_max)
-                    P₄ = (ρ(𝒯) > ρ_crit)
-
-                    ZeroTrust = P₁ ∨ P₂ ∨ P₃ ∨ P₄
-                """
-                theta_crit = self._epsilon * self._lockdown_eps_factor
-                p1 = L_max < theta_crit
-                p2 = inv.severity in (
+                """Disyunción auditable de los predicados de veto."""
+                threshold = (
+                    np.longdouble(self._epsilon)
+                    * np.longdouble(self._lockdown_eps_factor)
+                )
+                p_low_margin = np.longdouble(L_max) < threshold
+                p_severity = effective_severity in (
                     SpectralSeverity.CRITICAL,
                     SpectralSeverity.SINGULAR,
                 )
-                p3 = inv.cond_G > _COND_MAX
-                p4 = inv.rho_T > _RHO_CRIT
-                return bool(p1 or p2 or p3 or p4)
+                p_condition = invariants.cond_G > _COND_MAX
+                p_radius = invariants.rho_T > _RHO_CRIT
+                p_energy = not energy_is_bounded
+                p_celestial = celestial_stable is False
+
+                return bool(
+                    p_low_margin
+                    or p_severity
+                    or p_condition
+                    or p_radius
+                    or p_energy
+                    or p_celestial
+                )
 
             def compute_pullback(
-                self, pushforward: PushforwardResult
-            ) -> ToposPullbackData:
-                r"""
-                Evalúa L_max y el predicado de paranoia estructural a partir
-                del `PushforwardResult` de la Fase 2, cerrando la cadena
-                anidada de morfismos:
+                self,
+                pushforward: PushforwardResult,
+            ) -> TensorialGovernanceState:
+                """Cierra la composición Fase 1 → Fase 2 → Fase 3."""
+                if not isinstance(pushforward, PushforwardResult):
+                    raise InputValidationError(
+                        "pushforward debe ser PushforwardResult."
+                    )
 
-                    validate_tensor  →  compute_pushforward  →  compute_pullback
+                invariants = pushforward.invariants
+                L_max = self._compute_L_max(invariants)
+                effective_severity = invariants.severity
+                reasons: list[str] = []
 
-                Devuelve el DTO `ToposPullbackData` inyectable en el MICAgent.
-                """
-                inv = pushforward.invariants
+                if invariants.severity == SpectralSeverity.ELEVATED:
+                    reasons.append("spectral_severity_elevated")
+                if invariants.cond_G > _COND_MAX:
+                    reasons.append("metric_condition_limit")
+                if invariants.rho_T > _RHO_CRIT:
+                    reasons.append("stress_spectral_radius_limit")
 
-                L_max = self._compute_L_max(inv)
-                lockdown = self._boolean_lockdown_predicate(L_max, inv)
+                threshold = (
+                    np.longdouble(self._epsilon)
+                    * np.longdouble(self._lockdown_eps_factor)
+                )
+                if np.longdouble(L_max) < threshold:
+                    reasons.append("low_lipschitz_margin")
+
+                if not pushforward.energy_is_bounded:
+                    reasons.append("deformed_energy_not_bounded")
+                    effective_severity = join_severity(
+                        effective_severity,
+                        SpectralSeverity.CRITICAL,
+                    )
+
+                celestial_stable: Optional[bool] = None
+                celestial_energy_drift: Optional[float] = None
+                celestial_angular_drift: Optional[float] = None
+                celestial_linear_drift: Optional[float] = None
+
+                diagnostics = pushforward.celestial_diagnostics
+                if diagnostics is not None:
+                    celestial_energy_drift = (
+                        diagnostics.relative_energy_drift
+                    )
+                    celestial_angular_drift = (
+                        diagnostics.relative_angular_momentum_drift
+                    )
+                    celestial_linear_drift = (
+                        diagnostics.relative_linear_momentum_drift
+                    )
+
+                    drift_values = (
+                        celestial_energy_drift,
+                        celestial_angular_drift,
+                        celestial_linear_drift,
+                    )
+                    celestial_stable = all(
+                        math.isfinite(value)
+                        and value <= self._celestial_drift_limit
+                        for value in drift_values
+                    )
+
+                    if (
+                        not math.isfinite(celestial_energy_drift)
+                        or celestial_energy_drift
+                        > self._celestial_drift_limit
+                    ):
+                        reasons.append("celestial_energy_drift")
+                    if (
+                        not math.isfinite(celestial_angular_drift)
+                        or celestial_angular_drift
+                        > self._celestial_drift_limit
+                    ):
+                        reasons.append("celestial_angular_momentum_drift")
+                    if (
+                        not math.isfinite(celestial_linear_drift)
+                        or celestial_linear_drift
+                        > self._celestial_drift_limit
+                    ):
+                        reasons.append("celestial_linear_momentum_drift")
+
+                    if not celestial_stable:
+                        effective_severity = join_severity(
+                            effective_severity,
+                            SpectralSeverity.CRITICAL,
+                        )
+
+                lockdown = self._boolean_lockdown_predicate(
+                    L_max=L_max,
+                    invariants=invariants,
+                    energy_is_bounded=pushforward.energy_is_bounded,
+                    celestial_stable=celestial_stable,
+                    effective_severity=effective_severity,
+                )
 
                 if lockdown:
                     logger.warning(
-                        "Estrés crítico → Paranoia Estructural | "
-                        "L_max=%.3e | sev=%s | κ(G)=%.2e | ρ(𝒯)=%.3e",
-                        L_max, inv.severity.name, inv.cond_G, inv.rho_T,
+                        "Gobernanza: lockdown | L_max=%.3e | sev=%s | "
+                        "κ(G)=%.3e | razones=%s",
+                        L_max,
+                        effective_severity.name,
+                        invariants.cond_G,
+                        ",".join(reasons) or "predicado estructural",
                     )
                 else:
                     logger.info(
-                        "Fase 3 OK | L_max=%.6e | lockdown=%s | sev=%s",
-                        L_max, lockdown, inv.severity.name,
+                        "Fase 3 OK | L_max=%.6e | sev=%s | lockdown=%s",
+                        L_max,
+                        effective_severity.name,
+                        lockdown,
                     )
 
-                return ToposPullbackData(
+                return TensorialGovernanceState(
                     L_max=float(L_max),
                     zero_trust_lockdown=lockdown,
-                    severity=inv.severity,
-                    condition_number=inv.cond_G,
+                    severity=effective_severity,
+                    condition_number=invariants.cond_G,
+                    reasons=tuple(reasons),
+                    celestial_stable=celestial_stable,
+                    celestial_energy_drift=celestial_energy_drift,
+                    celestial_angular_momentum_drift=celestial_angular_drift,
+                    celestial_linear_momentum_drift=celestial_linear_drift,
                 )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FUNTOR COVARIANTE DE PROPAGACIÓN (WATCHER AGENT)
+# FUNCTOR / ORQUESTADOR PÚBLICO
 # ══════════════════════════════════════════════════════════════════════════════
+
 class TopologicalWatcherAgent(Morphism):
-    r"""
-    Funtor Covariante de Propagación Tensorial (𝒲_agent).
+    """
+    Orquesta las tres fases anidadas.
 
-    Asegura el difeomorfismo (a nivel de 2-morfismos) entre el escudo
-    topológico (membrana p-Laplaciana) y el estrato generativo (MICAgent).
+    La composición de software es:
+        validate_tensor → compute_pushforward → compute_pullback.
 
-    Orquesta las tres fases anidadas como composición de morfismos:
-
-        𝒲 = pullback ∘ pushforward ∘ validate
-
-      1. Phase1_StressTensorValidation.validate_tensor
-            → ValidatedStressTensor
-      2. Phase2_CohomologyPushforward.compute_pushforward
-            → PushforwardResult
-      3. Phase3_ToposPullback.compute_pullback
-            → ToposPullbackData
-
-    La anidación de clases refleja la dependencia funtorial estricta:
-    cada fase solo es accesible a través de la envoltura de la anterior,
-    garantizando que no exista un camino que omita la validación espectral
-    ni la cota de Rayleigh antes del pullback al topos.
+    Las expresiones "funtor" y "topos" identifican las interfaces del
+    ecosistema; el módulo certifica invariantes numéricos y produce DTOs,
+    pero no pretende demostrar por sí solo una equivalencia categórica.
     """
 
     def __init__(
@@ -845,79 +2000,111 @@ class TopologicalWatcherAgent(Morphism):
         tolerance: float = _DEFAULT_TOL,
         kappa0: float = _KAPPA_0,
         energy_overflow_factor: float = 1e8,
+        *,
+        energy_capacity: Optional[float] = None,
+        celestial_drift_limit: float = _DEFAULT_CELESTIAL_DRIFT_LIMIT,
     ) -> None:
-        self._tol = float(tolerance)
-        self._kappa0 = float(kappa0)
-        self._energy_overflow_factor = float(energy_overflow_factor)
-
-        # Instanciación única de la torre anidada (reutilizable, sin estado mutable
-        # entre invocaciones más allá de los parámetros de construcción).
-        self._phase1 = Phase1_StressTensorValidation(tolerance=self._tol)
+        self._phase1 = Phase1_StressTensorValidation(
+            tolerance=tolerance
+        )
         self._phase2 = (
             Phase1_StressTensorValidation.Phase2_CohomologyPushforward(
-                energy_overflow_factor=self._energy_overflow_factor,
+                energy_overflow_factor=energy_overflow_factor,
+                energy_capacity=energy_capacity,
             )
         )
         self._phase3 = (
             Phase1_StressTensorValidation
             .Phase2_CohomologyPushforward
-            .Phase3_ToposPullback(kappa0=self._kappa0)
+            .Phase3_ToposPullback(
+                kappa0=kappa0,
+                celestial_drift_limit=celestial_drift_limit,
+            )
         )
 
     def execute_propagation(
         self,
         tensor_data: StressTensorData,
-        delta_x: NDArray[np.float64],
-    ) -> Tuple[CohomologyPushforwardData, ToposPullbackData]:
-        r"""
-        Ejecución canónica del morfismo categórico 𝒲.
-
-        Aplica la composición:
-
-            tensor_data  ──validate──▶  ValidatedStressTensor
-                         ──push──────▶  PushforwardResult
-                         ──pull──────▶  ToposPullbackData
-
-        y empaqueta la respuesta en los DTOs de interfaz
-        (CohomologyPushforwardData, ToposPullbackData) consumibles por
-        el SheafCohomologyOrchestrator y el MICAgent respectivamente.
+        delta_x: Any,
+        celestial_request: Optional[PoincareSimulationRequest] = None,
+    ) -> Tuple[CohomologyPushforwardData, TensorialGovernanceState]:
         """
-        # 1. Auditoría inercial espectral y extracción de invariantes
+        Ejecuta las fases en orden, sin permitir que Fase 2 omita Fase 1.
+
+        celestial_request es opcional. Cuando se proporciona, la Fase 2
+        integra el estado canónico y la Fase 3 aplica el umbral de deriva.
+        """
         validated = self._phase1.validate_tensor(tensor_data)
+        pushforward = self._phase2.compute_pushforward(
+            validated=validated,
+            delta_x=delta_x,
+            celestial_request=celestial_request,
+        )
+        governance = self._phase3.compute_pullback(pushforward)
 
-        # 2. Pushforward cohomológico (energía de Dirichlet deformada)
-        pushforward_result = self._phase2.compute_pushforward(validated, delta_x)
+        invariants = pushforward.invariants
+        celestial_summary = None
+        if pushforward.celestial_diagnostics is not None:
+            diag = pushforward.celestial_diagnostics
+            celestial_summary = PoincarePushforwardData(
+                relative_energy_drift=diag.relative_energy_drift,
+                relative_angular_momentum_drift=(
+                    diag.relative_angular_momentum_drift
+                ),
+                relative_linear_momentum_drift=(
+                    diag.relative_linear_momentum_drift
+                ),
+                steps=diag.steps,
+            )
 
-        # 3. Pullback al topos de Grothendieck (L_max + predicado de paranoia)
-        pullback_data = self._phase3.compute_pullback(pushforward_result)
-
-        # Empaquetado de interfaz hacia el orquestador de cohomología de haces
-        inv = pushforward_result.invariants
         cohomology_data = CohomologyPushforwardData(
-            deformed_dirichlet_energy=pushforward_result.deformed_energy,
-            stress_trace=inv.trace_mixed,
-            operator_norm=inv.op_norm_T,
-            spectral_radius=inv.rho_T,
+            deformed_dirichlet_energy=pushforward.deformed_energy,
+            stress_trace=invariants.trace_mixed,
+            operator_norm=invariants.op_norm_T,
+            spectral_radius=invariants.rho_T,
+            rayleigh_bound=pushforward.rayleigh_bound,
+            metric_dual_norm_squared=(
+                pushforward.metric_dual_norm_squared
+            ),
+            energy_is_bounded=pushforward.energy_is_bounded,
+            celestial=celestial_summary,
         )
 
-        return cohomology_data, pullback_data
+        return cohomology_data, governance
 
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
-        """Compatibilidad con la interfaz Morphism del 2-categoría de agentes."""
+        """Compatibilidad con la interfaz Morphism."""
         return self.execute_propagation(*args, **kwargs)
 
     def describe_pipeline(self) -> Dict[str, str]:
-        """
-        Metadatos del pipeline anidado (introspección categórica ligera).
-        Útil para telemetría y auditorías del sistema inmune.
-        """
+        """Metadatos del pipeline para telemetría y auditoría."""
         return {
-            "functor": "𝒲_agent (TopologicalWatcherAgent)",
-            "version": "5.0.0-Nested-Spectral-Topos-Cauchy",
-            "phase_1": "Phase1_StressTensorValidation.validate_tensor",
-            "phase_2": "Phase2_CohomologyPushforward.compute_pushforward",
-            "phase_3": "Phase3_ToposPullback.compute_pullback",
-            "axiom_1": "∇_μ 𝒯^{μν} = 0  (conservación covariante, residuo relativo)",
-            "axiom_2": "ℰ = δxᵀ 𝒯 δx ≤ ‖𝒯‖_op ‖δx‖₂²  (Rayleigh)",
-            "axiom_3": "L_max = κ₀ / (√|Tr_G 𝒯| + ε λ_max √κ)  (Lipschitz topos)",
-        }<|eos|>
+            "functor": "TopologicalWatcherAgent",
+            "version": "6.0.0-Nested-Refined-Hamiltonian",
+            "phase_1": (
+                "Phase1_StressTensorValidation.validate_tensor "
+                "(refinamiento recursivo acotado de nivel 3)"
+            ),
+            "phase_2": (
+                "Phase2_CohomologyPushforward.compute_pushforward "
+                "(Rayleigh métrico; N-cuerpos opcional)"
+            ),
+            "phase_2_celestial": (
+                "Hamiltoniano newtoniano canónico; "
+                "kick-drift-kick / Störmer-Verlet"
+            ),
+            "phase_3": (
+                "Phase3_ToposPullback.compute_pullback "
+                "(join de severidad y política de veto)"
+            ),
+            "conservation": (
+                "∇_μ T^{μν}=0 comprobado con residuo relativo"
+            ),
+            "metric_rayleigh": (
+                "|αᵀTα| <= ||G^(1/2) T G^(1/2)||₂ · αᵀG⁻¹α"
+            ),
+            "self_improvement_scope": (
+                "Refinamiento numérico determinista; sin auto-modificación "
+                "de código ni relajación de invariantes"
+            ),
+        }
