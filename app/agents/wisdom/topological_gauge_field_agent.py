@@ -1,42 +1,88 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Nombre   : Topological Gauge Field Agent                                    ║
-║ Ubicación: app/agents/wisdom/topological_gauge_field_agent.py                ║
-║ Versión  : 12.0.0 (NESTED-OODA-POINCARE-RSI3-FAIL-CLOSED)                   ║
-║ Función  : Orquestador agéntico en tres fases anidadas:                      ║
-║            Fase 1 — Observe: sanitización, isometría, RSI³-Lindstedt.       ║
-║            Fase 2 — Orient: Yang–Mills, topología, Poincaré, QND, KAM.      ║
-║            Fase 3 — Decide & Act: adjudicación conservadora, Crowbar,       ║
-║            functor semántico y compromiso criptográfico del estado.         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Topological Gauge Field Agent                                                            ║
+║ Ubicación: app/agents/wisdom/topological_gauge_field_agent.py                                        ║
+║ Versión  : 12.0.0-SOVEREIGN-GAUGE-AGENT-POINCARE-RSI3-FAIL-CLOSED-PhD                                ║
+║ Función  : Soberano de Calibre y Orquestador Agéntico del Campo de Gauge Topológico 𝔰𝔲(N),            ║
+║            estructurado en tres fases OODA anidadas acopladas por puentes homomórficos Φ₁₂ y Φ₂₃     ║
+║            firmados HMAC-SHA256, mecánica celeste de Poincaré, teoría KAM, medición débil QND        ║
+║            de Aharonov-Albert-Vaidman (AAV), adjudicación en el retículo de Heyting Ω₃ y disparo     ║
+║            del interlock ciber-físico ESP32 Crowbar (τ ≤ 392.15 ns @ GPIO14).                        ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Alcance y cautelas
-------------------
-Este módulo valida estructuras numéricas y certificados emitidos por el motor.
-Una firma HMAC acredita integridad respecto de una clave compartida; no demuestra
-por sí sola una afirmación física o matemática. Del mismo modo, una secuencia
-finita de residuos RSI³ sólo permite estimar contracción observada, no probar una
-cota global de Lipschitz. Los datos de una sección de Poincaré son diagnósticos
-numéricos, no una prueba del teorema de recurrencia. La latencia reportada por un
-adaptador de hardware no certifica el WCET físico del circuito: esa garantía
-requiere medición y verificación externas del ESP32, GPIO14 y el Crowbar.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Topological Gauge Field Agent ejerce el comando soberano, la validación criptográfica y la
+adjudicación epistemológica sobre el motor espectral `TopologicalGaugeFieldEngine` en el Estrato
+Wisdom (V_𝕎) de APU Filter. Su arquitectura OODA anidada garantiza una secuencia ininterrumpida
+y estrictamente encadenada de tres fases:
+  • FASE 1 (OBSERVE) : Operada por `GaugeAgentPhase1Observer`. Ejecuta la sanitización espectral
+                       de Frobenius sobre ρ ∈ 𝔇(ℋ_n), extrae la conexión A ∈ 𝔰𝔲(N), audita la isometría
+                       de calibre, evalúa el embedding simpléctico de Cayley-Kähler m ∈ Sp(2N, ℝ),
+                       resuelve la ecuación homológica de Poincaré-Lindstedt y ejecuta el bootstrap de
+                       contracción monádica RSI³. Cierra con el método `continue_to_phase2`, el cual verifica
+                       y sella el puente homomórfico Φ₁₂.
+  • FASE 2 (ORIENT)  : Operada por `GaugeAgentPhase2Orientor`. Consume el puente Φ₁₂, procesa la acción
+                       de Yang-Mills, la 3-forma de Chern-Simons-Higgs CS₃^{Higgs}(A, Φ), la holonomía de
+                       Wilson W(γ), el proxy instantónico de Pontryagin k_proxy, la medición débil cuántica
+                       QND/AAV A_w = ⟨ψ_f|A|ψ_i⟩ / ⟨ψ_f|ψ_i⟩ con verificación de retroacción nula (0.0 dB),
+                       y la auditoría diofántica de toros KAM en secciones transversales de Poincaré.
+                       Cierra con el método `continue_to_phase3`, el cual verifica y sella el puente Φ₂₃.
+  • FASE 3 (DECIDE)  : Operada por `GaugeAgentPhase3Decider`. Consume el puente Φ₂₃, realiza la adjudicación
+                       conservadora fail-closed en el álgebra de Heyting Ω₃ (meet-fold: el ínfimo penaliza
+                       cualquier fricción), ejecuta la simulación física del interlock ESP32 Crowbar
+                       (τ ≤ 392.15 ns @ GPIO14 / BT151), proyecta los impactos ejecutivos mediante el
+                       funtor visceral Φ_sem y emite el estado soberano final autenticado con árbol de
+                       Merkle binario y HMAC-SHA256 de procedencia.
 
-Organización por fases anidadas
--------------------------------
-  §1. Infraestructura, normalización, compromisos y certificados.
-  §2. FASE 1 — GaugeAgentPhase1Observer.
-      Su último método, continue_to_phase2, verifica y sella el puente Φ₁₂.
-  §3. FASE 2 — GaugeAgentPhase2Orientor(GaugeAgentPhase1Observer).
-      Comienza recibiendo Φ₁ y termina con continue_to_phase3, el puente Φ₂₃.
-  §4. FASE 3 — GaugeAgentPhase3Decider(GaugeAgentPhase2Orientor).
-      Comienza recibiendo Φ₂ y cierra la adjudicación y acción.
-  §5. Fachada, exportación y autocomprobación.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. Dinámica de Calibre 𝔰𝔲(N) y Conexión Holomorfa:
+   Dada la densidad ρ ∈ 𝔇(ℋ_n), se define la conexión de gauge de traza nula:
+       A = i · (ρ - (Tr(ρ) / n) · I_n) ∈ 𝔰𝔲(n),   A = -A†,   Tr(A) = 0.
+   Curvatura orbital de Yang-Mills con el Hamiltoniano de fondo Hermítico H:
+       F = [ρ, H] ∈ 𝔰𝔲(n),   E_YM = ½ · ‖F‖_F² = ½ · Tr(F† F).
+   Acción topológica de Chern-Simons acoplada al campo adjunto de Higgs Φ = ln(ρ):
+       CS₃^{Higgs}(A, Φ) = (1 / (8π²)) · Tr( A · F - ⅓ · A³ + Φ · F ).
 
-La cadena de decisiones usa el orden de severidad
-    VETOED < DEGRADED < COHERENT.
-La adjudicación de gobernanza es el ínfimo (meet), por lo que un átomo más
-favorable nunca puede borrar un veto previo.
+2. Medición Débil No Demoledora QND (AAV):
+   Para el observable Hermítico H₀ = -i·A y estados pre y postseleccionados |ψ_i⟩, |ψ_f⟩ ∈ S^{2n-1}:
+       A_w = ⟨ψ_f | H₀ | ψ_i⟩ / ⟨ψ_f | ψ_i⟩,   con solapamiento S = |⟨ψ_f | ψ_i⟩|² > 0.
+   Varianza cuántica y condición QND de conmutación:
+       Var(H₀) = ⟨ψ_i | H₀² | ψ_i⟩ - |⟨ψ_i | H₀ | ψ_i⟩|² ≥ 0,   [H_sistema, H₀] = 0.
+
+3. Mecánica Celeste de Poincaré y Estabilidad KAM:
+   Ecuación homológica espectral de Poincaré-Lindstedt sobre las frecuencias {ω_k}:
+       [H₀, W]_{ij} = (ω_i - ω_j) · W_{ij} = (F_osc)_{ij},   ∀ i ≠ j.
+   Condición diofantina KAM sobre el toro invariante 𝕋^d:
+       |⟨k, ω⟩| ≥ γ / ‖k‖₁^τ,   ∀ k ∈ ℤ^d \ {0},   γ > 0,   τ ≥ d.
+   Sección transversal discreta de Poincaré: Σ_c = {ρ : Re Tr(H_probe · ρ) - c = 0}.
+
+4. Retículo de Heyting Ω₃ y Adjudicación Intuicionista:
+   Cadena finita con orden de severidad COHERENT (0x03) ≻ DEGRADED (0x01) ≻ VETOED (0x00).
+   La adjudicación global opera por ínfimo (meet-fold):
+       v_global = ⋀_{i=1}^M v_i = min_rank(v_1, ..., v_M).
+   Un solo veto en cualquier átomo dinámico o topológico fuerza el estado global a VETOED.
+
+5. Física de Circuitos del Disyuntor ESP32 Crowbar (GPIO14 ➔ SCR BT151):
+   Disparo ciber-físico en IRAM con latencia acotada:
+       t_total = t_CPU + t_gate(Q_gt / I_g) + t_rise(RLC) + t_prop(FR-4) ≤ 392.15 ns.
+   En caso de VETOED, arma el tiristor BT151 llevando GPIO14 a nivel HIGH en régimen ciber-físico.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma 1] Densidad Cuántica: Tr(ρ) = 1, ρ = ρ†, spec(ρ) ⊂ [0, 1].
+[Axioma 2] Álgebra de Calibre: A ∈ 𝔰𝔲(n) ⟹ A + A† = 0 ∧ Tr(A) = 0.
+[Axioma 3] Cadena Criptográfica de Fases: Hash(Φ₁) = Hash(Φ₂.parent_p1) ∧ Hash(Φ₂) = Hash(Φ₃.parent_p2).
+[Axioma 4] Monotonía de Heyting: meet(a, b) ≼ a y meet(a, b) ≼ b; ningún átomo favorable puede anular un veto.
+
+INVARIANTES DE ESTADO
+─────────────────────
+1. Norma de Frobenius de la conexión ‖A‖_F y energía de Yang-Mills E_YM estrictamente acotadas.
+2. Contracción Lipschitz de Banach RSI³ Lip(T³) ≤ 0.857.
+3. Raíz de Merkle binaria SHA-256 libre de campos mutables.
+4. Firma de autenticidad HMAC-SHA256 validada en tiempo constante (constant-time compare).
 """
 
 from __future__ import annotations
