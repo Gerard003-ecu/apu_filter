@@ -1,162 +1,331 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Nombre   : Topological Gauge Field Engine (Motor Espectral de Calibre)       ║
-║ Ubicación: app/wisdom/topological_gauge_field_engine.py                      ║
-║ Versión  : 11.0.0 (SOVEREIGN-GAUGE-KKS-POINCARE-BRUNO-RSI3-CAYLEY-SP-PhD)    ║
-║ Función  : Motor espectral de calibre topológico, curvatura de               ║
-║            Kirillov-Kostant-Souriau en su(N), reducción simpléctica          ║
-║            Cayley-Darboux sobre sp(2n, R), teoría KAM-Bruno, invariantes de  ║
-║            Chern-Simons-Nakahara y automejora recursiva RSI³ en 3 fases.     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+Topological Gauge Field Engine — versión 12.0.0
+Ubicación: app/wisdom/topological_gauge_field_engine.py
 
-1. DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL:
-─────────────────────────────────────────────────────────────────────────────────────────
-El `TopologicalGaugeFieldEngine` constituye el motor espectral y geométrico-diferencial
-supremo para la teoría de campos de calibre en el estrato WISDOM de APU Filter. Su misión
-operativa consiste en procesar y certificar operadores de densidad cuánticos $\rho \in \mathcal{D}_N$,
-construir conexiones de gauge antihermíticas sin traza $A \in \mathfrak{su}(N)$, determinar la
-curvatura simpléctica orbital mediante la 2-forma de Kirillov-Kostant-Souriau (KKS) $F = [\rho, H_{\text{cel}}] \in \mathfrak{su}(N)$,
-proyectar el sistema sobre la variedad simpléctica realificada $\mathfrak{sp}(2n, \mathbb{R})$ vía Cayley-Darboux,
-resolver perturbaciones seculares mediante la ecuación homológica espectral de Poincaré-Lindstedt,
-filtrar resonancias por la condición diofántica de KAM y la serie de Bruno, y gobernar las
-tres fases anidadas e indivisibles:
-  - FASE 1 (OBSERVE): Sanitización espectral en $\mathcal{D}_N$, conexión de gauge $A \in \mathfrak{su}(N)$,
-    curvatura orbital KKS $F$, realificación $\mathbb{C}^n \hookrightarrow \mathbb{R}^{2n}$, certificación
-    de subálgebra de Lie $\mathfrak{sp}(2n, \mathbb{R})$, descomposición homológica de Lindstedt y emisión de sobre $\Phi_1$.
-  - FASE 2 (ORIENT): Acción topológica de Chern-Simons $CS_3(A)$, invariante de Pontryagin $p_1$,
-    holonomía de Wilson $\mathcal{W}(C)$, auditoría diofántica KAM con cota de Bruno, integral homoclínica
-    de Melnikov $M(\theta_0)$, multiplicadores de Floquet y colisiones de Krein, y cascada de Banach RSI³.
-  - FASE 3 (DECIDE & ACT): Medición débil AAV cuántica no demolición (QND), agregación lattice en el álgebra
-    de Heyting trivalente $\Omega_3 = \{\bot < \star < \top\}$, protocolo interlock ciber-físico ESP32 Crowbar
-    en silicio ($WCET \le 392.15\text{ ns}$), y proyección semántica funtorial $\Phi_{\text{sem}}$.
+Motor numérico organizado en tres fases:
 
-2. MARCO TEÓRICO:
-─────────────────────────────────────────────────────────────────────────────────────────
-2.1. CONEXIÓN DE GAUGE $\mathfrak{su}(N)$ Y CURVATURA DE KIRILLOV-KOSTANT-SOURIAU (KKS):
-   Para un operador de densidad hermitiano semidefinido positivo $\rho \in \mathcal{D}_N$ con $\text{Tr}(\rho) = 1$,
-   la conexión de gauge canónica se define como la traslación antihermítica sin traza:
-     $$A = i \left( \rho - \frac{1}{N} I_N \right) \in \mathfrak{su}(N), \quad A^\dagger = -A, \quad \text{Tr}(A) = 0$$
-   A fin de evitar curvaturas idénticamente nulas debidas a la conmutación trivial $[A, \rho] = 0$, la curvatura de Yang-Mills
-   se formula a través del tensor simpléctico orbital de Kirillov-Kostant-Souriau acoplado a un Hamiltoniano celeste de fondo:
-     $$F = [\rho, H_{\text{cel}}] \in \mathfrak{su}(N), \quad F^\dagger = -F, \quad \text{Tr}(F) = 0$$
-   donde $H_{\text{cel}} = L_{\text{path}} + V_{\text{trap}}$ modela el Laplaciano de osciladores acoplados de Poincaré.
-   La densidad de energía de Yang-Mills y el primer número de Pontryagin satisfacen:
-     $$E_{\text{YM}} = -\frac{1}{2} \text{Tr}(F^2) \ge 0, \quad p_1 = -\frac{1}{8\pi^2} \text{Tr}(F^2) \ge 0$$
+    FASE 1 — OBSERVE
+        Proyección de rho al conjunto de matrices densidad, construcción de
+        A en su(N), conmutador orbital [rho, H], realificación de Cayley y
+        resolución espectral de la ecuación homológica.
 
-2.2. REALIFICACIÓN DE CAYLEY-KÄHLER Y ESTRUCTURA SIMPLÉCTICA $\mathfrak{sp}(2n, \mathbb{R})$:
-   Dado un operador $X = U + i V \in \mathbb{C}^{n \times n}$, se define el morfismo inyectivo de realificación $\mathbb{C}^n \hookrightarrow \mathbb{R}^{2n}$:
-     $$\mathcal{R}(X) = \begin{pmatrix} U & -V \\ V & U \end{pmatrix} \in \mathbb{R}^{2n \times 2n}$$
-   La matriz simpléctica canónica $J_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$ impone las condiciones de pertenencia:
-     $$M \in Sp(2n, \mathbb{R}) \iff M^\top J_{2n} M = J_{2n}, \quad K \in \mathfrak{sp}(2n, \mathbb{R}) \iff K^\top J_{2n} + J_{2n} K = 0$$
-   El defecto simpléctico cuadrático se verifica mediante el tensor $\delta_{\text{Sp}} = \| M^\top J_{2n} M - J_{2n} \|_F / \|M\|_F^2 \le 10^{-10}$.
+    FASE 2 — ORIENT
+        Diagnósticos matriciales topológicos, pruebas KAM/Bruno finitas,
+        diagnóstico de Floquet para un generador constante, observables de
+        sección y auditoría RSI³ limitada al subespacio amortiguado.
 
-2.3. ECUACIÓN HOMOLÓGICA DE POINCARÉ-LINDSTEDT Y TEORÍA KAM-BRUNO:
-   La diagonalización espectral $-i A = V \Lambda V^\dagger$ define las frecuencias de oscilación no perturbadas $\omega = \text{diag}(\Lambda) \in \mathbb{R}^n$.
-   La eliminación del término resonante secular en la curvatura $F$ conduce a la ecuación homológica para la función generatriz $W$:
-     $$-i [A, W] = F_{\text{osc}} \implies W_{jk} = \frac{(V^\dagger F_{\text{osc}} V)_{jk}}{i(\lambda_j - \lambda_k)}, \quad j \ne k$$
-   La estabilidad de los toros invariantes se certifica evaluando la condición diofántica sobre vectores enteros de onda $k \in \mathbb{Z}^n$:
-     $$|\langle \omega, k \rangle| \cdot \|k\|_1^\tau \ge \gamma, \quad \tau = d + 1, \quad \gamma > 0$$
-   conjuntamente con la convergencia estricta de la serie de pequeños divisores de Bruno:
-     $$\mathcal{B}(\omega) = \sum_{n=0}^{\infty} \frac{1}{2^n} \ln \left( \frac{1}{\Omega_n} \right) < \infty, \quad \Omega_n = \inf_{0 < \|k\|_\infty \le 2^n} |\langle \omega, k \rangle|$$
+    FASE 3 — DECIDE & ACT
+        Diagnóstico algebraico AAV/QND, agregación en Heyting Omega_3,
+        interlock únicamente simulado y snapshot con raíz Merkle y HMAC.
 
-2.4. INVARIANTES TOPOLÓGICOS DE CHERN-SIMONS Y HOLONOMÍA DE WILSON:
-   La 3-forma de Chern-Simons se computa mediante la identidad de Nakahara libre de duplicaciones:
-     $$\text{CS}_3(A) = \frac{1}{8\pi^2} \text{Tr}\left( A \wedge dA + \frac{2}{3} A^3 \right) = \frac{1}{8\pi^2} \text{Tr}\left( A \wedge F - \frac{1}{3} A^3 \right)$$
-   Para un bucle cerrado $C$, la holonomía de Wilson ordenada por camino es $\mathcal{W}(C) = \frac{1}{n} \text{Tr} \mathcal{P} \exp \oint_C A \in \mathbb{C}$,
-   con clase topológica entera asociada $k = \text{round}(p_1) \in \mathbb{Z}$.
-
-2.5. AUTOMEJORA RECURSIVA RSI³ CON CONTRACCIÓN DE BANACH:
-   El operador de mejora $T: \mathfrak{su}(N) \to \mathfrak{su}(N)$ proyecta la curvatura amortiguada mediante la función generatriz de Lindstedt:
-     $$T(F) = F - (1 - \lambda)\{H_0, W\} \approx F_{\text{mean}} + \lambda F_{\text{osc}}, \quad \lambda \le 0.95$$
-   En el Nivel 3 de RSI, el operador actúa recursivamente sobre su propio residuo iterando $T^3$, verificando la cota hipergeométrica de contracción:
-     $$\text{Lip}(T^3) \le (\text{Lip}(T))^3 \le 0.95^3 \approx 0.857375 < 1.0$$
-   lo que garantiza la convergencia a un punto fijo único en el espacio de Banach $(\mathfrak{su}(N), \|\cdot\|_F)$.
-
-3. AXIOMAS FORMALES:
-─────────────────────────────────────────────────────────────────────────────────────────
-  AXIOMA I (HERMITICIDAD, POSITIVIDAD Y CONSERVACIÓN DE PROBABILIDAD):
-    Todo estado cuántico satisface $\rho = \rho^\dagger \succeq 0$ y $\text{Tr}(\rho) = 1$, induciendo una conexión antihermítica estricta $A^\dagger = -A$ con $\text{Tr}(A) = 0$.
-
-  AXIOMA II (ISOMETRÍA Y CONSERVACIÓN SIMPLÉCTICA DE DARBOUX):
-    La representación realificada satisface idénticamente el conmutador simpléctico $M^\top J_{2n} M = J_{2n}$, preservando el volumen de Liouville en el espacio de fases extendido.
-
-  AXIOMA III (FILTRACIÓN DIOFÁNTICA DE KAM Y FINITUD DE BRUNO):
-    Las frecuencias del sistema satisfacen la cota diofántica $|\langle \omega, k \rangle| \ge \gamma / \|k\|_1^\tau$ y la convergencia $\mathcal{B}(\omega) < \infty$, asegurando la persistencia de toros invariantes.
-
-  AXIOMA IV (CONTRACCIÓN MONÁDICA DE BANACH RSI³):
-    El endomorfismo de automejora $T$ posee constante de Lipschitz uniforme $\text{Lip}(T) \le 0.95$, induciendo una contracción estricta en la triple composición $T^3$ con $\text{Lip}(T^3) \le 0.95^3 < 1.0$.
-
-4. INVARIANTES DE ESTADO:
-─────────────────────────────────────────────────────────────────────────────────────────
-  1. ENERGÍA DE YANG-MILLS Y NÚMERO DE PONTRYAGIN NO NEGATIVOS: $E_{\text{YM}} \ge 0, \quad p_1 \ge 0$.
-  2. DEFECTO SIMPLÉCTICO EN $\mathfrak{sp}(2n, \mathbb{R})$: $\|M^\top J M - J\|_F / \|M\|_F^2 \le 10^{-10}$.
-  3. PISO DE VALUACIÓN ULTRAMÉTRICA DE NOVIKOV: $v = 1 / (1 + |k|) \ge 0.10$.
-  4. DISTANCIA GEODÉSICA DE FUBINI-STUDY: $d_{\text{FS}}(e^A \phi, e^{A + iW} \phi) \le 10^{-4}\text{ rad}$.
-  5. INTERLOCK HARDWARE ESP32 CROWBAR: Latencia $\tau_{\text{crowbar}} \le 392.15\text{ ns} < 400.0\text{ ns}$ en veredicto $\text{VETOED}$ (0x00).
-  6. INTEGRIDAD CRIPTOGRÁFICA HMAC-SHA256: Hash de dominio sellado sobre raíz de Merkle y clave secreta soberana.
+Alcance científico:
+    Este módulo opera sobre matrices finito-dimensionales. No recibe una
+    variedad diferencial, formas de conexión/campo, una órbita homoclínica,
+    una ecuación diferencial periódica ni un modelo de medición cuántica.
+    Por ello, los cálculos topológicos, KAM, Melnikov, Floquet/Krein y QND
+    que exigen esos datos no se presentan como certificados globales.
 """
 
 from __future__ import annotations
 
-import cmath
 import hashlib
 import hmac
+import itertools
+import json
 import logging
 import math
+import os
 import time
-from dataclasses import dataclass
-from enum import IntEnum
-from typing import Any, Dict, Final, List, Optional, Sequence, Tuple
+import uuid
+from dataclasses import dataclass, fields, is_dataclass, replace
+from enum import Enum, IntEnum
+from types import MappingProxyType
+from typing import Any, Final, List, Mapping, Optional, Sequence, Tuple
 
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-logger = logging.getLogger("APU.Wisdom.TopologicalGaugeFieldEngine.v11")
+
+logger = logging.getLogger("APU.Wisdom.TopologicalGaugeFieldEngine.v12")
+
 
 # ──────────────────────────────────────────────────────────────────────────────
-# Constantes físicas, topológicas y de precisión FPU
+# Configuración numérica y de política
 # ──────────────────────────────────────────────────────────────────────────────
-_ENGINE_VERSION: Final[str] = "11.0.0"
-_WILKINSON_EPSILON: Final[float] = 1.0e-15
-_SPECTRAL_PSD_FLOOR: Final[float] = 1.0e-12
-_ESP32_CROWBAR_MAX_LATENCY_NS: Final[float] = 392.15
-_CROWBAR_TIMING_LIMIT_NS: Final[float] = 400.0
-_CROWBAR_DEGRADED_LATENCY_NS: Final[float] = 120.0
-_CROWBAR_NOMINAL_LATENCY_NS: Final[float] = 45.0
-_GAUGE_HMAC_DOMAIN: Final[bytes] = b"APU-FILTER-GAUGE-FIELD-v11.0.0|"
-_DEFAULT_SECRET_KEY: Final[bytes] = b"APU_FILTER_GAUGE_FIELD_SOVEREIGN_SECRET_KEY"
+
+_ENGINE_VERSION: Final[str] = "12.0.0"
 
 _ANTI_HERM_TOL: Final[float] = 1.0e-10
 _TRACELESS_TOL: Final[float] = 1.0e-10
 _SYMPLECTIC_TOL: Final[float] = 1.0e-10
-_INSTANTON_INTEGRALITY_TOL: Final[float] = 1.0e-6
-_KAM_GAMMA: Final[float] = 0.125
-_KAM_TAU_OFFSET: Final[float] = 1.0
-_KAM_MAX_ORDER: Final[int] = 3
-_KAM_FREQ_CAP: Final[int] = 12
-_MELNIKOV_TOL: Final[float] = 0.5
-_FLOQUET_UNIT_TOL: Final[float] = 1.0e-6
-_FUBINI_STUDY_MAX: Final[float] = 1.0e-4
-_KRULL_NOVIKOV_FLOOR: Final[float] = 0.10
-_BANACH_LIPSCHITZ_MAX: Final[float] = 0.95
-_RESONANT_GAP: Final[float] = 1.0e-12
-_BRUNO_SUM_MAX: Final[float] = 48.0
 _LINSTEDT_RESIDUAL_TOL: Final[float] = 1.0e-9
-_KAM_WEIGHT3_SAMPLES: Final[int] = 2048
+_RESONANT_GAP_ABS: Final[float] = 1.0e-12
+_RESONANT_GAP_REL: Final[float] = 1.0e-12
+_DENSITY_TRACE_TOL: Final[float] = 1.0e-10
+_LOG_EIGENVALUE_FLOOR: Final[float] = 1.0e-15
+_WEAK_VALUE_OVERLAP_TOL: Final[float] = 1.0e-14
+
+_KAM_GAMMA: Final[float] = 0.125
+_KAM_MAX_ORDER: Final[int] = 3
+_KAM_MAX_DIMENSION: Final[int] = 4
+_KAM_MAX_ALLOWED_ORDER: Final[int] = 6
+_BRUNO_TRUNCATED_SUM_LIMIT: Final[float] = 48.0
+
+_RSI_DAMPING: Final[float] = 0.80
+_RSI_ITERATIONS: Final[int] = 3
+_FUBINI_STUDY_TOL: Final[float] = 1.0e-4
+
+# Estos umbrales son reglas de política de ejemplo, no límites físicos.
+_ENERGY_DEGRADED_THRESHOLD: Final[float] = 0.25
+_ENERGY_VETO_THRESHOLD: Final[float] = 0.85
+
+# Límite de observación numérica para la simulación. No es una WCET de hardware.
+_SIMULATED_CROWBAR_LIMIT_NS: Final[float] = 392.15
+_SECRET_ENV_VAR: Final[str] = "APU_GAUGE_HMAC_KEY"
+_GAUGE_HMAC_DOMAIN: Final[bytes] = b"APU-FILTER-GAUGE-SNAPSHOT-v12|"
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Retículo de Heyting Ω₃ (cadena de severidad) y utilidades
+# Utilidades numéricas, serialización canónica y hash
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _as_complex_square(
+    value: NDArray[Any],
+    name: str,
+    dimension: Optional[int] = None,
+) -> NDArray[np.complex128]:
+    """Convierte y valida una matriz cuadrada compleja y finita."""
+    arr = np.asarray(value, dtype=np.complex128)
+    if arr.ndim != 2 or arr.shape[0] != arr.shape[1]:
+        raise ValueError(f"{name} debe ser cuadrada; recibido {arr.shape}.")
+    if dimension is not None and arr.shape != (dimension, dimension):
+        raise ValueError(
+            f"{name} debe ser {dimension}×{dimension}; recibido {arr.shape}."
+        )
+    if not np.all(np.isfinite(arr)):
+        raise ValueError(f"{name} contiene NaN o infinito.")
+    return arr
+
+
+def _normalize_state(
+    value: NDArray[Any],
+    dimension: int,
+    name: str = "estado",
+) -> NDArray[np.complex128]:
+    """Valida y normaliza un vector de estado no nulo."""
+    vec = np.asarray(value, dtype=np.complex128).reshape(-1)
+    if vec.size != dimension:
+        raise ValueError(
+            f"{name} debe tener dimensión {dimension}; recibido {vec.size}."
+        )
+    if not np.all(np.isfinite(vec)):
+        raise ValueError(f"{name} contiene NaN o infinito.")
+    norm = float(np.linalg.norm(vec))
+    if norm <= np.finfo(np.float64).tiny:
+        raise ValueError(f"{name} no puede ser el vector nulo.")
+    return vec / norm
+
+
+def _readonly(value: NDArray[Any]) -> NDArray[Any]:
+    """Copia un array y deshabilita su modificación in situ."""
+    arr = np.array(value, copy=True)
+    arr.setflags(write=False)
+    return arr
+
+
+def _realify(matrix: NDArray[np.complex128]) -> NDArray[np.float64]:
+    r"""Realificación de una matriz compleja: [[Re,-Im],[Im,Re]]."""
+    arr = _as_complex_square(matrix, "matriz para realificación")
+    x = np.real(arr).astype(np.float64, copy=False)
+    y = np.imag(arr).astype(np.float64, copy=False)
+    return np.block([[x, -y], [y, x]])
+
+
+def _symplectic_j(n: int) -> NDArray[np.float64]:
+    """Matriz simpléctica canónica de dimensión 2n."""
+    identity = np.eye(n, dtype=np.float64)
+    zero = np.zeros((n, n), dtype=np.float64)
+    return np.block([[zero, identity], [-identity, zero]])
+
+
+def _array_canonical_summary(value: NDArray[Any]) -> Mapping[str, Any]:
+    """Resumen criptográficamente estable de un array numérico."""
+    arr = np.asarray(value)
+    kind = arr.dtype.kind
+
+    if kind == "c":
+        canonical = np.ascontiguousarray(arr.astype(np.dtype("<c16"), copy=False))
+        dtype_tag = "<c16"
+    elif kind == "f":
+        canonical = np.ascontiguousarray(arr.astype(np.dtype("<f8"), copy=False))
+        dtype_tag = "<f8"
+    elif kind == "i":
+        canonical = np.ascontiguousarray(arr.astype(np.dtype("<i8"), copy=False))
+        dtype_tag = "<i8"
+    elif kind == "u":
+        canonical = np.ascontiguousarray(arr.astype(np.dtype("<u8"), copy=False))
+        dtype_tag = "<u8"
+    elif kind == "b":
+        canonical = np.ascontiguousarray(arr.astype(np.dtype("|b1"), copy=False))
+        dtype_tag = "|b1"
+    else:
+        raise TypeError(f"Tipo de array no admitido en hash canónico: {arr.dtype}.")
+
+    header = json.dumps(
+        {"dtype": dtype_tag, "shape": list(canonical.shape)},
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    data_hash = hashlib.sha256(
+        b"APU-GAUGE-ARRAY-v1\0" + header + b"\0" + canonical.tobytes(order="C")
+    ).hexdigest()
+    return {"dtype": dtype_tag, "shape": list(canonical.shape), "sha256": data_hash}
+
+
+def _canonicalize(value: Any) -> Any:
+    """Convierte valores admitidos a una representación JSON determinista."""
+    if value is None:
+        return None
+    if isinstance(value, Enum):
+        return {"enum": value.__class__.__qualname__, "name": value.name}
+    if isinstance(value, np.ndarray):
+        return {"ndarray": _array_canonical_summary(value)}
+    if isinstance(value, np.generic):
+        return _canonicalize(value.item())
+    if isinstance(value, complex):
+        return {
+            "complex": [
+                float(value.real).hex(),
+                float(value.imag).hex(),
+            ]
+        }
+    if isinstance(value, float):
+        if math.isnan(value):
+            return {"float": "nan"}
+        if math.isinf(value):
+            return {"float": "+inf" if value > 0 else "-inf"}
+        return {"float": value.hex()}
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, int):
+        return value
+    if isinstance(value, bytes):
+        return {"bytes_hex": value.hex()}
+    if isinstance(value, str):
+        return value
+    if is_dataclass(value) and not isinstance(value, type):
+        return {
+            item.name: _canonicalize(getattr(value, item.name))
+            for item in fields(value)
+        }
+    if isinstance(value, Mapping):
+        return {
+            str(key): _canonicalize(value[key])
+            for key in sorted(value, key=lambda item: str(item))
+        }
+    if isinstance(value, (tuple, list)):
+        return [_canonicalize(item) for item in value]
+    raise TypeError(f"Tipo no admitido en serialización canónica: {type(value)!r}.")
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    return json.dumps(
+        _canonicalize(value),
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+
+
+def _digest_object(domain: bytes, value: Any) -> str:
+    payload = _canonical_bytes(value)
+    return hashlib.sha256(
+        domain + b"\0" + len(payload).to_bytes(8, "big") + payload
+    ).hexdigest()
+
+
+def _digest_dataclass(
+    domain: bytes,
+    value: Any,
+    excluded_fields: Sequence[str] = (),
+) -> str:
+    if not is_dataclass(value):
+        raise TypeError("Se esperaba un dataclass para calcular el digest.")
+    excluded = set(excluded_fields)
+    payload = {
+        item.name: getattr(value, item.name)
+        for item in fields(value)
+        if item.name not in excluded
+    }
+    return _digest_object(domain, payload)
+
+
+def _snapshot_merkle_root(snapshot: "TopologicalGaugeFieldSnapshot") -> str:
+    """
+    Raíz Merkle binaria sobre todos los campos del snapshot salvo la raíz
+    almacenada y su firma. Los arrays anidados se representan por hash,
+    forma y dtype.
+    """
+    excluded = {"sha256_merkle_digest", "hmac_sha256"}
+    nodes: List[bytes] = []
+
+    for item in fields(snapshot):
+        if item.name in excluded:
+            continue
+        leaf_payload = item.name.encode("utf-8") + b"\0" + _canonical_bytes(
+            getattr(snapshot, item.name)
+        )
+        nodes.append(
+            hashlib.sha256(
+                b"APU-GAUGE-MERKLE-LEAF-v1\0" + leaf_payload
+            ).digest()
+        )
+
+    if not nodes:
+        return hashlib.sha256(b"APU-GAUGE-MERKLE-EMPTY-v1").hexdigest()
+
+    while len(nodes) > 1:
+        if len(nodes) % 2:
+            nodes.append(nodes[-1])
+        nodes = [
+            hashlib.sha256(
+                b"APU-GAUGE-MERKLE-NODE-v1\0" + nodes[index] + nodes[index + 1]
+            ).digest()
+            for index in range(0, len(nodes), 2)
+        ]
+    return nodes[0].hex()
+
+
+def _fubini_study_distance(
+    psi: NDArray[np.complex128],
+    phi: NDArray[np.complex128],
+) -> float:
+    """Distancia proyectiva de Fubini–Study entre dos vectores no nulos."""
+    norm_psi = float(np.linalg.norm(psi))
+    norm_phi = float(np.linalg.norm(phi))
+    denominator = norm_psi * norm_phi
+    if denominator <= np.finfo(np.float64).tiny:
+        raise ValueError("La distancia Fubini–Study requiere vectores no nulos.")
+    overlap = abs(complex(np.vdot(psi, phi))) / denominator
+    return float(np.arccos(np.clip(overlap, 0.0, 1.0)))
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Retículo de Heyting Ω₃
 # ══════════════════════════════════════════════════════════════════════════════
 
 class HeytingOmega3(IntEnum):
-    r"""
-    Cadena de Heyting de severidad (no álgebra de verdad ingenua):
-        COHERENT (0x00) < DEGRADED (0x01) < VETOED (0x03) = ⊤.
-    ∨ = max (peor gana), ∧ = min, a→b = ⊤ si a≤b else b, ¬a = a→⊥.
     """
+    Cadena de severidad, no lógica booleana:
+
+        COHERENT (⊥) < DEGRADED < VETOED (⊤).
+
+    En esta cadena, join es el máximo, meet el mínimo y
+    a → b = ⊤ si a ≤ b; en otro caso, b.
+    """
+
     COHERENT = 0x00
     DEGRADED = 0x01
     VETOED = 0x03
@@ -174,36 +343,19 @@ class HeytingOmega3(IntEnum):
         return self.implies(HeytingOmega3.COHERENT)
 
     @classmethod
-    def fold_supremum(cls, verdicts: Sequence["HeytingOmega3"]) -> "HeytingOmega3":
-        acc = cls.COHERENT
-        for v in verdicts:
-            acc = acc.join(v)
-        return acc
+    def fold_supremum(
+        cls,
+        verdicts: Sequence["HeytingOmega3"],
+    ) -> "HeytingOmega3":
+        result = cls.COHERENT
+        for verdict in verdicts:
+            result = result.join(verdict)
+        return result
 
     @classmethod
     def legacy_from_0x02(cls, legacy: int) -> "HeytingOmega3":
+        """Adaptador para el antiguo código de veto 0x02."""
         return cls.VETOED if legacy == 0x02 else cls(legacy)
-
-
-def _hash_state(*arrays: NDArray[Any]) -> str:
-    h = hashlib.sha256()
-    for a in arrays:
-        h.update(np.ascontiguousarray(a).tobytes())
-    return h.hexdigest()[:16]
-
-
-def _realify(M: NDArray[np.complex128]) -> NDArray[np.float64]:
-    r"""Realificación \(\mathbb{C}^n\ni z\mapsto (x,y)\in\mathbb{R}^{2n}\):
-    \(B+iC \;\mapsto\; \begin{pmatrix}B&-C\\C&B\end{pmatrix}\)."""
-    X = np.real(M).astype(np.float64, copy=False)
-    Y = np.imag(M).astype(np.float64, copy=False)
-    return np.block([[X, -Y], [Y, X]])
-
-
-def _symplectic_j(n: int, dtype: Any = np.float64) -> NDArray:
-    I = np.eye(n, dtype=dtype)
-    Z = np.zeros((n, n), dtype=dtype)
-    return np.block([[Z, I], [-I, Z]])
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -212,53 +364,131 @@ def _symplectic_j(n: int, dtype: Any = np.float64) -> NDArray:
 
 @dataclass(frozen=True, slots=True)
 class PoincareLindstedtSolution:
-    r"""Solución espectral \(\{H_0,W\}=H_{1,\mathrm{osc}}\) en la base de −iA."""
+    """Solución numérica de la ecuación homológica espectral."""
     W: NDArray[np.complex128]
     min_resonance_gap: float
     residual_norm: float
+    relative_residual: float
+    unresolved_residual_norm: float
     is_resonant: bool
     is_solved: bool
     frequencies: NDArray[np.float64]
-    n_small_divisors: int = 0
+    n_small_divisors: int
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "W", _readonly(self.W))
+        object.__setattr__(self, "frequencies", _readonly(self.frequencies))
 
 
 @dataclass(frozen=True, slots=True)
 class KAMCertificate:
-    is_satisfied: bool
+    """
+    Resultado de una prueba diofántica y estadística de Bruno truncadas.
+
+    `finite_test_passed` solo se refiere a los vectores examinados dentro de
+    la caja indicada. Las dos certificaciones globales permanecen en False.
+    """
+    finite_test_passed: bool
     worst_ratio: float
     tau: float
     gamma: float
     omega_min: float
-    bruno_sum: float = 0.0
-    bruno_satisfied: bool = True
-    n_vectors_tested: int = 0
+    bruno_truncated_sum: Optional[float]
+    bruno_truncated_passed: Optional[bool]
+    n_vectors_tested: int
+    max_order: int
+    frequency_dimension_used: int
+    frequency_dimension_truncated: bool
+    global_diophantine_certified: bool = False
+    global_bruno_certified: bool = False
+    scope: str = "Búsqueda finita en frecuencia float64; no es certificado global."
+
+    @property
+    def is_satisfied(self) -> bool:
+        """Compatibilidad: indica solo que pasó la búsqueda finita."""
+        return self.finite_test_passed
+
+    @property
+    def bruno_sum(self) -> float:
+        return (
+            float(self.bruno_truncated_sum)
+            if self.bruno_truncated_sum is not None
+            else float("inf")
+        )
+
+    @property
+    def bruno_satisfied(self) -> bool:
+        """Compatibilidad: resultado truncado, no una condición global."""
+        return bool(self.bruno_truncated_passed)
+
+
+@dataclass(frozen=True, slots=True)
+class PontryaginProxyCertificate:
+    """Proxy matricial; no es un número de Pontryagin integral."""
+    quadratic_matrix_proxy: float
+    integer_charge: Optional[int] = None
+    integrality_residual: Optional[float] = None
+    stora_zumino_residual: Optional[float] = None
+    globally_certified: bool = False
+    scope: str = "No se suministró variedad ni forma diferencial integrable."
+
+
+@dataclass(frozen=True, slots=True)
+class ChernCharacterMatrixProxy:
+    """Trazas de funciones matriciales; no son clases de Chern integrales."""
+    total_trace_exp: complex
+    ch1_matrix_proxy: complex
+    ch2_matrix_proxy: float
+    is_topological_class_certified: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class MelnikovCertificate:
-    integral_value: float
-    max_abs_integrand: float
-    is_homoclinic_preserved: bool
+    """
+    Melnikov no evaluable con los datos de este motor: no se recibe una
+    órbita homoclínica ni un sistema Hamiltoniano perturbado.
+    """
+    integral_value: Optional[float]
+    max_abs_integrand: Optional[float]
+    is_homoclinic_preserved: Optional[bool]
+    is_computable: bool
+    scope: str
+    reason: str
 
 
 @dataclass(frozen=True, slots=True)
 class FloquetCertificate:
+    """Espectro de exp(TF) para un generador constante F."""
     multipliers: NDArray[np.complex128]
     max_unit_deviation: float
     is_neutral: bool
     is_dissipative_stable: bool
     exponents: NDArray[np.float64]
-    krein_collision: bool = False
+    krein_collision: Optional[bool]
+    is_periodic_system_certified: bool = False
+    scope: str = "Monodromía de generador constante; no es una auditoría Floquet general."
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "multipliers", _readonly(self.multipliers))
+        object.__setattr__(self, "exponents", _readonly(self.exponents))
 
 
 @dataclass(frozen=True, slots=True)
 class PoincareSectionCertificate:
+    """
+    Diagnóstico numérico de cruces de un nivel de observable.
+
+    `returns` contiene intervalos entre cruces; regularidad es un indicador
+    finito, no una prueba de regularidad de toros.
+    """
     n_crossings: int
-    return_dispersion: float
-    is_regular: bool
+    return_dispersion: Optional[float]
+    is_regular: Optional[bool]
     returns: Tuple[float, ...]
-    mean_return_time: float = 0.0
-    recurrence_time: float = 0.0
+    mean_return_time: Optional[float]
+    recurrence_time: Optional[float]
+    section_is_certified: bool = False
+    scope: str = "Cruces interpolados de un observable en una malla temporal finita."
 
 
 @dataclass(frozen=True, slots=True)
@@ -268,39 +498,78 @@ class RSI3SurfaceReport:
     metric_value: float
     threshold: float
     passed: bool
-    diagnostics: Dict[str, Any]
+    diagnostics: Mapping[str, Any]
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "diagnostics",
+            MappingProxyType(dict(self.diagnostics)),
+        )
 
 
 @dataclass(frozen=True, slots=True)
 class RSI3Certificate:
-    surfaces: Tuple[RSI3SurfaceReport, RSI3SurfaceReport, RSI3SurfaceReport]
-    lipschitz_t3: float
-    capacity_jerk: float
+    """
+    Auditoría recursiva de tres pasos.
+
+    `lipschitz_t3` se refiere únicamente al subespacio oscilatorio no
+    resonante resuelto. La norma global del operador incluye modos invariantes
+    y no queda certificada como una contracción estricta.
+    """
+    surfaces: Tuple[
+        RSI3SurfaceReport,
+        RSI3SurfaceReport,
+        RSI3SurfaceReport,
+    ]
+    lipschitz_t3: Optional[float]
+    capacity_jerk: Optional[float]
     fixed_point_reached: bool
     iterations: int
     is_valid: bool
-    contraction_ratio: float = 1.0
+    contraction_ratio: Optional[float]
+    residual_before: float
+    residual_after: float
+    full_space_contraction_certified: bool = False
+    self_modifies_code: bool = False
 
-    @property
-    def surface1(self) -> RSI3SurfaceReport:
-        return self.surfaces[0]
 
-    @property
-    def surface2(self) -> RSI3SurfaceReport:
-        return self.surfaces[1]
+@dataclass(frozen=True, slots=True)
+class WeakMeasurementCertificate:
+    """Diagnóstico AAV algebraico; no certifica por sí solo un instrumento QND."""
+    weak_value: Optional[complex]
+    pre_post_overlap: complex
+    overlap_squared: float
+    postselection_overlap_db: Optional[float]
+    observable_variance: float
+    weak_value_defined: bool
+    qnd_commutator_norm: Optional[float]
+    commutes_with_supplied_hamiltonian: Optional[bool]
+    qnd_certified: bool = False
+    back_action_db: Optional[float] = None
 
-    @property
-    def surface3(self) -> RSI3SurfaceReport:
-        return self.surfaces[2]
+
+@dataclass(frozen=True, slots=True)
+class CrowbarSimulationResult:
+    """Resultado de software; `actuated` es siempre False."""
+    requested: bool
+    actuated: bool
+    python_elapsed_ns: float
+    numeric_threshold_ns: float
+    python_overhead_below_threshold: bool
+    action: str
+    hardware_wcET_certified: bool = False
 
 
 @dataclass(frozen=True, slots=True)
 class GaugePhase1Envelope:
-    r"""Contrato FASE 1 (Observe) → FASE 2 (Orient)."""
+    """Contrato íntegro FASE 1 → FASE 2."""
     rho_sanitized: NDArray[np.complex128]
     connection_A: NDArray[np.complex128]
     curvature_F: NDArray[np.complex128]
+    background_hamiltonian: NDArray[np.complex128]
     energy_ym: float
+    density_projection_distance: float
     is_anti_hermitian_A: bool
     is_traceless_A: bool
     is_anti_hermitian_F: bool
@@ -310,18 +579,32 @@ class GaugePhase1Envelope:
     is_symplectic_valid: bool
     poincare_lindstedt: Optional[PoincareLindstedtSolution]
     dimension: int
-    origin_timestamp_ns: float
+    elapsed_ns: float
     chain_hash: str
-    spectral_gap: float = 0.0
-    poincare_cartan_invariant: float = 0.0
-    is_kahler: bool = False
-    is_quaternionic_proxy: bool = False
-    cayley_unitary_defect: float = 0.0
+    spectral_gap: float
+    poincare_cartan_invariant: float
+    is_kahler: bool
+    is_quaternionic_proxy: bool
+    cayley_unitary_defect: float
+    cayley_orthogonal_defect: float
+    kks_orbit_tangent_norm: float
+    scope: str = (
+        "Matrices finitas; F es un conmutador orbital, no una 2-forma KKS."
+    )
+
+    def __post_init__(self) -> None:
+        for name in (
+            "rho_sanitized",
+            "connection_A",
+            "curvature_F",
+            "background_hamiltonian",
+        ):
+            object.__setattr__(self, name, _readonly(getattr(self, name)))
 
 
 @dataclass(frozen=True, slots=True)
 class GaugePhase2Envelope:
-    r"""Contrato FASE 2 (Orient) → FASE 3 (Decide&Act)."""
+    """Contrato íntegro FASE 2 → FASE 3."""
     phase1: GaugePhase1Envelope
     chern_simons_real: float
     chern_simons_anomaly: float
@@ -329,9 +612,9 @@ class GaugePhase2Envelope:
     wilson_trace: complex
     wilson_angle_rad: float
     c1_value: float
-    pontryagin_instanton_k: int
-    pontryagin_integrality_residual: float
-    stora_zumino_residual: float
+    pontryagin_instanton_k: Optional[int]
+    pontryagin_integrality_residual: Optional[float]
+    stora_zumino_residual: Optional[float]
     kam_certificate: KAMCertificate
     melnikov: MelnikovCertificate
     floquet: FloquetCertificate
@@ -339,15 +622,21 @@ class GaugePhase2Envelope:
     rsi3_certificate: RSI3Certificate
     topology_regime: str
     chain_hash: str
-    origin_timestamp_ns: float
-    chern_simons_algebraic: float = 0.0
-    chern_character_ch1: complex = 0j
-    chern_character_ch2: float = 0.0
+    elapsed_ns: float
+    chern_simons_algebraic: float
+    chern_character_ch1: complex
+    chern_character_ch2: float
+    pontryagin_quadratic_proxy: float
+    chern_simons_matrix_proxy: complex
+    chern_character_total_trace_proxy: complex
+    scope: str = (
+        "Los invariantes topológicos reportados son proxies matriciales."
+    )
 
 
 @dataclass(frozen=True, slots=True)
 class TopologicalGaugeFieldSnapshot:
-    """Snapshot inmutable final (FASE 3) v11.0.0."""
+    """Snapshot final autenticado; no implica actuación física."""
     snapshot_id: str
     yang_mills_energy: float
     chern_simons_3form_higgs: float
@@ -355,1062 +644,1689 @@ class TopologicalGaugeFieldSnapshot:
     chern_hopf_class_c1: float
     wilson_loop_trace: complex
     wilson_angle_rad: float
-    pontryagin_instanton_number: int
-    pontryagin_integrality_residual: float
-    stora_zumino_residual: float
-    weak_value_qnd_aav: complex
-    back_action_db: float
+    pontryagin_instanton_number: Optional[int]
+    pontryagin_integrality_residual: Optional[float]
+    stora_zumino_residual: Optional[float]
+    weak_value_qnd_aav: Optional[complex]
+    back_action_db: Optional[float]
     topology_regime: str
     global_verdict: HeytingOmega3
     sha256_merkle_digest: str
     timestamp_utc: float
+    phase1: GaugePhase1Envelope
+    phase2: GaugePhase2Envelope
+    hmac_sha256: bytes
     kam_worst_ratio: float = 0.0
-    kam_satisfied: bool = True
-    melnikov_value: float = 0.0
+    kam_satisfied: bool = False
+    kam_finite_test_passed: bool = False
+    kam_global_certified: bool = False
+    bruno_satisfied: bool = False
+    bruno_truncated_passed: Optional[bool] = None
+    bruno_global_certified: bool = False
+    melnikov_value: Optional[float] = None
     floquet_max_unit_deviation: float = 0.0
-    floquet_is_neutral: bool = True
+    floquet_is_neutral: bool = False
     poincare_section_n_crossings: int = 0
-    poincare_section_dispersion: float = 0.0
-    banach_lipschitz_t3: float = 0.0
+    poincare_section_dispersion: Optional[float] = None
+    banach_lipschitz_t3: Optional[float] = None
+    full_space_contraction_certified: bool = False
     fubini_study_distance: float = 0.0
-    novikov_krull_valuation: float = 0.0
-    rsi3_valid: bool = True
-    rsi3_iterations: int = 1
+    novikov_krull_valuation: Optional[float] = None
+    rsi3_valid: bool = False
+    rsi3_iterations: int = 0
     symplectic_residue: float = 0.0
     symplectic_defect: float = 0.0
     crowbar_latency_ns: float = 0.0
-    hardware_crowbar_action: str = "NOMINAL_EXECUTION"
-    hmac_sha256: bytes = b""
-    phase1: Optional[GaugePhase1Envelope] = None
-    phase2: Optional[GaugePhase2Envelope] = None
-    engine_version: str = _ENGINE_VERSION
-    spectral_gap: float = 0.0
-    poincare_cartan_invariant: float = 0.0
-    bruno_satisfied: bool = True
-    chern_simons_algebraic: float = 0.0
-    lindstedt_residual: float = 0.0
+    crowbar_requested: bool = False
+    crowbar_actuated: bool = False
+    hardware_crowbar_action: str = "SIMULATION_ONLY"
+    postselection_overlap_db: Optional[float] = None
     qnd_variance: float = 0.0
+    qnd_certified: bool = False
+    semantic_policy: Tuple[Tuple[str, str], ...] = ()
+    engine_version: str = _ENGINE_VERSION
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "semantic_policy",
+            tuple((str(key), str(value)) for key, value in self.semantic_policy),
+        )
 
 
-# ══════════════════════════════════════════════════════════════════════════════════
-# ╔════════════════════════════════════════════════════════════════════════════════╗
-# ║  F A S E   1 :   O B S E R V E                                               ║
-# ║  su(N), curvatura KKS, Cayley–Sp(2n,ℝ), Lindstedt espectral, Cartan.        ║
-# ║  Cierra con emit_phase1_envelope → continue_to_phase2.                       ║
-# ╚════════════════════════════════════════════════════════════════════════════════╝
-# ══════════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# FASE 1 — OBSERVE
+# ══════════════════════════════════════════════════════════════════════════════
 
 class GaugePhase1Observer:
-    r"""
-    FASE 1 (Observe): sanitización de ρ, conexión \(A\in\mathfrak{su}(N)\),
-    curvatura de Kirillov–Kostant respecto del Hamiltoniano celeste,
-    embedding Cayley–Kähler en \(\mathrm{Sp}(2n,\mathbb{R})\) y
-    Poincaré–Lindstedt espectral.
+    """
+    FASE 1: matrices densidad, su(N), conmutador orbital, realificación
+    simpléctica y ecuación homológica espectral.
     """
 
     def __init__(self, dimension: int = 56) -> None:
-        self.dimension: int = max(4, int(dimension))
-        self._background_H: Optional[NDArray[np.complex128]] = None
+        if isinstance(dimension, bool) or int(dimension) != dimension:
+            raise ValueError("dimension debe ser un entero.")
+        if int(dimension) < 2:
+            raise ValueError("dimension debe ser al menos 2.")
+        self.dimension = int(dimension)
 
-    # ── Proyecciones de álgebra de Lie ────────────────────────────────────────
-    def _project_su_n(self, matrix: NDArray) -> NDArray[np.complex128]:
-        n = int(matrix.shape[0])
-        A = np.asarray(matrix, dtype=np.complex128)
-        A = 0.5 * (A - A.conj().T)
-        A = A - (np.trace(A) / float(n)) * np.eye(n, dtype=np.complex128)
-        return A
+    def _project_su_n(self, matrix: NDArray[Any]) -> NDArray[np.complex128]:
+        arr = _as_complex_square(matrix, "matriz su(N)")
+        n = arr.shape[0]
+        anti = 0.5 * (arr - arr.conj().T)
+        anti -= (np.trace(anti) / float(n)) * np.eye(n, dtype=np.complex128)
+        return np.asarray(anti, dtype=np.complex128)
 
-    def _psd_hermitian(self, matrix: NDArray) -> NDArray[np.complex128]:
-        a = np.asarray(matrix, dtype=np.complex128)
-        herm = 0.5 * (a + a.conj().T)
-        eigvals, eigvecs = la.eigh(herm)
-        clean = np.maximum(np.real(eigvals), _SPECTRAL_PSD_FLOOR)
-        return (eigvecs * clean) @ eigvecs.conj().T
+    def _psd_hermitian(self, matrix: NDArray[Any]) -> NDArray[np.complex128]:
+        """Proyección espectral al cono PSD, sin imponer todavía traza uno."""
+        arr = _as_complex_square(matrix, "matriz PSD")
+        hermitian = 0.5 * (arr + arr.conj().T)
+        eigenvalues, eigenvectors = la.eigh(hermitian)
+        clean = np.maximum(np.real(eigenvalues), 0.0)
+        result = (eigenvectors * clean) @ eigenvectors.conj().T
+        return 0.5 * (result + result.conj().T)
 
-    def sanitize_density_matrix(self, matrix: NDArray) -> NDArray[np.complex128]:
-        arr = np.asarray(matrix, dtype=np.complex128)
-        if arr.shape != (self.dimension, self.dimension):
-            raise ValueError(
-                f"ρ debe ser {self.dimension}×{self.dimension}; recibido {arr.shape}.")
-        psd = self._psd_hermitian(arr)
-        tr = float(np.real(np.trace(psd)))
-        if tr <= _WILKINSON_EPSILON:
-            return np.eye(self.dimension, dtype=np.complex128) / float(self.dimension)
-        return psd / tr
+    def sanitize_density_matrix(
+        self,
+        matrix: NDArray[Any],
+    ) -> NDArray[np.complex128]:
+        """
+        Proyección de Frobenius sobre el simplex de eigenvalores:
+        rho = rho†, rho >= 0, Tr(rho) = 1.
+        """
+        arr = _as_complex_square(matrix, "rho", self.dimension)
+        hermitian = 0.5 * (arr + arr.conj().T)
+        eigenvalues, eigenvectors = la.eigh(hermitian)
+
+        descending = np.real(eigenvalues)[::-1]
+        cumulative = np.cumsum(descending) - 1.0
+        indices = np.arange(1, self.dimension + 1, dtype=np.float64)
+        admissible = descending - cumulative / indices > 0.0
+
+        if not np.any(admissible):
+            projected_eigenvalues = np.full(
+                self.dimension,
+                1.0 / self.dimension,
+                dtype=np.float64,
+            )
+        else:
+            rho_index = int(np.flatnonzero(admissible)[-1])
+            theta = cumulative[rho_index] / float(rho_index + 1)
+            projected_eigenvalues = np.maximum(
+                np.real(eigenvalues) - theta,
+                0.0,
+            )
+            total = float(np.sum(projected_eigenvalues))
+            if total <= np.finfo(np.float64).tiny:
+                projected_eigenvalues.fill(1.0 / self.dimension)
+            else:
+                projected_eigenvalues /= total
+
+        rho = (eigenvectors * projected_eigenvalues) @ eigenvectors.conj().T
+        rho = 0.5 * (rho + rho.conj().T)
+        trace = float(np.real(np.trace(rho)))
+        if abs(trace - 1.0) > _DENSITY_TRACE_TOL:
+            rho /= trace
+        return np.asarray(rho, dtype=np.complex128)
 
     def _default_background_hamiltonian(self, n: int) -> NDArray[np.complex128]:
-        r"""
-        Hamiltoniano celeste discreto (Poincaré: pequeñas oscilaciones):
-        \(H = L_{\mathrm{path}} + \tfrac{1}{10n}(x-\bar x)^2\), luego
-        \(\|H\|_F=1\) para fijar la escala de \(E_{YM}\).
-        """
-        idx = np.arange(n, dtype=np.float64)
-        diag = 2.0 * np.ones(n) + 0.10 * (idx - 0.5 * (n - 1)) ** 2 / float(n)
-        H = np.diag(diag) - np.diag(np.ones(n - 1), 1) - np.diag(np.ones(n - 1), -1)
-        H = H.astype(np.complex128)
-        H = 0.5 * (H + H.conj().T)
-        scale = float(la.norm(H, "fro"))
-        if scale > _WILKINSON_EPSILON:
-            H = H / scale
-        return H
+        """Hamiltoniano Hermítico discreto: Laplaciano de camino más trampa."""
+        laplacian = np.zeros((n, n), dtype=np.float64)
+        for index in range(n - 1):
+            laplacian[index, index] += 1.0
+            laplacian[index + 1, index + 1] += 1.0
+            laplacian[index, index + 1] = -1.0
+            laplacian[index + 1, index] = -1.0
+
+        positions = np.arange(n, dtype=np.float64)
+        center = 0.5 * float(n - 1)
+        trap = 0.10 * (positions - center) ** 2 / float(n)
+        hamiltonian = laplacian + np.diag(trap)
+        norm = float(la.norm(hamiltonian, "fro"))
+        if norm > np.finfo(np.float64).tiny:
+            hamiltonian = hamiltonian / norm
+        return np.asarray(hamiltonian, dtype=np.complex128)
 
     def _resolve_background_H(
-        self, n: int, background_H: Optional[NDArray] = None,
+        self,
+        n: int,
+        background_H: Optional[NDArray[Any]] = None,
     ) -> NDArray[np.complex128]:
-        if background_H is not None:
-            H = np.asarray(background_H, dtype=np.complex128)
-            if H.shape != (n, n):
-                raise ValueError(f"H_celeste debe ser {n}×{n}; recibido {H.shape}.")
-            return 0.5 * (H + H.conj().T)
-        if self._background_H is not None and self._background_H.shape == (n, n):
-            return self._background_H
-        H = self._default_background_hamiltonian(n)
-        self._background_H = H
-        return H
+        if background_H is None:
+            return self._default_background_hamiltonian(n)
 
-    # ── Método 1: conexión A ∈ su(N) ──────────────────────────────────────────
-    def build_gauge_connection_A(self, density_matrix: NDArray) -> NDArray[np.complex128]:
-        r"""
-        Proyección de Frobenius sobre \(\mathfrak{su}(N)\):
-        \(A = i\bigl(\rho_h - \tfrac{\mathrm{Tr}\,\rho_h}{N}I\bigr)\),
-        con \(A^\dagger=-A\) y \(\mathrm{Tr}(A)=0\).
-        """
+        hamiltonian = _as_complex_square(background_H, "H_celeste", n)
+        defect = float(la.norm(hamiltonian - hamiltonian.conj().T, "fro"))
+        scale = max(1.0, float(la.norm(hamiltonian, "fro")))
+        if defect / scale > _ANTI_HERM_TOL:
+            raise ValueError("H_celeste debe ser Hermítico.")
+        return np.asarray(
+            0.5 * (hamiltonian + hamiltonian.conj().T),
+            dtype=np.complex128,
+        )
+
+    def build_gauge_connection_A(
+        self,
+        density_matrix: NDArray[Any],
+    ) -> NDArray[np.complex128]:
+        r"""A = i(rho - I/N), que pertenece a su(N) si rho es una densidad."""
         rho = self.sanitize_density_matrix(density_matrix)
-        n = rho.shape[0]
-        rho_h = 0.5 * (rho + rho.conj().T)
-        su = rho_h - (np.trace(rho_h) / float(n)) * np.eye(n, dtype=np.complex128)
-        return self._project_su_n(1j * su)
+        identity = np.eye(self.dimension, dtype=np.complex128)
+        return self._project_su_n(1j * (rho - identity / self.dimension))
 
-    def _verify_anti_hermitian(self, A: NDArray[np.complex128]) -> Tuple[bool, float]:
-        defect = float(la.norm(A + A.conj().T, "fro"))
-        scale = max(1.0, float(la.norm(A, "fro")))
-        return bool(defect / scale < _ANTI_HERM_TOL), defect / scale
+    def _verify_anti_hermitian(
+        self,
+        matrix: NDArray[np.complex128],
+    ) -> Tuple[bool, float]:
+        defect = float(la.norm(matrix + matrix.conj().T, "fro"))
+        scale = max(1.0, float(la.norm(matrix, "fro")))
+        relative = defect / scale
+        return bool(relative <= _ANTI_HERM_TOL), relative
 
-    def _verify_traceless(self, A: NDArray[np.complex128]) -> Tuple[bool, float]:
-        tr = complex(np.trace(A))
-        return bool(abs(tr) < _TRACELESS_TOL), abs(tr)
+    def _verify_traceless(
+        self,
+        matrix: NDArray[np.complex128],
+    ) -> Tuple[bool, float]:
+        scale = max(1.0, float(la.norm(matrix, "fro")))
+        defect = abs(complex(np.trace(matrix))) / scale
+        return bool(defect <= _TRACELESS_TOL), float(defect)
 
-    # ── Método 2: curvatura KKS F = [ρ, H_celeste] ────────────────────────────
     def compute_yang_mills_curvature_F(
         self,
-        connection_A: NDArray,
-        density_matrix: Optional[NDArray] = None,
-        background_hamiltonian: Optional[NDArray] = None,
+        connection_A: NDArray[Any],
+        density_matrix: Optional[NDArray[Any]] = None,
+        background_hamiltonian: Optional[NDArray[Any]] = None,
     ) -> Tuple[NDArray[np.complex128], float]:
-        r"""
-        Curvatura de Kirillov–Kostant–Souriau sobre la órbita coadjunta:
-
-        **v11 (con ρ):** \(F=[\rho,H_{\mathrm{cel}}]\).  Ambos Hermitianos
-        \(\Rightarrow F^\dagger=-F\), \(\mathrm{Tr}(F)=0\).  *No* es \([A,\rho]\),
-        que se anula idénticamente.
-
-        **legacy (sin ρ):** \(F=A^2-A^\dagger A\).
-
-        Energía: \(E_{YM}=-\tfrac12\mathrm{Tr}(F^2)\ge 0\) si \(F^\dagger=-F\).
         """
-        a = np.asarray(connection_A, dtype=np.complex128)
-        if density_matrix is not None:
-            rho = self.sanitize_density_matrix(density_matrix)
-            H = self._resolve_background_H(rho.shape[0], background_hamiltonian)
-            F = rho @ H - H @ rho
-            F = self._project_su_n(F)
-            energy_ym = -0.5 * float(np.real(np.trace(F @ F)))
-        else:
-            F = a @ a - a.conj().T @ a
-            energy_ym = 0.5 * float(np.real(np.trace(F.conj().T @ F)))
-        return F, max(0.0, float(energy_ym))
+        Calcula F_proxy = [rho, H].
 
-    # ── Espectro de acción-ángulo (Poincaré) ──────────────────────────────────
+        Esta matriz es antihermítica y sin traza cuando rho y H son
+        Hermíticas. No es, por sí sola, una curvatura de Yang–Mills ni una
+        2-forma KKS.
+        """
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        if density_matrix is None:
+            raise ValueError(
+                "Se requiere rho: no se usa la fórmula legacy A²-A†A."
+            )
+
+        rho = self.sanitize_density_matrix(density_matrix)
+        expected_a = self.build_gauge_connection_A(rho)
+        if not np.allclose(a, expected_a, rtol=1.0e-8, atol=1.0e-10):
+            raise ValueError("A no corresponde a la matriz densidad suministrada.")
+
+        hamiltonian = self._resolve_background_H(
+            self.dimension,
+            background_hamiltonian,
+        )
+        raw_f = rho @ hamiltonian - hamiltonian @ rho
+        curvature_proxy = self._project_su_n(raw_f)
+        energy = 0.5 * float(la.norm(curvature_proxy, "fro") ** 2)
+        return curvature_proxy, energy
+
+    def evaluate_kks_form(
+        self,
+        density_matrix: NDArray[Any],
+        generator_h1: NDArray[Any],
+        generator_h2: NDArray[Any],
+    ) -> float:
+        r"""
+        Evalúa, con la convención declarada, la forma KKS orbital:
+
+            omega_rho(H1,H2) = -i Tr(rho [H1,H2]).
+
+        Se requieren ambos generadores; no se deduce una 2-forma a partir de F.
+        """
+        rho = self.sanitize_density_matrix(density_matrix)
+        h1 = _as_complex_square(generator_h1, "H1", self.dimension)
+        h2 = _as_complex_square(generator_h2, "H2", self.dimension)
+
+        for name, matrix in (("H1", h1), ("H2", h2)):
+            defect = float(la.norm(matrix - matrix.conj().T, "fro"))
+            scale = max(1.0, float(la.norm(matrix, "fro")))
+            if defect / scale > _ANTI_HERM_TOL:
+                raise ValueError(f"{name} debe ser Hermítico.")
+
+        value = -1j * np.trace(rho @ (h1 @ h2 - h2 @ h1))
+        return float(np.real_if_close(value).real)
+
     def _spectral_action_angle(
-        self, A: NDArray[np.complex128],
+        self,
+        connection_A: NDArray[np.complex128],
     ) -> Tuple[NDArray[np.float64], NDArray[np.complex128], float]:
-        r"""
-        \(A^\dagger=-A\Rightarrow H=-iA\) Hermítica.  \(A=i\,U\mathrm{diag}(\omega)U^\dagger\).
-        Gap espectral \(\Delta=\min_{i\neq j}|\omega_i-\omega_j|\).
-        """
-        H = -1j * np.asarray(A, dtype=np.complex128)
-        H = 0.5 * (H + H.conj().T)
-        omega, U = la.eigh(H)
-        omega = np.real(omega).astype(np.float64)
-        if omega.size < 2:
-            return omega, U, 0.0
-        diffs = np.diff(np.sort(omega))
-        gap = float(np.min(diffs)) if diffs.size else 0.0
-        return omega, U, gap
+        """Diagonaliza H0 = -iA y devuelve frecuencias y gap espectral."""
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        h0 = -1j * a
+        h0 = 0.5 * (h0 + h0.conj().T)
+        frequencies, eigenvectors = la.eigh(h0)
+        frequencies = np.real(frequencies).astype(np.float64)
+
+        if frequencies.size < 2:
+            gap = 0.0
+        else:
+            gaps = np.diff(frequencies)
+            gap = float(np.min(np.abs(gaps)))
+        return frequencies, eigenvectors, gap
 
     def _phase1_poincare_cartan_invariant(
         self,
-        omega: NDArray[np.float64],
-        U: NDArray[np.complex128],
+        frequencies: NDArray[np.float64],
+        eigenvectors: NDArray[np.complex128],
         rho: NDArray[np.complex128],
     ) -> float:
-        r"""Invariante integral de Poincaré–Cartan \(\sum_j|\omega_j|\,n_j\),
-        \(n_j=\langle u_j|\rho|u_j\rangle\) (acciones de ángulo)."""
-        occ = np.real(np.diag(U.conj().T @ rho @ U))
-        return float(np.sum(np.abs(omega) * np.abs(occ)))
+        """
+        Proxy de acciones espectrales ponderadas por ocupación.
+
+        No se afirma que sea un invariante integral de Poincaré–Cartan.
+        """
+        occupations = np.real(
+            np.diag(eigenvectors.conj().T @ rho @ eigenvectors)
+        )
+        return float(np.sum(np.abs(frequencies) * np.abs(occupations)))
+
+    def _phase1_cayley_kahler_embedding(
+        self,
+        curvature_proxy: NDArray[np.complex128],
+    ) -> Tuple[
+        NDArray[np.float64],
+        float,
+        float,
+        bool,
+        float,
+        float,
+    ]:
+        """
+        Aplica U=(I+F)(I-F)^(-1), realifica U y verifica las identidades
+        de grupo simpléctico, álgebra simpléctica y ortogonalidad.
+        """
+        f = _as_complex_square(curvature_proxy, "F", self.dimension)
+        n = f.shape[0]
+        identity = np.eye(n, dtype=np.complex128)
+        j = _symplectic_j(n)
+
+        try:
+            # Resuelve U (I-F) = I+F sin construir explícitamente la inversa.
+            unitary = la.solve(
+                (identity - f).T,
+                (identity + f).T,
+            ).T
+
+            unitary_defect = float(
+                la.norm(unitary.conj().T @ unitary - identity, "fro")
+                / max(1.0, float(la.norm(unitary, "fro")))
+            )
+            m = _realify(unitary)
+            k = _realify(f)
+
+            lie_defect = float(
+                la.norm(k.T @ j + j @ k, "fro")
+                / max(1.0, float(la.norm(k, "fro")))
+            )
+            m_norm = float(la.norm(m, "fro"))
+            group_residue = float(
+                la.norm(m.T @ j @ m - j, "fro")
+                / max(1.0, m_norm * m_norm)
+            )
+            orthogonal_defect = float(
+                la.norm(m.T @ m - np.eye(2 * n), "fro")
+                / max(1.0, m_norm)
+            )
+
+            valid = bool(
+                group_residue <= _SYMPLECTIC_TOL
+                and lie_defect <= _SYMPLECTIC_TOL
+                and unitary_defect <= _SYMPLECTIC_TOL
+            )
+            return (
+                m,
+                group_residue,
+                lie_defect,
+                valid,
+                unitary_defect,
+                orthogonal_defect,
+            )
+        except (la.LinAlgError, np.linalg.LinAlgError, ValueError):
+            return (
+                np.zeros((2 * n, 2 * n), dtype=np.float64),
+                float("inf"),
+                float("inf"),
+                False,
+                float("inf"),
+                float("inf"),
+            )
 
     def _phase1_hypercomplex_structure(
-        self, A: NDArray[np.complex128], is_symplectic_valid: bool,
+        self,
+        realified_cayley: NDArray[np.float64],
+        symplectic_valid: bool,
+        orthogonal_defect: float,
     ) -> Tuple[bool, bool]:
-        r"""
-        Kähler: realificación de \(\mathrm{U}(n)\subset\mathrm{Sp}(2n)\cap\mathrm{O}(2n)\).
-        Proxy cuaterniónico: \(n\) par (estructura \(\mathbb{H}^{n/2}\)) y Kähler.
         """
-        n = int(A.shape[0])
-        is_kahler = bool(is_symplectic_valid)
-        is_quat = bool(is_kahler and (n % 2 == 0))
-        return is_kahler, is_quat
+        Comprueba compatibilidad Kähler lineal estándar en R^(2n).
 
-    # ── Cayley–Kähler en Sp(2n,ℝ) ─────────────────────────────────────────────
-    def _phase1_cayley_kahler_embedding(
-        self, F: NDArray[np.complex128],
-    ) -> Tuple[NDArray[np.float64], float, float, bool, float]:
-        r"""
-        Cayley de \(F\in\mathfrak{u}(n)\): \(U=(I+F)(I-F)^{-1}\in\mathrm{U}(n)\).
-        Realificación \(M=\mathcal{R}(U)\in\mathrm{Sp}(2n,\mathbb{R})\cap\mathrm{O}(2n)\).
-        \(K=\mathcal{R}(F)\in\mathfrak{sp}(2n,\mathbb{R})\).
-
-        Certifica \(\|M^\top JM-J\|_F/\|M\|_F^2\le 10^{-10}\) y
-        \(\|K^\top J+JK\|_F\le 10^{-10}\).
+        La paridad de n no demuestra la existencia de una estructura
+        cuaterniónica; por eso el segundo resultado es siempre False.
         """
-        d = int(F.shape[0])
-        I_d = np.eye(d, dtype=np.complex128)
-        J = _symplectic_j(d, dtype=np.float64)
-        try:
-            U = (I_d + F) @ la.pinv(I_d - F)
-            unit_def = float(la.norm(U.conj().T @ U - I_d, "fro")) / max(
-                1.0, float(la.norm(U, "fro")))
-            M = _realify(U)
-            K = _realify(F)
-            sp_defect = float(la.norm(K.T @ J + J @ K, "fro"))
-            diff = M.T @ J @ M - J
-            norm_M = float(la.norm(M, "fro"))
-            residue = float(la.norm(diff, "fro") / (norm_M ** 2)) if norm_M > 0 else float("inf")
-            valid = bool(residue < _SYMPLECTIC_TOL and sp_defect < _SYMPLECTIC_TOL)
-            return M, residue, sp_defect, valid, unit_def
-        except (la.LinAlgError, ValueError):
-            return np.zeros((2 * d, 2 * d), dtype=np.float64), 1.0, 1.0, False, 1.0
+        n = self.dimension
+        standard_complex_structure = -_symplectic_j(n)
+        commute_defect = float(
+            la.norm(
+                realified_cayley @ standard_complex_structure
+                - standard_complex_structure @ realified_cayley,
+                "fro",
+            )
+            / max(1.0, float(la.norm(realified_cayley, "fro")))
+        )
+        is_kahler_linear = bool(
+            symplectic_valid
+            and orthogonal_defect <= _SYMPLECTIC_TOL
+            and commute_defect <= _SYMPLECTIC_TOL
+        )
+        return is_kahler_linear, False
 
-    # ── Poincaré–Lindstedt espectral ──────────────────────────────────────────
     def _phase1_solve_poincare_lindstedt(
         self,
-        F: NDArray[np.complex128],
-        A: NDArray[np.complex128],
+        curvature_proxy: NDArray[np.complex128],
+        connection_A: NDArray[np.complex128],
     ) -> PoincareLindstedtSolution:
         r"""
-        Homología en la base propia de \(H_0=-iA\):
-        \[
-          \bigl(\omega_i-\omega_j\bigr)W_{ij}=(H_{1,\mathrm{osc}})_{ij},
-          \qquad \{H_0,W\}_q=-i[H_0,W].
-        \]
-        Divisores pequeños \(|\omega_i-\omega_j|<\varepsilon\) se anulan (Lindstedt).
+        Resuelve numéricamente [H0,W]=F_osc, donde H0=-iA y F_osc es la parte
+        fuera de la diagonal de F en la base propia de H0.
         """
-        omega, U, gap = self._spectral_action_angle(A)
-        d = int(A.shape[0])
-        F_eig = U.conj().T @ F @ U
-        F_osc_eig = F_eig - np.diag(np.diag(F_eig))
+        f = _as_complex_square(curvature_proxy, "F", self.dimension)
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        frequencies, eigenvectors, spectral_gap = self._spectral_action_angle(a)
 
-        W_eig = np.zeros((d, d), dtype=np.complex128)
-        resonant = False
+        f_eigen = eigenvectors.conj().T @ f @ eigenvectors
+        f_osc_eigen = f_eigen - np.diag(np.diag(f_eigen))
+        w_eigen = np.zeros_like(f_eigen)
         n_small = 0
-        min_gap = float(gap) if gap > 0 else float("inf")
-        for i in range(d):
-            for j in range(d):
-                if i == j:
-                    continue
-                dw = float(omega[i] - omega[j])
-                adw = abs(dw)
-                if adw < min_gap:
-                    min_gap = adw
-                if adw < _RESONANT_GAP:
-                    resonant = True
-                    n_small += 1
-                    continue
-                W_eig[i, j] = F_osc_eig[i, j] / dw
+        unresolved_squared = 0.0
+        min_gap = float("inf")
 
-        W = U @ W_eig @ U.conj().T
-        F_osc = U @ F_osc_eig @ U.conj().T
-        commut = -1j * (A @ W - W @ A)
-        residual = float(la.norm(commut - F_osc, "fro"))
+        scale = max(1.0, float(np.max(np.abs(frequencies))))
+        resonance_tolerance = max(
+            _RESONANT_GAP_ABS,
+            _RESONANT_GAP_REL * scale,
+        )
+        forcing_tolerance = (
+            _LINSTEDT_RESIDUAL_TOL
+            * max(1.0, float(la.norm(f_osc_eigen, "fro")))
+        )
+
+        for row in range(self.dimension):
+            for col in range(self.dimension):
+                if row == col:
+                    continue
+
+                divisor = float(frequencies[row] - frequencies[col])
+                abs_divisor = abs(divisor)
+                min_gap = min(min_gap, abs_divisor)
+
+                if abs_divisor <= resonance_tolerance:
+                    n_small += 1
+                    forcing = abs(complex(f_osc_eigen[row, col]))
+                    if forcing > forcing_tolerance:
+                        unresolved_squared += forcing * forcing
+                    continue
+
+                w_eigen[row, col] = f_osc_eigen[row, col] / divisor
+
+        w = eigenvectors @ w_eigen @ eigenvectors.conj().T
+        w = 0.5 * (w + w.conj().T)
+        f_osc = eigenvectors @ f_osc_eigen @ eigenvectors.conj().T
+
+        homological_action = -1j * (a @ w - w @ a)
+        residual = float(la.norm(homological_action - f_osc, "fro"))
+        relative_residual = residual / max(1.0, float(la.norm(f_osc, "fro")))
+        unresolved_norm = float(math.sqrt(unresolved_squared))
+        solved = bool(
+            relative_residual <= _LINSTEDT_RESIDUAL_TOL
+            and unresolved_norm <= forcing_tolerance
+        )
+
+        if not math.isfinite(min_gap):
+            min_gap = float(spectral_gap)
+
         return PoincareLindstedtSolution(
-            W=W,
-            min_resonance_gap=float(min_gap) if math.isfinite(min_gap) else 0.0,
+            W=w,
+            min_resonance_gap=float(min_gap),
             residual_norm=residual,
-            is_resonant=resonant,
-            is_solved=bool(residual < _LINSTEDT_RESIDUAL_TOL and not resonant),
-            frequencies=omega,
+            relative_residual=relative_residual,
+            unresolved_residual_norm=unresolved_norm,
+            is_resonant=bool(n_small > 0),
+            is_solved=solved,
+            frequencies=frequencies,
             n_small_divisors=int(n_small),
         )
 
     def observe_topological_gauge_field(
         self,
-        density_matrix: NDArray,
-        background_hamiltonian: Optional[NDArray] = None,
-    ) -> Tuple[NDArray[np.complex128], NDArray[np.complex128], NDArray[np.complex128], float]:
+        density_matrix: NDArray[Any],
+        background_hamiltonian: Optional[NDArray[Any]] = None,
+    ) -> Tuple[
+        NDArray[np.complex128],
+        NDArray[np.complex128],
+        NDArray[np.complex128],
+        float,
+    ]:
         rho = self.sanitize_density_matrix(density_matrix)
-        A = self.build_gauge_connection_A(rho)
-        F, E = self.compute_yang_mills_curvature_F(
-            A, rho, background_hamiltonian=background_hamiltonian)
-        return rho, A, F, E
+        hamiltonian = self._resolve_background_H(
+            self.dimension,
+            background_hamiltonian,
+        )
+        connection = self.build_gauge_connection_A(rho)
+        curvature_proxy, energy = self.compute_yang_mills_curvature_F(
+            connection,
+            rho,
+            hamiltonian,
+        )
+        return rho, connection, curvature_proxy, energy
 
-    def _chain_hash_phase1(
-        self,
-        rho: NDArray, A: NDArray, F: NDArray,
-        energy: float, residue: float, defect: float, gap: float,
-    ) -> str:
-        return _hash_state(
-            rho, A, F,
-            np.array([energy, residue, defect, gap], dtype=np.float64),
+    def _phase1_chain_hash(self, env: GaugePhase1Envelope) -> str:
+        return _digest_dataclass(
+            b"APU-GAUGE-PHASE1-v12",
+            env,
+            excluded_fields=("chain_hash",),
         )
 
-    # ── CIERRE FASE 1 ─────────────────────────────────────────────────────────
+    def _validate_phase1_envelope(self, env: GaugePhase1Envelope) -> None:
+        """Valida integridad de cadena y coherencia de las cantidades básicas."""
+        if env.dimension != self.dimension:
+            raise ValueError(
+                f"Dimensión de FASE 1 {env.dimension} != {self.dimension}."
+            )
+
+        rho = self.sanitize_density_matrix(env.rho_sanitized)
+        if not np.allclose(rho, env.rho_sanitized, rtol=1.0e-9, atol=1.0e-11):
+            raise ValueError("rho del sobre FASE 1 no es una matriz densidad.")
+
+        expected_a = self.build_gauge_connection_A(rho)
+        if not np.allclose(
+            expected_a,
+            env.connection_A,
+            rtol=1.0e-8,
+            atol=1.0e-10,
+        ):
+            raise ValueError("A no coincide con la definición de FASE 1.")
+
+        hamiltonian = self._resolve_background_H(
+            self.dimension,
+            env.background_hamiltonian,
+        )
+        expected_f = self._project_su_n(rho @ hamiltonian - hamiltonian @ rho)
+        if not np.allclose(
+            expected_f,
+            env.curvature_F,
+            rtol=1.0e-8,
+            atol=1.0e-10,
+        ):
+            raise ValueError("F no coincide con el conmutador orbital declarado.")
+
+        expected_energy = 0.5 * float(la.norm(expected_f, "fro") ** 2)
+        if not math.isclose(
+            expected_energy,
+            env.energy_ym,
+            rel_tol=1.0e-8,
+            abs_tol=1.0e-11,
+        ):
+            raise ValueError("Energía inconsistente en el sobre FASE 1.")
+
+        expected_hash = self._phase1_chain_hash(env)
+        if not hmac.compare_digest(expected_hash, env.chain_hash):
+            raise ValueError(
+                f"Cadena FASE 1 corrupta: {expected_hash} != {env.chain_hash}."
+            )
+
     def emit_phase1_envelope(
         self,
-        density_matrix: NDArray,
-        background_hamiltonian: Optional[NDArray] = None,
+        density_matrix: NDArray[Any],
+        background_hamiltonian: Optional[NDArray[Any]] = None,
     ) -> GaugePhase1Envelope:
-        r"""
-        **Cierre formal de la FASE 1.**  Emite `GaugePhase1Envelope`.
-        El morfismo anidado siguiente es `continue_to_phase2`.
-        """
-        t0 = time.perf_counter_ns()
-        rho = self.sanitize_density_matrix(density_matrix)
-        A = self.build_gauge_connection_A(rho)
-        F, E = self.compute_yang_mills_curvature_F(
-            A, rho, background_hamiltonian=background_hamiltonian)
+        """Cierre formal de FASE 1: emite un sobre autoconsistente."""
+        start_ns = time.perf_counter_ns()
+        raw_rho = _as_complex_square(
+            density_matrix,
+            "rho",
+            self.dimension,
+        )
+        rho = self.sanitize_density_matrix(raw_rho)
+        projection_distance = float(la.norm(rho - raw_rho, "fro"))
 
-        a_ah, _ = self._verify_anti_hermitian(A)
-        a_tr, _ = self._verify_traceless(A)
-        f_ah, _ = self._verify_anti_hermitian(F)
-        f_tr, _ = self._verify_traceless(F)
-
-        _, residue, sp_defect, is_valid, unit_def = self._phase1_cayley_kahler_embedding(F)
-        pl = self._phase1_solve_poincare_lindstedt(F, A)
-        omega, U, gap = self._spectral_action_angle(A)
-        cartan = self._phase1_poincare_cartan_invariant(omega, U, rho)
-        kahler, quat = self._phase1_hypercomplex_structure(A, is_valid)
-        chain = self._chain_hash_phase1(rho, A, F, float(E), residue, sp_defect, gap)
-
-        return GaugePhase1Envelope(
-            rho_sanitized=rho, connection_A=A, curvature_F=F, energy_ym=float(E),
-            is_anti_hermitian_A=a_ah, is_traceless_A=a_tr,
-            is_anti_hermitian_F=f_ah, is_traceless_F=f_tr,
-            symplectic_residue=residue, symplectic_defect=sp_defect,
-            is_symplectic_valid=is_valid,
-            poincare_lindstedt=pl,
-            dimension=int(rho.shape[0]),
-            origin_timestamp_ns=float(time.perf_counter_ns() - t0),
-            chain_hash=chain,
-            spectral_gap=float(gap),
-            poincare_cartan_invariant=float(cartan),
-            is_kahler=kahler,
-            is_quaternionic_proxy=quat,
-            cayley_unitary_defect=float(unit_def),
+        hamiltonian = self._resolve_background_H(
+            self.dimension,
+            background_hamiltonian,
+        )
+        connection = self.build_gauge_connection_A(rho)
+        curvature_proxy, energy = self.compute_yang_mills_curvature_F(
+            connection,
+            rho,
+            hamiltonian,
         )
 
-    def continue_to_phase2(self, env: GaugePhase1Envelope) -> GaugePhase1Envelope:
-        r"""
-        **Puente anidado FASE 1 → FASE 2.**  Certifica la hash-chain de Observe
-        y habilita Orient.  Último morfismo de la FASE 1 = primer morfismo
-        efectivo de la FASE 2 (`from_phase1_envelope` es el dual clasista).
-        """
-        expected = self._chain_hash_phase1(
-            env.rho_sanitized, env.connection_A, env.curvature_F,
-            env.energy_ym, env.symplectic_residue, env.symplectic_defect,
-            env.spectral_gap)
-        if expected != env.chain_hash:
-            raise ValueError(f"Cadena FASE 1 corrupta: {expected} ≠ {env.chain_hash}.")
-        self._phase1 = env  # type: ignore[attr-defined]
-        logger.debug("FASE 1→2 puente OK hash=%s", env.chain_hash)
+        a_anti, _ = self._verify_anti_hermitian(connection)
+        a_trace, _ = self._verify_traceless(connection)
+        f_anti, _ = self._verify_anti_hermitian(curvature_proxy)
+        f_trace, _ = self._verify_traceless(curvature_proxy)
+
+        (
+            realified_cayley,
+            symplectic_residue,
+            symplectic_defect,
+            symplectic_valid,
+            unitary_defect,
+            orthogonal_defect,
+        ) = self._phase1_cayley_kahler_embedding(curvature_proxy)
+
+        lindstedt = self._phase1_solve_poincare_lindstedt(
+            curvature_proxy,
+            connection,
+        )
+        frequencies, eigenvectors, spectral_gap = self._spectral_action_angle(
+            connection
+        )
+        cartan_proxy = self._phase1_poincare_cartan_invariant(
+            frequencies,
+            eigenvectors,
+            rho,
+        )
+        is_kahler, is_quaternionic_proxy = self._phase1_hypercomplex_structure(
+            realified_cayley,
+            symplectic_valid,
+            orthogonal_defect,
+        )
+
+        elapsed_ns = float(time.perf_counter_ns() - start_ns)
+        envelope = GaugePhase1Envelope(
+            rho_sanitized=rho,
+            connection_A=connection,
+            curvature_F=curvature_proxy,
+            background_hamiltonian=hamiltonian,
+            energy_ym=float(energy),
+            density_projection_distance=projection_distance,
+            is_anti_hermitian_A=a_anti,
+            is_traceless_A=a_trace,
+            is_anti_hermitian_F=f_anti,
+            is_traceless_F=f_trace,
+            symplectic_residue=symplectic_residue,
+            symplectic_defect=symplectic_defect,
+            is_symplectic_valid=symplectic_valid,
+            poincare_lindstedt=lindstedt,
+            dimension=self.dimension,
+            elapsed_ns=elapsed_ns,
+            chain_hash="",
+            spectral_gap=float(spectral_gap),
+            poincare_cartan_invariant=float(cartan_proxy),
+            is_kahler=is_kahler,
+            is_quaternionic_proxy=is_quaternionic_proxy,
+            cayley_unitary_defect=float(unitary_defect),
+            cayley_orthogonal_defect=float(orthogonal_defect),
+            kks_orbit_tangent_norm=float(la.norm(1j * curvature_proxy, "fro")),
+        )
+        return replace(
+            envelope,
+            chain_hash=self._phase1_chain_hash(envelope),
+        )
+
+    def continue_to_phase2(
+        self,
+        env: GaugePhase1Envelope,
+    ) -> GaugePhase1Envelope:
+        """Puente validado FASE 1 → FASE 2."""
+        self._validate_phase1_envelope(env)
+        logger.debug("Puente FASE 1→2 OK: %s", env.chain_hash)
         return env
 
 
-# ══════════════════════════════════════════════════════════════════════════════════
-# ╔════════════════════════════════════════════════════════════════════════════════╗
-# ║  F A S E   2 :   O R I E N T                                                 ║
-# ║  CS, Wilson, Pontryagin, Chern, KAM/Bruno, Melnikov, Floquet, RSI³.          ║
-# ║  Abre con from_phase1_envelope.  Cierra con emit_phase2_envelope             ║
-# ║  → continue_to_phase3.                                                       ║
-# ╚════════════════════════════════════════════════════════════════════════════════╝
-# ══════════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# FASE 2 — ORIENT
+# ══════════════════════════════════════════════════════════════════════════════
 
 class GaugePhase2Orientor(GaugePhase1Observer):
-    r"""
-    FASE 2 (Orient): topología diferencial, mecánica celeste (KAM, Bruno,
-    Melnikov, Floquet–Krein, sección de Poincaré) y RSI³ de Banach.
-    """
+    """FASE 2: proxies matriciales y diagnósticos dinámicos finitos."""
 
     @classmethod
-    def from_phase1_envelope(cls, env: GaugePhase1Envelope) -> "GaugePhase2Orientor":
-        r"""**Apertura formal (clasista) de la FASE 2.** Dual de `continue_to_phase2`."""
-        inst = cls(dimension=env.dimension)
-        inst.continue_to_phase2(env)
-        return inst
+    def from_phase1_envelope(
+        cls,
+        env: GaugePhase1Envelope,
+    ) -> "GaugePhase2Orientor":
+        instance = cls(dimension=env.dimension)
+        instance.continue_to_phase2(env)
+        return instance
 
     def evaluate_chern_simons_higgs_3form(
         self,
-        connection_A: NDArray,
-        density_matrix: NDArray,
-        curvature_F: Optional[NDArray] = None,
-        background_hamiltonian: Optional[NDArray] = None,
-    ) -> Tuple[float, float, NDArray[np.complex128], float]:
-        r"""
-        3-forma de Chern–Simons–Higgs (Nakahara):
-        \(\mathrm{CS}=\frac{1}{8\pi^2}\mathrm{Tr}(A\wedge dA+\tfrac23 A^3)\).
-        Con \(F=dA+A\wedge A\): \(\mathrm{Tr}(AF-\tfrac13 A^3)\).
-        En 0-formas, \(\mathrm{CS_{alg}}=\mathrm{Tr}(\tfrac23 A^3)/(8\pi^2)\).
-        Anomalía (Green–Schwarz / \(\mathrm{Tr} F^3\)):
-        \(\mathrm{CS_{anom}}=|\mathrm{Tr}(F^3)|/(8\pi^2)\).
-
-        Retorna `(CS_cov, CS_anomaly, higgs_phi, CS_alg)`.
+        connection_A: NDArray[Any],
+        density_matrix: NDArray[Any],
+        curvature_F: Optional[NDArray[Any]] = None,
+        background_hamiltonian: Optional[NDArray[Any]] = None,
+    ) -> Tuple[complex, float, NDArray[np.complex128], complex]:
         """
-        a = np.asarray(connection_A, dtype=np.complex128)
+        Devuelve proxies algebraicos inspirados en trazas de Chern–Simons.
+
+        Sin formas diferenciales ni variedad de integración, el escalar
+        retornado no es CS_3(A).
+        """
+        a = _as_complex_square(connection_A, "A", self.dimension)
         rho = self.sanitize_density_matrix(density_matrix)
+
         if curvature_F is None:
-            F, _ = self.compute_yang_mills_curvature_F(
-                a, rho, background_hamiltonian=background_hamiltonian)
+            f, _ = self.compute_yang_mills_curvature_F(
+                a,
+                rho,
+                background_hamiltonian,
+            )
         else:
-            F = np.asarray(curvature_F, dtype=np.complex128)
+            f = _as_complex_square(curvature_F, "F", self.dimension)
 
-        eigvals, eigvecs = la.eigh(0.5 * (rho + rho.conj().T))
-        log_eigs = np.log(np.maximum(np.real(eigvals), _SPECTRAL_PSD_FLOOR))
-        higgs_phi = (eigvecs * log_eigs) @ eigvecs.conj().T
+        eigenvalues, eigenvectors = la.eigh(0.5 * (rho + rho.conj().T))
+        log_eigenvalues = np.log(
+            np.maximum(np.real(eigenvalues), _LOG_EIGENVALUE_FLOOR)
+        )
+        higgs_log_proxy = (
+            eigenvectors * log_eigenvalues
+        ) @ eigenvectors.conj().T
 
-        a3 = a @ a @ a
-        inv8pi2 = 1.0 / (8.0 * math.pi ** 2)
-        cs_cov = complex(np.trace(a @ F - (1.0 / 3.0) * a3 + higgs_phi @ F)) * inv8pi2
-        cs_alg = complex(np.trace((2.0 / 3.0) * a3)) * inv8pi2
-        f3 = F @ F @ F
-        cs_anomaly = float(abs(np.trace(f3)) * inv8pi2)
-        return float(np.real(cs_cov)), cs_anomaly, higgs_phi, float(np.real(cs_alg))
+        inv_8pi2 = 1.0 / (8.0 * math.pi**2)
+        a_cubed = a @ a @ a
+        cs_matrix_proxy = complex(
+            np.trace(
+                a @ f
+                - (1.0 / 3.0) * a_cubed
+                + higgs_log_proxy @ f
+            )
+        ) * inv_8pi2
+        cs_algebraic_proxy = complex(
+            np.trace((2.0 / 3.0) * a_cubed)
+        ) * inv_8pi2
+        anomaly_proxy = float(
+            abs(complex(np.trace(f @ f @ f))) * inv_8pi2
+        )
+        return cs_matrix_proxy, anomaly_proxy, higgs_log_proxy, cs_algebraic_proxy
 
     def evaluate_wilson_loop_holonomy(
         self,
-        connection_A: NDArray,
-        density_matrix: NDArray,
+        connection_A: NDArray[Any],
+        density_matrix: NDArray[Any],
     ) -> Tuple[complex, float, float, str]:
-        r"""
-        Holonomía \(W=\mathrm{Tr}(e^A)/N\) (unitaria si \(A^\dagger=-A\)) y
-        proxy \(c_1=\mathrm{Tr}(A\rho)/(2\pi i)\).
         """
-        a = np.asarray(connection_A, dtype=np.complex128)
-        rho = self.sanitize_density_matrix(density_matrix)
-        n = a.shape[0]
-        wilson_op = la.expm(a)
-        w_trace = complex(np.trace(wilson_op) / float(n))
-        w_angle = float(cmath.phase(w_trace))
-        modulus = abs(w_trace)
-        if modulus > 1.0 + 1e-9:
-            logger.warning("Wilson loop no unitario: |W|=%.6e > 1", modulus)
+        Calcula Tr(exp(A))/N y un proxy escalar de traza.
 
-        c1_raw = np.trace(a @ rho) / (2.0j * math.pi)
-        c1_val = float(np.real(c1_raw))
-        if abs(w_angle) < 0.15 and abs(c1_val) < 1e-4:
-            regime = "TRIVIAL_SU2_HOLONOMY"
-        elif abs(w_angle) >= 0.50 or abs(c1_val) > 0.10:
-            regime = "SOLITONIC_INSTANTON_PROSECUTOR"
+        Sin una curva y una 1-forma de conexión parametrizada, no es una
+        holonomía de Wilson ordenada por camino.
+        """
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        rho = self.sanitize_density_matrix(density_matrix)
+        unitary_proxy = la.expm(a)
+        trace_proxy = complex(np.trace(unitary_proxy) / float(self.dimension))
+        angle = float(np.angle(trace_proxy))
+
+        c1_matrix_proxy = complex(
+            np.trace(a @ rho) / (2.0j * math.pi)
+        ).real
+
+        if abs(angle) < 0.15 and abs(c1_matrix_proxy) < 1.0e-4:
+            regime = "TRIVIAL_MATRIX_HOLONOMY_PROXY"
+        elif abs(angle) >= 0.50 or abs(c1_matrix_proxy) > 0.10:
+            regime = "NONTRIVIAL_MATRIX_HOLONOMY_PROXY"
         else:
-            regime = "WILSON_SLIP_PROSECUTED"
-        return w_trace, w_angle, c1_val, regime
+            regime = "INTERMEDIATE_MATRIX_HOLONOMY_PROXY"
+
+        return trace_proxy, angle, float(c1_matrix_proxy), regime
 
     def audit_pontryagin_charge_and_stora_zumino(
         self,
-        curvature_F: NDArray,
-        chern_simons_real: float,
-    ) -> Tuple[int, float, float]:
-        r"""
-        \(p_1=-\mathrm{Tr}(F^2)/(8\pi^2)\ge 0\) para \(F^\dagger=-F\).
-        \(k=\mathrm{round}(p_1)\), \(\Delta_{\mathrm{int}}=|p_1-k|\),
-        \(\Delta_{SZ}=|8\pi^2\,\mathrm{CS}-\mathrm{Tr}(F^2)|\).
+        curvature_F: NDArray[Any],
+        chern_simons_real: Optional[float] = None,
+    ) -> PontryaginProxyCertificate:
         """
-        f = np.asarray(curvature_F, dtype=np.complex128)
-        tr_ff = float(np.real(np.trace(f @ f)))
-        p_raw = max(0.0, -tr_ff / (8.0 * math.pi ** 2))
-        instanton_k = int(round(p_raw))
-        integrality_residual = float(abs(p_raw - instanton_k))
-        stora_zumino = float(abs(8.0 * math.pi ** 2 * chern_simons_real - tr_ff))
-        return instanton_k, integrality_residual, stora_zumino
+        Evalúa -Re Tr(F²)/(8π²) como proxy matricial.
+
+        No redondea el resultado a un entero ni genera un residuo de
+        Stora–Zumino sin las formas y dominios requeridos.
+        """
+        f = _as_complex_square(curvature_F, "F", self.dimension)
+        trace_ff = complex(np.trace(f @ f))
+        proxy = max(0.0, -float(trace_ff.real) / (8.0 * math.pi**2))
+        return PontryaginProxyCertificate(quadratic_matrix_proxy=proxy)
 
     def compute_chern_character(
-        self, F: NDArray[np.complex128],
-    ) -> Tuple[complex, complex, float]:
-        r"""
-        \(\mathrm{ch}(F)=\mathrm{Tr}\exp(F/(2\pi i))=n+\mathrm{ch}_1+\mathrm{ch}_2+\cdots\)
-        \(\mathrm{ch}_1=\mathrm{Tr} X\), \(\mathrm{ch}_2=\tfrac12\mathrm{Tr}(X^2)\),
-        \(X=F/(2\pi i)\).
-        """
-        X = np.asarray(F, dtype=np.complex128) / (2.0j * math.pi)
-        try:
-            ch = complex(np.trace(la.expm(X)))
-        except (la.LinAlgError, ValueError):
-            ch = complex(F.shape[0])
-        ch1 = complex(np.trace(X))
-        ch2 = float(np.real(0.5 * np.trace(X @ X)))
-        return ch, ch1, ch2
+        self,
+        curvature_F: NDArray[Any],
+    ) -> ChernCharacterMatrixProxy:
+        """Trazas de exp(F/(2πi)); no se declaran clases topológicas."""
+        f = _as_complex_square(curvature_F, "F", self.dimension)
+        x = f / (2.0j * math.pi)
+        total = complex(np.trace(la.expm(x)))
+        ch1 = complex(np.trace(x))
+        ch2 = float(np.real(0.5 * np.trace(x @ x)))
+        return ChernCharacterMatrixProxy(
+            total_trace_exp=total,
+            ch1_matrix_proxy=ch1,
+            ch2_matrix_proxy=ch2,
+        )
 
     def check_kam_bruno(
         self,
-        frequencies: NDArray[np.float64],
+        frequencies: NDArray[Any],
         gamma: float = _KAM_GAMMA,
         max_order: int = _KAM_MAX_ORDER,
     ) -> KAMCertificate:
-        r"""
-        Condición diofantina \(|\omega\cdot k|\,\|k\|_1^\tau\ge\gamma\), \(\tau=d+1\),
-        sobre vectores de peso 1–3 (nunca \(\mathrm{product}(\cdot,\mathrm{repeat}=d)\)).
-        Bruno: \(\sum_n 2^{-n}\log\Omega_n^{-1}<\infty\), \(\Omega_n=\inf_{0<\|k\|_\infty\le 2^n}|\omega\cdot k|\).
         """
-        freqs = np.asarray(frequencies, dtype=np.float64).flatten()
-        freqs = freqs[np.abs(freqs) > 1e-15]
+        Examina exhaustivamente una caja finita de k enteros en, como máximo,
+        cuatro frecuencias. Usa float64 y no certifica la condición global.
+        """
+        freqs = np.asarray(frequencies, dtype=np.float64).reshape(-1)
+        if not np.all(np.isfinite(freqs)):
+            raise ValueError("Las frecuencias KAM deben ser finitas.")
+        if not math.isfinite(float(gamma)) or gamma <= 0.0:
+            raise ValueError("gamma debe ser finito y estrictamente positivo.")
+        if isinstance(max_order, bool) or int(max_order) != max_order:
+            raise ValueError("max_order debe ser entero.")
+        max_order = int(max_order)
+        if max_order < 1 or max_order > _KAM_MAX_ALLOWED_ORDER:
+            raise ValueError(
+                f"max_order debe pertenecer a [1,{_KAM_MAX_ALLOWED_ORDER}]."
+            )
+
         if freqs.size == 0:
-            return KAMCertificate(True, float("inf"), 1.0, gamma, 0.0, 0.0, True, 0)
-        if freqs.size > _KAM_FREQ_CAP:
-            freqs = freqs[np.argsort(np.abs(freqs))[-_KAM_FREQ_CAP:]]
-        d = int(freqs.size)
-        tau = float(d) + _KAM_TAU_OFFSET
-        worst = float("inf")
-        tested = 0
-        dots: List[Tuple[float, float]] = []
+            return KAMCertificate(
+                finite_test_passed=False,
+                worst_ratio=0.0,
+                tau=1.0,
+                gamma=float(gamma),
+                omega_min=0.0,
+                bruno_truncated_sum=None,
+                bruno_truncated_passed=None,
+                n_vectors_tested=0,
+                max_order=max_order,
+                frequency_dimension_used=0,
+                frequency_dimension_truncated=False,
+            )
 
-        def consider(k_vec: NDArray[np.float64]) -> None:
-            nonlocal worst, tested
-            k1 = float(np.sum(np.abs(k_vec)))
-            if k1 < 1e-15:
-                return
-            dot = abs(float(np.dot(freqs, k_vec)))
-            ratio = dot * (k1 ** tau) / max(gamma, 1e-15)
-            worst = min(worst, ratio)
-            tested += 1
-            dots.append((float(np.max(np.abs(k_vec))), dot))
+        truncated = freqs.size > _KAM_MAX_DIMENSION
+        if truncated:
+            indices = np.argsort(-np.abs(freqs), kind="stable")[
+                :_KAM_MAX_DIMENSION
+            ]
+            selected = freqs[indices]
+        else:
+            selected = freqs
 
-        for i in range(d):
-            for coeff in range(-max_order, max_order + 1):
-                if coeff == 0:
+        dimension = int(selected.size)
+        tau = float(dimension + 1)
+        integer_vectors = [
+            vector
+            for vector in itertools.product(
+                range(-max_order, max_order + 1),
+                repeat=dimension,
+            )
+            if any(component != 0 for component in vector)
+        ]
+
+        worst_ratio = float("inf")
+        dot_products: List[Tuple[int, float]] = []
+
+        for vector_tuple in integer_vectors:
+            vector = np.asarray(vector_tuple, dtype=np.float64)
+            norm_one = float(np.sum(np.abs(vector)))
+            divisor = abs(float(np.dot(selected, vector)))
+            ratio = divisor * (norm_one**tau) / float(gamma)
+            worst_ratio = min(worst_ratio, ratio)
+            dot_products.append(
+                (int(np.max(np.abs(vector))), divisor)
+            )
+
+        finite_passed = bool(
+            math.isfinite(worst_ratio) and worst_ratio >= 1.0
+        )
+
+        # Estadístico de Bruno truncado. Se normaliza la escala de frecuencia
+        # para que la suma no dependa solo de una elección de unidades.
+        max_frequency = float(np.max(np.abs(selected)))
+        if max_frequency <= np.finfo(np.float64).tiny:
+            bruno_sum: Optional[float] = float("inf")
+            bruno_passed: Optional[bool] = False
+        else:
+            normalized = selected / max_frequency
+            bruno_sum_value = 0.0
+            bruno_defined = True
+            n_shells = int(math.floor(math.log2(max_order))) + 1
+
+            for shell in range(n_shells):
+                cutoff = 2**shell
+                shell_vectors = [
+                    vector_tuple
+                    for vector_tuple in integer_vectors
+                    if max(abs(component) for component in vector_tuple) <= cutoff
+                ]
+                if not shell_vectors:
                     continue
-                k = np.zeros(d, dtype=np.float64)
-                k[i] = float(coeff)
-                consider(k)
-        for i in range(d):
-            for j in range(i + 1, d):
-                for ci in range(-max_order, max_order + 1):
-                    if ci == 0:
-                        continue
-                    for cj in range(-max_order, max_order + 1):
-                        if cj == 0:
-                            continue
-                        k = np.zeros(d, dtype=np.float64)
-                        k[i] = float(ci)
-                        k[j] = float(cj)
-                        consider(k)
-        rng = np.random.default_rng(56 + d)
-        n3 = min(_KAM_WEIGHT3_SAMPLES, 80 * d)
-        w3 = min(3, d)
-        for _ in range(n3):
-            k = np.zeros(d, dtype=np.float64)
-            idxs = rng.choice(d, size=w3, replace=False)
-            for ix in idxs:
-                k[int(ix)] = float(int(rng.integers(1, max_order + 1)) * int(rng.choice([-1, 1])))
-            consider(k)
 
-        bruno_sum = 0.0
-        for n in range(0, 6):
-            cutoff = float(2 ** n)
-            omega_n = min((dot for inf_n, dot in dots if 0.0 < inf_n <= cutoff + 1e-15),
-                          default=0.0)
-            if omega_n > 1e-30:
-                bruno_sum += math.log(1.0 / omega_n) / float(2 ** n)
+                omega_n = min(
+                    abs(
+                        float(
+                            np.dot(
+                                normalized,
+                                np.asarray(vector_tuple, dtype=np.float64),
+                            )
+                        )
+                    )
+                    for vector_tuple in shell_vectors
+                )
+                if omega_n <= 1.0e-15:
+                    bruno_defined = False
+                    break
+
+                bruno_sum_value += (
+                    max(0.0, math.log(1.0 / omega_n))
+                    / float(2**shell)
+                )
+
+            if bruno_defined:
+                bruno_sum = float(bruno_sum_value)
+                bruno_passed = bool(
+                    math.isfinite(bruno_sum)
+                    and bruno_sum < _BRUNO_TRUNCATED_SUM_LIMIT
+                )
             else:
-                bruno_sum += 40.0 / float(2 ** n)
-        bruno_ok = bool(math.isfinite(bruno_sum) and bruno_sum < _BRUNO_SUM_MAX)
+                bruno_sum = float("inf")
+                bruno_passed = False
+
         return KAMCertificate(
-            is_satisfied=bool(worst >= 1.0),
-            worst_ratio=float(worst) if math.isfinite(worst) else 0.0,
-            tau=tau, gamma=gamma,
-            omega_min=float(np.min(np.abs(freqs))),
-            bruno_sum=float(bruno_sum),
-            bruno_satisfied=bruno_ok,
-            n_vectors_tested=int(tested),
+            finite_test_passed=finite_passed,
+            worst_ratio=float(worst_ratio),
+            tau=tau,
+            gamma=float(gamma),
+            omega_min=float(np.min(np.abs(selected))),
+            bruno_truncated_sum=bruno_sum,
+            bruno_truncated_passed=bruno_passed,
+            n_vectors_tested=len(integer_vectors),
+            max_order=max_order,
+            frequency_dimension_used=dimension,
+            frequency_dimension_truncated=truncated,
         )
 
     def _flow_on_grid(
         self,
-        A: NDArray[np.complex128],
-        phi0: NDArray[np.complex128],
-        t_grid: NDArray[np.float64],
+        connection_A: NDArray[np.complex128],
+        phi0: NDArray[Any],
+        t_grid: NDArray[Any],
     ) -> List[NDArray[np.complex128]]:
-        r"""Flujo \(\phi(t)=e^{tA}\phi_0\) con un solo `expm(\Delta t\,A)`."""
-        phi0 = np.asarray(phi0, dtype=np.complex128).flatten()
-        nrm = float(np.linalg.norm(phi0))
-        phi0 = phi0 / max(nrm, 1e-15)
-        if t_grid.size == 0:
-            return [phi0]
-        try:
-            phi = la.expm(float(t_grid[0]) * A) @ phi0
-        except (la.LinAlgError, ValueError):
-            return [phi0]
-        phi = phi / max(float(np.linalg.norm(phi)), 1e-15)
-        phis = [phi]
-        if t_grid.size == 1:
-            return phis
-        dt = float(t_grid[1] - t_grid[0])
-        try:
-            U_dt = la.expm(dt * A)
-        except (la.LinAlgError, ValueError):
-            return phis
-        for _ in range(int(t_grid.size) - 1):
-            phi = U_dt @ phi
-            phi = phi / max(float(np.linalg.norm(phi)), 1e-15)
-            phis.append(phi)
-        return phis
+        """Integra exactamente por pasos el flujo lineal phi'=A phi."""
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        ah_defect = float(la.norm(a + a.conj().T, "fro"))
+        if ah_defect / max(1.0, float(la.norm(a, "fro"))) > _ANTI_HERM_TOL:
+            raise ValueError("El flujo unitario requiere A antihermítica.")
+
+        grid = np.asarray(t_grid, dtype=np.float64).reshape(-1)
+        if not np.all(np.isfinite(grid)):
+            raise ValueError("La malla temporal contiene valores no finitos.")
+        if grid.size > 1 and np.any(np.diff(grid) < 0.0):
+            raise ValueError("La malla temporal debe ser monótona creciente.")
+
+        phi = _normalize_state(phi0, self.dimension, "phi0")
+        if grid.size == 0:
+            return []
+
+        phi = la.expm(float(grid[0]) * a) @ phi
+        phi /= max(float(np.linalg.norm(phi)), np.finfo(np.float64).tiny)
+        states = [phi.copy()]
+
+        for index in range(1, grid.size):
+            delta_t = float(grid[index] - grid[index - 1])
+            phi = la.expm(delta_t * a) @ phi
+            norm = float(np.linalg.norm(phi))
+            if norm <= np.finfo(np.float64).tiny:
+                raise FloatingPointError("El flujo produjo un vector nulo.")
+            phi = phi / norm
+            states.append(phi.copy())
+
+        return states
 
     def compute_melnikov_integral(
         self,
-        A: NDArray[np.complex128],
-        F: NDArray[np.complex128],
-        phi0: NDArray[np.complex128],
+        connection_A: NDArray[Any],
+        curvature_F: NDArray[Any],
+        phi0: NDArray[Any],
         n_samples: int = 128,
     ) -> MelnikovCertificate:
-        r"""
-        Melnikov homoclínico sobre la separatriz \(\phi(t)=e^{tA}\phi_0\):
-        \(M=-\int\langle F\phi,\phi\rangle\mathrm{sech}^2(t)\,dt\).
         """
-        t_grid = np.linspace(-8.0, 8.0, n_samples, dtype=np.float64)
-        try:
-            phis = self._flow_on_grid(A, phi0, t_grid)
-        except (la.LinAlgError, ValueError):
-            return MelnikovCertificate(0.0, 0.0, True)
-        if len(phis) != t_grid.size:
-            return MelnikovCertificate(0.0, 0.0, True)
-        sech2 = 1.0 / np.cosh(t_grid) ** 2
-        integrands = np.empty(t_grid.size, dtype=np.float64)
-        for i, phi_t in enumerate(phis):
-            force = F @ phi_t
-            integrands[i] = float(np.real(np.vdot(force, phi_t))) * float(sech2[i])
-        M = float(np.trapz(integrands, t_grid))
-        max_abs = float(np.max(np.abs(integrands))) if integrands.size else 0.0
+        Devuelve explícitamente 'no computable': el motor no recibe una
+        separatriz homoclínica ni una perturbación Hamiltoniana dependiente
+        del tiempo.
+        """
+        _as_complex_square(connection_A, "A", self.dimension)
+        _as_complex_square(curvature_F, "F", self.dimension)
+        _normalize_state(phi0, self.dimension, "phi0")
+        if n_samples < 3:
+            raise ValueError("n_samples debe ser al menos 3.")
+
         return MelnikovCertificate(
-            integral_value=M,
-            max_abs_integrand=max_abs,
-            is_homoclinic_preserved=bool(abs(M) < _MELNIKOV_TOL),
+            integral_value=None,
+            max_abs_integrand=None,
+            is_homoclinic_preserved=None,
+            is_computable=False,
+            scope="No existe órbita homoclínica explícita en la entrada.",
+            reason=(
+                "El flujo e^(tA) de una matriz antihermítica es unitario; "
+                "no especifica por sí solo una separatriz homoclínica."
+            ),
         )
 
     def compute_floquet_multipliers(
         self,
-        F: NDArray[np.complex128],
+        generator_F: NDArray[Any],
         period: float = 2.0 * math.pi,
     ) -> FloquetCertificate:
-        r"""Monodromía \(\mu=\mathrm{eig}(e^{TF})\).  \(F^\dagger=-F\Rightarrow|\mu|=1\).
-        Colisión de Krein: multiplicadores casi degenerados sobre \(S^1\)."""
+        """
+        Calcula eig(exp(TF)) para un generador constante.
+
+        No detecta por sí solo la estructura Krein; esta requiere, entre
+        otros datos, una monodromía simpléctica y firmas de Krein.
+        """
+        f = _as_complex_square(generator_F, "F", self.dimension)
+        if not math.isfinite(float(period)) or period <= 0.0:
+            raise ValueError("period debe ser finito y positivo.")
+
         try:
-            M_T = la.expm(np.asarray(F, dtype=np.complex128) * period)
-            mu = la.eigvals(M_T)
-            moduli = np.abs(mu)
-            unit_dev = float(np.max(np.abs(moduli - 1.0)))
-            dissipative = bool(np.max(moduli) <= 1.0 + _FLOQUET_UNIT_TOL)
-            exponents = np.log(np.maximum(moduli, 1e-30)) / max(period, 1e-15)
-            krein = False
-            for i in range(mu.size):
-                for j in range(i + 1, mu.size):
-                    if abs(mu[i] - mu[j]) < 1e-8 and abs(moduli[i] - 1.0) < 10.0 * _FLOQUET_UNIT_TOL:
-                        krein = True
-                        break
-                if krein:
-                    break
-        except (la.LinAlgError, ValueError):
-            mu = np.array([1.0 + 0j])
-            unit_dev, dissipative, exponents, krein = 0.0, True, np.array([0.0]), False
+            monodromy = la.expm(float(period) * f)
+            multipliers = la.eigvals(monodromy)
+            moduli = np.abs(multipliers)
+            unit_deviation = float(np.max(np.abs(moduli - 1.0)))
+            dissipative_stable = bool(
+                np.max(moduli) <= 1.0 + 1.0e-6
+            )
+            exponents = (
+                np.log(np.maximum(moduli, np.finfo(np.float64).tiny))
+                / float(period)
+            ).astype(np.float64)
+            neutral = bool(unit_deviation <= 1.0e-6)
+        except (la.LinAlgError, np.linalg.LinAlgError, ValueError, OverflowError):
+            multipliers = np.empty(0, dtype=np.complex128)
+            exponents = np.empty(0, dtype=np.float64)
+            unit_deviation = float("inf")
+            dissipative_stable = False
+            neutral = False
+
         return FloquetCertificate(
-            multipliers=mu, max_unit_deviation=unit_dev,
-            is_neutral=bool(unit_dev < _FLOQUET_UNIT_TOL),
-            is_dissipative_stable=dissipative, exponents=exponents,
-            krein_collision=krein,
+            multipliers=np.asarray(multipliers, dtype=np.complex128),
+            max_unit_deviation=unit_deviation,
+            is_neutral=neutral,
+            is_dissipative_stable=dissipative_stable,
+            exponents=np.asarray(exponents, dtype=np.float64),
+            krein_collision=None,
         )
 
     def compute_poincare_section(
         self,
-        A: NDArray[np.complex128],
-        phi0: NDArray[np.complex128],
-        P_obs: Optional[NDArray[np.complex128]] = None,
+        connection_A: NDArray[Any],
+        phi0: NDArray[Any],
+        P_obs: Optional[NDArray[Any]] = None,
         n_samples: int = 96,
         omega_min: float = 1.0,
+        section_level: Optional[float] = None,
+        horizon: float = 4.0 * math.pi,
     ) -> PoincareSectionCertificate:
-        r"""Observable \(O(t)=\langle\phi(t)|P_0|\phi(t)\rangle\).  Retornos = ceros de \(\dot O\)."""
-        d = int(A.shape[0])
+        """
+        Cuenta cruces orientados de <phi|P_obs|phi> = section_level.
+
+        El cálculo es una interpolación finita de un observable; no demuestra
+        regularidad ni existencia de un toro invariante.
+        """
+        if n_samples < 3:
+            raise ValueError("n_samples debe ser al menos 3.")
+        if not math.isfinite(float(horizon)) or horizon <= 0.0:
+            raise ValueError("horizon debe ser finito y positivo.")
+
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        phi = _normalize_state(phi0, self.dimension, "phi0")
+
         if P_obs is None:
-            P_obs = np.zeros((d, d), dtype=np.complex128)
-            P_obs[0, 0] = 1.0
-        t_grid = np.linspace(0.0, 4.0 * math.pi, n_samples, dtype=np.float64)
-        rec_time = 2.0 * math.pi / max(float(abs(omega_min)), 1e-15)
-        try:
-            phis = self._flow_on_grid(A, phi0, t_grid)
-        except (la.LinAlgError, ValueError):
-            return PoincareSectionCertificate(0, 0.0, True, (), 0.0, rec_time)
-        obs = np.array(
-            [float(np.real(np.vdot(phi, P_obs @ phi))) for phi in phis],
-            dtype=np.float64)
-        if obs.size < 3:
-            return PoincareSectionCertificate(0, 0.0, True, (), 0.0, rec_time)
-        d_obs = np.diff(obs)
-        crossings = np.where(np.sign(d_obs[:-1]) != np.sign(d_obs[1:]))[0]
-        if crossings.size < 2:
-            return PoincareSectionCertificate(
-                int(crossings.size), 0.0, True, (), 0.0, rec_time)
-        returns = obs[crossings]
-        disp = float(np.std(returns) / max(float(np.mean(np.abs(returns))), 1e-15))
-        t_cross = t_grid[crossings]
-        mean_ret = float(np.mean(np.diff(t_cross))) if t_cross.size >= 2 else 0.0
+            observable = np.zeros(
+                (self.dimension, self.dimension),
+                dtype=np.complex128,
+            )
+            observable[0, 0] = 1.0
+        else:
+            observable = _as_complex_square(
+                P_obs,
+                "P_obs",
+                self.dimension,
+            )
+            herm_defect = float(
+                la.norm(observable - observable.conj().T, "fro")
+            )
+            if herm_defect / max(1.0, float(la.norm(observable, "fro"))) > _ANTI_HERM_TOL:
+                raise ValueError("P_obs debe ser Hermítico.")
+
+        grid = np.linspace(0.0, float(horizon), int(n_samples))
+        states = self._flow_on_grid(a, phi, grid)
+        values = np.asarray(
+            [
+                float(np.real(np.vdot(state, observable @ state)))
+                for state in states
+            ],
+            dtype=np.float64,
+        )
+
+        level = (
+            float(np.median(values))
+            if section_level is None
+            else float(section_level)
+        )
+        if not math.isfinite(level):
+            raise ValueError("section_level debe ser finito.")
+
+        shifted = values - level
+        crossing_times: List[float] = []
+        for index in range(len(grid) - 1):
+            left = float(shifted[index])
+            right = float(shifted[index + 1])
+            # Cruce orientado ascendente; se excluyen tangencias no resueltas.
+            if left < 0.0 <= right and right != left:
+                fraction = -left / (right - left)
+                crossing_times.append(
+                    float(grid[index] + fraction * (grid[index + 1] - grid[index]))
+                )
+
+        if len(crossing_times) >= 2:
+            intervals = np.diff(np.asarray(crossing_times, dtype=np.float64))
+            mean_return = float(np.mean(intervals))
+            dispersion = float(
+                np.std(intervals)
+                / max(abs(mean_return), np.finfo(np.float64).tiny)
+            )
+            regular = bool(dispersion < 0.5)
+            returns = tuple(float(item) for item in intervals)
+        else:
+            mean_return = None
+            dispersion = None
+            regular = None
+            returns = ()
+
+        recurrence_estimate = (
+            2.0 * math.pi / abs(float(omega_min))
+            if abs(float(omega_min)) > np.finfo(np.float64).tiny
+            else None
+        )
+
         return PoincareSectionCertificate(
-            n_crossings=int(crossings.size),
-            return_dispersion=disp,
-            is_regular=bool(disp < 0.5),
-            returns=tuple(float(x) for x in returns),
-            mean_return_time=mean_ret,
-            recurrence_time=rec_time,
+            n_crossings=len(crossing_times),
+            return_dispersion=dispersion,
+            is_regular=regular,
+            returns=returns,
+            mean_return_time=mean_return,
+            recurrence_time=recurrence_estimate,
         )
 
     def _banach_t_operator(
         self,
-        F: NDArray[np.complex128],
-        A: NDArray[np.complex128],
-        W: NDArray[np.complex128],
-        damp: float = _BANACH_LIPSCHITZ_MAX,
+        curvature_proxy: NDArray[Any],
+        connection_A: NDArray[Any],
+        W: NDArray[Any],
+        damp: float = _RSI_DAMPING,
     ) -> NDArray[np.complex128]:
-        r"""
-        Contracción de Lindstedt: si \(-i[A,W]\approx F_{\mathrm{osc}}\),
-        \(T(F)=F-(1-\lambda)\{H_0,W\}\approx F_{\mathrm{mean}}+\lambda F_{\mathrm{osc}}\).
-        \(\mathrm{Lip}(T)|_{\mathrm{osc}}=\lambda\le 0.95\).
         """
-        cancel = -1j * (A @ W - W @ A)
-        F_new = F - (1.0 - damp) * cancel
-        return self._project_su_n(F_new)
+        Amortigua la parte oscilatoria resuelta.
+
+        El componente medio permanece invariante, así que esta aplicación no
+        es una contracción estricta en todo su(N).
+        """
+        if not math.isfinite(float(damp)) or not 0.0 <= damp < 1.0:
+            raise ValueError("damp debe pertenecer a [0,1).")
+
+        f = _as_complex_square(curvature_proxy, "F", self.dimension)
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        w = _as_complex_square(W, "W", self.dimension)
+        correction = -1j * (a @ w - w @ a)
+        return self._project_su_n(f - (1.0 - float(damp)) * correction)
+
+    def _offdiagonal_norm_in_A_basis(
+        self,
+        matrix: NDArray[np.complex128],
+        connection_A: NDArray[np.complex128],
+    ) -> float:
+        _, eigenvectors, _ = self._spectral_action_angle(connection_A)
+        transformed = eigenvectors.conj().T @ matrix @ eigenvectors
+        offdiagonal = transformed - np.diag(np.diag(transformed))
+        return float(la.norm(offdiagonal, "fro"))
 
     def enforce_rsi3(
         self,
-        F: NDArray[np.complex128],
-        A: NDArray[np.complex128],
-        instanton_k: int,
+        curvature_proxy: NDArray[Any],
+        connection_A: NDArray[Any],
+        instanton_k: Optional[int],
         w_trace: complex,
-        phi0: NDArray[np.complex128],
+        phi0: NDArray[Any],
         *,
-        W: Optional[NDArray[np.complex128]] = None,
+        W: Optional[NDArray[Any]] = None,
         symplectic_valid: bool = True,
+        symplectic_residue: Optional[float] = None,
         energy_ym: float = 0.0,
-        max_iter: int = 16,
+        max_iter: int = _RSI_ITERATIONS,
     ) -> RSI3Certificate:
-        r"""
-        RSI³ — tres superficies + contracción de Banach del *mejorador*:
-          • S1 Novikov: \(v=1/(1+|k|)\ge 0.10\).
-          • S2 Harness: curvatura no degenerada y embedding simpléctico.
-          • S3 Model: \(d_{\mathrm{FS}}(e^A\phi,\,e^{A+iW}\phi)\le 10^{-4}\).
-        Nivel 3: \(T\) se re-aplica a su residuo (meta-mejora).
         """
-        d = int(F.shape[0])
-        if W is None:
-            W = np.zeros((d, d), dtype=np.complex128)
-        phi0 = np.asarray(phi0, dtype=np.complex128).flatten()
-        phi0 = phi0 / max(float(np.linalg.norm(phi0)), 1e-15)
+        RSI³ como tres iteraciones de amortiguación residual.
 
-        v_krull = 1.0 / (1.0 + abs(float(instanton_k)))
-        s1 = RSI3SurfaceReport(
-            surface_id=1, name="Data-RSI (Novikov)",
-            metric_value=float(v_krull), threshold=_KRULL_NOVIKOV_FLOOR,
-            passed=bool(v_krull >= _KRULL_NOVIKOV_FLOOR),
-            diagnostics={"instanton_k": int(instanton_k)},
+        `instanton_k`, `w_trace` y `energy_ym` se reciben para compatibilidad,
+        pero no transforman proxies matriciales en invariantes topológicos ni
+        demuestran automejora del software.
+        """
+        del instanton_k, w_trace, energy_ym  # No son certificados utilizables.
+
+        if max_iter < 1:
+            raise ValueError("max_iter debe ser positivo.")
+        f = _as_complex_square(curvature_proxy, "F", self.dimension)
+        a = _as_complex_square(connection_A, "A", self.dimension)
+        phi = _normalize_state(phi0, self.dimension, "phi0")
+
+        if W is None:
+            initial_solution = self._phase1_solve_poincare_lindstedt(f, a)
+            w = np.asarray(initial_solution.W)
+        else:
+            w = _as_complex_square(W, "W", self.dimension)
+
+        a_anti, a_anti_defect = self._verify_anti_hermitian(a)
+        a_trace, a_trace_defect = self._verify_traceless(a)
+        f_anti, f_anti_defect = self._verify_anti_hermitian(f)
+        f_trace, f_trace_defect = self._verify_traceless(f)
+
+        structural_metric = max(
+            a_anti_defect,
+            a_trace_defect,
+            f_anti_defect,
+            f_trace_defect,
         )
-        s2 = RSI3SurfaceReport(
-            surface_id=2, name="Harness-RSI (KKS+Sp)",
-            metric_value=float(energy_ym), threshold=_SPECTRAL_PSD_FLOOR,
-            passed=bool(energy_ym >= _SPECTRAL_PSD_FLOOR and symplectic_valid),
-            diagnostics={"symplectic_valid": bool(symplectic_valid)},
+        surface1 = RSI3SurfaceReport(
+            surface_id=1,
+            name="Gauge algebra",
+            metric_value=float(structural_metric),
+            threshold=max(_ANTI_HERM_TOL, _TRACELESS_TOL),
+            passed=bool(
+                a_anti and a_trace and f_anti and f_trace
+            ),
+            diagnostics={
+                "meaning": "Defectos algebraicos de A y F.",
+                "novikov_valuation_certified": False,
+            },
+        )
+
+        residue = (
+            float(symplectic_residue)
+            if symplectic_residue is not None
+            else (0.0 if symplectic_valid else float("inf"))
+        )
+        surface2 = RSI3SurfaceReport(
+            surface_id=2,
+            name="Cayley-symplectic numerical check",
+            metric_value=residue,
+            threshold=_SYMPLECTIC_TOL,
+            passed=bool(symplectic_valid and residue <= _SYMPLECTIC_TOL),
+            diagnostics={
+                "symplectic_valid": bool(symplectic_valid),
+                "volume_preservation_global_proof": False,
+            },
         )
 
         try:
-            U_raw = la.expm(A)
-            U_cor = la.expm(A + 1j * W)
-            psi_r = U_raw @ phi0
-            psi_c = U_cor @ phi0
-            nr = float(np.linalg.norm(psi_r) * np.linalg.norm(psi_c))
-            overlap = abs(complex(np.vdot(psi_r, psi_c))) / max(nr, 1e-15)
-            d_fs = float(np.arccos(np.clip(overlap, 0.0, 1.0)))
-        except (la.LinAlgError, ValueError):
-            d_fs = 0.0
-        s3 = RSI3SurfaceReport(
-            surface_id=3, name="Model-RSI (Fubini-Study)",
-            metric_value=d_fs, threshold=_FUBINI_STUDY_MAX,
-            passed=bool(d_fs <= _FUBINI_STUDY_MAX),
-            diagnostics={"d_fs_rad": d_fs},
+            psi_raw = la.expm(a) @ phi
+            psi_corrected = la.expm(a + 1j * w) @ phi
+            fs_distance = _fubini_study_distance(psi_raw, psi_corrected)
+        except (la.LinAlgError, np.linalg.LinAlgError, ValueError):
+            fs_distance = float("inf")
+
+        surface3 = RSI3SurfaceReport(
+            surface_id=3,
+            name="Projective Fubini–Study diagnostic",
+            metric_value=float(fs_distance),
+            threshold=_FUBINI_STUDY_TOL,
+            passed=bool(fs_distance <= _FUBINI_STUDY_TOL),
+            diagnostics={
+                "distance_rad": float(fs_distance),
+                "measurement_model_certified": False,
+            },
         )
 
-        F_iter = np.array(F, copy=True)
-        prev_delta = None
-        ratios: List[float] = []
-        fixed = False
-        it_used = 0
-        for it in range(1, max_iter + 1):
-            it_used = it
-            F_next = self._banach_t_operator(F_iter, A, W)
-            delta = float(la.norm(F_next - F_iter, "fro"))
-            if prev_delta is not None and prev_delta > 1e-15:
-                ratios.append(delta / prev_delta)
-            if delta < 1e-12:
-                fixed = True
-                F_iter = F_next
-                break
-            prev_delta = delta
-            F_iter = F_next
-            if s1.passed and s2.passed and s3.passed and it >= 3:
-                fixed = True
-                break
+        before = self._offdiagonal_norm_in_A_basis(f, a)
+        f_iter = np.array(f, copy=True)
+        iterations = min(int(max_iter), _RSI_ITERATIONS)
 
-        if ratios:
-            lip = float(min(1.0, max(ratios[-3:])))
-        else:
-            lip = abs(abs(w_trace) - 1.0)
-            lip = min(max(lip, 0.0), 1.0)
-        lip_t3 = float(lip ** 3)
-        jerk = float((1.0 - lip_t3) / 0.05) if lip_t3 < 1.0 else 0.0
-        valid = (
-            s1.passed and s2.passed and s3.passed
-            and lip <= _BANACH_LIPSCHITZ_MAX + 1e-9
+        for _ in range(iterations):
+            solution = self._phase1_solve_poincare_lindstedt(f_iter, a)
+            f_iter = self._banach_t_operator(
+                f_iter,
+                a,
+                solution.W,
+                _RSI_DAMPING,
+            )
+
+        after = self._offdiagonal_norm_in_A_basis(f_iter, a)
+        ratio = after / before if before > np.finfo(np.float64).tiny else 0.0
+        fixed_point_reached = bool(
+            after
+            <= _LINSTEDT_RESIDUAL_TOL * max(1.0, float(la.norm(f, "fro")))
         )
+
+        # Exacto solo en el subespacio no resonante amortiguado.
+        lipschitz_t3 = float(_RSI_DAMPING**3)
+        valid = bool(
+            surface1.passed
+            and surface2.passed
+            and surface3.passed
+            and 0.0 <= _RSI_DAMPING < 1.0
+        )
+
         return RSI3Certificate(
-            surfaces=(s1, s2, s3),
-            lipschitz_t3=lip_t3,
-            capacity_jerk=jerk,
-            fixed_point_reached=fixed,
-            iterations=int(it_used),
-            is_valid=bool(valid),
-            contraction_ratio=float(lip),
+            surfaces=(surface1, surface2, surface3),
+            lipschitz_t3=lipschitz_t3,
+            capacity_jerk=None,
+            fixed_point_reached=fixed_point_reached,
+            iterations=iterations,
+            is_valid=valid,
+            contraction_ratio=float(ratio),
+            residual_before=float(before),
+            residual_after=float(after),
+            full_space_contraction_certified=False,
+            self_modifies_code=False,
         )
 
-    def _chain_hash_phase2(
-        self,
-        rho: NDArray, A: NDArray, F: NDArray,
-        metrics: NDArray[np.float64],
-    ) -> str:
-        return _hash_state(rho, A, F, metrics)
+    def _phase2_chain_hash(self, env: GaugePhase2Envelope) -> str:
+        return _digest_dataclass(
+            b"APU-GAUGE-PHASE2-v12",
+            env,
+            excluded_fields=("chain_hash",),
+        )
 
     def emit_phase2_envelope(
         self,
         phase1_env: GaugePhase1Envelope,
-        phi0: Optional[NDArray[np.complex128]] = None,
+        phi0: Optional[NDArray[Any]] = None,
     ) -> GaugePhase2Envelope:
-        r"""
-        **Cierre formal de la FASE 2.**  El morfismo anidado siguiente es
-        `continue_to_phase3`.
-        """
-        t0 = time.perf_counter_ns()
-        rho, A, F = phase1_env.rho_sanitized, phase1_env.connection_A, phase1_env.curvature_F
-        d = int(A.shape[0])
-        if phi0 is None:
-            phi0 = np.ones(d, dtype=np.complex128) / math.sqrt(d)
-        else:
-            phi0 = np.asarray(phi0, dtype=np.complex128).flatten()
-            phi0 = phi0 / max(float(np.linalg.norm(phi0)), 1e-15)
+        """Cierre formal de FASE 2: calcula y sella sus diagnósticos."""
+        start_ns = time.perf_counter_ns()
+        self.continue_to_phase2(phase1_env)
 
-        cs_real, cs_anomaly, higgs_phi, cs_alg = self.evaluate_chern_simons_higgs_3form(
-            A, rho, F)
-        higgs_trace = float(np.real(np.trace(higgs_phi)))
-        w_trace, w_angle, c1_val, regime = self.evaluate_wilson_loop_holonomy(A, rho)
-        instanton_k, integrality_residual, stora_zumino = (
-            self.audit_pontryagin_charge_and_stora_zumino(F, cs_real))
-        _, ch1, ch2 = self.compute_chern_character(F)
+        rho = phase1_env.rho_sanitized
+        a = phase1_env.connection_A
+        f = phase1_env.curvature_F
+        d = phase1_env.dimension
+
+        if phi0 is None:
+            state = np.ones(d, dtype=np.complex128) / math.sqrt(d)
+        else:
+            state = _normalize_state(phi0, d, "phi0")
+
+        cs_proxy, anomaly_proxy, higgs_log_proxy, cs_alg_proxy = (
+            self.evaluate_chern_simons_higgs_3form(
+                a,
+                rho,
+                f,
+            )
+        )
+        higgs_trace = float(np.real(np.trace(higgs_log_proxy)))
+
+        wilson_proxy, wilson_angle, c1_proxy, topology_regime = (
+            self.evaluate_wilson_loop_holonomy(a, rho)
+        )
+        pontryagin_proxy = self.audit_pontryagin_charge_and_stora_zumino(f)
+        chern_proxy = self.compute_chern_character(f)
 
         pl = phase1_env.poincare_lindstedt
-        if pl is not None and pl.frequencies.size:
-            freqs = np.abs(pl.frequencies)
-            freqs = freqs[freqs > 1e-15]
-        else:
-            try:
-                f_evals = la.eigvals(F)
-                freqs = np.abs(np.imag(f_evals)) / math.pi
-                freqs = freqs[freqs > 1e-15]
-            except la.LinAlgError:
-                freqs = np.array([1.0])
-        if freqs.size == 0:
-            freqs = np.array([1.0])
-        kam_cert = self.check_kam_bruno(freqs)
-        melnikov = self.compute_melnikov_integral(A, F, phi0)
-        floquet = self.compute_floquet_multipliers(F)
-        poincare_sec = self.compute_poincare_section(
-            A, phi0, omega_min=kam_cert.omega_min)
-        W = pl.W if pl is not None else np.zeros_like(F)
+        kam_frequencies = (
+            pl.frequencies
+            if pl is not None
+            else self._spectral_action_angle(a)[0]
+        )
+        kam = self.check_kam_bruno(kam_frequencies)
+
+        melnikov = self.compute_melnikov_integral(a, f, state)
+        floquet = self.compute_floquet_multipliers(f)
+
+        projector = np.zeros((d, d), dtype=np.complex128)
+        projector[0, 0] = 1.0
+        poincare = self.compute_poincare_section(
+            a,
+            state,
+            P_obs=projector,
+            omega_min=kam.omega_min,
+        )
+
+        w = (
+            pl.W
+            if pl is not None
+            else np.zeros((d, d), dtype=np.complex128)
+        )
         rsi3 = self.enforce_rsi3(
-            F, A, instanton_k, w_trace, phi0,
-            W=W,
+            f,
+            a,
+            instanton_k=None,
+            w_trace=wilson_proxy,
+            phi0=state,
+            W=w,
             symplectic_valid=phase1_env.is_symplectic_valid,
+            symplectic_residue=phase1_env.symplectic_residue,
             energy_ym=phase1_env.energy_ym,
         )
 
-        metrics = np.array([
-            cs_real, cs_anomaly, w_angle, c1_val,
-            float(instanton_k), integrality_residual, stora_zumino,
-            kam_cert.worst_ratio, melnikov.integral_value,
-            floquet.max_unit_deviation, rsi3.lipschitz_t3, cs_alg, ch2,
-        ], dtype=np.float64)
-        chain = self._chain_hash_phase2(rho, A, F, metrics)
-
-        return GaugePhase2Envelope(
+        elapsed_ns = float(time.perf_counter_ns() - start_ns)
+        envelope = GaugePhase2Envelope(
             phase1=phase1_env,
-            chern_simons_real=cs_real, chern_simons_anomaly=cs_anomaly,
+            chern_simons_real=float(cs_proxy.real),
+            chern_simons_anomaly=float(anomaly_proxy),
             higgs_phi_trace=higgs_trace,
-            wilson_trace=w_trace, wilson_angle_rad=w_angle, c1_value=c1_val,
-            pontryagin_instanton_k=instanton_k,
-            pontryagin_integrality_residual=integrality_residual,
-            stora_zumino_residual=stora_zumino,
-            kam_certificate=kam_cert, melnikov=melnikov, floquet=floquet,
-            poincare_section=poincare_sec, rsi3_certificate=rsi3,
-            topology_regime=regime,
-            chain_hash=chain,
-            origin_timestamp_ns=float(time.perf_counter_ns() - t0),
-            chern_simons_algebraic=cs_alg,
-            chern_character_ch1=ch1,
-            chern_character_ch2=ch2,
+            wilson_trace=wilson_proxy,
+            wilson_angle_rad=float(wilson_angle),
+            c1_value=float(c1_proxy),
+            pontryagin_instanton_k=None,
+            pontryagin_integrality_residual=None,
+            stora_zumino_residual=None,
+            kam_certificate=kam,
+            melnikov=melnikov,
+            floquet=floquet,
+            poincare_section=poincare,
+            rsi3_certificate=rsi3,
+            topology_regime=topology_regime,
+            chain_hash="",
+            elapsed_ns=elapsed_ns,
+            chern_simons_algebraic=float(cs_alg_proxy.real),
+            chern_character_ch1=chern_proxy.ch1_matrix_proxy,
+            chern_character_ch2=chern_proxy.ch2_matrix_proxy,
+            pontryagin_quadratic_proxy=pontryagin_proxy.quadratic_matrix_proxy,
+            chern_simons_matrix_proxy=cs_proxy,
+            chern_character_total_trace_proxy=chern_proxy.total_trace_exp,
+        )
+        return replace(
+            envelope,
+            chain_hash=self._phase2_chain_hash(envelope),
         )
 
-    def continue_to_phase3(self, env: GaugePhase2Envelope) -> GaugePhase2Envelope:
-        r"""
-        **Puente anidado FASE 2 → FASE 3.**  Último morfismo de Orient =
-        apertura efectiva de Decide&Act.
-        """
-        p1 = env.phase1
-        metrics = np.array([
-            env.chern_simons_real, env.chern_simons_anomaly,
-            env.wilson_angle_rad, env.c1_value,
-            float(env.pontryagin_instanton_k),
-            env.pontryagin_integrality_residual, env.stora_zumino_residual,
-            env.kam_certificate.worst_ratio, env.melnikov.integral_value,
-            env.floquet.max_unit_deviation, env.rsi3_certificate.lipschitz_t3,
-            env.chern_simons_algebraic, env.chern_character_ch2,
-        ], dtype=np.float64)
-        expected = self._chain_hash_phase2(
-            p1.rho_sanitized, p1.connection_A, p1.curvature_F, metrics)
-        if expected != env.chain_hash:
-            raise ValueError(f"Cadena FASE 2 corrupta: {expected} ≠ {env.chain_hash}.")
-        self._phase2 = env  # type: ignore[attr-defined]
-        logger.debug("FASE 2→3 puente OK hash=%s", env.chain_hash)
+    def continue_to_phase3(
+        self,
+        env: GaugePhase2Envelope,
+    ) -> GaugePhase2Envelope:
+        """Puente validado FASE 2 → FASE 3."""
+        self.continue_to_phase2(env.phase1)
+        expected = self._phase2_chain_hash(env)
+        if not hmac.compare_digest(expected, env.chain_hash):
+            raise ValueError(
+                f"Cadena FASE 2 corrupta: {expected} != {env.chain_hash}."
+            )
         return env
 
 
-# ══════════════════════════════════════════════════════════════════════════════════
-# ╔════════════════════════════════════════════════════════════════════════════════╗
-# ║  F A S E   3 :   D E C I D E   &   A C T                                      ║
-# ║  QND/AAV, Heyting Ω₃, Crowbar, HMAC, Φ_sem.                                   ║
-# ║  Abre con from_phase2_envelope.  Cierra con emit_governance_state.           ║
-# ╚════════════════════════════════════════════════════════════════════════════════╝
-# ══════════════════════════════════════════════════════════════════════════════════
+# ══════════════════════════════════════════════════════════════════════════════
+# FASE 3 — DECIDE & ACT
+# ══════════════════════════════════════════════════════════════════════════════
 
 class GaugePhase3Decider(GaugePhase2Orientor):
-    r"""
-    FASE 3 (Decide & Act): medición débil QND, adjudicación Heyting Ω₃,
-    interlock Crowbar ESP32, funtor visceral \(\Phi_{\mathrm{sem}}\) y HMAC.
+    """
+    FASE 3: diagnóstico AAV, política Heyting, interlock simulado y HMAC.
+
+    No realiza escritura MMIO, no controla GPIO y no prueba latencia de silicio.
     """
 
-    def __init__(self, dimension: int = 56, secret_key: bytes = _DEFAULT_SECRET_KEY) -> None:
+    def __init__(
+        self,
+        dimension: int = 56,
+        secret_key: Optional[bytes] = None,
+    ) -> None:
         super().__init__(dimension=dimension)
-        self.secret_key: bytes = bytes(secret_key)
+        self.secret_key = self._resolve_secret_key(secret_key)
+
+    @staticmethod
+    def _resolve_secret_key(secret_key: Optional[bytes]) -> bytes:
+        if secret_key is None:
+            configured = os.environ.get(_SECRET_ENV_VAR)
+            if not configured:
+                raise ValueError(
+                    f"Inyecte una clave de al menos 32 bytes o configure "
+                    f"{_SECRET_ENV_VAR}."
+                )
+            if configured.startswith("hex:"):
+                try:
+                    key = bytes.fromhex(configured[4:])
+                except ValueError as exc:
+                    raise ValueError(
+                        f"{_SECRET_ENV_VAR} contiene hexadecimal inválido."
+                    ) from exc
+            else:
+                key = configured.encode("utf-8")
+        else:
+            if not isinstance(secret_key, bytes):
+                raise TypeError("secret_key debe ser bytes.")
+            key = bytes(secret_key)
+
+        if len(key) < 32:
+            raise ValueError("La clave HMAC debe contener al menos 32 bytes.")
+        return key
 
     @classmethod
     def from_phase2_envelope(
-        cls, env: GaugePhase2Envelope, secret_key: bytes = _DEFAULT_SECRET_KEY,
+        cls,
+        env: GaugePhase2Envelope,
+        secret_key: Optional[bytes] = None,
     ) -> "GaugePhase3Decider":
-        r"""**Apertura formal (clasista) de la FASE 3.** Dual de `continue_to_phase3`."""
-        inst = cls(dimension=env.phase1.dimension, secret_key=secret_key)
-        inst.continue_to_phase3(env)
-        return inst
+        instance = cls(
+            dimension=env.phase1.dimension,
+            secret_key=secret_key,
+        )
+        instance.continue_to_phase3(env)
+        return instance
 
     def observe_qnd_weak_measurement(
         self,
-        phi_initial: NDArray,
-        phi_final: NDArray,
-        observable_A: NDArray,
-    ) -> Tuple[complex, float, float]:
-        r"""
-        Valor débil AAV \(A_w=\langle\phi_f|A|\phi_i\rangle/\langle\phi_f|\phi_i\rangle\).
-        Varianza de \(H=-iA\) en \(|\phi_i\rangle\): QND \(\Leftrightarrow\) var\(\approx 0\).
+        phi_initial: NDArray[Any],
+        phi_final: NDArray[Any],
+        observable_A: NDArray[Any],
+        system_hamiltonian: Optional[NDArray[Any]] = None,
+    ) -> WeakMeasurementCertificate:
         """
-        i_vec = np.asarray(phi_initial, dtype=np.complex128).reshape(-1, 1)
-        f_vec = np.asarray(phi_final, dtype=np.complex128).reshape(-1, 1)
-        a_mat = np.asarray(observable_A, dtype=np.complex128)
-        nrm_i = float(np.linalg.norm(i_vec))
-        nrm_f = float(np.linalg.norm(f_vec))
-        if nrm_i > 0:
-            i_vec = i_vec / nrm_i
-        if nrm_f > 0:
-            f_vec = f_vec / nrm_f
+        Evalúa el cociente AAV si el solapamiento es no nulo.
 
-        overlap = complex((f_vec.conj().T @ i_vec)[0, 0])
-        if abs(overlap) < _WILKINSON_EPSILON:
-            overlap = complex(_WILKINSON_EPSILON, 0.0)
-        numerator = complex((f_vec.conj().T @ a_mat @ i_vec)[0, 0])
-        a_weak = numerator / overlap
+        QND no queda certificado sin un modelo de instrumento; el conmutador
+        con un Hamiltoniano suministrado es solo un criterio algebraico.
+        """
+        initial = _normalize_state(
+            phi_initial,
+            self.dimension,
+            "phi_initial",
+        )
+        final = _normalize_state(
+            phi_final,
+            self.dimension,
+            "phi_final",
+        )
+        observable = _as_complex_square(
+            observable_A,
+            "observable_A",
+            self.dimension,
+        )
 
-        qnd_fidelity = abs(overlap) ** 2
-        if qnd_fidelity < 0.99:
-            back_action_db = float(-10.0 * math.log10(max(qnd_fidelity, 1e-15)))
+        hermitian_defect = float(
+            la.norm(observable - observable.conj().T, "fro")
+        )
+        if hermitian_defect / max(
+            1.0,
+            float(la.norm(observable, "fro")),
+        ) > _ANTI_HERM_TOL:
+            raise ValueError("El observable AAV debe ser Hermítico.")
+
+        overlap = complex(np.vdot(final, initial))
+        overlap_squared = float(abs(overlap) ** 2)
+        if abs(overlap) <= _WEAK_VALUE_OVERLAP_TOL:
+            weak_value = None
+            overlap_db = None
+            weak_defined = False
         else:
-            back_action_db = 0.0
+            numerator = complex(np.vdot(final, observable @ initial))
+            weak_value = numerator / overlap
+            overlap_db = float(
+                -10.0 * math.log10(max(overlap_squared, np.finfo(np.float64).tiny))
+            )
+            weak_defined = True
 
-        H_obs = -1j * a_mat
-        H_obs = 0.5 * (H_obs + H_obs.conj().T)
-        mean = complex((i_vec.conj().T @ H_obs @ i_vec)[0, 0])
-        mean2 = complex((i_vec.conj().T @ H_obs @ H_obs @ i_vec)[0, 0])
-        var = max(0.0, float(np.real(mean2) - abs(mean) ** 2))
-        return a_weak, back_action_db, var
+        mean = complex(np.vdot(initial, observable @ initial))
+        mean2 = complex(
+            np.vdot(initial, observable @ observable @ initial)
+        )
+        variance = max(0.0, float(mean2.real - abs(mean) ** 2))
+
+        commutator_norm: Optional[float] = None
+        commutes: Optional[bool] = None
+        if system_hamiltonian is not None:
+            h_system = _as_complex_square(
+                system_hamiltonian,
+                "system_hamiltonian",
+                self.dimension,
+            )
+            defect = float(la.norm(h_system - h_system.conj().T, "fro"))
+            if defect / max(1.0, float(la.norm(h_system, "fro"))) > _ANTI_HERM_TOL:
+                raise ValueError("system_hamiltonian debe ser Hermítico.")
+
+            denominator = max(
+                1.0,
+                float(la.norm(h_system, "fro"))
+                * float(la.norm(observable, "fro")),
+            )
+            commutator_norm = float(
+                la.norm(h_system @ observable - observable @ h_system, "fro")
+                / denominator
+            )
+            commutes = bool(commutator_norm <= _ANTI_HERM_TOL)
+
+        return WeakMeasurementCertificate(
+            weak_value=weak_value,
+            pre_post_overlap=overlap,
+            overlap_squared=overlap_squared,
+            postselection_overlap_db=overlap_db,
+            observable_variance=variance,
+            weak_value_defined=weak_defined,
+            qnd_commutator_norm=commutator_norm,
+            commutes_with_supplied_hamiltonian=commutes,
+            qnd_certified=False,
+            back_action_db=None,
+        )
 
     def adjudicate_heyting(
         self,
         *,
         energy_ym: float,
-        instanton_k: int,
-        integrality_residual: float,
+        instanton_k: Optional[int],
+        integrality_residual: Optional[float],
         symplectic_valid: bool,
         kam_satisfied: bool,
-        melnikov_preserved: bool,
-        floquet_stable: bool,
+        melnikov_preserved: Optional[bool],
+        floquet_stable: Optional[bool],
         rsi3_valid: bool,
-        bruno_satisfied: bool = True,
+        bruno_satisfied: Optional[bool] = None,
         lindstedt_solved: bool = True,
+        input_integrity_valid: bool = True,
+        kam_global_certified: bool = False,
+        bruno_global_certified: bool = False,
+        melnikov_certified: bool = False,
+        floquet_global_certified: bool = False,
+        pontryagin_certified: bool = False,
+        rsi3_full_space_contraction_certified: bool = False,
     ) -> HeytingOmega3:
-        r"""Supremo monoidal de átomos de severidad en \(\Omega_3\)."""
-        atoms = [
-            HeytingOmega3.COHERENT if energy_ym <= 0.25 else (
-                HeytingOmega3.DEGRADED if energy_ym <= 0.85 else HeytingOmega3.VETOED),
-            HeytingOmega3.COHERENT if abs(instanton_k) <= 2 else HeytingOmega3.VETOED,
-            HeytingOmega3.COHERENT if integrality_residual <= _INSTANTON_INTEGRALITY_TOL
-            else HeytingOmega3.DEGRADED,
-            HeytingOmega3.COHERENT if symplectic_valid else HeytingOmega3.DEGRADED,
-            HeytingOmega3.COHERENT if kam_satisfied else HeytingOmega3.VETOED,
-            HeytingOmega3.COHERENT if bruno_satisfied else HeytingOmega3.DEGRADED,
-            HeytingOmega3.COHERENT if melnikov_preserved else HeytingOmega3.VETOED,
-            HeytingOmega3.COHERENT if floquet_stable else HeytingOmega3.DEGRADED,
-            HeytingOmega3.COHERENT if rsi3_valid else HeytingOmega3.VETOED,
-            HeytingOmega3.COHERENT if lindstedt_solved else HeytingOmega3.DEGRADED,
-        ]
+        """
+        Política conservadora. Un diagnóstico finito que no certifica una
+        propiedad global no se transforma en una afirmación de coherencia.
+        """
+        del instanton_k, integrality_residual
+
+        atoms: List[HeytingOmega3] = []
+
+        if not input_integrity_valid:
+            atoms.append(HeytingOmega3.VETOED)
+
+        if not math.isfinite(float(energy_ym)) or energy_ym < 0.0:
+            atoms.append(HeytingOmega3.VETOED)
+        elif energy_ym <= _ENERGY_DEGRADED_THRESHOLD:
+            atoms.append(HeytingOmega3.COHERENT)
+        elif energy_ym <= _ENERGY_VETO_THRESHOLD:
+            atoms.append(HeytingOmega3.DEGRADED)
+        else:
+            atoms.append(HeytingOmega3.VETOED)
+
+        atoms.append(
+            HeytingOmega3.COHERENT
+            if symplectic_valid
+            else HeytingOmega3.VETOED
+        )
+
+        if not kam_satisfied:
+            atoms.append(HeytingOmega3.VETOED)
+        elif kam_global_certified:
+            atoms.append(HeytingOmega3.COHERENT)
+        else:
+            atoms.append(HeytingOmega3.DEGRADED)
+
+        if bruno_satisfied is False:
+            atoms.append(HeytingOmega3.DEGRADED)
+        if not bruno_global_certified:
+            atoms.append(HeytingOmega3.DEGRADED)
+
+        if melnikov_preserved is False and melnikov_certified:
+            atoms.append(HeytingOmega3.VETOED)
+        elif not melnikov_certified or melnikov_preserved is None:
+            atoms.append(HeytingOmega3.DEGRADED)
+
+        if floquet_stable is False and floquet_global_certified:
+            atoms.append(HeytingOmega3.VETOED)
+        elif not floquet_global_certified or floquet_stable is None:
+            atoms.append(HeytingOmega3.DEGRADED)
+
+        if not pontryagin_certified:
+            atoms.append(HeytingOmega3.DEGRADED)
+
+        if not rsi3_valid:
+            atoms.append(HeytingOmega3.DEGRADED)
+        if not rsi3_full_space_contraction_certified:
+            atoms.append(HeytingOmega3.DEGRADED)
+
+        if not lindstedt_solved:
+            atoms.append(HeytingOmega3.DEGRADED)
+
         return HeytingOmega3.fold_supremum(atoms)
 
     def trigger_hardware_interlock_esp32_crowbar(
-        self, verdict: HeytingOmega3, gpio_pin: int = 14,
-    ) -> Tuple[bool, float, str]:
-        r"""Interlock simulado en IRAM.  SLA de latencia < 400 ns."""
-        if verdict is HeytingOmega3.VETOED:
-            t0 = time.perf_counter_ns()
-            reg_bit = 1 << int(gpio_pin)
-            _latched = bool(reg_bit & (1 << 14))
-            del _latched
-            t1 = time.perf_counter_ns()
-            latency_ns = float(min(max(float(t1 - t0), 42.0),
-                                   _ESP32_CROWBAR_MAX_LATENCY_NS))
-            if latency_ns > _CROWBAR_TIMING_LIMIT_NS:
-                logger.critical(
-                    "LATENCIA VIOLADA: %.2f ns > %.0f ns",
-                    latency_ns, _CROWBAR_TIMING_LIMIT_NS)
-            logger.critical(
-                "[CROWBAR BARE-METAL ESP32] GPIO%d HIGH | Latencia IRAM=%.2f ns (SLA < %.2f ns)",
-                gpio_pin, latency_ns, _ESP32_CROWBAR_MAX_LATENCY_NS)
-            return True, latency_ns, "ESP32_CROWBAR_GPIO14_HIGH_BT151_TRIGGERED"
-        if verdict is HeytingOmega3.DEGRADED:
-            return False, _CROWBAR_DEGRADED_LATENCY_NS, "MONITORING_DEGRADED_PERFORMANCE"
-        return False, _CROWBAR_NOMINAL_LATENCY_NS, "NOMINAL_EXECUTION"
+        self,
+        verdict: HeytingOmega3,
+        gpio_pin: int = 14,
+    ) -> CrowbarSimulationResult:
+        """
+        Simula la decisión lógica de interlock.
+
+        No escribe registros, no toca GPIO y no mide ni garantiza WCET.
+        """
+        if isinstance(gpio_pin, bool) or not 0 <= int(gpio_pin) <= 39:
+            raise ValueError("gpio_pin debe estar en [0,39].")
+
+        start_ns = time.perf_counter_ns()
+        requested = verdict is HeytingOmega3.VETOED
+        if requested:
+            action = (
+                f"SIMULATED_VETO_REQUEST_GPIO{int(gpio_pin)}_NO_HARDWARE_ACTION"
+            )
+        elif verdict is HeytingOmega3.DEGRADED:
+            action = "SIMULATED_DEGRADED_MONITORING_NO_HARDWARE_ACTION"
+        else:
+            action = "SIMULATED_NOMINAL_NO_HARDWARE_ACTION"
+        elapsed_ns = float(time.perf_counter_ns() - start_ns)
+
+        return CrowbarSimulationResult(
+            requested=requested,
+            actuated=False,
+            python_elapsed_ns=elapsed_ns,
+            numeric_threshold_ns=_SIMULATED_CROWBAR_LIMIT_NS,
+            python_overhead_below_threshold=bool(
+                elapsed_ns <= _SIMULATED_CROWBAR_LIMIT_NS
+            ),
+            action=action,
+            hardware_wcET_certified=False,
+        )
 
     def apply_visceral_functor_phi_sem(
         self,
@@ -1418,248 +2334,312 @@ class GaugePhase3Decider(GaugePhase2Orientor):
         yang_mills_energy: float,
         wilson_angle: float,
     ) -> Dict[str, Any]:
-        r"""Funtor \(\Phi_{\mathrm{sem}}:\mathrm{Sh}(\partial M,\Omega_3)\to\mathrm{Business}\)."""
+        """
+        Proyección semántica determinista para política.
+
+        Es una tabla de decisión, no un funtor categórico demostrado ni un
+        modelo financiero. No emite porcentajes de ahorro o liquidez.
+        """
         if verdict is HeytingOmega3.VETOED:
-            wacc = "BLINDADO AL 15.0% — Crowbar activado por ruptura de Gauge"
-            liquidity = "+11.5% EN TESORERÍA (Reserva recortada del 15% al 3.5%)"
-            action = "DESEMBOLSO CERENADO — Interlock en silicio real"
+            status = "BLOCKED_BY_POLICY"
+            action = "HOLD_AND_REQUIRE_HUMAN_REVIEW"
         elif verdict is HeytingOmega3.DEGRADED:
-            wacc = "PRESERVADO EN 15.0% — Ventana de Alivio (1h) activa"
-            liquidity = "+8.5% RECIRCULANTE (Válvula de alivio activada)"
-            action = "VETO SUAVE — Inyección de Positrón e⁺ requerida"
+            status = "REVIEW_REQUIRED"
+            action = "RESTRICT_AUTOMATED_ACTIONS"
         else:
-            wacc = "ESTABLE Y OPTIMO AL 15.0% HURDLE RATE"
-            liquidity = "+11.5% FLUIDO LIBRE (Coherencia Total)"
-            action = "FLUJO NOMINAL LAMINAR (0.0 dB)"
+            status = "WITHIN_VALIDATED_NUMERICAL_SCOPE"
+            action = "ALLOW_ONLY_WITHIN_DECLARED_SCOPE"
+
         return {
-            "wacc_protection_status": wacc,
-            "net_liquidity_impact": liquidity,
-            "llm_inference_savings_pct": 80.0,
-            "kv_cache_compression_pct": 86.4,
-            "yang_mills_energy_fpu": yang_mills_energy,
-            "wilson_angle_rad": wilson_angle,
+            "policy_status": status,
             "executive_action": action,
+            "hardware_action": "NONE_SIMULATION_ONLY",
+            "quantitative_financial_projection": "NOT_COMPUTED",
+            "yang_mills_energy_matrix_proxy": float(yang_mills_energy),
+            "wilson_angle_matrix_proxy_rad": float(wilson_angle),
+            "global_topological_certification": False,
         }
 
-    def _sign_snapshot(self, payload: str) -> bytes:
-        msg = _GAUGE_HMAC_DOMAIN + payload.encode("utf-8")
-        return hmac.new(self.secret_key, msg, hashlib.sha256).digest()
+    def _sign_snapshot(self, merkle_root_hex: str) -> bytes:
+        try:
+            root_bytes = bytes.fromhex(merkle_root_hex)
+        except ValueError as exc:
+            raise ValueError("La raíz Merkle debe ser hexadecimal.") from exc
+        message = _GAUGE_HMAC_DOMAIN + root_bytes
+        return hmac.new(self.secret_key, message, hashlib.sha256).digest()
 
-    def verify_snapshot_hmac(self, snapshot: TopologicalGaugeFieldSnapshot) -> bool:
-        payload = (
-            f"{snapshot.snapshot_id}:{snapshot.yang_mills_energy:.10f}:"
-            f"{snapshot.chern_simons_3form_higgs:.10f}:"
-            f"{snapshot.chern_simons_anomaly:.10f}:{snapshot.wilson_angle_rad:.10f}:"
-            f"{snapshot.pontryagin_instanton_number}:"
-            f"{snapshot.pontryagin_integrality_residual:.3e}")
-        expected = self._sign_snapshot(payload)
-        return hmac.compare_digest(expected, snapshot.hmac_sha256)
+    def verify_snapshot_hmac(
+        self,
+        snapshot: TopologicalGaugeFieldSnapshot,
+    ) -> bool:
+        """Verifica cadena de fase, raíz Merkle y HMAC del snapshot."""
+        try:
+            self.continue_to_phase3(snapshot.phase2)
+            if (
+                snapshot.phase1.chain_hash
+                != snapshot.phase2.phase1.chain_hash
+            ):
+                return False
+
+            computed_root = _snapshot_merkle_root(snapshot)
+            if not hmac.compare_digest(
+                computed_root,
+                snapshot.sha256_merkle_digest,
+            ):
+                return False
+
+            expected = self._sign_snapshot(computed_root)
+            return hmac.compare_digest(expected, snapshot.hmac_sha256)
+        except (ValueError, TypeError, la.LinAlgError):
+            return False
 
     def emit_governance_state(
         self,
         phase2_env: GaugePhase2Envelope,
-        phi_initial: Optional[NDArray] = None,
-        phi_final: Optional[NDArray] = None,
+        phi_initial: Optional[NDArray[Any]] = None,
+        phi_final: Optional[NDArray[Any]] = None,
     ) -> Tuple[TopologicalGaugeFieldSnapshot, Dict[str, Any]]:
-        r"""**Cierre formal de la FASE 3.** Snapshot firmado HMAC-SHA256."""
+        """Cierre de FASE 3: decide, simula y sella un snapshot."""
+        self.continue_to_phase3(phase2_env)
         now = time.time()
-        p1, p2 = phase2_env.phase1, phase2_env
-        d = p1.dimension
-        rho, A = p1.rho_sanitized, p1.connection_A
+        phase1 = phase2_env.phase1
+        dimension = phase1.dimension
 
         if phi_initial is None:
-            phi_initial = np.ones((d, 1), dtype=np.complex128) / math.sqrt(d)
+            initial = np.ones(dimension, dtype=np.complex128) / math.sqrt(dimension)
         else:
-            phi_initial = np.asarray(phi_initial, dtype=np.complex128).reshape(-1, 1)
-            phi_initial = phi_initial / max(float(np.linalg.norm(phi_initial)), 1e-15)
+            initial = _normalize_state(phi_initial, dimension, "phi_initial")
+
         if phi_final is None:
-            phi_f = rho @ phi_initial
-            phi_final = phi_f / (float(np.linalg.norm(phi_f)) + _WILKINSON_EPSILON)
+            # Postselección neutral por defecto; no se afirma que sea un
+            # protocolo de medición física.
+            final = initial.copy()
         else:
-            phi_final = np.asarray(phi_final, dtype=np.complex128).reshape(-1, 1)
-            phi_final = phi_final / max(float(np.linalg.norm(phi_final)), 1e-15)
+            final = _normalize_state(phi_final, dimension, "phi_final")
 
-        a_weak, back_action_db, qnd_var = self.observe_qnd_weak_measurement(
-            phi_initial, phi_final, A)
+        hermitian_observable = -1j * phase1.connection_A
+        hermitian_observable = 0.5 * (
+            hermitian_observable + hermitian_observable.conj().T
+        )
+        weak = self.observe_qnd_weak_measurement(
+            initial,
+            final,
+            hermitian_observable,
+        )
 
-        pl = p1.poincare_lindstedt
+        kam = phase2_env.kam_certificate
+        melnikov = phase2_env.melnikov
+        floquet = phase2_env.floquet
+        rsi3 = phase2_env.rsi3_certificate
+        lindstedt = phase1.poincare_lindstedt
+
         verdict = self.adjudicate_heyting(
-            energy_ym=p1.energy_ym,
-            instanton_k=p2.pontryagin_instanton_k,
-            integrality_residual=p2.pontryagin_integrality_residual,
-            symplectic_valid=p1.is_symplectic_valid,
-            kam_satisfied=p2.kam_certificate.is_satisfied,
-            melnikov_preserved=p2.melnikov.is_homoclinic_preserved,
-            floquet_stable=(p2.floquet.is_neutral or p2.floquet.is_dissipative_stable),
-            rsi3_valid=p2.rsi3_certificate.is_valid,
-            bruno_satisfied=p2.kam_certificate.bruno_satisfied,
-            lindstedt_solved=bool(pl.is_solved) if pl is not None else False,
-        )
-        _, latency_ns, hw_action = self.trigger_hardware_interlock_esp32_crowbar(verdict)
-        visceral = self.apply_visceral_functor_phi_sem(
-            verdict, p1.energy_ym, p2.wilson_angle_rad)
-
-        snap_id = f"GAUGE-SNAP-{int(now * 1000.0) % 1000000:06d}"
-        merkle_payload = (
-            f"{snap_id}:{p1.energy_ym:.10f}:{p2.chern_simons_real:.10f}:"
-            f"{p2.chern_simons_anomaly:.10f}:{p2.wilson_angle_rad:.10f}:"
-            f"{p2.pontryagin_instanton_k}:{p2.pontryagin_integrality_residual:.3e}")
-        merkle_digest = hashlib.sha256(merkle_payload.encode("utf-8")).hexdigest()
-        hmac_sig = self._sign_snapshot(merkle_payload)
-        rsi3 = p2.rsi3_certificate
-        snapshot = TopologicalGaugeFieldSnapshot(
-            snapshot_id=snap_id,
-            yang_mills_energy=p1.energy_ym,
-            chern_simons_3form_higgs=p2.chern_simons_real,
-            chern_simons_anomaly=p2.chern_simons_anomaly,
-            chern_hopf_class_c1=p2.c1_value,
-            wilson_loop_trace=p2.wilson_trace,
-            wilson_angle_rad=p2.wilson_angle_rad,
-            pontryagin_instanton_number=p2.pontryagin_instanton_k,
-            pontryagin_integrality_residual=p2.pontryagin_integrality_residual,
-            stora_zumino_residual=p2.stora_zumino_residual,
-            weak_value_qnd_aav=a_weak,
-            back_action_db=back_action_db,
-            topology_regime=p2.topology_regime,
-            global_verdict=verdict,
-            sha256_merkle_digest=merkle_digest,
-            timestamp_utc=now,
-            kam_worst_ratio=p2.kam_certificate.worst_ratio,
-            kam_satisfied=p2.kam_certificate.is_satisfied,
-            melnikov_value=p2.melnikov.integral_value,
-            floquet_max_unit_deviation=p2.floquet.max_unit_deviation,
-            floquet_is_neutral=p2.floquet.is_neutral,
-            poincare_section_n_crossings=p2.poincare_section.n_crossings,
-            poincare_section_dispersion=p2.poincare_section.return_dispersion,
-            banach_lipschitz_t3=rsi3.lipschitz_t3,
-            fubini_study_distance=rsi3.surface3.metric_value,
-            novikov_krull_valuation=rsi3.surface1.metric_value,
+            energy_ym=phase1.energy_ym,
+            instanton_k=None,
+            integrality_residual=None,
+            symplectic_valid=phase1.is_symplectic_valid,
+            kam_satisfied=kam.finite_test_passed,
+            melnikov_preserved=melnikov.is_homoclinic_preserved,
+            floquet_stable=(
+                floquet.is_neutral or floquet.is_dissipative_stable
+            ),
             rsi3_valid=rsi3.is_valid,
-            rsi3_iterations=rsi3.iterations,
-            symplectic_residue=p1.symplectic_residue,
-            symplectic_defect=p1.symplectic_defect,
-            crowbar_latency_ns=latency_ns,
-            hardware_crowbar_action=hw_action,
-            hmac_sha256=hmac_sig,
-            phase1=p1, phase2=p2,
-            engine_version=_ENGINE_VERSION,
-            spectral_gap=p1.spectral_gap,
-            poincare_cartan_invariant=p1.poincare_cartan_invariant,
-            bruno_satisfied=p2.kam_certificate.bruno_satisfied,
-            chern_simons_algebraic=p2.chern_simons_algebraic,
-            lindstedt_residual=float(pl.residual_norm) if pl is not None else 0.0,
-            qnd_variance=qnd_var,
+            bruno_satisfied=kam.bruno_truncated_passed,
+            lindstedt_solved=(
+                bool(lindstedt.is_solved)
+                if lindstedt is not None
+                else False
+            ),
+            kam_global_certified=kam.global_diophantine_certified,
+            bruno_global_certified=kam.global_bruno_certified,
+            melnikov_certified=melnikov.is_computable,
+            floquet_global_certified=floquet.is_periodic_system_certified,
+            pontryagin_certified=False,
+            rsi3_full_space_contraction_certified=(
+                rsi3.full_space_contraction_certified
+            ),
         )
-        return snapshot, visceral
+
+        interlock = self.trigger_hardware_interlock_esp32_crowbar(verdict)
+        policy = self.apply_visceral_functor_phi_sem(
+            verdict,
+            phase1.energy_ym,
+            phase2_env.wilson_angle_rad,
+        )
+        semantic_policy = tuple(
+            sorted((str(key), str(value)) for key, value in policy.items())
+        )
+
+        snapshot = TopologicalGaugeFieldSnapshot(
+            snapshot_id=f"GAUGE-SNAP-{uuid.uuid4().hex}",
+            yang_mills_energy=float(phase1.energy_ym),
+            chern_simons_3form_higgs=float(phase2_env.chern_simons_real),
+            chern_simons_anomaly=float(phase2_env.chern_simons_anomaly),
+            chern_hopf_class_c1=float(phase2_env.c1_value),
+            wilson_loop_trace=complex(phase2_env.wilson_trace),
+            wilson_angle_rad=float(phase2_env.wilson_angle_rad),
+            pontryagin_instanton_number=None,
+            pontryagin_integrality_residual=None,
+            stora_zumino_residual=None,
+            weak_value_qnd_aav=weak.weak_value,
+            back_action_db=None,
+            topology_regime=phase2_env.topology_regime,
+            global_verdict=verdict,
+            sha256_merkle_digest="",
+            timestamp_utc=float(now),
+            phase1=phase1,
+            phase2=phase2_env,
+            hmac_sha256=b"",
+            kam_worst_ratio=float(kam.worst_ratio),
+            kam_satisfied=bool(kam.global_diophantine_certified),
+            kam_finite_test_passed=bool(kam.finite_test_passed),
+            kam_global_certified=bool(kam.global_diophantine_certified),
+            bruno_satisfied=bool(kam.global_bruno_certified),
+            bruno_truncated_passed=kam.bruno_truncated_passed,
+            bruno_global_certified=bool(kam.global_bruno_certified),
+            melnikov_value=melnikov.integral_value,
+            floquet_max_unit_deviation=float(
+                floquet.max_unit_deviation
+            ),
+            floquet_is_neutral=bool(floquet.is_neutral),
+            poincare_section_n_crossings=phase2_env.poincare_section.n_crossings,
+            poincare_section_dispersion=(
+                phase2_env.poincare_section.return_dispersion
+            ),
+            banach_lipschitz_t3=rsi3.lipschitz_t3,
+            full_space_contraction_certified=(
+                rsi3.full_space_contraction_certified
+            ),
+            fubini_study_distance=float(
+                rsi3.surfaces[2].metric_value
+            ),
+            novikov_krull_valuation=None,
+            rsi3_valid=bool(rsi3.is_valid),
+            rsi3_iterations=int(rsi3.iterations),
+            symplectic_residue=float(phase1.symplectic_residue),
+            symplectic_defect=float(phase1.symplectic_defect),
+            crowbar_latency_ns=float(interlock.python_elapsed_ns),
+            crowbar_requested=bool(interlock.requested),
+            crowbar_actuated=False,
+            hardware_crowbar_action=interlock.action,
+            postselection_overlap_db=weak.postselection_overlap_db,
+            qnd_variance=float(weak.observable_variance),
+            qnd_certified=False,
+            semantic_policy=semantic_policy,
+            engine_version=_ENGINE_VERSION,
+        )
+
+        merkle_root = _snapshot_merkle_root(snapshot)
+        snapshot = replace(snapshot, sha256_merkle_digest=merkle_root)
+        signature = self._sign_snapshot(merkle_root)
+        snapshot = replace(snapshot, hmac_sha256=signature)
+
+        return snapshot, policy
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FACHADA — orquestación de las tres fases anidadas
+# Fachada — orquestación de las tres fases
 # ══════════════════════════════════════════════════════════════════════════════
 
 class TopologicalGaugeFieldEngine(GaugePhase3Decider):
-    r"""
-    Motor Espectral del Campo Topológico de Gauge (v11.0.0 — Tres Fases).
+    """
+    Fachada pública.
 
-      FASE 1  emit_phase1_envelope → continue_to_phase2
-      FASE 2  emit_phase2_envelope → continue_to_phase3
-      FASE 3  emit_governance_state
+        FASE 1: emit_phase1_envelope → continue_to_phase2
+        FASE 2: emit_phase2_envelope → continue_to_phase3
+        FASE 3: emit_governance_state
 
-    Firma pública preservada: `evaluate_topological_gauge_field(...)`.
+    Para firmar snapshots exige una clave de al menos 32 bytes, inyectada o
+    configurada mediante APU_GAUGE_HMAC_KEY.
     """
 
-    def __init__(self, dimension: int = 56, secret_key: bytes = _DEFAULT_SECRET_KEY) -> None:
-        super().__init__(dimension=dimension, secret_key=secret_key)
+    def __init__(
+        self,
+        dimension: int = 56,
+        secret_key: Optional[bytes] = None,
+    ) -> None:
+        super().__init__(
+            dimension=dimension,
+            secret_key=secret_key,
+        )
         logger.info(
-            "TopologicalGaugeFieldEngine v%s (3-Fases anidadas) dim=%d",
-            _ENGINE_VERSION, self.dimension)
+            "TopologicalGaugeFieldEngine v%s dim=%d",
+            _ENGINE_VERSION,
+            self.dimension,
+        )
 
     def evaluate_topological_gauge_field(
         self,
-        density_matrix: NDArray,
-        phi_initial: Optional[NDArray] = None,
-        phi_final: Optional[NDArray] = None,
-        background_hamiltonian: Optional[NDArray] = None,
+        density_matrix: NDArray[Any],
+        phi_initial: Optional[NDArray[Any]] = None,
+        phi_final: Optional[NDArray[Any]] = None,
+        background_hamiltonian: Optional[NDArray[Any]] = None,
     ) -> Tuple[TopologicalGaugeFieldSnapshot, Dict[str, Any]]:
-        r"""Inspección completa: Observe → Orient → Decide&Act (hash-chain)."""
-        env1 = self.emit_phase1_envelope(
-            density_matrix, background_hamiltonian=background_hamiltonian)
-        env1 = self.continue_to_phase2(env1)
+        """Orquesta Observe → Orient → Decide&Act."""
+        phase1 = self.emit_phase1_envelope(
+            density_matrix,
+            background_hamiltonian=background_hamiltonian,
+        )
+        phase1 = self.continue_to_phase2(phase1)
 
-        phi0_flat = (
-            np.asarray(phi_initial, dtype=np.complex128).flatten()
-            if phi_initial is not None else None)
-        env2 = self.emit_phase2_envelope(env1, phi0=phi0_flat)
-        env2 = self.continue_to_phase3(env2)
+        phi0 = (
+            np.asarray(phi_initial, dtype=np.complex128).reshape(-1)
+            if phi_initial is not None
+            else None
+        )
+        phase2 = self.emit_phase2_envelope(phase1, phi0=phi0)
+        phase2 = self.continue_to_phase3(phase2)
 
         return self.emit_governance_state(
-            env2, phi_initial=phi_initial, phi_final=phi_final)
+            phase2,
+            phi_initial=phi_initial,
+            phi_final=phi_final,
+        )
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# VERIFICACIÓN DOCTORAL
+# Demostración reproducible — no constituye una suite de pruebas
 # ══════════════════════════════════════════════════════════════════════════════
+
 if __name__ == "__main__":
     banner = "═" * 80
     print(banner)
-    print("  VERIFICACIÓN DOCTORAL — Topological Gauge Field Engine v11.0.0")
+    print("  DEMOSTRACIÓN — Topological Gauge Field Engine v12.0.0")
     print(banner)
 
-    dim = 16  # 16 basta para certificar invariantes; 56 es el default de producción
-    engine = TopologicalGaugeFieldEngine(dimension=dim)
+    dimension = 16
+    demo_key = hashlib.sha256(
+        b"DEVELOPMENT-ONLY-DEMO-KEY-NOT-FOR-PRODUCTION"
+    ).digest()
+    engine = TopologicalGaugeFieldEngine(
+        dimension=dimension,
+        secret_key=demo_key,
+    )
+
     rng = np.random.default_rng(2026)
-    g = rng.normal(0.0, 1.0, size=(dim, dim)) + 1j * rng.normal(0.0, 1.0, size=(dim, dim))
+    g = rng.normal(size=(dimension, dimension)) + 1j * rng.normal(
+        size=(dimension, dimension)
+    )
     density_sample = g @ g.conj().T
     density_sample /= np.trace(density_sample)
 
-    snapshot, visceral = engine.evaluate_topological_gauge_field(density_sample)
-    assert snapshot.phase1 is not None and snapshot.phase2 is not None
-    A = snapshot.phase1.connection_A
-    F = snapshot.phase1.curvature_F
-    nA = max(1.0, float(la.norm(A, "fro")))
-    nF = max(1.0, float(la.norm(F, "fro")))
-    ah_A = float(la.norm(A + A.conj().T, "fro")) / nA
-    ah_F = float(la.norm(F + F.conj().T, "fro")) / nF
-    hmac_ok = engine.verify_snapshot_hmac(snapshot)
+    snapshot, policy = engine.evaluate_topological_gauge_field(density_sample)
 
-    print(f"  • Snapshot ID           : {snapshot.snapshot_id}")
-    print(f"  • Energía Yang-Mills    : {snapshot.yang_mills_energy:.6f}")
-    print(f"  • Chern-Simons (cov)    : {snapshot.chern_simons_3form_higgs:.6e}")
-    print(f"  • CS alg (⅔ Tr A³)      : {snapshot.chern_simons_algebraic:.6e}")
-    print(f"  • CS Anomaly            : {snapshot.chern_simons_anomaly:.6e}")
-    print(f"  • Ángulo de Wilson      : {snapshot.wilson_angle_rad:.4f} rad")
-    print(f"  • Régimen Topológico    : {snapshot.topology_regime}")
-    print(f"  • Carga Instantónica    : k = {snapshot.pontryagin_instanton_number}")
-    print(f"  • Gap espectral         : {snapshot.spectral_gap:.4e}")
-    print(f"  • Poincaré–Cartan       : {snapshot.poincare_cartan_invariant:.4e}")
-    print(f"  • Lindstedt residual    : {snapshot.lindstedt_residual:.3e}")
-    print(f"  • KAM worst-ratio       : {snapshot.kam_worst_ratio:.4f}  "
-          f"(Bruno={snapshot.bruno_satisfied})")
-    print(f"  • Melnikov              : {snapshot.melnikov_value:.4e}")
-    print(f"  • Floquet |Δμ|max       : {snapshot.floquet_max_unit_deviation:.3e}")
-    print(f"  • Poincaré cruzamientos : {snapshot.poincare_section_n_crossings}")
-    print(f"  • Banach Lip(T³)        : {snapshot.banach_lipschitz_t3:.4f}")
-    print(f"  • RSI³ iteraciones      : {snapshot.rsi3_iterations}")
-    print(f"  • δω simpléctico        : {snapshot.symplectic_residue:.3e}")
-    print(f"  • [A1] ‖A†+A‖/‖A‖       : {ah_A:.3e}")
-    print(f"  • [A1] ‖F†+F‖/‖F‖       : {ah_F:.3e}   (F KKS ≠ 0 ⇒ {nF:.3e})")
-    print(f"  • Valor Débil QND AAV   : {snapshot.weak_value_qnd_aav:.4f} "
-          f"(Back-Action: {snapshot.back_action_db:.1f} dB, var={snapshot.qnd_variance:.3e})")
-    print(f"  • Veredicto Heyting     : {snapshot.global_verdict.name} "
-          f"(0x{int(snapshot.global_verdict):02x})")
-    print(f"  • Crowbar latency       : {snapshot.crowbar_latency_ns:.2f} ns")
-    print(f"  • HMAC-SHA256           : {snapshot.hmac_sha256.hex()[:32]}…  ok={hmac_ok}")
-    print(f"  • Protección WACC       : {visceral['wacc_protection_status']}")
-    print(f"  • Impacto Liquidez      : {visceral['net_liquidity_impact']}")
-    print(banner)
-
-    # Estado propio de H_celeste → F≈0, topología trivial
-    H = engine._default_background_hamiltonian(dim)
-    evals_h, evecs_h = la.eigh(H)
-    gs = evecs_h[:, 0:1]
-    rho_gs = gs @ gs.conj().T
-    snap_gs, _ = engine.evaluate_topological_gauge_field(rho_gs)
-    print(f"  [GS] E_YM={snap_gs.yang_mills_energy:.3e}  "
-          f"k={snap_gs.pontryagin_instanton_number}  "
-          f"Ω₃={snap_gs.global_verdict.name}")
+    print(f"  Snapshot ID              : {snapshot.snapshot_id}")
+    print(f"  Energía matricial        : {snapshot.yang_mills_energy:.6e}")
+    print(f"  Proxy Chern–Simons       : {snapshot.chern_simons_3form_higgs:.6e}")
+    print(f"  Proxy Pontryagin          : {snapshot.phase2.pontryagin_quadratic_proxy:.6e}")
+    print(f"  Carga instantónica       : {snapshot.pontryagin_instanton_number}")
+    print(f"  KAM finito pasó          : {snapshot.kam_finite_test_passed}")
+    print(f"  KAM global certificado   : {snapshot.kam_global_certified}")
+    print(f"  Melnikov computable      : {snapshot.phase2.melnikov.is_computable}")
+    print(f"  Krein certificado        : {snapshot.phase2.floquet.krein_collision}")
+    print(f"  Contracción en subespacio: {snapshot.banach_lipschitz_t3}")
+    print(f"  Contracción global       : {snapshot.full_space_contraction_certified}")
+    print(f"  Veredicto Heyting        : {snapshot.global_verdict.name}")
+    print(f"  Crowbar solicitado       : {snapshot.crowbar_requested}")
+    print(f"  Hardware actuado         : {snapshot.crowbar_actuated}")
+    print(f"  WCET hardware certificado: {snapshot.phase2.scope == 'hardware_wcET_certified'}")
+    print(f"  HMAC válido              : {engine.verify_snapshot_hmac(snapshot)}")
+    print(f"  Política semántica       : {policy}")
     print(banner)

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : De Rham-Galois Adjunction Bridge Prosecutor Agent v12.0.0-SOVEREIGN-POINCARE-N3-JUDICIAL  ║

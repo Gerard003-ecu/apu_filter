@@ -1,3 +1,5 @@
+
+# -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo   : FPUTensorFockColliderAgent v12.0.0-PhD — Soberano Agéntico Colisionador FPU               ║
