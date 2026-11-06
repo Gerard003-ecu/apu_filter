@@ -5,7 +5,7 @@ r"""
 ║ Ubicación: app/wisdom/fpu_tensor_fock_collider.py                                    ║
 ║ Versión  : 12.0.0-SOVEREIGN-FPU-FOCK-GKSL-POINCARE-L3-PhD                            ║
 ║ Función  : Colisionador cuántico tensorial de Fock Fermi-Pasta-Ulam, álgebra CAR/CCR ║
-║            de Jordan-Wigner, dinámicas disipativas GKSL de Lindblad con entropía de   ║
+║            de Jordan-Wigner, dinámicas disipativas GKSL de Lindblad con entropía de  ║
 ║            Spohn, mecánica celeste de Poincaré, teoría KAM y automejora RSI³.        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════╝
 

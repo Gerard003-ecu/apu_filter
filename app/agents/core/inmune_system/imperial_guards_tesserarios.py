@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Supervisa la consistencia homotópica no abeliana de las deliberaciones agénticas
-en APU Filter v8.0, acoplando las aduanas categoriales de Quillen, Stasheff y Čech–Deligne
+en APU Filter, acoplando las aduanas categoriales de Quillen, Stasheff y Čech–Deligne
 con la mecánica celeste de Henri Poincaré sobre tres fases anidadas
 ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$).
 

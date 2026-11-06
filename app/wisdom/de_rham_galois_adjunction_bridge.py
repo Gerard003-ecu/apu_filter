@@ -4,7 +4,7 @@ r"""
 ║ Módulo   : De Rham-Galois Adjunction Bridge + Poincaré + KAM/BHT + Automejora L3                 ║
 ║ Ubicación: app/wisdom/de_rham_galois_adjunction_bridge.py                                        ║
 ║ Versión  : 11.0.0-SOVEREIGN-DERHAM-GALOIS-POINCARE-KAM-BHT-L3-PhD                                ║
-║ Función  : Puente de Adjunción Categórica F \dashv G entre la categoría MIC discreta \mathcal{C}  ║
+║ Función  : Puente de Adjunción Categórica F \dashv G entre la categoría MIC discreta \mathcal{C} ║
 ║            y la categoría MAC continua \mathcal{D}, holonomía de Pancharatnam-Berry,             ║
 ║            complejo de de Rham, fidelidad de Uhlmann, distancia Bures y automejora L3.           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝

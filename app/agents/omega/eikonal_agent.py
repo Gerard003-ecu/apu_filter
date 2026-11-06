@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Eikonal Agent (Operador de Fase de Fresnel y Monodromía Óptica)     ║
-║ Ruta   : app/omega/eikonal_agent.py                                          ║
+║ Ruta   : app/agents/omega/eikonal_agent.py                                   ║
 ║ Versión: 3.0.0-Topos-WKB-Geodesic-Spectral-Nested                            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

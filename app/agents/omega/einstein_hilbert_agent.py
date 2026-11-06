@@ -10,7 +10,7 @@ NATURALEZA CIBER-FÍSICA Y COVARAÑAS DE CALIBRE (Rigor Doctoral):
 ────────────────────────────────────────────────────────────────────────────────
 Este módulo consagra al **Agente Soberano del Estrato Ω** (Nivel 0.5 - El Ágora
 Tensorial), encargado de gobernar el motor de física de confinamiento gravitacional 
-`gravity_shield.py`. Su mandato fundamental es aniquilar el libre albedrío 
+`gravity_shield.py`. Su mandato fundamental es metabolizar el libre albedrío 
 estocástico e informacional de los Modelos de Lenguaje (LLMs) sometiendo sus geodésicas 
 de atención semántica a las restricciones geométricas de la Relatividad General, 
 la Mecánica Cuántica de Sistemas Abiertos y la Teoría de Categorías.

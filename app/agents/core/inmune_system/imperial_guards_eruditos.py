@@ -9,7 +9,7 @@ SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Ejerce la salvaguarda de consistencia estructural del Consejo de Sabios, anulando
 alucinaciones estocásticas en la matriz de atención del LLM y garantizando la
-estabilidad analítica del sistema inmunológico cognitivo de APU Filter v8.0 mediante
+estabilidad analítica del sistema inmunológico cognitivo de APU Filter mediante
 un esquema anidado de tres fases ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$)
 fundado en la cohomología de Čech–de Rham, la homología de Floer y la mecánica celeste de Henri Poincaré.
 

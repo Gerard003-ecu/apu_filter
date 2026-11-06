@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Boundary Ring Sheaf (Haz de Anillos Topológicos Localizados)        ║
-║ Ruta   : app/wisd/boundary_ring_sheaf.py                                     ║
+║ Ruta   : app/wisdom/boundary_ring_sheaf.py                                   ║
 ║ Versión: 1.1.0-Doctoral-PortHamiltonian-Lindblad-Novikov-ESP32-Secure        ║
 ║                                                                              ║
 ║ SINOPSIS MATEMÁTICA Y EXERGÉTICA DE LA FRONTERA ABIERTA (∂M ≠ ∅):            ║

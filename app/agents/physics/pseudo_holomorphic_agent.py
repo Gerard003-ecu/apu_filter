@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Pseudo-Holomorphic Agent (Soberano de Calibre de de Rham-Fukaya)    ║
-║ Ruta   : app/agents/pseudo_holomorphic_agent.py                              ║
+║ Ruta   : app/agents/physics/pseudo_holomorphic_agent.py                      ║
 ║ Versión: 5.1.0-Doctoral-Heyting-OODA-ESP32-Crowbar-Secure                    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

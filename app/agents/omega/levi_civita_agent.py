@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Levi-Civita Connection Agent (Maestro de Sinfonía Métrica)          ║
-║ Ruta   : app/omega/levi_civita_agent.py                                      ║
+║ Ruta   : app/agents/omega/levi_civita_agent.py                               ║
 ║ Versión: 8.0.0-Granular-Geodesic-Categorical-Nested-Spectral-Doctoral        ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

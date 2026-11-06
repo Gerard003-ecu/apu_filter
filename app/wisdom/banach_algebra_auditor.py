@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Banach Algebra Auditor (Soberano de Estabilidad Funcional)          ║
-║ Ruta   : app/physics/banach_algebra_auditor.py                               ║
+║ Ruta   : app/wisdom/banach_algebra_auditor.py                                ║
 ║ Versión: 3.1.0-Banach-Gelfand-Neumann-Wilkinson-Heyting-PhD-Strict           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

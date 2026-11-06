@@ -2,7 +2,7 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Watcher Agent — validación tensorial y propagación                  ║
-║ Ruta   : app/agents/core/immune_system/watcher_agent.py                      ║
+║ Ruta   : app/agents/core/inmune_system/watcher_agent.py                      ║
 ║ Versión: 6.0.0-Nested-Refined-Hamiltonian                                    ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 

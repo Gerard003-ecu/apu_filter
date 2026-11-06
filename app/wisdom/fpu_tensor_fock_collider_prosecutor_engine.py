@@ -3,10 +3,10 @@ r"""
 ║ Módulo   : FPU Tensor Fock Collider Prosecutor Engine v14.1.0-SOVEREIGN-POINCARE-N3-PhD              ║
 ║ Ubicación: app/wisdom/fpu_tensor_fock_collider_prosecutor_engine.py                                  ║
 ║ Versión  : 14.1.0-SOVEREIGN-POINCARE-N3-PhD                                                          ║
-║ Función  : Motor fiscal inquisidor de ℱ(ℋ) con verificación CAR/CCR CANÓNICA rigurosa sobre          ║
+║ Función  : Motor fiscal inquisidor de ℱ(ℋ) con verificación CAR/CCR CANÓNICA rigurosa sobre         ║
 ║            operadores b/b† (bosón truncado) y a/a† (JW fermión 1-modo), Mecánica Celeste de          ║
 ║            Poincaré sobre el oscilador de Kerr forzado, Automejora N3 Poincaré-acoplada y            ║
-║            DEBIDO PROCESO con disparo ciber-físico Crowbar ESP32 (< 392.15 ns @ GPIO14).              ║
+║            DEBIDO PROCESO con disparo ciber-físico Crowbar ESP32 (< 392.15 ns @ GPIO14).             ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL

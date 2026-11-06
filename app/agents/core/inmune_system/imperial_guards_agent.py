@@ -9,7 +9,7 @@ SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Ejerce la censura de primer nivel y la gobernanza covariante en lazo cerrado OODA
 ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$) sobre el
-foso de la obra en la Malla Agéntica de APU Filter v8.0. Implementa la composición
+foso de la obra en la Malla Agéntica de APU Filter. Implementa la composición
 anidada de functores sobre la variedad fásica extendida $T^*M \cong \mathbb{R}^{2n}$,
 suturando la geometría no conmutativa de Alain Connes con la teoría de grafos
 isoperimétricos de Cheeger–Fiedler, la mecánica celeste de Henri Poincaré y la

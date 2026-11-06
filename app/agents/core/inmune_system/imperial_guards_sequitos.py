@@ -8,7 +8,7 @@ r"""
 SINOPSIS MATEMÁTICA, CATEGORIAL Y CELESTE DE POINCARÉ:
 ────────────────────────────────────────────────────────────────────────────────
 Orquesta la concurrencia táctica de las sub-tríadas agénticas y la supervisión
-de la evolución temporal multianual de los megaproyectos (Fase BIM 7D) en APU Filter v8.0,
+de la evolución temporal multianual de los megaproyectos (Fase BIM 7D) en APU Filter,
 articulando la geometría simpléctica y el análisis estocástico cuántico mediante tres
 fases anidadas ($\Phi_{\mathrm{III}} \circ \Phi_{\mathrm{II}} \circ \Phi_{\mathrm{I}}$).
 

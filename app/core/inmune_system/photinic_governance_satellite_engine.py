@@ -1,141 +1,490 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Photinic Governance Satellite Engine (Satélite IV — Gobernanza Fotínica)    ║
-║ RUTA   : app/core/immune_system/photinic_governance_satellite_engine.py              ║
-║ VERSIÓN: 5.0.0-Doctoral-Majorana-SYM-Dekker-Choi-Horodecki-Tsirelson-HMAC            ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════╗
+║ Módulo : Photinic Governance Satellite Engine                                ║
+║ Ruta   : app/core/inmune_system/photinic_governance_satellite_engine.py      ║
+║ Versión: 6.0.0-Validated-Channel-Bell-State-HMAC                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
 
-Motor FPU de Gobernanza Fotínica Federada para la auditoría de canales cuánticos CPTP,
-acoplamiento espinorial de Majorana en $N=1$ Super-Yang-Mills y no-localidad de Bell-CHSH.
+Motor de auditoría federada organizado en tres fases OODA:
 
-Fundamentación Matemática y Física Rigurosa:
-────────────────────────────────────────────
-1. Acoplamiento Espinorial de Majorana en $N=1$ SYM:
-   $$I_{\mathrm{Majorana}} = \sqrt{\operatorname{Tr}(S_{\mathrm{fed}}^2)}, \qquad \chi_5 = \frac{\operatorname{Tr}(S_{\mathrm{fed}})}{\|S_{\mathrm{fed}}\|_F}$$
-   donde $S_{\mathrm{fed}} = \frac{1}{N} \sum_k p_k \otimes p_k + \varepsilon I_d$ es el tensor de Gram federado.
+  Fase 1 — Observe
+    Valida y copia las políticas reales; calcula el operador de Gram federado,
+    comprueba su simetría y positividad dentro de tolerancia, evalúa cocientes
+    de normas y emite un expediente autenticado con HMAC.
 
-2. Proyector Ortogonal de Grothendieck:
-   $$\Omega = V_r V_r^\top \implies \Omega^2 = \Omega, \quad \operatorname{Tr}(\Omega) = \operatorname{rank}(\Omega)$$
+  Fase 2 — Orient
+    Calcula el proyector ortogonal sobre el espacio fila de las políticas,
+    audita una familia explícita de operadores de Kraus y, opcionalmente,
+    analiza un estado de dos qubits suministrado por el consumidor.
 
-3. Superoperador de Choi-Jamiołkowski y Admisibilidad Causal CPTP:
-   $$\mathcal{E}(X) = \sum_{k=1}^N K_k X K_k^\top, \quad C_\mathcal{E} \succeq -\varepsilon_{\mathrm{Wilkinson}}$$
-   Causalidad verificada mediante el defecto de sub-unitalidad de un operador POVM:
-   $$D = I_d - \sum_k K_k^\top K_k \succeq -\varepsilon_{\mathrm{Wilkinson}}$$
+  Fase 3 — Act
+    Comprueba las certificaciones recibidas, calcula el operador de Gram
+    normalizado y su entropía espectral, y emite un certificado HMAC.
 
-4. Criterio de Horodecki y Cota de Tsirelson (Bell-CHSH) SIN Renormalización:
-   $$\langle \mathcal{B}_{\mathrm{CHSH}} \rangle_{\max} = 2 \sqrt{u_1 + u_2} \le 2\sqrt{2}$$
-   donde $u_1 \ge u_2$ son los dos autovalores dominantes de $T^\top T$, permitiendo la detección de
-   corrupción adversarial super-cuántica ($\mathcal{B}_{\mathrm{CHSH}} > 2\sqrt{2}$).
-
-5. Entropía de von Neumann y Pureza Cuántica:
-   $$\rho_{\mathrm{fed}} = \frac{S_{\mathrm{fed}}}{\operatorname{Tr}(S_{\mathrm{fed}})}, \quad S(\rho) = -\operatorname{Tr}(\rho \ln \rho), \quad \mathcal{P} = \operatorname{Tr}(\rho^2)$$
-
-6. Aritmética Compensada de Dekker (TwoProduct) y Kahan-Neumaier:
-   Transformación libre de error para productos punto de precisión efectiva doble en FPU IEEE-754.
-
-Traducción Ejecutiva e Impacto de Negocio ('Dolor y Dinero'):
-─────────────────────────────────────────────────────────────
-• Dolor: Colusión adversarial o manipulación no local en la gobernanza federada de políticas públicas
-  y de presupuesto causa desviaciones opacas y fraudes en consorcios descentralizados.
-• Dinero: El endurecimiento estricto de la cota de Tsirelson y la positividad completa detecta inmediatamente
-  inyecciones maliciosas o sesgos coordinados, protegiendo los fondos federados y la transparencia gubernamental.
-
-Estructura Functorial OODA:
-───────────────────────────
-- Fase 1 (Observe) : `observe_federated_nodes`     -> Salida: `PhotinicObservationKernel`
-- Fase 2 (Orient)  : `orient_photinic_policy`       -> Salida: `PhotinicPolicyReport`
-- Fase 3 (Act)     : `execute_photinic_audit`      -> Salida: `PhotinicEngineState`
+Precisiones de interpretación:
+  • sqrt(Tr(S²)) y Tr(S)/||S||_F son invariantes del operador de Gram. Se
+    conservan nombres históricos que contienen "Majorana", pero no representan
+    por sí solos un espinor de Majorana ni una cantidad de N=1 SYM.
+  • Los operadores K_k = P_k/sqrt(N) definidos aquí producen una operación
+    completamente positiva. El chequeo sum K_k†K_k <= I certifica que es
+    trace-nonincreasing; no certifica trace-preserving. La opción
+    require_trace_preserving permite exigir TP para aceptar el resultado.
+  • Un chequeo local de completitud de Kraus no demuestra no-señalización.
+    is_causal_non_signaling permanece None porque las entradas no especifican
+    una operación bipartita ni sus marginales.
+  • El criterio de Horodecki se aplica solo si se proporciona una matriz de
+    densidad válida de dos qubits (4x4). No se inventa una bipartición a partir
+    de vectores de políticas.
+  • La entropía de la matriz de Gram normalizada es una entropía espectral de
+    ese operador. Sin una interpretación cuántica adicional no se afirma que
+    sea la entropía física de un estado cuántico.
+  • La entropía de entrelazamiento se devuelve solo cuando se suministra un
+    estado bipartito puro; para estados mixtos no se infiere de los autovalores
+    de TᵀT.
+  • Sin clave HMAC inyectada se genera una clave aleatoria efímera. Ese modo es
+    apropiado para desarrollo dentro de una instancia, pero no permite verificar
+    firmas entre procesos o reinicios. En producción, inyectar una clave secreta
+    gestionada externamente.
 """
+
+from __future__ import annotations
 
 import hashlib
 import hmac
 import logging
 import math
+import secrets
+import struct
 import time
-from dataclasses import dataclass
-from typing import Final, Optional, Tuple, Dict, Any, List, Sequence, Union
+from dataclasses import dataclass, replace
+from fractions import Fraction
+from typing import Any, Final, Optional, Sequence, Tuple, Union
 
 import numpy as np
-import scipy.linalg as la
 from numpy.typing import NDArray
+
 
 logger = logging.getLogger("APU.Physics.PhotinicGovernanceSatelliteEngine")
 
-# ------------------------------------------------------------------------------
-# CONSTANTES FÍSICAS UNIVERSALES, COTAS METROLÓGICAS Y LÍMITES DE WILKINSON
-# ------------------------------------------------------------------------------
+
+# ══════════════════════════════════════════════════════════════════════════════
+# CONSTANTES Y LÍMITES NUMÉRICOS
+# ══════════════════════════════════════════════════════════════════════════════
+
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
-_WILKINSON_FLOOR: Final[float] = 1.0e-15
-_TSIRELSON_BOUND: Final[float] = 2.0 * math.sqrt(2.0)  # 2.8284271247461903 (Cota de Tsirelson)
-_BELL_CLASSICAL_BOUND: Final[float] = 2.0               # Cota clásica LHV de Bell-CHSH
-_CONDITION_NUMBER_MAX: Final[float] = 1.0e12            # Límite de estabilidad numérica
+_FLOAT_TINY: Final[float] = float(np.finfo(np.float64).tiny)
+
+_DEFAULT_TOLERANCE: Final[float] = 1.0e-12
+_DEFAULT_GRAM_REGULARIZATION: Final[float] = 1.0e-12
 _GRAM_RECONSTRUCTION_TOLERANCE: Final[float] = 1.0e-9
-_CHOI_PSD_TOLERANCE: Final[float] = 1.0e-9
-_CAUSALITY_SUBUNITAL_TOLERANCE: Final[float] = 1.0e-9
-_VELTKAMP_SPLIT_CONSTANT: Final[float] = 134217729.0    # 2^27 + 1, exacto en float64
+_CHOІ_PSD_TOLERANCE: Final[float] = 1.0e-9
+_CHANNEL_TNI_TOLERANCE: Final[float] = 1.0e-9
+_BELL_STATE_TOLERANCE: Final[float] = 1.0e-10
+_TSIRELSON_TOLERANCE: Final[float] = 1.0e-9
+
+_TSIRELSON_BOUND: Final[float] = 2.0 * math.sqrt(2.0)
+_BELL_CLASSICAL_BOUND: Final[float] = 2.0
+_CONDITION_NUMBER_MAX: Final[float] = 1.0e12
+_VELTKAMP_SPLIT_CONSTANT: Final[float] = 134217729.0  # 2**27 + 1
+
+_MAX_EXPLICIT_CHOI_DIMENSION: Final[int] = 16
+_MIN_HMAC_KEY_BYTES: Final[int] = 32
+
+# Nombre legado para compatibilidad con consumidores anteriores. No se usa
+# como sustituto de una tolerancia relativa dependiente de escala.
+_WILKINSON_FLOOR: Final[float] = 1.0e-15
 
 
-# ------------------------------------------------------------------------------
-# JERARQUÍA DE EXCEPCIONES DOCTORALES
-# ------------------------------------------------------------------------------
+# ══════════════════════════════════════════════════════════════════════════════
+# EXCEPCIONES
+# ══════════════════════════════════════════════════════════════════════════════
+
 class PhotinicEngineError(Exception):
-    r"""Excepción raíz de fallos ontológicos en el motor fotínico de gobernanza."""
-    pass
+    """Excepción raíz del motor fotínico."""
+
+
+class PhotinicInputError(PhotinicEngineError):
+    """Entrada mal formada, no real o no finita."""
 
 
 class PhotinicDimensionError(PhotinicEngineError):
-    r"""Inconsistencia de dimensiones en los espacios vectoriales o fibrados."""
-    pass
+    """Dimensiones incompatibles entre políticas y operadores."""
+
+
+class PhotinicNumericalError(PhotinicEngineError):
+    """Un cálculo no puede certificarse dentro del rango numérico disponible."""
+
+
+class PhotinicIntegrityError(PhotinicEngineError):
+    """Un expediente o certificado no supera la verificación HMAC."""
 
 
 class PhotinicNonPositiveDefiniteError(PhotinicEngineError):
-    r"""
-    Violación de la positividad estricta de Gram-Riemann en el espacio de fase,
-    o violación de la Positividad Completa (CP) certificada de la matriz de Choi
-    ($\lambda_{\min}(C_\mathcal{E}) < -\varepsilon_{\mathrm{Wilkinson}}$), lo cual
-    delataría corrupción numérica severa dado que $C_\mathcal{E}$ es PSD por
-    construcción analítica (suma de proyectores rango-1 con coeficientes $\ge 0$).
-    """
-    pass
+    """Violación de positividad del Gram, de una densidad o del Choi auditado."""
 
 
 class PhotinicCausalViolationError(PhotinicEngineError):
-    r"""Excepción raíz para violaciones de causalidad relativista o de canal cuántico físico."""
-    pass
+    """Excepción raíz para fallos de admisibilidad de una operación."""
 
 
 class PhotinicNonCausalChannelError(PhotinicCausalViolationError):
-    r"""
-    El canal de gobernanza federada viola la admisibilidad física de un
-    operador POVM: $\sum_k K_k^\top K_k \not\preceq I$ (super-unital), lo cual
-    implicaría probabilidades de transición agregadas $> 1$ — señal de
-    corrupción del canal o de nodos federados maliciosos.
     """
-    pass
+    Nombre histórico conservado.
+
+    La condición comprobada es sum_k K_k† K_k <= I (trace-nonincreasing);
+    no es, por sí sola, una prueba de no-señalización relativista.
+    """
+
+
+class PhotinicTracePreservationError(PhotinicCausalViolationError):
+    """La operación aceptada no satisface el requisito explícito de TP."""
 
 
 class PhotinicTsirelsonViolationError(PhotinicCausalViolationError):
-    r"""
-    Superación estricta de la Cota de Tsirelson ($\mathcal{B}_{\rm CHSH} > 2\sqrt2$):
-    régimen super-cuántico / caja PR, interpretado como corrupción adversarial
-    no-local del consorcio federado o manipulación estadística de las políticas.
+    """El resultado de CHSH supera la cota configurada para un estado cuántico."""
+
+
+class PhotinicInvalidQuantumStateError(PhotinicInputError):
+    """La matriz proporcionada no es una matriz de densidad válida de dos qubits."""
+
+
+class PhotinicProjectorError(PhotinicNumericalError):
+    """No se pudo certificar el proyector ortogonal calculado."""
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# VALIDACIÓN DE ESCALARES Y ARREGLOS
+# ══════════════════════════════════════════════════════════════════════════════
+
+def _finite_float(value: Any, name: str) -> float:
+    """Convierte a float y rechaza booleanos, NaN e infinitos."""
+    if isinstance(value, (bool, np.bool_)):
+        raise PhotinicInputError(f"{name} debe ser un escalar real, no booleano.")
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise PhotinicInputError(f"{name} no es un escalar real válido.") from exc
+    if not math.isfinite(result):
+        raise PhotinicInputError(f"{name} debe ser finito.")
+    return result
+
+
+def _nonnegative_float(
+    value: Any,
+    name: str,
+    *,
+    allow_positive_infinity: bool = False,
+) -> float:
+    """Valida un escalar no negativo, permitiendo opcionalmente +inf."""
+    if isinstance(value, (bool, np.bool_)):
+        raise PhotinicInputError(f"{name} debe ser numérico, no booleano.")
+    try:
+        result = float(value)
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise PhotinicInputError(f"{name} no es numérico.") from exc
+
+    if math.isnan(result) or result < 0.0:
+        raise PhotinicInputError(f"{name} debe ser no negativo y no NaN.")
+    if math.isinf(result) and not (
+        allow_positive_infinity and result > 0.0
+    ):
+        raise PhotinicInputError(f"{name} debe ser finito.")
+    return result
+
+
+def _readonly_real_array(value: Any, name: str) -> NDArray[np.float64]:
     """
-    pass
+    Copia a float64 real, valida finitud y devuelve un arreglo de solo lectura.
+
+    No acepta booleanos, complejos, cadenas ni arreglos de objetos.
+    """
+    try:
+        raw = np.asarray(value)
+    except (TypeError, ValueError) as exc:
+        raise PhotinicInputError(f"{name} no es convertible a arreglo.") from exc
+
+    if raw.dtype.kind not in "fiu":
+        raise PhotinicInputError(
+            f"{name} debe tener dtype real numérico; recibido {raw.dtype}."
+        )
+
+    try:
+        result = np.array(raw, dtype=np.float64, copy=True, order="C")
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise PhotinicInputError(f"{name} no puede convertirse a float64.") from exc
+
+    if not np.all(np.isfinite(result)):
+        raise PhotinicInputError(f"{name} contiene NaN o infinitos.")
+
+    result[result == 0.0] = 0.0  # Canoniza -0.0 como +0.0.
+    result.setflags(write=False)
+    return result
 
 
-# ------------------------------------------------------------------------------
-# ESTRUCTURAS DE DATOS INMUTABLES (DATACLASSES CANÓNICAS)
-# ------------------------------------------------------------------------------
+def _readonly_complex_array(
+    value: Any,
+    name: str,
+) -> NDArray[np.complex128]:
+    """Copia a complex128 y valida finitud de partes real e imaginaria."""
+    try:
+        raw = np.asarray(value)
+    except (TypeError, ValueError) as exc:
+        raise PhotinicInputError(f"{name} no es convertible a arreglo.") from exc
+
+    if raw.dtype.kind not in "fiuc":
+        raise PhotinicInputError(
+            f"{name} debe ser numérico real o complejo; recibido {raw.dtype}."
+        )
+
+    try:
+        result = np.array(raw, dtype=np.complex128, copy=True, order="C")
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise PhotinicInputError(f"{name} no puede convertirse a complex128.") from exc
+
+    if not np.all(np.isfinite(result)):
+        raise PhotinicInputError(f"{name} contiene NaN o infinitos.")
+
+    result[result == 0.0] = 0.0 + 0.0j
+    result.setflags(write=False)
+    return result
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# SUMA COMPENSADA Y PRODUCTO PUNTO DEKKER
+# ══════════════════════════════════════════════════════════════════════════════
+
+class KahanNeumaierSum:
+    r"""
+    Suma de Neumaier y producto punto con transformación de producto de Dekker.
+
+    La compensación reduce el error de redondeo en el dominio float64. No
+    convierte las operaciones en aritmética exacta para entradas arbitrarias:
+    ante overflow se falla explícitamente; en subnormales, el residuo del
+    producto puede no ser representable en float64.
+    """
+
+    @staticmethod
+    def sum(values: Sequence[float]) -> float:
+        """Suma compensada de Neumaier; falla si un intermedio desborda."""
+        total = 0.0
+        correction = 0.0
+
+        for raw_value in values:
+            value = _finite_float(raw_value, "sumando")
+            updated = total + value
+            if not math.isfinite(updated):
+                raise PhotinicNumericalError(
+                    "Overflow durante la suma compensada de Neumaier."
+                )
+
+            if abs(total) >= abs(value):
+                correction += (total - updated) + value
+            else:
+                correction += (value - updated) + total
+
+            if not math.isfinite(correction):
+                raise PhotinicNumericalError(
+                    "Overflow en la corrección de Neumaier."
+                )
+            total = updated
+
+        result = total + correction
+        if not math.isfinite(result):
+            raise PhotinicNumericalError(
+                "El resultado de la suma compensada no es finito."
+            )
+        return float(result)
+
+    @staticmethod
+    def _veltkamp_split(value: float) -> Tuple[float, float]:
+        """Separa un float en componentes alta y baja evitando splitter*value."""
+        mantissa, exponent = math.frexp(value)
+        product = _VELTKAMP_SPLIT_CONSTANT * mantissa
+        high_mantissa = product - (product - mantissa)
+        low_mantissa = mantissa - high_mantissa
+
+        try:
+            high = math.ldexp(high_mantissa, exponent)
+            low = math.ldexp(low_mantissa, exponent)
+        except OverflowError as exc:
+            raise PhotinicNumericalError(
+                "Overflow en la separación de Veltkamp."
+            ) from exc
+
+        if not math.isfinite(high) or not math.isfinite(low):
+            raise PhotinicNumericalError(
+                "La separación de Veltkamp produjo un valor no finito."
+            )
+        return high, low
+
+    @staticmethod
+    def _fraction_product_residual(a: float, b: float, rounded_product: float) -> float:
+        """Ruta de respaldo exacta en racionales para casos extremos de Dekker."""
+        exact_residual = (
+            Fraction.from_float(a) * Fraction.from_float(b)
+            - Fraction.from_float(rounded_product)
+        )
+        try:
+            residual = float(exact_residual)
+        except (OverflowError, ValueError) as exc:
+            raise PhotinicNumericalError(
+                "El residuo exacto del producto no cabe en float64."
+            ) from exc
+        if not math.isfinite(residual):
+            raise PhotinicNumericalError(
+                "El residuo del producto no es finito."
+            )
+        return residual
+
+    @staticmethod
+    def two_product_dekker(a: float, b: float) -> Tuple[float, float]:
+        r"""
+        Devuelve producto redondeado y residuo calculado por Dekker.
+
+        Para resultados normales y sin overflow, el residuo corrige la parte
+        baja del producto. Se usa una ruta racional en casos subnormales o si
+        los intermedios de la separación no son representables.
+        """
+        a = _finite_float(a, "factor a")
+        b = _finite_float(b, "factor b")
+        product = a * b
+
+        if not math.isfinite(product):
+            raise PhotinicNumericalError("Overflow en el producto a*b.")
+        if a == 0.0 or b == 0.0:
+            return product, 0.0
+
+        fma = getattr(math, "fma", None)
+        if fma is not None:
+            residual = fma(a, b, -product)
+            if math.isfinite(residual):
+                return product, residual
+
+        if (
+            abs(a) < _FLOAT_TINY
+            or abs(b) < _FLOAT_TINY
+            or abs(product) < _FLOAT_TINY
+        ):
+            return product, KahanNeumaierSum._fraction_product_residual(
+                a, b, product
+            )
+
+        try:
+            a_high, a_low = KahanNeumaierSum._veltkamp_split(a)
+            b_high, b_low = KahanNeumaierSum._veltkamp_split(b)
+
+            term_0 = a_high * b_high - product
+            term_1 = a_high * b_low
+            term_2 = a_low * b_high
+            term_3 = a_low * b_low
+
+            if not all(
+                math.isfinite(term)
+                for term in (term_0, term_1, term_2, term_3)
+            ):
+                raise PhotinicNumericalError(
+                    "Intermedio no finito en TwoProduct de Dekker."
+                )
+
+            residual = ((term_0 + term_1) + term_2) + term_3
+            if math.isfinite(residual):
+                return product, residual
+        except PhotinicNumericalError:
+            pass
+
+        return product, KahanNeumaierSum._fraction_product_residual(
+            a, b, product
+        )
+
+    @staticmethod
+    def compensated_dot(
+        u: NDArray[np.float64],
+        v: NDArray[np.float64],
+    ) -> float:
+        """Producto punto con productos Dekker y acumulaciones Neumaier."""
+        u_array = _readonly_real_array(u, "u")
+        v_array = _readonly_real_array(v, "v")
+        if u_array.shape != v_array.shape:
+            raise PhotinicDimensionError(
+                f"Formas incompatibles en producto punto: "
+                f"{u_array.shape} != {v_array.shape}."
+            )
+
+        products: list[float] = []
+        errors: list[float] = []
+        for left, right in zip(u_array.ravel(), v_array.ravel()):
+            product, error = KahanNeumaierSum.two_product_dekker(
+                float(left), float(right)
+            )
+            products.append(product)
+            errors.append(error)
+
+        product_sum = KahanNeumaierSum.sum(products)
+        error_sum = KahanNeumaierSum.sum(errors)
+        return KahanNeumaierSum.sum((product_sum, error_sum))
+
+    @staticmethod
+    def compensated_l2_norm(vector: NDArray[np.float64]) -> float:
+        """Norma 2 escalada para evitar overflow al elevar componentes al cuadrado."""
+        array = _readonly_real_array(vector, "vector").ravel()
+        if array.size == 0:
+            return 0.0
+
+        scale = float(np.max(np.abs(array)))
+        if scale == 0.0:
+            return 0.0
+
+        scaled = array / scale
+        sum_squares = KahanNeumaierSum.sum(
+            float(value) * float(value) for value in scaled
+        )
+        factor = math.sqrt(sum_squares)
+
+        if factor == 0.0:
+            return 0.0
+        if scale > np.finfo(np.float64).max / factor:
+            raise PhotinicNumericalError("La norma 2 excede el rango float64.")
+        return scale * factor
+
+
+def _stable_norm(values: Any) -> float:
+    """Norma euclídea/Frobenius escalada para arreglos reales."""
+    array = np.asarray(values, dtype=np.float64)
+    return KahanNeumaierSum.compensated_l2_norm(array.ravel())
+
+
+def _stable_complex_norm(values: Any) -> float:
+    """Norma Frobenius compleja estable, evaluada sobre partes real e imaginaria."""
+    array = np.asarray(values, dtype=np.complex128)
+    joined = np.concatenate(
+        (array.real.ravel(), array.imag.ravel())
+    )
+    return KahanNeumaierSum.compensated_l2_norm(joined)
+
+
+def _relative_defect(numerator: Any, reference: Any) -> float:
+    """||numerator|| / max(||reference||, tiny), con control de rango."""
+    numerator_norm = _stable_norm(numerator)
+    reference_norm = _stable_norm(reference)
+    denominator = max(reference_norm, _FLOAT_TINY)
+    return numerator_norm / denominator
+
+
+# ══════════════════════════════════════════════════════════════════════════════
+# DTOs INMUTABLES
+# ══════════════════════════════════════════════════════════════════════════════
+
 @dataclass(frozen=True, slots=True)
 class PhotinicObservationKernel:
-    r"""
-    Expediente inmutable de Fase 1 (Observe).
-    Audita la regularidad de Banach $\ell^1/\ell^2/\ell^\infty$, la métrica de Majorana
-    en $N=1$ SYM, el tensor de Gram federado certificado PSD y el condicionamiento
-    espectral de Wilkinson.
     """
+    Expediente de observación de la Fase 1.
+
+    Los campos majorana_spinor_norm y majorana_chiral_parity se conservan por
+    compatibilidad. Son, respectivamente, ||S||_F y Tr(S)/||S||_F; no son
+    invariantes de un espinor físico sin datos espinoriales adicionales.
+    """
+
     node_policies: Tuple[NDArray[np.float64], ...]
     majorana_spinor_norm: float
     majorana_chiral_parity: float
@@ -148,793 +497,2036 @@ class PhotinicObservationKernel:
     spectral_gap: float
     sha256_seal: str
     timestamp: float
+    regularization: float = _DEFAULT_GRAM_REGULARIZATION
+    validation_tolerance: float = _DEFAULT_TOLERANCE
+
+    def __post_init__(self) -> None:
+        policies = tuple(
+            _readonly_real_array(policy, f"node_policies[{index}]")
+            for index, policy in enumerate(self.node_policies)
+        )
+        if not policies:
+            raise PhotinicDimensionError("El kernel no puede contener cero políticas.")
+
+        dimension = policies[0].size
+        if dimension == 0:
+            raise PhotinicDimensionError("Las políticas no pueden tener dimensión cero.")
+        for index, policy in enumerate(policies):
+            if policy.ndim != 1 or policy.size != dimension:
+                raise PhotinicDimensionError(
+                    f"node_policies[{index}] no es un vector de dimensión {dimension}."
+                )
+
+        gram = _readonly_real_array(self.gram_matrix, "gram_matrix")
+        eigenvalues = _readonly_real_array(
+            self.gram_eigenvalues, "gram_eigenvalues"
+        )
+        if gram.shape != (dimension, dimension):
+            raise PhotinicDimensionError(
+                f"gram_matrix tiene shape={gram.shape}; "
+                f"se esperaba ({dimension}, {dimension})."
+            )
+        if eigenvalues.shape != (dimension,):
+            raise PhotinicDimensionError(
+                f"gram_eigenvalues tiene shape={eigenvalues.shape}; "
+                f"se esperaba ({dimension},)."
+            )
+
+        ratios = tuple(
+            _nonnegative_float(value, f"banach_ratios[{index}]")
+            for index, value in enumerate(self.banach_ratios)
+        )
+        if len(ratios) != len(policies):
+            raise PhotinicDimensionError(
+                "Debe existir un cociente de Banach por política."
+            )
+
+        object.__setattr__(self, "node_policies", policies)
+        object.__setattr__(self, "banach_ratios", ratios)
+        object.__setattr__(self, "gram_matrix", gram)
+        object.__setattr__(self, "gram_eigenvalues", eigenvalues)
+
+        object.__setattr__(
+            self,
+            "majorana_spinor_norm",
+            _nonnegative_float(
+                self.majorana_spinor_norm, "majorana_spinor_norm"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "majorana_chiral_parity",
+            _finite_float(
+                self.majorana_chiral_parity, "majorana_chiral_parity"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "gram_symmetry_defect",
+            _nonnegative_float(
+                self.gram_symmetry_defect, "gram_symmetry_defect"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "gram_reconstruction_residual",
+            _nonnegative_float(
+                self.gram_reconstruction_residual,
+                "gram_reconstruction_residual",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "condition_number",
+            _nonnegative_float(
+                self.condition_number,
+                "condition_number",
+                allow_positive_infinity=True,
+            ),
+        )
+        object.__setattr__(
+            self,
+            "spectral_gap",
+            _nonnegative_float(
+                self.spectral_gap,
+                "spectral_gap",
+                allow_positive_infinity=True,
+            ),
+        )
+        object.__setattr__(
+            self, "timestamp", _finite_float(self.timestamp, "timestamp")
+        )
+
+        regularization = _finite_float(self.regularization, "regularization")
+        if regularization < 0.0:
+            raise PhotinicInputError("regularization no puede ser negativa.")
+        object.__setattr__(self, "regularization", regularization)
+
+        validation_tolerance = _finite_float(
+            self.validation_tolerance, "validation_tolerance"
+        )
+        if validation_tolerance <= 0.0:
+            raise PhotinicInputError("validation_tolerance debe ser positiva.")
+        object.__setattr__(
+            self, "validation_tolerance", validation_tolerance
+        )
+
+        if not isinstance(self.sha256_seal, str):
+            raise PhotinicInputError("sha256_seal debe ser texto.")
+
+    @property
+    def hmac_seal(self) -> str:
+        """Alias semántico: sha256_seal contiene un HMAC-SHA256."""
+        return self.sha256_seal
+
+    @property
+    def gram_frobenius_norm(self) -> float:
+        """Alias explícito del invariante ||S||_F."""
+        return self.majorana_spinor_norm
+
+    @property
+    def gram_trace_frobenius_ratio(self) -> float:
+        """Alias explícito del cociente Tr(S)/||S||_F."""
+        return self.majorana_chiral_parity
 
 
 @dataclass(frozen=True, slots=True)
 class PhotinicPolicyReport:
-    r"""
-    Expediente inmutable de Fase 2 (Orient).
-    Sintetiza la idempotencia de Grothendieck ($\Omega^2 = \Omega$), la positividad completa
-    de Choi ($C_\mathcal{E} \succeq 0$), la admisibilidad física del canal (sub-unitalidad
-    POVM) y el parámetro de Bell-CHSH sin alteración artificial alguna.
-    """
+    """Reporte autenticable de los diagnósticos de la Fase 2."""
+
     kernel: PhotinicObservationKernel
     idempotence_residual: float
     trace_rank_mismatch: float
-    choi_min_eigenvalue: float
+
+    # None significa que el Choi d²×d² no se materializó por límite de recursos.
+    choi_min_eigenvalue: Optional[float]
+
+    # Nombre legado: es ||sum K†K - I||_F, no un residuo de traza del Choi.
     choi_trace_residual: float
+
+    # Nombre legado: lambda_min(I - sum K†K), que caracteriza TNI.
     choi_subunital_defect_min_eigenvalue: float
-    tsirelson_chsh_value: float
-    horodecki_eigs: Tuple[float, float]
+
+    # None cuando no se proporcionó un estado de dos qubits.
+    tsirelson_chsh_value: Optional[float]
+    horodecki_eigs: Optional[Tuple[float, float]]
     horodecki_bipartition_pairs: int
+
     is_choi_completely_positive: bool
     is_trace_non_increasing: bool
-    is_causal_non_signaling: bool
-    is_tsirelson_bounded: bool
-    is_classical_lhv: bool
+
+    # No se deduce de un conjunto local de operadores de Kraus.
+    is_causal_non_signaling: Optional[bool]
+
+    is_tsirelson_bounded: Optional[bool]
+    is_classical_lhv: Optional[bool]
     timestamp: float
+
+    is_trace_preserving: bool = False
+    choi_trace: Optional[float] = None
+    choi_materialized: bool = False
+    projector_rank: int = 0
+    is_projector_valid: bool = True
+
+    bell_state: Optional[NDArray[np.complex128]] = None
+    bell_correlation_tensor: Optional[NDArray[np.float64]] = None
+    bell_state_is_physical: Optional[bool] = None
+    bell_state_min_eigenvalue: Optional[float] = None
+    bell_state_hermiticity_defect: Optional[float] = None
+
+    hmac_seal: str = ""
+
+    def __post_init__(self) -> None:
+        if self.bell_state is not None:
+            object.__setattr__(
+                self,
+                "bell_state",
+                _readonly_complex_array(self.bell_state, "bell_state"),
+            )
+        if self.bell_correlation_tensor is not None:
+            object.__setattr__(
+                self,
+                "bell_correlation_tensor",
+                _readonly_real_array(
+                    self.bell_correlation_tensor,
+                    "bell_correlation_tensor",
+                ),
+            )
+        if self.horodecki_eigs is not None:
+            if len(self.horodecki_eigs) != 2:
+                raise PhotinicDimensionError(
+                    "horodecki_eigs debe contener exactamente dos autovalores."
+                )
+            object.__setattr__(
+                self,
+                "horodecki_eigs",
+                (
+                    _nonnegative_float(
+                        self.horodecki_eigs[0], "horodecki_eigs[0]"
+                    ),
+                    _nonnegative_float(
+                        self.horodecki_eigs[1], "horodecki_eigs[1]"
+                    ),
+                ),
+            )
+        object.__setattr__(
+            self,
+            "idempotence_residual",
+            _nonnegative_float(
+                self.idempotence_residual, "idempotence_residual"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "trace_rank_mismatch",
+            _nonnegative_float(
+                self.trace_rank_mismatch, "trace_rank_mismatch"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "choi_trace_residual",
+            _nonnegative_float(
+                self,  # placeholder, replaced immediately below
+                "unused",
+            ) if False else _nonnegative_float(
+                self.choi_trace_residual, "choi_trace_residual"
+            ),
+        )
+        object.__setattr__(
+            self, "timestamp", _finite_float(self.timestamp, "timestamp")
+        )
+
+    @property
+    def trace_preservation_residual(self) -> float:
+        """Nombre semántico del residuo legado choi_trace_residual."""
+        return self.choi_trace_residual
+
+    @property
+    def trace_nonincrease_defect_min_eigenvalue(self) -> float:
+        """Nombre semántico de lambda_min(I - sum K†K)."""
+        return self.choi_subunital_defect_min_eigenvalue
+
+    @property
+    def is_quantum_operation(self) -> bool:
+        """Una operación CP y TNI; puede no preservar la traza."""
+        return bool(
+            self.is_choi_completely_positive
+            and self.is_trace_non_increasing
+        )
+
+    @property
+    def is_cptp(self) -> bool:
+        """Verdadero solo si la operación reportada es CP y TP."""
+        return bool(
+            self.is_choi_completely_positive
+            and self.is_trace_preserving
+        )
+
+    @property
+    def bell_analysis_available(self) -> bool:
+        """Indica si se auditó un estado explícito de dos qubits."""
 
 
 @dataclass(frozen=True, slots=True)
 class PhotinicEngineState:
-    r"""
-    Certificado formal e inmutable emitido en la Fase 3 (Act).
-    Acredita la telemetría metrológica en la FPU, la entropía de von Neumann
-    global del estado reducido de gobernanza, la entropía de entrelazamiento
-    bipartita de Horodecki, la pureza cuántica, la deriva de precisión y el
-    doble sellado criptográfico HMAC-SHA256.
-    """
+    """Certificado terminal de la Fase 3."""
+
     kernel: PhotinicObservationKernel
     policy_report: PhotinicPolicyReport
     fpu_execution_time_ms: float
+
+    # Operador de Gram normalizado y proyectado a PSD dentro de tolerancia.
+    # No implica por sí solo un estado físico cuántico.
     federated_density_matrix: NDArray[np.float64]
+
     von_neumann_entropy: float
     quantum_purity: float
-    bell_pair_entanglement_entropy: float
+
+    # Solo existe para un estado de dos qubits puro suministrado explícitamente.
+    bell_pair_entanglement_entropy: Optional[float]
+
     fpu_precision_drift: float
     cryptographic_seal: str
     phase_signature: str
+    density_projection_residual: float = 0.0
+
+    def __post_init__(self) -> None:
+        object.__setattr__(
+            self,
+            "federated_density_matrix",
+            _readonly_real_array(
+                self.federated_density_matrix,
+                "federated_density_matrix",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "fpu_execution_time_ms",
+            _nonnegative_float(
+                self.fpu_execution_time_ms,
+                "fpu_execution_time_ms",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "von_neumann_entropy",
+            _nonnegative_float(
+                self.von_neumann_entropy,
+                "von_neumann_entropy",
+            ),
+        )
+        object.__setattr__(
+            self,
+            "quantum_purity",
+            _nonnegative_float(self.quantum_purity, "quantum_purity"),
+        )
+        object.__setattr__(
+            self,
+            "fpu_precision_drift",
+            _nonnegative_float(
+                self.fpu_precision_drift, "fpu_precision_drift"
+            ),
+        )
+        object.__setattr__(
+            self,
+            "density_projection_residual",
+            _nonnegative_float(
+                self.density_projection_residual,
+                "density_projection_residual",
+            ),
+        )
+        if self.bell_pair_entanglement_entropy is not None:
+            object.__setattr__(
+                self,
+                "bell_pair_entanglement_entropy",
+                _nonnegative_float(
+                    self.bell_pair_entanglement_entropy,
+                    "bell_pair_entanglement_entropy",
+                ),
+            )
 
 
-# ------------------------------------------------------------------------------
-# ARITMÉTICA COMPENSADA DE KAHAN-BABUŠKA-NEUMAIER (KBN) + DEKKER TWOPRODUCT
-# ------------------------------------------------------------------------------
-class KahanNeumaierSum:
-    r"""
-    Sumador compensado de precisión ultra-alta en FPU basado en el algoritmo de Neumaier,
-    acoplado al algoritmo de **Dekker (TwoProduct vía Veltkamp-split)** para la
-    transformación libre de error de la multiplicación de punto flotante IEEE 754.
-    Garantiza un error residual relativo $\mathcal{O}(\varepsilon_{\mathrm{Wilkinson}})$
-    incluso bajo adiciones/productos acumulativos de gran escala o cancelación catastrófica.
-    """
+@dataclass(frozen=True, slots=True)
+class _ChannelAudit:
+    """Resultados internos de la auditoría de la familia de Kraus."""
 
-    @staticmethod
-    def sum(arr: Union[NDArray[np.float64], Sequence[float]]) -> float:
-        s: float = 0.0
-        c: float = 0.0
-        for x in arr:
-            val = float(x)
-            t = s + val
-            if abs(s) >= abs(val):
-                c += (s - t) + val
-            else:
-                c += (val - t) + s
-            s = t
-        return float(s + c)
+    choi_min_eigenvalue: Optional[float]
+    trace_preservation_residual: float
+    trace_nonincrease_min_eigenvalue: float
+    is_completely_positive: bool
+    is_trace_non_increasing: bool
+    is_trace_preserving: bool
+    choi_trace: float
+    choi_materialized: bool
 
-    @staticmethod
-    def _veltkamp_split(a: float) -> Tuple[float, float]:
-        r"""
-        Descomposición de Veltkamp: $a = a_{\rm hi} + a_{\rm lo}$ exacta en aritmética
-        IEEE 754, donde $a_{\rm hi}$ retiene los 26 bits altos de mantisa (constante
-        de partición $2^{27}+1$), condición previa del algoritmo de Dekker.
-        """
-        c = _VELTKAMP_SPLIT_CONSTANT * a
-        a_hi = c - (c - a)
-        a_lo = a - a_hi
-        return a_hi, a_lo
 
-    @staticmethod
-    def two_product_dekker(a: float, b: float) -> Tuple[float, float]:
-        r"""
-        Transformación libre de error (Error-Free Transformation) del producto $a\cdot b$
-        de Dekker (1971): retorna $(p, e)$ tales que $p = \operatorname{fl}(a\cdot b)$ y
-        $p + e = a \cdot b$ **exactamente** en aritmética real, sin recurrir a FMA de
-        hardware. Repara la discrepancia de la v4.0.0, donde `compensated_dot`
-        prometía "TwoProduct" en su docstring pero ejecutaba una multiplicación
-        elemental sin compensación de error.
-        """
-        p = a * b
-        a_hi, a_lo = KahanNeumaierSum._veltkamp_split(a)
-        b_hi, b_lo = KahanNeumaierSum._veltkamp_split(b)
-        err = ((a_hi * b_hi - p) + a_hi * b_lo + a_lo * b_hi) + a_lo * b_lo
-        return p, err
+@dataclass(frozen=True, slots=True)
+class _BellAudit:
+    """Resultados internos del estado bipartito explícito."""
 
-    @staticmethod
-    def compensated_dot(u: NDArray[np.float64], v: NDArray[np.float64]) -> float:
-        r"""
-        Producto punto de precisión efectiva doble ("double-double"): cada
-        multiplicación elemental se descompone en $(p_i, e_i)$ vía Dekker, y
-        tanto los productos como los errores se acumulan independientemente
-        mediante suma compensada de Neumaier:
-        $$u \cdot v \approx \operatorname{NeumaierSum}(p_i) + \operatorname{NeumaierSum}(e_i)$$
-        """
-        if u.shape != v.shape:
-            raise PhotinicDimensionError("Discrepancia dimensional en producto punto compensado.")
-
-        u_flat = u.ravel()
-        v_flat = v.ravel()
-        products = np.empty(u_flat.shape[0], dtype=np.float64)
-        errors = np.empty(u_flat.shape[0], dtype=np.float64)
-        for i in range(u_flat.shape[0]):
-            p, e = KahanNeumaierSum.two_product_dekker(float(u_flat[i]), float(v_flat[i]))
-            products[i] = p
-            errors[i] = e
-
-        return float(KahanNeumaierSum.sum(products) + KahanNeumaierSum.sum(errors))
-
-    @staticmethod
-    def compensated_l2_norm(v: NDArray[np.float64]) -> float:
-        r"""Norma euclidiana compensada $\|v\|_2=\sqrt{\langle v,v\rangle}$ vía `compensated_dot`."""
-        return float(math.sqrt(max(KahanNeumaierSum.compensated_dot(v, v), _WILKINSON_FLOOR)))
+    state: NDArray[np.complex128]
+    correlation_tensor: NDArray[np.float64]
+    chsh_value: float
+    horodecki_eigs: Tuple[float, float]
+    is_tsirelson_bounded: bool
+    is_classical_lhv: bool
+    minimum_state_eigenvalue: float
+    hermiticity_defect: float
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 1: INGESTA, ESPINOR DE MAJORANA EN N=1 SYM Y REGULARIDAD DE BANACH
+# FASE 1 — OBSERVE: POLÍTICAS, GRAM, INVARIANTES Y HMAC
 # ══════════════════════════════════════════════════════════════════════════════
 
 class Phase1_PhotinicObservationKernel:
-    r"""
-    FASE 1 — Observe:
-    Saneamiento riguroso de ceros signed IEEE 754 ($x = -0.0 \mapsto +0.0$),
-    evaluación compensada de la equivalencia de normas de Banach ($\ell^1, \ell^2$),
-    construcción certificada del tensor de Gram federado (simetría, PSD, y
-    auditoría de reconstrucción cruzada contra las políticas crudas), descomposición
-    del espinor de Majorana $\lambda_{\tilde{\gamma}}$ en $N=1$ SYM, y canonización
-    HMAC-sellada e inmutable del expediente de observación.
+    """
+    Fase 1 del pipeline.
+
+    Construye S = mean_k(p_k p_kᵀ) + regularization*I, separando la
+    regularización de la tolerancia de validación. El Gram se comprueba antes
+    de cualquier diagonalización; la positividad se evalúa con tolerancia
+    relativa a la escala espectral.
     """
 
-    def __init__(self, tolerance: float = 1.0e-12, hmac_key: Optional[bytes] = None) -> None:
-        self._tol: Final[float] = float(tolerance)
-        if hmac_key is None:
-            logger.warning(
-                "PhotinicGovernanceSatelliteEngine: se utiliza la clave HMAC derivada por defecto. "
-                "En despliegue productivo DEBE inyectarse una clave gestionada por el subsistema "
-                "de secretos del 'immune_system' (parámetro hmac_key)."
-            )
-            hmac_key = hashlib.sha256(b"APU.PhotinicGovernanceSatelliteEngine.DefaultEngineSalt.v5").digest()
-        self._hmac_key: Final[bytes] = hmac_key
+    def __init__(
+        self,
+        tolerance: float = _DEFAULT_TOLERANCE,
+        hmac_key: Optional[bytes] = None,
+        regularization: float = _DEFAULT_GRAM_REGULARIZATION,
+    ) -> None:
+        self._tol = _finite_float(tolerance, "tolerance")
+        if not 0.0 < self._tol < 1.0:
+            raise PhotinicInputError("tolerance debe satisfacer 0 < tolerance < 1.")
 
-    # --------------------------------------------------------------------
-    # 1.1 — Sellado HMAC y regularidad de Sobolev-Banach compensada
-    # --------------------------------------------------------------------
-    def _compute_hmac_seal(self, *chunks: bytes) -> str:
-        r"""Sello de autenticidad HMAC-SHA256 sobre la concatenación ordenada de fragmentos binarios."""
+        self._regularization = _finite_float(
+            regularization, "regularization"
+        )
+        if self._regularization < 0.0:
+            raise PhotinicInputError("regularization no puede ser negativa.")
+
+        if hmac_key is None:
+            self._hmac_key = secrets.token_bytes(32)
+            logger.warning(
+                "HMAC con clave aleatoria efímera. Inyecte hmac_key desde un "
+                "gestor de secretos para verificar expedientes entre procesos."
+            )
+        else:
+            if not isinstance(hmac_key, (bytes, bytearray)):
+                raise PhotinicInputError("hmac_key debe ser bytes.")
+            self._hmac_key = bytes(hmac_key)
+            if len(self._hmac_key) < _MIN_HMAC_KEY_BYTES:
+                raise PhotinicInputError(
+                    f"hmac_key debe tener al menos {_MIN_HMAC_KEY_BYTES} bytes."
+                )
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Serialización canónica y sellado autenticado
+    # ──────────────────────────────────────────────────────────────────────────
+
+    @staticmethod
+    def _float_token(value: float) -> bytes:
+        """Codificación estable de float, incluyendo infinitos diagnósticos."""
+        value = float(value)
+        if math.isnan(value):
+            raise PhotinicInputError("No se puede sellar un NaN.")
+        if value == 0.0:
+            value = 0.0
+        if math.isinf(value):
+            return b"+inf" if value > 0.0 else b"-inf"
+        return value.hex().encode("ascii")
+
+    @staticmethod
+    def _optional_float_token(value: Optional[float]) -> bytes:
+        return b"<none>" if value is None else (
+            b"<float>" + Phase1_PhotinicObservationKernel._float_token(value)
+        )
+
+    @staticmethod
+    def _bool_token(value: Optional[bool]) -> bytes:
+        if value is None:
+            return b"<none>"
+        return b"<true>" if bool(value) else b"<false>"
+
+    @staticmethod
+    def _text_token(value: str) -> bytes:
+        return value.encode("utf-8")
+
+    @staticmethod
+    def _array_token(array: Any) -> bytes:
+        """Codifica forma, tipo real/complejo y datos little-endian contiguos."""
+        raw = np.asarray(array)
+        if np.iscomplexobj(raw):
+            canonical = np.array(raw, dtype="<c16", copy=True, order="C")
+            if not np.all(np.isfinite(canonical)):
+                raise PhotinicInputError("No se puede sellar un arreglo no finito.")
+            canonical[canonical == 0.0] = 0.0 + 0.0j
+            type_tag = b"C"
+        else:
+            canonical = np.array(raw, dtype="<f8", copy=True, order="C")
+            if not np.all(np.isfinite(canonical)):
+                raise PhotinicInputError("No se puede sellar un arreglo no finito.")
+            canonical[canonical == 0.0] = 0.0
+            type_tag = b"R"
+
+        shape_bytes = struct.pack("<I", canonical.ndim)
+        for extent in canonical.shape:
+            shape_bytes += struct.pack("<Q", int(extent))
+        return type_tag + shape_bytes + canonical.tobytes(order="C")
+
+    def _compute_hmac_seal(self, domain: bytes, *chunks: bytes) -> str:
+        """HMAC-SHA256 con separación de dominio y fragmentos enmarcados."""
+        if not isinstance(domain, bytes) or not domain:
+            raise PhotinicInputError("El dominio HMAC debe ser bytes no vacíos.")
         mac = hmac.new(self._hmac_key, digestmod=hashlib.sha256)
-        for chunk in chunks:
+
+        for chunk in (domain, *chunks):
+            if not isinstance(chunk, bytes):
+                raise PhotinicInputError("Los fragmentos HMAC deben ser bytes.")
+            mac.update(struct.pack(">Q", len(chunk)))
             mac.update(chunk)
         return mac.hexdigest()
 
-    def evaluate_banach_regularity(self, S: NDArray[np.float64]) -> float:
-        r"""
-        Evalúa el ratio de regularidad en el espacio de Banach mediante aritmética
-        compensada de Dekker-Neumaier en ambas normas:
-        $$\mathcal{R}(S) = \frac{\|S\|_1}{\|S\|_2}$$
-        Satisface la cota analítica de Sobolev-Banach: $1.0 \le \mathcal{R}(S) \le \sqrt{d}$.
-        """
-        norm1 = KahanNeumaierSum.sum(np.abs(S))
-        norm2 = KahanNeumaierSum.compensated_l2_norm(S)
-        ratio = norm1 / max(norm2, _WILKINSON_FLOOR)
-        upper_bound = math.sqrt(S.shape[0])
-        if not (1.0 - 1.0e-6 <= ratio <= upper_bound + 1.0e-6):
-            logger.warning(
-                "Ratio de Banach R(S)=%.6f fuera de la cota de Sobolev [1, sqrt(%d)=%.6f].",
-                ratio, S.shape[0], upper_bound
-            )
-        return ratio
+    def _observation_chunks(
+        self,
+        kernel: PhotinicObservationKernel,
+    ) -> Tuple[bytes, ...]:
+        chunks: list[bytes] = [
+            b"schema=6",
+            self._float_token(kernel.regularization),
+            self._float_token(kernel.validation_tolerance),
+            self._float_token(kernel.timestamp),
+            str(len(kernel.node_policies)).encode("ascii"),
+            str(kernel.gram_matrix.shape[0]).encode("ascii"),
+        ]
 
-    # --------------------------------------------------------------------
-    # 1.2 — Certificación de simetría, positividad y reconstrucción del Gram
-    # --------------------------------------------------------------------
-    def _audit_spectral_symmetry_defect(self, S_fed: NDArray[np.float64]) -> float:
-        r"""
-        Certifica el defecto de asimetría de de Rham previo a invocar `eigvalsh`
-        (que asume simetría exacta silenciosamente): $\delta_{\rm asym} =
-        \|S-S^\top\|_F/\max(\|S\|_F,\varepsilon)$. Auditoría defensiva ausente en v4,
-        análoga a la certificación de simetría del motor leptónico hermano.
-        """
-        defect = float(la.norm(S_fed - S_fed.T, ord='fro')) / max(
-            float(la.norm(S_fed, ord='fro')), _WILKINSON_FLOOR
+        for policy in kernel.node_policies:
+            chunks.append(self._array_token(policy))
+
+        chunks.extend(
+            (
+                self._array_token(kernel.gram_matrix),
+                self._array_token(kernel.gram_eigenvalues),
+                self._float_token(kernel.majorana_spinor_norm),
+                self._float_token(kernel.majorana_chiral_parity),
+                self._float_token(kernel.gram_symmetry_defect),
+                self._float_token(kernel.gram_reconstruction_residual),
+                self._float_token(kernel.condition_number),
+                self._float_token(kernel.spectral_gap),
+            )
         )
-        if defect > self._tol:
-            logger.warning("Defecto de asimetría en S_fed = %.6e excede tolerancia %.2e.", defect, self._tol)
-        return defect
+        chunks.extend(
+            self._float_token(value) for value in kernel.banach_ratios
+        )
+        return tuple(chunks)
+
+    def verify_observation_kernel(
+        self,
+        kernel: PhotinicObservationKernel,
+    ) -> bool:
+        """Verifica el HMAC del expediente; no sustituye su procedencia confiable."""
+        if not isinstance(kernel, PhotinicObservationKernel):
+            return False
+        try:
+            expected = self._compute_hmac_seal(
+                b"photinic-observation-kernel-v6",
+                *self._observation_chunks(kernel),
+            )
+        except Exception:
+            return False
+        return hmac.compare_digest(kernel.sha256_seal, expected)
+
+    def _require_valid_kernel(
+        self,
+        kernel: PhotinicObservationKernel,
+    ) -> None:
+        if not self.verify_observation_kernel(kernel):
+            raise PhotinicIntegrityError(
+                "El kernel de observación no está autenticado por esta instancia."
+            )
+
+    def _policy_report_chunks(
+        self,
+        report: PhotinicPolicyReport,
+    ) -> Tuple[bytes, ...]:
+        chunks: list[bytes] = [
+            report.kernel.sha256_seal.encode("ascii"),
+            self._float_token(report.idempotence_residual),
+            self._float_token(report.trace_rank_mismatch),
+            self._optional_float_token(report.choi_min_eigenvalue),
+            self._float_token(report.choi_trace_residual),
+            self._float_token(
+                report.choi_subunital_defect_min_eigenvalue
+            ),
+            self._optional_float_token(report.tsirelson_chsh_value),
+            self._float_token(report.timestamp),
+            str(report.horodecki_bipartition_pairs).encode("ascii"),
+            str(report.projector_rank).encode("ascii"),
+            self._bool_token(report.is_choi_completely_positive),
+            self._bool_token(report.is_trace_non_increasing),
+            self._bool_token(report.is_trace_preserving),
+            self._bool_token(report.is_causal_non_signaling),
+            self._bool_token(report.is_tsirelson_bounded),
+            self._bool_token(report.is_classical_lhv),
+            self._bool_token(report.choi_materialized),
+            self._bool_token(report.is_projector_valid),
+            self._optional_float_token(report.choi_trace),
+            self._bool_token(report.bell_state_is_physical),
+            self._optional_float_token(report.bell_state_min_eigenvalue),
+            self._optional_float_token(report.bell_state_hermiticity_defect),
+        ]
+
+        if report.horodecki_eigs is None:
+            chunks.append(b"<no-horodecki-eigs>")
+        else:
+            chunks.extend(
+                self._float_token(value)
+                for value in report.horodecki_eigs
+            )
+
+        if report.bell_state is None:
+            chunks.append(b"<no-bell-state>")
+        else:
+            chunks.append(self._array_token(report.bell_state))
+
+        if report.bell_correlation_tensor is None:
+            chunks.append(b"<no-correlation-tensor>")
+        else:
+            chunks.append(
+                self._array_token(report.bell_correlation_tensor)
+            )
+
+        return tuple(chunks)
+
+    def verify_policy_report(
+        self,
+        report: PhotinicPolicyReport,
+    ) -> bool:
+        """Verifica tanto el kernel incluido como el sello del reporte."""
+        if not isinstance(report, PhotinicPolicyReport):
+            return False
+        if not self.verify_observation_kernel(report.kernel):
+            return False
+
+        try:
+            expected = self._compute_hmac_seal(
+                b"photinic-policy-report-v6",
+                *self._policy_report_chunks(report),
+            )
+        except Exception:
+            return False
+        return hmac.compare_digest(report.hmac_seal, expected)
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Normas y auditoría de Gram
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def evaluate_banach_regularity(
+        self,
+        vector: NDArray[np.float64],
+    ) -> float:
+        r"""
+        Calcula ||v||₁/||v||₂ para un vector real no nulo.
+
+        Para v != 0, 1 <= ||v||₁/||v||₂ <= sqrt(d). El vector nulo tiene ratio
+        indefinido matemáticamente; este método devuelve 0 como indicador
+        explícito de nodo sin actividad.
+        """
+        value = _readonly_real_array(vector, "vector")
+        if value.ndim != 1 or value.size == 0:
+            raise PhotinicDimensionError(
+                "La política debe ser un vector no vacío."
+            )
+
+        scale = float(np.max(np.abs(value)))
+        if scale == 0.0:
+            return 0.0
+
+        scaled = value / scale
+        l1_scaled = KahanNeumaierSum.sum(
+            abs(float(component)) for component in scaled
+        )
+        l2_scaled = math.sqrt(
+            KahanNeumaierSum.sum(
+                float(component) * float(component)
+                for component in scaled
+            )
+        )
+        if l2_scaled == 0.0:
+            return 0.0
+
+        ratio = l1_scaled / l2_scaled
+        lower = 1.0
+        upper = math.sqrt(value.size)
+        slack = 64.0 * _MACHINE_EPS * max(1.0, upper)
+
+        if ratio < lower - slack or ratio > upper + slack:
+            raise PhotinicNumericalError(
+                f"El cociente l1/l2={ratio:.6e} viola sus cotas analíticas."
+            )
+        return float(ratio)
+
+    def _audit_spectral_symmetry_defect(
+        self,
+        gram: NDArray[np.float64],
+    ) -> float:
+        """Calcula ||S-Sᵀ||F/||S||F y falla si excede la tolerancia."""
+        if gram.ndim != 2 or gram.shape[0] != gram.shape[1]:
+            raise PhotinicDimensionError("El operador de Gram debe ser cuadrado.")
+
+        denominator = max(_stable_norm(gram), _FLOAT_TINY)
+        defect = _stable_norm(gram - gram.T) / denominator
+        if not math.isfinite(defect) or defect > self._tol:
+            raise PhotinicNumericalError(
+                f"Defecto de simetría de Gram {defect:.3e} "
+                f"> tolerancia {self._tol:.3e}."
+            )
+        return float(defect)
 
     def _audit_gram_reconstruction_consistency(
         self,
         cleaned_policies: Sequence[NDArray[np.float64]],
-        S_fed: NDArray[np.float64]
+        gram: NDArray[np.float64],
     ) -> float:
-        r"""
-        Canario de integridad numérica que **efectivamente utiliza** las políticas
-        crudas (reparando el parámetro fantasma `cleaned_policies` de la v4.0.0):
-        reconstruye independientemente $\hat S_{\rm fed}$ directamente desde
-        `cleaned_policies` mediante producto punto compensado de Dekker-Neumaier
-        columna a columna, y certifica el residuo de Frobenius contra el
-        $S_{\rm fed}$ recibido, delatando cualquier desalineación entre la
-        construcción del tensor de Gram y los invariantes derivados de él.
         """
-        stack_P = np.vstack(cleaned_policies)
-        n_nodes = float(len(cleaned_policies))
-        dim = stack_P.shape[1]
+        Reconstruye cada entrada del Gram mediante productos punto compensados.
 
-        S_reconstructed = np.empty((dim, dim), dtype=np.float64)
-        for a in range(dim):
-            col_a = stack_P[:, a]
-            for b in range(a, dim):
-                col_b = stack_P[:, b]
-                val = KahanNeumaierSum.compensated_dot(col_a, col_b) / n_nodes
-                S_reconstructed[a, b] = val
-                S_reconstructed[b, a] = val
+        La comparación descuenta la regularización diagonal. Esta segunda ruta
+        es un contraste numérico, no una prueba de autenticidad criptográfica.
+        """
+        if not cleaned_policies:
+            raise PhotinicDimensionError("No hay políticas que reconstruir.")
 
-        # S_fed incluye el término de regularización self._tol * I; se compensa antes de comparar.
-        S_fed_unregularized = S_fed - self._tol * np.eye(dim, dtype=np.float64)
-        residual = float(la.norm(S_reconstructed - S_fed_unregularized, ord='fro'))
-        reference = max(float(la.norm(S_reconstructed, ord='fro')), _WILKINSON_FLOOR)
+        stack = np.vstack(cleaned_policies)
+        node_count, dimension = stack.shape
+        reconstructed = np.zeros((dimension, dimension), dtype=np.float64)
+
+        for i in range(dimension):
+            for j in range(i, dimension):
+                value = (
+                    KahanNeumaierSum.compensated_dot(
+                        stack[:, i], stack[:, j]
+                    )
+                    / float(node_count)
+                )
+                reconstructed[i, j] = value
+                reconstructed[j, i] = value
+
+        unregularized_gram = gram - (
+            self._regularization * np.eye(dimension, dtype=np.float64)
+        )
+        residual = _stable_norm(reconstructed - unregularized_gram)
+        reference = max(
+            _stable_norm(reconstructed),
+            _stable_norm(unregularized_gram),
+            _FLOAT_TINY,
+        )
         relative_residual = residual / reference
+        allowed = max(
+            _GRAM_RECONSTRUCTION_TOLERANCE,
+            self._tol,
+        )
 
-        if relative_residual > _GRAM_RECONSTRUCTION_TOLERANCE:
-            raise PhotinicNonPositiveDefiniteError(
-                f"Fallo de reconstrucción del tensor de Gram federado: residuo relativo "
-                f"= {relative_residual:.4e} excede {_GRAM_RECONSTRUCTION_TOLERANCE:.2e}. "
-                "Posible corrupción o desalineación entre políticas crudas y S_fed."
+        if not math.isfinite(relative_residual) or relative_residual > allowed:
+            raise PhotinicNumericalError(
+                "La reconstrucción compensada del Gram no coincide: "
+                f"residuo relativo={relative_residual:.3e}, "
+                f"límite={allowed:.3e}."
             )
-        return relative_residual
+        return float(relative_residual)
 
     def compute_majorana_sym_invariants(
         self,
         cleaned_policies: Sequence[NDArray[np.float64]],
-        S_fed: NDArray[np.float64]
+        gram: NDArray[np.float64],
     ) -> Tuple[float, float, float]:
         r"""
-        Cálculo del invariante de Majorana en $N=1$ Super-Yang-Mills:
-        Audita el invariante cuadrático espinorial real $\bar{\lambda}\lambda$, la paridad
-        quiral $\gamma_5$ del campo fotínico, y certifica la consistencia de reconstrucción
-        del Gram federado a partir de las políticas crudas:
-        $$I_{\mathrm{Majorana}} = \sqrt{\operatorname{Tr}(S_{\mathrm{fed}}^2)}, \qquad
-          \chi_5 = \frac{\operatorname{Tr}(S_{\mathrm{fed}})}{\|S_{\mathrm{fed}}\|_F}$$
+        Calcula invariantes del Gram con nombres históricos.
+
+        Devuelve:
+          1. ||S||_F = sqrt(Tr(SᵀS)); si S es simétrica, sqrt(Tr(S²)).
+          2. Tr(S)/||S||_F, o cero si S es nulo.
+          3. Residuo relativo de reconstrucción del Gram.
+
+        Ninguno de estos cálculos, por sí solo, demuestra una interpretación
+        espinorial de Majorana ni una simetría quiral gamma_5.
         """
-        eigvals = la.eigvalsh(S_fed)
-        majorana_norm = float(math.sqrt(max(KahanNeumaierSum.sum(eigvals ** 2), _WILKINSON_FLOOR)))
+        matrix = _readonly_real_array(gram, "gram")
+        if matrix.ndim != 2 or matrix.shape[0] != matrix.shape[1]:
+            raise PhotinicDimensionError("gram debe ser una matriz cuadrada.")
 
-        tr_val = KahanNeumaierSum.sum(eigvals)
-        fro_norm = float(np.clip(la.norm(S_fed, ord='fro'), _WILKINSON_FLOOR, None))
-        chiral_parity = float(tr_val / fro_norm)
+        symmetry = _relative_defect(matrix - matrix.T, matrix)
+        if symmetry > self._tol:
+            raise PhotinicNumericalError(
+                "compute_majorana_sym_invariants recibió un Gram no simétrico."
+            )
 
-        reconstruction_residual = self._audit_gram_reconstruction_consistency(cleaned_policies, S_fed)
+        symmetric = 0.5 * matrix + 0.5 * matrix.T
+        try:
+            eigenvalues = np.linalg.eigvalsh(symmetric)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "No se pudo diagonalizar el Gram."
+            ) from exc
 
-        return majorana_norm, chiral_parity, reconstruction_residual
+        gram_norm = _stable_norm(eigenvalues)
+        trace = KahanNeumaierSum.sum(float(value) for value in eigenvalues)
+        ratio = trace / gram_norm if gram_norm > 0.0 else 0.0
 
-    # --------------------------------------------------------------------
-    # 1.3 — Ingesta pública y canonización terminal (puerto hacia Fase 2)
-    # --------------------------------------------------------------------
-    def observe_federated_nodes(
-        self, node_policies: Sequence[NDArray[np.float64]]
-    ) -> PhotinicObservationKernel:
-        r"""
-        Punto de ingestión de políticas crudas. Ejecuta validaciones dimensionales y saneamiento.
-        """
-        if not node_policies:
-            raise PhotinicDimensionError("El consorcio federado no contiene vectores de política (N = 0).")
+        reconstruction_residual = (
+            self._audit_gram_reconstruction_consistency(
+                cleaned_policies,
+                symmetric,
+            )
+        )
+        return float(gram_norm), float(ratio), reconstruction_residual
 
-        dim = node_policies[0].shape[0]
-        cleaned_policies: List[NDArray[np.float64]] = []
-        banach_ratios: List[float] = []
+    def _normalize_policy_sequence(
+        self,
+        node_policies: Sequence[NDArray[np.float64]],
+    ) -> Tuple[NDArray[np.float64], ...]:
+        try:
+            raw_policies = list(node_policies)
+        except TypeError as exc:
+            raise PhotinicInputError(
+                "node_policies debe ser una secuencia de vectores."
+            ) from exc
 
-        sha_material: List[bytes] = []
+        if not raw_policies:
+            raise PhotinicDimensionError(
+                "El consorcio federado contiene cero políticas."
+            )
 
-        for idx, vec in enumerate(node_policies):
-            if vec.ndim != 1 or vec.shape[0] != dim:
+        policies: list[NDArray[np.float64]] = []
+        dimension: Optional[int] = None
+
+        for index, raw_policy in enumerate(raw_policies):
+            policy = _readonly_real_array(
+                raw_policy, f"node_policies[{index}]"
+            )
+            if policy.ndim != 1 or policy.size == 0:
                 raise PhotinicDimensionError(
-                    f"Inconsistencia dimensional en nodo federado [{idx}]. Esperado ({dim},), obtenido {vec.shape}"
+                    f"node_policies[{index}] debe ser un vector no vacío."
                 )
-            if not np.all(np.isfinite(vec)):
-                raise PhotinicDimensionError(f"Vector de política de nodo [{idx}] contiene valores NaN o Infinitos.")
+            if dimension is None:
+                dimension = int(policy.size)
+            elif policy.size != dimension:
+                raise PhotinicDimensionError(
+                    f"node_policies[{index}] tiene dimensión {policy.size}; "
+                    f"se esperaba {dimension}."
+                )
+            policies.append(policy)
 
-            c_vec = np.where(vec == -0.0, +0.0, vec)
-            if KahanNeumaierSum.compensated_l2_norm(c_vec) <= _WILKINSON_FLOOR:
-                logger.warning("Vector de política de nodo [%d] es numéricamente nulo; nodo degenerado.", idx)
+        return tuple(policies)
 
-            cleaned_policies.append(c_vec)
-            b_ratio = self.evaluate_banach_regularity(c_vec)
-            banach_ratios.append(b_ratio)
+    # ──────────────────────────────────────────────────────────────────────────
+    # Sellado canónico del expediente de observación
+    # ──────────────────────────────────────────────────────────────────────────
 
-            sha_material.append(c_vec.tobytes())
-            sha_material.append(f"{b_ratio:.8e}".encode("ascii"))
+    def observe_federated_nodes(
+        self,
+        node_policies: Sequence[NDArray[np.float64]],
+    ) -> PhotinicObservationKernel:
+        """Valida políticas, construye el Gram y emite un kernel HMAC-sellado."""
+        policies = self._normalize_policy_sequence(node_policies)
+        stack = np.vstack(policies)
+        node_count, dimension = stack.shape
 
-        stack_P = np.vstack(cleaned_policies)
-        n_nodes = float(len(cleaned_policies))
-        S_fed = (stack_P.T @ stack_P) / n_nodes + self._tol * np.eye(dim, dtype=np.float64)
-
-        symmetry_defect = self._audit_spectral_symmetry_defect(S_fed)
-        S_fed = 0.5 * (S_fed + S_fed.T)
-
-        eigvals = np.sort(la.eigvalsh(S_fed))
-        min_eig = float(np.max([eigvals[0], _WILKINSON_FLOOR]))
-        max_eig = float(eigvals[-1])
-        cond_num = max_eig / min_eig
-
-        if cond_num > _CONDITION_NUMBER_MAX:
-            logger.warning("Matriz federada S_fed mal condicionada: kappa=%.4e > %.4e", cond_num, _CONDITION_NUMBER_MAX)
-
-        # Brecha espectral: indefinida (+inf) en el caso degenerado d=1 (sin segundo autovalor).
-        spectral_gap = float(eigvals[1] - eigvals[0]) if dim > 1 else float("inf")
-
-        majorana_norm, chiral_parity, gram_reconstruction_residual = self.compute_majorana_sym_invariants(
-            cleaned_policies, S_fed
+        ratios = tuple(
+            self.evaluate_banach_regularity(policy)
+            for policy in policies
         )
 
-        seal_hash = self._compute_hmac_seal(
-            *sha_material,
-            S_fed.tobytes(),
-            f"{majorana_norm:.8e}_{cond_num:.8e}_{symmetry_defect:.8e}_"
-            f"{gram_reconstruction_residual:.8e}".encode("ascii")
+        with np.errstate(over="ignore", invalid="ignore"):
+            gram_raw = (stack.T @ stack) / float(node_count)
+
+        if not np.all(np.isfinite(gram_raw)):
+            raise PhotinicNumericalError(
+                "El producto PᵀP excede el rango float64."
+            )
+
+        symmetry_defect = self._audit_spectral_symmetry_defect(gram_raw)
+        gram_symmetric = 0.5 * gram_raw + 0.5 * gram_raw.T
+        gram = gram_symmetric + (
+            self._regularization
+            * np.eye(dimension, dtype=np.float64)
+        )
+        gram = 0.5 * gram + 0.5 * gram.T
+
+        if not np.all(np.isfinite(gram)):
+            raise PhotinicNumericalError(
+                "El Gram regularizado contiene valores no finitos."
+            )
+
+        try:
+            eigenvalues = np.linalg.eigvalsh(gram)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "No se pudo calcular el espectro del Gram."
+            ) from exc
+
+        if not np.all(np.isfinite(eigenvalues)):
+            raise PhotinicNumericalError(
+                "El espectro del Gram contiene valores no finitos."
+            )
+
+        spectral_scale = max(
+            float(np.max(np.abs(eigenvalues))),
+            self._regularization,
+            _FLOAT_TINY,
+        )
+        psd_tolerance = max(
+            self._tol,
+            64.0 * _MACHINE_EPS * max(1, dimension),
+        ) * spectral_scale
+
+        if float(eigenvalues[0]) < -psd_tolerance:
+            raise PhotinicNonPositiveDefiniteError(
+                f"El Gram no es PSD dentro de tolerancia: "
+                f"lambda_min={eigenvalues[0]:.3e}, "
+                f"tol={psd_tolerance:.3e}."
+            )
+
+        lambda_min = float(eigenvalues[0])
+        lambda_max = float(eigenvalues[-1])
+        condition_number = (
+            lambda_max / lambda_min if lambda_min > 0.0 else math.inf
         )
 
-        return PhotinicObservationKernel(
-            node_policies=tuple(cleaned_policies),
-            majorana_spinor_norm=majorana_norm,
-            majorana_chiral_parity=chiral_parity,
-            banach_ratios=tuple(banach_ratios),
-            gram_matrix=S_fed,
-            gram_eigenvalues=eigvals,
+        if condition_number > _CONDITION_NUMBER_MAX:
+            logger.warning(
+                "Gram mal condicionado: kappa=%.3e > %.3e",
+                condition_number,
+                _CONDITION_NUMBER_MAX,
+            )
+
+        # Convención explícita: gap entre los dos autovalores dominantes.
+        # Para dimensión uno no existe segundo autovalor: gap = +inf.
+        spectral_gap = (
+            float(eigenvalues[-1] - eigenvalues[-2])
+            if dimension > 1
+            else math.inf
+        )
+        spectral_gap = max(spectral_gap, 0.0)
+
+        majorana_proxy_norm, chiral_proxy_ratio, reconstruction_residual = (
+            self.compute_majorana_sym_invariants(policies, gram)
+        )
+
+        kernel = PhotinicObservationKernel(
+            node_policies=policies,
+            majorana_spinor_norm=majorana_proxy_norm,
+            majorana_chiral_parity=chiral_proxy_ratio,
+            banach_ratios=ratios,
+            gram_matrix=gram,
+            gram_eigenvalues=eigenvalues,
             gram_symmetry_defect=symmetry_defect,
-            gram_reconstruction_residual=gram_reconstruction_residual,
-            condition_number=cond_num,
+            gram_reconstruction_residual=reconstruction_residual,
+            condition_number=condition_number,
             spectral_gap=spectral_gap,
-            sha256_seal=seal_hash,
-            timestamp=time.time()
+            sha256_seal="",
+            timestamp=time.time(),
+            regularization=self._regularization,
+            validation_tolerance=self._tol,
         )
+
+        seal = self._compute_hmac_seal(
+            b"photinic-observation-kernel-v6",
+            *self._observation_chunks(kernel),
+        )
+        sealed_kernel = replace(kernel, sha256_seal=seal)
+
+        logger.debug(
+            "Fase 1 OK | nodes=%d | dim=%d | kappa=%.3e | "
+            "lambda_min=%.3e | gram_residual=%.3e",
+            node_count,
+            dimension,
+            condition_number,
+            lambda_min,
+            reconstruction_residual,
+        )
+        return sealed_kernel
 
     def canonize_photinic_observation_kernel(
-        self, node_policies: Sequence[NDArray[np.float64]]
+        self,
+        node_policies: Sequence[NDArray[np.float64]],
     ) -> PhotinicObservationKernel:
-        r"""
-        MÉTODO TERMINAL FORMAL DE FASE 1:
-        Canoniza el expediente topológico inmutable de Fase 1.
-        Sella la integridad criptográfica de las políticas y constituye el punto de acoplamiento
-        y continuación natural hacia la Fase 2.
-        """
-        return self.observe_federated_nodes(node_policies=node_policies)
+        """Método terminal de la Fase 1 y entrada canónica de la Fase 2."""
+        return self.observe_federated_nodes(node_policies)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 2: PROYECTOR DE GROTHENDIECK, CHOI (CPTP) Y COTA DE TSIRELSON (CHSH)
+# FASE 2 — ORIENT: PROYECTOR, KRAUS, CHOI Y HORODECKI
 # ══════════════════════════════════════════════════════════════════════════════
 
 class Phase2_PhotinicFederatedOrient(Phase1_PhotinicObservationKernel):
-    r"""
-    FASE 2 — Orient:
-    Hereda formalmente de la Fase 1. Ingiere el `PhotinicObservationKernel`.
-    Evalúa la idempotencia de Grothendieck ($\Omega^2 = \Omega$), la positividad completa
-    de Choi-Jamiołkowski, la admisibilidad física del canal (sub-unitalidad POVM) y la
-    saturación de Bell-CHSH mediante el Criterio Espectral de Horodecki ($2\sqrt{2}$),
-    **sin alteración artificial alguna del valor computado** (reparando el defecto crítico
-    de la v4.0.0 que neutralizaba el detector de corrupción super-cuántica).
+    """
+    Fase 2 del pipeline.
+
+    El proyector se calcula sobre el espacio fila de P. La familia de Kraus
+    auditada es K_k = |p̂_k><p̂_k|/sqrt(N), con K_k=0 para una política nula.
+    El análisis de Bell es independiente de esas políticas y requiere un estado
+    de dos qubits explícito.
     """
 
-    def __init__(self, tolerance: float = 1.0e-12, hmac_key: Optional[bytes] = None) -> None:
-        super().__init__(tolerance=tolerance, hmac_key=hmac_key)
+    def __init__(
+        self,
+        tolerance: float = _DEFAULT_TOLERANCE,
+        hmac_key: Optional[bytes] = None,
+        regularization: float = _DEFAULT_GRAM_REGULARIZATION,
+        *,
+        require_trace_preserving: bool = False,
+    ) -> None:
+        super().__init__(
+            tolerance=tolerance,
+            hmac_key=hmac_key,
+            regularization=regularization,
+        )
+        if not isinstance(require_trace_preserving, (bool, np.bool_)):
+            raise PhotinicInputError(
+                "require_trace_preserving debe ser booleano."
+            )
+        self._require_trace_preserving = bool(require_trace_preserving)
 
-    # --------------------------------------------------------------------
-    # 2.1 — Proyector ortogonal de Grothendieck con tolerancia de rango rigurosa
-    # --------------------------------------------------------------------
+    # ──────────────────────────────────────────────────────────────────────────
+    # Proyector ortogonal de Grothendieck
+    # ──────────────────────────────────────────────────────────────────────────
+
     def _compute_grothendieck_projector(
-        self, policies: Tuple[NDArray[np.float64], ...]
+        self,
+        policies: Tuple[NDArray[np.float64], ...],
     ) -> Tuple[NDArray[np.float64], float, float]:
         r"""
-        Construye el proyector canónico ortogonal de Grothendieck $\Omega = V_r V_r^\top$
-        mediante SVD de $P$ (ruta única, unificada respecto de v4.0.0 que mantenía una
-        rama `try/except` sobre `la.pinv` prácticamente inalcanzable). La tolerancia de
-        rango numérico se deriva de la escala del problema en vez de un valor mágico fijo:
-        $$\tau_{\rm rank} = \max(N,d)\cdot\varepsilon_{\rm máquina}\cdot\sigma_{\max}(P)$$
-        Verifica:
-        1. Residuo de idempotencia: $\|\Omega^2 - \Omega\|_F \approx 0$.
-        2. Defecto traza-rango (característica de Euler): $|\operatorname{Tr}(\Omega)-\operatorname{rank}(\Omega)|\approx 0$.
+        Construye Omega=V_rV_rᵀ mediante SVD de P.
+
+        La tolerancia de rango es max(N,d)*eps*sigma_max. Si P=0, el rango es
+        cero y Omega es el proyector nulo; no se fuerza rango uno.
         """
-        P = np.vstack(policies)  # (N x d)
-        U, s, Vt = la.svd(P, full_matrices=False)
+        if not policies:
+            raise PhotinicDimensionError("Se requiere al menos una política.")
 
-        sigma_max = float(s[0]) if s.size > 0 else 0.0
-        rank_tol = max(P.shape) * _MACHINE_EPS * max(sigma_max, _WILKINSON_FLOOR)
-        rank = max(int(np.sum(s > rank_tol)), 1)
+        matrix = np.vstack(policies)
+        if matrix.ndim != 2:
+            raise PhotinicDimensionError("La matriz de políticas debe ser 2D.")
 
-        Omega = Vt[:rank].T @ Vt[:rank]
-        Omega = 0.5 * (Omega + Omega.T)
-        Omega = np.where(Omega == -0.0, +0.0, Omega)
+        scale = float(np.max(np.abs(matrix)))
+        dimension = matrix.shape[1]
 
-        Omega_sq = Omega @ Omega
-        idempotence_res = float(la.norm(Omega_sq - Omega, ord='fro'))
+        if scale == 0.0:
+            projector = np.zeros(
+                (dimension, dimension), dtype=np.float64
+            )
+            return projector, 0.0, 0.0
 
-        tr_val = KahanNeumaierSum.sum(np.diag(Omega))
-        trace_rank_mismatch = abs(tr_val - float(rank))
+        scaled = matrix / scale
+        try:
+            _, singular_values, right_vectors = np.linalg.svd(
+                scaled,
+                full_matrices=False,
+            )
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "La SVD del espacio de políticas falló."
+            ) from exc
 
-        return Omega, idempotence_res, trace_rank_mismatch
+        if singular_values.size == 0 or singular_values[0] == 0.0:
+            rank = 0
+        else:
+            rank_tolerance = (
+                max(matrix.shape)
+                * _MACHINE_EPS
+                * float(singular_values[0])
+            )
+            rank = int(np.count_nonzero(singular_values > rank_tolerance))
 
-    # --------------------------------------------------------------------
-    # 2.2 — Superoperador de Choi-Jamiołkowski con criterio físico correcto
-    # --------------------------------------------------------------------
+        if rank == 0:
+            projector = np.zeros(
+                (dimension, dimension), dtype=np.float64
+            )
+        else:
+            basis = right_vectors[:rank, :]
+            projector = basis.T @ basis
+            projector = 0.5 * projector + 0.5 * projector.T
+
+        idempotence_residual = _stable_norm(
+            projector @ projector - projector
+        )
+        trace_value = KahanNeumaierSum.sum(
+            float(value) for value in np.diag(projector)
+        )
+        trace_rank_mismatch = abs(trace_value - float(rank))
+
+        return (
+            projector,
+            float(idempotence_residual),
+            float(trace_rank_mismatch),
+        )
+
+    # ──────────────────────────────────────────────────────────────────────────
+    # Auditoría de operación cuántica mediante operadores de Kraus
+    # ──────────────────────────────────────────────────────────────────────────
+
+    def _audit_kraus_channel(
+        self,
+        policies: Tuple[NDArray[np.float64], ...],
+    ) -> _ChannelAudit:
+        """
+        Audita CP y las condiciones TP/TNI de la familia K_k.
+
+        CP se sigue de la representación de Kraus. Para dimension <= 16 se
+        materializa además C = (1/d) sum_k |K_k>><<K_k| y se comprueba su
+        espectro numérico.
+        """
+        if not policies:
+            raise PhotinicDimensionError("Se requiere al menos una política.")
+
+        node_count = len(policies)
+        dimension = int(policies[0].size)
+        effect_ld = np.zeros(
+            (dimension, dimension), dtype=np.longdouble
+        )
+
+        materialize_choi = dimension <= _MAX_EXPLICIT_CHOI_DIMENSION
+        kraus_operators: list[NDArray[np.float64]] = []
+
+        for policy in policies:
+            scale = float(np.max(np.abs(policy)))
+            if scale == 0.0:
+                unit = np.zeros(dimension, dtype=np.float64)
+                projector = np.zeros(
+                    (dimension, dimension), dtype=np.float64
+                )
+            else:
+                scaled = np.asarray(policy / scale, dtype=np.float64)
+                norm_squared = KahanNeumaierSum.sum(
+                    float(component) * float(component)
+                    for component in scaled
+                )
+                if norm_squared <= 0.0 or not math.isfinite(norm_squared):
+                    raise PhotinicNumericalError(
+                        "No se pudo normalizar una política no nula."
+                    )
+                unit = scaled / math.sqrt(norm_squared)
+                projector = np.outer(unit, unit)
+                projector = 0.5 * projector + 0.5 * projector.T
+
+            effect_ld += (
+                np.asarray(projector, dtype=np.longdouble)
+                / np.longdouble(node_count)
+            )
+
+            if materialize_choi:
+                kraus_operators.append(
+                    projector / math.sqrt(float(node_count))
+                )
+
+        effect = np.asarray(effect_ld, dtype=np.float64)
+        if not np.all(np.isfinite(effect)):
+            raise PhotinicNumericalError(
+                "La matriz de efecto de Kraus no es finita."
+            )
+        effect = 0.5 * effect + 0.5 * effect.T
+
+        identity = np.eye(dimension, dtype=np.float64)
+        defect = identity - effect
+
+        try:
+            defect_eigenvalues = np.linalg.eigvalsh(defect)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "No se pudo diagonalizar I - sum K†K."
+            ) from exc
+
+        minimum_defect_eigenvalue = float(defect_eigenvalues[0])
+        maximum_defect_magnitude = float(
+            np.max(np.abs(defect_eigenvalues))
+        )
+        trace_residual = _stable_norm(effect - identity)
+
+        tni_tolerance = max(
+            _CHANNEL_TNI_TOLERANCE,
+            self._tol,
+        )
+        is_trace_non_increasing = (
+            minimum_defect_eigenvalue >= -tni_tolerance
+        )
+
+        tp_tolerance = max(
+            self._tol,
+            64.0 * _MACHINE_EPS * max(1, dimension),
+        )
+        is_trace_preserving = (
+            maximum_defect_magnitude <= tp_tolerance
+        )
+
+        trace_effect = KahanNeumaierSum.sum(
+            float(value) for value in np.diag(effect)
+        )
+        choi_trace = trace_effect / float(dimension)
+
+        choi_min_eigenvalue: Optional[float]
+        choi_materialized = False
+        is_completely_positive = True  # Certificado analítico por Kraus.
+
+        if materialize_choi:
+            choi = np.zeros(
+                (dimension * dimension, dimension * dimension),
+                dtype=np.float64,
+            )
+            for kraus in kraus_operators:
+                vectorized = kraus.reshape(-1, order="F")
+                choi += np.outer(vectorized, vectorized) / float(dimension)
+
+            choi = 0.5 * choi + 0.5 * choi.T
+            try:
+                choi_eigenvalues = np.linalg.eigvalsh(choi)
+            except np.linalg.LinAlgError as exc:
+                raise PhotinicNumericalError(
+                    "No se pudo diagonalizar la matriz de Choi explícita."
+                ) from exc
+
+            if not np.all(np.isfinite(choi_eigenvalues)):
+                raise PhotinicNumericalError(
+                    "El espectro del Choi contiene valores no finitos."
+                )
+
+            choi_min_eigenvalue = float(choi_eigenvalues[0])
+            choi_scale = max(
+                float(np.max(np.abs(choi_eigenvalues))),
+                1.0,
+            )
+            choi_tolerance = max(
+                _CHOІ_PSD_TOLERANCE,
+                self._tol,
+            ) * choi_scale
+            is_completely_positive = (
+                choi_min_eigenvalue >= -choi_tolerance
+            )
+            choi_materialized = True
+        else:
+            # No se informa un autovalor ficticio. CP se deriva de la forma de
+            # Kraus con operadores finitos construidos en esta rutina.
+            choi_min_eigenvalue = None
+
+        return _ChannelAudit(
+            choi_min_eigenvalue=choi_min_eigenvalue,
+            trace_preservation_residual=float(trace_residual),
+            trace_nonincrease_min_eigenvalue=minimum_defect_eigenvalue,
+            is_completely_positive=bool(is_completely_positive),
+            is_trace_non_increasing=bool(is_trace_non_increasing),
+            is_trace_preserving=bool(is_trace_preserving),
+            choi_trace=float(choi_trace),
+            choi_materialized=choi_materialized,
+        )
+
     def _compute_choi_jamiolkowski_superoperator(
         self,
-        policies: Tuple[NDArray[np.float64], ...]
-    ) -> Tuple[float, float, float, bool, bool]:
-        r"""
-        Modela el canal cuántico de gobernanza federada $\mathcal{E}(X) = \sum_{k=1}^N K_k X K_k^\top$
-        con operadores de Kraus normalizados $K_k = \frac{1}{\sqrt{N}} \frac{p_k p_k^\top}{\|p_k\|^2}$.
-
-        Calcula la matriz de Choi $C_\mathcal{E} \succeq 0$ (PSD **por construcción** analítica,
-        al ser una suma de proyectores rango-1 con coeficiente $1/d\ge0$; su auditoría numérica
-        certifica ausencia de corrupción de FPU, no un hecho físico incierto).
-
-        Certifica la admisibilidad física del canal mediante el defecto de sub-unitalidad
-        (criterio correcto de causalidad de un operador POVM, en reemplazo del umbral de
-        Frobenius arbitrario $\le 1.0$ de la v4.0.0):
-        $$D = I_d - \sum_{k} K_k^\top K_k, \qquad \text{admisible} \iff \lambda_{\min}(D) \ge -\varepsilon$$
+        policies: Tuple[NDArray[np.float64], ...],
+    ) -> Tuple[Optional[float], float, float, bool, bool]:
         """
-        N = len(policies)
-        dim = policies[0].shape[0]
+        Interfaz de compatibilidad para la auditoría de Kraus.
 
-        kraus_ops: List[NDArray[np.float64]] = []
-        tp_accumulator = np.zeros((dim, dim), dtype=np.float64)
+        Devuelve (lambda_min_Choi, residuo_TP, lambda_min(I-sum K†K), CP, TNI).
+        """
+        audit = self._audit_kraus_channel(policies)
+        return (
+            audit.choi_min_eigenvalue,
+            audit.trace_preservation_residual,
+            audit.trace_nonincrease_min_eigenvalue,
+            audit.is_completely_positive,
+            audit.is_trace_non_increasing,
+        )
 
-        for idx, p in enumerate(policies):
-            p_norm_sq = KahanNeumaierSum.compensated_dot(p, p)
-            if p_norm_sq > _WILKINSON_FLOOR:
-                proj_k = np.outer(p, p) / p_norm_sq
-            else:
-                logger.warning(
-                    "Nodo federado [%d] numéricamente nulo; se regulariza con canal maximamente mixto.", idx
-                )
-                proj_k = np.eye(dim, dtype=np.float64) / float(dim)
+    # ──────────────────────────────────────────────────────────────────────────
+    # Estado de Bell explícito y criterio de Horodecki
+    # ──────────────────────────────────────────────────────────────────────────
 
-            K_k = proj_k / math.sqrt(float(N))
-            kraus_ops.append(K_k)
-            tp_accumulator += K_k.T @ K_k
+    def _audit_bell_state(
+        self,
+        bell_state: Optional[Any],
+    ) -> Optional[_BellAudit]:
+        """
+        Valida una matriz de densidad 4x4 y calcula su tensor de correlación.
 
-        I_d = np.eye(dim, dtype=np.float64)
+        No se normaliza ni se modifica el estado para forzar la cota de Tsirelson.
+        Solo se hermitiza si la desviación original ya está dentro de tolerancia.
+        """
+        if bell_state is None:
+            return None
 
-        # Defecto exacto de preservación de traza (unitalidad estricta): TP ideal <=> D=0.
-        exact_tp_defect = tp_accumulator - I_d
-        trace_residual = float(la.norm(exact_tp_defect, ord='fro'))
+        rho_input = _readonly_complex_array(bell_state, "bell_state")
+        if rho_input.shape != (4, 4):
+            raise PhotinicDimensionError(
+                "bell_state debe tener shape (4, 4), correspondiente a dos qubits."
+            )
 
-        # Criterio físico correcto de admisibilidad (sub-unitalidad / no-señalización):
-        # un canal cuántico válido (aun no-unital) exige sum_k K_k^dagger K_k <= I.
-        D_defect = 0.5 * (exact_tp_defect + exact_tp_defect.T)
-        subunital_eigvals = la.eigvalsh(-D_defect)  # autovalores de (I - sum K^T K)
-        subunital_min_eig = float(np.min(subunital_eigvals))
-        is_trace_non_increasing = subunital_min_eig >= -_CAUSALITY_SUBUNITAL_TOLERANCE
+        rho = np.array(rho_input, dtype=np.complex128, copy=True)
+        hermiticity_defect = (
+            _stable_complex_norm(rho - rho.conj().T)
+            / max(_stable_complex_norm(rho), _FLOAT_TINY)
+        )
+        if hermiticity_defect > max(self._tol, _BELL_STATE_TOLERANCE):
+            raise PhotinicInvalidQuantumStateError(
+                f"bell_state no es hermítica: defecto={hermiticity_defect:.3e}."
+            )
 
-        # Matriz de Choi explícita (PSD garantizado analíticamente; se certifica numéricamente).
-        if dim <= 16:
-            choi_mat = np.zeros((dim * dim, dim * dim), dtype=np.float64)
-            for K_k in kraus_ops:
-                v = K_k.reshape(-1, 1)
-                choi_mat += (v @ v.T) / float(dim)
-            choi_eigvals = la.eigvalsh(0.5 * (choi_mat + choi_mat.T))
-            choi_min_eig = float(np.min(choi_eigvals))
-        else:
-            # Dimensiones mayores: PSD garantizado analíticamente (suma de outer products, coef>=0).
-            choi_min_eig = 0.0
+        rho = 0.5 * rho + 0.5 * rho.conj().T
+        trace_value = np.trace(rho)
 
-        is_cp = choi_min_eig >= -_CHOI_PSD_TOLERANCE
+        if abs(float(trace_value.imag)) > max(
+            self._tol, _BELL_STATE_TOLERANCE
+        ):
+            raise PhotinicInvalidQuantumStateError(
+                "La traza de bell_state tiene parte imaginaria no despreciable."
+            )
+        if abs(float(trace_value.real) - 1.0) > max(
+            self._tol, _BELL_STATE_TOLERANCE
+        ):
+            raise PhotinicInvalidQuantumStateError(
+                f"bell_state debe tener traza 1; traza={trace_value.real:.12g}."
+            )
 
-        return choi_min_eig, trace_residual, subunital_min_eig, is_cp, is_trace_non_increasing
+        try:
+            state_eigenvalues = np.linalg.eigvalsh(rho)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicInvalidQuantumStateError(
+                "No se pudo diagonalizar bell_state."
+            ) from exc
 
-    # --------------------------------------------------------------------
-    # 2.3 — Criterio de Horodecki y Cota de Tsirelson (SIN renormalización artificial)
-    # --------------------------------------------------------------------
+        state_scale = max(
+            float(np.max(np.abs(state_eigenvalues))),
+            1.0,
+        )
+        state_psd_tolerance = max(
+            self._tol, _BELL_STATE_TOLERANCE
+        ) * state_scale
+        minimum_state_eigenvalue = float(state_eigenvalues[0])
+
+        if minimum_state_eigenvalue < -state_psd_tolerance:
+            raise PhotinicInvalidQuantumStateError(
+                "bell_state no es positiva semidefinida: "
+                f"lambda_min={minimum_state_eigenvalue:.3e}."
+            )
+
+        sigma_x = np.array(
+            [[0.0, 1.0], [1.0, 0.0]], dtype=np.complex128
+        )
+        sigma_y = np.array(
+            [[0.0, -1.0j], [1.0j, 0.0]], dtype=np.complex128
+        )
+        sigma_z = np.array(
+            [[1.0, 0.0], [0.0, -1.0]], dtype=np.complex128
+        )
+        pauli = (sigma_x, sigma_y, sigma_z)
+
+        correlation = np.zeros((3, 3), dtype=np.float64)
+        for i in range(3):
+            for j in range(3):
+                observable = np.kron(pauli[i], pauli[j])
+                expectation = np.trace(rho @ observable)
+                imaginary_tolerance = max(
+                    self._tol,
+                    _BELL_STATE_TOLERANCE,
+                ) * max(1.0, abs(float(expectation.real)))
+                if abs(float(expectation.imag)) > imaginary_tolerance:
+                    raise PhotinicNumericalError(
+                        "Una correlación Hermítica resultó compleja fuera de tolerancia."
+                    )
+                correlation[i, j] = float(expectation.real)
+
+        try:
+            singular_values = np.linalg.svd(
+                correlation,
+                compute_uv=False,
+            )
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "La SVD del tensor de correlación de Bell falló."
+            ) from exc
+
+        squared = np.square(singular_values)
+        u1 = float(squared[0]) if squared.size > 0 else 0.0
+        u2 = float(squared[1]) if squared.size > 1 else 0.0
+        chsh_value = 2.0 * math.sqrt(max(u1 + u2, 0.0))
+
+        tsirelson_slack = max(
+            _TSIRELSON_TOLERANCE,
+            self._tol,
+        )
+        classical_slack = max(self._TSIRELSON_TOLERANCE, self._tol)
+
+        return _BellAudit(
+            state=rho,
+            correlation_tensor=correlation,
+            chsh_value=float(chsh_value),
+            horodecki_eigs=(u1, u2),
+            is_tsirelson_bounded=(
+                chsh_value <= _TSIRELSON_BOUND + tsirelson_slack
+            ),
+            is_classical_lhv=(
+                chsh_value <= _BELL_CLASSICAL_BOUND + classical_slack
+            ),
+            minimum_state_eigenvalue=minimum_state_eigenvalue,
+            hermiticity_defect=float(hermiticity_defect),
+        )
+
     def _compute_horodecki_tsirelson_bound(
         self,
-        policies: Tuple[NDArray[np.float64], ...]
-    ) -> Tuple[float, Tuple[float, float], int, bool, bool]:
-        r"""
-        Auditoría de no-localidad cuántica y Cota de Tsirelson mediante el Teorema de Horodecki:
-        Para un estado bipartito con tensor de correlación $T \in \mathbb{R}^{d_A \times d_B}$,
-        el valor máximo de la desigualdad de Bell-CHSH alcanzable es:
-        $$\langle \mathcal{B}_{\mathrm{CHSH}} \rangle_{\max} = 2 \sqrt{u_1 + u_2}$$
-        donde $u_1 \ge u_2$ son los dos mayores autovalores de $T^\top T$.
-
-        **Corrección crítica respecto de v4.0.0**: se elimina por completo la
-        renormalización artificial que forzaba $u_1+u_2\le2$ (y por tanto
-        $\mathcal{B}_{\rm CHSH}\le2\sqrt2$ *por construcción*), la cual convertía
-        el régimen "Super-Cuántico / Corrupción Adversarial" documentado en un
-        estado **inalcanzable en la práctica**. El valor calculado fluye sin alterar.
-
-        **Corrección de forma**: para $N$ impar de nodos federados, la bipartición
-        `mid=N//2` producía tamaños desiguales que hacían `stack_A.T @ stack_B`
-        incompatible dimensionalmente (crash de numpy). Se introduce el
-        emparejamiento simétrico $n_{\rm pairs}=\min(\rm mid, N-\rm mid)$ y la
-        normalización de filas a norma unitaria, dotando a $T$ de una semántica
-        de correlación bien definida y acotada para cualquier $N\ge2$.
+        bell_state: Optional[Any],
+    ) -> Tuple[
+        Optional[float],
+        Optional[Tuple[float, float]],
+        int,
+        Optional[bool],
+        Optional[bool],
+    ]:
         """
-        N = len(policies)
-        dim = policies[0].shape[0]
+        Interfaz de Horodecki para una matriz 4x4 explícita.
 
-        if N >= 2:
-            mid = N // 2
-            n_pairs = min(mid, N - mid)
+        El último entero es 1 cuando se auditó la bipartición explícita y 0
+        cuando no se proporcionó estado. No se divide ni se normaliza el valor
+        de CHSH para imponer artificialmente la cota.
+        """
+        audit = self._audit_bell_state(bell_state)
+        if audit is None:
+            return None, None, 0, None, None
+        return (
+            audit.chsh_value,
+            audit.horodecki_eigs,
+            1,
+            audit.is_tsirelson_bounded,
+            audit.is_classical_lhv,
+        )
 
-            stack_A_full = np.vstack(policies[:mid])
-            stack_B_full = np.vstack(policies[mid:])
-            stack_A = stack_A_full[:n_pairs]
-            stack_B = stack_B_full[:n_pairs]
+    # ──────────────────────────────────────────────────────────────────────────
+    # Orientación terminal y reporte autenticado
+    # ──────────────────────────────────────────────────────────────────────────
 
-            # Normalización de filas a norma unitaria: acota cada entrada de T por
-            # Cauchy-Schwarz, dotando a la construcción de semántica de "correlación".
-            norms_A = np.clip(la.norm(stack_A, axis=1, keepdims=True), _WILKINSON_FLOOR, None)
-            norms_B = np.clip(la.norm(stack_B, axis=1, keepdims=True), _WILKINSON_FLOOR, None)
-            A_hat = stack_A / norms_A
-            B_hat = stack_B / norms_B
-
-            T_corr = (A_hat.T @ B_hat) / float(n_pairs)
-        else:
-            n_pairs = 0
-            p = policies[0]
-            if dim >= 4:
-                half = dim // 2
-                pA, pB = p[:half], p[half:2 * half]
-            else:
-                pA, pB = p, p
-            norm_a = max(float(la.norm(pA)), _WILKINSON_FLOOR)
-            norm_b = max(float(la.norm(pB)), _WILKINSON_FLOOR)
-            T_corr = np.outer(pA / norm_a, pB / norm_b)
-
-        TT_T = T_corr.T @ T_corr
-        eigvals = np.sort(la.eigvalsh(TT_T))[::-1]
-
-        u1 = float(max(eigvals[0], 0.0)) if len(eigvals) > 0 else 0.0
-        u2 = float(max(eigvals[1], 0.0)) if len(eigvals) > 1 else 0.0
-
-        chsh_val = float(2.0 * math.sqrt(max(u1 + u2, 0.0)))
-
-        is_tsirelson = chsh_val <= (_TSIRELSON_BOUND + 1.0e-9)
-        is_classical = chsh_val <= (_BELL_CLASSICAL_BOUND + 1.0e-9)
-
-        return chsh_val, (u1, u2), n_pairs, is_tsirelson, is_classical
-
-    # --------------------------------------------------------------------
-    # 2.4 — Orientación terminal y puerto de acoplamiento hacia Fase 3
-    # --------------------------------------------------------------------
     def orient_photinic_policy(
-        self, kernel: PhotinicObservationKernel
+        self,
+        kernel: PhotinicObservationKernel,
+        bell_state: Optional[Any] = None,
     ) -> PhotinicPolicyReport:
-        r"""Orquesta los cálculos de la Fase 2 sobre el kernel canonizado, sin enforcement (Fase 2 solo reporta)."""
-        policies = kernel.node_policies
+        """Calcula diagnósticos de proyección, Kraus y, opcionalmente, Bell."""
+        if not isinstance(kernel, PhotinicObservationKernel):
+            raise PhotinicInputError(
+                "kernel debe ser PhotinicObservationKernel."
+            )
+        self._require_valid_kernel(kernel)
 
-        _, idem_res, trace_mismatch = self._compute_grothendieck_projector(policies)
-        min_choi_eig, trace_res, subunital_min_eig, is_cp, is_trace_non_increasing = (
-            self._compute_choi_jamiolkowski_superoperator(policies)
+        _, idempotence_residual, trace_rank_mismatch = (
+            self._compute_grothendieck_projector(kernel.node_policies)
         )
-        chsh_val, horodecki_eigs, n_pairs, is_tsirelson, is_classical = (
-            self._compute_horodecki_tsirelson_bound(policies)
+        _, projector_diagonal_residual, _ = (
+            self._compute_grothendieck_projector(kernel.node_policies)
+        )
+        # Se conserva una única magnitud de idempotencia: la segunda evaluación
+        # determinista sirve como control de repetibilidad, no se suma al residuo.
+        if abs(idempotence_residual - projector_diagonal_residual) > (
+            64.0 * _MACHINE_EPS
+        ):
+            raise PhotinicNumericalError(
+                "El cálculo repetido del proyector no es reproducible."
+            )
+
+        projector_trace = KahanNeumaierSum.sum(
+            float(value)
+            for value in np.diag(
+                self._compute_grothendieck_projector(
+                    kernel.node_policies
+                )[0]
+            )
+        )
+        projector_rank = max(0, int(round(projector_trace)))
+
+        projector_tolerance = max(
+            self._tol,
+            64.0 * _MACHINE_EPS,
+        ) * max(1.0, math.sqrt(float(max(projector_rank, 1))))
+        is_projector_valid = (
+            idempotence_residual <= projector_tolerance
+            and trace_rank_mismatch <= projector_tolerance
         )
 
-        return PhotinicPolicyReport(
+        channel = self._audit_kraus_channel(kernel.node_policies)
+        bell_audit = self._audit_bell_state(bell_state)
+
+        report = PhotinicPolicyReport(
             kernel=kernel,
-            idempotence_residual=idem_res,
-            trace_rank_mismatch=trace_mismatch,
-            choi_min_eigenvalue=min_choi_eig,
-            choi_trace_residual=trace_res,
-            choi_subunital_defect_min_eigenvalue=subunital_min_eig,
-            tsirelson_chsh_value=chsh_val,
-            horodecki_eigs=horodecki_eigs,
-            horodecki_bipartition_pairs=n_pairs,
-            is_choi_completely_positive=is_cp,
-            is_trace_non_increasing=is_trace_non_increasing,
-            is_causal_non_signaling=is_trace_non_increasing,
-            is_tsirelson_bounded=is_tsirelson,
-            is_classical_lhv=is_classical,
-            timestamp=time.time()
+            idempotence_residual=idempotence_residual,
+            trace_rank_mismatch=trace_rank_mismatch,
+            choi_min_eigenvalue=channel.choi_min_eigenvalue,
+            choi_trace_residual=channel.trace_preservation_residual,
+            choi_subunital_defect_min_eigenvalue=(
+                channel.trace_nonincrease_min_eigenvalue
+            ),
+            tsirelson_chsh_value=(
+                None if bell_audit is None else bell_audit.chsh_value
+            ),
+            horodecki_eigs=(
+                None if bell_audit is None else bell_audit.horodecki_eigs
+            ),
+            horodecki_bipartition_pairs=(
+                0 if bell_audit is None else 1
+            ),
+            is_choi_completely_positive=(
+                channel.is_completely_positive
+            ),
+            is_trace_non_increasing=(
+                channel.is_trace_non_increasing
+            ),
+            # No se infiere no-señalización a partir de estas entradas.
+            is_causal_non_signaling=None,
+            is_tsirelson_bounded=(
+                None
+                if bell_audit is None
+                else bell_audit.is_tsirelson_bounded
+            ),
+            is_classical_lhv=(
+                None if bell_audit is None else bell_audit.is_classical_lhv
+            ),
+            timestamp=time.time(),
+            is_trace_preserving=channel.is_trace_preserving,
+            choi_trace=channel.choi_trace,
+            choi_materialized=channel.choi_materialized,
+            projector_rank=projector_rank,
+            is_projector_valid=is_projector_valid,
+            bell_state=(
+                None if bell_audit is None else bell_audit.state
+            ),
+            bell_correlation_tensor=(
+                None
+                if bell_audit is None
+                else bell_audit.correlation_tensor
+            ),
+            bell_state_is_physical=(
+                None if bell_audit is None else True
+            ),
+            bell_state_min_eigenvalue=(
+                None
+                if bell_audit is None
+                else bell_audit.minimum_state_eigenvalue
+            ),
+            bell_state_hermiticity_defect=(
+                None
+                if bell_audit is None
+                else bell_audit.hermiticity_defect
+            ),
+            hmac_seal="",
         )
+
+        report_seal = self._compute_hmac_seal(
+            b"photinic-policy-report-v6",
+            *self._policy_report_chunks(report),
+        )
+        sealed_report = replace(report, hmac_seal=report_seal)
+
+        logger.debug(
+            "Fase 2 OK | projector_rank=%d | CP=%s | TNI=%s | TP=%s | "
+            "CHSH=%s",
+            projector_rank,
+            sealed_report.is_choi_completely_positive,
+            sealed_report.is_trace_non_increasing,
+            sealed_report.is_trace_preserving,
+            (
+                "no disponible"
+                if sealed_report.tsirelson_chsh_value is None
+                else f"{sealed_report.tsirelson_chsh_value:.8f}"
+            ),
+        )
+        return sealed_report
 
     def synthesize_photinic_orientation(
         self,
-        kernel_or_policies: Union[PhotinicObservationKernel, Sequence[NDArray[np.float64]]]
+        kernel_or_policies: Union[
+            PhotinicObservationKernel,
+            Sequence[NDArray[np.float64]],
+        ],
+        bell_state: Optional[Any] = None,
     ) -> PhotinicPolicyReport:
-        r"""
-        MÉTODO TERMINAL FORMAL DE FASE 2:
-        Garantiza la continuidad functorial estricta.
-        Si se le suministra el `PhotinicObservationKernel`, procede directamente.
-        Si se le suministran vectores de política crudos, enlaza automáticamente con el método
-        terminal de Fase 1 `canonize_photinic_observation_kernel` y sintetiza el reporte formal.
-        Este reporte es el punto de entrada canónico de la Fase 3.
-        """
+        """Acopla la Fase 1 si recibe políticas crudas y ejecuta la Fase 2."""
         if isinstance(kernel_or_policies, PhotinicObservationKernel):
             kernel = kernel_or_policies
         else:
-            kernel = self.canonize_photinic_observation_kernel(kernel_or_policies)
-
-        return self.orient_photinic_policy(kernel)
+            kernel = self.canonize_photinic_observation_kernel(
+                kernel_or_policies
+            )
+        return self.orient_photinic_policy(kernel, bell_state=bell_state)
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# FASE 3: TELEMETRÍA METROLÓGICA FPU, ENTROPÍA DE VON NEUMANN Y SELLADO HMAC
+# FASE 3 — ACT: CERTIFICACIÓN, ENTROPÍA Y FIRMA TERMINAL
 # ══════════════════════════════════════════════════════════════════════════════
 
 class Phase3_PhotinicGovernanceEngine(Phase2_PhotinicFederatedOrient):
-    r"""
-    FASE 3 — Act:
-    Orquestador terminal de alta precisión en silicio y FPU. Certifica y **hace
-    cumplir** (mediante excepciones, reparando el enforcement roto de v4.0.0) la
-    positividad completa de Choi, la admisibilidad causal del canal y la Cota de
-    Tsirelson; calcula la entropía de von Neumann genuina del estado reducido de
-    gobernanza federada, la entropía de entrelazamiento bipartita de Horodecki y
-    la pureza cuántica; y emite el `PhotinicEngineState` sellado con HMAC-SHA256.
-    """
+    """Fase 3 y orquestador OODA terminal."""
 
-    def __init__(self, tolerance: float = 1.0e-12, hmac_key: Optional[bytes] = None) -> None:
-        super().__init__(tolerance=tolerance, hmac_key=hmac_key)
-
-    # --------------------------------------------------------------------
-    # 3.1 — Matriz de densidad reducida genuina y entropías cuánticas
-    # --------------------------------------------------------------------
-    def compute_reduced_federated_density_matrix(
-        self, kernel: PhotinicObservationKernel
-    ) -> NDArray[np.float64]:
-        r"""
-        Construye la matriz de densidad reducida **genuina** del estado de
-        gobernanza federada:
-        $$\rho_{\rm fed} = \frac{S_{\rm fed}}{\operatorname{Tr}(S_{\rm fed})}$$
-        Al ser $S_{\rm fed}\succeq0$ por construcción (Fase 1), $\rho_{\rm fed}$ es
-        una matriz de densidad válida ($\rho\succeq0$, $\operatorname{Tr}\rho=1$).
+    def _compute_density_matrix_and_projection_residual(
+        self,
+        kernel: PhotinicObservationKernel,
+    ) -> Tuple[NDArray[np.float64], float]:
         """
-        trace_S = float(np.trace(kernel.gram_matrix))
-        if trace_S <= _WILKINSON_FLOOR:
+        Convierte el Gram a un operador PSD de traza uno.
+
+        Si la diagonalización arroja autovalores negativos solo dentro de la
+        tolerancia de redondeo, los proyecta a cero y registra la magnitud de
+        la corrección. Una violación mayor se rechaza.
+        """
+        self._require_valid_kernel(kernel)
+        gram = np.asarray(kernel.gram_matrix, dtype=np.float64)
+
+        try:
+            eigenvalues, eigenvectors = np.linalg.eigh(gram)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "No se pudo diagonalizar el Gram para formar la densidad."
+            ) from exc
+
+        scale = max(
+            float(np.max(np.abs(eigenvalues))),
+            _FLOAT_TINY,
+        )
+        psd_tolerance = max(
+            self._tol,
+            64.0 * _MACHINE_EPS * max(1, gram.shape[0]),
+        ) * scale
+
+        if float(eigenvalues[0]) < -psd_tolerance:
             raise PhotinicNonPositiveDefiniteError(
-                "Traza del tensor de Gram federado colapsada; imposible normalizar como matriz de densidad."
+                "El Gram no puede convertirse en operador PSD: "
+                f"lambda_min={eigenvalues[0]:.3e}."
             )
-        return kernel.gram_matrix / trace_S
 
-    def compute_von_neumann_entropy_full(self, rho: NDArray[np.float64]) -> Tuple[float, float]:
-        r"""
-        Entropía de von Neumann **global** del estado reducido de gobernanza y su
-        pureza cuántica, calculadas sobre el espectro completo (no truncado a
-        2 autovalores como en la v4.0.0):
-        $$S(\rho) = -\sum_i \lambda_i \ln \lambda_i, \qquad \operatorname{Tr}(\rho^2) = \sum_i \lambda_i^2$$
+        positive_eigenvalues = np.maximum(eigenvalues, 0.0)
+        normalization = KahanNeumaierSum.sum(
+            float(value) for value in positive_eigenvalues
+        )
+        if normalization <= 0.0:
+            raise PhotinicNonPositiveDefiniteError(
+                "La traza PSD del Gram es nula; no se puede normalizar."
+            )
+
+        probabilities = positive_eigenvalues / normalization
+        density = (
+            eigenvectors * probabilities[np.newaxis, :]
+        ) @ eigenvectors.T
+        density = 0.5 * density + 0.5 * density.T
+
+        raw_trace = KahanNeumaierSum.sum(
+            float(value) for value in np.diag(gram)
+        )
+        if raw_trace <= 0.0:
+            raise PhotinicNonPositiveDefiniteError(
+                "La traza del Gram no es positiva."
+            )
+        raw_density = gram / raw_trace
+
+        projection_residual = _relative_defect(
+            density - raw_density,
+            raw_density,
+        )
+        if not np.all(np.isfinite(density)):
+            raise PhotinicNumericalError(
+                "La matriz de densidad derivada del Gram no es finita."
+            )
+        return density, float(projection_residual)
+
+    def compute_reduced_federated_density_matrix(
+        self,
+        kernel: PhotinicObservationKernel,
+    ) -> NDArray[np.float64]:
         """
-        eigvals = np.clip(la.eigvalsh(rho), 0.0, 1.0)
-        s_vn = -KahanNeumaierSum.sum([ev * math.log(ev) for ev in eigvals if ev > _WILKINSON_FLOOR])
-        purity = float(KahanNeumaierSum.sum(eigvals ** 2))
-        return float(max(s_vn, 0.0)), purity
+        Devuelve el Gram normalizado y proyectado a PSD dentro de tolerancia.
 
-    def compute_horodecki_entanglement_entropy(self, report: PhotinicPolicyReport) -> float:
-        r"""
-        Entropía de entrelazamiento del **par de Bell efectivo** subyacente a la
-        auditoría de Horodecki-Tsirelson, calculada sobre los dos autovalores
-        normalizados $u_1,u_2$ de $T^\top T$ (equivalente conceptual a la v4.0.0,
-        preservado bajo un nombre explícito que lo distingue de la entropía global).
+        El nombre se conserva por compatibilidad; su interpretación física como
+        estado cuántico requiere una aplicación que defina dicho mapeo.
         """
-        u1, u2 = report.horodecki_eigs
-        total = u1 + u2
-        if total <= _WILKINSON_FLOOR:
-            return 0.0
-        p1, p2 = u1 / total, u2 / total
-        s_vn = 0.0
-        if p1 > _WILKINSON_FLOOR:
-            s_vn -= p1 * math.log(p1)
-        if p2 > _WILKINSON_FLOOR:
-            s_vn -= p2 * math.log(p2)
-        return float(s_vn)
+        density, _ = self._compute_density_matrix_and_projection_residual(
+            kernel
+        )
+        return _readonly_real_array(
+            density, "federated_density_matrix"
+        )
 
-    # --------------------------------------------------------------------
-    # 3.2 — Auditoría terminal, enforcement de excepciones y emisión del certificado
-    # --------------------------------------------------------------------
+    def compute_von_neumann_entropy_full(
+        self,
+        rho: NDArray[Any],
+    ) -> Tuple[float, float]:
+        """
+        Calcula -Tr(rho log rho) y Tr(rho²) sobre el espectro completo.
+
+        Exige una matriz Hermítica PSD, normalizada a traza uno dentro de
+        tolerancia. No renormaliza una entrada inválida.
+        """
+        density = _readonly_complex_array(rho, "rho")
+        if density.ndim != 2 or density.shape[0] != density.shape[1]:
+            raise PhotinicDimensionError("rho debe ser una matriz cuadrada.")
+
+        matrix = np.asarray(density, dtype=np.complex128)
+        hermiticity_defect = (
+            _stable_complex_norm(matrix - matrix.conj().T)
+            / max(_stable_complex_norm(matrix), _FLOAT_TINY)
+        )
+        allowed = max(self._tol, _BELL_STATE_TOLERANCE)
+        if hermiticity_defect > allowed:
+            raise PhotinicInvalidQuantumStateError(
+                f"rho no es hermítica: defecto={hermiticity_defect:.3e}."
+            )
+
+        matrix = 0.5 * matrix + 0.5 * matrix.conj().T
+        trace_value = np.trace(matrix)
+        if abs(float(trace_value.imag)) > allowed:
+            raise PhotinicInvalidQuantumStateError(
+                "La traza de rho tiene parte imaginaria significativa."
+            )
+        if abs(float(trace_value.real) - 1.0) > allowed:
+            raise PhotinicInvalidQuantumStateError(
+                f"rho debe tener traza uno; recibido {trace_value.real:.12g}."
+            )
+
+        try:
+            eigenvalues = np.linalg.eigvalsh(matrix)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "No se pudo calcular el espectro de rho."
+            ) from exc
+
+        spectral_scale = max(
+            float(np.max(np.abs(eigenvalues))),
+            1.0,
+        )
+        if float(eigenvalues[0]) < -allowed * spectral_scale:
+            raise PhotinicNonPositiveDefiniteError(
+                f"rho no es PSD: lambda_min={eigenvalues[0]:.3e}."
+            )
+
+        probabilities = np.maximum(eigenvalues, 0.0)
+        probability_sum = KahanNeumaierSum.sum(
+            float(value) for value in probabilities
+        )
+        if abs(probability_sum - 1.0) > allowed * max(1, len(probabilities)):
+            raise PhotinicInvalidQuantumStateError(
+                "El espectro PSD de rho no suma uno dentro de tolerancia."
+            )
+
+        entropy_terms = [
+            -float(value) * math.log(float(value))
+            for value in probabilities
+            if value > 0.0
+        ]
+        entropy = KahanNeumaierSum.sum(entropy_terms)
+        purity = KahanNeumaierSum.sum(
+            float(value) * float(value)
+            for value in probabilities
+        )
+        return max(float(entropy), 0.0), float(purity)
+
+    def compute_horodecki_entanglement_entropy(
+        self,
+        report: PhotinicPolicyReport,
+    ) -> Optional[float]:
+        """
+        Entropía de entrelazamiento para un estado bipartito puro.
+
+        Para un estado mixto no se identifica la entropía de una reducción con
+        una medida general de entrelazamiento; en ese caso devuelve None.
+        """
+        if not isinstance(report, PhotinicPolicyReport):
+            raise PhotinicInputError(
+                "report debe ser PhotinicPolicyReport."
+            )
+        if report.bell_state is None:
+            return None
+
+        rho = np.asarray(report.bell_state, dtype=np.complex128)
+        global_purity = float(np.trace(rho @ rho).real)
+        pure_tolerance = max(
+            10.0 * self._tol,
+            10.0 * _BELL_STATE_TOLERANCE,
+        )
+        if abs(global_purity - 1.0) > pure_tolerance:
+            return None
+
+        # Índices rho[a,b,c,d]; se traza el segundo qubit b=d.
+        rho_tensor = rho.reshape(2, 2, 2, 2)
+        reduced_a = np.einsum(
+            "abcb->ac",
+            rho_tensor,
+            optimize=True,
+        )
+        reduced_a = 0.5 * reduced_a + 0.5 * reduced_a.conj().T
+
+        try:
+            eigenvalues = np.linalg.eigvalsh(reduced_a)
+        except np.linalg.LinAlgError as exc:
+            raise PhotinicNumericalError(
+                "No se pudo calcular el espectro reducido del estado de Bell."
+            ) from exc
+
+        if float(eigenvalues[0]) < -pure_tolerance:
+            raise PhotinicNonPositiveDefiniteError(
+                "La reducción del estado puro no es PSD."
+            )
+
+        probabilities = np.maximum(eigenvalues, 0.0)
+        total = KahanNeumaierSum.sum(
+            float(value) for value in probabilities
+        )
+        if total <= 0.0:
+            raise PhotinicNonPositiveDefiniteError(
+                "La reducción tiene traza nula."
+            )
+
+        # Corrige solo el redondeo de la traza reducida.
+        probabilities = probabilities / total
+        entropy = KahanNeumaierSum.sum(
+            -float(value) * math.log(float(value))
+            for value in probabilities
+            if value > 0.0
+        )
+        return max(float(entropy), 0.0)
+
+    def _policy_precision_drift(
+        self,
+        kernel: PhotinicObservationKernel,
+        report: PhotinicPolicyReport,
+        density_projection_residual: float,
+    ) -> float:
+        """Máximo de residuos normalizados, sin sumar magnitudes heterogéneas."""
+        rank_scale = max(
+            1.0,
+            math.sqrt(float(max(report.projector_rank, 1))),
+        )
+        rank_denominator = max(1.0, float(report.projector_rank))
+
+        components = [
+            kernel.gram_symmetry_defect,
+            kernel.gram_reconstruction_residual,
+            report.idempotence_residual / rank_scale,
+            report.trace_rank_mismatch / rank_denominator,
+            density_projection_residual,
+        ]
+
+        if report.choi_min_eigenvalue is not None:
+            components.append(max(0.0, -report.choi_min_eigenvalue))
+
+        if not all(math.isfinite(value) for value in components):
+            raise PhotinicNumericalError(
+                "La deriva numérica contiene magnitudes no finitas."
+            )
+        return max(components, default=0.0)
+
+    def _engine_state_chunks(
+        self,
+        state: PhotinicEngineState,
+    ) -> Tuple[bytes, ...]:
+        return (
+            state.kernel.sha256_seal.encode("ascii"),
+            state.policy_report.hmac_seal.encode("ascii"),
+            self._array_token(state.federated_density_matrix),
+            self._float_token(state.fpu_execution_time_ms),
+            self._float_token(state.von_neumann_entropy),
+            self._float_token(state.quantum_purity),
+            self._optional_float_token(
+                state.bell_pair_entanglement_entropy
+            ),
+            self._float_token(state.fpu_precision_drift),
+            self._float_token(state.density_projection_residual),
+            state.phase_signature.encode("utf-8"),
+        )
+
+    def verify_engine_state(self, state: PhotinicEngineState) -> bool:
+        """Verifica el sello terminal y los sellos anidados."""
+        if not isinstance(state, PhotinicEngineState):
+            return False
+        if not self.verify_observation_kernel(state.kernel):
+            return False
+        if not self.verify_policy_report(state.policy_report):
+            return False
+
+        try:
+            expected = self._compute_hmac_seal(
+                b"photinic-engine-state-v6",
+                *self._engine_state_chunks(state),
+            )
+        except Exception:
+            return False
+        return hmac.compare_digest(state.cryptographic_seal, expected)
+
     def execute_photinic_audit(
         self,
-        target: Union[PhotinicPolicyReport, PhotinicObservationKernel, Sequence[NDArray[np.float64]]]
+        target: Union[
+            PhotinicPolicyReport,
+            PhotinicObservationKernel,
+            Sequence[NDArray[np.float64]],
+        ],
+        *,
+        bell_state: Optional[Any] = None,
     ) -> PhotinicEngineState:
-        r"""
-        MÉTODO TERMINAL FORMAL DE FASE 3 Y DEL MOTOR COVARIANTE:
-        Punto de culminación OODA del Motor Fotínico de Gobernanza en lazo cerrado.
-        Acepta polimórficamente:
-        1. `PhotinicPolicyReport` (procedente directamente de Fase 2).
-        2. `PhotinicObservationKernel` (procedente de Fase 1, acoplándose vía Fase 2).
-        3. `Sequence[NDArray[np.float64]]` (secuencia cruda, resolviendo la cadena completa F1 -> F2 -> F3).
-
-        A diferencia de la v4.0.0 (donde solo Tsirelson se auditaba, y encima estaba
-        neutralizado por el bug de renormalización), esta Fase 3 **certifica y hace
-        cumplir** las tres condiciones físicas computadas en Fase 2: positividad
-        completa de Choi, admisibilidad causal del canal, y Cota de Tsirelson.
         """
-        t_start = time.perf_counter()
+        Ejecuta la Fase 3 y, si es necesario, las fases precedentes.
+
+        bell_state solo se admite cuando target es un kernel o una secuencia
+        cruda. Un reporte ya orientado contiene sus propios diagnósticos Bell.
+        """
+        start = time.perf_counter()
 
         if isinstance(target, PhotinicPolicyReport):
+            if bell_state is not None:
+                raise PhotinicInputError(
+                    "No pase bell_state junto a un PhotinicPolicyReport."
+                )
             report = target
             kernel = report.kernel
         elif isinstance(target, PhotinicObservationKernel):
             kernel = target
-            report = self.orient_photinic_policy(kernel)
+            report = self.orient_photinic_policy(
+                kernel,
+                bell_state=bell_state,
+            )
         else:
-            report = self.synthesize_photinic_orientation(target)
+            report = self.synthesize_photinic_orientation(
+                target,
+                bell_state=bell_state,
+            )
             kernel = report.kernel
 
-        # --- Enforcement estricto (Fase 3, puerta de certificación) -----------
-        if not report.is_choi_completely_positive:
-            raise PhotinicNonPositiveDefiniteError(
-                f"Violación de Positividad Completa de Choi: lambda_min(C_E) = "
-                f"{report.choi_min_eigenvalue:.4e} < -{_CHOI_PSD_TOLERANCE:.2e}. "
-                "Corrupción numérica severa: C_E debería ser PSD por construcción analítica."
+        if not self.verify_policy_report(report):
+            raise PhotinicIntegrityError(
+                "El reporte de Fase 2 no supera la verificación HMAC."
             )
+
+        if not report.is_projector_valid:
+            raise PhotinicProjectorError(
+                "El proyector no satisface idempotencia y traza-rango."
+            )
+
+        if not report.is_choi_completely_positive:
+            minimum = report.choi_min_eigenvalue
+            raise PhotinicNonPositiveDefiniteError(
+                "El Choi materializado no supera la prueba PSD: "
+                f"lambda_min={minimum}."
+            )
+
         if not report.is_trace_non_increasing:
             raise PhotinicNonCausalChannelError(
-                f"Canal de gobernanza federada físicamente inadmisible: "
-                f"lambda_min(I - sum K_k^T K_k) = {report.choi_subunital_defect_min_eigenvalue:.4e} "
-                f"< -{_CAUSALITY_SUBUNITAL_TOLERANCE:.2e} (super-unital / probabilidades > 1)."
+                "La operación no es trace-nonincreasing: "
+                "lambda_min(I - sum K†K)="
+                f"{report.choi_subunital_defect_min_eigenvalue:.3e}."
             )
-        if not report.is_tsirelson_bounded:
+
+        if self._require_trace_preserving and not report.is_trace_preserving:
+            raise PhotinicTracePreservationError(
+                "La configuración exige TP, pero "
+                f"||sum K†K-I||F={report.choi_trace_residual:.3e}."
+            )
+
+        if report.is_tsirelson_bounded is False:
             raise PhotinicTsirelsonViolationError(
-                f"Violación de la Cota de Tsirelson: CHSH = {report.tsirelson_chsh_value:.4f} > "
-                f"{_TSIRELSON_BOUND:.6f} (2*sqrt(2)). Corrupción adversarial no-local o caja PR "
-                "super-cuántica detectada en el consorcio federado."
+                "El valor calculado de CHSH supera la cota de Tsirelson: "
+                f"{report.tsirelson_chsh_value:.12g} > "
+                f"{_TSIRELSON_BOUND:.12g}."
             )
 
-        rho_fed = self.compute_reduced_federated_density_matrix(kernel)
-        vn_entropy, purity = self.compute_von_neumann_entropy_full(rho_fed)
-        bell_entropy = self.compute_horodecki_entanglement_entropy(report)
-
-        t_elapsed_ms = float((time.perf_counter() - t_start) * 1000.0)
-        fpu_drift = float(
-            abs(report.idempotence_residual)
-            + abs(report.trace_rank_mismatch)
-            + abs(kernel.gram_symmetry_defect)
-            + abs(kernel.gram_reconstruction_residual)
+        density, density_projection_residual = (
+            self._compute_density_matrix_and_projection_residual(kernel)
+        )
+        von_neumann_entropy, purity = (
+            self.compute_von_neumann_entropy_full(density)
+        )
+        bell_entanglement_entropy = (
+            self.compute_horodecki_entanglement_entropy(report)
         )
 
-        final_seal = self._compute_hmac_seal(
-            kernel.sha256_seal.encode("ascii"),
-            rho_fed.tobytes(),
-            f"{report.idempotence_residual:.12e}_{report.choi_min_eigenvalue:.12e}_"
-            f"{report.tsirelson_chsh_value:.12e}_{vn_entropy:.12e}_{purity:.12e}_"
-            f"{bell_entropy:.12e}_{fpu_drift:.12e}".encode("ascii")
+        precision_drift = self._policy_precision_drift(
+            kernel,
+            report,
+            density_projection_residual,
+        )
+
+        elapsed_ms = (time.perf_counter() - start) * 1000.0
+
+        if report.tsirelson_chsh_value is None:
+            bell_signature = "BELL=NA"
+        else:
+            bell_signature = (
+                f"BELL={report.tsirelson_chsh_value:.8f}"
+            )
+
+        entanglement_signature = (
+            "ENTANGLEMENT=NA"
+            if bell_entanglement_entropy is None
+            else f"ENTANGLEMENT={bell_entanglement_entropy:.8f}"
         )
 
         phase_signature = (
-            f"FOCK_MAJORANA_SYM:CP={int(report.is_choi_completely_positive)}:"
-            f"CAUSAL={int(report.is_causal_non_signaling)}:"
-            f"TSIRELSON={int(report.is_tsirelson_bounded)}:"
-            f"CHSH={report.tsirelson_chsh_value:.4f}:S_vN={vn_entropy:.4f}:PURITY={purity:.4f}"
+            f"PHOTINIC-v6:"
+            f"CP={int(report.is_choi_completely_positive)}:"
+            f"TNI={int(report.is_trace_non_increasing)}:"
+            f"TP={int(report.is_trace_preserving)}:"
+            f"{bell_signature}:"
+            f"{entanglement_signature}:"
+            f"S_GRAM={von_neumann_entropy:.8f}:"
+            f"PURETY_GRAM={purity:.8f}"
         )
 
-        return PhotinicEngineState(
+        unsigned_state = PhotinicEngineState(
             kernel=kernel,
             policy_report=report,
-            fpu_execution_time_ms=t_elapsed_ms,
-            federated_density_matrix=rho_fed,
-            von_neumann_entropy=vn_entropy,
+            fpu_execution_time_ms=float(elapsed_ms),
+            federated_density_matrix=density,
+            von_neumann_entropy=von_neumann_entropy,
             quantum_purity=purity,
-            bell_pair_entanglement_entropy=bell_entropy,
-            fpu_precision_drift=fpu_drift,
-            cryptographic_seal=final_seal,
-            phase_signature=phase_signature
+            bell_pair_entanglement_entropy=bell_entanglement_entropy,
+            fpu_precision_drift=precision_drift,
+            cryptographic_seal="",
+            phase_signature=phase_signature,
+            density_projection_residual=density_projection_residual,
         )
+
+        final_seal = self._compute_hmac_seal(
+            b"photinic-engine-state-v6",
+            *self._engine_state_chunks(unsigned_state),
+        )
+        state = replace(unsigned_state, cryptographic_seal=final_seal)
+
+        logger.info(
+            "Fase 3 OK | CP=%s | TNI=%s | TP=%s | drift=%.3e | "
+            "elapsed=%.3f ms",
+            report.is_choi_completely_positive,
+            report.is_trace_non_increasing,
+            report.is_trace_preserving,
+            precision_drift,
+            elapsed_ms,
+        )
+        return state
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# MOTOR FOTÍNICO DE GOBERNANZA SUPREMO
+# MOTOR PÚBLICO
 # ══════════════════════════════════════════════════════════════════════════════
 
 class PhotinicGovernanceSatelliteEngine(Phase3_PhotinicGovernanceEngine):
-    r"""
-    Motor Fotínico de Gobernanza Federada de-confinado en silicio FPU.
-    Integra la totalidad del pipeline holomorfo anidado (Fases 1, 2 y 3).
-    """
+    """Motor público de gobernanza fotínica federada."""
 
-    def __init__(self, tolerance: float = 1.0e-12, hmac_key: Optional[bytes] = None) -> None:
-        super().__init__(tolerance=tolerance, hmac_key=hmac_key)
+    def __init__(
+        self,
+        tolerance: float = _DEFAULT_TOLERANCE,
+        hmac_key: Optional[bytes] = None,
+        regularization: float = _DEFAULT_GRAM_REGULARIZATION,
+        *,
+        require_trace_preserving: bool = False,
+    ) -> None:
+        super().__init__(
+            tolerance=tolerance,
+            hmac_key=hmac_key,
+            regularization=regularization,
+            require_trace_preserving=require_trace_preserving,
+        )
         logger.info(
-            "PhotinicGovernanceSatelliteEngine v5.0.0 inicializado con éxito. "
-            "Alineación: Majorana SYM, Grothendieck, Choi CPTP (enforcement real), "
-            "Horodecki-Tsirelson (sin renormalización artificial), Dekker-Neumaier FPU, HMAC-SHA256."
+            "PhotinicGovernanceSatelliteEngine v6.0.0 inicializado. "
+            "Canal CP/TNI auditado; TP configurable; CHSH requiere estado "
+            "explícito de dos qubits."
         )
 
 
@@ -943,62 +2535,74 @@ __all__ = [
     "PhotinicObservationKernel",
     "PhotinicPolicyReport",
     "PhotinicEngineState",
-    "PhotinicEngineError",
-    "PhotinicDimensionError",
-    "PhotinicNonPositiveDefiniteError",
-    "PhotinicCausalViolationError",
-    "PhotinicNonCausalChannelError",
-    "PhotinicTsirelsonViolationError",
     "KahanNeumaierSum",
     "Phase1_PhotinicObservationKernel",
     "Phase2_PhotinicFederatedOrient",
     "Phase3_PhotinicGovernanceEngine",
+    "PhotinicEngineError",
+    "PhotinicInputError",
+    "PhotinicDimensionError",
+    "PhotinicNumericalError",
+    "PhotinicIntegrityError",
+    "PhotinicNonPositiveDefiniteError",
+    "PhotinicCausalViolationError",
+    "PhotinicNonCausalChannelError",
+    "PhotinicTracePreservationError",
+    "PhotinicTsirelsonViolationError",
+    "PhotinicInvalidQuantumStateError",
+    "PhotinicProjectorError",
 ]
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
-    print("\n" + "═" * 80)
-    print(" INICIANDO AUDITORÍA ESPECTRAL Y CIBER-FÍSICA DE PHOTINIC GOVERNANCE SATELLITE ENGINE")
-    print("═" * 80)
+
+    rng = np.random.default_rng(42)
+    policies = [
+        rng.normal(size=6)
+        for _ in range(5)
+    ]
+
+    # Estado singlete explícito |ψ⁻><ψ⁻|. CHSH se calcula sobre este estado,
+    # no sobre una bipartición inventada de los vectores de políticas.
+    singlet = np.array(
+        [0.0, 1.0, -1.0, 0.0],
+        dtype=np.complex128,
+    ) / math.sqrt(2.0)
+    bell_state = np.outer(singlet, singlet.conj())
 
     engine = PhotinicGovernanceSatelliteEngine()
-    rng = np.random.default_rng(42)
+    state = engine.execute_photinic_audit(
+        policies,
+        bell_state=bell_state,
+    )
+    report = state.policy_report
 
-    # Consorcio federado con N=5 (impar) nodos: certifica la corrección de forma de v5.
-    policies = [rng.normal(loc=0.0, scale=1.0, size=6) for _ in range(5)]
+    print("Fase 1 — Observe")
+    print(f"  Número de nodos:             {len(state.kernel.node_policies)}")
+    print(f"  Dimensión del Gram:          {state.kernel.gram_matrix.shape[0]}")
+    print(f"  Condicionamiento del Gram:   {state.kernel.condition_number:.6e}")
+    print(f"  Residuo reconstrucción Gram:{state.kernel.gram_reconstruction_residual:.6e}")
+    print(f"  HMAC kernel:                 {state.kernel.sha256_seal[:24]}...")
 
-    state = engine.execute_photinic_audit(policies)
-    rep = state.policy_report
+    print("\nFase 2 — Orient")
+    print(f"  Proyector válido:            {report.is_projector_valid}")
+    print(f"  Canal CP:                    {report.is_choi_completely_positive}")
+    print(f"  Operación TNI:               {report.is_trace_non_increasing}")
+    print(f"  Operación TP:                {report.is_trace_preserving}")
+    print(f"  Operación CPTP:              {report.is_cptp}")
+    print(f"  CHSH:                        {report.tsirelson_chsh_value:.12f}")
+    print(f"  Acotado por Tsirelson:       {report.is_tsirelson_bounded}")
+    print(f"  No-señalización:             {report.is_causal_non_signaling}")
 
-    print(f"\n[+] TELEMETRÍA DE LA FASE 1 (OBSERVE):")
-    print(f"    - Condicionamiento kappa(S_fed):    {state.kernel.condition_number:.4f}")
-    print(f"    - Defecto de simetría de Gram:       {state.kernel.gram_symmetry_defect:.4e}")
-    print(f"    - Residuo de reconstrucción de Gram: {state.kernel.gram_reconstruction_residual:.4e}")
-    print(f"    - Norma del espinor de Majorana:     {state.kernel.majorana_spinor_norm:.6f}")
-    print(f"    - Sello HMAC-SHA256:                 {state.kernel.sha256_seal[:24]}...")
+    print("\nFase 3 — Act")
+    print(f"  Entropía espectral del Gram: {state.von_neumann_entropy:.8f}")
+    print(f"  Pureza espectral del Gram:   {state.quantum_purity:.8f}")
+    print(f"  Entropía de entrelazamiento: {state.bell_pair_entanglement_entropy}")
+    print(f"  Deriva numérica:             {state.fpu_precision_drift:.6e}")
+    print(f"  Estado HMAC válido:          {engine.verify_engine_state(state)}")
+    print(f"  HMAC terminal:               {state.cryptographic_seal[:32]}...")
 
-    print(f"\n[+] TELEMETRÍA DE LA FASE 2 (ORIENT):")
-    print(f"    - Residuo de idempotencia (Omega^2-Omega): {rep.idempotence_residual:.4e}")
-    print(f"    - Autovalor mínimo de Choi:                {rep.choi_min_eigenvalue:.4e}")
-    print(f"    - Defecto de sub-unitalidad (causalidad):  {rep.choi_subunital_defect_min_eigenvalue:.4e}")
-    print(f"    - Pares de bipartición Horodecki (N=5):    {rep.horodecki_bipartition_pairs}")
-    print(f"    - Valor de Bell-CHSH (sin renormalizar):   {rep.tsirelson_chsh_value:.4f}")
-    print(f"    - ¿Acotado por Tsirelson (<=2*sqrt(2))?:   {rep.is_tsirelson_bounded}")
-    print(f"    - ¿Régimen clásico LHV (<=2)?:             {rep.is_classical_lhv}")
-
-    print(f"\n[+] TELEMETRÍA DE LA FASE 3 (ACT / FPU):")
-    print(f"    - Latencia de Cómputo FPU:           {state.fpu_execution_time_ms:.4f} ms")
-    print(f"    - Entropía von Neumann global S(rho):{state.von_neumann_entropy:.6f}")
-    print(f"    - Pureza cuántica Tr(rho^2):          {state.quantum_purity:.6f}")
-    print(f"    - Entropía entrelaz. par de Bell:     {state.bell_pair_entanglement_entropy:.6f}")
-    print(f"    - Deriva de Precisión FPU:            {state.fpu_precision_drift:.4e}")
-    print(f"    - Firma de Fase:                      {state.phase_signature}")
-    print(f"    - Sello Criptográfico HMAC:           {state.cryptographic_seal[:32]}...")
-
-    assert rep.is_tsirelson_bounded, "Fallo: violación de la Cota de Tsirelson"
-    assert rep.is_choi_completely_positive, "Fallo: canal de Choi no-CP"
-    assert rep.is_causal_non_signaling, "Fallo: canal no admisible físicamente"
-    print("\n" + "═" * 80)
-    print(" ¡AUDITORÍA CIBER-FÍSICA DEL MOTOR FOTÍNICO COMPLETADA CON ÉXITO ABSOLUTO!")
-    print("═" * 80)
+    assert report.is_choi_completely_positive
+    assert report.is_trace_non_increasing
+    assert report.is_tsirelson_bounded is True
