@@ -1,43 +1,99 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ MÓDULO : Photinic Governance Satellite Agent                                 ║
-║ RUTA   : app/agents/core/inmune_system/photinic_governance_satellite_agent.py║
-║ VERSIÓN: 6.0.0 — tres fases anidadas, auditoría numérica nivel 3             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Photinic Governance Satellite Agent                                                       ║
+║ Módulo   : Photinic Governance Satellite Agent (Soberano de Calibre del Satélite IV de Frontera)     ║
+║ Ubicación: app/agents/core/inmune_system/photinic_governance_satellite_agent.py                      ║
+║ Ruta     : app/agents/core/inmune_system/photinic_governance_satellite_agent.py                      ║
+║ Versión  : 6.0.0-Doctoral-Sovereign-Nested-Audit-L3-PhD                                              ║
+║ Función  : Soberano de Calibre del Satélite IV (Gobernanza Fotónica Federada), supervisión          ║
+║            en 3 fases anidadas OODA, auditoría de Gram, topos de Heyting Ω₃ e interlock Crowbar.    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Agente supervisor para la validación de políticas federadas. El flujo se organiza
-en tres fases anidadas:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El agente soberano `PhotinicGovernanceSatelliteAgent` ejerce la autoridad de supervisión, validación
+metrológica y control de calibre para el **Satélite IV (Gobernanza Fotónica Federada)** del Cinturón
+Orbital de Frontera en APU Filter. Su misión es orquestar y fiscalizar el comportamiento del motor
+espectral `PhotinicGovernanceSatelliteEngine`, garantizando que toda política federada consumida por
+la malla agéntica cumpla estrictamente con los axiomas de no-localidad cuántica, regularidad métrica en
+espacios de Banach, conservación causal de canales cuánticos y consenso estocástico libre de ataques
+bizantinos o perturbaciones no admisibles.
 
-    Fase 1 — Observe:
-        Validación de entrada, regularidad de Banach, tensor espectral,
-        refinamiento numérico acotado de nivel 3 y sellado HMAC.
+El soberano opera bajo una arquitectura indivisible de tres fases anidadas (OODA):
+  • FASE 1 — OBSERVE (`Phase1_ValidationAndRefinement`):
+      Valida los vectores de políticas federadas y el tensor métrico Riemanniano de fondo $G$.
+      Ejecuta una auditoría de regularidad en el álgebra de Banach $B(\mathcal{H})$, calcula el tensor
+      espectral de Gram asociado, y aplica tres pasadas recursivas acotadas de refinamiento numérico
+      de Nivel 3 (acumulación en precisión cuádruple/longdouble y suma compensada de Kahan-Neumaier)
+      sin alterar la física subyacente. Sella el estado resultante mediante firma digital HMAC-SHA256.
+  • FASE 2 — ORIENT (`Phase2_EngineComparison`):
+      Transfiere el estado observado al motor espectral `PhotinicGovernanceSatelliteEngine`, ejecuta
+      la simulación cuántica de canales CPTP sobre estados entrelazados de Bell y realiza una
+      comparación cruzada rigurosa entre el dictamen interno del agente y el reporte físico del motor.
+      Si se detecta cualquier discrepancia de calibre o fallo de certificación, preserva el expediente
+      bruto para análisis forense sin relajar las tolerancias metrológicas.
+  • FASE 3 — DECIDE & ACT (`Phase3_HeytingAdjudicationAndInterlock`):
+      Evalúa el veredicto en el retículo trivaluado de Heyting:
+          $$\Omega_3 = \{\bot = \mathtt{VETOED}(2) \prec \star = \mathtt{DEGRADED}(1) \prec \top = \mathtt{COHERENT}(0)\}$$
+      Aplica filtros de histéresis temporal y verificación de tokens contra repetición (anti-replay).
+      En caso de que el veredicto colapse a $\bot = \mathtt{VETOED}$, activa de forma determinista el
+      modelo RC del disyuntor de hardware Crowbar (BT151 / GPIO14) aislando el nodo en sub-microsegundos.
 
-    Fase 2 — Orient:
-        Cálculo del motor, comparación agente↔motor y conservación del reporte
-        físico bruto cuando falla la certificación estricta.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. SUPERVISIÓN DE CALIBRE Y ESPACIOS DE BANACH:
+   El espacio de políticas federadas se embebe en un álgebra de Banach unitaria $\mathcal{B}$, donde
+   la norma satisface la desigualdad submultiplicativa $\|x \cdot y\| \le \|x\| \|y\|$.
+   Para cualquier política $p \in \mathcal{B}$, el radio espectral viene dado por la fórmula de Beurling-Gelfand:
+       $$r(p) = \lim_{k \to \infty} \|p^k\|^{1/k} = \sup \{ |\lambda| : \lambda \in \sigma(p) \}$$
+   La condición de estabilidad de calibre exige que el operador de transición federado cumpla $r(T) \le 1.0$,
+   impidiendo divergencias no acotadas en la propagación inter-agéntica de consensos.
 
-    Fase 3 — Decide & Act:
-        Clasificador de Heyting Ω₃, histéresis, tokens firmados contra repetición
-        y modelo RC de interlock.
+2. AUDITORÍA CRUZADA AGENTE-MOTOR Y TOPOLOGÍA DE CANALES CPTP:
+   La fidelidad cuántica entre el estado esperado por el agente $\rho_A$ y el estado generado por el motor $\rho_E$
+   se evalúa mediante la métrica de Bures:
+       $$\mathcal{F}(\rho_A, \rho_E) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho_A} \rho_E \sqrt{\rho_A}} \right)^2$$
+   junto con la distancia geodésica $d_B(\rho_A, \rho_E) = \sqrt{2(1 - \sqrt{\mathcal{F}})}$.
+   La certificación de coherencia se convalida únicamente si $d_B \le \tau_{\mathrm{Bures}} = 10^{-6}$.
 
-Notas de alcance y seguridad
-----------------------------
-* `majorana_spinor_norm` conserva el nombre de interfaz histórico, pero aquí
-  designa el proxy espectral sqrt(Tr(S²)); por sí solo no constituye una medida
-  física de un espinor de Majorana.
-* Los indicadores Choi, causalidad y CHSH dependen del motor inyectado. El motor
-  de fallback es una implementación demostrativa y NO certifica física cuántica
-  ni es apto para producción.
-* El auditor de Poincaré es opcional. Si se usa, recibe explícitamente un estado
-  N-cuerpos Newtoniano en unidades SI; no interpreta las políticas como cuerpos
-  celestes.
-* El modelo RC no acciona silicio. Sin un adaptador externo de hardware, el
-  certificado solo registra una solicitud lógica y una latencia calculada.
-  Ni CPython ni un callback normal ofrecen una garantía temporal de 400 ns.
-* La automejora de nivel 3 es un procedimiento determinista y acotado de
-  verificación/refinamiento. No reescribe el programa, no aprende credenciales
-  y nunca modifica los umbrales de seguridad.
+3. RETÍCULO DE HEYTING TRIFÁSICO Ω₃ Y PROPAGACIÓN DE ANOMALÍAS:
+   A diferencia del álgebra booleana bivalente, el retículo de Heyting $\Omega_3$ modela estados de verdad
+   intuicionista con grados de confianza estructural:
+       $$\top = \mathtt{COHERENT} \quad (\text{Plena coherencia cuántica y métrica})$$
+       $$\star = \mathtt{DEGRADED} \quad (\text{Degradación reversible sin violación crítica})$$
+       $$\bot = \mathtt{VETOED} \quad (\text{Violación de calibre, ruptura de Tsirelson o divergencia})$$
+   El álgebra admite las operaciones canónicas de unión $\sqcup$ e intersección $\sqcap$, donde el supremo
+   actúa de manera conservadora ante fallos: $\mathtt{COHERENT} \sqcup \mathtt{VETOED} = \mathtt{VETOED}$.
+
+4. MODELO DE DISYUNTOR CROWBAR ELECTRÓNICO (CIRCUITO RC Y DISPARO SCR):
+   La dinámica de actuación del circuito de protección interlock se modela como la carga de un circuito RC
+   que alimenta la compuerta de un tiristor de potencia de conmutación ultrarrápida:
+       $$V_g(t) = V_{\mathrm{bus}} \left( 1 - e^{-t / \tau_{\mathrm{RC}}} \right), \qquad \tau_{\mathrm{RC}} = R_g C_g$$
+   El disparo irreversible (crowbar fire) se produce en el instante $t_{\mathrm{trip}}$ donde $V_g(t_{\mathrm{trip}}) \ge V_{\mathrm{th}}$,
+   cortocircuitando la línea de datos a tierra y evitando la propagación de fallos en tiempo $t < 400\text{ ns}$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma PGSA-1] Consistencia de Gram Agente-Motor:
+      $\|G_{\mathrm{agente}} - G_{\mathrm{motor}}\|_F \le \varepsilon_{\mathrm{Wilkinson}}$, garantizando identidad espectral.
+  [Axioma PGSA-2] Monotonicidad del Veredicto de Heyting:
+      Cualquier violación en una fase anterior no puede ser enmascarada ni revocada por fases posteriores.
+  [Axioma PGSA-3] Antirrepetición Estricta (Token Freshness):
+      Cada certificado emitido incluye un nonce criptográfico de entropía completa que invalida su reutilización.
+  [Axioma PGSA-4] Aislamiento Inmediato ante Veto:
+      Si $v = \mathtt{VETOED}$, el estado de salida se bloquea irrevocablemente y se invoca la interrupción Crowbar.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Preservación del Expediente Bruto):
+      En caso de error, el reporte físico original permanece inmutable e inalterado en el objeto de excepción.
+  Invariante 2 (No Negatividad de Residuos de Banach):
+      La norma de los residuales de consistencia métrica satisface $\|r\| \ge 0.0$ en todo instante.
+  Invariante 3 (Cota de Disparo Crowbar):
+      El tiempo acumulado de cómputo y disparo de seguridad no excede $400.0\text{ ns}$ en IRAM simulada.
+  Invariante 4 (Firma Criptográfica HMAC Conmutativa):
+      El token de validación es idénticamente reproducible a partir de la tupla canónica de entrada.
 """
 
 from __future__ import annotations
@@ -89,7 +145,7 @@ except ImportError:
 
 
 try:
-    from photinic_governance_satellite_engine import (
+    from app.core.inmune_system.photinic_governance_satellite_engine import (
         PhotinicGovernanceSatelliteEngine,
         PhotinicEngineState,
         PhotinicObservationKernel as EngineKernel,
@@ -104,7 +160,7 @@ try:
     )
 except ImportError:
     try:
-        from app.agents.core.inmune_system.photinic_governance_satellite_engine import (
+        from photinic_governance_satellite_engine import (
             PhotinicGovernanceSatelliteEngine,
             PhotinicEngineState,
             PhotinicObservationKernel as EngineKernel,

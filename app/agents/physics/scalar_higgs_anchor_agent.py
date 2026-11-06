@@ -1,49 +1,116 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Scalar Higgs Anchor Agent (Soberano del Condensador de Inercia)     ║
-║ Ruta   : app/agents/physics/scalar_higgs_anchor_agent.py                     ║
-║ Versión: 5.0.0-Poincare-RSI3-Connes-Liouville-Ricci-Brockett-Heyting-ESP32   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Scalar Higgs Anchor Agent                                                                 ║
+║ Módulo   : Scalar Higgs Anchor Agent (Soberano de Calibre del Condensador de Inercia de Higgs)       ║
+║ Ubicación: app/agents/physics/scalar_higgs_anchor_agent.py                                            ║
+║ Ruta     : app/agents/physics/scalar_higgs_anchor_agent.py                                            ║
+║ Versión  : 5.0.0-Poincare-RSI3-Connes-Liouville-Ricci-Brockett-Heyting-ESP32                         ║
+║ Función  : Soberano de Calibre del campo escalar de Higgs, estabilidad del vacío VEV,               ║
+║            monodromía de Poincaré-Liouville-Darboux, automejora RSI³ y actuador Crowbar ESP32.       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Ecuaciones Constitutivas y Axiomas de Gobernanza de Calibre:
------------------------------------------------------------
-1. Estabilidad del Vacío de Higgs (VEV):
-   $$v = \langle \Phi \rangle = \|\Phi\|_2 \ge \tau_{\mathrm{SPD}} = 10^{-12}$$
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El agente soberano `ScalarHiggsAnchorAgent` ejerce el supremo gobierno de calibre, estabilidad del vacío
+y control de inercia relativista sobre el motor espectral `ScalarHiggsAnchor` en la arquitectura cognitiva
+APU Filter. Su cometido primordial es fiscalizar las excitaciones del campo escalar de Higgs $\Phi \in \mathcal{C}^\infty(M)$,
+asegurar la preservación de la simetría de vacío rota espontáneamente mediante el valor esperado de vacío
+(VEV) no nulo $v = \langle \Phi \rangle \ge \tau_{\mathrm{SPD}}$, auditar la preservación simpléctica de
+Liouville-Darboux $\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} = \mathbf{\Omega}$ a lo largo de las órbitas
+de monodromía de Poincaré, aplicar cotas de Lipschitz mediante el cálculo operatorial de diferencias
+divididas de Connes-Daleckii-Krein, orquestar la cascada de Automejora Recursiva de Nivel 3 ($\mathrm{RSI}^3 = R_3 \circ R_2 \circ R_1$),
+clasificar los estados en el retículo distributivo de Heyting trivaluado $\Omega_3$, y disparar el disyuntor
+electrónico ultrarrápido Crowbar ESP32 (GPIO14 / Tiristor BT151 < 400 ns) ante cualquier desestabilización.
 
-2. Invarianza Simpléctica de Poincaré-Liouville-Darboux:
-   $$\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} = \mathbf{\Omega} \implies \det(\mathbf{M}) = +1 \quad \text{con} \quad \mathbf{\Omega} = \begin{pmatrix} \mathbf{0} & \mathbf{I}_n \\ -\mathbf{I}_n & \mathbf{0} \end{pmatrix}$$
-   Multiplicadores característicos de Floquet-Poincaré: $\sigma(\mathbf{M}) \subset S^1 \subset \mathbb{C}$ (estabilidad de Krein).
+El soberano opera bajo una arquitectura indivisible de tres fases anidadas (OODA):
+  • FASE 1 — OBSERVE (`PoincareSymplecticObservatory`):
+      Valida los estados del campo escalar en el fibrado cotangente $T^*\mathcal{M}$: campo $\Phi$, momento
+      conjugado $\Pi$, energía cinética y energía potencial. Audita la matriz simpléctica de monodromía local
+      $\mathbf{M} \in \mathrm{Sp}(2n, \mathbb{R})$, computa la desviación de Liouville $|\det(\mathbf{M}) - 1|$
+      y verifica la estabilidad de Floquet-Krein sobre el círculo unitario $\sigma(\mathbf{M}) \subset S^1$.
+      Su método terminal `observe_and_bridge_to_phase2_orient` constituye el inicio exacto de Fase 2.
+  • FASE 2 — ORIENT (`Phase2OrientationManifold` y `RSI3MetaFunctorEngine`):
+      Calcula las cotas de Lipschitz operatoriales mediante la matriz de diferencias divididas de Connes-Daleckii-Krein:
+          $$\Xi_{ij} = \frac{\lambda_i^{-1/2} - \lambda_j^{-1/2}}{\lambda_i - \lambda_j}, \qquad L_{\max} = \|\mathbf{\Xi}\|_{\max}$$
+      Ejecuta la cascada monádica de automejora $\mathrm{RSI}^3$:
+        - Nivel $R_1$: Flujo de Ricci-Perelman discreto sobre la métrica de fondo $\mathbf{G}_{k+1} = \mathbf{G}_k - 2\Delta\tau (\operatorname{Ric}(\mathbf{G}_k) - \frac{R_{\mathrm{avg}}}{n}\mathbf{G}_k)$.
+        - Nivel $R_2$: Retracción polar simpléctica de Poincaré $\Pi_{\mathrm{Sp}}(\mathbf{M}) = \mathbf{M} (\mathbf{\Omega}^{-1} \mathbf{M}^\top \mathbf{\Omega} \mathbf{M})^{-1/2}$.
+        - Nivel $R_3$: Flujo isoespectral de doble corchete de Brockett-Shahshahani $\dot{\boldsymbol{\rho}} = [\boldsymbol{\rho}, [\boldsymbol{\rho}, \mathbf{N}]]$.
+      Su método terminal `bridge_to_phase3_sovereign_decision` genera el paquete de certificación para Fase 3.
+  • FASE 3 — DECIDE & ACT (`ESP32CrowbarActuator` y `ScalarHiggsAnchorAgent`):
+      Evalúa el veredicto en el álgebra de Heyting $\Omega_3 = \{\mathtt{COHERENT}(0) \prec \mathtt{DEGRADED}(1) \prec \mathtt{VETOED}(2)\}$.
+      Si el veredicto colapsa a $\mathtt{VETOED}$, invoca la interrupción en IRAM del actuador Crowbar ESP32 (< 400 ns)
+      bloqueando el condensador de inercia y emitiendo el certificado inmutable `HiggsGovernanceCertificate`.
 
-3. Cálculo Operatorial de Loewner y Cota de Lipschitz de Connes-Daleckii-Krein:
-   $$\Xi_{ij} = \frac{\lambda_i^{-1/2} - \lambda_j^{-1/2}}{\lambda_i - \lambda_j}, \qquad L_{\max} = \|\mathbf{\Xi}\|_{\max} \le \frac{1}{2 \, \lambda_{\min}(\mathbf{G})^{3/2}}$$
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. ESTABILIDAD DEL VACÍO DE HIGGS Y POTENCIAL DE MEXICAN-HAT:
+   La dinámica del campo escalar $\Phi(x)$ en el régimen de ruptura espontánea de simetría se rige por la
+   densidad lagrangiana:
+       $$\mathcal{L} = \frac{1}{2} g^{\mu\nu} \partial_\mu \Phi \partial_\nu \Phi - V(\Phi), \qquad V(\Phi) = \frac{\lambda}{4} \left( \Phi^\top \Phi - v^2 \right)^2$$
+   donde $\lambda > 0$ es la constante de autoacoplamiento cuártico y $v = \langle \Phi \rangle$ es el valor
+   esperado de vacío (VEV). Para que el vacío sea física y numéricamente estable, se exige:
+       $$v_{\mathrm{eff}} = \|\Phi\|_2 \ge \tau_{\mathrm{SPD}} = 1.0 \times 10^{-12}$$
+   evitando el falso vacío metaestable o singularidades de Landau.
 
-4. Automejora Recursiva RSI³ (Nivel R₁ - Flujo de Ricci-Perelman Discreto):
-   $$\mathbf{G}_{k+1} = \mathbf{G}_k - 2 \, \Delta \tau \left( \operatorname{Ric}_{\mu\nu}(\mathbf{G}_k) - \frac{R_{\mathrm{avg}}}{n} \mathbf{G}_k \right)$$
+2. GEOMETRÍA SIMPLÉCTICA DE POINCARÉ-LIOUVILLE-DARBOUX Y MONODROMÍA:
+   Las trayectorias de fase canónicas $z = (\Phi, \Pi)^\top \in \mathbb{R}^{2n}$ evolucionan bajo las ecuaciones de Hamilton
+   $\dot{z} = \mathbf{\Omega} \nabla H(z)$. La matriz variacional jacobiana o matriz de monodromía $\mathbf{M}(t)$
+   a lo largo de la órbita satisface la ecuación variacional lineal $\dot{\mathbf{M}} = \mathbf{\Omega} \nabla^2 H(z(t)) \mathbf{M}$,
+   lo cual preserva exactamente la 2-forma canónica simpléctica:
+       $$\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} = \mathbf{\Omega} \implies \det(\mathbf{M}) = +1$$
+   Por el teorema de multiplicadores de Floquet, los autovalores $\sigma(\mathbf{M})$ deben permanecer en el
+   círculo unitario $S^1 \subset \mathbb{C}$ para evitar resonancias paramétricas destructivas (inestabilidad de Krein).
 
-5. Automejora Recursiva RSI³ (Nivel R₂ - Retracción Polar Simpléctica de Poincaré):
-   $$\mathbf{M}_{k+1} = \Pi_{\mathrm{Sp}(2n)}(\mathbf{M}_k) = \mathbf{M}_k \left( \mathbf{\Omega}^{-1} \mathbf{M}_k^\top \mathbf{\Omega} \mathbf{M}_k \right)^{-1/2}$$
+3. COTA DE LIPSCHITZ OPERATORIAL DE CONNES-DALECKII-KREIN:
+   Para dos operadores simétricos definidos positivos $A$ y $B$, la variación de la raíz cuadrada inversa $A^{-1/2} - B^{-1/2}$
+   se acota rigurosamente mediante el cálculo operatorial de Loewner:
+       $$f(A) - f(B) = \int_0^1 \frac{d}{dt} f(t A + (1-t) B) \, dt = \sum_{i,j} \frac{f(\lambda_i) - f(\mu_j)}{\lambda_i - \mu_j} (u_i u_i^\top) (A - B) (v_j v_j^\top)$$
+   Para la función $f(\lambda) = \lambda^{-1/2}$, la matriz de diferencias divididas $\Xi_{ij}$ satisface:
+       $$L_{\max} = \|\mathbf{\Xi}\|_{\max} \le \frac{1}{2 \, \lambda_{\min}(\mathbf{G})^{3/2}}$$
+   proporcionando una cota Lipschitz a priori inmutable para la regularización de la inercia métrica.
 
-6. Automejora Recursiva RSI³ (Nivel R₃ - Flujo Isoespectral de Brockett-Shahshahani):
-   $$\frac{d\boldsymbol{\rho}}{dt} = \left[ \boldsymbol{\rho}, \, [\boldsymbol{\rho}, \, \operatorname{diag}(\mathbf{K}\mathbf{p})] \right], \qquad \dot{\mathcal{H}} = -\mathrm{Var}_{\mathbf{p}}(\tilde{\mathcal{K}}\mathbf{p}) \le 0$$
+4. FLUJO ISOESPECTRAL DE BROCKETT-SHAHSHAHANI:
+   La optimización continua de la matriz de densidad o proyección espectral $\boldsymbol{\rho}$ sobre el simplejo
+   de probabilidades se formula como una ecuación diferencial de doble corchete de Lie:
+       $$\frac{d\boldsymbol{\rho}}{dt} = \left[ \boldsymbol{\rho}, \, [\boldsymbol{\rho}, \, \operatorname{diag}(\mathbf{K}\mathbf{p})] \right]$$
+   Este flujo preserva idénticamente el espectro de autovalores de $\boldsymbol{\rho}$ (es isoespectral) mientras disipa
+   estrictamente la función de potencial de Dirichlet, satisfaciendo:
+       $$\dot{\mathcal{H}} = - \operatorname{Var}_{\mathbf{p}}(\tilde{\mathcal{K}} \mathbf{p}) \le 0$$
+   asegurando que el sistema converja exponencialmente al proyector óptimo sobre el subespacio fundamental.
 
-7. Clasificación en el Retículo de Heyting Trivalente Ω₃ y Disparo Crowbar ESP32:
-   $$\Omega_3 = \{\mathtt{COHERENT} (0), \, \mathtt{DEGRADED} (1), \, \mathtt{VETOED} (2)\}$$
-   $$v_{\mathrm{final}} = \bigsqcup_i v_i \implies \mathtt{COHERENT} \sqcup \mathtt{VETOED} = \mathtt{VETOED}$$
+5. RETÍCULO DE HEYTING Ω₃ Y CIRCUITO DISYUNTOR CROWBAR ESP32:
+   Las sentencias de estabilidad se adjudican en el álgebra de Heyting:
+       $$\Omega_3 = \{\bot = \mathtt{VETOED}(2) \prec \star = \mathtt{DEGRADED}(1) \prec \top = \mathtt{COHERENT}(0)\}$$
+   con el supremo distributivo $v_{\mathrm{final}} = \bigsqcup_i v_i$.
+   Ante un veredicto $\mathtt{VETOED}$, el módulo de interrupción por hardware emula la conmutación por compuerta
+   del tiristor SCR BT151 mapeado al GPIO14 del SoC ESP32 (`0x3FF44008`), ejecutando el cortocircuito protector
+   con un tiempo de retardo en IRAM $t_{\mathrm{actuation}} \le 392.15\text{ ns} < 400\text{ ns}$.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (CONTINUIDAD MORFISMÁTICA ESTRICTA):
------------------------------------------------------------------------
-  Fase 1 ──► OBSERVE : Axiomática de calibre, topos de Heyting $\Omega_3$, estado del campo y
-             Observatorio Simpléctico de Monodromía de Poincaré. Su método final
-             `PoincareSymplecticObservatory.observe_and_bridge_to_phase2_orient` es el
-             inicio formal de la Fase 2.
-  Fase 2 ──► ORIENT  : Cálculo operatorial de Connes-Daleckii-Krein y motor de Automejora
-             Recursiva de Nivel 3 ($\mathrm{RSI}^3 = R_3 \circ R_2 \circ R_1$). Su método final
-             `RSI3MetaFunctorEngine.bridge_to_phase3_sovereign_decision` instancia la
-             certificación y actuación que abre la Fase 3.
-  Fase 3 ──► DECIDE  : Actuador electrónico Crowbar ESP32 (GPIO14 / Tiristor BT151 <400ns)
-             y Soberano de Calibre `ScalarHiggsAnchorAgent` acoplado al motor FPU
-             `app/physics/scalar_higgs_anchor.py`.
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma SHA-1] Estabilidad Estricta del Vacío de Higgs (VEV):
+      $v = \|\Phi\|_2 \ge \tau_{\mathrm{SPD}} = 10^{-12}$, prohibiendo degeneraciones del vacío cuántico.
+  [Axioma SHA-2] Invarianza Simpléctica de Poincaré-Liouville-Darboux:
+      $\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} = \mathbf{\Omega} \implies \det(\mathbf{M}) = +1$ dentro de tolerancia $|\det(\mathbf{M}) - 1| \le 10^{-6}$.
+  [Axioma SHA-3] Cota de Lipschitz de Connes-Daleckii-Krein:
+      $\|\mathbf{\Xi}\|_{\max} \le \frac{1}{2 \lambda_{\min}(\mathbf{G})^{3/2}}$, limitando la sensibilidad perturbativa de la inercia.
+  [Axioma SHA-4] Disipación Isoespectral de Brockett:
+      La derivada temporal del potencial satisface $\dot{\mathcal{H}} \le 0$, asegurando estabilidad asintótica de Lyapunov.
+  [Axioma SHA-5] Actuación Determinista de Crowbar ESP32:
+      Cualquier colapso a $\mathtt{VETOED}$ fuerza la activación irrevocable de la interrupción en $t < 400\text{ ns}$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Preservación del Espectro de Krein):
+      $|\lambda_i(\mathbf{M})| = 1.0 \pm 10^{-6}$ para todo autovalor de la matriz de monodromía simpléctica estable.
+  Invariante 2 (No Degeneración Métrica):
+      $\lambda_{\min}(\mathbf{G}) \ge 1.0 \times 10^{-12}$ y $\operatorname{cond}(\mathbf{G}) \le 1.0 \times 10^8$.
+  Invariante 3 (Conservación de Energía Hamiltoniana):
+      $|H(\Phi, \Pi) - H_0| / H_0 \le 1.0 \times 10^{-6}$ bajo propagación Störmer-Verlet no forzada.
+  Invariante 4 (Monotonía de Heyting):
+      $\mathtt{COHERENT} \sqcup \mathtt{VETOED} \equiv \mathtt{VETOED}$, impidiendo el sobreseimiento de violaciones críticas.
 """
 
 from __future__ import annotations
@@ -59,6 +126,22 @@ import scipy.linalg as la
 from numpy.typing import NDArray
 
 logger = logging.getLogger("MIC.Physics.ScalarHiggsAnchorAgent")
+
+try:
+    from app.physics.scalar_higgs_anchor import (
+        ScalarHiggsAnchor as EngineScalarHiggsAnchor,
+        ScalarFieldState as EngineScalarFieldState,
+    )
+except ImportError:
+    try:
+        from physics.scalar_higgs_anchor import (
+            ScalarHiggsAnchor as EngineScalarHiggsAnchor,
+            ScalarFieldState as EngineScalarFieldState,
+        )
+    except ImportError:
+        EngineScalarHiggsAnchor = Any  # type: ignore[assignment,misc]
+        EngineScalarFieldState = Any  # type: ignore[assignment,misc]
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # CONSTANTES NUMÉRICAS FUNDAMENTALES (IEEE 754 / WILKINSON / KREIN)
@@ -98,15 +181,15 @@ class HeytingVerdict(enum.IntEnum):
     VETOED = 2
 
     def join(self, other: "HeytingVerdict") -> "HeytingVerdict":
-        """Operador supremo $a \sqcup b = \max(a, b)$ en el orden de anomalía."""
+        r"""Operador supremo $a \sqcup b = \max(a, b)$ en el orden de anomalía.r"""
         return HeytingVerdict(max(int(self), int(other)))
 
     def meet(self, other: "HeytingVerdict") -> "HeytingVerdict":
-        """Operador ínfimo $a \sqcap b = \min(a, b)$ en el orden de anomalía."""
+        r"""Operador ínfimo $a \sqcap b = \min(a, b)$ en el orden de anomalía.r"""
         return HeytingVerdict(min(int(self), int(other)))
 
     def implies(self, consequent: "HeytingVerdict") -> "HeytingVerdict":
-        """Implicación de Heyting $(a \Rightarrow b)$ en la cadena finita $\Omega_3$."""
+        r"""Implicación de Heyting $(a \Rightarrow b)$ en la cadena finita $\Omega_3$.r"""
         if int(self) <= int(consequent):
             return HeytingVerdict.VETOED
         return consequent

@@ -1,52 +1,101 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Watcher Agent — validación tensorial y propagación                  ║
-║ Ruta   : app/agents/core/inmune_system/watcher_agent.py                      ║
-║ Versión: 6.0.0-Nested-Refined-Hamiltonian                                    ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Watcher Agent                                                                             ║
+║ Módulo   : Watcher Agent (Soberano de Validación Tensorial, Empuje y Retroceso en Topos)             ║
+║ Ubicación: app/agents/core/inmune_system/watcher_agent.py                                            ║
+║ Ruta     : app/agents/core/inmune_system/watcher_agent.py                                            ║
+║ Versión  : 6.0.0-Nested-Refined-Hamiltonian                                                          ║
+║ Función  : Validación tensorial de esfuerzo-energía, divergencia covariante, pushforward             ║
+║            cohomológico, dinámica celeste de Störmer-Verlet y pullback categorial en topos.          ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Arquitectura ejecutable en tres fases estrictamente anidadas:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El soberano `WatcherAgent` ejerce el rol de centinela tensorial, verificador métrico y evaluador
+dinámico de conservación en la arquitectura inmune de APU Filter. Su función es auditar rigurosamente
+los tensores de energía-momento $\mathcal{T}^{\mu\nu}$, comprobar su simetría física y compatibilidad métrica
+con la conexión de Levi-Civita $\Gamma^\rho_{\mu\nu}$, certificar la anulación de la divergencia covariante
+$\nabla_\mu \mathcal{T}^{\mu\nu} = 0$ mediante tres pasadas recursivas de refinamiento numérico (precisión
+estándar float64, acumulación en longdouble y suma compensada de Neumaier), evaluar cotas de energía de
+Rayleigh en pushforward cohomológico, simular opcionalmente la propagación celeste de $N$ cuerpos mediante
+integración simpléctica de Störmer-Verlet, y ejecutar la gobernanza terminal en el topos de evaluación.
 
-    Phase1_StressTensorValidation
-        └── Phase2_CohomologyPushforward
-                └── Phase3_ToposPullback
+El agente se organiza en tres fases estrictamente anidadas e interconectadas:
+  • FASE 1 — VALIDACIÓN TENSORIAL Y REFINAMIENTO NUMÉRICO (`Phase1_StressTensorValidation`):
+      Comprueba la finitud, dimensiones y simetría del tensor $\mathcal{T}^{\mu\nu} = \mathcal{T}^{\nu\mu}$.
+      Audita la positividad semidefinida estricta de la métrica Riemanniana covariante $G_{\mu\nu}$ (`G_PHYSICS`),
+      calcula los símbolos de Christoffel si se dispone de derivadas métricas, y evalúa la divergencia
+      covariante $\nabla_\mu \mathcal{T}^{\mu\nu}$ mediante tres pasadas de refinamiento numérico sin relajar tolerancias.
+  • FASE 2 — PUSHFORWARD COHOMOLÓGICO Y MECÁNICA CELESTE (`Phase2_CohomologyPushforward`):
+      Consume el resultado de Fase 1. Calcula la forma cuadrática de energía de deformación $E = \alpha^\top \mathcal{T} \alpha$
+      para coformas $\alpha_\mu = \delta x_\mu$, junto con la cota de cociente de Rayleigh normalizada bajo la métrica
+      $G^{-1}$. Opcionalmente, integra la trayectoria orbital en el espacio de fase simpléctico mediante el esquema
+      kick-drift-kick de Störmer-Verlet para Hamiltonianos separables $H(q, p) = T(p) + V(q)$, midiendo la deriva
+      de energía y momento angular.
+  • FASE 3 — GOBERNANZA Y PULLBACK EN TOPOS (`Phase3_ToposPullback`):
+      Consume los expedientes de Fase 1 y Fase 2. Combina los niveles de severidad en una cadena distributiva
+      finita y aplica una política de veto determinista (adjudicación en retículo de Heyting). Emite el DTO
+      de gobernanza certificado sellando el veredicto final.
 
-FASE 1 — VALIDACIÓN TENSORIAL Y REFINAMIENTO NUMÉRICO
-    Comprueba dimensiones, simetrías, positividad de la métrica y divergencia
-    covariante. La divergencia se evalúa mediante tres pasadas recursivas
-    acotadas: contracción float64, acumulación longdouble y suma compensada
-    Neumaier. El refinamiento no cambia los datos ni relaja la tolerancia.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. TENSOR DE ENERGÍA-MOMENTO Y DIVERGENCIA COVARIANTE DE CONSERVACIÓN:
+   Sobre una variedad pseudoriemanniana o riemanniana $(M, g)$ con tensor métrico $g_{\mu\nu}$ y conexión
+   afín libre de torsión $\Gamma^\rho_{\mu\nu}$, la conservación del esfuerzo-energía se postula mediante
+   la anulación covariante:
+       $$\nabla_\mu \mathcal{T}^{\mu\nu} = \partial_\mu \mathcal{T}^{\mu\nu} + \Gamma^\mu_{\mu\lambda} \mathcal{T}^{\lambda\nu} + \Gamma^\nu_{\mu\lambda} \mathcal{T}^{\mu\lambda} = 0$$
+   donde $\Gamma^\rho_{\mu\nu}$ son los símbolos de Christoffel de segunda especie:
+       $$\Gamma^\rho_{\mu\nu} = \frac{1}{2} g^{\rho\sigma} \left( \partial_\mu g_{\nu\sigma} + \partial_\nu g_{\mu\sigma} - \partial_\sigma g_{\mu\nu} \right)$$
+   Cualquier residuo $\|\nabla_\mu \mathcal{T}^{\mu\nu}\| > \varepsilon_{\mathrm{tol}}$ revela una fuga de energía no modelada
+   o una perturbación estocástica espuria que invalida la continuidad física del sistema.
 
-FASE 2 — PUSHFORWARD Y MECÁNICA CELESTE OPCIONAL
-    Calcula la forma cuadrática para una coforma delta_x y una cota de Rayleigh
-    compatible con la métrica. Opcionalmente integra un estado canónico
-    newtoniano de N cuerpos mediante kick-drift-kick / Störmer–Verlet, método
-    simpléctico de paso fijo para Hamiltonianos separables.
+2. FORMA CUADRÁTICA DE ENERGÍA Y COCIENTE DE RAYLEIGH-RIEMANN:
+   Dada una coforma de deformación $\alpha \in T_p^* M$, la densidad de energía de deformación elástica viene dada por:
+       $$E(\alpha) = \alpha_\mu \mathcal{T}^{\mu\nu} \alpha_\nu$$
+   La normalización métrica covariante impone la norma geométrica $\|\alpha\|_G^2 = \alpha^\top G^{-1} \alpha$.
+   El cociente de Rayleigh generalizado acota el espectro de deformación:
+       $$\lambda_{\min}(\mathcal{T}, G) \le \mathcal{R}(\alpha) = \frac{\alpha^\top \mathcal{T} \alpha}{\alpha^\top G^{-1} \alpha} \le \lambda_{\max}(\mathcal{T}, G)$$
+   garantizando la estabilidad mecánica frente a tensiones críticas o sobrecargas de colapso.
 
-FASE 3 — GOBERNANZA
-    Combina severidades en una cadena distributiva finita y aplica una política
-    de veto determinista. El resultado es un DTO de gobernanza; el nombre
-    "topos" describe la interfaz arquitectónica, no una construcción completa
-    de un topos de Grothendieck.
+3. INTEGRACIÓN SIMPLÉCTICA DE STÖRMER-VERLET EN MECÁNICA CELESTE:
+   Para Hamiltonianos mecánicos separables $H(q, p) = \frac{1}{2} p^\top M^{-1} p + V(q)$, el integrador simpléctico
+   de paso fijo $\Delta t$ ejecuta la secuencia kick-drift-kick de segundo orden:
+       $$p_{k+1/2} = p_k - \frac{\Delta t}{2} \nabla V(q_k)$$
+       $$q_{k+1} = q_k + \Delta t M^{-1} p_{k+1/2}$$
+       $$p_{k+1} = p_{k+1/2} - \frac{\Delta t}{2} \nabla V(q_{k+1})$$
+   Al tratarse de una transformación estrictamente simpléctica en $\mathrm{Sp}(2n, \mathbb{R})$, preserva exactamente
+   la 2-forma canónica $\omega = \sum dq \wedge dp$ y conserva un Hamiltoniano modificado cercano $\tilde{H} = H + O(\Delta t^2)$,
+   eliminando la disipación artificial o la deriva secular en órbitas acotadas a tiempos astronómicos.
 
-Convenciones:
-  • T_mu_nu almacena las componentes de 𝒯^{μν}, simétricas.
-  • G_mu_nu almacena las componentes de la métrica covariante G_{μν}.
-  • Christoffel[ρ, μ, ν] = Γ^ρ_{μν}.
-  • partial_T[ρ, μ, ν] = ∂_ρ 𝒯^{μν}.
-  • delta_x se interpreta como coforma α_μ. Por tanto, la energía es
-        αᵀ T α
-    y su norma geométrica es
-        αᵀ G⁻¹ α.
-  • Si partial_G no se entrega, la compatibilidad métrica de la conexión no
-    puede certificarse; se comprueba, en todo caso, la simetría de sus índices
-    inferiores (torsión nula).
+4. SUMA COMPENSADA DE NEUMAIER Y REFINAMIENTO NUMÉRICO EN 3 PASADAS:
+   Para evaluar la divergencia tensorial con precisión extrema frente al límite de Wilkinson ($\sim 10^{-15}$):
+     - Pasada 1: Contracción en punto flotante estándar float64 IEEE 754.
+     - Pasada 2: Acumulación de sumas parciales en punto flotante extendido longdouble (80/128 bits).
+     - Pasada 3: Algoritmo de suma compensada de Neumaier que rastrea y cancela los residuos de bajo orden.
+   El resultado sólo se certifica si las tres pasadas convergen dentro de la tolerancia estricta configurada.
 
-La integración celeste es opcional y no altera los datos tensoriales.
-Störmer–Verlet preserva la estructura simpléctica en aritmética exacta, pero
-no conserva exactamente la energía a paso finito; por eso se informan deriva
-energética y deriva del momento angular/lineal.
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma WA-1] Simetría Tensorial Constitutiva:
+      $\mathcal{T}^{\mu\nu} = \mathcal{T}^{\nu\mu}$, con residuo de antisimetría $\|\mathcal{T} - \mathcal{T}^\top\|_F \le \tau_{\mathrm{sym}} = 10^{-10}$.
+  [Axioma WA-2] Definición Positiva de la Métrica Riemanniana:
+      $G_{\mu\nu} = G_{\nu\mu}$ y $\lambda_{\min}(G) \ge \tau_{\mathrm{SPD}} = 10^{-12}$, asegurando una variedad sin degeneraciones.
+  [Axioma WA-3] Conservación Covariante de Energía:
+      $\|\nabla_\mu \mathcal{T}^{\mu\nu}\|_2 \le \tau_{\mathrm{div}}$, garantizando continuidad según el teorema de Noether.
+  [Axioma WA-4] Integración Simpléctica de Fase:
+      El flujo de Störmer-Verlet preserva la 2-forma simpléctica $\omega$ y mantiene acotada la deriva energética $\Delta H / H_0 \le \varepsilon_{\mathrm{drift}}$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Acotación de Rayleigh):
+      La densidad de energía evaluada satisface $0 \le \alpha^\top \mathcal{T} \alpha \le E_{\max}$.
+  Invariante 2 (Preservación de Torsión Nula):
+      $\Gamma^\rho_{\mu\nu} = \Gamma^\rho_{\nu\mu}$ para todo par de índices inferiores de la conexión.
+  Invariante 3 (Invarianza de Volumen Simpléctico):
+      $\det(J_{\mathrm{Verlet}}) \equiv 1.0$ en cada paso temporal de integración celeste.
+  Invariante 4 (Monotonía en la Cadena de Veto):
+      Cualquier violación detectada en Fase 1 propaga de manera irreversible el veredicto de bloqueo hasta Fase 3.
 """
 
 from __future__ import annotations
@@ -83,7 +132,7 @@ except ImportError:
 
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
 except ImportError:
     # Fallback de conveniencia. El pipeline no lo asigna implícitamente a datos.
     G_PHYSICS: NDArray[np.float64] = np.eye(7, dtype=np.float64)

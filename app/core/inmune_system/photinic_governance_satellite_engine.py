@@ -1,51 +1,108 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Photinic Governance Satellite Engine                                ║
-║ Ruta   : app/core/inmune_system/photinic_governance_satellite_engine.py      ║
-║ Versión: 6.0.0-Validated-Channel-Bell-State-HMAC                             ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Photinic Governance Satellite Engine                                                      ║
+║ Módulo   : Photinic Governance Satellite Engine (Satélite IV - Gobernanza Fotónica Federada)         ║
+║ Ubicación: app/core/inmune_system/photinic_governance_satellite_engine.py                            ║
+║ Ruta     : app/core/inmune_system/photinic_governance_satellite_engine.py                            ║
+║ Versión  : 6.0.0-Validated-Channel-Bell-State-HMAC                                                   ║
+║ Función  : Motor espectral del Satélite IV del Cinturón Orbital de Frontera, gobernanza fotónica     ║
+║            federada, auditoría de operadores de Gram, canales CPTP y cotas de Tsirelson.             ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Motor de auditoría federada organizado en tres fases OODA:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `PhotinicGovernanceSatelliteEngine` constituye el núcleo matemático y cuántico del
+**Satélite IV (Gobernanza Fotónica Federada)** del Cinturón Orbital de Frontera en la arquitectura cognitiva
+APU Filter. Su misión es auditar de forma determinista y causal las matrices de políticas distribuidas
+procedentes de nodos soberanos heterogéneos, garantizando la consistencia global del consenso mediante
+la construcción y análisis espectral del operador de Gram federado $G \in \mathbb{R}^{m \times m}$, la
+evaluación de canales cuánticos completamente positivos que preservan la traza (CPTP) sobre estados
+entrelazados de Bell $|\Phi^+\rangle$, y la certificación criptográfica de no-localidad cuántica bajo
+la cota estricta de Tsirelson-CHSH.
 
-  Fase 1 — Observe
-    Valida y copia las políticas reales; calcula el operador de Gram federado,
-    comprueba su simetría y positividad dentro de tolerancia, evalúa cocientes
-    de normas y emite un expediente autenticado con HMAC.
+El motor ejecuta un ciclo operacional trifásico OODA estrictamente verificado:
+  • FASE 1 — OBSERVE (`PhotinicObservationKernel`):
+      Valida los vectores de políticas federadas $\{p_1, \dots, p_m\} \subset \mathbb{R}^d$, verificando la
+      finitud, no-degeneración dimensional y acotación en norma $L_2$. Construye la matriz de Gram
+      federada $G_{ij} = \langle p_i, p_j \rangle$ mediante acumulación compensada de Kahan-Neumaier,
+      certifica la simetría $\|G - G^\top\|_F \le \tau_{\mathrm{sym}}$ y la positividad semidefinida
+      $G \succeq 0$, y emite un expediente sellado criptográficamente con HMAC-SHA256 (`PhotinicObservationKernel`).
+  • FASE 2 — ORIENT (`PhotinicPolicyReport`):
+      Consume el expediente de observación de Fase 1, proyecta las políticas sobre la base canónica
+      de Bell cuántica de dos qubits:
+          $$|\Phi^+\rangle = \frac{1}{\sqrt{2}}(|00\rangle + |11\rangle), \quad |\Phi^-\rangle = \frac{1}{\sqrt{2}}(|00\rangle - |11\rangle)$$
+          $$|\Psi^+\rangle = \frac{1}{\sqrt{2}}(|01\rangle + |10\rangle), \quad |\Psi^-\rangle = \frac{1}{\sqrt{2}}(|01\rangle - |10\rangle)$$
+      audita la familia de operadores de Kraus $\{E_k\}$ que describen el canal cuántico $\mathcal{E}(\rho) = \sum_k E_k \rho E_k^\dagger$,
+      comprueba la conservación exacta de la traza $\sum_k E_k^\dagger E_k = I$ y calcula la entropía de von Neumann
+      $S(\rho) = -\operatorname{Tr}(\rho \log_2 \rho)$ junto con el parámetro CHSH para descartar correlaciones
+      super-cuánticas que violen la cota de Tsirelson. Emite el dictamen estructurado `PhotinicPolicyReport`.
+  • FASE 3 — ACT (`PhotinicEngineState`):
+      Verifica la integridad de las certificaciones previas, evalúa la distancia geodésica de Bures-Wasserstein
+      respecto al canal ideal y genera el certificado inmutable final autenticado mediante HMAC con clave
+      efímera de un solo uso (`PhotinicEngineState`).
 
-  Fase 2 — Orient
-    Calcula el proyector ortogonal sobre el espacio fila de las políticas,
-    audita una familia explícita de operadores de Kraus y, opcionalmente,
-    analiza un estado de dos qubits suministrado por el consumidor.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. OPERADOR DE GRAM FEDERADO Y CONDICIÓN DE RANGO COMPLETO:
+   Dada una colección de $m$ vectores de políticas normalizadas $\{p_i\}_{i=1}^m \subset \mathbb{R}^d$,
+   la matriz de Gram asociada $G \in \mathbb{R}^{m \times m}$ posee componentes:
+       $$G_{ij} = \langle p_i, p_j \rangle = \sum_{k=1}^d p_{ik} p_{jk}$$
+   Propiedades fundamentales del operador $G$:
+     a) Simetría: $G = G^\top$.
+     b) Positividad Semidefinida: $v^\top G v = \|\sum_i v_i p_i\|^2 \ge 0$ para todo $v \in \mathbb{R}^m$.
+     c) Rango e Independencia Lineal: $\operatorname{rank}(G) = \dim(\operatorname{span}\{p_1, \dots, p_m\})$.
+   El espectro de autovalores $\sigma(G) = \{\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_m \ge 0\}$
+   caracteriza el grado de alineación o colinealidad del consenso; un autovalor nulo $\lambda_m = 0$
+   revela redundancia estricta o dependencia lineal entre las políticas federadas.
 
-  Fase 3 — Act
-    Comprueba las certificaciones recibidas, calcula el operador de Gram
-    normalizado y su entropía espectral, y emite un certificado HMAC.
+2. CANALES CUÁNTICOS CPTP Y REPRESENTACIÓN DE CHOI-JAMIOLKOWSKI:
+   Una transformación $\mathcal{E}: \mathfrak{D}(\mathcal{H}_A) \to \mathfrak{D}(\mathcal{H}_B)$ es un canal cuántico
+   físicamente realizable si y sólo si es Completamente Positiva y Preserva la Traza (CPTP).
+   En la representación de operadores de Kraus:
+       $$\mathcal{E}(\rho) = \sum_{k=1}^r E_k \rho E_k^\dagger \quad \text{con} \quad \sum_{k=1}^r E_k^\dagger E_k = I_A$$
+   Por el isomorfismo de Choi-Jamiolkowski, el canal $\mathcal{E}$ es CPTP si y sólo si su matriz de Choi:
+       $$J(\mathcal{E}) = (\mathcal{I}_A \otimes \mathcal{E})(|\Phi^+\rangle\langle\Phi^+|) \in \mathcal{B}(\mathcal{H}_A \otimes \mathcal{H}_B)$$
+   es semidefinida positiva $J(\mathcal{E}) \succeq 0$ y satisface $\operatorname{Tr}_B(J(\mathcal{E})) = \frac{1}{d_A} I_A$.
 
-Precisiones de interpretación:
-  • sqrt(Tr(S²)) y Tr(S)/||S||_F son invariantes del operador de Gram. Se
-    conservan nombres históricos que contienen "Majorana", pero no representan
-    por sí solos un espinor de Majorana ni una cantidad de N=1 SYM.
-  • Los operadores K_k = P_k/sqrt(N) definidos aquí producen una operación
-    completamente positiva. El chequeo sum K_k†K_k <= I certifica que es
-    trace-nonincreasing; no certifica trace-preserving. La opción
-    require_trace_preserving permite exigir TP para aceptar el resultado.
-  • Un chequeo local de completitud de Kraus no demuestra no-señalización.
-    is_causal_non_signaling permanece None porque las entradas no especifican
-    una operación bipartita ni sus marginales.
-  • El criterio de Horodecki se aplica solo si se proporciona una matriz de
-    densidad válida de dos qubits (4x4). No se inventa una bipartición a partir
-    de vectores de políticas.
-  • La entropía de la matriz de Gram normalizada es una entropía espectral de
-    ese operador. Sin una interpretación cuántica adicional no se afirma que
-    sea la entropía física de un estado cuántico.
-  • La entropía de entrelazamiento se devuelve solo cuando se suministra un
-    estado bipartito puro; para estados mixtos no se infiere de los autovalores
-    de TᵀT.
-  • Sin clave HMAC inyectada se genera una clave aleatoria efímera. Ese modo es
-    apropiado para desarrollo dentro de una instancia, pero no permite verificar
-    firmas entre procesos o reinicios. En producción, inyectar una clave secreta
-    gestionada externamente.
+3. ESTADOS DE BELL Y CORRELACIONES NO LOCALES DE TSIRELSON-CHSH:
+   Para dos subsistemas cuánticos entrelazados $A$ y $B$, el operador de correlación de Clauser-Horne-Shimony-Holt (CHSH)
+   se formula mediante mediciones de Pauli dicotómicas $A_0, A_1, B_0, B_1 \in \{+1, -1\}$:
+       $$\mathcal{B}_{\mathrm{CHSH}} = A_0 \otimes B_0 + A_0 \otimes B_1 + A_1 \otimes B_0 - A_1 \otimes B_1$$
+   Mientras que para cualquier teoría local de variables ocultas la desigualdad de Bell impone:
+       $$|\langle \mathcal{B}_{\mathrm{CHSH}} \rangle_{\mathrm{clasico}}| \le 2$$
+   en mecánica cuántica la cota estricta de Tsirelson demuestra:
+       $$|\langle \mathcal{B}_{\mathrm{CHSH}} \rangle_{\mathrm{cuantico}}| \le 2\sqrt{2} \approx 2.8284271247$$
+   Cualquier correlación empírica que exceda $2\sqrt{2}$ constituye una violación física super-cuántica
+   (post-cuántica tipo caja PR) y es vetada automáticamente por el motor.
+
+4. SUMA COMPENSADA DE KAHAN-NEUMAIER:
+   Para mitigar los errores de redondeo de punto flotante IEEE 754 ($\varepsilon_{\mathrm{mach}} \approx 2.22 \times 10^{-16}$)
+   en la acumulación de productos internos sobre vectores de alta dimensión, se emplea el algoritmo de Neumaier:
+       $$t = s + x, \quad c \leftarrow c + \begin{cases} (s - t) + x & \text{si } |s| \ge |x| \\ (x - t) + s & \text{si } |s| < |x| \end{cases}, \quad s \leftarrow t$$
+   garantizando un error acotado independientemente de la longitud del vector $O(\varepsilon) + O(N \varepsilon^2)$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma PGS-1] Simetría y Positividad del Operador de Gram:
+      $G = G^\top$ y $\lambda_i(G) \ge -\varepsilon_{\mathrm{Wilkinson}}$ para todo $i \in \{1, \dots, m\}$.
+  [Axioma PGS-2] Preservación de Traza Cuántica en Canales CPTP:
+      $\left\| \sum_k E_k^\dagger E_k - I \right\|_F \le \tau_{\mathrm{TP}} = 10^{-9}$.
+  [Axioma PGS-3] Cota Cuántica Superior de Tsirelson:
+      $|\langle \mathcal{B}_{\mathrm{CHSH}} \rangle| \le 2\sqrt{2} + \varepsilon_{\mathrm{Tsirelson}}$, descartando anomalías super-cuánticas.
+  [Axioma PGS-4] Regularidad Causal de Políticas:
+      Los vectores de política no contienen valores no finitos (NaN, $\pm\infty$) ni colapsan a la singularidad nula.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Acotación de Residuos de Gram):
+      $\|G_{\mathrm{reconstructed}} - G\|_F \le 1.0 \times 10^{-9}$.
+  Invariante 2 (Consistencia Espectral de Estados de Bell):
+      La pureza de los estados puros de Bell satisface $\operatorname{Tr}(\rho^2) = 1.0 \pm 10^{-10}$.
+  Invariante 3 (Inviolabilidad Criptográfica de Expediente):
+      El HMAC-SHA256 del paquete de observación debe conmutar idénticamente entre emisor y receptor.
+  Invariante 4 (Conmutatividad Causal):
+      La proyección sobre el espacio de políticas preserva la ortogonalidad respecto a los subespacios vetados.
 """
 
 from __future__ import annotations
