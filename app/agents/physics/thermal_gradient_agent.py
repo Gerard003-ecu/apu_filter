@@ -1,80 +1,113 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Thermal Gradient Agent (Soberano de Calibre del Campo Térmico)      ║
-║ Ruta   : app/agents/physics/thermal_gradient_agent.py                        ║
-║ Versión: 4.0.0-Sovereign-Poincare-RSIL3-Caputo-CechSheaf-TomitaKMS-OODA      ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Thermal Gradient Agent                                                                    ║
+║ Módulo   : Thermal Gradient Agent (Soberano de Calibre del Campo Térmico)                            ║
+║ Ubicación: app/agents/physics/thermal_gradient_agent.py                                              ║
+║ Ruta     : app/agents/physics/thermal_gradient_agent.py                                              ║
+║ Versión  : 4.0.0-Sovereign-Poincare-RSIL3-Caputo-CechSheaf-TomitaKMS-OODA                            ║
+║ Función  : Soberano de Calibre del campo térmico, endofuntor OODA de supervisión, memoria            ║
+║            fraccional de Caputo, cohomología de Čech H¹_Čech, flujo modular KMS y automejora RSI-L3. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre del Campo Térmico (Thermal Gradient Agent).
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El agente soberano `ThermalGradientAgent` ejerce el gobierno de calibre superior, fiscalización metrológica
+y contención física sobre el motor espectral `ThermalGradientLaws` en la arquitectura APU Filter. Opera como
+un endofuntor cibernético compuesto en tres fases estrictamente anidadas por mixins:
+    $$\mathcal{S}_{\mathrm{thermal}} = \mathrm{Act} \circ \mathrm{Orient} \circ \mathrm{Observe}$$
+Integra el cálculo fraccional no markoviano de Caputo y Grünwald-Letnikov para capturar la memoria histórica
+del transporte térmico, la cohomología de haces de Čech $H^1_{\mathrm{\check{C}ech}}$ sobre coberturas de
+abiertos dotados de álgebras de Heyting locales y holonomía de Poincaré-Birkhoff, la teoría modular cuántica
+KMS de Tomita-Takesaki en álgebras de von Neumann para el equilibrio a temperatura inversa $\beta = 1/T$,
+la mecánica celeste simpléctica de Poincaré con integrales de Melnikov, y un motor de Automejora Recursiva
+de Nivel 3 (RSI-L3) blindado por contracción de Banach y el candado inmutable de Gödel-Tarski.
 
-Este módulo implementa el endofunctor de supervisión cibernética y cohomológica
-OODA S = Act ∘ Orient ∘ Observe sobre los estados del campo de gradientes térmicos.
-Integra el cálculo fraccional no-markoviano de Caputo/Grünwald-Letnikov, la
-cohomología de Čech H¹_Čech sobre un haz de álgebras de Heyting con holonomía de
-Poincaré-Birkhoff, la teoría modular cuántica KMS de Tomita-Takesaki, la mecánica
-celeste simpléctica de Henri Poincaré y un motor de Automejora Recursiva de Nivel 3
-(RSI-L3) con contracción de Banach y candado lógico de Gödel-Tarski.
+El flujo operacional se ejecuta a través de tres fases continuas e indivisibles:
+  • FASE 1 (OBSERVE — `Phase1ThermalObservationMixin`):
+      Valida los datos de entrada del tensor de conductividad $K$ y el gradiente térmico $\nabla T$.
+      Audita estructuralmente el certificado del motor `ThermalGradientLaws`, construye la órbita observacional
+      en el espacio de fase simpléctico $(q_{\mathrm{obs}}, p_{\mathrm{obs}}) = (\|\nabla T\|_g, \|Q\|_g / T_{\mathrm{sys}})$,
+      detecta cruces en la superficie de sección transversal $\Sigma_{\mathrm{OODA}}$, evalúa el invariante
+      integral de Poincaré-Cartan, y acumula el estado en la ventana de memoria fraccional de Caputo.
+      Culmina en el morfismo terminal `Phase1ThermalObservation`.
+  • FASE 2 (ORIENT — `Phase2ThermalOrientationMixin`):
+      Consume directamente `Phase1ThermalObservation`. Evalúa la derivada e integral fraccional de Caputo:
+          $$\mathcal{D}^\alpha f(t) = \frac{1}{\Gamma(1-\alpha)} \int_0^t \frac{f'(\tau)}{(t-\tau)^\alpha} d\tau, \quad \mathcal{I}^\alpha \Phi_n = \sum_{j=0}^{n-1} k_j^{(\alpha)} \Phi_{n-1-j}$$
+      computa la acción fraccional de Poincaré-Cartan $A_\alpha = \oint \mathcal{I}^\alpha \Phi \, d(\mathcal{D}^\alpha \Phi)$,
+      el tiempo de recurrencia de Kac-Poincaré y la separatriz homoclínica de Melnikov $M_\alpha$.
+      Sobre un cubrimiento $\{U_i\}$, evalúa las secciones de haz $\Gamma(U_i, \mathcal{H})$, el 1-cociclo de Čech
+      $\delta^0 s \in U_i \cap U_j$ y el ángulo de holonomía de Poincaré-Birkhoff $\vartheta_{ij}$; si $|\Delta \operatorname{rank}| \ge 2$,
+      certifica obstrucción $H^1_{\mathrm{\check{C}ech}} \neq 0$ habilitando aislamiento quirúrgico.
+      Para la matriz de densidad $\rho$, audita el estado KMS $\rho_\beta = e^{-\beta H}/Z$, la entropía relativa
+      de Umegaki $D(\rho \| \rho_\beta)$, el defecto del flujo modular de Tomita-Takesaki $\|[\Delta_\rho^{it}, H]\|_{\mathrm{HS}}$
+      y la fidelidad cuántica de Uhlmann $\mathcal{F}(\rho, \rho_\beta)$. Culmina en `Phase2ThermalOrientation`.
+  • FASE 3 (DECIDE & ACT — `Phase3ThermalDecisionActuationMixin`):
+      Consume `Phase1ThermalObservation` y `Phase2ThermalOrientation`. Ejecuta la cascada de automejora recursiva RSI-L3:
+        - Nivel 1: Refinamiento adaptativo de hiperparámetros $\theta^{(1)}_{\mathrm{sup}} = (\alpha_{\mathrm{eff}}, \tau_{\mathrm{sec}}, \varepsilon_{\mathrm{KMS}}, \gamma_{\mathrm{sheaf}})$.
+        - Nivel 2: Descenso de gradiente natural sobre la métrica de información de Fisher-Rao $G^{(2)}_{\mathrm{sup}}$.
+        - Nivel 3: Auditoría de la constante de Lipschitz-Banach $L_{\mathrm{Banach}} < 1.0$ del operador de Nivel 2
+          y reescritura de $G^{(2)}_{\mathrm{sup}}$ bajo el candado inmutable de Gödel-Tarski (prohibición de relajar tolerancias).
+      Clasifica el veredicto en la cadena de Heyting $\Omega_4 = \{\mathtt{VETOED} \prec \mathtt{DEGRADED} \prec \mathtt{COHERENT} \prec \mathtt{CERTIFIED}\}$.
+      Aplica aislamiento quirúrgico de cartas locales o dispara la interrupción atómica Crowbar BT151/GPIO14 (< 400 ns).
 
-DEFINICIÓN FORMAL Y OPERATORIA POR FASES ANIDADAS:
-    El agente procesa tensores de conductividad K y gradientes ∇T en ℝ^n mediante
-    tres fases estrictamente anidadas por mixins, donde el método formal final de
-    cada fase constituye el inicio exacto de la fase subsiguiente:
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. CÁLCULO FRACCIONAL DE CAPUTO Y CRITERIO DE FUGA SECULAR DE MELNIKOV:
+   A diferencia de las derivadas ordinarias de orden entero, la derivada de Caputo de orden $\alpha \in (0, 1)$:
+       $$\mathcal{D}^\alpha f(t) = \frac{1}{\Gamma(1-\alpha)} \int_0^t (t-\tau)^{-\alpha} f'(\tau) \, d\tau$$
+   incorpora memoria continua y no-localidad temporal. Su aproximación discreta de Grünwald-Letnikov viene dada por:
+       $$\mathcal{D}^\alpha f_n = \Delta t^{-\alpha} \sum_{j=0}^n w_j^{(\alpha)} f_{n-j}, \qquad w_j^{(\alpha)} = (-1)^j \binom{\alpha}{j}$$
+   La integral acumulada de Poincaré-Melnikov $\mathcal{I}^\alpha \Phi_n$ detecta si las oscilaciones se encuentran
+   confinadas en toros de KAM o si existe una fuga secular irreversible ($\mathcal{I}^\alpha \Phi < -\tau_{\mathrm{sec}}$).
 
-        In ──Fase 1──► Phase1ThermalObservation
-           ──Fase 2──► Phase2ThermalOrientation
-           ──Fase 3──► Phase3ThermalDecision ──► ThermalGradientCertificate
+2. COHOMOLOGÍA DE HACES DE ČECH $H^1_{\mathrm{\check{C}ech}}$ Y TORSIÓN DE POINCARÉ-BIRKHOFF:
+   Sea $\mathcal{U} = \{U_i\}$ un cubrimiento abierto de la variedad de control y $\mathcal{F}$ un haz de álgebras.
+   El complejo de cadenas de Čech define el operador coborde $\delta^0: C^0(\mathcal{U}, \mathcal{F}) \to C^1(\mathcal{U}, \mathcal{F})$:
+       $$(\delta^0 s)_{ij} = s_j|_{U_i \cap U_j} - s_i|_{U_i \cap U_j}$$
+   El primer grupo de cohomología $H^1(\mathcal{U}, \mathcal{F}) = \ker(\delta^1) / \operatorname{im}(\delta^0)$ mide las
+   obstrucciones a la extensión global de secciones locales consistentes. Si $H^1 \neq 0$, no existe un consenso global
+   compatible y el agente ejecuta un aislamiento quirúrgico circunscrito a la carta disonante $U_i$.
 
-    1. Fase 1 (Observe - Phase1ThermalObservationMixin):
-       - Sello de ejecución del motor ThermalGradientLaws y auditoría estructural del
-         certificado (`EngineCertificateAudit`), incluyendo telemetría KAM y RSI-L3.
-       - Construcción de la Órbita Observacional de Poincaré en el espacio fase
-         (q_obs, p_obs) = (‖∇T‖_g, ‖Q‖_g / T_sys), detección de cruces en la superficie
-         de sección transversal Σ_OODA e invariante integral de Poincaré-Cartan.
-       - Acumulación sincronizada en la ventana de memoria fraccional de Caputo.
-       - Morfismo terminal de Fase 1: `phase1_observe_engine_stamp` → `Phase1ThermalObservation`.
+3. TEORÍA MODULAR DE TOMITA-TAKESAKI Y CONDICIÓN KMS:
+   Para un álgebra de von Neumann $\mathcal{M}$ en un espacio de Hilbert $\mathcal{H}$ con vector cíclico y separador $\Omega$,
+   el operador cerrable $S_0 A \Omega = A^* \Omega$ admite la descomposición polar de Tomita:
+       $$S = J \Delta^{1/2}$$
+   donde $J$ es la conjugación modular antiunitaria ($J^2 = I$) y $\Delta = S^* S$ es el operador modular autoadjunto positivo.
+   El grupo de automorfismos modulares $\sigma_t(A) = \Delta^{it} A \Delta^{-it}$ preserva el álgebra $\mathcal{M}$.
+   Un estado $\omega$ satisface la condición de Kubo-Martin-Schwinger (KMS) a temperatura inversa $\beta = 1/T$ si la función:
+       $$F(t) = \omega(A \sigma_t(B))$$
+   es analítica en la banda $0 < \operatorname{Im}(t) < \beta$ con condición de contorno $F(t + i\beta) = \omega(\sigma_t(B) A)$,
+   caracterizando unívocamente el estado de equilibrio termodinámico cuántico.
 
-    2. Fase 2 (Orient - Phase2ThermalOrientationMixin(Phase1ThermalObservationMixin)):
-       - Continuación formal directa desde `Phase1ThermalObservation`.
-       - Memoria Fraccional de Caputo / Grünwald-Letnikov (α ∈ (0,1)) y Espacio Fase de
-         Poincaré-Melnikov:
-         D^α f_n = Δt^{−α} ∑_{j=0}^n w_j^{(α)} f_{n−j},   I^α Φ_n = ∑_{j=0}^{n-1} k_j^{(α)} Φ_{n-1-j}.
-         Evalúa la acción fraccional de Poincaré-Cartan A_α = ∮ I^α Φ d(D^α Φ), el tiempo de
-         recurrencia de Kac-Poincaré fraccional y la separatriz homoclínica de Melnikov M_α
-         para distinguir oscilaciones KAM-confinadas de fugas seculares irreversibles.
-       - Haz de Heyting, Cohomología de Čech H¹_Čech y Torsión de Poincaré-Birkhoff:
-         Sobre un cubrimiento {U_i}, evalúa secciones locales Γ(U_i, ℋ), el 1-cociclo de
-         solape δ⁰ s en U_i ∩ U_j y el ángulo de holonomía de Poincaré-Birkhoff ϑ_{ij}.
-         Si |Δ rank| ≥ 2, certifica obstrucción H¹_Čech ≠ 0 y habilita aislamiento quirúrgico.
-       - Condición KMS, Flujo Modular de Tomita-Takesaki y Geometría de Bures-Poincaré:
-         Para ρ y H en M_n(ℂ) a temperatura inversa β = 1/T, evalúa ρ_β = e^{−βH}/Z,
-         la entropía relativa D(ρ ∥ ρ_β), el defecto modular ‖log ρ + βH − cI‖_HS, el
-         conmutador modular de Tomita-Takesaki ‖[Δ_ρ^{it}, H]‖_HS, la fidelidad cuántica
-         F_Uhlmann(ρ, ρ_β) y la distancia geodésica de Bures D_Bures(ρ, ρ_β).
-       - Morfismo terminal de Fase 2: `phase2_orient_from_observation` → `Phase2ThermalOrientation`.
+4. AUTOMEJORA RECURSIVA RSI-L3 Y RETÍCULO DE HEYTING Ω₄:
+   El espacio de verdad intuicionista del agente se estructura mediante la cadena totalmente ordenada:
+       $$\Omega_4 = \{\bot = \mathtt{VETOED} \prec \mathtt{DEGRADED} \prec \mathtt{COHERENT} \prec \top = \mathtt{CERTIFIED}\}$$
+   donde el meet lógico $\sqcap$ representa la conjunción y el join $\sqcup$ la unión.
+   La preservación de la contracción de Banach $L_{\mathrm{Banach}} < 1.0$ asegura convergencia monótona de la cascada
+   de mejora hacia el atractor global estable, evitando cualquier ciclo autorreferencial vicioso.
 
-    3. Fase 3 (Decide/Act & RSI-L3 - Phase3ThermalDecisionActuationMixin(Phase2ThermalOrientationMixin)):
-       - Continuación formal directa desde `Phase1ThermalObservation × Phase2ThermalOrientation`.
-       - Automejora Recursiva de Nivel 3 (RSI-L3) del Supervisor:
-           * Nivel 1: Refina hiperparámetros adaptativos θ^(1)_sup = (α_eff, τ_sec, ε_KMS, γ_sheaf).
-           * Nivel 2: Descenso por gradiente natural sobre la métrica de Fisher-Rao G^(2)_sup.
-           * Nivel 3: Audita la razón de contracción de Lipschitz-Banach L_Banach < 1 del operador
-             de Nivel 2 y reescribe G^(2)_sup bajo el candado inmutable de Gödel-Tarski.
-       - Clasificación en la Cadena de Heyting Ω_4 = {VETOED ≺ DEGRADED ≺ COHERENT ≺ CERTIFIED}.
-       - Veto quirúrgico aislante de cartas locales o disparo atómico CAS del disyuntor
-         Crowbar BT151/GPIO14 simulado en IRAM (< 400 ns).
-       - Morfismo terminal de Fase 3: `phase3_decide_from_orientation` → `Phase3ThermalDecision`.
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma TGA-1] Criterio de Fuga Secular de Caputo-Melnikov:
+      $\mathcal{I}^\alpha \Phi < -\tau_{\mathrm{secular}} \implies$ Violación irreversible de la Segunda Ley en el historial térmico.
+  [Axioma TGA-2] Aislamiento Quirúrgico de Čech-Poincaré:
+      $H^1_{\mathrm{\check{C}ech}} \neq 0$ con resto coherente $\implies$ Degradación quirúrgica en cartas $U_i$ preservando $\bigcup_{j \neq i} U_j$.
+  [Axioma TGA-3] Invariante Modular KMS de Tomita-Takesaki:
+      $D(\rho \| \rho_\beta) \le \varepsilon_{\mathrm{KMS}} \land \|[\rho, H]\|_F \to 0 \iff$ Equilibrio termodinámico local a $\beta = 1/T$.
+  [Axioma TGA-4] Contracción de Banach y Candado Gödel-Tarski:
+      $L_{\mathrm{Banach}}^{(\mathrm{sup})} \in [0, 1.0) \land \tau_{\mathrm{CD}}^{(\mathrm{sup})} \ge \tau_{\mathrm{CD}}^{(\mathrm{base})}$, prohibición de relajar leyes físicas.
 
-AXIOMAS E INVARIANTES RIGUROSOS:
-    - Axioma I (Criterio de Fuga Secular de Caputo-Melnikov):
-      I^α Φ < −τ_secular  ⇒  Violación irreversible de la Segunda Ley en el historial no-markoviano.
-    - Axioma II (Aislamiento Quirúrgico de Čech-Poincaré):
-      H¹_Čech ≠ 0 con resto coherente  ⇒  Degradación quirúrgica localizada en cartas U_i vetadas,
-      preservando la continuidad operativa de ⋃_{j ≠ i} U_j.
-    - Axioma III (Invariante Estructural KMS y Estacionariedad de Tomita-Takesaki):
-      D(ρ ∥ ρ_β) ≤ ε_KMS  ∧  ‖[ρ, H]‖_F → 0  ⇔  Equilibrio termodinámico cuántico local a β = 1/T.
-    - Axioma IV (Contracción de Punto Fijo de Banach RSI-L3 y Candado Gödel-Tarski):
-      L_Banach^(sup) ∈ [0, 1)  ∧  τ_CD^(sup) ≥ τ_CD^(base) (prohibición absoluta de relajar leyes físicas).
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Normalización del Estado de Densidad Térmica):
+      $|\operatorname{Tr}(\rho) - 1.0| \le 1.0 \times 10^{-10}$ y $\rho \succeq 0$.
+  Invariante 2 (Acotación de Disparo Crowbar en IRAM):
+      Latencia de interrupción de hardware $t_{\mathrm{Crowbar}} \le 400.0\text{ ns}$ ante colapso a $\mathtt{VETOED}$.
+  Invariante 3 (Continuidad Morfismática de Fase):
+      El codominio terminal de Fase $k$ constituye idénticamente el dominio de inicio de Fase $k+1$.
+  Invariante 4 (Convergencia Monótona de Picard):
+      La distancia entre aproximaciones sucesivas de automejora decrece geométricamente: $\|x_{k+1} - x_k\| \le L^k \|x_1 - x_0\|$.
 """
 
 from __future__ import annotations
@@ -91,10 +124,10 @@ import numpy as np
 import scipy.linalg as la
 
 try:
-    from thermal_gradient_laws import ThermalGradientLaws
+    from app.physics.thermal_gradient_laws import ThermalGradientLaws
 except ImportError:  # pragma: no cover
     try:
-        from app.physics.thermal_gradient_laws import ThermalGradientLaws
+        from thermal_gradient_laws import ThermalGradientLaws
     except ImportError:
         from physics.thermal_gradient_laws import ThermalGradientLaws
 

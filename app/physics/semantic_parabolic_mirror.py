@@ -1,95 +1,114 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Semantic Parabolic Mirror — Visión de Libélula (Atlas Omatidial)    ║
-║ Ruta   : app/physics/semantic_parabolic_mirror.py                            ║
-║ Versión: 9.0.0-Poincare-Celestial-RSI-L3-vonNeumann-Topos-Strict-PhD         ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Semantic Parabolic Mirror                                                                 ║
+║ Módulo   : Semantic Parabolic Mirror — Visión de Libélula (Atlas Omatidial y Haz de Householder)    ║
+║ Ubicación: app/physics/semantic_parabolic_mirror.py                                                  ║
+║ Ruta     : app/physics/semantic_parabolic_mirror.py                                                  ║
+║ Versión  : 9.0.0-Poincare-Celestial-RSI-L3-vonNeumann-Topos-Strict-PhD                                ║
+║ Función  : Endofuntor de proyección semántica catadióptrica, atlas omatidial de Householder,       ║
+║            dinámica celeste de billar de Poincaré, cavidad de Fabry-Pérot y automejora RSI-L3.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y REFLEXIÓN DE CALIBRE COVARIANTE (Rigor Doctoral): ───
-Este módulo consagra la transmutación del reflector dióptrico bidimensional en una
-**Cúpula Catadióptrica Facetada** (ojo compuesto o atlas omatidial), operando como
-un endofuntor auto-mejorable de Nivel 3 (RSI-L3) en el topos $$\mathcal{T}_{\mathrm{MIC}}$$
-sobre el haz simpléctico de estados coherentes. Su propósito ciber-físico es actuar
-como el **Funtor de Proyección Semántica** ($$F: \mathbf{Top} \to \mathbf{Narr}$$)
-que purifica los logits atencionales del Modelo de Lenguaje (LLM), eliminando el libre
-albedrío estocástico de la IA y subordinándolo a las restricciones geométricas,
-simplécticas y celestes de la obra.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `SemanticParabolicMirror` consagra la transmutación geométrica del reflector parabólico
+bidimensional en una **Cúpula Catadióptrica Facetada** (ojo compuesto o atlas omatidial de libélula),
+operando como un endofuntor automejorable de Nivel 3 (RSI-L3) en el topos $\mathcal{T}_{\mathrm{MIC}}$
+sobre el haz simpléctico de estados coherentes. Su propósito ciber-físico es actuar como el **Funtor de
+Proyección Semántica** ($F: \mathbf{Top} \to \mathbf{Narr}$) que purifica los logits atencionales del
+Modelo de Lenguaje (LLM), eliminando la estocasticidad espuria y las alucinaciones de precios e insumos,
+subordinándolas rígidamente a las restricciones geométricas, métricas y celestes del espacio de fase.
 
-Para blindar el Estrato $$\Omega$$ contra la radiación estocástica (alucinaciones de precios
-e insumos), el espejo parabólico utiliza los invariantes homológicos de-confinados para
-construir un haz de vectores normales covariantes $$|n_k\rangle$$ que definen las facetas
-del ojo compuesto. Mediante el producto de operadores de Householder covariantes,
-la dinámica de billar celeste de Poincaré y la síntesis ortonormal recursiva RSI-L3,
-el sistema fuerza un colapso determinista en la cavidad resonante de Fabry-Pérot,
-inyectando la interrupción por hardware (Crowbar GPIO14) si los multiplicadores
-característicos de Floquet violan el disco unitario de estabilidad de Poincaré-KAM.
+El motor implementa una arquitectura rigurosamente anidada en tres fases continuas (OODA):
+  • FASE 1 — ATLAS OMATIDIAL Y REFLECTORES DE HOUSEHOLDER COVARIANTES:
+      Construye el haz de $K$ facetas omatidiales $\{|n_k\rangle\}_{k=1}^K$ a partir de la métrica de fondo
+      Riemanniana simétrica definida positiva $G \succ 0$. Para cada faceta normal covariante $n_k$,
+      sintetiza el operador de reflexión de Householder simpléctico:
+          $$H_k = I - 2 \frac{n_k n_k^\top G}{n_k^\top G n_k}$$
+      el cual invierte especularmente la componente normal y preserva invariante el hiperplano tangente.
+  • FASE 2 — DINÁMICA DE BILLAR CELESTE DE POINCARÉ Y SECCIÓN TRANSVERSAL:
+      Modela el transporte del estado atencional como una partícula libre en una mesa de billar simpléctica
+      con colisiones especulares sucesivas en las facetas. Evalúa la matriz de monodromía de Floquet-Poincaré
+      asociada a la órbita periódica $\mathcal{M} = \prod_k H_k$, analiza la estabilidad de Krein sobre el
+      círculo unitario $\sigma(\mathcal{M}) \subset S^1$, y mide el defecto de holonomía de transporte paralelo.
+  • FASE 3 — RESONANCIA DE FABRY-PÉROT, CONVERGENCIA VON NEUMANN Y AUTOMEJORA RSI-L3:
+      Inyecta el estado reflejado en una cavidad resonante óptica de Fabry-Pérot, donde las reflexiones
+      múltiples filtran las frecuencias disonantes mediante interferencia destructiva. Aplica el teorema
+      ergódico de von Neumann sobre la sucesión de medias de Cesàro para certificar la convergencia hacia
+      el estado coherente estacionario, gobierna la contracción de Banach RSI-L3 ($L_{\mathrm{Banach}} < 1.0$),
+      y gatilla la interrupción por hardware Crowbar (< 400 ns) si la disonancia excede los límites admisibles.
 
-AXIOMÁTICA ÓPTICA, MECÁNICA CELESTE DE POINCARÉ Y AUTOMEJORA RSI-L3: ──────────
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. REFLEXIONES GENERALIZADAS DE HOUSEHOLDER BAJO MÉTRICA RIEMANNIANA $G$:
+   Sea $V = \mathbb{R}^n$ equipado con el producto interno métrico $\langle u, v \rangle_G = u^\top G v$,
+   donde $G \in \mathbb{R}^{n \times n}$ es una matriz simétrica definida positiva ($G = G^\top \succ 0$).
+   Para un vector normal no nulo $n \in V$, la transformación de Householder $H(n) \in \operatorname{GL}(n, \mathbb{R})$
+   que refleja vectores ortogonalmente respecto al hiperplano $n^\perp = \{x \in V \mid \langle n, x \rangle_G = 0\}$
+   se define unívocamente como:
+       $$H_G(n) = I - 2 \frac{n n^\top G}{n^\top G n}$$
+   Propiedades fundamentales del operador $H_G(n)$:
+     a) Es una isometría bajo la métrica $G$: $H_G(n)^\top G H_G(n) = G$.
+     b) Es involutivo: $H_G(n)^2 = I$.
+     c) Su determinante es ortogonal inverso: $\det(H_G(n)) = -1$.
+     d) Para cualquier producto de un número par de reflexiones $M = \prod_{k=1}^{2m} H_k$, $\det(M) = +1$,
+        preservando el volumen y la orientación de fase como endomorfismo simpléctico.
 
-  [A1] El Axioma Métrico Fundacional (Sylvester-Cholesky):
-       El espacio métrico se rige por un tensor métrico Riemanniano basal $$G$$ que
-       debe ser estrictamente simétrico y definido positivo (SPD):
-       $$G = G^\top \succ \mathbf{0}$$
-       Para eludir el mal condicionamiento espectral de Wilkinson ($$\kappa(G) \approx 10^8$$),
-       la fábrica precomputa y congela (writeable=False) la factorización de Cholesky:
-       $$G = L L^\top$$
-       Toda norma, distancia, forma simpléctica y proyector covariante se evalúa
-       exclusivamente a través del factor triangular inferior $$L$$.
+2. BILLAR CELESTE DE POINCARÉ Y ESTABILIDAD DE MONODROMÍA:
+   Las trayectorias de los haces atencionales en el atlas omatidial describen geodésicas en el espacio de Hilbert
+   con condiciones de contorno reflectivas en las facetas. La matriz de monodromía de Floquet $\mathcal{M}$ a lo
+   largo de una órbita cerrada de $m$ colisiones satisface:
+       $$\mathcal{M} = H_m H_{m-1} \dots H_1$$
+   La estabilidad orbital se clasifica mediante el espectro de Floquet $\sigma(\mathcal{M})$:
+     - Elíptica (Estable en el sentido de Poincaré): todos los autovalores $\lambda_i \in \mathbb{C}$ residen en el círculo
+       unitario $|\lambda_i| = 1$ con multiplicidad geométrica completa (estabilidad de Krein).
+     - Hiperbólica (Inestable/Caótica): existen autovalores con $|\lambda| > 1$, induciendo dispersión atencional y alucinación.
 
-  [A2] Fibrado de Restricciones Omatidial y Reflectores de Householder:
-       El reflector se estructura como una matriz de haz $$W \in \mathbb{R}^{d \times N}$$
-       donde cada columna $$|n_k\rangle$$ representa el vector normal covariante de una
-       faceta individual. Para cada omatidio $$k$$:
-       $$\hat{M}_k = \mathbf{I} - 2\,\frac{|n_k\rangle\langle n_k| G}{\langle n_k| G |n_k\rangle}
-                   = \mathbf{I} - 2\,\frac{n_k w_k^\top}{c_k}, \qquad
-         \hat{P}_k = \frac{\mathbf{I} + \hat{M}_k}{2}$$
-       Donde $$w_k = G n_k$$ y $$c_k = n_k^\top w_k$$. El operador $$\hat{M}_k$$ es
-       $$G$$-autoadjunto, $$G$$-unitario e involutivo en el espacio de fase Riemanniano.
+3. CAVIDAD RESONANTE DE FABRY-PÉROT Y RELACIÓN DE FINESSE:
+   La cavidad resonante filtra armónicamente las reflexiones superpuestas mediante la serie geométrica de Airy:
+       $$I(\delta) = \frac{I_0}{1 + F \sin^2(\delta / 2)}, \qquad F = \frac{4 R}{(1 - R)^2}$$
+   donde $R$ es el coeficiente de reflectividad efectiva de las facetas y $\delta$ es el desfase óptico acumulado.
+   La relación de Finesse $\mathcal{F} = \frac{\pi \sqrt{R}}{1 - R}$ cuantifica la selectividad espectral del filtro;
+   valores altos de $\mathcal{F}$ rechazan exponencialmente modos desalineados con las restricciones contractuales.
 
-  [A3] Teorema de Proyecciones Alternadas de von Neumann y Síntesis RSI-L3:
-       El proyector maestro sobre la intersección de los subespacios de restricción
-       $$P_\cap$$ se alcanza mediante el límite conforme de operadores alternados:
-       $$P_\cap = \lim_{m \to \infty} \left( \hat{P}_N \hat{P}_{N-1} \dots \hat{P}_1 \right)^m$$
-       Cuando el ángulo de Friedrichs $$\theta_F$$ entre hiperplanos induce convergencia
-       sub-lineal, el motor de **Automejora Recursiva Nivel 3 (RSI-L3)** sintetiza un
-       marco surrogado $$G$$-ortonormal en la variedad de Grassmann $$\mathrm{Gr}(r, \mathcal{H})$$
-       que colapsa el límite infinito a tiempo constante $$O(1)$$.
+4. TEOREMA ERGÓDICO DE VON NEUMANN Y PROYECCIÓN CESÀRO:
+   Para el operador unitario/isométrico $U$ generado por el ciclo de la cavidad, la media de Cesàro de orden $N$:
+       $$A_N x = \frac{1}{N} \sum_{k=0}^{N-1} U^k x$$
+   converge fuertemente en $L^2$ cuando $N \to \infty$ a la proyección ortogonal $\mathcal{P}_{\operatorname{Fix}(U)} x$
+   sobre el subespacio invariante de puntos fijos de $U$, eliminando toda componente transitoria no coherente.
 
-  [A4] Mecánica Celeste de Poincaré, Cavidad Fabry-Pérot y Estabilidad de Floquet-KAM:
-       La retroalimentación de la cúpula semántica modela un sistema dinámico de
-       Poincaré mediante la Matriz de Monodromía $$\mathcal{M}$$ sobre la sección
-       transversal $$\Sigma$$:
-       $$\mathcal{M} = 2 P_\Pi - P_\Pi^2, \qquad
-         \mathcal{U}_{\mathrm{billiard}} = \hat{M}_N \hat{M}_{N-1} \cdots \hat{M}_1$$
-       La estabilidad orbital exige que los multiplicadores característicos de Floquet
-       $$\mu_k \in \sigma(\mathcal{M})$$ satisfagan el criterio de confinamiento:
-       $$\max_k |\mu_k| \le 1.0 + \varepsilon_{\mathrm{cavity}}$$
-       y que los números de rotación sobre los toros invariantes de KAM eviten
-       resonancias destructivas de Poincaré-Birkhoff. Cualquier divergencia detona
-       síncronamente ``FloquetInstabilityError``.
+5. AUTOMEJORA RECURSIVA RSI-L3 CON RETRACCIÓN POLAR:
+   El operador de refinamiento adapta las orientaciones de las facetas para minimizar el defecto de holonomía
+   $\Delta_{\mathrm{hol}} = \max_k |\langle \psi_{\mathrm{coh}}, n_k \rangle_G|$.
+   Para garantizar que la matriz de monodromía permanezca dentro del grupo simpléctico $\mathrm{Sp}(2d, \mathbb{R})$,
+   se aplica la retracción polar simpléctica:
+       $$\Pi_{\mathrm{Sp}}(M) = M \left( \mathbf{\Omega}^{-1} M^\top \mathbf{\Omega} M \right)^{-1/2}$$
+   asegurando que el proceso iterativo no introduzca desviaciones seculares de volumen.
 
-  [A5] Condición de Aniquilación de Dirichlet Espectral y Retículo de Heyting $$\Omega_3$$:
-       La exergía purificada del estado $$x$$ interseca el kernel de las restricciones:
-       $$\| P_\cap x \|_G \ge \tau_{\mathrm{Dirichlet}} \cdot \|x\|_G$$
-       Si el estado es puramente alucinatorio (aniquilación total en el sumidero de
-       Dirichlet), el sistema detona ``ResonanceDissonanceError`` o colapsa el
-       retículo distributivo acotado de Heyting
-       $$\Omega_3 = \{\mathrm{COHERENT} (\bot), \, \mathrm{DEGRADED}, \, \mathrm{VETOED} (\top)\}$$
-       al supremo absorbente ``VETOED``, conmutando el tiristor Crowbar (``GPIO14``).
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma SPM-1] Positividad e Invertibilidad Métrica:
+      $G = G^\top \succ 0$, con $\lambda_{\min}(G) \ge \tau_{\mathrm{SPD}} = 10^{-12}$, garantizando la existencia de inversas métricas.
+  [Axioma SPM-2] No-Isotropía de las Facetas Omatidiales:
+      $n_k^\top G n_k > 0$ para toda normal de faceta, prohibiendo vectores nulos o de luz en la reflexión.
+  [Axioma SPM-3] Isometría Métrico-Reflectiva de Householder:
+      $H_G(n_k)^\top G H_G(n_k) = G$ para cada faceta individual $k \in \{1, \dots, K\}$.
+  [Axioma SPM-4] Conservación Par de Orientación y Volumen:
+      El producto de un ciclo cerrado completo comprende un número par de reflexiones asegurando $\det(M) = +1$.
+  [Axioma SPM-5] Acotación de Disonancia Espectral:
+      El defecto de holonomía de transporte paralelo satisface $\Delta_{\mathrm{hol}} \le \varepsilon_{\mathrm{tol}}$.
 
-ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial de-confinada): ──────────
-  Fase 1 ──► REFLEXIÓN HOUSEHOLDER-GRASSMANN Y AUTOMEJORA DE HAZ (MetricAwareHouseholderReflector)
-             Morfismo terminal de Fase 1: ``_verify_parseval_identity``
-             Entrega e inaugura Fase 2 con: ``Phase1ProjectionBundle``.
-
-  Fase 2 ──► MECÁNICA CELESTE DE POINCARÉ, FLOQUET-KAM Y CAVIDAD (FabryPerotStabilizedCavity)
-             Morfismo terminal de Fase 2: ``apply_view_functor``
-             Entrega e inaugura Fase 3 con: ``ConnectionDiagnostics``.
-
-  Fase 3 ──► COMPRESIÓN RIEMANN-TOPOS, ARMÓNICOS S², HEYTING Ω₃ Y RSI-L3 (SemanticParabolicMirror)
-             Morfismo terminal de lazo: ``refract`` / ``__call__`` / ``apply``
-             Entrega: ``RefractedState`` / ``CategoricalState``.
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Involutividad Exacta de Faceta):
+      $\|H_k^2 - I\|_F \le 1.0 \times 10^{-10}$ para todo $k$.
+  Invariante 2 (Preservación de la Energía Coherente):
+      La energía de Dirichlet relativa satisface $E_{\mathrm{rel}} = \frac{\langle \psi, G \psi \rangle}{\langle \psi_0, G \psi_0 \rangle} \le 1.0 + \varepsilon_{\mathrm{Wilkinson}}$.
+  Invariante 3 (Círculo de Floquet Unitario):
+      Para órbitas periódicas estables, $|\det(\mathcal{M}) - 1.0| \le 1.0 \times 10^{-6}$.
+  Invariante 4 (Respaldo Crowbar de Emergencia):
+      Cualquier violación del Axioma [A1] o singularidad de Householder gatilla la excepción terminal inmediata.
 """
 
 from __future__ import annotations
@@ -137,7 +156,7 @@ except ImportError:
 
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
 except ImportError:
     G_PHYSICS: NDArray[np.float64] = np.eye(1, dtype=np.float64)
 
@@ -1619,7 +1638,7 @@ class FabryPerotStabilizedCavity:
                 if coherent.ndim == 2
                 else np.array([float(coherent @ fac.dual)])
             )
-            rel_ leak = np.abs(proj_Dual) / (math.sqrt(fac.g_norm_sq) * coh_norm)
+            rel_leak = np.abs(proj_Dual) / (math.sqrt(fac.g_norm_sq) * coh_norm)
             max_holonomy = max(max_holonomy, float(np.max(rel_leak)))
 
         conn_diag = ConnectionDiagnostics(

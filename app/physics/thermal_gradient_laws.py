@@ -1,83 +1,113 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Thermal Gradient Laws (Leyes y Gradientes de Convección Térmica)    ║
-║ Ruta   : app/physics/thermal_gradient_laws.py                                ║
-║ Versión: 4.0.0-Sovereign-Poincare-RSIL3-Lanczos-ItohAbe-AdaptiveCD-Topos     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Thermal Gradient Laws                                                                     ║
+║ Módulo   : Thermal Gradient Laws (Leyes y Gradientes de Convección Térmica)                          ║
+║ Ubicación: app/physics/thermal_gradient_laws.py                                                      ║
+║ Ruta     : app/physics/thermal_gradient_laws.py                                                      ║
+║ Versión  : 4.0.0-Sovereign-Poincare-RSIL3-Lanczos-ItohAbe-AdaptiveCD-Topos                           ║
+║ Función  : Motor espectral de cálculo termodinámico, leyes de convección, filtración de Lanczos,     ║
+║            dinámica de Itoh-Abe, integración simpléctica de Poincaré y automejora RSI³.              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Leyes y Gradientes de Convección Térmica (Thermal Gradient Laws).
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `ThermalGradientLaws` constituye el núcleo físico, termodinámico, simpléctico y
+espectral de la FPU para el transporte de calor y leyes constitutivas de convección sobre variedades
+riemannianas $(M, g)$ acopladas a haces simplécticos. Gobierna la propagación de flujos de calor no
+lineales mediante formulaciones covariantes que integran la ley generalizada de Fourier-Navier-Stokes,
+la descomposición espectral de Krylov-Lanczos para operadores de conductividad no acotados, la
+discretización geométrica de gradientes según esquemas simplécticos de Itoh-Abe, el análisis de
+estabilidad de órbitas celestes de Poincaré y la automejora adaptativa de Nivel 3 (RSI³).
 
-Este módulo implementa el motor de cálculo físico, simpléctico, termodinámico y
-autopoético de Nivel 3 en la FPU para campos de gradientes térmicos sobre la
-variedad riemanniana/simpléctica (M, g, ω). Opera mediante una arquitectura de
-tres fases estrictamente anidadas por mixins, donde el codominio formal del
-último morfismo de cada fase constituye el dominio exacto de inicio de la
-fase subsiguiente:
+El motor opera estructurado en tres fases anidadas acopladas mediante mixins:
+  • FASE 1 (`Phase1ThermalState` y `Phase1ThermalObservationMixin`):
+      Valida los tensores de conductividad térmica covariante $K \in \mathbb{R}^{n \times n}$ y los
+      gradientes de temperatura $\nabla T \in \mathbb{R}^n$, audita la condición simétrica definida
+      positiva (SPD) mediante la descomposición de Cholesky $K = L L^\top$, proyecta el subespacio
+      dominante de Krylov mediante iteración espectral de Lanczos tridiagonal, y construye el paquete
+      inmutable de observación térmica `Phase1ThermalState`.
+  • FASE 2 (`Phase2ThermalState` y `Phase2ThermalOrientationMixin`):
+      Consume `Phase1ThermalState`, integra la dinámica del gradiente según el integrador simpléctico de
+      Itoh-Abe preservando exactamente la energía de disipación, evalúa los coeficientes de convección
+      difusiva acoplada (CD), computa las invariantes integrales de Poincaré-Cartan a lo largo de las
+      órbitas cerradas en el espacio de fase $(q, p) = (T, \nabla T)$, y emite el paquete
+      `Phase2ThermalState`.
+  • FASE 3 (`ThermalGradientCertificate` y `Phase3ThermalDecisionActuationMixin`):
+      Consume `Phase1ThermalState` y `Phase2ThermalState`, aplica la cascada de automejora recursiva
+      RSI³ ajustando hiperparámetros mediante contracción de Banach $L_{\mathrm{Banach}} \le 0.90$,
+      clasifica la admisibilidad termodinámica en el retículo de Heyting $\Omega_4 = \{\mathtt{VETOED} \prec \mathtt{DEGRADED} \prec \mathtt{COHERENT} \prec \mathtt{CERTIFIED}\}$,
+      y emite el certificado final inmutable `ThermalGradientCertificate`.
 
-    In ──Fase 1──► Phase1ThermalState
-       ──Fase 2──► Phase2ThermalState
-       ──Fase 3──► Phase3HeytingDecision
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. LEY GENERALIZADA DE CONDUCCIÓN COVARIANTE Y FLUJO DE ENERGÍA:
+   Sobre una variedad riemanniana $(M, g)$ con métrica $g_{\mu\nu}$, el flujo de calor covariante $q^\mu$
+   se rige por la ley de Fourier anisotrópica tensorial:
+       $$q^\mu = - K^{\mu\nu} \nabla_\nu T = - K^{\mu\nu} \left( \partial_\nu T + \Gamma_{\nu\lambda}^\mu T \right)$$
+   donde $K^{\mu\nu}$ es el tensor de conductividad simétrico definido positivo ($K = K^\top \succ 0$),
+   $\nabla_\nu$ es la derivada covariante de Levi-Civita y $T: M \to \mathbb{R}^+$ representa el campo escalar
+   de temperatura absoluta. La tasa de disipación termodinámica local (producción de entropía) viene dada por:
+       $$\sigma_{\mathrm{th}} = - \frac{1}{T^2} q^\mu \nabla_\mu T = \frac{1}{T^2} \nabla_\mu T K^{\mu\nu} \nabla_\nu T \ge 0$$
+   asegurando el cumplimiento estricto del Segundo Principio de la Termodinámica.
 
-DEFINICIÓN FORMAL Y OPERATORIA POR FASES ANIDADAS:
-    El motor opera sobre el tensor de conductividad K ∈ M_n(ℝ) y el gradiente
-    de temperatura ∇T ∈ ℝ^n (identificado con el momento canónico p ∈ T*_q M):
+2. SUBESPACIO DE KRYLOV Y TRIDIAGONALIZACIÓN ESPECTRAL DE LANCZOS:
+   Para sistemas térmicos de gran dimensión $n \gg 1$, el espectro del tensor de difusión se aproxima en el
+   subespacio de Krylov $\mathcal{K}_m(K, v_1) = \operatorname{span}\{v_1, K v_1, K^2 v_1, \dots, K^{m-1} v_1\}$
+   mediante el algoritmo de Lanczos con ortogonalización completa de Gram-Schmidt:
+       $$K V_m = V_m T_m + \beta_m v_{m+1} e_m^\top$$
+   donde $V_m = [v_1, \dots, v_m] \in \mathbb{R}^{n \times m}$ posee columnas ortonormales ($V_m^\top V_m = I_m$)
+   y $T_m \in \mathbb{R}^{m \times m}$ es la matriz tridiagonal simétrica:
+       $$T_m = \begin{pmatrix} \alpha_1 & \beta_1 & & \\ \beta_1 & \alpha_2 & \ddots & \\ & \ddots & \ddots & \beta_{m-1} \\ & & \beta_{m-1} & \alpha_m \end{pmatrix}$$
+   Los autovalores extremos de $T_m$ (valores de Ritz) convergen exponencialmente a los modos dominantes de disipación.
 
-    1. Fase 1 (Ingesta, Purificación Espectral, Resonancias de Poincaré y Pre-condicionamiento RSI-L3
-       - Phase1ThermalIngestionMixin):
-       - Proyección simétrica de Weyl π_Sym(K) = ½(K + Kᵀ) e inspección de reciprocidad de Onsager.
-       - Deflación Espectral de Lanczos-Krylov (ARPACK `both-ends`) para n > n_Krylov extrayendo
-         λ_min, λ_max y κ_2(K).
-       - Análisis Diofántico de Pequeños Divisores de Poincaré-KAM sobre las frecuencias modales
-         ω_i = √max(λ_i, α), evaluando |p ω_i − q ω_j| ≥ γ (p+q)^{−τ}, el riesgo de difusión
-         de Arnold y el primer invariante integral espectral de Poincaré J_1 = (1/2π) ∮ p dq.
-       - Regularización SPD de Higham K ← K + (α_RSI − λ_min)_+ I gobernada por el piso
-         contractivo de Nivel 3 (α_RSI ≥ ε_Wilkinson).
-       - Morfismo terminal de Fase 1: `phase1_ingest_and_purify` → `Phase1ThermalState`.
+3. INTEGRACIÓN GEOMÉTRICA DE GRADIENTES POR DISCRETIZACIÓN DE ITOH-ABE:
+   Para garantizar la estabilidad no-condicionada y la conservación de invariantes en la integración del flujo
+   térmico no lineal $\dot{x} = -\nabla V(x)$, el método de gradiente discreto de Itoh-Abe evalúa:
+       $$\frac{V(x_{k+1}) - V(x_k)}{\|x_{k+1} - x_k\|^2} (x_{k+1} - x_k) = - \bar{\nabla} V(x_k, x_{k+1})$$
+   satisfaciendo la relación exacta de incremento de energía:
+       $$V(x_{k+1}) - V(x_k) = \langle \bar{\nabla} V(x_k, x_{k+1}), x_{k+1} - x_k \rangle = - \Delta t \|\bar{\nabla} V\|^2 \le 0$$
+   eliminando cualquier posibilidad de amplificación espuria o inestabilidad numérica no lineal.
 
-    2. Fase 2 (Simulación de Carnot, Itoh-Abe Simetrizado RSI-L3 y Dinámica en Espacio Fase de Poincaré
-       - Phase2CarnotSimulationMixin(Phase1ThermalIngestionMixin)):
-       - Continuación formal directa desde `Phase1ThermalState`.
-       - Gradiente Discreto Conservativo de Itoh-Abe Barycéntrico (simetrización dual directa/inversa
-         gobernada por RSI-L3) para la energía cuadrática Ē(p) = pᵀ κ p:
-         ⟨∇̄_IA^(w) Ē(0, p), p⟩ = w Ē(p) + (1−w) Ē(p) = Ē(p) − Ē(0)  (Teorema de Tellegen exacto ∀ w ∈ [0,1]).
-       - En el punto fijo de simetría w* = ½, el defecto de orden de coordenadas respecto al
-         gradiente de punto medio de González se anula idénticamente: ∇̄_IA^(1/2) Ē = ∇̄_G Ē.
-       - Mecánica Celeste de Poincaré en T*M: evaluación del Hamiltoniano de Dirichlet-Poincaré
-         H(q, p) = ½ pᵀ κ p, la 1-forma de Poincaré-Cartan dθ_PC = p dq − H dt, el determinante de
-         monodromía de Liouville det(DP) sobre la sección transversal Σ de Poincaré y el tiempo de
-         recurrencia de Kac-Poincaré τ_rec.
-       - Producción de entropía Φ = σ − ⟨q, dT⟩ / T² ≥ 0 (Clausius-Duhem), eficiencia local de
-         Carnot η_C, destrucción exergética de Gouy-Stodola y brecha cuántica/informacional de Landauer.
-       - Morfismo terminal de Fase 2: `phase2_simulate_carnot_from_phase1` → `Phase2ThermalState`.
+4. ACCIÓN DE POINCARÉ-CARTAN Y RESIDUALES DE MONODROMÍA:
+   En el fibrado cotangente de fases térmicas $(q, p)$, la forma diferencial simpléctica $\omega = dq \wedge dp$
+   define el invariante integral de Poincaré-Cartan a lo largo de una curva cerrada $\gamma$:
+       $$J_P = \oint_\gamma (p \, dq - H \, dt) = \text{constante}$$
+   Las desviaciones orbitales se evalúan mediante la matriz de monodromía de Floquet-Poincaré $\mathcal{M}$:
+       $$\dot{\mathcal{M}}(t) = J \nabla^2 H(z(t)) \mathcal{M}(t), \quad \mathcal{M}(0) = I_{2n}$$
+   cuyos autovalores $\lambda_i \in \mathbb{C}$ certifican la estabilidad de Krein sobre el círculo unitario $|\lambda_i| = 1$.
 
-    3. Fase 3 (Umbral Adaptativo Novikov-Melnikov, Automejora Recursiva Nivel 3 y Veto de Heyting
-       - Phase3HeytingVetoMixin(Phase2CarnotSimulationMixin)):
-       - Continuación formal directa desde `Phase2ThermalState`.
-       - Filtración ultramétrica de transitorios acoplada con la distancia homoclínica de Melnikov
-         Δ_Melnikov, el exponente maximal de Lyapunov λ_LLE y el índice de giro de Poincaré-Bendixson
-         W_Poincaré ∈ ℤ para distinguir órbitas confinadas en toros KAM de fugas térmicas homoclínicas.
-       - Automejora Recursiva de Nivel 3 (RSI-L3):
-           * Nivel 1: Adapta parámetros operativos θ^(1) = (α_reg, ρ_Novikov, τ_0, w_IA).
-           * Nivel 2: Actualiza θ^(1) vía gradiente natural sobre la métrica de Fisher-Rao G^(2).
-           * Nivel 3: Audita el factor de contracción de Lipschitz-Banach L_Banach < 1 del operador
-             de Nivel 2 y reescribe G^(2) garantizando convergencia de punto fijo y preservación
-             estricta de axiomas físicos (Candado Gödel-Tarski).
-       - Clasificación en el Álgebra de Heyting Ω_4 y disparo del disyuntor Crowbar BT151/GPIO14
-         simulado (< 400 ns).
-       - Morfismo terminal de Fase 3: `phase3_evaluate_heyting_from_phase2` → `Phase3HeytingDecision`.
+5. AUTOMEJORA RECURSIVA RSI³ CON CONTRACCIÓN DE BANACH:
+   El operador de ajuste de parámetros de convección $\Phi_{\mathrm{RSI}}: \Theta \to \Theta$ actúa en el espacio
+   de Banach con norma inducida por la métrica de Fisher:
+       $$\theta^{(k+1)} = \theta^{(k)} - \eta \, G^{-1}(\theta^{(k)}) \nabla_{\theta} \mathcal{L}(\theta^{(k)})$$
+   La convergencia unívoca se garantiza si la constante de Lipschitz de contracción cumple:
+       $$\|\Phi_{\mathrm{RSI}}(\theta_1) - \Phi_{\mathrm{RSI}}(\theta_2)\| \le L_{\mathrm{Banach}} \|\theta_1 - \theta_2\|, \quad L_{\mathrm{Banach}} < 1.0$$
+   con el candado de seguridad de Gödel-Tarski prohibiendo estrictamente relajar las tolerancias físicas de frontera.
 
-AXIOMAS E INVARIANTES RIGUROSOS:
-    - Axioma I (Segunda Ley de Clausius-Duhem):
-      Φ = σ − ⟨q, dT⟩ / T² ≥ τ_CD(t)   ∀ t ≥ 0.
-    - Axioma II (Identidad de Tellegen Barycéntrica de Itoh-Abe):
-      ⟨∇̄_IA^(w) Ē(0, ∇T), ∇T⟩ = Ē(∇T)   ∀ w ∈ [0, 1].
-    - Axioma III (Límite Físico de Carnot):
-      0 ≤ η_C = 1 − T_cold / T_hot ≤ 1.
-    - Axioma IV (Contracción Simpléctica Disipativa de Poincaré-Liouville):
-      0 < det(DP_Σ) ≤ 1 en régimen disipativo pasivo sin fuentes exógenas inestables.
-    - Invariante I (Cota de Deflación Krylov-Higham y Candado RSI-L3):
-      λ_min(K_reg) ≥ α_RSI ≥ ε_Wilkinson > 0  y  L_Banach ∈ [0, 1).
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma TGL-1] Positividad Estricta de la Matriz de Conductividad:
+      $K = K^\top \succ 0$, con autovalor mínimo acotado inferiormente $\lambda_{\min}(K) \ge \tau_{\mathrm{SPD}} = 10^{-12}$.
+  [Axioma TGL-2] No Negatividad de la Producción de Entropía:
+      $\sigma_{\mathrm{th}} = \nabla T^\top K \nabla T \ge 0$, asegurando disipación termodinámica monótona estricta.
+  [Axioma TGL-3] Conservación de Disipación de Itoh-Abe:
+      La tasa discreta de variación satisface $\Delta V \le 0$ para todo paso temporal finito $\Delta t > 0$.
+  [Axioma TGL-4] Acotación de Ritz en la Tridiagonalización de Lanczos:
+      El error residual de Lanczos $\|K V_m - V_m T_m\|_2 \le \beta_m \le \varepsilon_{\mathrm{Krylov}}$.
+  [Axioma TGL-5] Contracción Monádica del Operador de Calibre RSI³:
+      La constante de Banach de la capa de adaptación satisface $L_{\mathrm{Banach}} \le 0.90$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Simetría e Invertibilidad del Tensor $K$):
+      $\|K - K^\top\|_F / \|K\|_F \le 1.0 \times 10^{-10}$ y $\operatorname{cond}(K) \le 1.0 \times 10^8$.
+  Invariante 2 (Preservación del Espectro de Frecuencias de Poincaré):
+      La deriva secular de la acción $\Delta J_P / J_P \le 1.0 \times 10^{-6}$ en órbitas cuasi-periódicas KAM.
+  Invariante 3 (Estabilidad Numérica de Wilkinson):
+      Todas las operaciones tensoriales se acumulan en precisión doble float64 garantizando residuo $\le 100 \varepsilon_{\mathrm{mach}}$.
+  Invariante 4 (Monotonía de Veredicto en Retículo $\Omega_4$):
+      Cualquier anomalía térmica no disipativa degrada monótonamente el estado hasta `VETOED`.
 """
 
 from __future__ import annotations

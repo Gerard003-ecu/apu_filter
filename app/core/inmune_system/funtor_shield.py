@@ -1,44 +1,124 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Funtor Shield (Membrana Aislante y Proyector Simpléctico)           ║
-║ Ubicación: app/core/immune_system/funtor_shield.py                           ║
-║ Versión: 6.0.0-Categorical-Symplectic-Poincare-RSI3-Homological-PhD-Strict   ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Funtor Shield                                                                             ║
+║ Módulo   : Funtor Shield (Membrana Aislante y Proyector Simpléctico de Inmunidad Categorial)         ║
+║ Ubicación: app/core/inmune_system/funtor_shield.py                                                   ║
+║ Ruta     : app/core/inmune_system/funtor_shield.py                                                   ║
+║ Versión  : 6.0.0-Categorical-Symplectic-Poincare-RSI3-Homological-PhD-Strict                         ║
+║ Función  : Membrana inmunológica de aislamiento categorial, proyección simpléctica de                ║
+║            Poincaré-Delaunay-Deprit, disipación de Lindblad y automejora recursiva RSI³.            ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y ESTRUCTURA DE INMUNIDAD CATEGORIAL (Rigor Doctoral): ───
-Este módulo consagra la barrera inmunológica definitiva del ecosistema, operando
-como un endofuntor idempotente, simpléctico y conmutativo sobre el espacio de fase:
-$$\mathcal{F}_{\mathrm{shield}}: \mathcal{C}_{\mathrm{states}} \longrightarrow \mathcal{C}_{\mathrm{states}}$$
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `FuntorShield` constituye la membrana inmunológica de aislamiento y proyección
+simpléctica de la arquitectura cognitiva APU Filter. Opera como un endofuntor idempotente, simpléctico
+y cohomológicamente conmutativo sobre la categoría de estados de fase del sistema:
+    $$\mathcal{F}_{\mathrm{shield}}: \mathcal{C}_{\mathrm{states}} \longrightarrow \mathcal{C}_{\mathrm{states}}$$
+Su propósito ciber-físico es proteger la integridad del espacio de estados frente a deformaciones no
+admisibles, perturbaciones no conservativas y violaciones estructurales de calibre, proyectando los
+estados anómalos sobre subvariedades simplécticas estables y amortiguando excedentes energéticos
+mediante generadores disipativos cuánticos de Lindblad-Kossakowski.
 
-ARQUITECTURA EN 3 FASES ANIDADAS (ACOPLAMIENTO MONOIDAL COVARIANTE ESTRICTO): ───
-  • FASE ANIDADA 1 (`Phase1_MetricVectorExtractor`):
-      Ingiere el estado del agente vectorizable, extrae las coordenadas de fase
-      $x = [q, p]^\top$, valida el tensor métrico Riemanniano $G_{\mu\nu}$ (`G_PHYSICS`),
-      efectúa la reducción canónica de mecánica celeste de Poincaré-Delaunay-Deprit y
-      resuelve el punto fijo contractivo de Banach-Kantorovich de Nivel 3 (RSI-3).
-      ↳ Último método de la Fase 1:
-        `handoff_to_phase2_symplectic_context(...) -> Phase1ToPhase2ShieldBridge`
+El motor implementa una arquitectura rigurosamente acoplada en tres fases anidadas (OODA):
+  • FASE 1 (`Phase1_MetricVectorExtractor`):
+      Ingiere el estado de fase $x = [q, p]^\top \in T^*\mathcal{M}$, audita la métrica Riemanniana
+      $G_{\mu\nu}$ (`G_PHYSICS`), ejecuta la reducción canónica de Poincaré-Delaunay-Deprit en coordenadas
+      de acción-ángulo $(\mathbf{I}, \boldsymbol{\theta})$ y resuelve el punto fijo contractivo de
+      Banach-Kantorovich para la Automejora Recursiva de Nivel 3 (RSI³):
+          $$s^* = \mathbf{T}_{\mathrm{RSI3}}(s^*) \quad \text{con} \quad L_{\mathrm{Banach}} \le 0.95 < 1.0$$
+      Culmina formalmente emitiendo el paquete inmutable de Fase 1 `Phase1ToPhase2ShieldBridge`.
+  • FASE 2 (`Phase2_SymplecticLieDissipationProjector`):
+      Consume el puente de Fase 1, evalúa la evolución simpléctica a lo largo de las trayectorias de
+      Poincaré mediante la derivada de Lie $\mathcal{L}_X \omega$, aplica el flujo de Ricci discreto
+      $R_1$ para regularizar la curvatura del fibrado y activa la disipación cuasi-termodinámica de
+      Lindblad-Gorini-Kossakowski-Sudarshan (GKSL) mediante el corchete cuántico disipativo:
+          $$\frac{d\rho}{dt} = -i[H, \rho] + \sum_k \left( L_k \rho L_k^\dagger - \frac{1}{2}\{L_k^\dagger L_k, \rho\} \right)$$
+      garantizando que la producción de entropía de Spohn satisfaga $\sigma_{\mathrm{Spohn}} \ge 0$.
+      Culmina formalmente en `Phase2ToPhase3ShieldBridge`.
+  • FASE 3 (`Phase3_HeytingHomologicalAdjudicator`):
+      Consume el puente de Fase 2, ejecuta el proyector simpléctico $\hat{P}: T^*\mathcal{M} \to \mathcal{S}_{\mathrm{admisible}}$,
+      audita la anulación de obstrucciones topológicas mediante la homología simplicial de Betti-1
+      $\beta_1(\mathcal{K}) = \dim(\ker \partial_1 / \operatorname{im} \partial_2) \equiv 0$, y clasifica
+      el veredicto final en el retículo distributivo de Heyting trivaluado $\Omega_3$:
+          $$\Omega_3 = \{\bot = \mathtt{VETOED}(2) \prec \star = \mathtt{DEGRADED}(1) \prec \top = \mathtt{COHERENT}(0)\}$$
+      Si $\beta_1 > 0$ o la divergencia de Poincaré excede el umbral crítico, dispara la interrupción
+      por hardware Crowbar simulada en sub-microsegundos ($t_{\mathrm{actuation}} \le 400\text{ ns}$).
 
-  • FASE ANIDADA 2 (`Phase2_SymplecticHamiltonianEvaluator(Phase1_MetricVectorExtractor)`):
-      ↳ Primer método de la Fase 2 (continuación directa del último de la Fase 1):
-        `consume_phase1_bridge(bridge: Phase1ToPhase2ShieldBridge) -> bool`
-      Evalúa el flujo Port-Hamiltoniano $\dot{x} = (J - R(x))\nabla H(x)$ con acoplamiento
-      de Ricci adaptativo RSI-3, construye el simplectomorfismo de Cayley-Darboux
-      $M \in \mathrm{Sp}(2m, \mathbb{R})$, audita el residuo de Greene $R_G$, la integral
-      homoclínica de Poincaré-Melnikov, la serie diofántica de Yoccoz-Bryuno y el
-      horizonte exponencial de Nekhoroshev.
-      ↳ Último método de la Fase 2:
-        `handoff_to_phase3_homology_context(...) -> Phase2ToPhase3ShieldBridge`
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. GEOMETRÍA SIMPLÉCTICA Y REDUCCIÓN DE POINCARÉ-DELAUNAY-DEPRIT:
+   Dado el espacio cotangente $T^*\mathcal{M} \cong \mathbb{R}^{2n}$ equipado con la 2-forma canónica
+   de Liouville-Darboux $\omega = \sum_{i=1}^n dq^i \wedge dp_i = d\theta$, una transformación lineal
+   tangente $M \in \mathrm{Sp}(2n, \mathbb{R})$ preserva la estructura simpléctica si y sólo si:
+       $$M^\top \mathbf{\Omega} M = \mathbf{\Omega}, \qquad \mathbf{\Omega} = \begin{pmatrix} \mathbf{0} & \mathbf{I}_n \\ -\mathbf{I}_n & \mathbf{0} \end{pmatrix}$$
+   lo cual implica por el teorema de Liouville la estricta conservación del volumen de fase $\det(M) = +1$.
+   La reducción canónica de Delaunay parametriza las órbitas cerradas en términos de momentos de acción
+   $I_k = \frac{1}{2\pi} \oint_{\gamma_k} p \, dq$ y ángulos conjugados $\theta_k$, permitiendo aislar
+   las perturbaciones resonantes del Hamiltoniano $H(I, \theta) = H_0(I) + \varepsilon H_1(I, \theta)$.
 
-  • FASE ANIDADA 3 (`Phase3_HeytingHomologyDecider(Phase2_SymplecticHamiltonianEvaluator)` & `FuntorShield`):
-      ↳ Primer método de la Fase 3 (continuación directa del último de la Fase 2):
-        `consume_phase2_bridge(bridge: Phase2ToPhase3ShieldBridge) -> bool`
-      Proyecta el estado mediante el operador ortogonal Riemanniano $\hat{P}$, construye
-      el 2-esqueleto simplicial $C_2(\mathcal{K}) \xrightarrow{\partial_2} C_1(\mathcal{K}) \xrightarrow{\partial_1} C_0(\mathcal{K})$
-      para evaluar $\beta_1(\mathcal{K}) = \dim \ker \partial_1 - \mathrm{rank}(\partial_2)$,
-      adjudica el supremo en el retículo distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$,
-      impone la frontera de Dirac-Dirichlet y dota al escudo de la multiplicación monádica $\mu: T^2 \to T$.
+2. DINÁMICA CUÁNTICA DISIPATIVA DE LINDBLAD (GKSL) Y ENTROPÍA DE SPOHN:
+   La evolución temporal de operadores de densidad o matrices de correlación de fase $\rho \in \mathfrak{D}(\mathcal{H})$
+   en presencia de acoplamiento térmico o disipación se modela mediante la ecuación maestra de Lindblad:
+       $$\mathcal{L}(\rho) = -i [H, \rho] + \sum_k \gamma_k \left( L_k \rho L_k^\dagger - \frac{1}{2} \{L_k^\dagger L_k, \rho\} \right)$$
+   donde $H$ es el Hamiltoniano autoadjunto conservativo, $L_k$ son los operadores de salto de Kraus/Lindblad,
+   $\gamma_k \ge 0$ son las tasas de relajación y $\{\cdot, \cdot\}$ denota el anticonmutador canónico.
+   La producción de entropía termodinámica viene dada por la cota de Spohn:
+       $$\sigma_{\mathrm{Spohn}}(\rho) = -\operatorname{Tr}\left( (\ln \rho - \ln \rho_{\mathrm{eq}}) \mathcal{L}(\rho) \right) \ge 0$$
+   asegurando la monotonicidad de la pérdida de información hacia el estado estacionario $\rho_{\mathrm{eq}}$.
+
+3. HOMOLOGÍA SIMPLICIAL Y CONDICIÓN DE CICLOS VETADOS DE BETTI-1:
+   Sobre el complejo simplicial inducido por las trayectorias de fase discretizadas $\mathcal{K} = (V, E, F)$,
+   los operadores de frontera $\partial_k: C_k(\mathcal{K}) \to C_{k-1}(\mathcal{K})$ satisfacen la
+   identidad fundamental de homología $\partial_{k-1} \circ \partial_k \equiv 0$.
+   El primer grupo de homología simplicial sobre coeficientes reales se define como:
+       $$H_1(\mathcal{K}, \mathbb{R}) = \ker(\partial_1) / \operatorname{im}(\partial_2), \qquad \beta_1(\mathcal{K}) = \dim(H_1(\mathcal{K}, \mathbb{R}))$$
+   La anulación idéntica del número de Betti $\beta_1(\mathcal{K}) = 0$ garantiza formalmente la ausencia de
+   bucles cerrados no contráctiles en el espacio de fase, certificando que el flujo de control no posee
+   remanentes oscilatorios parásitos o trampas cíclicas desestabilizadoras.
+
+4. AUTOMEJORA RECURSIVA DE NIVEL 3 (RSI³) Y TEORÍA DE CONTRACCIÓN DE BANACH:
+   El operador de refinamiento adaptativo $\mathbf{T}_{\mathrm{RSI3}}: \mathcal{S} \to \mathcal{S}$ actualiza los tensores
+   de disipación y proyección mediante tres cascadas compuestas:
+       $$\mathbf{T}_{\mathrm{RSI3}} = R_3^{\mathrm{Brockett}} \circ R_2^{\mathrm{Connes}} \circ R_1^{\mathrm{Ricci}}$$
+   En virtud del Teorema del Punto Fijo de Banach, si la constante de Lipschitz local satisface:
+       $$\|\mathbf{T}_{\mathrm{RSI3}}(s_1) - \mathbf{T}_{\mathrm{RSI3}}(s_2)\| \le L_{\mathrm{Banach}} \|s_1 - s_2\|, \quad L_{\mathrm{Banach}} < 1.0$$
+   la sucesión de estados generada converge unívocamente a un punto fijo inmutable $s^* \in \mathcal{S}$ que
+   blinda el sistema contra el desbordamiento de Lyapunov y derivas seculares.
+
+5. ADJUDICACIÓN EN EL RETÍCULO DE HEYTING Ω₃ Y DISYUNTOR CROWBAR DE HARDWARE:
+   El espacio de verdad lógica se estructura mediante el álgebra de Heyting totalmente ordenada:
+       $$\Omega_3 = \{\bot = \mathtt{VETOED}(2) \prec \star = \mathtt{DEGRADED}(1) \prec \top = \mathtt{COHERENT}(0)\}$$
+   con el operador supremo $a \sqcup b = \max(a, b)$ gobernando la propagación de anomalías (peor caso gana).
+   Ante veredictos degenerados $\bot$, se inhibe inmediatamente la propagación de datos y se activa la
+   interrupción electrónica Crowbar de baja latencia simulada ($t_{\mathrm{Crowbar}} \le 400\text{ ns}$).
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma FS-1] Invarianza Simpléctica de Fase:
+      Cualquier propagación admisible $M$ a través de la membrana debe satisfacer $M^\top \mathbf{\Omega} M = \mathbf{\Omega}$,
+      implicando $\det(M) = 1.0$ dentro de una tolerancia espectral $| \det(M) - 1.0 | \le \varepsilon_{\mathrm{symp}} = 10^{-6}$.
+  [Axioma FS-2] Positividad Métrica Riemanniana:
+      El tensor métrico de fondo $G \in \mathbb{R}^{n \times n}$ debe ser estrictamente simétrico y definido positivo,
+      cumpliendo $v^\top G v > 0$ para todo $v \neq 0$, con autovalor mínimo $\lambda_{\min}(G) \ge \tau_{\mathrm{SPD}} = 10^{-12}$.
+  [Axioma FS-3] Homología Inmune de Ciclo Nulo:
+      El complejo de trayectorias de fase no admite 1-ciclos no acotados; se exige rigurosamente $\beta_1(\mathcal{K}) = 0$.
+  [Axioma FS-4] Disipación Termodinámica Monótona:
+      La producción de entropía instantánea del generador de Lindblad satisface $\sigma_{\mathrm{Spohn}} \ge -\varepsilon_{\mathrm{Wilkinson}}$.
+  [Axioma FS-5] Contracción Monádica RSI³:
+      La razón de Lipschitz del endofuntor de mejora satisface $L_{\mathrm{Banach}} \le 0.95 < 1.0$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Conservación de Fase Simpléctica):
+      $|\det(M) - 1.0| \le 1.0 \times 10^{-6}$ y $\|\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} - \mathbf{\Omega}\|_F \le 1.0 \times 10^{-5}$.
+  Invariante 2 (Cota Superior de Disipación de Energía):
+      $\Delta H / \Delta t \le 0$ en régimen autónomo no forzado, garantizando pasividad según Lyapunov.
+  Invariante 3 (Clausura Categorial Idempotente):
+      $\mathcal{F}_{\mathrm{shield}}(\mathcal{F}_{\mathrm{shield}}(x)) \equiv \mathcal{F}_{\mathrm{shield}}(x)$ dentro de tolerancia numérica.
+  Invariante 4 (Monotonicidad de Veto en Heyting):
+      $v_{\mathrm{final}} = \bigsqcup_{i} v_i$, donde cualquier anomalía crítica fuerza irreversiblemente $v_{\mathrm{final}} = \mathtt{VETOED}$.
 """
 
 from __future__ import annotations
@@ -103,7 +183,7 @@ except ImportError:
         L4_WISDOM = 4
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
 except ImportError:
     # Tensor métrico Riemanniano SPD canónico de dimensión par (8×8)
     G_PHYSICS: NDArray[np.float64] = np.diag(
@@ -881,7 +961,7 @@ class Phase1_MetricVectorExtractor:
         base_verdict: HeytingOmega3,
         rsi_history: Sequence[int] = (),
     ) -> ShieldRSI3State:
-        """Resuelve el punto fijo de Banach-Kantorovich $s^* = T_{\mathrm{RSI3}}(s^*)$ de Nivel 3."""
+        r"""Resuelve el punto fijo de Banach-Kantorovich $s^* = T_{\mathrm{RSI3}}(s^*)$ de Nivel 3.r"""
         now = time.time()
         hist = tuple(int(v) for v in rsi_history)
 
@@ -954,7 +1034,7 @@ class Phase1_MetricVectorExtractor:
         state: CategoricalState,
         rsi_history: Sequence[int] = (),
     ) -> Tuple[NDArray[np.float64], PoincareSymplecticSnapshot, ShieldRSI3State, HeytingOmega3]:
-        """Extrae $x_{\mathrm{pre}}$, computa el snapshot de Poincaré y certifica el punto fijo RSI-3."""
+        r"""Extrae $x_{\mathrm{pre}}$, computa el snapshot de Poincaré y certifica el punto fijo RSI-3."""
         x_pre = PhaseVectorExtractor.extract(state, self._phase_space_dim)
         if not np.all(np.isfinite(x_pre)):
             raise ValueError("Vector de fase pre contiene valores no finitos (NaN/Inf).")
@@ -984,7 +1064,7 @@ class Phase1_MetricVectorExtractor:
         rsi3: ShieldRSI3State,
         phase1_verdict: HeytingOmega3 = HeytingOmega3.COHERENT,
     ) -> Phase1ToPhase2ShieldBridge:
-        """ÚLTIMO MÉTODO FORMAL DE LA FASE 1 → PUENTE HOMOMÓRFICO Φ₁₂ HACIA LA FASE 2.
+        r"""ÚLTIMO MÉTODO FORMAL DE LA FASE 1 → PUENTE HOMOMÓRFICO Φ₁₂ HACIA LA FASE 2.
 
         Firma criptográficamente con HMAC-SHA256 el estado extraído $x_{\mathrm{pre}}$,
         el tensor métrico Riemanniano validado, el snapshot orbital de Poincaré y el
@@ -1272,7 +1352,7 @@ class PortHamiltonianEvaluator:
         x_post: NDArray[np.float64],
         dt: float,
     ) -> float:
-        """Tasa discreta de variación energética $\Delta H / \Delta t$ a través del morfismo."""
+        r"""Tasa discreta de variación energética $\Delta H / \Delta t$ a través del morfismo."""
         safe_dt = max(dt, PhysicalConstants.MIN_TIME_STEP)
         delta_H = self.compute_energy(x_post) - self.compute_energy(x_pre)
         return delta_H / safe_dt
@@ -1368,7 +1448,7 @@ class Phase2_SymplecticHamiltonianEvaluator(Phase1_MetricVectorExtractor):
     # 2.5.1. PRIMER MÉTODO DE LA FASE 2 — CONTINUACIÓN DIRECTA DE LA FASE 1
     # ═════════════════════════════════════════════════════════════════════════
     def consume_phase1_bridge(self, bridge: Phase1ToPhase2ShieldBridge) -> bool:
-        """PRIMER MÉTODO FORMAL DE LA FASE 2 ← RECEPTOR DIRECTO DEL PUENTE Φ₁₂ DE LA FASE 1.
+        r"""PRIMER MÉTODO FORMAL DE LA FASE 2 ← RECEPTOR DIRECTO DEL PUENTE Φ₁₂ DE LA FASE 1.
 
         Verifica en tiempo constante la firma HMAC-SHA256 del puente emitido por
         `Phase1_MetricVectorExtractor.handoff_to_phase2_symplectic_context` y
@@ -1769,7 +1849,7 @@ class HomologyBettiDetector:
 
     @classmethod
     def has_logical_crevice(cls, x: NDArray[np.float64], k: int = 2) -> bool:
-        """Retorna `True` si y sólo si $\beta_1(\mathcal{K}) > 0$ (existe un 1-ciclo no acotado)."""
+        r"""Retorna `True` si y sólo si $\beta_1(\mathcal{K}) > 0$ (existe un 1-ciclo no acotado).r"""
         return cls.compute_beta1(x, k=k) > 0
 
 
@@ -1854,7 +1934,7 @@ class Phase3_HeytingHomologyDecider(Phase2_SymplecticHamiltonianEvaluator):
         HeytingOmega3,
         ShieldViolationType,
     ]:
-        """Consume el puente Φ₂₃, aplica $\hat{P}$, audita $\beta_1(\mathcal{K}) = 0$ y adjudica en $\Omega_3$."""
+        r"""Consume el puente Φ₂₃, aplica $\hat{P}$, audita $\beta_1(\mathcal{K}) = 0$ y adjudica en $\Omega_3$.r"""
         self.consume_phase2_bridge(bridge23)
 
         # 1. Proyección ortogonal Riemanniana sobre el subespacio protegido
@@ -1955,7 +2035,7 @@ class FuntorShield(Morphism, Phase3_HeytingHomologyDecider, Generic[T_Agent]):
       • T3 (Pasividad de Lyapunov y Estabilidad de Poincaré): $\dot{H} \le 0$ y $M^\top \Omega M = \Omega$.
       • T4 (Coherencia Homológica Simplicial): $\beta_1(\mathcal{K}_{\mathrm{post}}) = 0$.
       • T5 (Contracción de Banach RSI-3): $\|DT_{\mathrm{RSI3}}(s^*)\|_\infty < 1$.
-    """
+    r"""
 
     def __init__(
         self,
@@ -2310,7 +2390,7 @@ class FuntorShield(Morphism, Phase3_HeytingHomologyDecider, Generic[T_Agent]):
 
     # ─── Verificación Experimental de Idempotencia y Teoremas T1–T5 ───────────
     def verify_idempotence(self, state: CategoricalState) -> bool:
-        """Verifica experimentalmente $\mathcal{Z}_{\mathrm{shield}}(\mathcal{Z}_{\mathrm{shield}}(x)) \equiv \mathcal{Z}_{\mathrm{shield}}(x)$."""
+        r"""Verifica experimentalmente $\mathcal{Z}_{\mathrm{shield}}(\mathcal{Z}_{\mathrm{shield}}(x)) \equiv \mathcal{Z}_{\mathrm{shield}}(x)$.r"""
         logger.info("Verificando idempotencia experimental...")
         first = self(state)
         second = self(first)
@@ -2394,7 +2474,7 @@ def apply_funtor_shield(
 ) -> Callable[[type[T_Agent]], type[FuntorShield[T_Agent]]]:
     r"""
     Decorador que acopla un agente al Funtor de Membrana Aislante en 3 fases anidadas.
-    """
+    r"""
 
     def decorator(agent_class: type[T_Agent]) -> type[FuntorShield[T_Agent]]:
         class ShieldedAgentFactory(FuntorShield[T_Agent]):
