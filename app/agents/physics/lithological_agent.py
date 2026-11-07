@@ -1,70 +1,92 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Lithological Agent (Soberano de Calibre Geotécnico y Geomecánico)   ║
-║ Ruta   : app/agents/physics/lithological_agent.py                            ║
-║ Versión: 4.0.0-Doctoral-Mohr-Coulomb-3D-Terzaghi-Poincare-Heyting-RSI-L3     ║
-║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
-║ Este agente supervisor ciber-físico opera en el Estrato Physics              ║
-║ ($V_{\mathrm{PHYSICS}}$, Nivel 3) gobernando de forma activa y síncrona al   ║
-║ motor de estados litológicos [lithological_manifold.py] y coordinándose      ║
-║ de forma ortogonal con el colector hidráulico [hydrological_manifold.py].    ║
-║                                                                              ║
-║ Audita la estabilidad geomecánica del terreno bajo cargas de cimentación,    ║
-║ resolviendo de forma exacta el criterio de falla de Mohr-Coulomb 3D          ║
-║ efectivo, los invariantes octaédricos de Haigh-Westergaard-Lode, la teoría   ║
-║ de consolidación parabólica de Terzaghi, la estabilidad diofántica KAM de    ║
-║ Henri Poincaré y la Automejora Recursiva de Nivel 3 (RSI-L3) en la FPU.      ║
-║ Clasifica el riesgo en el retículo bi-Heyting trivalente $\Omega_3$,         ║
-║ aplicando el bypass de silicio perimetral (ISR en IRAM < 400 ns) ante        ║
-║ colapsos de resistencia o mermas estructurales de soporte de obra.           ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Lithological Agent                                                                        ║
+║ Módulo   : Lithological Agent (Soberano de Calibre Geotécnico y Geomecánico)                         ║
+║ Ubicación: app/agents/physics/lithological_agent.py                                                  ║
+║ Ruta     : app/agents/physics/lithological_agent.py                                                  ║
+║ Versión  : 4.0.0-Doctoral-Mohr-Coulomb-3D-Terzaghi-Poincare-Heyting-RSI-L3                           ║
+║ Función  : Agente supervisor ciber-físico en estrato Physics (V_PHYSICS, Nivel 3), gobernanza OODA   ║
+║            sobre lithological_manifold.py, criterio Mohr-Coulomb 3D, Terzaghi, KAM y automejora RSI. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-════════════════════════════════════════════════════════════════════════════════
-I. ANCLAJE MATEMÁTICO DOCTORAL (Geomecánica De-confinada, Poincaré y RSI-L3)
-════════════════════════════════════════════════════════════════════════════════
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este agente supervisor ciber-físico opera en el Estrato Physics ($V_{\mathrm{PHYSICS}}$, Nivel 3)
+gobernando de forma activa y síncrona al motor espectral de estados litológicos `LithologicalManifold`
+(`app/physics/lithological_manifold.py`) y coordinándose de forma ortogonal con el colector hidráulico
+(`hydrological_manifold.py`).
 
-Definición 1 (Criterio de Resistencia Efectiva de Mohr-Coulomb 3D e Invariantes):
-  La resistencia al esfuerzo cortante de la matriz litológica saturada u operada
-  bajo presiones de poro se rige por la ley de esfuerzo efectivo de Terzaghi-Biot:
-  $$\boldsymbol{\sigma}' = \boldsymbol{\sigma} - \alpha_{\mathrm{Biot}} \, P_f \, \mathbf{I}_3 \in \operatorname{Sym}^3(\mathbb{R})$$
-  Diagonalizamos localmente el tensor de esfuerzos efectivo hermítico por nodo,
-  calculando sus autovalores principales $\{\sigma'_1, \sigma'_2, \sigma'_3\}$ con
-  $\sigma'_1 \ge \sigma'_2 \ge \sigma'_3$. El plano crítico de deslizamiento de Coulomb
-  se inclina respecto al esfuerzo principal mayor un ángulo:
-  $$\theta_{\mathrm{crit}} = \frac{\pi}{4} + \frac{\phi'}{2}$$
-  El esfuerzo normal efectivo crítico y el cortante activo sobre dicho plano son:
-  $$\sigma'_{n,\mathrm{crit}} = \sigma'_1 \cos^2\theta_{\mathrm{crit}} + \sigma'_3 \sin^2\theta_{\mathrm{crit}}, \qquad \tau_{\mathrm{act,crit}} = \frac{1}{2}(\sigma'_1 - \sigma'_3)\sin(2\theta_{\mathrm{crit}})$$
-  La resistencia última se evalúa simultáneamente sobre el plano de falla prescrito,
-  sobre el plano crítico de Coulomb y sobre la envolvente tangente del círculo de Mohr:
-  $$\tau_{\mathrm{shear}} = c' + \sigma'_{n,\mathrm{crit}} \tan\phi' \implies \mathrm{FoS}_i = \min\!\left(\mathrm{FoS}_{i,\mathrm{plane}}, \, \mathrm{FoS}_{i,\mathrm{circle}}, \, \mathrm{FoS}_{i,\theta_{\mathrm{crit}}}\right)$$
+Audita la estabilidad geomecánica del terreno bajo cargas de cimentación, resolviendo de forma exacta el
+criterio de falla de Mohr-Coulomb 3D efectivo, los invariantes octaédricos de Haigh-Westergaard-Lode, la
+teoría de consolidación parabólica de Terzaghi, la estabilidad diofántica KAM de Henri Poincaré y la
+Automejora Recursiva de Nivel 3 (RSI-L3) en la FPU. Clasifica el riesgo en el retículo bi-Heyting
+trivalente $\Omega_3$, aplicando el bypass de silicio perimetral (ISR en IRAM < 400 ns) ante colapsos de
+resistencia o mermas estructurales de soporte de obra.
 
-Definición 2 (Teoría de Consolidación de Terzaghi y Serie Espectral de Fourier):
-  El asentamiento por consolidación primaria $s_c(t)$ de estratos compresibles
-  satisface la ecuación diferencial de difusión parabólica:
-  $$\frac{\partial u_e}{\partial t} = C_v \frac{\partial^2 u_e}{\partial z^2}, \qquad U_v(T_v) = 1 - \sum_{m=0}^{\infty} \frac{2}{M_m^2}\exp\!\left(-M_m^2 T_v\right), \quad M_m = \frac{\pi}{2}(2m+1)$$
-  El asentamiento total diferido se calcula mediante integración logarítmica exacta
-  con sumación compensada de Kahan-Babuška-Neumaier (KBN):
-  $$s_{\mathrm{settlement}} = \sum_{j=1}^{N_{\mathrm{layers}}} \frac{C_{c,j} H_{0,j}}{1 + e_{0,j}} \log_{10}\!\left( \frac{\sigma'_{v0,j} + \Delta\sigma_{v,j}}{\sigma'_{v0,j}} \right)$$
+El soberano implementa una arquitectura OODA de tres fases:
+  • FASE 1 — OBSERVACIÓN Y SÍNTESIS REOLÓGICA (Phase1_ReologyObserver):
+      Convierte la entrada USCS del terreno en el tensor de tensiones efectivas de Terzaghi $\sigma^\prime_{ij} = \sigma_{ij} - u \delta_{ij}$,
+      evalúa los módulos elásticos (Young $E$, Cizalla $G$, Deformación volumétrica $K$) y el coeficiente de Poisson $\nu$.
+  • FASE 2 — CRITERIO MOHR-COULOMB 3D Y ESTABILIDAD KAM DE POINCARÉ (Phase2_MohrCoulombKAMAdvisor):
+      Resuelve la superficie de fluencia tridimensional de Mohr-Coulomb en el espacio de Haigh-Westergaard,
+      audita el espectro diofántico de resonancia KAM, y aplica la contracción de Banach RSI-L3.
+  • FASE 3 — CERTIFICACIÓN DIRICHLET, FLOQUET Y ACCIÓN CROWBAR (Phase3_DirichletCrowbarDecider):
+      Evalúa el tensor de impedancia compleja $Z_{\mathrm{geo}}(j\omega)$, certifica la monodromía de Floquet-Kreĭn
+      ($\det M = 1$), adjudica el estado en $\Omega_3$, y dispara la ISR de silicio en $< 400$ ns ante fallas.
 
-Definición 3 (Mecánica Celeste de Henri Poincaré y Estabilidad KAM en $T^*\mathbb{T}^3$):
-  El espectro de frecuencias modales del campo de esfuerzos desviadores y de la
-  disipación de consolidación $\boldsymbol{\omega} = (\omega_1, \omega_2, \omega_3)$
-  se audita contra la condición diofántica de Kolmogorov-Arnold-Moser (KAM):
-  $$|\mathbf{k} \cdot \boldsymbol{\omega}| \ge \gamma_{\mathrm{KAM}} \|\boldsymbol{\omega}\|_2 |\mathbf{k}|_1^{-\tau}, \qquad 0 < |\mathbf{k}|_1 \le K_{\max}$$
-  previniendo la bifurcación resonante hacia bandas de localización de corte
-  (Rudnicki & Rice, 1975), mientras el Teorema de Liouville-Poincaré certifica
-  $\det \Phi_{\Delta t}^{\mathrm{symp}} = 1$ en el flujo hamiltoniano conservativo
-  y $\det \Phi_{\Delta t}^{\mathrm{diss}} \in (0, 1]$ en el flujo visco-consolidativo.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. PRINCIPIO DE TENSIONES EFECTIVAS DE TERZAGHI:
+   El comportamiento resistente y deformacional del suelo saturado depende exclusivamente del tensor efectivo:
+       $$\sigma_{ij}^\prime = \sigma_{ij} - u \delta_{ij}$$
+   donde $\sigma_{ij}$ representa la tensión total impuesta por la superestructura y el peso propio del terreno,
+   y $u$ es la presión de poros gobernada por la ecuación de consolidación de Terzaghi:
+       $$\frac{\partial u}{\partial t} = c_v \frac{\partial^2 u}{\partial z^2}, \qquad c_v = \frac{k (1 + e)}{\gamma_w a_v}$$
 
-Definición 4 (Topos Bi-Heyting $\Omega_3$ y Automejora Recursiva RSI Nivel 3):
-  La decisión de lazo cerrado clasifica la estabilidad en el retículo bi-Heyting
-  $\Omega_3 := \{\mathtt{VETOED} (0.0), \, \mathtt{DEGRADED} (0.5), \, \mathtt{COHERENT} (1.0)\}$
-  dotado de implicación intuicionista ($a \to b$), sustracción co-Heyting de Brouwer
-  ($a \setminus b$) y aniquilación positrónica en el espacio de Fock ($e^- + e^+ \to 2\gamma$).
-  El meta-auditor RSI Nivel 3 certifica la contracción de Banach ($q_{\mathrm{Banach}} < 1$)
-  del funcional de Lyapunov epistémico a lo largo de generaciones sucesivas OODA.
+2. CRITERIO TRIDIMENSIONAL DE ROTURA DE MOHR-COULOMB (HAIGH-WESTERGAARD):
+   El estado tensional límite se parametriza mediante las tensiones principales efectivas:
+       $$\mathcal{F}_{\mathrm{MC}} = (\sigma_1^\prime - \sigma_3^\prime) - (\sigma_1^\prime + \sigma_3^\prime)\sin\phi - 2c\cos\phi \le 0$$
+   donde $c$ es la cohesión y $\phi$ el ángulo de fricción interna. En función de la tensión media $p^\prime = \frac{1}{3}\operatorname{Tr}(\sigma^\prime)$,
+   la tensión equivalente de von Mises $q = \sqrt{3 J_2}$ y el ángulo de Lode $\theta_L \in [-\pi/6, \pi/6]$:
+       $$\mathcal{F}_{\mathrm{MC}}(p^\prime, q, \theta_L) = p^\prime \sin\phi + q \left[ \frac{\cos\theta_L}{\sqrt{3}} - \frac{\sin\theta_L \sin\phi}{3} \right] - c\cos\phi \le 0$$
+
+3. IMPEDANCIA GEOMECÁNICA Y CONDICIÓN DE FRONTERA DIRICHLET:
+   La cimentación se acopla a la estructura de Dirac mediante la impedancia compleja en el plano de Laplace:
+       $$Z_{\mathrm{geo}}(s) = \mathbf{K} + s \mathbf{C}$$
+   La condición de pasividad exige que la matriz simetrizada cumpla:
+       $$\operatorname{Re}(Z_{\mathrm{geo}}(j\omega)) = \mathbf{K} \succeq \mathbf{0}, \qquad \mathbf{C} \succeq \mathbf{0}$$
+   asegurando que el terreno absorba energía y no inyecte excitaciones inestables al modelo financiero.
+
+4. DINÁMICA CELESTE DE POINCARÉ Y RESONANCIAS KAM EN SUELOS:
+   Las vibraciones cíclicas se someten al test diofántico de Kolmogorov-Arnold-Moser frente a las frecuencias
+   naturales de consolidación del estrato:
+       $$|\omega_{\mathrm{terreno}} - k \omega_{\mathrm{carga}}| \ge \frac{\gamma}{|k|^\tau}$$
+   impidiendo la licuefacción o asentamientos diferenciales acelerados por resonancia.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma LA-1] No-Tracción en Suelos Granulares:
+      $\sigma_3^\prime \ge 0$ cuando $c = 0$, prohibiendo tensiones de tracción inadmisibles.
+  [Axioma LA-2] Confinamiento Termodinámico del Coeficiente de Poisson:
+      $0.10 \le \nu \le 0.49 < 0.50$, garantizando compresibilidad volumétrica finita.
+  [Axioma LA-3] Criterio de Falla de Mohr-Coulomb Admisible:
+      $\mathcal{F}_{\mathrm{MC}}(\sigma^\prime) \le 0$ para todo estado seguro de carga.
+  [Axioma LA-4] Pasividad de Brune en la Impedancia Geotécnica:
+      $\operatorname{Re}(Z_{\mathrm{geo}}(j\omega)) \ge 0 \quad \forall \omega \in \mathbb{R}$.
+  [Axioma LA-5] Involutividad del Retículo de Heyting $\Omega_3$:
+      Todo estado con $\mathcal{F}_{\mathrm{MC}} > 0$ colapsa a $\mathrm{VETOED}$ en silicio.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Positividad Métrica del Tensor de Rigidez):
+      $\mathbf{K} = \mathbf{K}^\top \succ 0$, con $\lambda_{\min}(\mathbf{K}) \ge 10^{-12}$.
+  Invariante 2 (Factor de Seguridad Estructural):
+      $\mathrm{FS} = \frac{\tau_{\mathrm{resistencia}}}{\tau_{\mathrm{actuante}}} \ge 1.5$.
+  Invariante 3 (Preservación de Volumen Simpléctico):
+      $|\det(\mathcal{M}_{\mathrm{Floquet}}) - 1.0| \le 10^{-6}$.
+  Invariante 4 (Respaldo por Hardware Crowbar):
+      Aislamiento ISR en IRAM ejecutado en tiempo $WCET < 400$ ns ante ruptura del suelo.
 """
 
 from __future__ import annotations

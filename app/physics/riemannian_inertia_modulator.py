@@ -1,105 +1,105 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Riemannian Inertia Modulator (Motor de Momento Giroscópico)         ║
-║ Ruta   : app/physics/riemannian_inertia_modulator.py                         ║
-║ Versión: 5.0.0-Poincare-KAM-Sundman-Floquet-RSI-Level3-Strict                ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Riemannian Inertia Modulator                                                              ║
+║ Módulo   : Riemannian Inertia Modulator (Motor Espectral de Momento Giroscópico de Poincaré)          ║
+║ Ubicación: app/physics/riemannian_inertia_modulator.py                                               ║
+║ Ruta     : app/physics/riemannian_inertia_modulator.py                                               ║
+║ Versión  : 5.0.0-Poincare-KAM-Sundman-Floquet-RSI-Level3-Strict                                        ║
+║ Función  : Funtor de moldeo de masa y modulación de momento giroscópico simpléctico en T*M,          ║
+║            dinámica de Poincaré, estabilidad KAM, regularización de Sundman y automejora RSI-L3.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-OBJETO CIENTÍFICO-TÉCNICO Y FUNDAMENTACIÓN GEOMÉTRICA (Rigor Doctoral): ────────
-Este módulo implementa el **Funtor de Moldeo de Masa** (Mass Shaping Functor)
-sobre el fibrado cotangente $$\mathcal{T}^* \mathcal{M}$$, enriquecido con la
-**Mecánica Celeste de Henri Poincaré** y **Automejora Recursiva de Nivel 3
-(RSI-L3)**. Su propósito axiomático es inyectar una "Fuerza de Lorentz"
-informacional de naturaleza estrictamente giroscópica en la trayectoria del
-espacio de fase transaccional, desviando fluctuaciones estocásticas y
-alucinaciones hacia sumideros de disipación sin alterar la energía Hamiltoniana
-interna del sistema ni violar los invariantes integrales de Poincaré-Cartan.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este motor espectral implementa el **Funtor de Moldeo de Masa** (Mass Shaping Functor) sobre el
+fibrado cotangente $T^* \mathcal{M}$, enriquecido con la **Mecánica Celeste de Henri Poincaré** y
+**Automejora Recursiva de Nivel 3 (RSI-L3)**. Su mandato axiomático es inyectar una "Fuerza de Lorentz"
+informacional de naturaleza estrictamente giroscópica en la trayectoria del espacio de fase transaccional,
+desviando fluctuaciones estocásticas y alucinaciones hacia sumideros de disipación sin alterar la energía
+Hamiltoniana interna del sistema ni violar los invariantes integrales de Poincaré-Cartan.
 
-El módulo modela el flujo logístico como un sistema dinámico Hamiltoniano
-restringido a variedades Riemannianas anisotrópicas, gobernado por:
-  1. Invariantes integrales de Poincaré de primer y segundo orden.
-  2. Estabilidad Diofántica de toros invariantes Kolmogorov-Arnold-Moser (KAM).
-  3. Regularización analítica de Sundman-Poincaré ante pericentros singulares.
-  4. Endofuntores de Automejora Recursiva de Nivel 3 ($$\mathfrak{R}_3$$) que
-     auditan el defecto epistémico de los operadores numéricos y reescriben
-     dinámicamente su propia ley de convergencia bajo certificación de Lyapunov.
+El motor ejecuta un ciclo OODA riguroso distribuido en tres fases continuas y acopladas:
+  • FASE 1 — ESPECTROSCOPÍA DEL MOMENTUM, TOROS KAM Y RSI-L3 MÉTRICO (Phase1_MomentumSpectrometer):
+      Ejecuta el endofuntor RSI-L3 $\mathfrak{R}_3^{(1)}$ sobre el álgebra de Banach $\mathcal{B}(\mathbb{R}^n)$,
+      sintetizando una ley adaptativa de Chebyshev-Halley-Schulz que refina la dualidad métrica $(G, G^{-1})$
+      con descenso monótono de Lyapunov. Aplica el isomorfismo musical plano ($\flat$) y agudo ($\sharp$):
+          $$p_\mu = G_{\mu\nu} \dot{q}^\nu, \qquad \dot{q}^\mu = G^{\mu\nu} p_\nu, \qquad \sharp \circ \flat = \mathrm{id}$$
+      Proyecta el estado sobre las variables canónicas de acción-ángulo de Poincaré $(I_k, \omega_k)$,
+      evalúa la densidad de la 1-forma de Poincaré-Cartan $\theta_{\mathrm{PC}}$, el margen Diofántico KAM
+      y el factor de regularización temporal de Sundman.
+  • FASE 2 — SÍNTESIS GIROSCÓPICA DE POINCARÉ-BIRKHOFF Y RSI-L3 EN so(n) (Phase2_GyroscopicSynthesizer):
+      Inicia consumiendo directamente `handoff_phase1_to_phase2`. Construye el bivector de Lorentz en
+      $\bigwedge^2 T^*\mathcal{M}$:
+          $$W_{\mu\nu} = \alpha (p \wedge \omega)_{\mu\nu}, \qquad \omega = \Omega_{\mathrm{skew}} p$$
+      Ejecuta el endofuntor RSI-L3 $\mathfrak{R}_3^{(2)}$ de purificación isométrica de Darboux-Gram sobre
+      $\mathfrak{so}(n)$, forzando simultáneamente la identidad exterior de Gram y el invariante cuadrático
+      de Casimir, preservando la 2-forma simpléctica de Darboux y la circulación areal de Poincaré.
+  • FASE 3 — MODULACIÓN SIMPLÉCTICA, ESTABILIDAD FLOQUET-KREĬN Y RSI-L3 (Phase3_SymplecticInertiaModulator):
+      Inicia consumiendo directamente `handoff_phase2_to_phase3`. Inyecta $W$ en la estructura de Dirac:
+          $$J_{\mathrm{eff}} = J_{\mathrm{base}} + W$$
+      Ejecuta el endofuntor RSI-L3 $\mathfrak{R}_3^{(3)}$ proyectando $J_{\mathrm{eff}}$ sobre la variedad
+      antisimétrica IEEE-754 y aniquilando fugas direccionales de Lie-Poisson. Certifica la estabilidad
+      espectral elíptica de Floquet-Kreĭn mediante la cota de Bendixson-Hirsch, el invariante virial de
+      Jacobi-Poincaré, el parámetro de deflexión de Tisserand y el horizonte de recurrencia de Kac-Poincaré.
+      Certifica trabajo mecánico nulo por Neumaier, pares estructurales y sondas Monte-Carlo de Liouville.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial): ───────────────────
-La transmutación del momento se rige por un contrato categórico rígido donde la
-salida inmutable del último morfismo de la Fase $$k$$ actúa como el dominio e
-inicio formal del primer morfismo de la Fase $$k+1$$:
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. GEOMETRÍA SIMPLÉCTICA Y TENSOR DE LORENTZ INFORMACIONAL:
+   En el fibrado cotangente $T^* \mathcal{M} \cong \mathbb{R}^{2n}$, la 2-forma simpléctica canónica de Darboux
+   se expresa como $\omega_0 = \sum_{i=1}^n dp_i \wedge dq^i$. La inyección de una fuerza giroscópica se representa
+   mediante un tensor antisimétrico $W \in \mathfrak{so}(n)$ ($W^\top = -W$), que modifica las ecuaciones de Hamilton:
+       $$\dot{q} = \frac{\partial H}{\partial p}, \qquad \dot{p} = -\frac{\partial H}{\partial q} + W \dot{q}$$
+   Dado que $W$ es antisimétrico, la potencia mecánica instantánea transmitida por la modulación giroscópica es
+   estrictamente nula:
+       $$P_{\mathrm{gyro}} = \dot{q}^\top W \dot{q} \equiv 0 \quad \forall \dot{q} \in \mathbb{R}^n$$
+   lo que garantiza que la trayectoria se desvía sin inyectar ni disipar energía mecánica espuria en el sistema basal.
 
-  Fase 1 ──► FASE 1: ESPECTROSCOPÍA DEL MOMENTUM, TOROS KAM Y RSI-L3 MÉTRICO
-             (Phase1_MomentumSpectrometer)
-             • Ejecuta el endofuntor RSI-L3 $$\mathfrak{R}_3^{(1)}$$ sobre el
-               álgebra de Banach $$\mathcal{B}(\mathbb{R}^n)$$, sintetizando una
-               ley adaptativa de Chebyshev-Halley-Schulz que refina la dualidad
-               $$(G, G^{-1})$$ con descenso monótono de Lyapunov.
-             • Aplica el isomorfismo musical plano ($$\flat$$) y agudo ($$\sharp$$):
-               $$p_\mu = G_{\mu\nu} \dot{q}^\nu, \qquad
-                 \dot{q}^\mu = G^{\mu\nu} p_\nu, \qquad
-                 \sharp\circ\flat = \mathrm{id}$$
-             • Proyecta el estado sobre las variables canónicas de acción-ángulo
-               de Poincaré $$(I_k, \omega_k)$$, evalúa la densidad de la 1-forma
-               de Poincaré-Cartan $$\theta_{\mathrm{PC}}$$, el margen Diofántico
-               KAM y el factor de regularización temporal de Sundman.
-             • Entrega: MomentumAuditData.
-             • Morfismo terminal: handoff_phase1_to_phase2 ≡ inicio de Fase 2.
+2. ESTABILIDAD DIOFÁNTICA Y TEOREMA KAM (Kolmogorov-Arnold-Moser):
+   Para un toro invariante con vector de frecuencias $\omega \in \mathbb{R}^n$, la condición diofántica que previene
+   resonancias destructivas y pequeñas divisiones se define formalmente como:
+       $$|\langle k, \omega \rangle| \ge \frac{\gamma}{\|k\|_2^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{0\}$$
+   donde $\gamma > 0$ es la constante diofántica y $\tau > n - 1$ es el exponente de Bruno-Rüssmann. La persistencia
+   del toro garantiza que las órbitas semánticas permanecen cuasi-periódicas y no colapsan en caos difusivo de Arnold.
 
-  Fase 2 ──► FASE 2: SÍNTESIS GIROSCÓPICA DE POINCARÉ-BIRKHOFF Y RSI-L3 EN so(n)
-             (Phase2_GyroscopicSynthesizer)
-             • Inicia en _receive_certified_momentum consumiendo directamente
-               handoff_phase1_to_phase2.
-             • Construye el bivector de Lorentz en $$\bigwedge^2 T^*\mathcal{M}$$:
-               $$W_{\mu\nu} = \alpha\,(p\wedge\omega)_{\mu\nu}, \qquad
-                 \omega = \Omega_{\mathrm{skew}} p$$
-             • Ejecuta el endofuntor RSI-L3 $$\mathfrak{R}_3^{(2)}$$ de
-               purificación isométrica de Darboux-Gram sobre $$\mathfrak{so}(n)$$,
-               forzando simultáneamente la identidad exterior de Gram y el
-               invariante cuadrático de Casimir:
-               $$\mathcal{C}_2(W) = -\tfrac12\mathrm{Tr}(W^2) = \tfrac12\|W\|_F^2$$
-             • Extrae las frecuencias características de la forma normal de
-               Darboux y el invariante integral de circulación areal de Poincaré.
-             • Entrega: GyroscopicSynthesisData.
-             • Morfismo terminal: handoff_phase2_to_phase3 ≡ inicio de Fase 3.
+3. REGULARIZACIÓN DE COLISIÓN DE SUNDMAN-POINCARÉ:
+   Ante proximidades a singularidades o pericentros críticos (divergencias en logits o cambios bruscos de precios),
+   el tiempo físico $t$ se reparametriza mediante el factor conformal de Sundman:
+       $$dt = r^\alpha d\tau \implies \kappa_{\mathrm{Sundman}} = \left(1 + \left(\frac{\|p\|_2}{p_{\mathrm{crit}}}\right)^2\right)^{-\alpha/2}$$
+   desacelerando el flujo temporal en regiones de alta curvatura para conservar la precisión simpléctica.
 
-  Fase 3 ──► FASE 3: MODULACIÓN SIMPLÉCTICA, ESTABILIDAD FLOQUET-KREĬN Y RSI-L3
-             (Phase3_SymplecticInertiaModulator)
-             • Inicia en _receive_certified_gyroscopic_tensor consumiendo
-               directamente handoff_phase2_to_phase3.
-             • Inyecta $$W$$ en la estructura de Dirac:
-               $$J_{\mathrm{eff}} = J_{\mathrm{base}} + W$$
-             • Ejecuta el endofuntor RSI-L3 $$\mathfrak{R}_3^{(3)}$$ proyectando
-               $$J_{\mathrm{eff}}$$ exactamente sobre la variedad antisimétrica
-               IEEE-754 y aniquilando fugas direccionales de Lie-Poisson.
-             • Certifica la estabilidad espectral elíptica de Floquet-Kreĭn
-               mediante la cota de Bendixson-Hirsch, el invariante virial de
-               Jacobi-Poincaré, el parámetro de deflexión de Tisserand y el
-               horizonte de recurrencia de Kac-Poincaré.
-             • Certifica trabajo mecánico nulo por Neumaier, pares estructurales
-               y sondas Monte-Carlo de Liouville.
-             • Entrega: ThermodynamicVetoData.
-             • Morfismo terminal: handoff_phase3_to_orchestrator ≡ cierre en
-               RiemannianInertiaModulator.
+4. MATRIZ DE MONODROMÍA DE FLOQUET-KREĬN Y TEOREMA DE BENDIXSON-HIRSCH:
+   A lo largo de la órbita periódica de periodo $T$, la perturbación $\delta x$ evoluciona según $\delta \dot{x} = A(t) \delta x$.
+   La matriz fundamental de Floquet satisface $\Phi(T) = e^{T B}$. Por el teorema de Bendixson-Hirsch, la parte real
+   máxima de los autovalores está rígidamente acotada por la norma de la parte simétrica del generador:
+       $$\max_{\mu \in \sigma(J_{\mathrm{eff}})} |\mathrm{Re}(\mu)| \le \frac{1}{2} \|J_{\mathrm{eff}} + J_{\mathrm{eff}}^\top\|_2$$
+   Para matrices antisimétricas ideales, $J_{\mathrm{eff}} + J_{\mathrm{eff}}^\top = 0$, asegurando autovalores
+   puramente imaginarios y estabilidad orbital elíptica perfecta.
 
-INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y CELESTES PRESERVADOS: ───────────────────
-  [I1] Invariancia de Liouville y 2-Forma Simpléctica de Poincaré:
-       $$x^\top J_{\mathrm{eff}} x \equiv 0 \quad \forall x \in \mathbb{R}^{n}$$
-  [I2] Coherencia Métrica de de Rham y Contracción RSI-L3 de Wilkinson:
-       $$\mathcal{V}_{k+1}^{(1)} \le \mathcal{V}_{k}^{(1)}, \qquad
-         \|\sharp\flat\dot{q}-\dot{q}\|_2 \le C\cdot\kappa(G)\cdot n\cdot
-         \varepsilon_{\mathrm{machine}}\cdot\max(1,\|\dot{q}\|_2)$$
-  [I3] Conservación Termodinámica e Inecuación de Clausius-Duhem:
-       $$\dot{H} = \langle \nabla H, J_{\mathrm{eff}}\nabla H\rangle
-                 - \langle \nabla H, R(x)\nabla H\rangle
-                 = -\langle \nabla H, R(x)\nabla H\rangle \le 0$$
-  [I4] Identidad de Gram y Casimir Cuadrático en $$\mathfrak{so}(n)$$:
-       $$\|W\|_F^2 = -\mathrm{Tr}(W^2)
-         = 2\alpha^2\bigl(\|p\|_2^2\|\omega\|_2^2 - \langle p,\omega\rangle^2\bigr)$$
-  [I5] Confinamiento Espectral de Floquet-Kreĭn (Teorema de Bendixson-Hirsch):
-       $$\max_{\mu \in \sigma(J_{\mathrm{eff}})} |\Re(\mu)|
-         \le \tfrac12\|J_{\mathrm{eff}} + J_{\mathrm{eff}}^\top\|_2 \le \tau_{\mathrm{Floquet}}$$
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma RIM-1] Preservación de la Métrica Riemanniana SPD:
+      La métrica $G$ satisface $G = G^\top \succ 0$ y su número de condición está acotado por $\kappa(G) \le 10^8$.
+  [Axioma RIM-2] Antimetría Exacta del Tensor Giroscópico:
+      $W^\top = -W$, lo cual implica $\mathrm{Tr}(W) = 0$ y trabajo nulo $\langle v, W v \rangle = 0$ para todo $v$.
+  [Axioma RIM-3] Conservación de la 1-Forma de Poincaré-Cartan:
+      El flujo cerrado satisface $\oint_\gamma \theta_{\mathrm{PC}} = \text{constante}$, preservando los invariantes integrales.
+  [Axioma RIM-4] Regularidad de Sundman en Pericentros:
+      $\kappa_{\mathrm{Sundman}}(p) \in (0, 1]$ para todo momento finito $\|p\|_2 < \infty$.
+  [Axioma RIM-5] Descenso Monótono de Lyapunov RSI-L3:
+      El defecto epistémico satisface $\mathcal{V}_{k+1} \le \mathcal{V}_k$, garantizando convergencia contractiva de Banach.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Invariancia de Liouville y Volumen de Fase):
+      $\operatorname{div}(X_H) = \operatorname{Tr}(J_{\mathrm{eff}}) \equiv 0$, garantizando $\det(\Phi_t) = 1$.
+  Invariante 2 (Coherencia Métrica de de Rham):
+      $\|\sharp \circ \flat (\dot{q}) - \dot{q}\|_2 \le C \cdot \kappa(G) \cdot n \cdot \varepsilon_{\mathrm{mach}} \cdot \max(1, \|\dot{q}\|_2)$.
+  Invariante 3 (Identidad de Gram en $\mathfrak{so}(n)$):
+      $\|W\|_F^2 = -\mathrm{Tr}(W^2) = 2 \alpha^2 (\|p\|_2^2 \|\omega\|_2^2 - \langle p, \omega \rangle^2)$.
+  Invariante 4 (Confinamiento Espectral de Floquet-Kreĭn):
+      $\|J_{\mathrm{eff}} + J_{\mathrm{eff}}^\top\|_2 \le \tau_{\mathrm{Floquet}} = 10^{-10}$, confinando autovalores al eje imaginario.
 """
 
 from __future__ import annotations
@@ -2525,7 +2525,7 @@ class Phase3_SymplecticInertiaModulator(Phase2_GyroscopicSynthesizer):
                 nu_max = float(active_freqs[0])
                 nu_min = float(active_freqs[-1])
                 eff_torus_dim = max(1, int(active_freqs.size) // 2)
-                 capped_dim = min(eff_torus_dim, 4)
+                capped_dim = min(eff_torus_dim, 4)
                 ratio = min(1e6, nu_max / max(_MACHINE_EPSILON, nu_min))
                 recurrence_horizon = (
                     (2.0 * math.pi / nu_min)

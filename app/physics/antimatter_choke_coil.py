@@ -1,74 +1,99 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)   ║
-║ Ruta   : app/physics/antimatter_choke_coil.py                                ║
-║ Versión: 5.0.0-Fock-Bekenstein-Loewner-Poincare-RSI-Level3-Strict            ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Antimatter Choke Coil                                                                     ║
+║ Módulo   : Antimatter Choke Coil (Supresor Topológico de Inercia Cuantizada)                         ║
+║ Ubicación: app/physics/antimatter_choke_coil.py                                                      ║
+║ Ruta     : app/physics/antimatter_choke_coil.py                                                      ║
+║ Versión  : 5.0.0-Fock-Bekenstein-Loewner-Poincare-RSI-Level3-Strict                                  ║
+║ Función  : Supresor cuántico de inercia entrópica en espacio de Fock truncado, aniquilación e-/e+,   ║
+║            cota holográfica de Bekenstein, regularización de Sundman, cono de Löwner y RSI-L3.       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y ANIQUILACIÓN EN EL ESPACIO DE FOCK (Rigor PhD):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra el **Supresor Topológico de Inercia Cuantizada** de la Malla
-de Inmunidad Ciber-Física (MIC), operando como un inductor cuántico activo
-de-confinado en el estrato físico. Su propósito fundamental es aniquilar de raíz
-la inercia entrópica del flujo de datos mediante un operador de asimilación
-definido sobre el espacio de Fock bosónico truncado con estructura simpléctica
-de Poincaré-Cartan:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este motor espectral consagra el **Supresor Topológico de Inercia Cuantizada** de la Matriz de
+Interacción Central (MIC) —la interfaz funtorial y adaptador universal entre estados abstractos de sabiduría
+y efectores computacionales—, operando como un inductor cuántico activo de-confinado en el estrato físico.
+Su propósito fundamental es aniquilar de raíz la inercia entrópica del flujo de datos mediante un operador
+de asimilación definido sobre el espacio de Fock bosónico truncado con estructura simpléctica de Poincaré-Cartan:
+    $$\mathcal{F}_{N}(\mathcal{H}) = \bigoplus_{n=0}^{N-1} S_{+} \mathcal{H}^{\otimes n}$$
 
-$$\mathcal{F}_{N}(\mathcal{H}) = \bigoplus_{n=0}^{N-1} S_{+} \mathcal{H}^{\otimes n}$$
+El supresor intercepta los transitorios inductivos e inconsistencias sintácticas (modelados como excitaciones
+de anomalía $e^-$) e inyecta coherente y síncronamente positrones de extirpación ($e^+$) para forzar su
+aniquilación mutua mediante un canal cuántico de amortiguamiento de amplitud de Kraus-Lindblad, liberando
+fotones Gamma ($\gamma$) que actúan como el sello criptográfico-termodinámico inmutable en la cadena de custodia:
+    $$e^- + e^+ \longrightarrow 2\gamma \quad \text{con invariante de Mandelstam} \quad s = 4m_e^2 c^4 + p_{\mathrm{cp}}^2 c^2$$
 
-El supresor intercepta los transitorios inductivos e inconsistencias sintácticas
-(modelados como excitaciones de anomalía $e^-$) e inyecta coherente y síncronamente
-positrones de extirpación ($e^+$) para forzar su aniquilación mutua mediante un
-canal cuántico de amortiguamiento de amplitud de Kraus-Lindblad, liberando fotones
-Gamma ($\gamma$) que actúan como el sello criptográfico-termodinámico inmutable
-en la cadena de custodia:
+La dinámica se ejecuta a través de tres fases estrictamente continuas:
+  • FASE 1 — OBSERVACIÓN ESPECTRAL, CCR Y HOMOLOGÍA DE HODGE (Phase1_AnnihilationObserver):
+      Sintetiza la base de Fock truncada de dimensión $N$ y audita las Relaciones de Conmutación Canónicas
+      proyectadas $[a, a^\dagger] = I_N - N |N-1\rangle\langle N-1|$. Evalúa la densidad de momento en las
+      variables de acción de Poincaré $I_n = \hbar (n + 1/2)$, verificando autoadjunción y espectro real.
+      Emite el morfismo `verify_operator_hermiticity()`.
+  • FASE 2 — ANIQUILACIÓN HADRÓNICA, SUNDMAN Y BEKENSTEIN (Phase2_BekensteinEnforcer):
+      Inicia consumiendo `HermiticityAuditData`. Aplica la regularización temporal de colisión de Sundman
+      ante tensiones reactivas $V_{\mathrm{fb}} = L \frac{di}{dt}$, canaliza la aniquilación de pares $e^-/e^+$,
+      y verifica que la producción de entropía total $\Delta S_{\mathrm{total}} = \Delta S_{\mathrm{sys}} + \Delta S_\gamma$
+      satisfaga rigurosamente la Segunda Ley ($\Delta S_{\mathrm{total}} \ge 0$) y la cota holográfica de
+      Bekenstein $S_{\mathrm{Bekenstein}} = \frac{2\pi k_B R_{\mathrm{eff}} E}{\hbar c}$. Emite `execute_hadronic_annihilation()`.
+  • FASE 3 — CERTIFICACIÓN PORT-HAMILTONIANA, FLOQUET Y VETO (Phase3_SymplecticPHCertifier):
+      Inicia consumiendo `BekensteinBoundData`. Construye la impedancia de Brune-Cauer $Z_{\mathrm{AM}}(s)$ en el plano
+      de Laplace asegurando pasividad $\operatorname{Re}(Z_{\mathrm{AM}}) \ge 0$, proyecta la matriz de disipación
+      $R(\rho_{e^+}) \succeq 0$ en el cono de Löwner, certifica la monodromía de Floquet-Kreĭn ($\det M = 1$), y emite
+      `certify_symplectic_vacuum_governance()`.
 
-$$e^- + e^+ \longrightarrow 2\gamma \quad \text{con invariante de Mandelstam} \quad s = 4m_e^2 c^4 + p_{\mathrm{cp}}^2 c^2$$
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. ESPACIO DE FOCK BOSÓNICO TRUNCADO Y RELACIONES DE CONMUTACIÓN CANÓNICAS (CCR):
+   Para un espacio de Hilbert mono-partícula $\mathcal{H}$, el espacio de Fock simétrico truncado a nivel $N$
+   se define como $\mathcal{F}_N(\mathcal{H}) = \bigoplus_{n=0}^{N-1} \operatorname{Sym}(\mathcal{H}^{\otimes n})$.
+   Los operadores de creación $a^\dagger$ y aniquilación $a$ satisfacen:
+       $$a |n\rangle = \sqrt{n} |n-1\rangle \quad (n \ge 1), \qquad a^\dagger |n\rangle = \sqrt{n+1} |n+1\rangle \quad (n < N-1)$$
+   con la corrección de proyección de frontera en el modo superior $a^\dagger |N-1\rangle = 0$.
 
-AXIOMÁTICA DE CALIBRE, MECÁNICA CELESTE DE POINCARÉ Y MEJORA RECURSIVA (RSI-L3):
-────────────────────────────────────────────────────────────────────────────────
-  [A1] Relación de Conmutación Canónica (CCR), Isometría de Stinespring y
-       Espectroscopía de Acción-Ángulo de Poincaré-Birkhoff:
-       En el espacio de Fock truncado $\mathcal{F}_N(\mathcal{H})$, los operadores
-       de creación $a^\dagger$ y aniquilación $a$ satisfacen la CCR proyectada:
-       $$[a, \, a^\dagger] = \mathbf{I}_N - N \, |N-1\rangle\langle N-1| \implies P_{N-1}[a, a^\dagger]P_{N-1} = \mathbf{I}_{N-1}$$
-       Las variables de acción de Poincaré $I_n = \hbar (n + \frac{1}{2})$ y la
-       1-forma invariante de Poincaré-Cartan $\theta_{\mathrm{PC}} = p\,dq - H\,dt$
-       se auditan mediante síntesis recursiva de Nivel 3 (RSI-L3).
+2. COTA HOLOGRÁFICA UNIVERSAL DE BEKENSTEIN:
+   La máxima entropía contenida en una región confinada de radio efectivo $R_{\mathrm{eff}}$ y energía total $E$ está
+   acotada por el principio holográfico de Bekenstein:
+       $$S \le S_{\mathrm{Bekenstein}} \equiv \frac{2\pi k_B R_{\mathrm{eff}} E}{\hbar c}$$
+   Toda disipación entrópica generada por aniquilación de inconsistencias $\Delta S_{\mathrm{total}}$ debe respetar
+   $0 \le \Delta S_{\mathrm{total}} \le S_{\mathrm{Bekenstein}}$, impidiendo divergencias no físicas en la memoria.
 
-  [A2] Regularización de Colisión de Sundman-Poincaré y Cota de Bekenstein:
-       Ante transitorios singulares de retroceso inductivo ($V_{\mathrm{fb}} = L\,\frac{di}{dt}$),
-       el tiempo físico se reparametriza conforme a la transformación de Sundman:
-       $$dt = r^\alpha \, d\tau \implies \kappa_{\mathrm{Sundman}}(V_{\mathrm{fb}}) = \left(1 + \left(\frac{V_{\mathrm{fb}}}{V_{\mathrm{crit}}}\right)^2\right)^{-\alpha/2}$$
-       La producción total de entropía $\Delta S_{\mathrm{total}} = \Delta S_{\mathrm{sys}} + \Delta S_{\gamma}$
-       se somete simultáneamente a la Segunda Ley ($\Delta S_{\mathrm{total}} \ge 0$)
-       y a la cota holográfica dura de Bekenstein:
-       $$0 \le \Delta S_{\mathrm{total}} \le S_{\mathrm{Bekenstein}} \equiv \frac{2\pi k_B R_{\mathrm{eff}} E_{\mathrm{annihilation}}}{\hbar c}$$
+3. REGULARIZACIÓN TEMPORAL DE SUNDMAN-POINCARÉ ANTE VOLTAJES SINGULARES:
+   Para prevenir singularidades numéricas ante transitorios electromagnéticos de retroceso $V_{\mathrm{fb}} = L \frac{di}{dt}$,
+   el parámetro temporal evoluciona conforme a la transformación analítica de Sundman:
+       $$\kappa_{\mathrm{Sundman}}(V_{\mathrm{fb}}) = \left( 1 + \left( \frac{V_{\mathrm{fb}}}{V_{\mathrm{crit}}} \right)^2 \right)^{-\alpha / 2}$$
+   garantizando diferenciabilidad suave a través de colisiones de datos.
 
-  [A3] Impedancia Positiva-Real de Brune-Cauer en el Plano de Laplace ($s = \sigma + j\omega$):
-       La impedancia compleja $Z_{\mathrm{AM}}(s)$ se acopla mediante el tensor
-       cuántico-capacitivo $C_q$ y amortiguamiento de radiación gamma $\sigma_{\mathrm{AM}}$:
-       $$Z_{\mathrm{AM}}(s) = (s + \sigma_{\mathrm{AM}})L + \frac{1}{C_q \rho_{e^+} s + G_{\mathrm{vacuum}}}$$
-       garantizando analiticidad y pasividad de Brune-Cauer ($\operatorname{Re} Z_{\mathrm{AM}}(s) \ge 0$
-       para $\operatorname{Re}(s) > 0$).
+4. PASIVIDAD DE BRUNE-CAUER Y ESTRUCTURA PORT-HAMILTONIANA:
+   La impedancia compleja $Z_{\mathrm{AM}}(s)$ acoplada a la bobina cuántica satisface la condición positiva-real
+   de Brune-Cauer en el semiplano derecho $\operatorname{Re}(s) > 0$:
+       $$Z_{\mathrm{AM}}(s) = (s + \sigma_{\mathrm{AM}}) L + \frac{1}{C_q \rho_{e^+} s + G_{\mathrm{vacuum}}}, \qquad \operatorname{Re}(Z_{\mathrm{AM}}(s)) \ge 0$$
+   asegurando que el sistema sea un disipador pasivo y estable en el sentido de Lyapunov.
 
-  [A4] Estructura Port-Hamiltoniana de Löwner, Monodromía de Floquet-Kreĭn y Recurrencia:
-       La disipación se rige por $\dot{H} = -\nabla H(x)^\top R(\rho_{e^+}) \nabla H(x) \le 0$
-       con $R(\rho_{e^+}) = R(\rho_{e^+})^\top \succeq 0$ proyectada en el cono de Löwner
-       vía RSI-L3, preservando el determinante de monodromía de Floquet-Kreĭn
-       ($\det M = 1$) y acotando el horizonte de recurrencia cuasi-periódica de Poincaré.
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma ACC-1] Autoadjunción Hermítica del Operador de Aniquilación:
+      $\|A - A^\dagger\|_F \le \varepsilon_{\mathrm{herm}} = 10^{-10}$, con autovalores reales $\operatorname{Im}(\sigma(A)) = 0$.
+  [Axioma ACC-2] Invariante de Mandelstam en la Aniquilación:
+      $s = (p_{e^-} + p_{e^+})^2 = 4 m_e^2 c^4 + p_{\mathrm{cp}}^2 c^2$, garantizando conservación de 4-momento relativista.
+  [Axioma ACC-3] Segunda Ley y Cota Holográfica de Bekenstein:
+      $0 \le \Delta S_{\mathrm{total}} \le S_{\mathrm{Bekenstein}}$.
+  [Axioma ACC-4] Positividad Semidefinida en el Cono de Löwner:
+      $R(\rho_{e^+}) = R(\rho_{e^+})^\top \succeq 0$, asegurando disipación termodinámica $\dot{H} \le 0$.
+  [Axioma ACC-5] Conservación Simpléctica de Monodromía de Floquet-Kreĭn:
+      $|\det(M) - 1.0| \le \varepsilon_{\mathrm{Liouville}} = 10^{-6}$.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Continuidad Formal de Métodos):
-────────────────────────────────────────────────────────────────────────────────
-  Fase 1 ──► OBSERVACIÓN ESPECTRAL, CCR Y HOMOLOGÍA DE HODGE (Phase1_AnnihilationObserver)
-             Último método: `verify_operator_hermiticity` -> `HermiticityAuditData`.
-  Fase 2 ──► ANIQUILACIÓN HADRÓNICA, SUNDMAN Y BEKENSTEIN (Phase2_BekensteinEnforcer)
-             Primer método: `_receive_certified_hermiticity` (invoca `verify_operator_hermiticity`).
-             Último método: `execute_hadronic_annihilation` -> `BekensteinBoundData`.
-  Fase 3 ──► CERTIFICACIÓN PORT-HAMILTONIANA, FLOQUET Y VETO (Phase3_SymplecticPHCertifier)
-             Primer método: `_receive_certified_bekenstein_bound` (invoca `execute_hadronic_annihilation`).
-             Último método: `certify_symplectic_vacuum_governance` -> `VacuumGovernanceState`.
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Completitud Unitaria del Canal de Kraus):
+      $\sum_{k} M_k^\dagger M_k = I_N$, asegurando preservación estricta de probabilidad cuántica.
+  Invariante 2 (Preservación del Vacío de Fock):
+      $a |0\rangle = 0$, garantizando la estabilidad del estado fundamental no perturbado.
+  Invariante 3 (Pasividad de Brune-Cauer):
+      $\operatorname{Re}(Z_{\mathrm{AM}}(j\omega)) \ge 0$ para toda frecuencia real $\omega \in \mathbb{R}$.
+  Invariante 4 (Interrupción Crowbar de Emergencia):
+      Violaciones de la cota de Bekenstein o divergencias térmicas conmutan el Crowbar con latencia $< 400$ ns.
 """
 
 from __future__ import annotations
@@ -157,9 +182,12 @@ except ImportError:  # pragma: no cover
         authorization_signature: str
 
 try:
-    from app.core.immune_system.metric_tensors import MetricTensorFactory
-except ImportError:  # pragma: no cover
-    MetricTensorFactory = None  # type: ignore[assignment]
+    from app.core.inmune_system.metric_tensors import MetricTensorFactory
+except ImportError:
+    try:
+        from app.core.immune_system.metric_tensors import MetricTensorFactory
+    except ImportError:  # pragma: no cover
+        MetricTensorFactory = None  # type: ignore[assignment]
 
 try:
     from app.core.exceptions import TopologicalInvariantError

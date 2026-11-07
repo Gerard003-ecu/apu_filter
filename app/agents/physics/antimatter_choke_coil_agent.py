@@ -1,59 +1,93 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo : Antimatter Choke Coil Agent (Custodio del Vacío Cuántico)                      ║
-║  Ruta   : app/agents/physics/antimatter_choke_coil_agent.py                              ║
-║  Versión: 5.0.0-Topos-Heyting-Fock-Bekenstein-Poincare-Floquet-RSI-Level3-Strict         ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA, MECÁNICA CELESTE DE POINCARÉ Y RSI-L3 (Rigor Doctoral):        ║
-║  ────────────────────────────────────────────────────────────────────────────────        ║
-║  Este endofuntor soberano, denotado como $\mathcal{Z}_{\mathrm{Vacuum}}$, gobierna la    ║
-║  física del módulo `antimatter_choke_coil.py` en el Estrato Ω. Su mandato axiomático     ║
-║  es auditar las aniquilaciones de antimateria exógena ($e^- + e^+ \to 2\gamma$),         ║
-║  garantizando que la topología de la Malla Agéntica sobreviva al colapso entrópico       ║
-║  de estados erróneos manteniendo invariante la estructura fundamental del Espacio de     ║
-║  Fock $\mathcal{F}(\mathcal{H})$, la geometría simpléctica de Poincaré-Cartan y la       ║
-║  monotonicidad epistémica de Lyapunov mediante Mejora Recursiva de Nivel 3 (RSI-L3).     ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES CUÁNTICO-CELESTES:                              ║
-║                                                                                          ║
-║  §1. Hermiticidad del Operador de Aniquilación y Forma Normal de Poincaré-Birkhoff:      ║
-║      Para que las observables cuánticas sean físicamente medibles ($\sigma(A)\subset\mathbb{R}$), ║
-║      el operador de colapso $A$ debe ser estrictamente autoadjunto ($A = A^\dagger$):    ║
-║          $$\|A - A^\dagger\|_F \le \varepsilon_{\mathrm{herm}}, \qquad \|\operatorname{Im}\sigma(A)\|_\infty \le \varepsilon_{\mathrm{spec}}$$ ║
-║      Adicionalmente, se auditan las frecuencias características de Bohr-Poincaré         ║
-║      $\omega_{jk} = |\lambda_j - \lambda_k|/\hbar_{\mathrm{eff}}$, el margen Diofántico  ║
-║      KAM frente a pequeños divisores y la acción espectral de Poincaré-Cartan.           ║
-║                                                                                          ║
-║  §2. Límite Holográfico de Bekenstein y Regularización de Colisión de Sundman-Poincaré:  ║
-║      La inyección de entropía $\Delta S$ generada por la radiación de aniquilación no    ║
-║      puede exceder la capacidad máxima de información del hipervolumen causal de radio R:║
-║          $$\Delta S \le S_{\mathrm{Bekenstein}} \equiv \frac{2\pi k_B E R}{\hbar c}$$    ║
-║      La aproximación al horizonte holográfico ($S \to S_{\mathrm{Bekenstein}}^-$) se     ║
-║      audita mediante el factor conforme de Sundman $\kappa_{\mathrm{Sundman}}$ y el      ║
-║      invariante virial relativista de Jacobi-Poincaré.                                   ║
-║                                                                                          ║
-║  §3. Certificación Simpléctica Port-Hamiltoniana, Pfaffiano y Teoría de Floquet-Kreĭn:   ║
-║      Tras la colisión, el difeomorfismo de flujo $M$ y las matrices $(J, R)$ deben       ║
-║      satisfacer la preservación de volumen, orientación y pasividad de Löwner:           ║
-║          $$M^\top \Omega M = \Omega, \quad \frac{\operatorname{Pf}(M^\top \Omega M)}{\operatorname{Pf}(\Omega)} = 1, \quad \det(M) = 1$$ ║
-║          $$J = -J^\top, \quad R = R^\top \succeq 0, \quad \dot{H} = -\nabla H^\top R \nabla H \le 0$$ ║
-║      junto con la reciprocidad de multiplicadores simplécticos de Floquet-Kreĭn          ║
-║      ($\mu \in \sigma(M) \implies \mu^{-1} \in \sigma(M)$) y el horizonte de             ║
-║      recurrencia cuasi-periódica de Poincaré-Kac.                                        ║
-║                                                                                          ║
-║  ARQUITECTURA DE TRES FASES ANIDADAS (Continuidad Formal de Métodos $\Phi_3\circ\Phi_2\circ\Phi_1$): ║
-║  ──────────────────────────────────────────────────────────────────────────────────────  ║
-║  Fase 1 → Phase1_HermiticityAuditor                                                      ║
-║           Último método: `_phase1_audit_and_handoff_to_phase2` → `Phase1HermiticityHandoff` ║
-║  Fase 2 → Phase2_BekensteinBoundEnforcer(Phase1_HermiticityAuditor)                      ║
-║           Primer método: `_receive_phase1_hermiticity_handoff`                           ║
-║           Último método: `_phase2_enforce_and_handoff_to_phase3` → `Phase2BekensteinHandoff` ║
-║  Fase 3 → Phase3_SymplecticPortHamiltonianCertifier(Phase2_BekensteinBoundEnforcer)      ║
-║           Primer método: `_receive_phase2_bekenstein_handoff`                            ║
-║           Último método: `_phase3_finalize_from_phase2_handoff` → `VacuumGovernanceState`║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Antimatter Choke Coil Agent                                                               ║
+║ Módulo   : Antimatter Choke Coil Agent (Custodio del Vacío Cuántico y Aniquilación Topológica)       ║
+║ Ubicación: app/agents/physics/antimatter_choke_coil_agent.py                                         ║
+║ Ruta     : app/agents/physics/antimatter_choke_coil_agent.py                                         ║
+║ Versión  : 5.0.0-Topos-Heyting-Fock-Bekenstein-Poincare-Floquet-RSI-Level3-Strict                    ║
+║ Función  : Agente soberano custodio en estrato Omega, gobernanza OODA sobre antimatter_choke_coil.py, ║
+║            espacio de Fock truncado, cota de Bekenstein, regularización Sundman y automejora RSI-L3. ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este endofuntor soberano, denotado como $\mathcal{Z}_{\mathrm{Vacuum}}$, gobierna activamente la física
+del módulo espectral `AntimatterChokeCoil` (`app/physics/antimatter_choke_coil.py`) en el Estrato Omega.
+Su mandato axiomático es auditar las aniquilaciones de antimateria exógena ($e^- + e^+ \to 2\gamma$),
+garantizando que la topología de la Malla Agéntica sobreviva al colapso entrópico de estados erróneos
+manteniendo invariante la estructura fundamental del Espacio de Fock $\mathcal{F}(\mathcal{H})$, la
+geometría simpléctica de Poincaré-Cartan y la monotonicidad epistémica de Lyapunov mediante Mejora
+Recursiva de Nivel 3 (RSI-L3).
+
+La gobernanza opera a través de un ciclo continuo de tres fases:
+  • FASE 1 — OBSERVACIÓN DE HERMITICIDAD ESPECTRAL Y CCR EN FOCK (Phase1_FockHermiticityAuditor):
+      Audita que el operador de aniquilación sea autoadjunto $A = A^\dagger$, verifica las Relaciones de
+      Conmutación Canónicas $[a, a^\dagger] = I_N - N|N-1\rangle\langle N-1|$, evalúa las variables de
+      acción de Poincaré-Birkhoff $I_n = \hbar(n + 1/2)$, y aplica el endofuntor $\mathfrak{R}_3^{(1)}$
+      para mitigar defectos epistémicos de punto flotante.
+  • FASE 2 — AUDITORÍA TERMODINÁMICA DE BEKENSTEIN Y REGULARIZACIÓN SUNDMAN (Phase2_BekensteinAuditor):
+      Inspecciona la aniquilación hadrónica de pares, aplica la transformación temporal de Sundman
+      $\kappa_{\mathrm{Sundman}}$ frente a picos inductivos, y certifica que la variación entrópica
+      cumpla simultáneamente la Segunda Ley ($\Delta S_{\mathrm{total}} \ge 0$) y la cota holográfica
+      de Bekenstein $\Delta S_{\mathrm{total}} \le S_{\mathrm{Bekenstein}}$.
+  • FASE 3 — CERTIFICACIÓN PORT-HAMILTONIANA, FLOQUET Y ACCIÓN CROWBAR (Phase3_SymplecticCrowbarAdjudicator):
+      Evalúa la pasividad de Brune-Cauer en $Z_{\mathrm{AM}}(s)$, verifica la positividad semidefinida
+      de la matriz de disipación $R \succeq 0$ en el cono de Löwner, analiza la monodromía de Floquet-Kreĭn
+      ($\det M = 1$), adjudica el estado en el retículo de Heyting $\Omega_3$, y comuta el Crowbar en silicio
+      ante cualquier fuga de coherencia.
+
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. ANÁLISIS ESPECTRAL EN EL ESPACIO DE FOCK BOSÓNICO $\mathcal{F}_N(\mathcal{H})$:
+   Para que los observables cuánticos de aniquilación sean físicamente medibles, el operador $A$ debe ser
+   estrictamente autoadjunto ($A = A^\dagger$), implicando que su espectro sea real:
+       $$\|A - A^\dagger\|_F \le \varepsilon_{\mathrm{herm}}, \qquad \|\operatorname{Im}(\sigma(A))\|_\infty \le \varepsilon_{\mathrm{spec}}$$
+   Las variables de acción de Poincaré $I_n = \frac{1}{2\pi} \oint p \, dq$ cuantizan las órbitas de fase,
+   permitiendo medir la energía almacenada en cada modo bosónico antes de la purificación.
+
+2. COTA HOLOGRÁFICA DE BEKENSTEIN Y SEGUNDA LEY TERMODINÁMICA:
+   La producción total de entropía durante el proceso de aniquilación se descompone en la entropía del sistema
+   y la entropía radiativa de los fotones Gamma emitidos:
+       $$\Delta S_{\mathrm{total}} = \Delta S_{\mathrm{sys}} + \Delta S_\gamma$$
+   El agente impone como invariante irrenunciable el confinamiento holográfico:
+       $$0 \le \Delta S_{\mathrm{total}} \le S_{\mathrm{Bekenstein}} \equiv \frac{2\pi k_B R_{\mathrm{eff}} E_{\mathrm{annihilation}}}{\hbar c}$$
+
+3. REGULARIZACIÓN ANALÍTICA DE SUNDMAN-POINCARÉ:
+   Ante transitorios inductivos severos $V_{\mathrm{fb}} = L \frac{di}{dt}$ inducidos por la extinción brusca de
+   corrientes de datos erróneos, la coordenada temporal se reparametriza con la escala de Sundman:
+       $$dt = \left( 1 + \left( \frac{V_{\mathrm{fb}}}{V_{\mathrm{crit}}} \right)^2 \right)^{-\alpha/2} d\tau$$
+   garantizando la continuidad $C^1$ del flujo y previniendo el desbordamiento de la FPU.
+
+4. MONODROMÍA DE FLOQUET-KREĬN Y ESTABILIDAD SIMPLÉCTICA:
+   La matriz de monodromía fundamental $\mathcal{M}$ del ciclo de disipación pasiva debe pertenecer al grupo
+   simpléctico $\mathrm{Sp}(2d, \mathbb{R})$, lo que impone:
+       $$\mathcal{M}^\top \mathbf{\Omega} \mathcal{M} = \mathbf{\Omega}, \qquad \det(\mathcal{M}) = 1.0$$
+   evitando la difusión caótica de energía y asegurando confinamiento elíptico en el espacio cotangente.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma ACCA-1] Autoadjunción Hermítica Estricta:
+      $\|A - A^\dagger\|_F \le 10^{-10}$, con valores propios reales $\operatorname{Im}(\sigma(A)) = 0$.
+  [Axioma ACCA-2] Invariancia Relativista de Mandelstam:
+      $s = 4 m_e^2 c^4 + p_{\mathrm{cp}}^2 c^2$, conservando la masa-energía invariante en la aniquilación.
+  [Axioma ACCA-3] Cota Holográfica y Segunda Ley:
+      $0 \le \Delta S_{\mathrm{total}} \le S_{\mathrm{Bekenstein}}$.
+  [Axioma ACCA-4] Pasividad de Brune-Cauer en $Z_{\mathrm{AM}}(s)$:
+      $\operatorname{Re}(Z_{\mathrm{AM}}(j\omega)) \ge 0 \quad \forall \omega \in \mathbb{R}$.
+  [Axioma ACCA-5] Conservación Simpléctica de Monodromía:
+      $|\det(\mathcal{M}) - 1.0| \le 10^{-6}$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Completitud del Canal de Kraus):
+      $\sum_k M_k^\dagger M_k = I_N$, preservando la traza y unitariedad del estado cuántico.
+  Invariante 2 (Preservación del Vacío Fundamental):
+      $\langle 0 | A | 0 \rangle = 0$, asegurando que el estado basal no genere partículas espurias.
+  Invariante 3 (Descenso de Tensión Epistémica RSI-L3):
+      $\mathcal{V}_{k+1} \le \mathcal{V}_k$, convergiendo monótonamente en el cono de operadores.
+  Invariante 4 (Respaldo Crowbar de Emergencia):
+      Cualquier violación termodinámica o métrica dispara la interrupción de aislamiento en $< 400$ ns.
 """
 
 from __future__ import annotations

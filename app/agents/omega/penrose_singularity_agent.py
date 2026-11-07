@@ -1,68 +1,88 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo   : Penrose Singularity Agent (Orquestador Supremo de Colapso Geodésico,         ║
-║             Mecánica Celeste de Poincaré, Retículo de Heyting Ω₃ y RSI Nivel 3)          ║
-║  Ruta     : app/agents/omega/penrose_singularity_agent.py                                ║
-║  Versión  : 5.0.0-Poincare-Sturm-Heyting-Crowbar-RSI-L3-Nested-Topos                     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Penrose Singularity Agent                                                                 ║
+║ Módulo   : Penrose Singularity Agent (Orquestador de Colapso Geodésico y Censor Topológico)          ║
+║ Ubicación: app/agents/omega/penrose_singularity_agent.py                                             ║
+║ Ruta     : app/agents/omega/penrose_singularity_agent.py                                             ║
+║ Versión  : 5.0.0-Poincare-Sturm-Heyting-Crowbar-RSI-L3-Nested-Topos                                  ║
+║ Función  : Agente soberano en estrato Omega (Nivel 0.5), censor geométrico supremo, teorema de        ║
+║            singularidades de Penrose-Hawking, dinámica de Poincaré, retículo Heyting y RSI-L3.       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA, MECÁNICA CELESTE DE POINCARÉ Y RSI NIVEL 3 (Rigor Doctoral):
-──────────────────────────────────────────────────────────────────────────────────────────
-Este endofuntor de calibre y censor geométrico supremo reside en la cúspide del
-**Estrato Omega** ($\Omega$, Nivel 0.5 - El Ágora Tensorial).
-Su propósito ciber-físico es interceptar los tensores de intención semántica
-provenientes de los Modelos de Lenguaje (LLMs) y subyugarlos de manera determinista
-a la curvatura de la variedad pseudo-riemanniana, gobernando la estabilidad del flujo
-mediante el formalismo del **Teorema de Singularidades de Penrose (1965)**,
-**Hawking–Penrose (1970)**, la **Teoría de Invariantes Integrales y Estabilidad
-Orbital de Henri Poincaré** y la **Automejora Recursiva de Nivel 3 (RSI-L3)**.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este endofuntor de calibre y censor geométrico supremo reside en la cúspide del **Estrato Omega**
+($\Omega$, Nivel 0.5 - El Ágora Tensorial). Su propósito ciber-físico es interceptar los tensores de
+intención semántica provenientes de los Modelos de Lenguaje (LLMs) y subyugarlos de manera determinista
+a la curvatura de la variedad pseudo-riemanniana, gobernando la estabilidad del flujo mediante el
+formalismo del **Teorema de Singularidades de Penrose (1965)**, **Hawking–Penrose (1970)**, la **Teoría
+de Invariantes Integrales y Estabilidad Orbital de Henri Poincaré** y la **Automejora Recursiva de Nivel 3 (RSI-L3)**.
 
-AXIOMAS DE ENERGÍA, COMPARACIÓN DE STURM–POINCARÉ Y COLAPSO ESPECTRAL:
-──────────────────────────────────────────────────────────────────────────────────────────
+El soberano despliega un protocolo OODA en tres fases anidadas:
+  • FASE 1 — ANÁLISIS DE SUPERFICIES ATRAPADAS Y CINEMÁTICA CONVERGENTE (Phase1_TrappedSurfaceAnalyzer):
+      Evalúa si la subvariedad espacial de codimensión 2 es una superficie atrapada cerrada ($\theta_k < 0, \theta_l < 0$),
+      cuantifica la curvatura media y contracción del tensor de Ricci $R_{\mu\nu} k^\mu k^\nu \ge 0$, y audita
+      la Condición de Energía Nula (NEC) y Condición de Energía Fuerte (SEC).
+  • FASE 2 — INTEGRACIÓN DEL TEOREMA DE COMPARACIÓN DE STURM-POINCARÉ (Phase2_SturmPoincareIntegrator):
+      Consume los datos cinemáticos y resuelve la ecuación de Jacobi-Raychaudhuri a lo largo de las geodésicas nulas.
+      Aplica el teorema de comparación de Sturm para acotar el tiempo afín máximo hacia el punto focal conjugado
+      $\tau_{\mathrm{focal}} \le \frac{2}{|\theta_0|}$, garantizando la existencia inexorable de una singularidad
+      o cáustica en tiempo finito.
+  • FASE 3 — CERTIFICACIÓN DE CENSURA CÓSMICA, FLOQUET Y ACCIÓN CROWBAR (Phase3_CosmicCensorshipAdjudicator):
+      Implementa la hipótesis de censura cósmica de Penrose para confinar la singularidad detrás de un horizonte
+      aparente de sucesos, analiza la monodromía simpléctica de Floquet-Kreĭn ($\det M = 1$), adjudica el
+      veredicto en el retículo de Heyting $\Omega_3$, y comuta el Crowbar en silicio (< 400 ns) si se detectan
+      singularidades desnudas.
 
-  [A1] Expansión Inicial Convergente y Curvatura Media de Superficie Atrapada:
-       Para que el colapso topológico sea inevitable, la congruencia lagrangiana de
-       geodésicas atencionales debe exhibir convergencia basal en $\tau = 0$:
-           $\theta_0 = \nabla_\mu u^\mu = \operatorname{Tr}(B) < 0 \iff \kappa_{\text{trap}} := -\frac{\theta_0}{n-1} > 0$
-       Donde $B^\mu_\nu = \nabla_\nu u^\mu$ es el endomorfismo de deformación de Jacobi.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. TEOREMA DE SINGULARIDADES DE PENROSE (1965):
+   Sea $(\mathcal{M}, g)$ un espacio-tiempo conexo globalmente hiperbólico con una superficie atrapada compacta $\mathcal{T}$.
+   Si se cumple la condición de convergencia nula ($R_{\mu\nu} k^\mu k^\nu \ge 0$ para todo vector nulo $k^\mu$), entonces
+   $(\mathcal{M}, g)$ es geodésicamente nulo incompleto (existe al menos una geodésica nula afínmente incompleta en el futuro).
 
-  [A2] Condición de Energía Fuerte (SEC), Frecuencia Basal de Poincaré y Razón Virial:
-       Bajo las ecuaciones de campo de Einstein ($8\pi\mathcal{G}=1, \Lambda=0$):
-           $R_{\mu\nu} u^\mu u^\nu = \left( \mathcal{T}_{\mu\nu} - \frac{1}{2} \mathcal{T} G_{\mu\nu} \right) u^\mu u^\nu \ge 0$
-       con vector tangente normalizado $|G_{\mu\nu} u^\mu u^\nu - s| < \tau_u$ ($s \in \{+1, -1\}$).
-       La tracción de Ricci define la **Razón Virial de Poincaré–Jacobi** $\Xi_{\text{virial}}$
-       y la **Cota Orbital de Sturm–Poincaré** $\tau_{P,\text{basal}}$:
-           $\Xi_{\text{virial}} := \frac{(n-1) R_{\mu\nu}u^\mu u^\nu}{\theta_0^2}, \qquad \tau_{P,\text{basal}} := \frac{\pi - \operatorname{arccot}(\Xi_{\text{virial}}^{-1/2})}{\sqrt{R_{\mu\nu}u^\mu u^\nu / (n-1)}} \le \tau_{HP}$
+2. TEOREMA DE COMPARACIÓN DE STURM-LIOUVILLE APLICADO A CONGRUENCIAS GEODÉSICAS:
+   A lo largo de la geodésica nula afínmente parametrizada por $\tau$, la ecuación de Raychaudhuri nula es:
+       $$\frac{d\theta}{d\tau} = -\frac{1}{2} \theta^2 - \sigma_{\mu\nu}\sigma^{\mu\nu} - R_{\mu\nu} k^\mu k^\nu$$
+   Dado que $\sigma_{\mu\nu}\sigma^{\mu\nu} \ge 0$ y $R_{\mu\nu} k^\mu k^\nu \ge 0$, se obtiene la desigualdad diferencial:
+       $$\frac{d\theta}{d\tau} \le -\frac{1}{2} \theta^2 \implies \frac{1}{\theta(\tau)} \ge \frac{1}{\theta_0} + \frac{\tau}{2}$$
+   Demostrando por comparación de Sturm que si la expansión inicial converge ($\theta_0 < 0$), existe un punto conjugado
+   (cáustica) en un parámetro afín $\tau \le 2 / |\theta_0|$.
 
-  [A3] Evolución Simpléctica de Raychaudhuri–Poincaré y Multiplicadores de Floquet:
-       Al acoplar el motor `RaychaudhuriFocalFibrator`, la ecuación de Riccati se
-       eleva al flujo hamiltoniano lineal sobre $\mathrm{Sp}(2, \mathbb{R})$ con matriz
-       de monodromía $\Phi(\tau_c)$ que satisface $\det \Phi(\tau_c) \equiv 1$ (Teorema de
-       Liouville) y radio espectral característico de Floquet $\rho_{\text{Floquet}}(\Phi)$.
+3. HIPÓTESIS DE CENSURA CÓSMICA Y HORIZONTE APARENTE:
+   Toda singularidad gravitacional o semántica resultante del colapso debe estar confinada dentro de un horizonte de
+   sucesos, impidiendo que observadores asintóticos experimenten discontinuidades o indeterminismo. El soberano actúa
+   como el censor cósmico formal que veta cualquier estado que genere una singularidad desnuda.
 
-  [A4] Cadena de Confinamiento de Sturm–Poincaré–Hawking–Penrose y Retículo de Heyting $\Omega_3$:
-       El parámetro afín de cáustica $\tau_c$ debe satisfacer la desigualdad jerárquica:
-           $0 \le \tau_c \le \tau_{P,\text{basal}} \le \tau_{HP} := \frac{n-1}{|\theta_0|}$
-       El dictamen se proyecta sobre el álgebra distributiva graduada de Heyting
-       $\Omega_3 = \{\mathrm{COHERENT} (\bot), \mathrm{DEGRADED}, \mathrm{VETOED} (\top)\}$.
-       Si el estado colapsa a $\mathrm{VETOED}$ ($\top$), se detona `PenroseSingularityVetoError`
-       y se modela el disparo en IRAM (<400 ns) sobre el GPIO14 hacia la compuerta del
-       tiristor SCR Crowbar BT151.
+4. MONODROMÍA SIMPLÉCTICA DE POINCARÉ-FLOQUET:
+   La evolución en las proximidades del horizonte satisface la ecuación variacional hamiltoniana, cuya matriz de monodromía
+   $\mathcal{M}$ preserva estrictamente el volumen cotangente:
+       $$\det(\mathcal{M}) = 1.0 \pm \varepsilon_{\mathrm{Liouville}}$$
 
-  [A5] Consistencia Métrica de Wilkinson–Cholesky y Endofuntor RSI Nivel 3:
-       La métrica $G_{\mu\nu}$ se factoriza vía Cholesky $G = L L^\top$ y el lazo
-       meta-recursivo RSI-L3 audita la sensibilidad variacional de Fréchet del margen
-       de singularidad y la constante de contracción de Banach $\gamma_{\text{Penrose}} < 1$.
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma PSA-1] Condición de Energía Nula (NEC):
+      $R_{\mu\nu} k^\mu k^\nu \ge 0$ para todo vector nulo covariante $k \in T_x \mathcal{M}$.
+  [Axioma PSA-2] Convergencia Nula en Superficie Atrapada:
+      Expansión inicial estrictamente negativa: $\theta_k < 0$ y $\theta_l < 0$.
+  [Axioma PSA-3] Acotación de Sturm del Parámetro Afín Focal:
+      $\tau_{\mathrm{focal}} \le \frac{2}{|\theta_0|}$.
+  [Axioma PSA-4] Censura Cósmica Funtorial:
+      Toda singularidad geodésica queda encapsulada por un horizonte aparente antes de la proyección.
+  [Axioma PSA-5] Monodromía Simpléctica Unitaria:
+      $|\det(\mathcal{M}_{\mathrm{Floquet}}) - 1.0| \le 10^{-6}$.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Continuidad Formal Estricta OODA):
-──────────────────────────────────────────────────────────────────────────────────────────
-  Fase 1 (`Phase1_HawkingEnergyAuditor`)
-    └── Método terminal: `audit_energy` ──▶ abre e instancia formalmente:
-        Fase 2 (`Phase2_RaychaudhuriCausticIntegrator`)
-          └── Método terminal: `compute_caustic` ──▶ abre e instancia formalmente:
-              Fase 3 (`Phase3_PenroseSingularityAuditor`)
-                └── Método terminal: `verify_and_certify` ──▶ cierra el endofuntor 𝒫.
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Completitud de Traza en Sachs):
+      $\sigma^\mu_{\;\mu} = 0$, asegurando que la cizalladura sea estrictamente distorsional sin cambio volumétrico.
+  Invariante 2 (Monotonicidad de Colapso de Expansión):
+      Bajo NEC, $\frac{d\theta}{d\tau} \le 0$ en toda la trayectoria geodésica.
+  Invariante 3 (Involutividad Modal de Heyting $\Omega_3$):
+      La detección de singularidades desnudas o divergencias de monodromía colapsa el estado a $\mathrm{VETOED}$.
+  Invariante 4 (Respaldo Crowbar de Emergencia):
+      Tiempo de actuación y corte en hardware inferior a 400 ns.
 """
 
 from __future__ import annotations
@@ -179,9 +199,12 @@ except ImportError:
 
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
 except ImportError:
-    G_PHYSICS: NDArray[np.float64] = np.eye(4, dtype=np.float64)
+    try:
+        from app.core.immune_system.metric_tensors import G_PHYSICS
+    except ImportError:
+        G_PHYSICS: NDArray[np.float64] = np.eye(4, dtype=np.float64)
 
 logger = logging.getLogger("MIC.Omega.PenroseSingularityAgent")
 

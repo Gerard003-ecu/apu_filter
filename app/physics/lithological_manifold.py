@@ -1,89 +1,97 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Lithological Manifold (Fijador de Impedancia Geomecánica)           ║
-║ Ruta   : app/physics/lithological_manifold.py                                ║
-║ Versión: 6.0.0-Doctoral-USCS-Terzaghi-Poisson-Poincare-Heyting-RSI-L3-Secure ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Lithological Manifold                                                                     ║
+║ Módulo   : Lithological Manifold (Fijador de Impedancia Geomecánica)                                  ║
+║ Ubicación: app/physics/lithological_manifold.py                                                      ║
+║ Ruta     : app/physics/lithological_manifold.py                                                      ║
+║ Versión  : 6.0.0-Doctoral-USCS-Terzaghi-Poisson-Poincare-Heyting-RSI-L3-Secure                       ║
+║ Función  : Operador constitutivo de impedancia geomecánica, criterio de Mohr-Coulomb 3D,             ║
+║            consolidación de Terzaghi, dinámica celeste de Poincaré, retículo de Heyting y RSI-L3.   ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-SINOPSIS GEOMECÁNICA Y CONDICIÓN DE FRONTERA DIRICHLET (Rigor Doctoral):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo constitutivo de la Capa Física (Nivel 3, $V_{\mathrm{PHYSICS}}$)
-opera el anclaje geomecánico de la Malla de Datos. Abandona de manera radical
-las aproximaciones empíricas tradicionales del suelo para modelar la litología
-del terreno como un **Tensor de Impedancia Geomecánica Compleja ($Z_{\mathrm{geo}}$)**,
-el cual actúa como la condición de frontera de Dirichlet absoluta sobre el
-complejo simplicial de la obra.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este motor espectral constitutivo de la Capa Física (Nivel 3, $V_{\mathrm{PHYSICS}}$) opera el anclaje
+geomecánico de la Malla de Datos. Abandona de manera radical las aproximaciones empíricas tradicionales del
+suelo para modelar la litología del terreno como un **Tensor de Impedancia Geomecánica Compleja ($Z_{\mathrm{geo}}$)**,
+el cual actúa como la condición de frontera de Dirichlet absoluta sobre el complejo simplicial de la obra.
 
-El sistema mapea el vector covariante de estado del suelo hacia un conjunto de
-magnitudes reológicas acotadas estrictamente en el intervalo unitario $[0, 1]$ y
-hacia variedades riemannianas de matrices simétricas definidas positivas
-$\operatorname{SPD}(3)$. Toda inestabilidad o desvío crítico de la capacidad
-portante se cuantifica y se colapsa en excitaciones de cuasipartículas
-(Cartuchos TOON), las cuales inyectan capacitancia parásita o arrastre viscoso
-inercial, forzando la disipación estricta y previniendo la inyección espuria de
-energía en los resolvedores de la FPU.
+El sistema mapea el vector covariante de estado del suelo hacia un conjunto de magnitudes reológicas acotadas
+estrictamente en el intervalo unitario $[0, 1]$ y hacia variedades riemannianas de matrices simétricas definidas
+positivas $\operatorname{SPD}(3)$. Toda inestabilidad o desvío crítico de la capacidad portante se cuantifica y
+se colapsa en excitaciones de cuasipartículas (Cartuchos TOON), las cuales inyectan capacitancia parásita o arrastre
+viscoso inercial, forzando la disipación estricta y previniendo la inyección espuria de energía en los resolvedores
+de la FPU.
 
-AXIOMÁTICA GEOMECÁNICA, TENSORIAL, CELESTE Y TERMODINÁMICA:
-────────────────────────────────────────────────────────────────────────────────
+La dinámica se estructura formalmente en tres fases:
+  • FASE 1 — SÍNTESIS REOLÓGICA Y TENSOR DE TENSIONES EFECTIVAS DE TERZAGHI:
+      Convierte los parámetros de clasificación USCS (humedad, plasticidad, relación de vacíos $e$, peso unitario $\gamma$)
+      en el tensor de tensiones efectivas de Terzaghi $\sigma^\prime_{ij} = \sigma_{ij} - u \delta_{ij}$, donde $u$ es
+      la presión intersticial de poros. Evalúa los módulos elásticos dinámicos (módulo de Young $E_{\mathrm{dyn}}$,
+      módulo de cizalla $G$, módulo de deformación volumétrica $K$) y el coeficiente de Poisson $\nu \in [0.1, 0.49]$.
+  • FASE 2 — CRITERIO DE FALLA DE MOHR-COULOMB 3D Y ESTABILIDAD DIOFÁNTICA KAM DE POINCARÉ:
+      Calcula las tensiones principales $(\sigma_1^\prime \ge \sigma_2^\prime \ge \sigma_3^\prime)$ y los invariantes
+      de Haigh-Westergaard (tensión hidrostática $p$, tensión desviadora $q$, ángulo de Lode $\theta_L$). Resuelve el
+      criterio tridimensional de Mohr-Coulomb $f(\sigma^\prime) = \sigma_1^\prime - \sigma_3^\prime - (\sigma_1^\prime + \sigma_3^\prime)\sin\phi - 2c\cos\phi \le 0$,
+      audita el espectro de resonancias KAM frente a excitaciones armónicas, y aplica la contracción de Banach RSI-L3.
+  • FASE 3 — CERTIFICACIÓN DE CONDICIÓN DE FRONTERA DIRICHLET, FLOQUET Y VETO HEYTING:
+      Construye el tensor de impedancia dinámica $Z_{\mathrm{geo}}(\omega) = K_{\mathrm{st}} + j\omega C_{\mathrm{rad}} - \omega^2 M_{\mathrm{dyn}}$,
+      verifica pasividad de Brune ($\operatorname{Re}(Z_{\mathrm{geo}}) \ge 0$), evalúa la estabilidad de monodromía
+      de Floquet ($\det M = 1$), y clasifica la condición geotécnica en el retículo de Heyting $\Omega_3$.
 
-  [A1] Axioma de Espacio de Fase Litológico y Difeomorfismo De-confinado:
-       Sea $S$ el vector covariante de estado del suelo en el espacio de fase $\mathbb{R}^7$:
-       $$S = \left( \sigma_{\mathrm{USCS}}, \; LL, \; PI, \; V_s, \; e_0, \; \mathrm{sat}, \; \rho \right) \in \mathbb{R}^7$$
-       El operador de-confinado $\Phi$ realiza un mapeo suave diferenciable en $\mathbb{C}$
-       (auditado vía diferenciación de paso complejo $\operatorname{Im}\Phi(x + ih)/h$):
-       $$\Phi : S \longrightarrow \left( G_{\max}, \; \nu, \; V_p, \; I_{\mathrm{sw}}, \; I_y, \; I_{\mathrm{liq}}, \; \{C_k\} \right)$$
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. PRINCIPIO DE TENSIONES EFECTIVAS DE TERZAGHI:
+   El comportamiento mecánico del medio poroso saturado está gobernado exclusivamente por la tensión efectiva:
+       $$\sigma_{ij}^\prime = \sigma_{ij} - u \delta_{ij}$$
+   donde $\sigma_{ij}$ es el tensor de tensiones totales, $u$ es la presión de poro del fluido, y $\delta_{ij}$ es la
+   delta de Kronecker. La deformación volumétrica se rige por la ecuación diferencial de consolidación parabólica:
+       $$\frac{\partial u}{\partial t} = c_v \nabla^2 u, \qquad c_v = \frac{k}{\gamma_w m_v}$$
 
-  [A2] Axioma del Tensor de Impedancia Geomecánica Compleja ($Z_{\mathrm{geo}}$) y RSI-L3:
-       El acoplamiento del suelo con las cimentaciones de la estructura civil se rige por un
-       operador lineal positivo-real de Brune en el dominio de Laplace $s = \sigma + j\omega$:
-       $$Z_{\mathrm{geo}}(s) = \mathbf{K}(s) + s \cdot \mathbf{C}(s), \qquad \mathbf{K}, \mathbf{C} \in \operatorname{SPD}(3)$$
-       Donde $\mathbf{K}$ representa el tensor de rigidez elástica de Poisson-Lysmer y $\mathbf{C}$
-       el tensor de amortiguamiento viscoso radiativo-histerético, corregidos por la cota de
-       Wilkinson de la FPU y auto-sanados mediante Automejora Recursiva de Nivel 3 (RSI-L3)
-       a lo largo de geodésicas isocóricas de Fisher-Rao en $\operatorname{SPD}(3)$.
+2. CRITERIO TRIDIMENSIONAL DE ROTURA DE MOHR-COULOMB:
+   En el espacio de tensiones principales efectivas, la superficie de fluencia de Mohr-Coulomb se formula como:
+       $$\mathcal{F}_{\mathrm{MC}}(\sigma^\prime) = \frac{1}{2}(\sigma_1^\prime - \sigma_3^\prime) - \frac{1}{2}(\sigma_1^\prime + \sigma_3^\prime)\sin\phi - c\cos\phi \le 0$$
+   donde $c$ es la cohesión efectiva y $\phi$ es el ángulo de fricción interna efectiva del estrato.
+   En términos de los invariantes de Haigh-Westergaard:
+       $$\mathcal{F}_{\mathrm{MC}}(p^\prime, q, \theta_L) = p^\prime \sin\phi + q \left[ \frac{\cos\theta_L}{\sqrt{3}} - \frac{\sin\theta_L \sin\phi}{3} \right] - c\cos\phi \le 0$$
 
-  [A3] Axioma de Mecánica Celeste de Henri Poincaré y Estabilidad KAM en $T^*\mathbb{T}^3$:
-       Las frecuencias propias elastodinámicas $\boldsymbol{\omega} = (\omega_1, \omega_2, \omega_3)$
-       del sistema $\det(\mathbf{K} - \omega^2 \mathbf{M}_{\mathrm{eff}}) = 0$ inducen un flujo
-       cuasi-periódico sobre el 3-toro $\mathbb{T}^3$. La ausencia de resonancias destructivas
-       se certifica mediante la condición diofántica de Kolmogorov-Arnold-Moser (KAM):
-       $$|\mathbf{k} \cdot \boldsymbol{\omega}| \ge \gamma_{\mathrm{KAM}} |\mathbf{k}|_1^{-\tau}, \qquad 0 < |\mathbf{k}|_1 \le K_{\max}$$
-       y la contracción disipativa del volumen de espacio de fases de Liouville-Poincaré:
-       $$\det \Phi_{\Delta t} = \exp\!\left(-\Delta t \operatorname{Tr}(\mathbf{M}_{\mathrm{eff}}^{-1} \mathbf{C})\right) \in (0, 1]$$
+3. IMPEDANCIA GEOMECÁNICA COMPLEJA Y DISIPACIÓN PASIVA:
+   La interacción suelo-estructura en el dominio frecuencial se representa mediante la impedancia dinámica:
+       $$Z_{\mathrm{geo}}(j\omega) = K_{\mathrm{re}} + j\omega C_{\mathrm{im}}$$
+   donde la parte real $K_{\mathrm{re}}$ representa la rigidez estática y dinámica recuperable, y la parte imaginaria
+   $\omega C_{\mathrm{im}}$ modela la disipación combinada por amortiguamiento histerético del suelo y radiación geométrica
+   de ondas elásticas hacia el semiespacio infinito.
 
-  [A4] Axioma de Cuantización Hadrónica de Defectos (Cartuchos TOON) y Disipación de Terzaghi:
-       Las patologías litológicas del terreno se cuantifican como excitaciones en el espacio
-       de Fock, emitiendo Cartuchos TOON $C_k \in \{\mathtt{SwellingPlasmon}, \mathtt{YieldingPhonon}, \mathtt{LiquefactionSoliton}\}$.
-       Para todo estado transaccional, la potencia disipada cumple la Segunda Ley Termodinámica:
-       $$P_{\mathrm{diss}} = \operatorname{Tr}\left( \boldsymbol{\sigma}_{\mathrm{eff}} \cdot \dot{\boldsymbol{\varepsilon}} \right) \ge 0, \qquad \boldsymbol{\sigma}_{\mathrm{eff}} = \boldsymbol{\sigma} - u_{\mathrm{pore}} \mathbf{I}_3$$
+4. DINÁMICA CELESTE DE POINCARÉ Y ESTABILIDAD DIOFÁNTICA KAM:
+   Bajo cargas cíclicas de tráfico o compactación, el vector de frecuencias fundamentales $\omega = (\omega_{\mathrm{soil}}, \omega_{\mathrm{load}})$
+   se somete a la cota diofántica de Kolmogorov-Arnold-Moser:
+       $$|\omega_{\mathrm{soil}} - k \omega_{\mathrm{load}}| \ge \frac{\gamma}{|k|^\tau}$$
+   para prevenir fenómenos de licuefacción resonante o colapso por fatiga dinámica.
 
-  [A5] Axioma del Veto Bi-Heyting $\Omega_3$ y Actuación en Silicio (BT151 Crowbar):
-       Los veredictos geomecánicos se proyectan sobre el clasificador de subobjetos del retículo
-       distributivo bi-Heyting de tres valores:
-       $$\Omega_3 = \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$$
-       Ante colapso al estado absorbente $\mathtt{VETOED}$, la rutina ISR en IRAM (<400 ns)
-       conmuta el pin GPIO14 del ESP32, disparando el tiristor BT151 (circuito Crowbar).
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma LM-1] Principio de Presión Efectiva Positiva:
+      $\sigma^\prime \ge 0$ en régimen no traccional, prohibiendo tracciones espurias en suelos no cohesivos ($c = 0$).
+  [Axioma LM-2] Confinamiento Termodinámico del Coeficiente de Poisson:
+      $\nu \in (0, 0.50)$, garantizando positividad definida de la energía de deformación volumétrica $K > 0$.
+  [Axioma LM-3] Criterio de Falla de Mohr-Coulomb Invariante:
+      $\mathcal{F}_{\mathrm{MC}}(\sigma^\prime) \le 0$ para todo estado admisible de soporte estructural.
+  [Axioma LM-4] Pasividad de Brune en la Impedancia Geomecánica:
+      $\operatorname{Re}(Z_{\mathrm{geo}}(j\omega)) \ge 0 \quad \forall \omega \in \mathbb{R}$.
+  [Axioma LM-5] Preservación de Monodromía Simpléctica:
+      $|\det(\mathcal{M}_{\mathrm{Floquet}}) - 1.0| \le 10^{-6}$.
 
-ARQUITECTURA CRISTALINA DE TRES FASES ANIDADAS (OODA Espectral):
-────────────────────────────────────────────────────────────────────────────────
-  Fase 1 ──► OBSERVE : Validación estricta del SoilTensor, geometría de Casagrande
-             (Líneas A y U) y Jacobiano de sensibilidad mediante paso complejo.
-             El método terminal `phase1_close_and_open_phase2` invoca directamente
-             al método inicial `phase2_from_phase1`.
-             Retorna: SoilValidationCertificate (alias Phase1LithologyHandoff).
-
-  Fase 2 ──► ORIENT  : Difeomorfismo elastodinámico 3D de Poisson-Lysmer (K, C en SPD(3)),
-             auto-sanación riemanniana RSI Nivel 3 (Fisher-Rao / Higham-Löwner),
-             auditoría de mecánica celeste de Poincaré-KAM y emisión de cartuchos TOON.
-             El método terminal `phase2_close_and_open_phase3` invoca directamente
-             al método inicial `phase3_from_phase2`.
-             Retorna: GeomechanicalSpectralReport (alias Phase2LithologyHandoff).
-
-  Fase 3 ──► DECIDE  : Proyección del Tensor de Impedancia Compleja Z_geo(s) como
-             condición de frontera de Dirichlet, auditoría termodinámica de Terzaghi,
-             evaluación en el retículo bi-Heyting Ω₃ y actuación del CrowbarPort BT151.
-             Retorna: LithologicalSuturationState (alias Phase3LithologyDecision).
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Positividad Métrica del Tensor de Elasticidad):
+      $C_{ijkl} = C_{jikl} = C_{klij} \succ 0$, con autovalores acotados en el espectro admisible.
+  Invariante 2 (Capacidad Portante Última Admisible):
+      $q_{\mathrm{adm}} = \frac{q_{\mathrm{ult}}}{\mathrm{FS}}$, con factor de seguridad $\mathrm{FS} \ge 3.0$.
+  Invariante 3 (Conservación de Masa en la Consolidación de Terzaghi):
+      $\int_\Omega \Delta u \, d\Omega = -\int_{\partial\Omega} v_{\mathrm{darcy}} \cdot n \, dA$.
+  Invariante 4 (Bypass de Silicio Crowbar):
+      Colapso geomecánico ($\mathcal{F}_{\mathrm{MC}} > 0$) conmutan la interrupción ISR en silicio en $< 400$ ns.
 """
 
 from __future__ import annotations
@@ -112,7 +120,10 @@ import numpy as np
 
 from app.core.mic_algebra import Morphism, CategoricalState
 from app.core.schemas import Stratum
-from app.core.immune_system.metric_tensors import MetricTensorFactory
+try:
+    from app.core.inmune_system.metric_tensors import MetricTensorFactory
+except ImportError:
+    from app.core.immune_system.metric_tensors import MetricTensorFactory
 
 logger = logging.getLogger("MIC.Physics.LithologicalManifold")
 

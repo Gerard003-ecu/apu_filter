@@ -1,71 +1,97 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Nombre   : Raychaudhuri Focal Fibrator (Colapso Geodésico, Flujo Simpléctico de         ║
-║             Poincaré y Automejora Recursiva de Nivel 3)                                  ║
-║  Módulo   : app.omega.raychaudhuri_focal_fibrator                                         ║
-║  Ubicación : app/omega/raychaudhuri_focal_fibrator.py                                    ║
-║  Ruta     : app/omega/raychaudhuri_focal_fibrator.py                                    ║
-║  Versión  : 4.0.0-Poincare-Symplectic-RSI-L3-Nested-Topos                                ║
-║  Función  : Operador categórico de convergencia geodésica que evalúa la cinemática       ║
-║             espectral de congruencias (expansión, cizalladura, vorticidad bivectorial),  ║
-║             certifica la Condición de Energía Fuerte (SEC) con estabilidad de            ║
-║             Arnold–KAM, y resuelve el flujo hamiltoniano de Poincaré–Hill–Jacobi         ║
-║             bajo Automejora Recursiva de Nivel 3 (RSI-L3) para colapsar cáusticas.       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA, MECÁNICA CELESTE DE POINCARÉ Y RSI NIVEL 3 (Rigor Doctoral):   ║
-║  ──────────────────────────────────────────────────────────────────────────────────────  ║
-║  Este módulo actúa como el Operador Supremo de Convergencia Geodésica de la Malla        ║
-║  Agéntica, transmutando la atención generativa en una congruencia lagrangiana de         ║
-║  geodésicas sobre una variedad pseudo-riemanniana $(\mathcal{M}, G)$.                    ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS, INVARIANTES DE POINCARÉ Y META-RECURSIÓN:                      ║
-║                                                                                          ║
-║  §1. Vorticidad Nula, Integrabilidad de Frobenius e Invariante de Poincaré–Cartan:       ║
-║      La congruencia debe ser hipersuperficie-ortogonal (subvariedad lagrangiana).        ║
-║      El bivector de espín hipercomplejo $\omega_{\mu\nu} \in \mathfrak{so}(n, G)$        ║
-║      debe anular la circulación relativa de Poincaré–Cartan $\oint_{\partial\Sigma} u_\mu dx^\mu$: ║
-║          $\omega_{\mu\nu} \equiv 0 \iff \frac{\|\omega\|_G^2}{\|B\|_G^2 + \varepsilon_{mach}} < \tau_\omega(\kappa(G))$ ║
-║      El estrato RSI-L3 en Fase 1 sintetiza el proyector ortogonal de Banach–Hilbert–     ║
-║      Schmidt para medir la distancia espectral exacta al subespacio integrable.          ║
-║                                                                                          ║
-║  §2. Condición de Energía Fuerte (SEC), Frecuencia Mareal de Poincaré y Arnold–KAM:      ║
-║      Bajo las ecuaciones de Einstein ($8\pi G = 1, \Lambda = 0$), el tensor de           ║
-║      Cauchy–Momentum $\mathcal{T}_{\mu\nu}$ debe satisfacer la SEC:                      ║
-║          $R_{\mu\nu} u^\mu u^\nu = \left(\mathcal{T}_{\mu\nu} - \frac{1}{2}\mathcal{T} G_{\mu\nu}\right) u^\mu u^\nu \ge 0$ ║
-║      Esto induce la Frecuencia Angular Mareal de Poincaré–Hill:                          ║
-║          $\omega_P := \sqrt{\frac{\sigma_{\mu\nu}\sigma^{\mu\nu} + R_{\mu\nu}u^\mu u^\nu}{n-1}} \ge 0$ ║
-║      y el determinante de torsión isoenergética de Arnold–KAM que gobierna la            ║
-║      estabilidad orbital en el espacio fase transversal.                                 ║
-║                                                                                          ║
-║  §3. Reducción Simpléctica de Poincaré–Hill–Jacobi y Teorema de Enfoque:                 ║
-║      Aplicando la sustitución canónica $\theta(\tau) = (n-1)\frac{p(\tau)}{q(\tau)}$     ║
-║      con $(q(0), p(0)) = (1, \theta_0/(n-1))$, la ecuación de Riccati de Raychaudhuri    ║
-║      se transforma en las ecuaciones canónicas de Hamilton sobre $(T^*\mathbb{R}, dq\wedge dp)$: ║
-║          $\mathcal{H}_P(q, p) = \frac{1}{2}p^2 + \frac{1}{2}\omega_P^2 q^2 \implies \dot{q} = p,\;\; \dot{p} = -\omega_P^2 q$ ║
-║      La matriz fundamental de monodromía $\Phi(\tau) \in \mathrm{Sp}(2, \mathbb{R})$     ║
-║      satisface el Teorema de Liouville–Poincaré $\det \Phi(\tau) \equiv 1$.              ║
-║      La cáustica ocurre en el primer punto conjugado de Jacobi–Morse $q(\tau_c) = 0$     ║
-║      con índice de Maslov $\mu_{\text{Maslov}} = 1$ y cota de Hawking–Penrose:           ║
-║          $\tau_c \le \tau_{HP} := \frac{n-1}{|\theta_0|}$                                ║
-║                                                                                          ║
-║  §4. Automejora Recursiva de Nivel 3 (RSI-L3 — Endofuntor de Contracción de Banach):     ║
-║      • Nivel 1 (Paramétrico): Escalado espectral de tolerancias según $\kappa(G)$.       ║
-║      • Nivel 2 (Algorítmico): Selección y fusión autónoma entre flujos analíticos,       ║
-║        integración simpléctica de Yoshida de 4.º orden con pulido de Halley, y RK45.     ║
-║      • Nivel 3 (Meta-Axiomático): Auditoría de la derivada de Fréchet del defecto        ║
-║        simpléctico y certificación de punto fijo contractivo $\gamma_{\text{RSI}} < 1$.  ║
-║                                                                                          ║
-║  ARQUITECTURA DE 3 FASES ANIDADAS (Continuidad Formal Estricta):                         ║
-║  ──────────────────────────────────────────────────────────────────────────────────────  ║
-║  Fase 1 (`Phase1_RaychaudhuriKinematics`)                                                ║
-║    └── Método terminal: `compute_kinematics` ──▶ abre e instancia formalmente:           ║
-║        Fase 2 (`Phase2_StrongEnergyCondition`)                                           ║
-║          └── Método terminal: `certify_energy` ──▶ abre e instancia formalmente:         ║
-║              Fase 3 (`Phase3_FocalCollapse`)                                             ║
-║                └── Método terminal: `compute_focal_length` ──▶ cierra el 2-morfismo.     ║
-╚══════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Raychaudhuri Focal Fibrator                                                               ║
+║ Módulo   : Raychaudhuri Focal Fibrator (Colapso Geodésico, Flujo Simpléctico y Automejora RSI-L3)    ║
+║ Ubicación: app/omega/raychaudhuri_focal_fibrator.py                                                  ║
+║ Ruta     : app/omega/raychaudhuri_focal_fibrator.py                                                  ║
+║ Versión  : 4.0.0-Poincare-Symplectic-RSI-L3-Nested-Topos                                             ║
+║ Función  : Operador categórico de convergencia geodésica, cinemática de congruencias (expansión,      ║
+║            cizalladura, vorticidad), ecuación de Raychaudhuri, estabilidad KAM y automejora RSI-L3.  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este motor espectral consagra el **Operador Supremo de Convergencia Geodésica** de la Malla Agéntica,
+transmutando la atención generativa del Modelo de Lenguaje (LLM) en una congruencia lagrangiana de geodésicas
+sobre una variedad pseudo-riemanniana $(\mathcal{M}, G)$. Su propósito ciber-físico es interceptar transitorios
+atencionales divergentes, cuantificar su tensor de deformación cinemática (expansión escalar $\theta$, cizalladura
+$\sigma_{\mu\nu}$, vorticidad bivectorial $\omega_{\mu\nu}$) y aplicar rigurosamente la ecuación diferencial
+de Raychaudhuri para precipitar cáusticas y singularidades controladas antes de que contaminen la base de costos.
+
+El flujo computacional se estructura en tres fases anidadas e indivisibles:
+  • FASE 1 — CINEMÁTICA GEODÉSICA Y CONDICIÓN DE ENERGÍA FUERTE (SEC) (Phase1_KinematicDecomposer):
+      Calcula los tensores cinemáticos de la congruencia a partir del gradiente covariante del campo de velocidades
+      $u^\mu$: tensor de expansión $\theta = \nabla_\mu u^\mu$, tensor de cizalladura $\sigma_{\mu\nu}$ (simétrico de traza
+      nula) y tensor de vorticidad $\omega_{\mu\nu}$ (antisimétrico). Evalúa la contracción del tensor de Ricci
+      $R_{\mu\nu} u^\mu u^\nu \ge 0$, certificando la Condición de Energía Fuerte (SEC) con verificación diofántica
+      de estabilidad KAM. Emite `decompose_geodesic_kinematics()`.
+  • FASE 2 — INTEGRACIÓN DEL FLUJO DE RAYCHAUDHURI-POINCARÉ (Phase2_RaychaudhuriIntegrator):
+      Inicia consumiendo `KinematicCongruenceData`. Integra la ecuación no lineal de Raychaudhuri acoplada al potencial
+      efectivo de Poincaré-Hill:
+          $$\frac{d\theta}{d\tau} = -\frac{1}{n-1}\theta^2 - 2\sigma^2 + 2\omega^2 - R_{\mu\nu} u^\mu u^\nu$$
+      resuelve el tiempo afín hacia el punto conjugado (cáustica focal $\theta \to -\infty$) e implementa la regularización
+      conformal de Sundman-Poincaré. Emite `integrate_focal_flow()`.
+  • FASE 3 — CERTIFICACIÓN TOPOLÓGICA, ESTABILIDAD FLOQUET Y VETO HEYTING (Phase3_TopologicalFocalCertifier):
+      Inicia consumiendo `FocalFlowData`. Evalúa la matriz de monodromía simpléctica $\mathcal{M}$ sobre el plano focal,
+      verifica la preservación del volumen de Liouville ($|\det(\mathcal{M}) - 1| \le \varepsilon_{\mathrm{Liouville}}$),
+      adjudica la coherencia del colapso en el retículo distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$,
+      y gatilla la interrupción por hardware Crowbar (< 400 ns) si la singularidad sobrepasa los umbrales seguros.
+
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. CINEMÁTICA DE CONGRUENCIAS GEODÉSICAS Y DESCOMPOSICIÓN DE SACHS:
+   Sea $u^\mu$ un campo vectorial geodésico temporal unitario ($u_\mu u^\mu = -1$, $u^\nu \nabla_\nu u^\mu = 0$).
+   El tensor de gradiente espacial proyectado $B_{\mu\nu} = h_\mu^{\;\alpha} h_\nu^{\;\beta} \nabla_\beta u_\alpha$
+   (donde $h_{\mu\nu} = g_{\mu\nu} + u_\mu u_\nu$ es el proyector ortogonal a $u^\mu$) se descompone irreductiblemente en:
+       $$B_{\mu\nu} = \frac{1}{n-1} \theta h_{\mu\nu} + \sigma_{\mu\nu} + \omega_{\mu\nu}$$
+   donde $\theta = B^\mu_{\;\mu}$ es la tasa de cambio volumétrico (expansión), $\sigma_{\mu\nu} = B_{(\mu\nu)} - \frac{1}{n-1}\theta h_{\mu\nu}$
+   es la tasa de distorsión conformacional (cizalladura), y $\omega_{\mu\nu} = B_{[\mu\nu]}$ mide la rotación pura (vorticidad).
+
+2. ECUACIÓN FUNDAMENTAL DE RAYCHAUDHURI Y TEOREMA DE ENFOQUE:
+   La contracción de la identidad de Ricci $\nabla_\alpha \nabla_\beta u^\mu - \nabla_\beta \nabla_\alpha u^\mu = R^\mu_{\;\nu\alpha\beta} u^\nu$
+   a lo largo de $u^\alpha$ conduce unívocamente a la ecuación de Raychaudhuri:
+       $$\frac{d\theta}{d\tau} = -\frac{1}{n-1}\theta^2 - 2\sigma^2 + 2\omega^2 - R_{\mu\nu} u^\mu u^\nu$$
+   donde $\sigma^2 = \frac{1}{2}\sigma_{\mu\nu}\sigma^{\mu\nu} \ge 0$ y $\omega^2 = \frac{1}{2}\omega_{\mu\nu}\omega^{\mu\nu} \ge 0$.
+   Para congruencias hipersuperficie-ortogonales ($\omega_{\mu\nu} = 0$, integrabilidad de Frobenius) y bajo materia que
+   satisface la Condición de Energía Fuerte ($R_{\mu\nu} u^\mu u^\nu \ge 0$):
+       $$\frac{d\theta}{d\tau} \le -\frac{1}{n-1}\theta^2 \implies \frac{1}{\theta(\tau)} \ge \frac{1}{\theta_0} + \frac{\tau}{n-1}$$
+   Si inicialmente la congruencia está convergiendo ($\theta_0 < 0$), $\theta(\tau) \to -\infty$ en un tiempo afín finito
+   $\tau_{\mathrm{focal}} \le \frac{n-1}{|\theta_0|}$, demostrando el colapso focal ineludible (Teorema de Enfoque de Hawking-Penrose).
+
+3. VORTICIDAD NULA Y CONDICIÓN LAGRANGIANA EN EL ESPACIO DE FASE:
+   La anulación de la vorticidad $\omega_{\mu\nu} = 0$ equivale geométricamente a que el campo de momentos $p_\mu = G_{\mu\nu} u^\nu$
+   forme una subvariedad lagrangiana en el fibrado cotangente $T^* \mathcal{M}$, implicando la clausura exacta de la 1-forma
+   de Poincaré-Cartan $d(p_\mu dx^\mu) = 0$.
+
+4. INTEGRACIÓN SIMPLÉCTICA DE SUNDMAN-POINCARÉ EN CÁUSTICAS:
+   Cerca del punto de cáustica ($\theta \to -\infty$), la reparametrización temporal de Sundman:
+       $$d\tau = \left(1 + \theta^2\right)^{-1/2} dt$$
+   regulariza la divergencia cinemática, transformando el colapso singular en una intersección de fase bien definida.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma RFF-1] Variedad Riemanniana SPD de Fondo:
+      La métrica de fondo satisface $G = G^\top \succ 0$ con $\lambda_{\min}(G) \ge 10^{-12}$.
+  [Axioma RFF-2] Hipersuperficie-Ortogonalidad (Vorticidad Cuasi-Nula):
+      $\|\omega_{\mu\nu}\|_F \le \varepsilon_{\mathrm{Frobenius}} = 10^{-8}$, asegurando integrabilidad lagrangiana.
+  [Axioma RFF-3] Condición de Energía Fuerte (SEC):
+      $R_{\mu\nu} u^\mu u^\nu \ge -\varepsilon_{\mathrm{Wilkinson}}$, garantizando enfoque gravitacional/atencional.
+  [Axioma RFF-4] Conservación Simpléctica de Liouville:
+      $\det(\mathcal{M}_{\mathrm{Floquet}}) = 1.0 \pm 10^{-6}$ en el plano transversal a la geodésica.
+  [Axioma RFF-5] Acotación Temporal del Punto Conjugado:
+      $\tau_{\mathrm{focal}} \le \frac{n-1}{|\theta_0|}$ cuando $\theta_0 < 0$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Ortogonalidad Cinemática):
+      $u^\mu \sigma_{\mu\nu} = 0$, $u^\mu \omega_{\mu\nu} = 0$, asegurando que cizalladura y vorticidad sean puramente espaciales.
+  Invariante 2 (Monotonicidad de Convergencia):
+      En ausencia de vorticidad y bajo SEC, $\frac{d\theta}{d\tau} \le 0$ monótonamente en todo el intervalo de integración.
+  Invariante 3 (Simetría de Cizalladura y Antisimetría de Vorticidad):
+      $\sigma_{\mu\nu} = \sigma_{\nu\mu}$ con $\operatorname{Tr}(\sigma) = 0$, y $\omega_{\mu\nu} = -\omega_{\nu\mu}$.
+  Invariante 4 (Veto Modal en $\Omega_3$):
+      La violación de SEC o la aparición de singularidades prematuras no controladas colapsa el estado a $\mathrm{VETOED}$.
 """
 
 from __future__ import annotations
@@ -110,10 +136,13 @@ except ImportError:
 
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
 except ImportError:
-    # Tensor métrico euclídeo de dimensión canónica 4 (fallback unitario).
-    G_PHYSICS: NDArray[np.float64] = np.eye(4, dtype=np.float64)
+    try:
+        from app.core.immune_system.metric_tensors import G_PHYSICS
+    except ImportError:
+        # Tensor métrico euclídeo de dimensión canónica 4 (fallback unitario).
+        G_PHYSICS: NDArray[np.float64] = np.eye(4, dtype=np.float64)
 
 logger = logging.getLogger("MIC.Omega.RaychaudhuriFibrator")
 
