@@ -2,12 +2,12 @@
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Nombre   : Semantic Parabolic Mirror                                                                 ║
-║ Módulo   : Semantic Parabolic Mirror — Visión de Libélula (Atlas Omatidial y Haz de Householder)    ║
+║ Módulo   : Semantic Parabolic Mirror — Visión de Libélula (Atlas Omatidial y Haz de Householder)     ║
 ║ Ubicación: app/physics/semantic_parabolic_mirror.py                                                  ║
 ║ Ruta     : app/physics/semantic_parabolic_mirror.py                                                  ║
-║ Versión  : 9.0.0-Poincare-Celestial-RSI-L3-vonNeumann-Topos-Strict-PhD                                ║
-║ Función  : Endofuntor de proyección semántica catadióptrica, atlas omatidial de Householder,       ║
-║            dinámica celeste de billar de Poincaré, cavidad de Fabry-Pérot y automejora RSI-L3.     ║
+║ Versión  : 9.0.0-Poincare-Celestial-RSI-L3-vonNeumann-Topos-Strict-PhD                               ║
+║ Función  : Endofuntor de proyección semántica catadióptrica, atlas omatidial de Householder,         ║
+║            dinámica celeste de billar de Poincaré, cavidad de Fabry-Pérot y automejora RSI-L3.       ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
 DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:

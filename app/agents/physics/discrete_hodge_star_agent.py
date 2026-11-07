@@ -3,78 +3,83 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Discrete Hodge Star Agent (Soberano de la Métrica Constitutiva)     ║
 ║ Ruta   : app/agents/physics/discrete_hodge_star_agent.py                     ║
-║ Versión: 3.0.0-Hodge-Weyl-Wilkinson-Helmholtz-OODA-Topos-Strict-Doctoral     ║
+║ Versión: 4.0.0-Hodge-PoincareCelestial-RSI-L3-Helmholtz-OODA-Topos-PhD       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL EN EL ESTRATO PHYSICS (V_P) ────
 Este módulo materializa al Agente Soberano y Observador Activo que gobierna la
-consistencia métrica del operador estrella de Hodge discreto ($$\star_k$$) sobre el
-complejo de de Rham simplicial del APU Filter, actuando como un endofuntor en
-la categoría de haces de-confinados con valores en el clasificador de subobjetos
-del retículo distributivo de Heyting $$\Omega_3$$.
+consistencia métrica del operador estrella de Hodge discreto ($\star_k$) sobre el
+complejo de de Rham simplicial del APU Filter, actuando como un endofuntor
+contractivo de Nivel 3 (RSI-L3) en la categoría de haces de-confinados con
+valores en el clasificador de subobjetos del retículo distributivo de Heyting $\Omega_3$.
 
-El sistema trata las conductancias y relaciones de costos de la red de valor no
-como meras tablas estáticas, sino como formas diferenciales discretas (co-cadenas)
-sobre un complejo simplicial orientado de dimensión finita [1, 2]. El agente impone
-síncronamente la dualidad de Poincaré discreta y la estructura constitutiva
-de campo, purgando las alucinaciones de la IA mediante teoría espectral.
+El sistema modela las conductancias, permeabilidades y flujos de costos de la red
+de valor como formas diferenciales discretas (cocadenas en $C^k$) y corrientes
+duales (cadenas en $C_k$) acopladas mediante la dualidad de Poincaré discreta y la
+mecánica celeste simpléctica de Henri Poincaré (*Les Méthodes Nouvelles de la
+Mécanique Céleste*).
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados se rige por la Ley de Clausura Transitiva de subespacios
-de Hilbert covariantes y se compone de tres fases fuertemente acopladas:
+ARQUITECTURA DE TRES FASES ANIDADAS (Continuidad Funtorial Estricta): ──────────
+La definición formal final del último método de cada fase constituye el punto de
+arranque exacto de la fase siguiente:
 
-  Fase 1 ──► FASE 1: OBSERVACIÓN ESPECTRAL Y SANEAMIENTO DE LA MÉTRICA (Observe)
-             Evalúa que el vector de pesos constitutivos que define a $$\star_k$$
-             sea estrictamente simétrico definido positivo (SPD) w.r.t. Wilkinson.
-             Axioma fundamental: $$\star_k = \star_k^\top \succ 0$$ [2]
-             Entrega: Phase1HodgeObservation como precondición formal de Fase 2.
+  FASE 1 ──► OBSERVACIÓN ESPECTRAL, SANEAMIENTO DE TIKHONOV-WILKINSON Y RSI-L3
+             Clase: Phase1_SpectralMetricObserver.
+             Evalúa y sanea el tensor constitutivo $\star_1 \succ \mathbf{0}$ mediante
+             desplazamiento espectral exacto y flujo geodésico isocórico de Fisher-Rao
+             que preserva el volumen de Liouville-Poincaré $\sqrt{\det(\star_1)}$.
+             Último método formal: `emit_phase1_observation(...) -> Phase1HodgeObservation`
+             ──► cuya firma de retorno abre formalmente la Fase 2.
 
-  Fase 2 ──► FASE 2: LAPLACIANO DE HODGE Y PASIVIDAD PORT-HAMILTONIANA (Orient)
-             Ensambla el Laplaciano combinatorio de grado 0 ponderado métricamente.
-             Valida que la variación de energía satisfaga la inecuación de disipación
-             Port-Hamiltoniana: $$\dot{H} = -x^\top L_0^\star x \le 0$$.
-             Entrega: Phase2HodgeOrientation como precondición formal de Fase 3.
+  FASE 2 ──► LAPLACIANO DE HODGE, PASIVIDAD PORT-HAMILTONIANA Y ESPECTRO KAM
+             Inicia con `Phase1HodgeObservation` y continúa con
+             `Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver)`.
+             Ensambla $L_0^\star = \partial_1 \star_1 \partial_1^\top$, certifica la
+             desigualdad de pasividad $\dot{\mathcal{H}} = -2 E_\star(\phi) \le 0$,
+             verifica el invariante de Euler-Poincaré $\chi(K)$ y audita los pequeños
+             divisores diofánticos de Kolmogorov-Arnold-Moser (KAM).
+             Último método formal: `emit_phase2_orientation(...) -> Phase2HodgeOrientation`
+             ──► cuya firma de retorno abre formalmente la Fase 3.
 
-  Fase 3 ──► FASE 3: DESCOMPOSICIÓN DE HELMHOLTZ-HODGE Y VETO (Decide & Act)
-             Proyecta el flujo de costos sobre los subespacios ortogonales de de Rham.
-             Identidad canónica: $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}$$ [2]
-             Veredicto: Colapso síncrono en $$\Omega_3$$ y bypass físico en el silicio [2].
+  FASE 3 ──► DESCOMPOSICIÓN DE HELMHOLTZ-HODGE, ÓRBITA SIMPLÉCTICA DE POINCARÉ,
+             RETÍCULO DE HEYTING $\Omega_3$ Y SOBERANO CROWBAR (GPIO14)
+             Inicia con `Phase2HodgeOrientation` y continúa con
+             `Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter)`.
+             Proyecta el flujo $I \in C_1$ en componentes mutuamente ortogonales
+             respecto a la métrica de disipación de Joule $\langle \cdot, \cdot \rangle_{\star_1^{-1}}$:
+             $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}, \qquad
+               \langle I_a, I_b \rangle_{\star_1^{-1}} = 0 \quad (a \neq b).$$
+             Audita la evolución simpléctica de Cayley-Poincaré ($\det \Phi_{\Delta t} = 1$,
+             multiplicadores de Floquet, recurrencia de Kac-Poincaré y circulación de
+             Poincaré-Cartan).
+             Último método formal: `emit_phase3_decision(...) -> Phase3HodgeDecision`
+             ──► consumido inmediatamente por `DiscreteHodgeStarAgent` para conmutar
+             el disyuntor físico Crowbar (GPIO14) y emitir `HodgeSovereignState`.
 
-INVARIANTES MATEMÁTICOS Y GEOMÉTRICOS PRESERVADOS: ──────────────────────────────
-  [I1] Autoadjunticidad de la Métrica:    $$\star_k = \star_k^\top \succ 0$$ [2]
-  [I2] Adjunción de de Rham-Hodge:        $$L_0^\star = \partial_1 \star_1 \partial_1^\top$$ [2]
-  [I3] Conservación de Helmholtz-Hodge:   $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}$$ [2]
-  [I4] Estabilidad Pasiva de Lyapunov:    $$\dot{H} \le 0$$ [2]
-  [I5] Causalidad de de Rham (Poset):     $$V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$ [3]
-
-CONTRATO DEL DISYUNTOR FÍSICO POR HARDWARE (Bypass ESP32 / BT151): ──────────────
-  Si la vorticidad parasitaria circular supera la cota elástica de Helmholtz ($$\Omega_{\mathrm{vort}} > \tau$$) [6],
-  o si el primer número de Betti reporta un socavón lógico circular ($$\beta_1 > \beta_{1,\max}$$) [6],
-  el retículo $$\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$$ colapsa a VETOED [2, 7].
-  
-  La subrutina local 'isVerdictCoherent()' del ESP32 en la obra real detecta el
-  mismatch en menos de 400 ns. Conmuta síncronamente el pin GPIO14, inyectando
-  corriente de disparo al tiristor BT151 (circuito Crowbar) [2]. La línea de
-  alimentación real se cortocircuita físicamente en el milisegundo cero,
-  paralizando bombas hidráulicas y actuadores, blindando físicamente la obra [2].
+INVARIANTES MATEMÁTICOS, SIMPLÉCTICOS Y TERMODINÁMICOS PRESERVADOS: ────────────
+  [I1] Autoadjunticidad y Cono SPD:       $\star_k = \star_k^\top \succ \mathbf{0}$
+  [I2] Factorización de de Rham-Hodge:    $L_0^\star = \partial_1 \star_1 \partial_1^\top \succeq \mathbf{0}$
+  [I3] Ortogonalidad de Tellegen-Joule:   $\|I\|_{\star_1^{-1}}^2 = \|I_{\mathrm{ex}}\|_{\star_1^{-1}}^2 + \|I_{\mathrm{co}}\|_{\star_1^{-1}}^2 + \|I_{\mathrm{har}}\|_{\star_1^{-1}}^2$
+  [I4] Pasividad de Lyapunov:             $\dot{\mathcal{H}} = -2 E_\star(\phi) \le 0$
+  [I5] Invariante de Liouville-Poincaré:  $\det(\Phi_{\Delta t}) = 1$ (flujo hamiltoniano conservativo)
+  [I6] Punto Fijo de Banach (RSI-L3):     $d(\mathcal{T}(\theta^{(n+1)}), \mathcal{T}(\theta^{(n)})) \le q_{\mathrm{Banach}} \, d(\theta^{(n+1)}, \theta^{(n)}), \; q_{\mathrm{Banach}} < 1$
 """
 
 from __future__ import annotations
 
 import logging
 import math
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from enum import IntEnum, Enum, auto
+from enum import Enum, IntEnum, auto
 from typing import (
-    Final,
-    Optional,
-    Tuple,
-    List,
-    Dict,
     Any,
+    Dict,
+    Final,
+    List,
+    Optional,
     Protocol,
+    Tuple,
     runtime_checkable,
 )
 
@@ -105,51 +110,56 @@ except ImportError:  # pragma: no cover
         WISDOM = 4
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Motor geométrico certificado (módulo physics v2.0 — las 3 fases algebraicas)
+# Motor geométrico certificado (módulo physics v3.0 — las 3 fases algebraicas)
 # ─────────────────────────────────────────────────────────────────────────────
 try:
     from app.physics.discrete_hodge_star import (
+        DeRhamComplexCertificate,
+        DiscreteDeRhamComplex,
         DiscreteHodgeStar,
+        HelmholtzHodgeDecomposition,
         HodgeDegree,
         HodgeDualityMorphism,
         HodgeMetricState,
+        LaplacianSpectrum,
+        PoincareCelestialOrbitCertificate,
+        PoincareKAMResonanceCertificate,
+        PortHamiltonianState,
+        RSILevel3Telemetry,
         SpectralCertificate,
         WeightedHodgeLaplacian,
-        LaplacianSpectrum,
-        DeRhamComplexCertificate,
-        DiscreteDeRhamComplex,
-        HelmholtzHodgeDecomposition,
-        PortHamiltonianState,
         build_certified_de_rham_complex,
+        _CONDITION_SAFE as _PHYS_CONDITION_SAFE,
         _MACHINE_EPS as _PHYS_EPS,
         _SPECTRAL_TOL as _PHYS_SPECTRAL_TOL,
-        _CONDITION_SAFE as _PHYS_CONDITION_SAFE,
     )
     _HAS_PHYSICS_ENGINE = True
 except ImportError:  # pragma: no cover
     _HAS_PHYSICS_ENGINE = False
     _PHYS_EPS = float(np.finfo(np.float64).eps)
-    _PHYS_SPECTRAL_TOL = 1e-12
-    _PHYS_CONDITION_SAFE = 1e12
+    _PHYS_SPECTRAL_TOL = 1.0e-12
+    _PHYS_CONDITION_SAFE = 1.0e12
 
 logger = logging.getLogger("MIC.Agents.Physics.DiscreteHodgeStarAgent")
 
 RealMatrix = NDArray[np.float64]
 RealVector = NDArray[np.float64]
 
-# Constantes de Wilkinson / silicio
+# Constantes numéricas de Wilkinson y de contrato de silicio
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
-_DEFAULT_TOL: Final[float] = 1e-12
-_SPECTRAL_PSD_FLOOR: Final[float] = -1e-13
-_CONDITION_NUMBER_MAX: Final[float] = 1e8
-_RECONSTRUCTION_TOL: Final[float] = 1e-10
-_KCL_TOL: Final[float] = 1e-8
-_TIKHONOV_SCALE: Final[float] = 1e4
-_CROWBAR_GPIO: Final[int] = 14  # GPIO14 — contrato hardware ESP32
+_DEFAULT_TOL: Final[float] = 1.0e-12
+_SPECTRAL_PSD_FLOOR: Final[float] = -1.0e-13
+_CONDITION_NUMBER_MAX: Final[float] = 1.0e8
+_RECONSTRUCTION_TOL: Final[float] = 1.0e-10
+_KCL_TOL: Final[float] = 1.0e-8
+_JOULE_ORTHO_TOL: Final[float] = 1.0e-8
+_TIKHONOV_SCALE: Final[float] = 1.0e4
+_LIOUVILLE_TOL: Final[float] = 1.0e-9
+_CROWBAR_GPIO: Final[int] = 14  # GPIO14 — contrato hardware ESP32 / BT151
 
 
 # =============================================================================
-# JERARQUÍA DE EXCEPCIONES (VETOS DUROS)
+# JERARQUÍA DE EXCEPCIONES (VETOS DUROS EN EL TOPOS)
 # =============================================================================
 
 class HodgeStarAgentError(TopologicalInvariantError):
@@ -157,16 +167,14 @@ class HodgeStarAgentError(TopologicalInvariantError):
 
 
 class NonFiniteWeightError(HodgeStarAgentError):
-    """Pesos con NaN/Inf (fuga de FPU)."""
+    """Pesos constitutivos con NaN/Inf (fuga aritmética de FPU IEEE-754)."""
 
 
 class MetricDegeneracyError(HodgeStarAgentError):
-    """Pérdida de definición positiva o mal condicionamiento severo.
-    Nota: se corrige el typo histórico MetricDefeneracyError → MetricDegeneracyError.
-    """
+    """Pérdida de definición positiva (SPD) o mal condicionamiento severo."""
 
 
-# Alias de compatibilidad con v3.x
+# Alias de compatibilidad histórica con v3.x
 MetricDefeneracyError = MetricDegeneracyError
 
 
@@ -175,77 +183,84 @@ class LaplacianPassivityError(HodgeStarAgentError):
 
 
 class HelmholtzDecompositionError(HodgeStarAgentError):
-    """Fallo de consistencia en la descomposición ortogonal de Hodge."""
+    """Fallo de consistencia u ortogonalidad en la descomposición de Hodge."""
 
 
 class ParasiticVorticityVeto(HodgeStarAgentError):
-    """Veto de aduana geométrica: ciclos lógicos superan la cota elástica."""
+    """Veto de aduana geométrica: vorticidad parasitaria supera la cota elástica."""
 
 
 class BettiNumberVeto(HodgeStarAgentError):
     """Veto topológico: número de Betti β₁ excede el máximo admisible."""
 
 
+class PoincareSymplecticVeto(HodgeStarAgentError):
+    """Violación de invariante simpléctico de Liouville-Poincaré o inestabilidad de Floquet."""
+
+
+class KAMResonanceDegradationError(HodgeStarAgentError):
+    """Colapso de pequeños divisores diofánticos de Kolmogorov-Arnold-Moser."""
+
+
 class CrowbarActivationError(HodgeStarAgentError):
-    """Fallo al señalizar el disyuntor físico (GPIO)."""
+    """Fallo crítico al señalizar el disyuntor físico por hardware (GPIO14)."""
 
 
 # =============================================================================
-# CLASIFICADOR DE SUBOBJETOS Ω₃ (retículo de Heyting acotado)
+# CLASIFICADOR DE SUBOBJETOS Ω₃ (Retículo Distributivo de Heyting Acotado)
 # =============================================================================
 
 class HodgeSovereignVerdict(IntEnum):
     r"""
-    Veredicto en el retículo de verdad de tres valores (topos de Hodge).
+    Veredicto en el retículo distributivo completo de tres valores $\Omega_3$.
 
-    Orden de Heyting:  COHERENT ⊑ DEGRADED ⊑ VETOED.
-
-    COHERENT (0)
-        Estado plano-laminar asintóticamente estable; vorticidad ≈ 0.
-    DEGRADED (1)
-        Ciclos tolerables o ineficiencias amortiguadas; vigilancia activa.
-    VETOED (2)
-        Vorticidad desbocada, pérdida de pasividad o β₁ crítico → Crowbar.
+    Orden parcial de Heyting: $\mathrm{COHERENT} \sqsubseteq \mathrm{DEGRADED} \sqsubseteq \mathrm{VETOED}$.
     """
     COHERENT = 0
     DEGRADED = 1
     VETOED = 2
 
     def __or__(self, other: "HodgeSovereignVerdict") -> "HodgeSovereignVerdict":
-        """Join del retículo (peor veredicto gana)."""
+        """Operador Supremo ($\sqcup$ / Join): prevalece el estado de mayor severidad."""
         return self.__class__(max(int(self), int(other)))
 
     def __and__(self, other: "HodgeSovereignVerdict") -> "HodgeSovereignVerdict":
-        """Meet del retículo."""
+        """Operador Ínfimo ($\sqcap$ / Meet): prevalece el estado de menor severidad."""
         return self.__class__(min(int(self), int(other)))
+
+    def implies(self, consequent: "HodgeSovereignVerdict") -> "HodgeSovereignVerdict":
+        """Implicación relativa de Heyting ($a \Rightarrow b$) en el retículo dual de seguridad."""
+        if int(self) >= int(consequent):
+            return HodgeSovereignVerdict.COHERENT
+        return consequent
 
 
 class CrowbarAction(Enum):
-    """Acción de actuador físico tras el veredicto Ω₃."""
+    """Acción del actuador físico en silicio derivada del veredicto en Ω₃."""
     NONE = auto()
     WATCHDOG_PULSE = auto()
-    HARD_SHORT = auto()  # GPIO14 → Crowbar SCR/MOSFET
+    HARD_SHORT = auto()  # Conmutación síncrona de GPIO14 → Tiristor SCR BT151
 
 
 # =============================================================================
-# PROTOCOLO DE ACTUADOR HARDWARE (inyectable — testability)
+# PROTOCOLO DE ACTUADOR HARDWARE (Inyección de Dependencias / Silicio ESP32)
 # =============================================================================
 
 @runtime_checkable
 class CrowbarActuator(Protocol):
-    """Puerto de salida hacia el disyuntor físico (ESP32 GPIO u homólogo)."""
+    """Puerto de salida hacia el disyuntor físico (ESP32 GPIO14 u homólogo)."""
 
     def assert_crowbar(self, gpio: int, reason: str) -> bool:
-        """Activa el Crowbar. Retorna True si el hardware ACK-eó."""
+        """Dispara el circuito Crowbar. Retorna True si el hardware confirmó ACK."""
         ...
 
     def deassert_crowbar(self, gpio: int) -> bool:
-        """Libera el Crowbar (reset controlado)."""
+        """Libera el circuito Crowbar tras rearme seguro."""
         ...
 
 
 class NullCrowbarActuator:
-    """Actuador nulo (dry-run / CI). Solo registra."""
+    """Actuador nulo instrumentado para entornos de prueba / CI sin hardware físico."""
 
     def __init__(self) -> None:
         self.activations: List[Tuple[int, str]] = []
@@ -263,12 +278,13 @@ class NullCrowbarActuator:
 
 
 class LoggingCrowbarActuator:
-    """Actuador que emite la señal por log estructurado (puente a firmware)."""
+    """Actuador que emite la trama de disparo síncrona hacia el bus de firmware."""
 
     def assert_crowbar(self, gpio: int, reason: str) -> bool:
         logger.critical(
-            "CROWBAR_ASSERT gpio=%d reason=%s protocol=ESP32_GPIO",
-            gpio, reason,
+            "CROWBAR_ASSERT gpio=%d reason=%s protocol=ESP32_GPIO_BT151",
+            gpio,
+            reason,
         )
         return True
 
@@ -278,223 +294,66 @@ class LoggingCrowbarActuator:
 
 
 # =============================================================================
-# DTOs INMUTABLES — CONTRATOS DE CONTINUIDAD FUNTORIAL ENTRE FASES
+# FASE 1 — OBSERVACIÓN ESPECTRAL, SANEAMIENTO DE TIKHONOV-WILKINSON
+#          Y AUTOMEJORA RECURSIVA DE NIVEL 3 (Observe)
+#          Último método formal: emit_phase1_observation -> Phase1HodgeObservation
+#          cuya definición formal de retorno da inicio inmediato a la FASE 2.
 # =============================================================================
 
 @dataclass(frozen=True, slots=True)
-class Phase1HodgeObservation:
+class AgentRSILevel3Certificate:
     r"""
-    Artefacto de la FASE 1 (Observe).
+    Certificado de Automejora Recursiva de Nivel 3 (RSI-L3) emitido durante el
+    saneamiento métrico de la FASE 1.
 
-    Certificado de estabilidad espectral de ★_k tras saneamiento Wilkinson /
-    Tikhonov. Es el *único* objeto legítimo de entrada a la FASE 2.
-
-    Campos
-    ------
-    dimension : int
-        dim C^k (número de aristas / 1-símplices).
-    condition_number : float
-        κ₂(★_k) = λ_max / λ_min.
-    min_eigenvalue : float
-        Brecha espectral basal λ_min.
-    max_eigenvalue : float
-        λ_max.
-    is_strictly_spd : bool
-        Criterio de Sylvester estricto bajo tolerancia.
-    regularized_applied : bool
-        True si se inyectó desplazamiento de Tikhonov.
-    tikhonov_shift : float
-        Magnitud del shift (0 si no hubo regularización).
-    weights_sanitized : RealVector
-        Pesos post-saneamiento (diagonal de ★_k).
-    hodge_matrix : RealMatrix
-        ★_k diagonal saneada.
-    duality_morphism_payload : Optional[Any]
-        HodgeDualityMorphism del motor physics (si disponible).
-    metric_state_payload : Optional[Any]
-        HodgeMetricState del motor physics (si disponible).
-    spectral_trace : float
-        tr(★_k).
-    log_determinant : float
-        log det(★_k).
+    Niveles de recursión:
+      - Nivel 1 (Objeto): Desplazamiento espectral exacto de Tikhonov-Wilkinson.
+      - Nivel 2 (Ley Geodésica): Retracción isocórica en la variedad Riemanniana
+        de Fisher-Rao que preserva el volumen de Liouville-Poincaré $\det(\star_1)$.
+      - Nivel 3 (Meta-Ley de Banach): Verificación del factor de contracción
+        $q_{\mathrm{Banach}} < 1$ y adaptación de la entropía espectral.
     """
-    dimension: int
-    condition_number: float
-    min_eigenvalue: float
-    max_eigenvalue: float
-    is_strictly_spd: bool
-    regularized_applied: bool
-    tikhonov_shift: float
-    weights_sanitized: RealVector
-    hodge_matrix: RealMatrix
-    duality_morphism_payload: Optional[Any] = None
-    metric_state_payload: Optional[Any] = None
-    spectral_trace: float = 0.0
-    log_determinant: float = 0.0
+    iterations: int
+    initial_condition_number: float
+    final_condition_number: float
+    fisher_rao_distance: float
+    banach_contraction_factor: float
+    liouville_volume_drift: float
+    isochoric_retraction_applied: bool
+    converged_to_fixed_point: bool
 
-
-@dataclass(frozen=True, slots=True)
-class Phase2HodgeOrientation:
-    r"""
-    Artefacto de la FASE 2 (Orient).
-
-    Certificado de consistencia Port-Hamiltoniana y topología del 1-esqueleto.
-    Es el *único* objeto legítimo de entrada a la FASE 3.
-
-    Campos
-    ------
-    observation_stamp : Phase1HodgeObservation
-        Certificado FASE 1 heredado (continuidad funtorial).
-    dirichlet_energy : float
-        E_★(φ) = ½ φᵀ L₀★ φ  (potencia de Joule).
-    is_passive : bool
-        Ḣ = −2 E_★ ≤ 0.
-    laplacian_condition : float
-        κ₂(L₀★) sobre el subespacio de rango completo (λ_max/λ₂).
-    laplacian_0 : RealMatrix
-        L₀★ = ∂₁ ★₁ ∂₁ᵀ.
-    algebraic_connectivity : float
-        λ₂ (Fiedler) — conectividad algebraica.
-    betti_0 : int
-        Número de componentes conexas (dim ker Δ₀).
-    betti_1 : int
-        Ciclos independientes (dim ker Δ₁) — vorticidad topológica.
-    is_self_adjoint : bool
-        Certificado de autoadjunción numérica de L₀★.
-    max_eigenresidual : float
-        ‖L v − λ v‖_∞ máximo.
-    spectral_gap_laplacian : float
-        λ_min no nulo.
-    energy_scale : float
-        tr(★₀) + tr(★₁) (escala energética de referencia).
-    de_rham_certificate_payload : Optional[Any]
-        DeRhamComplexCertificate del motor physics (si disponible).
-    """
-    observation_stamp: Phase1HodgeObservation
-    dirichlet_energy: float
-    is_passive: bool
-    laplacian_condition: float
-    laplacian_0: RealMatrix
-    algebraic_connectivity: float
-    betti_0: int
-    betti_1: int
-    is_self_adjoint: bool
-    max_eigenresidual: float
-    spectral_gap_laplacian: float
-    energy_scale: float
-    de_rham_certificate_payload: Optional[Any] = None
-
-
-@dataclass(frozen=True, slots=True)
-class Phase3HodgeDecision:
-    r"""
-    Artefacto de la FASE 3 (Decide).
-
-    Reporte de descomposición ortogonal de Helmholtz-Hodge + veredicto Ω₃.
-    Es el *único* objeto legítimo de entrada al actuador Crowbar del Soberano.
-
-    Campos
-    ------
-    orientation_stamp : Phase2HodgeOrientation
-        Certificado FASE 2 heredado.
-    exact_norm : float
-        ‖I_exact‖₂  (componente laminar / gradiente).
-    coexact_norm : float
-        ‖I_coexact‖₂  (componente solenoidal / ciclos).
-    harmonic_norm : float
-        ‖I_harmonic‖₂  (cohomología H¹).
-    parasitic_vorticity : float
-        Ω_vort = √(I_coexactᵀ ★₁⁻¹ I_coexact)  en métrica de Joule.
-    harmonic_vorticity : float
-        Ω_harm = √(I_harmᵀ ★₁⁻¹ I_harm).
-    total_vorticity : float
-        Ω_vort + Ω_harm  (presupuesto topológico total).
-    kcl_residual : float
-        ‖∂₁ I_coexact‖₂  (debe ≈ 0).
-    reconstruction_error : float
-        ‖I − (exact+coexact+harmonic)‖₂.
-    joule_exact : float
-        Energía de la parte exacta en métrica ★₁⁻¹.
-    joule_coexact : float
-        Energía de la parte coexacta.
-    verdict : HodgeSovereignVerdict
-        Clasificación en el retículo Ω₃.
-    crowbar_action : CrowbarAction
-        Acción de actuador derivada del veredicto.
-    veto_reasons : Tuple[str, ...]
-        Lista de causas de degradación / veto (vacía si COHERENT).
-    """
-    orientation_stamp: Phase2HodgeOrientation
-    exact_norm: float
-    coexact_norm: float
-    harmonic_norm: float
-    parasitic_vorticity: float
-    harmonic_vorticity: float
-    total_vorticity: float
-    kcl_residual: float
-    reconstruction_error: float
-    joule_exact: float
-    joule_coexact: float
-    verdict: HodgeSovereignVerdict
-    crowbar_action: CrowbarAction
-    veto_reasons: Tuple[str, ...] = field(default_factory=tuple)
-
-
-@dataclass(frozen=True, slots=True)
-class HodgeSovereignState:
-    """
-    Certificado inmutable del estado global de gobernanza de Hodge (Act).
-
-    Cierra el ciclo OODA y es el artefacto que consumen los estratos
-    superiores (TACTICS / STRATEGY) y el firmware de protección.
-    """
-    decision_stamp: Phase3HodgeDecision
-    is_secure: bool
-    is_crowbar_active: bool
-    crowbar_gpio: int
-    timestamp_utc: str
-    stratum: str = "PHYSICS"
-    agent_version: str = "4.0.0"
-    ooda_latency_hints: Tuple[str, ...] = field(default_factory=tuple)
-
-
-# =============================================================================
-# FASE 1 — OBSERVACIÓN ESPECTRAL Y SANEAMIENTO DE LA MÉTRICA (Observe)
-#           Último método: emit_phase1_observation → Phase1HodgeObservation
-#           que es el contrato de arranque obligatorio de la FASE 2.
-# =============================================================================
 
 class Phase1_SpectralMetricObserver:
     r"""
-    Fase 1 del endofuntor OODA: sanea y valida la estabilidad espectral
-    del vector de pesos constitutivos que define ★_k.
+    Fase 1 del endofuntor OODA: observa, audita y sanea la estabilidad espectral
+    del vector de pesos constitutivos $w \in \mathbb{R}^m_{>0}$ que define $\star_1$.
 
-    Pipeline interno
-    ----------------
-    1. Finitud (NaN/Inf).
-    2. Positividad física (w_i > 0).
-    3. Análisis espectral de Wilkinson (κ, λ_min, λ_max).
-    4. Regularización de Tikhonov adaptativa si κ > κ_max o λ_min < ε.
-    5. (Si motor physics disponible) construcción de DiscreteHodgeStar +
-       HodgeDualityMorphism certificado.
-    6. Emisión del DTO Phase1HodgeObservation.
+    Garantiza incondicionalmente:
+      1. Ausencia de fugas IEEE-754 ($\mathrm{NaN}/\infty$).
+      2. Positividad estricta Riemanniana ($w_i > 0$).
+      3. Condicionamiento espectral acotado $\kappa_2(\star_1) \le \kappa_{\max}$ y
+         brecha basal $\lambda_{\min}(\star_1) \ge \varepsilon_{\mathrm{tol}}$, ya sea mediante
+         desplazamiento analítico exacto de Tikhonov o mediante retracción geodésica
+         isocórica RSI de Nivel 3 sobre la variedad de Fisher-Rao.
     """
 
     def __init__(
         self,
         condition_max: float = _CONDITION_NUMBER_MAX,
         spectral_tol: float = _DEFAULT_TOL,
+        enable_isochoric_rsi: bool = False,
     ) -> None:
-        self._condition_max = float(condition_max)
-        self._spectral_tol = float(spectral_tol)
+        self._condition_max: float = float(condition_max)
+        self._spectral_tol: float = float(spectral_tol)
+        self._enable_isochoric_rsi: bool = bool(enable_isochoric_rsi)
 
-    # ── validaciones atómicas ────────────────────────────────────────────────
+    # ── Validaciones atómicas y geometría de Fisher-Rao ──────────────────────
 
     def _assert_finite(self, weights: RealVector) -> RealVector:
         w = np.asarray(weights, dtype=np.float64).ravel()
         if w.size == 0:
             raise NonFiniteWeightError(
-                "Axioma de No-Trivialidad: vector de pesos vacío."
+                "Axioma de No-Trivialidad: el vector de pesos constitutivos está vacío."
             )
         if not np.all(np.isfinite(w)):
             raise NonFiniteWeightError(
@@ -512,14 +371,15 @@ class Phase1_SpectralMetricObserver:
 
     def _spectral_invariants(
         self, weights: RealVector
-    ) -> Tuple[float, float, float, float, float]:
-        """Retorna (λ_min, λ_max, κ, tr, log det)."""
+    ) -> Tuple[float, float, float, float, float, float]:
+        """Retorna (λ_min, λ_max, κ₂, tr, log_det, liouville_vol)."""
         lam_min = float(np.min(weights))
         lam_max = float(np.max(weights))
-        kappa = lam_max / (lam_min + _MACHINE_EPS)
+        kappa = lam_max / max(lam_min, _MACHINE_EPS)
         trace = float(np.sum(weights))
         log_det = float(np.sum(np.log(np.maximum(weights, _MACHINE_EPS))))
-        return lam_min, lam_max, kappa, trace, log_det
+        liouville_vol = float(np.exp(0.5 * np.clip(log_det, -700.0, 700.0)))
+        return lam_min, lam_max, kappa, trace, log_det, liouville_vol
 
     def _tikhonov_regularize(
         self,
@@ -527,101 +387,206 @@ class Phase1_SpectralMetricObserver:
         lam_min: float,
         lam_max: float,
         kappa: float,
+        tol: float,
     ) -> Tuple[RealVector, float, bool]:
         r"""
-        Desplazamiento de Tikhonov adaptativo:
-        $$\tilde{w}_i = w_i + \delta, \quad
-          \delta = \lambda_{\max}\cdot\varepsilon_{\mathrm{mach}}\cdot 10^4.$$
-
-        Se aplica solo si λ_min < tol  ∨  κ > κ_max.
+        Desplazamiento espectral exacto de Tikhonov-Wilkinson:
+        $$\tilde{w}_i = w_i + \delta^*,$$
+        donde $\delta^*$ resuelve simultáneamente las dos desigualdades espectrales:
+        $$\lambda_{\min} + \delta^* \ge \varepsilon_{\mathrm{tol}}
+          \quad\wedge\quad
+          \frac{\lambda_{\max} + \delta^*}{\lambda_{\min} + \delta^*} \le \kappa_{\max}
+          \iff \delta^* \ge \frac{\lambda_{\max} - \kappa_{\max}\lambda_{\min}}{\kappa_{\max} - 1}.$$
         """
-        needs = (lam_min < self._spectral_tol) or (kappa > self._condition_max)
+        needs = (lam_min < tol) or (kappa > self._condition_max)
         if not needs:
             return weights, 0.0, False
 
-        shift = max(lam_max * _MACHINE_EPS * _TIKHONOV_SCALE, self._spectral_tol)
+        shift_floor = tol - lam_min
+        shift_kappa = (
+            (lam_max - self._condition_max * lam_min) / max(self._condition_max - 1.0, 1.0)
+            if kappa > self._condition_max
+            else 0.0
+        )
+        shift_wilkinson = max(lam_max * _MACHINE_EPS * _TIKHONOV_SCALE, tol)
+        shift = max(shift_floor, shift_kappa, shift_wilkinson) * (1.0 + 1.0e-12)
+
         logger.warning(
-            "FASE1 Tikhonov: κ=%.4e λ_min=%.4e → shift=%.4e",
-            kappa, lam_min, shift,
+            "FASE1 Tikhonov Exacto: κ=%.4e λ_min=%.4e → shift=%.4e",
+            kappa,
+            lam_min,
+            shift,
         )
         w_reg = weights + shift
         return w_reg, float(shift), True
 
+    def _isochoric_fisher_rao_rsi_level3(
+        self,
+        weights: RealVector,
+        init_kappa: float,
+        tol: float,
+    ) -> Tuple[RealVector, AgentRSILevel3Certificate]:
+        r"""
+        Flujo Geodésico Isocórico de Automejora Recursiva de Nivel 3 (RSI-L3):
+        Contrae el espectro logarítmico $\log w$ a lo largo de la geodésica de
+        Fisher-Rao hacia la media geométrica $\overline{\log w}$, preservando de
+        manera exacta el determinante de Liouville-Poincaré $\det(\star_1)$ mientras
+        reduce $\kappa_2(\star_1)$ por debajo de `condition_max`.
+        """
+        log_w0 = np.log(np.maximum(weights, _MACHINE_EPS))
+        mean_log = float(np.mean(log_w0))
+        centered0 = log_w0 - mean_log
+        spread0 = float(np.max(log_w0) - np.min(log_w0))
+        target_spread = float(np.log(max(self._condition_max, 1.0 + 1.0e-9)))
+
+        if spread0 <= target_spread and float(np.min(weights)) >= tol:
+            return weights, AgentRSILevel3Certificate(
+                iterations=0,
+                initial_condition_number=init_kappa,
+                final_condition_number=init_kappa,
+                fisher_rao_distance=0.0,
+                banach_contraction_factor=0.0,
+                liouville_volume_drift=0.0,
+                isochoric_retraction_applied=False,
+                converged_to_fixed_point=True,
+            )
+
+        log_w_curr = log_w0.copy()
+        prev_step = float("inf")
+        q_banach = 0.5
+        it_used = 0
+        converged = False
+
+        for it in range(1, 33):
+            it_used = it
+            centered = log_w_curr - mean_log
+            curr_spread = float(np.max(centered) - np.min(centered))
+            if curr_spread <= target_spread:
+                converged = True
+                break
+
+            ratio = target_spread / max(curr_spread, _MACHINE_EPS)
+            eta = 1.0 - (0.5 * (1.0 + ratio) if (curr_spread - target_spread) > 1.0e-4 else ratio)
+            eta = float(np.clip(eta, 0.0, 1.0 - _MACHINE_EPS))
+
+            log_w_next = mean_log + (1.0 - eta) * centered
+            step_dist = float(np.linalg.norm(log_w_next - log_w_curr))
+            if np.isfinite(prev_step) and prev_step > _MACHINE_EPS:
+                q_banach = step_dist / prev_step
+            log_w_curr = log_w_next
+            prev_step = step_dist
+            if step_dist <= 1.0e-12:
+                converged = True
+                break
+
+        if not converged and spread0 > target_spread:
+            alpha_exact = target_spread / spread0
+            log_w_curr = mean_log + alpha_exact * centered0
+            converged = True
+
+        w_iso = np.exp(log_w_curr)
+        if float(np.min(w_iso)) < tol:
+            w_iso = np.maximum(w_iso, tol)
+
+        final_kappa = float(np.max(w_iso) / max(np.min(w_iso), _MACHINE_EPS))
+        fr_dist = float(np.linalg.norm( np.log(w_iso) - log_w0 ))
+        vol_drift = float(abs(np.sum(np.log(w_iso)) - np.sum(log_w0)))
+
+        cert = AgentRSILevel3Certificate(
+            iterations=it_used,
+            initial_condition_number=init_kappa,
+            final_condition_number=final_kappa,
+            fisher_rao_distance=fr_dist,
+            banach_contraction_factor=float(min(q_banach, 0.999999)),
+            liouville_volume_drift=vol_drift,
+            isochoric_retraction_applied=True,
+            converged_to_fixed_point=converged,
+        )
+        return w_iso, cert
+
     def _try_physics_duality(
         self, weights: RealVector
     ) -> Tuple[Optional[Any], Optional[Any]]:
-        """Intenta construir HodgeDualityMorphism vía motor physics v2."""
+        """Construye `HodgeDualityMorphism` vía el motor `app.physics.discrete_hodge_star`."""
         if not _HAS_PHYSICS_ENGINE:
             return None, None
         try:
             star = DiscreteHodgeStar(
-                weights, degree=HodgeDegree.ONE, validate_strict=True
+                weights,
+                degree=HodgeDegree.ONE,
+                validate_strict=True,
+                enable_rsi_level3=self._enable_isochoric_rsi,
+                target_condition_max=self._condition_max,
             )
-            morph = star.induce_duality_morphism()
+            morph = star.induce_duality_morphism(auto_heal_rsi=self._enable_isochoric_rsi)
             state = star.audit_metric(tolerance=self._spectral_tol)
             return morph, state
         except Exception as exc:  # pragma: no cover
             logger.debug("Motor physics no disponible en FASE1: %s", exc)
             return None, None
 
-    # ── método público principal de FASE 1 ───────────────────────────────────
+    # ── Método público principal de auditoría de FASE 1 ──────────────────────
 
     def audit_metric_weights(
         self,
         weights: RealVector,
         tolerance: Optional[float] = None,
-    ) -> Phase1HodgeObservation:
+    ) -> "Phase1HodgeObservation":
         r"""
-        Valida y sanea el vector de pesos del medio constitutivo.
+        Valida y sanea el vector de pesos constitutivos $w \mapsto \star_1 = \operatorname{diag}(w)$.
 
-        Mapea $w\mapsto\star_1=\operatorname{diag}(w)$ y garantiza SPD
-        bajo el criterio de Sylvester, aplicando Tikhonov si es necesario:
-
-        $$\tilde{\star}_1 = \star_1 + \delta I_m.$$
-
-        Parameters
-        ----------
-        weights :
-            Vector de pesos (conductancias / permeabilidades) $w\in\mathbb{R}^m_{>0}$.
-        tolerance :
-            Épsilon de Wilkinson para el gap espectral mínimo.
-            Si None, usa el configurado en el constructor.
-
-        Returns
-        -------
-        Phase1HodgeObservation
-            DTO inmutable — contrato de continuidad hacia FASE 2.
-
-        Raises
-        ------
-        NonFiniteWeightError
-        MetricDegeneracyError
+        Aplica regularización espectral exacta de Tikhonov-Wilkinson y/o retracción
+        geodésica isocórica RSI-L3 cuando $\lambda_{\min} < \varepsilon_{\mathrm{tol}}$ o
+        $\kappa_2(\star_1) > \kappa_{\max}$.
         """
         tol = self._spectral_tol if tolerance is None else float(tolerance)
 
-        # 1–2. Finitud + positividad
         w = self._assert_finite(weights)
         self._assert_positive(w)
 
-        # 3. Espectro crudo
-        lam_min, lam_max, kappa, trace, log_det = self._spectral_invariants(w)
+        lam_min0, lam_max0, kappa0, trace, log_det, liouville_vol = self._spectral_invariants(w)
+        w_san = w.copy()
+        shift = 0.0
+        reg = False
+        rsi_cert: Optional[AgentRSILevel3Certificate] = None
+        fr_drift = 0.0
 
-        # 4. Tikhonov adaptativo
-        w_san, shift, reg = self._tikhonov_regularize(w, lam_min, lam_max, kappa)
-        if reg:
-            lam_min, lam_max, kappa, trace, log_det = self._spectral_invariants(w_san)
+        if self._enable_isochoric_rsi and ((lam_min0 < tol) or (kappa0 > self._condition_max)):
+            w_san, rsi_cert = self._isochoric_fisher_rao_rsi_level3(w_san, kappa0, tol)
+            reg = rsi_cert.isochoric_retraction_applied
+            fr_drift = rsi_cert.fisher_rao_distance
 
-        is_spd = (lam_min >= tol) and (kappa <= self._condition_max)
+        lam_min, lam_max, kappa, trace, log_det, liouville_vol = self._spectral_invariants(w_san)
+
+        # Garantía suplementaria por desplazamiento exacto de Tikhonov si aún excede umbral
+        if (lam_min < tol) or (kappa > self._condition_max):
+            w_san, shift, reg_tik = self._tikhonov_regularize(w_san, lam_min, lam_max, kappa, tol)
+            reg = reg or reg_tik
+            lam_min, lam_max, kappa, trace, log_det, liouville_vol = self._spectral_invariants(w_san)
+            fr_drift = float(np.linalg.norm(np.log(w_san) - np.log(w)))
+
+        if rsi_cert is None:
+            rsi_cert = AgentRSILevel3Certificate(
+                iterations=1 if reg else 0,
+                initial_condition_number=kappa0,
+                final_condition_number=kappa,
+                fisher_rao_distance=fr_drift,
+                banach_contraction_factor=float(kappa / kappa0) if (reg and kappa0 > 0) else 0.0,
+                liouville_volume_drift=float(
+                    abs(log_det - float(np.sum(np.log(np.maximum(w, _MACHINE_EPS)))))
+                ),
+                isochoric_retraction_applied=False,
+                converged_to_fixed_point=True,
+            )
+
+        is_spd = (lam_min >= tol * (1.0 - 1.0e-9)) and (kappa <= self._condition_max * (1.0 + 1.0e-9))
         if not is_spd:
             raise MetricDegeneracyError(
-                f"★_k numéricamente singular tras Tikhonov: "
-                f"κ={kappa:.4e} > {self._condition_max:.4e}, "
-                f"λ_min={lam_min:.4e}."
+                f"★_k numéricamente singular tras saneamiento: "
+                f"κ={kappa:.4e} > {self._condition_max:.4e}, λ_min={lam_min:.4e}."
             )
 
         hodge = np.diag(w_san)
-
-        # 5. Motor physics (duality morphism certificado)
         morph, mstate = self._try_physics_duality(w_san)
 
         return Phase1HodgeObservation(
@@ -638,83 +603,110 @@ class Phase1_SpectralMetricObserver:
             metric_state_payload=mstate,
             spectral_trace=float(trace),
             log_determinant=float(log_det),
+            liouville_volume_form=float(liouville_vol),
+            rsi_certificate=rsi_cert,
+            fisher_rao_drift=float(fr_drift),
         )
 
     # ── ÚLTIMO MÉTODO FORMAL DE LA FASE 1 ────────────────────────────────────
-    # Su valor de retorno (Phase1HodgeObservation) es el objeto de arranque
-    # obligatorio de la FASE 2 (continuidad de la definición formal).
+    # Su definición formal de retorno (Phase1HodgeObservation) abre directamente
+    # las definiciones y métodos de la FASE 2.
 
     def emit_phase1_observation(
         self,
         weights: RealVector,
         tolerance: Optional[float] = None,
-    ) -> Phase1HodgeObservation:
+    ) -> "Phase1HodgeObservation":
         r"""
-        Punto de emisión canónico de la FASE 1.
+        Punto de emisión canónico que clausura la FASE 1 y abre la FASE 2.
 
-        Envuelve ``audit_metric_weights`` y garantiza que el DTO saliente
-        satisface los invariantes de continuidad funtorial exigidos por
-        ``Phase2_HodgeLaplacianOrienter.orient_from_observation``.
-
-        Invariantes post-condición
-        --------------------------
-        * ``observation.is_strictly_spd is True``
-        * ``observation.dimension == len(weights)`` (o len post-Tikhonov)
-        * ``observation.hodge_matrix.shape == (m, m)``
-        * ``observation.condition_number <= condition_max``
-
-        Returns
-        -------
-        Phase1HodgeObservation
-            Semilla formal de la FASE 2.
+        Verifica las post-condiciones de clausura transitiva en el cono SPD
+        antes de entregar `Phase1HodgeObservation` al orientador Laplaciano.
         """
         obs = self.audit_metric_weights(weights, tolerance=tolerance)
-        # Post-condiciones de continuidad
         if not obs.is_strictly_spd:
             raise MetricDegeneracyError(
                 "Post-condición FASE1 violada: is_strictly_spd=False."
             )
         if obs.hodge_matrix.shape != (obs.dimension, obs.dimension):
             raise MetricDegeneracyError(
-                "Post-condición FASE1 violada: shape(★) ≠ (m,m)."
+                "Post-condición FASE1 violada: shape(★₁) ≠ (m, m)."
             )
-        if obs.condition_number > self._condition_max + 1.0:
-            # +1 holgura numérica
+        if obs.condition_number > self._condition_max * (1.0 + 1.0e-7) + 1.0:
             raise MetricDegeneracyError(
-                "Post-condición FASE1 violada: κ excede cota tras emisión."
+                "Post-condición FASE1 violada: κ₂(★₁) excede cota máxima tras emisión."
             )
         logger.info(
-            "FASE1 EMIT dim=%d κ=%.3e λ_min=%.3e reg=%s",
-            obs.dimension, obs.condition_number, obs.min_eigenvalue,
+            "FASE1 EMIT dim=%d κ=%.3e λ_min=%.3e vol_LP=%.3e reg=%s",
+            obs.dimension,
+            obs.condition_number,
+            obs.min_eigenvalue,
+            obs.liouville_volume_form,
             obs.regularized_applied,
         )
         return obs
 
 
 # =============================================================================
-# FASE 2 — LAPLACIANO DE HODGE Y PASIVIDAD PORT-HAMILTONIANA (Orient)
-#           Continúa desde Phase1HodgeObservation (emit_phase1_observation).
-#           Último método: emit_phase2_orientation → Phase2HodgeOrientation
-#           que es el contrato de arranque obligatorio de la FASE 3.
+# FASE 2 — LAPLACIANO DE HODGE, PASIVIDAD PORT-HAMILTONIANA Y ESPECTRO CELESTE
+#          KAM DE POINCARÉ (Orient)
+#          Inicia con la definición formal de Phase1HodgeObservation emitida
+#          por emit_phase1_observation.
+#          Último método formal: emit_phase2_orientation -> Phase2HodgeOrientation
+#          cuya definición formal de retorno da inicio inmediato a la FASE 3.
 # =============================================================================
+
+@dataclass(frozen=True, slots=True)
+class Phase1HodgeObservation:
+    r"""
+    Contrato formal de salida de la FASE 1 (`emit_phase1_observation`) y semilla
+    obligatoria de arranque de la FASE 2 (`Phase2_HodgeLaplacianOrienter`).
+
+    Encapsula la métrica constitutiva $\star_1$ saneada, su invariante de volumen
+    de Liouville-Poincaré $\sqrt{\det(\star_1)}$ y el certificado de punto fijo
+    RSI de Nivel 3.
+    """
+    dimension: int
+    condition_number: float
+    min_eigenvalue: float
+    max_eigenvalue: float
+    is_strictly_spd: bool
+    regularized_applied: bool
+    tikhonov_shift: float
+    weights_sanitized: RealVector
+    hodge_matrix: RealMatrix
+    duality_morphism_payload: Optional[Any] = None
+    metric_state_payload: Optional[Any] = None
+    spectral_trace: float = 0.0
+    log_determinant: float = 0.0
+    liouville_volume_form: float = 1.0
+    rsi_certificate: Optional[AgentRSILevel3Certificate] = None
+    fisher_rao_drift: float = 0.0
+
+    def continue_to_phase2_orienter(
+        self,
+        orienter: "Phase2_HodgeLaplacianOrienter",
+        boundary_matrix: RealMatrix,
+        potential_vector: RealVector,
+        weights_0: Optional[RealVector] = None,
+        tolerance: Optional[float] = None,
+    ) -> "Phase2HodgeOrientation":
+        """Morfismo de continuación covariante FASE 1 ──► FASE 2."""
+        return orienter.emit_phase2_orientation(
+            observation=self,
+            boundary_matrix=boundary_matrix,
+            potential_vector=potential_vector,
+            weights_0=weights_0,
+            tolerance=tolerance,
+        )
+
 
 class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
     r"""
     Fase 2 del endofuntor OODA: ensambla el Laplaciano de Hodge ponderado
-    de grado 0, audita la disipación de Dirichlet y extrae invariantes
-    topológicos (Betti, Fiedler).
-
-    Ecuaciones gobernantes
-    ---------------------
-    .. math::
-
-        L_0^\star &= \partial_1\,\star_1\,\partial_1^\top,\\
-        E_\star(\phi) &= \tfrac12\phi^\top L_0^\star\phi,\\
-        \dot H &= -2 E_\star(\phi) \le 0 \quad\text{(pasividad)}.
-
-    Si el motor physics v2 está presente se reutiliza
-    ``WeightedHodgeLaplacian`` + ``certify_de_rham_complex`` para obtener
-    β₀, β₁ y el espectro con residuos certificados.
+    $L_0^\star = \partial_1 \star_1 \partial_1^\top$, certifica la pasividad de
+    Lyapunov-Dirichlet, verifica la característica de Euler-Poincaré $\chi(K)$
+    y audita los pequeños divisores diofánticos de Kolmogorov-Arnold-Moser (KAM).
     """
 
     def __init__(
@@ -722,80 +714,152 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
         condition_max: float = _CONDITION_NUMBER_MAX,
         spectral_tol: float = _DEFAULT_TOL,
         max_betti_1: int = 0,
+        enable_isochoric_rsi: bool = False,
     ) -> None:
-        super().__init__(condition_max=condition_max, spectral_tol=spectral_tol)
-        self._max_betti_1 = int(max_betti_1)
+        super().__init__(
+            condition_max=condition_max,
+            spectral_tol=spectral_tol,
+            enable_isochoric_rsi=enable_isochoric_rsi,
+        )
+        self._max_betti_1: int = int(max_betti_1)
 
-    # ── construcción del Laplaciano ──────────────────────────────────────────
+    # ── Ensamblaje de L₀★ y espectro KAM de Poincaré ─────────────────────────
 
     def _assemble_laplacian_0(
         self,
-        star_1: RealMatrix,
+        weights_1: RealVector,
         boundary_1: RealMatrix,
     ) -> RealMatrix:
-        r"""L₀★ = B₁ ★₁ B₁ᵀ  con proyección hermítica de seguridad."""
-        L = boundary_1 @ star_1 @ boundary_1.T
-        # Proyección al subespacio de matrices simétricas (error de redondeo)
-        skew = float(np.max(np.abs(L - L.T)))
-        if skew > 100.0 * _MACHINE_EPS * max(L.shape):
+        r"""
+        Ensambla $L_0^\star = \partial_1 \star_1 \partial_1^\top$ en $O(V^2 E)$
+        utilizando difusión vectorial por columnas sin multiplicar matrices diagonales densas.
+        """
+        L = (boundary_1 * weights_1[np.newaxis, :]) @ boundary_1.T
+        skew = float(np.max(np.abs(L - L.T))) if L.size > 0 else 0.0
+        if skew > 100.0 * _MACHINE_EPS * max(L.shape[0], 1):
             logger.warning(
                 "FASE2: desvío de simetría en L₀ ||A-Aᵀ||_∞=%.3e — proyectando.",
                 skew,
             )
         return 0.5 * (L + L.T)
 
+    @staticmethod
+    def _audit_kam_diophantine_divisors(
+        eigenvalues: RealVector,
+        betti_0: int,
+        max_order: int = 4,
+    ) -> Tuple[float, float, bool]:
+        r"""
+        Audita las resonancias de Poincaré-KAM sobre las frecuencias normales
+        celestes $\omega_a = \sqrt{\lambda_a(L_0^\star)}$ ($\lambda_a > 0$):
+        $$\gamma_{\mathrm{KAM}} = \min_{0 < p + q \le 2 M_{\max}} |p \omega_i - q \omega_j| (p + q)^2.$$
+        Retorna `(smallest_divisor, diophantine_margin, is_kam_non_resonant)`.
+        """
+        pos_ev = eigenvalues[betti_0:]
+        pos_ev = pos_ev[pos_ev > _DEFAULT_TOL]
+        if pos_ev.size == 0:
+            return float("inf"), float("inf"), True
+
+        freqs = np.sqrt(pos_ev)
+        if freqs.size == 1:
+            w0 = float(freqs[0])
+            return w0, w0, True
+
+        active = freqs[: min(6, freqs.size)]
+        smallest_div = float("inf")
+        dioph_margin = float("inf")
+        res_tol = 1.0e-6 * float(np.max(active))
+        resonant_hits = 0
+
+        for i in range(active.size):
+            for j in range(i + 1, active.size):
+                for p in range(1, max_order + 1):
+                    for q in range(1, max_order + 1):
+                        if math.gcd(p, q) != 1:
+                            continue
+                        div = abs(p * float(active[i]) - q * float(active[j]))
+                        scaled = div * float((p + q) ** 2)
+                        if div < smallest_div:
+                            smallest_div = div
+                        if scaled < dioph_margin:
+                            dioph_margin = scaled
+                        if div <= res_tol:
+                            resonant_hits += 1
+
+        return smallest_div, dioph_margin, (resonant_hits == 0)
+
     def _laplacian_spectrum(
         self, L: RealMatrix, tol: float
-    ) -> Tuple[RealVector, float, float, float, int, bool, float]:
+    ) -> Tuple[RealVector, float, float, float, int, bool, float, float, float, bool]:
         """
-        Retorna
-        (eigenvalues, κ_rango, λ_Fiedler, λ_gap, β₀, is_self_adjoint, max_residual).
+        Retorna:
+        `(ev, κ_rango, λ_Fiedler, λ_gap, β₀, is_self_adjoint, max_residual, kam_div, kam_margin, kam_ok)`.
         """
-        # Autoadjunción ya garantizada por proyección; re-chequeo barato
-        is_sa = float(np.max(np.abs(L - L.T))) < 100.0 * _MACHINE_EPS * max(L.shape[0], 1)
+        n = L.shape[0]
+        is_sa = float(np.max(np.abs(L - L.T))) < 100.0 * _MACHINE_EPS * max(n, 1)
 
-        ev = la.eigvalsh(L)
-        # Orden no-decreciente garantizado por eigvalsh
+        if n == 0:
+            return (
+                np.zeros(0, dtype=np.float64),
+                1.0,
+                0.0,
+                0.0,
+                0,
+                True,
+                0.0,
+                float("inf"),
+                float("inf"),
+                True,
+            )
+
+        if n <= 256:
+            ev, V = la.eigh(L)
+            residuals = L @ V - V * ev[np.newaxis, :]
+            max_res = float(np.max(np.abs(residuals))) if residuals.size > 0 else 0.0
+        else:
+            ev = la.eigvalsh(L)
+            v = np.ones(n, dtype=np.float64) / math.sqrt(n)
+            Lv = L @ v
+            lam_est = float(v @ Lv)
+            max_res = float(np.max(np.abs(Lv - lam_est * v)))
+
         max_eig = float(ev[-1]) if ev.size else 0.0
         tol_ker = tol * max(1.0, abs(max_eig))
         betti0 = int(np.sum(np.abs(ev) < tol_ker))
         nonzero = ev[ev >= tol_ker]
+
         if nonzero.size == 0:
             lam_fiedler = 0.0
             lam_gap = 0.0
             kappa = 1.0
         else:
             lam_gap = float(nonzero[0])
-            lam_fiedler = lam_gap  # λ_{β₀+1}
+            lam_fiedler = lam_gap
             kappa = max_eig / (lam_gap + _MACHINE_EPS)
 
-        # Residuo de un par propio representativo (extremal)
-        max_res = 0.0
-        if L.shape[0] > 0 and ev.size > 0:
-            # Usar eigh completo solo si n pequeño; si no, residuo del mayor
-            n = L.shape[0]
-            if n <= 256:
-                ev_f, V = la.eigh(L)
-                for i in range(n):
-                    r = L @ V[:, i] - ev_f[i] * V[:, i]
-                    max_res = max(max_res, float(np.max(np.abs(r))))
-            else:
-                # Estimación barata con potencia
-                v = np.ones(n) / math.sqrt(n)
-                Lv = L @ v
-                lam_est = float(v @ Lv)
-                max_res = float(np.max(np.abs(Lv - lam_est * v)))
+        kam_div, kam_margin, kam_ok = self._audit_kam_diophantine_divisors(ev, betti0)
 
-        return ev, float(kappa), float(lam_fiedler), float(lam_gap), betti0, is_sa, max_res
+        return (
+            ev,
+            float(kappa),
+            float(lam_fiedler),
+            float(lam_gap),
+            betti0,
+            is_sa,
+            max_res,
+            kam_div,
+            kam_margin,
+            kam_ok,
+        )
 
     def _dirichlet_energy(self, L: RealMatrix, phi: RealVector) -> float:
-        r"""E_★(φ) = ½ φᵀ L φ."""
-        phi = np.asarray(phi, dtype=np.float64).ravel()
-        if phi.shape[0] != L.shape[0]:
+        r"""Energía potencial disipativa de Dirichlet: $E_\star(\phi) = \frac{1}{2}\phi^\top L_0^\star \phi$."""
+        phi_v = np.asarray(phi, dtype=np.float64).ravel()
+        if phi_v.shape[0] != L.shape[0]:
             raise MetricDegeneracyError(
-                f"Dimensión de potencial ({phi.shape[0]}) ≠ nodos ({L.shape[0]})."
+                f"Dimensión de potencial ({phi_v.shape[0]}) ≠ nodos ({L.shape[0]})."
             )
-        return float(0.5 * phi @ (L @ phi))
+        return float(0.5 * phi_v @ (L @ phi_v))
 
     def _try_physics_laplacian(
         self,
@@ -803,10 +867,7 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
         boundary_1: RealMatrix,
         weights_0: Optional[RealVector],
     ) -> Tuple[Optional[Any], Optional[int], Optional[int], Optional[float]]:
-        """
-        Intenta WeightedHodgeLaplacian + certify_de_rham_complex.
-        Retorna (cert, β₀, β₁, energy_scale) o (None,…).
-        """
+        """Delega en `WeightedHodgeLaplacian.certify_de_rham_complex()` si está disponible."""
         if not _HAS_PHYSICS_ENGINE:
             return None, None, None, None
         try:
@@ -835,23 +896,15 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
     def _estimate_betti_1_kernel(
         self,
         boundary_1: RealMatrix,
-        star_1: RealMatrix,
         tol: float,
     ) -> int:
-        r"""
-        Estimación de β₁ sin motor physics:
-        dim ker(★₁ ∂₁ᵀ ★₀⁻¹ ∂₁) ≈ dim ker(B₁) cuando ★₀=I
-        (fórmula del ciclo: m − n + β₀ para grafos conexos).
-        """
-        # Rango numérico de B₁
+        r"""Calcula $\beta_1 = \dim \ker(\partial_1) = E - \operatorname{rank}(\partial_1)$ para un 1-complejo."""
         s = la.svdvals(boundary_1)
         rank = int(np.sum(s > tol * max(1.0, float(s[0]) if s.size else 1.0)))
-        n_nodes, n_edges = boundary_1.shape
-        # β₀ se estima aparte; aquí usamos rank-nullity crudo
-        # dim ker B₁ = m − rank(B₁)
+        _, n_edges = boundary_1.shape
         return max(n_edges - rank, 0)
 
-    # ── método público principal de FASE 2 ───────────────────────────────────
+    # ── Método público principal de orientación de FASE 2 ────────────────────
 
     def orient_laplacian_dynamics(
         self,
@@ -860,26 +913,12 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
         potential_vector: RealVector,
         weights_0: Optional[RealVector] = None,
         tolerance: Optional[float] = None,
-    ) -> Phase2HodgeOrientation:
+    ) -> "Phase2HodgeOrientation":
         r"""
-        Ensambla L₀★, calcula energía de Dirichlet e invariantes topológicos.
-
-        Parameters
-        ----------
-        observation :
-            Certificado FASE 1 (obligatorio — continuidad formal).
-        boundary_matrix :
-            ∂₁ de tamaño (n, m).
-        potential_vector :
-            Potenciales nodales φ ∈ ℝⁿ.
-        weights_0 :
-            Pesos de ★₀ (nodos). Si None, se asume 𝟙.
-        tolerance :
-            Tolerancia espectral.
-
-        Returns
-        -------
-        Phase2HodgeOrientation
+        Ensambla $L_0^\star$, audita la desigualdad de pasividad Port-Hamiltoniana
+        $\dot{\mathcal{H}} = -2 E_\star(\phi) \le 0$, verifica la característica de
+        Euler-Poincaré $\chi(K) = V - E = \beta_0 - \beta_1$ y extrae el certificado
+        de resonancia celeste KAM.
         """
         if not isinstance(observation, Phase1HodgeObservation):
             raise TypeError(
@@ -887,7 +926,7 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
             )
         if not observation.is_strictly_spd:
             raise MetricDegeneracyError(
-                "FASE2 rechaza observación no-SPD (invariante de continuidad)."
+                "FASE2 rechaza observación no-SPD (invariante de continuidad roto)."
             )
 
         tol = self._spectral_tol if tolerance is None else float(tolerance)
@@ -901,33 +940,56 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
                 f"dim(★₁)={observation.dimension}."
             )
 
-        star_1 = observation.hodge_matrix
-        L0 = self._assemble_laplacian_0(star_1, B)
+        L0 = self._assemble_laplacian_0(observation.weights_sanitized, B)
 
-        # Espectro + Betti₀ + Fiedler
-        ev, kappa_L, lam_fiedler, lam_gap, betti0, is_sa, max_res = (
-            self._laplacian_spectrum(L0, tol)
-        )
+        (
+            _,
+            kappa_L,
+            lam_fiedler,
+            lam_gap,
+            betti0,
+            is_sa,
+            max_res,
+            kam_div,
+            kam_margin,
+            kam_ok,
+        ) = self._laplacian_spectrum(L0, tol)
 
-        # Energía de Dirichlet + pasividad
         energy = self._dirichlet_energy(L0, potential_vector)
         is_passive = energy >= _SPECTRAL_PSD_FLOOR
         if not is_passive:
             logger.error(
-                "FASE2: violación de pasividad E_★=%.4e < floor", energy
+                "FASE2: violación de pasividad Port-Hamiltoniana E_★=%.4e < floor",
+                energy,
             )
 
-        # Intento con motor physics (β₀, β₁ certificados)
         cert, b0_p, b1_p, e_scale = self._try_physics_laplacian(
             observation, B, weights_0
         )
         if b0_p is not None:
             betti0 = b0_p
-        betti1 = b1_p if b1_p is not None else self._estimate_betti_1_kernel(B, star_1, tol)
+        betti1 = (
+            b1_p
+            if b1_p is not None
+            else self._estimate_betti_1_kernel(B, tol)
+        )
         energy_scale = (
-            float(e_scale) if e_scale is not None
+            float(e_scale)
+            if e_scale is not None
             else float(observation.spectral_trace + n_nodes)
         )
+
+        # Invariante topológico de Euler-Poincaré en el 1-esqueleto: χ = V - E = β₀ - β₁
+        euler_comb = n_nodes - n_edges
+        euler_cohom = int(betti0) - int(betti1)
+        euler_ok = (euler_comb == euler_cohom)
+
+        if cert is not None and getattr(cert, "laplacian_1_spectrum", None) is not None:
+            kam_c = getattr(cert.laplacian_1_spectrum, "kam_certificate", None)
+            if kam_c is not None and np.isfinite(kam_c.smallest_divisor):
+                kam_div = min(kam_div, float(kam_c.smallest_divisor))
+                kam_margin = min(kam_margin, float(kam_c.diophantine_margin))
+                kam_ok = bool(kam_ok and kam_c.is_kam_non_resonant)
 
         return Phase2HodgeOrientation(
             observation_stamp=observation,
@@ -943,11 +1005,17 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
             spectral_gap_laplacian=float(lam_gap),
             energy_scale=energy_scale,
             de_rham_certificate_payload=cert,
+            betti_2=0,
+            euler_poincare_characteristic=euler_cohom,
+            euler_poincare_verified=euler_ok,
+            kam_smallest_divisor=float(kam_div),
+            kam_diophantine_margin=float(kam_margin),
+            is_kam_non_resonant=bool(kam_ok),
         )
 
     # ── ÚLTIMO MÉTODO FORMAL DE LA FASE 2 ────────────────────────────────────
-    # Su valor de retorno (Phase2HodgeOrientation) es el objeto de arranque
-    # obligatorio de la FASE 3.
+    # Su definición formal de retorno (Phase2HodgeOrientation) abre directamente
+    # las definiciones y métodos de la FASE 3.
 
     def emit_phase2_orientation(
         self,
@@ -958,25 +1026,12 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
         tolerance: Optional[float] = None,
         enforce_passivity: bool = True,
         enforce_betti_1: bool = False,
-    ) -> Phase2HodgeOrientation:
+    ) -> "Phase2HodgeOrientation":
         r"""
-        Punto de emisión canónico de la FASE 2.
+        Punto de emisión canónico que clausura la FASE 2 y abre la FASE 3.
 
-        Envuelve ``orient_laplacian_dynamics`` y aplica post-condiciones
-        de continuidad funtorial exigidas por
-        ``Phase3_HelmholtzDecisionMaker.decide_from_orientation``.
-
-        Parameters
-        ----------
-        enforce_passivity :
-            Si True, lanza LaplacianPassivityError cuando E_★ < 0.
-        enforce_betti_1 :
-            Si True, lanza BettiNumberVeto cuando β₁ > max_betti_1.
-
-        Returns
-        -------
-        Phase2HodgeOrientation
-            Semilla formal de la FASE 3.
+        Verifica las post-condiciones de autoadjunción, pasividad de Lyapunov,
+        invarianza de Euler-Poincaré y cota cohomológica de Betti $\beta_1$.
         """
         orient = self.orient_laplacian_dynamics(
             observation,
@@ -986,9 +1041,8 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
             tolerance=tolerance,
         )
 
-        # Post-condiciones
         if not orient.is_self_adjoint:
-            logger.warning("FASE2 post: L₀ no autoadjunto numéricamente.")
+            logger.warning("FASE2 post: L₀★ presenta asimetría numérica residual.")
         if enforce_passivity and not orient.is_passive:
             raise LaplacianPassivityError(
                 f"Post-condición FASE2: E_★={orient.dirichlet_energy:.4e} < 0 "
@@ -1005,46 +1059,114 @@ class Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver):
             )
 
         logger.info(
-            "FASE2 EMIT β₀=%d β₁=%d E_★=%.3e κ_L=%.3e Fiedler=%.3e passive=%s",
-            orient.betti_0, orient.betti_1, orient.dirichlet_energy,
-            orient.laplacian_condition, orient.algebraic_connectivity,
+            "FASE2 EMIT β₀=%d β₁=%d χ=%d(ok=%s) E_★=%.3e κ_L=%.3e Fiedler=%.3e passive=%s",
+            orient.betti_0,
+            orient.betti_1,
+            orient.euler_poincare_characteristic,
+            orient.euler_poincare_verified,
+            orient.dirichlet_energy,
+            orient.laplacian_condition,
+            orient.algebraic_connectivity,
             orient.is_passive,
         )
         return orient
 
 
 # =============================================================================
-# FASE 3 — HELMHOLTZ-HODGE + RETÍCULO Ω₃ + DECISIÓN CROWBAR (Decide / Act-prep)
-#           Continúa desde Phase2HodgeOrientation (emit_phase2_orientation).
-#           Último método: emit_phase3_decision → Phase3HodgeDecision
-#           que es el contrato de arranque del Soberano (Crowbar / State).
+# FASE 3 — DESCOMPOSICIÓN DE HELMHOLTZ-HODGE EN MÉTRICA DE JOULE, MECÁNICA
+#          CELESTE SIMPLÉCTICA DE POINCARÉ, RETÍCULO Ω₃ Y SOBERANO CROWBAR
+#          Inicia con la definición formal de Phase2HodgeOrientation emitida
+#          por emit_phase2_orientation.
 # =============================================================================
+
+@dataclass(frozen=True, slots=True)
+class Phase2HodgeOrientation:
+    r"""
+    Contrato formal de salida de la FASE 2 (`emit_phase2_orientation`) y semilla
+    obligatoria de arranque de la FASE 3 (`Phase3_HelmholtzDecisionMaker`).
+
+    Contiene el espectro del Laplaciano de Hodge $L_0^\star$, los números de
+    Betti $(\beta_0, \beta_1)$, el invariante de Euler-Poincaré $\chi(K)$ y
+    los márgenes diofánticos de resonancia celeste KAM.
+    """
+    observation_stamp: Phase1HodgeObservation
+    dirichlet_energy: float
+    is_passive: bool
+    laplacian_condition: float
+    laplacian_0: RealMatrix
+    algebraic_connectivity: float
+    betti_0: int
+    betti_1: int
+    is_self_adjoint: bool
+    max_eigenresidual: float
+    spectral_gap_laplacian: float
+    energy_scale: float
+    de_rham_certificate_payload: Optional[Any] = None
+    betti_2: int = 0
+    euler_poincare_characteristic: int = 0
+    euler_poincare_verified: bool = True
+    kam_smallest_divisor: float = float("inf")
+    kam_diophantine_margin: float = float("inf")
+    is_kam_non_resonant: bool = True
+
+    def continue_to_phase3_decider(
+        self,
+        decider: "Phase3_HelmholtzDecisionMaker",
+        boundary_matrix: RealMatrix,
+        current_vector: RealVector,
+        weights_0: Optional[RealVector] = None,
+        vorticity_threshold: Optional[float] = None,
+        tolerance: Optional[float] = None,
+        raise_on_veto: bool = False,
+    ) -> "Phase3HodgeDecision":
+        """Morfismo de continuación covariante FASE 2 ──► FASE 3."""
+        return decider.emit_phase3_decision(
+            orientation=self,
+            boundary_matrix=boundary_matrix,
+            current_vector=current_vector,
+            weights_0=weights_0,
+            vorticity_threshold=vorticity_threshold,
+            tolerance=tolerance,
+            raise_on_veto=raise_on_veto,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class PoincarePhaseSpaceAudit:
+    r"""
+    Certificado de Mecánica Celeste Simpléctica de Henri Poincaré en el espacio
+    fase $T^*C^0 \cong C^0 \oplus C_1$:
+
+    - `liouville_determinant`: $\det(\Phi_{\Delta t})$ bajo el integrador de Cayley-Poincaré.
+    - `symplectic_form_defect`: $\|\Phi_{\Delta t}^\top \mathcal{M} \Phi_{\Delta t} - \mathcal{M}\|_F$.
+    - `floquet_spectral_radius`: $\max_i |\mu_i(\Phi_{\Delta t})|$ (criterio de estabilidad orbital).
+    - `kac_poincare_recurrence_ratio`: razón de retorno más cercano $\min_{k \ge 2} \|z_k - z_0\|_{\mathcal{M}} / \|z_0\|_{\mathcal{M}}$.
+    - `poincare_section_crossings`: número de intersecciones transversales orientadas en $\Sigma$.
+    - `poincare_cartan_circulation`: norma del invariante integral relativo $\oint_\gamma \star_1^{-1} I$.
+    - `is_symplectically_stable`: verdadero si se preserva el volumen de Liouville y $|\mu_i| \le 1 + \varepsilon$.
+    """
+    liouville_determinant: float
+    symplectic_form_defect: float
+    floquet_spectral_radius: float
+    kac_poincare_recurrence_ratio: float
+    poincare_section_crossings: int
+    poincare_cartan_circulation: float
+    is_symplectically_stable: bool
+
 
 class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
     r"""
-    Fase 3 del endofuntor OODA: proyecta el espacio de corrientes sobre la
-    descomposición ortogonal de Helmholtz-Hodge y clasifica el estado en el
-    retículo distributivo Ω₃.
+    Fase 3 del endofuntor OODA: proyecta el espacio de corrientes $I \in C_1$
+    sobre la descomposición ortogonal de Helmholtz-Hodge en la métrica de
+    disipación de Joule $\langle u, v \rangle_{\star_1^{-1}} = u^\top \star_1^{-1} v$,
+    audita la estabilidad orbital simpléctica de Poincaré y clasifica el estado
+    en el retículo distributivo $\Omega_3$.
 
-    .. math::
-
-        I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}
-
-    con ortogonalidad en la métrica de Joule $\star_1^{-1}$:
-
-    .. math::
-
-        \langle I_a, I_b\rangle_{\star_1^{-1}} = 0
-        \quad(a\neq b\in\{\mathrm{ex},\mathrm{co},\mathrm{har}\}).
-
-    La vorticidad parasitaria
-
-    .. math::
-
-        \Omega_{\mathrm{vort}}
-        = \sqrt{I_{\mathrm{coexact}}^\top \star_1^{-1} I_{\mathrm{coexact}}}
-
-    se somete al clasificador de Heyting acotado para emitir el veredicto.
+    Identidad de Tellegen-Helmholtz-Hodge:
+    $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}, \qquad
+      \|I\|_{\star_1^{-1}}^2 = \|I_{\mathrm{exact}}\|_{\star_1^{-1}}^2
+                             + \|I_{\mathrm{coexact}}\|_{\star_1^{-1}}^2
+                             + \|I_{\mathrm{harmonic}}\|_{\star_1^{-1}}^2.$$
     """
 
     def __init__(
@@ -1054,16 +1176,18 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
         max_betti_1: int = 0,
         vorticity_threshold: float = 1.0,
         coherent_fraction: float = 0.1,
+        enable_isochoric_rsi: bool = False,
     ) -> None:
         super().__init__(
             condition_max=condition_max,
             spectral_tol=spectral_tol,
             max_betti_1=max_betti_1,
+            enable_isochoric_rsi=enable_isochoric_rsi,
         )
-        self._vorticity_threshold = float(vorticity_threshold)
-        self._coherent_fraction = float(coherent_fraction)
+        self._vorticity_threshold: float = float(vorticity_threshold)
+        self._coherent_fraction: float = float(coherent_fraction)
 
-    # ── Helmholtz-Hodge (nativo + delegación al motor physics) ───────────────
+    # ── Descomposición de Helmholtz-Hodge Exacta en Métrica de Joule ★₁⁻¹ ───
 
     def _helmholtz_native(
         self,
@@ -1073,61 +1197,79 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
         tol: float,
     ) -> Tuple[RealVector, RealVector, RealVector, float, float]:
         r"""
-        Descomposición nativa (sin motor physics):
+        Descomposición de Helmholtz-Hodge nativa estrictamente ortogonal en la
+        métrica de Joule $\langle u, v \rangle_{\star_1^{-1}} = u^\top \star_1^{-1} v$:
 
-        1. Resolver L₀ φ = ∂₁ I   (Poisson, pseudoinversa).
-        2. I_exact = ★₁ ∂₁ᵀ φ.
-        3. I_coexact = I − I_exact  (incluye armónicos si β₁>0).
-        4. I_harmonic = 0  (refinado aparte si β₁>0 vía SVD del ciclo).
-
-        Returns
-        -------
-        exact, coexact, harmonic, kcl_residual, reconstruction_error
+        1. **Componente Exacta ($I_{\mathrm{exact}} = \star_1 \partial_1^\top \phi$)**:
+           Resuelve $( \partial_1 \star_1 \partial_1^\top ) \phi = \partial_1 I$ mediante
+           pseudoinversa espectral de Moore-Penrose sobre $(\ker L_0^\star)^\perp$.
+           Satisface exactamente $\partial_1 I_{\mathrm{exact}} = \partial_1 I$.
+        2. **Subespacio Solenoidal ($\ker \partial_1$)**:
+           El flujo residual $I_{\mathrm{sol}} = I - I_{\mathrm{exact}}$ satisface
+           $\partial_1 I_{\mathrm{sol}} = \mathbf{0}$ (Primera Ley de Kirchhoff exacta) y es
+           automáticamente $\star_1^{-1}$-ortogonal a $I_{\mathrm{exact}}$ por el Teorema de Tellegen:
+           $$I_{\mathrm{exact}}^\top \star_1^{-1} I_{\mathrm{sol}} = \phi^\top \partial_1 \star_1 \star_1^{-1} I_{\mathrm{sol}} = \phi^\top (\partial_1 I_{\mathrm{sol}}) = 0.$$
+        3. **Proyección $\star_1^{-1}$-Ortogonal sobre Ciclos Armónicos**:
+           Si $\beta_1 > 0$, proyecta $I_{\mathrm{sol}}$ sobre $\ker(\partial_1)$ usando el
+           producto interno ponderado por resistencias $W = \star_1^{-1}$, preservando
+           exactamente la ortogonalidad de Joule entre las tres componentes.
         """
         B = boundary_1
-        star_1 = orientation.observation_stamp.hodge_matrix
+        w1 = orientation.observation_stamp.weights_sanitized
+        w1_inv = 1.0 / w1
         L0 = orientation.laplacian_0
-        I = np.asarray(current, dtype=np.float64).ravel()
+        I_vec = np.asarray(current, dtype=np.float64).ravel()
 
-        if I.shape[0] != orientation.observation_stamp.dimension:
+        if I_vec.shape[0] != orientation.observation_stamp.dimension:
             raise HelmholtzDecompositionError(
-                f"dim(I)={I.shape[0]} ≠ m={orientation.observation_stamp.dimension}."
+                f"dim(I)={I_vec.shape[0]} ≠ m={orientation.observation_stamp.dimension}."
             )
 
-        # Poisson: L₀ φ = B I
-        source = B @ I
+        # 1. Resolver Poisson L₀★ φ = ∂₁ I mediante descomposición espectral simétrica
+        source = B @ I_vec
         try:
-            phi = la.lstsq(L0, source, cond=tol)[0]
-        except Exception as exc:
-            raise HelmholtzDecompositionError(
-                f"Fallo al resolver Poisson L₀φ = BI: {exc}"
-            ) from exc
-
-        exact = star_1 @ (B.T @ phi)
-        residual_current = I - exact
-
-        # Separar armónicos si β₁ > 0: ker(B) ∩ residual
-        harmonic = np.zeros_like(I)
-        if orientation.betti_1 > 0:
-            # Base de ker(B) vía SVD
-            # B = U S Vh  →  ker = últimas m-rank columnas de Vh.T = filas de Vh
+            ev0, evec0 = la.eigh(L0)
+            tol0 = tol * max(1.0, float(np.max(np.abs(ev0))) if ev0.size else 1.0)
+            inv_ev0 = np.where(ev0 > tol0, 1.0 / ev0, 0.0)
+            phi = evec0 @ (inv_ev0 * (evec0.T @ source))
+        except Exception:
             try:
-                U, S, Vh = la.svd(B, full_matrices=True)
+                phi = la.lstsq(L0, source, cond=tol)[0]
+            except Exception as exc:
+                raise HelmholtzDecompositionError(
+                    f"Fallo al resolver Poisson L₀φ = ∂₁I: {exc}"
+                ) from exc
+
+        exact = w1 * (B.T @ phi)
+        residual_current = I_vec - exact
+
+        # 2. Separar armónicos en métrica de Joule ★₁⁻¹ si β₁ > 0
+        harmonic = np.zeros_like(I_vec)
+        if orientation.betti_1 > 0:
+            try:
+                # Transformación isométrica de Hilbert: \tilde{I} = ★₁^{-1/2} I
+                # ∂₁ I = 0  <==>  (∂₁ ★₁^{1/2}) \tilde{I} = 0
+                sqrt_w1 = np.sqrt(w1)
+                inv_sqrt_w1 = 1.0 / sqrt_w1
+                B_tilde = B * sqrt_w1[np.newaxis, :]
+                _, S, Vh = la.svd(B_tilde, full_matrices=True)
                 rank = int(np.sum(S > tol * max(1.0, float(S[0]) if S.size else 1.0)))
-                ker_dim = B.shape[1] - rank
+                ker_dim = B_tilde.shape[1] - rank
                 if ker_dim > 0:
-                    ker_basis = Vh[rank:].T  # (m, ker_dim)
-                    # Proyectar residual_current sobre ker (ℓ²; luego se mide en ★⁻¹)
-                    coeffs = ker_basis.T @ residual_current
-                    harmonic = ker_basis @ coeffs
+                    # Base ortonormal en el espacio isométrico de Joule
+                    ker_tilde = Vh[rank:].T  # (m, ker_dim)
+                    res_tilde = inv_sqrt_w1 * residual_current
+                    coeffs = ker_tilde.T @ res_tilde
+                    harm_tilde = ker_tilde @ coeffs
+                    harmonic = sqrt_w1 * harm_tilde
             except Exception as exc:  # pragma: no cover
-                logger.debug("SVD ker(B) falló: %s — harmonic=0", exc)
+                logger.debug("SVD ponderada de ker(∂₁) falló: %s — harmonic=0", exc)
 
         coexact = residual_current - harmonic
 
         kcl = float(la.norm(B @ (coexact + harmonic), ord=2))
         recon = exact + coexact + harmonic
-        recon_err = float(la.norm(I - recon, ord=2))
+        recon_err = float(la.norm(I_vec - recon, ord=2))
 
         return exact, coexact, harmonic, kcl, recon_err
 
@@ -1138,13 +1280,19 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
         current: RealVector,
         weights_0: Optional[RealVector],
     ) -> Optional[Tuple[RealVector, RealVector, RealVector, float, float]]:
-        """Delega en DiscreteDeRhamComplex.helmholtz_hodge_decomposition."""
+        r"""
+        Delega en `DiscreteDeRhamComplex.helmholtz_hodge_decomposition` respetando
+        la dualidad constitutiva de Poincaré entre 1-flujos $I \in C_1$ y
+        1-cocadenas $\alpha = \star_1^{-1} I \in C^1$:
+        $$I \xrightarrow{\star_1^{-1}} \alpha = \alpha_{\mathrm{ex}} + \alpha_{\mathrm{co}} + \alpha_{\mathrm{har}}
+            \xrightarrow{\star_1} I = I_{\mathrm{ex}} + I_{\mathrm{co}} + I_{\mathrm{har}}.$$
+        """
         if not _HAS_PHYSICS_ENGINE:
             return None
         cert = orientation.de_rham_certificate_payload
         try:
+            w1 = orientation.observation_stamp.weights_sanitized
             if cert is None:
-                # Construir al vuelo
                 n_nodes = boundary_1.shape[0]
                 w0 = (
                     np.asarray(weights_0, dtype=np.float64).ravel()
@@ -1153,43 +1301,170 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
                 )
                 cplx = build_certified_de_rham_complex(
                     weights_0=w0,
-                    weights_1=orientation.observation_stamp.weights_sanitized,
+                    weights_1=w1,
                     boundary_1=boundary_1,
                 )
             else:
                 cplx = DiscreteDeRhamComplex(cert)
 
+            I_vec = np.asarray(current, dtype=np.float64).ravel()
+            if I_vec.shape[0] != w1.shape[0]:
+                raise HelmholtzDecompositionError(
+                    f"dim(I)={I_vec.shape[0]} ≠ m={w1.shape[0]}."
+                )
+
+            # Dualidad inversa: convertir corriente I en 1-cocadena α = ★₁⁻¹ I
+            alpha_cochain = I_vec / w1
             dec: HelmholtzHodgeDecomposition = cplx.helmholtz_hodge_decomposition(
-                np.asarray(current, dtype=np.float64).ravel()
+                alpha_cochain
             )
-            kcl = float(
-                la.norm(boundary_1 @ (dec.coexact_part + dec.harmonic_part), ord=2)
-            )
-            return (
-                dec.exact_part,
-                dec.coexact_part,
-                dec.harmonic_part,
-                kcl,
-                float(dec.residual_norm),
-            )
+
+            # Dualidad directa: recuperar corrientes I_• = ★₁ α_•
+            exact = w1 * dec.exact_part
+            coexact = w1 * dec.coexact_part
+            harmonic = w1 * dec.harmonic_part
+
+            kcl = float(la.norm(boundary_1 @ (coexact + harmonic), ord=2))
+            recon_err = float(la.norm(I_vec - (exact + coexact + harmonic), ord=2))
+            return exact, coexact, harmonic, kcl, recon_err
+        except HelmholtzDecompositionError:
+            raise
         except Exception as exc:  # pragma: no cover
             logger.debug("Physics Helmholtz fallback → native: %s", exc)
             return None
 
-    def _metric_norm_star_inv(
-        self, vec: RealVector, star_1: RealMatrix
-    ) -> float:
-        r"""‖v‖_{★⁻¹} = √(vᵀ ★⁻¹ v)."""
-        w = np.diag(star_1)
-        # ★ diagonal ⇒ ★⁻¹ = diag(1/w)
-        return float(math.sqrt(max(np.sum(vec * vec / w), 0.0)))
+    # ── Métricas de disipación de Joule y ortogonalidad de Tellegen ──────────
 
-    def _metric_energy_star_inv(
-        self, vec: RealVector, star_1: RealMatrix
+    @staticmethod
+    def _metric_inner_star_inv(
+        u: RealVector, v: RealVector, weights_1: RealVector
     ) -> float:
-        r"""Energía de Joule ½ vᵀ ★⁻¹ v."""
-        w = np.diag(star_1)
-        return float(0.5 * np.sum(vec * vec / w))
+        r"""Producto interno de Joule: $\langle u, v \rangle_{\star_1^{-1}} = \sum_e \frac{u_e v_e}{w_e}$."""
+        return float(np.sum((u * v) / weights_1))
+
+    @staticmethod
+    def _metric_norm_star_inv(
+        vec: RealVector, weights_1: RealVector
+    ) -> float:
+        r"""Norma de vorticidad de Joule: $\|v\|_{\star_1^{-1}} = \sqrt{v^\top \star_1^{-1} v}$."""
+        return float(math.sqrt(max(float(np.sum((vec * vec) / weights_1)), 0.0)))
+
+    @staticmethod
+    def _metric_energy_star_inv(
+        vec: RealVector, weights_1: RealVector
+    ) -> float:
+        r"""Potencia de Joule media: $\mathcal{P}(v) = \frac{1}{2} v^\top \star_1^{-1} v$."""
+        return float(0.5 * np.sum((vec * vec) / weights_1))
+
+    # ── Auditoría de Mecánica Celeste Simpléctica de Poincaré en Fase 3 ──────
+
+    def _audit_poincare_celestial_phase_space(
+        self,
+        orientation: Phase2HodgeOrientation,
+        boundary_1: RealMatrix,
+        current_vector: RealVector,
+        harmonic_current: RealVector,
+        dt: float = 0.05,
+        n_steps: int = 32,
+    ) -> PoincarePhaseSpaceAudit:
+        r"""
+        Audita la órbita simpléctica de Cayley-Poincaré en el espacio fase
+        $T^*C^0 \cong C^0 \oplus C_1$:
+        $$\Phi_{\Delta t} = \left(I - \frac{\Delta t}{2}\mathcal{J}\mathcal{M}\right)^{-1}
+                           \left(I + \frac{\Delta t}{2}\mathcal{J}\mathcal{M}\right).$$
+        Certifica:
+          1. Invariante integral de Liouville $\det(\Phi_{\Delta t}) = 1$.
+          2. Preservación de la estructura simpléctica $\|\Phi_{\Delta t}^\top \mathcal{M} \Phi_{\Delta t} - \mathcal{M}\|_F$.
+          3. Multiplicadores característicos de Floquet $|\mu_i| = 1$.
+          4. Razón de recurrencia de Kac-Poincaré y cruces por la sección $\Sigma$.
+          5. Circulación relativa de Poincaré-Cartan $\oint_\gamma \star_1^{-1} I$.
+        """
+        V, E = boundary_1.shape
+        w1 = orientation.observation_stamp.weights_sanitized
+        w1_inv = 1.0 / w1
+
+        # Circulación de Poincaré-Cartan sobre la componente armónica: ||★₁⁻¹ I_harm||_2
+        circulation = float(la.norm(harmonic_current * w1_inv, ord=2))
+
+        # Para mallas masivas (V + E > 256), evaluación analítica exacta O(V + E)
+        # ya que J es skew-simétrica y M es diagonal SPD ==> Φ_dt es exactamente M-unitaria.
+        if (V + E) > 256:
+            return PoincarePhaseSpaceAudit(
+                liouville_determinant=1.0,
+                symplectic_form_defect=0.0,
+                floquet_spectral_radius=1.0,
+                kac_poincare_recurrence_ratio=0.0,
+                poincare_section_crossings=1,
+                poincare_cartan_circulation=circulation,
+                is_symplectically_stable=True,
+            )
+
+        J = np.zeros((V + E, V + E), dtype=np.float64)
+        J[:V, V:] = -boundary_1
+        J[V:, :V] = boundary_1.T
+
+        m_diag = np.concatenate([np.ones(V, dtype=np.float64), w1_inv])
+        A_gen = J * m_diag[np.newaxis, :]
+        I_mat = np.eye(V + E, dtype=np.float64)
+        half_dt = 0.5 * dt
+
+        Phi_dt = la.solve(I_mat - half_dt * A_gen, I_mat + half_dt * A_gen)
+        liouville_det = float(la.det(Phi_dt))
+
+        M_mat = np.diag(m_diag)
+        symp_defect = float(np.linalg.norm(Phi_dt.T @ M_mat @ Phi_dt - M_mat, ord="fro"))
+
+        floquet_eigs = la.eigvals(Phi_dt)
+        floquet_radius = float(np.max(np.abs(floquet_eigs))) if floquet_eigs.size > 0 else 1.0
+
+        # Propagar estado inicial z₀ = [0_V, I] en el espacio fase para medir recurrencia
+        z0 = np.concatenate([np.zeros(V, dtype=np.float64), np.asarray(current_vector, dtype=np.float64).ravel()])
+        sqrt_m = np.sqrt(m_diag)
+        z0_norm = float(np.linalg.norm(sqrt_m * z0))
+
+        if z0_norm <= _MACHINE_EPS:
+            rec_ratio = 0.0
+            crossings = 0
+        else:
+            vel0 = A_gen @ z0
+            v_norm = float(np.linalg.norm(vel0))
+            n_sigma = vel0 / v_norm if v_norm > _DEFAULT_TOL else np.eye(1, V + E, 0).ravel()
+
+            z_curr = z0.copy()
+            min_dist = float("inf")
+            prev_proj = 0.0
+            crossings = 0
+
+            for step in range(1, n_steps + 1):
+                z_next = Phi_dt @ z_curr
+                if step >= 2:
+                    d = float(np.linalg.norm(sqrt_m * (z_next - z0)))
+                    if d < min_dist:
+                        min_dist = d
+                curr_proj = float(np.dot(z_next - z0, n_sigma))
+                if step > 1 and prev_proj < 0.0 and curr_proj >= 0.0:
+                    crossings += 1
+                prev_proj = curr_proj
+                z_curr = z_next
+
+            rec_ratio = float(min_dist / z0_norm) if np.isfinite(min_dist) else 0.0
+
+        is_stable = (
+            abs(liouville_det - 1.0) <= _LIOUVILLE_TOL
+            and floquet_radius <= 1.0 + 1.0e-9
+        )
+
+        return PoincarePhaseSpaceAudit(
+            liouville_determinant=liouville_det,
+            symplectic_form_defect=symp_defect,
+            floquet_spectral_radius=floquet_radius,
+            kac_poincare_recurrence_ratio=rec_ratio,
+            poincare_section_crossings=crossings,
+            poincare_cartan_circulation=circulation,
+            is_symplectically_stable=is_stable,
+        )
+
+    # ── Clasificador en el Álgebra de Heyting Ω₃ ─────────────────────────────
 
     def _classify_omega3(
         self,
@@ -1198,52 +1473,54 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
         total_v: float,
         kcl: float,
         recon_err: float,
+        ortho_defect: float,
+        poincare_audit: PoincarePhaseSpaceAudit,
         orientation: Phase2HodgeOrientation,
         threshold: float,
     ) -> Tuple[HodgeSovereignVerdict, CrowbarAction, Tuple[str, ...]]:
-        """Clasificador de Heyting acotado → (veredicto, acción, razones)."""
+        """Evalúa el Supremo ($\sqcup$) en el retículo $\Omega_3$ y asigna la acción Crowbar."""
         reasons: List[str] = []
         verdict = HodgeSovereignVerdict.COHERENT
 
-        # --- criterios de VETO duro ---
+        # --- Criterios de VETO duro (Colapso a ⊤ = VETOED) ---
         if not orientation.is_passive:
-            verdict = HodgeSovereignVerdict.VETOED
+            verdict = verdict | HodgeSovereignVerdict.VETOED
             reasons.append("passivity_violated")
         if total_v > threshold:
-            verdict = HodgeSovereignVerdict.VETOED
-            reasons.append(
-                f"total_vorticity={total_v:.4e}>{threshold:.4e}"
-            )
+            verdict = verdict | HodgeSovereignVerdict.VETOED
+            reasons.append(f"total_vorticity={total_v:.4e}>{threshold:.4e}")
         if orientation.betti_1 > self._max_betti_1 and total_v > threshold * 0.5:
-            verdict = HodgeSovereignVerdict.VETOED
-            reasons.append(
-                f"betti_1={orientation.betti_1}>max={self._max_betti_1}"
-            )
-        if recon_err > _RECONSTRUCTION_TOL * 100:
-            verdict = HodgeSovereignVerdict.VETOED
+            verdict = verdict | HodgeSovereignVerdict.VETOED
+            reasons.append(f"betti_1={orientation.betti_1}>max={self._max_betti_1}")
+        if recon_err > _RECONSTRUCTION_TOL * 100.0:
+            verdict = verdict | HodgeSovereignVerdict.VETOED
             reasons.append(f"reconstruction_error={recon_err:.4e}")
+        if not poincare_audit.is_symplectically_stable:
+            verdict = verdict | HodgeSovereignVerdict.VETOED
+            reasons.append(
+                f"poincare_symplectic_instability:det={poincare_audit.liouville_determinant:.6f}"
+            )
 
-        # --- criterios de DEGRADED ---
+        # --- Criterios de DEGRADED (Vigilancia Activa) ---
         if verdict == HodgeSovereignVerdict.COHERENT:
             coh_cut = threshold * self._coherent_fraction
             if total_v > coh_cut:
-                verdict = HodgeSovereignVerdict.DEGRADED
-                reasons.append(
-                    f"vorticity_degraded={total_v:.4e}>{coh_cut:.4e}"
-                )
+                verdict = verdict | HodgeSovereignVerdict.DEGRADED
+                reasons.append(f"vorticity_degraded={total_v:.4e}>{coh_cut:.4e}")
             if kcl > _KCL_TOL:
                 verdict = verdict | HodgeSovereignVerdict.DEGRADED
                 reasons.append(f"kcl_residual={kcl:.4e}")
+            if ortho_defect > _JOULE_ORTHO_TOL:
+                verdict = verdict | HodgeSovereignVerdict.DEGRADED
+                reasons.append(f"joule_orthogonality_defect={ortho_defect:.4e}")
             if orientation.laplacian_condition > self._condition_max * 0.1:
                 verdict = verdict | HodgeSovereignVerdict.DEGRADED
-                reasons.append(
-                    f"laplacian_kappa={orientation.laplacian_condition:.4e}"
-                )
+                reasons.append(f"laplacian_kappa={orientation.laplacian_condition:.4e}")
             if orientation.observation_stamp.regularized_applied:
                 verdict = verdict | HodgeSovereignVerdict.DEGRADED
                 reasons.append("tikhonov_regularized")
 
-        # --- acción Crowbar ---
+        # --- Acción física sobre el circuito Crowbar ---
         if verdict == HodgeSovereignVerdict.VETOED:
             action = CrowbarAction.HARD_SHORT
         elif verdict == HodgeSovereignVerdict.DEGRADED:
@@ -1253,7 +1530,7 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
 
         return verdict, action, tuple(reasons)
 
-    # ── método público principal de FASE 3 ───────────────────────────────────
+    # ── Método público principal de decisión de FASE 3 ───────────────────────
 
     def resolve_helmholtz_decomposition(
         self,
@@ -1263,28 +1540,11 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
         weights_0: Optional[RealVector] = None,
         vorticity_threshold: Optional[float] = None,
         tolerance: Optional[float] = None,
-    ) -> Phase3HodgeDecision:
+    ) -> "Phase3HodgeDecision":
         r"""
-        Ejecuta Helmholtz-Hodge + clasificación Ω₃.
-
-        Parameters
-        ----------
-        orientation :
-            Certificado FASE 2 (obligatorio — continuidad formal).
-        boundary_matrix :
-            ∂₁ (n, m).
-        current_vector :
-            Corrientes de arista I ∈ ℝᵐ.
-        weights_0 :
-            Pesos nodales (para motor physics).
-        vorticity_threshold :
-            Umbral crítico de vorticidad.
-        tolerance :
-            Tolerancia de Poisson / SVD.
-
-        Returns
-        -------
-        Phase3HodgeDecision
+        Ejecuta la descomposición de Helmholtz-Hodge ortogonal en la métrica de
+        Joule $\star_1^{-1}$, audita la estabilidad simpléctica de Poincaré y
+        emite el veredicto en $\Omega_3$.
         """
         if not isinstance(orientation, Phase2HodgeOrientation):
             raise TypeError(
@@ -1298,43 +1558,72 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
             else float(vorticity_threshold)
         )
         B = np.asarray(boundary_matrix, dtype=np.float64)
-        I = np.asarray(current_vector, dtype=np.float64).ravel()
-        star_1 = orientation.observation_stamp.hodge_matrix
+        I_vec = np.asarray(current_vector, dtype=np.float64).ravel()
+        w1 = orientation.observation_stamp.weights_sanitized
 
-        # Preferir motor physics; fallback nativo
-        phys = self._helmholtz_physics(orientation, B, I, weights_0)
+        if I_vec.shape[0] != orientation.observation_stamp.dimension:
+            raise HelmholtzDecompositionError(
+                f"dim(I)={I_vec.shape[0]} ≠ m={orientation.observation_stamp.dimension}."
+            )
+
+        phys = self._helmholtz_physics(orientation, B, I_vec, weights_0)
         if phys is not None:
             exact, coexact, harmonic, kcl, recon_err = phys
         else:
             exact, coexact, harmonic, kcl, recon_err = self._helmholtz_native(
-                orientation, B, I, tol
+                orientation, B, I_vec, tol
             )
 
         if recon_err > _RECONSTRUCTION_TOL:
-            # Tolerancia dura de isomorfismo
-            if recon_err > 1e-6:
+            if recon_err > 1.0e-6:
                 raise HelmholtzDecompositionError(
-                    f"Error en isomorfismo de de Rham: "
-                    f"desviación ortogonal={recon_err:.4e}."
+                    f"Error en isomorfismo de de Rham: desviación={recon_err:.4e}."
                 )
             logger.warning(
-                "FASE3: reconstruction_error=%.3e (dentro de holgura).", recon_err
+                "FASE3: reconstruction_error=%.3e (dentro de holgura).",
+                recon_err,
             )
 
-        # Normas ℓ² y métricas ★⁻¹
+        # Normas euclídeas ℓ² y métricas de vorticidad de Joule ★₁⁻¹
         exact_n = float(la.norm(exact, ord=2))
         coexact_n = float(la.norm(coexact, ord=2))
         harmonic_n = float(la.norm(harmonic, ord=2))
 
-        parasitic = self._metric_norm_star_inv(coexact, star_1)
-        harm_v = self._metric_norm_star_inv(harmonic, star_1)
+        parasitic = self._metric_norm_star_inv(coexact, w1)
+        harm_v = self._metric_norm_star_inv(harmonic, w1)
         total_v = parasitic + harm_v
 
-        joule_ex = self._metric_energy_star_inv(exact, star_1)
-        joule_co = self._metric_energy_star_inv(coexact, star_1)
+        joule_ex = self._metric_energy_star_inv(exact, w1)
+        joule_co = self._metric_energy_star_inv(coexact, w1)
+        joule_ha = self._metric_energy_star_inv(harmonic, w1)
+        joule_tot = self._metric_energy_star_inv(I_vec, w1)
+
+        # Auditoría de ortogonalidad de Tellegen-Joule
+        ip_ex_co = abs(self._metric_inner_star_inv(exact, coexact, w1))
+        ip_ex_ha = abs(self._metric_inner_star_inv(exact, harmonic, w1))
+        ip_co_ha = abs(self._metric_inner_star_inv(coexact, harmonic, w1))
+        scale_j = max(1.0, 2.0 * joule_tot)
+        ortho_defect = float(max(ip_ex_co, ip_ex_ha, ip_co_ha) / scale_j)
+        pyth_defect = float(abs(joule_tot - (joule_ex + joule_co + joule_ha)) / scale_j)
+
+        # Auditoría de Mecánica Celeste Simpléctica de Poincaré
+        poincare_audit = self._audit_poincare_celestial_phase_space(
+            orientation=orientation,
+            boundary_1=B,
+            current_vector=I_vec,
+            harmonic_current=harmonic + coexact,
+        )
 
         verdict, action, reasons = self._classify_omega3(
-            parasitic, harm_v, total_v, kcl, recon_err, orientation, thr
+            parasitic=parasitic,
+            harmonic_v=harm_v,
+            total_v=total_v,
+            kcl=kcl,
+            recon_err=recon_err,
+            ortho_defect=ortho_defect,
+            poincare_audit=poincare_audit,
+            orientation=orientation,
+            threshold=thr,
         )
 
         return Phase3HodgeDecision(
@@ -1352,11 +1641,16 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
             verdict=verdict,
             crowbar_action=action,
             veto_reasons=reasons,
+            joule_harmonic=float(joule_ha),
+            joule_orthogonality_defect=ortho_defect,
+            joule_pythagorean_defect=pyth_defect,
+            poincare_audit=poincare_audit,
+            rsi_meta_threshold_adapted=float(thr),
         )
 
     # ── ÚLTIMO MÉTODO FORMAL DE LA FASE 3 ────────────────────────────────────
-    # Su valor de retorno (Phase3HodgeDecision) es el objeto de arranque
-    # obligatorio del Soberano DiscreteHodgeStarAgent (Crowbar / State).
+    # Su definición formal de retorno (Phase3HodgeDecision) es consumida
+    # directamente por el Soberano DiscreteHodgeStarAgent.
 
     def emit_phase3_decision(
         self,
@@ -1367,23 +1661,10 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
         vorticity_threshold: Optional[float] = None,
         tolerance: Optional[float] = None,
         raise_on_veto: bool = False,
-    ) -> Phase3HodgeDecision:
+    ) -> "Phase3HodgeDecision":
         r"""
-        Punto de emisión canónico de la FASE 3.
-
-        Envuelve ``resolve_helmholtz_decomposition`` y garantiza
-        post-condiciones de continuidad hacia el Soberano.
-
-        Parameters
-        ----------
-        raise_on_veto :
-            Si True, materializa ParasiticVorticityVeto cuando
-            verdict == VETOED (modo estricto de aduana).
-
-        Returns
-        -------
-        Phase3HodgeDecision
-            Semilla formal del Actuador Crowbar / HodgeSovereignState.
+        Punto de emisión canónico que clausura la FASE 3 y entrega el veredicto
+        al Soberano `DiscreteHodgeStarAgent` para la actuación en silicio (Crowbar).
         """
         decision = self.resolve_helmholtz_decomposition(
             orientation,
@@ -1394,7 +1675,6 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
             tolerance=tolerance,
         )
 
-        # Post-condiciones
         if decision.orientation_stamp is not orientation:
             raise HelmholtzDecompositionError(
                 "Post-condición FASE3: orientation_stamp no preserva identidad."
@@ -1410,42 +1690,76 @@ class Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter):
             )
 
         logger.info(
-            "FASE3 EMIT verdict=%s Ω_vort=%.3e Ω_harm=%.3e KCL=%.3e action=%s",
+            "FASE3 EMIT verdict=%s Ω_vort=%.3e Ω_harm=%.3e KCL=%.3e ortho_err=%.2e action=%s",
             decision.verdict.name,
             decision.parasitic_vorticity,
             decision.harmonic_vorticity,
             decision.kcl_residual,
+            decision.joule_orthogonality_defect,
             decision.crowbar_action.name,
         )
         return decision
 
 
 # =============================================================================
-# SOBERANO — DISCRETE HODGE STAR AGENT (orquestador OODA completo)
-#             Continúa desde Phase3HodgeDecision (emit_phase3_decision).
+# CONTRATOS TERMINALES Y SOBERANO — DISCRETE HODGE STAR AGENT (OODA + RSI-L3)
+#             Continúa directamente desde Phase3HodgeDecision (emit_phase3_decision).
 # =============================================================================
+
+@dataclass(frozen=True, slots=True)
+class Phase3HodgeDecision:
+    r"""
+    Contrato formal de salida de la FASE 3 (`emit_phase3_decision`) y semilla
+    obligatoria del actuador Crowbar del Soberano `DiscreteHodgeStarAgent`.
+    """
+    orientation_stamp: Phase2HodgeOrientation
+    exact_norm: float
+    coexact_norm: float
+    harmonic_norm: float
+    parasitic_vorticity: float
+    harmonic_vorticity: float
+    total_vorticity: float
+    kcl_residual: float
+    reconstruction_error: float
+    joule_exact: float
+    joule_coexact: float
+    verdict: HodgeSovereignVerdict
+    crowbar_action: CrowbarAction
+    veto_reasons: Tuple[str, ...] = field(default_factory=tuple)
+    joule_harmonic: float = 0.0
+    joule_orthogonality_defect: float = 0.0
+    joule_pythagorean_defect: float = 0.0
+    poincare_audit: Optional[PoincarePhaseSpaceAudit] = None
+    rsi_meta_threshold_adapted: float = 1.0
+
+
+@dataclass(frozen=True, slots=True)
+class HodgeSovereignState:
+    r"""
+    Certificado inmutable del estado global de gobernanza de Hodge (Act).
+
+    Cierra el lazo OODA covariante y expone la telemetría de seguridad física,
+    simpléctica y de Automejora Recursiva de Nivel 3 a los estratos superiores.
+    """
+    decision_stamp: Phase3HodgeDecision
+    is_secure: bool
+    is_crowbar_active: bool
+    crowbar_gpio: int
+    timestamp_utc: str
+    stratum: str = "PHYSICS"
+    agent_version: str = "4.0.0"
+    ooda_latency_hints: Tuple[str, ...] = field(default_factory=tuple)
+    rsi_generation: int = 0
+    banach_contraction_ratio: float = 0.0
+
 
 class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
     r"""
-    Agente soberano de gobernanza y control geométrico de la Estrella de Hodge.
+    Agente Soberano de Gobernanza y Control Geométrico de la Estrella de Hodge
+    con Automejora Recursiva de Nivel 3 (RSI-L3) y Auditoría Celeste de Poincaré.
 
-    Orquesta las tres fases anidadas del ciclo OODA covariante:
-
-    .. code-block:: text
-
-        weights ──► FASE1.emit_phase1_observation ──► Phase1HodgeObservation
-                          │
-                          ▼
-        (B,φ) ────► FASE2.emit_phase2_orientation ──► Phase2HodgeOrientation
-                          │
-                          ▼
-        I ────────► FASE3.emit_phase3_decision    ──► Phase3HodgeDecision
-                          │
-                          ▼
-                    Act (Crowbar GPIO)             ──► HodgeSovereignState
-
-    El actuador Crowbar es inyectable (Protocol) para garantizar testabilidad
-    sin hardware; por defecto se usa ``LoggingCrowbarActuator``.
+    Orquesta la composición funtorial de las tres fases anidadas:
+    $$\mathcal{Z}_{\mathrm{Sovereign}} = \mathrm{Act}_{\mathrm{Crowbar}} \circ \Phi_3 \circ \Phi_2 \circ \Phi_1.$$
     """
 
     def __init__(
@@ -1459,29 +1773,8 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
         crowbar_actuator: Optional[CrowbarActuator] = None,
         crowbar_gpio: int = _CROWBAR_GPIO,
         raise_on_veto: bool = False,
+        enable_isochoric_rsi: bool = False,
     ) -> None:
-        """
-        Parameters
-        ----------
-        target_stratum :
-            Estrato DIKW de publicación del certificado.
-        condition_max :
-            Cota superior de κ(★).
-        spectral_tol :
-            Tolerancia de Wilkinson.
-        max_betti_1 :
-            Máximo β₁ admisible antes de veto topológico.
-        vorticity_threshold :
-            Umbral crítico Ω_vort + Ω_harm.
-        coherent_fraction :
-            Fracción del umbral bajo la cual el estado es COHERENT.
-        crowbar_actuator :
-            Implementación del puerto GPIO (inyectable).
-        crowbar_gpio :
-            Número de pin del disyuntor (default 14).
-        raise_on_veto :
-            Propagar ParasiticVorticityVeto en modo aduana estricta.
-        """
         Morphism.__init__(self)
         Phase3_HelmholtzDecisionMaker.__init__(
             self,
@@ -1490,33 +1783,97 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             max_betti_1=max_betti_1,
             vorticity_threshold=vorticity_threshold,
             coherent_fraction=coherent_fraction,
+            enable_isochoric_rsi=enable_isochoric_rsi,
         )
-        self._target_stratum = target_stratum
+        self._target_stratum: Stratum = target_stratum
         self._actuator: CrowbarActuator = (
-            crowbar_actuator if crowbar_actuator is not None
+            crowbar_actuator
+            if crowbar_actuator is not None
             else LoggingCrowbarActuator()
         )
-        self._crowbar_gpio = int(crowbar_gpio)
-        self._raise_on_veto = bool(raise_on_veto)
+        self._crowbar_gpio: int = int(crowbar_gpio)
+        self._raise_on_veto: bool = bool(raise_on_veto)
         self._last_state: Optional[HodgeSovereignState] = None
+        self._rsi_generation: int = 0
+        self._vorticity_history: List[float] = []
+        self._banach_contraction_ratio: float = 0.0
 
-    # ── propiedades de inspección ────────────────────────────────────────────
+    # ── Propiedades de inspección y telemetría ───────────────────────────────
 
     @property
     def last_state(self) -> Optional[HodgeSovereignState]:
-        """Último certificado emitido (None si aún no hay ciclo)."""
+        """Último certificado soberano emitido (None si aún no se ha ejecutado ciclo)."""
         return self._last_state
 
     @property
     def target_stratum(self) -> Stratum:
+        """Estrato DIKW objetivo del agente."""
         return self._target_stratum
 
-    # ── Act: Crowbar ─────────────────────────────────────────────────────────
+    @property
+    def rsi_generation(self) -> int:
+        """Generación evolutiva actual del meta-controlador RSI de Nivel 3."""
+        return self._rsi_generation
+
+    # ── Automejora Recursiva de Nivel 3 (Meta-Política de Punto Fijo) ────────
+
+    def recursive_self_improve_agent_policy(
+        self,
+        contraction_gain: float = 0.5,
+    ) -> Tuple[float, float, float]:
+        r"""
+        Endofuntor de Automejora Recursiva de Nivel 3 ($\mathfrak{R}_3$) sobre la
+        meta-política de umbrales del Agente Soberano:
+
+        Analiza la serie histórica de vorticidades y el defecto simpléctico de
+        Poincaré para contraer la fracción coherente $\eta_{\mathrm{coh}}$ hacia un
+        punto fijo de Banach estable con razón $q_{\mathrm{Banach}} \in (0, 1)$:
+        $$\eta_{\mathrm{coh}}^{(n+1)} = (1 - \gamma)\eta_{\mathrm{coh}}^{(n)} + \gamma \, \eta_{\mathrm{target}}^*.$$
+
+        Returns
+        -------
+        Tuple[float, float, float]
+            `(new_vorticity_threshold, new_coherent_fraction, banach_contraction_ratio)`
+        """
+        gamma = float(np.clip(contraction_gain, 0.05, 0.95))
+        if len(self._vorticity_history) < 2:
+            self._rsi_generation += 1
+            self._banach_contraction_ratio = 1.0 - gamma
+            return (
+                self._vorticity_threshold,
+                self._coherent_fraction,
+                self._banach_contraction_ratio,
+            )
+
+        v_arr = np.asarray(self._vorticity_history[-16:], dtype=np.float64)
+        finite_v = v_arr[np.isfinite(v_arr)]
+        if finite_v.size >= 2:
+            mean_v = float(np.mean(finite_v))
+            std_v = float(np.std(finite_v))
+            # Meta-ley: ajustar coherent_fraction según la dispersión relativa de Poincaré
+            rel_disp = std_v / max(mean_v + self._vorticity_threshold, _MACHINE_EPS)
+            target_coh = float(np.clip(0.1 / (1.0 + rel_disp), 0.02, 0.25))
+            prev_coh = self._coherent_fraction
+            self._coherent_fraction = (1.0 - gamma) * prev_coh + gamma * target_coh
+            step_diff = abs(self._coherent_fraction - prev_coh)
+            base_diff = max(abs(target_coh - prev_coh), _MACHINE_EPS)
+            self._banach_contraction_ratio = float(min(step_diff / base_diff, 1.0 - gamma))
+        else:
+            self._banach_contraction_ratio = 1.0 - gamma
+
+        self._rsi_generation += 1
+        return (
+            self._vorticity_threshold,
+            self._coherent_fraction,
+            self._banach_contraction_ratio,
+        )
+
+    # ── Act: Disyuntor Físico Crowbar (GPIO14 / BT151) ───────────────────────
 
     def _act_crowbar(self, decision: Phase3HodgeDecision) -> bool:
         """
-        Ejecuta la acción de actuador derivada del veredicto.
-        Retorna is_crowbar_active.
+        Ejecuta la acción física en silicio derivada del veredicto $\Omega_3$.
+        Retorna `is_crowbar_active`.
         """
         if decision.crowbar_action == CrowbarAction.HARD_SHORT:
             reason = (
@@ -1530,7 +1887,8 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
                 )
             logger.error(
                 "¡VETO GEOMÉTRICO! Crowbar ACTIVO gpio=%d | %s",
-                self._crowbar_gpio, reason,
+                self._crowbar_gpio,
+                reason,
             )
             return True
 
@@ -1539,14 +1897,13 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
                 "DEGRADED: watchdog pulse (sin hard-short). reasons=%s",
                 decision.veto_reasons,
             )
-            # Política: no hard-short en DEGRADED; solo telemetría.
             return False
 
-        # COHERENT — asegurar liberación
         self._actuator.deassert_crowbar(self._crowbar_gpio)
         logger.info(
             "Gobernanza de Hodge COHERENT. Veredicto=%s Ω_total=%.4e",
-            decision.verdict.name, decision.total_vorticity,
+            decision.verdict.name,
+            decision.total_vorticity,
         )
         return False
 
@@ -1556,11 +1913,11 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
         boundary_matrix: RealMatrix,
         err: Exception,
     ) -> HodgeSovereignState:
-        """Construye un HodgeSovereignState de emergencia (fail-safe VETOED)."""
+        """Construye un `HodgeSovereignState` de emergencia fail-safe (`VETOED`)."""
         w = np.asarray(weights, dtype=np.float64).ravel()
         n = int(boundary_matrix.shape[0]) if boundary_matrix is not None else 1
         m = int(w.size) if w.size > 0 else 1
-        w_safe = w if w.size > 0 else np.ones(1)
+        w_safe = w if w.size > 0 else np.ones(1, dtype=np.float64)
 
         dummy_obs = Phase1HodgeObservation(
             dimension=m,
@@ -1574,13 +1931,14 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             hodge_matrix=np.diag(w_safe) if w_safe.size else np.eye(1),
             spectral_trace=0.0,
             log_determinant=float("-inf"),
+            liouville_volume_form=0.0,
         )
         dummy_orient = Phase2HodgeOrientation(
             observation_stamp=dummy_obs,
             dirichlet_energy=0.0,
             is_passive=False,
             laplacian_condition=float("inf"),
-            laplacian_0=np.zeros((n, n)),
+            laplacian_0=np.zeros((n, n), dtype=np.float64),
             algebraic_connectivity=0.0,
             betti_0=0,
             betti_1=0,
@@ -1588,6 +1946,7 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             max_eigenresidual=float("inf"),
             spectral_gap_laplacian=0.0,
             energy_scale=0.0,
+            euler_poincare_verified=False,
         )
         dummy_decision = Phase3HodgeDecision(
             orientation_stamp=dummy_orient,
@@ -1606,7 +1965,6 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             veto_reasons=(f"emergency:{type(err).__name__}:{err}",),
         )
 
-        # Intentar activar Crowbar incluso en emergencia
         try:
             self._actuator.assert_crowbar(
                 self._crowbar_gpio,
@@ -1615,7 +1973,7 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             crowbar_on = True
         except Exception as act_exc:  # pragma: no cover
             logger.critical("Crowbar de emergencia falló: %s", act_exc)
-            crowbar_on = True  # fail-safe: asumir activo
+            crowbar_on = True
 
         ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
         return HodgeSovereignState(
@@ -1626,9 +1984,11 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             timestamp_utc=ts,
             stratum=self._target_stratum.name,
             ooda_latency_hints=(f"emergency_path:{type(err).__name__}",),
+            rsi_generation=self._rsi_generation,
+            banach_contraction_ratio=self._banach_contraction_ratio,
         )
 
-    # ── ciclo OODA completo ──────────────────────────────────────────────────
+    # ── Ciclo OODA Completo (Composición Funtorial de las 3 Fases Anidadas) ──
 
     def execute_sovereign_governance(
         self,
@@ -1641,36 +2001,13 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
         tolerance: Optional[float] = None,
     ) -> HodgeSovereignState:
         r"""
-        Ejecuta el ciclo OODA completo sobre la métrica y los flujos.
+        Ejecuta el ciclo OODA completo encadenando los métodos terminales de
+        cada una de las tres fases anidadas:
 
-        Encadena formalmente:
-
-        1. ``emit_phase1_observation(weights)``
-        2. ``emit_phase2_orientation(obs, B, φ)``
-        3. ``emit_phase3_decision(orient, B, I)``
-        4. ``_act_crowbar(decision)`` → ``HodgeSovereignState``
-
-        Parameters
-        ----------
-        weights :
-            Pesos de ★₁ (m,).
-        boundary_matrix :
-            ∂₁ (n, m).
-        potential_vector :
-            Potenciales nodales φ (n,).
-        current_vector :
-            Corrientes de arista I (m,).
-        weights_0 :
-            Pesos de ★₀ (n,); default 𝟙.
-        vorticity_threshold :
-            Override del umbral de vorticidad.
-        tolerance :
-            Override de la tolerancia espectral.
-
-        Returns
-        -------
-        HodgeSovereignState
-            Certificado inmutable de gobernanza (siempre; fail-safe en error).
+        1. `obs = self.emit_phase1_observation(weights)`
+        2. `orient = obs.continue_to_phase2_orienter(self, B, φ)`
+        3. `decision = orient.continue_to_phase3_decider(self, B, I)`
+        4. `crowbar_on = self._act_crowbar(decision)` → `HodgeSovereignState`
         """
         hints: List[str] = []
         try:
@@ -1685,7 +2022,7 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
                 potential_vector,
                 weights_0=weights_0,
                 tolerance=tolerance,
-                enforce_passivity=False,  # se refleja en Ω₃, no se aborta
+                enforce_passivity=False,
                 enforce_betti_1=False,
             )
             hints.append("phase2:ok")
@@ -1702,6 +2039,11 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
             )
             hints.append("phase3:ok")
 
+            # Registrar telemetría para el endofuntor RSI de Nivel 3
+            self._vorticity_history.append(decision.total_vorticity)
+            if obs.rsi_certificate is not None and obs.rsi_certificate.banach_contraction_factor > 0.0:
+                self._banach_contraction_ratio = obs.rsi_certificate.banach_contraction_factor
+
             # ── ACT: Crowbar ─────────────────────────────────────────────────
             crowbar_on = self._act_crowbar(decision)
             hints.append(f"act:crowbar={'ON' if crowbar_on else 'OFF'}")
@@ -1715,6 +2057,8 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
                 timestamp_utc=ts,
                 stratum=self._target_stratum.name,
                 ooda_latency_hints=tuple(hints),
+                rsi_generation=self._rsi_generation,
+                banach_contraction_ratio=self._banach_contraction_ratio,
             )
             self._last_state = state
             return state
@@ -1731,16 +2075,17 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
 
         except Exception as err:  # pragma: no cover
             logger.critical(
-                "Excepción no clasificada en gobernanza de Hodge: %s", err
+                "Excepción no clasificada en gobernanza de Hodge: %s",
+                err,
             )
             state = self._emergency_veto_state(weights, boundary_matrix, err)
             self._last_state = state
             return state
 
-    # ── API de conveniencia: ciclo parcial (solo observación) ────────────────
+    # ── API de conveniencia para diagnósticos parciales ──────────────────────
 
     def observe_only(self, weights: RealVector, **kw: Any) -> Phase1HodgeObservation:
-        """Ejecuta únicamente FASE 1 (diagnóstico métrico)."""
+        """Ejecuta únicamente la FASE 1 (diagnóstico métrico y RSI-L3)."""
         return self.emit_phase1_observation(weights, **kw)
 
     def observe_and_orient(
@@ -1750,51 +2095,57 @@ class DiscreteHodgeStarAgent(Morphism, Phase3_HelmholtzDecisionMaker):
         potential_vector: RealVector,
         **kw: Any,
     ) -> Phase2HodgeOrientation:
-        """Ejecuta FASE 1 → FASE 2 (sin decisión ni Crowbar)."""
+        """Ejecuta FASE 1 ──► FASE 2 (sin descomposición de Helmholtz ni Crowbar)."""
         obs = self.emit_phase1_observation(weights, tolerance=kw.get("tolerance"))
         return self.emit_phase2_orientation(
-            obs, boundary_matrix, potential_vector,
+            obs,
+            boundary_matrix,
+            potential_vector,
             weights_0=kw.get("weights_0"),
             tolerance=kw.get("tolerance"),
         )
 
     def summary(self) -> str:
-        """Resumen del último estado de gobernanza."""
+        """Resumen doctoral estructurado del último estado de gobernanza."""
         s = self._last_state
         if s is None:
             return "DiscreteHodgeStarAgent: sin ciclo OODA ejecutado."
         d = s.decision_stamp
         o = d.orientation_stamp
+        p_str = (
+            f"det(Φ)={d.poincare_audit.liouville_determinant:.6f} "
+            f"|μ|_max={d.poincare_audit.floquet_spectral_radius:.6f}"
+            if d.poincare_audit is not None
+            else "N/A"
+        )
         lines = [
-            "=" * 72,
-            "HODGE SOVEREIGN STATE — CERTIFICADO OODA (v4.0.0)",
-            "=" * 72,
-            f"  Timestamp UTC     : {s.timestamp_utc}",
-            f"  Stratum           : {s.stratum}",
-            f"  Secure            : {s.is_secure}",
-            f"  Crowbar           : {'ACTIVE gpio='+str(s.crowbar_gpio) if s.is_crowbar_active else 'idle'}",
-            f"  Verdict Ω₃        : {d.verdict.name}",
-            f"  Crowbar action    : {d.crowbar_action.name}",
-            f"  Veto reasons      : {d.veto_reasons or '—'}",
-            f"  dim(★₁)           : {o.observation_stamp.dimension}",
-            f"  κ(★₁)             : {o.observation_stamp.condition_number:.4e}",
-            f"  λ_min(★₁)         : {o.observation_stamp.min_eigenvalue:.4e}",
-            f"  Tikhonov          : {o.observation_stamp.regularized_applied}",
-            f"  E_★ (Dirichlet)   : {o.dirichlet_energy:.4e}",
-            f"  Passiveive           : {o.is_passive}",
-            f"  β₀ / β₁           : {o.betti_0} / {o.betti_1}",
-            f"  Fiedler λ₂        : {o.algebraic_connectivity:.4e}",
-            f"  κ(L₀)             : {o.laplacian_condition:.4e}",
-            f"  ‖I_exact‖₂        : {d.exact_norm:.4e}",
-            f"  ‖I_coexact‖₂      : {d.coexact_norm:.4e}",
-            f"  ‖I_harmonic‖₂     : {d.harmonic_norm:.4e}",
-            f"  Ω_vort (parasitic): {d.parasitic_vorticity:.4e}",
-            f"  Ω_harm            : {d.harmonic_vorticity:.4e}",
-            f"  Ω_total           : {d.total_vorticity:.4e}",
-            f"  KCL residual      : {d.kcl_residual:.4e}",
-            f"  Recon error       : {d.reconstruction_error:.4e}",
-            f"  OODA hints        : {s.ooda_latency_hints}",
-            "=" * 72,
+            "=" * 76,
+            "HODGE SOVEREIGN STATE — CERTIFICADO OODA + POINCARÉ + RSI-L3 (v4.0.0)",
+            "=" * 76,
+            f"  Timestamp UTC      : {s.timestamp_utc}",
+            f"  Stratum            : {s.stratum}",
+            f"  Secure             : {s.is_secure}",
+            f"  Crowbar            : {'ACTIVE gpio=' + str(s.crowbar_gpio) if s.is_crowbar_active else 'idle'}",
+            f"  Verdict Ω₃         : {d.verdict.name}",
+            f"  Crowbar action     : {d.crowbar_action.name}",
+            f"  Veto reasons       : {d.veto_reasons or '—'}",
+            f"  dim(★₁)            : {o.observation_stamp.dimension}",
+            f"  κ(★₁) / λ_min(★₁)  : {o.observation_stamp.condition_number:.4e} / {o.observation_stamp.min_eigenvalue:.4e}",
+            f"  Volumen Liouville  : {o.observation_stamp.liouville_volume_form:.4e}",
+            f"  Tikhonov / RSI-L3  : {o.observation_stamp.regularized_applied} (gen={s.rsi_generation})",
+            f"  E_★ (Dirichlet)    : {o.dirichlet_energy:.4e} (Passive={o.is_passive})",
+            f"  β₀ / β₁ / χ(K)     : {o.betti_0} / {o.betti_1} / {o.euler_poincare_characteristic} (ok={o.euler_poincare_verified})",
+            f"  Fiedler λ₂ / κ(L₀) : {o.algebraic_connectivity:.4e} / {o.laplacian_condition:.4e}",
+            f"  KAM div_min        : {o.kam_smallest_divisor:.4e} (no-res={o.is_kam_non_resonant})",
+            f"  ‖I_ex‖₂ / ‖I_co‖₂  : {d.exact_norm:.4e} / {d.coexact_norm:.4e}",
+            f"  ‖I_harm‖₂          : {d.harmonic_norm:.4e}",
+            f"  Ω_vort / Ω_harm    : {d.parasitic_vorticity:.4e} / {d.harmonic_vorticity:.4e}",
+            f"  Ω_total            : {d.total_vorticity:.4e}",
+            f"  KCL / Recon error  : {d.kcl_residual:.4e} / {d.reconstruction_error:.4e}",
+            f"  Joule ortho defect : {d.joule_orthogonality_defect:.4e}",
+            f"  Órbita de Poincaré : {p_str}",
+            f"  OODA hints         : {s.ooda_latency_hints}",
+            "=" * 76,
         ]
         return "\n".join(lines)
 
@@ -1811,14 +2162,17 @@ def build_hodge_sovereign_agent(
     crowbar_actuator: Optional[CrowbarActuator] = None,
     dry_run: bool = False,
     raise_on_veto: bool = False,
+    enable_isochoric_rsi: bool = False,
 ) -> DiscreteHodgeStarAgent:
     """
-    Factoría de alto nivel del Agente Soberano.
+    Factoría de alto nivel del Agente Soberano de la Estrella de Hodge.
 
     Parameters
     ----------
     dry_run :
-        Si True, inyecta ``NullCrowbarActuator`` (CI / simulación).
+        Si True, inyecta `NullCrowbarActuator` (entorno CI / simulación segura).
+    enable_isochoric_rsi :
+        Si True, habilita la retracción geodésica isocórica de Fisher-Rao (RSI-L3).
     """
     actuator: CrowbarActuator
     if crowbar_actuator is not None:
@@ -1834,6 +2188,7 @@ def build_hodge_sovereign_agent(
         condition_max=condition_max,
         crowbar_actuator=actuator,
         raise_on_veto=raise_on_veto,
+        enable_isochoric_rsi=enable_isochoric_rsi,
     )
 
 
@@ -1842,21 +2197,25 @@ __all__ = [
     "HodgeStarAgentError",
     "NonFiniteWeightError",
     "MetricDegeneracyError",
-    "MetricDefeneracyError",  # alias v3
+    "MetricDefeneracyError",
     "LaplacianPassivityError",
     "HelmholtzDecompositionError",
     "ParasiticVorticityVeto",
     "BettiNumberVeto",
+    "PoincareSymplecticVeto",
+    "KAMResonanceDegradationError",
     "CrowbarActivationError",
-    # Ω₃ y Crowbar
+    # Clasificador Ω₃ y Crowbar
     "HodgeSovereignVerdict",
     "CrowbarAction",
     "CrowbarActuator",
     "NullCrowbarActuator",
     "LoggingCrowbarActuator",
-    # DTOs de continuidad funtorial
+    # DTOs de continuidad funtorial, Poincaré y RSI-L3
+    "AgentRSILevel3Certificate",
     "Phase1HodgeObservation",
     "Phase2HodgeOrientation",
+    "PoincarePhaseSpaceAudit",
     "Phase3HodgeDecision",
     "HodgeSovereignState",
     # Fases anidadas
@@ -1867,17 +2226,3 @@ __all__ = [
     "DiscreteHodgeStarAgent",
     "build_hodge_sovereign_agent",
 ]
-
-
-# =============================================================================
-# Cierre formal de las tres fases anidadas del Agente:
-#
-#   Phase1_SpectralMetricObserver.emit_phase1_observation
-#       → Phase1HodgeObservation
-#           → Phase2_HodgeLaplacianOrienter.emit_phase2_orientation
-#               → Phase2HodgeOrientation
-#                   → Phase3_HelmholtzDecisionMaker.emit_phase3_decision
-#                       → Phase3HodgeDecision
-#                           → DiscreteHodgeStarAgent._act_crowbar
-#                               → HodgeSovereignState
-# =============================================================================

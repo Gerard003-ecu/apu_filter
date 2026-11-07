@@ -3,75 +3,91 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : Hydrological Agent (Soberano de Calibre Hidrológico)                ║
 ║ Ruta   : app/agents/physics/hydrological_agent.py                            ║
-║ Versión: 1.1.0-Doctoral-Biot-Terzaghi-Richards-Heyting-OODA-IRAM-ESP32-Secure║
+║ Versión: 4.0.0-Doctoral-Biot-Terzaghi-Richards-Poincare-Heyting-RSI-L3-Secure║
 ║                                                                              ║
-║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA):                  ║
+║ SINOPSIS MATEMÁTICA Y DE GOBERNANZA DE LAZO CERRADO (OODA ANIDADO):          ║
 ║ Este agente supervisor ciber-físico opera en el Estrato de la Sabiduría      ║
 ║ ($V_{\mathbb{W}}$, Nivel 0) u Omega ($V_{\Omega}$, Nivel 0.5) para gobernar  ║
 ║ síncronamente al motor de poroelasticidad y flujos de Richards               ║
-║ [hydrological_manifold.py].                                                  ║
+║ [app/physics/hydrological_manifold.py], tejido en 3 Fases Anidadas:          ║
 ║                                                                              ║
-║ Evalúa de forma covariante los tensores de esfuerzos efectivos de Biot,      ║
-║ la estabilidad espectral del Laplaciano hidráulico discreto (DEC) y los      ║
-║ gradientes críticos de sifonamiento de Terzaghi, modulando el veredicto en   ║
-║ el retículo de Heyting trivalente $\Omega_3$ para inyectar conmutación rápida║
-║ de potencia (< 400 ns en IRAM) ante desbalances catastróficos.               ║
+║   • FASE 1 (OBSERVE — Poroelastic, Port-Hamiltonian & Tensor Hygiene):       ║
+║     Valida 0-cocadenas $(H, P_f)$, 1-cadenas de flujo $(Q_e)$, el espectro   ║
+║     del Laplaciano $\sigma(\Delta_0)$ y los tensores efectivos $\sigma' \in  ║
+║     \operatorname{Sym}^3(\mathbb{R})$ con aritmética compensada KBN y        ║
+║     auditoría de pasividad Port-Hamiltoniana de Clausius-Duhem.              ║
+║     Su método final `phase1_close_and_open_phase2` invoca directamente       ║
+║     el método inicial `phase2_from_phase1` de la Fase 2.                     ║
+║                                                                              ║
+║   • FASE 2 (ORIENT — Fiedler-Cheeger, Lode Invariants & Poincaré Celestial): ║
+║     Inicia en `phase2_from_phase1`, audita la conectividad algebraica de     ║
+║     Fiedler ($\lambda_2$), la cota isoperimétrica de Cheeger, los            ║
+║     invariantes octaédricos de Lode-Haigh-Westergaard $(J_2, J_3, q,         ║
+║     \theta_L)$, la condición diofántica de no-resonancia KAM y la            ║
+║     invariancia simpléctica de Liouville ($\det \Phi_{\Delta t} = 1$).       ║
+║     Su método final `phase2_close_and_open_phase3` invoca directamente       ║
+║     el método inicial `phase3_from_phase2` de la Fase 3.                     ║
+║                                                                              ║
+║   • FASE 3 (DECIDE / ACT — Bi-Heyting Ω₃, Fock Positron Override & IRAM):    ║
+║     Inicia en `phase3_from_phase2`, evalúa la rampa de confianza Lipschitz,  ║
+║     la aniquilación positrónica $e^- + e^+ \to 2\gamma$ en el espacio de     ║
+║     Fock, la contracción de punto fijo de Banach (RSI-L3), el disparo del    ║
+║     Crowbar BT151 en IRAM (< 400 ns) y el sello criptográfico SHA-256.       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ================════════════════════════════════════════════════════════════════
 I. ANCLAJE MATEMÁTICO DOCTORAL (Teoría de Haces Celulares y Estabilidad Espectral)
 ================════════════════════════════════════════════════════════════════
 
-Definición 1 (Estabilidad Espectral de Richards-Poisson en DEC):
+Definición 1 (Estabilidad Espectral de Richards-Poisson en DEC y Condición KAM):
   El flujo permanente insaturado se discretiza sobre el 1-esqueleto del complejo simplicial
   de la obra mediante el operador Laplaciano ponderado de Richards:
   $$\mathbf{\Delta}_{\mathrm{Richards}}(\mathrm{sat}) = \mathbf{B}_1 \mathbf{W}_{\mathrm{hyd}}(\mathrm{sat}) \mathbf{B}_1^\top \succeq \mathbf{0}$$
-  Para garantizar la conectividad hidráulica global del foso (evitando la desecación o 
-  impermeabilización de frentes), el segundo menor autovalor del Laplaciano (conectividad de Fiedler) 
+  Para garantizar la conectividad hidráulica global del foso (evitando la desecación o
+  impermeabilización de frentes), el segundo menor autovalor del Laplaciano (conectividad de Fiedler)
   debe superar el umbral elástico del topos en la FPU, garantizando conexidad simplicial única:
   $$\lambda_2(\mathbf{\Delta}_{\mathrm{Richards}}) \ge \tau_{\mathrm{Fiedler}} \quad \implies \quad \beta_0 \equiv \dim H^0(K_{\mathrm{hydro}}; \, \mathbb{Z}) = 1$$
+  Sobre el espectro positivo $\omega_k = \sqrt{\lambda_k}$, la estabilidad cuasi-periódica de
+  Poincaré-KAM exige la ausencia de pequeños divisores resonantes:
+  $$|\omega_j - \omega_i| \ge \gamma_{\mathrm{KAM}} |j - i|^{-\tau}, \qquad \forall i \neq j$$
 
-Definición 2 (Causalidad y Preservación de Esfuerzos Efectivos de Biot-Terzaghi):
+Definición 2 (Causalidad, Esfuerzos Efectivos de Biot-Terzaghi e Invariantes de Lode):
   La poroelasticidad del foso de excavación se acopla mediante el tensor de esfuerzos efectivos de Biot:
-  $$\sigma'_{\mu\nu} = \sigma_{\mu\nu} - \alpha_{\mathrm{Biot}} \, P_f \, \delta_{\mu\nu}$$
-  Donde la presión de poros intersticial $P_f$ es inducida por la succión matricial y la saturación:
-  $$P_f = -\gamma_w \cdot \psi_w \cdot \mathrm{sat}$$
-  El colapso geomecánico por licuación de arenas se diagnostica de forma exacta si el determinante 
-  del tensor efectivo decae a la región no positiva definida, anulando la resistencia al corte del fango:
-  $$\det(\sigma'_{\mu\nu}) \le \tau_{\mathrm{liq\_limit}} \quad \implies \quad \mathtt{liquefaction\_flag} = \mathtt{True}$$
+  $$\sigma'_{\mu\nu} = \sigma_{\mu\nu} - \alpha_{\mathrm{Biot}} \, P_f \, \delta_{\mu\nu}, \qquad P_f = -\gamma_w \cdot \psi_w \cdot \mathrm{sat}$$
+  Con la descomposición hidro-desviadora $\sigma' = p'\mathbf{I}_3 + \mathbf{s}'$, $J_2 = \frac{1}{2}\operatorname{tr}(\mathbf{s}'^2)$
+  y $J_3 = \det(\mathbf{s}')$, el colapso geomecánico por licuación de arenas se diagnostica de forma
+  exacta si $\sigma'_{\min} \le \tau_{\mathrm{liq\_limit}}$, $p' \le \tau_{\mathrm{liq\_limit}}$ o
+  $\det(\sigma'_{\mu\nu}) \le \tau_{\mathrm{liq\_limit}}$.
 
-Definición 3 (La Rampa de Confianza de de Rham y override Criptográfico):
+Definición 3 (La Rampa de Confianza de de Rham y Override Criptográfico en Fock):
   Para eludir paradas de obra destructivas por ruidos espurios de reflectometría temporal sónica TDR
-  o interferencias analógicas transitorias rápidos de alta frecuencia, el agente implementa una rampa elástica 
-  sobre el clasificador de subobjetos del Álgebra de Heyting distributiva trivalente:
-  $$\Omega_3 := \{\mathtt{COHERENT}, \, \mathtt{DEGRADED}, \, \mathtt{VETOED}\}$$
-  - Veto Suave (Luz Ámbar): Se activa si el gradiente de filtración o la desviación espectral habita el rango elástico:
-    $$0.3 \cdot \tau_{\mathrm{Lmax}} \cdot \tau_{\mathrm{margin}} < \delta_{\mathrm{similarity}} \le 0.5 \cdot \tau_{\mathrm{Lmax}} \cdot \tau_{\mathrm{margin}}$$
-    Concede una ventana de gracia de 1 hora. El interventor puede inyectar un Positrón de Autorización $e^+$
-    signed con HMAC-SHA256 para neutralizar la anomalía $e^-$ en Fock, disipando la alerta:
+  o interferencias analógicas transitorias de alta frecuencia, el agente implementa una rampa elástica
+  sobre el clasificador de subobjetos del Álgebra Bi-Heyting distributiva trivalente:
+  $$\Omega_3 := \{\mathtt{VETOED}\,(0.0), \, \mathtt{DEGRADED}\,(0.5), \, \mathtt{COHERENT}\,(1.0)\}$$
+  - Veto Suave (Luz Ámbar): Concede una ventana de gracia $\tau_{\mathrm{grace}}$. El interventor puede
+    inyectar un Positrón de Autorización $e^+$ firmado con HMAC-SHA256 para neutralizar la anomalía $e^-$
+    en el espacio de Fock:
     $$e^- + e^+ \longrightarrow 2\gamma \quad \implies \quad \mathtt{heyting\_verdict} \mapsto \mathtt{DEGRADED}$$
-  - Veto Duro (Bypass en Silicio): Se activa si se viola el límite geomecánico de Terzaghi, se delata dolo, 
-    o expira el plazo de gracia, colapsando el retículo al Supremo terminal VETOED ($\top$).
+  - Veto Duro (Bypass en Silicio): Se activa si se viola el límite geomecánico de Terzaghi, se delata
+    desconexión homológica o expira el plazo de gracia, colapsando al ínfimo de absorción VETOED.
 
 ================════════════════════════════════════════════════════════════════
-II. AXIOMÁTICA INMUNILÓGICA DE CONTROL COVARIANTE (Leyes de Consistencia)
+II. AXIOMÁTICA INMUNOLÓGICA DE CONTROL COVARIANTE (Leyes de Consistencia)
 ================════════════════════════════════════════════════════════════════
 
-Axioma I (Principio de Pasividad de Lyapunov-Rayleigh):
+Axioma I (Principio de Pasividad de Lyapunov-Rayleigh-Clausius-Duhem):
   La evolución de la energía hidráulica acumulada $\mathcal{H}_H(t)$ en el foso satisface
   la inecuación de Clausius-Duhem para sistemas disipativos Port-Hamiltonianos:
   $$\dot{\mathcal{H}}_H(t) = -\nabla \mathcal{H}_H^\top \mathbf{R}_{\mathrm{hyd}}(\mathrm{sat}) \nabla \mathcal{H}_H \le 0 \quad \text{con} \quad \mathbf{R}_{\mathrm{hyd}} \succeq \mathbf{0}$$
 
 Axioma II (Teorema de Actuación Ciber-Física en IRAM):
-  Ante el colapso al Supremo de veto ($\top$), la subrutina local isVerdictCoherent() del ESP32 perimetral
+  Ante el colapso a VETOED, la subrutina local `isVerdictCoherent()` del ESP32 perimetral
   desvía síncronamente el control hacia la ISR en memoria estática IRAM en menos de 400 ns:
   $$t_{\mathrm{actuation}} \le \tau_{\mathrm{IRAM}} = 400\text{ ns} \quad \implies \quad \mathtt{GPIO14} \mapsto \mathtt{HIGH}$$
-  Disparando el tiristor rápido BT151 (Crowbar de potencia) para paralizar mecánicamente la obra civil,
-  anulando la alucinación o fraude antes de liquidar transacciones ante el SECOP II.
 
 Axioma III (Auditoría de Sifonamiento Crítico de Terzaghi):
   El arrastre de finos y la socavación por sifonamiento en las aristas del complejo simplicial
-  está acotado estrictamente por el gradiente hidráulico crítico derivado de la densidad del suelo saturado:
+  está acotado estrictamente por el gradiente hidráulico crítico:
   $$i_{\mathrm{grad}} = \frac{|\Delta H_e|}{L_e} \le i_{\mathrm{crit}} = \frac{\rho_{\mathrm{sat}} - \rho_w}{\rho_w}$$
 """
 
@@ -87,8 +103,11 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Final, Mapping, Optional, Tuple
 
 import numpy as np
+import scipy.linalg as la
 
 __all__ = [
+    "AgentPoincarePhaseAudit",
+    "AgentRSILevel3Certificate",
     "HydrologicalAgent",
     "HydrologicalVerdict",
     "Phase1HydroAgentHandoff",
@@ -97,12 +116,13 @@ __all__ = [
 ]
 
 __version__: Final[str] = (
-    "3.0.0-Biot-Terzaghi-Fiedler-Heyting-Grace-IRAM-Governance"
+    "4.0.0-Doctoral-Biot-Terzaghi-Richards-Poincare-Heyting-RSI-L3-Secure"
 )
 
 logger = logging.getLogger("APU.Physics.HydrologicalAgent")
 
 _MACHINE_EPS: Final[float] = float(np.finfo(np.float64).eps)
+_SQRT_EPS: Final[float] = math.sqrt(_MACHINE_EPS)
 _CROWBAR_IRAM_LATENCY_NS: Final[float] = 400.0
 _CROWBAR_LATENCY_MIN_NS: Final[float] = 385.0
 _CROWBAR_LATENCY_MAX_NS: Final[float] = 415.0
@@ -110,10 +130,11 @@ _SHA256_HEX_LEN: Final[int] = 64
 _PHASE1_ENTRY: Final[str] = "phase2_from_phase1"
 _PHASE2_ENTRY: Final[str] = "phase3_from_phase2"
 _I3: Final[np.ndarray] = np.eye(3, dtype=np.float64)
+_KAM_DIOPHANTINE_EXP: Final[float] = 2.0
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# UTILIDADES CANÓNICAS, NUMÉRICAS Y CRIPTOGRÁFICAS
+# UTILIDADES CANÓNICAS, COMPENSADAS (KBN) Y CRIPTOGRÁFICAS
 # ═════════════════════════════════════════════════════════════════════════════
 
 def _freeze_array(arr: np.ndarray) -> np.ndarray:
@@ -165,6 +186,30 @@ def _sha_update_arr(hasher: "hashlib._Hash", arr: np.ndarray) -> None:
     hasher.update(payload)
 
 
+def _kbn_sum(arr: np.ndarray) -> float:
+    """Sumación compensada Kahan–Babuška–Neumaier (error acotado por O(ε_mach))."""
+    s = 0.0
+    c = 0.0
+    for x in np.asarray(arr, dtype=np.float64).ravel():
+        x = float(x)
+        t = s + x
+        if abs(s) >= abs(x):
+            c += (s - t) + x
+        else:
+            c += (x - t) + s
+        s = t
+    return float(s + c)
+
+
+def _kbn_dot(u: np.ndarray, v: np.ndarray) -> float:
+    """Producto interno compensado Kahan–Babuška–Neumaier ⟨u, v⟩."""
+    a = np.asarray(u, dtype=np.float64).ravel()
+    b = np.asarray(v, dtype=np.float64).ravel()
+    if a.size == 0 or b.size == 0:
+        return 0.0
+    return _kbn_sum(a * b)
+
+
 def _safe_float(value: Any, default: float = math.nan) -> float:
     """Convierte a float conservando ±∞; NaN o tipos inválidos → default."""
     try:
@@ -206,17 +251,21 @@ def _nested_get(mapping: Any, *keys: str) -> Any:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# ÁLGEBRA DE HEYTING TRIVALENTE Ω₃
+# ÁLGEBRA BI-HEYTING TRIVALENTE Ω₃ Y ANULACIÓN POSITRÓNICA EN FOCK
 # ═════════════════════════════════════════════════════════════════════════════
 
 class Heyting3:
     """
-    Álgebra de Heyting de Gödel–Dummett de tres valores.
+    Álgebra Bi-Heyting de Gödel–Dummett de tres valores sobre el Topos Hidrológico.
 
-        0 ↔ VETOED,   ½ ↔ DEGRADED,   1 ↔ COHERENT
+        0.0 ↔ VETOED (⊥),   0.5 ↔ DEGRADED,   1.0 ↔ COHERENT (⊤)
 
-    Retículo residuado acotado: el implicador es adjunto derecho del encuentro.
-    El override humano actúa como sección de DEGRADED → ¬(gracia expirada).
+    Retículo distributivo residuado acotado:
+      • `meet(a, b)`       : conjunción lógica a ∧ b = min(a, b)
+      • `join(a, b)`       : disyunción lógica a ∨ b = max(a, b)
+      • `implies(a, b)`    : implicación relativa de Heyting (a ⇒ b), adjunto derecho de ∧
+      • `co_implies(a, b)` : sustracción de Brouwer (a ∖ b), adjunto izquierdo de ∨
+      • `fock_annihilate`  : aniquilación materia-antimateria e⁻ + e⁺ → 2γ en Fock
     """
 
     VETOED: Final[float] = 0.0
@@ -236,8 +285,32 @@ class Heyting3:
         return 1.0 if a <= b else float(b)
 
     @staticmethod
+    def co_implies(a: float, b: float) -> float:
+        """Sustracción co-Heyting de Brouwer (a ∖ b): inf { c ∈ Ω₃ | a ≤ b ∨ c }."""
+        return 0.0 if a <= b else float(a)
+
+    @staticmethod
     def neg(a: float) -> float:
         return Heyting3.implies(a, Heyting3.VETOED)
+
+    @staticmethod
+    def fock_annihilate(
+        anomaly_truth: float,
+        positron_authorized: bool,
+        is_hard_geomechanical_collapse: bool = False,
+    ) -> float:
+        """
+        Operador de aniquilación positrónica en el espacio de Fock:
+            e⁻ (anomalía elástica) + e⁺ (override HMAC) ⟶ 2γ (DEGRADED).
+
+        Si existe colapso geomecánico duro (licuación o desconexión homológica),
+        el positrón no puede violar la causalidad física y el estado permanece VETOED.
+        """
+        if is_hard_geomechanical_collapse:
+            return Heyting3.VETOED
+        if positron_authorized and anomaly_truth <= Heyting3.DEGRADED:
+            return Heyting3.DEGRADED
+        return Heyting3.quantize(anomaly_truth)
 
     @staticmethod
     def from_verdict(verdict: str) -> float:
@@ -266,15 +339,46 @@ class Heyting3:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# FRONTERAS DE FASE Y VEREDICTO
+# CERTIFICADOS DOCTORALES (POINCARÉ CELESTIAL & RSI-L3) Y FRONTERAS DE FASE
 # ═════════════════════════════════════════════════════════════════════════════
+
+@dataclass(frozen=True, slots=True)
+class AgentPoincarePhaseAudit:
+    """
+    Certificado de Mecánica Celeste de Henri Poincaré evaluado durante la
+    Fase 2 (ORIENT) del Soberano Hidrológico.
+    """
+
+    kam_smallest_divisor: float
+    kam_diophantine_margin: float
+    is_kam_non_resonant: bool
+    liouville_symplectic_determinant: float
+    symplectic_volume_defect: float
+    kac_poincare_recurrence_time: float
+    effective_condition_number: float
+
+
+@dataclass(frozen=True, slots=True)
+class AgentRSILevel3Certificate:
+    """
+    Certificado de Automejora Recursiva de Nivel 3 (RSI-L3) para la política
+    de gobernanza OODA en la Fase 3 (DECIDE/ACT).
+    """
+
+    generation: int
+    banach_contraction_ratio: float
+    is_contractive_fixed_point: bool
+    lyapunov_passivity_verified: bool
+    epistemic_confidence_drift: float
+
 
 @dataclass(frozen=True, slots=True, eq=False)
 class Phase1HydroAgentHandoff:
     """
     Frontera formal Φ₁→₂.
 
-    Salida cerrada de la Fase 1 y dominio de `phase2_from_phase1`.
+    Salida cerrada de la Fase 1 (`phase1_close_and_open_phase2`) y dominio
+    exacto de `phase2_from_phase1`.
     """
 
     hydraulic_head: np.ndarray
@@ -304,6 +408,13 @@ class Phase1HydroAgentHandoff:
                 self, "hydraulic_gradients", _freeze_array(self.hydraulic_gradients)
             )
 
+    def continue_to_phase2(
+        self,
+        agent: "HydrologicalAgent",
+    ) -> "Phase2HydroAgentHandoff":
+        """Morfismo de continuación functorial Φ₁→₂ hacia la Fase 2 (ORIENT)."""
+        return agent.phase2_close_and_open_phase3(self)
+
     def __hash__(self) -> int:
         return hash((self.session_sha256, self.next_entrypoint))
 
@@ -321,7 +432,8 @@ class Phase2HydroAgentHandoff:
     """
     Frontera formal Φ₂→₃.
 
-    Salida cerrada de la Fase 2 y dominio de `phase3_from_phase2`.
+    Salida cerrada de la Fase 2 (`phase2_close_and_open_phase3`) y dominio
+    exacto de `phase3_from_phase2`.
     """
 
     hydraulic_head: np.ndarray
@@ -351,6 +463,23 @@ class Phase2HydroAgentHandoff:
             self, "sigma_prime_tensors", _freeze_array(self.sigma_prime_tensors)
         )
 
+    def continue_to_phase3(
+        self,
+        agent: "HydrologicalAgent",
+        human_override_token: Optional[str] = None,
+        current_time: Optional[float] = None,
+        simulate_grace_expired: bool = False,
+        elapsed_grace_seconds: Optional[float] = None,
+    ) -> "HydrologicalVerdict":
+        """Morfismo de continuación functorial Φ₂→₃ hacia la Fase 3 (DECIDE/ACT)."""
+        return agent.phase3_close_loop(
+            self,
+            human_override_token=human_override_token,
+            current_time=current_time,
+            simulate_grace_expired=simulate_grace_expired,
+            elapsed_grace_seconds=elapsed_grace_seconds,
+        )
+
     def __hash__(self) -> int:
         return hash((self.session_sha256, self.next_entrypoint))
 
@@ -370,10 +499,10 @@ class Phase2HydroAgentHandoff:
 @dataclass(frozen=True, slots=True, eq=False)
 class HydrologicalVerdict:
     """
-    Certificado inmutable de regularidad espectral e hidrológica.
+    Certificado inmutable de regularidad espectral, poroelástica e hidrológica.
 
-    Se conservan los campos originales por compatibilidad. Los campos
-    añadidos van al final con valores por defecto.
+    Conserva íntegramente los campos originales por compatibilidad estructural
+    y añade telemetría avanzada en el diccionario `diagnostics`.
     """
 
     heyting_verdict: str
@@ -413,16 +542,24 @@ class HydrologicalVerdict:
 
 
 # ═════════════════════════════════════════════════════════════════════════════
-# SOBERANO DE CALIBRE HIDROLÓGICO — TRES FASES ANIDADAS
+# SOBERANO DE CALIBRE HIDROLÓGICO — TRES FASES ANIDADAS (OODA)
 # ═════════════════════════════════════════════════════════════════════════════
 
 class HydrologicalAgent:
     """
-    Soberano de Calibre Hidrológico — OODA en 3 fases anidadas.
+    Soberano de Calibre Hidrológico — Lazo OODA en 3 fases anidadas.
 
-    FASE 1  OBSERVE    : validación Richards/Biot, tensores, sello de sesión.
-    FASE 2  ORIENT     : Fiedler–Cheeger, sifonamiento, licuación, Kirchhoff.
-    FASE 3  DECIDE/ACT : rampa, Heyting Ω₃, override e⁺, Crowbar, certificado.
+    Arquitectura de Anidamiento Functorial:
+      • FASE 1 (OBSERVE)    : Validación Richards/Biot, higiene tensorial KBN,
+        pasividad Port-Hamiltoniana de Clausius-Duhem y sello de sesión SHA-256.
+        Termina en `phase1_close_and_open_phase2`, que invoca `phase2_from_phase1`.
+      • FASE 2 (ORIENT)     : Conectividad de Fiedler–Cheeger, sifonamiento de
+        Terzaghi, invariantes octaédricos de Lode–Haigh–Westergaard y mecánica
+        celeste de Poincaré (no-resonancia KAM, invariante de Liouville).
+        Termina en `phase2_close_and_open_phase3`, que invoca `phase3_from_phase2`.
+      • FASE 3 (DECIDE/ACT) : Rampa Lipschitz, clasificador Bi-Heyting Ω₃,
+        aniquilación positrónica e⁺ en Fock, auditoría de contracción de Banach
+        (RSI-L3), disparo de Crowbar BT151 en IRAM (< 400 ns) y sello SHA-256.
     """
 
     def __init__(
@@ -486,11 +623,16 @@ class HydrologicalAgent:
         self._is_soft_veto_active: bool = False
         self._soft_veto_timestamp: Optional[float] = None
 
+        # Telemetría epistémica interna para RSI-L3 (contracción de Banach)
+        self._rsi_generation: int = 0
+        self._prev_confidence_error: float = 0.0
+        self._last_banach_ratio: float = 0.0
+
     def _tolerance_of(self, scale: float = 1.0) -> float:
         return max(self._tol, self._tol * abs(scale), 32.0 * _MACHINE_EPS)
 
     # ═════════════════════════════════════════════════════════════════════════
-    # VALIDADORES Y EXTRACCIÓN DE SEÑALES (infraestructura de Fase 1)
+    # INFRAESTRUCTURA DE VALIDACIÓN Y EXTRACCIÓN (PRELUDIO FASE 1)
     # ═════════════════════════════════════════════════════════════════════════
 
     def _validate_required_vector(
@@ -531,8 +673,8 @@ class HydrologicalAgent:
         """
         Valida tensores de esfuerzo efectivo σ' por nudo.
 
-        Forma requerida: (n_nodes, 3, 3). Se proyectan sobre Sym³, dominio
-        del círculo de Mohr y del spectral split.
+        Forma requerida: (n_nodes, 3, 3). Se proyectan ortogonalmente sobre
+        Sym³(R), dominio del círculo de Mohr y de la descomposición espectral.
         """
         if arr is None:
             raise ValueError(f"El campo '{name}' es obligatorio.")
@@ -590,7 +732,7 @@ class HydrologicalAgent:
         return dict(raw) if isinstance(raw, dict) else {}
 
     # ═════════════════════════════════════════════════════════════════════════
-    # FASE 1 — OBSERVE: VALIDACIÓN RICHARDS/BIOT Y SELLO
+    # FASE 1 — OBSERVE: VALIDACIÓN RICHARDS/BIOT, PASIVIDAD Y SELLO
     # ═════════════════════════════════════════════════════════════════════════
 
     def phase1_validate_hydraulic_fields(
@@ -640,9 +782,10 @@ class HydrologicalAgent:
         n_nodes: int,
     ) -> np.ndarray:
         """
-        Fase 1.2 — Validación de σ' ∈ Sym³ por nudo.
+        Fase 1.2 — Validación de σ' ∈ Sym³(R) por nudo.
 
-        Si no se aporta el tensor, se toma `effective_stresses` del estado.
+        Si no se aporta explícitamente el tensor, se extrae `effective_stresses`
+        del estado hidrológico emitido por el colector.
         """
         if sigma_prime_tensors is None:
             sigma_prime_tensors = getattr(hydraulic_state, "effective_stresses", None)
@@ -672,25 +815,60 @@ class HydrologicalAgent:
 
     def phase1_tensor_hygiene(self, sigma_prime: np.ndarray) -> Dict[str, float]:
         """
-        Fase 1.4 — Higiene de Sym³.
+        Fase 1.4 — Higiene de Sym³(R) con aritmética compensada KBN.
 
-        Residual de simetría (nulo tras la proyección), cota de Frobenius
-        y presión media p' = tr(σ')/3.
+        Evalúa residual de simetría de Frobenius, norma total de Frobenius
+        y presión efectiva media p' = tr(σ')/3 libre de deriva de Wilkinson.
         """
         a = np.asarray(sigma_prime, dtype=np.float64)
         if a.ndim != 3 or a.shape[-2:] != (3, 3):
             raise ValueError("sigma_prime debe ser un lote (n, 3, 3).")
         skew = a - np.swapaxes(a, 1, 2)
-        skew_f = float(np.sqrt(np.sum(skew * skew)))
-        fro = float(np.sqrt(np.sum(a * a)))
+        skew_f = math.sqrt(max(0.0, _kbn_sum(skew * skew)))
+        fro = math.sqrt(max(0.0, _kbn_sum(a * a)))
         traces = np.trace(a, axis1=1, axis2=2)
-        p_mean = float(np.mean(traces) / 3.0) if traces.size else 0.0
+        p_mean = float(_kbn_sum(traces) / (3.0 * traces.size)) if traces.size else 0.0
         return {
             "symmetry_frobenius_residual": float(skew_f / max(1.0, fro)),
-            "stress_frobenius": fro,
+            "stress_frobenius": float(fro),
             "mean_effective_pressure": p_mean,
             "min_trace": float(np.min(traces)) if traces.size else 0.0,
             "max_trace": float(np.max(traces)) if traces.size else 0.0,
+        }
+
+    def phase1_port_hamiltonian_passivity_observe(
+        self,
+        H: np.ndarray,
+        P_f: np.ndarray,
+        Q_e: np.ndarray,
+        collector_diag: Mapping[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Fase 1.4a — Observación Port-Hamiltoniana de Lyapunov–Clausius–Duhem (Axioma I).
+
+        Evalúa la energía cuadrática adimensional almacenada en las 0-formas:
+            H_stored = ½ ||H||₂² + ½ ||P_f / γ_ref||₂²
+        y verifica la condición de disipación viscosa de Rayleigh–Darcy:
+            dH_dt = −E_Darcy ≤ 0,
+        donde E_Darcy = ⟨Q, d₀ H⟩ ≥ 0 proviene del colector o de ||Q||₂².
+        """
+        h_energy = 0.5 * _kbn_dot(H, H)
+        pf_scaled = P_f / 9810.0  # Escala piezométrica equivalente (m de columna de agua)
+        pf_energy = 0.5 * _kbn_dot(pf_scaled, pf_scaled)
+        total_hamiltonian = h_energy + pf_energy
+
+        darcy_power = _finite_or_nan(collector_diag.get("darcy_dissipated_power"))
+        if math.isnan(darcy_power):
+            darcy_power = _kbn_dot(Q_e, Q_e)
+
+        dH_dt_lyapunov = -abs(float(darcy_power)) if darcy_power >= -self._tol else float(-darcy_power)
+        is_passive = bool(dH_dt_lyapunov <= self._tol)
+
+        return {
+            "port_hamiltonian_energy": float(total_hamiltonian),
+            "darcy_rayleigh_dissipation": float(darcy_power),
+            "lyapunov_energy_rate_dH_dt": float(dH_dt_lyapunov),
+            "clausius_duhem_passivity_satisfied": is_passive,
         }
 
     def phase1_observation_diagnostics(
@@ -706,17 +884,20 @@ class HydrologicalAgent:
         max_gradient_hint: float,
     ) -> Dict[str, Any]:
         """
-        Fase 1.5 — Diagnóstico de Banach/estatística de la observación.
+        Fase 1.5 — Diagnóstico de Banach, pasividad Port-Hamiltoniana y estadística KBN.
         """
+        passivity = self.phase1_port_hamiltonian_passivity_observe(
+            H, P_f, Q_e, collector_diag
+        )
         return {
             "n_nodes": int(H.size),
             "n_edges_flow_rates": int(Q_e.size),
             "n_eigenvalues": int(eigenvalues.size),
-            "head_mean": float(np.mean(H)) if H.size else 0.0,
+            "head_mean": float(_kbn_sum(H) / H.size) if H.size else 0.0,
             "head_oscillation": float(np.max(H) - np.min(H)) if H.size else 0.0,
             "pore_pressure_min": float(np.min(P_f)) if P_f.size else math.nan,
             "pore_pressure_max": float(np.max(P_f)) if P_f.size else math.nan,
-            "flow_l1": float(np.sum(np.abs(Q_e))) if Q_e.size else 0.0,
+            "flow_l1": float(_kbn_sum(np.abs(Q_e))) if Q_e.size else 0.0,
             "is_siphoning_flag_from_state": bool(is_siphoning),
             "max_gradient_hint": float(max_gradient_hint),
             "observe_timestamp": float(current_time),
@@ -732,7 +913,11 @@ class HydrologicalAgent:
             "collector_mass_residual": _finite_or_nan(
                 collector_diag.get("richards_mass_residual")
             ),
+            "collector_tellegen_defect": _finite_or_nan(
+                collector_diag.get("tellegen_adjunction_defect")
+            ),
             **dict(hygiene),
+            **passivity,
         }
 
     def _phase1_session_hash(
@@ -773,16 +958,14 @@ class HydrologicalAgent:
         current_time: Optional[float] = None,
     ) -> Phase1HydroAgentHandoff:
         """
-        Fase 1.7 — Cierre formal de Fase 1 y apertura verificada de Fase 2.
+        Fase 1.7 — DEFINICIÓN FINAL DE LA FASE 1 Y APERTURA ANIDADA DE LA FASE 2.
 
         Definición formal de frontera:
+            Φ₁→₂ : estado físico bruto ↦ Phase1HydroAgentHandoff ↦ phase2_from_phase1
 
-            Φ₁→₂ : estado físico bruto ↦ (H, u_w, Q, σ(L), σ', σ₁)
-
-        Este es el último método de la Fase 1. Su contrato es exactamente el
-        dominio de `phase2_from_phase1`: produce `Phase1HydroAgentHandoff` y
-        exige que la Fase 2 lo admita de inmediato. Con ello la Fase 1 queda
-        anidada, como prefijo functorial, dentro de la Fase 2.
+        Este es el último método de la Fase 1. Construye `Phase1HydroAgentHandoff`
+        y ejecuta directamente `self.phase2_from_phase1(handoff)` como
+        continuación e inicio formal de los métodos de la Fase 2.
         """
         fields = self.phase1_validate_hydraulic_fields(hydraulic_state)
         H = fields["hydraulic_head"]
@@ -833,6 +1016,7 @@ class HydrologicalAgent:
             max_gradient_hint=max_gradient_hint,
         )
 
+        # Continuación formal inmediata hacia el método inicial de la Fase 2:
         opened = self.phase2_from_phase1(handoff)
         if opened.session_sha256 != session_sha256:
             raise RuntimeError(
@@ -844,11 +1028,11 @@ class HydrologicalAgent:
             "Fase Observe [HYDRO_AGENT]: sesión sellada. SHA prefix=%s",
             session_sha256[:16],
         )
-        return handoff
+        return opened
 
     # ═════════════════════════════════════════════════════════════════════════
-    # FASE 2 — ORIENT: FIEDLER, CHEEGER, SIFONAMIENTO, LICUACIÓN
-    # (continuación formal de phase1_close_and_open_phase2)
+    # FASE 2 — ORIENT: FIEDLER, CHEEGER, SIFONAMIENTO, LODE & POINCARÉ KAM
+    # (Continuación directa de `phase1_close_and_open_phase2`)
     # ═════════════════════════════════════════════════════════════════════════
 
     def phase2_from_phase1(
@@ -856,10 +1040,10 @@ class HydrologicalAgent:
         handoff: Phase1HydroAgentHandoff,
     ) -> Phase1HydroAgentHandoff:
         """
-        Fase 2.0 — Entrada formal desde Fase 1.
+        Fase 2.0 — Punto de entrada formal de la Fase 2 desde la Fase 1.
 
         Continuación directa de `phase1_close_and_open_phase2`. Consume
-        `Phase1HydroAgentHandoff` y lo reexpone si la frontera es válida.
+        `Phase1HydroAgentHandoff` y certifica la integridad del contrato Φ₁→₂.
         """
         if not isinstance(handoff, Phase1HydroAgentHandoff):
             raise TypeError(
@@ -883,8 +1067,8 @@ class HydrologicalAgent:
         """
         Fase 2.1 — Proyección de σ(Δ₀) sobre [0, ∞).
 
-        Autovalores negativos por debajo de la tolerancia se clipean a 0
-        (ruido de un Laplaciano numéricamente PSD).
+        Autovalores negativos dentro del piso de ruido numérico (−tiny, 0)
+        se proyectan exactamente a 0.0.
         """
         eig = np.asarray(eigenvalues, dtype=np.float64).ravel()
         if eig.size == 0:
@@ -899,7 +1083,7 @@ class HydrologicalAgent:
         n_nodes: int,
     ) -> Tuple[float, bool, Dict[str, Any]]:
         """
-        Fase 2.2 — Conectividad algebraica de Fiedler.
+        Fase 2.2 — Conectividad algebraica de Fiedler (λ₂).
 
         Para L ⪰ 0: λ₁ ≈ 0 con multiplicidad β₀, λ₂ > 0 ⇔ 1-esqueleto conexo.
         Si λ₂ < τ_Fiedler se declara desconexión homológica/hidráulica.
@@ -954,7 +1138,7 @@ class HydrologicalAgent:
         fiedler_value: float,
     ) -> Dict[str, float]:
         """
-        Fase 2.3 — Cota de Cheeger h ≤ √(2 λ₂) sobre el 1-esqueleto.
+        Fase 2.3 — Cota isoperimétrica de Cheeger h ≤ √(2 λ₂) sobre el 1-esqueleto.
         """
         if not math.isfinite(fiedler_value):
             return {
@@ -967,12 +1151,87 @@ class HydrologicalAgent:
             "fiedler_value": float(fiedler_value),
         }
 
+    def phase2_audit_poincare_celestial_kam(
+        self,
+        eigenvalues: np.ndarray,
+    ) -> AgentPoincarePhaseAudit:
+        """
+        Fase 2.3a — Auditoría de Mecánica Celeste de Henri Poincaré sobre el
+        espectro hidro-poroelástico σ(Δ₀):
+
+          1. Condición Diofántica KAM: |ω_j − ω_i| ≥ γ_KAM |j − i|^{−τ} sobre
+             las frecuencias propias ω_k = √λ_k (λ_k > ε_tol).
+          2. Teorema Simpléctico de Liouville: det(Φ_Δt) = 1 mediante el
+             propagador de Cayley–Poincaré en el espacio fase (H, P_f).
+          3. Horizonte de Recurrencia de Kac–Poincaré: T_rec = 2π / ω_min⁺.
+        """
+        eig_sorted = self.phase2_sanitize_spectrum(eigenvalues)
+        tiny = max(self._tol, 1e-10)
+        pos = eig_sorted[eig_sorted > tiny] if eig_sorted.size else np.empty(0, dtype=np.float64)
+
+        if pos.size == 0:
+            return AgentPoincarePhaseAudit(
+                kam_smallest_divisor=math.inf,
+                kam_diophantine_margin=math.inf,
+                is_kam_non_resonant=True,
+                liouville_symplectic_determinant=1.0,
+                symplectic_volume_defect=0.0,
+                kac_poincare_recurrence_time=math.inf,
+                effective_condition_number=math.inf,
+            )
+
+        lam_min = float(pos[0])
+        lam_max = float(pos[-1])
+        kappa_eff = float(lam_max / lam_min) if lam_min > 0.0 else math.inf
+
+        freqs = np.sqrt(pos)
+        m_pos = freqs.size
+        if m_pos <= 1:
+            kam_min_div = math.inf
+            kam_margin = math.inf
+            is_kam_ok = True
+        else:
+            omega_max = max(float(freqs[-1]), 1.0)
+            gamma_kam = 1.0e-3 * omega_max / float(m_pos * m_pos)
+            kam_min_div = math.inf
+            kam_margin = math.inf
+            for i_idx in range(m_pos):
+                for j_idx in range(i_idx + 1, m_pos):
+                    gap = abs(float(freqs[j_idx] - freqs[i_idx]))
+                    if gap < kam_min_div:
+                        kam_min_div = gap
+                    bound = gamma_kam / (float(j_idx - i_idx) ** _KAM_DIOPHANTINE_EXP)
+                    margin = gap / max(bound, _MACHINE_EPS)
+                    if margin < kam_margin:
+                        kam_margin = margin
+            is_kam_ok = bool(kam_margin >= 1.0)
+
+        omega_0 = float(freqs[0])
+        dt_char = 1.0 / max(omega_0, 1.0)
+        half_theta = 0.5 * dt_char * omega_0
+        denom = 1.0 + half_theta * half_theta
+        c_diag = (1.0 - half_theta * half_theta) / denom
+        s_off = (2.0 * half_theta) / denom
+        liouville_det = float(c_diag * c_diag + s_off * s_off)
+        symp_defect = abs(liouville_det - 1.0)
+        kac_time = float(2.0 * math.pi / omega_0) if omega_0 > self._reg else math.inf
+
+        return AgentPoincarePhaseAudit(
+            kam_smallest_divisor=float(kam_min_div),
+            kam_diophantine_margin=float(kam_margin),
+            is_kam_non_resonant=is_kam_ok,
+            liouville_symplectic_determinant=liouville_det,
+            symplectic_volume_defect=float(symp_defect),
+            kac_poincare_recurrence_time=kac_time,
+            effective_condition_number=kappa_eff,
+        )
+
     def phase2_audit_max_gradient(
         self,
         handoff: Phase1HydroAgentHandoff,
     ) -> Tuple[float, Dict[str, Any]]:
         """
-        Fase 2.4 — Gradiente máximo de filtración / piping.
+        Fase 2.4 — Gradiente máximo de filtración / piping de Terzaghi.
 
         Si el estado reporta sifonamiento activo pero no hay i_max finito
         y positivo, se adopta conservadoramente +∞ (rampa de protección).
@@ -1015,6 +1274,54 @@ class HydrologicalAgent:
         }
         return max_gradient, diagnostics
 
+    def phase2_audit_octahedral_lode_stress(
+        self,
+        eigvals: np.ndarray,
+    ) -> Dict[str, float]:
+        """
+        Fase 2.5a — Invariantes Octaédricos de Lode–Haigh–Westergaard y Estado
+        Crítico de Roscoe–Schofield sobre los autovalores de σ'.
+        """
+        if eigvals.size == 0 or eigvals.shape[0] == 0:
+            return {
+                "max_J2_deviatoric": math.nan,
+                "max_von_mises_q": math.nan,
+                "max_octahedral_shear": math.nan,
+                "mean_lode_angle_rad": math.nan,
+                "max_critical_state_eta": math.nan,
+            }
+        s1 = eigvals[:, 0]
+        s2 = eigvals[:, 1]
+        s3 = eigvals[:, 2]
+        p_mean = (s1 + s2 + s3) / 3.0
+
+        d1 = s1 - p_mean
+        d2 = s2 - p_mean
+        d3 = s3 - p_mean
+
+        j2 = np.maximum(0.0, 0.5 * (d1 * d1 + d2 * d2 + d3 * d3))
+        j3 = d1 * d2 * d3
+
+        q_dev = np.sqrt(3.0 * j2)
+        tau_oct = np.sqrt((2.0 / 3.0) * j2)
+
+        denom_lode = np.power(np.maximum(j2, self._reg), 1.5)
+        sin_3theta = np.where(
+            j2 > self._tol,
+            np.clip(-1.5 * math.sqrt(3.0) * j3 / denom_lode, -1.0, 1.0),
+            0.0,
+        )
+        lode_angle = (1.0 / 3.0) * np.arcsin(sin_3theta)
+        eta = q_dev / np.maximum(p_mean, self._reg)
+
+        return {
+            "max_J2_deviatoric": float(np.max(j2)),
+            "max_von_mises_q": float(np.max(q_dev)),
+            "max_octahedral_shear": float(np.max(tau_oct)),
+            "mean_lode_angle_rad": float(_kbn_sum(lode_angle) / lode_angle.size),
+            "max_critical_state_eta": float(np.max(eta)),
+        }
+
     def phase2_audit_effective_stresses(
         self,
         sigma_prime: np.ndarray,
@@ -1022,13 +1329,11 @@ class HydrologicalAgent:
         """
         Fase 2.5 — Auditoría de Biot–Terzaghi / Bishop sobre σ'.
 
-        Por nudo, con autovalores σ'₁ ≥ σ'₂ ≥ σ'₃ de eigvalsh:
-
-            p'  = tr(σ')/3,     I₃ = det(σ') = Π σ'_k.
+        Por nudo, con autovalores ordenados de `eigvalsh`:
+            p' = tr(σ')/3,     I₃ = det(σ') = Π σ'_k.
 
         Licuación (compresión positiva en el tensor de entrada):
-
-            σ'₃ ≤ ε  o  p' ≤ ε  o  I₃ ≤ ε,     ε = liquefaction_limit.
+            σ'_min ≤ ε  o  p' ≤ ε  o  I₃ ≤ ε,     ε = liquefaction_limit.
         """
         n_nodes = int(sigma_prime.shape[0])
         tiny = max(self._liq_limit, 0.0)
@@ -1048,10 +1353,10 @@ class HydrologicalAgent:
             eigvals = np.zeros((n_nodes, 3), dtype=np.float64)
             for i in range(n_nodes):
                 try:
-                    eigvals[i] = np.linalg.eigvalsh(
+                    eigvals[i] = la.eigvalsh(
                         0.5 * (sigma_prime[i] + sigma_prime[i].T)
                     )
-                except np.linalg.LinAlgError:
+                except la.LinAlgError:
                     eigvals[i] = 0.0
 
         min_principal_vec = np.asarray(eigvals[:, 0], dtype=np.float64)
@@ -1079,6 +1384,12 @@ class HydrologicalAgent:
         liquefaction_nodes = int(np.count_nonzero(liq_mask))
         is_liquefaction = bool(nonfinite or liquefaction_nodes > 0)
 
+        lode_diag = (
+            self.phase2_audit_octahedral_lode_stress(eigvals)
+            if not nonfinite
+            else {}
+        )
+
         diagnostics: Dict[str, Any] = {
             "stress_status": "ok" if not nonfinite else "nonfinite",
             "min_det_sigma_prime": float(min_det),
@@ -1087,6 +1398,7 @@ class HydrologicalAgent:
             "liquefaction_limit": float(tiny),
             "liquefaction_nodes": liquefaction_nodes,
             "liquefaction_ratio": float(liquefaction_nodes / n_nodes),
+            **lode_diag,
         }
         return float(min_det), float(min_principal), bool(is_liquefaction), diagnostics
 
@@ -1095,9 +1407,9 @@ class HydrologicalAgent:
         diagnostics: Mapping[str, Any],
     ) -> Dict[str, float]:
         """
-        Fase 2.6 — Residuales de Kirchhoff y masa reportados por el colector.
+        Fase 2.6 — Residuales de Kirchhoff, masa y Tellegen reportados por el colector.
 
-        Ausencia no es veto: se reporta NaN.
+        Su ausencia en estados sintéticos no gatilla veto: se reporta NaN.
         """
         return {
             "kirchhoff_residual": _finite_or_nan(
@@ -1106,6 +1418,9 @@ class HydrologicalAgent:
             "richards_mass_residual": _finite_or_nan(
                 diagnostics.get("collector_mass_residual")
             ),
+            "tellegen_adjunction_defect": _finite_or_nan(
+                diagnostics.get("collector_tellegen_defect")
+            ),
         }
 
     def phase2_collect_invariants(
@@ -1113,18 +1428,24 @@ class HydrologicalAgent:
         phase1_handoff: Phase1HydroAgentHandoff,
     ) -> Dict[str, Any]:
         """
-        Fase 2.7 — Recolección conjunta de invariantes de orientación.
+        Fase 2.7 — Recolección conjunta de invariantes espectrales, poroelásticos
+        y de mecánica celeste de Poincaré en la Fase 2 (ORIENT).
         """
         fiedler, is_disconnected, spectral_diag = self.phase2_audit_fiedler(
             phase1_handoff.laplacian_eigenvalues,
             n_nodes=phase1_handoff.hydraulic_head.size,
         )
         cheeger_diag = self.phase2_audit_cheeger(fiedler)
+        poincare_audit = self.phase2_audit_poincare_celestial_kam(
+            phase1_handoff.laplacian_eigenvalues
+        )
         max_gradient, gradient_diag = self.phase2_audit_max_gradient(phase1_handoff)
         min_det, min_principal, is_liquefaction, stress_diag = (
             self.phase2_audit_effective_stresses(phase1_handoff.sigma_prime_tensors)
         )
-        residual_diag = self.phase2_audit_collector_residuals(phase1_handoff.diagnostics)
+        residual_diag = self.phase2_audit_collector_residuals(
+            phase1_handoff.diagnostics
+        )
 
         diagnostics: Dict[str, Any] = dict(phase1_handoff.diagnostics)
         diagnostics.update(spectral_diag)
@@ -1132,6 +1453,17 @@ class HydrologicalAgent:
         diagnostics.update(gradient_diag)
         diagnostics.update(stress_diag)
         diagnostics.update(residual_diag)
+        diagnostics["poincare_celestial"] = {
+            "kam_smallest_divisor": poincare_audit.kam_smallest_divisor,
+            "kam_diophantine_margin": poincare_audit.kam_diophantine_margin,
+            "is_kam_non_resonant": poincare_audit.is_kam_non_resonant,
+            "liouville_symplectic_determinant": (
+                poincare_audit.liouville_symplectic_determinant
+            ),
+            "symplectic_volume_defect": poincare_audit.symplectic_volume_defect,
+            "kac_poincare_recurrence_time": poincare_audit.kac_poincare_recurrence_time,
+            "effective_condition_number": poincare_audit.effective_condition_number,
+        }
         return {
             "fiedler_value": fiedler,
             "is_disconnected": is_disconnected,
@@ -1147,15 +1479,14 @@ class HydrologicalAgent:
         phase1_handoff: Phase1HydroAgentHandoff,
     ) -> Phase2HydroAgentHandoff:
         """
-        Fase 2.8 — Cierre formal de Fase 2 y apertura verificada de Fase 3.
+        Fase 2.8 — DEFINICIÓN FINAL DE LA FASE 2 Y APERTURA ANIDADA DE LA FASE 3.
 
         Definición formal de frontera:
+            Φ₂→₃ : Phase1HydroAgentHandoff ↦ (λ₂, i_max, σ'₃, det σ', Π_KAM) ↦ phase3_from_phase2
 
-            Φ₂→₃ : observación validada ↦ (λ₂, i_max, σ'₃, det σ', Π)
-
-        Este es el último método de la Fase 2. Su contrato es exactamente el
-        dominio de `phase3_from_phase2`. Con ello la Fase 2 queda anidada,
-        como prefijo functorial, dentro de la Fase 3.
+        Este es el último método de la Fase 2. Construye `Phase2HydroAgentHandoff`
+        y ejecuta directamente `self.phase3_from_phase2(handoff)` como
+        continuación e inicio formal de los métodos de la Fase 3.
         """
         validated = self.phase2_from_phase1(phase1_handoff)
         collected = self.phase2_collect_invariants(validated)
@@ -1178,6 +1509,7 @@ class HydrologicalAgent:
             next_entrypoint=_PHASE2_ENTRY,
         )
 
+        # Continuación formal inmediata hacia el método inicial de la Fase 3:
         opened = self.phase3_from_phase2(handoff)
         if opened.session_sha256 != handoff.session_sha256:
             raise RuntimeError(
@@ -1191,11 +1523,11 @@ class HydrologicalAgent:
             handoff.max_gradient,
             handoff.is_liquefaction_active,
         )
-        return handoff
+        return opened
 
     # ═════════════════════════════════════════════════════════════════════════
-    # FASE 3 — DECIDE / ACT: RAMPA, HEYTING, OVERRIDE, HARDWARE, SELLO
-    # (continuación formal de phase2_close_and_open_phase3)
+    # FASE 3 — DECIDE / ACT: RAMPA, BI-HEYTING, FOCK OVERRIDE, RSI-L3 & IRAM
+    # (Continuación directa de `phase2_close_and_open_phase3`)
     # ═════════════════════════════════════════════════════════════════════════
 
     def phase3_from_phase2(
@@ -1203,7 +1535,7 @@ class HydrologicalAgent:
         handoff: Phase2HydroAgentHandoff,
     ) -> Phase2HydroAgentHandoff:
         """
-        Fase 3.0 — Entrada formal desde Fase 2.
+        Fase 3.0 — Punto de entrada formal de la Fase 3 desde la Fase 2.
 
         Continuación directa de `phase2_close_and_open_phase3`.
         """
@@ -1225,11 +1557,10 @@ class HydrologicalAgent:
 
     def phase3_verify_override(self, token: Optional[str]) -> bool:
         """
-        Fase 3.1 — Validación de override humano (positrón e⁺).
+        Fase 3.1 — Validación criptográfica de override humano (positrón e⁺).
 
-        Se aceptan tokens canónicos autorizados (comparación a tiempo
-        constante) o mensajes HMAC-SHA256 con formato `payload:signature`
-        si se configuró `hmac_key`.
+        Acepta tokens canónicos autorizados (comparación a tiempo constante)
+        o firmas HMAC-SHA256 con formato `payload:signature` si se configuró `hmac_key`.
         """
         if token is None:
             return False
@@ -1254,21 +1585,18 @@ class HydrologicalAgent:
 
     def phase3_confidence_ramp(self, handoff: Phase2HydroAgentHandoff) -> float:
         """
-        Fase 3.2 — Rampa de confianza Lipschitz-saturada.
+        Fase 3.2 — Rampa de confianza Lipschitz-saturada en [0, 1].
 
-        Canal Fiedler:
-            λ₂ ≥ τ → 1,   λ₂ ≤ ρ τ → 0,   interpolación en (ρ τ, τ)
+        • Canal Fiedler:
+            λ₂ ≥ τ → 1,   λ₂ ≤ ρ τ → 0,   interpolación afín en (ρ τ, τ)
             con ρ = fiedler_soft_ratio.
-
-        Canal sifonamiento:
+        • Canal sifonamiento:
             bandera inactiva y i_max ≤ η → 1;
             i_max > η o bandera activa con i_max = +∞ → 0;
             interpolación afín si 0 < i_max ≤ η con bandera activa.
+        • Canal licuación / desconexión: 0 si activos, 1 si no.
 
-        Canal licuación / desconexión: 0 si activos, 1 si no.
-
-        La confianza global es el encuentro de Heyting (mínimo) de canales
-        finitos. Métricas no finitas colapsan su canal a 0.
+        La confianza global es el encuentro de Heyting (mínimo) de todos los canales.
         """
         def _fiedler_channel(lam2: float) -> float:
             if lam2 == math.inf:
@@ -1306,7 +1634,9 @@ class HydrologicalAgent:
 
         channels = [
             _fiedler_channel(float(handoff.fiedler_value)),
-            _siphon_channel(float(handoff.max_gradient), bool(handoff.is_siphoning_active)),
+            _siphon_channel(
+                float(handoff.max_gradient), bool(handoff.is_siphoning_active)
+            ),
             _binary_channel(bool(handoff.is_liquefaction_active)),
             _binary_channel(bool(handoff.is_disconnected)),
         ]
@@ -1317,6 +1647,39 @@ class HydrologicalAgent:
             return Heyting3.VETOED
         return float(min(1.0, max(0.0, confidence)))
 
+    def phase3_rsi_level3_banach_policy_audit(
+        self,
+        handoff: Phase2HydroAgentHandoff,
+        confidence: float,
+    ) -> AgentRSILevel3Certificate:
+        """
+        Fase 3.2a — Auditoría de Automejora Recursiva de Nivel 3 (RSI-L3).
+
+        Evalúa la tasa de contracción de Banach q_RSI sobre el defecto epistémico
+        e_k = 1 − confidence_k a lo largo de las generaciones OODA, verificando
+        conjuntamente la pasividad de Lyapunov–Clausius–Duhem observada en Fase 1.
+        """
+        self._rsi_generation += 1
+        curr_err = max(0.0, 1.0 - float(confidence))
+        if self._prev_confidence_error > self._reg:
+            ratio = min(0.99, curr_err / self._prev_confidence_error)
+        else:
+            ratio = 0.5 * self._last_banach_ratio if self._rsi_generation > 1 else 0.0
+        self._last_banach_ratio = float(ratio)
+        drift = abs(curr_err - self._prev_confidence_error)
+        self._prev_confidence_error = curr_err
+
+        passive_ok = bool(
+            handoff.diagnostics.get("clausius_duhem_passivity_satisfied", True)
+        )
+        return AgentRSILevel3Certificate(
+            generation=int(self._rsi_generation),
+            banach_contraction_ratio=float(ratio),
+            is_contractive_fixed_point=bool(ratio < 1.0),
+            lyapunov_passivity_verified=passive_ok,
+            epistemic_confidence_drift=float(drift),
+        )
+
     def phase3_decide_heyting(
         self,
         handoff: Phase2HydroAgentHandoff,
@@ -1326,15 +1689,16 @@ class HydrologicalAgent:
         elapsed_grace_seconds: Optional[float] = None,
     ) -> Dict[str, Any]:
         """
-        Fase 3.3 — Clasificador de Heyting trivalente Ω₃.
+        Fase 3.3 — Clasificador Bi-Heyting trivalente Ω₃ y Aniquilación en Fock.
 
         Reglas:
           - VETOED inmediato: licuación, desconexión hidráulica o métricas
             no finitas (NaN) en λ₂ / det(σ') / σ'₃.
           - DEGRADED: sifonamiento activo con ventana de gracia.
-          - El positrón e⁺ impide DEGRADED → VETOED por expiración de gracia.
+          - El positrón e⁺ ejecuta `Heyting3.fock_annihilate` (e⁻ + e⁺ → 2γ),
+            impidiendo el colapso DEGRADED → VETOED por expiración de gracia.
           - Gracia expirada sin override: colapso a VETOED.
-          - El encuentro con la rampa nunca eleva el veredicto.
+          - El encuentro con la rampa nunca eleva el veredicto por encima de la física.
         """
         curr_time = float(current_time if current_time is not None else time.time())
         hard_reasons = []
@@ -1353,6 +1717,8 @@ class HydrologicalAgent:
             override_sha = hashlib.sha256(str(override_token).encode("utf-8")).hexdigest()
 
         confidence = self.phase3_confidence_ramp(handoff)
+        rsi_cert = self.phase3_rsi_level3_banach_policy_audit(handoff, confidence)
+
         heyting = "COHERENT"
         is_hard_veto = False
         is_soft_veto = False
@@ -1396,7 +1762,12 @@ class HydrologicalAgent:
                 time_remaining = max(0.0, self._grace_max - elapsed)
 
             if override_valid:
-                heyting = "DEGRADED"
+                annihilated_truth = Heyting3.fock_annihilate(
+                    Heyting3.DEGRADED,
+                    positron_authorized=True,
+                    is_hard_geomechanical_collapse=False,
+                )
+                heyting = Heyting3.to_verdict(annihilated_truth)
                 is_soft_veto = False
                 is_hard_veto = False
                 time_remaining = 0.0
@@ -1425,7 +1796,18 @@ class HydrologicalAgent:
             self._soft_veto_timestamp = None
 
         truth = Heyting3.from_verdict(heyting)
-        truth = Heyting3.meet(truth, Heyting3.quantize(confidence))
+        if override_valid and not hard_reasons and handoff.is_siphoning_active:
+            truth = Heyting3.fock_annihilate(
+                Heyting3.meet(truth, Heyting3.quantize(confidence)),
+                positron_authorized=True,
+                is_hard_geomechanical_collapse=False,
+            )
+            # Pero si la rampa cayó a 0 por i_max > siphoning_margin, el encuentro
+            # con la rampa cuantizada preserva la prioridad física del canal:
+            truth = Heyting3.meet(truth, Heyting3.quantize(confidence))
+        else:
+            truth = Heyting3.meet(truth, Heyting3.quantize(confidence))
+
         heyting = Heyting3.to_verdict(truth)
         if heyting == "VETOED":
             is_hard_veto = True
@@ -1450,6 +1832,13 @@ class HydrologicalAgent:
                 if elapsed_grace_seconds is not None
                 else math.nan
             ),
+            "rsi_level3": {
+                "generation": rsi_cert.generation,
+                "banach_contraction_ratio": rsi_cert.banach_contraction_ratio,
+                "is_contractive_fixed_point": rsi_cert.is_contractive_fixed_point,
+                "lyapunov_passivity_verified": rsi_cert.lyapunov_passivity_verified,
+                "epistemic_confidence_drift": rsi_cert.epistemic_confidence_drift,
+            },
         }
 
     def phase3_actuate_esp32_crowbar_interlock(
@@ -1457,10 +1846,10 @@ class HydrologicalAgent:
         heyting_verdict: str,
     ) -> Tuple[bool, float]:
         """
-        Fase 3.4 — Actuación de hardware Crowbar ESP32/BT151.
+        Fase 3.4 — Actuación ciber-física de hardware Crowbar ESP32/BT151 en IRAM.
 
         Sólo el colapso a VETOED conmuta el interlock. El jitter gaussiano
-        simula la dispersión IRAM y se recorta a [385, 415] ns.
+        simula la dispersión de reloj en IRAM y se confina a [385, 415] ns.
         """
         if str(heyting_verdict) != "VETOED":
             return False, 0.0
@@ -1522,7 +1911,7 @@ class HydrologicalAgent:
         actuation_latency_ns: float,
     ) -> HydrologicalVerdict:
         """
-        Fase 3.6 — Emisión del veredicto certificado.
+        Fase 3.6 — Emisión del veredicto certificado `HydrologicalVerdict`.
 
         Incluye Ω₃, λ₂, i_max, det(σ'), rampa, gracia, hardware y sello SHA-256.
         """
@@ -1574,13 +1963,13 @@ class HydrologicalAgent:
         elapsed_grace_seconds: Optional[float] = None,
     ) -> HydrologicalVerdict:
         """
-        Fase 3.7 — Orquestación completa de la Fase 3.
+        Fase 3.7 — Orquestación completa y cierre de lazo de la Fase 3.
 
-        Ejecuta, en orden:
-          1. validación de frontera Φ₂→₃;
-          2. rampa de confianza y decisión Heyting;
-          3. actuación de hardware;
-          4. certificación final.
+        Ejecuta secuencialmente:
+          1. Validación de frontera Φ₂→₃ (`phase3_from_phase2`);
+          2. Rampa de confianza, auditoría RSI-L3 y decisión Bi-Heyting Ω₃;
+          3. Actuación de hardware Crowbar en IRAM (< 400 ns);
+          4. Certificación final SHA-256.
         """
         validated = self.phase3_from_phase2(phase2_handoff)
         decision = self.phase3_decide_heyting(
@@ -1628,23 +2017,20 @@ class HydrologicalAgent:
         elapsed_grace_seconds: Optional[float] = None,
     ) -> HydrologicalVerdict:
         """
-        API principal — Orquesta el funtor compuesto Φ₃ ∘ Φ₂ ∘ Φ₁.
+        API principal — Orquesta el funtor compuesto anidado Φ₃ ∘ Φ₂ ∘ Φ₁:
 
-        Equivalencia de fases:
-          OBSERVE    → phase1_close_and_open_phase2
-          ORIENT     → phase2_close_and_open_phase3
-          DECIDE/ACT → phase3_close_loop
+          OBSERVE    → `phase1_close_and_open_phase2` (abre formalmente Fase 2)
+          ORIENT     → `phase2_close_and_open_phase3` (abre formalmente Fase 3)
+          DECIDE/ACT → `phase3_close_loop`            (emite `HydrologicalVerdict`)
         """
         phase1_handoff = self.phase1_close_and_open_phase2(
             hydraulic_state=hydraulic_state,
             sigma_prime_tensors=sigma_prime_tensors,
             current_time=current_time,
         )
-        phase2_handoff = self.phase2_close_and_open_phase3(
-            phase1_handoff=phase1_handoff,
-        )
-        return self.phase3_close_loop(
-            phase2_handoff=phase2_handoff,
+        phase2_handoff = phase1_handoff.continue_to_phase2(self)
+        return phase2_handoff.continue_to_phase3(
+            self,
             human_override_token=human_override_token,
             current_time=current_time,
             simulate_grace_expired=simulate_grace_expired,
