@@ -1,4 +1,3 @@
-from __future__ import annotations
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -66,6 +65,8 @@ Invariante 2 (Tensión de Confinamiento Homogénea):
     sigma(t) >= sigma_base = 1.0 en todo tubo de flujo.
 ====================================================================================================
 """
+
+from __future__ import annotations
 
 import enum
 import hashlib
