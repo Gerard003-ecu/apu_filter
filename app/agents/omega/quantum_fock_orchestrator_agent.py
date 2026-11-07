@@ -1,56 +1,113 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Quantum Fock Orchestrator Agent (Soberano de Calibre de Fock)       ║
-║ Ruta   : app/agents/omega/quantum_fock_orchestrator_agent.py                 ║
-║ Versión: 5.0.0-Fock-RSI3-Poincare-Heyting-ESP32-PhD                          ║
+║ Nombre   : Quantum Fock Orchestrator Agent (Soberano de Calibre de Fock)     ║
+║ Módulo   : app.agents.omega.quantum_fock_orchestrator_agent                  ║
+║ Ubicación: app/agents/omega/quantum_fock_orchestrator_agent.py               ║
+║ Ruta     : app/agents/omega/quantum_fock_orchestrator_agent.py               ║
+║ Versión  : 5.0.0-Fock-RSI3-Poincare-Heyting-ESP32-PhD                        ║
+║ Función  : Soberano de calibre que audita la coherencia termodinámica,       ║
+║            simpléctica y topológica en el espacio de Fock multi-cuerpo        ║
+║            F(H), coordinando la observación de von Neumann, la orientación    ║
+║            simpléctica de Poincaré con cotas Connes-Daleckii-Krein (RSI²) y  ║
+║            flujo de Ricci (RSI¹), y la decisión isoespectral de               ║
+║            Brockett-Shahshahani (RSI³) bajo el retículo de Heyting Ω₃.       ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-Soberano de Calibre del Espacio de Fock Multi-Cuerpo \mathcal{F}(\mathcal{H})
-en el Estrato Omega (V_Ω / V_WISDOM) de APU Filter v5.0.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────
+El Soberano de Calibre `QuantumFockOrchestratorAgent` es el gobernador supremo
+de coherencia cuántico-celeste del Espacio de Fock Multi-Cuerpo $\mathcal{F}(\mathcal{H})$
+en el Estrato Omega ($\mathcal{V}_{\Omega}$, Nivel 0.5 - Santuario Epistémico) de APU Filter.
+Su propósito primordial es imponer el confinamiento riguroso de la densidad cuántica
+y la invarianza simpléctica frente a perturbaciones atencionales, evitando la fuga
+de traza, la pérdida de positividad o la ruptura del volumen de Liouville.
 
-Fundamentos Matemáticos y Físicos Integrados (Nivel Doctoral):
---------------------------------------------------------------
-1. Álgebra de Jordan-Banach y Termodinámica Cuántica de von Neumann (Fase 1):
-   - Proyección sobre el álgebra de Jordan formalmente real \mathfrak{h}_d(\mathbb{C})
-     con producto simétrico A \circ B = \frac{1}{2}(AB + BA).
-   - Entropía de von Neumann S(\rho) = -\text{Tr}(\rho \ln \rho), pureza de
-     Frobenius \gamma(\rho) = \text{Tr}(\rho^2) e información sesgada de
-     Wigner-Yanase I_{WY}(\rho, H) = -\frac{1}{2}\text{Tr}([\sqrt{\rho}, H]^2).
-   - Correspondencia cuántico-celeste de Liouville-Ehrenfest \|[H, \rho]\|_F.
+El agente unifica una cascada funtorial de tres fases anidadas e interconectadas:
+  1. Fase 1 (`Phase1_VonNeumannFockObserver` - Observe):
+     Audita el operador densidad $\rho \in \mathcal{D}(\mathcal{H})$ y el Hamiltoniano $H$
+     en el álgebra de Jordan formalmente real $\mathfrak{h}_d(\mathbb{C})$ con producto simétrico
+     $A \circ B = \frac{1}{2}(AB + BA)$. Computa la entropía de von Neumann $S(\rho) = -\operatorname{Tr}(\rho \ln \rho)$,
+     la pureza de Frobenius $\mathcal{P}(\rho) = \operatorname{Tr}(\rho^2)$, la información sesgada
+     de Wigner-Yanase $I_{WY}(\rho, H) = -\frac{1}{2}\operatorname{Tr}([\sqrt{\rho}, H]^2)$ y la deriva
+     del conmutador de Liouville-Ehrenfest $\|[H, \rho]\|_F$.
+     Emite `observe_fock_density_state(...) -> Phase1ObservedFockState`.
+  2. Fase 2 (`Phase2_PoincareConnesOrientor` - Orient):
+     Consume el estado de Fase 1 en `_continue_from_phase1_observation`.
+     Evalúa la invarianza simpléctica de la Mecánica Celeste de Poincaré: deriva de volumen
+     de Liouville $|\det(M) - 1| \le 10^{-9}$, defecto de la 2-forma canónica de Poincaré-Darboux
+     $\|M_{2n}^T J_{2n} M_{2n} - J_{2n}\|_F / \sqrt{2n}$, y el Teorema del Par Recíproco de
+     Poincaré-Lyapunov sobre el espectro de monodromía $\sigma(M)$. Evalúa la cota de Lipschitz
+     no conmutativa de Connes-Daleckii-Krein (RSI²) $L_{\mathrm{CDK}}(G) = \frac{1}{2\lambda_{\min}(G)^{3/2}}$
+     y las diferencias divididas de Fréchet sobre el cono Riemanniano SPD $\mathcal{P}_d^{++}$.
+     Provee el paso de Flujo de Ricci Normalizado de Hamilton-DeTurck (RSI¹) sobre la métrica afín-invariante.
+     Emite `orient_symplectic_riemannian_manifold(...) -> Phase2OrientedSymplecticManifold`.
+  3. Fase 3 (`Phase3_BrockettShahshahaniDecider` - Decide/Act):
+     Consume la variedad orientada de Fase 2 en `_continue_from_phase2_orientation`.
+     Evalúa la varianza del campo de pagos de replicador en la geometría de Shahshahani
+     $\operatorname{Var}_p(Kp) \ge 0$ asegurando la pasividad disipativa de Foster-Brune $\dot{H}_{\mathrm{Shah}} \le 0$.
+     Ejecuta la evolución isoespectral de doble corchete de Brockett $\frac{d\rho}{dt} = [\rho, [\rho, N]]$ (RSI³)
+     en el grupo de Lie $\mathrm{SU}(d)$ mediante conjugación unitaria exponencial de Magnus,
+     preservando analíticamente el espectro $\sigma(\rho)$ y la traza $\operatorname{Tr}(\rho) = 1.0$.
+     Adjudica finalmente el veredicto en el retículo intuicionista de Heyting $\Omega_3 = \{\mathrm{COHERENT (0)}, \mathrm{DEGRADED (1)}, \mathrm{VETOED (2)}\}$.
+     Emite `decide_and_certify_fock_governance(...) -> FockOrchestrationCertificate`.
 
-2. Mecánica Celeste de Henri Poincaré, Geometría de Connes y Flujo de Ricci (Fase 2):
-   - Invarianza de Volumen de Liouville: |\det(M) - 1| \le 10^{-9}.
-   - Invarianza Simpléctica Canónica de Poincaré-Darboux:
-     \|M^T J_{2n} M - J_{2n}\|_F, donde J_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}.
-   - Teorema del Par Recíproco de Poincaré-Lyapunov:
-     \delta_{\text{Poincaré}}(M) = \max_{\lambda \in \sigma(M)} \min_{\mu \in \sigma(M)} |\lambda \mu - 1|.
-   - Cota Espectral de Connes-Daleckii-Krein (RSI²):
-     L_{\text{CDK}}(G) = \frac{1}{2 \lambda_{\min}(G)^{3/2}} y norma de diferencias
-     divididas de Fréchet-Daleckii-Krein sobre el cono Riemanniano SPD \mathcal{P}_d^{++}.
-   - Flujo de Ricci Normalizado Afín-Invariante de Hamilton (RSI¹):
-     G_{k+1} = G_k^{1/2} \exp\left(-2\Delta\tau \, G_k^{-1/2} \mathring{\text{Ric}}(G_k) G_k^{-1/2}\right) G_k^{1/2}.
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+────────────────────────────────────────────────────────────────────────────────
+1. Álgebra de Jordan-Banach y Termodinámica Cuántica de von Neumann:
+   El espacio de estados cuánticos se proyecta en la subálgebra Hermítica:
+       $$\rho = \frac{1}{2}(\rho + \rho^\dagger), \quad \operatorname{Tr}(\rho) = 1, \quad \rho \succeq 0$$
+   La información sesgada de Wigner-Yanase cuantifica la incertidumbre cuántica del estado $\rho$
+   frente al observable conservado $H$:
+       $$I_{WY}(\rho, H) = -\frac{1}{2}\operatorname{Tr}\left([\sqrt{\rho}, H]^2\right) = \frac{1}{2}\sum_{i,j}(\sqrt{\lambda_i} - \sqrt{\lambda_j})^2 |H_{ij}|^2 \ge 0$$
+   y el conmutador de Liouville-Ehrenfest $\|[H, \rho]\|_F$ mide la velocidad estacionaria de fase.
 
-3. Isoespectralidad de Brockett-Shahshahani (RSI³) y Álgebra de Heyting \Omega_3 (Fase 3):
-   - Pasividad de Redes de Foster-Brune y Gradiente Natural de Shahshahani:
-     \frac{dH_{\text{Shah}}}{dt} = -\text{Var}_p(Kp) \le 0.
-   - Integrador Exponencial de Lie-Poisson en \text{SU}(d) para el Doble Corchete
-     de Brockett \frac{d\rho}{dt} = [\rho, [\rho, N]], preservando exactamente el
-     espectro \sigma(\rho) y la traza \text{Tr}(\rho) = 1 mediante automejora
-     recursiva de Nivel 3 (Banach-Caccioppoli).
-   - Adjudicación en el Retículo Intuicionista de Heyting
-     \Omega_3 = \{\text{COHERENT (0)}, \text{DEGRADED (1)}, \text{VETOED (2)}\}.
+2. Mecánica Celeste de Henri Poincaré y Geometría Simpléctica:
+   Sobre la matriz Jacobiana de transporte $M \in \operatorname{Sp}(2n, \mathbb{R})$, la 2-forma de Darboux:
+       $$J_{2n} = \begin{pmatrix} 0 & I_n \\ -I_n & 0 \end{pmatrix}$$
+   impone $M^T J_{2n} M = J_{2n}$, implicando la conservación de Liouville $\det(M) = 1.0$.
+   El Teorema de Pares Recíprocos de Poincaré-Lyapunov exige que para todo $\lambda \in \sigma(M)$,
+   exista un $\mu \in \sigma(M)$ tal que $|\lambda \mu - 1| \approx 0$.
 
-Arquitectura de 3 Fases Anidadas:
----------------------------------
-- Fase 1 (`Phase1_VonNeumannFockObserver`):
-  Culmina en `observe_fock_density_state(...) -> Phase1ObservedFockState`.
-- Fase 2 (`Phase2_PoincareConnesOrientor`):
-  Hereda de la Fase 1. Inicia en `_continue_from_phase1_observation(observed_state)`
-  y culmina en `orient_symplectic_riemannian_manifold(...) -> Phase2OrientedSymplecticManifold`.
-- Fase 3 (`Phase3_BrockettShahshahaniDecider`):
-  Hereda de la Fase 2. Inicia en `_continue_from_phase2_orientation(oriented_manifold)`
-  y culmina en `decide_and_certify_fock_governance(...) -> FockOrchestrationCertificate`.
+3. Geometría de Connes-Ricci y Cota de Daleckii-Krein (RSI¹ y RSI²):
+   Dada la métrica riemanniana simétrica definida positiva $G \succ 0$, la cota de Connes acota
+   la amplificación espectral de perturbaciones:
+       $$L_{\mathrm{CDK}}(G) = \frac{1}{2\lambda_{\min}(G)^{3/2}}$$
+   El flujo de Ricci normalizado afín-invariante (RSI¹) evoluciona la métrica sobre $\mathcal{P}_n^{++}$:
+       $$G_{k+1} = G_k^{1/2} \exp\left(-2\Delta\tau \, G_k^{-1/2} \mathring{\operatorname{Ric}}(G_k) G_k^{-1/2}\right) G_k^{1/2}$$
+   preservando el volumen Riemanniano $\det(G_{k+1}) = \det(G_k)$.
+
+4. Flujo Isoespectral de Brockett y Pasividad de Shahshahani (RSI³):
+   Bajo la dinámica de gradiente natural de Shahshahani en el símplex $\Delta^{d-1}$, la tasa de
+   disipación disipa energía libre de Foster-Brune:
+       $$\frac{dH_{\mathrm{Shah}}}{dt} = -\sum_{i=1}^d p_i \left( (Kp)_i - \langle p, Kp \rangle \right)^2 = -\operatorname{Var}_p(Kp) \le 0$$
+   El doble corchete de Brockett $\frac{d\rho}{dt} = [\rho, [\rho, N]]$ se integra mediante el flujo de Lax:
+       $$U(\Delta t) = \exp\left(-\Delta t [\rho_{\mathrm{mid}}, N]\right) \in \mathrm{SU}(d), \quad \rho_{k+1} = U(\Delta t) \rho_k U(\Delta t)^\dagger$$
+   garantizando la isoespectralidad estricta $\sigma(\rho_{k+1}) \equiv \sigma(\rho_k)$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+Axioma AG_FOCK1 (Conservación Estricta de Traza Cuántica):
+    $|\operatorname{Tr}(\rho) - 1.0| \le 10^{-9}$, asegurando la normalización axiomática de la probabilidad.
+Axioma AG_FOCK2 (Positividad Espectral de von Neumann):
+    $\lambda_{\min}(\rho) \ge -10^{-12}$, garantizando la ausencia de probabilidades negativas.
+Axioma AG_FOCK3 (Invarianza de Volumen Simpléctico de Liouville):
+    $|\det(M) - 1.0| \le 10^{-9}$, asegurando la incompresibilidad del flujo cotangente.
+Axioma AG_FOCK4 (Condición Riemanniana Definida Positiva):
+    $G = G^T \succ 0$ y $\kappa_2(G) \le 10^8$, garantizando una estructura métrica no singular.
+Axioma AG_FOCK5 (Isoespectralidad de Doble Corchete de Brockett):
+    $\|\sigma(\rho_{k+1}) - \sigma(\rho_k)\|_\infty \le 10^{-12}$, preservando invariantes unitarios de Casimir.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+Invariante 1 (Pureza Espectral Acotada):
+    $\mathcal{P}(\rho) = \operatorname{Tr}(\rho^2) \in [1/d, 1.0]$.
+Invariante 2 (Defecto Simpléctico de Poincaré-Darboux):
+    $\|M_{2n}^T J_{2n} M_{2n} - J_{2n}\|_F / \sqrt{2n} \le 10^{-3}$.
+Invariante 3 (Pasividad de Lyapunov-Shahshahani):
+    $\operatorname{Var}_p(Kp) \ge 0$, garantizando que la disipación neta sea no negativa.
+Invariante 4 (Veredicto en el Retículo de Heyting $\Omega_3$):
+    $\text{verdict} \in \{\mathrm{COHERENT (0)}, \mathrm{DEGRADED (1)}, \mathrm{VETOED (2)}\}$.
 """
 
 from __future__ import annotations
@@ -66,13 +123,40 @@ import scipy.linalg as la
 from numpy.typing import NDArray
 
 try:
-    from app.core.schemas import Morphism  # type: ignore[import]
-except Exception:
+    from app.core.mic_algebra import Morphism, TopologicalInvariantError
+    from app.core.schemas import Stratum
+except ImportError:
+    class TopologicalInvariantError(Exception):
+        """Excepción base del sistema para violaciones topológico-algebraicas."""
+        pass
+
     class Morphism:
         r"""Clase base para morfismos categoriales de la Malla Agéntica."""
 
         def __init__(self) -> None:
             self.identity_signature: str = self.__class__.__name__
+
+    class Stratum:
+        """Estratos de la jerarquía DIKW."""
+        WISDOM = "WISDOM"
+        STRATEGY = "STRATEGY"
+        TACTICS = "TACTICS"
+        PHYSICS = "PHYSICS"
+
+try:
+    from app.omega.quantum_fock_orchestrator import (
+        CatadioptricHamiltonian,
+        FockPoincareRSIConstants,
+        FockSpaceConfiguration,
+        InteractionOperators,
+        LindbladEvolutionResult,
+        Phase1_FockSpaceBuilder,
+        Phase2_CatadioptricCollider,
+        Phase3_LindbladDissipator,
+        QuantumFockOrchestrator,
+    )
+except ImportError:  # pragma: no cover
+    QuantumFockOrchestrator = None  # type: ignore[assignment, misc]
 
 
 logger = logging.getLogger("MIC.Omega.QuantumFockOrchestratorAgent")

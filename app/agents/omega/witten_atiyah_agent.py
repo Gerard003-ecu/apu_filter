@@ -2,70 +2,115 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Módulo   : Witten-Atiyah Agent (Inquisidor de Invarianza Global, APS, Poincaré y RSI-L3)║
-║  Ruta     : app/agents/omega/witten_atiyah_agent.py                                      ║
-║  Versión  : 5.0.0-Atiyah-Singer-APS-Poincare-RSI-L3-Doctoral                             ║
-║  Evolución: Rigor PhD – Índice de Atiyah–Singer + APS + McKean–Singer + Mecánica Celeste ║
-║             de Poincaré (Maslov / Liouville / Kreĭn) + Automejora Recursiva Nivel 3      ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA, TOPOLOGÍA DIFERENCIAL, MECÁNICA CELESTE Y RSI DE NIVEL 3:      ║
-║  ──────────────────────────────────────────────────────────────────────────────────      ║
-║  Este endofuntor de calibre y guardián de invarianza global reside en la cúspide         ║
-║  del **Estrato Omega** ($\Omega$, Nivel 0.5 - El Ágora Tensorial). Actúa como el         ║
-║  proyector de-confinado supremo que purifica las decisiones estratégicas de              ║
-║  dependencias métricas locales exógenas ($G_{\mu\nu}, m^{**}$), auditando la             ║
-║  consistencia global mediante la **Teoría de Campos Cuánticos Topológicos (TQFT)**,      ║
-║  la **Geometría No Conmutativa de Connes**, la **Mecánica Celeste de Poincaré** y        ║
-║  la **Automejora Recursiva de Nivel 3 (RSI-L3)** sobre álgebras de Banach y Topos.       ║
-║                                                                                          ║
-║  AXIOMÁTICA DE CALIBRE, TOPOLOGÍA ALGEBRAICA, POINCARÉ Y REFRACTO DE DE RHAM:            ║
-║  ────────────────────────────────────────────────────────────────────────────            ║
-║                                                                                          ║
-║  [A1] Funtor de Olvido Métrico, Invariante de Liouville-Poincaré y RSI-L3 ($\mathcal{R}_1^{(3)}$): ║
-║       El tránsito de los observables se despoja de la métrica Riemanniana $G_{\mu\nu}$   ║
-║       aplicando el funtor covariante $U: \mathbf{Met} \to \mathbf{Top}$ sobre el cono    ║
-║       de operadores clase traza $\mathcal{T}_1^+(\mathcal{H})$. Se preserva el volumen   ║
-║       simpléctico de Liouville mediante la serie de Casimir-Poincaré                     ║
-║       $I_{\mathrm{Casimir}}(\rho) = \sum_{m=1}^d \frac{1}{m}\mathrm{Tr}(\rho^m)$ y se    ║
-║       purifica el estado mediante un canal cuántico CPTP de Kraus-Lindblad contractivo   ║
-║       hacia el punto fijo de Banach-Lawvere con razón áurea $\phi^{-1}$.                 ║
-║                                                                                          ║
-║  [A2] Teorema del Índice de Atiyah-Singer, Refinamiento APS, McKean-Singer y Maslov:     ║
-║       Sobre la tripla espectral $\mathbb{Z}_2$-graduada $(\mathcal{A}, \mathcal{H}, \not\!\!D, \gamma_5)$, ║
-║       el agente certifica la obstrucción espectral de Atiyah-Patodi-Singer (APS):        ║
-║           $\operatorname{ind}_{\mathrm{APS}}(\not\!\!D) = \int_M \hat{A}(TM) \wedge \operatorname{ch}(E) - \frac{1}{2}\big(\eta(0) + h\big)$ ║
-║       reforzada por la identidad de supertraza del núcleo de calor de McKean-Singer:     ║
-║           $\operatorname{ind}(\not\!\!D) = \operatorname{Str}\left(\gamma_5 e^{-t \mathbf{D}_{\mathrm{SUSY}}^2}\right) = \operatorname{Tr}\left(e^{-t \not D^\dagger \not D}\right) - \operatorname{Tr}\left(e^{-t \not D \not D^\dagger}\right)$ ║
-║       y el **Índice Simpléctico de Maslov-Poincaré** que contabiliza las colisiones de   ║
-║       Kreĭn a lo largo del flujo espectral. El motor RSI-L3 ($\mathcal{R}_2^{(3)}$)      ║
-║       desenreda resonancias espurias mediante flujos isoespectrales de                   ║
-║       Baker-Campbell-Hausdorff (BCH) sin alterar la clase de Fredholm.                   ║
-║                                                                                          ║
-║  [A3] Integral de Trayectoria de Witten, Identidad de de Rham y Gavificación de Heyting: ║
-║       Se verifica la nilpotencia del coborde covariante de de Rham $\delta_k \circ \delta_{k-1} = 0$ ║
-║       ($[A, F_A] = 0$) y se evalúa la integral de Witten $Z(M)$ sobre $\mathbf{Cob}(3)$: ║
-║           $Z(M) = \int \mathcal{D}A \, \exp\left( \frac{i k}{4\pi} \int_M \operatorname{Tr}\left( A \wedge dA + \frac{2}{3} A \wedge A \wedge A \right) \right)$ ║
-║       El meta-auditor RSI-L3 ($\mathcal{R}_3^{(3)}$) evalúa el estado en el retículo     ║
-║       distributivo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$ ║
-║       y aplica el morfismo de gavificación de Lawvere-Tierney $j = \neg\neg : \Omega_3 \to \Omega_2$ ║
-║       hacia $\{\mathrm{VIABLE}, \mathrm{RECHAZAR}\}$.                                    ║
-║                                                                                          ║
-║  ARQUITECTURA DE 3 FASES ANIDADAS (Continuidad Funtorial Monoidal Estricta):             ║
-║  ───────────────────────────────────────────────────────────────────────────             ║
-║  • Fase 1 (`Phase1_MetricForgetfulFunctor`):                                             ║
-║      Culmina en `apply_forgetful_functor(...) -> PurifiedPair`.                          ║
-║                        │ (El retorno formal `PurifiedPair` es el dominio exacto e inicio ║
-║                        ▼  directo de `_continue_from_phase1_purified_pair` en la Fase 2) ║
-║  • Fase 2 (`Phase2_AtiyahSingerEmbedding(Phase1_MetricForgetfulFunctor)`):               ║
-║      Inicia en `_continue_from_phase1_purified_pair` y culmina en                        ║
-║      `certify_index(...) -> IndexCertifiedEmbedding`.                                    ║
-║                        │ (El retorno formal `IndexCertifiedEmbedding` es el dominio      ║
-║                        ▼  exacto e inicio de `_continue_from_phase2_certified_embedding`)║
-║  • Fase 3 (`Phase3_WittenTQFTVerdictor(Phase2_AtiyahSingerEmbedding)`):                  ║
-║      Inicia en `_continue_from_phase2_certified_embedding` y culmina en                  ║
-║      `render_verdict(...) -> WittenAtiyahVerdict`.                                       ║
+║ Nombre   : Witten-Atiyah Agent (Inquisidor de Invarianza Global, APS, Poincaré y RSI-L3)║
+║ Módulo   : app.agents.omega.witten_atiyah_agent                                          ║
+║ Ubicación: app/agents/omega/witten_atiyah_agent.py                                       ║
+║ Ruta     : app/agents/omega/witten_atiyah_agent.py                                       ║
+║ Versión  : 5.0.0-Atiyah-Singer-APS-Poincare-RSI-L3-Doctoral                              ║
+║ Función  : Endofuntor soberano inquisidor de invarianza global y de-confinamiento,       ║
+║            que purifica estados métricos mediante el Funtor de Olvido U: Met → Top,     ║
+║            certifica el Teorema del Índice de Atiyah-Singer/APS y McKean-Singer,          ║
+║            audita colisiones de Kreĭn y flujo de Maslov de Poincaré, ejecuta la          ║
+║            integral de trayectoria de Witten Z(M) sobre Cob(3) y colapsa mediante        ║
+║            gavificación de Heyting-Lawvere-Tierney j = ¬¬ sobre Ω₃.                      ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────────────────
+El Soberano de Calibre `WittenAtiyahAgent` constituye el Inquisidor Supremo de Invarianza
+Global y De-confinamiento Topológico en el Estrato Omega ($\mathcal{V}_{\Omega}$, Nivel 0.5 - El
+Ágora Tensorial) de APU Filter. Su misión matemática ineludible es salvaguardar la
+consistencia lógica, física y económica del sistema frente a fluctuaciones arbitrarias del
+tensor métrico de fondo $G_{\mu\nu}$, la masa inercial efectiva $m^{**}$ o cualquier sesgo
+estocástico exógeno introducido por los modelos de lenguaje.
+
+Opera como un endofuntor monoidal compuesto trifásico:
+  1. Fase 1 (`Phase1_MetricForgetfulFunctor`):
+     Ingiere los operadores densidad crudos $(\sigma_{\mathrm{in}}, \sigma_{\mathrm{out}})$,
+     despoja toda dependencia métrica riemanniana proyectando sobre la parte autoadjunta
+     y normalizando la traza $\operatorname{Tr}(\rho) = 1$. Evalúa la pureza espectral $\mathcal{P}(\rho)$,
+     la entropía de von Neumann $S_{\mathrm{vN}}(\rho)$, el invariante integral de Casimir-Poincaré
+     $I_{\mathrm{Casimir}}(\rho)$ y la distancia geodésica de Bures-Uhlmann $d_B(\rho_{\mathrm{in}}, \rho_{\mathrm{out}})$.
+     Ejecuta la purificación proyectiva de Nivel 3 ($\mathcal{R}_1^{(3)}$) convergiendo con contracción
+     áurea $\phi^{-1}$. Emite `apply_forgetful_functor(...) -> PurifiedPair`.
+  2. Fase 2 (`Phase2_AtiyahSingerEmbedding`):
+     Consume el `PurifiedPair` mediante `_continue_from_phase1_purified_pair`.
+     Aplica el funtor de inmersión isométrica de Stiefel $\iota: \mathcal{H}_{\mathrm{in}} \hookrightarrow \mathcal{H}_{\mathrm{out}}$
+     acompañado de la certificación axiomática de vacío puro $|0\rangle\langle 0|$ ($S_{\mathrm{vN}} = 0, \mathcal{P} = 1$).
+     Construye la tripla espectral de Connes $(\mathcal{A}, \mathcal{H}, \not\!\!D, \gamma_5)$,
+     evalúa el Índice Analítico de Fredholm $\operatorname{ind}(\not\!\!D) = \dim\ker\not\!\!D - \dim\operatorname{coker}\not\!\!D$,
+     la supertraza térmica de McKean-Singer $\operatorname{Str}(\gamma_5 e^{-t \mathbf{D}_{\mathrm{SUSY}}^2})$,
+     la corrección de frontera $\eta(0)$ de Atiyah-Patodi-Singer (APS) y el índice simpléctico
+     de Maslov-Poincaré junto con las colisiones de Kreĭn. Estabiliza el operador mediante flujos
+     isoespectrales de conmutadores de Baker-Campbell-Hausdorff ($\mathcal{R}_2^{(3)}$).
+     Emite `certify_index(...) -> IndexCertifiedEmbedding`.
+  3. Fase 3 (`Phase3_WittenTQFTVerdictor`):
+     Consume el `IndexCertifiedEmbedding` mediante `_continue_from_phase2_certified_embedding`.
+     Audita la condición de coborde de de Rham $\delta_k \circ \delta_{k-1} = 0$ (identidad de Bianchi
+     $[A, F_A] = 0$). Proyecta los estados sobre la esfera unitaria de Riemann-Bloch $S^{d-1}$
+     y delega la integración de trayectorias de Witten $Z(M)$ en `TQFTProjectionManifold`.
+     Ejecuta la meta-auditoría en el Topos de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$
+     y colapsa al retículo booleano mediante el operador modal de Lawvere-Tierney $j = \neg\neg$.
+     Emite `render_verdict(...) -> WittenAtiyahVerdict`.
+
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+────────────────────────────────────────────────────────────────────────────────────────────
+1. Funtor de Olvido Métrico e Invariante Integral de Casimir-Poincaré:
+   El funtor covariante $U: \mathbf{Met} \to \mathbf{Top}$ actúa sobre la variedad de operadores
+   densidad despojando la métrica Riemanniana $G_{\mu\nu}$ mediante proyección al álgebra de
+   Jordan $\mathfrak{h}_d(\mathbb{C})$: $\rho = \frac{1}{2}(\rho + \rho^\dagger) / \operatorname{Tr}(\rho)$.
+   El flujo simpléctico de Liouville-von Neumann preserva exactamente el invariante de Casimir:
+       $$I_{\mathrm{Casimir}}(\rho) = \sum_{m=1}^d \frac{1}{m} \operatorname{Tr}(\rho^m)$$
+   y la distancia geodésica de Bures-Uhlmann cuantifica la fidelidad cuántica:
+       $$d_B(\rho_1, \rho_2) = \sqrt{2\left(1 - \operatorname{Tr}\sqrt{\sqrt{\rho_1}\rho_2\sqrt{\rho_1}}\right)}$$
+
+2. Teorema del Índice de Atiyah-Singer, Refinamiento APS y McKean-Singer:
+   Para el operador de Dirac $\not\!\!D: C^\infty(S^+) \to C^\infty(S^-)$ sobre una variedad compacta
+   con borde $\partial M = \Sigma$, el teorema de Atiyah-Patodi-Singer establece:
+       $$\operatorname{ind}_{\mathrm{APS}}(\not\!\!D) = \int_M \hat{A}(TM) \wedge \operatorname{ch}(E) - \frac{1}{2}\left(\eta(0) + h\right)$$
+   donde $\eta(0) = \lim_{s\to 0}\sum_{\lambda\ne 0}\operatorname{sign}(\lambda)|\lambda|^{-s}$ es la
+   asimetría espectral del operador intrínseco de frontera y $h = \dim\ker(\not\!\!D|_{\Sigma})$.
+   En la tripla supersimétrica $\mathbf{D}_{\mathrm{SUSY}}$, la fórmula del núcleo de calor de McKean-Singer:
+       $$\operatorname{ind}(\not\!\!D) = \operatorname{Str}\left(\gamma_5 e^{-t \mathbf{D}_{\mathrm{SUSY}}^2}\right) = \operatorname{Tr}\left(e^{-t \not D^\dagger \not D}\right) - \operatorname{Tr}\left(e^{-t \not D \not D^\dagger}\right)$$
+   es estrictamente independiente de $t > 0$ gracias a la cancelación supersimétrica par-impar.
+
+3. Flujo Espectral de Maslov-Poincaré y Colisiones de Kreĭn:
+   A lo largo del camino homotópico de Hamiltonianos $H(\tau) = (1-\tau)\sigma_{\mathrm{in,emb}} + \tau \sigma_{\mathrm{out}} - \frac{1}{d}I$,
+   el índice de Maslov mide el número neto de cruces por la variedad singular $\det H(\tau) = 0$.
+   Las colisiones de Kreĭn ocurren cuando pares de modos propios con signatura simpléctica opuesta
+   se fusionan en el eje imaginario, señalizando la ruptura de estabilidad de Floquet.
+
+4. Integral de Trayectoria de Witten, Identidad de de Rham y Gavificación de Heyting:
+   La función de partición cuántica de Chern-Simons sobre el 3-cobordismo $M$ es:
+       $$Z(M) = \int \mathcal{D}A \, \exp\left( \frac{i k}{4\pi} \int_M \operatorname{Tr}\left( A \wedge dA + \frac{2}{3} A \wedge A \wedge A \right) \right)$$
+   La nilpotencia del coborde de de Rham $\delta_k \circ \delta_{k-1} = 0$ impone la identidad
+   de Bianchi $[A, F_A] \equiv 0$. En el Topos de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$,
+   el operador modal de Lawvere-Tierney $j = \neg\neg$ actúa como reflector hacia la subcategoría de haces:
+       $$j(\mathrm{COHERENT}) = \mathrm{VIABLE}, \quad j(\mathrm{DEGRADED}) = \mathrm{VIABLE}, \quad j(\mathrm{VETOED}) = \mathrm{RECHAZAR}$$
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────
+Axioma WITTEN1 (Conservación de Calibre y De Rham):
+    La 2-forma de curvatura $F_A$ y el operador coborde $\delta_k$ satisfacen rigurosamente
+    $\delta_k \circ \delta_{k-1} = 0$, asegurando la ausencia de monopolos magnéticos espurios.
+Axioma WITTEN2 (Isometría de Inmersión de Stiefel):
+    La inmersión dimensional $\iota: \mathcal{H}_{\mathrm{in}} \hookrightarrow \mathcal{H}_{\mathrm{out}}$
+    satisface $V^\dagger V = I_{d_{\mathrm{in}}}$ y no inyecta entropía espuria: $S_{\mathrm{vN}}(|0\rangle\langle 0|) \equiv 0$.
+Axioma WITTEN3 (Topología No Conmutativa y Teorema del Índice):
+    El índice analítico coincide con el invariante de Chern-Weil: $\operatorname{ind}(\not\!\!D) = \operatorname{ind}_{\mathrm{top}}(M)$.
+Axioma WITTEN4 (Idempotencia de Gavificación de Lawvere-Tierney):
+    El operador modal $j$ es un morfismo denso en el topos: $j \circ j = j$ y $j(\top) = \top$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────
+Invariante 1 (Invarianza de Traza y Pureza):
+    $\operatorname{Tr}(\rho) \equiv 1.0$ y $\mathcal{P}(\rho) = \operatorname{Tr}(\rho^2) \in [1/d, 1.0]$.
+Invariante 2 (Coincidencia de Supertraza de McKean-Singer):
+    $|\operatorname{Str}(\gamma_5 e^{-t\mathbf{D}^2}) - \operatorname{ind}_{\mathrm{top}}| \le \text{DIRAC\_INDEX\_TOLERANCE}$.
+Invariante 3 (Cota de Defecto de de Rham):
+    $\|\delta_2(F_A)\|_F \le \text{DE\_RHAM\_COBOUNDARY\_TOL} \equiv 10^{-7}$.
+Invariante 4 (Clausura en el Retículo de Heyting):
+    $\Omega_3 \in \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$, proyectado a $\{\mathrm{VIABLE}, \mathrm{RECHAZAR}\}$.
 """
 
 from __future__ import annotations

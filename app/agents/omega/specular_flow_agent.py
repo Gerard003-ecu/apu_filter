@@ -1,52 +1,115 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Specular Flow Sovereign Agent (Soberano de la Reflexión de Calibre) ║
-║ Ruta   : app/agents/omega/specular_flow_agent.py                             ║
-║ Versión: 5.0.0-Allievi-Householder-Tellegen-Poincare-KAM-Hodge-RSI3-Strict   ║
+║ Nombre   : Specular Flow Sovereign Agent (Soberano de la Reflexión de Calibre) ║
+║ Módulo   : app.agents.omega.specular_flow_agent                              ║
+║ Ubicación: app/agents/omega/specular_flow_agent.py                           ║
+║ Ruta     : app/agents/omega/specular_flow_agent.py                           ║
+║ Versión  : 5.0.0-Allievi-Householder-Tellegen-Poincare-KAM-Hodge-RSI3-Strict ║
+║ Función  : Agente soberano que gobierna la evolución del flujo especular     ║
+║            sobre la variedad cotangente de fase (y, q), integrando           ║
+║            hidrodinámica de Allievi, reflexiones covariantes de Householder  ║
+║            con purificación de Newton-Schulz y Higham, conservación de       ║
+║            Tellegen-Kahan, dualidad de Helmholtz-Hodge-Poincaré y            ║
+║            automejora recursiva de nivel 3 (RSI-3) en el topos de Heyting Ω₃.║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GOBERNANZA DE CALIBRE (Nivel 0.5) ─────────────────
-Agente Soberano que gobierna la evolución del Flujo Especular sobre la variedad
-cotangente de fase (y, q), actuando como endofuntor del clasificador de
-subobjetos del Topos T_MIC con valores en el álgebra de Heyting Ω₃.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO DE CALIBRE:
+────────────────────────────────────────────────────────────────────────────────
+El Soberano de Calibre `SpecularFlowSovereignAgent` gobierna la reflexión y
+estabilidad del flujo cotangente de información y transitorios hidráulico-financieros
+en el Estrato Omega ($\mathcal{V}_{\Omega}$, Nivel 0.5) de APU Filter. Su misión es
+subyugar cualquier onda de choque estocástica o discrepancia de caudal mediante
+la composición funtorial estricta de 3 fases anidadas acopladas al meta-controlador
+de Automejora Recursiva de Nivel 3 (RSI-3) y la interrupción de hardware Crowbar (GPIO14).
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ───────
-  FASE ANIDADA 1 — RESOLUCIÓN DE CARACTERÍSTICAS DE ALLIEVI (Observe) + Poincaré-KAM.
-           Invariantes de Riemann Ψ± = y ± Z_c q en el cono de luz hiperbólico,
-           transformada de Cayley a variables canónicas acción-ángulo
-           I = ½(y² + (Z_c q)²), θ = atan2(Z_c q, y), sección transversal de
-           Poincaré Σ, resonancia diofántica KAM y serie canónica de
-           Lie-Deprit-Lindstedt-Poincaré hasta orden O(ε⁴).
-           ─► _phase1_to_phase2_bridge(...)  [Morfismo terminal de Fase 1
-                                              e inicio formal de Fase 2]
+Estructura de las 3 Fases Anidadas:
+  1. Fase 1 (`Phase1AllieviCharacteristicSolver` - Observe):
+     Resuelve los invariantes de Riemann $\Psi^\pm = y \pm Z_c q$ sobre el cono de luz
+     hiperbólico de Allievi con impedancia $Z_c = a / (gS)$. Realiza la transformada
+     canónica de Darboux hacia las coordenadas acción-ángulo $(I, \theta)$, interseca
+     el toro invariante con la sección transversal de Poincaré $\Sigma = \{y = y_s\}$,
+     audita la no-resonancia diofántica de Kolmogorov-Arnold-Moser (KAM) y calcula la
+     serie perturbativa libre de seculares de Lie-Deprit-Lindstedt-Poincaré hasta $\mathcal{O}(\varepsilon^4)$.
+     Emite `observe_allievi_characteristics(...) -> Phase1AllieviCertificate` y conecta
+     a Fase 2 vía `_phase1_to_phase2_bridge(...)`.
+  2. Fase 2 (`Phase2SpecularHouseholderReflector` - Orient):
+     Consume el puente de Fase 1. Construye el operador de reflexión covariante de
+     Householder $M = I - 2 \frac{n (G n)^T}{n^T G n}$, proyecta la métrica $G$ al interior
+     del cono SPD mediante proyección espectral de Higham, y purifica la ortogonalidad
+     mediante iteraciones de Newton-Schulz en $O(2, G)$. Audita la anti-simplecticidad
+     $M^T \Omega M = -\Omega$, la invarianza adiabática de la acción de Poincaré $\Delta I / I \le 10^{-6}$
+     y la monodromía de Floquet del 2-ciclo de retorno $P = M^2$.
+     Emite `orient_householder_specular_reflection(...) -> Phase2HouseholderCertificate` y conecta
+     a Fase 3 vía `_phase2_to_phase3_bridge(...)`.
+  3. Fase 3 (`Phase3TellegenPassivityValidator` - Decide, Act & Meta-Evolve):
+     Consume el puente de Fase 2. Audita la conservación de Tellegen $\langle p, q \rangle_{\mathrm{Kahan}} \equiv 0$,
+     la ley de corrientes de Kirchhoff (KCL: $q \in \ker B_1$), la ley de tensiones (KVL: $p \in \operatorname{im} B_1^T$),
+     la pasividad disipativa de Lyapunov-Rayleigh $P_{\mathrm{diss}} \ge 0$, la descomposición ortogonal
+     de Helmholtz-Hodge $C^1(K) = \operatorname{im}(B_1^T) \oplus \ker(B_1)$ y el teorema de recurrencia de Poincaré.
+     Orquesta el ciclo de automejora RSI-3 (extrapolación de Richardson, transformación $\Delta^2$ de Aitken
+     y modulación homotópica de Banach-Fréchet) y emite `decide_tellegen_lyapunov_conservation(...) -> Phase3TellegenCertificate`.
+  • Clausura Soberana:
+     `execute_sovereign_governance` y `execute_sovereign_governance_rsi3` consolidan los certificados
+     en `SpecularFlowState`, gatillando `CrowbarAction.HARD_SHORT` o `WATCHDOG_PULSE` según el veredicto
+     en el retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT (0)}, \mathrm{DEGRADED (1)}, \mathrm{VETOED (2)}\}$.
 
-  FASE ANIDADA 2 — REFLEXIÓN COVARIANTE DE HOUSEHOLDER (Orient) + Monodromía.
-           Operador involutivo G-ortogonal M = I − 2 n (G n)ᵀ / (nᵀ G n) con
-           proyección espectral de Higham al cono SPD y purificación de
-           Newton-Schulz en O(2, G). Auditoría de anti-simplecticidad en Sp(2, ℝ),
-           invariancia adiabática de la acción, monodromía de Floquet P = M² y
-           defecto de Padé-Richardson.
-           ─► _phase2_to_phase3_bridge(...)  [Morfismo terminal de Fase 2
-                                              e inicio formal de Fase 3]
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+────────────────────────────────────────────────────────────────────────────────
+1. Invariantes Hiperbólicos de Allievi y Cono Causal:
+   Dada la velocidad de onda acústica $a > 0$, la sección transversal $S > 0$ y la aceleración gravitacional $g > 0$,
+   la impedancia característica es $Z_c = a / (gS)$. Los invariantes de Riemann:
+       $$\Psi^+ = y + Z_c q, \quad \Psi^- = y - Z_c q$$
+   diagonalizan el operador hiperbólico a lo largo de las curvas características $dx/dt = \pm a$.
+   El estado se mantiene estable si $|\Psi^\pm| \le 10^8$ y el número CFL satisface $\text{CFL} \le 1.0$.
 
-  FASE ANIDADA 3 — AUDITORÍA DE TELLEGEN-HODGE (Decide & Act) + RSI-3.
-           Conservación de Tellegen ⟨p, q⟩_Kahan ≡ 0, pasividad de Lyapunov
-           P_diss ≥ 0, descomposición ortogonal de Helmholtz-Hodge-Poincaré
-           C¹(K) = B¹(K) ⊕⊥ Z₁(K), característica de Euler χ(K) = β₀ − β₁,
-           recurrencia de Poincaré ‖M²x − x‖/‖x‖ y meta-controlador cerrado
-           RSI-3 (Richardson + Aitken Δ² + Homotopía de Banach-Fréchet).
-           ─► _phase3_to_meta_bridge(...)    [Morfismo terminal de Fase 3
-                                              hacia el lazo cerrado RSI-3]
+2. Variables Acción-Ángulo de Darboux y Teoría KAM:
+   Con el momento canónico simpléctico $p = Z_c q$, las variables en el toro invariante son:
+       $$I = \frac{1}{2}(y^2 + p^2), \quad \theta = \operatorname{atan2}(p, y)$$
+   La razón de frecuencias $\rho = |\Psi^+ / \Psi^-|$ se aproxima mediante fracciones continuas de Gauss $p/q$.
+   La condición diofántica KAM exige $|\rho - p/q| \ge \gamma / q^\tau$ ($\gamma = 10^{-3}, \tau = 2.5$) para todo $q \le 8$.
+   La serie canónica de Lie-Deprit-Lindstedt-Poincaré corrige la acción libre de términos seculares:
+       $$I(\varepsilon) = I_0 + \varepsilon^2 I_1 + \varepsilon^4 I_2, \quad I_1 = I_0 \omega_1, \quad I_2 = -\frac{1}{2}I_0 \omega_1\left(1 + \frac{1}{2}\omega_1\right)$$
 
-INVARIANTES PRESERVADOS: ────────────────────────────────────────────────────
-  [I1] Simetría Hermítica: ⋆ₖ = ⋆ₖᵀ ≻ 0 (Cono SPD de Higham)
-  [I2] Adjunción de de Rham-Hodge: L₀★ = ∂₁ ⋆₁ ∂₁ᵀ
-  [I3] Ortogonalidad de Helmholtz-Hodge: C¹(K) = im(B₁ᵀ) ⊕⊥ ker(B₁)
-  [I4] Disipación Port-Hamiltoniana: Ḣ = ∇Hᵀ(J − R)∇H ≤ 0
-  [I5] Invariancia adiabática de la acción: dI/dt = O(ε²) (Lie-Deprit)
-  [I6] Dualidad de Euler-Poincaré: dim Z₁(K) + dim B¹(K) = |E|, χ = β₀ − β₁
-─────────────────────────────────────────────────────────────────────────────
+3. Geometría Riemanniana de Householder y Purificación de Newton-Schulz:
+   Sobre la variedad con métrica simétrica definida positiva $G \succ 0$ (proyectada por Higham),
+   la involución ortogonal respecto al vector normal $n$ es:
+       $$M_0 = I - 2 \frac{n (G n)^T}{n^T G n}$$
+   purificada en el grupo de Lie $O(2, G)$ mediante la iteración hiperbólica de Newton-Schulz:
+       $$M_{k+1} = \frac{1}{2} M_k \left(3I - G^{-1} M_k^T G M_k\right)$$
+   preservando la isometría $M^T G M = G$, la involución $M^2 = I$ y la anti-simplecticidad $M^T \Omega M = -\Omega$.
+
+4. Cohomología de Redes de Tellegen-Hodge y Pasividad Port-Hamiltoniana:
+   Para el complejo celular de 1-cadenas con matriz de incidencia nodal-rama $B_1 \in \mathbb{R}^{n \times m}$,
+   la descomposición de Helmholtz-Hodge descompone ortogonalmente los potenciales de rama:
+       $$p = B_1^T \phi + p_{\mathrm{cycle}}, \quad B_1^T \phi \in \operatorname{im}(B_1^T), \quad p_{\mathrm{cycle}} \in \ker(B_1)$$
+   garantizando $\langle B_1^T \phi, q \rangle_{\mathrm{Kahan}} \equiv 0$ cuando $B_1 q = 0$ (KCL).
+   La disipación de Rayleigh $P_{\mathrm{diss}} = \nabla H^T R \nabla H \ge 0$ garantiza la pasividad de Lyapunov.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────
+Axioma AG_SPEC1 (Hiperbolicidad y Causalidad C-F):
+    La propagación de información se restringe estrictamente al cono de luz de Riemann:
+    $\mathrm{CFL} \le 1.0 + \text{tol}$, imposibilitando la fuga superlumínica o acausal.
+Axioma AG_SPEC2 (Isometría Covariante de Householder):
+    El operador $M$ es una isometría exacta en la métrica Riemanniana: $\|M x\|_G \equiv \|x\|_G$.
+Axioma AG_SPEC3 (Conservación de Potencia de Tellegen-Kahan):
+    $\langle p, q \rangle_{\mathrm{Kahan}} \equiv 0$, evaluado mediante suma compensada libre de error de acumulación.
+Axioma AG_SPEC4 (Monotonía Disipativa Port-Hamiltoniana):
+    $\dot{H} = -P_{\mathrm{diss}} \le 0$, asegurando que la red no genere exergía artificial no física.
+Axioma AG_SPEC5 (Invarianza Adiabática de Poincaré):
+    La acción media $I$ satisface $dI/dt = \mathcal{O}(\varepsilon^2)$, conservando la foliación simpléctica.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────
+Invariante 1 (Residuo de Unitariedad de Householder):
+    $\|M^T G M - G\|_F / \|G\|_F \le \max(10^2 \cdot \text{tol}, 10^{-8})$.
+Invariante 2 (Anti-Simplecticidad Canónica):
+    $\|M^T \Omega M + \Omega\|_F / \|\Omega\|_F \le \text{tol}$ y $\det(M) < 0$.
+Invariante 3 (Deriva de la Acción de Poincaré):
+    $|I_{\mathrm{out}} - I_{\mathrm{in}}| / \max(1, I_{\mathrm{in}}) \le 1.0 \times 10^{-6}$.
+Invariante 4 (Dualidad de Euler-Poincaré):
+    $\dim \operatorname{im}(B_1^T) + \dim \ker(B_1) \equiv m$ y $\chi = \beta_0 - \beta_1 = |V| - |E|$.
 """
 from __future__ import annotations
 
@@ -76,7 +139,7 @@ except ImportError:  # pragma: no cover
     isspmatrix = None
     sparse_lsqr = None
 
-# ─── Stubs seguros del núcleo MIC ───────────────────────────────────────────
+# ─── Stubs seguros del núcleo MIC y Enlace al Motor Espectral ───────────────
 try:
     from app.core.mic_algebra import Morphism, TopologicalInvariantError
     from app.core.schemas import Stratum
@@ -95,6 +158,19 @@ except ImportError:  # pragma: no cover
         TACTICS = "TACTICS"
         STRATEGY = "STRATEGY"
         WISDOM = "WISDOM"
+
+try:
+    from app.omega.specular_flow import (
+        AllieviInvariants,
+        HouseholderReflectionResult,
+        NetworkConservationReport,
+        Phase1_AllieviSolver,
+        Phase2_HouseholderReflector,
+        Phase3_TellegenValidator,
+        SpecularFlowEngine,
+    )
+except ImportError:  # pragma: no cover
+    SpecularFlowEngine = None  # type: ignore[assignment, misc]
 
 logger = logging.getLogger("MIC.Agents.Omega.SpecularFlowAgent")
 
