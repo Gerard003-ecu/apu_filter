@@ -6,7 +6,7 @@
 
 ## 🏛️ 1. Principios Fundamentales y la Ley de Clausura Transitiva
 
-La arquitectura ciber-física y categorial de **APU Filter v5.0** organiza la observabilidad, el cálculo y la toma de decisiones en un complejo piramidal acoplado que une la Unidad de Punto Flotante (FPU Secure) con el plano ejecutivo de la junta directiva mediante el **Isomorfismo de Doble Capa** ($\Phi_{\mathrm{sem}}$):
+La arquitectura ciber-física y categorial de **APU Filter v9.0** organiza la observabilidad, el cálculo y la toma de decisiones en un complejo piramidal acoplado que une la Unidad de Punto Flotante (FPU Secure) con el plano ejecutivo de la junta directiva mediante el **Isomorfismo de Doble Capa** ($\Phi_{\mathrm{sem}}$):
 
 $$\Phi_{\mathrm{sem}}: \mathbf{Sh}(\partial K, \, \Omega_3) \xrightarrow{\quad \simeq \quad} \text{Business}$$
 
