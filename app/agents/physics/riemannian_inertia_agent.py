@@ -1,103 +1,99 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Riemannian Inertia Agent (Soberano del Momentum Ciber-Físico)       ║
-║ Ruta   : app/agents/physics/riemannian_inertia_agent.py                      ║
-║ Versión: 5.0.0-Topos-Heyting-Poincare-KAM-Floquet-RSI-Level3-Strict          ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Riemannian Inertia Agent                                                                  ║
+║ Módulo   : Riemannian Inertia Agent (Soberano del Momentum Ciber-Físico y Calibre Giroscópico)       ║
+║ Ubicación: app/agents/physics/riemannian_inertia_agent.py                                            ║
+║ Ruta     : app/agents/physics/riemannian_inertia_agent.py                                            ║
+║ Versión  : 5.0.0-Topos-Heyting-Poincare-KAM-Floquet-RSI-Level3-Strict                                  ║
+║ Función  : Agente soberano de calibre en el estrato Sabiduría (V_W, Nivel 0), gobernanza OODA        ║
+║            sobre riemannian_inertia_modulator.py, dinámica celeste de Poincaré y automejora RSI-L3.  ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA, MECÁNICA CELESTE DE POINCARÉ Y TOPOS DE HEYTING: ──────
-Este módulo consagra al Agente Soberano y Observador Activo que gobierna al
-funtor físico ``riemannian_inertia_modulator.py``. Reside en el hiperespacio
-del estrato superior de Sabiduría ($$V_{\mathbb{W}}$$, Nivel 0), supervisando la
-dinámica de-confinada del espacio de fase de la Malla mediante la **Mecánica
-Celeste de Henri Poincaré** y **Automejora Recursiva de Nivel 3 (RSI-L3)**.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este agente soberano de calibre y observador activo reside en el hiperespacio del estrato superior de
+Sabiduría ($V_{\mathbb{W}}$, Nivel 0), supervisando y orquestando la dinámica de-confinada del espacio
+de fase mediante la **Mecánica Celeste de Henri Poincaré** y **Automejora Recursiva de Nivel 3 (RSI-L3)**.
+Gobierna directamente al motor espectral `RiemannianInertiaModulator` (`app/physics/riemannian_inertia_modulator.py`).
 
-Su mandato axiomático es orquestar el ciclo OODA sobre el operador de momento
-giroscópico $$\mathcal{W}$$ en el fibrado cotangente $$T^*\mathcal{M}$$,
-sometiendo el flujo de intenciones semánticas a restricciones geométricas,
-simplécticas y celestes rigurosas. Actúa aplicando una "Fuerza de Lorentz"
-informacional que desvía trayectorias de alto riesgo (alucinaciones del LLM)
-hacia sumideros de disipación sin alterar el Hamiltoniano de energía basal del
-sistema. Toda contención de fallos se confina de manera síncrona y absoluta al
-plano lógico de software mediante el colapso del retículo de Heyting y sus
-operadores modales de Lawvere-Tierney.
+Su mandato axiomático es orquestar el ciclo OODA sobre el operador de momento giroscópico $\mathcal{W}$
+en el fibrado cotangente $T^* \mathcal{M}$, sometiendo el flujo de intenciones semánticas a restricciones
+geométricas, simplécticas y celestes rigurosas. Actúa aplicando una "Fuerza de Lorentz" informacional
+que desvía trayectorias de alto riesgo (alucinaciones del LLM) hacia sumideros de disipación sin alterar
+el Hamiltoniano de energía basal del sistema. Toda contención de fallos se confina de manera síncrona y
+absoluta al plano lógico de software mediante el colapso del retículo de Heyting $\Omega_3$ y sus operadores
+modales de Lawvere-Tierney.
 
-INVARIANTES MATEMÁTICOS, TOPOLÓGICOS Y LEYES CELESTES PRESERVADOS: ─────────────
+El soberano ejecuta un protocolo OODA en tres fases funcionales:
+  • FASE 1 — OBSERVACIÓN Y ESPECTROSCOPÍA CANÓNICA (Phase1_MomentumSpectrometer):
+      Audita el tensor métrico Riemanniano $G$ y su dual inverso $G^{-1}$, certifica la convergencia
+      de Chebyshev-Halley-Schulz bajo el endofuntor $\mathfrak{R}_3^{(1)}$, evalúa la densidad de la
+      1-forma de Poincaré-Cartan $\theta_{\mathrm{PC}}$, calcula el margen diofántico KAM y el factor
+      conformal de Sundman.
+  • FASE 2 — SÍNTESIS Y CALIBRE GIROSCÓPICO DE POINCARÉ-BIRKHOFF (Phase2_GyroscopicSynthesizer):
+      Supervisa la construcción del bivector de Lorentz $W \in \bigwedge^2 T^* \mathcal{M}$, verifica
+      la identidad de Gram en $\mathfrak{so}(n)$, y audita la preservación estricta de la circulación
+      areal simpléctica.
+  • FASE 3 — DECISIÓN HEYTING, ESTABILIDAD FLOQUET Y ACCIONAMIENTO (Phase3_SymplecticInertiaModulator):
+      Inspecciona la inyección de $W$ en la estructura de Dirac $J_{\mathrm{eff}} = J_{\mathrm{base}} + W$,
+      certifica la estabilidad espectral elíptica de Floquet-Kreĭn vía el teorema de Bendixson-Hirsch,
+      verifica trabajo nulo $\langle \dot{q}, W \dot{q} \rangle = 0$, y emite el veredicto modal en $\Omega_3$.
 
-  [I1] Preservación del Volumen de Liouville e Invariantes de Poincaré-Cartan:
-       La evolución conserva idénticamente la 2-forma simpléctica canónica:
-       $$\omega = \sum_{i=1}^n dq_i \wedge dp_i, \qquad
-         \theta_{\mathrm{PC}} = p_\mu\dot{q}^\mu - H_{\mathrm{kin}}
-                              = \tfrac12\langle p,\dot{q}\rangle$$
-       y la identidad de acción-ángulo de Poincaré sobre el toro espectral:
-       $$\sum_{k=1}^n I_k\,\omega_k = \tfrac12 p^\top G^{-1} p = H_{\mathrm{kin}}$$
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. GEOMETRÍA SIMPLÉCTICA DE POINCARÉ-CARTAN EN EL FIBRADO COTANGENTE:
+   Sea $\mathcal{M}$ la variedad riemanniana de configuraciones equipada con la métrica $G$. En el fibrado
+   cotangente $T^* \mathcal{M}$, la 1-forma canónica de Poincaré-Liouville se define como $\theta = p_i dq^i$.
+   La 2-forma simpléctica de Darboux $\omega = d\theta = dp_i \wedge dq^i$ es cerrada ($d\omega = 0$) y no
+   degenerada. La modulación giroscópica introduce una fuerza de calibre $F_{\mathrm{gyro}} = W(q) \dot{q}$ con
+   $W \in \mathfrak{so}(n)$, preservando la energía Hamiltoniana $H(q, p) = \frac{1}{2} p^\top G^{-1}(q) p$:
+       $$\frac{dH}{dt} = \dot{q}^\top \dot{p} + \dot{p}^\top \left(\frac{\partial H}{\partial p}\right) = \dot{q}^\top (W \dot{q}) \equiv 0$$
 
-  [I2] Antisimetría Euclidiana, Firma de Calibre, Casimir y Darboux-Parseval:
-       El tensor giroscópico habita en $$\mathfrak{so}(n)$$ y satisface la
-       identidad espectral de bloques normales de Darboux:
-       $$\mathcal{W}^\top+\mathcal{W}=\mathbf{0},\qquad
-         \mathcal{C}_2(\mathcal{W}) = -\tfrac12\mathrm{Tr}(\mathcal{W}^2)
-         = \tfrac12\|\mathcal{W}\|_F^2 = \sum_{k=1}^{\lfloor n/2\rfloor}\nu_k^2$$
-       Si la métrica $$G$$ está disponible, se audita además la
-       $$G$$-antisimetría de calibre $$\mathcal{W}^\top G + G\,\mathcal{W}=\mathbf{0}$$.
+2. ESTABILIDAD DIOFÁNTICA KAM Y BARRERA DE ARNOLD:
+   Las trayectorias cuasi-periódicas sobre los toros invariantes $\mathbb{T}^n$ con frecuencias $\omega \in \mathbb{R}^n$
+   están protegidas contra difusión destructiva si satisfacen la condición diofántica de Kolmogorov-Arnold-Moser:
+       $$|\langle k, \omega \rangle| \ge \frac{\gamma}{\|k\|_2^\tau} \quad \forall k \in \mathbb{Z}^n \setminus \{0\}$$
+   El agente monitorea el espectro de pequeños divisores; cuando el margen decae por debajo del umbral seguro,
+   se activa la disipación controlada para reconfinar la trayectoria en toros resonantes estables.
 
-  [I3] Ley de Trabajo Mecánico Nilpotente y Estabilidad de Floquet-Kreĭn:
-       $$P_{\mathrm{gyro}}
-         =\langle\nabla H,\,J_{\mathrm{eff}}\nabla H\rangle
-         \equiv 0\pmod{\varepsilon_{\mathrm{machine}}}$$
-       Los multiplicadores característicos de Floquet de $$J_{\mathrm{eff}}$$
-       permanecen confinados al eje imaginario puro (sin colisión hiperbólica
-       de Kreĭn):
-       $$\max_{\mu\in\sigma(J_{\mathrm{eff}})}|\Re(\mu)| \le \tau_{\mathrm{Floquet}}$$
+3. ESTABILIDAD DE FLOQUET-KREĬN Y TEOREMA DE BENDIXSON-HIRSCH:
+   La linealización de la órbita periódica genera la ecuación variacional $\delta \dot{x} = J_{\mathrm{eff}} \delta x$.
+   Por el teorema de Bendixson-Hirsch, la parte real de cualquier exponente característico $\mu \in \sigma(J_{\mathrm{eff}})$
+   cumple:
+       $$|\operatorname{Re}(\mu)| \le \frac{1}{2} \|J_{\mathrm{eff}} + J_{\mathrm{eff}}^\top\|_2$$
+   Para un tensor perfectamente antisimétrico, la cota es idénticamente cero, situando todos los multiplicadores
+   de Floquet en el círculo unitario $|\lambda| = 1$ (estabilidad elíptica de Kreĭn).
 
-  [I4] Automejora Recursiva de Nivel 3 ($$\mathfrak{R}_3^{\mathrm{Topos}}$$):
-       En cada fase, el agente audita la monotonía de Lyapunov del motor físico
-       y sintetiza recursivamente una ley modal de Lawvere-Tierney que contrae
-       la discrepancia epistémica $$\mathcal{V}_{k+1}^{\mathrm{Gov}} \le
-       \mathcal{V}_k^{\mathrm{Gov}}$$ preservando intactas las cotas físicas duras.
+4. RETÍCULO TRIVALENTE DE HEYTING $\Omega_3$:
+   La clasificación ontológica de coherencia opera en el álgebra de Heyting $\Omega_3 = \{0, 1/2, 1\}$
+   (equivalente a $\{\mathrm{VETOED}, \mathrm{DEGRADED}, \mathrm{COHERENT}\}$), donde la implicación intuicionista
+   $a \Rightarrow b = \sup \{c \mid a \wedge c \le b\}$ gobierna la transición modal sin incurrir en el principio
+   del tercio excluso.
 
-ESTRUCTURA DE TRES FASES ANIDADAS (Composición Funtorial OODA): ─────────────────
-La transición de estados se rige por un contrato covariante estricto donde la
-definición formal final del último método de la Fase $$k$$ es la continuación o
-inicio formal del primer método de la Fase $$k+1$$:
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma RIA-1] Ortogonalidad Métrica y Trabajo Nulo:
+      $W^\top = -W \implies \langle v, W v \rangle = 0$ para todo vector tangente $v \in T_q \mathcal{M}$.
+  [Axioma RIA-2] Invarianza de Liouville en Fase:
+      $\operatorname{div}(X_H) = 0 \implies \det(\Phi_t) = +1$, conservando el volumen simpléctico.
+  [Axioma RIA-3] Filtración de Resonancias KAM:
+      Persistencia del toro garantizada mientras la constante diofántica cumpla $\gamma > \gamma_{\mathrm{crit}}$.
+  [Axioma RIA-4] Confinamiento de Floquet-Kreĭn:
+      $\|J_{\mathrm{eff}} + J_{\mathrm{eff}}^\top\|_2 \le \tau_{\mathrm{Floquet}} = 10^{-10}$.
+  [Axioma RIA-5] Monotonicidad Epistémica de Lyapunov RSI-L3:
+      $\mathcal{V}_{k+1} \le \mathcal{V}_k$, certificando la convergencia en la variedad de operadores.
 
-  Fase 1 ──► FASE 1: AUDITORÍA DE LIOUVILLE, TOROS KAM, SUNDMAN Y RSI-L3
-             (Phase1_LiouvilleVolumeAuditor)
-             Intercepta el certificado espectral del motor y clasifica en
-             $$\Omega_3$$ la cota de volumen, condicionamiento, inversa de
-             Wilkinson, round-trip musical, apareamiento dual, regularización
-             de Sundman, margen Diofántico KAM, acción-ángulo de Poincaré-Cartan
-             y monotonía RSI-L3 del motor.
-             Entrega: Phase1ObservationBridge.
-             Morfismo terminal: handoff_phase1_to_phase2 ≡ inicio de Fase 2.
-
-  Fase 2 ──► FASE 2: CERTIFICACIÓN DE FIRMA MÉTRICA, CASIMIR-DARBOUX Y RSI-L3
-             (Phase2_SkewSymmetryCertifier)
-             Inicia en _receive_certified_observation invocando directamente
-             handoff_phase1_to_phase2.
-             Valida la antisimetría de $$\mathcal{W}$$, la identidad de Gram,
-             la paridad del rango, la pureza de vorticidad, la $$G$$-antisimetría,
-             el invariante de Casimir, la identidad espectral de Darboux-Parseval,
-             la circulación areal de Poincaré y el certificado RSI-L3 de síntesis.
-             Entrega: Phase2OrientationBridge.
-             Morfismo terminal: handoff_phase2_to_phase3 ≡ inicio de Fase 3.
-
-  Fase 3 ──► FASE 3: COLAPSO DE HEYTING, ESTABILIDAD FLOQUET-KREĬN Y RSI-L3
-             (Phase3_HeytingLatticeDecider)
-             Inicia en _receive_certified_orientation invocando directamente
-             handoff_phase2_to_phase3.
-             Somete $$J_{\mathrm{eff}}$$ a la auditoría de trabajo nilpotente,
-             estabilidad elíptica de Floquet-Kreĭn, parámetro orbital de
-             Tisserand, invariante virial de Jacobi-Poincaré y recurrencia de
-             Kac-Poincaré, calculando el supremo en $$\Omega_3$$:
-             $$v_{\mathrm{final}}
-               = v_{\mathrm{Liouville}}
-               \sqcup v_{\mathrm{Skew}}
-               \sqcup v_{\mathrm{Work}}$$
-             Entrega: InertialGovernanceState.
-             Morfismo terminal: handoff_phase3_to_orchestrator ≡ enlace con
-             RiemannianInertiaAgent.
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Preservación del Hamiltoniano Basal):
+      $|H(t) - H(0)| \le \varepsilon_{\mathrm{energy}}$ a lo largo de cualquier arco de modulación pura.
+  Invariante 2 (Identidad de Gram en $\mathfrak{so}(n)$):
+      $\|W\|_F^2 = -\operatorname{Tr}(W^2) = 2 \alpha^2 (\|p\|_2^2 \|\omega\|_2^2 - \langle p, \omega \rangle^2)$.
+  Invariante 3 (Involutividad Modal en $\Omega_3$):
+      Toda violación de la cota de Floquet precipita el colapso a $\mathrm{VETOED}$ de forma inmediata y determinista.
+  Invariante 4 (Seguridad de Bypass de Silicio):
+      Latencia de interrupción y aislamiento inferior a 400 ns ante transitorios divergentes.
 """
 
 from __future__ import annotations

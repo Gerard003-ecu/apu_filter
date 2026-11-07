@@ -1,94 +1,108 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Discrete Hodge Star Operator (El Operador Constitutivo de de Rham)  ║
-║ Ruta   : app/physics/discrete_hodge_star.py                                  ║
-║ Versión: 3.0.0-DEC-PoincareCelestial-RSI-L3-Spectral-Topos-Strict-PhD        ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Discrete Hodge Star                                                                       ║
+║ Módulo   : Discrete Hodge Star Operator (El Operador Constitutivo de de Rham)                        ║
+║ Ubicación: app/physics/discrete_hodge_star.py                                                        ║
+║ Ruta     : app/physics/discrete_hodge_star.py                                                        ║
+║ Versión  : 3.0.0-DEC-PoincareCelestial-RSI-L3-Spectral-Topos-Strict-PhD                               ║
+║ Función  : Operador métrico constitutivo de de Rham, dualidad de Hodge-Poincaré discreta,            ║
+║            descomposición de Helmholtz-Hodge, dinámica celeste de Poincaré y automejora RSI-L3.      ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y RIGOR DOCTORAL
-(DEC + Teoría Espectral + Topos + Mecánica Celeste de Poincaré + RSI Nivel 3):
-────────────────────────────────────────────────────────────────────────────────
-Este módulo consagra la formulación discreta del operador estrella de Hodge ($\star$)
-sobre complejos simpliciales orientados de dimensión finita, elevada a un marco
-unificado de teoría de categorías/topos, teoría espectral de operadores autoadjuntos
-en espacios de Hilbert ponderados, mecánica celeste simpléctica de Henri Poincaré
-(*Les Méthodes Nouvelles de la Mécanique Céleste*) y automejora recursiva de
-Nivel 3 (RSI-L3) mediante flujos geodésicos isocóricos de Fisher-Rao.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este motor espectral consagra la formulación discreta del operador estrella de Hodge ($\star$) sobre
+complejos simpliciales orientados de dimensión finita, elevada a un marco unificado de cálculo exterior
+discreto (DEC), teoría espectral de operadores autoadjuntos en espacios de Hilbert ponderados, mecánica
+celeste simpléctica de Henri Poincaré (*Les Méthodes Nouvelles de la Mécanique Céleste*) y automejora
+recursiva de Nivel 3 (RSI-L3) mediante flujos geodésicos isocóricos en la variedad de Fisher-Rao.
 
-En el contexto de la electrodinámica discreta, circuitos cuánticos superconductores,
-sistemas Port-Hamiltonianos y geometría de la información, el Hodge star actúa como
-el morfismo métrico constitutivo que realiza la dualidad de Poincaré discreta:
+En el contexto de la electrodinámica discreta, circuitos cuánticos superconductores y topología algebraica,
+el Hodge star actúa como el isomorfismo métrico constitutivo que realiza la dualidad de Poincaré discreta:
+    $$\star_k: \Lambda^k \mathcal{H} \xrightarrow{\simeq} \Lambda^{n-k} \mathcal{H}^*$$
+transformando $k$-formas primarias (asociadas a símplices primal) en $(n-k)$-formas duales (asociadas a
+celdas del complejo dual de Voronoi-Whitney).
 
-$$\star_k: \Lambda^k \mathcal{H} \xrightarrow{\simeq} \Lambda^{n-k} \mathcal{H}^*$$
+La arquitectura se organiza en una cascada de tres fases continuas (OODA):
+  • FASE 1 — FUNDAMENTOS MÉTRICOS, AUTOMEJORA RSI-L3 Y VOLUMEN DE LIOUVILLE (Phase1_SpectralMetricObserver):
+      Sintetiza la matriz métrica $\star_k \in \operatorname{SPD}(N_k)$. Si se detecta degradación en el
+      condicionamiento espectral $\kappa_2(\star_k) > 10^8$, el endofuntor RSI-L3 proyecta sobre el cono
+      SPD mediante retracción polar de Higham-Löwner (Nivel 1), ejecuta un flujo geodésico isocórico en
+      la variedad de Fisher-Rao preservando estrictamente el volumen simpléctico de Liouville $\det(\star_k)$
+      (Nivel 2), y gobierna la contracción de Banach mediante certificación de Lyapunov (Nivel 3).
+      Emite el morfismo formal terminal `induce_duality_morphism()`.
+  • FASE 2 — MORFISMO DE DUALIDAD, LAPLACIANOS DE HILBERT Y ESPECTRO KAM DE POINCARÉ (Phase2_HodgeLaplacianOrienter):
+      Inicia consumiendo `HodgeDualityMorphism`. Construye los operadores diferenciales exteriores $d_k$
+      y codiferenciales $\delta_{k+1} = \star_k^{-1} \partial_{k+1} \star_{k+1}$, y ensambla el Laplaciano
+      de Hodge-de Rham ponderado $\Delta_k^\star = d_{k-1} \delta_k + \delta_{k+1} d_k$. Realiza la
+      conjugación isométrica de Hilbert $\tilde{\Delta}_k = \star_k^{1/2} \Delta_k^\star \star_k^{-1/2}$
+      para garantizar autoadjunción exacta en $\ell^2$. Emite `certify_de_rham_complex()`.
+  • FASE 3 — COMPLEJO DE DE RHAM, DINÁMICA CELESTE DE POINCARÉ Y DECISIÓN DE HEYTING (Phase3_HelmholtzDecisionMaker):
+      Inicia consumiendo `DeRhamComplexCertificate`. Resuelve la descomposición ortogonal no tautológica de
+      Helmholtz-Hodge $\alpha = d \varphi + \delta \beta + h$, calculando la cohomología de de Rham $H^k_{\mathrm{dR}}(K)$
+      y los números de Betti $\beta_k = \dim \ker(\Delta_k^\star)$. Integra el flujo Port-Hamiltoniano simpléctico
+      de Cayley-Poincaré preservando la 2-forma $\omega = dp \wedge dq$, analiza multiplicadores de Floquet
+      y adjudica la coherencia final en el retículo de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
 
-AXIOMÁTICA SIMPLÉCTICA, COHOMOLÓGICA, CELESTE Y DE AUTOMEJORA (RSI-L3):
-────────────────────────────────────────────────────────────────────────────────
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. CÁLCULO EXTERIOR DISCRETO (DEC) Y DUALIDAD DE HODGE-POINCARÉ:
+   Sea $K$ un complejo simplicial celular dotado de operadores de borde $\partial_k: C_k(K) \to C_{k-1}(K)$.
+   El espacio de $k$-cocadenas $C^k(K) \cong \mathbb{R}^{N_k}$ representa campos y formas discretas.
+   El producto interno métrico inducido por el operador $\star_k$ es:
+       $$\langle \alpha, \beta \rangle_{\star_k} = \alpha^\top \star_k \beta \quad \forall \alpha, \beta \in C^k(K)$$
+   Para satisfacer la dualidad de Poincaré, $\star_k$ debe ser un endomorfismo autoadjunto simétrico definido
+   positivo ($\star_k = \star_k^\top \succ 0$).
 
-  [A1] Simetría Autoadjunta, Cono SPD y Flujo Isocórico RSI-L3 (Fisher-Rao):
-       El operador estrella de Hodge discreto $\star_k$ es estrictamente simétrico y
-       definido positivo (SPD):
-       $$\star_k = \star_k^\top \succ \mathbf{0}, \qquad \lambda_{\min}(\star_k) \ge \mathtt{\_SPECTRAL\_PSD\_FLOOR}$$
-       $$\kappa_2(\star_k) = \frac{\lambda_{\max}(\star_k)}{\lambda_{\min}(\star_k)} \le \mathtt{\_CONDITION\_NUMBER\_MAX} = 1.0\times 10^8$$
-       Si se detectan perturbaciones o mal condicionamiento, el endofuntor RSI de
-       Nivel 3 proyecta al cono SPD vía Higham-Löwner (Nivel 1), ejecuta una
-       retracción geodésica en la variedad Riemanniana de Fisher-Rao preservando el
-       invariante integral de volumen de Liouville-Poincaré $\det(\star_k)$ (Nivel 2),
-       y auto-adapta su hiper-ley de amortiguamiento mediante contracción de
-       Banach-Lyapunov certificada (Nivel 3).
+2. DESCOMPOSICIÓN DE HELMHOLTZ-HODGE ORTOGONAL EN $\ell^2_{\star}$:
+   Toda 1-cocadena $\alpha \in C^1(K)$ admite una descomposición única de tres vías:
+       $$\alpha = d_0 \varphi + \delta_2 \beta + h$$
+   donde:
+     - Componente exacta: $d_0 \varphi = \partial_1^\top \varphi$, con $\varphi \in C^0(K)$ (potencial escalar).
+     - Componente coexacta: $\delta_2 \beta = \star_1^{-1} \partial_2 \star_2 \beta$, con $\beta \in C^2(K)$ (potencial vectorial).
+     - Componente armónica: $h \in \ker(\Delta_1^\star)$, isomorfa a la cohomología de de Rham $H^1_{\mathrm{dR}}(K)$.
+   La ortogonalidad mutua de Riesz exige:
+       $$\langle d_0 \varphi, \delta_2 \beta \rangle_{\star_1} = 0, \quad \langle d_0 \varphi, h \rangle_{\star_1} = 0, \quad \langle \delta_2 \beta, h \rangle_{\star_1} = 0$$
 
-  [A2] Descomposición de Helmholtz-Hodge Ortogonal Ponderada No-Tautológica:
-       Toda 1-cocadena $\alpha \in C^1(K)$ se descompone de forma única y
-       métricamente ortogonal respecto al producto interno $\langle \cdot, \cdot \rangle_{\star_1}$:
-       $$\alpha = d_0\varphi + \delta_2\beta + h$$
-       Donde:
-         · $d_0\varphi = \partial_1^\top \varphi$ es la componente exacta ($\varphi \in C^0$).
-         · $\delta_2\beta = \star_1^{-1} \partial_2 \star_2 \beta$ es la componente coexacta ($\beta \in C^2$).
-         · $h \in \ker(\Delta_1^\star)$ es la componente armónica ($h \cong H^1_{\mathrm{dR}}(K)$).
-       Certificada por la anulación simultánea de los tres apareamientos de Riesz:
-       $$\langle d_0\varphi, \delta_2\beta \rangle_{\star_1} = \langle d_0\varphi, h \rangle_{\star_1} = \langle \delta_2\beta, h \rangle_{\star_1} \equiv 0 \pmod{\varepsilon_{\mathrm{mach}}}$$
+3. INTEGRACIÓN SIMPLÉCTICA DE CAYLEY-POINCARÉ EN SISTEMAS PORT-HAMILTONIANOS:
+   La evolución en el espacio de fase $T^* C^0 \cong C^0 \oplus C^1$ con generador $(\mathcal{J} - \mathcal{R})\mathcal{M}$
+   se resuelve mediante la aproximación bilineal de Cayley:
+       $$\Phi_{\Delta t} = \left(I - \frac{\Delta t}{2}(\mathcal{J} - \mathcal{R})\mathcal{M}\right)^{-1} \left(I + \frac{\Delta t}{2}(\mathcal{J} - \mathcal{R})\mathcal{M}\right)$$
+   En el régimen conservativo ($\mathcal{R} = 0$), $\Phi_{\Delta t}$ es un simplectomorfismo estricto:
+       $$\Phi_{\Delta t}^\top \mathbf{\Omega} \Phi_{\Delta t} = \mathbf{\Omega}, \qquad \det(\Phi_{\Delta t}) = 1$$
+   garantizando la preservación del volumen de Liouville y de los invariantes integrales de Poincaré.
 
-  [A3] Conjugación Isométrica de Hilbert para Laplacianos de Hodge:
-       Con los diferenciales exteriores $d_0 = \partial_1^\top$, $d_1 = \partial_2^\top$ y
-       codiferenciales $\delta_1 = \star_0^{-1}\partial_1\star_1$, $\delta_2 = \star_1^{-1}\partial_2\star_2$:
-       $$\Delta_0^\star = \delta_1 d_0 = \star_0^{-1} \partial_1 \star_1 \partial_1^\top, \qquad
-         \Delta_1^\star = d_0 \delta_1 + \delta_2 d_1 = \partial_1^\top \star_0^{-1} \partial_1 \star_1 + \star_1^{-1} \partial_2 \star_2 \partial_2^\top$$
-       Su diagonalización espectral se ejecuta mediante la transformación de
-       similaridad isométrica $\tilde{\Delta}_k = \star_k^{1/2} \Delta_k^\star \star_k^{-1/2}$,
-       garantizando simetría exacta en $\ell^2$ y autovectores $\star_k$-ortonormales.
+4. AUTOMEJORA RECURSIVA RSI-L3 EN LA VARIEDAD DE FISHER-RAO:
+   La distancia de Fisher-Rao entre dos operadores métricos $A, B \in \operatorname{SPD}(n)$ viene dada por:
+       $$d_{\mathrm{FR}}(A, B) = \|\ln(A^{-1/2} B A^{-1/2})\|_F$$
+   El flujo geodésico isocórico refina $\star_k$ proyectando sobre el subespacio de determinante constante:
+       $$\star_k^{(t+1)} = \star_k^{(t)} \exp\left( -\eta \left[ \nabla f(\star_k^{(t)}) - \frac{1}{n} \mathrm{Tr}(\nabla f(\star_k^{(t)})) I \right] \right)$$
+   preservando el volumen simpléctico sin distorsión de gauge.
 
-  [A4] Mecánica Celeste de Poincaré, Resonancias KAM y Recurrencia Simpléctica:
-       El flujo Port-Hamiltoniano en el espacio fase $T^*C^0 \cong C^0 \oplus C^1$ se
-       integra mediante el morfismo simpléctico de Cayley-Poincaré:
-       $$\Phi_{\Delta t} = \left(I - \frac{\Delta t}{2}(\mathcal{J} - \mathcal{R})\mathcal{M}\right)^{-1}
-                           \left(I + \frac{\Delta t}{2}(\mathcal{J} - \mathcal{R})\mathcal{M}\right)$$
-       En el límite conservativo ($\mathcal{R} = \mathbf{0}$), preserva exactamente la
-       2-forma simpléctica de Poincaré-Cartan $\omega = dp \wedge dq$, el determinante
-       de Liouville $\det(\Phi_{\Delta t}) = 1$ y el Hamiltoniano $\mathcal{H}(q, p)$,
-       permitiendo auditar la sección estroboscópica de Poincaré, el tiempo de
-       recurrencia de Kac-Poincaré, los multiplicadores de Floquet y los pequeños
-       divisores diofánticos de Kolmogorov-Arnold-Moser (KAM).
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma DHS-1] Positividad Estricta del Hodge Star (Cono SPD):
+      $\star_k = \star_k^\top \succ 0$, con autovalor mínimo $\lambda_{\min}(\star_k) \ge \tau_{\mathrm{PSD}} = 10^{-12}$.
+  [Axioma DHS-2] Nilpotencia Exacta del Complejo de Cadenas:
+      $\partial_1 \circ \partial_2 = \mathbf{0} \iff d_1 \circ d_0 = \mathbf{0}$, garantizando la estructura cohomológica $d^2 = 0$.
+  [Axioma DHS-3] Ortogonalidad Métrica de Helmholtz-Hodge:
+      $\langle d \varphi, \delta \beta \rangle_{\star} \equiv 0$ módulo $\varepsilon_{\mathrm{mach}}$, asegurando independencia canónica de potenciales.
+  [Axioma DHS-4] Simplectomorfismo de Cayley:
+      $\det(\Phi_{\Delta t}) = 1.0$ en ausencia de disipación ($\mathcal{R} = 0$), preservando la medida de Liouville.
+  [Axioma DHS-5] Invariancia Topológica de Euler-Poincaré:
+      $\chi(K) = |V| - |E| + |F| = \beta_0 - \beta_1 + \beta_2$.
 
-  [A5] Invarianza de Euler-Poincaré y Veto Coherente en el Retículo de Heyting $\Omega_3$:
-       $$\chi(K) = |V| - |E| + |F| = \beta_0 - \beta_1 + \beta_2$$
-       Evaluación en el álgebra de Heyting $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$.
-
-ARQUITECTURA DE TRES FASES ANIDADAS (Continuidad Formal Estricta):
-────────────────────────────────────────────────────────────────────────────────
-  FASE 1 ──► FUNDAMENTOS MÉTRICOS, AUTOMEJORA RSI-L3 Y VOLUMEN DE LIOUVILLE
-             Clase principal: DiscreteHodgeStar (alias Phase1_SpectralMetricObserver).
-             Último método formal: DiscreteHodgeStar.induce_duality_morphism()
-             ──► cuya firma y retorno (HodgeDualityMorphism) es el inicio exacto de la Fase 2.
-
-  FASE 2 ──► MORFISMO DE DUALIDAD, LAPLACIANOS DE HILBERT Y ESPECTRO KAM DE POINCARÉ
-             Inicia con la definición formal de HodgeDualityMorphism (alias Phase1HodgeObservation)
-             y continúa con WeightedHodgeLaplacian (alias Phase2_HodgeLaplacianOrienter).
-             Último método formal: WeightedHodgeLaplacian.certify_de_rham_complex()
-             ──► cuya firma y retorno (DeRhamComplexCertificate) es el inicio exacto de la Fase 3.
-
-  FASE 3 ──► COMPLEJO DE DE RHAM, DINÁMICA CELESTE DE POINCARÉ Y DECISIÓN DE HEYTING
-             Inicia con la definición formal de DeRhamComplexCertificate (alias Phase2HodgeOrientation)
-             y continúa con DiscreteDeRhamComplex (alias Phase3_HelmholtzDecisionMaker).
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Acotación del Número de Condición):
+      $\kappa_2(\star_k) = \frac{\lambda_{\max}(\star_k)}{\lambda_{\min}(\star_k)} \le 1.0 \times 10^8$.
+  Invariante 2 (Autoadjunción Isométrica del Laplaciano):
+      $\|\tilde{\Delta}_k - \tilde{\Delta}_k^\top\|_F \le 1.0 \times 10^{-10}$, donde $\tilde{\Delta}_k = \star_k^{1/2} \Delta_k^\star \star_k^{-1/2}$.
+  Invariante 3 (Conservación de Energía Port-Hamiltoniana):
+      $\frac{d}{dt} \mathcal{H} = -\langle \nabla \mathcal{H}, \mathcal{R} \nabla \mathcal{H} \rangle \le 0$.
+  Invariante 4 (Consistencia en el Retículo de Heyting $\Omega_3$):
+      Toda degeneración en $\chi(K)$ o $\det(\star_k)$ colapsa el estado modal a $\mathrm{VETOED}$.
 """
 
 from __future__ import annotations

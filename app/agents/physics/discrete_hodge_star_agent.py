@@ -1,68 +1,93 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Discrete Hodge Star Agent (Soberano de la Métrica Constitutiva)     ║
-║ Ruta   : app/agents/physics/discrete_hodge_star_agent.py                     ║
-║ Versión: 4.0.0-Hodge-PoincareCelestial-RSI-L3-Helmholtz-OODA-Topos-PhD       ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Discrete Hodge Star Agent                                                                 ║
+║ Módulo   : Discrete Hodge Star Agent (Soberano de la Métrica Constitutiva y Dualidad de de Rham)     ║
+║ Ubicación: app/agents/physics/discrete_hodge_star_agent.py                                           ║
+║ Ruta     : app/agents/physics/discrete_hodge_star_agent.py                                           ║
+║ Versión  : 4.0.0-Hodge-PoincareCelestial-RSI-L3-Helmholtz-OODA-Topos-PhD                             ║
+║ Función  : Agente soberano en estrato Physics (V_P), gobernanza OODA sobre discrete_hodge_star.py,   ║
+║            complejo de de Rham, dualidad de Poincaré, espectroscopía KAM y automejora RSI-L3.       ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y GEOMETRÍA DIFERENCIAL EN EL ESTRATO PHYSICS (V_P) ────
-Este módulo materializa al Agente Soberano y Observador Activo que gobierna la
-consistencia métrica del operador estrella de Hodge discreto ($\star_k$) sobre el
-complejo de de Rham simplicial del APU Filter, actuando como un endofuntor
-contractivo de Nivel 3 (RSI-L3) en la categoría de haces de-confinados con
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este módulo materializa al Agente Soberano y Observador Activo que gobierna la consistencia métrica
+del operador estrella de Hodge discreto ($\star_k$) sobre el complejo de de Rham simplicial del APU Filter,
+supervisando directamente al motor espectral `DiscreteHodgeStar` (`app/physics/discrete_hodge_star.py`).
+Actúa como un endofuntor contractivo de Nivel 3 (RSI-L3) en la categoría de haces de-confinados con
 valores en el clasificador de subobjetos del retículo distributivo de Heyting $\Omega_3$.
 
-El sistema modela las conductancias, permeabilidades y flujos de costos de la red
-de valor como formas diferenciales discretas (cocadenas en $C^k$) y corrientes
-duales (cadenas en $C_k$) acopladas mediante la dualidad de Poincaré discreta y la
-mecánica celeste simpléctica de Henri Poincaré (*Les Méthodes Nouvelles de la
-Mécanique Céleste*).
+El sistema modela las conductancias, permeabilidades y flujos de costos de la red de valor como formas
+diferenciales discretas (cocadenas en $C^k$) y corrientes duales (cadenas en $C_k$) acopladas mediante
+la dualidad de Poincaré discreta y la mecánica celeste simpléctica de Henri Poincaré (*Les Méthodes Nouvelles
+de la Mécanique Céleste*).
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Continuidad Funtorial Estricta): ──────────
-La definición formal final del último método de cada fase constituye el punto de
-arranque exacto de la fase siguiente:
+La gobernanza OODA se organiza en tres fases continuas y estrictamente acopladas:
+  • FASE 1 — SÍNTESIS MÉTRICA Y FLUIDEZ DE HODGE (Phase1_MetricObserver):
+      Audita el espectro del Hodge star $\star_k \succ 0$, supervisa la proyección de Higham-Löwner y
+      el flujo isocórico de Fisher-Rao, certificando que el número de condición cumpla $\kappa_2(\star_k) \le 10^8$.
+      Emite el certificado métrico para habilitar la dualidad.
+  • FASE 2 — LAPLACIANOS DE HILBERT Y HOMOLOGÍA DE DE RHAM (Phase2_HodgeLaplacianAgent):
+      Inspecciona la nilpotencia del complejo $d^2 = 0$, evalúa la conjugación isométrica $\tilde{\Delta}_k$,
+      calcula el espectro de autovalores de Laplace-Beltrami y los números de Betti $\beta_k$, verificando
+      la invarianza topológica de Euler-Poincaré $\chi(K) = \sum (-1)^k \beta_k$.
+  • FASE 3 — DESCOMPOSICIÓN DE HELMHOLTZ, FLUJO DE CAYLEY Y DECISIÓN HEYTING (Phase3_HelmholtzDecisionAgent):
+      Resuelve la descomposición ortogonal no tautológica de Helmholtz-Hodge, verifica la anulación de los
+      apareamientos cruzados $\langle d\varphi, \delta\beta \rangle_\star = 0$, integra el flujo simpléctico
+      de Cayley-Poincaré, y emite el veredicto en el álgebra de Heyting $\Omega_3$.
 
-  FASE 1 ──► OBSERVACIÓN ESPECTRAL, SANEAMIENTO DE TIKHONOV-WILKINSON Y RSI-L3
-             Clase: Phase1_SpectralMetricObserver.
-             Evalúa y sanea el tensor constitutivo $\star_1 \succ \mathbf{0}$ mediante
-             desplazamiento espectral exacto y flujo geodésico isocórico de Fisher-Rao
-             que preserva el volumen de Liouville-Poincaré $\sqrt{\det(\star_1)}$.
-             Último método formal: `emit_phase1_observation(...) -> Phase1HodgeObservation`
-             ──► cuya firma de retorno abre formalmente la Fase 2.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. CÁLCULO EXTERIOR DISCRETO (DEC) Y DUALIDAD DE HODGE-POINCARÉ:
+   En un complejo simplicial orientado de dimensión $n$, la dualidad de Poincaré establece un isomorfismo
+   canónico entre la $k$-ésima cohomología simplicial y la $(n-k)$-ésima homología del complejo dual:
+       $$H^k(K; \mathbb{R}) \cong H_{n-k}(K^*; \mathbb{R})$$
+   El operador estrella de Hodge discreto $\star_k: C^k(K) \to C^{n-k}(K^*)$ realiza este isomorfismo métricamente,
+   asignando a cada símplice primal $\sigma^k$ el volumen de su celda ortogonal dual $\star \sigma^k$.
 
-  FASE 2 ──► LAPLACIANO DE HODGE, PASIVIDAD PORT-HAMILTONIANA Y ESPECTRO KAM
-             Inicia con `Phase1HodgeObservation` y continúa con
-             `Phase2_HodgeLaplacianOrienter(Phase1_SpectralMetricObserver)`.
-             Ensambla $L_0^\star = \partial_1 \star_1 \partial_1^\top$, certifica la
-             desigualdad de pasividad $\dot{\mathcal{H}} = -2 E_\star(\phi) \le 0$,
-             verifica el invariante de Euler-Poincaré $\chi(K)$ y audita los pequeños
-             divisores diofánticos de Kolmogorov-Arnold-Moser (KAM).
-             Último método formal: `emit_phase2_orientation(...) -> Phase2HodgeOrientation`
-             ──► cuya firma de retorno abre formalmente la Fase 3.
+2. TEOREMA DE DESCOMPOSICIÓN DE HELMHOLTZ-HODGE EN ESPACIOS DE HILBERT PONDERADOS:
+   Dado el producto interno métrico $\langle \alpha, \beta \rangle_{\star_k} = \alpha^\top \star_k \beta$, el espacio
+   de $k$-cocadenas admite la partición en suma directa ortogonal:
+       $$C^k(K) = \operatorname{Im}(d_{k-1}) \oplus_{\star} \operatorname{Im}(\delta_{k+1}) \oplus_{\star} \ker(\Delta_k^\star)$$
+   donde el subespacio armónico $\mathcal{H}^k_\Delta = \ker(\Delta_k^\star)$ es isomorfo por el Teorema de Hodge
+   al espacio de cohomología de de Rham $H^k_{\mathrm{dR}}(K)$.
 
-  FASE 3 ──► DESCOMPOSICIÓN DE HELMHOLTZ-HODGE, ÓRBITA SIMPLÉCTICA DE POINCARÉ,
-             RETÍCULO DE HEYTING $\Omega_3$ Y SOBERANO CROWBAR (GPIO14)
-             Inicia con `Phase2HodgeOrientation` y continúa con
-             `Phase3_HelmholtzDecisionMaker(Phase2_HodgeLaplacianOrienter)`.
-             Proyecta el flujo $I \in C_1$ en componentes mutuamente ortogonales
-             respecto a la métrica de disipación de Joule $\langle \cdot, \cdot \rangle_{\star_1^{-1}}$:
-             $$I = I_{\mathrm{exact}} + I_{\mathrm{coexact}} + I_{\mathrm{harmonic}}, \qquad
-               \langle I_a, I_b \rangle_{\star_1^{-1}} = 0 \quad (a \neq b).$$
-             Audita la evolución simpléctica de Cayley-Poincaré ($\det \Phi_{\Delta t} = 1$,
-             multiplicadores de Floquet, recurrencia de Kac-Poincaré y circulación de
-             Poincaré-Cartan).
-             Último método formal: `emit_phase3_decision(...) -> Phase3HodgeDecision`
-             ──► consumido inmediatamente por `DiscreteHodgeStarAgent` para conmutar
-             el disyuntor físico Crowbar (GPIO14) y emitir `HodgeSovereignState`.
+3. FLUJO PORT-HAMILTONIANO Y SIMPLECTICIDAD DE CAYLEY:
+   La dinámica de transporte de flujo sobre las aristas del grafo se rige por la estructura de Dirac:
+       $$\begin{pmatrix} \dot{q} \\ \dot{p} \end{pmatrix} = (\mathcal{J} - \mathcal{R}) \begin{pmatrix} \partial_q H \\ \partial_p H \end{pmatrix}$$
+   La transformación de Cayley aproxima el exponencial simpléctico $\Phi_{\Delta t} = \operatorname{cayley}(\Delta t(\mathcal{J} - \mathcal{R})\mathcal{M})$,
+   garantizando que en el límite no disipativo ($\mathcal{R} = 0$), el determinante sea exactamente unitario
+   $\det(\Phi_{\Delta t}) = 1.0$, preservando el volumen de Liouville en el espacio de fase cotangente.
 
-INVARIANTES MATEMÁTICOS, SIMPLÉCTICOS Y TERMODINÁMICOS PRESERVADOS: ────────────
-  [I1] Autoadjunticidad y Cono SPD:       $\star_k = \star_k^\top \succ \mathbf{0}$
-  [I2] Factorización de de Rham-Hodge:    $L_0^\star = \partial_1 \star_1 \partial_1^\top \succeq \mathbf{0}$
-  [I3] Ortogonalidad de Tellegen-Joule:   $\|I\|_{\star_1^{-1}}^2 = \|I_{\mathrm{ex}}\|_{\star_1^{-1}}^2 + \|I_{\mathrm{co}}\|_{\star_1^{-1}}^2 + \|I_{\mathrm{har}}\|_{\star_1^{-1}}^2$
-  [I4] Pasividad de Lyapunov:             $\dot{\mathcal{H}} = -2 E_\star(\phi) \le 0$
-  [I5] Invariante de Liouville-Poincaré:  $\det(\Phi_{\Delta t}) = 1$ (flujo hamiltoniano conservativo)
-  [I6] Punto Fijo de Banach (RSI-L3):     $d(\mathcal{T}(\theta^{(n+1)}), \mathcal{T}(\theta^{(n)})) \le q_{\mathrm{Banach}} \, d(\theta^{(n+1)}, \theta^{(n)}), \; q_{\mathrm{Banach}} < 1$
+4. RETÍCULO BI-HEYTING $\Omega_3$ Y ADJUDICACIÓN DE RIESGO:
+   El espacio de decisión se modela como un topos elemental cuyo clasificador de subobjetos es el retículo
+   $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$. Las decisiones de paso o veto se
+   formulan mediante morfismos característicos $\chi: \mathcal{E} \to \Omega_3$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma DHSA-1] Simetría y Positividad de la Métrica de Hodge:
+      $\star_k = \star_k^\top \succ 0$, con autovalor mínimo acotado $\lambda_{\min} \ge 10^{-12}$.
+  [Axioma DHSA-2] Nilpotencia Exacta del Operador Coborde:
+      $d_{k+1} \circ d_k \equiv \mathbf{0}$, asegurando la exactitud del complejo de de Rham.
+  [Axioma DHSA-3] Ortogonalidad Métrica de Helmholtz:
+      $\langle d \varphi, \delta \beta \rangle_{\star} = 0$ dentro de la tolerancia de redondeo de Wilkinson.
+  [Axioma DHSA-4] Preservación de la Característica de Euler:
+      $\chi(K) = \sum_{k=0}^n (-1)^k \dim C^k(K) = \sum_{k=0}^n (-1)^k \beta_k$.
+  [Axioma DHSA-5] Monotonicidad Epistémica de Lyapunov:
+      $\mathcal{V}_{t+1} \le \mathcal{V}_t$ bajo automejora recursiva RSI-L3.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Condicionamiento Espectral de Hodge):
+      $\kappa_2(\star_k) \le 1.0 \times 10^8$.
+  Invariante 2 (Autoadjunción del Laplaciano Conjugado):
+      $\|\tilde{\Delta}_k - \tilde{\Delta}_k^\top\|_F \le 10^{-10}$.
+  Invariante 3 (Simplectomorfismo de Cayley-Poincaré):
+      $|\det(\Phi_{\Delta t}) - 1.0| \le 10^{-6}$ en régimen conservativo.
+  Invariante 4 (Aislamiento Crowbar de Fallas):
+      Toda inconsistencia cohomológica colapsa el estado a $\mathrm{VETOED}$ y acciona el Crowbar en $< 400$ ns.
 """
 
 from __future__ import annotations

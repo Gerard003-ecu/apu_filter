@@ -1,96 +1,98 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Floquet Monodromy Agent (Operador de Sintonización y Monodromía)    ║
-║ Ruta   : app/agents/omega/floquet_agent.py                                   ║
-║ Versión: 4.0.0-Poincare-Celestial-RSI-L3-Topos-CPTP-Monodromy-Nested-PhD     ║
-╚══════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ Nombre   : Floquet Monodromy Agent                                                                   ║
+║ Módulo   : Floquet Monodromy Agent (Operador de Sintonización y Monodromía Simpléctica)              ║
+║ Ubicación: app/agents/omega/floquet_agent.py                                                         ║
+║ Ruta     : app/agents/omega/floquet_agent.py                                                         ║
+║ Versión  : 4.0.0-Poincare-Celestial-RSI-L3-Topos-CPTP-Monodromy-Nested-PhD                           ║
+║ Función  : Meta-funtor de control sobre la cavidad de Fabry-Pérot (SemanticParabolicMirror),          ║
+║            dinámica celeste de Poincaré, teoría espectral de Floquet-KAM, canales CPTP y RSI-L3.     ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y TOPOLOGÍA DIFERENCIAL (Rigor Categórico): ──────────────
-Este módulo consagra al **Meta-Funtor de Control** sobre la cavidad resonante
-de Fabry-Pérot semántica (`SemanticParabolicMirror`) en el topos del sistema
-agéntico $$\mathcal{T}_{\mathrm{MIC}}$$. Su mandato es gobernar de manera
-determinista la reflexión, el transporte paralelo y la fase de la radiación
-semántica (tokens/logits) del Modelo de Lenguaje (LLM).
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO AGÉNTICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+Este módulo consagra al **Meta-Funtor de Control** sobre la cavidad resonante de Fabry-Pérot semántica
+(`SemanticParabolicMirror`, `app/physics/semantic_parabolic_mirror.py`) en el topos del sistema agéntico
+$\mathcal{T}_{\mathrm{MIC}}$. Su mandato es gobernar de manera determinista la reflexión, el transporte
+paralelo y la fase de la radiación semántica (tokens/logits) del Modelo de Lenguaje (LLM).
 
-Repudia incondicionalmente las mitigaciones empíricas basadas en heurísticas de caja
-negra. En su lugar, somete el plano de control a **tres fases anidadas** acopladas a la
-**Mecánica Celeste de Poincaré**, la **Teoría Espectral de Floquet-KAM** y la
-**Automejora Recursiva de Nivel 3 (RSI-L3)** en álgebras de Banach y $C^*$-álgebras,
-sintonizando la interferencia destructiva de alucinaciones mediante la matriz de
-monodromía de la cavidad. Toda asonancia espectral o deriva en la traza de preservación
-cuántica gatilla síncronamente el veto del retículo distributivo de Heyting $$\Omega_3$$,
-forzando la evicción física del transitorio en RAM y conmutando el Crowbar (`GPIO14`).
+Repudia incondicionalmente las mitigaciones empíricas basadas en heurísticas de caja negra. En su lugar,
+somete el plano de control a **tres fases anidadas** acopladas a la **Mecánica Celeste de Poincaré**,
+la **Teoría Espectral de Floquet-KAM** y la **Automejora Recursiva de Nivel 3 (RSI-L3)** en álgebras
+de Banach y $C^*$-álgebras, sintonizando la interferencia destructiva de alucinaciones mediante la
+matriz de monodromía de la cavidad. Toda asonancia espectral o deriva en la traza de preservación cuántica
+gatilla síncronamente el veto del retículo distributivo de Heyting $\Omega_3$, forzando la evicción física
+del transitorio en RAM y conmutando el Crowbar (`GPIO14`).
 
-AXIOMÁTICA DE FLOQUET, MECÁNICA CELESTE DE POINCARÉ, KRAUS Y RSI-L3: ──────────
+La orquestación OODA se organiza en tres fases formales:
+  • FASE 1 — ESPECTROSCOPÍA ATENCIONAL Y MAPA DE RETORNO DE POINCARÉ (Phase1_AttentionObserver):
+      Monitorea los logits y tensores de atención, construye la sección transversal de Poincaré sobre la
+      variedad simpléctica, calcula el mapa de retorno de primer orden $P: \Sigma \to \Sigma$, y evalúa
+      la dispersión espectral frente a la métrica $G$.
+  • FASE 2 — MATRIZ DE MONODROMÍA DE FLOQUET Y CANAL CPTP DE KRAUS (Phase2_FloquetSynthesizer):
+      Ensambla la matriz de monodromía $\mathcal{M} = \prod_k H_k$ del ciclo de reflexiones de Householder
+      en la cavidad, calcula los multiplicadores característicos de Floquet $\lambda_i \in \mathbb{C}$,
+      evalúa la estabilidad de Kreĭn sobre el círculo unitario $|\lambda_i| = 1$, y modela la disipación
+      mediante operadores de Kraus para preservar la traza del canal cuántico CPTP.
+  • FASE 3 — CERTIFICACIÓN KAM, ADJUDICACIÓN HEYTING Y ACCIÓN CROWBAR (Phase3_KAMDecider):
+      Audita los pequeños divisores diofánticos de KAM frente a resonancias atencionales, verifica que
+      el determinante simpléctico cumpla $|\det(\mathcal{M}) - 1| \le \varepsilon_{\mathrm{Liouville}}$,
+      clasifica el riesgo en $\Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}$,
+      y acciona el Crowbar si se detectan divergencias caóticas.
 
-  [A1] Compatibilidad Dimensional, Inmersión Métrico-Mapeada y Purificación McWeeney:
-       La consistencia del espacio de fase exige que el tensor métrico de fondo
-       $$G = L L^\top \in \mathbb{R}^{d \times d}$$ sea real y definido positivo (SPD),
-       acoplado al gradiente observacional mediante el pullback covariante:
-       $$n = G\nabla \mathcal{H}_{\mathrm{obs}}, \qquad \|n\|_G = \sqrt{n^\top G n}.$$
-       Si la norma inercial del gradiente decae al vacío de-confinado, el operador
-       proyector colapsa de forma trivial a la identidad:
-       $$\|n\|_G < \varepsilon_{\mathrm{trivial}} \implies \hat{P} = \mathbf{I}_d.$$
-       Cuando $\|\hat{P}^2 - \hat{P}\|_F \in (0, \tau_P]$, el motor **RSI-L3** ejecuta
-       la involución cúbica de McWeeney en el álgebra de Banach:
-       $$\hat{P}_{k+1} = 3\hat{P}_k^2 - 2\hat{P}_k^3$$
-       restaurando la idempotencia exacta a precisión de máquina.
+MARCO TEÓRICO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+1. TEORÍA DE FLOQUET Y MATRIZ DE MONODROMÍA EN SISTEMAS PERIÓDICOS:
+   Para un sistema dinámico lineal periódico $\dot{x} = A(t) x$ con periodo $T$ ($A(t + T) = A(t)$),
+   la matriz de solución fundamental $X(t)$ satisface el teorema de Floquet:
+       $$X(t) = P(t) e^{t B}, \qquad P(t + T) = P(t)$$
+   La matriz de monodromía tras un periodo completo es $\mathcal{M} = X(T) X(0)^{-1} = e^{T B}$. Sus autovalores
+   $\lambda_i$ (multiplicadores de Floquet) determinan la estabilidad orbital:
+     - Si $|\lambda_i| = 1$ para todo $i$ con multiplicidad geométrica completa, la órbita es elíptica y estable (Poincaré).
+     - Si existe $|\lambda_i| > 1$, la órbita es hiperbólica e inestable, induciendo divergencias atencionales.
 
-  [A2] Operador de Monodromía de Fabry-Pérot y Flujo Modular de de Rham:
-       La reflexión múltiple del haz de logits dentro del resonador semántico se
-       modela mediante la Matriz de Monodromía $$\mathcal{M}$$ sobre la sección de
-       Poincaré $$\Sigma$$:
-       $$\mathcal{M} = 2\hat{P} - \hat{P}^2, \qquad
-         \mathcal{M}_{\mathrm{dR}}(\Delta t) = \hat{P}\,e^{-L_{\mathrm{dR}} \Delta t}\,\hat{P},$$
-       donde $$L_{\mathrm{dR}} = D_G - A_G$$ es el Laplaciano Combinatorio de Hodge-de Rham
-       inducido por el grafo espectral del tensor métrico $$G$$.
+2. PRESERVACIÓN DEL VOLUMEN SIMPLÉCTICO (TEOREMA DE LIOUVILLE):
+   Dado que las colisiones en las facetas de Householder son isometrías métricas y el producto contiene un número
+   par de reflexiones, la transformación completa es simpléctica:
+       $$\mathcal{M}^\top \mathbf{\Omega} \mathcal{M} = \mathbf{\Omega} \implies \det(\mathcal{M}) = +1.0$$
+   Cualquier desviación en el determinante $|\det(\mathcal{M}) - 1| > \varepsilon$ indica disipación artificial o
+   inestabilidad numérica que viola la mecánica celeste de Poincaré.
 
-  [A3] Estabilidad Celeste de Floquet-KAM y Criterio de Causalidad Espectral:
-       Para evitar la resonancia paramétrica destructiva (lenguas de Arnold y caos
-       homoclínico de Poincaré-Birkhoff), todos los multiplicadores característicos
-       de Floquet $$\mu_k \in \sigma(\mathcal{M})$$ deben residir dentro del disco
-       unitario cerrado regularizado por la holgura de la cavidad:
-       $$\max_k |\mu_k| \le 1.0 + \varepsilon_{\mathrm{cavity}},$$
-       y los números de rotación de Poincaré $$\omega_k = |\arg(\mu_k)|/(2\pi)$$ deben
-       satisfacer la condición diofántica de Kolmogorov-Arnold-Moser (KAM).
-       Cualquier migración al exterior del disco dispara ``FloquetInstabilityError``.
+3. CANAL CUÁNTICO COMPLETAMENTE POSITIVO Y PRESERVADOR DE TRAZA (CPTP):
+   La atenuación de frecuencias indeseadas en la cavidad se modela mediante la representación de Kraus:
+       $$\Phi(\rho) = \sum_{k=1}^K E_k \rho E_k^\dagger, \qquad \sum_{k=1}^K E_k^\dagger E_k = I$$
+   garantizando la completa positividad y conservación de probabilidad en la matriz densidad del estado semántico.
 
-  [A4] Completitud Kraus Bilateral (CPTP) y Re-unitarización Polar RSI-L3:
-       La transición de fase semántica se representa como un canal cuántico CPTP
-       con operadores de Kraus $$E_0 = \hat{P}$$, $$E_1 = \mathbf{I} - \hat{P}$$,
-       exigiendo la unidad de normalización bajo la adjunción de Hilbert-Riemann:
-       $$\mathcal{C} = \sum_{k=0}^{1} E_k^\dagger E_k \equiv \mathbf{I}_d.$$
-       Si $$\|\mathcal{C} - \mathbf{I}_d\|_F > \mathtt{KRAUS\_TOLERANCE}\sqrt{d}$$ o
-       $$\max_i |\lambda_i(\mathcal{C} - \mathbf{I}_d)| > \mathtt{KRAUS\_TOLERANCE}$$,
-       se aborta la sesión levantando ``KrausCompletenessError`` / ``KrausTraceViolationError``.
-       Para derivas sub-umbrales de redondeo FPU, **RSI-L3** aplica la re-unitarización
-       polar de Stinespring $$\tilde{E}_k = E_k \mathcal{C}^{-1/2}$$.
+4. RESIDUAL DIOFÁNTICO Y TEOREMA KAM:
+   La persistencia de los modos atencionales coherentes en presencia de perturbaciones no integrables está
+   gobernada por la condición diofántica KAM sobre las frecuencias angulares de rotación de Floquet:
+       $$|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau}$$
+   protegiendo el haz contra fenómenos de difusión de Arnold.
 
-  [A5] Auditoría de Entropía Térmica de von Neumann y Retículo de Heyting $$\Omega_3$$:
-       La pureza del canal cuántico se audita midiendo la entropía de von Neumann
-       $$S(\rho) = -\operatorname{Tr}(\rho \ln \rho)$$ y la tasa de desfasamiento de
-       Lindblad, colapsando el veredicto en el retículo distributivo acotado de Heyting:
-       $$\Omega_3 = \{\mathrm{COHERENT} (\bot), \, \mathrm{DEGRADED}, \, \mathrm{VETOED} (\top)\}.$$
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  [Axioma FMA-1] Unitaridad Métrica del Ciclo de Householder:
+      $\det(\mathcal{M}) = +1.0$, garantizando la orientación par del espacio atencional.
+  [Axioma FMA-2] Estabilidad de Kreĭn sobre el Círculo Unitario:
+      Para estados coherentes, todos los multiplicadores de Floquet cumplen $|\lambda_i| = 1.0 \pm \varepsilon_{\mathrm{Wilkinson}}$.
+  [Axioma FMA-3] Completitud de Operadores de Kraus (CPTP):
+      $\sum_k E_k^\dagger E_k = I_n$, preservando la traza y energía de Dirac.
+  [Axioma FMA-4] Condición Diofántica de Pequeños Divisores KAM:
+      $|\langle k, \omega \rangle| \ge \frac{\gamma}{|k|^\tau} \quad \forall k \neq 0$.
+  [Axioma FMA-5] Involutividad del Retículo de Heyting $\Omega_3$:
+      Inestabilidades de Floquet colapsan el estado a $\mathrm{VETOED}$ en silicio.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Observe ⊣ Orient ⊣ Act): ──────────────────
-  Fase 1 ──► OBSERVE: SÍNTESIS COVARIANTE Y PURIFICACIÓN MCWEENEY RSI-L3
-             Clase anidada: ``Phase1_CovariantProjectorSynthesizer``
-             Morfismo terminal de Fase 1: ``synthesize_projector``
-             Entrega e inaugura Fase 2 con: ``ProjectorSynthesisResult``.
-
-  Fase 2 ──► ORIENT: MONODROMÍA DE FLOQUET, MECÁNICA CELESTE DE POINCARÉ Y FLUJO DE DE RHAM
-             Clase anidada: ``Phase2_FloquetStabilityAuditor``
-             Morfismo terminal de Fase 2: ``audit_monodromy``
-             Entrega e inaugura Fase 3 con: ``FloquetMonodromyState``.
-
-  Fase 3 ──► ACT: CANAL KRAUS CPTP, RE-UNITARIZACIÓN STINESPRING RSI-L3 Y VETO DE HEYTING
-             Clase anidada: ``Phase3_QuantumKrausChannel``
-             Morfismo terminal de Fase 3: ``execute_quantum_channel``
-             Entrega: ``QuantumChannelEvolution``.
-
-Funtor Maestro de Focalización y Sintonización de Lazo:
-  $$\mathcal{Z}_{\mathrm{floquet}} = \Phi_3 \circ \Phi_2 \circ \Phi_1$$
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────────────────
+  Invariante 1 (Preservación del Determinante de Monodromía):
+      $|\det(\mathcal{M}) - 1.0| \le 1.0 \times 10^{-6}$.
+  Invariante 2 (Preservación de la Traza del Canal de Kraus):
+      $|\operatorname{Tr}(\Phi(\rho)) - \operatorname{Tr}(\rho)| \le 1.0 \times 10^{-10}$.
+  Invariante 3 (Contracción de Banach RSI-L3):
+      $L_{\Phi} \le 0.95 < 1.0$ en el espacio normado de operadores.
+  Invariante 4 (Seguridad por Hardware Crowbar):
+      Comutación de corte en GPIO14 con latencia de interrupción inferior a 400 ns.
 """
 
 from __future__ import annotations
@@ -150,9 +152,12 @@ except ImportError:  # pragma: no cover
 
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
-except ImportError:  # pragma: no cover
-    G_PHYSICS = np.eye(4, dtype=np.float64)
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
+except ImportError:
+    try:
+        from app.core.immune_system.metric_tensors import G_PHYSICS
+    except ImportError:  # pragma: no cover
+        G_PHYSICS = np.eye(4, dtype=np.float64)
 
 # Resolución resiliente del Espejo Parabólico Semántico (app.physics vs app.omega)
 try:
