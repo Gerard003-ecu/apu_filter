@@ -5,7 +5,7 @@ r"""
 ║ Ubicación: app/wisdom/topological_gauge_field_witness_engine.py              ║
 ║ Versión  : 10.1.0 / 10.0.0 (SOVEREIGN-GAUGE-WITNESS-QND-BACKACTION-ZERO-     ║
 ║           POINCARE-RSI3-PhD-BANACH-BRUNO-BIRKHOFF)                           ║
-║ Función  : Observación no destructiva pasiva QND (Quantum Non-Demolition),  ║
+║ Función  : Observación no destructiva pasiva QND (Quantum Non-Demolition),   ║
 ║            certificación de back-action cero, teoría espectral de gauge,     ║
 ║            secciones de Poincaré y automejora recursiva Nivel 3.             ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
