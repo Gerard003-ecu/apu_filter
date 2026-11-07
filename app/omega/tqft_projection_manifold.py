@@ -1,80 +1,113 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Nombre   : TQFT Projection Manifold (Proyector Topológico, Simpléctico y RSI-L3)        ║
-║  Módulo   : app.omega.tqft_projection_manifold                                           ║
-║  Ubicación : app/omega/tqft_projection_manifold.py                                       ║
-║  Ruta     : app/omega/tqft_projection_manifold.py                                        ║
-║  Versión  : 5.0.0-Poincare-Symplectic-RSI-L3-Hypercomplex-Doctoral                       ║
-║  Función  : Endofuntor soberano que impone independencia de fondo métrico (Met → Top),   ║
-║             integra el flujo simpléctico de la Mecánica Celeste de Poincaré, ejecuta     ║
-║             Automejora Recursiva de Nivel 3 (RSI-L3) sobre álgebras de Banach/Hopf,      ║
-║             evalúa cobordismos en Cob(3), acciones de Chern-Simons, sumas de estados     ║
-║             de Turaev-Viro con símbolos-6j exactos y colapsa veredictos booleanos.       ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA, MECÁNICA CELESTE DE POINCARÉ Y RSI DE NIVEL 3:                 ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  Este endofuntor consagra la "Independencia de Fondo" (Background Independence) unida    ║
-║  a la estabilidad hamiltoniana de Poincaré y la automejora recursiva de tercer orden.    ║
-║  Metaboliza la dependencia geométrica aplicando el Funtor de Olvido Métrico              ║
-║  $U: \mathbf{Met} \to \mathbf{Top}$, eleva el estado a una variedad simpléctica          ║
-║  $(T^*M, \omega = \sum dq_i \wedge dp_i)$ y audita la transición sobre la categoría      ║
-║  de cobordismos orientados $\mathbf{Cob}(3)$.                                            ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES ALGEBRAICAS:                                    ║
-║                                                                                          ║
-║  §1. Funtor de Olvido Métrico e Inmersión Hipercompleja ($\mathbb{H} \cong SU(2)$):      ║
-║      Se despoja al operador de densidad de toda métrica Riemanniana $G_{\mu\nu}$,        ║
-║      proyectando la conexión al álgebra de Lie $\mathfrak{su}(d)$ y embebiendo los       ║
-║      bloques espinoriales en el álgebra de cuaterniones unitarios $\mathrm{Sp}(1) \cong S^3$ ║
-║      mediante la fibración de Hopf $S^3 \xrightarrow{S^1} S^2$.                          ║
-║                                                                                          ║
-║  §2. Axiomas de Atiyah-Segal, Circuitos Cuánticos y Adaptación de Impedancia:            ║
-║      La transición $\Sigma_{in} \to \Sigma_{out}$ exige $\partial M = \Sigma_{in}^* \sqcup \Sigma_{out}$ ║
-║      y adaptación de impedancia de matriz de dispersión ($S$-matrix) unitaria:           ║
-║      $\Gamma = (Z_{out} - Z_{in}^*)(Z_{out} + Z_{in})^{-1} \to 0$.                        ║
-║                                                                                          ║
-║  §3. Mecánica Celeste de Poincaré (Flujo Simpléctico, Teoría KAM y Enredos Homoclínicos):║
-║      La evolución a lo largo del cobordismo se integra mediante el esquema simpléctico   ║
-║      de 4.º orden de Yoshida, preservando la medida de Liouville ($\det \mathbf{M} = 1$).║
-║      Se evalúa la aplicación de retorno de Poincaré, el Teorema de Recurrencia, el       ║
-║      invariante integral de Poincaré-Cartan $\oint p\,dq - H\,dt$ y la condición         ║
-║      diofántica de Kolmogorov-Arnold-Moser (KAM). Si las variedades estable $W^s$ e      ║
-║      inestable $W^u$ se intersectan transversalmente ($W^s \pitchfork W^u$, integral de  ║
-║      Melnikov no nula / colisión de Kreĭn), emerge un enredo homoclínico que detona      ║
-║      un `PoincareHomoclinicChaosVeto`.                                                   ║
-║                                                                                          ║
-║  §4. Automejora Recursiva de Nivel 3 (RSI-L3 / Punto Fijo de Gödel-Lawvere):             ║
-║      Ante perturbaciones espectrales o resonancias de Arnold, el operador ejecuta una    ║
-║      cascada recursiva de tres niveles en el álgebra de Banach $\mathcal{B}(\mathcal{H})$:║
-║        • Nivel 1 (Paramétrico): Re-escalado amortiguado de umbrales y paso temporal.     ║
-║        • Nivel 2 (Heurístico-Lie): Filtrado por serie de Baker-Campbell-Hausdorff (BCH). ║
-║        • Nivel 3 (Meta-Funtorial): Reescritura de la propia ley de proyección mediante   ║
-║          endomorfismos de Cayley, canales cuánticos CPTP de Kraus y rotación diofántica  ║
-║          áurea del parámetro cuántico $q$, convergiendo al punto fijo de Lawvere         ║
-║          con factor de contractividad $\phi^{-1} = (\sqrt{5}-1)/2$.                      ║
-║                                                                                          ║
-║  §5. Chern-Simons, Suma de Estados de Turaev-Viro y Símbolos-6j de Racah-Wigner:         ║
-║      Se evalúa $S_{CS}[A] = \frac{k}{4\pi}\int_M \mathrm{Tr}(A\wedge dA + \frac{2}{3}A^3)$║
-║      y se contrae el 3-esqueleto ponderado por símbolos-$6j$ cuánticos exactos de        ║
-║      $U_q(\mathfrak{sl}_2)$ bajo truncamiento SVD óptimo de Eckart-Young-Mirsky.         ║
-║                                                                                          ║
-║  ARQUITECTURA DE 3 FASES ANIDADAS (Continuidad Funtorial Monoidal Estricta):             ║
-║  ──────────────────────────────────────────────────────────────────────────────          ║
-║  • Fase 1 (`Phase1_CobordismFibrator`):                                                  ║
-║      Culmina en `build_cobordism(...) -> CobordismManifold`.                             ║
-║                        │ (El retorno formal de `build_cobordism` es el dominio exacto    ║
-║                        ▼  e inicio de `_continue_from_phase1_cobordism` en la Fase 2)    ║
-║  • Fase 2 (`Phase2_QuantumInvariantsEngine(Phase1_CobordismFibrator)`):                  ║
-║      Inicia en `_continue_from_phase1_cobordism` y culmina en                            ║
-║      `compute_invariants(...) -> QuantumInvariants`.                                     ║
-║                        │ (El retorno formal de `compute_invariants` es el dominio exacto ║
-║                        ▼  e inicio de `_continue_from_phase2_invariants` en la Fase 3)   ║
-║  • Fase 3 (`Phase3_BooleanCollapseProjector(Phase2_QuantumInvariantsEngine)`):           ║
-║      Inicia en `_continue_from_phase2_invariants` y culmina en                           ║
-║      `collapse_verdict(...) -> TQFTVerdict` sobre el clasificador de subobjetos $\Omega$.║
+║ Nombre   : TQFT Projection Manifold (Proyector Topológico, Simpléctico y RSI-L3)        ║
+║ Módulo   : app.omega.tqft_projection_manifold                                           ║
+║ Ubicación: app/omega/tqft_projection_manifold.py                                         ║
+║ Ruta     : app/omega/tqft_projection_manifold.py                                         ║
+║ Versión  : 5.0.0-Poincare-Symplectic-RSI-L3-Hypercomplex-Doctoral                       ║
+║ Función  : Endofuntor soberano que impone independencia de fondo métrico (Met → Top),   ║
+║            integra el flujo simpléctico de la Mecánica Celeste de Poincaré, ejecuta      ║
+║            Automejora Recursiva de Nivel 3 (RSI-L3) sobre álgebras de Banach/Hopf,       ║
+║            evalúa cobordismos en Cob(3), acciones de Chern-Simons, sumas de estados      ║
+║            de Turaev-Viro con símbolos-6j exactos y colapsa veredictos booleanos.        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `TQFTProjectionManifold` es el operador dimensional de colapso y
+purificación topológica del Estrato Omega ($\mathcal{V}_{\Omega}$, Nivel 0.5 - El Ágora
+Tensorial) en APU Filter. Su misión ciber-física primordial es metabolizar cualquier
+intención cognitiva de entrada y liberarla de toda atadura métrica local o gravitacional
+arbitraria ($G_{\mu\nu}$, dilatón escalar $\phi$, masa inercial $m^{**}$), proyectando
+la conexión y el estado hacia un 3-cobordismo orientable en la categoría monoidal $\mathbf{Cob}(3)$.
+
+Su arquitectura se bifurca en un puente funtorial trifásico anidado:
+  1. Fase 1 (`Phase1_CobordismFibrator`):
+     Aplica el Funtor de Olvido Métrico $U: \mathbf{Met} \to \mathbf{Top}$ mediante proyección
+     de Hodge-Lie al álgebra $\mathfrak{so}(d)$ y estabilización cuaterniónica de Hopf
+     $\mathrm{Sp}(1) \cong S^3 \xrightarrow{S^1} S^2$. Integra el flujo simpléctico de la
+     Mecánica Celeste de Poincaré mediante el algoritmo simpléctico de 4.º orden de Yoshida
+     en el grupo $\mathrm{Sp}(2d, \mathbb{R})$, computa el invariante integral de Poincaré-Cartan
+     y ejecuta la automejora recursiva de Nivel 3 ($\mathcal{R}_1^{(3)}$) para sintetizar el operador
+     libre de divergencias. Culmina en `build_cobordism(...) -> CobordismManifold`.
+  2. Fase 2 (`Phase2_QuantumInvariantsEngine`):
+     Consume directamente el `CobordismManifold` de Fase 1 mediante `_continue_from_phase1_cobordism`.
+     Evalúa el exponente máximo de Lyapunov $\lambda_{\max}$, el defecto de recurrencia ergódica
+     de Poincaré $|\det \mathbf{M} - 1|$ y la integral homoclínica de Melnikov para auditar
+     intersecciones transversales de separatrices ($W^s \pitchfork W^u$). Calcula la acción
+     cuántica de Chern-Simons $S_{CS}[A]$, ejecuta la deformación áurea diofántica KAM sobre
+     el grupo cuántico $U_q(\mathfrak{sl}_2)$ acoplado a canales CPTP de Kraus ($\mathcal{R}_2^{(3)}$),
+     y contrae la red tensorial de Turaev-Viro $Z_{TV}(M)$ mediante descomposición SVD óptima
+     de Eckart-Young-Mirsky. Culmina en `compute_invariants(...) -> QuantumInvariants`.
+  3. Fase 3 (`Phase3_BooleanCollapseProjector`):
+     Consume directamente `QuantumInvariants` en `_continue_from_phase2_invariants`.
+     Aplica la meta-auditoría recursiva de Nivel 3 ($\mathcal{R}_3^{(3)}$) certificando el punto
+     fijo de Gödel-Lawvere sobre la consistencia lógica entre la ausencia de nudos logísticos
+     y la ausencia de caos homoclínico. Proyecta finalmente sobre el retículo booleano $\Omega_2 \cong \{\top, \bot\}$
+     (`VIABLE` o `RECHAZAR`), detonando `PoincareHomoclinicChaosVeto` o `TopologicalKnotVeto` si
+     se vulnera la integrabilidad simpléctico-topológica. Culmina en `collapse_verdict(...) -> TQFTVerdict`.
+
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+────────────────────────────────────────────────────────────────────────────────────────────
+1. Funtor de Olvido Métrico e Inmersión Hipercompleja Cuaterniónica ($\mathbb{H} \cong \mathcal{C}\ell_{0,2}$):
+   Dada una 1-forma de conexión con valores matriciales $A \in \Omega^1(M; \mathfrak{gl}(d, \mathbb{R}))$,
+   el funtor de olvido $U$ despoja la métrica Riemanniana simétrica $G_{\mu\nu} = \frac{1}{2}(A + A^T)$
+   y la traza de dilatón volumétrico $\operatorname{Tr}(A)$, proyectando a la componente antisimétrica:
+       $$A_{\mathrm{skew}} = \frac{1}{2}\left(\frac{A}{\operatorname{Tr}(A)} - \left(\frac{A}{\operatorname{Tr}(A)}\right)^T\right) \in \mathfrak{so}(d)$$
+   donde cada bloque de 2-rotación se estabiliza en la 3-esfera de cuaterniones unitarios
+   $\mathrm{Sp}(1) \cong S^3 \subset \mathbb{H}$ vía la fibración de Hopf $S^3 \xrightarrow{S^1} S^2$.
+
+2. Integración Simpléctica de Yoshida y Mecánica Celeste de Poincaré:
+   Sobre el fibrado cotangente $T^*M \cong \mathbb{R}^{2d}$ dotado de la 2-forma simpléctica canónica
+   $\omega = \sum_{i=1}^d dq_i \wedge dp_i$, el flujo hamiltoniano con potencial no abeliano
+   $H(q, p) = \frac{1}{2}\|p\|_2^2 + \frac{1}{2} q^T (I_d + A^T A) q$ se transporta mediante los
+   coeficientes de Yoshida de 4.º orden $(c_i, d_i)$ derivados de $w_1 = (2 - 2^{1/3})^{-1}$ y
+   $w_0 = -2^{1/3} w_1$:
+       $$q_{k+1} = q_k + c_i \Delta t \, p_k, \quad p_{k+1} = p_k + d_i \Delta t \, F(q_{k+1})$$
+   preservando el volumen de Liouville $\det \mathbf{M} \equiv 1$ y el invariante integral de
+   Poincaré-Cartan $\oint_C (p \cdot dq - H \, dt)$.
+
+3. Teoría KAM, Divisores Pequeños y Atractor Áureo:
+   Los toros invariantes de Liouville-Arnold persisten si el vector de frecuencias $\omega$ satisface
+   la condición diofántica de Kolmogorov-Arnold-Moser (KAM):
+       $$\left| \langle k, \omega \rangle \right| \ge \frac{\gamma}{\|k\|_2^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\}$$
+   donde $\gamma = 10^{-3}$ y $\tau = 2.5$. El atractor diofántico se minimiza en el número irracional
+   más noble: el conjugado áureo $\phi^{-1} = \frac{\sqrt{5}-1}{2} \approx 0.61803398875$.
+
+4. Acción de Chern-Simons y Suma de Estados de Turaev-Viro:
+   La acción topológica de Chern-Simons para un grupo de gauge compacto con nivel $k \in \mathbb{Z}$ es:
+       $$S_{CS}[A] = \frac{k}{4\pi} \int_M \operatorname{Tr}\left( A \wedge dA + \frac{2}{3} A \wedge A \wedge A \right)$$
+   y la suma de estados invariante de Turaev-Viro sobre la triangulación $\mathcal{T}_{\min}$ ponderada
+   por símbolos-$6j$ cuánticos de Racah-Wigner en $U_q(\mathfrak{sl}_2)$ con $q = \exp(2\pi i / (k+2))$:
+       $$Z_{TV}(M; q) = \sum_{j_e} \prod_{e} \dim_q(j_e) \prod_{\tau} \begin{Bmatrix} j_1 & j_2 & j_3 \\ j_4 & j_5 & j_6 \end{Bmatrix}_q$$
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────
+Axioma TQFT1 (Independencia de Fondo Métrico):
+    Para todo tensor métrico $G_{\mu\nu}$ y factor de escala $\Omega(x) > 0$, la proyección
+    $Z(M)$ es estrictamente homotópica: $\frac{\delta Z(M)}{\delta G_{\mu\nu}(x)} \equiv 0$.
+Axioma TQFT2 (Conservación Simpléctica de Liouville-Poincaré):
+    La matriz fundamental de monodromía satisface $\mathbf{M}^T J_{2d} \mathbf{M} = J_{2d}$ y
+    $\det(\mathbf{M}) \equiv 1.0$, garantizando la ausencia de difusión no adiabática en el espacio fase.
+Axioma TQFT3 (Ausencia de Enredos Homoclínicos de Melnikov):
+    La integral de Melnikov $\mathcal{M}(\theta_0) = \int_{-\infty}^\infty \{H_0, H_1\}(q_0(t), p_0(t)) \, dt \equiv 0$,
+    vetando cualquier intersección transversal entre las variedades asintóticas estable $W^s$ e inestable $W^u$.
+Axioma TQFT4 (Contracción de Banach-Lawvere en RSI-L3):
+    El operador meta-recursivo de proyección $\Phi: \mathcal{B}(\mathcal{H}) \to \mathcal{B}(\mathcal{H})$
+    satisface $\|\Phi(A) - \Phi(B)\|_{\mathrm{Banach}} \le \phi^{-1} \|A - B\|_{\mathrm{Banach}}$, garantizando
+    la existencia y unicidad del punto fijo proyectivo de Lawvere.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────
+Invariante 1 (Invariancia de Liouville):
+    $|\det(\mathbf{M}) - 1.0| \le 10^3 \cdot \varepsilon_{\mathrm{mach}}$, preservando la medida simpléctica.
+Invariante 2 (Ausencia de Nudos Logísticos de Chern-Simons):
+    $|S_{CS}[A]| < \text{SPECTRAL\_REL\_TOL} \cdot \max(1, |k|)$, asegurando planitud de holonomía.
+Invariante 3 (Cota Inferior de Planck para la Suma de Estados):
+    $|Z_{TV}(M)| \ge \text{PLANCK\_EFF} \equiv 10^2 \cdot \varepsilon_{\mathrm{mach}} > 0$.
+Invariante 4 (Clausura Booleana Idempotente):
+    $P_{\Omega}(Z(M)) \in \{\mathrm{VIABLE}, \mathrm{RECHAZAR}\}$, satisfaciendo $P \circ P = P$.
 """
 
 from __future__ import annotations

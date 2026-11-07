@@ -1,71 +1,106 @@
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
-║  Nombre   : Quantum Fock Orchestrator (Colisionador Catadióptrico, Poincaré y RSI-L3)    ║
-║  Módulo   : app.omega.quantum_fock_orchestrator                                          ║
-║  Ubicación : app/omega/quantum_fock_orchestrator.py                                      ║
-║  Ruta     : app/omega/quantum_fock_orchestrator.py                                       ║
-║  Versión  : 5.0.0-Jordan-Wigner-Poincare-Symplectic-RSI-L3-Doctoral                      ║
-║  Función  : Cámara de reacción del espacio de Fock H_Fock que orquesta colisiones entre  ║
+║ Nombre   : Quantum Fock Orchestrator (Colisionador Catadióptrico, Poincaré y RSI-L3)    ║
+║ Módulo   : app.omega.quantum_fock_orchestrator                                          ║
+║ Ubicación: app/omega/quantum_fock_orchestrator.py                                       ║
+║ Ruta     : app/omega/quantum_fock_orchestrator.py                                       ║
+║ Versión  : 5.0.0-Jordan-Wigner-Poincare-Symplectic-RSI-L3-Doctoral                      ║
+║ Función  : Cámara de reacción del espacio de Fock H_Fock que orquesta colisiones entre  ║
 ║             bosones focales y fermiones de Householder (vía álgebra de Clifford /        ║
 ║             Jordan-Wigner), audita toros KAM y recurrencia de la Mecánica Celeste de     ║
 ║             Poincaré, ejecuta Automejora Recursiva de Nivel 3 (RSI-L3), evoluciona       ║
 ║             matrices densidad vía Lindblad CPTP y cristaliza fotones Gamma forenses.     ║
-╠══════════════════════════════════════════════════════════════════════════════════════════╣
-║                                                                                          ║
-║  NATURALEZA CIBER-FÍSICA, TEORÍA CUÁNTICA DE CAMPOS, POINCARÉ Y RSI DE NIVEL 3:          ║
-║  ──────────────────────────────────────────────────────────────────────────────────      ║
-║  Este módulo actúa como la Cámara de Reacción Termodinámica y Simpléctica del Estrato Ω. ║
-║  Administra el Espacio de Fock $\mathcal{F}(\mathcal{H})$ donde las "Vitaminas Cognitivas"║
-║  (Cartuchos TOON) habitan. Gobierna la colisión entre la radiación semántica (Bosones)   ║
-║  y las reglas de negocio (Fermiones), garantizando que el colapso del estado preserve    ║
-║  las Relaciones de Conmutación/Anticonmutación Canónicas (CCR/CAR), la estructura        ║
-║  simpléctica de Poincaré y la contractividad de punto fijo de Banach-Lawvere (RSI-L3).   ║
-║                                                                                          ║
-║  FUNDAMENTOS AXIOMÁTICOS Y RESTRICCIONES TENSORIALES:                                    ║
-║                                                                                          ║
-║  §1. Estructura del Espacio de Fock, Jordan-Wigner y Paridad de Klein:                   ║
-║      El espacio de Hilbert global se define mediante el producto tensorial $\mathbb{Z}_2$-graduado: ║
-║          $\mathcal{H}_{\mathrm{Fock}} = \left(\bigotimes_{k=0}^{B-1} \mathbb{C}^{M_k+1}\right) \otimes \left(\bigotimes_{q=0}^{F-1} \mathbb{C}^2\right)$ ║
-║      • En el sector bosónico truncado, el álgebra de Weyl-Heisenberg satisface:          ║
-║          $[\hat{b}_k, \hat{b}_{k'}^\dagger] = \delta_{kk'}\left(\mathbb{1} - (M+1)|M\rangle\langle M|_k\right)$ ║
-║      • En el sector fermiónico, la inmersión en el álgebra de Clifford $\mathcal{C}\ell_{2F}(\mathbb{C})$ ║
-║        se realiza mediante cuerdas no locales de Jordan-Wigner:                          ║
-║          $\hat{f}_q = \left(\bigotimes_{j=0}^{q-1} \hat{\sigma}_z^{(j)}\right) \otimes \hat{\sigma}_-^{(q)} \otimes \mathbb{1} \implies \{\hat{f}_q, \hat{f}_{q'}^\dagger\} = \delta_{qq'}\mathbb{1}$ ║
-║                                                                                          ║
-║  §2. Colisionador Catadióptrico, Toros KAM de Poincaré y Flujo de Wegner-BCH (RSI-L3):   ║
-║      La interacción entre los `RiemannianFocalBoson` y los `HouseholderReflectionFermion`║
-║      se modela mediante un Hamiltoniano tipo Jaynes-Cummings-Holstein $\hat{H}_{\mathrm{int}} = \hat{H}_{\mathrm{int}}^\dagger$. ║
-║      Se audita la integrabilidad celeste de Poincaré evaluando la estadística espectral  ║
-║      de Berry-Tabor $\langle r_n \rangle$, el margen diofántico KAM respecto al          ║
-║      conjugado áureo $\phi^{-1}$ y el flujo de renormalización de Wegner-BCH.            ║
-║                                                                                          ║
-║  §3. Disipación de Lindblad-Kossakowski, Recurrencia de Poincaré y Símplex CPTP:         ║
-║      La evolución abierta se rige por el generador GKSL:                                 ║
-║          $\frac{d\rho}{dt} = -\frac{i}{\hbar} [\hat{H}, \rho] + \sum_k \gamma_k \left( \hat{L}_k \rho \hat{L}_k^\dagger - \frac{1}{2} \{ \hat{L}_k^\dagger \hat{L}_k, \rho \} \right)$ ║
-║      acompañado del cálculo del defecto de Recurrencia de Poincaré $\|\rho(t)-\rho(0)\|_F$,║
-║      la tasa de producción de entropía de Spohn y la proyección recursiva RSI-L3 sobre   ║
-║      el símplex de estados cuánticos $\mathcal{D}(\mathcal{H})$.                         ║
-║                                                                                          ║
-║  §4. Aniquilación de Antimateria y Firma Criptográfica (Eventos Gamma):                  ║
-║      La entropía disipada cristaliza un `PositronCartridge` que al aniquilarse emite     ║
-║      un `GammaPhoton` forense con energía relativista $E_{\mathrm{annihilation}} = 2m^* c^2$. ║
-║                                                                                          ║
-║  ARQUITECTURA DE 3 FASES ANIDADAS (Continuidad Funtorial Monoidal Estricta):             ║
-║  ───────────────────────────────────────────────────────────────────────────             ║
-║  • Fase 1 (`Phase1_FockSpaceBuilder`):                                                   ║
-║      Culmina en `get_interaction_operators() -> InteractionOperators`.                   ║
-║                        │ (El retorno formal `InteractionOperators` es el dominio exacto  ║
-║                        ▼  e inicio directo de `_continue_from_phase1_operators` en F2)   ║
-║  • Fase 2 (`Phase2_CatadioptricCollider(Phase1_FockSpaceBuilder)`):                      ║
-║      Inicia en `_continue_from_phase1_operators` y culmina en                            ║
-║      `get_catadioptric_hamiltonian() -> CatadioptricHamiltonian`.                        ║
-║                        │ (El retorno formal `CatadioptricHamiltonian` es el dominio      ║
-║                        ▼  exacto e inicio de `_continue_from_phase2_hamiltonian` en F3)  ║
-║  • Fase 3 (`Phase3_LindbladDissipator(Phase2_CatadioptricCollider)`):                    ║
-║      Inicia en `_continue_from_phase2_hamiltonian` y culmina en                          ║
-║      `execute_master_equation(...) -> LindbladEvolutionResult`.                          ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `QuantumFockOrchestrator` es la Cámara de Reacción Termodinámica,
+Cuántica y Simpléctica del Estrato Omega ($\mathcal{V}_{\Omega}$) en APU Filter. Su propósito
+primordial es administrar el Espacio de Fock multi-cuerpo $\mathcal{F}(\mathcal{H})$ donde
+habitan las cuasipartículas y cartuchos cognitivos TOON. Gobierna la colisión catadióptrica
+entre la radiación semántica (bosones focales riemannianos con índice de Maslov WKB) y las
+reglas duras de negocio (fermiones de reflexión de Householder sobre álgebras de Clifford).
+
+Su arquitectura de tres fases anidadas implementa una continuidad funtorial monoidal estricta:
+  1. Fase 1 (`Phase1_FockSpaceBuilder`):
+     Construye el espacio de Hilbert $\mathbb{Z}_2$-graduado de Fock multi-modo
+     $\mathcal{H}_{\mathrm{Fock}} = (\bigotimes_{k=0}^{B-1} \mathbb{C}^{M_k+1}) \otimes (\bigotimes_{q=0}^{F-1} \mathbb{C}^2)$.
+     Sintetiza los operadores bosónicos de Weyl-Heisenberg con proyector de truncamiento de borde
+     $\hat{\Pi}_k^{(M)} = (M+1)|M\rangle\langle M|_k$, los operadores fermiónicos mediante cuerdas
+     no locales de Jordan-Wigner $\hat{f}_q = (\bigotimes_{j=0}^{q-1} \hat{\sigma}_z^{(j)}) \otimes \hat{\sigma}_-^{(q)}$,
+     las cuadraturas simplécticas canónicas de Poincaré $(\hat{Q}_k, \hat{P}_k)$ y la purificación
+     idempotente de McWeeny-Lawvere en RSI-L3 ($\mathcal{R}_1^{(3)}$).
+     Culmina en `get_interaction_operators() -> InteractionOperators`.
+  2. Fase 2 (`Phase2_CatadioptricCollider`):
+     Consume directamente `InteractionOperators` mediante `_continue_from_phase1_operators`.
+     Ensambla el Hamiltoniano catadióptrico polarónico $\hat{H}_{\mathrm{int}} = \sum_{k,q} (g_{kq} \hat{b}_k \hat{n}_q + g_{kq}^* \hat{b}_k^\dagger \hat{n}_q)$,
+     aplica estabilización Hermítica con flujo de conmutadores de Wegner-BCH ($\mathcal{R}_2^{(3)}$),
+     audita la integrabilidad celeste de Poincaré mediante la estadística de espaciamiento de niveles
+     de Berry-Tabor $\langle r \rangle \approx 2\ln 2 - 1$ y calcula la matriz de dispersión unitaria
+     $\hat{U}(t) = \exp(-i \hat{H}_{\mathrm{int}} t / \hbar)$ vía pasos simplécticos de Yoshida.
+     Culmina en `get_catadioptric_hamiltonian() -> CatadioptricHamiltonian`.
+  3. Fase 3 (`Phase3_LindbladDissipator`):
+     Consume `CatadioptricHamiltonian` mediante `_continue_from_phase2_hamiltonian`.
+     Integra la ecuación maestra cuántica abierta de Gorini-Kossakowski-Sudarshan-Lindblad (GKSL),
+     evalúa la distancia de Recurrencia de Poincaré $\|\rho(t+dt) - \rho(0)\|_F$, la producción
+     irreversible de entropía de Spohn $\sigma \ge 0$, y aplica la proyección espectral de
+     Bregman-von Neumann sobre el cono semidefinido positivo $\mathcal{D}(\mathcal{H})$ en RSI-L3 ($\mathcal{R}_3^{(3)}$).
+     Cristaliza cualquier exergía disipada en un fotón Gamma relativista forense $E = 2m^* c^2$.
+     Culmina en `execute_master_equation(...) -> LindbladEvolutionResult`.
+
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+────────────────────────────────────────────────────────────────────────────────────────────
+1. Álgebra de Weyl-Heisenberg, Clifford y Transformación de Jordan-Wigner:
+   En dimensión finita $M+1$, los operadores bosónicos satisfacen la relación canónica de conmutación (CCR)
+   truncada en el borde:
+       $$[\hat{b}_k, \hat{b}_{k'}^\dagger] = \delta_{kk'}\left( \mathbb{1} - (M+1)|M\rangle\langle M|_k \right)$$
+   Para fermiones en $\mathcal{C}\ell_{2F}(\mathbb{C})$, la transformación no local de Jordan-Wigner
+   garantiza las relaciones canónicas de anticonmutación (CAR):
+       $$\{\hat{f}_q, \hat{f}_{q'}^\dagger\} = \delta_{qq'}\mathbb{1}, \quad \{\hat{f}_q, \hat{f}_{q'}\} = 0, \quad \hat{n}_q^2 = \hat{n}_q$$
+   donde la cuerda de paridad de Pauli $\hat{\sigma}_z = \mathbb{1} - 2\hat{n}$ preserva la $\mathbb{Z}_2$-graduación.
+
+2. Cuadraturas Simplécticas de Poincaré y Mecánica Celeste:
+   Las coordenadas canónicas del espacio de fases sobre cada modo bosónico $k$ vienen dadas por:
+       $$\hat{Q}_k = \frac{1}{\sqrt{2}}(\hat{b}_k + \hat{b}_k^\dagger), \quad \hat{P}_k = \frac{i}{\sqrt{2}}(\hat{b}_k^\dagger - \hat{b}_k) \implies [\hat{Q}_k, \hat{P}_{k'}] = i\delta_{kk'}\mathbb{1}$$
+   La evolución unitaria bajo $\hat{H}_{\mathrm{int}}$ preserva el volumen simpléctico de Liouville
+   $\det(\hat{U}) = 1$ mediante el esquema simpléctico de 4.º orden de Yoshida.
+
+3. Estadística Espectral de Berry-Tabor y Condición KAM:
+   La distribución de cocientes de espaciamiento de niveles adyacentes:
+       $$r_n = \frac{\min(s_n, s_{n-1})}{\max(s_n, s_{n-1})}, \quad s_n = E_{n+1} - E_n$$
+   discrimina entre toros KAM integrables regulares ($\langle r \rangle_{\mathrm{Poisson}} \approx 0.38629$)
+   y caos homoclínico de Wigner-Dyson ($\langle r \rangle_{\mathrm{GOE}} \approx 0.5307$).
+
+4. Dinámica Disipativa GKSL, Recurrencia de Poincaré y Producción de Entropía de Spohn:
+   El semigrupo dinámico cuántico completamente positivo que preserva la traza (CPTP) se rige por:
+       $$\frac{d\rho}{dt} = -\frac{i}{\hbar}[\hat{H}, \rho] + \sum_k \gamma_k \left( \hat{L}_k \rho \hat{L}_k^\dagger - \frac{1}{2}\{\hat{L}_k^\dagger \hat{L}_k, \rho\} \right)$$
+   La tasa de producción de entropía irreversible de Spohn satisface $\sigma_{\mathrm{Spohn}} = -\operatorname{Tr}(\mathcal{L}(\rho)(\ln \rho - \ln \rho_{\beta})) \ge 0$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────
+Axioma FOCK1 (Exclusión de Pauli y Anticonmutación CAR):
+    Para todo modo fermiónico, $\{\hat{f}_q, \hat{f}_q^\dagger\} = \mathbb{1}$ y $(\hat{f}_q^\dagger)^2 = 0$,
+    imposibilitando la coexistencia de dos cuasipartículas idénticas en el mismo microestado.
+Axioma FOCK2 (Autoadjunción y Espectro de Interacción):
+    $\hat{H}_{\mathrm{int}} = \hat{H}_{\mathrm{int}}^\dagger \in \mathcal{B}(\mathcal{H}_{\mathrm{Fock}})$,
+    garantizando la conservación de probabilidad bajo propagación unitaria $\hat{U}^\dagger \hat{U} = \mathbb{1}$.
+Axioma FOCK3 (Positividad Completa de Lindblad-Kossakowski):
+    Las tasas de salto $\gamma_k \ge 0$ aseguran que el generador GKSL preserve la semidefinición
+    positiva del operador densidad: $\rho(0) \succeq 0 \implies \rho(t) \succeq 0, \, \forall t > 0$.
+Axioma FOCK4 (Conservación de Traza de von Neumann):
+    $\operatorname{Tr}\left(\frac{d\rho}{dt}\right) \equiv 0 \implies \operatorname{Tr}(\rho(t)) \equiv 1.0$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────
+Invariante 1 (Normalización de Traza Cuántica):
+    $|1.0 - \operatorname{Tr}(\rho(t))| \le 10^3 \cdot \varepsilon_{\mathrm{mach}}$, preservando la densidad de probabilidad.
+Invariante 2 (Pureza y Positividad Espectral):
+    $\lambda_{\min}(\rho) \ge -\varepsilon_{\mathrm{mach}}$ y $\mathcal{P}(\rho) = \operatorname{Tr}(\rho^2) \in [1/d, 1.0]$.
+Invariante 3 (Invariancia de Liouville-Poincaré en Dispersión):
+    $\|\hat{U}^\dagger \hat{U} - \mathbb{1}\|_F \le \text{tol}$, preservando el producto simpléctico canónico.
+Invariante 4 (Conservación Relativista de Aniquilación):
+    $E_{\mathrm{annihilation}} = 2 m^* c^2$, sellando criptográficamente la disipación en fotones Gamma.
 """
 
 from __future__ import annotations
@@ -105,7 +140,7 @@ except ImportError:  # Permite uso standalone para testing
 
 
 try:
-    from app.core.immune_system.metric_tensors import G_PHYSICS
+    from app.core.inmune_system.metric_tensors import G_PHYSICS
 except ImportError:
     G_PHYSICS: Dict[str, Any] = {}
 
@@ -211,12 +246,12 @@ class Quasiparticle:
 
 
 class Boson(Quasiparticle):
-    """Partículas de espín entero (Symmetric Tensor Product $S^n(\mathcal{H}_B)$)."""
+    r"""Partículas de espín entero (Symmetric Tensor Product $S^n(\mathcal{H}_B)$)."""
     pass
 
 
 class Fermion(Quasiparticle):
-    """Partículas de espín semientero (Antisymmetric Exterior Algebra $\bigwedge^n(\mathcal{H}_F)$)."""
+    r"""Partículas de espín semientero (Antisymmetric Exterior Algebra $\bigwedge^n(\mathcal{H}_F)$)."""
     pass
 
 

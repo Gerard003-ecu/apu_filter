@@ -3,7 +3,7 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║ Nombre   : Specular Flow Engine v8.0.0 (Poincaré-KAM-Hodge + RSI-3)                      ║
 ║ Módulo   : app.omega.specular_flow                                                       ║
-║ Ubicación : app/omega/specular_flow.py                                                   ║
+║ Ubicación: app/omega/specular_flow.py                                                    ║
 ║ Versión  : 8.0.0-Allievi-Householder-Tellegen-Poincaré-Hodge-RSI3                        ║
 ║ Función  : Motor ciber-físico y solucionador numérico de transitorios hiperbólicos de    ║
 ║            Allievi, reflexiones covariantes de Householder con purificación de           ║
@@ -15,37 +15,102 @@ r"""
 ║            automejora recursiva de nivel 3 (RSI-3: Defect Correction + Richardson +      ║
 ║            Aitken Δ² + Homotopía de Contracción de Banach-Fréchet).                      ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
-ARQUITECTURA DE 3 FASES ANIDADAS (COMPOSICIÓN FUNCTORIAL DE MORFISMOS)
------------------------------------------------------------------------------
-FASE ANIDADA 1 – Observe (Allievi + Geometría Hiperbólica/Simpléctica de Poincaré)
-    - Suturas fundacionales S1–S6, estructuras de datos inmutables y álgebra de estados.
-    - Clase `Phase1_AllieviSolver`: resuelve invariantes de Riemann en el cono de luz
-      hiperbólico, aplica la transformada de Cayley al espacio de fases de Darboux,
-      evalúa la sección transversal de Poincaré Σ, detecta resonancias diofánticas KAM
-      y ejecuta la serie perturbativa de Lie-Deprit-Lindstedt-Poincaré.
-    - Último método (`_allievi_to_householder_bridge`): define el morfismo de transición
-      que inicia formalmente la Fase Anidada 2.
 
-FASE ANIDADA 2 – Orient (Householder + Monodromía de Floquet-Poincaré)
-    - Clase `Phase2_HouseholderReflector(Phase1_AllieviSolver)`: recibe el paquete
-      functorial del último método de la Fase 1.
-    - Construye el operador de reflexión covariante sobre la variedad Riemanniana (M, G),
-      aplica purificación ortogonal de Newton-Schulz controlada por tolerancia, audita
-      la anti-simplecticidad en Sp(2, ℝ), la deriva adiabática de la acción I y el
-      espectro de monodromía de la aplicación de retorno de Poincaré.
-    - Último método (`_householder_to_tellegen_bridge`): define el morfismo de transición
-      que inicia formalmente la Fase Anidada 3.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL:
+────────────────────────────────────────────────────────────────────────────────────────────
+El motor espectral `SpecularFlowEngine` rige la hidrodinámica hiperbólica de transitorios
+y ondas de choque (golpe de ariete de Joukowsky-Allievi) acoplada a la óptica simpléctica
+y topología cohomológica de redes en el Estrato Omega ($\mathcal{V}_{\Omega}$) de APU Filter.
+Transforma perturbaciones atencionales y financieras bruscas en reflexiones covariantes
+controladas sobre hipersuperficies de frontera Riemanniana $(M, G_{\mu\nu})$.
 
-FASE ANIDADA 3 – Decide & Meta-Evolve (Tellegen + Dualidad Hodge-Poincaré + RSI-3)
-    - Clase `Phase3_TellegenValidator(Phase2_HouseholderReflector)` y `SpecularFlowEngine`:
-      reciben el morfismo del último método de la Fase 2.
-    - Verifica el Teorema de Tellegen en precisión compensada de Kahan, la pasividad
-      de Lyapunov-Rayleigh, la descomposición ortogonal de Hodge-Poincaré
-      C¹(G) = im(B₁ᵀ) ⊕ ker(B₁), la característica de Euler χ = β₀ - β₁ y la
-      recurrencia de Poincaré.
-    - Último método de validación (`_tellegen_to_meta_bridge`): alimenta directamente
-      el lazo cerrado de Automejora Recursiva de Nivel 3 (RSI-3).
-─────────────────────────────────────────────────────────────────────────────
+Su flujo operativo se articula en una jerarquía estricta de 3 fases anidadas:
+  1. Fase 1 (`Phase1_AllieviSolver`):
+     Resuelve el sistema hiperbólico de ecuaciones diferenciales en derivadas parciales
+     $\partial_t y + \frac{a^2}{gS}\partial_x q = 0$, $\partial_t q + gS \partial_x y + f(q) = 0$
+     mediante invariantes de Riemann $\Psi^\pm = y \pm Z_c q$ a lo largo de las curvas
+     características $dx/dt = \pm a$. Mapea canónicamente el espacio fase $(y, Z_c q)$ a variables
+     de acción-ángulo de Darboux $(I, \theta)$, computa la sección transversal de Poincaré $\Sigma$,
+     filtra resonancias diofánticas KAM y elimina derivas seculares mediante la serie canónica
+     de Lie-Deprit-Lindstedt-Poincaré hasta orden $\mathcal{O}(\varepsilon^4)$.
+     Culmina en `_allievi_to_householder_bridge(...)`.
+  2. Fase 2 (`Phase2_HouseholderReflector`):
+     Consume directamente el morfismo de transición de Fase 1. Construye el operador involutivo
+     $G$-ortogonal de Householder $M = I - 2 \frac{n (G n)^T}{n^T G n}$, regulariza la signatura
+     métrica al cono SPD vía Cholesky-Tikhonov, y purifica la isometría mediante iteraciones de
+     Newton-Schulz en $O(2, G)$. Audita la anti-simplecticidad $M^T \Omega M = -\Omega$, la
+     conservación adiabática de la acción $I$ y el espectro de monodromía de Floquet $P = M^2$.
+     Culmina en `_householder_to_tellegen_bridge(...)`.
+  3. Fase 3 (`Phase3_TellegenValidator`):
+     Consume el morfismo de Fase 2. Audita la conservación energética global de Tellegen
+     $\sum_k v_k q_k = 0$ mediante suma compensada de Kahan-Babuška en formato disperso CSR,
+     la pasividad de Lyapunov-Rayleigh $P_{\mathrm{diss}} \ge 0$, la descomposición ortogonal
+     de Helmholtz-Hodge-Poincaré $C^1(G) = \operatorname{im}(B_1^T) \oplus \ker(B_1)$ y la
+     recurrencia de Poincaré $\|M^2 x - x\|_2$. Cierra el lazo con el meta-controlador de
+     Automejora Recursiva de Nivel 3 (RSI-3) combinando corrección de defectos, extrapolación de
+     Richardson, aceleración no lineal $\Delta^2$ de Aitken y modulación homotópica de Banach-Fréchet.
+     Culmina en `_tellegen_to_meta_bridge(...)` y `full_specular_pipeline_rsi3(...)`.
+
+MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+────────────────────────────────────────────────────────────────────────────────────────────
+1. Ecuaciones Hiperbólicas de Allievi y Geometría de Cono de Luz:
+   El flujo transitorio 1D con velocidad de onda acústica $a > 0$, gravedad $g > 0$ y sección $S > 0$
+   posee impedancia característica $Z_c = \frac{a}{gS}$. Los invariantes de Riemann diagonalizan
+   el sistema hiperbólico en la base de números perplejos (split-complex $\mathbf{j}^2 = +1$):
+       $$\Psi^+ = y + Z_c q, \quad \Psi^- = y - Z_c q$$
+   satisfaciendo $\left(\partial_t \pm a \partial_x\right) \Psi^\pm = \mp g S f(q)$.
+
+2. Transformada Simpléctica de Darboux y Sección de Poincaré $\Sigma$:
+   Con momento canónico $p = Z_c q$, las variables acción-ángulo en el toro de Liouville son:
+       $$I = \frac{1}{2}(y^2 + p^2) = \frac{1}{4}\left((\Psi^+)^2 + (\Psi^-)^2\right), \quad \theta = \operatorname{atan2}(p, y)$$
+   La sección transversal $\Sigma = \{(y, p) \in T^*M \mid y = y_s\}$ define la aplicación de retorno
+   de Poincaré, donde las ramas de momento canónico son $p_\pm = \pm \sqrt{2I - y_s^2}$.
+
+3. Condición Diofántica KAM y Expansión de Lie-Deprit-Lindstedt-Poincaré:
+   La razón de frecuencias $\rho = |\Psi^+ / \Psi^-|$ se analiza mediante fracciones continuas
+   de Gauss $p/q$. Si satisface $|\rho - p/q| < \max(\text{tol}, \gamma / q^\tau)$ con $q \le 8$,
+   emerge resonancia de Arnold. La serie perturbativa de Lindstedt-Poincaré elimina términos seculares:
+       $$I(\varepsilon) = I_0 + \varepsilon^2 I_1 + \varepsilon^4 I_2, \quad \omega(\varepsilon) = \omega_0\left(1 + \varepsilon^2 \omega_1 - \frac{1}{4}\varepsilon^4 \omega_1^2\right)$$
+   con generadores de Lie $I_1 = I_0 \omega_1$, $I_2 = -\frac{1}{2}I_0 \omega_1(1 + \frac{1}{2}\omega_1)$.
+
+4. Teorema de Tellegen, Descomposición de Helmholtz-Hodge y Pasividad de Lyapunov:
+   En el complejo de cadenas celulares $C_1(G) \xrightarrow{B_1} C_0(G)$, la adjunción frontera-coborde
+   garantiza $\langle B_1^T p, q \rangle = \langle p, B_1 q \rangle = 0$. La descomposición ortogonal
+   de Hodge asegura:
+       $$C^1(G) = \operatorname{im}(B_1^T) \oplus^\perp \ker(B_1), \quad \dim \operatorname{im}(B_1^T) = \operatorname{rank}(B_1), \quad \dim \ker(B_1) = m - \operatorname{rank}(B_1)$$
+   y la característica de Euler-Poincaré satisface $\chi = \beta_0 - \beta_1 = |V| - |E|$.
+
+5. Meta-Controlador de Automejora Recursiva de Nivel 3 (RSI-3):
+   Combina la extrapolación polinomial de Richardson de orden $p = \ln(r_n/r_{n-1})/\ln(\tau_n/\tau_{n-1})$
+   con la transformación racional $\Delta^2$ de Aitken $\hat{r}_n = r_n - \frac{(r_n - r_{n-1})^2}{r_n - 2r_{n-1} + r_{n-2}}$
+   y modula el factor de refinamiento $\alpha^{(3)} = \alpha^{(2)} \exp(-\gamma \tanh(\frac{|\hat{r}_n - R_n|}{\max(\varepsilon, r_n)}))$.
+
+AXIOMAS FORMALES:
+────────────────────────────────────────────────────────────────────────────────────────────
+Axioma SPEC1 (Hiperbolicidad Estricta de Allievi):
+    La matriz de propagación característica posee autovalores reales y distintos $\lambda = \pm a \ne 0$,
+    garantizando un cono de luz causal conexo y continuo.
+Axioma SPEC2 (Involución e Isometría Riemanniana de Householder):
+    El operador $M$ satisface $M^2 = I$ y $M^T G M = G$ sobre la variedad Riemanniana $(M, G)$.
+Axioma SPEC3 (Anti-Simplecticidad en Dimensión 2):
+    El operador $M$ invierte la orientación simpléctica canónica: $M^T \Omega M = -\Omega$ y $\det(M) = -1.0$.
+Axioma SPEC4 (Ortogonalidad Cuasi-Exacta de Tellegen):
+    El producto dual de potencias satisface $\langle v, q \rangle_{\mathrm{Kahan}} \equiv 0$ para todo
+    voltaje de coborde $v \in \operatorname{im}(B_1^T)$ y flujo cociclo $q \in \ker(B_1)$.
+Axioma SPEC5 (Pasividad Port-Hamiltoniana de Lyapunov):
+    La tasa disipativa de Rayleigh cumple $\dot{H} = \nabla H^T (J - R) \nabla H = -P_{\mathrm{diss}} \le 0$
+    con $R = R^T \succeq 0$.
+
+INVARIANTES DE ESTADO:
+────────────────────────────────────────────────────────────────────────────────────────────
+Invariante 1 (Conservación de Energía Conformal):
+    $\|M x\|_G \equiv \|x\|_G$, con desviación relativa $\le 10^2 \cdot \varepsilon_{\mathrm{mach}}$.
+Invariante 2 (Invariancia Adiabática de la Acción de Poincaré):
+    $\Delta I / I = |I_{\mathrm{out}} - I_{\mathrm{in}}| / \max(1, I_{\mathrm{in}}) \le 1.0 \times 10^{-6}$.
+Invariante 3 (Recurrencia de Floquet-Poincaré):
+    $\|M^2 x - x\|_2 / \|x\|_2 \le \text{tol}$, verificando el 2-ciclo periódico conservativo.
+Invariante 4 (Cierre Topológico de Hodge-Poincaré):
+    $\dim \operatorname{im}(B_1^T) + \dim \ker(B_1) \equiv |E|$, con defecto nulo de ortogonalidad.
 """
 
 from __future__ import annotations
