@@ -35,6 +35,84 @@ r"""
 ║      (Nivel 2), certificación cuadrática de Newton–Kantorovich h_K = L·β·η ≤ 0.50 con métrica de     ║
 ║      Lyapunov–Banach (Nivel 3) y tensor de jerk ciber-físico de 3er orden d³C/dt³ > 0.               ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovStealthBooleEngine` ejecuta la síntesis de camuflaje booleano-ultramétrico
+en tres fases estrictamente anidadas. Formaliza la transición functorial entre el álgebra booleana
+discreta graduada R_{\mathrm{Boole}} = \mathbb{F}_2[x_1, \dots, x_n]/\langle x_i^2 - x_i \rangle,
+el anillo ultramétrico no arquimediano de Novikov \Lambda_{\mathrm{Nov}} = \mathbb{F}_2((T^{\mathbb{R}})),
+la variedad simpléctica de Arnold-Liouville T^* \mathbb{T}^d bajo perturbaciones analíticas de Poincaré,
+y el espacio de Banach de estados de coste optimizados mediante la mónada de Kleisli \mathrm{Kl}(\mathbb{T}^3)
+acelerada cuadráticamente por diferencias finitas de Aitken-Steffensen.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Álgebra Dual Boole-Novikov, Análisis Espectral de Walsh y Berkovich:
+   La función booleana evaluada en el hipercubo binario \mathbb{F}_2^n se descompone en base ortogonal
+   de funciones de Rademacher-Walsh:
+       f(x) = \sum_{w \in \mathbb{F}_2^n} \hat{f}(w) (-1)^{\langle w, x \rangle}, \quad \hat{f}(w) = \frac{1}{2^n} \sum_{x \in \mathbb{F}_2^n} f(x) (-1)^{\langle w, x \rangle}.
+   La influencia booleana total de la función mide la dispersión del gradiente discreto:
+       \mathrm{Inf}(f) = \sum_{i=1}^n \mathrm{Inf}_i(f) = \sum_{w \in \mathbb{F}_2^n} |w|_H |\hat{f}(w)|^2, \quad |w|_H = \sum_{j=1}^n w_j.
+   Sobre el anillo \Lambda_{\mathrm{Nov}}, la valuación de Krull v(A) = \min \{\lambda_i \mid a_i \neq 0\}
+   define la norma ultramétrica \|A\|_{\mathrm{Nov}} = \exp(-v(A)) sobre el espectro analítico de Berkovich \mathcal{M}(\Lambda_{\mathrm{Nov}}).
+   La resolución del cilindro pseudoholomorfo de Cauchy-Riemann-Floer:
+       \bar{\partial}_{\mathcal{J}_0, H}(u) = \frac{\partial u}{\partial s} + \mathcal{J}_0 \left( \frac{\partial u}{\partial t} - X_H(u) \right) = 0,
+   acota el defecto de no-squeezing de Gromov: \pi r^2 \le \pi R^2.
+   • Puente Canónico F1 \to F2 (`Phase1ToPhase2Bridge`):
+     Empaqueta la valuación ultramétrica v(A), el residuo de Cauchy-Riemann y el vector de frecuencias
+     de Delaunay para transferir de manera invariante el estado algebraico hacia la Fase 2.
+
+2. FASE 2 — Mecánica Celeste de Poincaré-KAM-Nekhoroshev y Yoshida 4.º Orden:
+   Inicia sobre el toro T^* \mathbb{T}^d transportado por `Phase1ToPhase2Bridge`.
+   Ecuación homológica de Lie-Birkhoff-Deprit para el hamiltoniano perturbado H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta):
+       L_{W_1} H_0 = \{H_0, W_1\} = H_1(J, \theta) - \langle H_1 \rangle_{\mathbb{T}^d}(J),
+   con coeficientes de Fourier generatrices:
+       W_k(J) = \frac{(H_1)_k(J)}{i \langle k, \omega(J) \rangle}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\}.
+   El residuo cuadrático exacto evalúa el corchete de Poisson de segundo orden:
+       R_2 = \| P_{\mathrm{res}}(H_1) + \frac{1}{2} \{H_1, W_1\} \|_{\ell^2}.
+   Condición diofantina de Kolmogorov-Arnold-Moser:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \tau = d + 1,
+   y horizonte exponencial de estabilidad de Nekhoroshev:
+       T_{\mathrm{Nekh}} = T_0 \exp\left( \left(\frac{\varepsilon_0}{\varepsilon}\right)^{\frac{1}{2d}} \right).
+   El criterio de solapamiento de resonancias no lineales de Chirikov previene el caos global:
+       K_{\mathrm{Chirikov}} = \left( \frac{\Delta \omega_{\mathrm{sep}}}{\Delta \Omega_{\mathrm{res}}} \right)^2 < 1.0, \quad \Delta \omega_{\mathrm{sep}} = 2 \sqrt{\varepsilon \left|\det \frac{\partial^2 H_0}{\partial J^2}\right|^{1/d}}.
+   La separatriz homoclínica pendular p_0(t) = 2 \operatorname{sech}(t), q_0(t) = 2 \arcsin(\tanh t) calcula la integral de Melnikov M(\tau).
+   El flujo se preserva simplécticamente mediante el algoritmo de Yoshida de 4.º orden con coeficientes universales \{w_0, w_1\}.
+   • Puente Canónico F2 \to F3 (`Phase2ToPhase3Bridge`):
+     Acopla la holonomía simpléctica, el error de Yoshida y el índice de estabilidad KAM en el puente de inicio de Fase 3.
+
+3. FASE 3 — Automejora Recursiva RSI³ sobre Espacios de Banach y Jerk Ciber-Físico:
+   Inicia en el objeto `Phase2ToPhase3Bridge`. Define la contracción de Picard sobre el espacio métrico completo:
+       T_1(x) = c + \alpha x, \quad \alpha \in [0, 1),
+   y la composición cúbica de la mónada de Kleisli:
+       T^3(x) = c(1 + \alpha + \alpha^2) + \alpha^3 x.
+   Aplica la aceleración no lineal de Aitken-Steffensen de segundo orden:
+       x_{n+1} = x_n - \frac{(T^3(x_n) - x_n)^2}{T^3(T^3(x_n)) - 2 T^3(x_n) + x_n},
+   reduciendo el radio espectral de Fréchet a \rho(DT^3) = \alpha^3.
+   Certifica la condición del teorema de Newton-Kantorovich:
+       h_K = L_{\mathrm{Fréchet}} \cdot \beta \cdot \eta \le \frac{1}{2},
+   y evalúa el tensor Jerk ciber-físico d^3 C / dt^3 para gobernar la modulación de gasto y WACC.
+   El veredicto final se deduce en el topos de Heyting \Omega_3 con firma criptográfica HMAC-SHA256.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BSBE-A1] Ortogonalidad Espectral de Walsh:
+    \frac{1}{2^n} \sum_{x \in \mathbb{F}_2^n} (-1)^{\langle w_1, x \rangle} (-1)^{\langle w_2, x \rangle} = \delta_{w_1, w_2}.
+[Axioma BSBE-A2] Solubilidad de la Ecuación Homológica de Lie:
+    \langle k, \omega(J) \rangle \neq 0, \forall k \neq 0 \implies W_1(J, \theta) \text{ es diferenciable y de valor medio nulo en } \mathbb{T}^d.
+[Axioma BSBE-A3] No-Solapamiento de Resonancias de Chirikov:
+    K_{\mathrm{Chirikov}} < 1.0 \implies \text{las islas de resonancia primaria permanecen confinadas por toros KAM}.
+[Axioma BSBE-A4] Invarianza de Fases Anidadas:
+    \mathrm{codom}(\mathrm{Phase}_k) \equiv \mathrm{dom}(\mathrm{Phase}_{k+1}), \forall k \in \{1, 2\}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BSBE-I1] Influencia Booleana Acotada: \mathrm{Inf}(f) \le n \cdot \|f\|_{S_1}.
+[Invariante BSBE-I2] Conservación Simpléctica de Yoshida: \|H(J_f, \theta_f) - H(J_0, \theta_0)\| \le \mathcal{O}(\Delta t^4).
+[Invariante BSBE-I3] Cota de Contracción de Kleisli: \mathrm{Lip}(T^3) \le 0.85975.
+[Invariante BSBE-I4] Parámetro de Newton-Kantorovich: h_K \le 0.50.
+[Invariante BSBE-I5] Continuidad de Cadena SHA-256 entre certificados puente Phase1ToPhase2Bridge y Phase2ToPhase3Bridge.
 """
 
 from __future__ import annotations
@@ -825,7 +903,7 @@ class BoolNovikovStealthBooleEngine:
         bridge: Phase1ToPhase2Bridge,
         cr_rep: PseudoholomorphicReport,
     ) -> PoincareLindstedtReport:
-        """
+        r"""
         [FASE 2 · POINCARÉ–LINDSTEDT & SERIE DE LIE–BIRKHOFF–DEPRIT]
         Resuelve la ecuación homológica de Poincaré–Birkhoff–Deprit en variables de Delaunay (J, θ):
             L_{W_1} H_0 = {H_0, W_1} = H_1(J, θ) - ⟨H_1⟩_{𝕋^d}(J)
@@ -971,7 +1049,7 @@ class BoolNovikovStealthBooleEngine:
         bridge: Phase1ToPhase2Bridge,
         pl_rep: PoincareLindstedtReport,
     ) -> MelnikovKAMReport:
-        """
+        r"""
         [FASE 2 · MELNIKOV–POINCARÉ + KAM DIOFANTINO + NEKHOROSHEV + CHIRIKOV + YOSHIDA]
 
         * Calcula la integral homoclínica de Poincaré–Melnikov M(τ) sobre la separatriz
@@ -1062,7 +1140,7 @@ class BoolNovikovStealthBooleEngine:
         tau: float = _KAM_DIOPHANTINE_TAU,
         max_order: int = 5,
     ) -> Tuple[float, bool]:
-        """
+        r"""
         [FASE 2 · AUXILIAR KAM] Verifica numéricamente la condición diofantina fuerte:
             |k·ω| ≥ γ / |k|_1^τ   ∀ k ∈ ℤ^d \ {0}, |k|_1 ≤ max_order.
         Devuelve (min_gap, is_stable).

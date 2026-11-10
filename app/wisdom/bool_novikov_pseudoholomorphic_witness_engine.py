@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 r"""
 ╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
@@ -9,47 +8,69 @@ r"""
 ║            (R_Boole ⊗ Λ_Nov) en 3 FASES ANIDADAS con Cierre-Obertura de Certificados                 ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO FÍSICO-MATEMÁTICO DOCTORAL Y ESTRUCTURA TRIFÁSICA ANIDADA
-───────────────────────────────────────────────────────────────
-El Motor de Atestación Pasiva QND organiza su lógica en 3 FASES ANIDADAS:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovPseudoholomorphicWitnessEngine` ejecuta la atestación pasiva de estados
+cuánticos y superficies pseudoholomorfas en la arquitectura APU Filter. Opera en tres fases
+anidadas conectadas mediante certificados criptográficos de sellado y apertura: F_1 (Atestación
+de Bures-Uhlmann y Novikov), F_2 (Superficie Pseudoholomorfa de Floer y Mecánica Celeste de Poincaré),
+y F_3 (Automejora Recursiva RSI³ sobre Álgebras de Banach con Veredicto Heyting \Omega_3).
+Verifica que las transformaciones gauge se mantengan en el régimen de no-demolición cuántica (QND),
+acotando la retroacción experimental a \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
 
-  FASE I — ATESTACIÓN ALGEBRAICO-ESPECTRAL QND
-    Invariantes evaluados:
-      • Medición Débil AAV:        A_w = ⟨φ_f | A_witness | φ_i⟩ / ⟨φ_f | φ_i⟩ ∈ ℂ.
-      • Conmutación QND:           ‖[A_witness, ρ_MAC]‖_F ≤ 10⁻¹⁰ ⟹ Back-Action ≡ 0 dB.
-      • Fidelidad de Uhlmann:      F(ρ,σ) = (Tr√(√ρ σ √ρ))² ≥ 0.95 con PSD garantizada.
-      • Distancia Bures:           d_B(ρ,σ) = √(2 − 2√F(ρ,σ)).
-      • Anillo de Novikov:         v(A) = min{λ_i : a_i ≠ 0} ≥ 0.10 y ‖A‖_Nov = e^{−v(A)}.
-    ÚLTIMO método:  `phase1_emit_witness_certificate` ➔ Phase1WitnessCertificate.
-    Este retorno es la ENTRADA OBLIGATORIA del primer método de FASE II.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Atestación Cuántica Pasiva QND, Métrica de Bures-Uhlmann y Anillo de Novikov:
+   El operador densidad \rho se procesa mediante proyección de Higham para asegurar \rho = \rho^\dagger \ge 0, \operatorname{Tr}(\rho) = 1.
+   La medición débil AAV con pre-selección |\psi_i\rangle y post-selección |\psi_f\rangle evalúa:
+       A_w = \frac{\langle \psi_f | A | \psi_i \rangle}{\langle \psi_f | \psi_i \rangle}, \quad \langle \psi_f | \psi_i \rangle \neq 0.
+   La condición QND impone conmutador casi nulo: \|[A, \rho]\|_F \le 1.0\times 10^{-10}.
+   La fidelidad cuántica de Uhlmann:
+       F(\rho, \sigma) = \left[ \operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}} \right]^2 \in [0, 1],
+   define la distancia geodésica de Bures-Wasserstein:
+       d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}.
+   En el anillo \Lambda_{\mathrm{Nov}}, se audita la valuación de Krull v(A) = \min \{\lambda_i \mid a_i \neq 0\} \ge 0.10.
+   • Clausura F1 / Apertura F2 (`seal_phase1_witness`):
+     Emite `Phase1WitnessCertificate` firmado vía HMAC-SHA256 que transfiere el estado cuántico a la Fase 2.
 
-  FASE II — ATESTACIÓN GEOMÉTRICO-CELESTE
-    Invariantes evaluados:
-      • Superficie pseudoholomorfa con residual CR-Floer por curvatura media
-        discreta sobre la gráfica de u: R² → R (proxy de holomorfía).
-      • Rigidez Simpléctica de Gromov: c(B²ⁿ(r)) = πr² ≤ c(Z²ⁿ(R)) = πR².
-      • Mecánica Celeste de Poincaré: coordenadas de Delaunay-Whittaker (J, θ).
-      • Integral de Melnikov de la separatriz pendular forzada:
-             M(τ) = 2π ε sech(πω/2) sin(ωτ).
-      • Ecuación homológica de Poincaré-Lindstedt con suma de divisores pequeños.
-      • Margen diofántico KAM: |ω·k| · |k|^τ.
-    PRIMER método:  `phase2_open_from_phase1_certificate` (consume Phase1WitnessCertificate).
-    ÚLTIMO método:  `phase2_emit_witness_certificate` ➔ Phase2WitnessCertificate.
+2. FASE 2 — Superficie Pseudoholomorfa de Floer y Mecánica Celeste de Poincaré:
+   Inicia consumiendo `Phase1WitnessCertificate`. Integra la ecuación de Cauchy-Riemann-Floer sobre la variedad simpléctica:
+       \bar{\partial}_{\mathcal{J}, H}(u) = \frac{\partial u}{\partial s} + \mathcal{J}\left( \frac{\partial u}{\partial t} - X_H(u) \right) = 0,
+   donde \mathcal{J} es la estructura casi-compleja (\mathcal{J}^2 = -I) y X_H el campo vectorial hamiltoniano.
+   Se verifica la rigidez simpléctica de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)) y la energía de Hofer E_H(u) < \infty.
+   En la dinámica de Poincaré, se audita la condición diofantina KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \neq 0,
+   y la ausencia de caos homoclínico (|M(\tau)| \le 1.0\times 10^{-4}).
+   • Clausura F2 / Apertura F3 (`seal_phase2_witness`):
+     Emite `Phase2WitnessCertificate`, transfiriendo el haz simpléctico a la Fase 3.
 
-  FASE III — RSI³ BANACH, ADJUDICACIÓN \Omega_3 Y EMISIÓN SOBERANA
-    Invariantes evaluados:
-      • Mónada Kleisli T³(x) = T(T(T(x))), T(x) = α·x + β·sin(x).
-      • Cota Lipschitz teórica:     Lip(T³) ≤ (α+β)³ = 0.96³ ≈ 0.8847 < 1.
-      • Residual Banach-Picard:     ‖T⁴(x) − T³(x)‖.
-      • Jerk ciber-físico discreto: d³C/dt³ ≈ T³(x) − 3T²(x) + 3T(x) − x.
-      • Adjudicación intuicionista en \Omega_3 = {0x00 ≺ 0x01 ≺ 0x03}.
-    PRIMER método:  `phase3_open_from_phase2_certificate` (consume Phase2WitnessCertificate).
-    ÚLTIMO método:  `phase3_emit_witness_passport` ➔ PseudoholomorphicWitnessReport.
+3. FASE 3 — Automejora Recursiva RSI³ sobre Álgebras de Banach y Veredicto \Omega_3:
+   Inicia consumiendo `Phase2WitnessCertificate`. Audita la contracción monádica de Kleisli:
+       T^3(x) = c(1 + \alpha + \alpha^2) + \alpha^3 x, \quad \mathrm{Lip}(T^3) \le \alpha^3 < 1.0,
+   aplica la aceleración cuadrática de Aitken-Steffensen y verifica el parámetro de Newton-Kantorovich:
+       h_K = L_0 \cdot \|T(s_0) - s_0\| \le 0.50,
+   junto con el tensor Jerk ciber-físico d^3 C / dt^3.
+   El veredicto final se clasifica en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}
+   y se emite en el reporte maestro `PseudoholomorphicWitnessReport`.
 
-La anidación garantiza:
-  - Cierre criptográfico al final de cada fase (HMAC-SHA256 sobre payload determinista).
-  - Apertura verificada al inicio de la fase siguiente (recalcula HMAC y cadena).
-  - Trazabilidad forense completa: chain_hash P1 ⊕ chain_hash P2 ⊕ veredicto.
+AXIOMAS FORMALES
+────────────────
+[Axioma BPWE-A1] Atestación de Isometría Cuántica de Bures:
+    d_B(\rho, \sigma) \le 1.0\times 10^{-6} \land F(\rho, \sigma) \ge 0.95 \implies \text{coherencia cuántica verificada}.
+[Axioma BPWE-A2] No-Demolición Cuántica QND:
+    \|[A, \rho]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Axioma BPWE-A3] Rigidez Simpléctica de Gromov:
+    c_G(B^{2n}(r)) = \pi r^2 \le c_G(Z^{2n}(R)) = \pi R^2.
+[Axioma BPWE-A4] Inmutabilidad Criptográfica de Certificados de Fase:
+    Ningún certificado Phase1WitnessCertificate o Phase2WitnessCertificate es válido sin verificación HMAC-SHA256 en tiempo constante.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BPWE-I1] Fidelidad de Uhlmann: F(\rho, \sigma_{\mathrm{PSD}}) \ge 0.95.
+[Invariante BPWE-I2] Retroacción Cuántica: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante BPWE-I3] Residuo de Cauchy-Riemann-Floer: \|\bar{\partial}_{\mathcal{J},H}(u)\| \le 1.0\times 10^{-4}.
+[Invariante BPWE-I4] Contracción de Kleisli: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante BPWE-I5] Continuidad de Cadena SHA-256 entre certificados de fase.
 """
 
 from __future__ import annotations

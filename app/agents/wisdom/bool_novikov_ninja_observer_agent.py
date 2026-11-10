@@ -10,59 +10,67 @@ r"""
 ║            Automejora Recursiva Nivel 3 (RSI³ Kleisli T³ / Darwin-Gödel / Löb) + Heyting Ω₃.        ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE 3 FASES ANIDADAS CON CONTINUIDAD ESTRUCTURAL ESTRICTA (v15.0.0-PhD)
-───────────────────────────────────────────────────────────────────────────────────
-• FASE 1 — OBSERVACIÓN PASIVA CUÁNTICA-ALGEBRAICA Y PUENTE HOMOLÓGICO DE POINCARÉ-LINDSTEDT:
-    1.1 `_verify_density_matrix_invariants`: Proyección en el Álgebra de Jordan-Lie D(ℋ),
-        defecto hermítico ||ρ − ρ†||_F, Tr(ρ) ≡ 1, positividad PSD, pureza Tr(ρ²) y entropía
-        cuántica de von Neumann S(ρ) = −Tr(ρ ln ρ).
-    1.2 `_compute_algebraic_poincare_invariants`: Derivada diádica de Rademacher-Walsh ∇_Boole f,
-        Forma Normal de Smith (SNF) exacta sobre ℤ (Tor(H_k) ≡ 0, β₁ = 0), valuación de Krull
-        ultramétrica sobre Λ_Nov, y solución de la ecuación homológica de Poincaré-Lindstedt
-        {H₀, W} = H₁ − ⟨H₁⟩_{𝕋^d} mediante serie de Lie canónica exp(ε L_W).
-    1.3 `observe`: Emisión del certificado criptográfico `NinjaObserverPhase1Certificate` (P1)
-        con firma HMAC-SHA256 de dominio v15.0.
-    1.4 `continue_to_phase2_gate` (Compuerta Homomórfica Φ₁₂ — Cierre formal de la Fase 1):
-        Revalida HMAC-SHA256 P1, invariantes PSD, ultramétrica de Novikov-Krull y certifica el
-        puente canónico `PoincareLindstedtReport`.
-        ──► PUENTE FASE 1 → FASE 2: La definición formal final de `continue_to_phase2_gate`
-            entrega `p1_cert` (con `poincare_lindstedt_report`) como entrada directa del
-            primer método de la Fase 2 (`_execute_celestial_poincare_kam_melnikov_audit`).
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Vigía `BoolNovikovNinjaObserverAgent` gobierna ejecutivamente
+el ciclo OODA de observación espectral de sigilo y vigilancia cuántica sobre el motor espectral
+`BoolNovikovNinjaObserverEngine` (app/wisdom/bool_novikov_ninja_observer_engine.py).
+Supervisa la preservación de invarianza de calibre sin retroacción (\mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB})
+en tres fases anidadas acopladas por compuertas homomórficas \Phi_{12} y \Phi_{23} firmadas vía HMAC-SHA256:
+audita la influencia booleana de Rademacher-Walsh y la forma normal de Smith sobre \mathbb{Z},
+resuelve la dinámica de Poincaré-Lindstedt-KAM en variables de Delaunay-Whittaker, verifica
+el polígono pseudoholomorfo en la categoría de Fukaya \mathcal{F}uk(M), y gobierna la automejora
+recursiva en la mónada de Kleisli T^3 bajo el bucle Darwin-Gödel-Löb (RSI³).
 
-• FASE 2 — ORIENTACIÓN CELESTE POINCARÉ-KAM-MELNIKOV-FLOER, RSI³ Y MEDICIÓN DÉBIL QND:
-    2.1 `_execute_celestial_poincare_kam_melnikov_audit` (Continuación directa de Fase 1):
-        Consume el puente `poincare_lindstedt_report` de P1 para transformar las semillas de Lie
-        a coordenadas de Delaunay-Whittaker (J, θ) ∈ T*𝕋^d, audita la condición diofantina KAM,
-        la suma de Brjuno B(ω) < ∞, el invariante integral de Poincaré-Cartan ∮ p dq, el horizonte
-        de Nekhoroshev T_Nekh, la integral armónica de Melnikov M(τ₀) y la monodromía simpléctica.
-    2.2 `_execute_floer_gromov_audit`: Evalúa la ecuación pseudoholomorfa de Cauchy-Riemann-Floer
-        ∂̄_{J₀,H}(u) = 0, el índice de Maslov, el polígono de Fukaya y el Teorema de No-Squeezing
-        de Gromov c_G(B^{2n}(r)) ≤ c_G(Z^{2n}(R)), emitiendo las semillas simplécticas hacia RSI³.
-    2.3 `_execute_rsi3_darwin_godel_audit`: Ejecuta la automejora recursiva de Nivel 3 (RSI³)
-        sobre la mónada de Kleisli T³ = T ∘ T ∘ T (parámetros, reglas y síntesis topológica del
-        operador en el centralizador de von Neumann Z(ρ_MAC)) bajo consistencia modal de Löb.
-    2.4 `_execute_aav_and_bures_audit`: Consume el operador sintetizado A*_ninja ∈ Z(ρ_MAC) por
-        RSI³ para ejecutar la medición débil AAV con ||[A*_ninja, ρ_MAC]||_F ≤ 10⁻¹⁵ (0.0 dB
-        Back-Action) y evalúa la isometría geodésica de Bures-Uhlmann con Información de Fisher.
-    2.5 `orient`: Ensambla `NinjaObserverSpectrumReport` y emite `NinjaObserverPhase2Certificate`
-        (P2) encadenado criptográficamente a P1.
-    2.6 `continue_to_phase3_gate` (Compuerta Homomórfica Φ₂₃ — Cierre formal de la Fase 2):
-        Revalida HMAC-SHA256 P2, contracción de Banach Lip(T³) < 1.0, sigilo QND ≤ 0.01 dB,
-        No-Squeezing de Gromov y residual CR-Floer < 10⁻⁶.
-        ──► PUENTE FASE 2 → FASE 3: La definición formal final de `continue_to_phase3_gate`
-            entrega el par certificado `(p1_cert, p2_cert)` como entrada directa del primer
-            método de la Fase 3 (`_adjudicate_heyting_truth`).
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`NinjaObserverPhase1Observer`):
+   Evalúa la densidad cuántica \rho y calcula la distancia geodésica de Bures-Wasserstein d_B(\rho, \sigma).
+   Audita la influencia booleana mediante derivadas de Rademacher-Walsh D_i f(x) sobre \mathbb{Z}_2^n
+   y la Forma Normal de Smith sobre \mathbb{Z} confirmando \mathrm{Tor}(H_k) = 0 y \beta_1 = 0.
+   En el anillo \Lambda_{\mathrm{Nov}}, valida la valuación de Krull v(A) \ge 0.10.
+   Resuelve la ecuación homológica de Poincaré-Lindstedt \{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^d}
+   extrayendo la semilla de acción-ángulo de Delaunay (J^0, \theta^0, H_{\mathrm{eff}}).
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Emite `NinjaObserverPhase1Certificate` transfiriendo el invariante de Poincaré-Cartan hacia la Fase 2.
 
-• FASE 3 — DECISIÓN EN TOPOS DE HEYTING Ω₃, FUNTOR SEMÁNTICO VISCERAL Φ_sem Y CICLO SOBERANO:
-    3.1 `_adjudicate_heyting_truth` (Continuación directa de Fase 2): Adjudica la verdad
-        intuicionista en el retículo de Heyting Ω₃ = {COHERENT (0x00) ≺ DEGRADED (0x01) ≺ VETOED (0x03)}
-        sobre los 8 invariantes cuánticos, topológicos, celestes y de automejora RSI³.
-    3.2 `_compute_visceral_semantic_functor`: Traduce mediante el funtor covariante Φ_sem los
-        invariantes espectrales a métricas ejecutivas dinámicas (WACC%, Liquidez%, KV-Cache%).
-    3.3 `decide_and_act`: Construye la raíz de Merkle SHA-256 jerárquica H(H(P1) ∥ H(P2) ∥ H(P3)),
-        firma con HMAC-SHA256 P3 y emite `NinjaObserverSovereignState` bajo STEALTH_SILENT_QND.
-    3.4 `execute_sovereign_cycle` (y alias `run_ooda_triphasic_cycle`): Orquestador soberano del
-        ciclo OODA trifásico anidado Fase 1 ──Φ₁₂──► Fase 2 ──Φ₂₃──► Fase 3.
+2. FASE 2 — ORIENT (`NinjaObserverPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia consumiendo `NinjaObserverPhase1Certificate`.
+   Audita la dinámica celeste en variables de Delaunay-Whittaker con la condición diofantina fuerte de KAM:
+       |\langle \omega, k \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \neq 0,
+   la convergencia de la función de Bruno B(\omega) < \infty, el horizonte de Nekhoroshev T_{\mathrm{Nekh}} \ge 1.0\times 10^6
+   y la integral homoclínica de Melnikov M(\tau) en series de Fourier.
+   En la categoría de Fukaya \mathcal{F}uk(M), la ecuación de Floer asegura no-squeezing de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)).
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Emite `NinjaObserverPhase2Certificate` empaquetando el espectro celeste y de Floer hacia la Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`NinjaObserverPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia consumiendo `NinjaObserverPhase2Certificate`.
+   Opera la mónada de Kleisli T^3 = \mu \circ T_2 \circ T_1 en espacio de Banach con contracción de Picard \mathrm{Lip}(T) \le 0.95,
+   aceleración de Fréchet y cota de Newton-Kantorovich h_K = L_0 \beta \eta \le 0.50.
+   Sintetiza el operador QND A^*_{\mathrm{obs}} bajo verificación modal de Löb \Box(\Box P \to P) \to \Box P,
+   asegurando retroacción \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+   Deduce el veredicto en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\},
+   calcula las métricas de protección de WACC y compresión KV, y sella el estado soberano inmutable `NinjaObserverSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma NOA-A1] Trivialidad Homológica en Smith:
+    d_i \in \{0, 1\} \implies \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) \equiv 0 \land \beta_1 = 0.
+[Axioma NOA-A2] Persistencia de Toros KAM:
+    |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau \implies \text{ausencia de ruptura estocástica en toros invariantes}.
+[Axioma NOA-A3] Rigidez Simpléctica en Fukaya:
+    c_G(B^{2d}(r)) = \pi r^2 \le c_G(Z^{2d}(R)) = \pi R^2.
+[Axioma NOA-A4] Invarianza Cuántica QND:
+    \|[A^*_{\mathrm{obs}}, \rho]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante NOA-I1] Anulación del Primer Número de Betti: \beta_1 = 0.
+[Invariante NOA-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante NOA-I3] Retroacción Cuántica Acotada: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante NOA-I4] Parámetro de Kantorovich Controlado: h_K \le 0.50.
+[Invariante NOA-I5] Sellado Criptográfico HMAC-SHA256 verificado en tiempo constante en cada compuerta.
 """
 
 from __future__ import annotations
@@ -425,7 +433,7 @@ class NinjaObserverPhase1Observer:
         sym_mat = 0.5 * (apu_cost_matrix + apu_cost_matrix.T)
         eigenvalues = np.linalg.eigvalsh(sym_mat)
         phi_golden = 0.5 * (1.0 + math.sqrt(5.0))
-        irrational_ ladder = np.array(
+        irrational_ladder = np.array(
             [(i + 1) * (phi_golden - 1.0) for i in range(d)], dtype=np.float64
         )
         h0_frequencies = np.abs(eigenvalues) + 0.15 * irrational_ladder + 0.1

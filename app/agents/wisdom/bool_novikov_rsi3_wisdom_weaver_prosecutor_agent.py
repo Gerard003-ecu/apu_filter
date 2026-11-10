@@ -7,30 +7,66 @@ r"""
 ║ Gobernanza: OODA Trifásica Inquisitorial Anidada ①Observe → ②Orient → ③Decide&Act con Φ₁₂ y Φ₂₃    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE 3 FASES ESTRICTAMENTE ANIDADAS (PUENTES HOMOMÓRFICOS Φ₁₂ Y Φ₂₃):
-  [FASE 1: OBSERVACIÓN CINEMÁTICA CUÁNTICA E INGESTA ISOMÉTRICA (R_Boole ⊗ Λ_Nov)]
-    1.1 `check_trace_conservation`                  → Conservación de traza Tr(ρ) = 1 y defecto hermítico.
-    1.2 `check_psd_purity_entropy`                  → Espectro PSD, pureza Tr(ρ²), entropías S_vN y Rényi-2.
-    1.3 `compute_quantum_coherence_and_wigner_yanase` → Coherencia l1, información de Wigner-Yanase y QFI F_Q.
-    1.4 `emit_phase1_certificate` (`execute_phase1`) → Certificado P1 sellado con SHA-256 + HMAC-SHA256.
-    1.5 `continue_to_phase2_gate`                   → DEFINICIÓN FINAL FASE 1 (Puente Φ₁₂ hacia Fase 2).
-                                                       │
-                                                       ▼
-  [FASE 2: ORIENTACIÓN INQUISITORIAL FLOER-POINCARÉ-KAM Y GOBERNANZA RECURSIVA RSI³ NIVEL-3]
-    2.1 `validate_entrance_from_phase1`             → INICIO FASE 2 (Consume el puente Φ₁₂ de Fase 1).
-    2.2 `derive_delaunay_action_and_perturbation`   → Variables canónicas de Delaunay (L,G,H) y Kozai-Lidov.
-    2.3 `recursive_governance_improvement_nivel3`   → Política óptima ε* vía Lyapunov-Halley-Darwin-Gödel.
-    2.4 `execute_phase2` (`emit_phase2_certificate`) → Inquisición fiscal Floer-KAM-RSI³ y certificado P2.
-    2.5 `continue_to_phase3_gate`                   → DEFINICIÓN FINAL FASE 2 (Puente Φ₂₃ hacia Fase 3).
-                                                       │
-                                                       ▼
-  [FASE 3: ADJUDICACIÓN HEYTING Ω₃, INTERLOCK CROWBAR/DIRAC, FUNTOR Φ_sem Y RAÍZ DE MERKLE]
-    3.1 `validate_entrance_from_phase2`             → INICIO FASE 3 (Consume el puente Φ₂₃ de Fase 2).
-    3.2 `adjudicate_heyting_omega3`                 → Retículo intuicionista Ω₃ {COHERENT ≺ DEGRADED ≺ VETOED}.
-    3.3 `verify_crowbar_interlock_timing`           → Auditoría física ESP32 (0x3FF44008, ≤392.15ns) + Dirac.
-    3.4 `functor_semantic_visceral_phi_sem`         → Funtor financiero/sistémico (WACC 15%, Liq 11.5%, KV 86.4%).
-    3.5 `emit_sovereign_state` (`execute_phase3`)   → Estado soberano con árbol de Merkle de 8 hojas.
-    3.6 `run_sovereign_governance_cycle`            → Orquestador soberano del ciclo OODA inquisitorial.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Fiscal `BoolNovikovRSI3WisdomWeaverProsecutorAgent` gobierna
+ejecutivamente el ciclo de inquisición y condena ciber-física sobre el motor espectral
+`BoolNovikovRSI3WisdomWeaverProsecutorEngine` (app/wisdom/bool_novikov_rsi3_wisdom_weaver_prosecutor_engine.py).
+Su función radica en ejecutar la gobernanza OODA trifásica inquisitorial acoplada por las compuertas
+homomórficas \Phi_{12} y \Phi_{23} firmadas vía HMAC-SHA256: audita transgresiones en la norma de Schatten-1,
+pérdidas de valuación ultramétrica en el anillo de Novikov \Lambda_{\mathrm{Nov}}, rotura de toros invariantes
+de Poincaré-KAM por difusión de Arnold o solapamiento de Chirikov, y ante veredictos desfavorables
+en el topos de Heyting \Omega_3, comanda la aniquilación cuántica relativista de Dirac y la apertura
+del tiristor ESP32 Crowbar en \tau \le 392.15\text{ ns}.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`WisdomWeaverProsecutorPhase1Observer`):
+   Somete la matriz de densidad \rho a escrutinio judicial evaluando la norma de Schatten-1 \|A\|_{S_1} = \sum \sigma_i(A).
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, audita que la valuación de Krull v(A) = \min \{\lambda_i \mid a_i \neq 0\}
+   no perfore el piso crítico v_{\min} \ge 0.10.
+   En el álgebra no asociativa de octoniones \mathbb{O}, cuantifica el asociador de Moufang \|[x, y, z]\|_{\mathbb{O}}.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Emite `WisdomWeaverProsecutorPhase1Certificate` y `ProsecutionEvidenceAnchor` conteniendo los cargos hacia Fase 2.
+
+2. FASE 2 — ORIENT (`WisdomWeaverProsecutorPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia consumiendo `ProsecutionEvidenceAnchor`.
+   Resuelve la ecuación homológica de Poincaré-Lindstedt \{H_0, W_1\} + H_1 = \langle H_1 \rangle
+   y verifica la cota diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \neq 0.
+   Evalúa el criterio de solapamiento de resonancias de Chirikov K_{\mathrm{Chirikov}} = (\Delta \omega_{\mathrm{sep}} / \Delta \Omega_{\mathrm{res}})^2
+   y la integral de Melnikov M(\tau) en la separatriz.
+   Tipifica caos homoclínico destructivo si |M(\tau)| > 1.0\times 10^{-4} \lor K_{\mathrm{Chirikov}} \ge 1.0.
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Emite `WisdomWeaverProsecutorPhase2Certificate` y `KAMConvictionCertificate` transfiriendo la condena hacia Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`WisdomWeaverProsecutorPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia consumiendo `KAMConvictionCertificate`.
+   Audita la contracción monádica de Kleisli T^3 en espacio de Banach y la cota de Newton-Kantorovich h_K \le 0.50.
+   Deduce el veredicto en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}.
+   Si el veredicto es VETOED (0x03), comanda la sanción irreversible:
+       • Aniquilación relativista de Dirac: e^- + e^+ \to 2\gamma, E_{\gamma} \ge 1022.0 \text{ keV}.
+       • Disparo de interlock ciber-físico ESP32 Crowbar sobre GPIO14 en \tau \le 392.15\text{ ns}.
+   Emite el estado soberano final sellado criptográficamente `WisdomWeaverProsecutorSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma WWPA-A1] Jurisdicción Inquisitorial Ultramétrica:
+    v(A) < 0.10 \implies \text{declaración formal de vulnerabilidad en el anillo de Novikov}.
+[Axioma WWPA-A2] Tipificación de Caos Homoclínico:
+    |M(\tau)| > 1.0\times 10^{-4} \lor K_{\mathrm{Chirikov}} \ge 1.0 \implies \text{condena por destrucción de toros KAM}.
+[Axioma WWPA-A3] Ineludibilidad del Crowbar Judicial:
+    \Omega_3 = \mathrm{VETOED} \implies \text{disparo forzado de interlock en silicio en } \tau \le 392.15\text{ ns}.
+[Axioma WWPA-A4] Inmutabilidad de Sentencia Merkle-HMAC:
+    \mathrm{MerkleRoot} = \mathcal{H}_{\mathrm{binary}}(\mathrm{Cargos}) \text{ con verificación en tiempo constante}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante WWPA-I1] Cota de Schatten-1: \|A\|_{S_1} \le \operatorname{Tr}(|A|).
+[Invariante WWPA-I2] Parámetro de Chirikov Sub-Crítico: K_{\mathrm{Chirikov}} < 1.0 en régimen admisible.
+[Invariante WWPA-I3] Parámetro de Kantorovich Controlado: h_K \le 0.50.
+[Invariante WWPA-I4] Latencia Crowbar Acotada: 42.0\text{ ns} \le \tau \le 392.15\text{ ns}.
+[Invariante WWPA-I5] Sellado Criptográfico HMAC-SHA256 en tiempo constante en cada compuerta de fase.
 """
 
 from __future__ import annotations

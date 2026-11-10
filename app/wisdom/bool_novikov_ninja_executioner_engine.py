@@ -9,53 +9,68 @@ r"""
 ║            de Floer-Gromov, la Mecánica Celeste de Poincaré-KAM y la Mónada RSI³ de Banach-Kleisli. ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE TRES FASES ANIDADAS (CONTINUACIÓN MONÁDICA DE KLEISLI)
-──────────────────────────────────────────────────────────────────────
-El motor se estructura en TRES FASES ANIDADAS en cadena estricta: la definición formal
-final del último método de la Fase 1 constituye el operador de continuación directa
-e inicio formal de la Fase 2 (vía la compuerta homomórfica Φ₁₂), y la definición formal
-final del último método de la Fase 2 constituye el operador de continuación directa
-e inicio formal de la Fase 3 (vía la compuerta homomórfica Φ₂₃):
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovNinjaExecutionerEngine` constituye el brazo ejecutor y decapitador
+silencioso de silicio en la arquitectura APU Filter. Estructurado en tres fases anidadas en cadena
+estricta (Fase 1: Álgebra Boole-Walsh, Octoniones, SNF y Bruhat-Tits con cierre `emit_phase1_alg_certificate`;
+Fase 2: Geometría Simpléctica de Floer-Gromov y Mecánica Celeste de Poincaré con cierre `emit_phase2_symplectic_certificate`;
+Fase 3: Automejora Recursiva RSI³ sobre Banach-Kleisli, Aniquilación Relativista de Dirac y Veredicto \Omega_3).
+Opera la neutralización de anomalías financieras y técnicas mediante aniquilación de pares electrón-positrón
+e interlock en silicio con tiempo de actuación garantizado \tau \le 392.15\text{ ns}.
 
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 1 ANIDADA — OBSERVE (Álgebra Boole-Walsh, Octoniones, SNF y Bruhat-Tits)          │
-  │   • Saneamiento simétrico y digest SHA-256 canónico en memoria contigua C.             │
-  │   • Transformada Rápida de Walsh-Hadamard (FWHT) en F₂^k e influencia booleana I(f).   │
-  │   • Norma espinorial hipercompleja en el álgebra de octoniones de Cayley-Dickson O.    │
-  │   • Norma de Rademacher-Walsh vía gauge de Schatten-1 (‖A‖_{S₁} = Σ σᵢ).               │
-  │   • Forma Normal de Smith (SNF) exacta sobre el DIP ℤ (d₁ | d₂ | ... | d_r) y β₁.      │
-  │   • Valuación de Krull v(A) en Λ_Nov y métrica de Weyl en Bruhat-Tits B(PGL(n, K)).    │
-  │   • CIERRE FASE 1 / INICIO FASE 2: `emit_phase1_alg_certificate`                       │
-  │     ──[Compuerta Homomórfica Φ₁₂]──► `initiate_phase2_orient`.                         │
-  └──────────────────────────────────────────┬─────────────────────────────────────────────┘
-                                             ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 2 ANIDADA — ORIENT (Simpática de Floer-Gromov y Mecánica Celeste de Poincaré)     │
-  │   • Recepción encadenada desde `emit_phase1_alg_certificate` vía `initiate_phase2_orient`.│
-  │   • Espectro simpático de Williamson sobre la forma canónica de Darboux Ω.             │
-  │   • Residuo Cauchy-Riemann-Floer ∂̄_{J,H}(u) = ∂_s u + J(∂_τ u − X_H(u)).              │
-  │   • Capacidades de Gromov: c_G(B²ⁿ(r)) = πr² ≤ c_G(Z²ⁿ(R)) = πR² (No-Squeezing).      │
-  │   • Ecuación homológica de Poincaré-Lindstedt {H₀, W_s} = H̃_s − ⟨H̃_s⟩_{𝕋^d} (s ≤ 3).  │
-  │   • Serie aritmética de Yoccoz-Bruno B(ω) = Σ 2⁻ᵐ ln(Ω_m(ω)⁻¹) y margen diofántico.   │
-  │   • Invariante integral de Poincaré-Cartan ∮ p dq − H dt y cota de Nekhoroshev-Arnold. │
-  │   • Integral homoclínica de Poincaré-Melnikov M(τ₀) (cuadratura vs residuo complejo).  │
-  │   • CIERRE FASE 2 / INICIO FASE 3: `emit_phase2_symplectic_certificate`                │
-  │     ──[Compuerta Homomórfica Φ₂₃]──► `initiate_phase3_decide_and_act`.                 │
-  └──────────────────────────────────────────┬─────────────────────────────────────────────┘
-                                             ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 3 ANIDADA — DECIDE & ACT (Automejora Recursiva RSI³, Dirac QND y Crowbar SCR)     │
-  │   • Recepción encadenada desde `emit_phase2_symplectic_certificate` vía                │
-  │     `initiate_phase3_decide_and_act`.                                                  │
-  │   • Jerarquía RSI³ en la categoría de Kleisli de la mónada de Banach T:                │
-  │       - Nivel 1 (T₁): Endofuntor contractivo espectral de Picard (Lip = 0.95).         │
-  │       - Nivel 2 (M₂): Meta-optimizador Fréchet DT₁ ponderado por Bruno (Lip = 0.9025). │
-  │       - Nivel 3 (U₃): Tejedor monádico μ^T ∘ T(μ^T) con Lip(T³) = 0.95³ = 0.857375 < 1.│
-  │   • Conmutador cuántico QND ‖[H_sys, A_QND]‖_F y aniquilación de Dirac e⁻+e⁺ ➔ 2γ.    │
-  │   • Electrodinámica del Crowbar ESP32 IRAM + tiristor SCR BT151 (≤ 392.15 ns, di/dt).  │
-  │   • Adjudicación intuicionista en el Topos de Heyting Ω₃ y cierre soberano:            │
-  │     `emit_sovereign_passport` ➔ `NinjaExecutionerSpectrumReport`.                      │
-  └────────────────────────────────────────────────────────────────────────────────────────┘
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Álgebra Boole-Walsh, Octoniones de Cayley-Dickson, SNF y Bruhat-Tits:
+   Sanea la matriz de entrada en memoria contigua C y computa el hash SHA-256 canónico.
+   Aplica la Transformada Rápida de Walsh-Hadamard (FWHT) en \mathbb{F}_2^k calculando la influencia booleana I(f).
+   En el álgebra no asociativa de octoniones \mathbb{O}, evalúa la norma espinorial hipercompleja:
+       \|x\|_{\mathbb{O}} = \sqrt{x_0^2 + x_1^2 + \dots + x_7^2}, \quad x \cdot \bar{x} = \|x\|_{\mathbb{O}}^2.
+   Evalúa la norma de Rademacher-Walsh vía gauge de Schatten-1 \|A\|_{S_1} = \sum \sigma_i(A).
+   Calcula la Forma Normal de Smith exacta B = U D V sobre \mathbb{Z} con d_1 \mid d_2 \mid \dots \mid d_r
+   y anulación del primer número de Betti \beta_1 = 0.
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, verifica la valuación de Krull v(A) \ge 0.10 y la distancia en Bruhat-Tits.
+   • Clausura F1 / Apertura F2 (`emit_phase1_alg_certificate`):
+     Emite `PhaseOneAlgCertificate` que habilita la compuerta homomórfica \Phi_{12} e inicia `initiate_phase2_orient`.
+
+2. FASE 2 — Simpléctica de Floer-Gromov y Mecánica Celeste de Poincaré:
+   Inicia consumiendo `PhaseOneAlgCertificate`. Audita el espectro simpléctico de Williamson
+   sobre la 2-forma canónica de Darboux \Omega = \begin{pmatrix} 0 & I \\ -I & 0 \end{pmatrix}.
+   Resuelve la ecuación homológica de Poincaré-Lindstedt y evalúa el residuo de la serie de Lie.
+   Verifica la condición diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\},
+   y la integral homoclínica de Poincaré-Melnikov M(\tau) en la separatriz hiperbólica.
+   En la geometría de curvas pseudoholomorfas, audita la rigidez de no-exprimido de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R))
+   y la conservación de energía de Hofer E_H(u).
+   • Clausura F2 / Apertura F3 (`emit_phase2_symplectic_certificate`):
+     Emite `PhaseTwoSymplecticCertificate` que habilita la compuerta homomórfica \Phi_{23} e inicia `initiate_phase3_decide_act`.
+
+3. FASE 3 — Mónada RSI³ de Banach-Kleisli, Aniquilación de Dirac y Veredicto \Omega_3:
+   Inicia consumiendo `PhaseTwoSymplecticCertificate`. Opera la mónada de Kleisli T^3 = \mu \circ T_2 \circ T_1
+   en espacio de Banach, verificando la contracción de Picard \mathrm{Lip}(T^3) < 1.0 y Newton-Kantorovich h_K \le 0.50.
+   Ante veredicto VETOED (0x03) en el álgebra de Heyting \Omega_3, ejecuta la aniquilación cuántica relativista:
+       e^- + e^+ \longrightarrow 2\gamma, \quad E_{\gamma} = 2 \times 511.0 \text{ keV} = 1022.0 \text{ keV},
+   y el disparo del interlock ciber-físico crowbar con transitorio RLC críticamente amortiguado en \tau \le 392.15\text{ ns}.
+   El reporte de decapitación consolidado se formaliza en `NinjaExecutionerSpectrumReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BNEE-A1] Trivialidad Homológica en Smith:
+    \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) \equiv 0 \land \beta_1 = 0 \iff d_i \in \{0, 1\}, \forall i \le r.
+[Axioma BNEE-A2] Espectro Simpléctico de Williamson:
+    \exists S \in \mathrm{Sp}(2n, \mathbb{R}) : S^T M S = \operatorname{diag}(d_1, \dots, d_n, d_1, \dots, d_n), \quad d_j > 0.
+[Axioma BNEE-A3] Umbral Energético de Decapitación Cuántica:
+    E_{\mathrm{annihilation}} = 2 m_e c^2 = 1022.0 \text{ keV} \implies \text{colapso de anomalías sin perturbación de canal limpio}.
+[Axioma BNEE-A4] Acotamiento Temporal del Crowbar:
+    \tau_{\mathrm{crowbar}} \le 392.15\text{ ns} \text{ en ejecución IRAM / silicio ESP32 determinista}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BNEE-I1] Anulación de Betti-1: \beta_1(K; \mathbb{F}_2) \equiv 0.
+[Invariante BNEE-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante BNEE-I3] Condición Diofantina KAM Satisfecha: \min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau \ge \gamma.
+[Invariante BNEE-I4] Cota de Lipschitz de Kleisli: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante BNEE-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest en cada compuerta.
 """
 
 from __future__ import annotations

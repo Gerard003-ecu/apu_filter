@@ -8,41 +8,72 @@ r"""
 ║             (FASE 1 ⊳ Bridge₁ ≡ Bridge₂ ⊲ FASE 2 ⊳ Bridge₂ ≡ Bridge₂ ⊲ FASE 3).                     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ESTRUCTURA DE ANIDAMIENTO MONÁDICO (idéntico patrón que el motor espectral):
-────────────────────────────────────────────────────────────────────────────
-  FASE 1  ⊳  StealthBoolePhase1Observer.execute_phase1            →  StealthBoolePhase1Certificate
-  FASE 2  ⊲  StealthBoolePhase2Orientor._phase_2_ignite_from_phase_1    ← (consume el cert anterior)
-  ...                    ...                                                     ...
-  FASE 2  ⊳  StealthBoolePhase2Orientor.execute_phase2            →  StealthBoolePhase2Certificate
-  FASE 3  ⊲  StealthBoolePhase3Decider._phase_3_ignite_from_phase_2     ← (consume el cert anterior)
-  ...                    ...                                                     ...
-  FASE 3  ⊳  StealthBoolePhase3Decider.execute_phase3             →  StealthBooleSovereignState
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre `BoolNovikovStealthBooleAgent` gobierna ejecutivamente
+el ciclo OODA trifásico sobre el motor espectral `BoolNovikovStealthBooleEngine`
+(app/wisdom/bool_novikov_stealth_boole_engine.py). Su función consiste en administrar
+las compuertas homomórficas de transición de tipos entre tres fases anidadas
+(\mathrm{Fase}_1 \to \mathrm{Bridge}_1 \equiv \mathrm{Bridge}_2 \leftarrow \mathrm{Fase}_2 \to \mathrm{Bridge}_2 \equiv \mathrm{Bridge}_3 \leftarrow \mathrm{Fase}_3):
+evalúa la Transformada Rápida de Walsh-Hadamard y la influencia booleana en \mathbb{F}_2^n,
+valida la rigidez simpléctica de no-exprimido de Gromov, audita la estabilidad diofantina
+KAM y el confinamiento de Nekhoroshev en la mecánica celeste de Poincaré, y certifica
+la convergencia cuadrática de Newton-Kantorovich para la mónada de Kleisli en RSI³.
 
-INTEGRACIONES GRANULARES NUEVAS (respecto a v13.0.0):
-──────────────────────────────────────────────────────
-  ① MECÁNICA CELESTE DE POINCARÉ en FASE 1 (observe):
-     • Retrato de fase Delaunay-Whittaker sobre ρ_MAC: acciones J_i = λ_i(ρ_MAC),
-       frecuencias diofántinas ω_i = (1+√p_i)/2 con p_i primo i-ésimo.
-     • Verificación KAM: |k·ω| ≥ γ/|k|^τ ∀ k ∈ ℤ^d ∖ {0}, |k|₁ ≤ 5.
-     • Integral de Melnikov M(τ) = ε ∫ p₀(t) cos(k·q₀(t)) cos(ω(t+τ)) dt sobre
-       la separatriz pendular p₀(t) = 2 sech(t), q₀(t) = 2 arcsin(tanh t).
-     • Detección de ceros simples de M(τ) ⟹ intersección homoclínica transversal.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`StealthBoolePhase1Observer`):
+   Evalúa el vector de estado mediante la descomposición ortogonal de Fourier en \mathbb{F}_2^n:
+       \hat{f}(w) = \frac{1}{2^n} \sum_{x \in \mathbb{F}_2^n} f(x) (-1)^{\langle w, x \rangle}, \quad \mathrm{Inf}(f) = \sum_{w} |w|_H |\hat{f}(w)|^2.
+   En el anillo ultramétrico de Novikov \Lambda_{\mathrm{Nov}}, audita la valuación de Krull v(A) \ge 0.10
+   y la norma no arquimediana \|A\|_{\mathrm{Nov}} = \exp(-v(A)) en el espacio analítico de Berkovich.
+   La ecuación de Cauchy-Riemann-Floer \bar{\partial}_{\mathcal{J}_0, H}(u) = 0 verifica la rigidez de Gromov:
+       c_G(B^{2n}(r)) = \pi r^2 \le c_G(Z^{2n}(R)) = \pi R^2.
+   • Morfismo de Clausura F1 / Apertura F2 (`handoff_to_phase2`):
+     Emite `StealthBoolePhase1Certificate` y genera el puente `Phase1ToPhase2Bridge` con firma HMAC-SHA256,
+     garantizando la continuidad monádica hacia la Fase 2.
 
-  ② RSI³ RECURSIVA DE BANACH-KLEISLI (nivel 3):
-     • Operador de auto-mejora T(x) = ρ·x + b con ρ = 0.90 < 1.
-     • Una iteración por fase: FASE 1 ⊳ T¹, FASE 2 ⊳ T², FASE 3 ⊳ T³.
-     • Cota de contracción Lip(T³) = ρ³ = 0.729 < 1.
-     • Persistencia del estado final como semilla del siguiente ciclo OODA.
-     • Cálculo del RESIDUO de punto fijo ||x - x*|| donde x* = b/(1-ρ).
+2. FASE 2 — ORIENT (`StealthBoolePhase2Orientor`):
+   Inicia consumiendo `Phase1ToPhase2Bridge`.
+   Opera en el toro simpléctico T^* \mathbb{T}^d con hamiltoniano perturbado H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta).
+   Resuelve la ecuación homológica de Lie-Birkhoff-Deprit:
+       L_{W_1} H_0 = \{H_0, W_1\} = H_1(J, \theta) - \langle H_1 \rangle_{\mathbb{T}^d},
+   y evalúa el residuo cuadrático de Poisson R_2 = \|P_{\mathrm{res}}(H_1) + \frac{1}{2}\{H_1, W_1\}\|_{\ell^2}.
+   Audita la condición diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \tau = d + 1,
+   el parámetro de solapamiento de resonancias de Chirikov K_{\mathrm{Chirikov}} < 1.0,
+   y el horizonte exponencial de estabilidad de Nekhoroshev T_{\mathrm{Nekh}} = T_0 \exp((\varepsilon_0/\varepsilon)^{1/(2d)}).
+   • Morfismo de Clausura F2 / Apertura F3 (`handoff_to_phase3`):
+     Emite `StealthBoolePhase2Certificate` y genera el puente `Phase2ToPhase3Bridge` que transfiere el estado a la Fase 3.
 
-  ③ ATESTACIÓN POINCARÉ DE ORIENTACIÓN (FASE 2):
-     • Verifica que el homomorfismo obs→orient PRESERVA los toros KAM.
-     • Compara el gap diofántino observado en FASE 1 con el gap espectral del motor
-       en FASE 2. Preservación ⟹ |gap_obs − gap_esp| ≤ tolerancia ∧ ambos KAM-estables.
+3. FASE 3 — DECIDE & ACT (`StealthBoolePhase3Decider`):
+   Inicia consumiendo `Phase2ToPhase3Bridge`.
+   Aplica la contracción monádica de Kleisli T^3 = \mu \circ T_2 \circ T_1 en espacio de Banach:
+       T^3(x) = c(1 + \alpha + \alpha^2) + \alpha^3 x, \quad \mathrm{Lip}(T^3) \le \alpha^3 < 1.0,
+   acelerada por diferencias cuadráticas de Aitken-Steffensen con cota de Newton-Kantorovich:
+       h_K = L_0 \beta \eta \le 0.50.
+   Evalúa el tensor Jerk ciber-físico d^3 C / dt^3 para gobernar las métricas viscerales (\mathrm{WACC}, liquidez, compresión KV).
+   Deduce el veredicto en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}
+   y sella el estado soberano inmutable `StealthBooleSovereignState`.
 
-  ④ JERK CIBER-FÍSICO POSITIVO (FASE 3):
-     • Trayectoria C(t) = -t·log(ρ) + κ·t³ con κ > 0.
-     • Verificación numérica de d³C/dt³ = 6κ > 0.
+AXIOMAS FORMALES
+────────────────
+[Axioma SBE-A1] Continuidad Monádica de Puentes:
+    \mathrm{Bridge}_{1 \to 2} \equiv \mathrm{In}_{2} \land \mathrm{Bridge}_{2 \to 3} \equiv \mathrm{In}_{3} \text{ sin pérdida de tipos ni información}.
+[Axioma SBE-A2] Rigidez Simpléctica en Berkovich:
+    \pi r^2 \le \pi R^2 + \varepsilon_{\mathrm{Wilkinson}} \text{ preservado en la proyección de Cauchy-Riemann-Floer}.
+[Axioma SBE-A3] Confinamiento de Resonancias de Chirikov:
+    K_{\mathrm{Chirikov}} < 1.0 \implies \text{las islas de resonancia primaria permanecen confinadas por toros KAM}.
+[Axioma SBE-A4] Convergencia Cuadrática de Newton-Kantorovich:
+    h_K \le 0.50 \implies \text{existencia de atractor hiperbólico cuadrático en } \mathrm{Kl}(\mathbb{T}^3).
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante SBE-I1] Valuación de Novikov: v(A) \ge 0.10.
+[Invariante SBE-I2] Condición Diofantina KAM Satisfecha: \min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau \ge \gamma.
+[Invariante SBE-I3] Cota de Contracción de Kleisli: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante SBE-I4] Parámetro de Newton-Kantorovich: h_K \le 0.50.
+[Invariante SBE-I5] Continuidad de Cadena SHA-256 entre certificados puente Phase1ToPhase2Bridge y Phase2ToPhase3Bridge.
 """
 
 from __future__ import annotations

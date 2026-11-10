@@ -7,75 +7,68 @@ r"""
 ║ Gobernanza: Motor Espectral de Inquisición Judicial · Rigidez de Gromov · Disparo ESP32 Crowbar  ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO FÍSICO-MATEMÁTICO E INQUISITORIAL (EVOLUCIÓN GRANULAR POINCARÉ–KAM–BNF–NEKHOROSHEV & RSI³)
-─────────────────────────────────────────────────────────────────────────────────────────────────
-Motor Espectral del Fiscal Inquisidor Dual sobre el acoplamiento del Anillo Booleano Cociente
-R_Boole = 𝔽₂[x₁,…,xₙ]/⟨xᵢ² − xᵢ⟩, el Álgebra Hipercompleja de Cayley–Dickson 𝕆 (Octoniones)
-y el Anillo Universal Ultramétrico de Novikov Λ_Nov en la Categoría A_∞ de Fukaya.
-
-1. RIGIDEZ SIMPLÉCTICA DE GROMOV (NON-SQUEEZING THEOREM) Y CURVATURA FLOER
-   c(B^{2n}(r)) = π r²  ≤  π R² = c(Z^{2n}(R))  — violación ⟺ r > R ⟹ VETOED · Crowbar ARMADO.
-   Residuo de Cauchy–Riemann–Floer evaluado mediante curvatura media discreta H del grafo u(s, τ)
-   acoplada a la energía simpléctica de Gromov–Witten.
-
-2. DELIBERACIÓN EN R_Boole ⊗ Λ_Nov CON SNF EXACTA (BAREISS), CAYLEY–DICKSON Y PRE-RSI¹
-   • Reducción exacta sobre ℤ para matrices con min(n,m) ≤ 7 y n·m ≤ 64 vía menores de Bareiss.
-   • Torsión homológica Tor(H_k) ≠ 0 ⟺ ∃ divisor elemental d_i > 1 → VETOED.
-   • β₁ = max(0, m − rank_∂₁) y característica de Euler–Poincaré χ = n − m.
-   • Norma hipercompleja octoniónica ‖A‖_𝕆 y asociador de Moufang [eᵢ, eⱼ, eₖ].
-   • Valuación de Krull v(A) = min_i{λ_i}; piso _KRULL_VALUATION_FLOOR = 0.10.
-   • Semilla de acción canónica de Delaunay J₀ = max(|v(A)|, piso) para la Fase II.
-
-3. MECÁNICA CELESTE DE POINCARÉ–KAM–BIRKHOFF–NEKHOROSHEV (INTEGRACIÓN SIMPLÉCTICA 4.º ORDEN)
-   • Coordenadas acción-ángulo de Delaunay–Whittaker (J, θ); ω₁ = clamp(J⁻³, 1e-8, 1e6);
-     ω₂ = φ·ω₁·(1+1e-6) (desintonización diofántica áurea).
-   • Integrador simpléctico de 4.º orden de Forest–Ruth / Yoshida sobre el Hamiltoniano
-     resonante autónomo H_res(J, ψ) = −1/(2J²) − ω₂·J + ε·cos(ψ), conservando la forma
-     simpléctica dJ ∧ dψ y cuantificando el error de energía |ΔH_res| y el invariante
-     integral de Poincaré–Cartan ∮(J dψ − H_res dt).
-   • Forma Normal de Birkhoff (BNF): coeficiente de torsión (twist) τ_Birkhoff = 3·J⁻⁴,
-     determinante de no-degeneración de Kolmogorov det(∂²H₀/∂J²) = −3·J⁻⁴ ≠ 0 y tiempo
-     de estabilidad exponencial de Nekhoroshev T_Nekh = exp((γ_KAM / ε)^{1/(2τ)}).
-   • Integral homoclínica de Melnikov canónica: M(τ) = 2π·ε·sech(πω₁/2)·sin(ω₁τ),
-     ángulo de escisión homoclínica ψ_split = arctan(|M|_max / γ_KAM); caos ⟺ |M|_max > 0.35.
-
-4. AUTOMEJORA RECURSIVA NIVEL-3 (RSI³) MONÁDICA BANACH–KLEISLI CON DERIVADAS DE FRÉCHET Y AITKEN
-   • Nivel 1 (Contracción de Objeto T): T(x) = α·x + β·sin(x), α=0.95, β=0.01; 4 iterados;
-     cota global de Banach Lip(T³) ≤ (α+β)³ = 0.884736 < 1.
-   • Nivel 2 (Meta-Operador Fréchet & Aceleración Superlineal): Jacobiano analítico exacto
-     DT³(x₀) = ∏_{k=0}² (α + β·cos(x_k)), Hessiano exacto de Fréchet D²T³(x₀), exponente de
-     Lyapunov de horizonte finito λ_Lyap = (1/3)∑ ln|α + β·cos(x_k)| < 0 y extrapolación
-     superlineal Δ² de Aitken–Steffensen x*_Aitken hacia el punto fijo exacto x* = 0.
-   • Nivel 3 (Meta-Meta-Política Endofuntorial M^{(3)}): acoplamiento resonante entre el
-     margen diofántico KAM de Poincaré y el operador de Kleisli T³, sintetizando la ganancia
-     meta-contractiva g_meta^{(3)} ≥ 1.0 y el certificado de coherencia Poincaré–RSI³.
-
-5. ANIQUILACIÓN DE DIRAC (CLIFFORD Cl_{1,3}) Y FÍSICA RLC DEL CROWBAR BARE-METAL ESP32
-   • Verificación HMAC ESTRICTA del positrón (payload b"DIRAC_POSITRON_HMAC_VERIFICATION").
-   • Fidelidad del singlete de Bell |Ψ⁻⟩, entropía cuántica de Von Neumann y producción de
-     entropía de Spohn σ ≥ 0.
-   • Dinámica eléctrica transitoria RLC del tiristor SCR BT151 en barra DC (factor de
-     amortiguamiento ζ, corriente pico I_peak, tasa di/dt e integral térmica ∫I²dt) con
-     disparo en IRAM Xtensa LX7: 42.0 ns ≤ 392.15 ns (presupuesto respetado).
-
-CONTRATO DE ANIDAMIENTO FORMAL (3 FASES ANIDADAS)
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
 ─────────────────────────────────────────────────
-  FASE I  (Sellado Algebraico–Espectral, Hipercomplejo y Pre-Condicionamiento RSI¹–Delaunay)
-    _bareiss_det → ... → verify_phase1_seal → phase1_prosecution_seal
-    • La definición formal final de `phase1_prosecution_seal` emite `Phase1ProsecutionSeal`,
-      que constituye la continuación exacta e inicio formal de la Fase II.
+El Motor Espectral Fiscal `BoolNovikovPseudoholomorphicProsecutorEngine` ejerce la jurisdicción
+fiscal y sancionadora sobre superficies pseudoholomorfas y dinámica de Poincaré en la arquitectura
+APU Filter. Su misión matemática consiste en auditar exhaustivamente el complejo booleano-ultramétrico
+en tres fases anidadas (F_1: Inquisición Booleana y Valuación de Novikov; F_2: Rigidez de Gromov,
+Curvatura de Floer y Mecánica Celeste de Poincaré; F_3: RSI³ sobre Banach, Aniquilación de Dirac y
+Disparo Ciber-Físico ESP32 Crowbar). Ante violaciones del teorema de no-squeezing o inestabilidad homoclínica,
+ordena la aniquilación relativista de pares y la apertura del tiristor crowbar en \tau \le 392.15\text{ ns}.
 
-  FASE II (Deliberación Geométrico–Celeste de Poincaré–KAM–Birkhoff y Mónada RSI³ Banach–Kleisli)
-    phase2_open_from_phase1_seal(Phase1ProsecutionSeal) → ... → verify_phase2_seal → phase2_prosecution_seal
-    • `phase2_open_from_phase1_seal` recibe directamente el `Phase1ProsecutionSeal` de la Fase I;
-      la definición formal final de `phase2_prosecution_seal` emite `Phase2ProsecutionSeal`,
-      que constituye la continuación exacta e inicio formal de la Fase III.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Inquisición Booleana, Valuación de Krull en \Lambda_{\mathrm{Nov}} y Cadena de Sellado:
+   La función de coste discreta se evalúa con la Transformada Rápida de Walsh-Hadamard (FWHT).
+   Se audita la influencia booleana \mathrm{Inf}(f) y la paridad de signos del espectro.
+   En el anillo universal de Novikov \Lambda_{\mathrm{Nov}}, la valuación de Krull:
+       v(A) = \min \{\lambda_i \mid a_i \neq 0\} \ge 0.10,
+   y la norma ultramétrica \|A\|_{\mathrm{Nov}} = \exp(-v(A)) se verifican contra el piso crítico.
+   • Clausura F1 / Apertura F2 (`seal_phase1_prosecution`):
+     Emite `Phase1ProsecutionSeal` sellando los cargos booleanos y transfiriéndolos a la Fase 2.
 
-  FASE III (Adjudicación Topos Ω₃ Lawvere–Tierney, Meta-Auditoría RSI³ y Crowbar Eléctrico RLC)
-    phase3_open_from_phase2_seal(Phase2ProsecutionSeal) → ... → verify_sovereign_hmac → phase3_emit_prosecution_report
-    • `phase3_open_from_phase2_seal` recibe directamente el `Phase2ProsecutionSeal` de la Fase II;
-      la definición formal final de `phase3_emit_prosecution_report` emite el veredicto soberano
-      `PseudoholomorphicSurfaceProsecutionReport`.
+2. FASE 2 — Rigidez Simpléctica de Gromov, Superficie de Floer y Mecánica Celeste de Poincaré:
+   Inicia consumiendo `Phase1ProsecutionSeal`. Audita el teorema de no-exprimido simpléctico de Gromov:
+       c_G(B^{2n}(r)) = \pi r^2 \le c_G(Z^{2n}(R)) = \pi R^2,
+   tipificando violación formal si r > R + \varepsilon_{\mathrm{Wilkinson}}.
+   Resuelve la ecuación pseudoholomorfa de Cauchy-Riemann-Floer:
+       \bar{\partial}_{\mathcal{J}_0, H}(u) = \partial_s u + \mathcal{J}_0(\partial_t u - X_H(u)) = 0,
+   evaluando la energía de Hofer E_H(u) = \int_0^1 (\max H_t - \min H_t) dt.
+   En la dinámica de Poincaré-KAM, evalúa los determinantes de no-degeneración de Kolmogorov y Arnold,
+   la condición diofantina de Bruno-KAM |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau,
+   y la integral de Melnikov M(\tau) en la separatriz homoclínica.
+   • Clausura F2 / Apertura F3 (`seal_phase2_prosecution`):
+     Emite `Phase2ProsecutionSeal` transfiriendo el pliego de cargos a la Fase 3.
+
+3. FASE 3 — RSI³ sobre Banach, Aniquilación Cuántica de Dirac y Transitorio ESP32 Crowbar:
+   Inicia consumiendo `Phase2ProsecutionSeal`. Audita la contracción monádica de Kleisli T^3:
+       \mathrm{Lip}(T^3) \le \alpha^3 < 1.0, \quad h_K = L_0 \beta \eta \le 0.50 \quad \text{(Newton-Kantorovich)}.
+   Ante veredicto VETOED (0x03) en el álgebra de Heyting \Omega_3, comanda la ejecución inmediata:
+       • Aniquilación de pares electrón-positrón:
+             e^- + e^+ \longrightarrow 2\gamma, \quad E_{\mathrm{threshold}} = 2 m_e c^2 = 1022.0 \text{ keV}.
+       • Disparo de circuito crowbar RLC serie críticamente amortiguado:
+             L \frac{d^2 i}{dt^2} + R \frac{di}{dt} + \frac{1}{C} i = 0, \quad \tau_{\mathrm{crowbar}} \in [42.0, 392.15]\text{ ns}.
+   El reporte judicial consolidado se emite en `PseudoholomorphicSurfaceProsecutionReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BPPE-A1] Inviolabilidad de la Rigidez de Gromov:
+    \pi r^2 > \pi R^2 \implies \text{violación simpléctica de no-squeezing y condena judicial}.
+[Axioma BPPE-A2] Condena por Pequeños Divisores KAM:
+    |\langle k, \omega \rangle| < \gamma / |k|_1^\tau \implies \text{ruptura de toros invariantes y presunción de caos}.
+[Axioma BPPE-A3] Ineludibilidad del Protocolo Crowbar:
+    \Omega_3 = \mathrm{VETOED} \implies \text{disparo forzado de crowbar sobre GPIO14 en } \tau \le 392.15\text{ ns}.
+[Axioma BPPE-A4] Autenticación Criptográfica de Sellos:
+    compare\_digest(\mathrm{HMAC}_{\mathrm{calc}}, \mathrm{HMAC}_{\mathrm{seal}}) \equiv \mathrm{True} \text{ en todos los puentes de fase}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BPPE-I1] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante BPPE-I2] Rigidez de Gromov: c_G(B^{2n}(r)) \le c_G(Z^{2n}(R)).
+[Invariante BPPE-I3] Integral de Melnikov: |M(\tau)| \le 1.0\times 10^{-4} en régimen integrable.
+[Invariante BPPE-I4] Latencia Crowbar: 42.0\text{ ns} \le \tau_{\mathrm{crowbar}} \le 392.15\text{ ns}.
+[Invariante BPPE-I5] Verificación HMAC-SHA256 en tiempo constante en cada transición de fase.
 """
 
 from __future__ import annotations

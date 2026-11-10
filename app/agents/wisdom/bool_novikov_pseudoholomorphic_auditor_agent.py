@@ -8,49 +8,66 @@ r"""
 ║            sobre el MOTOR v15.0.0 (Phase1AlgebraicSpectralBundle + Phase2GeometricCelestialBundle)   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO TEÓRICO Y GOBERNANZA OODA TRIFÁSICA EN 3 FASES ANIDADAS (v15.0.0-PhD)
-───────────────────────────────────────────────────────────────────────────
-El Soberano Agéntico dirige al motor espectral y añade la capa de gobernanza OODA
-con seguridad criptográfica HMAC-SHA256 por dominios separados y verificación de paridad.
-Está estructurado en 3 FASES ANIDADAS estrictas: la definición formal final del último
-método de cada fase emite exactamente el objeto que consume el primer método de la
-fase siguiente:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Auditor `BoolNovikovPseudoholomorphicAuditorAgent` gobierna
+ejecutivamente el ciclo de auditoría metamatemática OODA sobre el motor espectral
+`BoolNovikovPseudoholomorphicAuditorEngine` (app/wisdom/bool_novikov_pseudoholomorphic_auditor_engine.py).
+Su función radica en arbitrar y validar en tres fases anidadas la integridad de los haces espectrales:
+Fase 1 (Observe: auditoría de ideales booleanos en \mathbb{F}_2^n, valuación ultramétrica en \Lambda_{\mathrm{Nov}}
+y curvatura pseudoholomorfa), Fase 2 (Orient: mecánica celeste de Poincaré-KAM-Yoshida y estabilidad
+diofantina), y Fase 3 (Decide & Act: automejora recursiva RSI³ sobre espacios de Banach, aniquilación
+cuántica relativista de Dirac y veredicto en el topos de Heyting \Omega_3 con firma criptográfica HMAC).
 
-  FASE I — OBSERVE (métodos `phase1_*`):
-    • _p1_payload_bytes                        : serialización canónica determinista P1.
-    • phase1_observe_algebraic_spectral        : R_Boole (SNF + GF(2) + Bockstein) × Λ_Nov.
-    • phase1_observe_pseudoholomorphic_surface : superficie CR-Floer y capacidades de Gromov.
-    • phase1_emit_certificate (ÚLTIMO MÉTODO DE FASE I) ➔ PseudoholomorphicPhase1Certificate.
-      Su retorno es la ENTRADA OBLIGATORIA del primer método de la FASE II.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE: Auditoría Algebraica Boole-Novikov y Superficies Pseudoholomorfas:
+   Audita la función booleana evaluando ideales en R_{\mathrm{Boole}} = \mathbb{F}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle
+   y la dispersión de gradientes mediante la norma de Schatten-1 \|A\|_{S_1} = \operatorname{Tr}(|A|).
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, valida la valuación de Krull v(A) \ge 0.10 y la norma \|A\|_{\mathrm{Nov}} = \exp(-v(A)).
+   La curva pseudoholomorfa resuelve la ecuación de Cauchy-Riemann-Floer:
+       \bar{\partial}_{\mathcal{J}, H}(u) = \partial_s u + \mathcal{J}(\partial_t u - X_H(u)) = 0,
+   asegurando energía de Hofer acotada E_H(u) < \infty y rigidez simpléctica de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)).
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Consume `Phase1AlgebraicSpectralBundle` y emite `PseudoholomorphicPhase1Certificate` hacia la Fase 2.
 
-  FASE II — ORIENT (métodos `phase2_*` + Compuerta Homomórfica Φ₁₂):
-    • phase2_open_from_phase1_certificate (PRIMER MÉTODO DE FASE II): consume el
-      `PseudoholomorphicPhase1Certificate` emitido al cierre de FASE I y abre el
-      `Phase2GeometricCelestialBundle` vía `engine.phase2_open_from_phase1_bundle`.
-    • continue_to_phase2_gate (Compuerta Φ₁₂)   : revalida HMAC P1, chain_hash 64-hex,
-      phase1_seal_hash 64-hex e integridad numérica. ADMITE VETOED para aniquilación Dirac.
-    • phase2_audit_poincare_celestial_resonances: audita lenguas de Arnold, rotación toroidal,
-      solapamiento de Chirikov, horizonte de Nekhoroshev e invariancia de Liouville-Yoshida.
-    • phase2_evaluate_rsi3_banach              : jerarquía monádica RSI³ (𝔗₃ ∘ 𝔐₂ ∘ T₁) acoplada
-      al margen diofántico KAM y deriva secular celeste.
-    • phase2_evaluate_dirac_annihilation       : e⁻ + e⁺ ➔ 2γ (1022.0 keV) con HMAC estricto.
-    • _p2_payload_bytes                        : serialización canónica determinista P2.
-    • phase2_emit_certificate (ÚLTIMO MÉTODO DE FASE II) ➔ PseudoholomorphicPhase2Certificate.
-      Su retorno es la ENTRADA OBLIGATORIA del primer método de la FASE III.
+2. FASE 2 — ORIENT: Mecánica Celeste de Poincaré-KAM-Yoshida y Haces Geométricos:
+   Inicia consumiendo `PseudoholomorphicPhase1Certificate`.
+   Audita el hamiltoniano planetario en variables de Delaunay-Whittaker H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta)
+   mediante el integrador simpléctico de 4.º orden de Yoshida y la serie de Lie-Birkhoff-Deprit.
+   Comprueba los determinantes de no-degeneración de Kolmogorov y Arnold, la condición diofantina de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\},
+   el confinamiento exponencial de Nekhoroshev T_{\mathrm{Nekh}} \ge 1.0\times 10^6 y la cota de Chirikov K_{\mathrm{Chirikov}} < 1.0.
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Consume `Phase2GeometricCelestialBundle` y emite `PseudoholomorphicPhase2Certificate` hacia la Fase 3.
 
-  FASE III — DECIDE & ACT (métodos `phase3_*` + Compuerta Homomórfica Φ₂₃):
-    • phase3_open_from_phase2_certificate (PRIMER MÉTODO DE FASE III): consume el
-      `PseudoholomorphicPhase2Certificate` emitido al cierre de FASE II y sintetiza los
-      índices globales de automejora RSI³ y estabilidad celeste de Poincaré.
-    • continue_to_phase3_gate (Compuerta Φ₂₃)   : revalida HMAC P2, encadenamiento P1 ➔ P2,
-      contracción de Banach Lip(T³) < 1.0, radio espectral de Fréchet < 1.0 e integridad Dirac.
-    • phase3_adjudicate_heyting_omega3         : VETOED ≻ DEGRADED ≻ COHERENT en el topos Ω₃.
-    • phase3_apply_visceral_functor_sem        : Φ_sem (WACC 15%, Liquidez +11.5%, KV −86.4%,
-      Crowbar Xtensa LX7 SIMD 42 ns ≤ 392.15 ns, resiliencia KAM y eficiencia Picard-Steffensen).
-    • phase3_emit_sovereign_state              : emite `BoolNovikovPseudoholomorphicSovereignState`
-      con raíz de Merkle SHA-256 y firma soberana HMAC-SHA256.
-    • execute_sovereign_audit (CLAUSURA GLOBAL): orquesta FASE I ➔ Φ₁₂ ➔ FASE II ➔ Φ₂₃ ➔ FASE III
-      con verificación de paridad estricta contra el motor canónico.
+3. FASE 3 — DECIDE & ACT: Mónada RSI³ de Banach-Kleisli, Aniquilación de Dirac y Veredicto \Omega_3:
+   Inicia consumiendo `PseudoholomorphicPhase2Certificate`.
+   Opera la jerarquía monádica de Kleisli \mathfrak{H}_3 \circ \mathfrak{M}_2 \circ T_1 en espacio de Banach:
+       T_1(x) = c + \alpha x, \quad \rho(DT^3) = \alpha^3 < 1.0, \quad h_K = L_0 \beta \eta \le 0.50 \quad \text{(Newton-Kantorovich)}.
+   Ante veredicto VETOED (0x03) en el álgebra de Heyting \Omega_3, comanda la aniquilación cuántica relativista:
+       e^- + e^+ \longrightarrow 2\gamma, \quad E_{\gamma} = 2 \times 511.0 \text{ keV} = 1022.0 \text{ keV}.
+   Proyecta las métricas de impacto empresarial visceral (\mathrm{WACC}, liquidez, compresión KV)
+   y emite el estado soberano inmutable `BoolNovikovPseudoholomorphicSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma PAA-A1] Desigualdad Ultramétrica en el Ideal Booleano:
+    v(A + B) \ge \min(v(A), v(B)) \land \|A + B\|_{\mathrm{Nov}} \le \max(\|A\|_{\mathrm{Nov}}, \|B\|_{\mathrm{Nov}}).
+[Axioma PAA-A2] No-Degeneración de Frecuencias KAM:
+    \det(\partial^2 H_0 / \partial J^2) \neq 0 \land |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau \implies \text{persistencia de toros de Liouville}.
+[Axioma PAA-A3] Confinamiento de Resonancias de Chirikov:
+    K_{\mathrm{Chirikov}} < 1.0 \implies \text{ausencia de difusión estocástica global de Arnold}.
+[Axioma PAA-A4] Autenticación Criptográfica de Haces:
+    compare\_digest(\mathrm{HMAC}_{\mathrm{calc}}, \mathrm{HMAC}_{\mathrm{bundle}}) \equiv \mathrm{True} \text{ en compuertas } \Phi_{12} \text{ y } \Phi_{23}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante PAA-I1] Valuación de Novikov: v(A) \ge 0.10.
+[Invariante PAA-I2] Residuo de Floer: \|\bar{\partial}_{\mathcal{J},H}(u)\| \le 1.0\times 10^{-4}.
+[Invariante PAA-I3] Condición Diofantina KAM Satisfecha: \mathrm{kam\_diophantine} \equiv \mathrm{True}.
+[Invariante PAA-I4] Parámetro de Kantorovich Controlado: h_K \le 0.50.
+[Invariante PAA-I5] Sellado Criptográfico HMAC-SHA256 verificado en tiempo constante en cada compuerta.
 """
 
 from __future__ import annotations

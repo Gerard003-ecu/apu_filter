@@ -7,30 +7,65 @@ r"""
 ║ Gobernanza: OODA Trifásica Anidada ①Observe → ②Orient → ③Decide&Act con Puentes Φ₁₂ y Φ₂₃           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE 3 FASES ESTRICTAMENTE ANIDADAS (PUENTES HOMOMÓRFICOS Φ₁₂ Y Φ₂₃):
-  [FASE 1: OBSERVACIÓN CINEMÁTICA CUÁNTICA E INGESTA ISOMÉTRICA (R_Boole ⊗ Λ_Nov)]
-    1.1 `check_trace_conservation`                  → Conservación de traza Tr(ρ) = 1 y defecto hermítico.
-    1.2 `check_psd_purity_entropy`                  → Espectro PSD, pureza Tr(ρ²), entropías S_vN y Rényi-2.
-    1.3 `compute_quantum_coherence_and_wigner_yanase` → Coherencia l1, información de Wigner-Yanase y QFI F_Q.
-    1.4 `emit_phase1_certificate` (`execute_phase1`) → Certificado P1 sellado con SHA-256 + HMAC-SHA256.
-    1.5 `continue_to_phase2_gate`                   → DEFINICIÓN FINAL FASE 1 (Puente Φ₁₂ hacia Fase 2).
-                                                       │
-                                                       ▼
-  [FASE 2: ORIENTACIÓN ESPECTRAL FLOER-POINCARÉ-KAM Y GOBERNANZA RECURSIVA RSI³ NIVEL-3]
-    2.1 `validate_entrance_from_phase1`             → INICIO FASE 2 (Consume el puente Φ₁₂ de Fase 1).
-    2.2 `derive_delaunay_action_and_perturbation`   → Variables canónicas de Delaunay (L,G,H) y Kozai-Lidov.
-    2.3 `recursive_governance_improvement_nivel3`   → Política óptima ε* vía Lyapunov-Halley-Darwin-Gödel.
-    2.4 `execute_phase2` (`emit_phase2_certificate`) → Tejeduría espectral Floer-KAM-RSI³ y certificado P2.
-    2.5 `continue_to_phase3_gate`                   → DEFINICIÓN FINAL FASE 2 (Puente Φ₂₃ hacia Fase 3).
-                                                       │
-                                                       ▼
-  [FASE 3: ADJUDICACIÓN HEYTING Ω₃, AUDITORÍA QND/DIRAC, FUNTOR Φ_sem Y RAÍZ DE MERKLE]
-    3.1 `validate_entrance_from_phase2`             → INICIO FASE 3 (Consume el puente Φ₂₃ de Fase 2).
-    3.2 `adjudicate_heyting_omega3`                 → Retículo intuicionista Ω₃ {COHERENT ≺ DEGRADED ≺ VETOED}.
-    3.3 `verify_qnd_and_dirac_coherence`            → Verificación de pasividad QND y aniquilación Dirac 2γ.
-    3.4 `functor_semantic_visceral_phi_sem`         → Funtor financiero/sistémico (WACC 15%, Liq 11.5%, KV 86.4%).
-    3.5 `emit_sovereign_state` (`execute_phase3`)   → Estado soberano con árbol de Merkle de 8 hojas.
-    3.6 `run_sovereign_governance_cycle`            → Orquestador soberano del ciclo OODA completo.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre `BoolNovikovRSI3WisdomWeaverAgent` gobierna ejecutivamente
+el ciclo armónico OODA de tejeduría de sabiduría sobre el motor espectral
+`BoolNovikovRSI3WisdomWeaverEngine` (app/wisdom/bool_novikov_rsi3_wisdom_weaver_engine.py).
+Su cometido consiste en armonizar en tres fases anidadas la observación cuántica de la MAC,
+la elevación simpléctica al toro de Delaunay, la persistencia de toros diofantinos de Poincaré-KAM
+con integrador de Yoshida de 4.º orden y teoría de intersección lagrangiana en \mathcal{F}uk(M),
+y la automejora recursiva monádica de Kleisli T^3 sobre espacios de Banach con certificación cuadrática
+de Newton-Kantorovich h_K \le 0.50, traduciendo la coherencia matemática a protección de WACC y liquidez.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`WisdomWeaverPhase1Observer`):
+   Evalúa la densidad cuántica \rho proyectada por Higham (\rho_{\mathrm{PSD}} \succeq 0, \operatorname{Tr}(\rho) = 1).
+   Calcula la distancia geodésica de Bures-Wasserstein d_B(\rho, \sigma) y la fidelidad de Uhlmann F(\rho, \sigma).
+   En el anillo \Lambda_{\mathrm{Nov}}, valida la valuación de Krull v(A) \ge 0.10 y la norma no arquimediana.
+   En los octoniones \mathbb{O}, certifica que el asociador de Moufang \|[x, y, z]\|_{\mathbb{O}} se mantenga acotado.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Emite `WisdomWeaverPhase1Certificate` y genera el ancla simpléctica `SymplecticAnchor` hacia la Fase 2.
+
+2. FASE 2 — ORIENT (`WisdomWeaverPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia consumiendo `SymplecticAnchor`.
+   Resuelve la ecuación homológica de Poincaré-Lindstedt \{H_0, W_1\} + H_1 = \langle H_1 \rangle
+   y verifica la condición diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\}.
+   Audita la estabilidad de Nekhoroshev T_{\mathrm{Nekh}} \ge 1.0\times 10^6 ciclos y el confinamiento de Chirikov K_{\mathrm{Chirikov}} < 1.0.
+   En la categoría de Fukaya \mathcal{F}uk(M), la ecuación de Floer garantiza no-squeezing de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)).
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Emite `WisdomWeaverPhase2Certificate` y `KAMStabilityCertificate` transfiriendo el haz simpléctico a la Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`WisdomWeaverPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia consumiendo `KAMStabilityCertificate`.
+   Opera la tríada monádica de Kleisli T^3 en espacio de Banach con contracción de Picard \mathrm{Lip}(T) \le 0.95.
+   Aplica la aceleración de Aitken-Steffensen y verifica el parámetro de Newton-Kantorovich:
+       h_K = L_0 \cdot \|T(s_0) - s_0\| \le 0.50,
+   junto con el tensor Jerk ciber-físico d^3 C / dt^3.
+   Deduce el veredicto en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\},
+   aplica el funtor semántico visceral para calcular protección de WACC y liquidez neta, y sella el estado
+   soberano inmutable `WisdomWeaverSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma WWA-A1] Isometría Cuántica de Bures:
+    d_B(\rho, \sigma_{\mathrm{PSD}}) \le 1.0\times 10^{-6} \implies \text{coherencia cuántica verificada}.
+[Axioma WWA-A2] No-Resonancia de Poincaré-KAM:
+    \min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau \ge \gamma \implies \text{persistencia de toros invariantes}.
+[Axioma WWA-A3] Rigidez Simpléctica en Fukaya:
+    c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)) \iff \pi r^2 \le \pi R^2.
+[Axioma WWA-A4] Convergencia Hiperbólica de Kleisli:
+    \mathrm{Lip}(T^3) < 1.0 \land h_K \le 0.50 \implies \text{atractor único cuadráticamente estable}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante WWA-I1] Fidelidad de Uhlmann: F(\rho, \sigma) \ge 0.95.
+[Invariante WWA-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante WWA-I3] Condición Diofantina KAM Satisfecha: \mathrm{kam\_diophantine} \equiv \mathrm{True}.
+[Invariante WWA-I4] Módulo de Lipschitz Monádico: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante WWA-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest.
 """
 
 from __future__ import annotations

@@ -8,53 +8,66 @@ r"""
 ║            con Compuertas Φ₁₂ y Φ₂₃ sobre el Decapitador Silencioso de Silicio (Ninja Executioner). ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE TRES FASES ANIDADAS (CADENA DE CUSTODIA MONÁDICA OODA)
-──────────────────────────────────────────────────────────────────────
-El agente soberano se estructura en TRES FASES ANIDADAS donde la definición formal final
-del último método de cada fase constituye el operador de continuación directa e inicio
-formal de los métodos de la fase siguiente:
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Decapitador `BoolNovikovNinjaExecutionerAgent` gobierna ejecutivamente
+el ciclo OODA de neutralización y ejecución ciber-física sobre el motor espectral
+`BoolNovikovNinjaExecutionerEngine` (app/wisdom/bool_novikov_ninja_executioner_engine.py).
+Su cometido consiste en gobernar en tres fases anidadas la decapitación silenciosa de anomalías técnicas
+y financieras acopladas por compuertas homomórficas \Phi_{12} y \Phi_{23} firmadas vía HMAC-SHA256:
+audita la Forma Normal de Smith sobre \mathbb{Z} (\beta_1 = 0) y el espectro simpléctico de Williamson,
+verifica la estabilidad de Poincaré-KAM frente a difusión de Arnold y solapamiento de Chirikov,
+y ante sentencias irrevocables en el topos de Heyting \Omega_3, comanda la aniquilación cuántica relativista
+de Dirac e^- + e^+ \to 2\gamma (1022 keV) y el disparo forzado del tiristor crowbar en \tau \le 392.15\text{ ns}.
 
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 1 ANIDADA — OBSERVE (Geometría de Bures-Wasserstein e Información de Fisher QFI)  │
-  │   • Sanitización hermítica de ρ_MAC ∈ D(ℋ) y matriz de incidencia H_inc.              │
-  │   • Defecto Hermítico ‖ρ − ρ†‖_F / max(1, ‖ρ‖_F) y defecto de traza |Tr(ρ) − 1|.       │
-  │   • Pureza γ(ρ) = Tr(ρ²), entropía lineal S_L(ρ) y entropía de von Neumann S(ρ).       │
-  │   • Entropía relativa cuántica de Umegaki D(ρ ‖ I/d) = ln(d) − S(ρ).                   │
-  │   • Distancia geodésica de Bures-Wasserstein d_BW(ρ, I/d) e Información Cuántica       │
-  │     de Fisher (QFI) I_Q(ρ, H_inc) vía Derivada Logarítmica Simétrica (SLD).            │
-  │   • CIERRE FASE 1 / INICIO FASE 2: `emit_phase1_certificate`                           │
-  │     ──[Compuerta Homomórfica Φ₁₂: `continue_to_phase2_gate`]──►                        │
-  │     `initiate_phase2_orientation`.                                                     │
-  └──────────────────────────────────────────┬─────────────────────────────────────────────┘
-                                             ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 2 ANIDADA — ORIENT (Mecánica Celeste de Poincaré-KAM-Nekhoroshev y RSI³ Banach)   │
-  │   • Recepción encadenada desde `emit_phase1_certificate` vía                           │
-  │     `initiate_phase2_orientation`.                                                     │
-  │   • Delegación al motor v14.0.0 (`execute_ninja_executioner_audit`) y extracción       │
-  │     de la tríada criptográfica (P1_eng, P2_eng, P3_eng) + `passport_hmac_sha256`.      │
-  │   • Diagnóstico celeste de Poincaré-KAM: tasa de difusión exponencial de Arnold        │
-  │     Γ_Arnold(ω, ε), razón de desdoblamiento homoclínico de Melnikov η_Melnikov y       │
-  │     margen simpático de no-exprimido de Gromov Δc_G = π(R² − r²).                      │
-  │   • Certificación de contracción monádica RSI³ Lip(T³) = 0.857375 < 1.0.               │
-  │   • CIERRE FASE 2 / INICIO FASE 3: `emit_phase2_certificate`                           │
-  │     ──[Compuerta Homomórfica Φ₂₃: `continue_to_phase3_gate`]──►                        │
-  │     `initiate_phase3_decision`.                                                        │
-  └──────────────────────────────────────────┬─────────────────────────────────────────────┘
-                                             ▼
-  ┌────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 3 ANIDADA — DECIDE & ACT (Topos de Heyting Ω₃, Funtor Φ_sem, Crowbar y Merkle)    │
-  │   • Recepción encadenada desde `emit_phase2_certificate` vía                           │
-  │     `initiate_phase3_decision`.                                                        │
-  │   • Adjudicación intuicionista en el Topos de Heyting Ω₃ = {0x00 ≺ 0x01 ≺ 0x03} con    │
-  │     implicación relativa (a ⇒ b) y pseudocomplemento ¬a = (a ⇒ ⊥).                     │
-  │   • Interlock ciber-físico ESP32 IRAM + tiristor BT151: si VETOED, fuerza disparo      │
-  │     en ≤ 392.15 ns y activa el estado `EMBOSCADA_CIBER_FISICA_ACTIVA`.                 │
-  │   • Funtor Semántico Visceral Φ_sem con métricas financieras/ciber-físicas y trazas    │
-  │     de Poincaré-Bruno y RSI³.                                                          │
-  │   • Árbol de Merkle SHA-256 de 8 hojas con pruebas verificables de inclusión y cierre  │
-  │     soberano: `emit_sovereign_state` ➔ `NinjaExecutionerSovereignState`.               │
-  └────────────────────────────────────────────────────────────────────────────────────────┘
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`NinjaExecutionerPhase1Observer`):
+   Evalúa la función booleana de coste mediante Transformada Rápida de Walsh-Hadamard (FWHT) y norma de Schatten-1.
+   La reducción a Forma Normal de Smith sobre \mathbb{Z} confirma B = U D V con d_i \in \{0, 1\} (\mathrm{Tor}(H_k) = 0, \beta_1 = 0).
+   En los octoniones \mathbb{O}, certifica la norma espinorial hipercompleja y la acotación del asociador de Moufang.
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, valida la valuación de Krull v(A) \ge 0.10 y la distancia en Bruhat-Tits.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Consume `PhaseOneAlgCertificate` y emite `NinjaExecutionerPhase1Certificate` hacia la Fase 2.
+
+2. FASE 2 — ORIENT (`NinjaExecutionerPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia consumiendo `NinjaExecutionerPhase1Certificate`.
+   Audita el espectro simpléctico de Williamson sobre la 2-forma de Darboux y la ecuación homológica de Poincaré-Lindstedt.
+   Verifica la condición diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\},
+   y la integral homoclínica de Melnikov M(\tau) en la separatriz.
+   Audita la rigidez simpléctica de no-exprimido de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)) y la energía de Hofer.
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Consume `PhaseTwoSymplecticCertificate` y emite `NinjaExecutionerPhase2Certificate` hacia la Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`NinjaExecutionerPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia consumiendo `NinjaExecutionerPhase2Certificate`.
+   Opera la mónada de Kleisli T^3 = \mu \circ T_2 \circ T_1 en espacio de Banach con contracción de Picard \mathrm{Lip}(T^3) < 1.0
+   y cota de Newton-Kantorovich h_K \le 0.50.
+   Deduce el veredicto en el álgebra intuicionista de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}.
+   Si el veredicto es VETOED (0x03), ejecuta la sentencia ciber-física irreversible:
+       • Aniquilación relativista de Dirac: e^- + e^+ \to 2\gamma, E_{\mathrm{threshold}} = 1022.0 \text{ keV}.
+       • Disparo del circuito crowbar RLC serie críticamente amortiguado en \tau \le 392.15\text{ ns}.
+   Emite el estado soberano final sellado criptográficamente `NinjaExecutionerSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma NEA-A1] Trivialidad Homológica en Smith:
+    d_i \in \{0, 1\} \implies \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) \equiv 0 \land \beta_1(K) = 0.
+[Axioma NEA-A2] Espectro Simpléctico de Williamson:
+    \exists S \in \mathrm{Sp}(2n, \mathbb{R}) : S^T M S = \operatorname{diag}(d_1, \dots, d_n, d_1, \dots, d_n), \quad d_j > 0.
+[Axioma NEA-A3] Umbral Energético de Decapitación Cuántica:
+    E_{\mathrm{annihilation}} = 2 m_e c^2 = 1022.0 \text{ keV} \implies \text{colapso irreversible de anomalías}.
+[Axioma NEA-A4] Acotamiento Temporal del Crowbar:
+    \tau_{\mathrm{crowbar}} \le 392.15\text{ ns} \text{ en hardware bare-metal ESP32 / silicio determinista}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante NEA-I1] Anulación de Betti-1: \beta_1(K; \mathbb{F}_2) \equiv 0.
+[Invariante NEA-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante NEA-I3] Condición Diofantina KAM Satisfecha: \min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau \ge \gamma.
+[Invariante NEA-I4] Módulo de Lipschitz Monádico: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante NEA-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest en cada compuerta.
 """
 
 from __future__ import annotations

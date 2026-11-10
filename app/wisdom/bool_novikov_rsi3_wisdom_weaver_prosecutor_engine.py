@@ -7,35 +7,73 @@ r"""
 ║ Función  : Fiscal Inquisidor y Ejecutor Ciber-Físico sobre R_Boole ⊗ Λ_Nov ⊗ O_Oct, KAM y Crowbar.   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA EN 3 FASES ANIDADAS (Continuidad Categórica Estricta F1 hookrightarrow F2 hookrightarrow F3):
-========================================================================================================
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 1: INQUISICIÓN EVIDENCIARIA BOOLE-SNF, OCTONIONES O, NOVIKOV-KRULL E ISOMETRÍA BURES-QFI   │
-  │   1.1 compute_rademacher_walsh_and_snf       (Derivada RW, FWHT, Octoniones O y SNF exacta Z-PID)│
-  │   1.2 evaluate_novikov_krull_and_bures       (Valuación de Krull v(A), anillo Λ_Nov ultramétrico)│
-  │   1.3 evaluate_bures_uhlmann_isometry        (Estado de Gibbs, Fidelidad Uhlmann, Bures, SLD-QFI)│
-  │   1.4 seal_prosecution_evidence_anchor       [DEFINICIÓN FINAL F1 ──► ProsecutionEvidenceAnchor] │
-  └──────────────────────────────────────────────────────┬───────────────────────────────────────────┘
-                                                         │ kw-only: `evidence: ProsecutionEvidenceAnchor`
-                                                         ▼
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 2: JUICIO DINÁMICO FLOER-GROMOV Y MECÁNICA CELESTE DE POINCARÉ-LINDSTEDT-KAM-MELNIKOV       │
-  │   2.1 solve_cauchy_riemann_floer_prosecution [INICIO F2 ◄── CONTINUACIÓN F1: Consume `evidence`] │
-  │                                              (Tira de Floer ∂̄_{J,H}, Poincaré-Cartan, μ_CZ)     │
-  │   2.2 solve_poincare_lindstedt_homological   (Delaunay, Birkhoff orden 2, tiempo de Nekhoroshev) │
-  │   2.3 evaluate_poincare_kam_melnikov         (Integral homoclínica Gauss-Legendre, Greene R)     │
-  │   2.4 certify_conviction_and_chaos           [DEFINICIÓN FINAL F2 ──► KAMConvictionCertificate]  │
-  └──────────────────────────────────────────────────────┬───────────────────────────────────────────┘
-                                                         │ kw-only: `conviction: KAMConvictionCertificate`
-                                                         ▼
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 3: EJECUCIÓN CIBER-FÍSICA: RSI³ NIVEL-3, ANIQUILACIÓN DE DIRAC, CROWBAR ESP32 Y HEYTING Ω₃ │
-  │   3.1 evaluate_rsi3_banach_kleisli           [INICIO F3 ◄── CONTINUACIÓN F2: Consume `conviction`]│
-  │                                              (Endofuntor Kleisli T³ Halley-Kantorovich, Jerk D³C)│
-  │   3.2 recursive_self_improvement_step_nivel3 (Reescritura Nivel-3 End(C_T), selección Darwin-Gödel)│
-  │   3.3 execute_dirac_and_crowbar_execution    (Dirac 1022 keV, Spohn σ≥0, Tiristor BT151 Crowbar) │
-  │   3.4 execute_wisdom_prosecutor_audit        [CLAUSURA SOBERANA F1->F2->F3: Veredicto Ω₃ + HMAC] │
-  └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Fiscal `BoolNovikovRSI3WisdomWeaverProsecutorEngine` ejerce la fiscalía judicial
+y la sanción ciber-física en la arquitectura APU Filter. Su misión matemática consiste en auditar
+de manera inquisitorial el fibrado tensorial R_{\mathrm{Boole}} \otimes \Lambda_{\mathrm{Nov}} \otimes \mathbb{O},
+detectar perturbaciones o violaciones de toros invariantes KAM, verificar desviaciones en la ecuación
+homológica de Poincaré-Lindstedt, certificar el límite de contracción de Banach en RSI³ y, ante
+cualquier transgresión irreconciliable en el topos de Heyting \Omega_3, ordenar la aniquilación cuántica
+de Dirac y el disparo del interlock ciber-físico ESP32 Crowbar en tiempo ultra-rápido (\tau \le 392.15\text{ ns}).
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Inquisición Espectral en R_{\mathrm{Boole}} \otimes \Lambda_{\mathrm{Nov}} \otimes \mathbb{O}:
+   Audita la función booleana discreta y el tensor de costes mediante la norma de Schatten-1:
+       \|A\|_{S_1} = \operatorname{Tr}(\sqrt{A^\dagger A}) = \sum_{i=1}^n \sigma_i(A).
+   En el anillo ultramétrico \Lambda_{\mathrm{Nov}}, verifica que la valuación de Krull no vulnere el piso crítico:
+       v(A) = \min \{\lambda_i \mid a_i \neq 0\} \ge 0.10.
+   En el álgebra de octoniones \mathbb{O}, evalúa la norma del asociador de Moufang:
+       \|[x, y, z]\|_{\mathbb{O}} = \|(x \cdot y) \cdot z - x \cdot (y \cdot z)\|_2,
+   asegurando que perturbaciones no asociativas no desestabilicen el álgebra de estados.
+   • Apertura F2 (`_build_phase1_evidence_anchor`):
+     Emite `ProsecutionEvidenceAnchor` conteniendo los cargos de prueba iniciales para la Fase 2.
+
+2. FASE 2 — Inquisición Celeste de Poincaré-KAM y Condena por Caos Homoclínico:
+   Inicia en la evidencia de Fase 1. Para el hamiltoniano perturbado H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta),
+   resuelve la ecuación homológica de Poincaré-Lindstedt:
+       \{H_0, W_1\} + H_1 = \langle H_1 \rangle_{\mathbb{T}^d},
+   y evalúa el residuo de la serie de Lie.
+   Comprueba la condición diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \neq 0,
+   y el parámetro de solapamiento de resonancias de Chirikov:
+       K_{\mathrm{Chirikov}} = \left( \frac{\Delta \omega_{\mathrm{sep}}}{\Delta \Omega_{\mathrm{res}}} \right)^2.
+   Si K_{\mathrm{Chirikov}} \ge 1.0 o la integral de Melnikov excede el umbral crítico:
+       |M(\tau)| > 1.0\times 10^{-4},
+   se tipifica la destrucción estocástica de toros (difusión de Arnold) emitiendo condena.
+   • Apertura F3 (`_build_phase2_conviction_certificate`):
+     Emite `KAMConvictionCertificate` transfiriendo los cargos celestes a la Fase 3.
+
+3. FASE 3 — Aniquilación Relativista de Dirac y Disparo Ciber-Físico ESP32 Crowbar:
+   Inicia en el certificado de condena de Fase 2. Audita la contracción monádica de Kleisli T^3 en espacio de Banach
+   y la cota de Newton-Kantorovich h_K \le 0.50.
+   Ante veredicto \mathrm{VETOED} (0x03) en el álgebra de Heyting \Omega_3, se activa el protocolo irreversible de ejecución:
+       • Aniquilación cuántica de pares electrón-positrón:
+             e^- + e^+ \longrightarrow 2\gamma, \quad E_{\gamma} \ge 2 m_e c^2 = 1022.0 \text{ keV}.
+       • Disparo de interlock ciber-físico ESP32 Crowbar sobre GPIO14 / BT151:
+             V_{\mathrm{crowbar}}(t) = V_0 \exp(-\alpha t) \left( \cos(\omega_d t) + \frac{\alpha}{\omega_d} \sin(\omega_d t) \right),
+         con latencia de ejecución garantizada \tau_{\mathrm{exec}} \in [42.0, 392.15]\text{ ns} sobre IRAM.
+   El reporte judicial consolidado se formaliza en `WisdomWeaverProsecutorReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma WWPE-A1] Jurisdicción Inquisitorial Ultramétrica:
+    v(A) < 0.10 \implies \text{declaración formal de vulnerabilidad en el anillo de Novikov}.
+[Axioma WWPE-A2] Tipificación de Caos Homoclínico:
+    |M(\tau)| > 1.0\times 10^{-4} \lor K_{\mathrm{Chirikov}} \ge 1.0 \implies \text{condena judicial por desintegración de toros KAM}.
+[Axioma WWPE-A3] Ineludibilidad de la Aniquilación de Dirac:
+    \Omega_3 = \mathrm{VETOED} \implies \text{emisión irrevocable del pulso de aniquilación } 2\gamma \text{ (1022 keV)}.
+[Axioma WWPE-A4] Acotamiento Temporal del Interlock Crowbar:
+    \tau_{\mathrm{crowbar}} \le 392.15\text{ ns} \text{ en hardware bare-metal ESP32 / simulación determinista}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante WWPE-I1] Cota de Schatten-1 Preservada: \|A\|_{S_1} \le \operatorname{Tr}(|A|).
+[Invariante WWPE-I2] Parámetro de Chirikov Sub-Crítico: K_{\mathrm{Chirikov}} < 1.0 en régimen admisible.
+[Invariante WWPE-I3] Parámetro de Kantorovich Controlado: h_K \le 0.50 en la mónada de Kleisli.
+[Invariante WWPE-I4] Latencia de Actuación Crowbar: 42.0\text{ ns} \le \tau_{\mathrm{act}} \le 392.15\text{ ns}.
+[Invariante WWPE-I5] Sellado de Sentencia Criptográfica HMAC-SHA256 con verificación en tiempo constante.
 """
 
 from __future__ import annotations

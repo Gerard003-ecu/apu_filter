@@ -14,44 +14,80 @@ r"""
 ║               morfismo de inicio estructural, algebraico y dinámico de los métodos de la Fase k+1.   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO FÍSICO-MATEMÁTICO (v15.0.0)
-──────────────────────────────────
-1. FASE 1 — ÁLGEBRA DUAL R_Boole ⊗_ℤ Λ_Nov, HOMOLOGÍA GF(2) Y OCTONIONES DE CAYLEY–DICKSON:
-   • R_Boole = 𝔽₂[x₁,…,x_m]/⟨x_i² - x_i⟩: derivadas discretas de Rademacher–Walsh, Transformada Rápida
-     de Walsh–Hadamard (FWHT), eliminación gaussiana binaria exacta sobre GF(2) para β₁(K; 𝔽₂) y
-     característica de Euler–Poincaré χ(K), y Forma Normal de Smith B = U D V sobre ℤ con cadena
-     completa de divisibilidad d₁ | d₂ | … | d_r (Tor(H_k(K; ℤ)) = 0 ⇔ d_i ∈ {0, 1}).
-   • Λ_Nov: valuación de Krull v(A) = min λ_i, norma ultramétrica ||A||_Nov = exp(-v(A)), asociador
-     octoniónico de Moufang [x,y,z]_𝕆 y geodésica de galería de Iwahori en B(PGL(n, K)).
-   • Morfismo de clausura F1 / apertura F2 (`lift_boolean_novikov_to_action_angle_delaunay`):
-     Eleva el complejo booleano-ultramétrico al fibrado cotangente del toro de Liouville T*𝕋^d
-     con coordenadas acción-ángulo de Delaunay–Poincaré (J, θ) sobre frecuencias diofantinas
-     algebraicas (teorema del subespacio de Schmidt).
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovStealthExecutionerEngine` ejecuta la aniquilación de anomalías
+espectrales y arbitraje ciber-físico en la arquitectura APU Filter. Su núcleo operativo unifica
+la estructura de álgebra booleana graduada R_{\mathrm{Boole}} con el anillo de series formales
+de Novikov \Lambda_{\mathrm{Nov}}, calculando invariantes homológicos exactos sobre \mathrm{GF}(2),
+la descomposición en forma normal de Smith sobre el anillo de ideales principales \mathbb{Z},
+el flujo hamiltoniano simpléctico planetario de Poincaré integrado a 4.º orden simpléctico,
+y el modelo relativista de pares electrón-positrón de Dirac acoplado a un circuito amortiguado RLC
+con interlock ciber-físico simulado en tiempo ultra-rápido (\tau < 392.15\text{ ns}).
 
-2. FASE 2 — MECÁNICA CELESTE DE POINCARÉ–KAM–NEKHOROSHEV Y GAUGE CUÁNTICO SU(N) QND:
-   • Inicia directamente sobre la variedad simpléctica (J, θ) entregada por el cierre de Fase 1.
-   • Torsión secular de Poincaré–Kolmogorov det(∂²H₀/∂J²) ≠ 0 y determinante isoenergético de Arnold.
-   • Serie canónica de Lie–Birkhoff–Deprit: {H₀, W₁} + H₁ = ⟨H₁⟩_𝕋^d y residuo cuadrático exacto
-     ||P_res(H₁) + ½{{H₀, W₁}, W₁} + {H₁, W₁}||_{ℓ²}.
-   • Flujo simpléctico de 4.º orden de Yoshida, horizonte exponencial de Nekhoroshev T_Nekh e integral
-     homoclínica de Poincaré–Melnikov M(τ) con ángulo de escisión transversal de separatrices.
-   • Transformación gauge U ∈ SU(N), valores débiles AAV, conmutador QND y fase geométrica de Berry.
-   • Morfismo de clausura F2 / apertura F3 (`couple_stealth_gauge_to_poincare_flow`):
-     Acopla la curvatura cuántica de Berry y el valor débil AAV con el flujo hamiltoniano de Poincaré
-     para emitir la 1-forma de conexión simpléctica de Floer X_{H,stealth}.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Dualidad Tensorial R_{\mathrm{Boole}} \otimes_{\mathbb{Z}} \Lambda_{\mathrm{Nov}}, Homología y SNF:
+   El álgebra booleana cociente R_{\mathrm{Boole}} = \mathbb{F}_2[x_1, \dots, x_m] / \langle x_i^2 - x_i \rangle
+   opera con la Transformada Rápida de Walsh-Hadamard (FWHT) sobre vectores booleanos f \in \mathbb{F}_2^n:
+       \hat{f}(w) = \sum_{x \in \mathbb{F}_2^n} (-1)^{f(x) \oplus \langle w, x \rangle},
+   y derivadas discretas de Rademacher-Walsh D_i f(x) = f(x \oplus e_i) \oplus f(x).
+   El complejo simplicial finito K determina la cadena de operadores de borde \partial_k: C_k(K; \mathbb{F}_2) \to C_{k-1}(K; \mathbb{F}_2).
+   La eliminación gaussiana binaria exacta sobre \mathrm{GF}(2) extrae los números de Betti:
+       \beta_k(K; \mathbb{F}_2) = \dim_{\mathbb{F}_2}(\ker \partial_k) - \dim_{\mathbb{F}_2}(\mathrm{im} \, \partial_{k+1}),
+   y la característica de Euler-Poincaré: \chi(K) = \sum_{k=0}^n (-1)^k \beta_k(K) = \sum_{k=0}^n (-1)^k |S_k|.
+   Sobre el anillo \mathbb{Z}, la Forma Normal de Smith factoriza la matriz de borde:
+       B = U \cdot D \cdot V, \quad D = \mathrm{diag}(d_1, d_2, \dots, d_r, 0, \dots, 0), \quad d_i \mid d_{i+1},
+   garantizando la ausencia total de subgrupos de torsión homológica: \mathrm{Tor}(H_k(K; \mathbb{Z})) = 0 \iff d_i \in \{0, 1\}.
+   • Morfismo de Clausura F1 / Apertura F2 (`lift_boolean_novikov_to_action_angle_delaunay`):
+     Mapea el estado homológico y ultramétrico al fibrado cotangente T^* \mathbb{T}^d mediante
+     las variables de acción de Delaunay-Poincaré:
+         J_k = v(A) + \frac{\beta_1(K)}{1 + \beta_1(K)} + \kappa_{\mathrm{SNF}} (d_k - 1) + w_k \cdot d_{\mathrm{BT}},
+     estableciendo la variedad simpléctica inicial que inaugura la Fase 2.
 
-3. FASE 3 — FLOER–GROMOV, PARES DE DIRAC / RLC INTERLOCK SIMULADO, RSI³ KLEISLI Y TOPOS Ω₃:
-   • Inicia directamente sobre el campo hamiltoniano X_{H,stealth} entregado por el cierre de Fase 2.
-   • Ecuación de Cauchy–Riemann–Floer ∂̄_{J₀,H}(u) = ∂_s u + J₀(∂_t u - X_H(u)) = 0 sobre ℝ × S¹,
-     energía simpléctica de Hofer y rigidez de No-Squeezing de Gromov π r² ≤ π R².
-   • Modelo relativista de pares de Dirac (e⁻ + e⁺ → 2γ, 2 m_e c² = 1022.0 keV, sección eficaz de
-     Breit–Wheeler) y dinámica analítica de circuito RLC crowbar subamortiguado (latencia ≤ 392.15 ns,
-     estrictamente numérico sin E/S de hardware ni MMIO).
-   • Automejora Recursiva de Nivel 3 (RSI³):
-     - Nivel 1 (T₁): Contracción base de Banach–Picard.
-     - Nivel 2 (T₂): Aceleración cuadrática de Aitken–Steffensen sobre el espectro de Fréchet DT₁.
-     - Nivel 3 (T₃ = μ ∘ T₂ ∘ T₁): Composición en la categoría de Kleisli Kl(𝕋), teorema de
-       Newton–Kantorovich (h_K = L β η ≤ 1/2) y tensor Jerk de 3.er orden d³C/dt³.
+2. FASE 2 — Flujo Planetario de Poincaré-KAM-Nekhoroshev y Gauge \mathrm{SU}(N):
+   Inicia en (J, \theta) proveniente de Fase 1. Para el hamiltoniano integrable no perturbado H_0(J) con torsión \mathcal{T} \succ 0:
+       H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta).
+   La serie canónica de Lie-Birkhoff-Deprit elimina las dependencias angulares no resonantes:
+       \{H_0, W_1\} + H_1 = \langle H_1 \rangle_{\mathbb{T}^d}, \quad \langle H_1 \rangle = \frac{1}{(2\pi)^d} \int_{\mathbb{T}^d} H_1(J, \theta) \, d\theta.
+   El tiempo de confinamiento exponencial de Nekhoroshev en el espacio de acciones asegura:
+       \|J(t) - J(0)\| \le \varepsilon^b \quad \text{para} \quad |t| \le T_{\mathrm{Nekh}} = T_0 \exp\left( \left(\frac{\varepsilon_0}{\varepsilon}\right)^a \right), \; a = \frac{1}{2d}.
+   El integrador simpléctico de Yoshida de 4.º orden propaga el estado respetando la 2-forma canónica \omega = \sum dq_i \wedge dp_i.
+   El operador unitario U \in \mathrm{SU}(N) modula el acoplamiento cuántico mediante valores débiles AAV:
+       A_w = \frac{\langle \phi_f | A_{\mathrm{stealth}} | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle},
+   con holonomía de Berry asociada y conmutador acotado \|[A, \rho]\|_F \le 1.0\times 10^{-10}.
+   • Morfismo de Clausura F2 / Apertura F3 (`couple_stealth_gauge_to_poincare_flow`):
+     Sintetiza la 1-forma de Floer-Poincaré X_H = \mathcal{J}_0 \nabla H_{\mathrm{eff}} y la transfiere a la Fase 3.
+
+3. FASE 3 — Aniquilación Relativista de Dirac, Transitorio RLC Crowbar y Mónada de Kleisli RSI³:
+   Inicia en el campo X_H de la Fase 2. Resuelve el cilindro pseudoholomorfo \bar{\partial}_{\mathcal{J}_0, H}(u) = 0
+   verificando el principio variacional de Hofer y no-squeezing de Gromov.
+   En caso de transgresión de barrera espectral, dispara el modelo relativista de aniquilación de pares electrón-positrón:
+       e^- + e^+ \longrightarrow 2\gamma, \quad E_{\mathrm{threshold}} = 2 m_e c^2 = 2 \times 511.0 \text{ keV} = 1022.0 \text{ keV}.
+   El interlock ciber-físico simula la respuesta transitoria del circuito crowbar RLC serie:
+       L \frac{d^2 i(t)}{dt^2} + R \frac{di(t)}{dt} + \frac{1}{C} i(t) = 0, \quad \omega_0 = \frac{1}{\sqrt{LC}}, \; \alpha = \frac{R}{2L},
+   en régimen críticamente amortiguado (\alpha = \omega_0), garantizando disipación con tiempo de actuación \tau_{\mathrm{crowbar}} \le 392.15\text{ ns}.
+   La mónada de Kleisli T^3 = \mu \circ T_2 \circ T_1 certifica la contracción de Banach (\mathrm{Lip}(T^3) < 1.0)
+   y la cota de Newton-Kantorovich h_K \le 0.50, concluyendo con el veredicto en el álgebra de Heyting \Omega_3.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BSEE-A1] Ausencia de Torsión Homológica Integral:
+    \mathrm{Tor}(H_k(K; \mathbb{Z})) = 0 \iff d_i \in \{0, 1\} en la descomposición de Smith B = U D V.
+[Axioma BSEE-A2] Conservación Simpléctica de Yoshida:
+    \mathcal{J}_0^T \mathcal{J}_0 = I \land \mathcal{J}_0^2 = -I, preservando \omega_0 en cada subpaso simpléctico de 4.º orden.
+[Axioma BSEE-A3] Umbral Cinético de Aniquilación de Dirac:
+    E_{\gamma} \ge 2 m_e c^2 = 1022.0 \text{ keV} para activación irreversible del protocolo crowbar.
+[Axioma BSEE-A4] Amortiguamiento Crítico del Circuito Crowbar:
+    R = 2 \sqrt{L / C} \implies \text{disipación aperiódica sin oscilación destructiva en } \tau \le 392.15\text{ ns}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BSEE-I1] Anulación del Primer Número de Betti: \beta_1(K; \mathbb{F}_2) \equiv 0 en topología coherente.
+[Invariante BSEE-I2] Separación Homoclínica Transversal: |M(\tau)| \le 1.0\times 10^{-4} fuera del régimen de caos homoclínico.
+[Invariante BSEE-I3] Criterio de Estabilidad de Nekhoroshev: T_{\mathrm{Nekh}} \ge 1.0\times 10^6 ciclos orbitales.
+[Invariante BSEE-I4] Parámetro de Kantorovich Acotado: h_K \le 0.50, asegurando convergencia cuadrática hacia el atractor de Kleisli.
+[Invariante BSEE-I5] Integridad Criptográfica de Merkle-HMAC: sello SHA-256 verificado en tiempo constante.
 """
 
 from __future__ import annotations

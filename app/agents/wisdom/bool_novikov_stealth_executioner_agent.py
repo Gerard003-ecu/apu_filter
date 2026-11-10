@@ -10,41 +10,75 @@ r"""
 ║ Arquitectura: 3 fases anidadas — el último método formal de la fase k abre (Kleisli) la fase k+1.    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO TEÓRICO — OODA TRIFÁSICO ANIDADO (v15.0.0)
-────────────────────────────────────────────────
-Fase 1  OBSERVE  (StealthExecutionerPhase1Observer)
-        Isometría cuántica de Bures–Wasserstein no tautológica d_B(ρ_raw+, ρ_Higham),
-        fidelidad de Uhlmann–Jozsa F(ρ, σ), entropía de von Neumann S_vN(ρ),
-        traza de la Matriz de Información Cuántica de Fisher (QFIM) I_Q(ρ) y semilla
-        del invariante integral de Poincaré–Cartan J_0 = (1/2π) ∮ p dq.
-        Cierre formal: handoff_isometry_to_boolean_novikov_orientation  →  abre Fase 2.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre `BoolNovikovStealthExecutionerAgent` gobierna ejecutivamente
+el ciclo OODA de inquisición, arbitraje y ejecución ciber-física sobre el motor espectral
+`BoolNovikovStealthExecutionerEngine` (app/wisdom/bool_novikov_stealth_executioner_engine.py).
+Opera en tres fases anidadas conectadas por las compuertas homomórficas \Phi_{12} y \Phi_{23}:
+audita la estructura del producto tensorial R_{\mathrm{Boole}} \otimes \Lambda_{\mathrm{Nov}} \otimes \mathbb{O},
+verifica la anulación del primer número de Betti \beta_1(K; \mathbb{F}_2) \equiv 0 y la ausencia de torsión
+integral en la Forma Normal de Smith, proyecta el flujo de Poincaré-Yoshida sin difusión de Arnold,
+y ante anomalías críticas adjudicadas en el topos de Heyting \Omega_3, comanda la aniquilación cuántica
+de Dirac e^- + e^+ \to 2\gamma y la activación del interlock RLC crowbar en \tau \le 392.15\text{ ns}.
 
-Compuerta Φ₁₂  continue_to_phase2_gate
-        Autenticidad criptográfica HMAC-SHA256 P1 + integridad de cadena SHA-256 + finitud
-        espectral de S_vN e I_Q. Admite estados DEGRADED/VETOED en canal auditable sin demolición.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`StealthExecutionerPhase1Observer`):
+   Evalúa la densidad cuántica \rho_{\mathrm{MAC}} y la función booleana discreta mediante la Transformada Rápida
+   de Walsh-Hadamard (FWHT) y la norma de Schatten-1 \|A\|_{S_1} = \operatorname{Tr}(\sqrt{A^\dagger A}).
+   La eliminación gaussiana binaria sobre \mathrm{GF}(2) extrae los números de Betti y la característica \chi(K).
+   La Forma Normal de Smith sobre \mathbb{Z} confirma:
+       B = U D V, \quad d_i \in \{0, 1\} \implies \mathrm{Tor}(H_k(K; \mathbb{Z})) \equiv 0.
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, se certifica v(A) \ge 0.10 y \|A\|_{\mathrm{Nov}} = \exp(-v(A)).
+   En los octoniones \mathbb{O}, se acota el asociador de Moufang \|[x, y, z]\|_{\mathbb{O}}.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2 (`handoff_algebraic_to_celestial_orientation`):
+     Emite `StealthExecutionerPhase12Morphism` vinculando el estado homológico con la acción inicial de Delaunay:
+         J_k = v(A) + \frac{\beta_1}{1 + \beta_1} + \kappa_{\mathrm{SNF}} (d_k - 1) + w_k d_{\mathrm{BT}}.
 
-Fase 2  ORIENT   (StealthExecutionerPhase2Orientor)
-        Inicia formalmente consumiendo el morfismo Φ₁₂ (ingest_phase1_handoff).
-        Orienta el motor v15.0.0 sobre R_Boole ⊗ Λ_Nov ⊗ O (rango GF(2), característica de
-        Euler–Poincaré χ, entropía de Walsh–Hadamard, asociador de Moufang en O), gauge SU(N) QND
-        con holonomía de Pancharatnam–Berry γ_Berry, cilindro de Cauchy–Riemann–Floer y energía
-        de Hofer, mecánica celeste de Poincaré–KAM–Nekhoroshev–Chirikov–Yoshida, modelo relativista
-        Dirac–Breit–Wheeler acoplado al transitorio RLC subamortiguado y punto fijo de Banach–Kleisli
-        RSI³ T³ con certificación cuadrática de Newton–Kantorovich (h_K ≤ 0.50).
-        Cierre formal: handoff_spectrum_to_heyting_adjudication  →  abre Fase 3.
+2. FASE 2 — ORIENT (`StealthExecutionerPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia en `StealthExecutionerPhase12Morphism`.
+   Audita la mecánica celeste planetaria de Poincaré-KAM con integrador simpléctico de 4.º orden de Yoshida.
+   La serie homológica de Lie-Birkhoff-Deprit \{H_0, W_1\} + H_1 = \langle H_1 \rangle elimina oscilaciones rápidas.
+   Verifica la cota de solapamiento de resonancias de Chirikov:
+       K_{\mathrm{Chirikov}} = \left( \frac{\Delta \omega_{\mathrm{sep}}}{\Delta \Omega_{\mathrm{res}}} \right)^2 < 1.0,
+   y la cota de confinamiento exponencial de Nekhoroshev T_{\mathrm{Nekh}} \ge 1.0\times 10^6.
+   En el estrato gauge \mathrm{SU}(N), la medición débil AAV con conmutador \|[A, \rho]\|_F \le 1.0\times 10^{-10}
+   asegura retroacción nula (\mathrm{BackAction} \le 0.01 \text{ dB}).
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3 (`handoff_celestial_to_sovereign_execution`):
+     Emite `StealthExecutionerPhase23Morphism`, acoplando el parámetro de Chirikov, el error de Yoshida
+     y la contracción de Nivel 2 de RSI³ hacia la Fase 3.
 
-Compuerta Φ₂₃  continue_to_phase3_gate
-        HMAC-SHA256 P2 ∧ Lip(T³) < 1 ∧ h_K ≤ 0.50 ∧ residual de Lie–Deprit finito ∧
-        presupuesto de latencia RLC simulado ∧ back-action QND acotada.
+3. FASE 3 — DECIDE & ACT (`StealthExecutionerPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia en `StealthExecutionerPhase23Morphism`.
+   Opera la deducción en el topos de Heyting \Omega_3 combinando coherencia algebraica, KAM y RSI³.
+   Aplica la mónada de Kleisli T^3 = \mu \circ T_2 \circ T_1 con convergencia cuadrática de Newton-Kantorovich:
+       h_K = L_0 \beta \eta \le 0.50 \land \mathrm{Jerk} = \frac{d^3 C}{dt^3} \le \mathcal{J}_{\max}.
+   Si el veredicto es VETOED (0x03), ejecuta la sentencia ciber-física:
+       • Proceso relativista de Dirac-Breit-Wheeler:
+             e^- + e^+ \longrightarrow 2\gamma, \quad E_{\mathrm{threshold}} = 1022.0 \text{ keV}.
+       • Disparo de circuito crowbar RLC serie críticamente amortiguado (\alpha = \omega_0) en \tau \le 392.15\text{ ns}.
+   Proyecta las métricas viscerales (\mathrm{WACC}, liquidez, compresión KV) y sella el Árbol de Merkle SHA-256
+   en el estado soberano final `StealthExecutionerSovereignState`.
 
-Fase 3  DECIDE&ACT (StealthExecutionerPhase3Decider)
-        Inicia formalmente consumiendo el morfismo Φ₂₃ (ingest_phase2_handoff).
-        Adjudicación en el álgebra de Heyting intuicionista Ω₃ con verificación explícita
-        de adjunción deductiva ((c ∧ a) ≤ b ⇔ c ≤ (a ⇒ b)), funtor semántico visceral Φ_sem
-        ponderado por Nekhoroshev, Chirikov, Kantorovich y amortiguamiento RLC, y árbol de
-        Merkle binario SHA-256 de 8 hojas con separación de dominios RFC-6962.
-        El interlock es estrictamente una bandera matemática de espacio de estados (sin E/S
-        de hardware, MMIO ni actuación sobre periféricos).
+AXIOMAS FORMALES
+────────────────
+[Axioma SEE-A1] Anulación de Torsión en Smith:
+    d_i \in \{0, 1\} \implies \mathrm{Tor}(H_k(K; \mathbb{Z})) = 0 \land \beta_1(K) = 0.
+[Axioma SEE-A2] No-Difusión de Arnold:
+    K_{\mathrm{Chirikov}} < 1.0 \land |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau \implies \text{confinamiento absoluto en toros KAM}.
+[Axioma SEE-A3] Amortiguamiento Crítico del Crowbar:
+    R = 2 \sqrt{L/C} \implies \text{disipación aperiódica sin oscilación destructiva en } \tau \le 392.15\text{ ns}.
+[Axioma SEE-A4] Autenticación Criptográfica Merkle-HMAC:
+    \mathrm{MerkleRoot} = \mathcal{H}_{\mathrm{binary}}(\mathrm{L}_1, \mathrm{L}_2, \mathrm{L}_3, \mathrm{L}_4) \text{ verificado en tiempo constante}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante SEE-I1] Anulación del Primer Número de Betti: \beta_1(K; \mathbb{F}_2) \equiv 0.
+[Invariante SEE-I2] Retroacción Cuántica Acotada: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante SEE-I3] Parámetro de Chirikov Sub-Crítico: K_{\mathrm{Chirikov}} < 1.0.
+[Invariante SEE-I4] Convergencia de Kantorovich: h_K \le 0.50 en la mónada de Kleisli.
+[Invariante SEE-I5] Latencia de Actuación Crowbar: 42.0\text{ ns} \le \tau \le 392.15\text{ ns}.
 """
 
 from __future__ import annotations

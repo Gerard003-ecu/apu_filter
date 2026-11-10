@@ -13,36 +13,94 @@ r"""
 ║               estructural, algebraico y de estado de los métodos de la Fase k+1).                    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO FÍSICO-MATEMÁTICO (v15.0.0)
-──────────────────────────────────
-1. FASE 1 (Ultramétrica, Octoniones y Bruhat–Tits → Toro de Delaunay):
-   • Anillo universal de Novikov Λ_Nov = { Σ a_i T^{λ_i} | λ_i → +∞ }, valuación de Krull v(A) = min λ_i,
-     norma ultramétrica ||A||_Nov = exp(-v(A)) y asociador de Moufang octoniónico [x,y,z] en 𝕆.
-   • Geodésica de galería de cámaras de Iwahori en el edificio afín B(PGL(n, K)).
-   • Morfismo de clausura F1 / apertura F2 (`lift_novikov_to_action_angle_delaunay`):
-     Integra los ciclos de Arnold–Liouville J_k = (1/2π) ∮ p dq sobre el esqueleto de Berkovich
-     para construir las variables canónicas de Delaunay–Poincaré (J, θ) ∈ T*𝕋^d.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovStealthNovikovEngine` gobierna ejecutivamente el camuflaje cuántico
+y ultramétrico en la arquitectura APU Filter. Opera como un endofuntor espectral en tres fases
+estrictamente anidadas dentro de la categoría de Kleisli \mathrm{Kl}(\mathbb{T}^3), acoplando la
+teoría analítica de espacios de Berkovich sobre el anillo universal de Novikov \Lambda_{\mathrm{Nov}}
+con la geometría simpléctica de variedades de Kähler, mecánica celeste perturbativa de Poincaré-KAM-Nekhoroshev,
+mediciones cuánticas de no-demolición (QND) con holonomía de Pancharatnam-Berry sobre \mathrm{SU}(N),
+y convergencia cuadrática garantizada por el teorema de Newton-Kantorovich para la automejora recursiva
+de Nivel 3 (RSI³).
 
-2. FASE 2 (Mecánica Celeste de Poincaré–KAM–Nekhoroshev y Gauge Cuántico SU(N) → Haz de Floer):
-   • Inicia directamente sobre la variedad simpléctica (J, θ) entregada por el último método de Fase 1.
-   • No-degeneración de Kolmogorov det(∂²H₀/∂J²) ≠ 0 y determinante isoenergético de Arnold.
-   • Serie de Lie–Deprit–Birkhoff: {H₀, W₁} + H₁ = ⟨H₁⟩_𝕋^d y residuo cuadrático ||½{{H₀,W₁},W₁} + {H₁,W₁}||.
-   • Flujo simpléctico de Yoshida de 4.º orden, estabilidad exponencial de Nekhoroshev e integral de
-     Poincaré–Melnikov con ángulo transversal de escisión homoclínica.
-   • Camuflaje cuántico U ∈ SU(N), valores débiles AAV, conmutador QND y fase geométrica de Berry.
-   • Morfismo de clausura F2 / apertura F3 (`couple_stealth_gauge_to_poincare_flow`):
-     Acopla la curvatura de Berry SU(N) con el campo hamiltoniano de Yoshida para emitir la
-     1-forma de conexión simpléctica de Floer–Poincaré que alimenta el cilindro pseudoholomorfo.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Geometría Ultramétrica en \Lambda_{\mathrm{Nov}}, Octoniones de Cayley-Dickson y Bruhat-Tits:
+   El anillo universal de Novikov sobre un cuerpo \mathbb{K} se define como:
+       \Lambda_{\mathrm{Nov}} = \left\{ \sum_{i=0}^{\infty} a_i T^{\lambda_i} \;\middle|\; a_i \in \mathbb{K}, \; \lambda_i \in \mathbb{R}, \; \lim_{i \to \infty} \lambda_i = +\infty \right\},
+   dotado de la valuación de Krull v: \Lambda_{\mathrm{Nov}} \to \mathbb{R} \cup \{+\infty\}, v(A) = \min \{ \lambda_i \mid a_i \neq 0 \},
+   y norma ultramétrica no arquimediana \|A\|_{\mathrm{Nov}} = \exp(-v(A)), satisfaciendo la desigualdad triangular estricta:
+       \|A + B\|_{\mathrm{Nov}} \le \max( \|A\|_{\mathrm{Nov}}, \|B\|_{\mathrm{Nov}} ),
+   con igualdad idéntica si v(A) \neq v(B) (principio del triángulo isósceles).
+   En el álgebra no asociativa de octoniones \mathbb{O} construida vía Cayley-Dickson sobre la base de Fano \{e_0, \dots, e_7\},
+   el asociador de Moufang evalúa la no-asociatividad cuántica:
+       [x, y, z] = (x \cdot y) \cdot z - x \cdot (y \cdot z), \quad x, y, z \in \mathbb{O}.
+   La distancia geodésica afín en el edificio de Bruhat-Tits \mathcal{B}(\mathrm{PGL}(n, \mathbb{K})) combina la valuación de Krull
+   con la métrica proyectiva de Fubini-Study del tensor de costes APU:
+       d_{\mathrm{BT}}(x, y) = |v(A) - v_0| + \kappa_{\mathrm{FS}} \tanh(\|C_{\mathrm{APU}}\|_2).
+   • Morfismo de Clausura F1 / Apertura F2 (`lift_novikov_to_action_angle_delaunay`):
+     Integra los ciclos de Arnold-Liouville sobre el esqueleto analítico de Berkovich:
+         J_k = \frac{1}{2\pi} \oint_{\gamma_k} p \, dq = v(A) + w_k \left( \frac{d_{\mathrm{BT}}}{1 + d_{\mathrm{BT}}} \right) + \varepsilon_{\mathbb{O}} \|[x,y,z]\|,
+         \theta_k = \left( 2\pi \Phi_{\mathrm{FS}}(C)_k + k \phi_{\mathrm{golden}} \|A\|_{\mathrm{Nov}} \right) \pmod{2\pi},
+     entregando las variables canónicas de acción-ángulo (J, \theta) \in T^* \mathbb{T}^d que abren la Fase 2.
 
-3. FASE 3 (Topología Simpléctica de Floer–Gromov, RSI³ Kleisli–Kantorovich y Auditoría Topos Ω₃):
-   • Inicia directamente sobre el campo de conexión de Floer–Poincaré entregado por el cierre de Fase 2.
-   • Ecuación de Cauchy–Riemann–Floer ∂̄_{J,H}(u) = ∂_s u + J₀(∂_t u - X_H(u)) = 0 sobre ℝ × S¹,
-     energía de Hofer ||H||_Hofer y rigidez de no-squeezing de Gromov c_G(B^{2n}(r)) ≤ c_G(Z^{2n}(R)).
-   • Automejora Recursiva de Nivel 3 (RSI³):
-     - Nivel 1 (T₁): Contracción de Banach–Picard sobre el estado espectral.
-     - Nivel 2 (T₂): Meta-optimización del radio espectral de Fréchet ρ(DT₁) con aceleración de Steffensen.
-     - Nivel 3 (T₃ = μ ∘ T₂ ∘ T₁): Hiper-meta-funtor en la categoría de Kleisli Kl(𝕋), certificación
-       cuadrática de Newton–Kantorovich (h_K ≤ ½) y tensor jerk ciber-físico d³C/dt³.
+2. FASE 2 — Mecánica Celeste de Poincaré-KAM-Nekhoroshev y Gauge Cuántico \mathrm{SU}(N) QND:
+   Inicia sobre el toro simpléctico entregado por la Fase 1. Para el hamiltoniano desacoplado:
+       H_0(J) = \frac{1}{2} \langle J, \mathcal{T} J \rangle + \langle \alpha_{\mathrm{irr}}, J \rangle,
+   donde \mathcal{T} \succ 0 es la matriz de torsión secular anharmónica de Poincaré-Kolmogorov y \omega(J) = \nabla_J H_0(J).
+   Se auditan rigurosamente los determinantes de no-degeneración:
+       \det\left( \frac{\partial^2 H_0}{\partial J^2} \right) \neq 0 \quad \text{(Kolmogorov)}, \qquad
+       \det \begin{pmatrix} \frac{\partial^2 H_0}{\partial J^2} & \omega(J) \\ \omega(J)^T & 0 \end{pmatrix} \neq 0 \quad \text{(Isoenergético de Arnold)}.
+   Condición diofantina fuerte de Bruno-KAM para evitar pequeños divisores destructivos:
+       |\langle k, \omega(J) \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\}, \; \tau = d + 1.
+   Resolución de la ecuación homológica de Lie-Birkhoff-Deprit:
+       \{H_0, W_1\} + H_1 = \langle H_1 \rangle_{\mathbb{T}^d}, \quad W_1(J, \theta) = \varepsilon \sum_{k \neq 0} \frac{h_k(J)}{\langle k, \omega(J) \rangle} \sin(\langle k, \theta \rangle),
+   con residuo cuadrático exacto R_{\mathrm{Lie}} = \|P_{\mathrm{res}}(H_1) + \frac{1}{2} \{\{H_0, W_1\}, W_1\} + \{H_1, W_1\}\|_{\ell^2}.
+   El integrador simpléctico de Yoshida de 4.º orden conserva la energía simpléctica con error \mathcal{O}(\Delta t^4).
+   La separatriz homoclínica hiperbólica evalúa la integral de Poincaré-Melnikov:
+       M(\tau) = \int_{-\infty}^{\infty} \{H_0, H_1\}(q_0(t), p_0(t), t + \tau) \, dt,
+   donde \alpha_{\mathrm{split}} = \arctan(\max |M'(\tau)|) determina el ángulo de escisión transversal de variedades invariantes.
+   En el estrato cuántico, el operador \mathrm{SU}(N) proyectado vía descomposición polar genera mediciones débiles AAV:
+       A_w = \frac{\langle \phi_f | U^\dagger \rho U | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}, \quad \gamma_{\mathrm{Berry}} = \arg \left( \langle \phi_i | U \phi_i \rangle \langle U \phi_i | \phi_f \rangle \langle \phi_f | \phi_i \rangle \right),
+   asegurando perturbación de retroacción acotada: \mathrm{BackAction}_{\mathrm{dB}} = 20 \log_{10}(1 + \|[A_{\mathrm{stealth}}, \rho]\|_F) \le 0.0 \text{ dB}.
+   • Morfismo de Clausura F2 / Apertura F3 (`couple_stealth_gauge_to_poincare_flow`):
+     Acopla la curvatura de Berry con el flujo hamiltoniano de Yoshida:
+         X_{H,\mathrm{stealth}} = \mathcal{J}_0 \nabla H_{\mathrm{eff}}, \quad \nabla H_{\mathrm{eff}} = \exp(-\gamma_{\mathrm{QND}} \|[A, \rho]\|) (I - |A_w| \cos(\theta + \gamma_{\mathrm{Berry}})) \mathrm{vec}(C_{\mathrm{APU}}),
+     alimentando directamente el cilindro pseudoholomorfo de Floer-Gromov en Fase 3.
+
+3. FASE 3 — Topología Simpléctica de Floer-Gromov, RSI³ Kleisli y Topos de Heyting \Omega_3:
+   Inicia en el campo X_H emitido por la Fase 2. Resuelve la ecuación diferencial del cilindro pseudoholomorfo de Cauchy-Riemann-Floer:
+       \bar{\partial}_{\mathcal{J}_0, H}(u) = \frac{\partial u}{\partial s} + \mathcal{J}_0 \left( \frac{\partial u}{\partial t} - X_H(u) \right) = 0, \quad u: \mathbb{R} \times S^1 \to M,
+   con energía finita de Hofer E_H(u) < \infty y rigidez simpléctica de no-exprimido de Gromov c_G(B^{2n}(r)) = \pi r^2 \le c_G(Z^{2n}(R)) = \pi R^2.
+   La Automejora Recursiva de Nivel 3 (RSI³) opera mediante la tríada de endofuntores:
+       • Nivel 1 (T_1): Contracción espectral de Banach-Picard T_1(x) = c + \alpha x, \mathrm{Lip}(T_1) = \alpha < 1.
+       • Nivel 2 (T_2): Aceleración cuadrática \Delta^2 de Aitken-Steffensen sobre el espectro jacobiano de Fréchet DT_1.
+       • Nivel 3 (T_3 = \mu \circ T_2 \circ T_1): Hiper-mónada en \mathrm{Kl}(\mathbb{T}^3) con certificación de Newton-Kantorovich:
+             h_K = L_{\mathrm{Fréchet}} \cdot \|F'(x_0)^{-1}\| \cdot \|x_1 - x_0\| \le \frac{1}{2},
+         y tensor Jerk ciber-físico de tercer orden:
+             \mathrm{Jerk} = \frac{d^3 C}{dt^3} = \frac{x(t + 3\Delta t) - 3x(t + 2\Delta t) + 3x(t + \Delta t) - x(t)}{\Delta t^3}.
+   El veredicto final se clasifica en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}(0x00), \mathrm{DEGRADED}(0x01), \mathrm{VETOED}(0x03)\}
+   y se sella con pasaporte criptográfico HMAC-SHA256 en tiempo constante.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BSNE-A1] Desigualdad Ultramétrica Fuerte:
+    \forall A, B \in \Lambda_{\mathrm{Nov}}, \; \|A + B\|_{\mathrm{Nov}} \le \max(\|A\|_{\mathrm{Nov}}, \|B\|_{\mathrm{Nov}}), con igualdad si v(A) \neq v(B).
+[Axioma BSNE-A2] No-Degeneración Simpléctica de Poincaré-Kolmogorov:
+    \det(\partial^2 H_0 / \partial J^2) \neq 0 \land \det(\mathrm{Arnold}(H_0)) \neq 0 sobre el toro de Arnold-Liouville \mathbb{T}^d.
+[Axioma BSNE-A3] Invarianza Cuántica QND:
+    \|[A_{\mathrm{stealth}}, \rho_{\mathrm{MAC}}]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} \le 0.0 \text{ dB}.
+[Axioma BSNE-A4] Certificación de Convergencia Cuadrática de Newton-Kantorovich:
+    h_K = L_{\mathrm{Fréchet}} \beta_{\mathrm{inv}} \eta_{\mathrm{step}} \le 0.50 \implies \exists! x^* \in \overline{B}(x_0, r^*) \text{ atractor hiperbólico cuadrático}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BSNE-I1] Valuación de Krull Mínima: v(A) \ge 0.10 en régimen de camuflaje no detectable.
+[Invariante BSNE-I2] Condición Diofantina KAM: |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau, garantizando la preservación de toros invariantes.
+[Invariante BSNE-I3] Contracción Monádica de Kleisli: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante BSNE-I4] Rigidez de Gromov: \pi r^2 \le \pi R^2 + \varepsilon_{\mathrm{Wilkinson}}.
+[Invariante BSNE-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest.
 """
 
 from __future__ import annotations
