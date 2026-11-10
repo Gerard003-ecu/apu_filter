@@ -7,37 +7,69 @@ r"""
 ║ Gobernanza: OODA Trifásica Pasiva QND Anidada ①Observe ──► ②Orient ──► ③Decide&Act (Φ₁₂ y Φ₂₃)     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA EN 3 FASES ANIDADAS (Continuidad Categórica Estricta F1 hookrightarrow F2 hookrightarrow F3):
-========================================================================================================
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 1: OBSERVE — INGESTA ISOMÉTRICA CUÁNTICA, ESPECTRAL Y WIGNER-YANASE                         │
-  │   1.1 check_trace_conservation                        (Conservación de traza Tr(ρ) ≡ 1)          │
-  │   1.2 check_psd_purity_entropy                        ( Cono PSD ρ ⪰ 0, Pureza Tr(ρ²), S_vN(ρ))  │
-  │   1.3 compute_quantum_coherence_and_wigner_yanase     (Coherencia l₁, Información I_WY(ρ, K₀))   │
-  │   1.4 emit_phase1_certificate / execute_phase1        (Emisión de P1 con huella SHA-256 + HMAC)  │
-  │   1.5 continue_to_phase2_gate                         [DEFINICIÓN FINAL F1 ──► PUENTE Φ₁₂ A F2]  │
-  └──────────────────────────────────────────────────────┬───────────────────────────────────────────┘
-                                                         │ Compuerta Homomórfica Φ₁₂ (`p1_cert`)
-                                                         ▼
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 2: ORIENT — MECÁNICA CELESTE POINCARÉ-DELAUNAY-KOZAI-LIDOV Y ATESTACIÓN RSI³ NIVEL-3        │
-  │   2.1 validate_entrance_from_phase1                   [INICIO F2 ◄── CONTINUACIÓN F1: Consume Φ₁₂]│
-  │   2.2 derive_delaunay_action_and_perturbation         (Delaunay L,G,H, excentricidad e, I_KL)    │
-  │   2.3 recursive_governance_improvement_nivel3         (Endofuntor Gobernanza RSI³ L1->L2->L3)    │
-  │   2.4 execute_phase2 / emit_phase2_certificate        (Auditoría Motor F1->F2->F3 + Refino L3)   │
-  │   2.5 continue_to_phase3_gate                         [DEFINICIÓN FINAL F2 ──► PUENTE Φ₂₃ A F3]  │
-  └──────────────────────────────────────────────────────┬───────────────────────────────────────────┘
-                                                         │ Compuerta Homomórfica Φ₂₃ (`p2_cert`)
-                                                         ▼
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 3: DECIDE & ACT — TOPOS DE HEYTING Ω₃, FUNTOR VISCERAL Φ_sem Y CLAUSURA MERKLE SOBERANA     │
-  │   3.1 validate_entrance_from_phase2                   [INICIO F3 ◄── CONTINUACIÓN F2: Consume Φ₂₃]│
-  │   3.2 adjudicate_heyting_omega3                       (Reticulado intuicionista Ω₃ + Greene/KAM) │
-  │   3.3 verify_passive_silent_qnd                       (Invariante PASSIVE_SILENT_QND ≤ 0.05 dB)  │
-  │   3.4 functor_semantic_visceral_phi_sem               (Funtor Φ_sem: WACC 15%, Liq 11.5%, KV 86%)│
-  │   3.5 emit_sovereign_state / execute_phase3           (Estado Soberano + Árbol de Merkle 8 hojas)│
-  │   3.6 BoolNovikovRSI3WisdomWeaverWitnessAgent         [CLAUSURA SOBERANA OODA F1 -> F2 -> F3]    │
-  └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Testigo `BoolNovikovRSI3WisdomWeaverWitnessAgent` gobierna
+ejecutivamente el ciclo de atestación pasiva y certificación no demolicional QND sobre el motor
+espectral `BoolNovikovRSI3WisdomWeaverWitnessEngine` (app/wisdom/bool_novikov_rsi3_wisdom_weaver_witness_engine.py).
+Opera en tres fases anidadas acopladas por compuertas homomórficas \Phi_{12} y \Phi_{23} firmadas
+vía HMAC-SHA256: audita la fidelidad de Uhlmann y la distancia de Bures-Wasserstein en la observación de la MAC,
+certifica la no-demolición cuántica con retroacción acotada \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB},
+valida la persistencia de toros diofantinos de Poincaré-Lindstedt-KAM, y garantiza la cota
+de convergencia cuadrática de Newton-Kantorovich para la tríada de Kleisli en RSI³.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`WisdomWeaverWitnessPhase1Observer`):
+   Somete la matriz de densidad \rho a proyección PSD canónica de Higham (\rho_{\mathrm{PSD}} \succeq 0, \operatorname{Tr}(\rho) = 1).
+   Audita la medición débil AAV A_w = \langle \psi_f | A | \psi_i \rangle / \langle \psi_f | \psi_i \rangle
+   y verifica la condición QND: \|[A, \rho]\|_F \le 1.0\times 10^{-10}.
+   Calcula la fidelidad cuántica de Uhlmann-Jozsa F(\rho, \sigma) y la distancia de Bures-Wasserstein:
+       d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}, \quad \mathcal{I}_Q(\rho) = 4 d_B^2(\rho, \sigma).
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, certifica la valuación de Krull v(A) \ge 0.10.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Emite `WisdomWeaverWitnessPhase1Certificate` y genera el ancla `WitnessEvidenceAnchor` hacia la Fase 2.
+
+2. FASE 2 — ORIENT (`WisdomWeaverWitnessPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia consumiendo `WitnessEvidenceAnchor`.
+   Resuelve la dinámica perturbativa en variables de Delaunay con la ecuación homológica de Poincaré-Lindstedt:
+       \{H_0, W_1\} + H_1 = \langle H_1 \rangle_{\mathbb{T}^d},
+   y evalúa la cota diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \neq 0.
+   Verifica la ausencia de solapamiento de resonancias de Chirikov K_{\mathrm{Chirikov}} < 1.0
+   y la rigidez de no-exprimido de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)) en la variedad pseudoholomorfa.
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Emite `WisdomWeaverWitnessPhase2Certificate` y `KAMAttestationCertificate` hacia la Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`WisdomWeaverWitnessPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia consumiendo `KAMAttestationCertificate`.
+   Opera la tríada de Kleisli en espacio de Banach con contracción de Picard \mathrm{Lip}(T) \le 0.95.
+   Aplica el corrector de Halley de Nivel 3 y la aceleración de Aitken-Steffensen,
+   verificando el parámetro de Newton-Kantorovich:
+       h_K = L_0 \cdot \|T(s_0) - s_0\| \le 0.50,
+   y evaluando el tensor Jerk ciber-físico d^3 C / dt^3.
+   Deduce el veredicto en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\},
+   proyecta las métricas viscerales de protección de WACC y liquidez, y emite el estado soberano inmutable
+   `WisdomWeaverWitnessSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma WWWA-A1] Atestación de No-Demolición Cuántica QND:
+    \|[A, \rho]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Axioma WWWA-A2] Isometría de Bures-Uhlmann:
+    d_B(\rho, \sigma) \le 1.0\times 10^{-6} \land F(\rho, \sigma) \ge 0.95 \implies \text{coherencia atestada}.
+[Axioma WWWA-A3] Persistencia de Toros KAM Atestados:
+    \min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau \ge \gamma \implies \text{integrabilidad secular del toro de Delaunay}.
+[Axioma WWWA-A4] Convergencia Monádica de Kantorovich:
+    h_K \le 0.50 \implies \text{convergencia cuadrática al atractor único en } \mathrm{Kl}(\mathbb{T}^3).
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante WWWA-I1] Fidelidad de Uhlmann Mínima: F(\rho, \sigma_{\mathrm{PSD}}) \ge 0.95.
+[Invariante WWWA-I2] Retroacción Cuántica Acotada: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante WWWA-I3] Condición Diofantina KAM Satisfecha: \mathrm{kam\_diophantine} \equiv \mathrm{True}.
+[Invariante WWWA-I4] Módulo de Lipschitz Monádico: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante WWWA-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest.
 """
 
 from __future__ import annotations

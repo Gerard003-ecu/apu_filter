@@ -7,31 +7,71 @@ r"""
 ║ Gobernanza: Auditor Espectral Boole-Novikov-Pseudoholomorfo con Poincaré-KAM y RSI³ sobre Banach     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Organización en 3 Fases Anidadas (Composición Functorial \mathcal{F}_{III} \circ \mathcal{F}_{II} \circ \mathcal{F}_{I})
-────────────────────────────────────────────────────────────────────────────────────────────────────────
-FASE I  : Núcleo Algebraico-Espectral Boole-Novikov.
-          - Reducción sobre GF(2) y detección cohomológica de 2-torsión (homomorfismo de Bockstein).
-          - Forma Normal de Smith (SNF) entera exacta (Euclides + menores determinantes de Bareiss).
-          - Números de Betti (\beta_0, \beta_1), característica de Euler \chi y conectividad de Fiedler.
-          - Consolidación canónica en el anillo de Novikov \Lambda_{Nov} y valuación ultramétrica de Krull.
-          - CLAUSURA DE FASE I: `phase1_seal_algebraic_spectral_bundle` -> emite `Phase1AlgebraicSpectralBundle`.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovPseudoholomorphicAuditorEngine` ejecuta la auditoría metamatemática
+y espectral en tres fases anidadas acopladas por paquetes formales (Fase 1: Haz Espectral Algebraico
+`Phase1AlgebraicSpectralBundle`; Fase 2: Haz Celeste Geométrico `Phase2GeometricCelestialBundle`;
+Fase 3: Automejora Recursiva RSI³ sobre Álgebras de Banach, Aniquilación de Dirac y Veredicto \Omega_3).
+Verifica ideales booleanos en \mathbb{F}_2^n, la valuación ultramétrica no arquimediana en \Lambda_{\mathrm{Nov}},
+la holonomía de curvas pseudoholomorfas bajo el operador de Cauchy-Riemann-Floer, la estabilidad
+KAM-Yoshida y la contracción cuadrática de Banach-Picard en la mónada de Kleisli.
 
-FASE II : Continuación Geométrico-Celeste (Floer-Gromov + Poincaré-Delaunay-KAM).
-          - APERTURA DE FASE II: `phase2_open_from_phase1_bundle` consume `Phase1AlgebraicSpectralBundle`.
-          - Ecuación de Cauchy-Riemann-Floer perturbada \bar{\partial}_{J,H} u = 0 y rigidez de Gromov.
-          - Integrador simpléctico de Yoshida de 4.º orden sobre la sección estroboscópica de Poincaré.
-          - Mecánica celeste de Poincaré: elementos de Delaunay, ecuación homológica de Poincaré-Lindstedt,
-            función generatriz W, integral homoclínica de Melnikov, criterio de solapamiento de Chirikov,
-            horizonte exponencial de Nekhoroshev, twist de Poincaré-Birkhoff y margen diofántico KAM.
-          - CLAUSURA DE FASE II: `phase2_seal_geometric_celestial_bundle` -> emite `Phase2GeometricCelestialBundle`.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Auditoría Algebraica Boole-Novikov y Curvas Pseudoholomorfas:
+   En el álgebra booleana graduada R_{\mathrm{Boole}} = \mathbb{F}_2[x_1, \dots, x_n] / \langle x_i^2 - x_i \rangle,
+   el ideal booleano \mathcal{I} evalúa la paridad y la distancia de Hamming sobre el hipercubo binario.
+   En el anillo universal de Novikov \Lambda_{\mathrm{Nov}} = \mathbb{F}_2((T^{\mathbb{R}})), la valuación de Krull:
+       v(A) = \min \{\lambda_i \mid a_i \neq 0\} \ge 0.10,
+   y la norma ultramétrica \|A\|_{\mathrm{Nov}} = \exp(-v(A)) satisfacen la desigualdad triangular estricta.
+   La curva pseudoholomorfa u: \Sigma \to M resuelve la ecuación de Cauchy-Riemann no homogénea:
+       \bar{\partial}_{\mathcal{J}, H}(u) = \partial_s u + \mathcal{J}(\partial_t u - X_H(u)) = 0,
+   con energía simpléctica acotada E(u) = \frac{1}{2} \int_\Sigma \|du - X_H \otimes \beta\|^2 < \infty.
+   • Clausura F1 / Apertura F2 (`phase1_seal_algebraic_spectral_bundle`):
+     Emite `Phase1AlgebraicSpectralBundle` transfiriendo el haz algebraico-simpléctico a la Fase 2.
 
-FASE III: Automejora Recursiva RSI³ sobre Álgebras de Banach, Aniquilación de Dirac y Veredicto \Omega_3.
-          - APERTURA DE FASE III: `phase3_open_from_phase2_bundle` consume `Phase2GeometricCelestialBundle`.
-          - Jerarquía RSI³ (\mathfrak{H}_3 \circ \mathfrak{M}_2 \circ T_1): espectro de Fréchet, leyes de
-            mónada de Kleisli (\eta, \mu), aceleración superlineal de Aitken-Steffensen \Delta^2, cotas
-            a-posteriori de Banach-Picard y jerk ciber-físico de tercer orden d^3C/dt^3.
-          - Aniquilación cuántica de Dirac e^- + e^+ -> 2\gamma con verificación HMAC-SHA256 en tiempo constante.
-          - CLAUSURA GLOBAL: `run_spectral_audit` -> adjudicación intuicionista en el Topos de Heyting \Omega_3.
+2. FASE 2 — Mecánica Celeste de Poincaré-KAM-Yoshida y Haces Geométricos:
+   Inicia consumiendo `Phase1AlgebraicSpectralBundle`. Resuelve la dinámica de Poincaré en variables
+   de Delaunay-Whittaker (J, \theta) con hamiltoniano H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta).
+   La serie de Lie-Birkhoff-Deprit elimina las dependencias periódicas rápidas:
+       \{H_0, W_1\} + H_1 = \langle H_1 \rangle_{\mathbb{T}^d},
+   y el integrador simpléctico de 4.º orden de Yoshida propaga el flujo conservando \omega = \sum dq_i \wedge dp_i.
+   Se auditan los determinantes de Kolmogorov \det(\partial^2 H_0 / \partial J^2) \neq 0 y de Arnold,
+   la condición diofantina KAM |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau,
+   el tiempo exponencial de confinamiento de Nekhoroshev T_{\mathrm{Nekh}} \sim \exp((\varepsilon_0/\varepsilon)^a)
+   y el parámetro de solapamiento de resonancias de Chirikov K_{\mathrm{Chirikov}} < 1.0.
+   • Clausura F2 / Apertura F3 (`phase2_seal_geometric_celestial_bundle`):
+     Emite `Phase2GeometricCelestialBundle` transfiriendo la geometría celeste a la Fase 3.
+
+3. FASE 3 — Automejora Recursiva RSI³ sobre Álgebras de Banach, Aniquilación de Dirac y Veredicto \Omega_3:
+   Inicia consumiendo `Phase2GeometricCelestialBundle`. Ejecuta la jerarquía de automejora RSI³:
+       \mathfrak{H}_3 \circ \mathfrak{M}_2 \circ T_1: \mathcal{B} \longrightarrow \mathcal{B},
+   donde T_1 opera la contracción de Banach-Picard \|T_1(x) - T_1(y)\| \le \kappa_B \|x - y\|,
+   \mathfrak{M}_2 acelera cuadráticamente el espectro de Fréchet mediante Aitken-Steffensen \Delta^2,
+   y \mathfrak{H}_3 certifica la convergencia de Newton-Kantorovich h_K = L_0 \beta \eta \le 0.50 y el jerk d^3 C / dt^3.
+   En caso de régimen anómalo, simula la aniquilación cuántica relativista:
+       e^- + e^+ \longrightarrow 2\gamma, \quad E \ge 2 m_e c^2 = 1022.0 \text{ keV}.
+   El veredicto final se clasifica en el álgebra intuicionista de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BPAE-A1] Desigualdad Ultramétrica en el Ideal Booleano:
+    v(A + B) \ge \min(v(A), v(B)) \land \|A + B\|_{\mathrm{Nov}} \le \max(\|A\|_{\mathrm{Nov}}, \|B\|_{\mathrm{Nov}}).
+[Axioma BPAE-A2] No-Degeneración de Kolmogorov-Poincaré:
+    \det(\partial^2 H_0 / \partial J^2) \neq 0 \implies \text{el mapa de frecuencias } J \mapsto \omega(J) \text{ es un difeomorfismo local}.
+[Axioma BPAE-A3] Confinamiento de Resonancias de Chirikov:
+    K_{\mathrm{Chirikov}} < 1.0 \implies \text{ausencia de difusión estocástica global de Arnold}.
+[Axioma BPAE-A4] Preservación de Continuidad en Haces Anidados:
+    \mathrm{Hash}(\mathrm{Phase1Bundle}) \equiv \mathrm{ParentHash}(\mathrm{Phase2Bundle}).
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BPAE-I1] Valuación de Novikov: v(A) \ge 0.10.
+[Invariante BPAE-I2] Residuo de Cauchy-Riemann-Floer: \|\bar{\partial}_{\mathcal{J},H}(u)\| \le 1.0\times 10^{-4}.
+[Invariante BPAE-I3] Condición Diofantina KAM: \min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau \ge \gamma.
+[Invariante BPAE-I4] Parámetro de Kantorovich: h_K \le 0.50 en el espacio de Banach.
+[Invariante BPAE-I5] Sellado Criptográfico HMAC-SHA256 verificado en tiempo constante en cada haz.
 """
 
 from __future__ import annotations

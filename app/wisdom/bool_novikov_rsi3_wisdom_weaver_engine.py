@@ -7,27 +7,69 @@ r"""
 ║ Función  : Motor Espectral de Tejeduría RSI³ sobre R_Boole ⊗ Λ_Nov, Fukaya, Poincaré-KAM y Banach.   ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA DE 3 FASES ESTRICTAMENTE ANIDADAS (PUENTES FORMALES GARANTIZADOS):
-  [FASE 1: ÁLGEBRA BOOLE-NOVIKOV, OCTONIONES DE CAYLEY-DICKSON Y GEOMETRÍA CUÁNTICA QND/BURES]
-    1.1 `compute_rademacher_walsh_and_snf`            → Espectro FWHT, SNF Euclides-Bézout y asociador en O.
-    1.2 `evaluate_novikov_krull_and_bures`            → Valuación de Krull v(A) y norma ultramétrica en Λ_Nov.
-    1.3 `compute_qnd_weak_measurement`                → Valor débil AAV, conmutador en {H0}'', Wigner-Yanase y QFI.
-    1.4 `evaluate_bures_uhlmann_metric`               → Fidelidad de Uhlmann F(ρ,σ) y distancia geodésica d_B.
-    1.5 `anchor_symplectic_capacity_from_novikov`     → DEFINICIÓN FINAL FASE 1: retorna `SymplecticAnchor`.
-                                                         │
-                                                         ▼ (kw-only `anchor: SymplecticAnchor`)
-  [FASE 2: INTERSECCIÓN LAGRANGIANA DE FLOER-FUKAYA Y MECÁNICA CELESTE POINCARÉ-LINDSTEDT-KAM]
-    2.1 `solve_pseudoholomorphic_surface_weaver`      → INICIO FASE 2: ∂̄_{J,H}(u)=0, Maslov-CZ y Gromov.
-    2.2 `solve_poincare_lindstedt_homological`        → Variables de Delaunay, serie de Birkhoff y diofántica KAM.
-    2.3 `evaluate_poincare_kam_melnikov`              → Integral de Melnikov (residuos + Gauss-Legendre 32) y Greene.
-    2.4 `certify_kam_stability_and_section`           → DEFINICIÓN FINAL FASE 2: retorna `KAMStabilityCertificate`.
-                                                         │
-                                                         ▼ (kw-only `kam_cert: KAMStabilityCertificate`)
-  [FASE 3: MÓNADA DE KLEISLI RSI³ NIVEL-3 (BANACH-HALLEY-KANTOROVICH), DIRAC QED Y HEYTING Ω₃]
-    3.1 `evaluate_rsi3_banach_kleisli`                → INICIO FASE 3: contracción T³, Halley, Kantorovich y jerk.
-    3.2 `recursive_self_improvement_step_nivel3`      → Meta-optimización Darwin-Gödel de Nivel 3 sobre T³.
-    3.3 `execute_dirac_annihilation_wisdom`           → Aniquilación e⁻e⁺→2γ (1022 keV), Klein-Nishina y Spohn.
-    3.4 `execute_wisdom_weaver_audit`                 → Orquestación F1→F2→F3 y adjudicación en Heyting Ω₃.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovRSI3WisdomWeaverEngine` constituye el núcleo armónico de tejeduría
+espectral de la tríada de sabiduría en la arquitectura APU Filter. Integra y unifica en una cadena
+de tres fases anidadas la estructura del producto tensorial graduado R_{\mathrm{Boole}} \otimes \Lambda_{\mathrm{Nov}},
+la teoría de intersección lagrangiana en la categoría de Fukaya \mathcal{F}uk(M), la estabilidad secular
+de Poincaré-KAM-Nekhoroshev con serie de Lie-Birkhoff-Deprit, y la convergencia hiperbólica cuadrática
+de la mónada de Kleisli T^3 = \mu \circ T_2 \circ T_1 sobre espacios de Banach, garantizando estabilidad
+asintótica y optimización de WACC para infraestructuras complejas.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Estructura Dual Boole-Novikov, Geometría Cuántica de Bures y Octoniones:
+   Audita la función booleana discreta y el tensor de costes mediante la Transformada Rápida de Walsh-Hadamard (FWHT).
+   El estado de densidad \rho se proyecta espectralmente mediante el operador de Higham:
+       \rho_{\mathrm{PSD}} = \sum_i \max(\lambda_i, \varepsilon_{\mathrm{Wilkinson}}) |v_i\rangle\langle v_i| \Big/ \sum_i \max(\lambda_i, \varepsilon_{\mathrm{Wilkinson}}).
+   La distancia de Bures-Wasserstein y la fidelidad de Uhlmann cuantifican la separación cuántica:
+       d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}, \quad F(\rho, \sigma) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho}\sigma\sqrt{\rho}} \right)^2.
+   En el anillo universal \Lambda_{\mathrm{Nov}}, se certifica la norma no arquimediana \|A\|_{\mathrm{Nov}} = \exp(-v(A))
+   y el asociador octoniónico de Moufang \|[x, y, z]\|_{\mathbb{O}} = \|(xy)z - x(yz)\|_2.
+   • Apertura F2 (`_build_phase1_symplectic_anchor`):
+     Emite `SymplecticAnchor` empaquetando la acción de Delaunay y la 1-forma simpléctica hacia Fase 2.
+
+2. FASE 2 — Mecánica Celeste de Floer-Poincaré-KAM y Categoría de Fukaya \mathcal{F}uk(M):
+   Inicia en el ancla simpléctica de Fase 1. Resuelve la ecuación homológica de Poincaré-Lindstedt:
+       \{H_0, W_1\} + H_1 = \langle H_1 \rangle_{\mathbb{T}^d}, \quad W_1 = \varepsilon \sum_{k \neq 0} \frac{h_k(J)}{\langle k, \omega(J) \rangle} \sin(\langle k, \theta \rangle).
+   Verifica la condición diofantina fuerte de Bruno-KAM para frecuencias inconmensurables:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\},
+   y el confinamiento exponencial de Nekhoroshev T_{\mathrm{Nekh}} \sim \exp((\varepsilon_0/\varepsilon)^a).
+   En la categoría de Fukaya \mathcal{F}uk(M), la ecuación pseudoholomorfa de Floer-Gromov:
+       \bar{\partial}_{J, H}(u) = \partial_s u + J_0(\partial_t u - X_H(u)) = 0,
+   asegura la no-degeneración de subvariedades lagrangianas bajo rigidez de Gromov c_G(B^{2n}(r)) \le c_G(Z^{2n}(R)).
+   • Apertura F3 (`_build_phase2_kam_stability_certificate`):
+     Emite `KAMStabilityCertificate` transfiriendo el haz simpléctico a la Fase 3.
+
+3. FASE 3 — Automejora Recursiva RSI³ sobre Espacios de Banach y Veredicto \Omega_3:
+   Inicia en el certificado simpléctico de Fase 2. Opera con la tríada monádica de Kleisli:
+       • Nivel 1 (T_1): Contracción espectral de Picard T_1(x) = c + \alpha x, \alpha < 1.
+       • Nivel 2 (T_2): Aceleración cuadrática \Delta^2 de Aitken-Steffensen sobre el espectro de Fréchet.
+       • Nivel 3 (T_3 = \mu \circ T_2 \circ T_1): Certificación del teorema de Newton-Kantorovich:
+             h_K = L_0 \cdot \|T(s_0) - s_0\| \le 0.50,
+         y tensor Jerk de tercer orden d^3 C / dt^3.
+   El veredicto final se deduce en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}
+   y se formaliza en el reporte espectral maestro `WisdomWeaverSpectrumReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma WWE-A1] Desigualdad Isométrica de Bures-Uhlmann:
+    d_B(\rho, \sigma)^2 \le 2(1 - F(\rho, \sigma)) \land d_B(\rho, \sigma) = 0 \iff \rho = \sigma.
+[Axioma WWE-A2] No-Resonancia de Poincaré-KAM:
+    \min_{k \neq 0} |\langle k, \omega(J) \rangle| \cdot |k|_1^\tau \ge \gamma > 0.
+[Axioma WWE-A3] Rigidez Simpléctica en la Categoría de Fukaya:
+    c_G(B^{2d}(r)) = \pi r^2 \le c_G(Z^{2d}(R)) = \pi R^2.
+[Axioma WWE-A4] Convergencia Hiperbólica de Kleisli:
+    \mathrm{Lip}(T^3) \le \mathrm{Lip}(T_1)^3 < 1.0 \implies \lim_{k \to \infty} T^{3k}(s) = s^*.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante WWE-I1] Fidelidad Cuántica Preservada: F(\rho, \rho_{\mathrm{PSD}}) \ge 0.95.
+[Invariante WWE-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante WWE-I3] Residuo de Lindstedt Finito: R_{\mathrm{Lindstedt}} \le 1.0\times 10^{-4}.
+[Invariante WWE-I4] Módulo Lipschitz Monádico: \mathrm{Lip}(T^3) \le 0.85975.
+[Invariante WWE-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest.
 """
 
 from __future__ import annotations

@@ -7,35 +7,78 @@ r"""
 ║ Función  : Testigo Soberano QND (AAV/QFI) sobre R_Boole ⊗ Λ_Nov ⊗ O_Oct, Floer-Poincaré-KAM y RSI³ ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA EN 3 FASES ANIDADAS (Continuidad Categórica Estricta F1 hookrightarrow F2 hookrightarrow F3):
-========================================================================================================
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 1: EVIDENCIA ALGEBRAICA, HIPERCOMPLEJA Y SILENCIO CUÁNTICO QND                              │
-  │   1.1 compute_rademacher_walsh_and_snf       (Derivada RW, FWHT, Octoniones O y SNF exacta Z-PID)│
-  │   1.2 evaluate_novikov_krull_and_bures       (Valuación de Krull v(A), anillo Λ_Nov ultramétrico)│
-  │   1.3 compute_qnd_weak_measurement           (Valor débil AAV en conmutante {H0}'', SLD-QFI)     │
-  │   1.4 evaluate_bures_uhlmann_metric          (Fidelidad de Uhlmann, distancia y ángulo de Bures) │
-  │   1.5 seal_witness_evidence_anchor           [DEFINICIÓN FINAL F1 ──► EMITE WitnessEvidenceAnchor]│
-  └──────────────────────────────────────────────────────┬───────────────────────────────────────────┘
-                                                         │ kw-only: `evidence: WitnessEvidenceAnchor`
-                                                         ▼
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 2: JUICIO SIMPLÉCTICO FLOER-GROMOV Y MECÁNICA CELESTE DE POINCARÉ-LINDSTEDT-KAM-MELNIKOV    │
-  │   2.1 solve_pseudoholomorphic_surface_witness[INICIO F2 ◄── CONTINUACIÓN F1: Consume `evidence`] │
-  │                                              (Flujo simpléctico ∂̄_{J,H}, Poincaré-Cartan, μ_CZ) │
-  │   2.2 solve_poincare_lindstedt_homological   (Delaunay, Birkhoff orden 2, tiempo de Nekhoroshev) │
-  │   2.3 evaluate_poincare_kam_melnikov         (Integral homoclínica Gauss-Legendre, Greene R)     │
-  │   2.4 certify_attestation_and_silence        [DEFINICIÓN FINAL F2 ──► KAMAttestationCertificate] │
-  └──────────────────────────────────────────────────────┬───────────────────────────────────────────┘
-                                                         │ kw-only: `attestation: KAMAttestationCertificate`
-                                                         ▼
-  ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
-  │ FASE 3: ATESTACIÓN DE AUTOMEJORA RECURSIVA NIVEL-3 (RSI³) BANACH-KLEISLI Y TOPOS HEYTING Ω₃      │
-  │   3.1 evaluate_rsi3_banach_kleisli           [INICIO F3 ◄── CONTINUACIÓN F2: Consume `attestation`]│
-  │                                              (Endofuntor Kleisli T³ Halley-Kantorovich, Jerk D³C)│
-  │   3.2 recursive_self_improvement_step_nivel3 (Reescritura Nivel-3 End(C_T), selección Darwin-Gödel)│
-  │   3.3 execute_wisdom_witness_audit           [CLAUSURA SOBERANA F1->F2->F3: Veredicto Ω₃ + HMAC] │
-  └──────────────────────────────────────────────────────────────────────────────────────────────────┘
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral Testigo `BoolNovikovRSI3WisdomWeaverWitnessEngine` gobierna la atestación pasiva
+y certificación no demolicional de la tejeduría de sabiduría cognitiva en la arquitectura APU Filter.
+Estructurado en tres fases anidadas acopladas por anclas de evidencia estricta, audita la invariancia
+gauge bajo mediciones débiles AAV sin retroacción, calcula la distancia riemanniana de Bures-Wasserstein
+entre el estado cuántico observado y su proyección PSD canónica de Higham, resuelve la ecuación
+homológica de Poincaré-Lindstedt sobre el toro simpléctico con atestación de toros diofantinos KAM,
+y certifica la cota cuadrática de convergencia de Newton-Kantorovich para la tríada de Kleisli en RSI³.
+
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Atestación Cuántica Pasiva QND, Distancia de Bures e Invariantes de Novikov:
+   El estado cuántico \rho \in \mathcal{D}(\mathcal{H}) proyectado por Higham se audita contra el observable
+   hermítico de tejeduría A_{\mathrm{witness}}. La medición débil de Aharonov-Albert-Vaidman (AAV) con pre-selección
+   |\psi_i\rangle y post-selección |\psi_f\rangle rinde:
+       A_w = \frac{\langle \psi_f | A_{\mathrm{witness}} | \psi_i \rangle}{\langle \psi_f | \psi_i \rangle}, \quad \langle \psi_f | \psi_i \rangle \neq 0.
+   La condición de no-demolición cuántica (QND) exige:
+       \|[A_{\mathrm{witness}}, \rho]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} = 20 \log_{10}(1 + \|[A, \rho]\|_F) \le 0.01 \text{ dB}.
+   La fidelidad de Uhlmann-Jozsa:
+       F(\rho, \sigma) = \left( \operatorname{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right)^2 \in [0, 1],
+   define la distancia geodésica riemanniana de Bures-Wasserstein:
+       d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}},
+   y la Información Cuántica de Fisher (QFI) asociada a desplazamientos paramétricos \theta:
+       \mathcal{I}_Q(\rho) = 4 d_B^2(\rho, \rho + d\rho).
+   Sobre el anillo \Lambda_{\mathrm{Nov}}, se audita la valuación de Krull v(A) \ge 0.10 y el asociador octoniónico [x,y,z]_{\mathbb{O}}.
+   • Clausura F1 / Apertura F2 (`_build_phase1_witness_anchor`):
+     Emite el ancla `WitnessEvidenceAnchor` que inyecta el invariante de Poincaré-Cartan hacia la Fase 2.
+
+2. FASE 2 — Mecánica Celeste de Floer-Poincaré-KAM y Atestación Simpléctica:
+   Inicia en el ancla emitida por Fase 1. Para la perturbación hamiltoniana en variables de Delaunay:
+       H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta), \quad \omega(J) = \nabla_J H_0(J).
+   Se resuelve la ecuación homológica de Poincaré-Lindstedt de primer orden:
+       \langle \omega(J), \nabla_\theta W_1 \rangle = H_1(J, \theta) - \langle H_1 \rangle_{\mathbb{T}^d},
+   obteniendo la solución formal `LindstedtSolution`.
+   Atestación diofantina fuerte de KAM:
+       |\langle k, \omega \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\},
+   y verificación de ausencia de solapamiento de resonancias de Chirikov K_{\mathrm{Chirikov}} < 1.0.
+   La ecuación de Cauchy-Riemann-Floer sobre la variedad pseudoholomorfa:
+       \bar{\partial}_{\mathcal{J}, H}(u) = \partial_s u + \mathcal{J}(\partial_t u - X_H(u)) = 0,
+   valida la conservación de capacidad simpléctica de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)).
+   • Clausura F2 / Apertura F3 (`_build_phase2_kam_certificate`):
+     Emite `KAMAttestationCertificate`, habilitando la transición judicial hacia la Fase 3.
+
+3. FASE 3 — Automejora Recursiva RSI³ (Mónada de Kleisli) y Veredicto Heyting \Omega_3:
+   Inicia en el certificado emitido por Fase 2. Define la tríada de Kleisli en espacio de Banach
+   con contracción de Banach-Picard \mathrm{Lip}(T) \le 0.95.
+   Aplica el corrector cúbico de Halley de Nivel 3 y la aceleración de Aitken-Steffensen,
+   verificando el parámetro de Newton-Kantorovich:
+       h_K = L_0 \cdot \|T(s_0) - s_0\| \le 0.50,
+   y evaluando el tensor Jerk ciber-físico d^3 C / dt^3.
+   El veredicto final se clasifica en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}
+   y se sella en el reporte maestro `WisdomWeaverWitnessReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma WWWE-A1] Atestación de Medición Débil Libre de Perturbación:
+    \lim_{\|[A, \rho]\| \to 0} \operatorname{Tr}(A_{\mathrm{stealth}} \rho) = \operatorname{Tr}(A \rho) \land \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Axioma WWWE-A2] Preservación de Geodésica de Bures:
+    d_B(\rho, \sigma) = 0 \iff \rho \equiv \sigma \text{ en el espacio de operadores autoadjuntos positivos unitarios}.
+[Axioma WWWE-A3] Persistencia de Toros KAM Atestados:
+    \mathrm{div}_{\min}(\omega) \ge \gamma / |k|_1^\tau \implies \text{el toro de acción-ángulo } \mathbb{T}^d \text{ no sufre desintegración homoclínica}.
+[Axioma WWWE-A4] Garantía de Atractor Cuadrático de Newton-Kantorovich:
+    h_K \le 0.50 \implies \text{convergencia cuadrática uniforme hacia el punto fijo } s^* \text{ en } \mathrm{Kl}(\mathbb{T}^3).
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante WWWE-I1] Fidelidad de Uhlmann Mínima: F(\rho, \sigma_{\mathrm{PSD}}) \ge 0.95.
+[Invariante WWWE-I2] Retroacción Cuántica Acotada: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante WWWE-I3] Residuo de Lindstedt Acotado: R_{\mathrm{Lindstedt}} \le 1.0\times 10^{-4}.
+[Invariante WWWE-I4] Factor de Contracción de Kleisli: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante WWWE-I5] Firma Criptográfica de Evidencia HMAC-SHA256 intacta en cada ciclo de atestación.
 """
 
 from __future__ import annotations
@@ -1015,7 +1058,7 @@ class BoolNovikovRSI3WisdomWeaverWitnessEngine:
         )
 
         # Parámetro de convergencia de Newton-Kantorovich h_K = L₀ · ‖T(s₀) - s₀‖ ≤ 0.5
-        s1_ step = (1.0 - alpha) * s0 + alpha * s_star
+        s1_step = (1.0 - alpha) * s0 + alpha * s_star
         eta0 = float(np.linalg.norm(s1_step - s0))
         kantorovich_h = float(min(_KANTOROVICH_MAX_H, alpha * eta0))
 

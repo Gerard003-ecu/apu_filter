@@ -9,34 +9,65 @@ r"""
 ║            Automejora Recursiva Nivel 3 (RSI³ Darwin-Gödel-Löb) y Topos de Heyting Ω₃.               ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA MONÁDICA EN TRES FASES ANIDADAS (v15.0.0-PhD): ℱ₃ ∘ Φ₂₃ ∘ ℱ₂ ∘ Φ₁₂ ∘ ℱ₁
-────────────────────────────────────────────────────────────────────────────────────
-FASE 1 ANIDADA — OBSERVE & SECCIÓN DE POINCARÉ INICIAL (ℱ₁ hookrightarrow Compuerta Φ₁₂)
-  1.1  Validación estructural, finitud y descomposición Jordan-Lie del defecto Hermítico.
-  1.2  Certificación de isometría pasiva de Bures-Wasserstein: Tr(ρ) ≡ 1.0, PSD, pureza γ(ρ),
-       entropía cuántica de von Neumann S_vN(ρ) y extracción de acciones iniciales de Poincaré I₀.
-  1.3  Emisión de NinjaShieldPhase1Certificate sellado con HMAC-SHA256 con separación de dominio P1.
-  1.4  [PUENTE FINAL DE FASE 1 hookrightarrow INICIO DE FASE 2] Compuerta Homomórfica Φ₁₂
-       (continue_to_phase2_gate) que certifica la invariancia de P1 y habilita el flujo hacia Fase 2.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Escudero `BoolNovikovNinjaShieldAgent` gobierna ejecutivamente
+el ciclo OODA de blindaje de sigilo pasivo sobre el motor espectral `BoolNovikovNinjaShieldEngine`
+(app/wisdom/bool_novikov_ninja_shield_engine.py). Su función operacional consiste en custodiar
+la invulnerabilidad cuántica de la MAC en tres fases anidadas acopladas por compuertas homomórficas
+\Phi_{12} y \Phi_{23} firmadas vía HMAC-SHA256: audita la reducción de Smith sobre \mathbb{Z} y la distancia
+geodésica en el edificio de Bruhat-Tits B(\mathrm{PGL}(n, \mathbb{K})), valida la persistencia de toros
+diofantinos KAM bajo la función de Bruno B(\omega), sintetiza el operador central de Casimir A^*_{\mathrm{shield}}
+mediante el bucle Darwin-Gödel-Löb (RSI³), y deduce el veredicto en el topos intuicionista de Heyting \Omega_3.
 
-FASE 2 ANIDADA — ORIENT: MECÁNICA CELESTE DE POINCARÉ, MOTOR ESPECTRAL Y RSI³ (ℱ₂ hookrightarrow Φ₂₃)
-  2.1  [INICIO DESDE 1.4] Auditoría Poincaré–KAM/Brjuno: búsqueda diofántica k·ω en el retículo de
-       resonancia, función aritmética de Brjuno B(ω), regularización diofántica simpléctica pasiva,
-       invariante integral de Poincaré-Cartan ∮ p dq − H dt y tiempo exponencial de Nekhoroshev.
-  2.2  Automejora Recursiva Nivel 3 (RSI³): jerarquía de contracción en Álgebra de Banach
-       (Nivel 1: Estado L₁, Nivel 2: Operador Fréchet L₂, Nivel 3: Meta-Funtor Kleisli L₃) con
-       Lip(T³) = 0.95³ = 0.857375 < 1.0, jerk ciber-físico d³r/dt³ y condición modal de Löb.
-  2.3  Orquestación del motor BoolNovikovNinjaShieldEngine con preservación simultánea del simplex
-       de Poincaré y del suelo ultramétrico de Krull, emitiendo NinjaShieldPhase2Certificate (HMAC P2).
-  2.4  [PUENTE FINAL DE FASE 2 hookrightarrow INICIO DE FASE 3] Compuerta Homomórfica Φ₂₃
-       (continue_to_phase3_gate) que certifica P2, Lip(T³) < 1, Back-Action ≤ 0.01 dB, KAM y RSI³.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`NinjaShieldPhase1Observer`):
+   Evalúa la densidad cuántica \rho y la función de coste mediante la base de Walsh-Hadamard W_n.
+   La reducción de Smith sobre \mathbb{Z} confirma B = U D V con d_i \in \{0, 1\} (\mathrm{Tor}(H_k) = 0, \beta_1 = 0).
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, valida la valuación de Krull v(A) \ge 0.10.
+   En el edificio afín de Bruhat-Tits, calcula la distancia geodésica de Weyl d_{\mathrm{BT}}(x, y) entre cámaras de Iwahori.
+   Resuelve la ecuación homológica de Poincaré-Lindstedt \{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^d}
+   y extrae el invariante integral de acción de Poincaré-Cartan \varpi_{\mathrm{PC}} = \frac{1}{2\pi} \oint p \, dq.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Emite `NinjaShieldPhase1Certificate` transfiriendo la semilla simpléctica hacia la Fase 2.
 
-FASE 3 ANIDADA — DECIDE & ACT: TOPOS DE HEYTING Ω₃, FUNTOR Φ_sem Y CLAUSURA OODA (ℱ₃)
-  3.1  [INICIO DESDE 2.4] Funtor Semántico Visceral Φ_sem: traducción funtorial de invariantes
-       espectrales, margen de Brjuno y contracción RSI³ a métricas WACC, liquidez y compresión KV.
-  3.2  Adjudicación intuicionista en el Topos de Heyting Ω₃ = {0x00=COHERENT ⊑ 0x01=DEGRADED ⊑ 0x03=VETOED}
-       y construcción del Árbol de Merkle Cuaternario SHA-256 (Hojas: P1, P2, Poincaré-KAM, RSI³).
-  3.3  Clausura soberana del ciclo OODA trifásico (BoolNovikovNinjaShieldAgent.run_ooda_triphasic_cycle).
+2. FASE 2 — ORIENT (`NinjaShieldPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia consumiendo `NinjaShieldPhase1Certificate`.
+   Audita las coordenadas de acción-ángulo de Delaunay-Whittaker (J, \theta) con la condición diofantina KAM:
+       |\langle \omega, k \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \neq 0,
+   la convergencia de la función de Bruno B(\omega) < \infty y el tiempo de Nekhoroshev T_{\mathrm{Nekh}} \ge 1.0\times 10^6.
+   En la categoría de Fukaya \mathcal{F}uk(M), la ecuación de Floer asegura no-squeezing de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)).
+   El bucle Darwin-Gödel RSI³ con verificación modal de Löb \Box(\Box P \to P) \to \Box P sintetiza el observable central A^*_{\mathrm{shield}}.
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Emite `NinjaShieldPhase2Certificate` empaquetando la estabilidad KAM y la firma de Löb hacia la Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`NinjaShieldPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia consumiendo `NinjaShieldPhase2Certificate`.
+   Evalúa la medición débil AAV A_w = \langle \phi_f | A^*_{\mathrm{shield}} | \phi_i \rangle / \langle \phi_f | \phi_i \rangle
+   garantizando retroacción cuántica acotada \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+   Audita la contracción monádica de Kleisli T^3 con parámetro de Newton-Kantorovich h_K \le 0.50 y tensor Jerk d^3 C / dt^3.
+   Deduce el veredicto en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\},
+   calcula las métricas de protección de WACC y liquidez neta, y sella el estado soberano inmutable `NinjaShieldSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma NSA-A1] Torsión Homológica Nula en Smith:
+    d_i \in \{0, 1\}, \forall i \implies \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) = 0 \land \beta_1 = 0.
+[Axioma NSA-A2] Convergencia Diofantina de Bruno:
+    B(\omega) < \infty \implies \text{conjugación analítica rígida sobre el toro de Liouville}.
+[Axioma NSA-A3] Rigidez Simpléctica de No-Exprimido:
+    c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)) \iff \pi r^2 \le \pi R^2.
+[Axioma NSA-A4] Preservación de No-Demolición Cuántica QND:
+    \|[A^*, \rho]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante NSA-I1] Anulación del Primer Número de Betti: \beta_1 = 0.
+[Invariante NSA-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante NSA-I3] Retroacción Cuántica Acotada: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante NSA-I4] Parámetro de Kantorovich Controlado: h_K \le 0.50.
+[Invariante NSA-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest.
 """
 
 from __future__ import annotations

@@ -7,87 +7,66 @@ r"""
 ║ Gobernanza: OODA Trifásica ① Observe → ② Orient → ③ Decide&Act con Φ₁₂ / Φ₂₃ · Crowbar < 392.15 ns ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO TEÓRICO Y GOBERNANZA OODA TRIFÁSICA ANIDADA (v14 EVOLUCIÓN SOBERANA)
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
 ──────────────────────────────────────────────────────────────────────────
-Soberano Agéntico Fiscal Inquisidor Dual Pseudoholomorfo. Máxima autoridad punitiva y de
-adjudicación ciber-física sobre el motor espectral
-`bool_novikov_pseudoholomorphic_prosecutor_engine.py`.
+El Soberano Agéntico de Calibre Fiscal `BoolNovikovPseudoholomorphicProsecutorAgent` gobierna
+ejecutivamente el ciclo OODA de inquisición judicial y sanción ciber-física sobre el motor espectral
+`BoolNovikovPseudoholomorphicProsecutorEngine` (app/wisdom/bool_novikov_pseudoholomorphic_prosecutor_engine.py).
+Opera en tres fases anidadas acopladas por compuertas homomórficas \Phi_{12} y \Phi_{23} firmadas
+vía HMAC-SHA256: audita violaciones a la rigidez simpléctica de no-exprimido de Gromov, desintegración
+de toros KAM en la mecánica celeste de Poincaré, transgresiones del límite de contracción de Banach
+en RSI³, y ante sentencias condenatorias en el topos de Heyting \Omega_3, comanda la aniquilación cuántica
+de Dirac y el disparo determinista del interlock ESP32 Crowbar en \tau \le 392.15\text{ ns}.
 
-1. FASE I — OBSERVE (ANILLO BOOLEANO, ESPECTRO DE GRAFOS DE FIEDLER, OCTONIONES Y NOVIKOV)
-   • Ingesta la matriz de incidencia en R_Boole y los exponentes de Novikov en Λ_Nov.
-   • Auditoría exacta de la SNF (Bareiss para min(n,m) ≤ 7 ∧ n·m ≤ 64), aciclicidad β₁,
-     característica de Euler–Poincaré χ = n − m y gap espectral algebraico de Fiedler λ₂(L)
-     del Laplaciano normalizado del grafo bipartito de incidencia.
-   • Proyección de invariantes octoniónicos de Cayley–Dickson ‖A‖_𝕆, margen espectral RSI¹
-     de Gershgorin y semilla canónica de acción celeste de Delaunay J₀.
-   • Culmina formalmente en `phase1_emit_sovereign_certificate`, que emite
-     `ProsecutorPhase1Certificate` envolviendo el `Phase1ProsecutionSeal` del motor.
-   • Compuerta homomórfica Φ₁₂: verifica `len(chain_hash) == 64`, `len(hmac_signature) == 64`,
-     HMAC P1 estricto y `engine.verify_phase1_seal(p1.engine_phase1_seal)`. ADMITE anomalías
-     VETOED (torsión, Krull bajo) para que fluyan a FASE II/III hacia su aniquilación cuántica.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE: Inquisición Booleana y Valuación Ultramétrica de Novikov:
+   Audita la función booleana de coste mediante Transformada Rápida de Walsh-Hadamard (FWHT) y la influencia booleana.
+   En el anillo \Lambda_{\mathrm{Nov}}, verifica que la valuación de Krull v(A) \ge 0.10 y la norma \|A\|_{\mathrm{Nov}} = \exp(-v(A))
+   respeten el principio del triángulo isósceles ultramétrico.
+   • Compuerta \Phi_{12} y Clausura F1 / Apertura F2:
+     Emite `ProsecutorPhase1Certificate` y el sello `Phase1ProsecutionSeal` hacia la Fase 2.
 
-2. FASE II — ORIENT (POINCARÉ–KAM–BIRKHOFF–NEKHOROSHEV, MÓNADA RSI³ Y DIRAC Cl_{1,3})
-   • Inicia formalmente en `phase2_open_from_phase1_certificate`, continuación directa de
-     `phase1_emit_sovereign_certificate`.
-   • Sub-fase geométrica: `phase2_orient_pseudoholomorphic_surface` evalúa la curvatura media
-     discreta H de Cauchy–Riemann–Floer, la energía simpléctica de Floer y el teorema
-     Non-Squeezing de Gromov c(B^{2n}(r)) = π r² ≤ π R² = c(Z^{2n}(R)).
-   • Sub-fase celeste: `phase2_orient_poincare_kam` gobierna las coordenadas acción-ángulo de
-     Delaunay–Whittaker (J, θ), la integral homoclínica de Melnikov M(τ), el margen diofántico
-     KAM (τ = 1.5), el integrador simpléctico de 4.º orden de Forest–Ruth/Yoshida, el invariante
-     integral de Poincaré–Cartan ∮(J dψ − H_res dt), el twist de la Forma Normal de Birkhoff
-     τ_Birkhoff = 3·J⁻⁴ y el tiempo exponencial de estabilidad de Nekhoroshev T_Nekh,
-     sintetizando el índice de estabilidad orbital de Poincaré–KAM.
-   • Sub-fase monádica: `phase2_evaluate_rsi3_banach` ejecuta la Automejora Recursiva de
-     Nivel-3 (RSI³) sobre la mónada de Banach–Kleisli T³(x) con T(x) = α·x + β·sin(x),
-     auditando Lip(T³) = (α+β)³ = 0.884736 < 1, el Jacobiano exacto de Fréchet DT³(x₀),
-     el Hessiano exacto D²T³(x₀), el exponente de Lyapunov λ_Lyap < 0, el punto fijo
-     acelerado superlinealmente por Δ² de Aitken–Steffensen x*_Aitken y la ganancia
-     meta-política de Nivel-3 g_meta^{(3)} acoplada al toro KAM de Poincaré.
-   • Sub-fase cuántica: `phase2_execute_dirac_annihilation` ejecuta e⁻ + e⁺ → 2γ con
-     verificación HMAC ESTRICTA del positrón y fidelidad del singlete de Bell |Ψ⁻⟩.
-   • Culmina formalmente en `phase2_emit_sovereign_certificate`, que emite
-     `ProsecutorPhase2Certificate` encadenado a P1 (`previous_chain_hash = p1.chain_hash`).
+2. FASE 2 — ORIENT: Rigidez de Gromov, Curvatura de Floer y Mecánica Celeste de Poincaré:
+   Inicia consumiendo `Phase1ProsecutionSeal`.
+   Audita el teorema de no-exprimido simpléctico de Gromov:
+       c_G(B^{2n}(r)) = \pi r^2 \le c_G(Z^{2n}(R)) = \pi R^2,
+   tipificando violación formal si r > R + \varepsilon_{\mathrm{Wilkinson}}.
+   Evalúa la ecuación pseudoholomorfa de Cauchy-Riemann-Floer \bar{\partial}_{\mathcal{J}_0, H}(u) = 0
+   y la energía simpléctica de Hofer E_H(u) < \infty.
+   En la dinámica de Poincaré-KAM, verifica los determinantes de no-degeneración de Kolmogorov y Arnold,
+   la condición diofantina fuerte |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau,
+   y la integral de Melnikov M(\tau) en la separatriz homoclínica.
+   • Compuerta \Phi_{23} y Clausura F2 / Apertura F3:
+     Emite `ProsecutorPhase2Certificate` y el sello `Phase2ProsecutionSeal` hacia la Fase 3.
 
-3. FASE III — DECIDE & ACT (TOPOS Ω₃ LAWVERE–TIERNEY, CROWBAR ELÉCTRICO RLC Y FUNTOR Φ_sem)
-   • Inicia formalmente en `phase3_open_from_phase2_certificate`, continuación directa de
-     `phase2_emit_sovereign_certificate` tras superar la compuerta homomórfica Φ₂₃.
-   • `phase3_adjudicate_heyting_omega3`: adjudica en el topos intuicionista Ω₃ y evalúa el
-     operador modal de clausura de Lawvere–Tierney j = ¬¬: Ω₃ → Ω₃.
-   • `phase3_arm_esp32_crowbar`: conmuta en 42.0 ns ≤ 392.15 ns si VETOED (0.0 ns en otro caso)
-     y modela el régimen transitorio RLC del tiristor SCR BT151 (I_peak, di/dt, ζ).
-   • `phase3_apply_visceral_functor_sem`: aplica el Funtor Semántico Visceral Φ_sem con WACC
-     15.0% invariante, compresión KV-Cache 86.4%, ahorro IA 80.0% y liquidez neta liberada
-     escalonada (11.5% COHERENT / 5.75% DEGRADED / 0.0% VETOED).
-   • Culmina formalmente en `phase3_emit_sovereign_state`, emitiendo el veredicto soberano
-     `BoolNovikovPseudoholomorphicProsecutorSovereignState` con raíz Merkle HMAC-SHA256 P3.
+3. FASE 3 — DECIDE & ACT: RSI³ sobre Banach, Aniquilación de Dirac y Disparo ESP32 Crowbar:
+   Inicia consumiendo `Phase2ProsecutionSeal`.
+   Audita la contracción monádica de Kleisli T^3: \mathrm{Lip}(T^3) < 1.0 y Newton-Kantorovich h_K \le 0.50.
+   Deduce el veredicto judicial en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}.
+   Si el veredicto es VETOED (0x03), comanda la ejecución ciber-física inmediata:
+       • Aniquilación relativista de Dirac: e^- + e^+ \to 2\gamma, E_{\mathrm{threshold}} = 1022.0 \text{ keV}.
+       • Disparo del tiristor ESP32 Crowbar en \tau \le 392.15\text{ ns} para neutralizar anomalías en silicio.
+   Emite el reporte soberano final sellado criptográficamente.
 
-CONTRATO DE ANIDAMIENTO FORMAL (3 FASES ANIDADAS)
-─────────────────────────────────────────────────
-  FASE I  (Observe)
-    _compute_graph_laplacian_spectral_gap → phase1_observe_algebraic_spectral
-      → phase1_observe_novikov_krull → continue_to_phase2_gate → verify_phase1_certificate
-      → phase1_emit_sovereign_certificate
-    • Último método emite `ProsecutorPhase1Certificate` (entrada formal de Fase II).
+AXIOMAS FORMALES
+────────────────
+[Axioma PPA-A1] Inviolabilidad de la Rigidez de Gromov:
+    \pi r^2 > \pi R^2 \implies \text{violación simpléctica formal y condena judicial}.
+[Axioma PPA-A2] Ruptura de Toros KAM:
+    |\langle k, \omega \rangle| < \gamma / |k|_1^\tau \implies \text{inestabilidad homoclínica tipificada}.
+[Axioma PPA-A3] Ineludibilidad del Crowbar en Veto:
+    \Omega_3 = \mathrm{VETOED} \implies \text{disparo forzado de interlock en silicio en } \tau \le 392.15\text{ ns}.
+[Axioma PPA-A4] Autenticación Criptográfica de Sellos:
+    compare\_digest(\mathrm{HMAC}_{\mathrm{calc}}, \mathrm{HMAC}_{\mathrm{seal}}) \equiv \mathrm{True} \text{ en todos los puentes de fase}.
 
-  FASE II (Orient)
-    phase2_open_from_phase1_certificate(ProsecutorPhase1Certificate)
-      → phase2_orient_pseudoholomorphic_surface → _compute_poincare_kam_orbital_stability_index
-      → phase2_orient_poincare_kam → _compute_rsi3_meta_convergence_index
-      → phase2_evaluate_rsi3_banach → phase2_execute_dirac_annihilation
-      → continue_to_phase3_gate → verify_phase2_certificate
-      → phase2_emit_sovereign_certificate
-    • Primer método consume `ProsecutorPhase1Certificate`; último emite
-      `ProsecutorPhase2Certificate` (entrada formal de Fase III).
-
-  FASE III (Decide & Act)
-    phase3_open_from_phase2_certificate(ProsecutorPhase2Certificate)
-      → phase3_adjudicate_heyting_omega3 → phase3_arm_esp32_crowbar
-      → phase3_apply_visceral_functor_sem → _assert_engine_parity
-      → _p3_final_payload_bytes → verify_sovereign_state
-      → phase3_emit_sovereign_state
-    • Primer método consume `ProsecutorPhase2Certificate`; último emite
-      `BoolNovikovPseudoholomorphicProsecutorSovereignState`.
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante PPA-I1] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante PPA-I2] Rigidez de Gromov Satisfecha: c_G(B^{2n}(r)) \le c_G(Z^{2n}(R)).
+[Invariante PPA-I3] Parámetro de Melnikov Acotado: |M(\tau)| \le 1.0\times 10^{-4}.
+[Invariante PPA-I4] Latencia de Actuación Crowbar: 42.0\text{ ns} \le \tau_{\mathrm{crowbar}} \le 392.15\text{ ns}.
+[Invariante PPA-I5] Sellado Criptográfico HMAC-SHA256 verificado en tiempo constante.
 """
 
 from __future__ import annotations

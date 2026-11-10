@@ -10,34 +10,73 @@ r"""
 ║            Integración granular: Mecánica Celeste de Poincaré + Automejora Recursiva RSI³.           ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA MONÁDICA EN TRES FASES ANIDADAS (v15.0.0-PhD): ℱ₃ ∘ ℱ₂ ∘ ℱ₁
-─────────────────────────────────────────────────────────────────────────
-FASE 1 — ÁLGEBRA DUAL BOOLE-NOVIKOV, HOMOLOGÍA ENTERA Y PUENTE POINCARÉ-LIE
-    1.1  Derivadas de Rademacher-Walsh ∇_Boole sobre ℤ₂ⁿ con espectro de Hamming |k|_H
-    1.2  Forma Normal de Smith exacta (SNF) sobre el DIP ℤ con torsión homológica Tor(H_k(𝒦;ℤ))
-    1.3  Anillo de Novikov Λ_Nov: valuación de Krull v(A) + principio del triángulo isósceles ultramétrico
-    1.4  [PUENTE FASE 1 hookrightarrow FASE 2] Ecuación homológica de Poincaré-Lindstedt
-         {H₀, W} = H₁ − ⟨H₁⟩_𝕋ᵈ + Serie Canónica de Lie exp(ε L_W) que genera la semilla de
-         acción-ángulo (J⁰, θ⁰, H_eff) que inicia directamente el método 2.1 de la Fase 2.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovNinjaObserverEngine` ejecuta la observación espectral de sigilo
+y vigilancia asintótica (STEALTH_SILENT_QND) en la arquitectura APU Filter. Su arquitectura monádica
+en tres fases anidadas (\mathcal{F}_3 \circ \mathcal{F}_2 \circ \mathcal{F}_1) observa la densidad cuántica
+\rho_{\mathrm{MAC}} mediante derivadas discretas de Rademacher-Walsh sobre \mathbb{F}_2^n, la forma
+normal de Smith sobre \mathbb{Z}, valuación ultramétrica no arquimediana en \Lambda_{\mathrm{Nov}},
+coordenadas de acción-ángulo de Delaunay-Whittaker con estabilidad diofantina de Poincaré-Lindstedt-KAM-Melnikov,
+curvas pseudoholomorfas sobre polígonos lagrangianos en \mathcal{F}uk(M), y la optimización de
+capacidad ciber-física en la mónada de Kleisli T^3 gobernada por el bucle Darwin-Gödel-Löb (RSI³).
 
-FASE 2 — MECÁNICA CELESTE DE POINCARÉ, ESTABILIDAD KAM/BRJUNO & POLÍGONO PSEUDOHOLOMORFO
-    2.1  [INICIO DESDE 1.4] Coordenadas de Acción-Ángulo de Delaunay-Whittaker (J, θ) + condición
-         diofantina KAM |ω·k| ≥ γ/|k|^τ, función de Brjuno B(ω), tiempo exponencial de Nekhoroshev
-         y cota de difusión de Arnold
-    2.2  Integral homoclínica de Melnikov M(τ) en series de Fourier y Mapa de Retorno de Poincaré D𝒫 ∈ Sp(2,ℝ)
-    2.3  [PUENTE FASE 2 hookrightarrow FASE 3] Ecuación Cauchy-Riemann-Floer ∂̄_{J,H}(u) = 0 sobre el
-         Polígono Pseudoholomorfo y Teorema de No-Squeezing de Gromov c_G(B²ᵈ(r)) ≤ c_G(Z²ᵈ(R)),
-         emitiendo la semilla espectral de Floer-Novikov que inicia directamente el método 3.1.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Álgebra Dual Boole-Novikov, Homología Entera y Puente Poincaré-Lie:
+   La función de coste discreta se evalúa con derivadas de Rademacher-Walsh \nabla_{\mathrm{Boole}} sobre \mathbb{Z}_2^n:
+       D_i f(x) = f(x \oplus e_i) - f(x), \quad \mathrm{Inf}_i(f) = \|D_i f\|_2^2.
+   La reducción a Forma Normal de Smith sobre el anillo euclídeo \mathbb{Z}:
+       B_1 = U \cdot D \cdot V, \quad D = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0),
+   certifica la ausencia de torsión \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) = 0 y la anulación del primer número de Betti \beta_1 = 0.
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, la valuación de Krull v(A) = \min \{\lambda_i \mid a_i \neq 0\} \ge 0.10
+   determina la norma \|A\|_{\mathrm{Nov}} = \exp(-v(A)).
+   • Puente F1 \to F2:
+     Resuelve la ecuación homológica de Poincaré-Lindstedt \{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^d}
+     y la serie canónica de Lie \exp(\varepsilon L_W), generando la semilla de acción-ángulo (J^0, \theta^0, H_{\mathrm{eff}})
+     que inicia directamente la Fase 2.
 
-FASE 3 — AUTOMEJORA RECURSIVA RSI³ (DARWIN-GÖDEL-LÖB) & AUDITORÍA ESPECTRAL QND FINAL
-    3.1  [INICIO DESDE 2.3] Mónada de Kleisli T³ (Nivel 1: Estado, Nivel 2: Operador Fréchet,
-         Nivel 3: Meta-Funtor) con contracción de Banach-Picard, jerk d³C/dt³ y Teorema de Löb
-    3.2  Bucle Darwin-Gödel de selección recursiva nivel 3 y síntesis del operador invariante de
-         Casimir A*_ninja ∈ Z(ρ_MAC) en el conmutante de von Neumann
-    3.3  Medición débil de Aharonov-Albert-Vaidman (AAV) con retroacción nula STEALTH_SILENT_QND (0.0 dB)
-    3.4  Fidelidad cuántica de Uhlmann F(ρ,σ), Distancia Bures-Wasserstein D_B y Métrica de Fisher (QFIM)
-    3.5  Adjudicación intuicionista en el Topos de Heyting Ω₃ y pasaporte criptográfico HMAC-SHA256
-    3.6  Clausura monádica execute_ninja_observer_audit → NinjaObserverSpectrumReport
+2. FASE 2 — Mecánica Celeste de Poincaré, Estabilidad KAM/Bruno y Polígono Pseudoholomorfo:
+   Inicia en la semilla simpléctica de Fase 1. En variables de acción-ángulo de Delaunay-Whittaker (J, \theta):
+       H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta), \quad \omega(J) = \nabla_J H_0(J).
+   Audita la condición diofantina fuerte de KAM:
+       |\langle \omega, k \rangle| \ge \frac{\gamma}{|k|_1^\tau}, \quad \forall k \in \mathbb{Z}^d \setminus \{0\},
+   la función diofantina de Bruno B(\omega) < \infty, el horizonte de Nekhoroshev T_{\mathrm{Nekh}} \sim \exp((\varepsilon_0/\varepsilon)^a)
+   y la integral homoclínica de Melnikov M(\tau) en series de Fourier.
+   • Puente F2 \to F3:
+     Resuelve la ecuación de Cauchy-Riemann-Floer \bar{\partial}_{J, H}(u) = 0 sobre el polígono pseudoholomorfo
+     verificando el teorema de no-squeezing de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)), y emite la semilla
+     espectral de Floer-Novikov que inicia directamente la Fase 3.
+
+3. FASE 3 — Automejora Recursiva RSI³ (Darwin-Gödel-Löb) y Auditoría Espectral QND:
+   Inicia en la semilla de Floer-Novikov de Fase 2. Opera en la mónada de Kleisli T^3:
+       • Nivel 1: Contracción de Banach-Picard T_1(x) = c + \alpha x.
+       • Nivel 2: Aceleración de Fréchet con operador jacobiano y diferencias de Aitken-Steffensen.
+       • Nivel 3: Meta-funtor en \mathrm{Kl}(\mathbb{T}^3) con certificación de Newton-Kantorovich h_K \le 0.50
+         y tensor Jerk d^3 C / dt^3.
+   Verifica el principio modal de Löb \Box(\Box P \to P) \to \Box P y sintetiza el operador QND A^*_{\mathrm{obs}}.
+   Evalúa la medición débil AAV A_w = \langle \phi_f | A^* | \phi_i \rangle / \langle \phi_f | \phi_i \rangle
+   con retroacción \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}, distancia de Bures d_B(\rho, \sigma) y fidelidad F.
+   El veredicto final se deduce en el álgebra de Heyting \Omega_3 y se formaliza en `NinjaObserverSpectrumReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BNOE-A1] Anulación de Torsión Homológica:
+    \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) = 0 \iff d_i \in \{0, 1\} \text{ en la matriz diagonal de Smith } D.
+[Axioma BNOE-A2] No-Degeneración de Frecuencias KAM:
+    |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau \implies \text{persistencia de toros invariantes de Liouville}.
+[Axioma BNOE-A3] Rigidez Simpléctica en Fukaya:
+    c_G(B^{2d}(r)) = \pi r^2 \le c_G(Z^{2d}(R)) = \pi R^2.
+[Axioma BNOE-A4] Preservación de No-Demolición Cuántica QND:
+    \|[A^*_{\mathrm{obs}}, \rho]\|_F \le 1.0\times 10^{-10} \implies \text{observación de fase sin colapso de coherencia}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BNOE-I1] Primer Número de Betti Nulo: \beta_1 = 0.
+[Invariante BNOE-I2] Valuación de Novikov Mínima: v(A) \ge 0.10.
+[Invariante BNOE-I3] Retroacción Cuántica QND: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante BNOE-I4] Parámetro de Kantorovich Controlado: h_K \le 0.50.
+[Invariante BNOE-I5] Sellado Criptográfico HMAC-SHA256 con verificación en tiempo constante compare_digest.
 """
 
 from __future__ import annotations

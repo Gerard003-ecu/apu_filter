@@ -10,35 +10,70 @@ r"""
 ║            Integración granular: Mecánica Celeste de Poincaré + RSI³ Darwin-Gödel + Bruhat-Tits.     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA MONÁDICA EN TRES FASES ANIDADAS (v15.0.0-PhD): F₃ ∘ F₂ ∘ F₁
-─────────────────────────────────────────────────────────────────────────
-FASE 1 — CUSTODIA ULTRAMÉTRICA Y ÁLGEBRA DUAL (R_Boole ⊗ Λ_Nov ⊗ B(PGL(n,K)))
-    1.1  Derivadas de Rademacher-Walsh ∇_Boole con matriz de Walsh W_n y peso de Hamming |k|_H
-    1.2  Forma Normal de Smith exacta B₁ = U·D·V sobre ℤ (Tor(H_k)≡0, β₁=0) vía reducción diofántica
-    1.3  Anillo de Novikov Λ_Nov: v(A) + ||·||_Nov + principio del triángulo isósceles ultramétrico
-    1.4  Edificio Afín de Bruhat-Tits B(PGL(n,K)): cámara de Weyl y métrica geodésica d_BT
-    1.5  [PUENTE FASE 1 hookrightarrow FASE 2] Ecuación homológica de Poincaré-Lindstedt
-         {H₀,W} = H₁−⟨H₁⟩_𝕋ᵈ + Serie Canónica de Lie exp(L_W) que genera la semilla simpléctica
-         (J⁰, θ⁰, H_eff) que inicia directamente el método 2.1 de la Fase 2.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL MOTOR ESPECTRAL
+─────────────────────────────────────────────────
+El Motor Espectral `BoolNovikovNinjaShieldEngine` ejecuta el blindaje de sigilo ultramétrico pasivo
+(STEALTH_SILENT_QND) en la arquitectura APU Filter. Su arquitectura monádica en tres fases anidadas
+(F_3 \circ F_2 \circ F_1) custodia la estabilidad cuántica de la matriz de densidad \rho_{\mathrm{MAC}}
+mediante la Transformada Rápida de Walsh-Hadamard (FWHT) sobre R_{\mathrm{Boole}}, la forma normal de
+Smith exacta sobre \mathbb{Z}, la métrica geodésica afín en el edificio de Bruhat-Tits \mathcal{B}(\mathrm{PGL}(n, \mathbb{K})),
+la integración simpléctica de Poincaré-KAM con función diofantina de Bruno B(\omega), curvas pseudoholomorfas
+en la categoría de Fukaya \mathcal{F}uk(M), y la síntesis del operador central de Casimir A^*_{\mathrm{shield}} \in Z(\rho)
+gobernada por el bucle de automejora recursiva Darwin-Gödel-Löb (RSI³).
 
-FASE 2 — MECÁNICA CELESTE DE POINCARÉ, FUKAYA (ℱuk(ℳ)) Y AUTOMEJORA RECURSIVA NIVEL 3 (RSI³)
-    2.1  [INICIO DESDE 1.5] Coordenadas canónicas de Delaunay-Whittaker (J,θ) + condición diofantina
-         KAM, serie convergente de Brjuno B(ω), tiempo exponencial de Nekhoroshev y difusión de Arnold
-    2.2  Integral homoclínica de Melnikov M(τ) = Σ M_k·e^{ikτ} y Mapa de Retorno de Poincaré D𝒫 ∈ Sp(2d,ℝ)
-    2.3  Ecuación de Cauchy-Riemann-Floer ∂̄_{J,H}(u) = ∂_s u + J₀(∂_τ u − X_H(u)) = 0 en ℱuk(ℳ)
-    2.4  Teorema de No-Squeezing Simpléctico de Gromov: c_G(B²ᵈ(r)) = πr² ≤ c_G(Z²ᵈ(R)) = πR²
-    2.5  Mónada de Kleisli T³ (Nivel 1: Estado, Nivel 2: Operador, Nivel 3: Meta-Funtor) + Banach-Picard
-    2.6  [PUENTE FASE 2 hookrightarrow FASE 3] Bucle Darwin-Gödel RSI³ con verificación modal de Löb
-         □(□P → P) → □P que sintetiza el operador invariante de Casimir A*_shield ∈ Z(ρ_MAC) que
-         inicia directamente el método 3.1 de la Fase 3.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — Custodia Ultramétrica, Álgebra Dual y Edificio de Bruhat-Tits:
+   La función booleana discreta se proyecta mediante la base de Walsh-Hadamard W_n \in \{-1, +1\}^{2^n \times 2^n}.
+   La matriz de borde del complejo simplicial \partial_1 se reduce a su Forma Normal de Smith sobre \mathbb{Z}:
+       B_1 = U \cdot D \cdot V, \quad D = \operatorname{diag}(d_1, \dots, d_r, 0, \dots, 0), \quad d_i \mid d_{i+1},
+   garantizando anulación de torsión \mathrm{Tor}(H_k) = 0 y primer número de Betti \beta_1 = 0.
+   En el anillo de Novikov \Lambda_{\mathrm{Nov}}, se audita la valuación de Krull v(A) \ge 0.10 y la norma \|A\|_{\mathrm{Nov}} = \exp(-v(A)).
+   En el edificio afín de Bruhat-Tits \mathcal{B}(\mathrm{PGL}(n, \mathbb{K})), la distancia geodésica de Weyl entre cámaras de Iwahori evalúa:
+       d_{\mathrm{BT}}(x, y) = \|v_x - v_y\|_{\mathbb{R}^{n-1}} + \kappa_{\mathrm{FS}} \tanh(\|C_{\mathrm{APU}}\|_2).
+   • Puente F1 \to F2:
+     Resuelve la ecuación homológica de Poincaré-Lindstedt \{H_0, W\} = H_1 - \langle H_1 \rangle_{\mathbb{T}^d}
+     generando la semilla simpléctica canónica (J^0, \theta^0, H_{\mathrm{eff}}) que inicia directamente la Fase 2.
 
-FASE 3 — MEDICIÓN CUÁNTICA QND & AUDITORÍA SOBERANA (STEALTH_SILENT_QND + Topos de Heyting Ω₃)
-    3.1  [INICIO DESDE 2.6] Medición débil de Aharonov-Albert-Vaidman (AAV) sobre el operador A*_shield
-         sintetizado por RSI³ con conmutador nulo ||[A*_shield, ρ_MAC]||_F ≤ 10⁻¹⁵ (Back-Action = 0 dB)
-    3.2  Fidelidad cuántica de Uhlmann F(ρ,σ), Distancia de Bures-Wasserstein D_B y traza de Fisher (QFIM)
-    3.3  Adjudicación intuicionista multi-criterio en el Topos de Heyting Ω₃ (∧, ∨, ⇒)
-    3.4  Sellado criptográfico HMAC-SHA256 sobre el pasaporte espectral invariante
-    3.5  Clausura monádica F₃ ∘ F₂ ∘ F₁ → NinjaShieldSpectrumReport
+2. FASE 2 — Mecánica Celeste de Poincaré, Fukaya \mathcal{F}uk(M) y Mónada de Kleisli RSI³:
+   Inicia en la semilla de acción-ángulo de Fase 1. Para las variables canónicas de Delaunay-Whittaker (J, \theta):
+       H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta), \quad \omega(J) = \nabla_J H_0(J).
+   Se audita la función de Bruno para pequeños divisores:
+       B(\omega) = \sum_{k=0}^\infty \frac{\ln q_{k+1}}{q_k} < \infty,
+   el tiempo exponencial de confinamiento de Nekhoroshev T_{\mathrm{Nekh}} = T_0 \exp((\varepsilon_0/\varepsilon)^{1/(2d)})
+   y la integral homoclínica de Melnikov M(\tau) en series de Fourier.
+   En la categoría de Fukaya \mathcal{F}uk(M), la ecuación de Cauchy-Riemann-Floer:
+       \bar{\partial}_{J, H}(u) = \partial_s u + J_0(\partial_\tau u - X_H(u)) = 0,
+   satisface la cota de rigidez de no-exprimido de Gromov c_G(B^{2d}(r)) = \pi r^2 \le c_G(Z^{2d}(R)) = \pi R^2.
+   • Puente F2 \to F3:
+     El bucle Darwin-Gödel RSI³ con verificación modal de Löb \Box(\Box P \to P) \to \Box P sintetiza el operador
+     invariante de Casimir A^*_{\mathrm{shield}} \in Z(\rho_{\mathrm{MAC}}) que inicia directamente la Fase 3.
+
+3. FASE 3 — Medición Cuántica QND y Auditoría Soberana en Heyting \Omega_3:
+   Inicia en el observable central A^*_{\mathrm{shield}}. Evalúa la medición débil AAV:
+       A_w = \frac{\langle \phi_f | A^*_{\mathrm{shield}} | \phi_i \rangle}{\langle \phi_f | \phi_i \rangle}, \quad \mathrm{BackAction}_{\mathrm{dB}} = 20 \log_{10}(1 + \|[A^*, \rho]\|_F) \le 0.01 \text{ dB}.
+   Calcula la fidelidad de Uhlmann F(\rho, \sigma) y la distancia de Bures d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}.
+   La deducción intuicionista en el álgebra de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}
+   emite el reporte espectral maestro `NinjaShieldSpectrumReport`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma BNSE-A1] Torsión Homológica Nula en Smith:
+    d_i \in \{0, 1\}, \forall i \implies \mathrm{Tor}(H_k(\mathcal{K}; \mathbb{Z})) = 0 \land \beta_1 = 0.
+[Axioma BNSE-A2] Convergencia Diofantina de Bruno:
+    B(\omega) < \infty \implies \text{el mapa simpléctico es analíticamente conjugado a una rotación rígida}.
+[Axioma BNSE-A3] Rigidez Simpléctica de No-Exprimido:
+    c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)) \iff \pi r^2 \le \pi R^2.
+[Axioma BNSE-A4] Teorema de Löb en RSI³:
+    \Box(\Box P \to P) \to \Box P \implies \text{la autorreferencia de Nivel 3 no colapsa en inconsistencia lógica de Löb}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante BNSE-I1] Anulación del Primer Número de Betti: \beta_1 = 0.
+[Invariante BNSE-I2] Valuación de Krull Mínima: v(A) \ge 0.10.
+[Invariante BNSE-I3] Retroacción Cuántica QND: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante BNSE-I4] Tiempo de Estabilidad de Nekhoroshev: T_{\mathrm{Nekh}} \ge 1.0\times 10^6 ciclos.
+[Invariante BNSE-I5] Sellado Criptográfico HMAC-SHA256 de procedencia de estado en tiempo constante.
 """
 
 from __future__ import annotations
@@ -1364,7 +1399,7 @@ class BoolNovikovNinjaShieldEngine:
         rho: NDArray[np.complex128],
         sigma: NDArray[np.complex128],
     ) -> BuresIsometryReport:
-        """[FASE 3.2] Calcula la Fidelidad Cuántica de Uhlmann F(ρ, σ), la Distancia Geodésica de
+        r"""[FASE 3.2] Calcula la Fidelidad Cuántica de Uhlmann F(ρ, σ), la Distancia Geodésica de
         Bures-Wasserstein D_B(ρ, σ) y la Información Cuántica de Fisher (QFIM).
 
         Definición formal:

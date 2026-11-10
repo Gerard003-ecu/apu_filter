@@ -8,75 +8,64 @@ r"""
 ║            sobre el motor canónico v14.0.0 (Phase1WitnessCertificate / Phase2WitnessCertificate)     ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO TEÓRICO Y GOBERNANZA OODA TRIFÁSICA PASIVA QND (v14.0.0)
-──────────────────────────────────────────────────────────────
-El Soberano Agéntico Testigo consume el MOTOR v14.0.0 granular y añade la capa de
-gobernanza OODA. La estructura es de FASES ANIDADAS: el ÚLTIMO método de cada fase
-retorna exactamente el tipo que exige el PRIMER método de la fase siguiente.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre Testigo `BoolNovikovPseudoholomorphicWitnessAgent` gobierna
+ejecutivamente el ciclo OODA de atestación pasiva y certificación de coherencia sobre el motor
+espectral `BoolNovikovPseudoholomorphicWitnessEngine` (app/wisdom/bool_novikov_pseudoholomorphic_witness_engine.py).
+Supervisa la preservación de la coherencia cuántica sin demolición (QND) en tres fases anidadas
+conectadas por compuertas homomórficas \Phi_{12} y \Phi_{23}: audita la distancia de Bures-Wasserstein
+y la fidelidad de Uhlmann F(\rho, \sigma) \ge 0.95 en la MAC, verifica la preservación de capacidad
+simpléctica de Gromov en cilindros pseudoholomorfos de Floer, valida la no-resonancia de Poincaré-KAM
+y certifica la contracción hiperbólica de Newton-Kantorovich para la mónada de Kleisli en RSI³.
 
-  FASE I — OBSERVE (métodos `phase1_*`):
-    • phase1_observe_qnd_witness              : Medición Débil AAV vía engine v14
-                                                 (compatibilidad QND + back-action).
-    • phase1_observe_bures_uhlmann            : Fidelidad de Uhlmann + Distancia
-                                                 Bures-Wasserstein con sanitización PSD.
-    • phase1_observe_novikov_krull            : Valuación de Krull v(A) ≥ 0.10 vía
-                                                 engine v14 con filtrado de series nulas.
-    • phase1_emit_sovereign_certificate (ÚLTIMO MÉTODO)
-        ➔ retorna Phase1WitnessCertificate (certificado P1 firmado con HMAC-SHA256).
-        Este retorno es la ENTRADA OBLIGATORIA del primer método de FASE II.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE: Atestación de Bures-Wasserstein, QND y Valuación de Novikov:
+   Somete la matriz densidad \rho a proyección PSD canónica de Higham.
+   Evalúa la medición débil AAV A_w = \langle \psi_f | A | \psi_i \rangle / \langle \psi_f | \psi_i \rangle
+   asegurando perturbación de canal casi nula \|[A, \rho]\|_F \le 1.0\times 10^{-10} (\mathrm{BackAction} \le 0.01 \text{ dB}).
+   Calcula la distancia de Bures-Wasserstein d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}
+   y la valuación ultramétrica no arquimediana v(A) \ge 0.10 en el anillo universal \Lambda_{\mathrm{Nov}}.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2:
+     Consume `Phase1WitnessCertificate` emitido por el motor y valida la admisión en \Phi_{12}.
 
-  COMPUERTA HOMOMÓRFICA Φ₁₂ (`continue_to_phase2_gate`):
-    • Delega a `engine.phase2_open_from_phase1_certificate` (verificación HMAC P1).
-    • Añade chequeos de finitud: qnd.back_action_db, commutator_norm,
-      bures.fidelity, bures.bures_distance, novikov.krull_valuation (o is_null_series).
-    • ADMITE VETOED (anomalías pasan a FASE II para su atestación pasiva).
+2. FASE 2 — ORIENT: Cilindro Pseudoholomorfo de Floer y Mecánica Celeste de Poincaré:
+   Inicia en el contexto de trabajo de Fase 1.
+   Audita la solución u: \mathbb{R} \times S^1 \to M de la ecuación pseudoholomorfa de Cauchy-Riemann-Floer:
+       \bar{\partial}_{\mathcal{J}, H}(u) = \partial_s u + \mathcal{J}(\partial_t u - X_H(u)) = 0,
+   y la cota de rigidez simpléctica de Gromov c_G(B^{2d}(r)) \le c_G(Z^{2d}(R)).
+   En la dinámica de Poincaré-KAM, verifica los divisores diofantinos |\langle k, \omega \rangle| \ge \gamma / |k|_1^\tau
+   y la ausencia de caos homoclínico (|M(\tau)| \le 1.0\times 10^{-4}).
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3:
+     Consume `Phase2WitnessCertificate` emitido por el motor y valida la admisión en \Phi_{23}.
 
-  FASE II — ORIENT (métodos `phase2_*`):
-    • phase2_open_from_phase1_certificate (PRIMER MÉTODO)
-        ➔ consume P1 y abre `_Phase2WorkingContext`.
-    • phase2_orient_pseudoholomorphic_surface : residual CR-Floer por curvatura
-                                                 media discreta + Gromov non-squeezing.
-    • phase2_orient_poincare_kam              : Melnikov de separatriz pendular
-                                                 forzada + Lindstedt + KAM diofántico.
-    • phase2_emit_sovereign_certificate (ÚLTIMO MÉTODO)
-        ➔ retorna Phase2WitnessCertificate (P2 con chain link P1 ➔ P2 y HMAC-SHA256).
+3. FASE 3 — DECIDE & ACT: Mónada RSI³ de Banach-Kleisli y Veredicto Heyting \Omega_3:
+   Inicia en el contexto de trabajo de Fase 2.
+   Audita la contracción monádica de Kleisli T^3 con aceleración de Aitken-Steffensen y cota de Newton-Kantorovich:
+       h_K = L_0 \beta \eta \le 0.50 \land \mathrm{Lip}(T^3) < 1.0.
+   Deduce el veredicto en el álgebra intuicionista de Heyting \Omega_3 = \{\mathrm{COHERENT}, \mathrm{DEGRADED}, \mathrm{VETOED}\}.
+   Proyecta las métricas viscerales de impacto financiero y emite el estado soberano inmutable
+   `BoolNovikovPseudoholomorphicWitnessSovereignState`.
 
-  COMPUERTA HOMOMÓRFICA Φ₂₃ (`continue_to_phase3_gate`):
-    • Delega a `engine.phase3_open_from_phase2_certificate` (HMAC P2 + chain link + 64-hex).
-    • Exige |back-action QND| ≤ 1e-3 dB (pasividad silenciosa estricta).
-    • Exige finitud de CR residual, frecuencias celestes y valor de Melnikov.
+AXIOMAS FORMALES
+────────────────
+[Axioma PWA-A1] Atestación de Isometría Cuántica de Bures:
+    d_B(\rho, \sigma_{\mathrm{PSD}}) \le 1.0\times 10^{-6} \land F(\rho, \sigma) \ge 0.95 \implies \text{coherencia cuántica verificada}.
+[Axioma PWA-A2] No-Demolición Cuántica QND:
+    \|[A, \rho]\|_F \le 1.0\times 10^{-10} \implies \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Axioma PWA-A3] Rigidez Simpléctica de Gromov:
+    c_G(B^{2n}(r)) = \pi r^2 \le c_G(Z^{2n}(R)) = \pi R^2.
+[Axioma PWA-A4] Autenticación Criptográfica de Certificados de Fase:
+    compare\_digest(\mathrm{HMAC}_{\mathrm{calc}}, \mathrm{HMAC}_{\mathrm{cert}}) \equiv \mathrm{True} \text{ en compuertas } \Phi_{12} \text{ y } \Phi_{23}.
 
-  FASE III — DECIDE & ACT (métodos `phase3_*`):
-    • phase3_open_from_phase2_certificate (PRIMER MÉTODO) ➔ abre `_Phase3WorkingContext`.
-    • phase3_evaluate_rsi3_banach    : Mónada Kleisli T³ (engine v14); residual
-                                        Banach-Picard y jerk ciber-físico d³C/dt³.
-    • phase3_adjudicate_heyting_omega3: Adjudicación VETOED ≻ DEGRADED ≻ COHERENT
-                                        delegada al engine v14 (reglas unificadas).
-    • phase3_apply_visceral_functor_sem: Φ_sem tiers por veredicto + verificación
-                                        PASSIVE_SILENT (back-action observada).
-    • phase3_emit_sovereign_state (ÚLTIMO MÉTODO)
-        ➔ retorna BoolNovikovPseudoholomorphicWitnessSovereignState con Merkle root
-          SHA-256 + HMAC soberano + razón auditable de adjudicación.
-
-  Orquestador: `execute_sovereign_witness_cycle` encadena las 3 fases + 2 compuertas
-  con PARIDAD OBLIGATORIA contra `engine.execute_witness_audit` (default ON), que
-  garantiza coherencia entre el agente y el motor.
-
-CAMBIOS ESTRUCTURALES v13 → v14 (breaks documentados)
-─────────────────────────────────────────────────────
-1. Se reutilizan DIRECTAMENTE los tipos del motor:
-      Phase1WitnessCertificate  (alias: WitnessPhase1Certificate)
-      Phase2WitnessCertificate  (alias: WitnessPhase2Certificate)
-   No hay duplicación de definiciones.
-2. P1 incorpora `novikov_state` (v13 lo tenía en P2). Alineado con el motor v14.
-3. P2 deja de embeber P1; la relación se preserva vía `previous_chain_hash`.
-4. RSI³ se evalúa en FASE III (v13 la tenía en FASE II). Alineado con el motor v14.
-5. `timestamp_ns: int` → `timestamp: float` (segundos Unix).
-6. `state.phase2_cert.phase1_cert.qnd_report`  →  `state.phase1_cert.qnd_report`.
-7. `state.phase2_cert.cauchy_riemann_residual` →  `state.phase2_cert.surface_witness.cauchy_riemann_residual`.
-8. `state.phase2_cert.banach_contraction_lip`  →  `state.rsi3_state.banach_contraction_constant`.
-9. Compuertas verifican HMAC EN SERIO (v13 sólo verificaba longitudes).
-10. `is_passive_silent` se DERIVA de la back-action observada (v13 lo forzaba a True).
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante PWA-I1] Fidelidad de Uhlmann: F(\rho, \sigma_{\mathrm{PSD}}) \ge 0.95.
+[Invariante PWA-I2] Retroacción Cuántica: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante PWA-I3] Residuo de Floer: \|\bar{\partial}_{\mathcal{J},H}(u)\| \le 1.0\times 10^{-4}.
+[Invariante PWA-I4] Contracción de Kleisli: \mathrm{Lip}(T^3) \le 0.85975 < 1.0.
+[Invariante PWA-I5] Sellado Criptográfico HMAC-SHA256 verificado en cada compuerta de fase.
 """
 
 from __future__ import annotations

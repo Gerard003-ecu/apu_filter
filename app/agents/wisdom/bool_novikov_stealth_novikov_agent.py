@@ -10,36 +10,78 @@ r"""
 ║            continuación e inicio estructural (morfismo de Kleisli) de los métodos de la Fase k+1.     ║
 ╚═══════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO TEÓRICO — OODA TRIFÁSICO ANIDADO (POINCARÉ–KAM–NEKHOROSHEV & RSI³ KLEISLI)
-────────────────────────────────────────────────────────────────────────────────
-Fase 1  OBSERVE (`StealthNovikovPhase1Observer`)
-        • Geometría de información cuántica: distancia de Bures–Wasserstein genuina entre el estado
-          hermítico crudo y la proyección PSD de Higham, fidelidad de Uhlmann, entropía de von Neumann
-          S_vN(ρ) = -Tr(ρ ln ρ) y traza de la Métrica de Información Cuántica de Fisher I_QFI(ρ).
-        • Cierre formal F1 / Apertura F2 (`handoff_isometry_to_novikov_orientation`):
-          Integra el invariante integral de Poincaré–Cartan ϖ_PC = ∮ p dq - H dt sobre el espectro de ρ
-          y evalúa la contracción base de Nivel 1 (T₁) de RSI³, entregando el morfismo Φ₁₂ que inicia
-          los métodos de orientación celeste de la Fase 2.
+DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO MOTOR ESPECTRAL
+──────────────────────────────────────────────────────────────────────────
+El Soberano Agéntico de Calibre `BoolNovikovStealthNovikovAgent` gobierna ejecutivamente
+el ciclo OODA trifásico mimetizado sobre el motor espectral `BoolNovikovStealthNovikovEngine`
+(app/wisdom/bool_novikov_stealth_novikov_engine.py). Su función operacional radica en orquestar
+el tránsito de información cuántica y celestomecánica entre tres fases anidadas acopladas por
+compuertas homomórficas \Phi_{12} y \Phi_{23} firmadas criptográficamente vía HMAC-SHA256.
+Supervisa la preservación de la isometría de Bures-Wasserstein en la observación de la MAC,
+la elevación al toro simpléctico de Poincaré-Cartan, la estabilidad secular de Kolmogorov-Arnold-Moser
+frente a difusión de Arnold y resonancias de Chirikov, y la deducción de verdad en el topos intuicionista
+de Heyting \Omega_3 sellada en una raíz de Merkle binaria con impacto en métricas viscerales (\mathrm{WACC}).
 
-Fase 2  ORIENT (`StealthNovikovPhase2Orientor` + Compuerta Homomórfica Φ₁₂)
-        • Inicia directamente desde `handoff_isometry_to_novikov_orientation` (último método de Fase 1).
-        • Mecánica Celeste de Poincaré–KAM–Nekhoroshev: audita el anillo Λ_Nov, el criterio de
-          superposición de resonancias no lineales de Chirikov K_Chirikov (difusión de Arnold),
-          los determinantes de no-degeneración de Kolmogorov y Arnold, el tiempo exponencial de
-          Nekhoroshev T_Nekh, la deriva simpléctica de 4.º orden de Yoshida y la fase de Berry SU(N).
-        • Automejora Recursiva Nivel 2 (T₂): audita el radio espectral de Fréchet ρ(DT₁) y el parámetro
-          de convergencia cuadrática de Newton–Kantorovich h_K = L β η ≤ 1/2.
-        • Cierre formal F2 / Apertura F3 (`handoff_spectrum_to_heyting_adjudication`):
-          Acopla el flujo hamiltoniano de Poincaré–Floer X_H, la holonomía de Berry y el endofuntor T₂
-          en el morfismo Φ₂₃ que inicia la adjudicación en el Topos de Heyting Ω₃ de la Fase 3.
+MARCO TEÓRICO, FÍSICA Y FORMALISMO MATEMÁTICO
+─────────────────────────────────────────────
+1. FASE 1 — OBSERVE (`StealthNovikovPhase1Observer`):
+   La ingesta de la matriz de densidad \rho_{\mathrm{MAC}} se somete a proyección espectral de Higham
+   para garantizar positividad semidefinida \rho \succeq 0 y traza unitaria \operatorname{Tr}(\rho) = 1.
+   La fidelidad cuántica de Uhlmann-Jozsa entre el estado observado \rho_{\mathrm{raw}} y la referencia PSD \sigma_{\mathrm{ref}}:
+       F(\rho, \sigma) = \left[ \operatorname{Tr} \sqrt{\sqrt{\rho} \sigma \sqrt{\rho}} \right]^2 \in [0, 1],
+   determina la distancia geodésica de Bures-Wasserstein:
+       d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}} + |\operatorname{Tr}(\rho) - 1| + \frac{1}{2} \|\rho - \rho^\dagger\|_F.
+   Se evalúan la entropía de von Neumann S_{\mathrm{vN}}(\rho) = -\operatorname{Tr}(\rho \ln \rho),
+   la traza de la Información Cuántica de Fisher (QFI) \mathcal{I}_Q(\rho) = 2 \sum_{i<j} \frac{(\lambda_i - \lambda_j)^2}{\lambda_i + \lambda_j},
+   y la semilla de acción del invariante integral de Poincaré-Cartan \varpi_{\mathrm{PC}} = \frac{1 + S_{\mathrm{vN}}(\rho)}{2\pi}.
+   • Compuerta \Phi_{12} y Morfismo de Clausura F1 / Apertura F2 (`handoff_isometry_to_novikov_orientation`):
+     Transporta la isometría de Bures y establece la contracción de Nivel 1 de RSI³:
+         \alpha_1 = 0.95 \exp(-0.01 d_B), \quad \varpi_{\mathrm{PC}} = \varpi_{\mathrm{seed}} \frac{F(\rho, \sigma)}{1 + d_B(\rho, \sigma)},
+     inaugurando la orientación celeste de la Fase 2.
 
-Fase 3  DECIDE & ACT (`StealthNovikovPhase3Decider` + Compuerta Φ₂₃ + `BoolNovikovStealthNovikovAgent`)
-        • Inicia directamente desde `handoff_spectrum_to_heyting_adjudication` (último método de Fase 2).
-        • Lógica interna del Topos Intuicionista de Heyting Ω₃: conjunción (∧), disyunción (∨) e
-          implicación relativa (a ⇒ b) sobre las proposiciones de Poincaré–KAM, QND y RSI³.
-        • Automejora Recursiva Nivel 3 (T₃ = μ ∘ T₂ ∘ T₁): certifica el condicionamiento métrico de
-          Lyapunov–Banach, acota el tensor Jerk ciber-físico d³C/dt³, aplica el funtor visceral Φ_sem
-          y sella el Árbol de Merkle Binario SHA-256 con pasaporte criptográfico HMAC.
+2. FASE 2 — ORIENT (`StealthNovikovPhase2Orientor` + Compuerta Homomórfica \Phi_{12}):
+   Inicia en el objeto `StealthNovikovPhase12Morphism`.
+   Ejecuta la auditoría en el anillo de Novikov \Lambda_{\mathrm{Nov}} con valuación v(A) \ge 0.10 y norma \|A\|_{\mathrm{Nov}} = \exp(-v(A)).
+   En el espacio de fases celeste (J, \theta) \in T^* \mathbb{T}^d, audita el hamiltoniano planetario:
+       H(J, \theta) = H_0(J) + \varepsilon H_1(J, \theta) = \frac{1}{2} \langle J, \mathcal{T} J \rangle + \langle \alpha_{\mathrm{irr}}, J \rangle + \varepsilon H_1(J, \theta).
+   Verifica los determinantes de no-degeneración de Kolmogorov \det(\partial^2 H_0 / \partial J^2) \neq 0 e isoenergético de Arnold.
+   El parámetro de solapamiento de resonancias de Chirikov audita el límite estocástico:
+       K_{\mathrm{Chirikov}} = \frac{2\sqrt{\varepsilon |\det \mathcal{T}|^{1/d}}}{\min_{k \neq 0} |\langle k, \omega \rangle| \cdot |k|_1^\tau} < 1.0.
+   El tiempo de confinamiento de Nekhoroshev T_{\mathrm{Nekh}} \ge 1.0\times 10^6 ciclos asegura ausencia de difusión secular de Arnold.
+   El integrador simpléctico de 4.º orden de Yoshida y la serie de Lie-Birkhoff-Deprit acotan el error simpléctico.
+   • Compuerta \Phi_{23} y Morfismo de Clausura F2 / Apertura F3 (`handoff_spectrum_to_heyting_adjudication`):
+     Emite `StealthNovikovPhase23Morphism`, acoplando la holonomía de Berry \gamma_{\mathrm{Berry}}, el radio espectral
+     de Fréchet de Nivel 2 \rho(DT_1) = \alpha^2 y la cota de Newton-Kantorovich h_K \le 0.50 hacia la Fase 3.
+
+3. FASE 3 — DECIDE & ACT (`StealthNovikovPhase3Decider` + Compuerta \Phi_{23}):
+   Inicia en el morfismo `StealthNovikovPhase23Morphism`.
+   Aplica la lógica intuicionista interna del Topos de Heyting \Omega_3:
+       (a \wedge b) = \max(a, b), \quad (a \vee b) = \min(a, b), \quad (a \Rightarrow b) = \begin{cases} \mathrm{COHERENT} & \text{si } a \ge b \\ b & \text{en otro caso} \end{cases},
+   sobre las proposiciones de estabilidad KAM, no-demolición QND y convergencia cuadrática de Newton-Kantorovich.
+   El funtor semántico visceral \Phi_{\mathrm{sem}}: \Omega_3 \times \mathrm{KAM} \times \mathrm{Kl}(\mathbb{T}^3) \to \mathbb{R}^3 \times \mathrm{Status}
+   proyecta los invariantes matemáticos a indicadores ejecutivos:
+       \mathrm{WACC}_{\mathrm{protection}} = 15.0\% \cdot \mathcal{S}_{\mathrm{visceral}}, \quad \mathrm{NetLiquidity} = 11.5\% \cdot \mathcal{S}_{\mathrm{visceral}}, \quad \mathrm{KV}_{\mathrm{compression}} = 86.4\% \cdot \mathcal{S}_{\mathrm{visceral}}.
+   Construye un Árbol de Merkle Binario criptográfico SHA-256 sobre las cuatro hojas OODA (Observe, Orient, RSI³, Sovereign),
+   emitiendo el estado soberano inmutable `StealthNovikovSovereignState`.
+
+AXIOMAS FORMALES
+────────────────
+[Axioma SNE-A1] Invarianza Isométrica en Observación:
+    d_B(\rho, \sigma_{\mathrm{PSD}}) \le 1.0\times 10^{-6} \land |\operatorname{Tr}(\rho) - 1| \le 1.0\times 10^{-10} \implies \text{admisión estricta en compuerta } \Phi_{12}.
+[Axioma SNE-A2] No-Superposición de Islas Resonantes de Chirikov:
+    K_{\mathrm{Chirikov}} < 1.0 \implies \text{difusión de Arnold confinada en toros KAM invariantes}.
+[Axioma SNE-A3] Certificación de Convergencia Cuadrática de Kantorovich:
+    h_K = L_{\mathrm{Fréchet}} \beta_{\mathrm{inv}} \eta_{\mathrm{step}} \le 0.50 \implies \text{existencia y unicidad del atractor monádico de Kleisli } T^3.
+[Axioma SNE-A4] Inmutabilidad Criptográfica OODA:
+    \mathrm{MerkleRoot} = \mathcal{H}_{\mathrm{binary}}(\mathrm{Leaf}_1, \mathrm{Leaf}_2, \mathrm{Leaf}_3, \mathrm{Leaf}_4) \text{ con firma HMAC en tiempo constante}.
+
+INVARIANTES DE ESTADO
+─────────────────────
+[Invariante SNE-I1] Invariancia de Calibre CAMOUFLAGE_GAUGE_INVARIANT preservada en estado COHERENT.
+[Invariante SNE-I2] Retroacción Cuántica Acotada: \mathrm{BackAction}_{\mathrm{dB}} \le 0.01 \text{ dB}.
+[Invariante SNE-I3] Condición Diofantina KAM Satisfecha: \mathrm{diophantine\_holds} \equiv \mathrm{True}.
+[Invariante SNE-I4] Módulo de Lipschitz Monádico: \mathrm{Lip}(T^3) < 1.0.
+[Invariante SNE-I5] Verificación HMAC-SHA256 en tiempo constante en compuertas \Phi_{12} y \Phi_{23}.
 """
 
 from __future__ import annotations
