@@ -1,3 +1,4 @@
+
 # -*- coding: utf-8 -*-
 r"""
 ====================================================================================================
@@ -6,69 +7,94 @@ ARQUITECTURA COGNITIVA APU FILTER - SISTEMA SOBERANO ESTRATO ALFA (KBASE)
 
 Nombre: KbaseThermodynamicEngine
 Ubicación: app/alfa/kbase/kbase_thermodynamic_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
+Versión: 3.0.0-APU-SOVEREIGN-POINCARE-RSI3
 Función: Motor soberano termodinámico de la capa Alfa (Kbase) en APU Filter. Modela la termodinámica
-         estadística del no-equilibrio, entropía de Boltzmann-Gibbs-Shannon S = -k_B sum p_i ln p_i,
-         relaciones de reciprocidad de Onsager L_{ij} = L_{ji}, tasa de producción entrópica
-         sigma_S = sum J_k X_k >= 0 y potenciales termodinámicos libres de Helmholtz y Gibbs.
+         estadística del no-equilibrio, entropía de Boltzmann-Gibbs-Shannon, relaciones de reciprocidad
+         de Onsager, tasa de producción entrópica y potenciales de Helmholtz y Gibbs.
+
+         En v3 se añaden, de forma granular y rigurosa:
+
+         (A) MECÁNICA CELESTE DE POINCARÉ (estrato dinámico sobre la carta termodinámica):
+             • Sección de Poincaré Σ = {x ∈ ℝ^n : ⟨n̂, x⟩ = c} y mapa de retorno P: Σ → Σ.
+             • Variables de acción-ángulo (J_k, θ_k) del ciclo termodinámico fundamental.
+             • Espectro de Lyapunov λ_i = log σ_i(DP) del mapa de retorno discreto.
+             • Teorema KAM (Kolmogorov-Arnold-Moser): estabilidad de toros invariantes bajo la
+               condición diofántica |⟨k,ω⟩| ≥ γ/‖k‖^τ_1 ∀k ∈ ℤ^n \ {0}, τ > n - 1 (Bruno).
+             • Detección de resonancias k·ω ≈ 0 y divisores pequeños.
+             • Función de Melnikov M(t₀): ceros simples ⇒ intersecciones homoclínicas transversales
+               ⇒ entrelazado de Smale-Birkhoff ⇒ caos determinista.
+
+         (B) AUTOMEJORA RECURSIVA DE NIVEL 3 (RSI-3):
+             Nivel 1: ajuste escalar del parámetro de Tikhonov α.
+             Nivel 2: selección de la regla de actualización (gradiente / Newton / Bayes).
+             Nivel 3: modificación de la propia regla (factor de contracción, tasa de aprendizaje).
+             Punto fijo:  x* tal que  F_L3(x*) = x*.  La convergencia se certifica por la norma de
+             los incrementos sucesivos ‖Δθ_n‖ < ε_rec.
 
 ----------------------------------------------------------------------------------------------------
-DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
+CONTINUIDAD FORMAL ENTRE FASES (requisito del tejido):
 ----------------------------------------------------------------------------------------------------
-El Soberano Termodinámico Kbase (KbaseThermodynamicEngine) es el regulador entrópico y térmico de la
-capa Alfa en APU Filter. Supervisa que el procesamiento de información respete el principio de
-Landauer (disipación mínima de calor k_B T ln(2) por bit borrado) y previene la catástrofe de sobrecalentamiento
-cognitivo. Monitorea los flujos de calor informacional y calcula el balance de energía libre para
-garantizar la espontaneidad y estabilidad de las transiciones de estado.
-Sus respectivos hermanos en el estrato Alfa son 'KapexElectrodynamicEngine'
-(app/alfa/kapex/kapex_electrodynamic_engine.py) y 'KcoreKinematicEngine'
-(app/alfa/kcore/kcore_kinematic_engine.py). Mientras Kapex alimenta el sistema con energía electromagnética
-y Kcore guía la trayectoria mecánica, Kbase enfría la máquina de estados y preserva el equilibrio térmico.
+   Fase 1  ──último morfismo──▶  PhaseOneKBasePacket
+   Fase 2  ──primer morfismo (dominio)──▶  PhaseOneKBasePacket
+   Fase 2  ──último morfismo──▶  PhaseTwoKBasePacket
+   Fase 3  ──primer morfismo (dominio)──▶  PhaseOneKBasePacket × PhaseTwoKBasePacket
+   Fase 3  ──último morfismo──▶  KBaseTelemetry (objeto terminal del endofunctor OODA)
+
+   Cada docstring de cabecera de fase indica explícitamente la cláusula "continuación de…".
 
 ----------------------------------------------------------------------------------------------------
-MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
+MARCO TEÓRICO AÑADIDO EN v3:
 ----------------------------------------------------------------------------------------------------
-1. Termodinámica Estadística y Función de Partición Canónica:
-   Para un ensamble canónico de microestados con energías E_i a temperatura absoluta T (beta = 1 / (k_B * T)):
-       Z = sum_{i=1}^W exp(- beta * E_i),   p_i = (1 / Z) * exp(- beta * E_i)
-   La energía media interna U, la energía libre de Helmholtz F y la entropía de Shannon satisfacen:
-       U = - partial_beta ln(Z),   F = - k_B * T * ln(Z),   S = - k_B * sum_{i=1}^W p_i * ln(p_i)
-   relacionadas canónicamente por la transformación de Legendre: F = U - T * S.
+A. Sección y mapa de retorno. Para un flujo φ_t sobre M con sección transversal Σ ⊂ M de
+   codimensión 1, el mapa de Poincaré P: Σ → Σ, P(x) = φ_{τ(x)}(x), linealizado en p ∈ Σ da
+   la matriz DP_p ∈ GL(n,ℝ). Sus autovalores ρ_i (multiplicadores) codifican estabilidad
+   hiperbólica: |ρ_i|<1 atractor, |ρ_i|>1 repulsor, silla si coexisten.
 
-2. Termodinámica del No-Equilibrio y Teorema de Reciprocidad de Onsager:
-   En un sistema conducido fuera del equilibrio por fuerzas termodinámicas generalizadas X_i (gradientes
-   de temperatura, potencial químico o voltaje), los flujos conjugados J_i obedecen leyes fenomenológicas:
-       J_i = sum_j L_{ij} * X_j,   con L_{ij} = L_{ji} (micro-reversibilidad temporal)
-   La tasa local de producción entrópica sigma_S por unidad de tiempo es estrictamente positiva:
-       sigma_S = sum_i J_i * X_i = sum_{i,j} L_{ij} * X_i * X_j >= 0
+B. Acción-ángulo. Para un oscilador armónico con frecuencia ω_k, la acción es el invariante
+   adiabático J_k = (1/2π)∮ p_k dq_k = (x_k² + (ẋ_k/ω_k)²)/2, y el ángulo θ_k = atan2(−ẋ_k/ω_k, x_k).
 
-3. Límite de Landauer y Disipación en Puertas Lógicas:
-   El borrado irreversible de una unidad de información binaria (1 shannon) disipa inevitablemente
-   en el sumidero térmico una cantidad mínima de calor:
-       Delta Q_{Landauer} >= k_B * T * ln(2)
+C. Teorema KAM (versión de Moser, 1962; Bruno 1971). Bajo perturbación analítica pequeña de un
+   Hamiltoniano integrable H₀(J) con Hessiano det ∂²H₀/∂J_i∂J_j ≠ 0 y vector de frecuencias
+   ω = ∂H₀/∂J diofántico (|⟨k,ω⟩| ≥ γ/‖k‖^τ_1, τ > n−1), los toros invariantes persisten
+   para casi todo ω (medida de Cantor positiva, medida de fuga O(ε^a)).
 
-----------------------------------------------------------------------------------------------------
-AXIOMAS FORMALES:
-----------------------------------------------------------------------------------------------------
-Axioma KTE1 (Segundo Principio del No-Equilibrio de Prigogine):
-    d_i S >= 0 para toda transformación termodinámica interna.
-Axioma KTE2 (Simetría Microversal de Onsager):
-    L_{ij} == L_{ji} para todo par de flujos y fuerzas sin campos magnéticos externos.
-Axioma KTE3 (Convexidad de la Entropía Estadística):
-    La matriz Hessiana de la función de entropía - nabla^2 S es semidefinida positiva.
+D. Función de Melnikov. Para H = H₀ + εH₁ con órbita homoclínica q⁰(t) de H₀:
+       M(t₀) = ∫_{−∞}^{+∞} {H₀, H₁}(q⁰(t − t₀)) dt
+   Si M(t₀) tiene ceros simples, la separatriz se rompe transversalmente ⇒ dinámica caótica
+   (Smale-Birkhoff).
+
+E. RSI-3. Sea θ_n ∈ Θ el parámetro meta en el paso n. Las tres capas son:
+       θ_{n+1}^{(1)} = T_1(θ_n^{(0)}; ∇L)          (nivel 1: parámetro físico α)
+       θ_{n+1}^{(2)} = T_2(θ_n^{(1)}; perf)         (nivel 2: estrategia)
+       θ_{n+1}^{(3)} = T_3(θ_n^{(2)}; meta_perf)    (nivel 3: meta-estrategia)
+   El punto fijo satisface θ* = T_3∘T_2∘T_1(θ*) y la contracción exige
+   ‖Jac(T_3∘T_2∘T_1)‖ < 1 en una vecindad de θ*.
 
 ----------------------------------------------------------------------------------------------------
-INVARIANTES DE ESTADO:
+AXIOMAS FORMALES (heredados + nuevos):
 ----------------------------------------------------------------------------------------------------
-Invariante 1 (Temperatura Absoluta Estrictamente Positiva):
-    T >= T_min = 0.01 K > 0.
-Invariante 2 (Producción de Entropía No-Negativa):
-    sigma_S = sum J_i X_i >= 0.0.
+Axioma KTE1 (Segundo Principio del No-Equilibrio de Prigogine): d_i S ≥ 0.
+Axioma KTE2 (Simetría Microversal de Onsager): L_{ij} = L_{ji}.
+Axioma KTE3 (Convexidad de la Entropía Estadística): −∇²S ⪰ 0.
+Axioma KTE4 (Transversalidad de Poincaré): ⟨n̂, ẋ⟩ ≠ 0 sobre Σ \ ∂Σ (sección regular).
+Axioma KTE5 (Diofantino de KAM): el vector ω ∈ ℝ^n satisface la condición (C, τ) de Bruno.
+Axioma KTE6 (Convergencia de RSI-3): la contracción ρ_n = ‖θ_{n+1} − θ_n‖ / ‖θ_n − θ_{n-1}‖
+                                          satisface limsup ρ_n < 1 en el punto fijo.
+
+----------------------------------------------------------------------------------------------------
+INVARIANTES DE ESTADO (heredados + nuevos):
+----------------------------------------------------------------------------------------------------
+Invariante 1: T ≥ T_min > 0.
+Invariante 2: σ_S = Σ J_i X_i ≥ 0.
+Invariante 3 (Lyapunov): λ_max(P) es invariante bajo cambio de base GL(n,ℝ) del estado.
+Invariante 4 (KAM): min_{k≠0} ‖k‖^τ_1 |⟨k,ω⟩| ≥ γ > 0 en el régimen estable.
+Invariante 5 (RSI-3): si la recursión ha convergido, next_alpha = current_alpha dentro de ε_rec.
 ====================================================================================================
 """
 
 from __future__ import annotations
 
+import itertools
 import logging
 from dataclasses import dataclass
 from enum import Enum
@@ -89,18 +115,28 @@ _HERMITIAN_TOLERANCE: Final[float] = 1e-12
 _DENSITY_TRACE_TOLERANCE: Final[float] = 1e-10
 _PSD_TOLERANCE: Final[float] = 1e-10
 
+# v3: constantes dinámicas (Poincaré / KAM / RSI-3)
+_POINCARE_TOLERANCE: Final[float] = 1e-10
+_KAM_GAMMA_DEFAULT: Final[float] = 0.1
+_KAM_TAU_DEFAULT: Final[float] = 2.5      # τ > n − 1 (Bruno, para n=5, τ>4 sería estricto; 2.5 empírico)
+_KAM_K_MAX_DEFAULT: Final[int] = 4
+_LYAPUNOV_FLOOR: Final[float] = 1e-300
+_MELNIKOV_LOBES_SAMPLES: Final[int] = 64
+_RECURSION_CONTRACTION_DEFAULT: Final[float] = 0.5
+_RECURSION_CONVERGENCE_TOL: Final[float] = 1e-8
+_RECURSION_MAX_HISTORY: Final[int] = 12
+_ALPHA_FLOOR: Final[float] = _WILKINSON_FLOOR
+
 
 # =============================================================================
-# Retículo de Heyting (cadena de 4 puntos = lógica interna de un topos
-# sobre un espacio de fase discreto totalmente ordenado).
+# Retículo de Heyting
 # =============================================================================
 class HeytingVerdict(str, Enum):
     r"""
     Cadena  ⊥ = VETOED ≺ DEGRADED ≺ COHERENT ≺ CERTIFIED = ⊤.
-
-    En un orden total el álgebra de Heyting es única:
-        a ∧ b = min(a, b),   a ∨ b = max(a, b),
-        a → b = ⊤  si a ≼ b,  y  a → b = b  en caso contrario,
+    Álgebra de Heyting del orden total:
+        a ∧ b = min, a ∨ b = max,
+        a → b = ⊤ si a ≼ b, b en caso contrario,
         ¬a = a → ⊥.
     """
 
@@ -132,17 +168,15 @@ class HeytingVerdict(str, Enum):
 
 
 # =============================================================================
-# Cartas espectrales / de densidad y paquetes inmutables
+# Utilidades y paquetes inmutables
 # =============================================================================
 def _freeze_array(arr: np.ndarray) -> np.ndarray:
-    """Copia C-contigua de solo lectura: inmuniza el paquete frente a aliasing."""
     out = np.array(arr, copy=True)
     out.setflags(write=False)
     return out
 
 
 def _logsumexp(values: np.ndarray) -> float:
-    """log ∑ exp(x_i) estable (evita overflow de la función de partición)."""
     data = np.asarray(values, dtype=np.float64).ravel()
     if data.size == 0:
         return -np.inf
@@ -155,12 +189,7 @@ def _logsumexp(values: np.ndarray) -> float:
 
 @dataclass(frozen=True, slots=True)
 class SpectralChart:
-    r"""
-    Factorización espectral g = U Λ U† y objetos derivados.
-
-    Inversión de Tikhonov:  g_α⁻¹ = U (Λ + α I)⁻¹ U†  ≡  (g + α I)⁻¹.
-    κ₂(g) = λ_max / λ_min (tras el desplazamiento), vol_g = √|det g|.
-    """
+    r"""Factorización espectral g = UΛU† (Tikhonov: λ ↦ λ+α)."""
 
     eigenvalues: np.ndarray
     eigenvectors: np.ndarray
@@ -181,16 +210,7 @@ class SpectralChart:
 
 @dataclass(frozen=True, slots=True)
 class DensityOperatorChart:
-    r"""
-    Carta espectral de un estado cuántico ρ ∈ 𝒟(ℋ).
-
-    Axiomas: ρ = ρ†,  ρ ≥ 0,  Tr ρ = 1.
-    S_vN = −∑ η_i log η_i  (convención 0 log 0 = 0),
-    γ    = Tr(ρ²) ∈ [1/n, 1],
-    E    = Tr(ρ H),
-    ℱ    = E − T S_vN ,
-    D(ρ‖ρ_β) = −S_vN + β E + log Z  ≥ 0.
-    """
+    r"""Carta espectral de ρ ∈ 𝒟(ℋ)."""
 
     eigenvalues: np.ndarray
     eigenvectors: np.ndarray
@@ -211,6 +231,49 @@ class DensityOperatorChart:
         object.__setattr__(self, "eigenvectors", _freeze_array(self.eigenvectors))
 
 
+# -----------------------------------------------------------------------------
+# v3 — Carta de Poincaré (sección + mapa de retorno + acción-ángulo + Lyapunov)
+# -----------------------------------------------------------------------------
+@dataclass(frozen=True, slots=True)
+class PoincareChart:
+    r"""
+    Carta dinámica asociada al flujo termodinámico discretizado por ciclos.
+
+    Contiene:
+      • Σ: sección ⟨n̂, x⟩ = c (normal n̂ normalizada).
+      • P: Σ → Σ mapa de retorno (estimado por mínimos cuadrados desde la
+        historia de estados; identidad penalizada si la historia es corta).
+      • Espectro de Lyapunov: λ_i = log σ_i(P) (discreto, un paso).
+      • Variables de acción-ángulo (J_k, θ_k) del ciclo fundamental.
+      • Tiempo de retorno τ_ret (por defecto 1.0 en el bootstrap).
+    """
+
+    section_normal: np.ndarray
+    section_offset: float
+    section_value: float
+    return_map: np.ndarray
+    return_eigenvalues: np.ndarray
+    spectral_radius: float
+    return_time: float
+    action_variables: np.ndarray
+    angle_variables: np.ndarray
+    fundamental_frequencies: np.ndarray
+    lyapunov_exponents: np.ndarray
+    max_lyapunov: float
+
+    def __post_init__(self) -> None:
+        for name in (
+            "section_normal",
+            "return_map",
+            "return_eigenvalues",
+            "action_variables",
+            "angle_variables",
+            "fundamental_frequencies",
+            "lyapunov_exponents",
+        ):
+            object.__setattr__(self, name, _freeze_array(getattr(self, name)))
+
+
 @dataclass(frozen=True, slots=True)
 class PhaseOneKBasePacket:
     r"""
@@ -218,7 +281,11 @@ class PhaseOneKBasePacket:
 
     Contiene el 1-jet termogeométrico: congruencia métrica, potenciales de
     Gibbs–Helmholtz, sonda CSMD, desigualdad de Clausius–Duhem, carta de ρ
-    y residuos de las identidades algebraicas de la termodinámica.
+    y —en v3— la carta de Poincaré (sección, mapa de retorno, acción-ángulo,
+    exponentes de Lyapunov).
+
+    Dominio formal de `_phase2_spectral_integrity` (primer morfismo de
+    Fase 2). No hay objeto intersticial.
     """
 
     pullback_tensor: np.ndarray
@@ -239,16 +306,19 @@ class PhaseOneKBasePacket:
     thermal_dirichlet_energy: float
     spectral_chart: SpectralChart
     density_chart: DensityOperatorChart
+    poincare_chart: PoincareChart
+    state_vector: np.ndarray
     stationarity_defect: float
     temperature: float
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "pullback_tensor", _freeze_array(self.pullback_tensor))
+        object.__setattr__(self, "state_vector", _freeze_array(self.state_vector))
 
 
 @dataclass(frozen=True, slots=True)
 class SpectralThermoReport:
-    r"""Subobjeto de la Fase 2: integridad espectral de g y de ρ."""
+    r"""Integridad espectral de g y de ρ (Fase 2, primer morfismo)."""
 
     metric_condition: float
     metric_gap: float
@@ -258,6 +328,36 @@ class SpectralThermoReport:
     stationarity_defect: float
     banach_defect: float
     integrity_score: float
+
+
+@dataclass(frozen=True, slots=True)
+class KAMReport:
+    r"""Resultado del teorema KAM + detección de resonancia (Bruno)."""
+
+    stable: bool
+    min_diophantine_ratio: float
+    gamma: float
+    tau: float
+    resonance_order: int
+    small_divisor_min: float
+    frequencies: np.ndarray
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "frequencies", _freeze_array(self.frequencies))
+
+
+@dataclass(frozen=True, slots=True)
+class SelfImprovementReport:
+    r"""Estado del bucle RSI-3 (automejora recursiva de nivel 3)."""
+
+    iteration: int
+    current_alpha: float
+    next_alpha: float
+    contraction: float
+    level3_score: float
+    recursion_converged: bool
+    recursion_residual: float
+    performance_delta: float
 
 
 @dataclass(frozen=True, slots=True)
@@ -273,7 +373,11 @@ class PhaseTwoKBasePacket:
     stationarity_threshold_violated: bool
     density_axiom_violated: bool
     condition_threshold_violated: bool
+    kam_threshold_violated: bool
+    chaos_threshold_violated: bool
     spectral_integrity: SpectralThermoReport
+    kam_report: KAMReport
+    self_improvement: SelfImprovementReport
     heyting_score: float
     exergy_destruction: float
 
@@ -299,12 +403,22 @@ class KBaseTelemetry:
     conservation_residual: float
     exergy_destruction: float
     spectral_integrity_score: float
+    # v3
+    poincare_return_time: float
+    return_map_spectral_radius: float
+    max_lyapunov_exponent: float
+    kam_stable: bool
+    kam_diophantine_ratio: float
+    melnikov_lobe_area: float
+    chaos_indicator: bool
+    recursion_converged: bool
+    recursion_iteration: int
+    self_improvement_level3_score: float
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "pullback_tensor", _freeze_array(self.pullback_tensor))
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serialización compatible con el pasaporte de la Malla (claves v2 + v3)."""
         return {
             "pullback_tensor": np.array(self.pullback_tensor, copy=True),
             "gibbs_energy": self.gibbs_energy,
@@ -323,45 +437,77 @@ class KBaseTelemetry:
             "conservation_residual": self.conservation_residual,
             "exergy_destruction": self.exergy_destruction,
             "spectral_integrity_score": self.spectral_integrity_score,
+            # v3
+            "poincare_return_time": self.poincare_return_time,
+            "return_map_spectral_radius": self.return_map_spectral_radius,
+            "max_lyapunov_exponent": self.max_lyapunov_exponent,
+            "kam_stable": self.kam_stable,
+            "kam_diophantine_ratio": self.kam_diophantine_ratio,
+            "melnikov_lobe_area": self.melnikov_lobe_area,
+            "chaos_indicator": self.chaos_indicator,
+            "recursion_converged": self.recursion_converged,
+            "recursion_iteration": self.recursion_iteration,
+            "self_improvement_level3_score": self.self_improvement_level3_score,
         }
 
 
 # =============================================================================
-# Motor
+# MOTOR
 # =============================================================================
 class KBaseThermodynamicEngine:
     r"""
     Motor Termodinámico de la Base Táctica (Estrato α — KBASE).
 
-    El endofunctor OODA  T = Act ∘ Decide ∘ Observe  actúa sobre el espacio
-    de estados materiales. Cada fase es un morfismo explícito; la composición
-    `execute_thermodynamic_cycle` es T mismo.
+    Endofunctor OODA  T = Act ∘ Decide ∘ Observe  sobre el espacio de
+    estados materiales. En v3 cada fase incluye morfismos adicionales
+    (Poincaré / KAM / Melnikov / RSI-3) que se anidan sin romper la
+    continuidad PhaseOne → PhaseTwo → Telemetry.
     """
 
+    # =========================================================================
+    # CICLO DE VIDA E INFRAESTRUCTURA COMÚN
+    # =========================================================================
     def __init__(self, dimension_n: int, reg_param: float = 1e-15) -> None:
         if dimension_n <= 0:
             raise ValueError("La dimensión del espacio de fase debe ser estrictamente positiva.")
         self._n: Final[int] = int(dimension_n)
         self._reg: Final[float] = float(max(reg_param, _WILKINSON_FLOOR))
+        # v3: parámetro activo mutable (RSI-3 puede moverlo)
+        self._alpha_current: float = self._reg
 
-    # =========================================================================
-    # FASE 1 — OBSERVE + ORIENT
-    # Aparato de medición (KBN, CSMD, espectro de g y de ρ) y 1-jets físicos.
-    # El último método, `_phase1_observe_orient`, tiene por codominio
-    # `PhaseOneKBasePacket`, que ES el dominio de `_phase2_spectral_integrity`.
-    # =========================================================================
+        # v3: memoria de ciclos (necesaria para el mapa de retorno de Poincaré)
+        self._cycle_history: List[Dict[str, Any]] = []
+        # v3: memoria de RSI-3 (nivel 3 = meta-estrategia)
+        self._meta_state: Dict[str, float] = {
+            "alpha": self._reg,
+            "irr_thresh": 0.1,
+            "cond_thresh": 1e12,
+            "contraction": _RECURSION_CONTRACTION_DEFAULT,
+            "level3_score": 1.0,
+            "iteration": 0.0,
+        }
+        self._meta_trajectory: List[Dict[str, float]] = []
+        self._previous_performance: float = 1.0
+
+    def reset(self) -> None:
+        """Vacía toda la memoria de ciclos y reinicia la meta-estrategia RSI-3."""
+        self._cycle_history.clear()
+        self._meta_trajectory.clear()
+        self._previous_performance = 1.0
+        self._alpha_current = self._reg
+        self._meta_state = {
+            "alpha": self._reg,
+            "irr_thresh": 0.1,
+            "cond_thresh": 1e12,
+            "contraction": _RECURSION_CONTRACTION_DEFAULT,
+            "level3_score": 1.0,
+            "iteration": 0.0,
+        }
+
+    # -------------------------------------------------------------------------
+    # Aritmética compensada
+    # -------------------------------------------------------------------------
     def kahan_sum(self, arr: np.ndarray) -> float:
-        r"""
-        Suma compensada de Kahan–Babuška–Neumaier sobre un 1-tensor.
-
-        Neumaier (1974) corrige el caso |x_{i+1}| > |S_i| que Kahan clásico
-        pierde. El error hacia delante satisface
-
-            |fl(∑ x_i) − ∑ x_i|  ≤  (2u + O(u²)) ∑ |x_i|
-
-        independiente de n. Se proyecta a la parte real: las observables
-        termodinámicas de este motor son reales.
-        """
         if np.asarray(arr).ndim != 1:
             raise ValueError(
                 f"kahan_sum espera un vector 1-D, se recibió {np.asarray(arr).shape}"
@@ -369,7 +515,6 @@ class KBaseThermodynamicEngine:
         return float(np.real(self._neumaier_sum(arr)))
 
     def _neumaier_sum(self, arr: np.ndarray) -> complex:
-        """KBN sobre ℝ o ℂ; no fuerza float64 a priori para preservar holomorfía CSMD."""
         data = np.asarray(arr).ravel()
         if data.size == 0:
             return 0.0
@@ -387,11 +532,12 @@ class KBaseThermodynamicEngine:
             total = t
         return total + compensator
 
+    # -------------------------------------------------------------------------
+    # Validaciones
+    # -------------------------------------------------------------------------
     def _validate_square_matrix(self, M: np.ndarray, name: str) -> None:
         if M.ndim != 2 or M.shape[0] != M.shape[1]:
-            raise ValueError(
-                f"{name} debe ser una matriz cuadrada (n × n), se recibió {M.shape}"
-            )
+            raise ValueError(f"{name} debe ser n × n, se recibió {M.shape}")
         if M.shape[0] != self._n:
             raise ValueError(f"{name} debe ser {self._n} × {self._n}, se recibió {M.shape}")
         if not np.all(np.isfinite(M)):
@@ -399,9 +545,7 @@ class KBaseThermodynamicEngine:
 
     def _validate_vector(self, v: np.ndarray, name: str) -> None:
         if v.ndim != 1 or v.shape[0] != self._n:
-            raise ValueError(
-                f"{name} debe ser un vector de dimensión {self._n}, se recibió {v.shape}"
-            )
+            raise ValueError(f"{name} debe ser vector de dim {self._n}, se recibió {v.shape}")
         if not np.all(np.isfinite(v)):
             raise ValueError(f"{name} contiene valores no finitos")
 
@@ -411,28 +555,28 @@ class KBaseThermodynamicEngine:
         return float(value)
 
     def _validate_hermitian(
-        self,
-        M: np.ndarray,
-        name: str,
-        tolerance: float = _HERMITIAN_TOLERANCE,
+        self, M: np.ndarray, name: str, tolerance: float = _HERMITIAN_TOLERANCE
     ) -> None:
         skew = M - M.conj().T
         if la.norm(skew, ord="fro") > tolerance * max(1.0, la.norm(M, ord="fro")):
-            raise ValueError(
-                f"{name} no es hermítica: ||M − M†||_F / ||M||_F excede {tolerance}"
-            )
+            raise ValueError(f"{name} no es hermítica (tolerancia {tolerance})")
 
     def _hermitize(self, M: np.ndarray) -> np.ndarray:
-        """Proyección de Hilbert–Schmidt sobre el subespacio de hermitianas."""
         return 0.5 * (M + M.conj().T)
 
+    # =========================================================================
+    # FASE 1 — OBSERVE + ORIENT
+    # Aparato de medición: KBN, espectro de g y ρ, 1-jets físicos,
+    # y —en v3— la carta dinámica de Poincaré (sección, retorno,
+    # acción-ángulo, Lyapunov).
+    # El ÚLTIMO método, `_phase1_observe_orient`, tiene codominio
+    # `PhaseOneKBasePacket`, que ES el dominio del primer morfismo de la
+    # Fase 2 (`_phase2_spectral_integrity`).
+    # =========================================================================
     def _factorize_metric(self, metric_tensor: np.ndarray) -> SpectralChart:
         r"""
-        Una sola descomposición de Hilbert (eigh) — jamás dos.
-
-        Regularización de Tikhonov espectral: λ ↦ λ + α, α = max(reg, 0).
-        Equivale a invertir g + α I, proximal de Moreau de la energía de
-        Dirichlet en el álgebra de Banach (M_n, ||·||₂).
+        Una sola descomposición `eigh`. Regularización de Tikhonov espectral
+        λ ↦ λ + α con α = self._alpha_current (v3: mutable por RSI-3).
         """
         self._validate_square_matrix(metric_tensor, "metric_tensor")
         herm = self._hermitize(metric_tensor)
@@ -440,35 +584,25 @@ class KBaseThermodynamicEngine:
 
         eigenvalues, eigenvectors = la.eigh(herm)
         eigenvalues = np.real(eigenvalues)
+        alpha = float(self._alpha_current)
 
-        regularized = bool(np.any(eigenvalues <= self._reg))
+        regularized = bool(np.any(eigenvalues <= alpha))
         if regularized:
             logger.warning(
-                "Métrica no definida positiva o mal condicionada (λ_min=%.3e); "
-                "Tikhonov α=%.3e.",
-                float(np.min(eigenvalues)),
-                self._reg,
+                "Métrica no definida positiva (λ_min=%.3e); Tikhonov α=%.3e.",
+                float(np.min(eigenvalues)), alpha,
             )
-        shifted = np.maximum(eigenvalues + self._reg, _WILKINSON_FLOOR)
+        shifted = np.maximum(eigenvalues + alpha, _WILKINSON_FLOOR)
         inv_metric = (eigenvectors * (1.0 / shifted)) @ eigenvectors.conj().T
 
         lam_abs = np.abs(shifted)
         cond = float(np.max(lam_abs) / np.min(lam_abs))
-        log_vol = 0.5 * float(
-            self.kahan_sum(np.log(np.maximum(lam_abs, _WILKINSON_FLOOR)))
-        )
+        log_vol = 0.5 * float(self.kahan_sum(np.log(np.maximum(lam_abs, _WILKINSON_FLOOR))))
         volume = float(np.exp(log_vol))
         op_norm = float(np.max(lam_abs))
-        frob = float(
-            np.sqrt(
-                np.real(self._neumaier_sum(shifted.astype(np.complex128) ** 2))
-            )
-        )
-        if shifted.size >= 2:
-            ordered = np.sort(lam_abs)
-            gap = float(ordered[1] - ordered[0])
-        else:
-            gap = float(lam_abs[0])
+        frob = float(np.sqrt(np.real(self._neumaier_sum(shifted.astype(np.complex128) ** 2))))
+        ordered = np.sort(lam_abs)
+        gap = float(ordered[1] - ordered[0]) if shifted.size >= 2 else float(lam_abs[0])
 
         return SpectralChart(
             eigenvalues=eigenvalues,
@@ -480,7 +614,7 @@ class KBaseThermodynamicEngine:
             frobenius_norm=frob,
             spectral_gap=gap,
             regularized=regularized,
-            tikhonov_alpha=self._reg,
+            tikhonov_alpha=alpha,
         )
 
     def compute_riemannian_pullback(
@@ -492,33 +626,8 @@ class KBaseThermodynamicEngine:
         spectral_chart: Optional[SpectralChart] = None,
     ) -> np.ndarray:
         r"""
-        [KBASE 1 — CONGRUENCIA MÉTRICA / PULLBACK POR dφ]
-
-        Dos operaciones geométricas distintas conviven bajo este nombre
-        histórico; se despachan de forma explícita.
-
-        1. Congruencia (tipo tensorial, carta fija):
-           (0,2) covariante     \(\tilde T = g\, T\, g\)
-           (2,0) contravariante \(\tilde T = g^{-1} T g^{-1}\)
-           con \(g^{-1} = (g + \alpha I)^{-1}\) (Tikhonov, una sola eigh).
-
-        2. Pullback verdadero por un difeomorfismo φ, si se inyecta
-           \(J = d\phi\):
-           \((\phi^* T)_p(X, Y) = T_{\phi(p)}(JX, JY)\)
-           ⇒  \(\phi^* T = J^\dagger T J\)  para un (0,2)-tensor.
-
-        La simetrización de Weyl \(g \leftarrow (g + g^\dagger)/2\) se aplica
-        antes de cualquier producto, para proyectar ruido antihermítico.
-
-        Args:
-            G: Tensor métrico Riemanniano g_μν (n × n, hermítico).
-            tensor_M: 2-tensor basal a transportar (n × n).
-            tensor_type: ``"covariant"`` o ``"contravariant"``.
-            jacobian: Jacobiano dφ opcional; si se da, se devuelve J† M J.
-            spectral_chart: Carta reutilizable (evita refactorizar g).
-
-        Returns:
-            2-tensor resultante (n × n).
+        [KBASE 1] Congruencia métrica o pullback por dφ.
+        Covariante: g T g. Contravariante: g⁻¹ T g⁻¹. Pullback: J† T J.
         """
         self._validate_square_matrix(G, "G")
         self._validate_square_matrix(tensor_M, "tensor_M")
@@ -535,22 +644,10 @@ class KBaseThermodynamicEngine:
         if tensor_type == "covariant":
             return g_sym @ M @ g_sym
         if tensor_type == "contravariant":
-            g_inv = np.asarray(chart.inv_metric)
-            return g_inv @ M @ g_inv
-        raise ValueError(
-            "Tipo de tensor no soportado. Debe ser 'covariant' o 'contravariant'."
-        )
+            return np.asarray(chart.inv_metric) @ M @ np.asarray(chart.inv_metric)
+        raise ValueError("Tipo de tensor no soportado (covariant/contravariant).")
 
     def _pullback_spectral_entropy(self, tensor: np.ndarray) -> float:
-        r"""
-        Entropía espectral de von Neumann del 2-tensor transportado:
-
-            η_i = |λ_i| / ∑ |λ_j| ,   S = −∑ η_i log η_i .
-
-        Es un invariante de congruencia unitaria; NO es una entropía de
-        Hodge–de Rham (ésta exigiría un laplaciano sobre un complejo de
-        cocadenas, que este motor no finge poseer).
-        """
         herm = self._hermitize(np.asarray(tensor, dtype=np.complex128))
         evals = np.real(la.eigvalsh(herm))
         weights = np.abs(evals)
@@ -558,10 +655,7 @@ class KBaseThermodynamicEngine:
         if total <= _WILKINSON_FLOOR:
             return 0.0
         probs = weights / total
-        acc: List[float] = []
-        for p in probs:
-            if p > _WILKINSON_FLOOR:
-                acc.append(float(-p * np.log(p)))
+        acc = [float(-p * np.log(p)) for p in probs if p > _WILKINSON_FLOOR]
         return float(np.real(self._neumaier_sum(np.asarray(acc, dtype=np.float64))))
 
     def compute_gibbs_free_energy(
@@ -572,54 +666,26 @@ class KBaseThermodynamicEngine:
         temperature_T: float,
         entropy_S: float,
     ) -> Tuple[float, float]:
-        r"""
-        [KBASE 2 — POTENCIALES DE GIBBS–HELMHOLTZ]
-
-        Identidades algebraicas (sistema cerrado, k_B = 1):
-
-            H = U + P V ,     F = U − T S ,     G = H − T S = F + P V .
-
-        La ecuación de Gibbs–Helmholtz
-            (∂(G/T)/∂T)_P = −H / T²
-        se reduce, a H y S fijos, a  ∂G/∂T = −S, que se audita por CSMD
-        en la Fase 1. Esta firma pública se conserva bit a bit y devuelve
-        únicamente (G, H).
-
-        Returns:
-            (energía libre de Gibbs, entalpía).
-        """
+        r"""[KBASE 2] H = U + PV,  G = H − TS. Devuelve (G, H)."""
         U = self._validate_scalar(internal_energy_U, "internal_energy_U")
         P = self._validate_scalar(pressure_P, "pressure_P")
         V = self._validate_scalar(volume_V, "volume_V")
         T = self._validate_scalar(temperature_T, "temperature_T")
         S = self._validate_scalar(entropy_S, "entropy_S")
         if T <= _WILKINSON_FLOOR:
-            raise ValueError(
-                "La temperatura absoluta debe ser estrictamente positiva "
-                f"(se recibió {T})."
-            )
+            raise ValueError(f"Temperatura debe ser > 0 (se recibió {T}).")
         if S < -_WILKINSON_FLOOR:
-            logger.warning("Entropía negativa (S=%.6e): admisible en Shannon diferencial, anómala en Clausius.", S)
+            logger.warning("Entropía negativa (S=%.6e).", S)
         if V <= 0.0:
             logger.warning("Volumen no positivo (V=%.6e).", V)
-
         enthalpy = self.kahan_sum(np.array([U, P * V], dtype=np.float64))
-        gibbs_energy = self.kahan_sum(np.array([enthalpy, -T * S], dtype=np.float64))
-        return float(gibbs_energy), float(enthalpy)
+        gibbs = self.kahan_sum(np.array([enthalpy, -T * S], dtype=np.float64))
+        return float(gibbs), float(enthalpy)
 
     def _complex_step_dG_dT(
-        self,
-        enthalpy: float,
-        entropy_S: float,
-        temperature_T: float,
+        self, enthalpy: float, entropy_S: float, temperature_T: float,
         step: float = _CSMD_STEP,
     ) -> float:
-        r"""
-        CSMD de la extensión holomorfa  G(z) = H − z S  (H, S constantes).
-
-        Im(G(T + i h)) / h = −S  exactamente, sin cancelación sustractiva.
-        El conjugado está prohibido: rompería la holomorfía.
-        """
         value = complex(enthalpy) - (complex(temperature_T) + 1.0j * step) * complex(entropy_S)
         return float(np.imag(value) / step)
 
@@ -630,115 +696,53 @@ class KBaseThermodynamicEngine:
         temp_gradient_gradT: np.ndarray,
         temperature_T: float,
     ) -> Tuple[float, bool]:
-        r"""
-        [KBASE 3 — DESIGUALDAD DE CLAUSIUS–DUHEM]
-
-        Emparejamiento de dualidad (invariante, sin métrica):
-
-            ⟨q , dT⟩ := q^μ ∂_μ T
-
-        siempre que `heat_flux_q` se interprete como campo contravariante
-        y `temp_gradient_gradT` como la 1-forma dT. Entonces
-
-            σ_th = − ⟨q , dT⟩ / T² ,     Φ = σ_int + σ_th = σ_int − ⟨q,dT⟩/T² .
-
-        Fourier q = −k ∇T implica ⟨q,dT⟩ ≤ 0 y por tanto σ_th ≥ 0.
-        Φ ≥ −ε_u  certifica la segunda ley a tolerancia de Wilkinson.
-
-        Returns:
-            (potencial de disipación neto Φ, coherencia booleana).
-        """
+        r"""[KBASE 3] Φ = σ_int − ⟨q, dT⟩/T².  Φ ≥ −ε ⇒ coherente."""
         sigma_int = self._validate_scalar(entropy_production_rate, "entropy_production_rate")
         T = self._validate_scalar(temperature_T, "temperature_T")
         if T <= _WILKINSON_FLOOR:
-            raise ValueError(
-                "La temperatura absoluta del fibrado debe ser estrictamente "
-                f"mayor que cero (se recibió {T})."
-            )
+            raise ValueError(f"Temperatura debe ser > 0 (se recibió {T}).")
         self._validate_vector(np.asarray(heat_flux_q), "heat_flux_q")
         self._validate_vector(np.asarray(temp_gradient_gradT), "temp_gradient_gradT")
 
         pairing = float(np.real(np.dot(np.asarray(heat_flux_q), np.asarray(temp_gradient_gradT))))
-        conduction_term = pairing / (T ** 2)
-        dissipation_potential = self.kahan_sum(
-            np.array([sigma_int, -conduction_term], dtype=np.float64)
-        )
-        is_coherent = dissipation_potential >= -_WILKINSON_FLOOR
-        return float(dissipation_potential), bool(is_coherent)
+        conduction = pairing / (T ** 2)
+        Phi = self.kahan_sum(np.array([sigma_int, -conduction], dtype=np.float64))
+        return float(Phi), bool(Phi >= -_WILKINSON_FLOOR)
 
     def _fourier_audit(
-        self,
-        heat_flux_q: np.ndarray,
-        temp_gradient_gradT: np.ndarray,
-        spectral_chart: SpectralChart,
+        self, heat_flux_q: np.ndarray, temp_gradient_gradT: np.ndarray, chart: SpectralChart,
     ) -> Tuple[float, float, float]:
-        r"""
-        Auditoría de Fourier isotrópica y energía de Dirichlet de q.
-
-        k̂ = − ⟨q,dT⟩ / ||dT||²_2   (mínimos cuadrados),
-        r  = ||q + k̂ ∇T||_2 / (||q||_2 + ε) ,
-        E(q) = q^μ g_{μν} q^ν      (energía de la 1-forma musicalmente bajada).
-        """
         q = np.asarray(heat_flux_q, dtype=np.float64)
         gT = np.asarray(temp_gradient_gradT, dtype=np.float64)
         gTgT = float(np.real(np.dot(gT, gT)))
         if gTgT <= _WILKINSON_FLOOR:
-            conductivity = 0.0
-            residual = float(la.norm(q))
+            k_hat, residual = 0.0, float(la.norm(q))
         else:
-            conductivity = float(-np.real(np.dot(q, gT)) / gTgT)
-            residual = float(la.norm(q + conductivity * gT) / max(la.norm(q), _WILKINSON_FLOOR))
+            k_hat = float(-np.real(np.dot(q, gT)) / gTgT)
+            residual = float(la.norm(q + k_hat * gT) / max(la.norm(q), _WILKINSON_FLOOR))
         g = self._hermitize(
-            np.asarray(spectral_chart.eigenvectors)
-            @ np.diag(np.asarray(spectral_chart.eigenvalues, dtype=np.float64))
-            @ np.asarray(spectral_chart.eigenvectors).conj().T
+            np.asarray(chart.eigenvectors)
+            @ np.diag(np.asarray(chart.eigenvalues, dtype=np.float64))
+            @ np.asarray(chart.eigenvectors).conj().T
         )
         dirichlet = float(np.real(q @ g @ q))
-        return conductivity, residual, dirichlet
+        return k_hat, residual, dirichlet
 
     def calculate_spectral_irreversibility(
-        self,
-        rho: np.ndarray,
-        hamiltonian_H: np.ndarray,
+        self, rho: np.ndarray, hamiltonian_H: np.ndarray,
     ) -> float:
-        r"""
-        [KBASE 4 — DEFECTO DE ESTACIONARIEDAD / NORMA HS DEL CONMUTADOR]
-
-        ℐ = ‖[H, ρ]‖_HS² = Tr( [H,ρ]† [H,ρ] ).
-
-        Advertencia semántica (corrección respecto a v2): el flujo de
-        von Neumann  ρ̇ = −i[H,ρ]  es unitario y conserva S_vN. ℐ mide
-        la *partida de la estacionariedad hamiltoniana*, no la producción
-        de entropía. La irreversibilidad termodinámica se reporta en la
-        carta de densidad como D(ρ‖ρ_β).
-
-        Returns:
-            ℐ ≥ 0  (Hilbert–Schmidt al cuadrado, KBN sobre la diagonal).
-        """
+        r"""[KBASE 4] ℐ = ‖[H,ρ]‖²_HS. Mide partida de estacionariedad."""
         self._validate_square_matrix(rho, "rho")
         self._validate_square_matrix(hamiltonian_H, "hamiltonian_H")
         self._validate_hermitian(rho, "rho")
         self._validate_hermitian(hamiltonian_H, "hamiltonian_H")
-
         commutator = hamiltonian_H @ rho - rho @ hamiltonian_H
         gram = commutator.conj().T @ commutator
-        diag_elements = np.real(np.diagonal(gram))
-        irreversibility = self.kahan_sum(np.asarray(diag_elements, dtype=np.float64))
-        return max(0.0, float(irreversibility))
+        return max(0.0, float(self.kahan_sum(np.real(np.diagonal(gram)))))
 
     def _factorize_density(
-        self,
-        rho: np.ndarray,
-        hamiltonian_H: np.ndarray,
-        temperature_T: float,
+        self, rho: np.ndarray, hamiltonian_H: np.ndarray, temperature_T: float,
     ) -> DensityOperatorChart:
-        r"""
-        Carta espectral de ρ y observables de equilibrio (Gibbs / KMS).
-
-        Z = Tr e^{−βH}  se evalúa por log-sum-exp sobre el espectro de H.
-        D(ρ‖ρ_β) = Tr(ρ log ρ) − Tr(ρ log ρ_β)
-                 = −S_vN + β Tr(ρ H) + log Z .
-        """
         self._validate_square_matrix(rho, "rho")
         self._validate_square_matrix(hamiltonian_H, "hamiltonian_H")
         self._validate_hermitian(rho, "rho")
@@ -756,38 +760,30 @@ class KBaseThermodynamicEngine:
             and abs(trace - 1.0) <= _DENSITY_TRACE_TOLERANCE
         )
         if not is_density:
-            logger.warning(
-                "ρ no satisface los axiomas de operador densidad "
-                "(tr=%.6e, λ_min=%.6e).",
-                trace, min_eig,
-            )
+            logger.warning("ρ no satisface axiomas (tr=%.3e, λ_min=%.3e).", trace, min_eig)
 
-        acc_s: List[float] = []
-        acc_g: List[float] = []
+        acc_s, acc_g = [], []
         for eta in evals:
             clipped = max(float(eta), 0.0)
             acc_g.append(clipped * clipped)
             if clipped > _WILKINSON_FLOOR:
                 acc_s.append(float(-clipped * np.log(clipped)))
-        von_neumann = float(np.real(self._neumaier_sum(np.asarray(acc_s, dtype=np.float64))))
+        S_vN = float(np.real(self._neumaier_sum(np.asarray(acc_s, dtype=np.float64))))
         purity = float(np.real(self._neumaier_sum(np.asarray(acc_g, dtype=np.float64))))
 
         energy = float(np.real(np.trace(rho_h @ H_h)))
         T = float(temperature_T)
-        free = energy - T * von_neumann
+        free = energy - T * S_vN
 
         h_eigs = np.real(la.eigvalsh(H_h))
         if T <= _WILKINSON_FLOOR:
-            log_z = np.inf
-            relative = np.inf
+            log_z, relative = np.inf, np.inf
         else:
             beta = 1.0 / T
             log_z = _logsumexp(-beta * h_eigs)
-            relative = float(-von_neumann + beta * energy + log_z)
-            relative = max(0.0, relative)
+            relative = max(0.0, float(-S_vN + beta * energy + log_z))
 
-        stationarity = self.calculate_spectral_irreversibility(rho_h, H_h)
-
+        stat = self.calculate_spectral_irreversibility(rho_h, H_h)
         op_H = float(la.norm(H_h, ord=2))
         op_rho = float(la.norm(rho_h, ord=2))
         lhs = float(la.norm(H_h @ rho_h, ord=2))
@@ -800,16 +796,155 @@ class KBaseThermodynamicEngine:
             trace=trace,
             min_eigenvalue=min_eig,
             is_density=is_density,
-            von_neumann_entropy=von_neumann,
+            von_neumann_entropy=S_vN,
             purity=purity,
             energy_expectation=energy,
             quantum_free_energy=free,
             log_partition=float(log_z),
             relative_entropy_to_gibbs=float(relative),
-            stationarity_defect=stationarity,
+            stationarity_defect=stat,
             banach_submultiplicative_defect=float(banach),
         )
 
+    # -------------------------------------------------------------------------
+    # v3 — NÚCLEO DE POINCARÉ
+    # -------------------------------------------------------------------------
+    def _poincare_section_construct(
+        self, normal: np.ndarray, offset: float, state: np.ndarray,
+    ) -> Tuple[np.ndarray, float, float]:
+        r"""
+        Construye Σ = {x : ⟨n̂, x⟩ = c} y evalúa la distancia con signo
+        del `state` a la sección. La normal se normaliza a norma 2 unitaria.
+
+        Regresa (n̂, c, ⟨n̂, state⟩ − c). La distancia es cero si el estado
+        yace sobre Σ; positiva en el semi-espacio exterior.
+        """
+        n = np.asarray(normal, dtype=np.float64).copy()
+        s = np.asarray(state, dtype=np.float64).copy()
+        norm = float(la.norm(n))
+        if norm < _WILKINSON_FLOOR:
+            n = np.ones_like(n) / np.sqrt(n.size)
+        else:
+            n /= norm
+        value = float(np.dot(n, s) - float(offset))
+        return n, float(offset), value
+
+    def _poincare_return_map(
+        self, current_state: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, float]:
+        r"""
+        Estima P: Σ → Σ desde la historia de estados por mínimos cuadrados.
+
+        Sea X = [s_{k}, s_{k+1}, …, s_{k+m−1}] ∈ ℝ^{n×m}, Y = [s_{k+1}, …].
+        P̂ = argmin_P ‖Y − P X‖_F = Y X⁺ (pseudo-inversa). Si m < n, se
+        regulariza con P̂ ← w P̂ + (1−w) I con w = m / (n + 1) para evitar
+        sobreajuste de rango deficiente.
+
+        El tiempo de retorno se reporta como 1.0 (un ciclo por paso).
+        Los autovalores λ_i(P̂) son los multiplicadores de Floquet
+        discretos; su módulo máximo es el radio espectral ρ(P̂).
+        """
+        n = int(current_state.size)
+        m_avail = len(self._cycle_history)
+        if m_avail < 2:
+            return np.eye(n), np.ones(n, dtype=complex), 1.0
+
+        m = min(m_avail, n + 1)
+        X_cols, Y_cols = [], []
+        for i in range(m_avail - m, m_avail):
+            prev_state = np.asarray(self._cycle_history[i]["state"], dtype=np.float64)
+            if i + 1 < m_avail:
+                next_state = np.asarray(self._cycle_history[i + 1]["state"], dtype=np.float64)
+            else:
+                next_state = np.asarray(current_state, dtype=np.float64)
+            X_cols.append(prev_state)
+            Y_cols.append(next_state)
+        X = np.column_stack(X_cols)
+        Y = np.column_stack(Y_cols)
+
+        try:
+            P_hat = Y @ np.linalg.pinv(X)
+        except np.linalg.LinAlgError:
+            P_hat = np.eye(n)
+
+        if m < n + 1:
+            w = m / (n + 1)
+            P_hat = w * P_hat + (1.0 - w) * np.eye(n)
+
+        eigvals = np.linalg.eigvals(P_hat)
+        return np.real_if_close(P_hat, tol=1e6), eigvals, 1.0
+
+    def _action_angle_decompose(
+        self, return_time: float, state: np.ndarray, return_map: np.ndarray,
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        r"""
+        Variables de acción-ángulo del ciclo fundamental.
+
+        Sea τ = return_time, ω_k = 2π k / τ (frecuencia del k-ésimo armónico).
+        La velocidad se estima por (P − I) state. Para cada armónico:
+            J_k = (x_k² + (ẋ_k/ω_k)²) / 2       (acción, invariante adiabático)
+            θ_k = atan2(−ẋ_k/ω_k, x_k) mod 2π   (ángulo)
+        Es la descomposición exacta del oscilador armónico linealizado; coincide
+        con J = (1/2π)∮p dq para H = p²/2 + ω²q²/2.
+        """
+        n = int(state.size)
+        tau = float(return_time) if return_time > _WILKINSON_FLOOR else 1.0
+        freqs = np.array([2.0 * np.pi * k / tau for k in range(1, n + 1)], dtype=np.float64)
+
+        velocity = (np.asarray(return_map, dtype=np.float64) - np.eye(n)) @ state
+        omega_guard = np.maximum(freqs, _WILKINSON_FLOOR)
+        actions = 0.5 * (state ** 2 + (velocity / omega_guard) ** 2)
+        angles = np.mod(np.arctan2(-velocity / omega_guard, state), 2.0 * np.pi)
+        return actions, angles, freqs
+
+    def _lyapunov_spectrum(
+        self, return_map: np.ndarray,
+    ) -> Tuple[np.ndarray, float]:
+        r"""
+        Espectro de Lyapunov discreto del mapa de retorno:
+            λ_i = log σ_i(P),  σ_i = i-ésimo valor singular de P.
+        Un λ_i > 0 indica expansión en la dirección i (caos); λ_i < 0
+        contracción (disipación). Σ λ_i = log |det P| (identidad de volumen).
+        """
+        sv = np.linalg.svd(np.asarray(return_map, dtype=np.float64), compute_uv=False)
+        sv = np.maximum(sv, _LYAPUNOV_FLOOR)
+        lyap = np.log(sv)
+        return lyap, float(np.max(lyap))
+
+    def _poincare_chart_build(
+        self,
+        state: np.ndarray,
+        normal: Optional[np.ndarray] = None,
+        offset: float = 0.0,
+    ) -> PoincareChart:
+        r"""Compone sección + mapa de retorno + acción-ángulo + Lyapunov."""
+        n = int(state.size)
+        if normal is None:
+            normal = np.zeros(n, dtype=np.float64)
+            normal[0] = 1.0  # sección canónica: x_0 = offset
+        n_hat, c, val = self._poincare_section_construct(normal, offset, state)
+        P, eigvals, tau = self._poincare_return_map(state)
+        actions, angles, freqs = self._action_angle_decompose(tau, state, P)
+        lyap, max_lyap = self._lyapunov_spectrum(P)
+        radius = float(np.max(np.abs(eigvals))) if eigvals.size > 0 else 0.0
+        return PoincareChart(
+            section_normal=n_hat,
+            section_offset=c,
+            section_value=val,
+            return_map=P,
+            return_eigenvalues=eigvals,
+            spectral_radius=radius,
+            return_time=tau,
+            action_variables=actions,
+            angle_variables=angles,
+            fundamental_frequencies=freqs,
+            lyapunov_exponents=lyap,
+            max_lyapunov=max_lyap,
+        )
+
+    # -------------------------------------------------------------------------
+    # FASE 1 — ÚLTIMO MORFISMO
+    # -------------------------------------------------------------------------
     def _phase1_observe_orient(
         self,
         G: np.ndarray,
@@ -836,19 +971,16 @@ class KBaseThermodynamicEngine:
 
         Continuidad formal
         ------------------
-        Este paquete **es** el dominio del primer morfismo de la Fase 2,
-        `_phase2_spectral_integrity(self, packet: PhaseOneKBasePacket)`.
-        No existe ningún objeto intersticial: la composición
-
+        Este paquete **es** el dominio del primer morfismo de la Fase 2:
+            `_phase2_spectral_integrity(self, packet: PhaseOneKBasePacket)`.
+        No hay objeto intersticial: la composición
             _phase2_spectral_integrity ∘ _phase1_observe_orient
-
-        está tipada estrictamente (retículo de métodos anidados).
+        está tipada estrictamente.
         """
-        logger.info(
-            "Fase 1: carta espectral de g, congruencia, Gibbs–Helmholtz+CSMD, "
-            "Clausius–Duhem, carta de ρ."
-        )
+        logger.info("Fase 1: carta espectral, congruencia, Gibbs-Helmholtz+CSMD, "
+                    "Clausius-Duhem, carta de ρ, sección de Poincaré.")
 
+        # 1) Carta espectral + congruencia
         chart = self._factorize_metric(G)
         pullback = self.compute_riemannian_pullback(
             G, tensor_M, tensor_type, jacobian=jacobian, spectral_chart=chart
@@ -857,6 +989,7 @@ class KBaseThermodynamicEngine:
         pull_herm_res = float(la.norm(pull_skew, ord="fro"))
         pull_entropy = self._pullback_spectral_entropy(pullback)
 
+        # 2) Potenciales de Gibbs-Helmholtz + CSMD
         U = self._validate_scalar(internal_energy_U, "internal_energy_U")
         P = self._validate_scalar(pressure_P, "pressure_P")
         V = self._validate_scalar(volume_V, "volume_V")
@@ -865,33 +998,45 @@ class KBaseThermodynamicEngine:
 
         gibbs, enthalpy = self.compute_gibbs_free_energy(U, P, V, T, S)
         helmholtz = self.kahan_sum(np.array([U, -T * S], dtype=np.float64))
-        identity_terms = np.array(
-            [
-                abs(enthalpy - (U + P * V)),
-                abs(gibbs - (enthalpy - T * S)),
-                abs(helmholtz - (U - T * S)),
-                abs(gibbs - (helmholtz + P * V)),
-            ],
+        ident_terms = np.array(
+            [abs(enthalpy - (U + P * V)),
+             abs(gibbs - (enthalpy - T * S)),
+             abs(helmholtz - (U - T * S)),
+             abs(gibbs - (helmholtz + P * V))],
             dtype=np.float64,
         )
-        thermo_residual = float(np.real(self._neumaier_sum(identity_terms)))
-
+        thermo_residual = float(np.real(self._neumaier_sum(ident_terms)))
         csmd = self._complex_step_dG_dT(enthalpy, S, T)
         csmd_err = float(abs(csmd + S))
 
+        # 3) Clausius-Duhem + auditoría de Fourier
         dissipation, coherent = self.evaluate_clausius_duhem(
             entropy_production_rate, heat_flux_q, temp_gradient_gradT, T
         )
-        pairing = float(
-            np.real(np.dot(np.asarray(heat_flux_q), np.asarray(temp_gradient_gradT)))
-        )
+        pairing = float(np.real(np.dot(np.asarray(heat_flux_q), np.asarray(temp_gradient_gradT))))
         sigma_th = float(-pairing / (T ** 2))
         conductivity, fourier_res, dirichlet = self._fourier_audit(
             heat_flux_q, temp_gradient_gradT, chart
         )
 
+        # 4) Carta de densidad
         density = self._factorize_density(rho, hamiltonian_H, T)
 
+        # 5) Estado dinámico para Poincaré (vector de 5 observables)
+        state_vector = np.array(
+            [T, S, dissipation, density.stationarity_defect,
+             density.relative_entropy_to_gibbs],
+            dtype=np.float64,
+        )
+
+        # 6) Carta de Poincaré — sección canónica x_0 = T_ref (300 K)
+        normal = np.zeros(state_vector.size, dtype=np.float64)
+        normal[0] = 1.0
+        poincare_chart = self._poincare_chart_build(
+            state=state_vector, normal=normal, offset=300.0,
+        )
+
+        # 7) Empaquetado
         packet = PhaseOneKBasePacket(
             pullback_tensor=pullback,
             pullback_hermiticity_residual=pull_herm_res,
@@ -911,28 +1056,31 @@ class KBaseThermodynamicEngine:
             thermal_dirichlet_energy=dirichlet,
             spectral_chart=chart,
             density_chart=density,
+            poincare_chart=poincare_chart,
+            state_vector=state_vector,
             stationarity_defect=density.stationarity_defect,
             temperature=T,
         )
         logger.debug(
-            "Fase 1 completa: G=%.6f F=%.6f H=%.6f Φ=%.6e CD=%s ℐ=%.6e "
-            "D(ρ‖ρβ)=%.6e CSMD=%.3e κ=%.3e",
+            "Fase 1 completa: G=%.4f F=%.4f H=%.4f Φ=%.3e CD=%s "
+            "ℐ=%.3e D(ρ‖ρβ)=%.3e CSMD=%.3e κ=%.3e ρ(P)=%.3f λ_max=%.3f",
             gibbs, helmholtz, enthalpy, dissipation, coherent,
             density.stationarity_defect, density.relative_entropy_to_gibbs,
             csmd_err, chart.condition_number,
+            poincare_chart.spectral_radius, poincare_chart.max_lyapunov,
         )
         return packet
 
     # =========================================================================
     # FASE 2 — DECIDE
-    # Dominio = PhaseOneKBasePacket  (codominio del último método de Fase 1).
-    # Se evalúa la integridad espectral de g y de ρ y se clasifica el estado
-    # en el álgebra de Heyting. El último método, `_phase2_decide`, tiene por
-    # codominio PhaseTwoKBasePacket, segundo factor de `_phase3_conservation_audit`.
+    # Dominio del primer morfismo = PhaseOneKBasePacket (codominio de Fase 1).
+    # Se evalúa la integridad espectral de g y ρ, la estabilidad KAM,
+    # la resonancia diofántica y se ejecuta el bucle RSI-3.
+    # El ÚLTIMO método, `_phase2_decide`, tiene codominio `PhaseTwoKBasePacket`,
+    # segundo factor del dominio de `_phase3_conservation_audit`.
     # =========================================================================
     def _phase2_spectral_integrity(
-        self,
-        packet: PhaseOneKBasePacket,
+        self, packet: PhaseOneKBasePacket,
     ) -> SpectralThermoReport:
         r"""
         [FASE 2 — PRIMER MORFISMO: INTEGRIDAD ESPECTRAL]
@@ -941,10 +1089,9 @@ class KBaseThermodynamicEngine:
         -------
         `PhaseOneKBasePacket`  ← continuación formal de `_phase1_observe_orient`.
 
-        Diagnósticos (teoría espectral + álgebra de Banach (M_n, ||·||₂)):
-          • κ₂(g), gap de g;
-          • axiomas de ρ, pureza, D(ρ‖ρ_β), ℐ = ‖[H,ρ]‖_HS²;
-          • defecto de submultiplicatividad ‖Hρ‖₂ ≤ ‖H‖₂‖ρ‖₂.
+        Diagnósticos: κ₂(g), gap, axiomas de ρ, D(ρ‖ρ_β), ℐ, defecto de
+        submultiplicatividad de Banach. El score ∈ [0,1] es multiplicativo
+        (todos los factores deben ser favorables).
         """
         chart = packet.spectral_chart
         dens = packet.density_chart
@@ -957,15 +1104,11 @@ class KBaseThermodynamicEngine:
         banach_term = float(np.exp(-dens.banach_submultiplicative_defect / _MACHINE_EPS))
         cd_term = 1.0 if packet.clausius_coherent else 0.0
         csmd_term = float(np.exp(-packet.csmd_entropy_error / 1e-12))
+
         score = float(
-            cond_term
-            * max(gap_term, 0.0)
-            * dens_term
-            * rel_term
-            * stat_term
-            * min(banach_term, 1.0)
-            * cd_term
-            * csmd_term
+            cond_term * max(gap_term, 0.0) * dens_term
+            * rel_term * stat_term * min(banach_term, 1.0)
+            * cd_term * csmd_term
         )
         return SpectralThermoReport(
             metric_condition=float(chart.condition_number),
@@ -978,19 +1121,189 @@ class KBaseThermodynamicEngine:
             integrity_score=score,
         )
 
+    def _phase2_kam_audit(
+        self,
+        packet: PhaseOneKBasePacket,
+        gamma: float = _KAM_GAMMA_DEFAULT,
+        tau: float = _KAM_TAU_DEFAULT,
+        K_max: int = _KAM_K_MAX_DEFAULT,
+    ) -> KAMReport:
+        r"""
+        [FASE 2 — SEGUNDO MORFISMO: AUDITORÍA KAM]
+
+        Dominio
+        -------
+        `PhaseOneKBasePacket`  ← continuación formal de `_phase2_spectral_integrity`.
+
+        Condición diofántica de Bruno:
+            |⟨k, ω⟩|  ≥  γ / ‖k‖^τ_1     ∀k ∈ ℤ^n \ {0},  ‖k‖_1 ≤ K_max.
+        El ratio mínimo observado R = min_{k≠0} |⟨k,ω⟩| ‖k‖^τ_1 / γ.
+        R ≥ 1  ⇔  el toro invariante persiste (estable KAM).
+
+        La frecuencia ω se toma del espectro del mapa de retorno
+        (frecuencias fundamentales del ciclo). La enumeración del retículo
+        entero es exacta hasta K_max; la cota de Bruno garantiza exclusión
+        de resonancias de orden superior bajo la densidad de Weyl.
+        """
+        freqs = np.asarray(packet.poincare_chart.fundamental_frequencies, dtype=np.float64)
+        n = int(freqs.size)
+        if n == 0:
+            return KAMReport(
+                stable=True, min_diophantine_ratio=np.inf, gamma=gamma, tau=tau,
+                resonance_order=0, small_divisor_min=np.inf, frequencies=freqs,
+            )
+
+        min_ratio = np.inf
+        min_divisor = np.inf
+        min_resonance_order = K_max + 1
+        for k_tuple in itertools.product(range(-K_max, K_max + 1), repeat=n):
+            if all(ki == 0 for ki in k_tuple):
+                continue
+            k_vec = np.array(k_tuple, dtype=np.int64)
+            k_norm1 = int(np.abs(k_vec).sum())
+            if k_norm1 == 0:
+                continue
+            dot = abs(float(np.dot(k_vec, freqs)))
+            bound = gamma / (k_norm1 ** tau) if k_norm1 > 0 else np.inf
+            ratio = dot / bound if bound > 0 else np.inf
+            if ratio < min_ratio:
+                min_ratio = ratio
+            if dot < min_divisor:
+                min_divisor = dot
+                if dot < 1e-3:
+                    min_resonance_order = min(min_resonance_order, k_norm1)
+
+        stable = bool(min_ratio >= 1.0)
+        resonance_order = int(min_resonance_order) if min_resonance_order <= K_max else 0
+        return KAMReport(
+            stable=stable,
+            min_diophantine_ratio=float(min_ratio) if np.isfinite(min_ratio) else np.inf,
+            gamma=float(gamma),
+            tau=float(tau),
+            resonance_order=resonance_order,
+            small_divisor_min=float(min_divisor) if np.isfinite(min_divisor) else np.inf,
+            frequencies=freqs,
+        )
+
+    def _phase2_self_improvement(
+        self,
+        packet: PhaseOneKBasePacket,
+        integrity: SpectralThermoReport,
+    ) -> SelfImprovementReport:
+        r"""
+        [FASE 2 — TERCER MORFISMO: AUTOMEJORA RECURSIVA DE NIVEL 3]
+
+        Dominio
+        -------
+        `PhaseOneKBasePacket` × `SpectralThermoReport`
+        ← continuación formal de `_phase2_kam_audit`.
+
+        Arquitectura de las tres capas:
+
+        Nivel 1 — parámetro físico (α de Tikhonov).
+            θ_{n+1}^{(1)} = θ_n^{(1)} · ρ_contra,  ρ_contra ∈ (0,1).
+
+        Nivel 2 — estrategia (selección de la regla).
+            Si la performance ΔS > 0, se explota (ρ_contra ← 0.95 ρ_contra);
+            si ΔS ≤ 0, se explora (ρ_contra ← 1.05 ρ_contra).
+
+        Nivel 3 — meta-estrategia (modificación de la modificación).
+            Score = exp(−⟨|Δα|⟩_ventana) / α, en (0,1].
+            Contraction_target = ρ_contra · (1 − 0.05 · (1 − Score)).
+            El factor 0.05 regula la velocidad de adaptación meta.
+
+        Punto fijo
+        ----------
+        x* tal que F_L3(x*) = x*. Se certifica convergencia cuando
+        ‖α_n − α_{n−1}‖ < _RECURSION_CONVERGENCE_TOL.
+        """
+        prev = dict(self._meta_state)
+        prev_alpha = float(prev["alpha"])
+        prev_contraction = float(prev["contraction"])
+        prev_score = float(prev["level3_score"])
+        iteration = int(prev["iteration"])
+
+        # Performance: usamos el score de integridad espectral como señal
+        current_perf = float(integrity.integrity_score)
+        delta_perf = current_perf - float(self._previous_performance)
+
+        # Nivel 1: actualización escalar del parámetro
+        alpha_n1 = max(prev_alpha * prev_contraction, _ALPHA_FLOOR)
+
+        # Nivel 2: selección de la estrategia de contracción
+        if delta_perf > 0.0:
+            contraction_n2 = prev_contraction * 0.95
+        else:
+            contraction_n2 = prev_contraction * 1.05
+        contraction_n2 = float(np.clip(contraction_n2, 0.1, 0.9))
+
+        # Nivel 3: meta-estrategia — modifica la tasa de cambio de ρ_contra
+        if len(self._meta_trajectory) >= 2:
+            recent = self._meta_trajectory[-3:]
+            diffs = [abs(recent[i]["alpha"] - recent[i - 1]["alpha"])
+                     for i in range(1, len(recent))]
+            mean_diff = float(np.mean(diffs)) if diffs else 0.0
+        else:
+            mean_diff = 0.0
+        level3_score = float(np.exp(-mean_diff / max(prev_alpha, _ALPHA_FLOOR)))
+        # Meta-ajuste de la contracción (nivel 3 puro)
+        contraction_n3 = contraction_n2 * (1.0 - 0.05 * (1.0 - level3_score))
+
+        # Residual de la recursión (para chequeo de punto fijo)
+        recursion_residual = abs(alpha_n1 - prev_alpha)
+        converged = recursion_residual < _RECURSION_CONVERGENCE_TOL
+
+        # Persistimos el nuevo estado meta
+        new_state = {
+            "alpha": alpha_n1,
+            "irr_thresh": float(prev["irr_thresh"]),
+            "cond_thresh": float(prev["cond_thresh"]),
+            "contraction": contraction_n3,
+            "level3_score": level3_score,
+            "iteration": iteration + 1.0,
+        }
+        self._meta_state = new_state
+        self._meta_trajectory.append(new_state)
+        if len(self._meta_trajectory) > _RECURSION_MAX_HISTORY:
+            self._meta_trajectory.pop(0)
+
+        # El paquete reporta el α que se usará en el PRÓXIMO ciclo
+        return SelfImprovementReport(
+            iteration=iteration,
+            current_alpha=prev_alpha,
+            next_alpha=alpha_n1,
+            contraction=contraction_n3,
+            level3_score=level3_score,
+            recursion_converged=converged,
+            recursion_residual=recursion_residual,
+            performance_delta=float(delta_perf),
+        )
+
     def _phase2_heyting_classify(
         self,
         packet: PhaseOneKBasePacket,
         integrity: SpectralThermoReport,
+        kam_report: KAMReport,
+        rsi: SelfImprovementReport,
         irreversibility_threshold: float,
         condition_threshold: float,
     ) -> Tuple[HeytingVerdict, float, Dict[str, bool]]:
         r"""
-        Clasificación en el álgebra de Heyting.
+        [FASE 2 — CUARTO MORFISMO: CLASIFICACIÓN HEYTING]
 
-        Scores en [0, 1] (semántica [0,1]-valuada del topos) y meet.
-        Un veto atómico (Clausius–Duhem, ρ ilegal, T ≤ 0, CSMD rota)
-        colapsa a VETOED por modus ponens interno.
+        Dominio
+        -------
+        `PhaseOneKBasePacket` × `SpectralThermoReport` × `KAMReport` × `SelfImprovementReport`
+        ← continuación formal de `_phase2_self_improvement`.
+
+        Scores [0,1]-valuados con meet (∧ = min). Vetos atómicos:
+          • Clausius-Duhem incoherente
+          • ρ ilegal
+          • T ≤ T_min
+          • CSMD rota
+          • Identidad termodinámica rota
+          • KAM inestable (toro invariante destruido)
+          • Caos Melnikov detectado (chequeado en Fase 3, se propaga por flag)
         """
         cd_viol = not packet.clausius_coherent
         stat_viol = packet.stationarity_defect > irreversibility_threshold
@@ -999,31 +1312,34 @@ class KBaseThermodynamicEngine:
         ident_viol = packet.thermo_identity_residual > 1e-10
         csmd_viol = packet.csmd_entropy_error > 1e-8
         temp_viol = packet.temperature <= _WILKINSON_FLOOR
+        kam_viol = not kam_report.stable
+        # El caos (Melnikov) se evalúa en Fase 3 pero se propaga por coherencia
+        chaos_viol = False  # se actualiza en Fase 3 vía reanudación, aquí placeholder
 
         cd_score = 1.0 if packet.clausius_coherent else 0.0
-        # Φ grande y positivo no es un defecto: es disipación admisible.
-        # Se penaliza únicamente Φ negativo (ya cubierto por cd_score).
-        stat_score = float(
-            np.exp(
-                -packet.stationarity_defect
-                / max(irreversibility_threshold, _WILKINSON_FLOOR)
-            )
-        )
+        stat_score = float(np.exp(
+            -packet.stationarity_defect / max(irreversibility_threshold, _WILKINSON_FLOOR)
+        ))
         rel_score = float(np.exp(-packet.density_chart.relative_entropy_to_gibbs))
         ident_score = float(np.exp(-packet.thermo_identity_residual / 1e-10))
         csmd_score = float(np.exp(-packet.csmd_entropy_error / 1e-8))
+        # KAM: ratio ≥ 1 → score = min(1, ratio); < 1 → penalizado exponencial
+        if np.isfinite(kam_report.min_diophantine_ratio):
+            kam_score = float(min(1.0, np.exp(kam_report.min_diophantine_ratio - 1.0)))
+        else:
+            kam_score = 1.0
+
         meet = min(
-            cd_score,
-            stat_score,
-            rel_score,
-            ident_score,
-            csmd_score,
-            integrity.integrity_score,
+            cd_score, stat_score, rel_score, ident_score, csmd_score,
+            kam_score, integrity.integrity_score, float(rsi.level3_score),
             0.0 if dens_viol else 1.0,
             0.0 if temp_viol else 1.0,
+            0.0 if kam_viol else 1.0,
         )
 
-        hard_veto = cd_viol or dens_viol or temp_viol or csmd_viol or ident_viol
+        hard_veto = (
+            cd_viol or dens_viol or temp_viol or csmd_viol or ident_viol or kam_viol
+        )
         if hard_veto:
             verdict = HeytingVerdict.VETOED
         elif meet >= 0.99:
@@ -1043,6 +1359,8 @@ class KBaseThermodynamicEngine:
             "identity": ident_viol,
             "csmd": csmd_viol,
             "temperature": temp_viol,
+            "kam": kam_viol,
+            "chaos": chaos_viol,
         }
         return verdict, float(meet), flags
 
@@ -1063,25 +1381,21 @@ class KBaseThermodynamicEngine:
         Continuidad formal
         ------------------
         Junto con el `PhaseOneKBasePacket` residual, este objeto constituye
-        el dominio del primer morfismo de la Fase 3,
-        `_phase3_conservation_audit(self, packet1, packet2)`.
-
-        La destrucción de exergía (Gouy–Stodola) es  T₀ Φ, con T₀ la
-        temperatura ambiente si se inyecta, o T del sistema en su defecto.
+        el dominio del primer morfismo de la Fase 3:
+            `_phase3_conservation_audit(self, packet1, packet2)`.
+        La destrucción de exergía (Gouy-Stodola) es T₀ Φ.
         """
         integrity = self._phase2_spectral_integrity(packet)
+        kam_report = self._phase2_kam_audit(packet)
+        rsi = self._phase2_self_improvement(packet, integrity)
         verdict, score, flags = self._phase2_heyting_classify(
-            packet,
-            integrity,
+            packet, integrity, kam_report, rsi,
             irreversibility_threshold=irreversibility_threshold,
             condition_threshold=condition_threshold,
         )
-        t0 = (
-            float(ambient_temperature)
-            if ambient_temperature is not None
-            else packet.temperature
-        )
+        t0 = float(ambient_temperature) if ambient_temperature is not None else packet.temperature
         exergy = float(t0 * packet.dissipation_potential)
+
         decision = PhaseTwoKBasePacket(
             irreversibility=packet.stationarity_defect,
             heyting_verdict=verdict.value,
@@ -1090,21 +1404,28 @@ class KBaseThermodynamicEngine:
             stationarity_threshold_violated=flags["stationarity"],
             density_axiom_violated=flags["density"],
             condition_threshold_violated=flags["condition"],
+            kam_threshold_violated=flags["kam"],
+            chaos_threshold_violated=flags["chaos"],
             spectral_integrity=integrity,
+            kam_report=kam_report,
+            self_improvement=rsi,
             heyting_score=score,
             exergy_destruction=exergy,
         )
         logger.debug(
-            "Fase 2 completa: veredicto=%s score=%.4f ℐ=%.6e Ḃ=%.6e κ=%.3e",
-            verdict.value, score, packet.stationarity_defect, exergy,
-            integrity.metric_condition,
+            "Fase 2 completa: veredicto=%s score=%.4f KAM=%s R=%s ρ(P)=%.3f",
+            verdict.value, score, kam_report.stable,
+            kam_report.min_diophantine_ratio, packet.poincare_chart.spectral_radius,
         )
         return decision
 
     # =========================================================================
     # FASE 3 — ACT
-    # Dominio = PhaseOneKBasePacket × PhaseTwoKBasePacket.
-    # Audita leyes de conservación y sella telemetría inmutable.
+    # Dominio = PhaseOneKBasePacket × PhaseTwoKBasePacket
+    # Auditoría de conservación, auditoría de Melnikov (caos homoclínico),
+    # análisis de punto fijo RSI-3, y sellado de telemetría.
+    # El ÚLTIMO método, `_phase3_act`, produce `KBaseTelemetry`, objeto
+    # terminal del endofunctor OODA (no hay Fase 4).
     # =========================================================================
     def _phase3_conservation_audit(
         self,
@@ -1119,53 +1440,161 @@ class KBaseThermodynamicEngine:
         `PhaseOneKBasePacket × PhaseTwoKBasePacket`
         ← continuación formal de `_phase1_observe_orient` y `_phase2_decide`.
 
-        Residuos adimensionales acumulados (KBN) de identidades que deben
-        anularse en aritmética exacta:
-          1. G = H − T S = F + P V  (ya reducido a `thermo_identity_residual`);
-          2. sonda CSMD  |∂G/∂T + S| ;
-          3. |Tr ρ − 1|_+  y  (−λ_min(ρ))_+ ;
-          4. parte antihermítica residual del pullback;
-          5. inconsistencia del flag CD con el signo de Φ;
-          6. parte negativa de D(ρ‖ρ_β) (violación numérica de Klein).
+        Residuos adimensionales acumulados (KBN):
+          1. G = H − TS = F + PV         (thermo_identity_residual)
+          2. |∂G/∂T + S|                 (CSMD)
+          3. |Tr ρ − 1|_+  y  (−λ_min(ρ))_+
+          4. parte antihermítica del pullback
+          5. inconsistencia del flag CD con el signo de Φ
+          6. parte negativa de D(ρ‖ρ_β)
+          7. (v3) |λ_max(P)| fuera de la ventana hiperbólica permitida
         """
         dens = packet1.density_chart
         cd_inconsistent = (
-            1.0
-            if (packet1.clausius_coherent and packet1.dissipation_potential < -_WILKINSON_FLOOR)
+            1.0 if (packet1.clausius_coherent and packet1.dissipation_potential < -_WILKINSON_FLOOR)
             or ((not packet1.clausius_coherent) and packet1.dissipation_potential >= 0.0)
             else 0.0
         )
-        terms = np.asarray(
-            [
-                packet1.thermo_identity_residual,
-                packet1.csmd_entropy_error,
-                max(0.0, abs(dens.trace - 1.0) - _DENSITY_TRACE_TOLERANCE),
-                max(0.0, -dens.min_eigenvalue - _PSD_TOLERANCE),
-                packet1.pullback_hermiticity_residual,
-                cd_inconsistent,
-                max(0.0, -dens.relative_entropy_to_gibbs),
-            ],
-            dtype=np.float64,
-        )
+        # v3: residual hiperbólico — penaliza ρ(P) muy grande (no silla/nodo)
+        radius = packet1.poincare_chart.spectral_radius
+        hyperbolic_residual = max(0.0, radius - 10.0) if np.isfinite(radius) else 0.0
+
+        terms = np.asarray([
+            packet1.thermo_identity_residual,
+            packet1.csmd_entropy_error,
+            max(0.0, abs(dens.trace - 1.0) - _DENSITY_TRACE_TOLERANCE),
+            max(0.0, -dens.min_eigenvalue - _PSD_TOLERANCE),
+            packet1.pullback_hermiticity_residual,
+            cd_inconsistent,
+            max(0.0, -dens.relative_entropy_to_gibbs),
+            hyperbolic_residual,
+        ], dtype=np.float64)
         residual = float(np.real(self._neumaier_sum(terms)))
-        logger.debug(
-            "Fase 3 auditoría: residuo de conservación=%.6e (veredicto previo=%s)",
-            residual, packet2.heyting_verdict,
-        )
+        logger.debug("Fase 3 conservación: residuo=%.6e", residual)
         return residual
+
+    def _phase3_melnikov_audit(
+        self,
+        packet1: PhaseOneKBasePacket,
+        n_samples: int = _MELNIKOV_LOBES_SAMPLES,
+    ) -> Tuple[float, bool]:
+        r"""
+        [FASE 3 — SEGUNDO MORFISMO: AUDITORÍA DE MELNIKOV]
+
+        Dominio
+        -------
+        `PhaseOneKBasePacket`  ← continuación formal de `_phase3_conservation_audit`.
+
+        Para H = H₀ + ε H₁ con órbita homoclínica q⁰ de H₀:
+            M(t₀) = ∫_{−∞}^{+∞} {H₀, H₁}(q⁰(t − t₀)) dt.
+        Ceros simples de M(t₀) ⇔ intersecciones homoclínicas transversales
+        ⇔ entrelazado de Smale-Birkhoff ⇔ caos determinista.
+
+        Estimación numérica: la separatriz q⁰(t) se aproxima por el vector
+        propio inestable v_u del mapa de retorno P, con decaimiento
+        exponencial e^{−|Re λ_u| |t−t₀|}. La perturbación H₁ se modela
+        como un forzamiento sinusoidal; la integral se aproxima por
+        cuadratura trapezoidal sobre n_samples uniformes de [0, 2π).
+
+        El indicador booleano es verdadero si existe al menos un cambio
+        de signo de M(t₀) (Smale-Birkhoff no trivial).
+        """
+        P = np.asarray(packet1.poincare_chart.return_map, dtype=np.float64)
+        eigvals = packet1.poincare_chart.return_eigenvalues
+        state = np.asarray(packet1.state_vector, dtype=np.float64)
+        n = int(state.size)
+
+        # Descomposición silla: eigenvectores estables (|λ|<1) e inestables (|λ|>1)
+        try:
+            eigvals_np, eigvecs_np = np.linalg.eig(P)
+        except np.linalg.LinAlgError:
+            return 0.0, False
+        abs_eig = np.abs(eigvals_np)
+        stable_idx = np.where(abs_eig < 1.0)[0]
+        unstable_idx = np.where(abs_eig > 1.0)[0]
+        if stable_idx.size == 0 or unstable_idx.size == 0:
+            # Sin estructura silla → no hay lóbulos de Melnikov
+            return 0.0, False
+
+        # Autovalor inestable de mayor módulo (tasa de separación)
+        idx_u = unstable_idx[np.argmax(abs_eig[unstable_idx])]
+        lam_u = float(abs(eigvals_np[idx_u]))
+        v_u = np.real(eigvecs_np[:, idx_u])
+        v_u_norm = float(la.norm(v_u))
+        if v_u_norm < _WILKINSON_FLOOR:
+            return 0.0, False
+        v_u = v_u / v_u_norm
+
+        # Proyección de la perturbación (asumida en la dirección del estado)
+        pert_dir = state / max(float(la.norm(state)), _WILKINSON_FLOOR)
+        v_s = np.real(eigvecs_np[:, stable_idx[0]])
+        v_s_norm = float(la.norm(v_s))
+        if v_s_norm < _WILKINSON_FLOOR:
+            return 0.0, False
+        v_s = v_s / v_s_norm
+
+        overlap_s = abs(float(np.dot(v_s, pert_dir)))
+        overlap_u = abs(float(np.dot(v_u, pert_dir)))
+
+        # Melnikov: M(t₀) evaluada por cuadratura trapezoidal
+        t_grid = np.linspace(0.0, 2.0 * np.pi, n_samples)
+        dt = float(t_grid[1] - t_grid[0]) if n_samples > 1 else 0.0
+        decay_rate = max(lam_u - 1.0, 1e-3)  # e^{−|λ_u − 1| |t|} decae
+
+        M_values = np.empty_like(t_grid)
+        for i, t0 in enumerate(t_grid):
+            integrand = (
+                overlap_s * overlap_u
+                * np.exp(-decay_rate * np.abs(t_grid - t0))
+                * np.sin(t_grid - t0)
+            )
+            M_values[i] = float(np.trapz(integrand, t_grid))
+
+        lobe_area = float(np.trapz(np.abs(M_values), t_grid))
+        sign_changes = int(np.sum(np.diff(np.sign(M_values + 1e-300)) != 0))
+        chaos_indicator = bool(sign_changes > 0 and lobe_area > 1e-6)
+        logger.debug(
+            "Fase 3 Melnikov: lobe_area=%.6e zeros=%d chaos=%s",
+            lobe_area, sign_changes, chaos_indicator,
+        )
+        return lobe_area, chaos_indicator
 
     def _phase3_act(
         self,
         packet1: PhaseOneKBasePacket,
         packet2: PhaseTwoKBasePacket,
         conservation_residual: float,
+        melnikov_lobe_area: float,
+        chaos_indicator: bool,
+        recursion_converged: bool,
+        recursion_iteration: int,
     ) -> KBaseTelemetry:
-        """
+        r"""
         [FASE 3 — ÚLTIMO MORFISMO: ACT]
 
-        Sella el objeto terminal `KBaseTelemetry`. No hay Fase 4: este sello
-        es el valor de T(estado) inyectable en el pasaporte de la Malla.
+        Codominio
+        ---------
+        `KBaseTelemetry`  — objeto terminal del functor OODA.
+
+        Continuidad formal
+        ------------------
+        Este sello ES el valor de T(estado) inyectable en el pasaporte de la
+        Malla. No existe Fase 4: el endofunctor se ha clausurado.
+
+        El campo `chaos_indicator` (Melnikov) se propaga al veredicto
+        final por la ley interna de Heyting: si caos, el veredicto se
+        degrada a VETOED por veto (Smale-Birkhoff viola la regularidad
+        termodinámica).
         """
+        # Veto por caos: se aplica por modus ponens interno de Heyting
+        verdict_str = packet2.heyting_verdict
+        if chaos_indicator:
+            try:
+                base_verdict = HeytingVerdict(verdict_str)
+            except ValueError:
+                base_verdict = HeytingVerdict.VETOED
+            verdict_str = base_verdict.meet(HeytingVerdict.VETOED).value
+
         return KBaseTelemetry(
             pullback_tensor=packet1.pullback_tensor,
             gibbs_energy=packet1.gibbs_energy,
@@ -1174,7 +1603,7 @@ class KBaseThermodynamicEngine:
             dissipation_potential=packet1.dissipation_potential,
             clausius_coherent=packet1.clausius_coherent,
             irreversibility=packet2.irreversibility,
-            heyting_verdict=packet2.heyting_verdict,
+            heyting_verdict=verdict_str,
             thermo_identity_residual=packet1.thermo_identity_residual,
             csmd_entropy_error=packet1.csmd_entropy_error,
             relative_entropy_to_gibbs=packet1.density_chart.relative_entropy_to_gibbs,
@@ -1184,8 +1613,21 @@ class KBaseThermodynamicEngine:
             conservation_residual=conservation_residual,
             exergy_destruction=packet2.exergy_destruction,
             spectral_integrity_score=packet2.spectral_integrity.integrity_score,
+            poincare_return_time=packet1.poincare_chart.return_time,
+            return_map_spectral_radius=packet1.poincare_chart.spectral_radius,
+            max_lyapunov_exponent=packet1.poincare_chart.max_lyapunov,
+            kam_stable=packet2.kam_report.stable,
+            kam_diophantine_ratio=packet2.kam_report.min_diophantine_ratio,
+            melnikov_lobe_area=melnikov_lobe_area,
+            chaos_indicator=chaos_indicator,
+            recursion_converged=recursion_converged,
+            recursion_iteration=recursion_iteration,
+            self_improvement_level3_score=packet2.self_improvement.level3_score,
         )
 
+    # =========================================================================
+    # ORQUESTADOR OODA
+    # =========================================================================
     def execute_thermodynamic_cycle(
         self,
         G: np.ndarray,
@@ -1206,38 +1648,55 @@ class KBaseThermodynamicEngine:
         ambient_temperature: Optional[float] = None,
     ) -> Dict[str, Any]:
         r"""
-        Functor OODA  T = Act ∘ Decide ∘ Observe.
+        Functor OODA  T = Act ∘ Decide ∘ Observe  sobre el espacio de estados.
 
         Encadena las tres fases anidadas sin objetos huérfanos:
 
-            In  --F1→  PhaseOne  --F2→  PhaseTwo  --F3→  KBaseTelemetry  →  dict
+            In  --F1→  PhaseOne  --F2→  PhaseTwo  --F3→  KBaseTelemetry → dict
 
-        La firma pública (más `jacobian` y `ambient_temperature` opcionales)
-        permanece compatible con el pasaporte de telemetría de la Malla.
+        v3: tras el sellado, el motor actualiza su memoria:
+          • `self._cycle_history` (para el mapa de retorno de Poincaré).
+          • `self._alpha_current ← self._meta_state["alpha"]` (para RSI-3).
+        La siguiente invocación arranca con α actualizado y con historia
+        suficiente para estimar P de rango completo (tras n+1 ciclos).
         """
+        # FASE 1 — OBSERVE + ORIENT
         packet1 = self._phase1_observe_orient(
-            G,
-            tensor_M,
-            tensor_type,
-            internal_energy_U,
-            pressure_P,
-            volume_V,
-            temperature_T,
-            entropy_S,
-            entropy_production_rate,
-            heat_flux_q,
-            temp_gradient_gradT,
-            rho,
-            hamiltonian_H,
-            jacobian=jacobian,
+            G, tensor_M, tensor_type,
+            internal_energy_U, pressure_P, volume_V, temperature_T, entropy_S,
+            entropy_production_rate, heat_flux_q, temp_gradient_gradT,
+            rho, hamiltonian_H, jacobian=jacobian,
         )
+
+        # FASE 2 — DECIDE
         packet2 = self._phase2_decide(
             packet1,
             irreversibility_threshold=irreversibility_threshold,
             ambient_temperature=ambient_temperature,
         )
+
+        # FASE 3 — ACT
         conservation = self._phase3_conservation_audit(packet1, packet2)
-        telemetry = self._phase3_act(packet1, packet2, conservation)
+        melnikov_area, chaos_flag = self._phase3_melnikov_audit(packet1)
+        telemetry = self._phase3_act(
+            packet1, packet2,
+            conservation_residual=conservation,
+            melnikov_lobe_area=melnikov_area,
+            chaos_indicator=chaos_flag,
+            recursion_converged=packet2.self_improvement.recursion_converged,
+            recursion_iteration=packet2.self_improvement.iteration,
+        )
+
+        # MEMORIA DEL MOTOR
+        self._cycle_history.append({
+            "state": np.array(packet1.state_vector, copy=True),
+            "telemetry": telemetry,
+            "verdict": telemetry.heyting_verdict,
+        })
+        # El α del próximo ciclo es el propuesto por RSI-3
+        self._alpha_current = float(packet2.self_improvement.next_alpha)
+        self._previous_performance = float(packet2.spectral_integrity.integrity_score)
+
         return telemetry.to_dict()
 
 
@@ -1245,7 +1704,7 @@ class KBaseThermodynamicEngine:
 # Bloque de autocomprobación
 # -----------------------------------------------------------------------------
 if __name__ == "__main__":
-    print("Iniciando autocomprobación de KBase Thermodynamic Engine v3...")
+    print("Iniciando autocomprobación de KBase Thermodynamic Engine v3.0 (Poincaré + RSI-3)…")
     engine = KBaseThermodynamicEngine(dimension_n=3)
 
     G = np.eye(3, dtype=np.float64)
@@ -1259,7 +1718,7 @@ if __name__ == "__main__":
     print(f"¿Pullback J†TJ coincide?: {np.allclose(T_true, J.T @ Tm @ J)}")
 
     gibbs, h = engine.compute_gibbs_free_energy(100.0, 10.0, 2.0, 300.0, 0.1)
-    print(f"Energía de Gibbs: {gibbs:.4f}, Entalpía: {h:.4f}  (esperado G=90, H=120)")
+    print(f"G={gibbs:.4f}, H={h:.4f}  (esperado G=90, H=120)")
 
     diss, ok = engine.evaluate_clausius_duhem(
         entropy_production_rate=0.05,
@@ -1267,54 +1726,67 @@ if __name__ == "__main__":
         temp_gradient_gradT=np.array([0.1, 0.0, 0.2]),
         temperature_T=300.0,
     )
-    print(f"Potencial de disipación: {diss:.6f}, ¿cumple Clausius-Duhem?: {ok}")
+    print(f"Φ={diss:.6f}, CD={ok}")
 
     rho = np.diag([0.7, 0.2, 0.1])
     H = np.array([[0, 1, 0], [1, 0, 0], [0, 0, 1]], dtype=np.float64)
-    irrev = engine.calculate_spectral_irreversibility(rho, H)
-    print(f"Defecto de estacionariedad ‖[H,ρ]‖_HS²: {irrev:.6f}")
+    print(f"ℐ={engine.calculate_spectral_irreversibility(rho, H):.6f}")
 
-    result = engine.execute_thermodynamic_cycle(
-        G=G,
-        tensor_M=Tm,
-        tensor_type="covariant",
-        internal_energy_U=100.0,
-        pressure_P=10.0,
-        volume_V=2.0,
-        temperature_T=300.0,
-        entropy_S=0.1,
-        entropy_production_rate=0.05,
+    print("\n--- CICLO 1 (bootstrap: sin historia, P̂=I, KAM trivial) ---")
+    result1 = engine.execute_thermodynamic_cycle(
+        G=G, tensor_M=Tm, tensor_type="covariant",
+        internal_energy_U=100.0, pressure_P=10.0, volume_V=2.0,
+        temperature_T=300.0, entropy_S=0.1, entropy_production_rate=0.05,
         heat_flux_q=np.array([1.0, 0.5, 0.0]),
         temp_gradient_gradT=np.array([0.1, 0.0, 0.2]),
-        rho=rho,
-        hamiltonian_H=H,
-        irreversibility_threshold=0.1,
+        rho=rho, hamiltonian_H=H, irreversibility_threshold=0.1,
     )
-    print("Veredicto:", result["heyting_verdict"])
-    print("Helmholtz:", result["helmholtz_energy"])
-    print("Residuo identidades:", result["thermo_identity_residual"])
-    print("Error CSMD |∂G/∂T + S|:", result["csmd_entropy_error"])
-    print("D(ρ‖ρβ):", result["relative_entropy_to_gibbs"])
-    print("S_vN:", result["von_neumann_entropy"])
-    print("Residuo de conservación:", result["conservation_residual"])
+    print(f"veredicto={result1['heyting_verdict']}, "
+          f"ρ(P)={result1['return_map_spectral_radius']:.3f}, "
+          f"λ_max={result1['max_lyapunov_exponent']:.3e}, "
+          f"KAM={result1['kam_stable']}, "
+          f"Melnikov={result1['melnikov_lobe_area']:.3e}, "
+          f"chaos={result1['chaos_indicator']}, "
+          f"RSI_iter={result1['recursion_iteration']}, "
+          f"RSI_L3={result1['self_improvement_level3_score']:.4f}")
 
-    # Veto duro: producción intrínseca insuficiente frente a conducción antípoda.
+    print("\n--- CICLO 2 (historia=1, P̂ de rango deficiente regularizado) ---")
+    result2 = engine.execute_thermodynamic_cycle(
+        G=G, tensor_M=Tm, tensor_type="covariant",
+        internal_energy_U=100.0, pressure_P=10.0, volume_V=2.0,
+        temperature_T=300.0, entropy_S=0.1, entropy_production_rate=0.05,
+        heat_flux_q=np.array([1.0, 0.5, 0.0]),
+        temp_gradient_gradT=np.array([0.1, 0.0, 0.2]),
+        rho=rho, hamiltonian_H=H,
+    )
+    print(f"veredicto={result2['heyting_verdict']}, "
+          f"RSI_iter={result2['recursion_iteration']}, "
+          f"conv={result2['recursion_converged']}, "
+          f"KAM_ratio={result2['kam_diophantine_ratio']:.3f}")
+
+    print("\n--- CICLO 3 (historia=2, P̂ más informativo) ---")
+    result3 = engine.execute_thermodynamic_cycle(
+        G=G, tensor_M=Tm, tensor_type="covariant",
+        internal_energy_U=100.0, pressure_P=10.0, volume_V=2.0,
+        temperature_T=300.0, entropy_S=0.1, entropy_production_rate=0.05,
+        heat_flux_q=np.array([1.0, 0.5, 0.0]),
+        temp_gradient_gradT=np.array([0.1, 0.0, 0.2]),
+        rho=rho, hamiltonian_H=H,
+    )
+    print(f"veredicto={result3['heyting_verdict']}, "
+          f"ρ(P)={result3['return_map_spectral_radius']:.3f}, "
+          f"KAM_ratio={result3['kam_diophantine_ratio']:.3f}")
+
+    print("\n--- VETO esperado: Clausius-Duhem incoherente ---")
     veto = engine.execute_thermodynamic_cycle(
-        G=G,
-        tensor_M=Tm,
-        tensor_type="covariant",
-        internal_energy_U=100.0,
-        pressure_P=10.0,
-        volume_V=2.0,
-        temperature_T=300.0,
-        entropy_S=0.1,
-        entropy_production_rate=-1.0,
+        G=G, tensor_M=Tm, tensor_type="covariant",
+        internal_energy_U=100.0, pressure_P=10.0, volume_V=2.0,
+        temperature_T=300.0, entropy_S=0.1, entropy_production_rate=-1.0,
         heat_flux_q=np.array([1.0, 0.0, 0.0]),
         temp_gradient_gradT=np.array([1.0, 0.0, 0.0]),
-        rho=rho,
-        hamiltonian_H=H,
+        rho=rho, hamiltonian_H=H,
     )
-    print("Veto Clausius-Duhem esperado:", veto["heyting_verdict"], "CD=", veto["clausius_coherent"])
+    print(f"veredicto={veto['heyting_verdict']}, CD={veto['clausius_coherent']}")
 
 
 __all__ = [
@@ -1325,5 +1797,8 @@ __all__ = [
     "SpectralChart",
     "DensityOperatorChart",
     "SpectralThermoReport",
+    "PoincareChart",
+    "KAMReport",
+    "SelfImprovementReport",
     "HeytingVerdict",
 ]

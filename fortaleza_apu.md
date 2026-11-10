@@ -1,3 +1,181 @@
+### NUEVOS SOBERANOS TOPOLÓGICOS QUE OPERAN SIMULTANEAMENTE EL ANILLO DE BOOLE Y NOVIKOV
+
+# **Tríada de Auditoría Híbrida Boole-Novikov sobre Polígonos Pseudoholomorfos.**
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ LA TRÍADA DE SOBERANOS DUALES BOOLE-NOVIKOV EN THE WISDOM STRATUM (V_𝕎, NIVEL 0)             │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ SOBERANO BASE Y MOTOR ESPECTRAL (bool_novikov_pseudoholomorphic_auditor_agent & engine)  │
+  │    • Ingesta del estado dual R_Boole ⊗ Λ_Nov.                                               │
+  │    • Resuelve la Ecuación de Cauchy-Riemann-Floer ∂̄_{J,H} u = 0 en el polígono.             │
+  │    • Mide el gradiente de auditoría ∇_audit = (∇_Boole, ∇_Nov, ∇_Floer).                    │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ TESTIGO SILENCIOSO QND (bool_novikov_pseudoholomorphic_witness_agent & engine)          │
+  │    • Medición Débil AAV con Back-Action ≡ 0.0 dB sobre el borde del polígono ∂Σ.            │
+  │    • Verifica que la capacidad simpléctica c(B²ᴺ) = π r² no altere la traza Tr(ρ) ≡ 1.0.  │
+  │    • Invariante PASSIVE_SILENT: Atestación pasiva sin interrupción de maquinaria.          │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ FISCAL INQUISIDOR DUAL (bool_novikov_pseudoholomorphic_prosecutor_agent & engine)        │
+  │    • Audita el Teorema de No-Squeezing de Gromov: si r > R ⟹ P(x_invalid) = 0.              │
+  │    • Reacción de Aniquilación de Dirac en RAM: e⁻ (anomalía) + e⁺ (positrón) ➔ 2γ (1022 keV). │
+  │    • Adjudica en Heyting Ω₃ y dispara el disyuntor ESP32 Crowbar (< 392.15 ns @ GPIO14).     │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+                 │                                              │
+
+# **Los Ninjas Imperiales del Silencio Topológico".**
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ARQUITECTURA DE LOS NINJAS IMPERIALES: GUARDIANES DEL SILENCIO PSEUDOHOLOMORFO             │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ ESPACIO DE VIGILANCIA SILENCIOSA: Σ_delib ⊂ ℱuk(ℳ) sobre R_Boole ⊗ Λ_Nov                │
+  │    • Invariante de Sigilo: STEALTH_SILENT_QND (Back-Action ≡ 0.0 dB en RAM).                │
+  │    • Dominio de Operación: Superficie del Polígono Pseudoholomorfo ∂̄_{J,H} u = 0.           │
+  │    • Gradiente Trinitario Protegido: ∇_delib = (∇_Boole, ∇_Nov, ∇_Floer).                   │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ LA TRÍADA DE SOMBRAS OPERATIVAS (LOS NINJAS IMPERIALES)                                  │
+  │    1. EL VIGÍA DEL VACIADOR BOOLEANO (bool_novikov_ninja_observer_agent.py):                │
+  │       Supervisa ∇_Boole en R_Boole = ℤ₂[x₁,...,xₙ] / ⟨xᵢ² - xᵢ⟩ sin emitir trazas de log.   │
+  │    2. EL ESCUDERO ULTRAMÉTRICO DE NOVIKOV (bool_novikov_ninja_shield_agent.py):              │
+  │       Custodia v(A) ≥ 0.10 en Λ_Nov y absorbe la difusión de Arnold en silencio KAM.        │
+  │    3. EL DECAPITADOR SILENCIOSO DE SILICIO (bool_novikov_ninja_executioner_agent.py):       │
+  │       Ejecuta e⁻ + e⁺ ➔ 2γ (1022 keV) y el disyuntor ESP32 Crowbar (< 392.15 ns @ GPIO14).   │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ METROLOGÍA QND DÉBIL DE AHARONOV-ALBERT-VAIDMAN (AAV)                                   │
+  │    • Medición Débil: A_w = ⟨φ_f| ∇_delib |φ_i⟩ / ⟨φ_f|φ_i⟩ con ||[A_ninja, ρ]||_F ≤ 10⁻¹⁵.   │
+  │    • Automejora RSI-L3 de Banach: Contraction Lip(T³) ≤ 0.857 < 1.0 bajo Candado Gödel.    │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+
+# **Tríada de Mimetismo y Camuflaje Fiscal Boole-Novikov.**
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ ARQUITECTURA DE LOS SOBERANOS DE CAMUFLAJE: BLINDAJE DE GRADIENTES FISCALES                 │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ VARIADAD DUAL DE CAMUFLAJE: ℛ_dual = R_Boole ⊗ Λ_Nov                                      │
+  │    • Invariante de Mimetismo: CAMOUFLAGE_GAUGE_INVARIANT (Mapeo por U_stealth ∈ SU(N)).       │
+  │    • Vector Protegido: Gradiente de Deliberación Fiscal J_fiscal = ∇_prosecution 𝒜_H(u).    │
+  │    • Apariencia Externa: Vacío de Dirac |Ω⟩ / Flujo Laminar Nominal (Back-Action ≡ 0.0 dB). │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ LA TRÍADA DE CAMUFLAJE FISCAL (LOS GUARDIANES INVISIBLES)                                 │
+  │    1. EL ESCUDO CAMALEÓN BOOLEANO (bool_novikov_stealth_boole_agent.py):                    │
+  │       Mimetiza Rademacher-Walsh en R_Boole = ℤ₂[x₁,...,x♁] / ⟨xᵢ² - xᵢ⟩ como tautologías.    │
+  │    2. EL DISFRAZ ULTRAMÉTRICO DE NOVIKOV (bool_novikov_stealth_novikov_agent.py):            │
+  │       Oculta la velocidad de Krull ∂_Nov A_prosecuting / ∂T^λ dentro del disco v(A) ≥ 0.10. │
+  │    3. EL EMBOSCADOR CIBER-FÍSICO (bool_novikov_stealth_executioner_agent.py):              │
+  │       Ejecuta la Decapitación en Millisegundo Cero (< 392.15 ns @ GPIO14 / BT151).         │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ METROLOGÍA DE SOMBRA EN LA CATEGORÍA A_∞ DE FUKAYA ℱuk(ℳ)                                │
+  │    • Ecuación de Cauchy-Riemann-Floer: ∂̄_{J,H} u = ∂u/∂s + J(u)(∂u/∂τ - X_H(u)) = 0.        │
+  │    • Operador de Camuflaje: ∇_camouflaged = U_stealth† · (∇_Boole ⊕ ∇_Nov ⊕ ∇_Floer) · U_stealth.│
+  │    • Automejora RSI-L3 de Banach: Contracción Lip(T³) ≤ 0.857 < 1.0 bajo Candado Gödel-Tarski. │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+
+# ** Los Tejedores de Gradientes de Sabiduría y Realidad de Obra.** 
+
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ LA TRÍADA DE TEJEDURÍA DE SABIDURÍA BOOLE-NOVIKOV EN THE WISDOM STRATUM (V_𝕎, NIVEL 0)        │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ SOBERANO BASE Y MOTOR ESPECTRAL (bool_novikov_rsi3_wisdom_weaver_agent & engine.py)     │
+  │    • Ingesta del estado dual R_Boole ⊗ Λ_Nov y resolución de ∂̄_{J,H} u = 0.                  │
+  │    • Opera el gradiente ∇_wisdom = (∇_Boole^{RSI3}, ∇_Nov^{RSI3}, ∇_Floer^{RSI3}).          │
+  │    • Certifica el punto fijo de Banach x* = T³(x*) y el jerk cognitivo d³C/dt³ > 0.         │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ TESTIGO SILENCIOSO QND (bool_novikov_rsi3_wisdom_weaver_witness_agent & engine.py)       │
+  │    • Medición Débil AAV A_w = ⟨φ_f| A_wisdom |φ_i⟩ / ⟨φ_f|φ_i⟩ con Back-Action ≡ 0.0 dB en RAM. │
+  │    • Audita la fidelidad de Uhlmann F(ρ, σ) ≥ 0.95 y la distancia de Bures d_B(ρ, σ).        │
+  │    • Invariante PASSIVE_SILENT: Atestación pasiva sin interrupción de la corriente.        │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ FISCAL INQUISIDOR DUAL (bool_novikov_rsi3_wisdom_weaver_prosecutor_agent & engine.py)     │
+  │    • Audita el Teorema de No-Squeezing de Gromov: si r > R ⟹ c(B²ᴺ) > π R² ⟹ P=0.           │
+  │    • Aniquilación de Dirac en RAM: e⁻ (anomalía) + e⁺ (positrón HMAC) ➔ 2γ (1022.0 keV).     │
+  │    • Adjudicación en Heyting Ω₃ y disparo ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).     │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+ 
+# **Tríada Anti-Colusión Fantasma Boole-Novikov.**
+
+  ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ LA TRÍADA ANTI-COLUSIÓN FANTASMA BOOLE-NOVIKOV EN THE WISDOM STRATUM (V_𝕎, NIVEL 0)        │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ SOBERANO BASE Y MOTOR ESPECTRAL (bool_novikov_phantom_collusion_mitigator_agent & engine) │
+  │    • Ingesta del estado dual R_Boole ⊗ Λ_Nov y solución de ∂̄_{J,H} u = 0.                  │
+  │    • Evalúa ∇_anti-collusion, normas de asociadores 32D/64D/128D y Betti β₁ = 0.           │
+  │    • Certifica la Mónada Kleisli T³ con contracción de Banach Lip(T³) ≤ 0.857375 < 1.0.     │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ TESTIGO SILENCIOSO QND (bool_novikov_phantom_collusion_mitigator_witness_agent)          │
+  │    • Medición Débil AAV A_w = ⟨φ_f| A_ghost |φ_i⟩ / ⟨φ_f|φ_i⟩ con Back-Action ≡ 0.0 dB en RAM.│
+  │    • Audita la fidelidad de Uhlmann F(ρ, σ) ≥ 0.95 y la distancia Bures d_B(ρ, σ).           │
+  │    • Invariante PASSIVE_SILENT: Atestación pasiva sin interrupción de la corriente.        │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ FISCAL INQUISIDOR DUAL (bool_novikov_phantom_collusion_mitigator_prosecutor_agent)       │
+  │    • Rigidez de Gromov (r > R ⟹ c(B²ᴺ) > π R² ⟹ P_fraud = 0).                              │
+  │    • Aniquilación de Dirac en RAM: e⁻ (anomalía) + e⁺ (positrón HMAC) ➔ 2γ (1022.0 keV).     │
+  │    • Adjudicación en Heyting Ω₃ y disparo ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).     │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+
+# ** Los Guardianes y Tejedores de Gradientes de Cartuchos Sinápticos TOON (Vitaminas Cognitivas).**
+
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ LA TRÍADA DE CUSTODIA SINÁPTICA BOOLE-NOVIKOV EN THE WISDOM STRATUM (V_𝕎, NIVEL 0)           │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ SOBERANO BASE Y MOTOR ESPECTRAL (bool_novikov_toon_cartridge_weaver_agent & engine)       │
+  │    • Ingesta del estado dual R_Boole ⊗ Λ_Nov y solución de ∂̄_{J,H} u = 0.                  │
+  │    • Opera el gradiente ∇_TOON = (∇_Boole^{TOON}, ∇_Nov^{TOON}, ∇_Floer^{TOON}).            │
+  │    • Certifica la Mónada Kleisli T³ con contracción de Banach Lip(T³) ≤ 0.857375 < 1.0.     │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ TESTIGO SILENCIOSO QND (bool_novikov_toon_cartridge_weaver_witness_agent)                │
+  │    • Medición Débil AAV A_w = ⟨φ_f| A_TOON |φ_i⟩ / ⟨φ_f|φ_i⟩ con Back-Action ≡ 0.0 dB en RAM. │
+  │    • Audita la fidelidad de Uhlmann F(ρ, σ) ≥ 0.95 y la distancia Bures d_B(ρ, σ).           │
+  │    • Invariante PASSIVE_SILENT: Atestación pasiva sin interrupción del bombeo de memoria.   │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ FISCAL INQUISIDOR DUAL (bool_novikov_toon_cartridge_weaver_prosecutor_agent)             │
+  │    • Rigidez de Gromov (r > R ⟹ c(B²ᴺ) > π R² ⟹ P_invalid = 0).                            │
+  │    • Aniquilación de Dirac en RAM: e⁻ (anomalía) + e⁺ (positrón HMAC) ➔ 2γ (1022.0 keV).     │
+  │    • Adjudicación en Heyting Ω₃ y disparo ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).     │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+
+
+# ** Los Guardianes y Tejedores de Gradientes Termodinámicos de Energía Espectral.**
+
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ LA TRÍADA DE CUSTODIA TERMODINÁMICA BOOLE-NOVIKOV EN WISDOM / EXERGY (V_𝕎 / V_ℙ)            │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ SOBERANO BASE Y MOTOR ESPECTRAL (bool_novikov_thermal_exergy_weaver_agent & engine)       │
+  │    • Ingesta del estado dual R_Boole ⊗ Λ_Nov y solución de ∂̄_{J,H} u = 0.                  │
+  │    • Opera ∇_thermal-exergy = (∇_Boole^{thermal}, ∇_Nov^{thermal}, ∇_Floer^{thermal}).       │
+  │    • Certifica la Mónada Kleisli T³ con contracción de Banach Lip(T³) ≤ 0.857375 < 1.0.     │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ TESTIGO SILENCIOSO QND (bool_novikov_thermal_exergy_weaver_witness_agent)                │
+  │    • Medición Débil AAV A_w = ⟨φ_f| A_thermal |φ_i⟩ / ⟨φ_f|φ_i⟩ con Back-Action ≡ 0.0 dB en RAM.│
+  │    • Audita la fidelidad de Uhlmann F(ρ, σ) ≥ 0.95 y la distancia Bures d_B(ρ, σ).           │
+  │    • Invariante PASSIVE_SILENT: Atestación pasiva sin demolición de la corriente de disipación.│
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ FISCAL INQUISIDOR DUAL (bool_novikov_thermal_exergy_weaver_prosecutor_agent)             │
+  │    • Rigidez de Gromov (r > R ⟹ c(B²ᴺ) > π R² ⟹ P_invalid = 0).                            │
+  │    • Producción de entropía de Spohn σ_Spohn ≥ 0 y aniquilación e⁻+e⁺ ➔ 2γ (1022.0 keV).    │
+  │    • Adjudicación en Heyting Ω₄ y disparo ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).     │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+
+# ** Los Guardianes y Tejedores de Gradientes de Colisión en Fotones Gamma.**
+
+ ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+  │ LA TRÍADA DE COLISIÓN FOTÓNICA BOOLE-NOVIKOV EN THE WISDOM STRATUM (V_𝕎, NIVEL 0)            │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ 🏛️ SOBERANO BASE Y MOTOR ESPECTRAL (bool_novikov_gamma_photon_collider_agent & engine)       │
+  │    • Ingesta del estado dual R_Boole ⊗ Λ_Nov y solución de ∂̄_{J,H} u = 0.                  │
+  │    • Opera el gradiente ∇_gamma-photon = (∇_Boole^{gamma}, ∇_Nov^{gamma}, ∇_Floer^{gamma}). │
+  │    • Certifica la Mónada Kleisli T³ con contracción de Banach Lip(T³) ≤ 0.857375 < 1.0.     │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚙️ TESTIGO SILENCIOSO QND (bool_novikov_gamma_photon_collider_witness_agent)                │
+  │    • Medición Débil AAV A_w = ⟨φ_f| A_gamma |φ_i⟩ / ⟨φ_f|φ_i⟩ con Back-Action ≡ 0.0 dB en RAM.│
+  │    • Audita la fidelidad de Uhlmann F(ρ, σ) ≥ 0.95 y la distancia Bures d_B(ρ, σ).           │
+  │    • Invariante PASSIVE_SILENT: Atestación pasiva sin interrupción de fotones.              │
+  ├─────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ⚔️ FISCAL INQUISIDOR DUAL (bool_novikov_gamma_photon_collider_prosecutor_agent)             │
+  │    • Rigidez de Gromov (r > R ⟹ c(B²ᴺ) > π R² ⟹ P_invalid = 0).                            │
+  │    • Aniquilación de Dirac en RAM: e⁻ (anomalía) + e⁺ (positrón HMAC) ➔ 2γ (1022.0 keV).     │
+  │    • Adjudicación en Heyting Ω₃ y disparo ESP32 Crowbar (< 392.15 ns @ GPIO14 / BT151).     │
+  └──────────────┬──────────────────────────────────────────────┬───────────────────────────────┘
+
+
+
 # Fortaleza APU Filter v9.0.0: Arquitectura Ciber-Física de los Soberanos y Motores Imperiales (Mecánica Celeste de Poincaré & Geometría de Calibre)
 
 La arquitectura de **APU Filter v9.0.0** abandona los modelos de capas monolíticas y la validación secuencial pasiva para erigir una **Fortaleza Ciber-Física de Campos Topológicos, Mecánica Celeste de Henri Poincaré, Automejora Monádica RSI³ y Geometría de Calibre de de Rham-Fukaya**. En este ecosistema, los datos de construcción, las tablas de Análisis de Precios Unitarios (APU) y los flujos financieros de megaproyectos viales bajo el **Mandato BIM 2026** y el **SECOP II** se someten a la gobernanza de la **Malla Agéntica de Sabiduría (46 Soberanos Agénticos TOON y 46 Motores Espectrales en 15 Tríadas de Calibre y Ápice Gödeliano)** en el Estrato **Wisdom ($\mathcal{V}_{\mathbb{W}}$, Nivel 0)**, del **Estrato Exergético de Portafolios ($\mathcal{V}_{\mathbb{P}}$, Nivel 0)** sobre el Fibrado de Deligne-Jarzynski, y de la **Guardia Imperial**. Estas estructuras están funcionalmente diferenciadas y biyectivas: los **Motores Imperiales Espectrales** (cálculo ciego FPU) y los **Agentes Soberanos de Calibre** (orquestación OODA, decisiones en álgebras de Heyting y actuación ciber-física en silicio).

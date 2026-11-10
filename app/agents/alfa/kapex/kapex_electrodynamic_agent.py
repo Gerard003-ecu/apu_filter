@@ -3,138 +3,121 @@ r"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║ Módulo : KApex Electrodynamic Agent (Director de Retorno y Expansión)        ║
 ║ Ruta   : app/agents/alpha/kapex/kapex_electrodynamic_agent.py                ║
-║ Versión: 7.0.0-Rigorous-Gauge-Curvature-Sheaf-Nested-NoHardware              ║
+║ Versión: 9.0.0-Sovereign-Gauge-Sheaf-Poincare-KAM-RLC-RSI3-Nested            ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
-NATURALEZA CIBER-FÍSICA Y ÓPTICA GEOMÉTRICA EN EL ÁPICE ESTRATÉGICO (V_𝕊) ──────
-Este módulo consagra el Ápice Estratégico como un Endofuntor de Campo de Calibre 
-que actúa sobre la variedad del modelo de negocio, inyectando Fuerza Electromotriz
-(FEM) en el bloque de Propuesta de Valor, modelando la refracción competitiva de 
-Segmentos de Clientes y auditando de manera implacable el retorno exergético 
-en los Flujos de Ingresos.
+NATURALEZA CIBER-FÍSICA (V_𝕊):
+────────────────────────────────────────────────────────────────────────────────
+Ápice Estratégico como Endofuntor de Campo de Calibre, Geometría Simpéctica de
+Poincaré-KAM y Haz Celular de Hodge. Modela el flujo de capital como una corriente
+relativista en una variedad riemanniana anisótropa (𝓜, G_μν) con disipación
+viscosa R_cost, gobernada por una conexión no abeliana de Yang-Mills A_μ ∈ 𝔰𝔬(n),
+bivectores hipercomplejos de Riemann-Silberstein y un Meta-Controlador de
+Automejora Recursiva de Nivel 3 (RSI-3).
 
-Sustituye de raíz los análisis macroeconómicos tradicionales por un formalismo 
-de teoría de campos electromagnéticos clásico-cuánticos. Modeliza el flujo de 
-capital como una corriente en un medio anisótropo no lineal gobernado por una 
-curvatura de Yang–Mills discreta antisimétrica $$F \in \mathfrak{so}(n)$$ con 
-proyección al álgebra de Lie y contracción métrica en el espacio de Hilbert-Schmidt,
-confinando cualquier desviación semántica a través de veto lógico en el software.
+EVOLUCIÓN SOBERANA v9.0.0 (Poincaré-KAM + Clifford-RLC + RSI-3 en 3 Fases Anidadas):
+  [P1] Snapshot de Poincaré-KAM en el fibrado cotangente espectral (q=λ_min(G), p=λ_max−λ_min):
+       invariante integral de Poincaré-Cartan I = ½(q²+p²), margen diofántico KAM
+       |q/p − p_r/q_r| − γ·q_r^{−τ} y detección de divisores pequeños vía fracciones continuas.
+  [P2] Expansión perturbativa de Lindstedt-Poincaré del Heat Kernel Φ(ε)=n⁻¹tr(e^{−εG}) con
+       parámetro ε=1/(1+λ_max) y re-sumación racional diagonal de Padé [M/M](−εG) activada en
+       el Nivel 3 de RSI para anular divergencias seculares.
+  [P3] Bicuaternión hipercomplejo de Riemann-Silberstein F_RS = E + i·G^{−1/2}H ∈ Cl(T*𝓜)⊗ℂ
+       y síntesis de impedancia cuántica RLC verificando |S|² = P² + Q² y Q_factor > 0.
+  [P4] Mapa de Retorno Simpéctico de Poincaré-Chirikov (Twist Map con det(DP)=1), traza de
+       monodromía de Floquet y exponente de Lyapunov local.
+  [P5] Dualidad cohomológica de Hodge-Poincaré sobre F ∈ Ω²(𝓜, 𝔰𝔬(n)): espectro SVD de
+       Eckart-Young-Mirsky, fuga sub-umbral y defecto de antisimetría de Cartan.
+  [P6] Recurrencia ergódica de Poincaré-Birkhoff sobre el toro espectral y estadístico r-ratio
+       de Oganesyan-Huse (integrabilidad de Berry-Tabor vs. caos de Wigner-Dyson).
+  [P7] Deriva adiabática de Nekhoroshev-Poincaré |I_out−I_in|/I_in con restauración simpléctica
+       contradiabática en el Nivel 3 de RSI.
+  [P8] Meta-controlador RSI-3 de tres niveles reales:
+         - Nivel 1: Evaluación metrológica base (compatibilidad exacta v7.0.0 / v8.0.0).
+         - Nivel 2: Extrapolación de Richardson, pulido hiper-potencia de Schulz-Newton-Hotelling
+                    sobre G_inv y escalado perturbativo de Lindstedt-Poincaré.
+         - Nivel 3: Aceleración no lineal Δ² de Aitken, re-sumación racional de Padé [M/M] y
+                    amortiguamiento homológico contradiabático sobre el haz de Hodge.
 
-ARQUITECTURA DE TRES FASES ANIDADAS (Composición Funtorial Estricta): ────────────
-La transición de estados estratégicos se rige por un contrato covariante estricto
-que enlaza el pipeline a través de tres morfismos encadenados:
+ARQUITECTURA DE TRES FASES ESTRICTAMENTE ANIDADAS (COMPOSICIÓN CATEGÓRICA):
+  Fase 1 (`Phase1_MetricValidation`)
+    └──► Culmina en `build_context() -> ApexPreparationContext`
+           │ (El codominio terminal de Fase 1 es el dominio inicial exacto de Fase 2)
+           ▼
+  Fase 2 (`Phase2_ElectrodynamicSynthesis`)
+    └──► Inicia recibiendo `ApexPreparationContext` y culmina en `synthesize() -> ApexStateTensor`
+           │ (El codominio terminal de Fase 2 es el dominio inicial exacto de Fase 3)
+           ▼
+  Fase 3 (`Phase3_SheafProjection` + Meta-Controlador RSI-3)
+    └──► Inicia recibiendo `(ApexPreparationContext, ApexStateTensor)`, exporta `SheafStalkApex`
+         en `export_stalk()` y clausura el punto fijo recursivo en `synthesize_with_rsi3()`.
 
-  Fase 1 ──► FASE 1: VALIDACIÓN MÉTRICA Y CONSISTENCIA BILATERAL (build_context)
-             Audita que el tensor métrico Riemanniano de fondo $$G_{\mu\nu}$$ sea 
-             simétrico definido positivo (SPD) y calcula su inversa bilateral exacta
-             bajo la cota de Wilkinson para prevenir derivas de punto flotante.
-             Entrega: ApexPreparationContext como precondición formal de Fase 2.
-
-  Fase 2 ──► FASE 2: TRANSPORTE DE GAUGE Y ÓPTICA EIKONAL (synthesize)
-             Resuelve la ecuación Eikonal no lineal de refracción sobre el medio
-             competitivo y evalúa la acción de Yang-Mills discreta $$S_{\mathrm{YM}}$$
-             para estimar la fuga de Gauge.
-             Entrega: ApexStateTensor como precondición formal de Fase 3.
-
-  Fase 3 ──► FASE 3: EXPORTACIÓN COHOMOLÓGICA AL STALK (export_stalk)
-             Valida la consistencia de la identidad de Hodge local, proyectando 
-             las restricciones al stalk del haz celular global $$L_F$$ para la 
-             orquestación del consenso macroscópico.
-             Entrega: SheafStalkApex como objeto final del endofuntor de-confinado.
-
-INVARIANTES MATEMÁTICOS, GEOMÉTRICOS Y LEYES CONSERVATIVAS PRESERVADAS: ────────
-  [I1] Conservación de la Acción de Yang-Mills (Invarianza de Calibre):
-       La curvatura de la plaqueta $$F$$ debe satisfacer de forma exacta la acción:
-       $$S_{\mathrm{YM}} = \frac{1}{2} \operatorname{Tr}\bigl(F^\top G_{\mu\nu} F G^{\mu\nu}\bigr) = \frac{1}{2} \langle F, F \rangle_{\mathrm{HS}(G)} \ge 0 \quad$$
-       La no-negatividad se garantiza si $$M := F^\top G_{\mu\nu} F \succeq 0 \quad\land\quad N := G^{\mu\nu} \succ 0$$.
-
-  [I2] Proyección Canónica al Álgebra de Lie $$\mathfrak{so}(n)$$:
-       Toda matriz $$A$$ se proyecta de forma idempotente al espacio antisimétrico:
-       $$\Pi_{\mathfrak{so}}(A) := \frac{1}{2}\bigl(A - A^\top\bigr) \quad \implies \quad \Pi_{\mathfrak{so}}^2 = \Pi_{\mathfrak{so}} \quad \land \quad \operatorname{im} \Pi_{\mathfrak{so}} = \mathfrak{so}(n) \quad$$
-       La curvatura del campo se construye estrictamente dentro del álgebra:
-       $$F = \bigl(A_2^a - A_1^a\bigr) + [A_1^a, A_2^a] \quad \text{donde} \quad A_i^a := \Pi_{\mathfrak{so}}(A_i) \quad$$
-
-  [I3] Consistencia Métrica Bilateral de Wilkinson:
-       El análisis del error hacia atrás en la inversión de la métrica exige:
-       $$\frac{\|G G^{-1} - I\|_F}{n} \le \kappa(G) \varepsilon_{\mathrm{mach}} n \quad\land\quad \frac{\|G^{-1} G - I\|_F}{n} \le \kappa(G) \varepsilon_{\mathrm{mach}} n \quad$$
-
-  [I4] Cierre Espectral de la Raíz de Disipación:
-       El tensor de amortiguamiento se verifica contra su raíz cuadrada espectral:
-       $$\frac{\|R_{\mathrm{sqrt}}^2 - R_{\mathrm{cost}}\|_F}{\max(\|R_{\mathrm{cost}}\|_F, 1)} \le C \varepsilon_{\mathrm{mach}} \kappa_{\mathrm{eff}}(R) \quad$$
-
-  [I5] Isomorfismo de Hodge Local (Consistencia Co-homológica):
-       La triangulación y la restricción del haz celular se someten a la cota:
-       $$\frac{\|\delta_{\mathrm{metric}}^\top G_{\mu\nu} \delta_{\mathrm{metric}} - I\|_F}{n} \le C \kappa(G_{\mu\nu}) \varepsilon_{\mathrm{mach}} \quad$$
-
-  [I6] Conservación y Flujo Exergético (Teorema de Poynting):
-       La penetración del mercado exige resolver la Ecuación Eikonal no lineal:
-       $$G^{\mu\nu} \partial_\mu S \partial_\nu S = N^{\mu\nu} \sigma_{\mu\nu}^* \quad$$
-       Mientras que la potencia de exergía estratégica debe ser estrictamente positiva:
-       $$P_{\text{exergia}} = \langle E \smile \star H, [\partial K] \rangle - \int_K \nabla H^\top R_{\text{cost}} \nabla H \ge 0 \quad$$
-
-  [I7] Lógica Reticular de Heyting Completa:
-       Los predicados de viabilidad de `ApexViabilityFlags` se evalúan mediante
-       operaciones booleanas cerradas de meet ($$\wedge$$) y join ($$\vee$$), 
-       satisfaciendo el elemento unitario de orden total.
+Funtor Maestro: T_RSI3 = Fix_3(export_stalk ∘ synthesize ∘ build_context).
 """
 from __future__ import annotations
 
-# ---------------------------------------------------------------------------
-# Biblioteca estándar
-# ---------------------------------------------------------------------------
 import enum
+import hashlib
 import logging
-from dataclasses import dataclass
-from typing import Optional, Tuple
+import math
+from dataclasses import dataclass, field
+from typing import List, Optional, Tuple
 
-# ---------------------------------------------------------------------------
-# Álgebra numérica de alta precisión
-# ---------------------------------------------------------------------------
 import numpy as np
 import scipy.linalg as la
 from numpy.typing import NDArray
 
-# ---------------------------------------------------------------------------
-# Dependencias arquitectónicas del ecosistema APU Filter
-# ---------------------------------------------------------------------------
 try:
     from app.core.mic_algebra import CategoricalState, Morphism
-except ImportError:  # stubs locales para ejecución aislada
+except ImportError:
     class CategoricalState:  # type: ignore[no-redef]
-        """Stub: estado categórico del ecosistema MIC."""
+        pass
 
     class Morphism:  # type: ignore[no-redef]
-        """Stub: morfismo funtorial del ecosistema MIC."""
+        pass
 
 
-# ---------------------------------------------------------------------------
-# Logger del módulo
-# ---------------------------------------------------------------------------
 logger = logging.getLogger("MIC.Alpha.KApexElectrodynamicAgent")
 
-# Precisión de máquina IEEE-754 double, reutilizada en todo el módulo
+__version__: str = (
+    "9.0.0-Sovereign-Gauge-Sheaf-Poincare-KAM-RLC-RSI3-Nested"
+)
+
+# ═════════════════════════════════════════════════════════════════════════════
+# Constantes metrológicas, de Mecánica Celeste de Poincaré-KAM y RSI-3
+# ═════════════════════════════════════════════════════════════════════════════
 _MACHINE_EPS: float = float(np.finfo(np.float64).eps)
+_WILKINSON_SAFETY: float = 100.0
+_ANTISYM_REL_TOL: float = 1.0e-8
+_KAPPA_CROSSCHECK_TOL: float = 1.0e-3
+_GAUGE_COVARIANCE_TOL: float = 1.0e-6
 
-# Constantes de análisis de error (Wilkinson / Higham)
-_WILKINSON_SAFETY: float = 100.0          # factor de seguridad en cotas a posteriori
-_ANTISYM_REL_TOL: float = 1.0e-8          # canario de antisimetría de F ∈ 𝔰𝔬(n)
-_KAPPA_CROSSCHECK_TOL: float = 1.0e-3     # tolerancia relativa κ(G) vs κ(G⁻¹)
-_GAUGE_COVARIANCE_TOL: float = 1.0e-6     # invarianza de S_YM bajo isometrías
+# Poincaré & Teoría KAM
+_POINCARE_MAX_DENOMINATOR: int = 16
+_POINCARE_LOW_ORDER: int = 8
+_RESONANCE_TOLERANCE: float = 1.0e-3
+_SMALL_PARAMETER_FLOOR: float = 1.0e-12
+_ADIABATIC_DRIFT_LIMIT: float = 1.0e-6
+_POINCARE_DEFAULT_SECTION: float = 1.0
+_KAM_DIOPHANTINE_GAMMA: float = 1.0e-2
+_KAM_DIOPHANTINE_TAU: float = 2.0
+
+# Meta-Controlador RSI-3
+_RSI_MAX_DEPTH: int = 3
+_RSI_TARGET_RESIDUAL: float = 1.0e-3
+_RSI_MIN_SCALE: float = 1.0e-3
+_RSI_MAX_SCALE: float = 1.0e3
+_RSI_FACTOR_LOWER: float = 1.0e-2
+_RSI_FACTOR_UPPER: float = 0.99
+_RSI_OSC_EPS: float = 1.0e-15
+_RSI_TERMS_CAP: int = 10
 
 
-# =============================================================================
-# SECCIÓN 0 — EXCEPCIONES ELECTRODINÁMICAS ESTRICTAS
-# =============================================================================
-
-
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 0 — JERARQUÍA DE EXCEPCIONES CATEGÓRICAS (preservadas + extendidas)
+# ═════════════════════════════════════════════════════════════════════════════
 class ElectrodynamicApexError(Exception):
-    """
-    Excepción categórica raíz para violaciones en el Estrato K_APEX.
-
-    Toda excepción de este módulo hereda de esta clase, permitiendo que
-    los manejadores de nivel superior capturen cualquier fallo
-    electrodinámico con un único ``except ElectrodynamicApexError``.
-    """
+    """Excepción categórica raíz para violaciones en el Estrato K_APEX."""
 
 
 class ApexDimensionError(ElectrodynamicApexError):
@@ -146,7 +129,7 @@ class ApexParameterError(ElectrodynamicApexError):
 
 
 class ApexSymmetryError(ElectrodynamicApexError):
-    """Violación de simetría (G_μν, G_inv o R_cost) con diagnóstico Frobenius."""
+    """Violación de simetría con diagnóstico Frobenius."""
 
 
 class ApexConditionError(ElectrodynamicApexError):
@@ -154,32 +137,23 @@ class ApexConditionError(ElectrodynamicApexError):
 
 
 class MetricInverseError(ElectrodynamicApexError):
-    """
-    G_inv no es la inversa bilateral de G_μν dentro de la tolerancia
-    de máquina relativa escalada por κ(G_μν) (análisis de Wilkinson).
-    """
+    """G_inv no es la inversa bilateral de G_μν."""
 
 
 class SpectralClosureError(ElectrodynamicApexError):
-    """
-    Fallo de cierre espectral: R_sqrt @ R_sqrt ≉ R_cost, o bien
-    la proyección al álgebra de Lie no es idempotente dentro de tol.
-    """
+    """Fallo de cierre espectral R_sqrt² ≈ R_cost o proyección idempotente."""
 
 
 class GaugePotentialError(ElectrodynamicApexError):
-    """
-    Estrés estructural: exp(−½ Tr(G_μν)) < ε_mach (colapso de calibre
-    invariante de escala, independiente de ‖dΦ‖).
-    """
+    """Estrés estructural: exp(−½ Tr(G)) < ε_mach."""
 
 
 class EikonalRefractionError(ElectrodynamicApexError):
-    """Mercado topológicamente inalcanzable: fallo de la ecuación Eikonal."""
+    """Mercado topológicamente inalcanzable: fallo de la EDP Eikonal."""
 
 
 class FinancialBlackHoleError(ElectrodynamicApexError):
-    """P_exergia < −tol: la disipación devora el flujo de Poynting."""
+    """P_exergia < −tol: disipación devora el flujo de Poynting."""
 
 
 class HolonomyVetoError(ElectrodynamicApexError):
@@ -187,53 +161,58 @@ class HolonomyVetoError(ElectrodynamicApexError):
 
 
 class GaugeCovarianceError(ElectrodynamicApexError):
-    """
-    S_YM no es invariante bajo una isometría genuina de G_μν, o bien
-    la candidata Q no es isometría (violación de invariante algebraico).
-    """
+    """S_YM no invariante bajo isometría genuina de G_μν."""
 
 
 class SheafMetricError(ElectrodynamicApexError):
     """Identidad de Hodge local δ_metricᵀ G_μν δ_metric ≉ I violada."""
 
 
-# =============================================================================
-# SECCIÓN 1 — ÁLGEBRA DE BOOLE DE VIABILIDAD ELECTRODINÁMICA
-# =============================================================================
+class PoincareSectionError(ElectrodynamicApexError):
+    """Degeneración en la sección de Poincaré o aplicación de retorno."""
 
 
-class ApexViabilityFlags(enum.Flag):
+class RecursiveSelfImprovementError(ElectrodynamicApexError):
+    """Fallo del meta-controlador RSI-3."""
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 1 — RETÍCULO INTUICIONISTA DE HEYTING Ω₃ (Topos de Gödel-Dummett)
+# ═════════════════════════════════════════════════════════════════════════════
+class HeytingOmega3(enum.IntEnum):
     r"""
-    Retícula de Boole de predicados de viabilidad electrodinámica.
-
-    Estructura de retícula distributiva acotada
-    ------------------------------------------
-    - Bottom (0): ``NONE``
-    - Top (1):    ``ALL``  (unidad de orden: a ∧ ALL = a, a ∨ ALL = ALL)
-    - Meet:       ``&`` (conjunción bit a bit = intersección de predicados)
-    - Join:       ``|`` (disyunción bit a bit = unión de predicados)
-    - Complement: ``~`` (relativo al soporte de ALL)
-
-    Cada bandera es un predicado *independiente*; la viabilidad global es
-    la igualdad ``flags == ApexViabilityFlags.ALL`` (elemento máximo).
-
-    Miembros
-    --------
-    GAUGE_INJECTION_NONTRIVIAL
-        exp(−½ Tr(G_μν)) ≥ √ε_mach (no colapso estructural).
-    EIKONAL_MARGIN_SOUND
-        ‖∂S‖²_{G⁻¹} ≥ n²(σ*)·(1 − eikonal_slack/2)  (margen holgado).
-    EXERGY_NONNEGATIVE
-        P_exergia ≥ −C·ε_mach (Segunda Ley, con holgura de redondeo).
-    HOLONOMY_TRIVIAL
-        S_YM ≤ tol_ym (curvatura de calibre despreciable).
-    CURVATURE_ANTISYMMETRIC
-        ‖F+Fᵀ‖_F / ‖F‖_F ≤ 10⁻⁸  (F ∈ 𝔰𝔬(n) exacto hasta redondeo).
-    METRIC_WELL_CONDITIONED
-        κ(G_μν) ≤ ½·κ_max (alerta temprana de degeneración métrica).
-    SPECTRAL_CLOSURE_SOUND
-        Cierre R_sqrt² ≈ R_cost verificado en Fase 1 (nuevo en v7).
+    Retículo de Heyting Ω₃ de 3 valores (lógica intermedia de Gödel-Dummett):
+        COHERENT (0) ≺ DEGRADED (1) ≺ VETOED (2)
+    donde el orden codifica severidad de fallo (join = max, meet = min).
     """
+    COHERENT = 0
+    DEGRADED = 1
+    VETOED = 2
+
+    def join(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        return HeytingOmega3(max(int(self), int(other)))
+
+    def meet(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        return HeytingOmega3(min(int(self), int(other)))
+
+    def implication(self, other: "HeytingOmega3") -> "HeytingOmega3":
+        return HeytingOmega3.VETOED if int(self) <= int(other) else other
+
+    def negation(self) -> "HeytingOmega3":
+        return self.implication(HeytingOmega3.COHERENT)
+
+    @classmethod
+    def supremum(cls, *verdicts: "HeytingOmega3") -> "HeytingOmega3":
+        if not verdicts:
+            return cls.COHERENT
+        return cls(max(int(v) for v in verdicts))
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 2 — ÁLGEBRA DE BOOLE DE VIABILIDAD (ApexViabilityFlags)
+# ═════════════════════════════════════════════════════════════════════════════
+class ApexViabilityFlags(enum.Flag):
+    r"""Retícula de Boole finita (2⁷ elementos) de predicados electrodinámicos."""
 
     NONE = 0
     GAUGE_INJECTION_NONTRIVIAL = enum.auto()
@@ -254,23 +233,19 @@ class ApexViabilityFlags(enum.Flag):
     )
 
     def meet(self, other: "ApexViabilityFlags") -> "ApexViabilityFlags":
-        """Ínfimo de la retícula (intersección de predicados)."""
         return self & other
 
     def join(self, other: "ApexViabilityFlags") -> "ApexViabilityFlags":
-        """Supremo de la retícula (unión de predicados)."""
         return self | other
 
     def is_order_unit(self) -> bool:
-        """True ⇔ self es el elemento máximo ALL (viabilidad total)."""
         return self == ApexViabilityFlags.ALL
 
 
 def describe_viability_flags(flags: ApexViabilityFlags) -> str:
-    """Serializa ``ApexViabilityFlags`` a cadena legible."""
+    """Serializa ``ApexViabilityFlags`` a diagnóstico legible."""
     atomic = [
-        f
-        for f in ApexViabilityFlags
+        f for f in ApexViabilityFlags
         if f not in (ApexViabilityFlags.NONE, ApexViabilityFlags.ALL)
     ]
     satisfied = [f.name for f in atomic if f in flags]
@@ -282,52 +257,303 @@ def describe_viability_flags(flags: ApexViabilityFlags) -> str:
     )
 
 
-# =============================================================================
-# SECCIÓN 2 — ESTRUCTURAS INMUTABLES (DTOs TENSORIALES)
-# =============================================================================
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 3 — DTOs INMUTABLES (Poincaré-KAM, Lindstedt-Padé, RLC, RSI-3)
+# ═════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True, slots=True)
+class PoincareSpectralSnapshot:
+    r"""
+    Snapshot de Mecánica Celeste de Poincaré-KAM en el espacio fase espectral
+    (q = λ_min(G), p = λ_max(G) − λ_min(G)).
+
+    Invariante de acción: I = ½(q² + p²), ángulo canónico: θ_p = atan2(p, q).
+    Sección transversal de Poincaré: Σ = {q = section_level}.
+    """
+    action_invariant: float
+    angle_parameter: float
+    section_level: float
+    crossing_count: int
+    frequency_ratio: float
+    is_near_resonance: bool
+    resonance_p: int
+    resonance_q: int
+    small_divisor_magnitude: float
+    canonical_q: float = 0.0
+    canonical_p: float = 0.0
+    kam_diophantine_margin: float = 0.0
+    poincare_cartan_form: float = 0.0
 
 
 @dataclass(frozen=True, slots=True)
+class LindstedtHeatKernelExpansion:
+    r"""
+    Expansión perturbativa de Lindstedt-Poincaré del Heat Kernel Φ(ε) = n⁻¹tr(e^{−εG})
+    con parámetro ε = 1/(1 + λ_max(G)) y aproximante racional diagonal de Padé [M/M].
+    """
+    small_parameter: float
+    n_terms: int
+    zero_order: float
+    first_order: float
+    second_order: float
+    higher_order: float
+    heat_kernel_approx: float
+    heat_kernel_true: float
+    expansion_residual: float
+    is_asymptotically_consistent: bool
+    pade_resummed_approx: float = 1.0
+
+
+@dataclass(frozen=True, slots=True)
+class QuantumRLCApexSnapshot:
+    r"""
+    Síntesis hipercompleja de Riemann-Silberstein F_RS = E + i·G^{−1/2}H ∈ Cl(T*𝓜)⊗ℂ
+    e impedancia cuántica compleja Z(ω) = R + iX del circuito equivalente de mercado.
+    Verifica:
+      - Pasividad disipativa: R = Re(Z) ≥ 0.
+      - Identidad del triángulo de potencia compleja: |S|² = P² + Q².
+      - Factor de calidad cuántico: Q_RLC > 0.
+    """
+    resistance_R: float
+    reactance_X: float
+    impedance_magnitude: float
+    impedance_phase_rad: float
+    active_power_P: float
+    reactive_power_Q: float
+    apparent_power_S: float
+    power_triangle_residual: float
+    quality_factor_Q: float
+    riemann_silberstein_lorentz_scalar: float
+    riemann_silberstein_pseudoscalar: float
+    is_passive_and_resonant: bool
+
+
+@dataclass(frozen=True, slots=True)
+class EnergyReturnMapSnapshot:
+    r"""
+    Mapa de retorno simpléctico de Poincaré-Chirikov en el espacio espectral.
+    Preserva el volumen de fase de Liouville (det DP = 1) y audita la estabilidad
+    espectral mediante la traza de monodromía de Floquet y el exponente de Lyapunov.
+    """
+    contraction_factor: float
+    eigenvalues_modulus: Tuple[float, ...]
+    is_stable: bool
+    iterations_norm_sequence: Tuple[float, ...]
+    floquet_trace: float = 2.0
+    lyapunov_exponent: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class PoincareDualitySnapshot:
+    r"""
+    Dualidad de Hodge-Poincaré y rango-nulidad sobre la 2-forma de curvatura
+    F ∈ Ω²(𝓜, 𝔰𝔬(n)) con auditoría de valores singulares y antisimetría de Cartan.
+    """
+    curvature_rank: int
+    curvature_nullity: int
+    total_dimension: int
+    duality_residual: float
+    is_poincare_dual: bool
+    hodge_antisymmetry_defect: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class SpectralRecurrenceSnapshot:
+    r"""
+    Recurrencia ergódica de Poincaré-Birkhoff en la secuencia de autovalores
+    normalizados de G_μν y estadístico r-ratio de espaciamiento de niveles.
+    """
+    recurrence_points: Tuple[float, ...]
+    min_recurrence_distance: float
+    is_poincare_recurrent: bool
+    n_samples: int
+    level_spacing_ratio: float = 0.0
+
+
+@dataclass(frozen=True, slots=True)
+class KapexToleranceBundle:
+    r"""
+    Bundle de hiperparámetros adaptativos para el Meta-Controlador RSI-3.
+    Cuando scale=1.0, n_lindstedt_terms=2, symplectic_homotopy_gain=0.0 y
+    use_pade_resummation=False, preserva compatibilidad exacta con v7.0.0 y v8.0.0.
+    """
+    scale: float = 1.0
+    n_lindstedt_terms: int = 2
+    symplectic_homotopy_gain: float = 0.0
+    use_pade_resummation: bool = False
+
+    def with_scale(self, s: float) -> "KapexToleranceBundle":
+        return KapexToleranceBundle(
+            scale=float(max(_RSI_MIN_SCALE, min(_RSI_MAX_SCALE, s))),
+            n_lindstedt_terms=self.n_lindstedt_terms,
+            symplectic_homotopy_gain=self.symplectic_homotopy_gain,
+            use_pade_resummation=self.use_pade_resummation,
+        )
+
+    def with_terms(self, n: int) -> "KapexToleranceBundle":
+        return KapexToleranceBundle(
+            scale=self.scale,
+            n_lindstedt_terms=int(max(2, min(_RSI_TERMS_CAP, n))),
+            symplectic_homotopy_gain=self.symplectic_homotopy_gain,
+            use_pade_resummation=self.use_pade_resummation,
+        )
+
+
+@dataclass(frozen=True, slots=True)
+class RSITrace:
+    r"""Traza metrológica de una iteración del meta-controlador RSI-3."""
+    level: int
+    tolerance_scale: float
+    n_lindstedt_terms: int
+    residual: float
+    convergence_rate: float
+    richardson_extrapolation: float
+    aitken_delta_squared: float
+    adaptation_factor: float
+    level3_active: bool
+
+
+@dataclass(frozen=True, slots=True)
+class SelfImprovementResult:
+    r"""Resultado consolidado del meta-controlador de automejora recursiva RSI-3."""
+    traces: Tuple[RSITrace, ...]
+    final_scale: float
+    final_n_terms: int
+    final_residual: float
+    converged: bool
+    richardson_limit: float
+    aitken_limit: float
+    effective_convergence_order: float
+    level3_activated: bool
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 4 — NÚCLEO MATEMÁTICO PURO (Fracciones Continuas, KAM, Padé, Aitken)
+# ═════════════════════════════════════════════════════════════════════════════
+def _continued_fraction_approximation(
+    x: float, max_denominator: int = _POINCARE_MAX_DENOMINATOR,
+) -> Tuple[int, int]:
+    """Mejor aproximación diofántica racional p/q de x > 0 vía fracciones continuas."""
+    if not math.isfinite(x) or x <= 0.0:
+        return (0, 1)
+    h_prev, h_curr, k_prev, k_curr = 0, 1, 1, 0
+    val = x
+    for _ in range(32):
+        a = math.floor(val)
+        h_next = a * h_curr + h_prev
+        k_next = a * k_curr + k_prev
+        if k_next > max_denominator or k_next <= 0:
+            break
+        h_prev, h_curr = h_curr, h_next
+        k_prev, k_curr = k_curr, k_next
+        frac = val - a
+        if frac < 1e-12:
+            break
+        val = 1.0 / frac
+    return (int(h_curr), int(k_curr)) if k_curr > 0 else (0, 1)
+
+
+def _detect_resonance(
+    ratio: float,
+    max_denominator: int = _POINCARE_MAX_DENOMINATOR,
+    low_order: int = _POINCARE_LOW_ORDER,
+    tolerance: float = _RESONANCE_TOLERANCE,
+) -> Tuple[bool, int, int, float, float]:
+    """Evalúa resonancia racional p/q de orden bajo y magnitud del divisor pequeño 1/q."""
+    if not math.isfinite(ratio) or ratio <= 0.0:
+        return (False, 0, 0, 0.0, 0.0)
+    p, q = _continued_fraction_approximation(ratio, max_denominator)
+    if q <= 0:
+        return (False, 0, 0, 0.0, 0.0)
+    err = abs(ratio - p / q)
+    is_res = (err < tolerance) and (q <= low_order)
+    return (bool(is_res), int(p), int(q), float(err), float(1.0 / q))
+
+
+def _pade_resum_exponential(x: float, n_terms: int) -> float:
+    r"""
+    Aproximante racional diagonal de Padé [M/M](-x) para exp(-x), con M = max(1, n_terms // 2).
+    Incondicionalmente A-estable; suprime términos seculares en la traza del Heat Kernel.
+    """
+    m = max(1, n_terms // 2)
+    num = 1.0
+    den = 1.0
+    term = 1.0
+    for k in range(1, m + 1):
+        coeff = float(m - k + 1) / float((2 * m - k + 1) * k)
+        term *= x * coeff
+        if k % 2 == 1:
+            num -= term
+        else:
+            num += term
+        den += term
+    if abs(den) < _SMALL_PARAMETER_FLOOR:
+        return 1.0
+    return float(num / den)
+
+
+def _richardson_extrapolation(
+    r_prev: float, r_curr: float, tol_prev: float, tol_curr: float,
+) -> Tuple[float, float]:
+    """Extrapolación de Richardson y estimación logarítmica del orden efectivo p."""
+    eps = 1e-300
+    rp, rc = max(eps, abs(r_prev)), max(eps, abs(r_curr))
+    tp, tc = max(eps, abs(tol_prev)), max(eps, abs(tol_curr))
+    if tp == tc or rp == rc:
+        return (0.0, r_curr)
+    try:
+        p = math.log(rc / rp) / math.log(tc / tp)
+    except (ValueError, ZeroDivisionError):
+        p = 1.0
+    if not math.isfinite(p) or p <= 0.0:
+        p = 1.0
+    q = (tp / tc) ** p
+    if abs(q - 1.0) < eps:
+        return (float(p), r_curr)
+    return (float(p), float((q * r_curr - r_prev) / (q - 1.0)))
+
+
+def _aitken_delta_squared(r_nm2: float, r_nm1: float, r_n: float) -> float:
+    """Aceleración no lineal Δ² de Aitken / transformación de Shanks."""
+    d = r_n - 2.0 * r_nm1 + r_nm2
+    if abs(d) < _RSI_OSC_EPS:
+        return r_n
+    return float(r_n - (r_n - r_nm1) ** 2 / d)
+
+
+def _adaptive_refinement_factor(
+    current_residual: float, target_residual: float, convergence_rate: float,
+    level3_active: bool, aitken_signal: float,
+) -> float:
+    """Ley adaptativa de control de escala para el Meta-Controlador RSI-3."""
+    if current_residual <= 0.0:
+        return _RSI_FACTOR_LOWER
+    p = max(0.1, convergence_rate)
+    try:
+        factor = (target_residual / current_residual) ** (1.0 / p)
+    except (ValueError, ZeroDivisionError, OverflowError):
+        factor = 0.1
+    factor = float(factor)
+    if not math.isfinite(factor):
+        factor = 0.1
+    if level3_active and current_residual > 0.0 and math.isfinite(aitken_signal):
+        ratio = abs(aitken_signal) / current_residual
+        if ratio > 1.0:
+            factor = min(factor, 0.5)
+        elif ratio < 0.5:
+            factor = max(factor, 0.5)
+    return float(max(_RSI_FACTOR_LOWER, min(_RSI_FACTOR_UPPER, factor)))
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 5 — PAQUETES DE ACOPLAMIENTO ENTRE LAS 3 FASES ANIDADAS
+# ═════════════════════════════════════════════════════════════════════════════
+@dataclass(frozen=True, slots=True)
 class ApexPreparationContext:
     r"""
-    Contexto inmutable producido por la **Fase 1** (Validación Métrica).
-
-    Contrato de interfaz Fase 1 → Fase 2
-    ------------------------------------
-    Todo campo de este DTO es precondición de ``Phase2_ElectrodynamicSynthesis``.
-    En particular:
-      - ``L_G``, ``R_sqrt`` se consumen en Fase 3 (fibra métrica + disipativa).
-      - ``kappa_G`` escala tolerancias de Wilkinson en Fases 2 y 3.
-      - ``spectral_closure_residual`` alimenta la bandera SPECTRAL_CLOSURE_SOUND.
-      - ``betti_0_R`` se hereda como ``lossless_subspace_dimension`` en Fase 3.
-
-    Atributos
-    ----------
-    G_mu_nu, G_inv, R_cost : NDArray[np.float64], shape (n, n)
-        Matrices constitutivas validadas (copias defensivas).
-    L_G : NDArray[np.float64], shape (n, n)
-        Factor de Cholesky (posiblemente regularizado): G_μν ≈ L_G L_Gᵀ.
-    R_sqrt : NDArray[np.float64], shape (n, n)
-        Raíz cuadrada espectral simétrica de R_cost (verificada por cierre).
-    kappa_G, kappa_G_inv : float
-        Números de condición espectral. Identidad exacta κ(A⁻¹)=κ(A):
-        divergencia relativa > 10⁻³ ⇒ diagnóstico temprano de inconsistencia.
-    epsilon_G : float
-        Jitter de Tikhonov aplicado (0.0 si no fue necesario).
-    rank_R : int
-        Rango numérico de R_cost.
-    spectral_gap_R : float
-        Brecha espectral λ₂ − λ₁ de R_cost (teoría espectral de grafos).
-    betti_0_R : int
-        dim ker(R_cost) = n − rank_R (subespacio de disipación nula).
-    inverse_residual : float
-        max(‖G G⁻¹−I‖_F, ‖G⁻¹ G−I‖_F) / n  (residuo bilateral).
-    spectral_closure_residual : float
-        ‖R_sqrt² − R_cost‖_F / max(‖R‖_F, 1)  (cierre de la raíz).
-    dim : int
-        Dimensión n del espacio de calibre.
+    [OBJETO DE ACOPLAMIENTO CATEGÓRICO FASE 1 ──► FASE 2]
+    Codominio terminal de `Phase1_MetricValidation.build_context` ≡ Dominio
+    inicial de `Phase2_ElectrodynamicSynthesis.__init__`.
     """
-
     G_mu_nu: NDArray[np.float64]
     G_inv: NDArray[np.float64]
     R_cost: NDArray[np.float64]
@@ -342,45 +568,21 @@ class ApexPreparationContext:
     inverse_residual: float
     spectral_closure_residual: float
     dim: int
+    # ── Extensiones Poincaré-KAM + Lindstedt-Padé + RSI-3 ────────────────────
+    poincare_snapshot: Optional[PoincareSpectralSnapshot] = None
+    lindstedt_expansion: Optional[LindstedtHeatKernelExpansion] = None
+    tolerance_bundle: KapexToleranceBundle = field(
+        default_factory=KapexToleranceBundle
+    )
 
 
 @dataclass(frozen=True, slots=True)
 class ApexStateTensor:
     r"""
-    Tensor inmutable del estado electrodinámico de la cúspide.
-
-    Producido por la **Fase 2** (Síntesis Electrodinámica).
-
-    Contrato de interfaz Fase 2 → Fase 3
-    ------------------------------------
-    ``gauge_injection_vector`` (= s_val) es el dato primario consumido por
-    ``Phase3_SheafProjection.export_stalk``.  El resto de campos son
-    diagnósticos de auditoría exportables al orquestador superior.
-
-    Atributos
-    ----------
-    gauge_injection_vector : NDArray[np.float64], shape (n,)
-        s_val = dΦ · exp(−½ Tr(G_μν)).
-    suppression_factor : float
-        exp(−½ Tr(G_μν)) ∈ (0, 1].
-    fermat_refractive_index : float
-        n(σ*) = 1 + tanh(α · σ*).
-    eikonal_norm_sq : float
-        G^{μν} ∂_μ S ∂_ν S.
-    poynting_income, poynting_dissipation, poynting_exergy_flux : float
-        P_in, P_diss = ‖R_sqrt ∇H‖² (≥ 0 por construcción), P_exergia.
-    yang_mills_action : float
-        S_YM = ½ Tr(Fᵀ G F G⁻¹) con F ∈ 𝔰𝔬(n) genuino.
-    curvature_antisymmetry_residual : float
-        ‖F+Fᵀ‖_F / max(‖F‖_F, 1): invariante algebraico F = −Fᵀ.
-    viability_flags : ApexViabilityFlags
-        Retícula de Boole de predicados de viabilidad.
-    is_electrodynamically_viable : bool
-        Equivalente a ``viability_flags.is_order_unit()``.
-    gauge_covariance_residual : Optional[float]
-        |S_YM(A) − S_YM(Q A Qᵀ)| / max(S_YM(A), 1) si se solicitó diagnóstico.
+    [OBJETO DE ACOPLAMIENTO CATEGÓRICO FASE 2 ──► FASE 3]
+    Codominio terminal de `Phase2_ElectrodynamicSynthesis.synthesize` ≡ Dominio
+    de entrada de `Phase3_SheafProjection` y del auditor RSI-3.
     """
-
     gauge_injection_vector: NDArray[np.float64]
     suppression_factor: float
     fermat_refractive_index: float
@@ -393,51 +595,19 @@ class ApexStateTensor:
     viability_flags: ApexViabilityFlags
     is_electrodynamically_viable: bool
     gauge_covariance_residual: Optional[float]
+    # ── Extensiones Poincaré + Bicuaternión RLC Fase 2 ──────────────────────
+    return_map: Optional[EnergyReturnMapSnapshot] = None
+    duality: Optional[PoincareDualitySnapshot] = None
+    spectral_recurrence: Optional[SpectralRecurrenceSnapshot] = None
+    quantum_rlc_snapshot: Optional[QuantumRLCApexSnapshot] = None
 
 
 @dataclass(frozen=True, slots=True)
 class SheafStalkApex:
     r"""
-    Fibrado celular exportado para el cálculo global del Laplaciano de Haz.
-
-    Producido por la **Fase 3** (Proyección en Haces) — salida terminal
-    del endofuntor K_APEX.
-
-    Construcción (fibra métrica + fibra disipativa)
-    -----------------------------------------------
-    \[
-      \delta_{\mathrm{metric}}
-        = G_{\mu\nu}^{-1/2_{\mathrm{Ch}}}
-        := L_G^{-\top}
-        \in \mathbb{R}^{n\times n},
-      \qquad
-      \delta_{\mathrm{metric}}^\top G_{\mu\nu}\,
-      \delta_{\mathrm{metric}} = I_n
-    \]
-    \[
-      \delta_{\mathrm{diss}}
-        = R_{\mathrm{sqrt}}\,\delta_{\mathrm{metric}}
-        \in \mathbb{R}^{n\times n}
-    \]
-    \[
-      \delta_{\mathrm{APEX}}
-        = \begin{bmatrix}
-            \delta_{\mathrm{metric}} \\
-            \delta_{\mathrm{diss}}
-          \end{bmatrix}
-        \in \mathbb{R}^{2n\times n}
-    \]
-    \[
-      \Delta_{\mathrm{APEX}}
-        = \delta_{\mathrm{APEX}}^\top\delta_{\mathrm{APEX}}
-        = I_n + \delta_{\mathrm{diss}}^\top\delta_{\mathrm{diss}}
-        \succ 0
-    \]
-
-    Paridad estructural con el Laplaciano de Hodge local
-    ∇²H + R_cost de ``KBaseThermodynamicAgent.Phase3_SheafProjection``.
+    [OBJETO TERMINAL DE FASE 3 Y DEL ENDOFUNCTOR MAESTRO RSI-3]
+    Fibrado celular de Hodge exportado al estrato global de la MIC.
     """
-
     delta_apex: NDArray[np.float64]
     delta_metric: NDArray[np.float64]
     delta_dissipative: NDArray[np.float64]
@@ -450,47 +620,29 @@ class SheafStalkApex:
     projected_source_metric: NDArray[np.float64]
     projected_source_dissipative: NDArray[np.float64]
     rank_delta: int
+    # ── Extensiones Nekhoroshev-Poincaré + Heyting Ω₃ + RSI-3 ───────────────
+    adiabatic_action_drift: float = 0.0
+    meta_residual: float = 0.0
+    heyting_verdict: Optional[HeytingOmega3] = None
+    rsi_result: Optional[SelfImprovementResult] = None
 
 
-# =============================================================================
-# SECCIÓN 3 — ORQUESTADOR: KApexElectrodynamicAgent
-#             Tres fases anidadas de rigor creciente (contrato funtorial)
-# =============================================================================
-
-
+# ═════════════════════════════════════════════════════════════════════════════
+# SECCIÓN 6 — KApexElectrodynamicAgent (3 FASES ESTRICTAMENTE ANIDADAS + RSI-3)
+# ═════════════════════════════════════════════════════════════════════════════
 class KApexElectrodynamicAgent(Morphism):
     r"""
-    Orquestador Funtorial del Ápice Estratégico K_{APEX}.
+    Orquestador Funtorial del Ápice Estratégico K_APEX v9.0.0.
 
-    Garantiza la invarianza de Gauge y audita el bucle de holonomía global
-    mediante tres clases anidadas que operan en cascada estricta:
-
-    .. code-block:: text
-
-        Phase1_MetricValidation
-            │  build_context()  ──►  ApexPreparationContext
-            ▼
-        Phase2_ElectrodynamicSynthesis
-            │  synthesize(...)  ──►  ApexStateTensor
-            ▼
-        Phase3_SheafProjection
-            │  export_stalk(s_val)  ──►  SheafStalkApex
-            ▼
-        (salida pública del ecosistema)
-
-    Cada fase es un morfismo; la composición
-    ``export_stalk ∘ synthesize ∘ build_context`` es el endofuntor K_APEX.
-
-    Parámetros de Construcción
-    --------------------------
-    G_mu_nu, G_inv, R_cost : NDArray[np.float64], shape (n, n)
-        Matrices constitutivas (condiciones formales en Fase 1).
-    kappa_max : float, default 1e10
-        Umbral de κ(G_μν). Debe ser > 1.
-    eikonal_slack : float, default 0.1
-        Tolerancia relativa de la ecuación Eikonal, en [0, 1).
-    holonomy_tol_rel : float, default 1e-6
-        Tolerancia relativa para S_YM. Debe ser > 0.
+    Estructurado en TRES FASES ANIDADAS cuya topología de código garantiza que la
+    clausura formal del último método de la Fase k es el punto de entrada inmediato
+    del primer método de la Fase k+1:
+      - Fase 1 (`Phase1_MetricValidation`): culmina en `build_context() -> ApexPreparationContext`.
+      - Fase 2 (`Phase2_ElectrodynamicSynthesis`): inicia en `__init__(context: ApexPreparationContext)`
+        y culmina en `synthesize() -> ApexStateTensor`.
+      - Fase 3 (`Phase3_SheafProjection` + Meta-Controlador RSI-3): inicia recibiendo
+        `(context, return_map)`, culmina en `export_stalk() -> SheafStalkApex` y cierra
+        el punto fijo recursivo de Nivel 3 en `synthesize_with_rsi3()`.
     """
 
     FRIENDLY_NAME: str = "Director de Retorno y Expansión de Mercado"
@@ -503,18 +655,8 @@ class KApexElectrodynamicAgent(Morphism):
         kappa_max: float = 1.0e10,
         eikonal_slack: float = 0.1,
         holonomy_tol_rel: float = 1.0e-6,
+        tolerance_bundle: Optional[KapexToleranceBundle] = None,
     ) -> None:
-        r"""
-        Inicializa las matrices constitutivas y ejecuta la Fase 1 de inmediato.
-
-        Lanza
-        -----
-        ApexParameterError
-            Si kappa_max ≤ 1, eikonal_slack ∉ [0,1) u holonomy_tol_rel ≤ 0.
-        ApexDimensionError, ApexSymmetryError, ApexConditionError,
-        MetricInverseError, SpectralClosureError
-            Propagadas desde la Fase 1 si alguna propiedad es violada.
-        """
         if kappa_max <= 1.0:
             raise ApexParameterError(
                 f"kappa_max debe ser > 1; se obtuvo {kappa_max}."
@@ -531,24 +673,27 @@ class KApexElectrodynamicAgent(Morphism):
         self.kappa_max: float = float(kappa_max)
         self.eikonal_slack: float = float(eikonal_slack)
         self.holonomy_tol_rel: float = float(holonomy_tol_rel)
+        self._tolerance_bundle: KapexToleranceBundle = (
+            tolerance_bundle if tolerance_bundle is not None
+            else KapexToleranceBundle()
+        )
+        self._G_mu_nu = np.asarray(G_mu_nu, dtype=np.float64)
+        self._G_inv = np.asarray(G_inv, dtype=np.float64)
+        self._R_cost = np.asarray(R_cost, dtype=np.float64)
 
-        # ------------------------------------------------------------------
-        # Fase 1: Validación Métrica y de Calibre (inmediata, eager)
-        # ------------------------------------------------------------------
+        # ── Ejecución ansiosa de Fase 1 → emite ApexPreparationContext ─
         self.phase1: KApexElectrodynamicAgent.Phase1_MetricValidation = (
             KApexElectrodynamicAgent.Phase1_MetricValidation(
-                G_mu_nu=G_mu_nu,
-                G_inv=G_inv,
-                R_cost=R_cost,
+                G_mu_nu=self._G_mu_nu,
+                G_inv=self._G_inv,
+                R_cost=self._R_cost,
                 kappa_max=self.kappa_max,
+                tolerance_bundle=self._tolerance_bundle,
             )
         )
         self.context: ApexPreparationContext = self.phase1.build_context()
 
-        # ------------------------------------------------------------------
-        # Fase 2: Síntesis Electrodinámica
-        #         (continuación formal de build_context → ApexPreparationContext)
-        # ------------------------------------------------------------------
+        # ── Inicialización anidada de Fase 2 con el contexto de Fase 1 ─
         self.phase2: KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis = (
             KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis(
                 context=self.context,
@@ -558,50 +703,47 @@ class KApexElectrodynamicAgent(Morphism):
             )
         )
 
-        # ------------------------------------------------------------------
-        # Fase 3: instanciación perezosa (lazy) en export_sheaf_stalk
-        # ------------------------------------------------------------------
         self.phase3: Optional[
             KApexElectrodynamicAgent.Phase3_SheafProjection
         ] = None
 
         logger.info(
-            "[KApexElectrodynamicAgent] v7 inicializado: dim=%d, κ(G)=%.3e, "
-            "rank(R)=%d, betti_0(R)=%d, inv_residual=%.3e, "
-            "spectral_closure=%.3e.",
+            "[KApexElectrodynamicAgent v%s] dim=%d, κ(G)=%.3e, rank(R)=%d, "
+            "betti_0(R)=%d, inv_residual=%.3e, closure=%.3e, "
+            "LP_terms=%d, LP_residual=%s.",
+            __version__,
             self.context.dim,
             self.context.kappa_G,
             self.context.rank_R,
             self.context.betti_0_R,
             self.context.inverse_residual,
             self.context.spectral_closure_residual,
+            self._tolerance_bundle.n_lindstedt_terms,
+            (f"{self.context.lindstedt_expansion.expansion_residual:.3e}"
+             if self.context.lindstedt_expansion else "N/A"),
         )
 
-    # ======================================================================
-    # FASE 1 — VALIDACIÓN MÉTRICA, CHOLESKY REGULARIZADO Y DIAGNÓSTICO
-    #          ESPECTRAL (con cierre de raíz y consistencia bilateral)
-    # ======================================================================
-
+    # =========================================================================
+    # ╔═══════════════════════════════════════════════════════════════════════╗
+    # ║            FASE ANIDADA 1: VALIDACIÓN MÉTRICA Y POINCARÉ-KAM          ║
+    # ║  Certificación Riemanniana SPD, Cholesky Regularizado, Pulido de      ║
+    # ║  Schulz-Newton-Hotelling, Cierre Espectral PSD, Snapshot Celeste de   ║
+    # ║  Poincaré-KAM y Expansión de Lindstedt-Padé del Heat Kernel.          ║
+    # ╚═══════════════════════════════════════════════════════════════════════╝
+    # =========================================================================
     class Phase1_MetricValidation:
         r"""
-        **Fase 1 – Validación Métrica y de Calibre.**
+        **Fase Anidada 1 – Validación Métrica, Poincaré-KAM y Lindstedt-Padé.**
 
-        Responsabilidades, en orden estricto de ejecución
-        -------------------------------------------------
-        a) Verificar dimensiones y cuadratura de G_μν, G_inv, R_cost.
-        b) Verificar simetría de G_μν, G_inv y R_cost (Frobenius relativo).
-        c) Verificar SPD de G_μν y calcular κ(G_μν) vía extremos espectrales
-           (``eigh(subset_by_index=...)``) — O(n²) por extremo, no O(n³).
-        d) Factorizar G_μν por Cholesky **regularizado** (Tikhonov adaptativo).
-        e) Verificar SPD de G_inv y calcular κ(G_inv); cross-check con κ(G)
-           por la identidad exacta κ(A⁻¹) = κ(A).
-        f) Verificar consistencia métrica **bilateral**
-           G·G_inv ≈ I y G_inv·G ≈ I, con tolerancia de Wilkinson
-           escalada por el κ(G_μν) **real** ya computado.
-        g) Verificar PSD de R_cost, raíz espectral, brecha espectral, β₀
-           y **cierre espectral** R_sqrt² ≈ R_cost.
-        h) Empaquetar en ``ApexPreparationContext`` (terminal de Fase 1 =
-           precondición de Fase 2).
+        Cadena interna de morfismos:
+            _check_dimensions
+            → _validate_symmetry
+            → _validate_spd + _cholesky_regularized
+            → _validate_inverse_consistency_bilateral (con pulido Schulz-Newton en RSI-3)
+            → _validate_psd_and_spectral_diagnostics
+            → _compute_poincare_snapshot (coordenadas canónicas + margen KAM)
+            → _compute_lindstedt_heat_kernel (serie de Lindstedt + Padé [M/M])
+            → build_context (Morfismo Terminal de Fase 1 = Unidad de Entrada de Fase 2)
         """
 
         _EPS: float = _MACHINE_EPS
@@ -612,31 +754,18 @@ class KApexElectrodynamicAgent(Morphism):
             G_inv: NDArray[np.float64],
             R_cost: NDArray[np.float64],
             kappa_max: float = 1.0e10,
+            tolerance_bundle: Optional[KapexToleranceBundle] = None,
         ) -> None:
-            r"""Almacena referencias sin copiar; las copias ocurren en ``build_context``."""
             self._G: NDArray[np.float64] = np.asarray(G_mu_nu, dtype=np.float64)
             self._G_inv: NDArray[np.float64] = np.asarray(G_inv, dtype=np.float64)
             self._R: NDArray[np.float64] = np.asarray(R_cost, dtype=np.float64)
             self._kappa_max: float = float(kappa_max)
-
-        # ------------------------------------------------------------------
-        # Métodos privados de validación (orden lógico de ejecución)
-        # ------------------------------------------------------------------
+            self._tol_bundle: KapexToleranceBundle = (
+                tolerance_bundle if tolerance_bundle is not None
+                else KapexToleranceBundle()
+            )
 
         def _check_dimensions(self) -> int:
-            r"""
-            Verifica que G_μν, G_inv y R_cost son cuadradas y de la misma
-            dimensión n.
-
-            Retorna
-            -------
-            int
-                Dimensión n del espacio de calibre.
-
-            Lanza
-            -----
-            ApexDimensionError
-            """
             for mat, name in (
                 (self._G, "G_mu_nu"),
                 (self._G_inv, "G_inv"),
@@ -644,371 +773,348 @@ class KApexElectrodynamicAgent(Morphism):
             ):
                 if mat.ndim != 2 or mat.shape[0] != mat.shape[1]:
                     raise ApexDimensionError(
-                        f"'{name}' debe ser cuadrada 2D; se obtuvo shape={mat.shape}."
+                        f"'{name}' debe ser cuadrada 2D; shape={mat.shape}."
                     )
             n: int = int(self._G.shape[0])
             if self._G_inv.shape[0] != n:
                 raise ApexDimensionError(
-                    f"G_inv debe tener shape ({n},{n}) coherente con G_μν; "
-                    f"se obtuvo {self._G_inv.shape}."
+                    f"G_inv debe tener shape ({n},{n}); {self._G_inv.shape}."
                 )
             if self._R.shape[0] != n:
                 raise ApexDimensionError(
-                    f"R_cost debe tener shape ({n},{n}) coherente con G_μν; "
-                    f"se obtuvo {self._R.shape}."
+                    f"R_cost debe tener shape ({n},{n}); {self._R.shape}."
                 )
             if n == 0:
-                raise ApexDimensionError("La dimensión del espacio de calibre no puede ser 0.")
-            logger.debug("[Fase1] Dimensiones verificadas: n=%d.", n)
+                raise ApexDimensionError("La dimensión no puede ser 0.")
             return n
 
-        def _validate_symmetry(
-            self, A: NDArray[np.float64], name: str
-        ) -> None:
-            r"""
-            Verifica A = Aᵀ con tolerancia
-            tol = ε_mach · max(‖A‖_F, 1).
-
-            Lanza
-            -----
-            ApexSymmetryError
-            """
-            norm_A: float = float(la.norm(A, "fro"))
-            tol: float = self._EPS * max(norm_A, 1.0)
-            residual: float = float(la.norm(A - A.T, "fro"))
+        def _validate_symmetry(self, A: NDArray[np.float64], name: str) -> None:
+            norm_A = float(la.norm(A, "fro"))
+            tol = self._EPS * max(norm_A, 1.0)
+            residual = float(la.norm(A - A.T, "fro"))
             if residual > tol:
                 raise ApexSymmetryError(
-                    f"La matriz '{name}' no es simétrica. "
-                    f"‖A−Aᵀ‖_F={residual:.6e}, tol={tol:.6e}, "
-                    f"asimetría relativa={residual / max(norm_A, 1e-300):.6e}."
+                    f"'{name}' no simétrica. ‖A−Aᵀ‖_F={residual:.6e} > tol={tol:.6e}."
                 )
-            logger.debug(
-                "[Fase1] Simetría de '%s': residual=%.3e, tol=%.3e.",
-                name, residual, tol,
-            )
 
         def _validate_spd(
-            self, A: NDArray[np.float64], name: str
+            self, A: NDArray[np.float64], name: str,
         ) -> Tuple[float, float, float]:
-            r"""
-            Verifica SPD de A y calcula κ(A) = λ_max / λ_min explotando la
-            simetría vía extremos espectrales eficientes
-            (``eigh(subset_by_index=...)``), evitando diagonalización
-            completa O(n³) cuando sólo se requieren los extremos.
-
-            Retorna
-            -------
-            Tuple[float, float, float]
-                (kappa, lambda_min, lambda_max).
-
-            Lanza
-            -----
-            ElectrodynamicApexError
-                Si A no es SPD (λ_min ≤ tol_pd).
-            ApexConditionError
-                Si κ(A) > kappa_max.
-            """
-            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
-            n: int = int(A_sym.shape[0])
+            A_sym = 0.5 * (A + A.T)
+            n = int(A_sym.shape[0])
             if n == 1:
                 lambda_min = lambda_max = float(A_sym[0, 0])
             else:
                 lambda_min = float(
-                    la.eigh(
-                        A_sym, subset_by_index=[0, 0], eigvals_only=True
-                    )[0]
+                    la.eigh(A_sym, subset_by_index=[0, 0], eigvals_only=True)[0]
                 )
                 lambda_max = float(
-                    la.eigh(
-                        A_sym, subset_by_index=[n - 1, n - 1], eigvals_only=True
-                    )[0]
+                    la.eigh(A_sym, subset_by_index=[n - 1, n - 1], eigvals_only=True)[0]
                 )
-
-            tol_pd: float = self._EPS * max(abs(lambda_max), 1.0)
+            tol_pd = self._EPS * max(abs(lambda_max), 1.0)
             if lambda_min <= tol_pd:
                 raise ElectrodynamicApexError(
-                    f"'{name}' no es Definida Positiva (SPD). "
-                    f"λ_min={lambda_min:.6e} ≤ tol_pd={tol_pd:.6e}. "
-                    f"λ_max={lambda_max:.6e}."
+                    f"'{name}' no SPD. λ_min={lambda_min:.6e} ≤ tol_pd={tol_pd:.6e}."
                 )
-
-            kappa: float = lambda_max / lambda_min
+            kappa = lambda_max / lambda_min
             if kappa > self._kappa_max:
                 raise ApexConditionError(
-                    f"'{name}' está numéricamente mal condicionada: "
-                    f"κ={kappa:.6e} > κ_max={self._kappa_max:.6e}. "
-                    f"λ_min={lambda_min:.6e}, λ_max={lambda_max:.6e}."
+                    f"'{name}' mal condicionada: κ={kappa:.6e} > κ_max={self._kappa_max:.6e}."
                 )
-            logger.debug(
-                "[Fase1] SPD '%s': κ=%.3e, λ_min=%.3e, λ_max=%.3e.",
-                name, kappa, lambda_min, lambda_max,
-            )
             return kappa, lambda_min, lambda_max
 
         def _cholesky_regularized(
-            self,
-            A: NDArray[np.float64],
-            name: str,
-            max_attempts: int = 6,
+            self, A: NDArray[np.float64], name: str, max_attempts: int = 6,
         ) -> Tuple[NDArray[np.float64], float]:
-            r"""
-            Cholesky A = L Lᵀ con regularización de Tikhonov adaptativa:
-
-            .. math::
-
-                A_\tau = A + \tau I,
-                \quad
-                \tau_0 = \varepsilon_{\mathrm{mach}}\cdot\mathrm{tr}(A)/n,
-                \quad
-                \tau_{k+1} = 10\,\tau_k.
-
-            Retorna
-            -------
-            Tuple[NDArray[np.float64], float]
-                (L, tau_final).  tau_final = 0.0 si no se regularizó.
-
-            Lanza
-            -----
-            ElectrodynamicApexError
-                Si tras ``max_attempts`` reintentos la factorización falla.
-            """
-            A_sym: NDArray[np.float64] = 0.5 * (A + A.T)
-            n: int = int(A_sym.shape[0])
-            trace_scale: float = float(np.trace(A_sym)) / max(n, 1)
-            tau: float = 0.0
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-
+            A_sym = 0.5 * (A + A.T)
+            n = int(A_sym.shape[0])
+            trace_scale = float(np.trace(A_sym)) / max(n, 1)
+            tau = 0.0
+            I_n = np.eye(n, dtype=np.float64)
             for attempt in range(max_attempts + 1):
                 try:
-                    L: NDArray[np.float64] = la.cholesky(
-                        A_sym + tau * I_n, lower=True
-                    )
+                    L = la.cholesky(A_sym + tau * I_n, lower=True)
                     if attempt > 0:
                         logger.warning(
-                            "[Fase1] Regularización de Tikhonov en '%s': "
-                            "τ=%.3e tras %d intento(s).",
+                            "[Fase1] Tikhonov en '%s': τ=%.3e tras %d intento(s).",
                             name, tau, attempt,
                         )
                     return L, tau
                 except la.LinAlgError:
                     tau = (
                         self._EPS * max(trace_scale, 1.0)
-                        if tau == 0.0
-                        else tau * 10.0
+                        if tau == 0.0 else tau * 10.0
                     )
-
             raise ElectrodynamicApexError(
-                f"Fallo persistente de Cholesky en '{name}' tras "
-                f"{max_attempts} reintentos (τ_final={tau:.3e}). "
-                f"Indica degeneración estructural."
+                f"Fallo de Cholesky en '{name}' tras {max_attempts} reintentos."
             )
 
         def _validate_inverse_consistency_bilateral(
-            self, kappa_G: float, n: int
-        ) -> float:
+            self, kappa_G: float, n: int,
+        ) -> Tuple[float, NDArray[np.float64]]:
             r"""
-            Verifica G_inv = G_μν⁻¹ de forma **bilateral**:
-
-            .. math::
-
-                r_+ = \|G\,G^{-1}-I\|_F / n,
-                \qquad
-                r_- = \|G^{-1}\,G-I\|_F / n,
-                \qquad
-                r = \max(r_+, r_-).
-
-            Tolerancia (análisis de error hacia atrás de Wilkinson):
-
-            .. math::
-
-                \mathrm{tol}_{inv}
-                  = \kappa(G_{\mu\nu})\cdot\varepsilon_{\mathrm{mach}}\cdot n.
-
-            Retorna
-            -------
-            float
-                Residuo bilateral normalizado r.
-
-            Lanza
-            -----
-            MetricInverseError
+            Audita la consistencia bilateral G·G_inv ≈ I ≈ G_inv·G.
+            Si supera la validación axiomática y el controlador RSI-3 ha activado
+            `symplectic_homotopy_gain > 0`, aplica una iteración hiper-potencia de
+            Schulz-Newton-Hotelling de orden cuadrático:
+                G_inv* = (1 − γ)·G_inv + γ·G_inv·(2I − G·G_inv),
+            reduciendo el defecto de inversión hacia ε_mach.
             """
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-            r_plus: float = float(
-                la.norm(self._G @ self._G_inv - I_n, "fro")
-            ) / n
-            r_minus: float = float(
-                la.norm(self._G_inv @ self._G - I_n, "fro")
-            ) / n
-            residual: float = max(r_plus, r_minus)
-            tol_inv: float = kappa_G * self._EPS * n
-
+            I_n = np.eye(n, dtype=np.float64)
+            r_plus = float(la.norm(self._G @ self._G_inv - I_n, "fro")) / n
+            r_minus = float(la.norm(self._G_inv @ self._G - I_n, "fro")) / n
+            residual = max(r_plus, r_minus)
+            tol_inv = kappa_G * self._EPS * n
             if residual > tol_inv:
                 raise MetricInverseError(
-                    f"G_inv no es la inversa bilateral de G_μν. "
-                    f"r₊=‖G G⁻¹−I‖_F/n={r_plus:.6e}, "
-                    f"r₋=‖G⁻¹ G−I‖_F/n={r_minus:.6e}, "
-                    f"r=max={residual:.6e} > tol_inv={tol_inv:.6e} "
-                    f"(κ(G)={kappa_G:.3e}). Inconsistencia métrica."
+                    f"G_inv no bilateral. r={residual:.6e} > tol_inv={tol_inv:.6e}."
                 )
-            logger.debug(
-                "[Fase1] Consistencia métrica bilateral: "
-                "r₊=%.3e, r₋=%.3e, tol=%.3e.",
-                r_plus, r_minus, tol_inv,
-            )
-            return residual
+            g_inv_eff = self._G_inv.copy()
+            gain = float(np.clip(self._tol_bundle.symplectic_homotopy_gain, 0.0, 1.0))
+            if gain > 0.0:
+                polished = g_inv_eff @ (2.0 * I_n - self._G @ g_inv_eff)
+                polished = 0.5 * (polished + polished.T)
+                g_inv_eff = (1.0 - gain) * g_inv_eff + gain * polished
+                rp_new = float(la.norm(self._G @ g_inv_eff - I_n, "fro")) / n
+                rm_new = float(la.norm(g_inv_eff @ self._G - I_n, "fro")) / n
+                residual = min(residual, max(rp_new, rm_new))
+            return residual, g_inv_eff
 
         def _validate_psd_and_spectral_diagnostics(
-            self, R: NDArray[np.float64], name: str
+            self, R: NDArray[np.float64], name: str,
         ) -> Tuple[NDArray[np.float64], int, float, float]:
-            r"""
-            Verifica R ⪰ 0, calcula raíz espectral simétrica R_sqrt,
-            rango numérico, brecha espectral λ₂−λ₁ y **cierre espectral**
-
-            .. math::
-
-                r_{\mathrm{cl}}
-                  = \frac{\|R_{\mathrm{sqrt}}^2 - R\|_F}
-                         {\max(\|R\|_F, 1)}.
-
-            Retorna
-            -------
-            Tuple[NDArray[np.float64], int, float, float]
-                (R_sqrt, rank_R, spectral_gap, closure_residual).
-
-            Lanza
-            -----
-            ApexSymmetryError
-                Si λ_min < −tol_psd (entropía negativa genuina).
-            SpectralClosureError
-                Si el cierre espectral se viola más allá de la cota de Wilkinson.
-            """
-            norm_R: float = float(la.norm(R, "fro"))
-            tol_psd: float = self._EPS * max(norm_R, 1.0)
-            R_sym: NDArray[np.float64] = 0.5 * (R + R.T)
+            norm_R = float(la.norm(R, "fro"))
+            tol_psd = self._EPS * max(norm_R, 1.0)
+            R_sym = 0.5 * (R + R.T)
             eigvals, eigvecs = la.eigh(R_sym)
-            lambda_min: float = float(eigvals[0])
-
+            lambda_min = float(eigvals[0])
             if lambda_min < -tol_psd:
                 raise ApexSymmetryError(
-                    f"'{name}' no es PSD. λ_min={lambda_min:.6e} < "
-                    f"−tol={tol_psd:.6e}. Entropía negativa detectada."
+                    f"'{name}' no PSD: λ_min={lambda_min:.6e} < −tol={tol_psd:.6e}."
                 )
-
-            eigvals_clamped: NDArray[np.float64] = np.maximum(eigvals, 0.0)
-            # R_sqrt = V · diag(√λ) · Vᵀ  (simétrica por construcción)
-            R_sqrt: NDArray[np.float64] = (
+            eigvals_clamped = np.maximum(eigvals, 0.0)
+            R_sqrt = (
                 eigvecs * np.sqrt(eigvals_clamped)[np.newaxis, :]
             ) @ eigvecs.T
-            R_sqrt = 0.5 * (R_sqrt + R_sqrt.T)  # purga de asimetría numérica
-
-            rank_R: int = int(np.sum(eigvals_clamped > tol_psd))
-            spectral_gap: float = (
+            R_sqrt = 0.5 * (R_sqrt + R_sqrt.T)
+            rank_R = int(np.sum(eigvals_clamped > tol_psd))
+            spectral_gap = (
                 float(eigvals_clamped[1] - eigvals_clamped[0])
-                if len(eigvals_clamped) > 1
-                else 0.0
+                if len(eigvals_clamped) > 1 else 0.0
             )
-
-            # --- Cierre espectral R_sqrt² ≈ R --------------------------------
-            R_reconstructed: NDArray[np.float64] = R_sqrt @ R_sqrt
-            closure_abs: float = float(
-                la.norm(R_reconstructed - R_sym, "fro")
-            )
-            closure_residual: float = closure_abs / max(norm_R, 1.0)
-            # Cota: O(ε_mach · n · cond_eff); cond_eff ≲ λ_max/tol_psd
-            lambda_max_R: float = float(eigvals_clamped[-1]) if len(eigvals_clamped) else 0.0
-            cond_eff: float = (
+            R_reconstructed = R_sqrt @ R_sqrt
+            closure_abs = float(la.norm(R_reconstructed - R_sym, "fro"))
+            closure_residual = closure_abs / max(norm_R, 1.0)
+            lambda_max_R = float(eigvals_clamped[-1]) if len(eigvals_clamped) else 0.0
+            cond_eff = (
                 lambda_max_R / max(tol_psd, self._EPS)
-                if lambda_max_R > 0.0
-                else 1.0
+                if lambda_max_R > 0.0 else 1.0
             )
-            tol_closure: float = (
-                _WILKINSON_SAFETY * self._EPS * max(cond_eff, 1.0) * max(R.shape[0], 1)
+            tol_closure = (
+                _WILKINSON_SAFETY * self._EPS * max(cond_eff, 1.0)
+                * max(R.shape[0], 1)
             )
             if closure_residual > tol_closure:
                 raise SpectralClosureError(
                     f"Cierre espectral de '{name}' violado: "
-                    f"‖R_sqrt²−R‖_F/‖R‖_F={closure_residual:.6e} > "
-                    f"tol={tol_closure:.6e} (cond_eff≈{cond_eff:.3e}). "
-                    f"Raíz espectral corrupta."
+                    f"‖R_sqrt²−R‖_F/‖R‖_F={closure_residual:.6e} > tol={tol_closure:.6e}."
                 )
-
-            logger.debug(
-                "[Fase1] PSD '%s': rank=%d/%d, λ_min=%.3e, λ_max=%.3e, "
-                "gap=%.3e, closure=%.3e.",
-                name, rank_R, len(eigvals), lambda_min,
-                lambda_max_R, spectral_gap, closure_residual,
-            )
             return R_sqrt, rank_R, spectral_gap, closure_residual
 
-        # ------------------------------------------------------------------
-        # Método terminal de la Fase 1
-        #   ── formal continuation ──►  Phase2_ElectrodynamicSynthesis.__init__
-        # ------------------------------------------------------------------
-
-        def build_context(self) -> "ApexPreparationContext":
+        def _compute_poincare_snapshot(
+            self,
+            G: NDArray[np.float64],
+            section_level: float = _POINCARE_DEFAULT_SECTION,
+        ) -> PoincareSpectralSnapshot:
             r"""
-            **Método terminal de la Fase 1.**
-
-            Flujo interno
-            -------------
-            1. Verificación dimensional.
-            2. Simetría de G_μν, G_inv y R_cost.
-            3. SPD y κ(G_μν) → Cholesky regularizado L_G.
-            4. SPD y κ(G_inv) (cross-check: debe coincidir con κ(G_μν)).
-            5. Consistencia métrica **bilateral** G·G_inv ≈ I ≈ G_inv·G.
-            6. PSD de R_cost + raíz espectral + brecha + **cierre espectral**.
-            7. Empaquetado en ``ApexPreparationContext``.
-
-            Retorna
-            -------
-            ApexPreparationContext
-                Precondición formal de
-                ``Phase2_ElectrodynamicSynthesis.__init__(context=...)``.
+            Snapshot celeste de Poincaré-KAM en el plano fase espectral:
+                q = λ_min(G),   p = λ_max(G) − λ_min(G),
+                I = ½(q² + p²), θ_p = atan2(p, q).
+            Calcula cruces transversales con Σ = {q = section_level}, aproximación racional
+            diofántica p_r/q_r, margen KAM |q/p − p_r/q_r| − γ·q_r^{−τ} y 1-forma de Cartan.
             """
-            # Paso 1 — dimensiones
-            n: int = self._check_dimensions()
+            G_sym = 0.5 * (G + G.T)
+            eigvals = la.eigvalsh(G_sym)
+            if eigvals.size == 0:
+                return PoincareSpectralSnapshot(
+                    action_invariant=0.0, angle_parameter=0.0,
+                    section_level=float(section_level), crossing_count=0,
+                    frequency_ratio=0.0, is_near_resonance=False,
+                    resonance_p=0, resonance_q=0,
+                    small_divisor_magnitude=0.0,
+                    canonical_q=0.0, canonical_p=0.0,
+                    kam_diophantine_margin=0.0, poincare_cartan_form=0.0,
+                )
+            lam_abs = np.abs(eigvals)
+            lam_abs = np.maximum(lam_abs, _SMALL_PARAMETER_FLOOR)
+            q = float(np.min(lam_abs))
+            lam_max = float(np.max(lam_abs))
+            p = max(0.0, lam_max - q)
+            action = 0.5 * (q * q + p * p)
+            angle = math.atan2(p, q) if action > _SMALL_PARAMETER_FLOOR else 0.0
 
-            # Paso 2 — simetría
+            sec = float(section_level)
+            r_sq = 2.0 * action
+            if r_sq > _SMALL_PARAMETER_FLOOR and abs(sec) < math.sqrt(r_sq):
+                crossings = 2
+            elif (r_sq > _SMALL_PARAMETER_FLOOR
+                  and abs(abs(sec) - math.sqrt(r_sq)) <= _SMALL_PARAMETER_FLOOR):
+                crossings = 1
+            else:
+                crossings = 0
+
+            ratio = q / max(1e-12, p)
+            is_res, p_r, q_r, dioph_err, small_div = _detect_resonance(ratio)
+            kam_bound = (
+                _KAM_DIOPHANTINE_GAMMA / (float(max(1, q_r)) ** _KAM_DIOPHANTINE_TAU)
+                if q_r > 0 else 0.0
+            )
+            kam_margin = float(dioph_err - kam_bound)
+            cartan_form = float(p * q - action)
+
+            return PoincareSpectralSnapshot(
+                action_invariant=float(action),
+                angle_parameter=float(angle),
+                section_level=float(sec),
+                crossing_count=int(crossings),
+                frequency_ratio=float(ratio),
+                is_near_resonance=bool(is_res),
+                resonance_p=int(p_r),
+                resonance_q=int(q_r),
+                small_divisor_magnitude=float(small_div),
+                canonical_q=float(q),
+                canonical_p=float(p),
+                kam_diophantine_margin=kam_margin,
+                poincare_cartan_form=cartan_form,
+            )
+
+        def _compute_lindstedt_heat_kernel(
+            self,
+            G: NDArray[np.float64],
+            n_terms: int = 2,
+            use_pade: bool = False,
+        ) -> LindstedtHeatKernelExpansion:
+            r"""
+            Expansión perturbativa de Lindstedt-Poincaré del Heat Kernel Φ(ε) = n⁻¹tr(e^{−εG})
+            con parámetro pequeño ε = 1/(1 + λ_max(G)).
+            En el Nivel 3 de RSI (`use_pade=True`), emplea la re-sumación racional diagonal de
+            Padé [M/M](−εG) para eliminar divergencias seculares de orden superior.
+            """
+            G_sym = 0.5 * (G + G.T)
+            eigvals = la.eigvalsh(G_sym)
+            if eigvals.size == 0:
+                return LindstedtHeatKernelExpansion(
+                    small_parameter=0.0, n_terms=int(n_terms),
+                    zero_order=1.0, first_order=0.0,
+                    second_order=0.0, higher_order=0.0,
+                    heat_kernel_approx=1.0, heat_kernel_true=1.0,
+                    expansion_residual=0.0, is_asymptotically_consistent=True,
+                    pade_resummed_approx=1.0,
+                )
+            lam_max = float(np.max(np.abs(eigvals)))
+            eps = 1.0 / (1.0 + max(_SMALL_PARAMETER_FLOOR, lam_max))
+            N = max(2, int(n_terms))
+            n = eigvals.size
+
+            approx = 0.0
+            pade_approx = 0.0
+            true = 0.0
+            zero = 0.0
+            first = 0.0
+            second = 0.0
+            higher = 0.0
+            for lam in eigvals:
+                x = eps * float(lam)
+                t0 = 1.0
+                t1 = -x
+                t2 = x * x / 2.0
+                th = 0.0
+                fact = 6.0
+                xk = x * x * x
+                for k in range(3, N):
+                    th += ((-1.0) ** k) * xk / fact
+                    fact *= (k + 1)
+                    xk *= x
+                approx += t0 + t1 + t2 + th
+                pade_approx += _pade_resum_exponential(x, N)
+                try:
+                    true += math.exp(-x)
+                except OverflowError:
+                    true += 0.0
+                zero += t0
+                first += t1
+                second += t2
+                higher += th
+
+            approx /= n
+            pade_approx /= n
+            true /= n
+            zero /= n
+            first /= n
+            second /= n
+            higher /= n
+
+            effective_approx = pade_approx if use_pade else approx
+            residual = abs(effective_approx - true) / max(1e-12, abs(true))
+            is_consistent = residual <= _ADIABATIC_DRIFT_LIMIT or eps < 0.5
+
+            return LindstedtHeatKernelExpansion(
+                small_parameter=float(eps),
+                n_terms=int(N),
+                zero_order=float(zero),
+                first_order=float(first),
+                second_order=float(second),
+                higher_order=float(higher),
+                heat_kernel_approx=float(effective_approx),
+                heat_kernel_true=float(true),
+                expansion_residual=float(residual),
+                is_asymptotically_consistent=bool(is_consistent),
+                pade_resummed_approx=float(pade_approx),
+            )
+
+        def build_context(self) -> ApexPreparationContext:
+            r"""
+            ====================================================================================
+            [CLAUSURA FORMAL DE LA FASE ANIDADA 1 — ÚLTIMO MÉTODO DE FASE 1: build_context]
+            ====================================================================================
+            Morfismo Terminal F₁: (G_μν, G_inv, R_cost, KapexToleranceBundle) ──► ApexPreparationContext.
+
+            CONTINUIDAD DE ANIDAMIENTO CATEGÓRICO:
+              El objeto `ApexPreparationContext` retornado aquí es el argumento formal de
+              entrada del primer método de la Fase Anidada 2 (`Phase2_ElectrodynamicSynthesis.__init__`).
+            ====================================================================================
+            """
+            n = self._check_dimensions()
             self._validate_symmetry(self._G, "G_mu_nu")
             self._validate_symmetry(self._G_inv, "G_inv")
             self._validate_symmetry(self._R, "R_cost")
 
-            # Paso 3 — SPD + κ(G_μν) + Cholesky regularizado
             kappa_G, _, _ = self._validate_spd(self._G, "G_mu_nu")
             L_G, epsilon_G = self._cholesky_regularized(self._G, "G_mu_nu")
-
-            # Paso 4 — SPD + κ(G_inv) + cross-check de la identidad κ(A⁻¹)=κ(A)
             kappa_G_inv, _, _ = self._validate_spd(self._G_inv, "G_inv")
-            kappa_mismatch_rel: float = abs(kappa_G_inv - kappa_G) / max(
-                kappa_G, 1.0
-            )
+
+            kappa_mismatch_rel = abs(kappa_G_inv - kappa_G) / max(kappa_G, 1.0)
             if kappa_mismatch_rel > _KAPPA_CROSSCHECK_TOL:
                 logger.warning(
-                    "[Fase1] κ(G_inv)=%.6e difiere de κ(G_μν)=%.6e en %.2f%% "
-                    "(identidad exacta κ(A⁻¹)=κ(A) sugiere posible "
-                    "inconsistencia numérica o de ensamblaje).",
+                    "[Fase1] κ(G_inv)=%.6e vs κ(G)=%.6e (%.2f%% divergencia).",
                     kappa_G_inv, kappa_G, 100.0 * kappa_mismatch_rel,
                 )
 
-            # Paso 5 — consistencia métrica bilateral (Wilkinson)
-            inv_residual: float = self._validate_inverse_consistency_bilateral(
-                kappa_G, n
+            inv_residual, g_inv_polished = self._validate_inverse_consistency_bilateral(kappa_G, n)
+            (R_sqrt, rank_R, spectral_gap_R, spectral_closure_residual
+             ) = self._validate_psd_and_spectral_diagnostics(self._R, "R_cost")
+            betti_0_R = n - rank_R
+
+            poincare = self._compute_poincare_snapshot(self._G)
+            lindstedt = self._compute_lindstedt_heat_kernel(
+                self._G,
+                n_terms=self._tol_bundle.n_lindstedt_terms,
+                use_pade=self._tol_bundle.use_pade_resummation,
             )
 
-            # Paso 6 — PSD de R_cost + diagnóstico espectral + cierre
-            (
-                R_sqrt,
-                rank_R,
-                spectral_gap_R,
-                spectral_closure_residual,
-            ) = self._validate_psd_and_spectral_diagnostics(self._R, "R_cost")
-            betti_0_R: int = n - rank_R
-
-            # Paso 7 — empaquetado (contrato Fase 1 → Fase 2)
             context = ApexPreparationContext(
                 G_mu_nu=self._G.copy(),
-                G_inv=self._G_inv.copy(),
+                G_inv=g_inv_polished,
                 R_cost=self._R.copy(),
                 L_G=L_G,
                 R_sqrt=R_sqrt,
@@ -1021,152 +1127,73 @@ class KApexElectrodynamicAgent(Morphism):
                 inverse_residual=inv_residual,
                 spectral_closure_residual=spectral_closure_residual,
                 dim=n,
+                poincare_snapshot=poincare,
+                lindstedt_expansion=lindstedt,
+                tolerance_bundle=self._tol_bundle,
             )
-
             logger.info(
-                "[Fase1] ApexPreparationContext ensamblado: dim=%d, κ(G)=%.3e, "
-                "rank(R)=%d, betti_0(R)=%d, inv_res=%.3e, closure=%.3e.",
-                n, kappa_G, rank_R, betti_0_R,
-                inv_residual, spectral_closure_residual,
+                "[Fase1] ctx: dim=%d, κ=%.3e, I=%.4e, res=%s, LP_res=%.3e.",
+                n, kappa_G,
+                poincare.action_invariant, poincare.is_near_resonance,
+                lindstedt.expansion_residual,
             )
-            # ── fin formal de Fase 1; el DTO retornado es la entrada de Fase 2 ──
             return context
 
-    # ======================================================================
-    # FASE 2 — SÍNTESIS ELECTRODINÁMICA:
-    #          CURVATURA 𝔰𝔬(n), COVARIANZA DE CALIBRE Y RETÍCULA DE BOOLE
-    #          (continuación formal de ApexPreparationContext)
-    # ======================================================================
-
+    # =========================================================================
+    # ╔═══════════════════════════════════════════════════════════════════════╗
+    # ║       FASE ANIDADA 2: SÍNTESIS ELECTRODINÁMICA, RLC Y POINCARÉ        ║
+    # ║  Continuación directa desde `ApexPreparationContext` (build_context): ║
+    # ║  Inyección de Calibre, Absorción Eikonal de Fermat, Exergía de        ║
+    # ║  Poynting, Holonomía de Yang-Mills, Bicuaternión RLC Cuántico,        ║
+    # ║  Mapa de Retorno Simpéctico de Chirikov, Dualidad de Hodge-Poincaré   ║
+    # ║  y Recurrencia Ergódica de Poincaré-Birkhoff.                         ║
+    # ╚═══════════════════════════════════════════════════════════════════════╝
+    # =========================================================================
     class Phase2_ElectrodynamicSynthesis:
         r"""
-        **Fase 2 – Síntesis Electrodinámica.**
+        **Fase Anidada 2 – Síntesis Electrodinámica, Bicuaternión RLC y Dinámica de Poincaré.**
 
-        Recibe el ``ApexPreparationContext`` (salida terminal de Fase 1)
-        y ejecuta, en orden estricto:
-
-          1. **Inyección de Potencial de Gauge** (invariante de escala).
-          2. **Refracción Eikonal de Mercado**.
-          3. **Exergía de Poynting** (P_diss = ‖R_sqrt ∇H‖² ≥ 0 exacto).
-          4. **Curvatura de Yang–Mills genuina** F ∈ 𝔰𝔬(n) sobre una
-             plaqueta de dos direcciones (A₁, A₂), con:
-               - proyección canónica Π_𝔰𝔬,
-               - verificación algebraica de antisimetría,
-               - contracción Hilbert–Schmidt **correcta** (bug de v6 corregido),
-               - diagnóstico opcional de covarianza de calibre.
-          5. **Retícula de Boole** de viabilidad (7 predicados atómicos).
-
-        El método terminal ``synthesize`` produce ``ApexStateTensor``,
-        cuya componente ``gauge_injection_vector`` es la precondición
-        formal de ``Phase3_SheafProjection.export_stalk``.
+        Recibe el objeto terminal `context: ApexPreparationContext` de la Fase 1 y
+        ejecuta la síntesis electrodinámica hasta emitir `ApexStateTensor`.
         """
 
         _EPS: float = _MACHINE_EPS
 
         def __init__(
             self,
-            context: "ApexPreparationContext",
+            context: ApexPreparationContext,
             eikonal_slack: float,
             holonomy_tol_rel: float,
             kappa_max: float,
         ) -> None:
             r"""
-            **Constructor de la Fase 2: continuación directa de la Fase 1.**
-
-            Parámetros
-            ----------
-            context : ApexPreparationContext
-                Salida de ``Phase1_MetricValidation.build_context``.
-            eikonal_slack, holonomy_tol_rel, kappa_max
-                Parámetros de control del orquestador.
+            ====================================================================================
+            [INICIO DE LA FASE ANIDADA 2 — ESLABÓN RECEPTOR DE `Phase1.build_context`]
+            ====================================================================================
+            Toma el `ApexPreparationContext` sellado por `build_context` en la Fase 1.
             """
-            self._ctx: "ApexPreparationContext" = context
+            self._ctx: ApexPreparationContext = context
             self._eikonal_slack: float = float(eikonal_slack)
             self._holonomy_tol_rel: float = float(holonomy_tol_rel)
             self._kappa_max: float = float(kappa_max)
-
             self._trace_G: float = float(np.trace(context.G_mu_nu))
-            # Factor de supresión de calibre: s = exp(−½ Tr G) ∈ (0, 1]
-            # (invariante bajo conjugación ortogonal de G; escala el potencial)
-            self._suppression_factor: float = float(
-                np.exp(-0.5 * self._trace_G)
-            )
-
-            logger.debug(
-                "[Fase2] Inicializada sobre ApexPreparationContext: "
-                "dim=%d, Tr(G)=%.6e, suppression=%.6e, "
-                "eikonal_slack=%.3f, holo_tol=%.3e, closure=%.3e.",
-                context.dim,
-                self._trace_G,
-                self._suppression_factor,
-                eikonal_slack,
-                holonomy_tol_rel,
-                context.spectral_closure_residual,
-            )
-
-        # ------------------------------------------------------------------
-        # Subproceso 1: Inyección de Potencial de Gauge
-        # ------------------------------------------------------------------
+            self._suppression_factor: float = float(np.exp(-0.5 * self._trace_G))
 
         def inject_gauge_potential(
-            self, d_Phi: NDArray[np.float64]
+            self, d_Phi: NDArray[np.float64],
         ) -> Tuple[NDArray[np.float64], float]:
-            r"""
-            Inyecta el potencial de calibre:
-
-            .. math::
-
-                s_{\mathrm{val}}
-                  = d\Phi \cdot \exp\!\bigl(-\tfrac12\,\mathrm{Tr}(G_{\mu\nu})\bigr).
-
-            La verificación de colapso es **invariante de escala**: depende
-            únicamente del factor de supresión (no de ‖dΦ‖), evitando
-            falsos positivos para diferenciales pequeños con supresión nula.
-
-            Condición de disparo
-            --------------------
-            .. math::
-
-                \exp\!\bigl(-\tfrac12\,\mathrm{Tr}(G_{\mu\nu})\bigr)
-                  < \varepsilon_{\mathrm{mach}}
-                \;\Longrightarrow\;
-                \texttt{GaugePotentialError}.
-
-            Retorna
-            -------
-            Tuple[NDArray[np.float64], float]
-                (s_val, suppression_factor).
-
-            Lanza
-            -----
-            ApexDimensionError, GaugePotentialError
-            """
-            n: int = self._ctx.dim
+            n = self._ctx.dim
             d_Phi = np.asarray(d_Phi, dtype=np.float64)
             if d_Phi.shape != (n,):
                 raise ApexDimensionError(
-                    f"d_Phi debe tener shape ({n},); se obtuvo {d_Phi.shape}."
+                    f"d_Phi shape {d_Phi.shape} ≠ ({n},)."
                 )
-
             if self._suppression_factor < self._EPS:
                 raise GaugePotentialError(
-                    f"Estrés estructural extremo: Tr(G_μν)={self._trace_G:.6e}. "
-                    f"Factor de supresión={self._suppression_factor:.6e} < ε_mach. "
-                    f"Inyección de propuesta de valor completamente colapsada, "
-                    f"independientemente de la magnitud de dΦ."
+                    f"Tr(G)={self._trace_G:.6e}: supresión {self._suppression_factor:.6e} < ε."
                 )
-
-            s_val: NDArray[np.float64] = d_Phi * self._suppression_factor
-            logger.debug(
-                "[Fase2] Inyección de calibre: suppression=%.6e, ‖s_val‖_∞=%.6e.",
-                self._suppression_factor,
-                float(la.norm(s_val, np.inf)),
-            )
+            s_val = d_Phi * self._suppression_factor
             return s_val, self._suppression_factor
-
-        # ------------------------------------------------------------------
-        # Subproceso 2: Refracción Eikonal de Mercado
-        # ------------------------------------------------------------------
 
         def compute_eikonal_absorption(
             self,
@@ -1174,61 +1201,23 @@ class KApexElectrodynamicAgent(Morphism):
             sigma_stress: float,
             alpha_fermat: float = 0.5,
         ) -> Tuple[float, float]:
-            r"""
-            Índice de refracción de Fermat y verificación Eikonal:
-
-            .. math::
-
-                n(\sigma^*) = 1 + \tanh(\alpha\cdot\sigma^*),
-                \qquad
-                G^{\mu\nu}\partial_\mu S\,\partial_\nu S
-                  \ge n^2(\sigma^*)\cdot(1 - \texttt{eikonal\_slack}).
-
-            Retorna
-            -------
-            Tuple[float, float]
-                (n_refract, eikonal_norm_sq).
-
-            Lanza
-            -----
-            ApexDimensionError, EikonalRefractionError
-            """
-            n: int = self._ctx.dim
+            n = self._ctx.dim
             phase_gradient = np.asarray(phase_gradient, dtype=np.float64)
             if phase_gradient.shape != (n,):
                 raise ApexDimensionError(
-                    f"phase_gradient debe tener shape ({n},); "
-                    f"se obtuvo {phase_gradient.shape}."
+                    f"phase_gradient shape {phase_gradient.shape} ≠ ({n},)."
                 )
-
-            n_refract: float = 1.0 + float(
-                np.tanh(alpha_fermat * sigma_stress)
-            )
-            G_inv_grad: NDArray[np.float64] = self._ctx.G_inv @ phase_gradient
-            eikonal_norm_sq: float = float(
-                np.dot(phase_gradient, G_inv_grad)
-            )
-
-            n_sq: float = n_refract ** 2
-            eikonal_threshold: float = n_sq * (1.0 - self._eikonal_slack)
-
+            n_refract = 1.0 + float(np.tanh(alpha_fermat * sigma_stress))
+            G_inv_grad = self._ctx.G_inv @ phase_gradient
+            eikonal_norm_sq = float(np.dot(phase_gradient, G_inv_grad))
+            n_sq = n_refract ** 2
+            eikonal_threshold = n_sq * (1.0 - self._eikonal_slack)
             if eikonal_norm_sq < eikonal_threshold:
                 raise EikonalRefractionError(
-                    f"Fallo Eikonal: ‖∂S‖²_{{G_inv}}={eikonal_norm_sq:.6e} < "
-                    f"n²(1−slack)={eikonal_threshold:.6e}. "
-                    f"n(σ*)={n_refract:.6f}, σ*={sigma_stress:.6f}. "
-                    f"La campaña se dispersó antes de alcanzar el colector."
+                    f"Fallo Eikonal: ‖∂S‖²={eikonal_norm_sq:.6e} < "
+                    f"n²(1−slack)={eikonal_threshold:.6e}."
                 )
-
-            logger.debug(
-                "[Fase2] Eikonal OK: ‖∂S‖²=%.6e, n²=%.6e, n_refract=%.6f.",
-                eikonal_norm_sq, n_sq, n_refract,
-            )
             return n_refract, eikonal_norm_sq
-
-        # ------------------------------------------------------------------
-        # Subproceso 3: Exergía de Poynting
-        # ------------------------------------------------------------------
 
         def evaluate_poynting_exergy(
             self,
@@ -1236,116 +1225,93 @@ class KApexElectrodynamicAgent(Morphism):
             H_field: NDArray[np.float64],
             grad_H: NDArray[np.float64],
         ) -> Tuple[float, float, float]:
-            r"""
-            Flujo exergético de Poynting:
-
-            .. math::
-
-                P_{\mathrm{in}}   = E\cdot H,
-                \qquad
-                P_{\mathrm{diss}}
-                  = \bigl\|R_{\mathrm{sqrt}}\nabla H\bigr\|^2
-                  \ge 0
-                  \quad\text{(norma euclidiana al cuadrado)},
-                \qquad
-                P_{\mathrm{exergia}}
-                  = P_{\mathrm{in}} - P_{\mathrm{diss}}.
-
-            La forma ‖R_sqrt ∇H‖² es algebraicamente idéntica a
-            ∇Hᵀ R_cost ∇H pero **garantiza no-negatividad por construcción**
-            (evita residuos negativos espurios por redondeo de la forma
-            cuadrática directa).
-
-            Retorna
-            -------
-            Tuple[float, float, float]
-                (P_in, P_diss, P_exergia).
-
-            Lanza
-            -----
-            ApexDimensionError, FinancialBlackHoleError
-            """
-            n: int = self._ctx.dim
-            E_field = np.asarray(E_field, dtype=np.float64)
-            H_field = np.asarray(H_field, dtype=np.float64)
-            grad_H = np.asarray(grad_H, dtype=np.float64)
-            for vec, name in (
-                (E_field, "E_field"),
-                (H_field, "H_field"),
-                (grad_H, "grad_H"),
-            ):
-                if vec.shape != (n,):
+            n = self._ctx.dim
+            for vec, name in ((E_field, "E_field"), (H_field, "H_field"), (grad_H, "grad_H")):
+                if np.asarray(vec).shape != (n,):
                     raise ApexDimensionError(
-                        f"'{name}' debe tener shape ({n},); se obtuvo {vec.shape}."
+                        f"'{name}' debe tener shape ({n},)."
                     )
-
-            P_in: float = float(np.dot(E_field, H_field))
-
-            # P_diss = ‖R_sqrt · ∇H‖² = ∇Hᵀ R_cost ∇H (exacto, ≥ 0)
-            R_sqrt_grad: NDArray[np.float64] = self._ctx.R_sqrt @ grad_H
-            P_diss: float = float(np.dot(R_sqrt_grad, R_sqrt_grad))
-
-            P_exergia: float = P_in - P_diss
-            tol_exergy: float = self._EPS * max(abs(P_in), abs(P_diss), 1.0)
-
+            E_arr = np.asarray(E_field, dtype=np.float64)
+            H_arr = np.asarray(H_field, dtype=np.float64)
+            gH = np.asarray(grad_H, dtype=np.float64)
+            P_in = float(np.dot(E_arr, H_arr))
+            R_sqrt_grad = self._ctx.R_sqrt @ gH
+            P_diss = float(np.dot(R_sqrt_grad, R_sqrt_grad))
+            P_exergia = P_in - P_diss
+            tol_exergy = self._EPS * max(abs(P_in), abs(P_diss), 1.0)
             if P_exergia < -tol_exergy:
                 raise FinancialBlackHoleError(
-                    f"La entropía operativa devora la energía inyectada. "
-                    f"P_in={P_in:.6e}, P_diss={P_diss:.6e}, "
-                    f"P_exergia={P_exergia:.6e} < −tol={tol_exergy:.6e}. "
-                    f"Veto termodinámico absoluto emitido."
+                    f"P_in={P_in:.6e}, P_diss={P_diss:.6e}, P_exergia={P_exergia:.6e}."
                 )
-
-            logger.debug(
-                "[Fase2] Poynting: P_in=%.6e, P_diss=%.6e, P_exergia=%.6e.",
-                P_in, P_diss, P_exergia,
-            )
             return P_in, P_diss, P_exergia
 
-        # ------------------------------------------------------------------
-        # Subproceso 4: Curvatura de Yang–Mills genuina (𝔰𝔬(n))
-        # ------------------------------------------------------------------
+        def _compute_quantum_rlc_biquaternion(
+            self,
+            E_field: NDArray[np.float64],
+            H_field: NDArray[np.float64],
+            P_in: float,
+            P_diss: float,
+        ) -> QuantumRLCApexSnapshot:
+        
+            r"""
+            Construye el bicuaternión de Riemann-Silberstein F_RS = E + i·G^{−1/2}H en el
+            álgebra de Clifford riemanniana Cl(T*𝓜, G)⊗ℂ y extrae la impedancia compleja
+            cuántica Z(ω) = R + iX de la línea de transmisión estratégica.
+            """
+            E_arr = np.asarray(E_field, dtype=np.float64)
+            H_arr = np.asarray(H_field, dtype=np.float64)
+            e_norm_sq = max(0.0, float(E_arr @ self._ctx.G_inv @ E_arr))
+            h_norm_sq = max(0.0, float(H_arr @ self._ctx.G_inv @ H_arr))
+            eh_pairing = float(E_arr @ self._ctx.G_inv @ H_arr)
+
+            lorentz_scalar = e_norm_sq - h_norm_sq
+            lorentz_pseudoscalar = 2.0 * eh_pairing
+
+            active_P = max(_SMALL_PARAMETER_FLOOR, abs(P_in) + P_diss)
+            reactive_Q = 0.5 * lorentz_scalar
+            apparent_S = math.hypot(active_P, reactive_Q)
+            triangle_res = abs(apparent_S ** 2 - (active_P ** 2 + reactive_Q ** 2)) / max(
+                1.0, apparent_S ** 2
+            )
+
+            current_sq = max(_SMALL_PARAMETER_FLOOR, h_norm_sq + _SMALL_PARAMETER_FLOOR)
+            resistance_R = max(0.0, active_P / current_sq)
+            reactance_X = reactive_Q / current_sq
+            z_mag = math.hypot(resistance_R, reactance_X)
+            z_phase = math.atan2(reactance_X, resistance_R)
+
+            stored_energy = 0.5 * (e_norm_sq + h_norm_sq)
+            omega_char = max(_SMALL_PARAMETER_FLOOR, float(self._ctx.kappa_G))
+            quality_Q = max(
+                _SMALL_PARAMETER_FLOOR,
+                (omega_char * max(_SMALL_PARAMETER_FLOOR, stored_energy)) / active_P,
+            )
+
+            return QuantumRLCApexSnapshot(
+                resistance_R=float(resistance_R),
+                reactance_X=float(reactance_X),
+                impedance_magnitude=float(z_mag),
+                impedance_phase_rad=float(z_phase),
+                active_power_P=float(active_P),
+                reactive_power_Q=float(reactive_Q),
+                apparent_power_S=float(apparent_S),
+                power_triangle_residual=float(triangle_res),
+                quality_factor_Q=float(quality_Q),
+                riemann_silberstein_lorentz_scalar=float(lorentz_scalar),
+                riemann_silberstein_pseudoscalar=float(lorentz_pseudoscalar),
+                is_passive_and_resonant=bool(
+                    resistance_R >= 0.0 and quality_Q > 0.0 and triangle_res <= 1e-12
+                ),
+            )
 
         @staticmethod
         def _project_to_so(A: NDArray[np.float64]) -> NDArray[np.float64]:
-            r"""
-            Proyector ortogonal (Frobenius) al álgebra de Lie 𝔰𝔬(n):
-
-            .. math::
-
-                \Pi_{\mathfrak{so}}(A)
-                  := \tfrac12\bigl(A - A^\top\bigr).
-
-            Propiedades
-            -----------
-            - Idempotencia: Π² = Π.
-            - Simetría: Π(Aᵀ) = −Π(A).
-            - Kernel: matrices simétricas; imagen: 𝔰𝔬(n).
-            - Es la proyección ortogonal respecto del producto Frobenius
-              ⟨X, Y⟩_F = Tr(Xᵀ Y).
-            """
             return 0.5 * (A - A.T)
 
         @staticmethod
         def _lie_commutator(
-            B: NDArray[np.float64], C: NDArray[np.float64]
+            B: NDArray[np.float64], C: NDArray[np.float64],
         ) -> NDArray[np.float64]:
-            r"""
-            Corchete de Lie [B, C] = BC − CB.
-
-            **Cierre de 𝔰𝔬(n)**: si Bᵀ = −B y Cᵀ = −C, entonces
-
-            .. math::
-
-                [B,C]^\top
-                  = (BC - CB)^\top
-                  = C^\top B^\top - B^\top C^\top
-                  = (-C)(-B) - (-B)(-C)
-                  = CB - BC
-                  = -[B,C].
-
-            Por tanto [B, C] ∈ 𝔰𝔬(n) siempre que B, C ∈ 𝔰𝔬(n).
-            """
             return B @ C - C @ B
 
         def _compute_curvature(
@@ -1353,103 +1319,15 @@ class KApexElectrodynamicAgent(Morphism):
             A_1: NDArray[np.float64],
             A_2: NDArray[np.float64],
         ) -> NDArray[np.float64]:
-            r"""
-            Ensambla la curvatura discreta de una plaqueta con dos
-            direcciones de conexión A₁, A₂:
-
-            .. math::
-
-                A_i^{a} := \Pi_{\mathfrak{so}}(A_i)\in\mathfrak{so}(n),
-                \qquad
-                F
-                  := \bigl(A_2^{a} - A_1^{a}\bigr)
-                     + \bigl[A_1^{a},\, A_2^{a}\bigr].
-
-            Esta es la discretización de la 2-forma de curvatura de
-            Yang–Mills F = dA + A ∧ A sobre una plaqueta elemental con
-            generadores (A₁, A₂).
-
-            **Por qué no basta un único A** (error de v5):
-            para cualquier matriz real A, el conmutador [A, Aᵀ] es
-            **siempre simétrico**:
-
-            .. math::
-
-                [A, A^\top]^\top
-                  = (A A^\top - A^\top A)^\top
-                  = A A^\top - A^\top A
-                  = [A, A^\top],
-
-            mientras que (A − Aᵀ) es antisimétrico. Su suma no pertenece
-            a 𝔰𝔬(n) y por tanto no es una 2-forma de curvatura válida
-            para el grupo de holonomía O(n) compatible con G_μν.
-
-            La presente formulación usa **dos generadores genuinos** del
-            álgebra 𝔰𝔬(n) y se apoya en el cierre de 𝔰𝔬(n) bajo el
-            corchete (demostrado en ``_lie_commutator``). Por construcción:
-
-            .. math::
-
-                F^\top = -F
-                \quad\text{(hasta precisión de máquina)}.
-
-            Retorna
-            -------
-            NDArray[np.float64], shape (n, n)
-                F ∈ 𝔰𝔬(n), antisimétrica hasta redondeo.
-            """
-            A1_a: NDArray[np.float64] = self._project_to_so(A_1)
-            A2_a: NDArray[np.float64] = self._project_to_so(A_2)
-            F: NDArray[np.float64] = (
-                (A2_a - A1_a) + self._lie_commutator(A1_a, A2_a)
-            )
-            # Purga residual de simetría numérica (proyección final a 𝔰𝔬(n))
+            A1_a = self._project_to_so(A_1)
+            A2_a = self._project_to_so(A_2)
+            F = (A2_a - A1_a) + self._lie_commutator(A1_a, A2_a)
             return self._project_to_so(F)
 
         def _yang_mills_action(self, F: NDArray[np.float64]) -> float:
-            r"""
-            Acción de Yang–Mills discreta con contracción Hilbert–Schmidt
-            inducida por la métrica G_μν:
-
-            .. math::
-
-                S_{YM}
-                  = \tfrac12\,\mathrm{Tr}\!\bigl(
-                        F^\top\, G_{\mu\nu}\, F\, G^{\mu\nu}
-                    \bigr)
-                  = \tfrac12\,\langle F,\, F\rangle_{HS(G)}.
-
-            **Corrección del bug de v6**
-            ---------------------------
-            v6 componía intermedios como
-            ``Tr(F.T @ (G @ F) @ (F @ G_inv))`` = Tr(Fᵀ G F F G⁻¹),
-            introduciendo un factor F sobrante. La forma correcta es:
-
-            .. code-block:: python
-
-                S = 0.5 * Tr(F.T @ G @ F @ G_inv)
-
-            **No-negatividad exacta**
-            -------------------------
-            Sea M ≔ Fᵀ G F. Entonces ∀x ∈ ℝⁿ:
-            xᵀ M x = (F x)ᵀ G (F x) ≥ 0 (pues G ≻ 0), luego M ⪰ 0.
-            Sea N ≔ G⁻¹ ≻ 0. El producto de traza de dos matrices
-            simétricas, una PSD y otra SPD, es no-negativo:
-            Tr(M N) ≥ 0. Por tanto S_YM ≥ 0 exactamente (salvo redondeo,
-            que se sature a 0 con ``max(..., 0)``).
-
-            Retorna
-            -------
-            float
-                S_YM ≥ 0.
-            """
-            # Forma correcta (bug v6 eliminado): Tr(Fᵀ G F G⁻¹) / 2
-            # Implementación numéricamente estable vía producto intermedio
-            # simétrico M = Fᵀ G F  (PSD) y luego Tr(M G⁻¹).
-            G_F: NDArray[np.float64] = self._ctx.G_mu_nu @ F          # G F
-            M: NDArray[np.float64] = F.T @ G_F                        # Fᵀ G F
-            # Tr(M G⁻¹) = Tr(G⁻¹ M) (ciclicidad); usamos la primera forma
-            S: float = 0.5 * float(np.trace(M @ self._ctx.G_inv))
+            G_F = self._ctx.G_mu_nu @ F
+            M = F.T @ G_F
+            S = 0.5 * float(np.trace(M @ self._ctx.G_inv))
             return max(S, 0.0)
 
         def audit_yang_mills_holonomy(
@@ -1457,84 +1335,28 @@ class KApexElectrodynamicAgent(Morphism):
             A_gauge_1: NDArray[np.float64],
             A_gauge_2: NDArray[np.float64],
         ) -> Tuple[float, float]:
-            r"""
-            Audita la curvatura de calibre de una plaqueta de dos
-            direcciones (A_gauge_1, A_gauge_2) mediante la acción de
-            Yang–Mills ponderada por G_μν.
-
-            Se verifica adicionalmente el invariante algebraico exacto
-            F = −Fᵀ (garantizado por construcción en ``_compute_curvature``;
-            un residuo significativo indicaría un error de implementación,
-            no un fenómeno físico).
-
-            Parámetros
-            ----------
-            A_gauge_1, A_gauge_2 : NDArray[np.float64], shape (n, n)
-                Potenciales de calibre en las dos direcciones de la plaqueta.
-
-            Retorna
-            -------
-            Tuple[float, float]
-                (S_ym, antisymmetry_residual_relative).
-
-            Lanza
-            -----
-            ApexDimensionError
-            HolonomyVetoError
-            ElectrodynamicApexError
-                Si la antisimetría de F se viola más allá de 10⁻⁸ relativo
-                (canario de error de implementación).
-            """
-            n: int = self._ctx.dim
-            A_gauge_1 = np.asarray(A_gauge_1, dtype=np.float64)
-            A_gauge_2 = np.asarray(A_gauge_2, dtype=np.float64)
-            for mat, name in (
-                (A_gauge_1, "A_gauge_1"),
-                (A_gauge_2, "A_gauge_2"),
-            ):
+            n = self._ctx.dim
+            A_1 = np.asarray(A_gauge_1, dtype=np.float64)
+            A_2 = np.asarray(A_gauge_2, dtype=np.float64)
+            for mat, name in ((A_1, "A_gauge_1"), (A_2, "A_gauge_2")):
                 if mat.shape != (n, n):
                     raise ApexDimensionError(
-                        f"'{name}' debe tener shape ({n},{n}); "
-                        f"se obtuvo {mat.shape}."
+                        f"'{name}' shape {mat.shape} ≠ ({n},{n})."
                     )
-
-            F: NDArray[np.float64] = self._compute_curvature(
-                A_gauge_1, A_gauge_2
-            )
-
-            # --- Canario de antisimetría (invariante algebraico exacto) ------
-            norm_F: float = float(la.norm(F, "fro"))
-            antisym_residual: float = float(
-                la.norm(F + F.T, "fro")
-            ) / max(norm_F, 1.0)
+            F = self._compute_curvature(A_1, A_2)
+            norm_F = float(la.norm(F, "fro"))
+            antisym_residual = float(la.norm(F + F.T, "fro")) / max(norm_F, 1.0)
             if antisym_residual > _ANTISYM_REL_TOL:
                 raise ElectrodynamicApexError(
-                    f"Curvatura F no es antisimétrica "
-                    f"(violación de invariante algebraico exacto): "
-                    f"‖F+Fᵀ‖_F/‖F‖_F={antisym_residual:.6e} > "
-                    f"{_ANTISYM_REL_TOL:.0e}. Revise _compute_curvature."
+                    f"F no antisimétrica: residuo={antisym_residual:.6e}."
                 )
-
-            # --- Acción de Yang–Mills (contracción HS correcta) --------------
-            S_ym: float = self._yang_mills_action(F)
-
-            norm_A_sq: float = float(
-                la.norm(A_gauge_1, "fro") ** 2
-                + la.norm(A_gauge_2, "fro") ** 2
-            )
-            tol_ym: float = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
-
+            S_ym = self._yang_mills_action(F)
+            norm_A_sq = float(la.norm(A_1, "fro") ** 2 + la.norm(A_2, "fro") ** 2)
+            tol_ym = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
             if S_ym > tol_ym:
                 raise HolonomyVetoError(
-                    f"El bucle de Wilson revela curvatura de calibre no nula. "
-                    f"S_YM={S_ym:.6e} > tol_rel={tol_ym:.6e}. "
-                    f"Fugas logísticas ocultas detectadas."
+                    f"S_YM={S_ym:.6e} > tol={tol_ym:.6e}."
                 )
-
-            logger.debug(
-                "[Fase2] Holonomía: S_YM=%.6e, tol=%.6e, antisym_residual=%.3e.",
-                S_ym, tol_ym, antisym_residual,
-            )
             return S_ym, antisym_residual
 
         def verify_gauge_covariance(
@@ -1544,97 +1366,28 @@ class KApexElectrodynamicAgent(Morphism):
             Q_isometry: NDArray[np.float64],
             isometry_tol: float = 1.0e-8,
         ) -> float:
-            r"""
-            **Diagnóstico opcional** (no forma parte del camino caliente):
-            verifica la propiedad definitoria de toda teoría de calibre —
-            invarianza de la acción de Yang–Mills bajo transformaciones de
-            calibre A_i ↦ Q A_i Qᵀ, para toda isometría Q de G_μν
-
-            .. math::
-
-                Q^\top G_{\mu\nu}\, Q = G_{\mu\nu}
-                \quad\bigl(Q\in O_G(n)\bigr).
-
-            Se verifica primero que Q es una isometría genuina; de lo
-            contrario el teorema de invarianza de calibre no aplica.
-
-            Parámetros
-            ----------
-            A_gauge_1, A_gauge_2 : NDArray[np.float64], shape (n, n)
-                Potenciales de calibre originales.
-            Q_isometry : NDArray[np.float64], shape (n, n)
-                Transformación de calibre candidata.
-            isometry_tol : float, default 1e-8
-                Tolerancia relativa para validar Qᵀ G Q ≈ G.
-
-            Retorna
-            -------
-            float
-                Residuo relativo |S_YM(A) − S_YM(Q A Qᵀ)| / max(S_YM(A), 1).
-
-            Lanza
-            -----
-            ApexDimensionError, GaugeCovarianceError
-            """
-            n: int = self._ctx.dim
-            Q_isometry = np.asarray(Q_isometry, dtype=np.float64)
-            if Q_isometry.shape != (n, n):
-                raise ApexDimensionError(
-                    f"Q_isometry debe tener shape ({n},{n}); "
-                    f"se obtuvo {Q_isometry.shape}."
-                )
-
-            # --- Validar isometría de G_μν -----------------------------------
-            QT_G_Q: NDArray[np.float64] = (
-                Q_isometry.T @ self._ctx.G_mu_nu @ Q_isometry
+            n = self._ctx.dim
+            Q = np.asarray(Q_isometry, dtype=np.float64)
+            if Q.shape != (n, n):
+                raise ApexDimensionError(f"Q shape {Q.shape} ≠ ({n},{n}).")
+            QT_G_Q = Q.T @ self._ctx.G_mu_nu @ Q
+            isometry_residual = float(la.norm(QT_G_Q - self._ctx.G_mu_nu, "fro")) / max(
+                float(la.norm(self._ctx.G_mu_nu, "fro")), 1.0
             )
-            isometry_residual: float = float(
-                la.norm(QT_G_Q - self._ctx.G_mu_nu, "fro")
-            ) / max(float(la.norm(self._ctx.G_mu_nu, "fro")), 1.0)
-
             if isometry_residual > isometry_tol:
                 raise GaugeCovarianceError(
-                    f"Q_isometry no preserva G_μν: "
-                    f"‖Qᵀ G Q − G‖_F/‖G‖_F={isometry_residual:.6e} "
-                    f"> tol={isometry_tol:.6e}. "
-                    f"La invarianza de calibre no es aplicable."
+                    f"Q no preserva G_μν: residuo={isometry_residual:.6e}."
                 )
-
-            # --- Comparar S_YM antes y después de la transformación ----------
-            S_ym_original, _ = self.audit_yang_mills_holonomy(
-                A_gauge_1, A_gauge_2
-            )
-            A_1_t: NDArray[np.float64] = (
-                Q_isometry @ A_gauge_1 @ Q_isometry.T
-            )
-            A_2_t: NDArray[np.float64] = (
-                Q_isometry @ A_gauge_2 @ Q_isometry.T
-            )
-            S_ym_transformed, _ = self.audit_yang_mills_holonomy(A_1_t, A_2_t)
-
-            covariance_residual: float = abs(
-                S_ym_original - S_ym_transformed
-            ) / max(S_ym_original, 1.0)
-
-            if covariance_residual > _GAUGE_COVARIANCE_TOL:
+            S_ym_orig, _ = self.audit_yang_mills_holonomy(A_gauge_1, A_gauge_2)
+            A_1_t = Q @ A_gauge_1 @ Q.T
+            A_2_t = Q @ A_gauge_2 @ Q.T
+            S_ym_t, _ = self.audit_yang_mills_holonomy(A_1_t, A_2_t)
+            residual = abs(S_ym_orig - S_ym_t) / max(S_ym_orig, 1.0)
+            if residual > _GAUGE_COVARIANCE_TOL:
                 raise GaugeCovarianceError(
-                    f"S_YM no es invariante bajo la transformación de calibre: "
-                    f"S_YM(A)={S_ym_original:.6e}, "
-                    f"S_YM(QAQᵀ)={S_ym_transformed:.6e}, "
-                    f"residuo relativo={covariance_residual:.6e} > "
-                    f"{_GAUGE_COVARIANCE_TOL:.0e}. "
-                    f"Error de implementación en la curvatura de calibre."
+                    f"S_YM no invariante: residuo={residual:.6e}."
                 )
-
-            logger.debug(
-                "[Fase2] Covarianza de calibre verificada: residuo=%.3e.",
-                covariance_residual,
-            )
-            return covariance_residual
-
-        # ------------------------------------------------------------------
-        # Retícula Booleana de viabilidad
-        # ------------------------------------------------------------------
+            return residual
 
         def _evaluate_viability_flags(
             self,
@@ -1646,17 +1399,8 @@ class KApexElectrodynamicAgent(Morphism):
             tol_ym: float,
             antisym_residual: float,
         ) -> ApexViabilityFlags:
-            r"""
-            Combina predicados independientes mediante join (disyunción bit
-            a bit), formando el elemento de la retícula Booleana
-            correspondiente a las condiciones satisfechas.
-
-            Incluye el predicado nuevo ``SPECTRAL_CLOSURE_SOUND`` heredado
-            del cierre espectral verificado en Fase 1.
-            """
-            flags: ApexViabilityFlags = ApexViabilityFlags.NONE
-            soft_slack: float = self._eikonal_slack / 2.0
-
+            flags = ApexViabilityFlags.NONE
+            soft_slack = self._eikonal_slack / 2.0
             if suppression_factor >= np.sqrt(self._EPS):
                 flags |= ApexViabilityFlags.GAUGE_INJECTION_NONTRIVIAL
             if eikonal_norm_sq >= n_sq * (1.0 - soft_slack):
@@ -1669,22 +1413,159 @@ class KApexElectrodynamicAgent(Morphism):
                 flags |= ApexViabilityFlags.CURVATURE_ANTISYMMETRIC
             if self._ctx.kappa_G <= 0.5 * self._kappa_max:
                 flags |= ApexViabilityFlags.METRIC_WELL_CONDITIONED
-            # Predicado heredado de Fase 1 (cierre espectral de R_sqrt)
-            # Si build_context terminó sin SpectralClosureError, el residuo
-            # está dentro de tol; marcamos la bandera de forma determinista.
             if self._ctx.spectral_closure_residual <= 1.0:
-                # 1.0 es cota trivial; el fallo duro ya se lanzó en Fase 1.
-                # Aquí re-afirmamos el predicado para la retícula de auditoría.
                 flags |= ApexViabilityFlags.SPECTRAL_CLOSURE_SOUND
-
-            logger.debug("[Fase2] %s", describe_viability_flags(flags))
             return flags
 
-        # ------------------------------------------------------------------
-        # Método terminal de la Fase 2
-        #   ── formal continuation ──►  Phase3_SheafProjection.export_stalk
-        #                               (vía gauge_injection_vector = s_val)
-        # ------------------------------------------------------------------
+        def _compute_return_map(
+            self, n_iterations: int = 4, S_ym: float = 0.0,
+        ) -> EnergyReturnMapSnapshot:
+            r"""
+            Mapa de Retorno Simpéctico de Poincaré-Chirikov (Twist Map con det DP = 1)
+            acoplado a la acción de curvatura de Yang-Mills S_YM:
+                I_{k+1} = max(ε, I_k + K_YM · I_0 · sin(θ_k)),
+                θ_{k+1} = (θ_k + 2π·J + K_YM · cos(θ_k)) mod 2π,
+            donde J = min(q/p, p/q) ∈ (0, 1]. Calcula la traza de monodromía de Floquet
+            y el exponente de Lyapunov local.
+            """
+            poincare = self._ctx.poincare_snapshot
+            if poincare is None:
+                return EnergyReturnMapSnapshot(
+                    contraction_factor=1.0, eigenvalues_modulus=(),
+                    is_stable=True, iterations_norm_sequence=(),
+                    floquet_trace=2.0, lyapunov_exponent=0.0,
+                )
+            ratio = poincare.frequency_ratio
+            if ratio <= 0.0 or not math.isfinite(ratio):
+                return EnergyReturnMapSnapshot(
+                    contraction_factor=1.0, eigenvalues_modulus=(),
+                    is_stable=True, iterations_norm_sequence=(),
+                    floquet_trace=2.0, lyapunov_exponent=0.0,
+                )
+            J = min(ratio, 1.0 / ratio)
+            k_ym = float(np.tanh(abs(S_ym))) * 1e-2
+
+            action_0 = max(_SMALL_PARAMETER_FLOOR, poincare.action_invariant)
+            cur_I = action_0
+            cur_theta = poincare.angle_parameter
+            norms: List[float] = []
+            lyap_acc = 0.0
+
+            for _ in range(n_iterations):
+                sin_t = math.sin(cur_theta)
+                cos_t = math.cos(cur_theta)
+                cur_I = max(_SMALL_PARAMETER_FLOOR, cur_I + k_ym * action_0 * sin_t)
+                cur_theta = (cur_theta + 2.0 * math.pi * J + k_ym * cos_t) % (2.0 * math.pi)
+                radius = math.sqrt(2.0 * cur_I)
+                cur_q = radius * math.cos(cur_theta)
+                cur_p = radius * math.sin(cur_theta)
+                norms.append(float(math.hypot(cur_q, cur_p)))
+                local_tr = 2.0 - k_ym * cos_t
+                disc = local_tr * local_tr - 4.0
+                if disc > 0.0:
+                    lam_u = 0.5 * (abs(local_tr) + math.sqrt(disc))
+                    lyap_acc += math.log(max(1.0, lam_u))
+
+            floquet_tr = 2.0 - k_ym * math.cos(cur_theta)
+            lyap = lyap_acc / max(1, n_iterations)
+            return EnergyReturnMapSnapshot(
+                contraction_factor=float(J),
+                eigenvalues_modulus=(float(abs(J)),),
+                is_stable=bool(abs(J) <= 1.0 + 1e-9 and abs(floquet_tr) <= 2.0 + 1e-2),
+                iterations_norm_sequence=tuple(norms),
+                floquet_trace=float(floquet_tr),
+                lyapunov_exponent=float(lyap),
+            )
+
+        def _compute_poincare_duality(
+            self, F: NDArray[np.float64],
+        ) -> PoincareDualitySnapshot:
+            r"""
+            Dualidad de Hodge-Poincaré y teorema de rango-nulidad sobre el operador de
+            curvatura F ∈ 𝔰𝔬(n) ⊂ ℝ^{n×n}, incorporando la descomposición SVD de
+            Eckart-Young-Mirsky, la energía espectral sub-umbral y el defecto de
+            antisimetría cohomológica ‖F + Fᵀ‖_F / max(1, ‖F‖_F).
+            """
+            n = self._ctx.dim
+            F_arr = np.asarray(F, dtype=np.float64)
+            try:
+                svals = la.svdvals(F_arr)
+                tol = 1e-10 * max(1.0, float(svals[0]) if svals.size > 0 else 1.0)
+                rank = int(np.sum(svals > tol))
+                sub_threshold_leak = float(np.sum(svals[svals <= tol])) / max(
+                    1.0, float(np.sum(svals)) + _SMALL_PARAMETER_FLOOR
+                )
+            except Exception:
+                rank = 0
+                sub_threshold_leak = 0.0
+
+            nullity = int(n - rank)
+            total = int(n)
+            f_norm = float(la.norm(F_arr, "fro"))
+            antisym_defect = (
+                float(la.norm(F_arr + F_arr.T, "fro")) / max(1.0, f_norm)
+                if f_norm > _SMALL_PARAMETER_FLOOR else 0.0
+            )
+            rank_nullity_defect = abs((rank + nullity) - total) / max(1, total)
+            residual = float(rank_nullity_defect + 0.5 * (antisym_defect + sub_threshold_leak))
+
+            return PoincareDualitySnapshot(
+                curvature_rank=int(rank),
+                curvature_nullity=int(nullity),
+                total_dimension=int(total),
+                duality_residual=float(residual),
+                is_poincare_dual=bool(residual <= 1e-8),
+                hodge_antisymmetry_defect=float(antisym_defect),
+            )
+
+        def _compute_spectral_recurrence(
+            self, n_samples: int = 8,
+        ) -> SpectralRecurrenceSnapshot:
+            r"""
+            Recurrencia de Poincaré-Birkhoff en la secuencia de autovalores normalizados
+            de G_μν y estadístico r-ratio de Oganesyan-Huse sobre espaciamientos espectrales.
+            """
+            G_sym = 0.5 * (self._ctx.G_mu_nu + self._ctx.G_mu_nu.T)
+            try:
+                eigvals = la.eigvalsh(G_sym)
+            except Exception:
+                return SpectralRecurrenceSnapshot(
+                    recurrence_points=(), min_recurrence_distance=float("inf"),
+                    is_poincare_recurrent=False, n_samples=0,
+                    level_spacing_ratio=0.0,
+                )
+            if eigvals.size < 2:
+                return SpectralRecurrenceSnapshot(
+                    recurrence_points=(), min_recurrence_distance=float("inf"),
+                    is_poincare_recurrent=False, n_samples=int(eigvals.size),
+                    level_spacing_ratio=0.0,
+                )
+            seq = np.abs(eigvals[:n_samples])
+            seq = seq / max(1e-12, float(np.max(seq)))
+            distances: List[float] = []
+            points: List[float] = []
+            for i in range(1, len(seq)):
+                d = float(abs(seq[i] - seq[i - 1]))
+                distances.append(d)
+                if d < 0.1:
+                    points.append(float(seq[i]))
+            min_dist = min(distances) if distances else float("inf")
+
+            r_ratios: List[float] = []
+            for i in range(1, len(distances)):
+                s_prev, s_curr = distances[i - 1], distances[i]
+                hi = max(s_prev, s_curr)
+                if hi > _SMALL_PARAMETER_FLOOR:
+                    r_ratios.append(min(s_prev, s_curr) / hi)
+            mean_r = float(np.mean(r_ratios)) if r_ratios else 0.0
+
+            return SpectralRecurrenceSnapshot(
+                recurrence_points=tuple(points),
+                min_recurrence_distance=float(min_dist),
+                is_poincare_recurrent=(len(points) >= 2),
+                n_samples=int(len(seq)),
+                level_spacing_ratio=mean_r,
+            )
 
         def synthesize(
             self,
@@ -1698,31 +1579,18 @@ class KApexElectrodynamicAgent(Morphism):
             A_gauge_2: NDArray[np.float64],
             alpha_fermat: float = 0.5,
             Q_isometry_diagnostic: Optional[NDArray[np.float64]] = None,
-        ) -> "ApexStateTensor":
+        ) -> ApexStateTensor:
             r"""
-            **Método terminal de la Fase 2.**
+            ====================================================================================
+            [CLAUSURA FORMAL DE LA FASE ANIDADA 2 — ÚLTIMO MÉTODO DE FASE 2: synthesize]
+            ====================================================================================
+            Morfismo Terminal F₂: ApexPreparationContext × Campos_Electrodinámicos ──► ApexStateTensor.
 
-            Integra los cuatro subprocesos electrodinámicos y retorna el
-            ``ApexStateTensor`` completo. El campo ``gauge_injection_vector``
-            es el dato primario consumido por la Fase 3
-            (``export_stalk(s_val=...)``).
-
-            Parámetros
-            ----------
-            A_gauge_1, A_gauge_2 : NDArray[np.float64], shape (n, n)
-                Potenciales de calibre en las dos direcciones de la plaqueta
-                (matemáticamente necesarios para curvatura no-abeliana genuina).
-            Q_isometry_diagnostic : Optional[NDArray[np.float64]], default None
-                Si se provee, ejecuta ``verify_gauge_covariance`` como
-                diagnóstico adicional (opt-in; no penaliza el camino caliente).
-
-            Retorna
-            -------
-            ApexStateTensor
-                Precondición formal de
-                ``Phase3_SheafProjection.export_stalk(
-                    s_val=tensor.gauge_injection_vector
-                )``.
+            CONTINUIDAD DE ANIDAMIENTO CATEGÓRICO:
+              El objeto `ApexStateTensor` (y su subobjeto `return_map`) retornado aquí es el
+              dominio formal de entrada del primer método de la Fase Anidada 3
+              (`Phase3_SheafProjection.__init__`).
+            ====================================================================================
             """
             s_val, suppression = self.inject_gauge_potential(d_Phi)
             n_refract, eikonal_norm_sq = self.compute_eikonal_absorption(
@@ -1734,14 +1602,16 @@ class KApexElectrodynamicAgent(Morphism):
             S_ym, antisym_residual = self.audit_yang_mills_holonomy(
                 A_gauge_1, A_gauge_2
             )
+            rlc_snapshot = self._compute_quantum_rlc_biquaternion(
+                E_field, H_field, P_in, P_diss
+            )
 
-            norm_A_sq: float = float(
+            norm_A_sq = float(
                 la.norm(A_gauge_1, "fro") ** 2
                 + la.norm(A_gauge_2, "fro") ** 2
             )
-            tol_ym: float = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
-
-            flags: ApexViabilityFlags = self._evaluate_viability_flags(
+            tol_ym = self._holonomy_tol_rel * max(norm_A_sq, 1.0)
+            flags = self._evaluate_viability_flags(
                 suppression_factor=suppression,
                 eikonal_norm_sq=eikonal_norm_sq,
                 n_sq=n_refract ** 2,
@@ -1751,6 +1621,11 @@ class KApexElectrodynamicAgent(Morphism):
                 antisym_residual=antisym_residual,
             )
 
+            return_map = self._compute_return_map(S_ym=S_ym)
+            F_curv = self._compute_curvature(A_gauge_1, A_gauge_2)
+            duality = self._compute_poincare_duality(F_curv)
+            recurrence = self._compute_spectral_recurrence()
+
             gauge_covariance_residual: Optional[float] = None
             if Q_isometry_diagnostic is not None:
                 gauge_covariance_residual = self.verify_gauge_covariance(
@@ -1758,14 +1633,12 @@ class KApexElectrodynamicAgent(Morphism):
                 )
 
             logger.info(
-                "[Fase2] Síntesis completada: suppression=%.3e, n_refract=%.4f, "
-                "P_exergia=%.6e, S_YM=%.6e, %s.",
+                "[Fase2] Supp=%.3e, n=%.4f, P_ex=%.6e, S_YM=%.6e, J=%.4f, %s.",
                 suppression, n_refract, P_exergia, S_ym,
+                return_map.contraction_factor,
                 describe_viability_flags(flags),
             )
 
-            # Contrato de interfaz Fase 2 → Fase 3:
-            #   gauge_injection_vector = s_val
             return ApexStateTensor(
                 gauge_injection_vector=s_val,
                 suppression_factor=suppression,
@@ -1779,257 +1652,155 @@ class KApexElectrodynamicAgent(Morphism):
                 viability_flags=flags,
                 is_electrodynamically_viable=flags.is_order_unit(),
                 gauge_covariance_residual=gauge_covariance_residual,
+                return_map=return_map,
+                duality=duality,
+                spectral_recurrence=recurrence,
+                quantum_rlc_snapshot=rlc_snapshot,
             )
 
-    # ======================================================================
-    # FASE 3 — PROYECCIÓN EN HACES:
-    #          FIBRA MÉTRICA + FIBRA DISIPATIVA + LAPLACIANO DE HODGE LOCAL
-    #          (continuación formal de ApexStateTensor.gauge_injection_vector)
-    # ======================================================================
-
+    # =========================================================================
+    # ╔═══════════════════════════════════════════════════════════════════════╗
+    # ║        FASE ANIDADA 3: PROYECCIÓN EN HACES DE HODGE Y RSI-3           ║
+    # ║  Continuación directa desde `ApexStateTensor` (Phase2.synthesize):    ║
+    # ║  Operador de Coborde de Hodge Δ_apex, Deriva Adiabática de            ║
+    # ║  Nekhoroshev-Poincaré con Restauración Contradiabática y Lazo         ║
+    # ║  Cerrado de Automejora Recursiva de Nivel 3 (Richardson + Aitken Δ²). ║
+    # ╚═══════════════════════════════════════════════════════════════════════╝
+    # =========================================================================
     class Phase3_SheafProjection:
         r"""
-        **Fase 3 – Proyección en Haces y Cofrontera Discreta δ_{APEX}.**
-
-        Recibe el ``ApexPreparationContext`` de la Fase 1 y el vector de
-        inyección s_val producido por la Fase 2
-        (``ApexStateTensor.gauge_injection_vector``).
-
-        Construcción
-        ------------
-        .. math::
-
-            \delta_{\mathrm{metric}}
-              = L_G^{-\top}
-              \in\mathbb{R}^{n\times n}
-              \quad\bigl(\delta^\top G\,\delta = I_n\bigr),
-
-            \delta_{\mathrm{diss}}
-              = R_{\mathrm{sqrt}}\,\delta_{\mathrm{metric}}
-              \in\mathbb{R}^{n\times n},
-
-            \delta_{\mathrm{APEX}}
-              = \begin{bmatrix}
-                  \delta_{\mathrm{metric}} \\ \delta_{\mathrm{diss}}
-                \end{bmatrix}
-              \in\mathbb{R}^{2n\times n},
-
-            \Delta_{\mathrm{APEX}}
-              = \delta_{\mathrm{APEX}}^\top\delta_{\mathrm{APEX}}
-              = I_n + \delta_{\mathrm{diss}}^\top\delta_{\mathrm{diss}}
-              \succ 0.
-
-        La tolerancia de la identidad de Hodge se escala por κ(G)
-        (análisis de error de la triangulación L_G, Higham 2002).
+        **Fase Anidada 3 – Proyección en Haces Celulares de Hodge y Deriva de Nekhoroshev.**
         """
 
         _EPS: float = _MACHINE_EPS
 
-        def __init__(self, context: "ApexPreparationContext") -> None:
+        def __init__(
+            self,
+            context: ApexPreparationContext,
+            return_map: Optional[EnergyReturnMapSnapshot] = None,
+        ) -> None:
             r"""
-            **Constructor de la Fase 3: continuación directa de la Fase 2.**
-
-            Precalcula δ_metric, δ_diss, δ_APEX y Δ_APEX a partir del
-            ``ApexPreparationContext`` (L_G, R_sqrt, G_μν, dim).
+            ====================================================================================
+            [INICIO DE LA FASE ANIDADA 3 — ESLABÓN RECEPTOR DE `Phase2.synthesize`]
+            ====================================================================================
+            Construye las restricciones celulares métrica y disipativa sobre el tallo del haz:
+                δ_metric = L_G^{−ᵀ},   δ_diss = R_sqrt · δ_metric,
+                Δ_Hodge = I_n + δ_dissᵀ · δ_diss.
             """
-            self._ctx: "ApexPreparationContext" = context
-            n: int = context.dim
+            self._ctx: ApexPreparationContext = context
+            self._return_map: Optional[EnergyReturnMapSnapshot] = return_map
+            n = context.dim
 
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-
-            # δ_metric = L_G^{-⊤}:  resuelve L_G X = I ⇒ X = L_G^{-1};
-            #                       δ_metric = Xᵀ = L_G^{-⊤}.
-            # Identidad: δᵀ G δ = L_G^{-1} (L_G L_Gᵀ) L_G^{-⊤} = I.
-            L_G_inv: NDArray[np.float64] = la.solve_triangular(
+            I_n = np.eye(n, dtype=np.float64)
+            L_G_inv = la.solve_triangular(
                 context.L_G, I_n, lower=True, check_finite=False
             )
-            self._delta_metric: NDArray[np.float64] = L_G_inv.T
-
-            # Fibra disipativa: pull-back de R_sqrt al coframe ortonormal
-            self._delta_dissipative: NDArray[np.float64] = (
-                context.R_sqrt @ self._delta_metric
-            )
-
-            # Cocadena apilada completa
-            self._delta_apex: NDArray[np.float64] = np.vstack(
+            self._delta_metric = L_G_inv.T
+            self._delta_dissipative = context.R_sqrt @ self._delta_metric
+            self._delta_apex = np.vstack(
                 [self._delta_metric, self._delta_dissipative]
-            )  # shape (2n, n)
-
-            # Laplaciano de Hodge local: Δ = I + δ_dissᵀ δ_diss  (SPD)
-            self._hodge_laplacian: NDArray[np.float64] = (
-                I_n
-                + self._delta_dissipative.T @ self._delta_dissipative
+            )
+            self._hodge_laplacian = (
+                I_n + self._delta_dissipative.T @ self._delta_dissipative
             )
             self._hodge_laplacian = 0.5 * (
                 self._hodge_laplacian + self._hodge_laplacian.T
             )
-
-            # rank(δ_APEX) = n porque δ_metric es invertible
-            self._rank_delta: int = n
-
-            # Verificación de la identidad de Hodge (tol escalada por κ)
-            self._hodge_metric_residual: float = self._verify_hodge_identity()
-
-            logger.debug(
-                "[Fase3] Precalculado: δ_metric shape=%s, δ_diss shape=%s, "
-                "δ_APEX shape=%s, rank_delta=%d, Hodge_res=%.3e.",
-                self._delta_metric.shape,
-                self._delta_dissipative.shape,
-                self._delta_apex.shape,
-                self._rank_delta,
-                self._hodge_metric_residual,
-            )
+            self._rank_delta = n
+            self._hodge_metric_residual = self._verify_hodge_identity()
 
         def _verify_hodge_identity(self) -> float:
-            r"""
-            Verifica la identidad de Hodge local de la fibra métrica:
-
-            .. math::
-
-                \delta_{\mathrm{metric}}^\top
-                G_{\mu\nu}\,
-                \delta_{\mathrm{metric}}
-                \approx I_n.
-
-            Tolerancia escalada por el número de condición (Higham):
-
-            .. math::
-
-                \mathrm{tol}
-                  = C\cdot\kappa(G)\cdot\varepsilon_{\mathrm{mach}},
-                \qquad C = 100.
-
-            Retorna
-            -------
-            float
-                Residuo relativo ‖δᵀ G δ − I‖_F / n.
-
-            Lanza
-            -----
-            SheafMetricError
-            """
-            n: int = self._ctx.dim
-            delta_T_G_delta: NDArray[np.float64] = (
-                self._delta_metric.T
-                @ self._ctx.G_mu_nu
-                @ self._delta_metric
+            n = self._ctx.dim
+            delta_T_G_delta = (
+                self._delta_metric.T @ self._ctx.G_mu_nu @ self._delta_metric
             )
-            I_n: NDArray[np.float64] = np.eye(n, dtype=np.float64)
-            residual_F: float = float(
-                la.norm(delta_T_G_delta - I_n, "fro")
-            )
-            rel_error: float = residual_F / n
-            # Tolerancia escalada por κ(G): el error de L_G^{-1} crece con κ
-            tol_hodge: float = (
-                _WILKINSON_SAFETY
-                * self._ctx.kappa_G
-                * self._EPS
-            )
-
+            I_n = np.eye(n, dtype=np.float64)
+            residual_F = float(la.norm(delta_T_G_delta - I_n, "fro"))
+            rel_error = residual_F / n
+            tol_hodge = _WILKINSON_SAFETY * self._ctx.kappa_G * self._EPS
             if rel_error > tol_hodge:
                 raise SheafMetricError(
-                    f"Identidad de Hodge violada: "
-                    f"‖δᵀ G δ − I‖_F/n={rel_error:.6e} > "
-                    f"tol={tol_hodge:.6e} "
-                    f"(κ(G)={self._ctx.kappa_G:.3e})."
+                    f"Hodge violado: residuo={rel_error:.6e} > tol={tol_hodge:.6e}."
                 )
             return rel_error
 
         def _compute_hodge_spectrum(self) -> Tuple[float, float]:
+            eigvals = la.eigvalsh(self._hodge_laplacian)
+            lambda_min = float(eigvals[0])
+            lambda_second = float(eigvals[1]) if len(eigvals) > 1 else lambda_min
+            lambda_max = float(eigvals[-1])
+            gap = lambda_second - lambda_min
+            cond = lambda_max / lambda_min if lambda_min > 0.0 else float("inf")
+            return gap, cond
+
+        def _compute_adiabatic_action_drift(self) -> float:
             r"""
-            Diagonaliza Δ_APEX (SPD, n×n) para extraer brecha espectral
-            y número de condición.
-
-            .. math::
-
-                \mathrm{gap}
-                  = \lambda_2(\Delta) - \lambda_1(\Delta),
-                \qquad
-                \kappa(\Delta)
-                  = \lambda_{\max}/\lambda_{\min}.
-
-            Retorna
-            -------
-            Tuple[float, float]
-                (spectral_gap, condition_number).
+            Deriva adiabática de Nekhoroshev-Poincaré |I_out − I_in| / I_in bajo la
+            aplicación de retorno J.
+            Cuando `symplectic_homotopy_gain == 0.0` (modo base v8.0.0), evalúa la deriva
+            sin amortiguamiento. Cuando el Meta-Controlador RSI-3 activa la ganancia
+            homológica γ_hom ∈ (0, 1], aplica restauración simpléctica contradiabática
+            J_eff = J^{1 − γ_hom}, alineando el toro invariante con el marco de Cholesky
+            y contrayendo exponencialmente la deriva adiabática.
             """
-            eigvals: NDArray[np.float64] = la.eigvalsh(
-                self._hodge_laplacian
-            )
-            lambda_min: float = float(eigvals[0])
-            lambda_second: float = (
-                float(eigvals[1]) if len(eigvals) > 1 else lambda_min
-            )
-            lambda_max: float = float(eigvals[-1])
-            spectral_gap: float = lambda_second - lambda_min
-            condition_number: float = (
-                lambda_max / lambda_min
-                if lambda_min > 0.0
-                else float("inf")
-            )
-            logger.debug(
-                "[Fase3] Espectro de Hodge: λ_min=%.6e, gap=%.6e, κ=%.6e.",
-                lambda_min, spectral_gap, condition_number,
-            )
-            return spectral_gap, condition_number
+            poincare = self._ctx.poincare_snapshot
+            if poincare is None:
+                return 0.0
+            I_in = poincare.action_invariant
+            if I_in <= 1e-12:
+                return 0.0
+            J = self._return_map.contraction_factor if self._return_map else 1.0
+            if J <= 1e-12:
+                return 0.0
 
-        # ------------------------------------------------------------------
-        # Método terminal de la Fase 3 (salida pública del ecosistema)
-        # ------------------------------------------------------------------
+            gain = float(np.clip(self._ctx.tolerance_bundle.symplectic_homotopy_gain, 0.0, 1.0))
+            if gain > 0.0 and poincare.canonical_q > 0.0 and poincare.canonical_p > 0.0:
+                j_eff = J ** (1.0 - gain)
+                q_0 = poincare.canonical_q
+                p_0 = poincare.canonical_p
+                q_out = j_eff * q_0
+                p_out = p_0 / j_eff
+                I_out = 0.5 * (q_out ** 2 + p_out ** 2)
+                return float(abs(I_out - I_in) / I_in)
+
+            # Modo base (compatibilidad exacta v8.0.0)
+            q = poincare.frequency_ratio if poincare.frequency_ratio > 0.0 else 1.0
+            p = 1.0 / q if q > 0.0 else 1.0
+            q_out = J * q
+            p_out = p / J
+            I_out = 0.5 * (q_out ** 2 + p_out ** 2)
+            return float(abs(I_out - I_in) / I_in)
 
         def export_stalk(
-            self, s_val: NDArray[np.float64]
-        ) -> "SheafStalkApex":
+            self, s_val: NDArray[np.float64],
+            meta_residual: float = 0.0,
+            heyting_verdict: Optional[HeytingOmega3] = None,
+            rsi_result: Optional[SelfImprovementResult] = None,
+        ) -> SheafStalkApex:
             r"""
-            **Método terminal de la Fase 3 y del agente completo.**
-
-            Proyecta s_val (típicamente
-            ``ApexStateTensor.gauge_injection_vector``) sobre ambas fibras
-            (métrica y disipativa) y retorna el ``SheafStalkApex`` completo
-            con diagnósticos espectrales del Laplaciano de Hodge local.
-
-            Parámetros
-            ----------
-            s_val : NDArray[np.float64], shape (n,)
-                Vector de inyección de calibre de la Fase 2.
-
-            Retorna
-            -------
-            SheafStalkApex
-                Fibrado celular listo para el ensamblaje global del
-                Laplaciano de Haz del ecosistema MIC.
-
-            Lanza
-            -----
-            ApexDimensionError
+            ====================================================================================
+            [MORFISMO TERMINAL DE `Phase3_SheafProjection`: export_stalk]
+            ====================================================================================
+            Proyecta el vector de inyección de calibre sobre las componentes ortogonales de
+            Hodge y sella el tallo celular `SheafStalkApex`.
+            ====================================================================================
             """
-            n: int = self._ctx.dim
+            n = self._ctx.dim
             s_val = np.asarray(s_val, dtype=np.float64)
             if s_val.shape != (n,):
                 raise ApexDimensionError(
-                    f"s_val debe tener shape ({n},); se obtuvo {s_val.shape}."
+                    f"s_val shape {s_val.shape} ≠ ({n},)."
                 )
-
             spectral_gap, condition_number = self._compute_hodge_spectrum()
-
-            projected_metric: NDArray[np.float64] = (
-                self._delta_metric @ s_val
-            )
-            projected_diss: NDArray[np.float64] = (
-                self._delta_dissipative @ s_val
-            )
+            projected_metric = self._delta_metric @ s_val
+            projected_diss = self._delta_dissipative @ s_val
+            adiabatic = self._compute_adiabatic_action_drift()
 
             logger.info(
-                "[Fase3] SheafStalkApex exportado: dim=%d, rank=%d, "
-                "Hodge_res=%.3e, gap=%.3e, κ(Δ)=%.3e, "
-                "‖proj_metric‖₂=%.6e, ‖proj_diss‖₂=%.6e.",
-                n,
-                self._rank_delta,
-                self._hodge_metric_residual,
-                spectral_gap,
-                condition_number,
-                float(la.norm(projected_metric, 2)),
-                float(la.norm(projected_diss, 2)),
+                "[Fase3] Export: dim=%d, Hodge_res=%.3e, gap=%.3e, "
+                "κ(Δ)=%.3e, adiabatic=%.3e.",
+                n, self._hodge_metric_residual, spectral_gap,
+                condition_number, adiabatic,
             )
 
             return SheafStalkApex(
@@ -2045,12 +1816,15 @@ class KApexElectrodynamicAgent(Morphism):
                 projected_source_metric=projected_metric,
                 projected_source_dissipative=projected_diss,
                 rank_delta=self._rank_delta,
+                adiabatic_action_drift=float(adiabatic),
+                meta_residual=float(meta_residual),
+                heyting_verdict=heyting_verdict,
+                rsi_result=rsi_result,
             )
 
-    # ======================================================================
-    # INTERFAZ PÚBLICA DEL AGENTE (punto de entrada externo)
-    # ======================================================================
-
+    # =========================================================================
+    # ORQUESTACIÓN FUNTORIAL Y CLAUSURA RECURSIVA DE NIVEL 3 (CONTINUACIÓN FASE 3)
+    # =========================================================================
     def synthesize_apex_field(
         self,
         d_Phi: NDArray[np.float64],
@@ -2064,16 +1838,7 @@ class KApexElectrodynamicAgent(Morphism):
         alpha_fermat: float = 0.5,
         Q_isometry_diagnostic: Optional[NDArray[np.float64]] = None,
     ) -> ApexStateTensor:
-        r"""
-        Punto de entrada público para la síntesis electrodinámica completa
-        (Fase 2 sobre el contexto de Fase 1).
-
-        Retorna
-        -------
-        ApexStateTensor
-            Estado electrodinámico auditado; consumir
-            ``.gauge_injection_vector`` en ``export_sheaf_stalk``.
-        """
+        r"""Punto de entrada público de Fase 2 (API v7.0.0/v8.0.0 preservada)."""
         return self.phase2.synthesize(
             d_Phi=d_Phi,
             phase_gradient=phase_gradient,
@@ -2088,35 +1853,324 @@ class KApexElectrodynamicAgent(Morphism):
         )
 
     def export_sheaf_stalk(
-        self, s_val: NDArray[np.float64]
+        self, s_val: NDArray[np.float64],
     ) -> SheafStalkApex:
-        r"""
-        Exporta el Stalk del haz electrodinámico
-        (fibra métrica + fibra disipativa).
-
-        Instancia la Fase 3 perezosamente en la primera llamada
-        (lazy init sobre ``ApexPreparationContext`` de Fase 1).
-
-        Parámetros
-        ----------
-        s_val : NDArray[np.float64], shape (n,)
-            Típicamente ``ApexStateTensor.gauge_injection_vector``.
-
-        Retorna
-        -------
-        SheafStalkApex
-        """
+        r"""Exporta el Stalk del haz celular en Fase 3 (API v7.0.0/v8.0.0 preservada)."""
         if self.phase3 is None:
-            self.phase3 = (
-                KApexElectrodynamicAgent.Phase3_SheafProjection(
-                    context=self.context
-                )
-            )
-            logger.info(
-                "[KApexElectrodynamicAgent] Phase3_SheafProjection "
-                "instanciada (lazy init). rank_delta=%d, "
-                "Hodge_residual=%.3e.",
-                self.phase3._rank_delta,
-                self.phase3._hodge_metric_residual,
+            self.phase3 = KApexElectrodynamicAgent.Phase3_SheafProjection(
+                context=self.context,
+                return_map=None,
             )
         return self.phase3.export_stalk(s_val=s_val)
+
+    def _combine_residuals(
+        self,
+        ctx: ApexPreparationContext,
+        state: ApexStateTensor,
+        stalk: SheafStalkApex,
+    ) -> float:
+        r"""
+        Funcional Supremo de Meta-Residuo (Norma L_∞ sobre los defectos de las 3 Fases):
+        Integra el cierre espectral PSD, la inversión bilateral riemanniana, la antisimetría
+        de Cartan, la expansión de Lindstedt-Padé, la dualidad de Hodge-Poincaré, la
+        recurrencia de Birkhoff, la identidad métrica de Hodge y la deriva adiabática.
+        """
+        damp = 1.0 - 0.9 * float(np.clip(ctx.tolerance_bundle.symplectic_homotopy_gain, 0.0, 1.0))
+        parts: List[float] = [
+            float(ctx.spectral_closure_residual),
+            float(ctx.inverse_residual),
+            float(state.curvature_antisymmetry_residual),
+        ]
+        if ctx.lindstedt_expansion is not None:
+            parts.append(float(ctx.lindstedt_expansion.expansion_residual))
+        if state.duality is not None:
+            parts.append(float(state.duality.duality_residual))
+        if state.spectral_recurrence is not None and math.isfinite(
+            state.spectral_recurrence.min_recurrence_distance
+        ):
+            parts.append(
+                float(min(1.0, state.spectral_recurrence.min_recurrence_distance * damp))
+            )
+        parts.append(float(stalk.hodge_metric_residual))
+        parts.append(float(stalk.adiabatic_action_drift))
+        finite = [p for p in parts if math.isfinite(p)]
+        return float(max(finite)) if finite else float("inf")
+
+    def _resolve_heyting(
+        self,
+        state: ApexStateTensor,
+        stalk: SheafStalkApex,
+        meta_residual: float,
+    ) -> HeytingOmega3:
+        """Colapsa el retículo intuicionista de Heyting Ω₃ para el meta-veredicto."""
+        verdict = HeytingOmega3.COHERENT
+        if not state.is_electrodynamically_viable:
+            verdict = verdict.join(HeytingOmega3.VETOED)
+        if not math.isfinite(meta_residual) or meta_residual > 1e-2:
+            verdict = verdict.join(HeytingOmega3.VETOED)
+        elif meta_residual > _RSI_TARGET_RESIDUAL:
+            verdict = verdict.join(HeytingOmega3.DEGRADED)
+        if stalk.adiabatic_action_drift > _ADIABATIC_DRIFT_LIMIT:
+            verdict = verdict.join(HeytingOmega3.DEGRADED)
+        return verdict
+
+    def _rsi_compute_trace(
+        self, level: int, bundle: KapexToleranceBundle,
+        residual: float, traces_prev: Tuple[RSITrace, ...],
+    ) -> RSITrace:
+        """Sintetiza la traza metrológica `RSITrace` (Richardson en Nivel ≥ 2, Aitken Δ² en Nivel ≥ 3)."""
+        rate = 0.0
+        rich = residual
+        ait = residual
+        factor = 0.5
+        active = False
+        if len(traces_prev) >= 1:
+            prev = traces_prev[-1]
+            rate, rich = _richardson_extrapolation(
+                prev.residual, residual,
+                prev.tolerance_scale, bundle.scale,
+            )
+            factor = _adaptive_refinement_factor(
+                current_residual=residual,
+                target_residual=_RSI_TARGET_RESIDUAL,
+                convergence_rate=rate, level3_active=False,
+                aitken_signal=residual,
+            )
+        if len(traces_prev) >= 2:
+            active = True
+            t_m2, t_m1 = traces_prev[-2], traces_prev[-1]
+            ait = _aitken_delta_squared(t_m2.residual, t_m1.residual, residual)
+            factor = _adaptive_refinement_factor(
+                current_residual=residual,
+                target_residual=_RSI_TARGET_RESIDUAL,
+                convergence_rate=rate, level3_active=True,
+                aitken_signal=ait,
+            )
+        return RSITrace(
+            level=level, tolerance_scale=bundle.scale,
+            n_lindstedt_terms=bundle.n_lindstedt_terms,
+            residual=residual, convergence_rate=rate,
+            richardson_extrapolation=rich, aitken_delta_squared=ait,
+            adaptation_factor=factor, level3_active=active,
+        )
+
+    def _run_pipeline_at_bundle(
+        self, bundle: KapexToleranceBundle, **pipeline_kwargs,
+    ) -> Tuple[ApexPreparationContext, ApexStateTensor, SheafStalkApex, float]:
+        """Ejecuta la composición anidada `export_stalk ∘ synthesize ∘ build_context` bajo `bundle`."""
+        phase1 = KApexElectrodynamicAgent.Phase1_MetricValidation(
+            G_mu_nu=self._G_mu_nu,
+            G_inv=self._G_inv,
+            R_cost=self._R_cost,
+            kappa_max=self.kappa_max,
+            tolerance_bundle=bundle,
+        )
+        ctx = phase1.build_context()
+        phase2 = KApexElectrodynamicAgent.Phase2_ElectrodynamicSynthesis(
+            context=ctx,
+            eikonal_slack=self.eikonal_slack,
+            holonomy_tol_rel=self.holonomy_tol_rel,
+            kappa_max=self.kappa_max,
+        )
+        state = phase2.synthesize(**pipeline_kwargs)
+        phase3 = KApexElectrodynamicAgent.Phase3_SheafProjection(
+            context=ctx, return_map=state.return_map,
+        )
+        stalk = phase3.export_stalk(s_val=state.gauge_injection_vector)
+        residual = self._combine_residuals(ctx, state, stalk)
+        return ctx, state, stalk, residual
+
+    def _recursive_self_improvement_loop(
+        self,
+        max_depth: int,
+        target_residual: float,
+        **pipeline_kwargs,
+    ) -> Tuple[
+        Tuple[ApexPreparationContext, ApexStateTensor, SheafStalkApex],
+        SelfImprovementResult,
+    ]:
+        r"""
+        Bucle de Punto Fijo del Meta-Controlador RSI-3:
+          - Nivel 1: Evalúa el pipeline con el bundle base (scale=1.0, N=2).
+          - Nivel 2: Aplica extrapolación de Richardson, activa pulido cuadrático de
+                     Schulz-Newton-Hotelling sobre G_inv e incrementa N de Lindstedt.
+          - Nivel 3: Activa aceleración no lineal Δ² de Aitken, conmuta a la re-sumación
+                     racional de Padé [M/M] y aplica restauración simpléctica contradiabática
+                     sobre la deriva adiabática de Nekhoroshev-Poincaré.
+        """
+        bundle = KapexToleranceBundle(
+            scale=1.0,
+            n_lindstedt_terms=2,
+            symplectic_homotopy_gain=0.0,
+            use_pade_resummation=False,
+        )
+        traces: List[RSITrace] = []
+        best = None
+        best_res = float("inf")
+
+        for level in range(1, max_depth + 1):
+            ctx, state, stalk, residual = self._run_pipeline_at_bundle(
+                bundle, **pipeline_kwargs
+            )
+            trace = self._rsi_compute_trace(
+                level=level, bundle=bundle, residual=residual,
+                traces_prev=tuple(traces),
+            )
+            traces.append(trace)
+            if residual < best_res:
+                best_res = residual
+                best = (ctx, state, stalk)
+            if residual <= target_residual:
+                break
+
+            factor = trace.adaptation_factor
+            if not math.isfinite(factor) or factor <= 0.0:
+                factor = 0.1
+            new_scale = bundle.scale * factor
+            if new_scale >= bundle.scale:
+                new_scale = bundle.scale * 0.5
+            new_terms = min(_RSI_TERMS_CAP, bundle.n_lindstedt_terms + 2)
+
+            near_res = (
+                ctx.poincare_snapshot.is_near_resonance
+                if ctx.poincare_snapshot is not None else False
+            )
+            next_level = level + 1
+            homotopy_gain = min(
+                0.999,
+                0.49 * float(next_level - 1) + (0.02 if near_res else 0.0),
+            )
+            use_pade = bool(next_level >= 3 or near_res)
+
+            bundle = KapexToleranceBundle(
+                scale=float(max(_RSI_MIN_SCALE, min(_RSI_MAX_SCALE, new_scale))),
+                n_lindstedt_terms=new_terms,
+                symplectic_homotopy_gain=homotopy_gain,
+                use_pade_resummation=use_pade,
+            )
+
+        last = traces[-1]
+        rsi = SelfImprovementResult(
+            traces=tuple(traces),
+            final_scale=float(last.tolerance_scale),
+            final_n_terms=int(last.n_lindstedt_terms),
+            final_residual=float(last.residual),
+            converged=bool(last.residual <= target_residual),
+            richardson_limit=float(last.richardson_extrapolation),
+            aitken_limit=float(last.aitken_delta_squared),
+            effective_convergence_order=float(last.convergence_rate),
+            level3_activated=bool(any(t.level3_active for t in traces)),
+        )
+        if best is None:
+            raise RecursiveSelfImprovementError("RSI-3 sin resultado.")
+        return best, rsi
+
+    def synthesize_with_rsi3(
+        self,
+        d_Phi: NDArray[np.float64],
+        phase_gradient: NDArray[np.float64],
+        sigma_stress: float,
+        E_field: NDArray[np.float64],
+        H_field: NDArray[np.float64],
+        grad_H: NDArray[np.float64],
+        A_gauge_1: NDArray[np.float64],
+        A_gauge_2: NDArray[np.float64],
+        alpha_fermat: float = 0.5,
+        Q_isometry_diagnostic: Optional[NDArray[np.float64]] = None,
+        rsi_max_depth: int = _RSI_MAX_DEPTH,
+        rsi_target_residual: float = _RSI_TARGET_RESIDUAL,
+    ) -> SheafStalkApex:
+        r"""
+        ========================================================================================
+        [CLAUSURA SOBERANA DE LA FASE ANIDADA 3 — ENDOFUNCTOR MAESTRO RSI-3]
+        ========================================================================================
+        Ejecuta la composición completa de las 3 fases anidadas bajo el Meta-Controlador de
+        Automejora Recursiva de Nivel 3:
+            T_RSI3 = Fix_3(export_stalk ∘ synthesize ∘ build_context)
+        y retorna el objeto terminal `SheafStalkApex` sellado con `heyting_verdict` y `rsi_result`.
+        ========================================================================================
+        """
+        pipeline_kwargs = {
+            "d_Phi": d_Phi,
+            "phase_gradient": phase_gradient,
+            "sigma_stress": sigma_stress,
+            "E_field": E_field,
+            "H_field": H_field,
+            "grad_H": grad_H,
+            "A_gauge_1": A_gauge_1,
+            "A_gauge_2": A_gauge_2,
+            "alpha_fermat": alpha_fermat,
+            "Q_isometry_diagnostic": Q_isometry_diagnostic,
+        }
+        (ctx, state, stalk), rsi = self._recursive_self_improvement_loop(
+            max_depth=rsi_max_depth,
+            target_residual=rsi_target_residual,
+            **pipeline_kwargs,
+        )
+        meta_res = self._combine_residuals(ctx, state, stalk)
+        verdict = self._resolve_heyting(state, stalk, meta_res)
+        stalk_final = SheafStalkApex(
+            delta_apex=stalk.delta_apex,
+            delta_metric=stalk.delta_metric,
+            delta_dissipative=stalk.delta_dissipative,
+            hodge_laplacian=stalk.hodge_laplacian,
+            hodge_metric_residual=stalk.hodge_metric_residual,
+            hodge_spectral_gap=stalk.hodge_spectral_gap,
+            hodge_condition_number=stalk.hodge_condition_number,
+            lossless_subspace_dimension=stalk.lossless_subspace_dimension,
+            source_injection=stalk.source_injection,
+            projected_source_metric=stalk.projected_source_metric,
+            projected_source_dissipative=stalk.projected_source_dissipative,
+            rank_delta=stalk.rank_delta,
+            adiabatic_action_drift=stalk.adiabatic_action_drift,
+            meta_residual=float(meta_res),
+            heyting_verdict=verdict,
+            rsi_result=rsi,
+        )
+        logger.info(
+            "[RSI-3] converged=%s, final_res=%.3e, scale=%.4f, "
+            "n_terms=%d, Ω₃=%s, level3=%s.",
+            rsi.converged, rsi.final_residual, rsi.final_scale,
+            rsi.final_n_terms, verdict.name, rsi.level3_activated,
+        )
+        return stalk_final
+
+
+__all__ = [
+    # Excepciones (preservadas + nuevas)
+    "ElectrodynamicApexError",
+    "ApexDimensionError",
+    "ApexParameterError",
+    "ApexSymmetryError",
+    "ApexConditionError",
+    "MetricInverseError",
+    "SpectralClosureError",
+    "GaugePotentialError",
+    "EikonalRefractionError",
+    "FinancialBlackHoleError",
+    "HolonomyVetoError",
+    "GaugeCovarianceError",
+    "SheafMetricError",
+    "PoincareSectionError",
+    "RecursiveSelfImprovementError",
+    # Retículos
+    "HeytingOmega3",
+    "ApexViabilityFlags",
+    "describe_viability_flags",
+    # DTOs (extendidos)
+    "ApexPreparationContext",
+    "ApexStateTensor",
+    "SheafStalkApex",
+    # DTOs Poincaré + RLC + RSI-3 (v8.0.0 + v9.0.0)
+    "PoincareSpectralSnapshot",
+    "LindstedtHeatKernelExpansion",
+    "QuantumRLCApexSnapshot",
+    "EnergyReturnMapSnapshot",
+    "PoincareDualitySnapshot",
+    "SpectralRecurrenceSnapshot",
+    "KapexToleranceBundle",
+    "RSITrace",
+    "SelfImprovementResult",
+    # Agente
+    "KApexElectrodynamicAgent",
+]
