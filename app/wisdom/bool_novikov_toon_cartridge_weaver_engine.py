@@ -1,70 +1,53 @@
 # -*- coding: utf-8 -*-
 r"""
-Módulo   : BoolNovikovToonCartridgeWeaverEngine v14.0.0
+Módulo   : BoolNovikovToonCartridgeWeaverEngine v15.0.0
 Ubicación: app/wisdom/bool_novikov_toon_cartridge_weaver_engine.py
-Versión  : 14.0.0-ENGINE-BOOL-NOVIKOV-TOON-CARTRIDGE-WEAVER-POINCARE-RSI3-PhD
+Versión  : 15.0.0-ENGINE-BOOL-NOVIKOV-TOON-CARTRIDGE-WEAVER-POINCARE-RSI3-PhD
 
 Motor espectral de tejeduría TOON por fases anidadas (herencia lineal):
 
-  _Fase1_Cimientos      álgebra booleana, forma de Smith COMPLETA sobre ℤ (cadena de
-                        divisibilidad), Novikov–Krull, Kepler safeguardado,
+  _Fase1_Cimientos      álgebra booleana, forma de Smith sobre ℤ con certificado de
+                        determinante (Bareiss exacto), Novikov–Krull, Kepler con
+                        salvaguarda, estado orbital independiente (vis-viva, |h|, h_z),
                         Delaunay → variables canónicas de Poincaré.
     └ _fase1_emit_spectral_seed            ÚLTIMO método de F1 → semilla que inicia F2.
-  _Fase2_Geometria      Gromov (política r≤R), armonicidad discreta periódica,
+  _Fase2_Geometria      Gromov (política r≤R), residuo de armonicidad discreta,
                         Melnikov–Poincaré en forma cerrada, mapa estroboscópico de
                         Poincaré con Lyapunov de Benettin (evidencia), frecuencia de
                         Lindstedt–Poincaré exacta por AGM, espectro secular de
                         Poincaré–Laplace–Lagrange, Spohn y aniquilación de Dirac.
     └ _fase2_emit_dynamical_seed           ÚLTIMO método de F2 → semilla que inicia F3.
-  _Fase3_Kleisli_RSI3   RSI³ = torre reflexiva de 3 niveles con certificados
-                        encadenados SHA-256, Banach/Picard con cota analítica λ³ y
-                        verificación meta, Heyting (⊥<δ<⊤, residuación verificada),
-                        pasaporte HMAC canónico fail-closed.
+  _Fase3_Kleisli_RSI3   RSI³ = torre reflexiva de 3 niveles con certificados SHA-256
+                        encadenados y meta-certificado de procedimiento, Banach/Picard
+                        con cota analítica λ³, Heyting (⊥<δ<⊤), pasaporte HMAC fail-closed.
     └ execute_toon_cartridge_weaver_audit  ÚLTIMO método de F3 (API pública).
 
-Cambios rigurosos v13.1 → v14.0 (granulares, por fase):
-  F1 · Forma de Smith completa: cadena d₁|d₂|…|d_r por barridos gcd/lcm unimodulares.
-       Torsión libre ⇔ todo |dᵢ|=1; orden de torsión ∏|dᵢ| y rango libre del cokernel
-       m−r explícitos. `betti_number_zero` (engañoso) → `cokernel_free_rank`/`full_rank`.
-  F1 · Kepler: Newton safeguardado con horquilla [0,2π] (f'=1−e·cosE ≥ 1−e > 0) y
-       bisección de respaldo ⇒ convergencia garantizada; residuo verificado.
-  F1 · Variables de Poincaré (Λ,λ,ξ,η,p,q), regulares en e→0 e i→0, con certificado
-       simpléctico JΩJᵀ=Ω por diferenciación de paso complejo (exacta a redondeo).
-       En e=0 o i=0 el certificado se declara None (punto regular, FD singular).
-  F2 · Melnikov en FORMA CERRADA: offset=−8δ, amplitud=2π|γ|·sech(πω/2). Cero simple
-       corregido: exige ω≠0 (con ω=0, M es constante). Cuadratura solo como autoprueba.
-       Margen de transversalidad y régimen perturbativo (política ε≤0.1) reportados.
-  F2 · Mapa de Poincaré estroboscópico del péndulo forzado-amortiguado con ecuación
-       variacional (Benettin): λ_max finito es EVIDENCIA, no prueba. Tensión
-       unidireccional: λ>tol con Melnikov sin caos ⇒ DEGRADED; el recíproco no es
-       tensión (el conjunto caótico homoclínico puede no ser atractor).
-  F2 · Lindstedt–Poincaré: Ω(a)=AGM(1,cos(a/2)) exacta (K(k)=π/(2·AGM(1,k'))) frente a
-       la serie 1−a²/16+a⁴/3072; error reportado.
-  F2 · Espectro secular de Poincaré–Laplace–Lagrange (2..8 planetas): b_{3/2}^{(1,2)}
-       por cuadratura periódica espectral; simetrización por w_j=m_j·n_j·a_j²
-       certificada (residuo relativo ≤1e-10) ⇒ espectro real (eigvalsh).
-  F2 · Laplaciano de 5 puntos con frontera PERIÓDICA (sin artefactos de gradientes
-       anidados). CR-II se anula por conmutación (declarado, no medido).
-  F2 · Spohn: normalización exacta; p uniforme si Σλ=0 (política); λ∈[0,1] validado;
-       σ≥0 por doble estocasticidad de Φ=(1−λ)I+λU.
-  F3 · RSI³ reflexivo: N1 objeto (sup|(T³)'| en mallas diádicas ANIDADAS ⇒ monotonía
-       por inclusión de conjuntos, no secantes espurias), N2 meta (cota a posteriori
-       verificada contra un Picard de referencia más fino), N3 meta-meta (autoprueba
-       metamórfica ampliada con residuación de Heyting exhaustiva). Cadena de
-       certificados SHA-256 por nivel, firmada en el pasaporte. Sin automodificación.
-  F3 · Cota analítica global λ³ (|T'|≤λ en ℝ) además de la certificada λ³+ε; residuo
-       del punto fijo y verificación meta reportados.
-  Global · El digest ata TODOS los parámetros de auditoría. np.bool_ (NumPy≥1.24).
+Cambios v14.0 → v15.0 (granulares, por fase):
+  F1 · Certificado det: para cuadradas no singulares, |det| = ∏|dᵢ| (Bareiss entero).
+  F1 · Estado orbital: r, v en ECI (rotación 3-1-3); vis-viva v²=μ(2/r−1/a);
+       |r×v| = G; (r×v)_z = H. Valida la solución de Kepler y las acciones de Delaunay.
+  F2 · «Cauchy–Riemann» renombrado a residuo de armonicidad (campo conservado).
+       Se retira la afirmación no medida sobre CR-II.
+  F2 · Matriz secular coherente: aproximación M☉+mⱼ≈M☉ aplicada en diagonal y fuera.
+  F3 · Cota certificada = λ³ (demostración). λ³+ε es margen conservador (error a posteriori).
+  F3 · Adjudicación: un veto que fuerza profundidad 0 ya no figura como RSI³ coherente.
+  F3 · Meta-certificado de procedimiento: la cadena SHA-256 ata las constantes de
+       verificación. «Automejora» = refinamiento de verificación; sin automodificación.
+  Global · allow_dev_key=False por defecto (fail-closed). Kepler: 200 iteraciones.
 
 Límites declarados (no se afirma más de lo que se prueba):
   · Smith: sobre la matriz CUANTIZADA a escala fija 100 (política, no derivada).
-  · Rademacher–Walsh: influencia total de b(x)=[entrada>0], relleno a potencia de 2.
-  · Gromov: en ℝ² es monotonía de área; el no-squeezing profundo es n≥2. Aquí opera
-    como política de diseño r≤R. · Melnikov: riguroso solo para ε pequeño; fuera de
-    régimen se DEGRADA (no se veta por un criterio asintótico fuera de validez).
+    El certificado de determinante solo aplica a cuadradas no singulares.
+  · «Rademacher–Walsh»: influencia total normalizada de b(x)=[entrada>0], relleno a 2ⁿ.
+  · Gromov: en ℝ² es monotonía de área; el no-squeezing profundo es n≥2. Aquí es
+    política de diseño r≤R.
+  · Melnikov: riguroso solo para ε pequeño; fuera de régimen se DEGRADA.
   · Lyapunov finito: evidencia dependiente de la órbita sonda (IC declarado).
-  · Secular: teoría lineal (orden e²), M☉=1, μ=4π² AU³/año²; modelo juguete.
-  · Kleisli: T(x)=λ·cos x+0.1 es supuesto del autor; ε=0.002375 margen declarado.
+  · Órbita: problema de dos cuerpos sin perturbaciones; vis-viva certifica la solución
+    de Kepler, no el modelo de fuerzas.
+  · Secular: teoría lineal (orden e²), M☉=1, μ=4π² AU³/año², aproximación mⱼ≪M☉
+    coherente; modelo juguete.
+  · Kleisli: T(x)=λ·cos x+0.1 es supuesto del autor.
   · Jerk: tercera diferencia MEDIDA; no se postula signo.
   · No modela disparo crowbar ni escribe en hardware.
 """
@@ -86,17 +69,17 @@ logger = logging.getLogger("APU.Wisdom.BoolNovikovToonCartridgeWeaverEngine")
 
 # ── Versiones ──────────────────────────────────────────────────────────────────
 _ENGINE_VERSION: Final[str] = (
-    "14.0.0-ENGINE-BOOL-NOVIKOV-TOON-CARTRIDGE-WEAVER-POINCARE-RSI3-PhD"
+    "15.0.0-ENGINE-BOOL-NOVIKOV-TOON-CARTRIDGE-WEAVER-POINCARE-RSI3-PhD"
 )
 version: Final[str] = _ENGINE_VERSION
-_SCHEMA_VERSION: Final[str] = "engine-report-v14.0"
+_SCHEMA_VERSION: Final[str] = "engine-report-v15.0"
 
-# ── Clave HMAC ─────────────────────────────────────────────────────────────────
+# ── Clave HMAC y dominios de separación ────────────────────────────────────────
 _HMAC_KEY_ENV: Final[str] = "APU_TOON_WEAVER_HMAC_KEY"
 _MIN_KEY_BYTES: Final[int] = 16
-_DEV_SECRET_KEY: Final[bytes] = b"APU_ENGINE_DEV_ONLY_TOON_WEAVER_KEY_v14.0.0"
-_PASSPORT_DOMAIN: Final[bytes] = b"TOON-WEAVER-ENGINE-PASSPORT-v14.0|"
-_RSI_CHAIN_DOMAIN: Final[bytes] = b"TOON-WEAVER-RSI3-CERT-CHAIN-v14.0|"
+_DEV_SECRET_KEY: Final[bytes] = b"APU_ENGINE_DEV_ONLY_TOON_WEAVER_KEY_v15.0.0"
+_PASSPORT_DOMAIN: Final[bytes] = b"TOON-WEAVER-ENGINE-PASSPORT-v15.0|"
+_RSI_CHAIN_DOMAIN: Final[bytes] = b"TOON-WEAVER-RSI3-CERT-CHAIN-v15.0|"
 
 # ── Numérica general ───────────────────────────────────────────────────────────
 _WILKINSON_EPSILON: Final[float] = 1.0e-15
@@ -114,7 +97,7 @@ _DEFAULT_KRULL_FLOOR: Final[float] = 0.10
 # ── Geometría ──────────────────────────────────────────────────────────────────
 _DEFAULT_BALL_R: Final[float] = 0.35
 _DEFAULT_CYLINDER_R: Final[float] = 0.50
-_CR_RESIDUAL_TOL: Final[float] = 1.0e-3
+_HARMONICITY_TOL: Final[float] = 1.0e-3
 _MELNIKOV_HALF_WIDTH: Final[float] = 40.0         # solo autoprueba de cuadratura
 _MELNIKOV_POINTS: Final[int] = 20001
 _MELNIKOV_DEFAULT_DELTA: Final[float] = 0.01
@@ -122,9 +105,10 @@ _MELNIKOV_DEFAULT_GAMMA: Final[float] = 0.02
 _MELNIKOV_DEFAULT_OMEGA: Final[float] = 1.0
 _MELNIKOV_EPS_POLICY: Final[float] = 0.10         # régimen perturbativo declarado
 
-# ── Poincaré celeste ───────────────────────────────────────────────────────────
+# ── Mecánica celeste y Poincaré ────────────────────────────────────────────────
 _SYMPLECTIC_TOL: Final[float] = 1.0e-8
 _COMPLEX_STEP: Final[float] = 1.0e-20             # paso complejo: derivada exacta a redondeo
+_ORBIT_RESIDUAL_TOL: Final[float] = 1.0e-10
 _DEFAULT_PENDULUM_AMPLITUDE: Final[float] = 0.2
 _POINCARE_PERIODS: Final[int] = 256
 _POINCARE_STEPS_PER_PERIOD: Final[int] = 64
@@ -142,19 +126,18 @@ _SPOHN_LAMBDA: Final[float] = 0.1
 _SPOHN_TOL: Final[float] = -1.0e-12
 _ANOMALY_SCALE: Final[float] = 0.1                # política: anomalía = 0.1·‖M‖_F
 _ANOMALY_THRESHOLD: Final[float] = 1.0e-6
-_ELECTRON_REST_MASS_KEV: Final[float] = 510.99895
-_POSITRON_REST_MASS_KEV: Final[float] = 2.0 * _ELECTRON_REST_MASS_KEV   # 1021.9979
+_POSITRON_REST_MASS_KEV: Final[float] = 2.0 * 510.99895   # 2·m_e·c² = 1021.9979 keV
 
-# ── Mecánica celeste ───────────────────────────────────────────────────────────
+# ── Mecánica celeste (Tierra) ──────────────────────────────────────────────────
 _MU_EARTH_KM3_S2: Final[float] = 398600.4418
 _DEFAULT_ORBIT: Final[Tuple[float, ...]] = (7000.0, 0.01, 0.9, 1.0, 0.5, 0.2)
 _KEPLER_TOL: Final[float] = 1.0e-13
-_KEPLER_MAX_ITER: Final[int] = 100
+_KEPLER_MAX_ITER: Final[int] = 200
 _KEPLER_RESIDUAL_TOL: Final[float] = 1.0e-10
 
 # ── Kleisli / RSI³ ─────────────────────────────────────────────────────────────
 _KLEISLI_LIP_T: Final[float] = 0.95
-_KLEISLI_ERROR_BUDGET: Final[float] = 0.002375
+_KLEISLI_ERROR_BUDGET: Final[float] = 0.002375    # margen conservador declarado
 _KLEISLI_OFFSET: Final[float] = 0.1
 _KLEISLI_DOMAIN: Final[float] = 2.0
 _KLEISLI_GRID_BASE: Final[int] = 100
@@ -169,7 +152,7 @@ _RSI_MAX_DEPTH: Final[int] = 3
 # Topos de Heyting: cadena ⊥ < δ < ⊤ (códigos de cable 0x03, 0x01, 0x00)
 # ══════════════════════════════════════════════════════════════════════════════
 class HeytingTruthValue(IntEnum):
-    """Álgebra de Heyting de 3 elementos con residuación verificada en autoprueba."""
+    """Álgebra de Heyting de 3 elementos; residuación verificada en autoprueba."""
 
     COHERENT = 0x00   # ⊤
     DEGRADED = 0x01   # δ
@@ -207,15 +190,16 @@ class ToonCartridgeWeaverSpectrumReport:
     rademacher_walsh_norm: float
     smith_torsion_free: bool
     smith_torsion_order: int
-    cokernel_free_rank: int               # β₀ del cokernel (rango libre), NO β₁
+    cokernel_free_rank: int               # rango libre del cokernel, NO β₁
     full_rank: bool
     snf_diagonal_factors: Tuple[int, ...]  # cadena de divisibilidad d₁|d₂|…|d_r
+    snf_determinant_certificate: Optional[bool]
     krull_valuation: float
     novikov_norm: float
     raw_token_count: int
     compressed_token_count: int
     kv_cache_compression_pct: float
-    cauchy_riemann_residual: float
+    cauchy_riemann_residual: float        # residuo de armonicidad discreta (ver docs)
     is_gromov_violated: bool
     gromov_capacity_ball: float
     gromov_capacity_cylinder: float
@@ -231,14 +215,17 @@ class ToonCartridgeWeaverSpectrumReport:
     poincare_lindstedt_error: float
     delaunay_LGH: Tuple[float, float, float]
     delaunay_valid: bool
+    orbital_state_residual: Optional[float]       # vis-viva / |h| / h_z (relativo)
+    orbital_state_ok: Optional[bool]
     poincare_variables: Tuple[float, float, float, float, float, float]
     poincare_canonical_residual: Optional[float]
     poincare_canonical_ok: Optional[bool]
     secular_frequencies: Tuple[float, ...]        # rad/año (Laplace–Lagrange)
     secular_symmetry_residual: float
     secular_valid: bool
-    banach_lip_analytic: float                    # λ³ global (analítico)
-    banach_contraction_lip: float                 # λ³ + ε (certificada)
+    banach_lip_analytic: float                    # λ³: cota certificada (demostrada)
+    banach_contraction_lip: float                 # = banach_lip_analytic (certificada)
+    banach_safety_lip: float                      # λ³+ε (margen conservador)
     banach_fixed_point: float
     banach_a_posteriori_error: float
     banach_residual: float
@@ -256,6 +243,19 @@ class ToonCartridgeWeaverSpectrumReport:
     schema_version: str
 
 
+@dataclass(frozen=True)
+class _SNFCertificate:
+    """Resultado de la forma de Smith y de sus certificados."""
+
+    rw_norm: float
+    factors: Tuple[int, ...]
+    torsion_free: bool
+    full_rank: bool
+    torsion_order: int
+    free_rank: int
+    det_ok: Optional[bool]
+
+
 @dataclass(frozen=True, eq=False)
 class _SpectralSeed:
     """Semilla espectral: salida de Fase 1, entrada de Fase 2."""
@@ -267,6 +267,7 @@ class _SpectralSeed:
     torsion_order: int
     full_rank: bool
     cokernel_free_rank: int
+    snf_det_ok: Optional[bool]
     rw_norm: float
     krull: float
     novikov_norm: float
@@ -278,6 +279,8 @@ class _SpectralSeed:
     delaunay_LGH: Tuple[float, float, float]
     delaunay_valid: bool
     eccentric_anomaly: float
+    orbital_residual: Optional[float]
+    orbital_ok: Optional[bool]
     poincare_variables: Tuple[float, float, float, float, float, float]
     poincare_canonical_residual: Optional[float]
     poincare_canonical_ok: Optional[bool]
@@ -292,7 +295,7 @@ class _DynamicalSeed:
     capacity_ball: float
     capacity_cylinder: float
     gromov_violated: bool
-    cr_residual: float
+    harmonicity_residual: float
     melnikov_chaos: bool
     melnikov_amplitude: float
     melnikov_offset: float
@@ -317,7 +320,7 @@ class _KleisliState:
 
     lip_T: float
     lip_analytic: float
-    lip_certified: float
+    lip_safety: float
     lip_empirical: Tuple[float, ...]
     fixed_point: float
     a_posteriori_error: float
@@ -373,20 +376,48 @@ def _input_digest(
     return h.hexdigest()
 
 
-def _resolve_secret_key(explicit: Optional[bytes]) -> bytes:
-    """Clave explícita, o variable de entorno, o clave de desarrollo con advertencia."""
+def _resolve_secret_key(explicit: Optional[bytes], allow_dev_key: bool) -> bytes:
+    """Clave explícita > variable de entorno > clave de desarrollo (solo si se autoriza).
+    Sin clave válida y sin autorización ⇒ ValueError (fail-closed)."""
     if explicit is not None:
         key = bytes(explicit)
     else:
         env_val = os.environ.get(_HMAC_KEY_ENV, "")
         if env_val:
             key = env_val.encode("utf-8")
-        else:
-            logger.warning("Sin %s: clave de DESARROLLO (no apta para producción).", _HMAC_KEY_ENV)
+        elif allow_dev_key:
+            logger.warning("Clave de DESARROLLO activa (allow_dev_key=True). No apta para producción.")
             key = _DEV_SECRET_KEY
+        else:
+            raise ValueError(
+                f"Sin clave HMAC: defina {_HMAC_KEY_ENV} o pase secret_key; "
+                "allow_dev_key=True solo para desarrollo."
+            )
     if len(key) < _MIN_KEY_BYTES:
         raise ValueError(f"Clave HMAC demasiado corta: {len(key)} < {_MIN_KEY_BYTES} bytes.")
     return key
+
+
+def _compute_rsi_procedure_digest() -> str:
+    """Meta-certificado de procedimiento: ata las constantes que definen la verificación
+    RSI³. Si cambian umbrales, mallas o profundidad, la cadena cambia."""
+    canon = "|".join((
+        f"grid_base={_KLEISLI_GRID_BASE}",
+        f"domain={_KLEISLI_DOMAIN!r}",
+        f"offset={_KLEISLI_OFFSET!r}",
+        f"margin={_KLEISLI_ERROR_BUDGET!r}",
+        f"picard_tol={_PICARD_TOL!r}",
+        f"picard_max={_PICARD_MAX_ITER}",
+        f"ref_tol={_PICARD_REF_TOL!r}",
+        f"ref_max={_PICARD_REF_MAX_ITER}",
+        f"lip_tol={_LIP_TOL!r}",
+        f"cons_tol={_CONSISTENCY_TOL!r}",
+        f"max_depth={_RSI_MAX_DEPTH}",
+    ))
+    return hashlib.sha256(_RSI_CHAIN_DOMAIN + canon.encode("utf-8")).hexdigest()
+
+
+_RSI_PROCEDURE_DIGEST: Final[str] = _compute_rsi_procedure_digest()
 
 
 def _validate_finite(value: object, name: str) -> float:
@@ -476,8 +507,8 @@ def _as_exponents(e: object) -> NDArray[np.float64]:
 
 
 def _quantize_matrix(mat: NDArray[np.float64]) -> List[List[int]]:
-    """Cuantización con signo a escala fija. Rechaza desbordamientos; enteros de Python
-    (precisión arbitraria) en los pivotes de Smith."""
+    """Cuantización con signo a escala fija. Rechaza desbordamientos; devuelve enteros
+    de Python (precisión arbitraria) para los pivotes de Smith y Bareiss."""
     scaled = mat * _SNF_FIXED_POINT_SCALE
     if float(np.max(np.abs(scaled))) >= float(_SNF_MAX_ABS_INT):
         raise ValueError("Entrada fuera del rango de cuantización (overflow evitado).")
@@ -513,21 +544,22 @@ def _third_difference(series: Optional[Sequence[float]]) -> Optional[float]:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Fase 1 — Cimientos: álgebra sobre ℤ y ℤ₂, Novikov, Kepler, Delaunay→Poincaré
+# Fase 1 — Cimientos: ℤ, booleanas, Novikov, Kepler, estado orbital, Poincaré
 # ══════════════════════════════════════════════════════════════════════════════
 class _Fase1_Cimientos:
-    """Fase 1. Invariantes enteros canónicos, booleanas, valuación y elementos orbitales."""
+    """Fase 1. Invariantes enteros certificados, booleanas, valuación de Krull, órbita
+    de Kepler con certificado de estado independiente y variables de Poincaré."""
 
-    def __init__(self, secret_key: Optional[bytes] = None) -> None:
-        self._secret_key: bytes = _resolve_secret_key(secret_key)
+    def __init__(self, secret_key: Optional[bytes] = None, allow_dev_key: bool = False) -> None:
+        self._secret_key: bytes = _resolve_secret_key(secret_key, allow_dev_key)
 
     # ── Forma de Smith completa sobre ℤ ────────────────────────────────────────
     @staticmethod
     def _fase1_smith_diagonal(a_in: Sequence[Sequence[int]]) -> Tuple[int, ...]:
         """Forma de Smith: |dᵢ| con CADENA DE DIVISIBILIDAD d₁|d₂|…|d_r.
-        coker ≅ ⊕ ℤ/|dᵢ| ⊕ ℤ^{m−r}. Torsión libre ⇔ todo |dᵢ|=1.
-        Diagonalización por pivote mínimo + barridos gcd/lcm (unimodulares, terminan:
-        d_i decrece estrictamente en ℕ⁺ y d₁|resto se preserva al procesar la cola)."""
+        coker ≅ ⊕ ℤ/|dᵢ| ⊕ ℤ^{m−r}. Pivote mínimo + barridos unimodulares.
+        La barrida gcd/lcm final fija d_i | d_{i+1}: tras procesar i, d_i divide a todos
+        los posteriores (invariante por inducción)."""
         a: List[List[int]] = [[int(v) for v in row] for row in a_in]
         m = len(a)
         n = len(a[0]) if m else 0
@@ -562,7 +594,6 @@ class _Fase1_Cimientos:
                 _swap_rc(a, t, piv[0], t, piv[1])
             diag.append(abs(a[t][t]))
             t += 1
-        # Cadena de divisibilidad: diag(d_i,d_j) ~ diag(gcd,lcm) vía GL₂(ℤ).
         k = len(diag)
         for i in range(k):
             for j in range(i + 1, k):
@@ -570,6 +601,40 @@ class _Fase1_Cimientos:
                 if g != diag[i]:
                     diag[i], diag[j] = g, diag[i] // g * diag[j]
         return tuple(diag)
+
+    @staticmethod
+    def _fase1_bareiss_determinant(a_in: Sequence[Sequence[int]]) -> int:
+        """Determinante ENTERO exacto por Bareiss (divisiones exactas, sin fracciones)."""
+        a: List[List[int]] = [[int(v) for v in row] for row in a_in]
+        n = len(a)
+        if n == 0:
+            return 1
+        sign = 1
+        prev = 1
+        for k in range(n - 1):
+            if a[k][k] == 0:
+                swap = next((i for i in range(k + 1, n) if a[i][k] != 0), None)
+                if swap is None:
+                    return 0
+                a[k], a[swap] = a[swap], a[k]
+                sign = -sign
+            for i in range(k + 1, n):
+                for j in range(k + 1, n):
+                    a[i][j] = (a[i][j] * a[k][k] - a[i][k] * a[k][j]) // prev
+            prev = a[k][k]
+        return sign * a[n - 1][n - 1]
+
+    def _fase1_snf_determinant_certificate(
+        self, q: Sequence[Sequence[int]], factors: Tuple[int, ...]
+    ) -> Optional[bool]:
+        """Para cuadrada no singular: |det(Q)| = |coker torsión| = ∏|dᵢ|.
+        None si no aplica (rectangular o singular)."""
+        if len(q) != len(q[0]):
+            return None
+        det = self._fase1_bareiss_determinant(q)
+        if det == 0:
+            return None
+        return bool(abs(det) == math.prod(factors))
 
     # ── Booleanas y Walsh–Hadamard ─────────────────────────────────────────────
     @staticmethod
@@ -597,7 +662,7 @@ class _Fase1_Cimientos:
 
     @staticmethod
     def _fase1_fwht(vec: NDArray[np.float64]) -> NDArray[np.float64]:
-        """Transformada de Walsh–Hadamard sin normalizar (mariposa natural)."""
+        """Transformada de Walsh–Hadamard sin normalizar (mariposa)."""
         a = np.array(vec, dtype=np.float64, copy=True)
         n = a.size
         if n == 0 or (n & (n - 1)) != 0:
@@ -618,26 +683,27 @@ class _Fase1_Cimientos:
         n_vars = bits.size.bit_length() - 1
         return self._fase1_total_influence(bits) / n_vars
 
-    def compute_rademacher_walsh_and_snf(
-        self, incidence_matrix: NDArray[np.float64]
-    ) -> Tuple[float, Tuple[int, ...], bool, bool, int, int]:
-        """(rw_norm, factores SNF, torsión libre, rango pleno, |torsión|, rango libre)."""
+    def compute_snf_certificate(self, incidence_matrix: NDArray[np.float64]) -> _SNFCertificate:
+        """Forma de Smith (sobre la cuantización) + certificados: torsión, rango, det."""
         mat = _as_cost_matrix(incidence_matrix)
         q = _quantize_matrix(mat)
         factors = self._fase1_smith_diagonal(q)
-        torsion_free = all(d == 1 for d in factors)
-        full_rank = len(factors) == min(mat.shape)
-        torsion_order = math.prod(factors) if factors else 1
-        free_rank = mat.shape[0] - len(factors)
-        rw = self._fase1_rademacher_walsh_norm(q)
-        return rw, factors, torsion_free, full_rank, torsion_order, free_rank
+        return _SNFCertificate(
+            rw_norm=self._fase1_rademacher_walsh_norm(q),
+            factors=factors,
+            torsion_free=all(d == 1 for d in factors),
+            full_rank=len(factors) == min(mat.shape),
+            torsion_order=math.prod(factors),
+            free_rank=mat.shape[0] - len(factors),
+            det_ok=self._fase1_snf_determinant_certificate(q, factors),
+        )
 
     # ── Novikov y TOON ─────────────────────────────────────────────────────────
     def evaluate_novikov_krull_and_toon_compression(
         self, exponents: NDArray[np.float64], raw_token_count: int = _TOON_SOURCE_TOKENS
     ) -> Tuple[float, float, float, int]:
-        """Valuación de Krull v = min λᵢ, norma ‖A‖ = e^{−v} y compresión TOON (56 tokens).
-        Soporte finito ⇒ condición de buen orden de Novikov trivialmente satisfecha."""
+        """Valuación de Krull v = min λᵢ, ‖A‖ = e^{−v} y compresión TOON (56 tokens).
+        Soporte finito ⇒ buen orden de Novikov satisfecho."""
         exps = _as_exponents(exponents)
         raw = _validate_int(raw_token_count, "raw_token_count", _TOON_BUDGET_TOKENS)
         krull = float(np.min(exps))
@@ -654,7 +720,7 @@ class _Fase1_Cimientos:
         return L, G, H
 
     def _fase1_delaunay_is_physical(self, a: float, e: float, i: float) -> bool:
-        """Dominio físico + identidades 0 ≤ G ≤ L, |H| ≤ G (comprobación de dominio)."""
+        """Dominio físico + identidades 0 ≤ G ≤ L, |H| ≤ G."""
         if not all(math.isfinite(x) for x in (a, e, i)):
             return False
         if a <= 0.0 or not (0.0 <= e < 1.0) or not (0.0 <= i <= math.pi):
@@ -667,9 +733,9 @@ class _Fase1_Cimientos:
         return ecc - e * math.sin(ecc) - (mean_anomaly % (2.0 * math.pi))
 
     def _fase1_kepler_solve(self, mean_anomaly: float, e: float) -> float:
-        """E − e·sinE = M por Newton SAFEGUARDADO: f es estrictamente creciente
-        (f' ≥ 1−e > 0) con raíz única en [0, 2π); bisección de respaldo garantiza
-        convergencia incluso para e → 1."""
+        """E − e·sinE = M. f(E) = E − e·sinE − M es estrictamente creciente (f' ≥ 1−e > 0)
+        con raíz única en [0, 2π). Newton con arranque de Danby, horquilla que se estrecha
+        con cada iterado y bisección de respaldo ⇒ convergencia garantizada."""
         M = _validate_finite(mean_anomaly, "mean_anomaly")
         if not (0.0 <= e < 1.0):
             raise ValueError("Excentricidad fuera de [0, 1).")
@@ -677,7 +743,7 @@ class _Fase1_Cimientos:
         if m_red == 0.0 or e == 0.0:
             return m_red
         lo, hi = 0.0, 2.0 * math.pi
-        ecc = m_red + 0.85 * e * (1.0 if math.sin(m_red) >= 0.0 else -1.0)  # arranque Danby
+        ecc = m_red + 0.85 * e * (1.0 if math.sin(m_red) >= 0.0 else -1.0)
         ecc = min(max(ecc, lo), hi)
         for _ in range(_KEPLER_MAX_ITER):
             f = ecc - e * math.sin(ecc) - m_red
@@ -687,8 +753,7 @@ class _Fase1_Cimientos:
                 hi = ecc
             else:
                 lo = ecc
-            step = f / (1.0 - e * math.cos(ecc))
-            nxt = ecc - step
+            nxt = ecc - f / (1.0 - e * math.cos(ecc))
             if not (lo < nxt < hi):
                 nxt = 0.5 * (lo + hi)
             if abs(nxt - ecc) <= _KEPLER_TOL:
@@ -704,12 +769,57 @@ class _Fase1_Cimientos:
         residual = self._fase1_kepler_residual(ecc, mean_anomaly, e)
         return bool(abs(residual) <= _KEPLER_RESIDUAL_TOL), ecc
 
+    # ── Estado orbital independiente (certificado de mecánica celeste) ─────────
+    @staticmethod
+    def _fase1_rotation_313(node: float, inc: float, argp: float) -> NDArray[np.float64]:
+        """R = R_z(Ω)·R_x(i)·R_z(ω): perifocal → geocéntrica (secuencia 3-1-3)."""
+        cO, sO = math.cos(node), math.sin(node)
+        ci, si = math.cos(inc), math.sin(inc)
+        cw, sw = math.cos(argp), math.sin(argp)
+        rz_o = np.array([[cO, -sO, 0.0], [sO, cO, 0.0], [0.0, 0.0, 1.0]])
+        rx_i = np.array([[1.0, 0.0, 0.0], [0.0, ci, -si], [0.0, si, ci]])
+        rz_w = np.array([[cw, -sw, 0.0], [sw, cw, 0.0], [0.0, 0.0, 1.0]])
+        return rz_o @ rx_i @ rz_w
+
+    def _fase1_orbital_state_certificate(
+        self, a: float, e: float, i: float, mean_anom: float, argp: float, node: float
+    ) -> Tuple[Optional[float], Optional[bool]]:
+        """Construye r, v desde E (Kepler), los rota a ECI y verifica tres identidades
+        independientes de las acciones de Delaunay:
+          (1) vis-viva:  v² = μ(2/r − 1/a)
+          (2) |r×v| = G = √(μa(1−e²))
+          (3) (r×v)_z = H = G cos i
+        Devuelve (residuo máximo relativo, ok). (None, None) si no es físico."""
+        if not self._fase1_delaunay_is_physical(a, e, i):
+            return None, None
+        ok_k, ecc = self._fase1_kepler_check(mean_anom, e)
+        if not ok_k:
+            return None, None
+        mu = _MU_EARTH_KM3_S2
+        cos_e, sin_e = math.cos(ecc), math.sin(ecc)
+        one_minus = 1.0 - e * cos_e
+        b = a * math.sqrt(1.0 - e * e)
+        r_p = np.array([a * (cos_e - e), b * sin_e, 0.0])
+        e_dot = math.sqrt(mu / a ** 3) / one_minus
+        v_p = np.array([-a * sin_e * e_dot, b * cos_e * e_dot, 0.0])
+        rot = self._fase1_rotation_313(node, i, argp)
+        r_vec = rot @ r_p
+        v_vec = rot @ v_p
+        r_norm = float(np.linalg.norm(r_vec))
+        energy_res = abs(float(v_vec @ v_vec) - mu * (2.0 / r_norm - 1.0 / a)) / (mu / a)
+        h_vec = np.cross(r_vec, v_vec)
+        _, G, H = self._fase1_delaunay_actions(a, e, i)
+        ang_res = abs(float(np.linalg.norm(h_vec)) - G) / G
+        hz_res = abs(float(h_vec[2]) - H) / G
+        residual = max(energy_res, ang_res, hz_res)
+        return float(residual), bool(residual <= _ORBIT_RESIDUAL_TOL)
+
     # ── Variables canónicas de Poincaré (regulares en e→0, i→0) ────────────────
     @staticmethod
     def _fase1_poincare_map(u: NDArray) -> NDArray:
         """(L,G,H,l,g,h) → (Λ,ξ,p,λ,η,q) con pares canónicos (Λ,λ),(ξ,η),(p,q).
-        Acepta dtype compleja para diferenciación de paso complejo. λ sin reducir
-        (la reducción mod 2π es un recubrimiento simpléctico, no altera J)."""
+        Acepta dtype compleja (paso complejo). λ sin reducir: la reducción mod 2π
+        es un recubrimiento simpléctico y no altera J."""
         L, G, H, l, g, h = u
         rho_e = np.sqrt(2.0 * (L - G))
         rho_i = np.sqrt(2.0 * (G - H))
@@ -724,25 +834,26 @@ class _Fase1_Cimientos:
         ])
 
     def _fase1_poincare_symplectic_residual(self, u: NDArray[np.float64]) -> float:
-        """Certificado JΩJᵀ = Ω por paso complejo (error O(h²), h=1e-20 ⇒ exacto a
-        redondeo). Ω empareja (L,l),(G,g),(H,h) y (Λ,λ),(ξ,η),(p,q)."""
+        """Certificado JΩJᵀ = Ω por paso complejo. Derivación analítica:
+        Σ = dL∧dl+dG∧dg+dH∧dh = dΛ∧dλ + dξ∧dη + dp∧dq."""
         n = 6
         omega = np.zeros((n, n))
         for k in range(3):
             omega[k, k + 3] = 1.0
             omega[k + 3, k] = -1.0
-        J = np.empty((n, n), dtype=np.float64)
+        jac = np.empty((n, n), dtype=np.float64)
         for j in range(n):
             du = np.zeros(n, dtype=np.complex128)
             du[j] = 1j * _COMPLEX_STEP
-            J[:, j] = np.imag(self._fase1_poincare_map(u.astype(np.complex128) + du)) / _COMPLEX_STEP
-        return float(np.max(np.abs(J @ omega @ J.T - omega)))
+            mapped = self._fase1_poincare_map(u.astype(np.complex128) + du)
+            jac[:, j] = np.imag(mapped) / _COMPLEX_STEP
+        return float(np.max(np.abs(jac @ omega @ jac.T - omega)))
 
     def _fase1_poincare_certificate(
         self, a: float, e: float, i: float, mean_anom: float, argp: float, node: float
     ) -> Tuple[Tuple[float, float, float, float, float, float], Optional[float], Optional[bool]]:
-        """Variables de Poincaré + certificado simpléctico. En e=0 o i=0 las acciones
-        ρ² se anulan y la FD es singular: certificado None (punto regular declarado)."""
+        """Variables de Poincaré (Λ, λ, ξ, η, p, q) + certificado simpléctico.
+        En e=0 o i=0 las acciones ρ² se anulan: certificado None (punto regular declarado)."""
         nan6 = (math.nan,) * 6
         if not self._fase1_delaunay_is_physical(a, e, i):
             return nan6, None, None
@@ -776,25 +887,25 @@ class _Fase1_Cimientos:
         positron = validate_positron(positron_hmac_valid)
         orbit = _validate_orbit(_DEFAULT_ORBIT if orbital_elements is None else orbital_elements)
         a, e, inc, mean_anom, argp, node = orbit
-        rw, factors, torsion_free, full_rank, torsion_order, free_rank = (
-            self.compute_rademacher_walsh_and_snf(mat)
-        )
+        snf = self.compute_snf_certificate(mat)
         krull, novikov, pct, budget = self.evaluate_novikov_krull_and_toon_compression(
             exps, raw_token_count
         )
         physical = self._fase1_delaunay_is_physical(a, e, inc)
         kepler_ok, ecc_anom = self._fase1_kepler_check(mean_anom, e)
         lgh = self._fase1_delaunay_actions(a, e, inc) if physical else (math.nan, math.nan, math.nan)
+        orb_res, orb_ok = self._fase1_orbital_state_certificate(a, e, inc, mean_anom, argp, node)
         pv, pres, pok = self._fase1_poincare_certificate(a, e, inc, mean_anom, argp, node)
         return _SpectralSeed(
             matrix=mat,
             exponents=exps,
-            snf_diagonal_factors=factors,
-            torsion_free=torsion_free,
-            torsion_order=torsion_order,
-            full_rank=full_rank,
-            cokernel_free_rank=free_rank,
-            rw_norm=rw,
+            snf_diagonal_factors=snf.factors,
+            torsion_free=snf.torsion_free,
+            torsion_order=snf.torsion_order,
+            full_rank=snf.full_rank,
+            cokernel_free_rank=snf.free_rank,
+            snf_det_ok=snf.det_ok,
+            rw_norm=snf.rw_norm,
             krull=krull,
             novikov_norm=novikov,
             raw_token_count=int(raw_token_count),
@@ -803,8 +914,10 @@ class _Fase1_Cimientos:
             positron_valid=positron,
             anomaly_norm=_ANOMALY_SCALE * float(np.linalg.norm(mat)),
             delaunay_LGH=lgh,
-            delaunay_valid=bool(physical and kepler_ok),
+            delaunay_valid=bool(physical and kepler_ok and orb_ok is True),
             eccentric_anomaly=ecc_anom,
+            orbital_residual=orb_res,
+            orbital_ok=orb_ok,
             poincare_variables=pv,
             poincare_canonical_residual=pres,
             poincare_canonical_ok=pok,
@@ -813,36 +926,34 @@ class _Fase1_Cimientos:
 
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Fase 2 — Geometría y dinámica de Poincaré: Gromov, armonicidad, Melnikov,
-#          mapa estroboscópico, Lindstedt–Poincaré, espectro secular, Spohn, Dirac
+# Fase 2 — Geometría y dinámica de Poincaré
 # ══════════════════════════════════════════════════════════════════════════════
 class _Fase2_Geometria(_Fase1_Cimientos):
     """Fase 2. Rigidez de Gromov, armonicidad discreta, caos de Melnikov–Poincaré,
-    teoría secular de Poincaré, entropía de Spohn y aniquilación de Dirac."""
+    Lindstedt, teoría secular de Poincaré, entropía de Spohn y aniquilación de Dirac."""
 
-    # ── PRIMER método de F2: recibe la semilla emitida por el ÚLTIMO de F1 ─────
+    # ── PRIMER método de F2: consume la semilla emitida por el ÚLTIMO de F1 ────
     def _fase2_inicio_desde_semilla(
         self, seed: _SpectralSeed, ball_r: float, cylinder_R: float
     ) -> Tuple[float, float, bool]:
-        """Primer método de F2. Consume la _SpectralSeed de F1 → (c_B, c_Z, violación)."""
+        """Primer método de F2. Consume la _SpectralSeed → (c_B, c_Z, violación)."""
         if not isinstance(seed, _SpectralSeed):
             raise TypeError("Fase 2 exige una _SpectralSeed emitida por Fase 1.")
         return self._fase2_capacities(ball_r, cylinder_R)
 
     @staticmethod
     def _fase2_capacities(ball_r: float, cylinder_R: float) -> Tuple[float, float, bool]:
-        """Capacidades simplécticas πr², πR². Violación ⇔ r > R (comparación directa,
-        sin cancelación por cuadrados). En ℝ² es monotonía de área; el no-squeezing
-        de Gromov es profundo para n ≥ 2: aquí opera como política de diseño."""
+        """Capacidades πr², πR². Violación ⇔ r > R. En ℝ² es monotonía de área; el
+        no-squeezing de Gromov es profundo para n ≥ 2: aquí es política de diseño."""
         r = _validate_positive(ball_r, "ball_r")
         R = _validate_positive(cylinder_R, "cylinder_R")
         return math.pi * r * r, math.pi * R * R, bool(r > R)
 
     @staticmethod
-    def _fase2_cauchy_riemann_residual(mat: NDArray[np.float64]) -> float:
-        """Residuo de armonicidad ‖Δφ‖_F/(‖φ‖_F+ε) con Laplaciano de 5 puntos y
-        frontera PERIÓDICA (operador translation-invariante, sin artefactos de borde).
-        Con u = (∂ₓφ, −∂ᵧφ): CR-I da Δφ; CR-II se anula por conmutación (declarado)."""
+    def _fase2_harmonicity_residual(mat: NDArray[np.float64]) -> float:
+        """Residuo de armonicidad discreta ‖Δφ‖_F/(‖φ‖_F+ε) con Laplaciano de 5 puntos
+        y frontera PERIÓDICA. Mide qué tan armónica es la función-matriz φ.
+        (No es una condición de Cauchy–Riemann; el nombre de campo se conserva.)"""
         phi = _as_cost_matrix(mat)
         lap = (
             np.roll(phi, 1, axis=0) + np.roll(phi, -1, axis=0)
@@ -860,14 +971,14 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         """Devuelve (residuo de armonicidad, violación de Gromov)."""
         mat = _as_cost_matrix(apu_cost_matrix)
         _, _, violated = self._fase2_capacities(ball_r, cylinder_R)
-        return self._fase2_cauchy_riemann_residual(mat), violated
+        return self._fase2_harmonicity_residual(mat), violated
 
     # ── Melnikov–Poincaré en forma cerrada ─────────────────────────────────────
     @staticmethod
     def _fase2_melnikov_coefficients(delta: float, gamma: float, omega: float) -> Tuple[float, float]:
-        """M(t₀) = offset + amplitud·cos(ωt₀). Separatriz ẋ_h = 2 sech t:
-        ∫ẋ_h² dt = 8 exacto; ∫ẋ_h cos(ωt) dt = 2π·sech(πω/2) (Fourier de sech).
-        offset = −8δ; amplitud = 2π|γ|·sech(πω/2). Formas cerradas, sin cuadratura."""
+        """M(t₀) = offset + amplitud·cos(ωt₀) para ẍ+δẋ+sin x = γcos(ωt).
+        Separatriz ẋ_h = 2 sech t: ∫ẋ_h² = 8; ∫ẋ_h cos(ωt) dt = 2π·sech(πω/2).
+        offset = −8δ; amplitud = 2π|γ|·sech(πω/2)."""
         d = _validate_finite(delta, "melnikov_delta")
         g = _validate_finite(gamma, "melnikov_gamma")
         w = _validate_finite(omega, "melnikov_omega")
@@ -890,8 +1001,7 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         omega: float = _MELNIKOV_DEFAULT_OMEGA,
     ) -> Tuple[bool, float, float, float, bool]:
         """(caos, amplitud, offset, margen, régimen ε válido). Cero simple de M ⇔
-        ω ≠ 0 ∧ amplitud > |offset| (con ω=0, M es constante: nunca transversal).
-        Validez rigurosa solo para ε pequeño (política declarada ε ≤ 0.1)."""
+        ω ≠ 0 ∧ amplitud > |offset|. Validez rigurosa solo para ε pequeño."""
         d = _validate_finite(delta, "melnikov_delta")
         g = _validate_finite(gamma, "melnikov_gamma")
         w = _validate_finite(omega, "melnikov_omega")
@@ -912,9 +1022,8 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         return 0.5 * (a + b)
 
     def _fase2_poincare_lindstedt(self, amplitude: float) -> Tuple[float, float, float]:
-        """Ω(a) exacta = AGM(1, cos(a/2)) (pues K(k)=π/(2·AGM(1,k')), T=4K, Ω=2π/T)
-        frente a la serie de Lindstedt–Poincaré Ω ≈ 1 − a²/16 + a⁴/3072.
-        Devuelve (exacta, serie, |error|); el error es O(a⁶)."""
+        """Ω(a) = AGM(1, cos(a/2)) exacta (K(k)=π/(2·AGM(1,k')), k'=cos(a/2), Ω=2π/T=π/(2K)).
+        Serie Lindstedt–Poincaré: Ω ≈ 1 − a²/16 + a⁴/3072 (error O(a⁶))."""
         a = _validate_amplitude(amplitude)
         exact = self._fase2_agm(1.0, math.cos(a / 2.0))
         series = 1.0 - a * a / 16.0 + a ** 4 / 3072.0
@@ -929,11 +1038,10 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         periods: int,
         steps_per_period: int,
     ) -> Optional[float]:
-        """λ_max finito del mapa de Poincaré estroboscópico (T=2π/ω) del péndulo
-        ẍ + δẋ + sin x = γ cos ωt, con ecuación variacional y renormalización de
-        Benettin por periodo. RK4 determinista; sonda IC=(0, 1.9) cerca de la
-        separatriz; transitorio descartado = periods//8. EVIDENCIA, no prueba.
-        None si ω ≤ 0 (sin estrobo) o periods = 0 (desactivado)."""
+        """λ_max finito del mapa estroboscópico (T=2π/ω) de ẍ+δẋ+sin x = γcos(ωt),
+        con ecuación variacional y renormalización de Benettin por periodo. RK4
+        determinista; transitorio = periods//8. EVIDENCIA, no prueba.
+        None si ω ≤ 0 o periods = 0."""
         d = _validate_finite(delta, "melnikov_delta")
         g = _validate_finite(gamma, "melnikov_gamma")
         w = _validate_finite(omega, "melnikov_omega")
@@ -941,8 +1049,8 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         n_st = _validate_int(steps_per_period, "poincare_steps_per_period", 8, 4096)
         if w <= 0.0 or n_per == 0:
             return None
-        T = 2.0 * math.pi / w
-        h = T / n_st
+        period = 2.0 * math.pi / w
+        h = period / n_st
         h2 = 0.5 * h
         sin, cos, hypot, log = math.sin, math.cos, math.hypot, math.log
         x, v = _POINCARE_IC
@@ -980,7 +1088,7 @@ class _Fase2_Geometria(_Fase1_Cimientos):
             pv /= s
         if counted == 0:
             return None
-        return float(acc / (counted * T))
+        return float(acc / (counted * period))
 
     # ── Espectro secular de Poincaré–Laplace–Lagrange ──────────────────────────
     @staticmethod
@@ -996,11 +1104,12 @@ class _Fase2_Geometria(_Fase1_Cimientos):
     def _fase2_poincare_secular_spectrum(
         self, system: Sequence[Sequence[float]]
     ) -> Tuple[Tuple[float, ...], float, bool]:
-        """Teoría secular lineal en variables de Poincaré (M☉=1, μ=4π² AU³/año²).
-        A_jj = n_j Σ_{k≠j} m_k/(1+m_j) · ¼ α ᾱ b¹; A_jk = −n_j m_k · ¼ α ᾱ b², con
-        ᾱ = α si el perturbador es exterior. Certificado: W·A simétrica con
-        w_j = m_j n_j a_j² (momento angular) ⇒ S = W^{½}AW^{−½} simétrica ⇒ espectro
-        real por eigvalsh. Devuelve (frecuencias [rad/año], residuo relativo, válido)."""
+        """Teoría secular lineal (M☉=1, μ=4π² AU³/año²). Aproximación de primer orden
+        mⱼ≪M☉ aplicada COHERENTEMENTE en diagonal y fuera de diagonal:
+          A_jj = n_j Σ_{k≠j} m_k · ¼ α ᾱ b¹,   A_jk = −n_j m_k · ¼ α ᾱ b²,
+        con ᾱ = α si el perturbador es exterior y 1 si es interior.
+        Simetría: w_j = m_j n_j a_j² (momento angular) ⇒ W·A simétrica ⇒ S = W^{½}AW^{−½}
+        simétrica ⇒ espectro real por eigvalsh. Devuelve (frecuencias, residuo relativo, válido)."""
         pairs = _validate_secular_system(system)
         n_pl = len(pairs)
         masses = np.array([p[0] for p in pairs])
@@ -1019,7 +1128,7 @@ class _Fase2_Geometria(_Fase1_Cimientos):
                 alpha, b1, b2 = coeffs[key]
                 alpha_bar = alpha if axes[k] > axes[j] else 1.0
                 common = 0.25 * alpha * alpha_bar
-                A[j, j] += n_mean[j] * masses[k] / (1.0 + masses[j]) * common * b1
+                A[j, j] += n_mean[j] * masses[k] * common * b1
                 A[j, k] = -n_mean[j] * masses[k] * common * b2
         w = masses * n_mean * axes ** 2
         WA = w[:, None] * A
@@ -1042,7 +1151,7 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         self, exponents: NDArray[np.float64], lam: float = _SPOHN_LAMBDA
     ) -> float:
         """σ = H(Φ(p)) − H(p) ≥ 0 con Φ = (1−λ)I + λU doblemente estocástica.
-        Normalización exacta (sin suelo); si Σλᵢ = 0, p uniforme (política declarada)."""
+        Si Σλᵢ = 0, p uniforme (política declarada)."""
         exps = _as_exponents(exponents)
         lam_f = _validate_finite(lam, "spohn_lambda")
         if not (0.0 <= lam_f <= 1.0):
@@ -1056,8 +1165,8 @@ class _Fase2_Geometria(_Fase1_Cimientos):
     def execute_dirac_annihilation_toon(
         self, anomaly_norm: float, positron_hmac_valid: Optional[bool]
     ) -> float:
-        """e⁻ + e⁺ → 2γ (511 keV por fotón en el CM): 2·m_e·c² = 1021.9979 keV,
-        o 0 si no hay validación positiva (fail-closed)."""
+        """e⁻ + e⁺ → 2γ: energía total 2·m_e·c² = 1021.9979 keV (511 keV por fotón en CM),
+        o 0 sin validación positiva (fail-closed)."""
         positron = validate_positron(positron_hmac_valid)
         if positron is not True:
             return 0.0
@@ -1080,10 +1189,10 @@ class _Fase2_Geometria(_Fase1_Cimientos):
         secular_system: Sequence[Sequence[float]],
     ) -> _DynamicalSeed:
         """ÚLTIMO método de F2. Emite la semilla que consume
-        `_fase3_inicio_desde_semilla_dinamica`. El veto duro solo usa criterios
-        certificados; la evidencia numérica únicamente degrada (ver Heyting en F3)."""
+        `_fase3_inicio_desde_semilla_dinamica`. El veto duro usa solo criterios
+        certificados; la evidencia numérica únicamente degrada."""
         c_ball, c_cyl, violated = self._fase2_inicio_desde_semilla(seed, ball_r, cylinder_R)
-        cr = self._fase2_cauchy_riemann_residual(seed.matrix)
+        harm = self._fase2_harmonicity_residual(seed.matrix)
         chaos, amp, off, margin, eps_valid = self.evaluate_poincare_kam_melnikov(
             melnikov_delta, melnikov_gamma, melnikov_omega
         )
@@ -1091,9 +1200,8 @@ class _Fase2_Geometria(_Fase1_Cimientos):
             melnikov_delta, melnikov_gamma, melnikov_omega,
             poincare_periods, poincare_steps_per_period,
         )
-        # Tensión UNIDIRECCIONAL: λ>tol con Melnikov sin caos ⇒ tensión (Melnikov es
-        # de primer orden en ε). Melnikov con caos y λ≤tol NO es tensión: el conjunto
-        # caótico homoclínico puede no ser atractor (caos transitorio).
+        # Tensión UNIDIRECCIONAL: λ>tol con Melnikov sin caos ⇒ tensión. Melnikov con caos
+        # y λ≤tol NO es tensión: el conjunto caótico homoclínico puede no ser atractor.
         consistent: Optional[bool]
         if lyap is None:
             consistent = None
@@ -1110,13 +1218,14 @@ class _Fase2_Geometria(_Fase1_Cimientos):
             or (seed.krull < _DEFAULT_KRULL_FLOOR)
             or (not seed.delaunay_valid)
             or (seed.poincare_canonical_ok is False)
+            or (seed.snf_det_ok is False)
         )
         return _DynamicalSeed(
             spectral=seed,
             capacity_ball=c_ball,
             capacity_cylinder=c_cyl,
             gromov_violated=violated,
-            cr_residual=cr,
+            harmonicity_residual=harm,
             melnikov_chaos=chaos,
             melnikov_amplitude=amp,
             melnikov_offset=off,
@@ -1140,17 +1249,17 @@ class _Fase2_Geometria(_Fase1_Cimientos):
 # Fase 3 — Kleisli T³, RSI³ reflexivo con certificados, Heyting y pasaporte
 # ══════════════════════════════════════════════════════════════════════════════
 class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
-    """Fase 3. Torre reflexiva RSI³ (objeto → meta → meta-meta), contracción de
-    Banach de T³ con cota analítica y certificada, adjudicación de Heyting y
-    pasaporte HMAC canónico. RSI³ NO modifica su propio código: solo refina y
-    re-certifica sus certificados, con profundidad acotada (≤3)."""
+    """Fase 3. Torre reflexiva RSI³ (objeto → meta → meta-meta), contracción de Banach
+    de T³ con cota analítica λ³ (demostrada) y margen λ³+ε (conservador), adjudicación
+    de Heyting y pasaporte HMAC canónico. RSI³ NO modifica su propio código: refina y
+    re-certifica sus certificados con profundidad acotada (≤3)."""
 
-    # ── PRIMER método de F3: recibe la semilla emitida por el ÚLTIMO de F2 ─────
+    # ── PRIMER método de F3: consume la semilla emitida por el ÚLTIMO de F2 ────
     def _fase3_inicio_desde_semilla_dinamica(
         self, dyn: _DynamicalSeed, rsi_max_depth: int, initial_lip: float
     ) -> Tuple[_DynamicalSeed, int, float]:
-        """Primer método de F3. Consume la _DynamicalSeed de F2 → (semilla, profundidad
-        efectiva, λ). Veto duro ⇒ profundidad 0 (la reflexión no opera sobre veto)."""
+        """Primer método de F3. Consume la _DynamicalSeed → (semilla, profundidad
+        efectiva, λ). Veto duro ⇒ profundidad efectiva 0."""
         if not isinstance(dyn, _DynamicalSeed):
             raise TypeError("Fase 3 exige una _DynamicalSeed emitida por Fase 2.")
         depth = _validate_int(rsi_max_depth, "rsi_max_depth", 0, _RSI_MAX_DEPTH)
@@ -1158,11 +1267,16 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
         effective = 0 if dyn.force_veto else depth
         return dyn, effective, lam
 
-    # ── Contracción de Banach: cotas y operador ────────────────────────────────
+    # ── Cotas de Banach ────────────────────────────────────────────────────────
     @staticmethod
-    def _fase3_certified_bound(lam: float) -> float:
-        """Cota certificada λ³ + ε. |T'| ≤ λ en TODO ℝ ⇒ Lip(T³) ≤ λ³ (analítica,
-        global); ε = 0.002375 es margen declarado del autor, no derivado."""
+    def _fase3_analytic_bound(lam: float) -> float:
+        """Cota DEMOSTRADA: |T'| ≤ λ en todo ℝ ⇒ Lip(T³) ≤ λ³."""
+        return float(lam) ** 3
+
+    @staticmethod
+    def _fase3_safety_bound(lam: float) -> float:
+        """Margen conservador λ³+ε (ε=0.002375 declarado, no derivado). Se usa en el
+        error a posteriori para tolerancia adicional."""
         return float(lam) ** 3 + _KLEISLI_ERROR_BUDGET
 
     @staticmethod
@@ -1175,9 +1289,7 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
 
     @staticmethod
     def _fase3_kleisli_cubed_derivative(x, lam: float):
-        """|(T³)'(x)| = λ³·|sin x · sin T(x) · sin T²(x)| (regla de la cadena exacta).
-        Muestrear la DERIVADA en mallas anidadas da cotas inferiores monótonas del
-        supremo (por inclusión de conjuntos), a diferencia de pendientes secantes."""
+        """|(T³)'(x)| = λ³·|sin x · sin T(x) · sin T²(x)| (regla de la cadena exacta)."""
         y1 = lam * np.cos(x) + _KLEISLI_OFFSET
         y2 = lam * np.cos(y1) + _KLEISLI_OFFSET
         return np.abs(lam ** 3 * np.sin(x) * np.sin(y1) * np.sin(y2))
@@ -1201,9 +1313,8 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
         return x, a_post, converged, residual
 
     def _fase3_empirical_lipschitz(self, level: int, lam: float) -> float:
-        """sup |(T³)'| sobre malla diádica anidada de nivel `level` (100·2^level+1
-        puntos en [−2,2] ⊇ intervalo invariante [0.1−λ, 0.1+λ]). Monotonía e_{k+1} ≥ e_k
-        garantizada por anidamiento exacto de las mallas."""
+        """sup |(T³)'| sobre malla diádica ANIDADA de nivel `level` (100·2^level+1
+        puntos en [−2,2]). Anidamiento exacto ⇒ monotonía e_{k+1} ≥ e_k."""
         n = _KLEISLI_GRID_BASE * (2 ** level) + 1
         grid = np.linspace(-_KLEISLI_DOMAIN, _KLEISLI_DOMAIN, n)
         return float(np.max(self._fase3_kleisli_cubed_derivative(grid, lam)))
@@ -1211,14 +1322,15 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
     def _fase3_rsi_recurse(
         self, lam: float, q: float, max_depth: int, gate_ok: bool, meta_ok: bool
     ) -> Tuple[int, Tuple[float, ...], str]:
-        """Torre RSI³: N1 objeto (cota empírica ≤ certificada, monotonía por inclusión),
-        N2 meta (meta_ok: cota a posteriori verificada contra Picard de referencia),
-        N3 meta-meta (gate_ok incluye la autoprueba metamórfica). Cada nivel aceptado
-        encadena su certificado SHA-256 (tamper-evident)."""
+        """Torre RSI³: N1 objeto (cota empírica ≤ q, monotonía), N2 meta (meta_ok: cota a
+        posteriori verificada contra Picard de referencia), N3 meta-meta (gate_ok incluye
+        la autoprueba metamórfica). La cadena arranca con el meta-certificado de
+        procedimiento y encadena cada nivel aceptado (tamper-evident)."""
         accepted = 0
         history: List[float] = []
         prev = -math.inf
-        chain = hashlib.sha256(_RSI_CHAIN_DOMAIN).digest()
+        seed_text = f"{_RSI_PROCEDURE_DIGEST}|lam={_fmt(lam)}|q={_fmt(q)}"
+        chain = hashlib.sha256(_RSI_CHAIN_DOMAIN + seed_text.encode("utf-8")).digest()
         for level in range(1, max_depth + 1):
             e = self._fase3_empirical_lipschitz(level, lam)
             history.append(e)
@@ -1235,25 +1347,27 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
     def evaluate_rsi3_banach_kleisli(
         self, initial_lip: float = _KLEISLI_LIP_T, rsi_max_depth: int = _RSI_MAX_DEPTH
     ) -> _KleisliState:
-        """Evalúa la mónada Kleisli T³ y la torre RSI³ con verificación meta del error."""
+        """Evalúa T³ y la torre RSI³ con verificación meta del error a posteriori."""
         lam = _validate_lambda(initial_lip)
         depth = _validate_int(rsi_max_depth, "rsi_max_depth", 0, _RSI_MAX_DEPTH)
         selftest = self._fase3_metamorphic_selftest()
-        analytic = float(lam) ** 3
-        q = self._fase3_certified_bound(lam)
-        if not q < 1.0:
-            raise ValueError("La cota certificada no es contractiva (q ≥ 1).")
-        x_star, a_post, converged, residual = self._fase3_picard(lam, q)
-        x_ref, _, ref_conv, _ = self._fase3_picard(lam, q, _PICARD_REF_TOL, _PICARD_REF_MAX_ITER)
+        analytic = self._fase3_analytic_bound(lam)
+        safety = self._fase3_safety_bound(lam)
+        if not analytic < 1.0:
+            raise ValueError("La cota analítica no es contractiva (λ³ ≥ 1).")
+        x_star, a_post, converged, residual = self._fase3_picard(lam, safety)
+        x_ref, _, ref_conv, _ = self._fase3_picard(
+            lam, safety, _PICARD_REF_TOL, _PICARD_REF_MAX_ITER
+        )
         meta_ok = bool(ref_conv and abs(x_star - x_ref) <= a_post + _CONSISTENCY_TOL)
         consistency = bool(converged and residual <= _CONSISTENCY_TOL)
         accepted, history, chain = self._fase3_rsi_recurse(
-            lam, q, depth, selftest and consistency, meta_ok
+            lam, analytic, depth, selftest and consistency, meta_ok
         )
         return _KleisliState(
             lip_T=lam,
             lip_analytic=analytic,
-            lip_certified=q,
+            lip_safety=safety,
             lip_empirical=history,
             fixed_point=x_star,
             a_posteriori_error=a_post,
@@ -1265,11 +1379,11 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             certificate_chain=chain,
         )
 
-    # ── Autoprueba metamórfica (nivel meta-meta de RSI³) ───────────────────────
+    # ── Autoprueba metamórfica (meta-meta de RSI³) ─────────────────────────────
     def _fase3_metamorphic_selftest(self) -> bool:
-        """12 bloques metamórficos. Cualquier excepción devuelve False (fail-closed)."""
+        """Bloques metamórficos independientes. Cualquier excepción ⇒ False (fail-closed)."""
         try:
-            # 1. Smith con cadena de divisibilidad (invariante de estructura del cokernel)
+            # 1. Smith con cadena de divisibilidad y determinante de Bareiss
             if self._fase1_smith_diagonal([[2, 0], [0, 3]]) != (1, 6):
                 return False
             if self._fase1_smith_diagonal([[1, 1], [0, 1]]) != (1, 1):
@@ -1278,6 +1392,12 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             if math.prod(f248) != 8 or any(b % a for a, b in zip(f248, f248[1:])):
                 return False
             if self._fase1_smith_diagonal([[6, 0], [0, 10]]) != (2, 30):
+                return False
+            if self._fase1_bareiss_determinant([[2, 4], [6, 8]]) != -8:
+                return False
+            if self._fase1_bareiss_determinant([[1, 2, 3], [0, 1, 4], [5, 6, 0]]) != 1:
+                return False
+            if self._fase1_snf_determinant_certificate([[2, 4], [6, 8]], (2, 4)) is not True:
                 return False
             # 2. Parseval e identidad espectral de influencias (semilla 20250101, N=16)
             rng = np.random.default_rng(20250101)
@@ -1308,7 +1428,7 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
                 return False
             if abs(self._fase2_spohn_production(np.array([1.0, 1.0, 1.0]))) > 1e-12:
                 return False
-            # 6. Delaunay → Poincaré: identidades de acción y certificado simpléctico
+            # 6. Delaunay → Poincaré y estado orbital independiente
             a, e, i, M, argp, node = _DEFAULT_ORBIT
             if not self._fase1_delaunay_is_physical(a, e, i):
                 return False
@@ -1320,6 +1440,9 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
                 return False
             if abs(G - 0.5 * (pv[4] ** 2 + pv[5] ** 2) - H) > 1e-8 * L:
                 return False
+            _, orb_ok = self._fase1_orbital_state_certificate(a, e, i, M, argp, node)
+            if orb_ok is not True:
+                return False
             # 7. Lindstedt–Poincaré: AGM exacta vs serie (error O(a⁶))
             om0, _, _ = self._fase2_poincare_lindstedt(0.0)
             if om0 != 1.0:
@@ -1327,8 +1450,10 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             _, _, err02 = self._fase2_poincare_lindstedt(0.2)
             if err02 > 2e-6:
                 return False
-            # 8. Cota de Banach declarada
-            if abs(self._fase3_certified_bound(0.95) - 0.85975) > 1e-12:
+            # 8. Cotas de Banach: analítica (demostrada) ≤ margen conservador
+            if abs(self._fase3_analytic_bound(0.95) - 0.857375) > 1e-12:
+                return False
+            if abs(self._fase3_safety_bound(0.95) - 0.85975) > 1e-12:
                 return False
             # 9. Heyting: residuación a∧b ≤ c ⇔ a ≤ (b→c) exhaustiva + negaciones
             vals = (HeytingTruthValue.VETOED, HeytingTruthValue.DEGRADED, HeytingTruthValue.COHERENT)
@@ -1345,12 +1470,11 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
                 return False
             if HeytingTruthValue.DEGRADED.negate().negate() is not HeytingTruthValue.COHERENT:
                 return False
-            # 10. Laplaciano periódico: identidad de autofunción discreta exacta
+            # 10. Laplaciano periódico: autofunción discreta exacta de suma de modos 1D
             ii, jj = np.meshgrid(np.arange(8), np.arange(8), indexing="ij")
             phi = np.cos(2.0 * np.pi * ii / 8.0) + np.cos(2.0 * np.pi * jj / 8.0)
             lap = (np.roll(phi, 1, 0) + np.roll(phi, -1, 0)
                    + np.roll(phi, 1, 1) + np.roll(phi, -1, 1) - 4.0 * phi)
-            # φ es SUMA de modos 1D: cada modo aporta su propio autovalor 1D
             eig = 2.0 * (math.cos(2.0 * math.pi / 8.0) - 1.0)
             if np.linalg.norm(lap - eig * phi) > 1e-12 * np.linalg.norm(phi):
                 return False
@@ -1361,7 +1485,7 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             # 12. RSI³ N1: monotonía por anidamiento y dominación por la cota analítica
             e1 = self._fase3_empirical_lipschitz(1, 0.95)
             e2 = self._fase3_empirical_lipschitz(2, 0.95)
-            if not (e1 <= e2 + _LIP_TOL and e2 <= 0.95 ** 3 + _LIP_TOL):
+            if not (e1 <= e2 + _LIP_TOL and e2 <= self._fase3_analytic_bound(0.95) + _LIP_TOL):
                 return False
             return True
         except Exception:
@@ -1372,10 +1496,12 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
     def _fase3_heyting_adjudicate(
         self, dyn: _DynamicalSeed, kleisli: _KleisliState, requested_depth: int
     ) -> HeytingTruthValue:
-        """Veto: criterios certificados. Degradado: evidencia/tensión/modelo. La
-        evidencia numérica (Lyapunov) jamás veta ni asciende un veto de Melnikov."""
+        """Veto: criterios certificados. Degradado: evidencia, tensión o modelo. La evidencia
+        numérica (Lyapunov) jamás veta ni asciende un veto. Profundidad: se compara contra
+        la SOLICITADA; un veto que la fuerza a 0 se reporta como DEGRADED."""
         s = dyn.spectral
-        if (not s.torsion_free) or s.krull < _DEFAULT_KRULL_FLOOR or (s.poincare_canonical_ok is False):
+        if ((not s.torsion_free) or s.krull < _DEFAULT_KRULL_FLOOR
+                or s.poincare_canonical_ok is False or s.snf_det_ok is False):
             spectral = HeytingTruthValue.VETOED
         elif s.rw_norm > _RW_DEGRADED_TOL:
             spectral = HeytingTruthValue.DEGRADED
@@ -1383,7 +1509,7 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             spectral = HeytingTruthValue.COHERENT
         if dyn.gromov_violated or dyn.melnikov_chaos or not s.delaunay_valid:
             dynamical = HeytingTruthValue.VETOED
-        elif (dyn.cr_residual > _CR_RESIDUAL_TOL
+        elif (dyn.harmonicity_residual > _HARMONICITY_TOL
               or not dyn.melnikov_eps_valid
               or dyn.poincare_consistent is False
               or not dyn.secular_valid):
@@ -1428,7 +1554,9 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
         """Auditoría espectral completa. ÚLTIMO método de F3; API pública.
         Flujo: F1.emite_semilla → F2.inicio/…/F2.emite_semilla → F3.inicio/…/veredicto."""
         orbit = _validate_orbit(_DEFAULT_ORBIT if orbital_elements is None else orbital_elements)
-        sec_pairs = _validate_secular_system(_SECULAR_DEFAULT if secular_system is None else secular_system)
+        sec_pairs = _validate_secular_system(
+            _SECULAR_DEFAULT if secular_system is None else secular_system
+        )
         amp = _validate_amplitude(pendulum_amplitude)
         n_per = _validate_int(poincare_periods, "poincare_periods", 0, 20000)
         n_st = _validate_int(poincare_steps_per_period, "poincare_steps_per_period", 8, 4096)
@@ -1455,7 +1583,7 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
         )
         dyn, eff_depth, lam = self._fase3_inicio_desde_semilla_dinamica(dyn, depth, lam)
         kleisli = self.evaluate_rsi3_banach_kleisli(lam, eff_depth)
-        verdict = self._fase3_heyting_adjudicate(dyn, kleisli, eff_depth)
+        verdict = self._fase3_heyting_adjudicate(dyn, kleisli, depth)
         jerk = _third_difference(capacity_series)
         passport = self._fase3_sign_passport((
             _ENGINE_VERSION,
@@ -1466,11 +1594,14 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             ",".join(str(d) for d in seed.snf_diagonal_factors),
             seed.torsion_order,
             seed.cokernel_free_rank,
+            seed.snf_det_ok,
             seed.krull,
             seed.novikov_norm,
             seed.poincare_canonical_ok,
             seed.delaunay_valid,
-            dyn.cr_residual,
+            seed.orbital_residual,
+            seed.orbital_ok,
+            dyn.harmonicity_residual,
             dyn.gromov_violated,
             dyn.melnikov_chaos,
             dyn.melnikov_eps_valid,
@@ -1480,7 +1611,7 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             ",".join(_fmt(g) for g in dyn.secular_frequencies),
             dyn.secular_valid,
             kleisli.lip_analytic,
-            kleisli.lip_certified,
+            kleisli.lip_safety,
             kleisli.depth_accepted,
             kleisli.certificate_chain,
             kleisli.selftest_passed,
@@ -1495,12 +1626,13 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             cokernel_free_rank=seed.cokernel_free_rank,
             full_rank=seed.full_rank,
             snf_diagonal_factors=seed.snf_diagonal_factors,
+            snf_determinant_certificate=seed.snf_det_ok,
             krull_valuation=seed.krull,
             novikov_norm=seed.novikov_norm,
             raw_token_count=seed.raw_token_count,
             compressed_token_count=seed.compressed_token_count,
             kv_cache_compression_pct=seed.kv_cache_pct,
-            cauchy_riemann_residual=dyn.cr_residual,
+            cauchy_riemann_residual=dyn.harmonicity_residual,
             is_gromov_violated=dyn.gromov_violated,
             gromov_capacity_ball=dyn.capacity_ball,
             gromov_capacity_cylinder=dyn.capacity_cylinder,
@@ -1516,6 +1648,8 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             poincare_lindstedt_error=dyn.lindstedt_error,
             delaunay_LGH=seed.delaunay_LGH,
             delaunay_valid=seed.delaunay_valid,
+            orbital_state_residual=seed.orbital_residual,
+            orbital_state_ok=seed.orbital_ok,
             poincare_variables=seed.poincare_variables,
             poincare_canonical_residual=seed.poincare_canonical_residual,
             poincare_canonical_ok=seed.poincare_canonical_ok,
@@ -1523,7 +1657,8 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
             secular_symmetry_residual=dyn.secular_sym_residual,
             secular_valid=dyn.secular_valid,
             banach_lip_analytic=kleisli.lip_analytic,
-            banach_contraction_lip=kleisli.lip_certified,
+            banach_contraction_lip=kleisli.lip_analytic,
+            banach_safety_lip=kleisli.lip_safety,
             banach_fixed_point=kleisli.fixed_point,
             banach_a_posteriori_error=kleisli.a_posteriori_error,
             banach_residual=kleisli.residual,
@@ -1546,7 +1681,8 @@ class _Fase3_Kleisli_RSI3(_Fase2_Geometria):
 # API pública
 # ══════════════════════════════════════════════════════════════════════════════
 class BoolNovikovToonCartridgeWeaverEngine(_Fase3_Kleisli_RSI3):
-    """Motor espectral de tejeduría TOON (v14.0.0). La lógica vive en las fases anidadas."""
+    """Motor espectral de tejeduría TOON (v15.0.0). La lógica vive en las fases anidadas.
+    Pase `secret_key` explícita; `allow_dev_key=True` solo para desarrollo."""
 
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -1557,7 +1693,7 @@ if __name__ == "__main__":
     engine = BoolNovikovToonCartridgeWeaverEngine(secret_key=b"demo-key-0123456789abcdef")
     print(f"Autoprueba metamórfica: {engine._fase3_metamorphic_selftest()}")
     exps = np.array([0.15, 0.30, 0.45])
-    # A: la cuantización a escala 100 produce torsión. B: unimodular [[1,1],[0,1]].
+    # A: la cuantización a escala 100 produce torsión. B: unimodular [[1,1],[0,1]]-like.
     matrix_a = np.array([[1.0, 0.2, 0.0], [0.2, 1.5, 0.1], [0.0, 0.1, 0.9]])
     matrix_b = np.array([[0.01, 0.01], [0.0, 0.01]])
     for label, mat, kwargs in (
@@ -1568,21 +1704,23 @@ if __name__ == "__main__":
         rep = engine.execute_toon_cartridge_weaver_audit(mat, exps, **kwargs)
         print(f"\n=== Escenario {label}: {rep.truth_value.name} ({hex(rep.truth_value.value)}) ===")
         print(f"  SNF (cadena d₁|d₂|…)  : {rep.snf_diagonal_factors}  torsión libre={rep.smith_torsion_free}"
-              f"  |tors|={rep.smith_torsion_order}  rango libre={rep.cokernel_free_rank}")
-        print(f"  Rademacher–Walsh      : {rep.rademacher_walsh_norm:.4f}")
+              f"  |tors|={rep.smith_torsion_order}  rango libre={rep.cokernel_free_rank}"
+              f"  cert.det={rep.snf_determinant_certificate}")
+        print(f"  Influencia normalizada: {rep.rademacher_walsh_norm:.4f}")
         print(f"  Krull / ‖A‖_Nov       : {rep.krull_valuation:.3f} / {rep.novikov_norm:.4f}")
         print(f"  Compresión KV-Cache   : {rep.kv_cache_compression_pct:.4f}% ({rep.compressed_token_count} tokens)")
-        print(f"  CR residual (periód.) : {rep.cauchy_riemann_residual:.3e}")
+        print(f"  Residuo armonicidad   : {rep.cauchy_riemann_residual:.3e}")
         print(f"  Gromov violado        : {rep.is_gromov_violated}")
         print(f"  Melnikov caos/margen  : {rep.melnikov_chaos_detected} / {rep.melnikov_transversality_margin:.5f}"
               f"  (ε válido={rep.melnikov_eps_regime_valid})")
         lyap = "None" if rep.poincare_lyapunov is None else f"{rep.poincare_lyapunov:.5f}"
         print(f"  Poincaré λ_max (evid.): {lyap}  consistente={rep.poincare_melnikov_consistent}")
         print(f"  Lindstedt Ω exacta    : {rep.poincare_lindstedt_exact:.10f} (serie err={rep.poincare_lindstedt_error:.2e})")
+        print(f"  Estado orbital        : ok={rep.orbital_state_ok} (res={rep.orbital_state_residual})")
         print(f"  Poincaré canónico ok  : {rep.poincare_canonical_ok} (res={rep.poincare_canonical_residual})")
         print(f"  Secular g [rad/año]   : {tuple(round(g, 8) for g in rep.secular_frequencies)}"
               f"  sim.res={rep.secular_symmetry_residual:.1e}  válido={rep.secular_valid}")
-        print(f"  Banach λ³/λ³+ε / x*   : {rep.banach_lip_analytic:.5f}/{rep.banach_contraction_lip:.5f}"
+        print(f"  Banach λ³ / λ³+ε / x* : {rep.banach_lip_analytic:.5f}/{rep.banach_safety_lip:.5f}"
               f" / {rep.banach_fixed_point:.6f}  meta={rep.banach_meta_verified}")
         print(f"  RSI³ profundidad/emp  : {rep.rsi_accepted_depth} / {tuple(round(e, 5) for e in rep.rsi_empirical_lipschitz)}")
         print(f"  Cadena RSI³           : {rep.rsi_certificate_chain[:16]}...")
