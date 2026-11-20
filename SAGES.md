@@ -6,37 +6,9 @@ En el ecosistema **APU Filter v9.0.0**, hemos abandonado la validación lineal c
 
 Cada Sabio gobierna un estrato específico de la jerarquía $\aleph_0\mathbb{DIK}\Omega\alpha\mathbb{W}\Gamma$. Operan bajo el estricto protocolo de "Caja de Cristal Argumentativa": el debate interno y las tensiones dialécticas entre ellos son matemáticamente rigurosos y deterministas, garantizando que el Modelo de Lenguaje (LLM) sea destituido de su poder de decisión y relegado a actuar como una interfaz diplomática y funtor semántico.
 
-```mermaid
-graph TD
-    classDef orchestrator fill:#0f3460,stroke:#e94560,stroke-width:3px,color:#fff;
-    classDef delegates fill:#1a1a2e,stroke:#fff,stroke-width:2px,color:#fff;
-    classDef workers fill:#16213e,stroke:#4a4e69,stroke-width:1px,color:#fff;
-    classDef error_node fill:#ef4444,stroke:#000,stroke-width:3px,color:#fff;
-
-    O[Business Agent Orquestador<br>Política de Alto Nivel]:::orchestrator
-
-    D1[Topological Watcher<br>Matriz Ortogonal Topológica]:::delegates
-    D2[Laplace Oracle<br>Matriz Ortogonal Financiera]:::delegates
-
-    W1[Worker 1<br>Policy-as-Code (APUs)]:::workers
-    W2[Worker 2<br>Policy-as-Code (Insumos)]:::error_node
-    W3[Worker 3<br>Policy-as-Code (Cantidades)]:::workers
-
-    O --> D1
-    O --> D2
-    D1 --> W1
-    D1 --> W2
-    D2 --> W3
-
-    W2 -. "Ciclo Mutante (β1>0)" .-> D1
-    style D1 stroke:#ef4444,stroke-width:4px
-    D1 -. "Veto Estructural Topológico" .-> O
-    style O fill:#ef4444,stroke:#fff,stroke-width:4px
-```
-
 ---
 
-## 🏛️ La Fortaleza Imperial, los Faros de Luz y la Malla Zero-Trust
+## 🏛️ La Fortaleza Imperial, los Pilares de Luz y la Malla Zero-Trust
 
 Para la Alta Gerencia de Obra y los Comités de Licitaciones en Colombia (SECOP II & Mandato BIM 2026), los Sabios del Consejo habitan la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial** que escanea el tejido presupuestal para extirpar las sombras de la corrupción:
 

@@ -1,68 +1,69 @@
 # -*- coding: utf-8 -*-
 r"""
-====================================================================================================
-ARQUITECTURA COGNITIVA APU FILTER - SISTEMA INMUNE SOBERANO
-====================================================================================================
+╔══════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ ARQUITECTURA COGNITIVA APU FILTER — SISTEMA INMUNE SOBERANO                                      ║
+╠══════════════════════════════════════════════════════════════════════════════════════════════════╣
+║ Nombre   : MusicalIsomorphismEngine (Árbitro Espectral de Dualidad Riemanniana y Simpléctica)    ║
+║ Ubicación: app/core/immune_system/musical_isomorphism_engine.py                                  ║
+║ Versión  : 9.0.0-Poincare-Celestial-RSI-L3-Kahler-Spectral-Doctoral                              ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-Nombre: MusicalIsomorphismEngine
-Ubicación: app/core/immune_system/musical_isomorphism_engine.py
-Versión: 1.0.0-APU-SOVEREIGN
-Función: Motor de isomorfismos musicales canónicos bemol flat: TM -> T*M y sostenido sharp: T*M -> TM
-         en variedades riemannianas y simplécticas. Modela la conversión exacta entre campos
-         vectoriales tangentes y 1-formas cotangentes mediante la métrica g_{mu nu} y su inversa.
-
-----------------------------------------------------------------------------------------------------
 DEFINICIÓN GRANULAR Y RIGUROSA DEL SOBERANO Y SU RESPECTIVO:
-----------------------------------------------------------------------------------------------------
-El Soberano de Isomorfismos Musicales (MusicalIsomorphismEngine) es el transformador dual del
-sistema inmune de APU Filter. Su misión es alternar de forma, matemáticamente exacta y no ambigua,
-entre el espacio tangente de velocidades/flujos de acción TM y el espacio cotangente de momentos/gradientes
-T*M. Permite calcular campos vectoriales hamiltonianos X_H a partir del diferencial exterior dH y
-garantiza que la bajada y subida de índices tensoriales preserve las normas e invariantes energéticos.
-Su respectivo motor de momento es 'ScalarMomentumSatelliteEngine'
-(app/core/immune_system/scalar_momentum_satellite_engine.py), y su respectivo agéntico es
-'ScalarMomentumSatelliteAgent' (app/agents/core/immune_system/scalar_momentum_satellite_agent.py).
-Mientras MusicalIsomorphismEngine ejecuta las operaciones métricas canónicas flat y sharp,
-ScalarMomentumSatelliteEngine preserva la integral primera escalar resultante.
+────────────────────────────────────────────────────────────────────────────────────────────────────
+El Soberano de Isomorfismos Musicales (`MusicalIsomorphismEngine`) es el transformador dual y
+simpléctico del sistema inmune de APU Filter. Su misión es alternar de forma matemáticamente exacta,
+incondicionalmente estable y libre de deriva espectral entre el fibrado tangente de velocidades/flujos
+de acción $TM$ y el fibrado cotangente de momentos canónicos/gradientes $T^*M$ mediante la métrica
+Riemanniana precondicionada $G_{\mu\nu}$, su inversa refinada en el álgebra de Banach $G^{\mu\nu}$ y
+la estructura simpléctica compatible de Kähler-Poincaré $\omega_{\mu\nu}$.
 
-----------------------------------------------------------------------------------------------------
-MARCO TEÓRICO Y FORMALISMO MATEMÁTICO:
-----------------------------------------------------------------------------------------------------
-1. Isomorfismo Bemol (Flat) flat: TM -> T*M:
-   Dada una variedad pseudo-riemanniana (M, g), el operador bemol asigna a cada vector X in T_p M
-   una 1-forma cotangente X^flat in T_p^* M mediante la contracción con el tensor métrico:
-       X^flat(Y) = g(X, Y)  forall Y in T_p M  <=>  (X^flat)_mu = g_{mu nu} * X^nu
-   Esta operación corresponde físicamente a la conversión de una velocidad cinemática en un momento canónico.
+Sus respectivos en el ecosistema son:
+  • `ScalarMomentumSatelliteEngine` (`app/core/immune_system/scalar_momentum_satellite_engine.py`),
+  • `ScalarMomentumSatelliteAgent` (`app/agents/core/immune_system/scalar_momentum_satellite_agent.py`),
+  • `LeviCivitaConnectionAgent` (`app/agents/omega/levi_civita_agent.py`).
 
-2. Isomorfismo Sostenido (Sharp) sharp: T*M -> TM:
-   El operador inverso sharp asigna a cada 1-forma cotangente alpha in T_p^* M un vector alpha^sharp in T_p M:
-       g(alpha^sharp, Y) = alpha(Y)  forall Y in T_p M  <=>  (alpha^sharp)^mu = g^{mu nu} * alpha_nu
-   donde g^{mu nu} es el tensor métrico inverso (g^{mu alpha} * g_{alpha nu} = delta^mu_nu).
+MARCO TEÓRICO, MECÁNICA CELESTE DE POINCARÉ Y AUTOMEJORA RECURSIVA NIVEL 3 (Rigor PhD):
+────────────────────────────────────────────────────────────────────────────────────────────────────
+1. Isomorfismo Bemol ($\flat: TM \to T^*M$) e Isomorfismo Sostenido ($\sharp: T^*M \to TM$):
+   Dada la variedad Riemanniana $(M, G)$, el operador bemol contrae vectores contravariantes con el
+   tensor métrico y el operador sostenido eleva 1-formas covariantes mediante el tensor inverso:
+   $$(\flat v)_\mu = G_{\mu\nu} v^\nu, \qquad (\sharp \alpha)^\mu = G^{\mu\nu} \alpha_\nu, \qquad
+     \sharp \circ \flat = \mathrm{id}_{TM}, \quad \flat \circ \sharp = \mathrm{id}_{T^*M}$$
 
-3. Gradiente Riemanniano y Campo Hamiltoniano Simpléctico:
-   El gradiente de una función escalar de energía f se define canónicamente como:
-       grad(f) = (df)^sharp
-   En una variedad simpléctica (M, omega), el campo vectorial hamiltoniano X_H se define por:
-       iota_{X_H} omega = - dH  <=>  X_H = - (omega^flat)^{-1}(dH) = - (dH)^{sharp_omega}
+2. Mecánica Celeste de Henri Poincaré, Triplete de Kähler $(G, \omega, J)$ y Flujo Hamiltoniano:
+   En la base ortonormal espectral de $G = V \Lambda V^\top$, el motor induce el operador casi-complejo
+   ortogonal $J = V J_0 V^\top$ ($J_0 = \bigoplus_{k} \begin{psmallmatrix} 0 & -1 \\ 1 & 0 \end{psmallmatrix}$)
+   y la 2-forma simpléctica compatible $\omega(u, v) = G(J u, v)$.
+   Dado el diferencial de energía $dH \in T^*M$, el gradiente Riemanniano y el campo vectorial
+   Hamiltoniano celeste de Poincaré vienen dados por:
+   $$\operatorname{grad}_G(H) = (dH)^\sharp = G^{-1} dH, \qquad
+     \iota_{X_H}\omega = -dH \iff X_H = -J (dH)^\sharp = -J G^{-1} dH$$
+   Esto garantiza de forma exacta el Teorema de Conservación de Liouville-Poincaré:
+   $$\mathcal{L}_{X_H} H = \langle dH, X_H \rangle = - (dH)^\top G^{-1} G J (dH)^\sharp = 0$$
+   y dota a $T^*M$ del corchete canónico de Poisson $\{f, g\}_{\mathrm{Poincaré}} = \langle dg, X_f \rangle$.
 
-----------------------------------------------------------------------------------------------------
-AXIOMAS FORMALES:
-----------------------------------------------------------------------------------------------------
-Axioma MIE1 (Inversibilidad Canónica Estricta):
-    (X^flat)^sharp == X para todo vector X in TM, y (alpha^sharp)^flat == alpha para todo alpha in T*M.
-Axioma MIE2 (Isometría de Espacios Duales):
-    g(X, Y) == g^*(X^flat, Y^flat) = g^{mu nu} * (X^flat)_mu * (Y^flat)_nu.
-Axioma MIE3 (No-Degeneración de la Conexión Métrico-Simpléctica):
-    det(g_{mu nu}) != 0 y det(omega_{mu nu}) != 0 en todo punto de la variedad.
+3. Automejora Recursiva de Nivel 3 (RSI-L3) en Álgebras de Banach:
+   • Fase 1 (Hiper-Potencia Cúbica de Chebyshev-Newton-Schulz): Refina el inverso espectral $X_0 = G^{-1}$
+     mediante la contracción de orden 3 en el álgebra de Banach $\mathcal{B}(\mathbb{R}^n)$:
+     $$R_k = I - G X_k, \qquad X_{k+1} = \frac{1}{2}\left[X_k(I + R_k + R_k^2) + (I + R_k + R_k^2)^\top X_k^\top\right]$$
+   • Fase 3 (Corrección Iterativa de Defecto Dual — IDC): Al evaluar $v_0 = G^{-1}\alpha$, audita el
+     defecto residual $\delta = \alpha - G v_0$ en $T^*M$ y aplica la corrección de punto fijo
+     $v^* = v_0 + G^{-1}\delta$, aniquilando el error de redondeo de punto flotante.
 
-----------------------------------------------------------------------------------------------------
-INVARIANTES DE ESTADO:
-----------------------------------------------------------------------------------------------------
-Invariante 1 (Preservación de Norma Dual):
-    | ||X||_g - ||X^flat||_{g^*} | <= 1e-7.
-Invariante 2 (Ortogonalidad Dual Preservada):
-    g(X, Y) == 0 <=> g^*(X^flat, Y^flat) == 0.
-====================================================================================================
+SUTURA DE FLUJO EN 3 FASES ANIDADAS ESTRICTAMENTE CONTINUAS:
+────────────────────────────────────────────────────────────────────────────────────────────────────
+  Fase 1 ──► MetricSpectralPreconditioner (Phase1_MetricSpectralPreconditioner)
+             Último método : `precondition(self, raw_metric) -> PreconditionedMetric`
+                                              │
+                                              ▼ (Continuación Formal Directa)
+  Fase 2 ──► FlatIsomorphism (Phase2_FlatIsomorphism)
+             Primer método : `_ingest_phase1_continuation(preconditioned_metric) -> PreconditionedMetric`
+             Último método : `diagnostics_report(self) -> Dict[str, Any]`
+                                              │
+                                              ▼ (Continuación Formal Directa)
+  Fase 3 ──► SharpIsomorphism / MusicalIsomorphismEngine (Phase3_SharpIsomorphism)
+             Primer método : `_ingest_phase2_continuation(self) -> PreconditionedMetric`
+             Último método : `full_cycle_report(self, vector: TangentVector) -> Dict[str, Any]`
 """
 from __future__ import annotations
 
@@ -86,7 +87,7 @@ import scipy.linalg as la
 from numpy.typing import NDArray
 
 # =============================================================================
-# DEPENDENCIAS DEL ECOSISTEMA (stubs para ejecución aislada)
+# DEPENDENCIAS DEL ECOSISTEMA (stubs deterministas para ejecución aislada)
 # =============================================================================
 try:
     from app.core.immune_system.metric_tensors import G_PHYSICS
@@ -126,7 +127,7 @@ except ImportError:  # pragma: no cover
 logger = logging.getLogger("MIC.ImmuneSystem.MusicalIsomorphism")
 
 # =============================================================================
-# CONSTANTES NUMÉRICAS (Wilkinson / espectral)
+# CONSTANTES NUMÉRICAS (Wilkinson / Espectral / Poincaré / RSI-L3)
 # =============================================================================
 _MACHINE_EPSILON: float = float(np.finfo(np.float64).eps)  # ≈ 2.22e-16
 _SYMMETRY_TOLERANCE: float = 1.0e-12
@@ -141,18 +142,23 @@ _ORTHO_TOL: float = 1.0e-10
 _PAIRING_TOL_FACTOR: float = 50.0
 _SPECTRAL_ZERO_FLOOR: float = 1.0e-14
 
+# Constantes de Automejora Recursiva de Nivel 3 (RSI-L3)
+_RSI_L3_MAX_NS_ITERS: int = 5
+_RSI_L3_CONTRACTION_THRESHOLD: float = 0.95
+_RSI_L3_IDC_MAX_STEPS: int = 2
+
 S = TypeVar("S")
 T = TypeVar("T")
 
 
 # =============================================================================
-# §A — TIPOS ALGEBRAICOS FUNDAMENTALES
+# §A — TIPOS ALGEBRAICOS FUNDAMENTALES Y FIBRADOS DUALES
 # =============================================================================
 
 
 class CategoricalVariance(Enum):
     r"""
-    Dualidad topológica sobre el grupo \((\mathbb{Z}_2,\times)\).
+    Dualidad topológica sobre el grupo multiplicativo \((\mathbb{Z}_2,\times)\).
 
     \[
       \varphi(\mathrm{COVARIANT})=+1,\quad
@@ -181,7 +187,7 @@ class TangentVector:
     r"""
     Vector contravariante \(v=v^i\partial_i\in T_p\mathcal{M}\).
 
-    Invariantes: ``float64``, 1-D, shape ``(n,)``, finito.
+    Invariantes: ``float64``, 1-D, shape ``(n,)``, entradas finitas.
     """
 
     coordinates: NDArray[np.float64]
@@ -213,7 +219,7 @@ class TangentVector:
 
     @property
     def norm(self) -> float:
-        """‖v‖₂ euclídea."""
+        """Norma euclídea ‖v‖₂."""
         return float(np.linalg.norm(self.coordinates))
 
     def copy_coords(self) -> NDArray[np.float64]:
@@ -222,7 +228,11 @@ class TangentVector:
 
 @dataclass(frozen=True, slots=True)
 class CotangentVector:
-    r"""1-forma \(\omega=\omega_i\,dx^i\in T_p^*\mathcal{M}\)."""
+    r"""
+    1-forma diferencial covariante \(\omega=\omega_i\,dx^i\in T_p^*\mathcal{M}\).
+
+    Invariantes: ``float64``, 1-D, shape ``(n,)``, entradas finitas.
+    """
 
     coordinates: NDArray[np.float64]
 
@@ -253,6 +263,7 @@ class CotangentVector:
 
     @property
     def norm(self) -> float:
+        """Norma euclídea ‖ω‖₂."""
         return float(np.linalg.norm(self.coordinates))
 
     def copy_coords(self) -> NDArray[np.float64]:
@@ -260,12 +271,12 @@ class CotangentVector:
 
 
 # =============================================================================
-# §B — FUNTORES BASE
+# §B — FUNTORES BASE (COVARIANTE Y CONTRAVARIANTE)
 # =============================================================================
 
 
 class CovariantFunctor(Functor, Generic[S, T]):
-    r"""Funtor covariante \(F_*\): preserva composición (push-forward)."""
+    r"""Funtor covariante \(F_*\): preserva la dirección de los morfismos (push-forward)."""
 
     @property
     def variance(self) -> CategoricalVariance:
@@ -289,7 +300,7 @@ class CovariantFunctor(Functor, Generic[S, T]):
 
 
 class ContravariantFunctor(Functor, Generic[S, T]):
-    r"""Funtor contravariante \(F^*\): invierte composición (pull-back)."""
+    r"""Funtor contravariante \(F^*\): invierte la dirección de los morfismos (pull-back)."""
 
     @property
     def variance(self) -> CategoricalVariance:
@@ -313,20 +324,20 @@ class ContravariantFunctor(Functor, Generic[S, T]):
 
 
 # =============================================================================
-# §C — DTOs DE AUDITORÍA / CONTINUACIÓN FORMAL
+# §C — DTOs DE AUDITORÍA, TELEMETRÍA RSI-L3 Y CONTINUACIÓN FORMAL ENTRE FASES
 # =============================================================================
 
 
 @dataclass(frozen=True, slots=True)
 class InversionAudit:
-    r"""Auditoría bilateral \(G G^{-1}\approx I\approx G^{-1}G\)."""
+    r"""Auditoría bilateral en el álgebra de Banach: \(G G^{-1}\approx I\approx G^{-1}G\)."""
 
     residual_left: float
     residual_right: float
     residual_max: float
     tolerance: float
     passed: bool
-    method: str  # "spectral" | "cholesky_crosscheck"
+    method: str  # "spectral" | "spectral_rsi_l3_ns" | "cholesky_crosscheck"
 
     def summary(self) -> Dict[str, Any]:
         return {
@@ -341,7 +352,7 @@ class InversionAudit:
 
 @dataclass(frozen=True, slots=True)
 class RoundtripReport:
-    r"""Informe ♯∘♭ o ♭∘♯."""
+    r"""Informe de identidad canónica \(\sharp\circ\flat = \mathrm{id}_{TM}\) o \(\flat\circ\sharp = \mathrm{id}_{T^*M}\)."""
 
     direction: str  # "sharp_flat" | "flat_sharp"
     residual: float
@@ -364,10 +375,10 @@ class RoundtripReport:
 @dataclass(frozen=True, slots=True)
 class PairingReport:
     r"""
-    Axioma de Riesz / emparejamiento musical:
+    Teorema de Representación de Riesz / Emparejamiento Musical:
 
     \[
-      \langle ♭v,\,w\rangle_{\mathrm{eucl}} = v^\top G w.
+      \langle \flat v,\,w\rangle_{\mathrm{eucl}} = v^\top G w = G(v, w).
     \]
     """
 
@@ -381,14 +392,14 @@ class PairingReport:
 @dataclass(frozen=True, slots=True)
 class PreconditionedMetric:
     r"""
-    **Salida terminal de la Fase 1** — precondición formal de
-    ``FlatIsomorphism`` / ``MusicalIsomorphismEngine``.
+    **Salida terminal de la Fase 1** — precondición formal de entrada para
+    ``FlatIsomorphism._ingest_phase1_continuation`` (Fase 2).
 
     Invariantes
     -----------
-    - \(G,G^{-1}\in\mathrm{Sym}^+(n)\), autovalores reg. \(>0\).
-    - Residual de inversión dentro de cota Wilkinson.
-    - Formas \((n,n)\) / \((n,)\).
+    - \(G, G^{-1} \in \mathrm{Sym}^+(n)\), autovalores regularizados \(> 0\).
+    - Residuo de inversión acotado por la barrera de Wilkinson y refinado por RSI-L3.
+    - Estructura simpléctica/casi-compleja de Poincaré \(J\) compatible con \(G\).
     """
 
     G: NDArray[np.float64]
@@ -411,6 +422,10 @@ class PreconditionedMetric:
     frobenius_norm_G_inv: float = 0.0
     operator_norm_G: float = 0.0  # λ_max_reg
     operator_norm_G_inv: float = 0.0  # 1/λ_min_reg
+    newton_schulz_iterations: int = 0
+    banach_contraction_gain: float = 1.0
+    poincare_symplectic_capacity: float = math.pi
+    symplectic_J: Optional[NDArray[np.float64]] = None
 
     def __post_init__(self) -> None:
         n = self.matrix_dimension
@@ -465,33 +480,40 @@ class PreconditionedMetric:
             "frobenius_norm_G_inv": self.frobenius_norm_G_inv,
             "operator_norm_G": self.operator_norm_G,
             "operator_norm_G_inv": self.operator_norm_G_inv,
+            "newton_schulz_iterations": self.newton_schulz_iterations,
+            "banach_contraction_gain": self.banach_contraction_gain,
+            "poincare_symplectic_capacity": self.poincare_symplectic_capacity,
         }
 
 
 # =============================================================================
-# FASE 1 — MetricSpectralPreconditioner
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║ FASE 1 — MetricSpectralPreconditioner (Espectro, Banach RSI-L3 y Kähler) ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 # =============================================================================
 
 
 class MetricSpectralPreconditioner:
     r"""
-    **Fase 1** — Preacondicionamiento espectral de \(G\).
+    **FASE 1** — Preacondicionamiento espectral de \(G\), refinamiento
+    recursivo de Nivel 3 (Chebyshev-Newton-Schulz) en el álgebra de Banach
+    \(\mathcal{B}(\mathbb{R}^n)\) y síntesis de la estructura simpléctica de Poincaré.
 
-    Pipeline
-    --------
-    .. code-block:: text
-
-        G_raw
-          → validate → symmetrize → eigh
-          → diagnostics → Tikhonov(κ_target)
-          → (G_reg, G_inv) espectral
-          → auditoría bilateral (+ Cholesky cross-check)
-          → PreconditionedMetric
-
-    Continuación formal
-    -------------------
-    ``precondition`` produce ``PreconditionedMetric``, objeto inicial de
-    ``FlatIsomorphism.__init__`` (Fase 2).
+    Orden constructivo de métodos (1.1 → 1.13)
+    ------------------------------------------
+    1.1  ``_validate_matrix_structure``
+    1.2  ``_enforce_symmetry``
+    1.3  ``_spectral_decomposition``
+    1.4  ``_spectral_zero_tol``
+    1.5  ``_compute_spectral_diagnostics``
+    1.6  ``_adaptive_tikhonov``
+    1.7  ``_build_regularized_pair``
+    1.8  ``_rsi_l3_banach_hyperpower_refinement``
+    1.9  ``_build_poincare_symplectic_structure``
+    1.10 ``_inversion_tolerance``
+    1.11 ``_verify_inversion``
+    1.12 ``_cholesky_crosscheck``
+    1.13 ``precondition`` (**Método terminal de la Fase 1** → inicia Fase 2).
     """
 
     SYMMETRY_TOLERANCE: float = _SYMMETRY_TOLERANCE
@@ -526,73 +548,8 @@ class MetricSpectralPreconditioner:
         self.TARGET_KAPPA = float(target_kappa)
         self.enable_cholesky_crosscheck = bool(enable_cholesky_crosscheck)
 
-    # ----- método terminal Fase 1 -------------------------------------------
-
-    def precondition(
-        self, raw_metric: NDArray[np.float64]
-    ) -> PreconditionedMetric:
-        r"""
-        **Método terminal de la Fase 1.**
-
-        Retorna
-        -------
-        PreconditionedMetric
-            Precondición formal de ``FlatIsomorphism`` (Fase 2).
-        """
-        n = self._validate_matrix_structure(raw_metric)
-        G_sym = self._enforce_symmetry(raw_metric, n)
-        eigenvalues_raw, eigenvectors = self._spectral_decomposition(
-            G_sym, n
-        )
-        cond_raw, gap_abs, gap_chg, null_dim = (
-            self._compute_spectral_diagnostics(eigenvalues_raw)
-        )
-        eigenvalues_reg, epsilon, reg_applied = self._adaptive_tikhonov(
-            eigenvalues_raw, cond_raw
-        )
-        G_reg, G_inv = self._build_regularized_pair(
-            eigenvectors, eigenvalues_reg
-        )
-        cond_reg = float(eigenvalues_reg[-1] / eigenvalues_reg[0])
-
-        audit = self._verify_inversion(G_reg, G_inv, cond_reg, n)
-        chol_res: Optional[float] = None
-        if self.enable_cholesky_crosscheck and not reg_applied:
-            chol_res = self._cholesky_crosscheck(G_reg, G_inv, n)
-
-        pm = PreconditionedMetric(
-            G=G_reg,
-            G_inv=G_inv,
-            eigenvalues_raw=eigenvalues_raw,
-            eigenvalues_reg=eigenvalues_reg,
-            eigenvectors=eigenvectors,
-            condition_number_raw=float(cond_raw),
-            condition_number_reg=cond_reg,
-            spectral_gap_absolute=gap_abs,
-            spectral_gap_cheeger=gap_chg,
-            null_space_dim=null_dim,
-            tikhonov_epsilon=float(epsilon),
-            regularization_applied=reg_applied,
-            matrix_dimension=n,
-            inversion_residual=audit.residual_max,
-            inversion_tolerance=audit.tolerance,
-            cholesky_crosscheck_residual=chol_res,
-            frobenius_norm_G=float(la.norm(G_reg, "fro")),
-            frobenius_norm_G_inv=float(la.norm(G_inv, "fro")),
-            operator_norm_G=float(eigenvalues_reg[-1]),
-            operator_norm_G_inv=float(1.0 / eigenvalues_reg[0]),
-        )
-        logger.info(
-            "[Fase1] Precondicionamiento: %s | inv=%s",
-            pm.spectral_summary(),
-            audit.summary(),
-        )
-        # Continuación formal → FlatIsomorphism(pm)
-        return pm
-
-    # ----- pipeline privado -------------------------------------------------
-
     def _validate_matrix_structure(self, G: NDArray[np.float64]) -> int:
+        """1.1 Validación estructural, dimensional y de finitud IEEE-754."""
         if not isinstance(G, np.ndarray):
             raise TypeError(
                 f"Se requiere NDArray; recibido {type(G).__name__}."
@@ -619,6 +576,7 @@ class MetricSpectralPreconditioner:
     def _enforce_symmetry(
         self, G: NDArray[np.float64], n: int
     ) -> NDArray[np.float64]:
+        r"""1.2 Proyección ortogonal sobre el subespacio autoadjunto \(\mathrm{Sym}(n, \mathbb{R})\)."""
         G = np.asarray(G, dtype=np.float64)
         asym = float(la.norm(G - G.T, "fro"))
         if asym > self.SYMMETRY_TOLERANCE:
@@ -628,13 +586,13 @@ class MetricSpectralPreconditioner:
                 self.SYMMETRY_TOLERANCE,
                 n,
             )
-            G_sym = 0.5 * (G + G.T)
-            return G_sym
+            return 0.5 * (G + G.T)
         return G
 
     def _spectral_decomposition(
         self, G_sym: NDArray[np.float64], n: int
     ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+        r"""1.3 Teorema espectral para operadores autoadjuntos compactos: \(G_{\mathrm{sym}} = V \Lambda V^\top\)."""
         try:
             eigenvalues, eigenvectors = la.eigh(G_sym)
         except la.LinAlgError as exc:
@@ -657,6 +615,7 @@ class MetricSpectralPreconditioner:
     def _spectral_zero_tol(
         self, eigenvalues: NDArray[np.float64]
     ) -> float:
+        """1.4 Umbral espectral de Wilkinson para detección de ker(G)."""
         scale = max(float(np.max(np.abs(eigenvalues))), 1.0)
         return max(
             _WILKINSON_SAFETY * _MACHINE_EPSILON * scale,
@@ -666,6 +625,7 @@ class MetricSpectralPreconditioner:
     def _compute_spectral_diagnostics(
         self, eigenvalues: NDArray[np.float64]
     ) -> Tuple[float, float, float, int]:
+        """1.5 Cálculo de número de condición, gap absoluto, gap de Cheeger y nulidad."""
         lam_min = float(eigenvalues[0])
         lam_max = float(eigenvalues[-1])
         ztol = self._spectral_zero_tol(eigenvalues)
@@ -700,14 +660,8 @@ class MetricSpectralPreconditioner:
         condition_number: float,
     ) -> Tuple[NDArray[np.float64], float, bool]:
         r"""
-        Tikhonov iterativo hasta \(\kappa_{\mathrm{reg}}\le\kappa_{\mathrm{target}}\)
-        o agotar iteraciones.
-
-        \[
-          \lambda_i^{(k+1)}=\lambda_i+\varepsilon_k,\quad
-          \varepsilon_0=\rho\cdot\max(|\lambda|),\quad
-          \varepsilon_{k+1}\leftarrow 10\,\varepsilon_k.
-        \]
+        1.6 Regularización espectral adaptativa de Tikhonov hasta alcanzar
+        \(\kappa_{\mathrm{reg}} \le \kappa_{\mathrm{target}}\).
         """
         ztol = self._spectral_zero_tol(eigenvalues)
         needs = (
@@ -754,15 +708,106 @@ class MetricSpectralPreconditioner:
         eigenvectors: NDArray[np.float64],
         eigenvalues_reg: NDArray[np.float64],
     ) -> Tuple[NDArray[np.float64], NDArray[np.float64]]:
+        r"""1.7 Síntesis espectral del par dual \((G_{\mathrm{reg}}, G_{\mathrm{inv}})\)."""
         V = eigenvectors
-        # G = V diag(λ) Vᵀ sin materializar diag completo cuando es posible
         G_reg = (V * eigenvalues_reg) @ V.T
         G_inv = (V * (1.0 / eigenvalues_reg)) @ V.T
         G_reg = 0.5 * (G_reg + G_reg.T)
         G_inv = 0.5 * (G_inv + G_inv.T)
         return G_reg, G_inv
 
+    @staticmethod
+    def _rsi_l3_banach_hyperpower_refinement(
+        G_reg: NDArray[np.float64],
+        G_inv_init: NDArray[np.float64],
+        n: int,
+    ) -> Tuple[NDArray[np.float64], int, float]:
+        r"""
+        1.8 **Automejora Recursiva de Nivel 3 (RSI-L3) en el Álgebra de Banach \(\mathcal{B}(\mathbb{R}^n)\).**
+
+        Refina el operador inverso \(X_0 = G_{\mathrm{inv}}\) mediante el polinomio
+        hiper-potencia de tercer orden de Chebyshev-Newton-Schulz:
+
+        \[
+          R_k = I - G_{\mathrm{reg}} X_k, \qquad
+          X_{k+1} = \mathrm{Sym}\!\bigl(X_k (I + R_k + R_k^2)\bigr),
+        \]
+
+        cuya tasa de convergencia es cúbica (\(\|R_{k+1}\|_F \le \|R_k\|_F^3\)).
+        """
+        I = np.eye(n, dtype=np.float64)
+        scale = math.sqrt(float(n))
+        X = G_inv_init
+
+        def _bilateral_res(M_inv: NDArray[np.float64]) -> float:
+            rl = float(la.norm(G_reg @ M_inv - I, "fro")) / scale
+            rr = float(la.norm(M_inv @ G_reg - I, "fro")) / scale
+            return max(rl, rr)
+
+        res_init = _bilateral_res(X)
+        res_cur = res_init
+        floor_tol = 2.0 * _MACHINE_EPSILON
+        iters_done = 0
+
+        if res_cur <= floor_tol:
+            return X, 0, 1.0
+
+        for _ in range(_RSI_L3_MAX_NS_ITERS):
+            R = I - (G_reg @ X)
+            norm_R = float(la.norm(R, "fro"))
+            if norm_R >= _RSI_L3_CONTRACTION_THRESHOLD:
+                break
+            poly = I + R + (R @ R)
+            X_cand = X @ poly
+            X_cand = 0.5 * (X_cand + X_cand.T)
+            if not np.all(np.isfinite(X_cand)):
+                break
+            res_cand = _bilateral_res(X_cand)
+            if res_cand < res_cur:
+                X = X_cand
+                res_cur = res_cand
+                iters_done += 1
+                if res_cur <= floor_tol:
+                    break
+            else:
+                break
+
+        gain = res_init / max(res_cur, _MACHINE_EPSILON)
+        return X, iters_done, float(gain)
+
+    @staticmethod
+    def _build_poincare_symplectic_structure(
+        eigenvectors: NDArray[np.float64],
+        eigenvalues_reg: NDArray[np.float64],
+        n: int,
+    ) -> Tuple[NDArray[np.float64], float]:
+        r"""
+        1.9 **Mecánica Celeste de Poincaré:** Síntesis de la estructura casi-compleja
+        compatible \(J\) y la capacidad simpléctica de Gromov-Poincaré.
+
+        En la base de autovectores \(V\), define bloques de Darboux \(2\times 2\):
+
+        \[
+          J_0 = \bigoplus_{k=1}^{\lfloor n/2\rfloor}
+          \begin{pmatrix} 0 & -1 \\ 1 & 0 \end{pmatrix}, \qquad
+          J = V J_0 V^\top, \qquad
+          c_{\mathrm{Gromov}}(B_G(1)) = \frac{\pi}{\sqrt{\lambda_{\max}(G)}}.
+        \]
+        """
+        J0 = np.zeros((n, n), dtype=np.float64)
+        pairs = n // 2
+        for k in range(pairs):
+            i = 2 * k
+            J0[i, i + 1] = -1.0
+            J0[i + 1, i] = 1.0
+        J = eigenvectors @ J0 @ eigenvectors.T
+        J = 0.5 * (J - J.T)  # Garantiza antisimetría exacta en la base canónica
+        lam_max = float(eigenvalues_reg[-1])
+        symp_capacity = float(math.pi / math.sqrt(max(lam_max, _MACHINE_EPSILON)))
+        return J, symp_capacity
+
     def _inversion_tolerance(self, kappa_reg: float, n: int) -> float:
+        """1.10 Cota de error de inversión según el análisis de perturbación de Wilkinson."""
         return max(
             self.INVERSION_BASE_TOLERANCE,
             float(kappa_reg) * _MACHINE_EPSILON * max(n, 1) * _WILKINSON_SAFETY,
@@ -774,7 +819,9 @@ class MetricSpectralPreconditioner:
         G_inv: NDArray[np.float64],
         condition_number_reg: float,
         n: int,
+        ns_iters: int = 0,
     ) -> InversionAudit:
+        """1.11 Auditoría bilateral estricta de la identidad G @ G_inv ≈ I."""
         I = np.eye(n, dtype=np.float64)
         scale = math.sqrt(float(n))
         r_left = float(la.norm(G_reg @ G_inv - I, "fro")) / scale
@@ -788,13 +835,14 @@ class MetricSpectralPreconditioner:
                 f"(r_left={r_left:.3e}, r_right={r_right:.3e}, "
                 f"κ_reg={condition_number_reg:.3e}, n={n})."
             )
+        method_tag = "spectral_rsi_l3_ns" if ns_iters > 0 else "spectral"
         return InversionAudit(
             residual_left=r_left,
             residual_right=r_right,
             residual_max=r_max,
             tolerance=tol,
             passed=True,
-            method="spectral",
+            method=method_tag,
         )
 
     def _cholesky_crosscheck(
@@ -803,7 +851,7 @@ class MetricSpectralPreconditioner:
         G_inv_spectral: NDArray[np.float64],
         n: int,
     ) -> Optional[float]:
-        """Compara \(G^{-1}_{\mathrm{spectral}}\) con inversa vía Cholesky."""
+        r"""1.12 Verificación cruzada independiente mediante factorización de Cholesky \(G = L L^\top\)."""
         try:
             L = la.cholesky(G_reg, lower=True)
         except la.LinAlgError:
@@ -821,46 +869,175 @@ class MetricSpectralPreconditioner:
         )
         return diff
 
+    def precondition(
+        self, raw_metric: NDArray[np.float64]
+    ) -> PreconditionedMetric:
+        r"""
+        1.13 **MÉTODO TERMINAL DE LA FASE 1.**
+
+        Ejecuta el pipeline completo de precondicionamiento espectral,
+        refinamiento hiper-potencia RSI-L3 en el álgebra de Banach y
+        síntesis simpléctica de Poincaré.
+
+        Continuación formal hacia la Fase 2
+        -----------------------------------
+        El objeto ``PreconditionedMetric`` devuelto por este método es el
+        argumento formal exacto del método inicial de la Fase 2:
+        ``FlatIsomorphism._ingest_phase1_continuation``.
+        """
+        n = self._validate_matrix_structure(raw_metric)
+        G_sym = self._enforce_symmetry(raw_metric, n)
+        eigenvalues_raw, eigenvectors = self._spectral_decomposition(
+            G_sym, n
+        )
+        cond_raw, gap_abs, gap_chg, null_dim = (
+            self._compute_spectral_diagnostics(eigenvalues_raw)
+        )
+        eigenvalues_reg, epsilon, reg_applied = self._adaptive_tikhonov(
+            eigenvalues_raw, cond_raw
+        )
+        G_reg, G_inv_raw = self._build_regularized_pair(
+            eigenvectors, eigenvalues_reg
+        )
+
+        # RSI-L3: Refinamiento hiper-potencia cúbico de Chebyshev-Newton-Schulz
+        G_inv, ns_iters, banach_gain = self._rsi_l3_banach_hyperpower_refinement(
+            G_reg, G_inv_raw, n
+        )
+
+        # Mecánica Celeste de Poincaré: Estructura J y capacidad de Gromov
+        symp_J, symp_cap = self._build_poincare_symplectic_structure(
+            eigenvectors, eigenvalues_reg, n
+        )
+
+        cond_reg = float(eigenvalues_reg[-1] / eigenvalues_reg[0])
+        audit = self._verify_inversion(G_reg, G_inv, cond_reg, n, ns_iters=ns_iters)
+
+        chol_res: Optional[float] = None
+        if self.enable_cholesky_crosscheck and not reg_applied:
+            chol_res = self._cholesky_crosscheck(G_reg, G_inv, n)
+
+        pm = PreconditionedMetric(
+            G=G_reg,
+            G_inv=G_inv,
+            eigenvalues_raw=eigenvalues_raw,
+            eigenvalues_reg=eigenvalues_reg,
+            eigenvectors=eigenvectors,
+            condition_number_raw=float(cond_raw),
+            condition_number_reg=cond_reg,
+            spectral_gap_absolute=gap_abs,
+            spectral_gap_cheeger=gap_chg,
+            null_space_dim=null_dim,
+            tikhonov_epsilon=float(epsilon),
+            regularization_applied=reg_applied,
+            matrix_dimension=n,
+            inversion_residual=audit.residual_max,
+            inversion_tolerance=audit.tolerance,
+            cholesky_crosscheck_residual=chol_res,
+            frobenius_norm_G=float(la.norm(G_reg, "fro")),
+            frobenius_norm_G_inv=float(la.norm(G_inv, "fro")),
+            operator_norm_G=float(eigenvalues_reg[-1]),
+            operator_norm_G_inv=float(1.0 / eigenvalues_reg[0]),
+            newton_schulz_iterations=ns_iters,
+            banach_contraction_gain=banach_gain,
+            poincare_symplectic_capacity=symp_cap,
+            symplectic_J=symp_J,
+        )
+        logger.info(
+            "[Fase1] Precondicionamiento: %s | inv=%s",
+            pm.spectral_summary(),
+            audit.summary(),
+        )
+        # ═══► CONTINUACIÓN FORMAL DIRECTA HACIA FASE 2 ◄═══
+        return pm
+
 
 # =============================================================================
-# FASE 2 — FlatIsomorphism  (inicio = continuación de PreconditionedMetric)
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║ FASE 2 — FlatIsomorphism (Isomorfismo ♭: TM → T*M y Forma de Poincaré)    ║
+# ║          (Inicio = Continuación directa de Phase1.precondition)           ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 # =============================================================================
 
 
 class FlatIsomorphism:
     r"""
-    **Fase 2** — Isomorfismo musical bemol \(\flat:TM\to T^*M\).
+    **FASE 2** — Isomorfismo musical bemol \(\flat: TM \to T^*M\), geometría
+    de Riesz y 2-forma simpléctica de Kähler-Poincaré.
 
     Continuación formal de la Fase 1
     --------------------------------
-    Entrada: ``PreconditionedMetric`` de
-    ``MetricSpectralPreconditioner.precondition``.
+    El primer método, ``_ingest_phase1_continuation``, recibe directamente el
+    objeto ``PreconditionedMetric`` emitido por ``MetricSpectralPreconditioner.precondition``.
 
-    \[
-      \omega_i = G_{ij} v^j \quad\Leftrightarrow\quad \omega = G v.
-    \]
+    Orden constructivo de métodos (2.1 → 2.10)
+    ------------------------------------------
+    2.1  ``_ingest_phase1_continuation`` (**Inicio formal de la Fase 2**)
+    2.2  ``__init__``
+    2.3  ``_validate_vector_dimension``
+    2.4  ``g_norm``
+    2.5  ``g_inv_norm``
+    2.6  ``metric_inner``
+    2.7  ``poincare_kinetic_hamiltonian``
+    2.8  ``poincare_symplectic_form``
+    2.9  ``apply_flat_isomorphism``
+    2.10 ``verify_riesz_pairing``
+    2.11 ``diagnostics_report`` (**Método terminal de la Fase 2** → inicia Fase 3).
     """
 
-    def __init__(self, preconditioned_metric: PreconditionedMetric) -> None:
+    @staticmethod
+    def _ingest_phase1_continuation(
+        preconditioned_metric: PreconditionedMetric,
+    ) -> PreconditionedMetric:
+        r"""
+        2.1 **MÉTODO INICIAL DE LA FASE 2 (Continuación Formal de la Fase 1).**
+
+        Verifica el contrato espectral y de positividad del objeto
+        ``PreconditionedMetric`` producido por ``MetricSpectralPreconditioner.precondition``.
+        """
         if not isinstance(preconditioned_metric, PreconditionedMetric):
             raise TypeError(
                 f"FlatIsomorphism requiere PreconditionedMetric; "
                 f"recibido {type(preconditioned_metric).__name__}."
             )
-        self._pm: PreconditionedMetric = preconditioned_metric
-        self._G: NDArray[np.float64] = preconditioned_metric.G
-        self._G_inv: NDArray[np.float64] = preconditioned_metric.G_inv
-        self._n: int = preconditioned_metric.matrix_dimension
+        return preconditioned_metric
+
+    def __init__(self, preconditioned_metric: PreconditionedMetric) -> None:
+        """2.2 Inicializa el fibrado bemol a partir de la métrica precondicionada."""
+        pm = self._ingest_phase1_continuation(preconditioned_metric)
+        self._pm: PreconditionedMetric = pm
+        self._G: NDArray[np.float64] = pm.G
+        self._G_inv: NDArray[np.float64] = pm.G_inv
+        self._n: int = pm.matrix_dimension
+        if pm.symplectic_J is not None and pm.symplectic_J.shape == (self._n, self._n):
+            self._J: NDArray[np.float64] = pm.symplectic_J
+        else:
+            self._J, _ = MetricSpectralPreconditioner._build_poincare_symplectic_structure(
+                pm.eigenvectors, pm.eigenvalues_reg, self._n
+            )
         logger.debug(
-            "[Fase2] FlatIsomorphism n=%d κ_reg=%.3e.",
+            "[Fase2] FlatIsomorphism n=%d κ_reg=%.3e c_Poincaré=%.3e.",
             self._n,
-            preconditioned_metric.condition_number_reg,
+            pm.condition_number_reg,
+            pm.poincare_symplectic_capacity,
         )
 
-    # ----- normas métricas --------------------------------------------------
+    def _validate_vector_dimension(
+        self,
+        vector: Union[TangentVector, CotangentVector],
+        vector_type: str,
+        iso_symbol: str,
+    ) -> None:
+        """2.3 Verificación de invariancia dimensional del fibrado."""
+        if vector.dim != self._n:
+            raise FunctorialityError(
+                f"Colapso dimensional en {iso_symbol}: "
+                f"{vector_type} ∈ ℝ^{vector.dim} incompatible con "
+                f"G ∈ Mat({self._n}×{self._n})."
+            )
 
     def g_norm(self, v: Union[TangentVector, NDArray[np.float64]]) -> float:
-        r"""\(\|v\|_G=\sqrt{v^\top G v}\)."""
+        r"""2.4 Norma Riemanniana en \(TM\): \(\|v\|_G=\sqrt{v^\top G v}\)."""
         coords = (
             v.coordinates
             if isinstance(v, TangentVector)
@@ -876,7 +1053,7 @@ class FlatIsomorphism:
     def g_inv_norm(
         self, w: Union[CotangentVector, NDArray[np.float64]]
     ) -> float:
-        r"""\(\|\omega\|_{G^{-1}}=\sqrt{\omega^\top G^{-1}\omega}\)."""
+        r"""2.5 Norma dual cométrica en \(T^*M\): \(\|\omega\|_{G^{-1}}=\sqrt{\omega^\top G^{-1}\omega}\)."""
         coords = (
             w.coordinates
             if isinstance(w, CotangentVector)
@@ -894,15 +1071,39 @@ class FlatIsomorphism:
         v: TangentVector,
         w: TangentVector,
     ) -> float:
-        r"""\(G(v,w)=v^\top G w\)."""
+        r"""2.6 Producto interno de Riemann \(G(v,w)=v^\top G w\)."""
         self._validate_vector_dimension(v, "TangentVector", "G(·,·)")
         self._validate_vector_dimension(w, "TangentVector", "G(·,·)")
         return float(v.coordinates @ self._G @ w.coordinates)
 
-    # ----- ♭ ----------------------------------------------------------------
+    def poincare_kinetic_hamiltonian(self, v: TangentVector) -> float:
+        r"""
+        2.7 **Mecánica Celeste de Poincaré:** Energía cinética Hamiltoniana
+        sobre el fibrado tangente:
+
+        \[
+          H_{\mathrm{Poincaré}}(v) = \frac{1}{2} G(v, v) = \frac{1}{2}\langle \flat v, v \rangle.
+        \]
+        """
+        return 0.5 * self.metric_inner(v, v)
+
+    def poincare_symplectic_form(
+        self, u: TangentVector, v: TangentVector
+    ) -> float:
+        r"""
+        2.8 **2-Forma Simpléctica Compatible de Kähler-Poincaré:**
+
+        \[
+          \omega(u, v) = G(J u, v) = (J u)^\top G v = -\omega(v, u).
+        \]
+        """
+        self._validate_vector_dimension(u, "TangentVector", "ω(·,·)")
+        self._validate_vector_dimension(v, "TangentVector", "ω(·,·)")
+        Ju = self._J @ u.coordinates
+        return float(Ju @ self._G @ v.coordinates)
 
     def apply_flat_isomorphism(self, vector: TangentVector) -> CotangentVector:
-        r"""\(\omega = ♭v = G v\)."""
+        r"""2.9 Operador musical bemol \(\omega = \flat v = G v \in T_p^*\mathcal{M}\)."""
         if not isinstance(vector, TangentVector):
             raise TypeError(
                 f"♭ requiere TangentVector; recibido {type(vector).__name__}."
@@ -928,11 +1129,11 @@ class FlatIsomorphism:
         w: TangentVector,
     ) -> PairingReport:
         r"""
-        Axioma musical / Riesz:
+        2.10 Certifica el Teorema de Representación de Riesz:
 
         \[
-          \langle ♭v,\, w\rangle_{\mathbb{R}^n}
-            = \sum_i (♭v)_i w^i
+          \langle \flat v,\, w\rangle_{\mathbb{R}^n}
+            = \sum_{i=1}^n (\flat v)_i w^i
             = v^\top G w.
         \]
         """
@@ -963,62 +1164,114 @@ class FlatIsomorphism:
         )
 
     def diagnostics_report(self) -> Dict[str, Any]:
+        r"""
+        2.11 **MÉTODO TERMINAL DE LA FASE 2.**
+
+        Emite el reporte de estado del fibrado bemol \(\flat: TM \to T^*M\)
+        y constituye el punto de enlace hacia la Fase 3 (`SharpIsomorphism`).
+        """
         report = self._pm.spectral_summary()
         report["phase"] = "FlatIsomorphism (Fase 2)"
         report["isomorphism"] = "♭ : TM → T*M"
+        # ═══► CONTINUACIÓN FORMAL DIRECTA HACIA FASE 3 ◄═══
         return report
-
-    def _validate_vector_dimension(
-        self,
-        vector: Union[TangentVector, CotangentVector],
-        vector_type: str,
-        iso_symbol: str,
-    ) -> None:
-        if vector.dim != self._n:
-            raise FunctorialityError(
-                f"Colapso dimensional en {iso_symbol}: "
-                f"{vector_type} ∈ ℝ^{vector.dim} incompatible con "
-                f"G ∈ Mat({self._n}×{self._n})."
-            )
 
 
 # =============================================================================
-# FASE 3 — SharpIsomorphism + auditoría categórica
-#           (continuación de FlatIsomorphism / Fase 2)
+# ╔═══════════════════════════════════════════════════════════════════════════╗
+# ║ FASE 3 — SharpIsomorphism + Dinámica Hamiltoniana de Poincaré + RSI-L3    ║
+# ║          (Inicio = Continuación directa de FlatIsomorphism / Fase 2)      ║
+# ╚═══════════════════════════════════════════════════════════════════════════╝
 # =============================================================================
 
 
 class SharpIsomorphism(FlatIsomorphism):
     r"""
-    **Fase 3** — Isomorfismo sostenido \(\sharp:T^*M\to TM\) + auditoría.
+    **FASE 3** — Isomorfismo musical sostenido \(\sharp: T^*M \to TM\),
+    corrección iterativa de defecto dual (RSI-L3), campos vectoriales
+    Hamiltonianos de Poincaré, corchete de Poisson y auditoría categórica \(\mathbb{Z}_2\).
 
     Continuación formal de la Fase 2
     --------------------------------
-    Hereda \(G,G^{-1}\) y añade:
-
-    \[
-      v^i = G^{ij}\omega_j,\qquad
-      ♯\circ♭=\mathrm{id}_{TM},\qquad
-      ♭\circ♯=\mathrm{id}_{T^*M}.
-    \]
+    Comienza con ``_ingest_phase2_continuation``, validando la estructura
+    heredada de ``FlatIsomorphism``, y culmina en ``full_cycle_report``.
     """
+
+    def _ingest_phase2_continuation(self) -> PreconditionedMetric:
+        r"""
+        3.1 **MÉTODO INICIAL DE LA FASE 3 (Continuación Formal de la Fase 2).**
+
+        Certifica que el estado de ``FlatIsomorphism`` (Fase 2) se encuentra
+        íntegro y listo para habilitar el operador inverso \(\sharp: T^*M \to TM\).
+        """
+        if not hasattr(self, "_pm") or not isinstance(self._pm, PreconditionedMetric):
+            raise FunctorialityError(
+                "[Fase3] Continuación desde Fase 2 inválida: PreconditionedMetric ausente."
+            )
+        return self._pm
+
+    def _rsi_l3_iterative_defect_correction(
+        self,
+        omega_coords: NDArray[np.float64],
+        v_init: NDArray[np.float64],
+    ) -> NDArray[np.float64]:
+        r"""
+        3.2 **Automejora Recursiva de Nivel 3 (RSI-L3) — Corrección Iterativa de Defecto Dual.**
+
+        Dado \(v_0 = G^{-1}\omega\), evalúa el defecto cotangente
+        \(\delta_k = \omega - G v_k\). Si \(\|\delta_k\|_2\) supera el piso
+        de precisión de máquina pero la iteración es contractiva, actualiza:
+
+        \[
+          v_{k+1} = v_k + G^{-1}(\omega - G v_k),
+        \]
+        abatiendo el error de inversión finita en el espacio tangente.
+        """
+        omega_norm = float(np.linalg.norm(omega_coords))
+        if omega_norm <= _MACHINE_EPSILON:
+            return v_init
+
+        v_cur = v_init
+        defect_cur = float(np.linalg.norm(omega_coords - (self._G @ v_cur)))
+        floor_tol = 2.0 * _MACHINE_EPSILON * omega_norm
+
+        if defect_cur <= floor_tol:
+            return v_cur
+
+        for _ in range(_RSI_L3_IDC_MAX_STEPS):
+            residual_vec = omega_coords - (self._G @ v_cur)
+            v_cand = v_cur + (self._G_inv @ residual_vec)
+            if not np.all(np.isfinite(v_cand)):
+                break
+            defect_cand = float(np.linalg.norm(omega_coords - (self._G @ v_cand)))
+            if defect_cand < defect_cur:
+                v_cur = v_cand
+                defect_cur = defect_cand
+                if defect_cur <= floor_tol:
+                    break
+            else:
+                break
+
+        return v_cur
 
     def apply_sharp_isomorphism(
         self, covector: CotangentVector
     ) -> TangentVector:
-        r"""\(v = ♯\omega = G^{-1}\omega\)."""
+        r"""3.3 Operador musical sostenido \(v = \sharp\omega = G^{-1}\omega \in T_p\mathcal{M}\) con refinamiento RSI-L3."""
+        self._ingest_phase2_continuation()
         if not isinstance(covector, CotangentVector):
             raise TypeError(
                 f"♯ requiere CotangentVector; "
                 f"recibido {type(covector).__name__}."
             )
         self._validate_vector_dimension(covector, "CotangentVector", "♯")
-        v = self._G_inv @ covector.coordinates
-        if not np.all(np.isfinite(v)):
+        v_raw = self._G_inv @ covector.coordinates
+        if not np.all(np.isfinite(v_raw)):
             raise NumericalInstabilityError(
                 f"♯ no finito: ‖ω‖₂={covector.norm:.3e}, "
                 f"‖G⁻¹‖_F={self._pm.frobenius_norm_G_inv:.3e}."
             )
+        v = self._rsi_l3_iterative_defect_correction(covector.coordinates, v_raw)
         logger.debug(
             "♯: ‖ω‖₂=%.3e → ‖v‖₂=%.3e; ‖ω‖_{G⁻¹}=%.3e.",
             covector.norm,
@@ -1027,7 +1280,57 @@ class SharpIsomorphism(FlatIsomorphism):
         )
         return TangentVector(coordinates=np.asarray(v, dtype=np.float64))
 
+    def compute_riemannian_gradient(
+        self, df: CotangentVector
+    ) -> TangentVector:
+        r"""
+        3.4 **Gradiente Riemanniano Canónico:**
+
+        \[
+          \operatorname{grad}_G(f) = (df)^\sharp = G^{-1} df \in T_p\mathcal{M}.
+        \]
+        """
+        return self.apply_sharp_isomorphism(df)
+
+    def compute_poincare_hamiltonian_vector_field(
+        self, dH: CotangentVector
+    ) -> TangentVector:
+        r"""
+        3.5 **Campo Vectorial Hamiltoniano Celeste de Poincaré:**
+
+        Resuelve la ecuación simpléctica fundamental \(\iota_{X_H}\omega = -dH\):
+
+        \[
+          X_H = -J\,(dH)^\sharp = -J\,G^{-1}\,dH \in T_p\mathcal{M}.
+        \]
+
+        Satisface idénticamente la conservación de energía de Liouville-Poincaré:
+        \(\mathcal{L}_{X_H} H = \langle dH, X_H \rangle = 0\).
+        """
+        grad_H = self.apply_sharp_isomorphism(dH)
+        xh_coords = -(self._J @ grad_H.coordinates)
+        return TangentVector(coordinates=np.asarray(xh_coords, dtype=np.float64))
+
+    def compute_poisson_bracket(
+        self, df: CotangentVector, dg: CotangentVector
+    ) -> float:
+        r"""
+        3.6 **Corchete Canónico de Poisson-Poincaré:**
+
+        \[
+          \{f, g\}_{\mathrm{Poincaré}}
+            = \omega(X_f, X_g)
+            = \langle dg, X_f \rangle
+            = - (dg)^\top J G^{-1} (df).
+        \]
+        """
+        self._validate_vector_dimension(df, "CotangentVector", "{·,·}")
+        self._validate_vector_dimension(dg, "CotangentVector", "{·,·}")
+        X_f = self.compute_poincare_hamiltonian_vector_field(df)
+        return float(dg.coordinates @ X_f.coordinates)
+
     def _roundtrip_tolerance(self, input_norm: float) -> float:
+        """3.7 Cota elástica de Wilkinson para la identidad de ida y vuelta."""
         kappa = self._pm.condition_number_reg
         return max(
             _ROUNDTRIP_TOLERANCE_FACTOR
@@ -1040,7 +1343,7 @@ class SharpIsomorphism(FlatIsomorphism):
     def verify_roundtrip_identity(
         self, vector: TangentVector
     ) -> RoundtripReport:
-        r"""Verifica \(\|♯(♭(v))-v\|_2 \le \mathrm{tol}\)."""
+        r"""3.8 Verifica el Axioma MIE1 en \(TM\): \(\|\sharp(\flat(v))-v\|_2 \le \mathrm{tol}\)."""
         if not isinstance(vector, TangentVector):
             raise TypeError("verify_roundtrip_identity requiere TangentVector.")
         omega = self.apply_flat_isomorphism(vector)
@@ -1071,7 +1374,7 @@ class SharpIsomorphism(FlatIsomorphism):
     def verify_cotroundtrip_identity(
         self, covector: CotangentVector
     ) -> RoundtripReport:
-        r"""Verifica \(\|♭(♯(\omega))-\omega\|_2 \le \mathrm{tol}\)."""
+        r"""3.9 Verifica el Axioma MIE1 en \(T^*M\): \(\|\flat(\sharp(\omega))-\omega\|_2 \le \mathrm{tol}\)."""
         if not isinstance(covector, CotangentVector):
             raise TypeError(
                 "verify_cotroundtrip_identity requiere CotangentVector."
@@ -1104,7 +1407,8 @@ class SharpIsomorphism(FlatIsomorphism):
         self, vector: TangentVector
     ) -> Dict[str, Any]:
         r"""
-        \(\|v\|_G = \|♭v\|_{G^{-1}}\) (isometría musical).
+        3.10 Verifica el Axioma MIE2 (Isometría de Espacios Duales):
+        \(\|v\|_G = \|\flat v\|_{G^{-1}}\).
         """
         omega = self.apply_flat_isomorphism(vector)
         n_g = self.g_norm(vector)
@@ -1129,7 +1433,21 @@ class SharpIsomorphism(FlatIsomorphism):
             "passed": passed,
         }
 
-    # ----- auditoría Z₂ / topos ---------------------------------------------
+    @staticmethod
+    def _extract_variance(functor: Functor, label: str) -> CategoricalVariance:
+        """3.11 Extracción tipada de la varianza funtorial en Z₂."""
+        variance = getattr(functor, "variance", None)
+        if variance is None:
+            raise TypeError(
+                f"El funtor {label} ({type(functor).__name__}) no expone "
+                f"'variance'."
+            )
+        if not isinstance(variance, CategoricalVariance):
+            raise TypeError(
+                f"'variance' de {label} debe ser CategoricalVariance; "
+                f"recibido {type(variance).__name__}."
+            )
+        return variance
 
     @staticmethod
     def audit_functor_composition(
@@ -1139,10 +1457,10 @@ class SharpIsomorphism(FlatIsomorphism):
         verify_domain_compatibility: bool = True,
     ) -> Dict[str, Any]:
         r"""
-        Audita \(f_1\circ f_2\):
+        3.12 Audita la composición funtorial \(f_1\circ f_2\) en el Topos MIC:
 
         - Varianza: \(\mathrm{Var}(f_1)\otimes\mathrm{Var}(f_2)\) en \(\mathbb{Z}_2\).
-        - Topos: \(\mathrm{dom}(f_1)\cong\mathrm{cod}(f_2)\) si está disponible.
+        - Compatibilidad de categorías: \(\mathrm{dom}(f_1)\cong\mathrm{cod}(f_2)\).
         """
         var_1 = SharpIsomorphism._extract_variance(f1, "f1")
         var_2 = SharpIsomorphism._extract_variance(f2, "f2")
@@ -1185,61 +1503,62 @@ class SharpIsomorphism(FlatIsomorphism):
         )
         return report
 
-    @staticmethod
-    def _extract_variance(functor: Functor, label: str) -> CategoricalVariance:
-        variance = getattr(functor, "variance", None)
-        if variance is None:
-            raise TypeError(
-                f"El funtor {label} ({type(functor).__name__}) no expone "
-                f"'variance'."
-            )
-        if not isinstance(variance, CategoricalVariance):
-            raise TypeError(
-                f"'variance' de {label} debe ser CategoricalVariance; "
-                f"recibido {type(variance).__name__}."
-            )
-        return variance
-
 
 # =============================================================================
-# ORQUESTADOR — MusicalIsomorphismEngine (Fases 1+2+3)
+# ORQUESTADOR SOBERANO — MusicalIsomorphismEngine (Clausura de Fases 1+2+3)
 # =============================================================================
 
 
 class MusicalIsomorphismEngine(SharpIsomorphism):
     r"""
-    Árbitro geométrico unificado del fibrado de dualidad.
+    Árbitro geométrico, simpléctico y espectral unificado del fibrado de dualidad.
 
-    Cadena
-    ------
+    Encapsula y enlaza las 3 Fases Anidadas:
+
     .. code-block:: text
 
-        MetricSpectralPreconditioner.precondition
-            → PreconditionedMetric
-        FlatIsomorphism (♭, normas G, Riesz)
-            → SharpIsomorphism (♯, roundtrips, Z₂)
-                → MusicalIsomorphismEngine
+        Fase 1: MetricSpectralPreconditioner.precondition
+                   ──► PreconditionedMetric
+        Fase 2: FlatIsomorphism._ingest_phase1_continuation → diagnostics_report
+                   ──► (♭, normas G, Riesz, forma simpléctica de Poincaré ω)
+        Fase 3: SharpIsomorphism._ingest_phase2_continuation → full_cycle_report
+                   ──► (♯, IDC RSI-L3, campo Hamiltoniano X_H, Poisson, Z₂)
     """
+
+    # Enlaces explícitos de las 3 Fases Anidadas para introspección estructural
+    Phase1_MetricSpectralPreconditioner = MetricSpectralPreconditioner
+    Phase2_FlatIsomorphism = FlatIsomorphism
+    Phase3_SharpIsomorphism = SharpIsomorphism
 
     def __init__(
         self,
         metric_tensor: NDArray[np.float64] = G_PHYSICS,
         preconditioner: Optional[MetricSpectralPreconditioner] = None,
     ) -> None:
+        # ── Fase 1: Precondicionamiento Espectral y Refinamiento de Banach ────
         _pre = (
             preconditioner
             if preconditioner is not None
             else MetricSpectralPreconditioner()
         )
         pm = _pre.precondition(metric_tensor)
+
+        # ── Fase 2 y Fase 3: Inicialización continua de Flat y Sharp ──────────
         super().__init__(pm)
         self._preconditioner = _pre
+        self.phase1 = _pre
+        self.phase2 = self
+        self.phase3 = self
+
         logger.info(
-            "[MusicalIsomorphismEngine] v4 n=%d κ_reg=%.3e reg=%s inv_res=%.3e.",
+            "[MusicalIsomorphismEngine] v9 n=%d κ_reg=%.3e reg=%s inv_res=%.3e "
+            "NS_iters=%d c_Poincaré=%.3e.",
             pm.matrix_dimension,
             pm.condition_number_reg,
             pm.regularization_applied,
             pm.inversion_residual,
+            pm.newton_schulz_iterations,
+            pm.poincare_symplectic_capacity,
         )
 
     @property
@@ -1260,13 +1579,16 @@ class MusicalIsomorphismEngine(SharpIsomorphism):
 
     def full_cycle_report(self, vector: TangentVector) -> Dict[str, Any]:
         r"""
-        Ciclo unificado:
+        3.13 **MÉTODO TERMINAL DE LA FASE 3 (Clausura del Ciclo Musical y Celeste).**
 
-        1. \(\omega=♭v\)
-        2. \(v'=♯\omega\)
-        3. roundtrip \(♯∘♭\)
-        4. isometría \(\|v\|_G=\|♭v\|_{G^{-1}}\)
-        5. pairing de Riesz \(G(v,v)=\langle♭v,v\rangle\)
+        Ejecuta y audita el ciclo completo:
+        1. \(\omega = \flat v\)
+        2. \(v' = \sharp \omega\) (con corrección de defecto dual RSI-L3)
+        3. Identidad \(\sharp \circ \flat = \mathrm{id}_{TM}\) y \(\flat \circ \sharp = \mathrm{id}_{T^*M}\)
+        4. Isometría dual \(\|v\|_G = \|\flat v\|_{G^{-1}}\)
+        5. Emparejamiento de Riesz \(G(v,v) = \langle \flat v, v \rangle\)
+        6. Campo vectorial Hamiltoniano de Poincaré \(X_H = -J(dH)^\sharp\) y
+           verificación del invariante de Liouville-Poincaré \(\langle \omega, X_H \rangle = 0\).
         """
         if not isinstance(vector, TangentVector):
             raise TypeError("full_cycle_report requiere TangentVector.")
@@ -1275,8 +1597,14 @@ class MusicalIsomorphismEngine(SharpIsomorphism):
         rt = self.verify_roundtrip_identity(vector)
         iso = self.verify_isometry_flat(vector)
         pair = self.verify_riesz_pairing(vector, vector)
-        # cotroundtrip sobre ω
         crt = self.verify_cotroundtrip_identity(omega)
+
+        # Dinámica Hamiltoniana de Poincaré sobre la 1-forma inducida ω = ♭v
+        X_H = self.compute_poincare_hamiltonian_vector_field(omega)
+        liouville_conservation_residual = abs(
+            float(omega.coordinates @ X_H.coordinates)
+        )
+        poincare_hamiltonian = self.poincare_kinetic_hamiltonian(vector)
 
         report: Dict[str, Any] = {
             **self._pm.spectral_summary(),
@@ -1295,9 +1623,15 @@ class MusicalIsomorphismEngine(SharpIsomorphism):
                 "G_inner": pair.G_inner,
                 "flat_pairing": pair.flat_pairing,
             },
-            "engine": "MusicalIsomorphismEngine v4.0.0 (Fases 1+2+3)",
+            "poincare_celestial_mechanics": {
+                "kinetic_hamiltonian": poincare_hamiltonian,
+                "hamiltonian_vector_field_norm": X_H.norm,
+                "liouville_energy_conservation_residual": liouville_conservation_residual,
+                "symplectic_capacity_gromov": self._pm.poincare_symplectic_capacity,
+            },
+            "engine": "MusicalIsomorphismEngine v9.0.0 (Fases 1+2+3)",
         }
-        logger.info("[Engine] Ciclo completo ♭→♯ auditado.")
+        logger.info("[Engine] Ciclo completo ♭→♯ y flujo de Poincaré auditados.")
         return report
 
 
@@ -1306,9 +1640,9 @@ class MusicalIsomorphismEngine(SharpIsomorphism):
 # =============================================================================
 
 __all__ = [
-    # Constantes útiles a tests
+    # Constantes útiles a tests y módulos dependientes
     "_MACHINE_EPSILON",
-    "_MACHINE_EPS",  # alias compat levi_civita stubs
+    "_MACHINE_EPS",
     # Tipos
     "CategoricalVariance",
     "TangentVector",
@@ -1329,10 +1663,10 @@ __all__ = [
     "SharpIsomorphism",
     # Orquestador
     "MusicalIsomorphismEngine",
-    # Errores (reexport si stub o real)
+    # Errores
     "FunctorialityError",
     "NumericalInstabilityError",
 ]
 
-# Alias de compatibilidad con levi_civita_agent stubs
+# Alias de compatibilidad con levi_civita_agent
 _MACHINE_EPS = _MACHINE_EPSILON

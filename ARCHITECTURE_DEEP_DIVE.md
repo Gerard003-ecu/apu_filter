@@ -8,7 +8,7 @@ Este documento detalla la implementación técnica, geométrica y física de los
 
 La arquitectura de APU Filter v9.0.0 rige la propagación del control y la información mediante la **Ley de Clausura Transitiva de Subespacios de Hilbert Covariantes** y la **Filtración de de Rham-Fukaya**:
 
-$$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{WISDOM}}$$
+$$V_{\aleph_0} \subsetneq V_{\mathrm{PHYSICS}} \subsetneq V_{\mathrm{TACTICS}} \subsetneq V_{\mathrm{STRATEGY}} \subsetneq V_{\mathrm{OMEGA}} \subsetneq V_{\mathrm{ALPHA}} \subsetneq V_{\mathrm{P}} \subsetneq V_{\mathrm{WISDOM}} \subsetneq V_{\mathrm{GAMMA}}$$
 
 $$V_{\mathrm{PHYSICS}} \subset V_{\mathrm{SEQUITOS}} \subset V_{\mathrm{TACTICS}} \subset V_{\mathrm{STRATEGY}} \subset V_{\mathrm{CENTURIONS}} \subset V_{\mathrm{TESSERARIOS}} \subset V_{\mathrm{ERUDITOS}} \subset V_{\mathrm{PRETORIO}} \subset V_{\mathbb{W}}$$
 
@@ -16,9 +16,9 @@ El transporte paralelo de la información a lo largo del fibrado cotangente $T^*
 
 ---
 
-## 🏛️ La Fortaleza Imperial, los Faros y la Inversión Narrativa en 4 Pasos
+## 🏛️ La Fortaleza Imperial, los Pilares de Luz y la Inversión Narrativa en 4 Pasos
 
-Para la Alta Gerencia y los Comités de Licitación, el andamiaje FPU se presenta como la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Faros de Luz**, iluminando las sombras de la corrupción y actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial**:
+Para la Alta Gerencia y los Comités de Licitación, el andamiaje FPU se presenta como la **Fortaleza Imperial de Campos Topológicos, la Cimentación y los Pilares de Luz**, iluminando las sombras de la corrupción y actuando como el **Sistema de Navegación Inercial Ciber-Físico y Guardaespaldas Patrimonial**:
 
 ```
   [ PASO 1: ESCENARIO DE DOLOR Y TERRENO EMBARRADO ]
