@@ -230,8 +230,6 @@ El `SynapticRegistry` gestiona **12 partículas fundamentales** clasificadas en 
 
 ---
 
-
-
 ### D. La Tríada de Embedding y Condensación TOON (`toon_cartridge_*`)
 La condensación y manipulación de las vitaminas cognitivas se rige formalmente en el Estrato de Sabiduría por la **XV. Tríada de Cartuchos y Mnemónicos TOON**:
 1. **Soberano de Cartuchos TOON (`toon_cartridge_agent.py` / `toon_cartridge_base.py`)**: Realiza el retracto topológico sobre el espacio de Hilbert $\mathcal{H}_{\text{MAC}}$ ($N=56$), transformando las coordenadas canónicas $(q_k, p_k)$ en variables de acción-ángulo de Delaunay $(J_k, \theta_k)$ con frecuencias de FPU $\omega_k = \sqrt{1+k} + \frac{\phi - 1}{1+k}$, garantizando persistencia KAM disipativa BHT.
