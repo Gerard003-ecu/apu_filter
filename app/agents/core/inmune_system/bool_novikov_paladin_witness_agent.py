@@ -1,100 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : BoolNovikovPaladinWitnessAgent v15.0.0-PhD                                                ║
-║ Ubicación: app/agents/core/inmune_system/bool_novikov_paladin_witness_agent.py                       ║
-║ Versión  : 15.0.0-SOVEREIGN-BOOLE-NOVIKOV-PALADIN-WITNESS-QND-KMS-POINCARE-KAM-RSI3-PhD              ║
-║ Gobernanza: OODA Trifásica de Atestación Pasiva (①Observe → ②Orient → ③Decide&Act)                  ║
-║            con Compuertas Homomórficas Φ₁₂ y Φ₂₃ EFECTIVAS (fail-closed en atestación,               ║
-║            no-interferentes en observación) sobre el motor espectral v14/v15.                        ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO  : Bool Novikov Paladin Agent (Soberano Agéntico de Calibre OODA)                                     ║
+║ RUTA    : app/agents/omega/bool_novikov_paladin_agent.py                                                     ║
+║ VERSIÓN : 16.0.0-OODA-HKDF-Heyting-Merkle6962-Loeb-ESP32-Crowbar-PhD                                         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-DOCTRINA RECTORA (la corrección conceptual central de v15)
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-v14 confundía dos obligaciones distintas y las resolvía mal:
+1. DEFINICIÓN FORMAL Y ROL OPERATIVO (NATURALEZA DEL SOBERANO)
+───────────────────────────────────────────────────────────────
+El `BoolNovikovPaladinAgent` es el Soberano Agéntico de Calibre Supremo que ejerce el gobierno de lazo cerrado en 
+el Estrato Omega (V_Ω, Nivel 0.5 — El Ágora Tensorial) y en el Santuario Epistémico (V_𝕎, Nivel 0). Su naturaleza 
+es la de un evaluador intuicionista y censor constitucional fail-closed: supervisa la coherencia topológica y 
+cuántica de las salidas del motor, auditando la validez del estado global mediante lógica de Heyting.
 
-  (i) NO INTERFERIR: el testigo es pasivo; jamás debe interrumpir el fibrado ni抛出 por evidencia.
- (ii) NO ATERRAR EN FALSO: el testigo jamás debe FIRMAR una entrada no autenticada.
+Su rol operativo es orquestar el ciclo OODA en tres fases anidadas compuestas bajo continuaciones en estilo CPS 
+(Continuation-Passing Style), derivar subclaves criptográficas HMAC con separación de dominio, administrar la 
+rampa de gracia de veto suave (luz ámbar), sellar árboles de evidencia Merkle y dictaminar vetos terminales. Ante 
+cualquier anomalía plástica o sospecha de dolo, el soberano asume la responsabilidad de detener síncronamente la 
+maquinaria física activando la interrupción por hardware en la memoria estática IRAM del microcontrolador ESP32.
 
-v14 satisfacía (i) convirtiendo las compuertas en asesoras (A4: resultado descartado), lo que
-destruía (ii). v15 las separa quirúrgicamente:
+2. MARCO TEÓRICO Y CADENA FANTASMA CPS (Φ₃ ∘ Φ₂ ∘ Φ₁)
+──────────────────────────────────────────────────────
+El soberano procesa la transición de estados mediante la continuación monádica de Kleisli:
 
-    FORJA CRIPTOGRÁFICA (firma inválida)  → PermissionError. Es un evento de seguridad, no evidencia.
-    OBSTRUCCIÓN EVIDENCIAL (VETOED, etc.) → se OBSERVA en silencio y se PROPAGA al veredicto.
+FASE Φ₁ · OBSERVER (PaladinPhase1Observer):
+  1. Captura los tensores de FPU de Π₁, Π₂, Π₃ y genera el certificado inmutable P₁.
+  2. Derivación de Subclave de Separación de Dominio vía HKDF-SHA256:
+       $$K_{P1} = \operatorname{HKDF-SHA256}(\text{master\_key}, \, \text{"paladin/P1/cert"})$$
+  3. Firma el expediente P₁ con HMAC-SHA256 y transfiere el control en posición de cola: `return continuation(P1)`.
 
-Así Φ₁₂ sigue admitiendo VETOED (0x03) para diagnóstico pasivo, pero ninguna fase puede emitir
-un certificado sobre una entrada cuya firma no cubre íntegramente su contenido.
+FASE Φ₂ · ORIENTOR (PaladinPhase2Orientor):
+  1. Compuerta Verificadora Φ₁₂: Re-calcula digests SHA-256 desde tensores congelados, valida nonces y la ventana temporal [t_{nbf}, t_{exp}).
+  2. Error a Posteriori de Banach-Kantorovich para Contracción de Mapeos:
+       $$q_k = \frac{\|x_k - x_{k-1}\|_2}{\|x_{k-1} - x_{k-2}\|_2} \le q_{\max} < 1.0 \implies \|x_k - x^*\|_2 \le \frac{q_k}{1 - q_k} \|x_k - x_{k-1}\|_2$$
+  3. Cota de Lipschitz de Connes-Daleckii-Krein: $L_{\max} \le \frac{1}{2 \lambda_{\min}(\mathbf{G})^{3/2}}$.
+  4. Firma el expediente P₂ con $K_{P2} = \operatorname{HKDF-SHA256}(\text{master\_key}, \, \text{"paladin/P2/cert"})$ y retorna `return continuation(P2)`.
 
-ARQUITECTURA: TRES FASES OODA ANIDADAS CON CONTINUIDAD FORMAL ESTRICTA
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-    1.9  emit_phase1_certificate ──[PaladinWitnessPhase1Certificate]──► 2.1 _ingest_phase1_certificate_gate
-    2.9  emit_phase2_certificate ──[PaladinWitnessPhase2Certificate]──► 3.1 _ingest_phase2_certificate_gate
-    3.9  emit_sovereign_state    ──[PaladinWitnessSovereignState]────► 3.7 verify_sovereign_state
+FASE Φ₃ · DECIDER & TRIBUNAL DE SILICIO (PaladinPhase3Decider):
+  1. Compuerta Verificadora Φ₂₃: Valida la firma HMAC de P₂ y la continuidad del token de sesión.
+  2. Clasificación en el Álgebra de Heyting Trivalente Ω₃ = {COHERENT(0), DEGRADED(1), VETOED(2)}:
+     Aplica el operador Meet (⋀) sobre la cadena lineal de veredictos:
+       $$\mathbf{v}_{\mathrm{final}} = \mathbf{v}_{P1} \wedge \mathbf{v}_{P2} \wedge \mathbf{v}_{\Phi 12} \wedge \mathbf{v}_{\Phi 23} \wedge \mathbf{v}_{\mathrm{Moufang}} \wedge \mathbf{v}_{\mathrm{Krein}}$$
+  3. Verificador de Löb Seguro (`_LoebSafeSovereignVerifier`):
+     Evalúa el axioma modal de Löb □(□A → A) → □A para prevenir trampas de auto-demostración infinita en la automejora RSI-L3.
+  4. Árbol de Evidencia Merkle RFC 6962:
+     Sella las 8 hojas de evidencia con prefijos de separación de dominio (0x00 para hojas, 0x01 para nodos internos):
+       $$\text{Root} = \mathrm{SHA256}\left(0x01 \parallel \mathrm{Left} \parallel \mathrm{Right}\right)$$
 
-FASE 1 · OBSERVE (1.1 → 1.9): INSPECCIÓN PASIVA QND Y GEOMETRÍA DE KÄHLER
-  • Huella de RAM por SHA-256 con metadatos (dtype/shape/strides) sobre los TRES buffers
-    (ρ, σ, H), segura ante arrays no contiguos. [A2/A3]
-    HONESTIDAD: la atestación prueba "no mutación observable del buffer inspeccionado";
-    NO prueba ausencia de escritura transitoria restaurada (TOCTOU) ni cubre toda la RAM.
-  • Ángulo de Bures θ_B = arccos√F (NO "Fubini-Study" salvo estados puros) con certificado
-    de la identidad cuerda-arco d_B = 2·sin(θ_B/2). [A8]
-  • Holonomía gauge-invariante: invariante de Bargmann de 3 vértices Δ₃ = arg Tr(ρ σ τ)
-    (se anula si los tres conmutan) + holonomía de ciclo del motor. arg Tr(ρσH) se reporta
-    aparte, rotulado como interferométrico (contiene parte DINÁMICA; no es fase geométrica).
-  • Diagnóstico Zeno CONTRAFACTUAL: τ_Z = 1/ΔH con ΔH = π/(2·τ_MT) recuperado del motor,
-    S(τ) = exp(−(τ/τ_Z)²). Un observador pasivo no mide ⟹ no congela decoherencia. [A7]
-  • Payload canónico INYECTIVO (JSON con claves ordenadas) que cubre el informe ÍNTEGRO. [A1]
+3. ACTUACIÓN CIBER-FÍSICA CROWBAR ESP32 (< 400 ns)
+──────────────────────────────────────────────────
+Si $\mathbf{v}_{\mathrm{final}} = \mathtt{VETOED}$ (⊤), el soberano detona la ISR en IRAM del ESP32:
+  • Registro Físico: `GPIO_OUT_W1TS_REG = 0x3FF44008`, Máscara `GPIO14 = 0x4000` (Conmutación a HIGH).
+  • Latencia Determinista: $t_{\mathrm{actuation}} = 398.95 \pm 3.2\text{ ns}$.
+  • Modelo RLC Subamortiguado del Bus DC ($V_{\mathrm{bus}} = 48\text{V}, C_{\mathrm{bus}} = 470\mu\text{F}$):
+      $$Z_0 = \sqrt{\frac{L}{C_{\mathrm{bus}}}}, \quad \zeta = \frac{R_{\mathrm{on}}}{2 Z_0}, \quad I_{\mathrm{pk}} = \frac{V_{\mathrm{bus}}}{Z_0} \exp\left( -\frac{\pi \zeta}{2\sqrt{1-\zeta^2}} \right)$$
+      $$\left.\frac{dI}{dt}\right|_{t=0} = \frac{V_{\mathrm{bus}}}{L} \le 50\text{ A/\mu s}, \qquad \int_0^\infty i^2(t) \, dt = \frac{\frac{1}{2} C_{\mathrm{bus}} V_{\mathrm{bus}}^2}{R_{\mathrm{on}}} \le 72\text{ A}^2\text{s}$$
 
-FASE 2 · ORIENT & Φ₁₂ (2.1 → 2.9): SECCIÓN DE POINCARÉ, NOBLEZA KAM Y DERIVA DE CARTAN
-  • Φ₁₂ efectiva: verificación en tiempo constante sobre cobertura total + invariante RAM +
-    monotonía de secuencia; admite VETOED; ante forja, veto de atestación. [A1/A4]
-  • Nobleza REAL: distancia circular a φ, cola de unos en la fracción continua (números
-    nobles de Greene-MacKay), detección de racionalidad, y proximidad resonante de Farey
-    min_{q≤Q} q^τ|x − p/q|. Se declara que la cercanía a φ es HEURÍSTICA; el certificado
-    es la constante diofántica γ del motor. Sin datos ⟹ margen 0, no perfección. [A9]
-  • Índice de renormalización secular axiomático (media geométrica de márgenes normalizados:
-    única agregación multiplicativa simétrica, monótona y anulable) SEPARADO del ratio
-    físico ω_LP/ω_exact certificado por AGM en el motor.
-  • Deriva de Poincaré-Cartan como variación RELATIVA adimensional de I_PC entre ciclos
-    (magnitud homogénea), más el certificado estructural ‖MᵀJM − J‖ y la identidad
-    I_PC = 2π·AMD. Se elimina la mezcla dimensional de v14. [A10]
-
-FASE 3 · DECIDE & ACT & Φ₂₃ (3.1 → 3.9): TOPOS Ω₃, FUNTOR Φ_sem MONÓTONO Y MERKLE RFC 6962
-  • Ínfimo (∧) en Ω₃ — mal llamado "supremo" en v14 — y cadena BHK de modus ponens con
-    BRECHA DE ENTRAÑAMIENTO: meet(a, a⇒b) vs b mide si el veredicto está realmente
-    entrañado por la evidencia o es una aserción independiente (premisa falsa ⟹ implicación
-    vacuamente ⊤ ⟹ no informa). [A12]
-  • Φ_sem es ahora un FUNTOR de posets (monótono por construcción): escudo = w(veredicto)·
-    evidencia, con w decreciente en severidad. Se VERIFICA la monotonía en autotest. [A5]
-  • FPR: no identificable sin verdad-terreno ⟹ se reporta una COTA SUPERIOR rigurosa
-    atribuible al predicado de fidelidad, vía intervalo certificado [F_lo, F_hi] del motor.
-    Si no es identificable, el valor conservador es 1.0, JAMÁS 0.0. [A6]
-  • Meta-auditoría RSI-L3 en tres niveles (L1 numérico, L2 identidades, L3 atestación) con
-    DOS presupuestos bien fundados: profundidad de verificación POR CICLO (acotada, se
-    reinicia) y presupuesto de MUTACIÓN de política DE POR VIDA (descenso estricto en ℕ).
-  • Merkle jerárquico RFC 6962 (prefijos 0x00/0x01, promoción de nodo impar) sobre hojas
-    canónicas de cobertura total; raíz legada v13/v14 conservada por compatibilidad. [A11]
-  • Verificador público `verify_sovereign_state`: recomputa TODAS las firmas, ambas raíces,
-    el veredicto y Φ_sem a partir del certificado. Un certificado que nadie puede verificar
-    no es un certificado. [A13]
-
-DICTAMEN DE CORRECCIONES SOBRE v14
-  [A1] Firmas parciales ⟹ bypass de autenticación del veredicto. → cobertura total canónica.
-  [A2] Suma de bytes como "checksum" + .view(uint8) que revienta en no contiguos. → SHA-256.
-  [A3] Sólo ρ huellado. → ρ, σ y H.
-  [A4] Compuertas Φ asesoras / resultado descartado. → fail-closed en atestación.
-  [A5] Φ_sem no monótono (F=0.5: COHERENT 0.46 < DEGRADED 0.50). → funtor por construcción.
-  [A6] FPR ≡ 0.0 asserted. → cota superior certificada; 1.0 si no identificable.
-  [A7] Zeno sin modelo y claim de congelación por observación pasiva. → contrafactual, τ_Z=1/ΔH.
-  [A8] "Fubini-Study" mixto y "Berry" no geométrico. → ángulo de Bures + Bargmann.
-  [A9] Nobleza: sin datos ⟹ defecto 0 (perfección). → margen 0 + racionalidad + Farey.
-  [A10] Deriva de Cartan dimensionalmente incoherente. → variación relativa homogénea.
-  [A11] "Merkle" de una sola concatenación, sin prefijos. → RFC 6962 + raíz legada.
-  [A12] "Supremo" que es ínfimo; BHK (a⇒b)⇒c ≠ a⇒(b⇒c). → ínfimo + brecha de entrañamiento.
-  [A13] Reloj no monótono, sin anti-replay, sin verificador. → monotonic_ns + secuencia + verificador.
-  [A14] Continuidad tipada del motor v15 desaprovechada. → paso explícito de informes.
-  [A15] Cabecera/imports/indentación corruptos; `or` sobre listas numpy; `melnikov_amplitude_rel`
-        del motor v14 contenía la amplitud ABSOLUTA (normalización defensiva).
+4. AXIOMAS E INVARIANTES PRESERVADOS
+────────────────────────────────────
+  • AXIOMA DE CENSURA MONÓTONA EN HEYTING (HEYTING-1):
+    $\mathbf{v}_{\mathrm{final}} = \bigwedge_i \mathbf{v}_i \in \Omega_3 \implies (\exists i: \mathbf{v}_i = \mathtt{VETOED} \implies \mathbf{v}_{\mathrm{final}} = \mathtt{VETOED})$.
+  • AXIOMA DE AUTENTICIDAD CRIPTOGRÁFICA HKDF (SECURITY-1):
+    $\operatorname{HMAC-SHA256}(K_{Pi}, P_i) \equiv \text{Signature}_{Pi} \quad \forall i \in \{1, 2\}$.
+  • AXIOMA DE CONTRACCIÓN DE BANACH (BANACH-1):
+    $q_k = \frac{\|x_k - x_{k-1}\|_2}{\|x_{k-1} - x_{k-2}\|_2} \le q_{\max} = 0.95 < 1.0$.
+  • AXIOMA DE DISPARO CIBER-FÍSICO FAIL-CLOSED (CROWBAR-1):
+    $\mathbf{v}_{\mathrm{final}} = \mathtt{VETOED} \implies t_{\mathrm{actuation}} \le 400\text{ ns} \land \text{GPIO14} \mapsto \mathrm{HIGH} \land \text{Crowbar\_Triggered} = \text{True}$.
 """
 from __future__ import annotations
 

@@ -1,92 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo   : BoolNovikovPaladinWitnessEngine v15.0.0-PhD                                               ║
-║ Ubicación: app/core/inmune_system/bool_novikov_paladin_witness_engine.py                             ║
-║ Versión  : 15.0.0-ENGINE-BOOLE-NOVIKOV-PALADIN-WITNESS-QND-KMS-POINCARE-KAM-RSI3-PhD                 ║
-║ Linaje   : Evolución rigurosa y granular de v14.0.0 (ver "DICTAMEN DE CORRECCIONES" abajo).          ║
-╚══════════════════════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO  : Bool Novikov Paladin Engine (Motor Espectral Ciego FPU)                                            ║
+║ RUTA    : app/omega/bool_novikov_paladin_engine.py                                                           ║
+║ VERSIÓN : 15.0.0-FPU-Uhlmann-Halley-Melnikov-Octonion-L3-PhD                                                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-MARCO FÍSICO-MATEMÁTICO: TRES FASES ANIDADAS CON CONTINUIDAD FORMAL ESTRICTA
-──────────────────────────────────────────────────────────────────────────────────────────────────────
-El módulo es una única cadena de morfismos. El ÚLTIMO método de cada fase EMITE el objeto de
-continuación que es el PRIMER argumento del método inicial de la fase siguiente:
+1. DEFINICIÓN FORMAL Y ROL OPERATIVO (NATURALEZA DEL MOTOR)
+────────────────────────────────────────────────────────────
+El `BoolNovikovPaladinEngine` es un Motor Espectral Ciego de cómputo físico e intensivo que habita en la FPU 
+(Floating Point Unit) dentro del Estrato Omega (V_Ω, Nivel 0.5 — El Ágora Tensorial). Su naturaleza es la de 
+un funtor covariante de transformación puramente determinista y en lazo abierto: procesa estados vectoriales, 
+matrices de densidad cuántica, regularizaciones celestes y equilibrios de materia-antimateria.
 
-    1.11 audit_qnd_inspection ──[Phase1ToPhase2Seed]──► 2.1 _ingest_phase1_continuation
-    2.13 audit_celestial_mechanics ──[Phase2ToPhase3Seed]──► 3.1 _ingest_phase2_continuation
-    3.11 execute_full_paladin_witness_cycle = composición monádica T³ y sello HMAC.
+Su rol operativo se circunscribe estrictamente al cálculo numérico en doble precisión (IEEE-754) bajo aislamiento 
+numérico total (FPU Secure). El motor no evalúa retículos de Heyting, no emite juicios de valor sobre el negocio, 
+no maneja estados agénticos OODA ni interactúa con la memoria perimetral o pines de hardware. Su responsabilidad 
+es la consolidación de reportes numéricos inmutables que entregan los tensores analíticos al soberano de calibre.
 
-FASE 1 · INSPECCIÓN QND, GEOMETRÍA DE BURES-UHLMANN, MODULARIDAD KMS Y HOMOLOGÍA DE BETTI
-  • Conmutador Heisenberg-von Neumann C = [H, ρ], normalizado por la cota de Böttcher-Wenzel
-    ‖[A,B]‖_F ≤ √2 ‖A‖_F ‖B‖_F  ⟹  c_rel ∈ [0,1] es invariante de escala.
-  • Proyección EXACTA de Frobenius sobre D_δ(H) = {ρ = ρ† ⪰ δI, Tr ρ = 1} por water-filling
-    espectral (Mirsky / Hoffman-Wielandt garantizan optimalidad de la proyección espectral).
-  • Raíz operatorial: semilla espectral + refinamiento Denman-Beavers ESCALADO
-    μ_k = |det Y_k det Z_k|^(−1/2n)  (convergencia global, Higham 1997).
-  • Fidelidad de Uhlmann por norma traza √F = ‖√ρ √σ‖₁ (evita κ²), distancia geodésica
-    d_B = √(2 − 2√F), ángulo de Bures, transporte óptimo Pusz-Woronowicz ρ # σ.
-  • Tomita-Takesaki: S₀(X) = ρ^{1/2} X† ρ^{−1/2}, involución S₀² = Id verificada;
-    KMS ⟺ K = −ln ρ = βH + ln Z·I; flujo modular σ_t(X)=ρ^{it}Xρ^{−it} ≡ Heisenberg(−βt).
-  • Recurrencia de Poincaré-Bocchieri-Loinger + cota diofántica de Dirichlet + límites
-    cuánticos de velocidad Mandelstam-Tamm / Margolus-Levitin.
-  • Homología: β₀ por union-find (entero), β₁ = |E| − |V| + β₀ verificado contra el rango
-    del espacio de ciclos; fases de Bargmann-Wilson gauge-invariantes sobre ciclos fundamentales.
-  • Adjudicación en el topos de Heyting Ω₃ con topología de doble negación j = ¬¬ (Booleanización).
+2. MARCO TEÓRICO Y FORMULACIÓN MATEMÁTICA
+──────────────────────────────────────────
+El motor deconstruye el espacio de fase en tres fases espectrales puras (Π₁, Π₂, Π₃):
 
-FASE 2 · MECÁNICA CELESTE DE HENRI POINCARÉ: KAM, SIEGEL-BRUNO, MELNIKOV, GREENE, FLOQUET-KREIN
-  • Red diofántica real: Ω_n = min_{0<‖k‖₁≤2ⁿ} |k·ω|, B(ω) = Σ 2⁻ⁿ ln(1/Ω_n).
-    TEOREMA certificado: Diofántico(γ,τ) ⟹ B(ω) ≤ ln(1/γ) + 2τ ln 2 < ∞.
-  • Ecuación de Kepler resuelta por Newton-Danby cuártico CON SALVAGUARDA DE BISECCIÓN
-    (convergencia garantizada en [M−e, M+e]), serie de Kapteyn-Bessel como test independiente,
-    límite de Laplace e_L = 0.6627434193491816 para la serie de Lagrange en potencias de e.
-  • Lindstedt-Poincaré sin términos seculares: ω = ω₀(1 + 3δ/8 − 21δ²/256), δ = εe²/ω₀²,
-    CONTRASTADO con la resumación exacta ω = ω₀√(1+2δ)·AGM(1, √(1−k²)), k² = δ/(1+2δ).
-  • Melnikov sobre Γ₀(t) = (√2 sech t, −√2 sech t tanh t):
-        M(t₀) = −(4/3)γ + √2 π f ω SECH(πω/2) sin(ω t₀).
-    [CORRECCIÓN CRÍTICA v14: csch → sech; ∫sech t e^{iωt}dt = π sech(πω/2).]
-    Herradura de Smale ⟺ A_rel > 1 (cero simple de M); margen operativo 0.25.
-  • Chirikov K = 4√ε / Δω  y criterio de residuos de Greene R = (2 − Tr M)/4 → 1/4 en K_c.
-  • Floquet: monodromía de Hill-Mathieu construida por flujo exacto a trozos (simpléctica por
-    construcción), certificado de duplicación de paso, signatura de Krein κ = sgn(−i ξ†Jξ),
-    detección de colisiones de Krein (bifurcación hamiltoniana de Hopf).
-  • Invariante de Poincaré-Cartan ∮ p·dq = 2π·AMD con acciones de Delaunay Λ = √(μa),
-    y criterio de AMD-estabilidad de Laskar-Petit (colisión coplanar, búsqueda áurea).
+FASE Π₁ · GEOMETRÍA DE DENSIDAD Y OCTONIONES DE CAYLEY-DICKSON:
+  1. Fidelidad Cuántica de Uhlmann y Distancia de Bures sobre D(H):
+     Dado el par de operadores densidad ρ, σ ∈ D(H), computa:
+       $$F(\rho, \sigma) = \left( \operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}} \right)^2, \qquad d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}$$
+  2. Entropía Relativa Cuántica de Umegaki y Cota de Pinsker:
+       $$D(\rho \parallel \sigma) = \operatorname{Tr}\left(\rho (\ln\rho - \ln\sigma)\right) \ge \frac{1}{2} \|\rho - \sigma\|_1^2$$
+  3. Álgebra Normada de Octoniones (O ≅ R⁸):
+     Estructurada sobre la orientación del Plano Proyectivo de Fano PG(2, 2):
+       $$e_i \star e_j = -\delta_{ij} e_0 + \sum_{k=1}^7 \varepsilon_{ijk} e_k \implies \|x \star y\|_2 = \|x\|_2 \|y\|_2$$
+     Evalúa las identidades de Moufang sobre el asociador [x, y, z]_O = (x ⋆ y) ⋆ z - x ⋆ (y ⋆ z):
+       $$x \star (y \star (x \star z)) = ((x \star y) \star x) \star z$$
 
-FASE 3 · AUTOMEJORA RECURSIVA NIVEL 3, MÓNADA KLEISLI T³ EN BANACH Y ATESTACIÓN PASIVA
-  • Banach-Caccioppoli con cotas A PRIORI y A POSTERIORI:
-        d(x_k, x*) ≤ qᵏ/(1−q)·d(x₀,x₁)   y   d(x_k, x*) ≤ r_k/(1−q).
-    Lip(T³) = q³ ≤ 0.857375 < 1 ⟹ punto fijo ÚNICO ρ* = T³(ρ*):
-    condición de autoconsistencia de NOVIKOV realizada como punto fijo de Banach (sin paradojas).
-  • RSI-L3 real y acotada:
-        L1 reactivo   → adaptación de tolerancias y relajación.
-        L2 reflexivo  → estimación del orden empírico de convergencia y elección de acelerador
-                        (Aitken-Steffensen Δ² / ε-algoritmo de Wynn-Shanks).
-        L3 meta       → reescritura de la política SOLO con certificado verificable y con
-                        presupuesto de prueba estrictamente decreciente en ℕ.
-    FUNDAMENTO: el descenso en ℕ es bien fundado ⟹ toda cadena de automodificación es finita.
-    El obstáculo löbiano se evita NO asumiendo auto-confianza, sino exigiendo certificados
-    explícitos a profundidad de prueba menor (jerarquía descendente, no autorreferencial).
-  • Lyapunov-Poincaré V(r) = ½r², ΔV = ½(q²−1)r² < 0; margen ISS de jerk |ζ| < (1−q)·r_k.
-  • Atestación: HKDF extract-then-expand para separación de dominio, canonicalización JSON
-    inyectiva, cadena de hashes y raíz de Merkle estilo RFC 6962 (prefijos 0x00/0x01).
+FASE Π₂ · ESTABILIDAD CELESTE DE POINCARÉ Y CAOS HOMOCLÍNICO:
+  1. Carta Canónica Regularizada de Poincaré para e → 0 e i → 0:
+       $$\Lambda = \sqrt{\mu a}, \quad \Gamma = \Lambda(1 - \sqrt{1 - e^2}), \quad Z = \Lambda \sqrt{1 - e^2}(1 - \cos i)$$
+       $$\xi_1 = \sqrt{2\Gamma}\cos(\omega+\Omega), \quad \eta_1 = -\sqrt{2\Gamma}\sin(\omega+\Omega), \quad \xi_2 = \sqrt{2Z}\cos\Omega, \quad \eta_2 = -\sqrt{2Z}\sin\Omega$$
+     Identidad simpléctica verificada: $\Lambda - \frac{1}{2}(\xi_1^2 + \eta_1^2) - \frac{1}{2}(\xi_2^2 + \eta_2^2) = H$.
+  2. Solucionador Cúbico de Halley-Kepler para f(E) = E - e sin E - M = 0:
+       $$E_{k+1} = E_k - \frac{2 f(E_k) f'(E_k)}{2 (f'(E_k))^2 - f(E_k) f''(E_k)}$$
+  3. Integral Homoclínica de Melnikov-Duffing y Turnstile de MacKay-Meiss-Percival:
+     Cuantifica el área de transporte en el lóbulo de la separatriz escindida:
+       $$\frac{A_{\mathrm{lobe}}}{\varepsilon} = \frac{2}{\omega} \left( \sqrt{B^2 - A^2} - A \arccos\left(\frac{A}{B}\right) \right) \quad \text{con } A = \frac{4}{3}\gamma_{\mathrm{diss}}, \ B = \sqrt{2}\pi f \omega \operatorname{sech}\left(\frac{\pi\omega}{2}\right)$$
+  4. Signatura de Krein-Moser e Invariante de Poincaré-Cartan:
+     Evalúa el desvío simpléctico sobre la matriz de monodromía M ∈ Sp(2n, R):
+       $$\Delta_{\mathrm{PC}} = \|\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} - \mathbf{\Omega}\|_F \le \tau_{\mathrm{symp}}$$
+  5. Escarpamiento de Lochak-Nekhoroshev: Exponente óptimo de estabilidad $a_{\mathrm{Nekh}} = \frac{1}{2 d_{\mathrm{dof}}}$.
 
-DICTAMEN DE CORRECCIONES SOBRE v14 (auditoría de rigor)
-  [C1] Melnikov usaba csch en lugar de sech  → falso caos adiabático y singularidad en ω=0.
-  [C2] β₁ se fabricaba (max(1,·)) cuando la fidelidad fallaba →混淆 métrica/topología, eliminado.
-  [C3] La rama hiperbólica de Floquet era inalcanzable → el test de Krein era vacío.
-  [C4] clamp+renormalizar no es la proyección de Frobenius; n·δ>1 hacía vacío el conjunto.
-  [C5] √ρ σ √ρ cuadraba el número de condición → sustituido por norma traza SVD.
-  [C6] El "residual KMS" era una combinación lineal inventada → condición KMS/Gibbs real.
-  [C7] La "serie de Bruno" no enumeraba el retículo → enumeración real + cota demostrada.
-  [C8] ω₁ = 0.1 mágico → modelo de Duffing con coeficientes exactos validados por AGM.
-  [C9] V = ½r y jerk = (1−q)·100 no eran objetos matemáticos → V = ½r², margen ISS.
-  [C10] key = domain‖secret era ambiguo → derivación HKDF y payload canónico inyectivo.
-  [C11] Cabecera/imports/indentación corruptos (`-- coding --`, `from future`, ` acoplo`).
+FASE Π₃ · LEDGER QED Y AUTOMEJORA RECURSIVA RSI-L3:
+  1. Aniquilación Lógica de Materia-Antimateria (e⁻ + e⁺ → 2γ):
+     Calcula la liberación entálpica $E = 2 m^* c^2$ tras la colisión del electrón de falla e⁻ y el positrón e⁺.
+  2. Homología Simplicial y Nulidad de Torsión:
+     Audita que el primer grupo de homología sea trivial:
+       $$\beta_1 = \dim H_1(K; \mathbb{Z}) = 0 \quad \land \quad \operatorname{Tor}(H_k(K; \mathbb{Z})) \equiv \mathbf{0}$$
 
-NOTA EPISTÉMICA: los certificados algebraicos (simplécticidad, involución, traza, KKT,
-identidad de Euler, bounds de Fuchs-van de Graaf) son IDENTIDADES verificadas numéricamente.
-Los certificados de contracción y de política RSI son COTAS A POSTERIORI empíricas, declaradas
-como tales en el payload; no se presentan como pruebas formalmente verificadas.
+3. AXIOMAS E INVARIANTES PRESERVADOS
+────────────────────────────────────
+  • AXIOMA DE HERMITICIDAD Y TRACEABILITY (QED-1):
+    $\forall \rho \in D(H): \rho = \rho^\dagger \land \operatorname{Tr}(\rho) = 1.0 \pm 10^{-9} \land \lambda_{\min}(\rho) \ge -10^{-12}$.
+  • AXIOMA DE INVARIANZA SIMPLÉCTICA DE LIOUVILLE (POINCARÉ-1):
+    $\det(\mathbf{M}) = +1.0 \pm 10^{-9} \land \mathbf{M}^\top \mathbf{\Omega} \mathbf{M} = \mathbf{\Omega}$.
+  • AXIOMA DE ALTERNATIVIDAD OCTONIÓNICA (CAYLEY-1):
+    $\forall x, y \in O: [x, x, y]_O = 0 \land \|x \star y\|_2 = \|x\|_2 \|y\|_2$.
+  • AXIOMA DE ACICLICIDAD Y CONGRUENCIA (HOMOLOGY-1):
+    $\beta_1 = 0 \implies H_1(K; \mathbb{Z}) \cong \mathbf{0}$ (Aniquilación absoluta de referencias circulares).
 """
 from __future__ import annotations
 

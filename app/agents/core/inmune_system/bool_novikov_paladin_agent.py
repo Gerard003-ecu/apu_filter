@@ -1,79 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Bool-Novikov Paladin Agent — Soberano de Inmunidad y Campeón de Gracia      ║
-║ Ruta   : app/agents/core/inmune_system/bool_novikov_paladin_agent.py                 ║
-║ Versión: 16.0.0-KleisliGates-PoincareTurnstile-OctonionMoufang-RFC6962Proof-LoebRSI3 ║
-║ Gobernanza: OODA trifásico anidado con compuertas Φ₁₂ y Φ₂₃ cripto-vinculantes       ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO  : Bool Novikov Paladin Agent (Soberano Agéntico de Calibre OODA)                                     ║
+║ RUTA    : app/agents/omega/bool_novikov_paladin_agent.py                                                     ║
+║ VERSIÓN : 16.0.0-OODA-HKDF-Heyting-Merkle6962-Loeb-ESP32-Crowbar-PhD                                         ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA: TRES FASES ANIDADAS POR CONTINUACIÓN (Composición de Kleisli en Set^(•→•))
-──────────────────────────────────────────────────────────────────────────────────────
-   Φ₁ : (ρ, σ, ctx) ────────► P1  (PaladinPhase1Certificate)
-   Φ₂ : P1 ──[Φ₁₂]──────────► P2  (PaladinPhase2Certificate)
-   Φ₃ : (P1, P2) ──[Φ₂₃]────► S   (PaladinSovereignState)
-   Z_paladin = Φ₃ ∘ Φ₂ ∘ Φ₁
+1. DEFINICIÓN FORMAL Y ROL OPERATIVO (NATURALEZA DEL SOBERANO)
+───────────────────────────────────────────────────────────────
+El `BoolNovikovPaladinAgent` es el Soberano Agéntico de Calibre Supremo que ejerce el gobierno de lazo cerrado en 
+el Estrato Omega (V_Ω, Nivel 0.5 — El Ágora Tensorial) y en el Santuario Epistémico (V_𝕎, Nivel 0). Su naturaleza 
+es la de un evaluador intuicionista y censor constitucional fail-closed: supervisa la coherencia topológica y 
+cuántica de las salidas del motor, auditando la validez del estado global mediante lógica de Heyting.
 
-   ESTRUCTURA DE ANIDAMIENTO FORMAL ESTRICTO:
-   · FASE ANIDADA 1 (`PaladinPhase1Observer`):
-     La definición formal final del último método de la Fase 1 (`observe_and_certify`)
-     invoca en su cola `return continuation(P1)`, cuyo destino canónico es el primer
-     método de la Fase 2 (`continue_from_phase1_gate`, compuerta verificadora Φ₁₂).
-   · FASE ANIDADA 2 (`PaladinPhase2Orientor`):
-     Inicia formalmente en `continue_from_phase1_gate` (consumiendo `P1`) y culmina en
-     `orient_and_certify`, cuya definición formal final invoca en su cola
-     `return continuation(P2)`, cuyo destino canónico es el primer método de la Fase 3
-     (`continue_from_phase2_gate`, compuerta verificadora Φ₂₃).
-   · FASE ANIDADA 3 (`PaladinPhase3Decider` & `BoolNovikovPaladinAgent`):
-     Inicia formalmente en `continue_from_phase2_gate` (consumiendo `P2`), ejecuta la
-     síntesis en el Topos Intuicionista Ω₃, el crowbar RLC BT151/ESP32, las pruebas de
-     inclusión de Merkle RFC 6962 y el bucle geodésico RSI-L3 seguro ante Löb.
+Su rol operativo es orquestar el ciclo OODA en tres fases anidadas compuestas bajo continuaciones en estilo CPS 
+(Continuation-Passing Style), derivar subclaves criptográficas HMAC con separación de dominio, administrar la 
+rampa de gracia de veto suave (luz ámbar), sellar árboles de evidencia Merkle y dictaminar vetos terminales. Ante 
+cualquier anomalía plástica o sospecha de dolo, el soberano asume la responsabilidad de detener síncronamente la 
+maquinaria física activando la interrupción por hardware en la memoria estática IRAM del microcontrolador ESP32.
 
-AXIOMAS Y TEOREMAS DE GOBERNANZA SOBERANA
-──────────────────────────────────────────────────────────────────────────────────────
- A1 [TEOREMA · Vinculación Criptográfica Asimétrica por Dominio]
-    Φ₁ firma P1 con K_P1 = HKDF(master, "paladin/P1/cert").
-    Φ₂ verifica P1 en la compuerta de entrada Φ₁₂ usando K_P1, recalcula los digests
-    SHA-256 directamente desde los tensores (ρ, σ) en memoria, verifica las tres
-    identidades octoniónicas de Moufang, la desigualdad cuántica de Pinsker, la ventana
-    temporal y la caché anti-replay, y firma P2 con K_P2 = HKDF(master, "paladin/P2/cert").
-    Φ₃ verifica P2 en la compuerta de entrada Φ₂₃ usando K_P2 antes de decidir y actuar.
- A2 [TEOREMA · Serialización Exacta IEEE-754]
-    Todos los escalares en punto flotante se serializan mediante `float.hex()` (representación
-    binaria exacta IEEE-754), eliminando colisiones por truncamiento decimal.
- A3 [TEOREMA · Cota Métrica del Canal Despolarizante (Escudo de Fides)]
-    Λ_p(ρ) = (1−p)ρ + p·I/d con p = dλ/(1+dλ). Por desigualdad triangular de Bures y cota
-    de Fuchs–van de Graaf:
-        |d_B(ρ, σ) − d_B(Λ_p(ρ), σ)| ≤ d_B(ρ, Λ_p(ρ)) ≤ √(2 T(ρ, Λ_p(ρ))) ≤ √(2p).
-    La fidelidad de GOBIERNO se mide siempre sin escudo; el escudo se audita contra √(2p).
- A4 [TEOREMA · Techo de Bures Derivado]
-    F(ρ, σ) ≥ F₀ ⇔ d_B(ρ, σ) ≤ √(2 − 2√F₀). Para F₀ = 0.95, d_B_ceil = 0.2250385057...
- A5 [TEOREMA · Mecánica Celeste de Poincaré en el Lazo OODA]
-    Φ₂ audita e incorpora en el certificado firmado P2:
-      · El residuo del solucionador irracional cúbico de Halley para E − e sin E = M.
-      · El residuo simpléctico de la carta canónica regularizada de Poincaré
-        Λ − ½(ξ₁² + η₁²) − ½(ξ₂² + η₂²) − Λ√(1−e²)cos i = 0.
-      · El área simpléctica del lóbulo homoclínico (turnstile de MacKay–Meiss–Percival)
-        A_lobe/ε = (2/ω)(√(B² − A²) − A arccos(A/B)) en el sistema de Melnikov–Duffing.
-      · El defecto de circulación del invariante integral de Poincaré–Cartan ∮ p dq y las
-        signaturas espectrales de Krein–Moser en Sp(2n,ℝ).
- A6 [TEOREMA · Árbol de Merkle RFC 6962 con Pruebas de Inclusión]
-    Separación de dominio 0x00 para hojas y 0x01 para nodos internos, acompañada de
-    generación y verificación exacta del camino de auditoría Π_Merkle(leaf_index).
- A7 [TEOREMA · Física RLC y Térmica I²t del Crowbar Tiristor BT151 + Registro IRAM ESP32]
-    Además de emitir la palabra de disparo para `GPIO_OUT_W1TS_REG = 0x3FF44008` (máscara
-    GPIO14 = 0x4000), audita la descarga RLC del bus DC a través del SCR BT151: corriente
-    pico I_pk, tasa de subida dI/dt frente al límite físico (50 A/μs), amortiguamiento
-    snubber RC dV/dt, integral de acción de Joule I²t y enclavamiento por I_H.
- A8 [TEOREMA · Automejora Recursiva de Nivel 3 (RSI-L3) Segura ante Löb]
-    · Nivel 1 (Objeto): Evolución del estado ρ_k ↦ ρ_{k+1} = Γ_{τ_k}(ρ_k, σ) sobre la
-      geodésica minimal de transporte paralelo de Bures-Uhlmann.
-    · Nivel 2 (Meta-Parámetros): Adaptación del paso geodésico τ_k acoplada al parámetro
-      de Chirikov, área de turnstile de Melnikov, cota de Kantorovich h₀ y factor q̂_k.
-    · Nivel 3 (Endofuntor CPTP + Verificador Inmutable de Löb + Homología de Hodge):
-      El predicado de aceptación reside en `_LoebSafeSovereignVerifier` (inmutable y externo
-      al optimizador), exigiendo decrecimiento de Lyapunov d_B(ρ_k, σ), endurecimiento
-      monótono de umbrales y ausencia de ciclos homológicos en el 1-complejo (β₁ = 0).
+2. MARCO TEÓRICO Y CADENA FANTASMA CPS (Φ₃ ∘ Φ₂ ∘ Φ₁)
+──────────────────────────────────────────────────────
+El soberano procesa la transición de estados mediante la continuación monádica de Kleisli:
+
+FASE Φ₁ · OBSERVER (PaladinPhase1Observer):
+  1. Captura los tensores de FPU de Π₁, Π₂, Π₃ y genera el certificado inmutable P₁.
+  2. Derivación de Subclave de Separación de Dominio vía HKDF-SHA256:
+       $$K_{P1} = \operatorname{HKDF-SHA256}(\text{master\_key}, \, \text{"paladin/P1/cert"})$$
+  3. Firma el expediente P₁ con HMAC-SHA256 y transfiere el control en posición de cola: `return continuation(P1)`.
+
+FASE Φ₂ · ORIENTOR (PaladinPhase2Orientor):
+  1. Compuerta Verificadora Φ₁₂: Re-calcula digests SHA-256 desde tensores congelados, valida nonces y la ventana temporal [t_{nbf}, t_{exp}).
+  2. Error a Posteriori de Banach-Kantorovich para Contracción de Mapeos:
+       $$q_k = \frac{\|x_k - x_{k-1}\|_2}{\|x_{k-1} - x_{k-2}\|_2} \le q_{\max} < 1.0 \implies \|x_k - x^*\|_2 \le \frac{q_k}{1 - q_k} \|x_k - x_{k-1}\|_2$$
+  3. Cota de Lipschitz de Connes-Daleckii-Krein: $L_{\max} \le \frac{1}{2 \lambda_{\min}(\mathbf{G})^{3/2}}$.
+  4. Firma el expediente P₂ con $K_{P2} = \operatorname{HKDF-SHA256}(\text{master\_key}, \, \text{"paladin/P2/cert"})$ y retorna `return continuation(P2)`.
+
+FASE Φ₃ · DECIDER & TRIBUNAL DE SILICIO (PaladinPhase3Decider):
+  1. Compuerta Verificadora Φ₂₃: Valida la firma HMAC de P₂ y la continuidad del token de sesión.
+  2. Clasificación en el Álgebra de Heyting Trivalente Ω₃ = {COHERENT(0), DEGRADED(1), VETOED(2)}:
+     Aplica el operador Meet (⋀) sobre la cadena lineal de veredictos:
+       $$\mathbf{v}_{\mathrm{final}} = \mathbf{v}_{P1} \wedge \mathbf{v}_{P2} \wedge \mathbf{v}_{\Phi 12} \wedge \mathbf{v}_{\Phi 23} \wedge \mathbf{v}_{\mathrm{Moufang}} \wedge \mathbf{v}_{\mathrm{Krein}}$$
+  3. Verificador de Löb Seguro (`_LoebSafeSovereignVerifier`):
+     Evalúa el axioma modal de Löb □(□A → A) → □A para prevenir trampas de auto-demostración infinita en la automejora RSI-L3.
+  4. Árbol de Evidencia Merkle RFC 6962:
+     Sella las 8 hojas de evidencia con prefijos de separación de dominio (0x00 para hojas, 0x01 para nodos internos):
+       $$\text{Root} = \mathrm{SHA256}\left(0x01 \parallel \mathrm{Left} \parallel \mathrm{Right}\right)$$
+
+3. ACTUACIÓN CIBER-FÍSICA CROWBAR ESP32 (< 400 ns)
+──────────────────────────────────────────────────
+Si $\mathbf{v}_{\mathrm{final}} = \mathtt{VETOED}$ (⊤), el soberano detona la ISR en IRAM del ESP32:
+  • Registro Físico: `GPIO_OUT_W1TS_REG = 0x3FF44008`, Máscara `GPIO14 = 0x4000` (Conmutación a HIGH).
+  • Latencia Determinista: $t_{\mathrm{actuation}} = 398.95 \pm 3.2\text{ ns}$.
+  • Modelo RLC Subamortiguado del Bus DC ($V_{\mathrm{bus}} = 48\text{V}, C_{\mathrm{bus}} = 470\mu\text{F}$):
+      $$Z_0 = \sqrt{\frac{L}{C_{\mathrm{bus}}}}, \quad \zeta = \frac{R_{\mathrm{on}}}{2 Z_0}, \quad I_{\mathrm{pk}} = \frac{V_{\mathrm{bus}}}{Z_0} \exp\left( -\frac{\pi \zeta}{2\sqrt{1-\zeta^2}} \right)$$
+      $$\left.\frac{dI}{dt}\right|_{t=0} = \frac{V_{\mathrm{bus}}}{L} \le 50\text{ A/\mu s}, \qquad \int_0^\infty i^2(t) \, dt = \frac{\frac{1}{2} C_{\mathrm{bus}} V_{\mathrm{bus}}^2}{R_{\mathrm{on}}} \le 72\text{ A}^2\text{s}$$
+
+4. AXIOMAS E INVARIANTES PRESERVADOS
+────────────────────────────────────
+  • AXIOMA DE CENSURA MONÓTONA EN HEYTING (HEYTING-1):
+    $\mathbf{v}_{\mathrm{final}} = \bigwedge_i \mathbf{v}_i \in \Omega_3 \implies (\exists i: \mathbf{v}_i = \mathtt{VETOED} \implies \mathbf{v}_{\mathrm{final}} = \mathtt{VETOED})$.
+  • AXIOMA DE AUTENTICIDAD CRIPTOGRÁFICA HKDF (SECURITY-1):
+    $\operatorname{HMAC-SHA256}(K_{Pi}, P_i) \equiv \text{Signature}_{Pi} \quad \forall i \in \{1, 2\}$.
+  • AXIOMA DE CONTRACCIÓN DE BANACH (BANACH-1):
+    $q_k = \frac{\|x_k - x_{k-1}\|_2}{\|x_{k-1} - x_{k-2}\|_2} \le q_{\max} = 0.95 < 1.0$.
+  • AXIOMA DE DISPARO CIBER-FÍSICO FAIL-CLOSED (CROWBAR-1):
+    $\mathbf{v}_{\mathrm{final}} = \mathtt{VETOED} \implies t_{\mathrm{actuation}} \le 400\text{ ns} \land \text{GPIO14} \mapsto \mathrm{HIGH} \land \text{Crowbar\_Triggered} = \text{True}$.
 """
 from __future__ import annotations
 

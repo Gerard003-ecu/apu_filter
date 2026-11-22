@@ -1,83 +1,71 @@
 # -*- coding: utf-8 -*-
 r"""
-╔══════════════════════════════════════════════════════════════════════════════════════╗
-║ Módulo : Bool-Novikov Paladin Engine — Fidelidad, Poincaré, Aniquilación y Ω₃ RSI³   ║
-║ Ruta   : app/core/inmune_system/bool_novikov_paladin_engine.py                       ║
-║ Versión: 15.0.0-BuresGeodesic-OctonionMoufang-PoincareRegular-Turnstile-LoebRSI3     ║
-╚══════════════════════════════════════════════════════════════════════════════════════╝
+╔══════════════════════════════════════════════════════════════════════════════════════════════════════════════╗
+║ MÓDULO  : Bool Novikov Paladin Engine (Motor Espectral Ciego FPU)                                            ║
+║ RUTA    : app/omega/bool_novikov_paladin_engine.py                                                           ║
+║ VERSIÓN : 15.0.0-FPU-Uhlmann-Halley-Melnikov-Octonion-L3-PhD                                                 ║
+╚══════════════════════════════════════════════════════════════════════════════════════════════════════════════╝
 
-ARQUITECTURA: TRES FASES ANIDADAS POR CONTINUACIÓN (Composición de Kleisli en Set^(•→•))
-──────────────────────────────────────────────────────────────────────────────────────
-   Π₁ : (ρ, σ) ────────────► G  (DensityGeometryCertificate)
-   Π₂ : G ─────────────────► S  (CelestialStabilityReport)
-   Π₃ : (G, S) ────────────► V  (PaladinEngineReport)
-   Z_paladin = Π₃ ∘ Π₂ ∘ Π₁
+1. DEFINICIÓN FORMAL Y ROL OPERATIVO (NATURALEZA DEL MOTOR)
+────────────────────────────────────────────────────────────
+El `BoolNovikovPaladinEngine` es un Motor Espectral Ciego de cómputo físico e intensivo que opera en la FPU 
+(Floating Point Unit) dentro del Estrato Omega (V_Ω, Nivel 0.5 — El Ágora Tensorial). Su naturaleza es la de 
+un funtor covariante de transformación puramente determinista y en lazo abierto: procesa estados vectoriales, 
+matrices de densidad cuántica, regularizaciones celestes y equilibrios de materia-antimateria.
 
-   ESTRUCTURA DE ANIDAMIENTO FORMAL:
-   · La definición formal final del último método de la Fase 1 (`certify_density_geometry`)
-     transfiere el control en posición de cola (`return continuation(G)`) directamente al
-     método inicial de la Fase 2 (`_continue_from_phase1_geometry`).
-   · La definición formal final del último método de la Fase 2 (`audit_celestial_stability`)
-     transfiere el control en posición de cola (`return continuation(S)`) directamente al
-     método inicial de la Fase 3 (`_continue_from_phase2_celestial`).
-   · Los veredictos se agregan mediante el infimum intuicionista (meet ∧) en el clasificador
-     de subobjetos Ω₃ ≅ O(Sierpiński) = {COHERENT=0, DEGRADED=1, VETOED=2}.
+Su rol operativo se circunscribe estrictamente al cálculo numérico en doble precisión (IEEE-754) bajo aislamiento 
+numérico total (FPU Secure). El motor no evalúa retículos de Heyting, no emite juicios de valor sobre el negocio, 
+no maneja estados agénticos OODA ni interactúa con la memoria perimetral o pines de hardware. Su responsabilidad 
+es la consolidación de reportes numéricos inmutables que entregan los tensores analíticos al soberano de calibre.
 
-AXIOMAS Y TEOREMAS CON ESTATUS EPISTÉMICO EXPLÍCITO
-──────────────────────────────────────────────────────────────────────────────────────
- P1 [TEOREMA · Uhlmann & Geodésica de Bures]
-    F(ρ,σ) = (Tr√(√ρ σ √ρ))² = ‖√ρ √σ‖₁².
-    Dada la descomposición en valores singulares √ρ √σ = W Σ Vᴴ, el factor unitario polar
-    de Uhlmann es U = W Vᴴ, cumpliendo Tr(√ρ U √σ) = Tr(Σ) = √F = cos θ, θ ∈ [0, π/2].
-    La GEODÉSICA MINIMAL DE BURES-HELSTROM entre ρ (τ=0) y σ (τ=1) viene dada por
-    ρ(τ) = A(τ) A(τ)ᴴ con:
-        A(τ) = [sin((1−τ)θ)/sin θ]·√ρ + [sin(τθ)/sin θ]·(U √σ).
-    Por construcción, ρ(τ) ⪰ 0, Tr(ρ(τ)) = 1 y d_B(ρ(0), ρ(τ)) = √(2 − 2 cos(τθ)).
- P2 [TEOREMA · Fuchs–van de Graaf & Umegaki–Pinsker]
-    Con T(ρ,σ) = ½‖ρ−σ‖₁ y D(ρ‖σ) = Tr(ρ(ln ρ − ln σ)) (si supp(ρ) ⊆ supp(σ), +∞ en otro
-    caso), se satisfacen simultáneamente:
-        1 − √F  ≤  T  ≤  √(1 − F)   y   2 T²  ≤  D(ρ‖σ)  (Desigualdad cuántica de Pinsker).
- P3 [TEOREMA · Inmersión Hipercompleja de Cayley-Dickson (Octoniones O)]
-    Proyectando el vector de coherencia generalizado de Bloch–Gell-Mann de ρ y σ sobre el
-    álgebra de división normada no asociativa O ≅ ℝ⁸ (plano proyectivo de Fano PG(2,2)),
-    el asociador [x,y,z] = (xy)z − x(yz) cuantifica la curvatura no asociativa del par de
-    estados, mientras que el residuo de Moufang ‖(xy)(zx) − (x(yz))x‖_O = 0 certifica la
-    integridad algebraica de alternatividad.
- P4 [TEOREMA · CRÍTICO · Canal Despolarizante y Pasividad de Brune-Choi]
-    El "Escudo de Fides" ρ ↦ (ρ+λI)/(1+dλ) = (1−p)ρ + p·I/d con p = dλ/(1+dλ) es CPTP y
-    UNITAL. Por procesamiento de datos, F(Λρ,Λσ) ≥ F(ρ,σ) y S(Λρ) ≥ S(ρ).
-    La fidelidad de GOBIERNO se mide SIEMPRE sin escudo; el escudo se contabiliza en un
-    ledger separado con su matriz de Choi-Jamiołkowski y rango de Kraus.
- P5 [TEOREMA · Proyección Euclídea al Espectralplex]
-    Proyección de Frobenius óptima e idempotente sobre {ρ ⪰ 0, Tr ρ = 1} vía proyección
-    simplex de autovalores λ ↦ max(λ − θ, 0) (Duchi et al. 2008).
- P6 [TEOREMA · QED Vértice e⁻e⁺ → 2γ]
-    Conservación de cuadrimomento en el CM y paridad C exigen ≥ 2 fotones. En reposo:
-    E_2γ = 2 m_e c² = 1021.99790 keV (CODATA-2018). El ledger está estrictamente acotado
-    por la anomalía real aniquilada.
- P7 [TEOREMA · Autenticación Ligada al Contexto]
-    HMAC-SHA256 sobre contexto canónico (anomalía, SHA256(ρ), SHA256(σ), sesión, contador
-    monótono, bucket temporal, key_id) con caché LRU anti-replay en tiempo constante.
- P8 [TEOREMA · Melnikov–Duffing & Área de Turnstile de MacKay–Meiss–Percival]
-    Para ẍ − x + x³ = ε(−γẋ + f cos ωt), M(t₀) = −A + B cos(ωt₀) con A = (4/3)γ y
-    B = √2 π f ω sech(πω/2). Existen ceros simples (herradura de Smale) ⇔ B > A.
-    Cuando B > A, el área simpléctica del lóbulo de transporte caótico (turnstile) es:
-        A_lobe / ε = (2/ω)·(√(B² − A²) − A·arccos(A/B)) > 0.
- P9 [TEOREMA · Carta Canónica Regularizada de Poincaré & KAM Diofántico]
-    La ecuación de Kepler E − e sin E = M se resuelve mediante el método de 3.er orden de
-    Halley. Las singularidades de Delaunay en e=0 e i=0 se eliminan con las variables
-    canónicas de Poincaré (Λ, ξ₁, η₁, ξ₂, η₂, λ), verificando la identidad simpléctica
-    exacta Λ − ½(ξ₁² + η₁²) − ½(ξ₂² + η₂²) = H = L√(1−e²)cos i.
-P10 [TEOREMA · Krein–Moser, Proyección Simpléctica y Poincaré–Cartan]
-    Para M ∈ Sp(2n,ℝ), κ(v) = sgn(Re(−i vᴴΩv)). Se calcula la distancia a Sp(2n,ℝ) por
-    proyección polar-simpléctica y el defecto del invariante integral de Poincaré-Cartan.
-P11 [TEOREMA · Automejora Recursiva de Nivel 3 (RSI-L3) y Seguridad de Löb]
-    · Nivel 1 (Estado): Contracción geodésica de Bures ρ_{k+1} = Γ_{τ_k}(ρ_k, σ).
-    · Nivel 2 (Meta-Parámetros): Adaptación de τ_k y umbrales vía Banach q̂_k y Nekhoroshev.
-    · Nivel 3 (Endofuntor + Verificador de Löb + Topología de Hodge): Selección del
-      morfismo CPTP óptimo en el álgebra de Banach y auditoría homológica (β₀=1, β₁=0)
-      mediante un verificador inmutable separado (evitando la paradoja de auto-validación
-      de Löb: el optimizador no tiene acceso de escritura al predicado de aceptación).
+2. MARCO TEÓRICO Y FORMULACIÓN MATEMÁTICA
+──────────────────────────────────────────
+El motor deconstruye el espacio de fase en tres fases espectrales puras (Π₁, Π₂, Π₃):
+
+FASE Π₁ · GEOMETRÍA DE DENSIDAD Y OCTONIONES DE CAYLEY-DICKSON:
+  1. Fidelidad Cuántica de Uhlmann y Distancia de Bures sobre D(H):
+     Dado el par de operadores densidad ρ, σ ∈ D(H), computa:
+       $$F(\rho, \sigma) = \left( \operatorname{Tr}\sqrt{\sqrt{\rho}\sigma\sqrt{\rho}} \right)^2, \qquad d_B(\rho, \sigma) = \sqrt{2 - 2\sqrt{F(\rho, \sigma)}}$$
+  2. Entropía Relativa Cuántica de Umegaki y Cota de Pinsker:
+       $$D(\rho \parallel \sigma) = \operatorname{Tr}\left(\rho (\ln\rho - \ln\sigma)\right) \ge \frac{1}{2} \|\rho - \sigma\|_1^2$$
+  3. Álgebra Normada de Octoniones (O ≅ R⁸):
+     Estructurada sobre la orientación del Plano Proyectivo de Fano PG(2, 2):
+       $$e_i \star e_j = -\delta_{ij} e_0 + \sum_{k=1}^7 \varepsilon_{ijk} e_k \implies \|x \star y\|_2 = \|x\|_2 \|y\|_2$$
+     Evalúa las identidades de Moufang sobre el asociador [x, y, z]_O = (x ⋆ y) ⋆ z - x ⋆ (y ⋆ z):
+       $$x \star (y \star (x \star z)) = ((x \star y) \star x) \star z$$
+
+FASE Π₂ · ESTABILIDAD CELESTE DE POINCARÉ Y CAOS HOMOCLÍNICO:
+  1. Carta Canónica Regularizada de Poincaré para e → 0 e i → 0:
+       $$\Lambda = \sqrt{\mu a}, \quad \Gamma = \Lambda(1 - \sqrt{1 - e^2}), \quad Z = \Lambda \sqrt{1 - e^2}(1 - \cos i)$$
+       $$\xi_1 = \sqrt{2\Gamma}\cos(\omega+\Omega), \quad \eta_1 = -\sqrt{2\Gamma}\sin(\omega+\Omega), \quad \xi_2 = \sqrt{2Z}\cos\Omega, \quad \eta_2 = -\sqrt{2Z}\sin\Omega$$
+     Identidad simpléctica verificada: $\Lambda - \frac{1}{2}(\xi_1^2 + \eta_1^2) - \frac{1}{2}(\xi_2^2 + \eta_2^2) = H$.
+  2. Solucionador Cúbico de Halley-Kepler para f(E) = E - e sin E - M = 0:
+       $$E_{k+1} = E_k - \frac{2 f(E_k) f'(E_k)}{2 (f'(E_k))^2 - f(E_k) f''(E_k)}$$
+  3. Integral Homoclínica de Melnikov-Duffing y Turnstile de MacKay-Meiss-Percival:
+     Cuantifica el área de transporte en el lóbulo de la separatriz escindida:
+       $$\frac{A_{\mathrm{lobe}}}{\varepsilon} = \frac{2}{\omega} \left( \sqrt{B^2 - A^2} - A \arccos\left(\frac{A}{B}\right) \right) \quad \text{con } A = \frac{4}{3}\gamma_{\mathrm{diss}}, \ B = \sqrt{2}\pi f \omega \operatorname{sech}\left(\frac{\pi\omega}{2}\right)$$
+  4. Signatura de Krein-Moser e Invariante de Poincaré-Cartan:
+     Evalúa el desvío simpléctico sobre la matriz de monodromía M ∈ Sp(2n, R):
+       $$\Delta_{\mathrm{PC}} = \|\mathbf{M}^\top \mathbf{\Omega} \mathbf{M} - \mathbf{\Omega}\|_F \le \tau_{\mathrm{symp}}$$
+  5. Escarpamiento de Lochak-Nekhoroshev: Exponente óptimo de estabilidad $a_{\mathrm{Nekh}} = \frac{1}{2 d_{\mathrm{dof}}}$.
+
+FASE Π₃ · LEDGER QED Y AUTOMEJORA RECURSIVA RSI-L3:
+  1. Aniquilación Lógica de Materia-Antimateria (e⁻ + e⁺ → 2γ):
+     Calcula la liberación entálpica $E = 2 m^* c^2$ tras la colisión del electrón de falla e⁻ y el positrón e⁺.
+  2. Homología Simplicial y Nulidad de Torsión:
+     Audita que el primer grupo de homología sea trivial:
+       $$\beta_1 = \dim H_1(K; \mathbb{Z}) = 0 \quad \land \quad \operatorname{Tor}(H_k(K; \mathbb{Z})) \equiv \mathbf{0}$$
+
+3. AXIOMAS E INVARIANTES PRESERVADOS
+────────────────────────────────────
+  • AXIOMA DE HERMITICIDAD Y TRACEABILITY (QED-1):
+    $\forall \rho \in D(H): \rho = \rho^\dagger \land \operatorname{Tr}(\rho) = 1.0 \pm 10^{-9} \land \lambda_{\min}(\rho) \ge -10^{-12}$.
+  • AXIOMA DE INVARIANZA SIMPLÉCTICA DE LIOUVILLE (POINCARÉ-1):
+    $\det(\mathbf{M}) = +1.0 \pm 10^{-9} \land \mathbf{M}^\top \mathbf{\Omega} \mathbf{M} = \mathbf{\Omega}$.
+  • AXIOMA DE ALTERNATIVIDAD OCTONIÓNICA (CAYLEY-1):
+    $\forall x, y \in O: [x, x, y]_O = 0 \land \|x \star y\|_2 = \|x\|_2 \|y\|_2$.
+  • AXIOMA DE ACICLICIDAD Y CONGRUENCIA (HOMOLOGY-1):
+    $\beta_1 = 0 \implies H_1(K; \mathbb{Z}) \cong \mathbf{0}$ (Aniquilación absoluta de referencias circulares).
 """
 from __future__ import annotations
 
