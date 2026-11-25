@@ -550,7 +550,7 @@ def _symplectic_yoshida4_integrate(
         )
         # Mezcla simpléctico-toroidal que garantiza contracción monótona de cuerdas (λ_max ≤ 0)
         blend_r = r_envelope * (1.0 + 0.002 * math.tanh(r_symp - 1.0) * math.exp(-0.1 * step))
-        q_ blended_x = blend_r * math.cos(theta_kam)
+        q_blended_x = blend_r * math.cos(theta_kam)
         q_blended_y = blend_r * math.sin(theta_kam)
 
         # Velocidad canónica tangente al toro invariante

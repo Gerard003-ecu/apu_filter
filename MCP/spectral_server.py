@@ -1129,20 +1129,20 @@ class Fase2CelestialAlgebra:
     _OCT_TABLE = _build_octonion_table.__func__()
 
     @staticmethod
-    def _build_basis_mul() -> List[List[Tuple[int, int]]]:
+    def _build_basis_mul(oct_table: np.ndarray) -> List[List[Tuple[int, int]]]:
         """e_a·e_b = sign·e_idx (aritmética entera exacta sobre ℤ)."""
         BM = []
         for a in range(8):
             row = []
             for b in range(8):
-                nz = np.nonzero(Fase2CelestialAlgebra._OCT_TABLE[a, b])[0]
+                nz = np.nonzero(oct_table[a, b])[0]
                 idx = int(nz[0])
-                sign = int(Fase2CelestialAlgebra._OCT_TABLE[a, b, idx])
+                sign = int(oct_table[a, b, idx])
                 row.append((sign, idx))
             BM.append(row)
         return BM
 
-    _BASIS_MUL = _build_basis_mul.__func__()
+    _BASIS_MUL = _build_basis_mul.__func__(_OCT_TABLE)
 
     @staticmethod
     def _bmul(sa: int, a: int, sb: int, b: int) -> Tuple[int, int]:
