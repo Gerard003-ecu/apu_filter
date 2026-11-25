@@ -1,0 +1,62 @@
+{
+  "gauge-gatekeeper": {
+    "PreToolUse": [
+      {
+        "matcher": "run_command|MCP__ciberphysical-bridge__.*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gerardomayor/Documents/estru_techos/apu_filter/Hooks/gauge_gatekeeper.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "betti-acyclicity-sentinel": {
+    "PostToolUse": [
+      {
+        "matcher": "write_file|edit_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gerardomayor/Documents/estru_techos/apu_filter/Hooks/betti_sentinel.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  },
+  "loeb-monotonicity-guard": {
+    "PreToolUse": [
+      {
+        "matcher": "write_file|edit_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 /Users/gerardomayor/Documents/estru_techos/apu_filter/Hooks/loeb_guard.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  },
+  "session-genesis-attestation": {
+    "SessionStart": [
+      {
+        "type": "command",
+        "command": "python3 /Users/gerardomayor/Documents/estru_techos/apu_filter/Hooks/genesis_attestation.py",
+        "timeout": 10
+      }
+    ]
+  },
+  "stop-completion-gate": {
+    "Stop": [
+      {
+        "type": "command",
+        "command": "python3 /Users/gerardomayor/Documents/estru_techos/apu_filter/Hooks/stop_gate.py",
+        "timeout": 10
+      }
+    ]
+  }
+}

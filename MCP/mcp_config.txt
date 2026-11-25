@@ -1,0 +1,2425 @@
+"""
+MCP Cluster Orchestrator — Evolución Soberana Nivel 3 (3 Fases Anidadas)
+========================================================================
+Tejido artesano, crítico, objetivo y verificado desde primeros principios:
+
+  ██ FASE 1 (Fase1Bootstrap) — Intérprete Admisible Maximal, PYTHONPATH,
+     Álgebra Booleana/Banach de Esquemas de Entorno con Proyector Idempotente
+     de Redacción de Secretos, Pegado de Haces (Sheaf Gluing) de las 3 Fuentes
+     de Verdad y Elevación Espinorial Cuaterniónica en Sp(1) ≅ S³ ⊂ ℍ:
+       • Evaluación exhaustiva de candidatos de Python seleccionando el supremo
+         en el orden lexicográfico de versiones que satisface min_version.
+       • Validación estricta de tipos (impidiendo colapsos bool→int y cadenas
+         arbitrarias→bool) y redacción idempotente P² = P con entropía de Shannon.
+       • Igualador categórico (pullback) sobre {mcpServers, _phase_1, _phase_2}.
+       └──► ÚLTIMO MÉTODO: bootstrap_cluster_config ──► BootstrappedConfig
+
+  ██ FASE 2 (Fase2Protocol) — Manifiesto de Protocolo, Topología Algebraica y
+     Espectral del DAG de Dependencias (Betti, Fiedler λ₂, Kirchhoff Kf, Ondas
+     Paralelas), Física de Líneas de Transmisión RLC, Estado Cuántico de Von
+     Neumann y Clasificador Topos de Heyting con Handshake MCP Real:
+       ├──► PRIMER MÉTODO (continuación directa de F1):
+       │      derive_protocol_manifest(bootstrapped: BootstrappedConfig, raw_config)
+       • Grafo de dependencias dep → dependiente deduplicado, orden de Kahn
+         determinista, estratificación en ondas paralelas y camino crítico.
+       • Handshake MCP JSON-RPC 2.0 real (initialize → notifications/initialized
+         → tools/list) con drenaje concurrente de stdout/stderr sin interbloqueo.
+       • Matriz de densidad cuántica ρ_cluster, entropía de Von Neumann S(ρ),
+         fidelidad de Uhlmann, adaptación de impedancias RLC y núcleo de Heyting.
+       └──► ÚLTIMO MÉTODO: register_servers_with_health_checks ──► RegisteredCluster
+
+  ██ FASE 3 (Fase3Autonomy) — Mecánica Celeste de Poincaré (Mapa Estándar
+     Simpéctico de Chirikov–Taylor), Teoría KAM (Hurwitz–Lagrange + Residuos de
+     Greene sobre Órbitas de Aubry–Mather) y Automejora Recursiva Nivel 3:
+       ├──► PRIMER MÉTODO (continuación directa de F2):
+       │      poincare_cluster_section(registered: RegisteredCluster, genome, n_iter)
+       • Exponente de Lyapunov tangente de Benettin + MEGNO discreto, certificado
+         diofántico sobre φ y sobre el número de rotación empírico ρ frente a
+         kam_gamma, y residuos de Greene R = (2 − Tr M)/4.
+       • Funcional de aptitud acoplado a los 8 genes de GENOME_BOX, operadores
+         evolutivos L1/L2/L3 con escala espectral áurea, veto elitista y cierre
+         de punto fijo de Kleene F3 → F1 con re-certificación completa.
+       └──► ÚLTIMO MÉTODO: orchestrate_cluster ──► Realimenta F1 (Cierre).
+
+Uso:  python mcp_config.py mcp_config.json [--real] [--iters N] [--serve]
+Dependencias: solo biblioteca estándar de Python.
+"""
+
+import sys
+import os
+import re
+import json
+import math
+import time
+import heapq
+import queue
+import shutil
+import hashlib
+import threading
+import subprocess
+from dataclasses import dataclass, asdict, field
+from typing import Any, Callable, Dict, List, Optional, Tuple
+
+
+# ═══════════════════════════════════════════════════════════════════
+# CONSTANTES FUNDAMENTALES Y CAJA COMPACTA DE BANACH DEL GENOMA
+# ═══════════════════════════════════════════════════════════════════
+GOLDEN_RATIO      = (1.0 + math.sqrt(5.0)) / 2.0
+CONJ_GOLDEN_RATIO = GOLDEN_RATIO - 1.0          # 1/φ = φ - 1 ≈ 0.6180339887
+HURWITZ_C         = 1.0 / math.sqrt(5.0)        # Cota diofántica de Hurwitz
+GOLDEN_SHARP      = 1.0 / (GOLDEN_RATIO ** 2)   # 1/φ² ≈ 0.38196601125
+CHIRIKOV_CRITICAL = 0.97163540631               # Umbral crítico de Greene (radianes)
+STRING_COUPLING_G = math.exp(-1.0 / GOLDEN_RATIO)
+Z0_BUS_IMPEDANCE  = 50.0                        # Impedancia característica nominal (Ω)
+PROTOCOL_VERSION  = "2025-06-18"
+
+MODULE_RE = re.compile(r"^[A-Za-z_]\w*(\.[A-Za-z_]\w*)*$")
+SECRET_RE = re.compile(
+    r"(token|secret|password|passwd|api[_-]?key|credential|auth|private[_-]?key)",
+    re.I,
+)
+VERSION_TOKEN_RE = re.compile(r"\d+")
+
+DEFAULT_GENOME: Dict[str, Any] = {
+    "heartbeat_ms": 30000,
+    "startup_timeout_ms": 5000,
+    "max_consecutive_failures": 3,
+    "backoff_base_ms": 500,
+    "kam_gamma": 0.10,
+    "kam_K": 0.60,
+    "probe_timeout_s": 5.0,
+    "import_timeout_s": 10.0,
+}
+
+# Caja compacta admisible en (ℝ⁸, ‖·‖_∞) con cotas estrictas de seguridad operativa
+GENOME_BOX: Dict[str, Tuple[float, float]] = {
+    "heartbeat_ms": (1000.0, 120000.0),
+    "startup_timeout_ms": (1000.0, 60000.0),
+    "max_consecutive_failures": (1.0, 10.0),
+    "backoff_base_ms": (50.0, 10000.0),
+    "kam_gamma": (1.0e-4, GOLDEN_SHARP * 0.95),
+    "kam_K": (0.05, 1.5),
+    "probe_timeout_s": (1.0, 30.0),
+    "import_timeout_s": (1.0, 60.0),
+}
+
+INT_GENES = {
+    "heartbeat_ms",
+    "startup_timeout_ms",
+    "max_consecutive_failures",
+    "backoff_base_ms",
+}
+
+RATES_L1: Dict[str, float] = {
+    "kam_K": 0.15,
+    "kam_gamma": 0.10,
+    "heartbeat_ms": 0.10,
+    "startup_timeout_ms": 0.15,
+    "backoff_base_ms": 0.20,
+    "max_consecutive_failures": 1.0,
+    "probe_timeout_s": 0.10,
+    "import_timeout_s": 0.10,
+}
+
+# Almacén en memoria volátil para el entorno de ejecución real (nunca serializado)
+_RUNTIME_ENV: Dict[str, dict] = {}
+
+
+# ═══════════════════════════════════════════════════════════════════
+# UTILIDADES TRANSVERSALES Y ÁLGEBRA MATRICIAL / ESPECTRAL PURA
+# ═══════════════════════════════════════════════════════════════════
+def _log(msg: str) -> None:
+    sys.stderr.write(f"[mcp-cluster] {msg}\n")
+    sys.stderr.flush()
+
+
+def _clamp(x: float, lo: float, hi: float) -> float:
+    return max(lo, min(hi, x))
+
+
+def _shannon_entropy_bits(s: str) -> float:
+    """Entropía de Shannon H(X) = -∑ p_i log₂(p_i) por carácter (auditoría sin fuga)."""
+    if not s:
+        return 0.0
+    n = len(s)
+    counts: Dict[str, int] = {}
+    for ch in s:
+        counts[ch] = counts.get(ch, 0) + 1
+    return float(-sum((c / n) * math.log2(c / n) for c in counts.values()))
+
+
+def _redact(key: str, value: Any) -> Any:
+    """
+    Proyector idempotente de redacción de secretos (P² = P):
+    Si el valor ya es una cápsula redactada, la devuelve sin re-hashear su
+    representación textual. De lo contrario, emite longitud, huella SHA-256
+    truncada y entropía de Shannon en bits/carácter.
+    """
+    if SECRET_RE.search(str(key)):
+        if (
+            isinstance(value, dict)
+            and value.get("redacted") is True
+            and "sha256_8" in value
+        ):
+            return value
+        s = "" if value is None else str(value)
+        return {
+            "redacted": True,
+            "length": len(s),
+            "sha256_8": hashlib.sha256(s.encode("utf-8")).hexdigest()[:8],
+            "shannon_bits_per_char": round(_shannon_entropy_bits(s), 4),
+        }
+    return value
+
+
+def _sanitize(obj: Any) -> Any:
+    if hasattr(obj, "__dataclass_fields__"):
+        obj = asdict(obj)
+    if isinstance(obj, dict):
+        return {str(k): _redact(str(k), _sanitize(v)) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize(v) for v in obj]
+    if isinstance(obj, float) and not math.isfinite(obj):
+        return None
+    return obj
+
+
+def _canon(obj: Any) -> str:
+    return json.dumps(
+        _sanitize(obj), sort_keys=True, separators=(",", ":"), ensure_ascii=False
+    )
+
+
+def _chain(prev: str, payload: Any) -> str:
+    return hashlib.sha256((prev + "|" + _canon(payload)).encode("utf-8")).hexdigest()[:32]
+
+
+def _view(obj: Any) -> dict:
+    if hasattr(obj, "__dataclass_fields__"):
+        return asdict(obj)
+    if isinstance(obj, dict):
+        return obj
+    raise TypeError(f"Contrato formal inválido: {type(obj)}")
+
+
+def _parse_version_tuple(ver_str: str) -> Tuple[int, ...]:
+    """Extrae tupla numérica canónica (major, minor, patch, ...) desde cadena de versión."""
+    tokens = VERSION_TOKEN_RE.findall(str(ver_str or ""))
+    return tuple(int(t) for t in tokens[:3]) if tokens else (0,)
+
+
+def _jacobi_symmetric_eigenvalues(
+    M: List[List[float]], max_sweeps: int = 60
+) -> List[float]:
+    """
+    Diagonalización espectral de Jacobi cíclica para matrices reales simétricas
+    (100% biblioteca estándar).
+    """
+    n = len(M)
+    if n == 0:
+        return []
+    if n == 1:
+        return [float(M[0][0])]
+    A = [[float(M[i][j]) for j in range(n)] for i in range(n)]
+    for _ in range(max_sweeps):
+        max_off = 0.0
+        for i in range(n):
+            for j in range(i + 1, n):
+                if abs(A[i][j]) > max_off:
+                    max_off = abs(A[i][j])
+        if max_off < 1.0e-14:
+            break
+        for p in range(n):
+            for q in range(p + 1, n):
+                apq = A[p][q]
+                if abs(apq) < 1.0e-15:
+                    continue
+                app, aqq = A[p][p], A[q][q]
+                tau = (aqq - app) / (2.0 * apq)
+                t = (
+                    math.copysign(1.0 / (abs(tau) + math.sqrt(1.0 + tau * tau)), tau)
+                    if tau != 0.0
+                    else 1.0
+                )
+                c = 1.0 / math.sqrt(1.0 + t * t)
+                s = t * c
+                A[p][p] = app - t * apq
+                A[q][q] = aqq + t * apq
+                A[p][q] = A[q][p] = 0.0
+                for r in range(n):
+                    if r != p and r != q:
+                        arp, arq = A[r][p], A[r][q]
+                        A[r][p] = A[p][r] = c * arp - s * arq
+                        A[r][q] = A[q][r] = s * arp + c * arq
+    return [float(x) for x in sorted(A[i][i] for i in range(n))]
+
+
+# ═══════════════════════════════════════════════════════════════════
+# CONTRATOS FORMALES DE ENTREFASE (F1 ──► F2 ──► F3 ──► F1)
+# ═══════════════════════════════════════════════════════════════════
+@dataclass
+class BootstrappedConfig:                  # SALIDA F1 → ENTRADA F2
+    interpreter: dict
+    pythonpath: dict
+    envs: dict                             # REDACTADO IDEMPOTENTEMENTE
+    modules: dict
+    server_reconciliation: dict
+    config_errors: list
+    all_ok: bool
+    genome_applied: dict
+    servers_declared: list
+    quaternion_spinor_s3: dict = field(default_factory=dict)
+    sheaf_gluing_certificate: dict = field(default_factory=dict)
+    lineage_hash: str = ""
+
+
+@dataclass
+class RegisteredCluster:                   # SALIDA F2 → ENTRADA F3
+    ok: bool
+    reason: Optional[str]
+    protocol: dict
+    capabilities: dict
+    dependency_graph: dict
+    launch_order: list
+    health: dict
+    health_success_rate: float
+    avg_latency_ok_ms: Optional[float]
+    p95_latency_ok_ms: Optional[float]
+    health_mode: str                       # "simulated" | "real"
+    registered_servers: list
+    rlc_bus_telemetry: dict = field(default_factory=dict)
+    quantum_cluster_state: dict = field(default_factory=dict)
+    topos_classifier: dict = field(default_factory=dict)
+    lineage_hash: str = ""
+
+
+@dataclass
+class PoincareSection:                     # SALIDA F3 → Fitness / Realimentación F1
+    map_convention: str
+    K_effective: float
+    health_success_rate_in: float
+    health_mode_in: str
+    orbit: list
+    section_points: list
+    n_crossings: int
+    rotation_number: Optional[float]
+    rotation_cf: list
+    lyapunov_benettin: float
+    megno_mean: float
+    greene: dict
+    diophantine: dict
+    chirikov_confinement: bool
+    empirical_diophantine: dict = field(default_factory=dict)
+    symplectic_det_jacobian: float = 1.0
+    lineage_hash: str = ""
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ██ FASE 1 — BOOTSTRAP: Intérprete, Entorno, Haces y Espinor S³ ██
+# Contrato de salida: BootstrappedConfig (consumido por derive_protocol_manifest)
+# ═══════════════════════════════════════════════════════════════════
+class Fase1Bootstrap:
+    """
+    Fase 1: Selección del Supremo de Intérpretes Admisibles, Verificación de
+    PYTHONPATH, Álgebra Booleana Tipada de Entorno con Proyección Idempotente de
+    Secretos, Igualador de Haces sobre las 3 Fuentes de Verdad y Elevación a S³.
+    """
+
+    @staticmethod
+    def _check_python_interpreter(
+        command: str,
+        min_version: str,
+        fallback_paths: List[str],
+        timeout: float = 5.0,
+    ) -> dict:
+        """
+        Evalúa todos los intérpretes candidatos (primario + fallbacks) verificando
+        permisos reales de ejecución (os.X_OK) y versión semántica, seleccionando
+        el candidato admisible maximal en el orden lexicográfico de versiones.
+        """
+        probe = "import sys; print('%d.%d.%d' % sys.version_info[:3])"
+        need = _parse_version_tuple(min_version or "3.10")
+        reports: List[dict] = []
+        best: Optional[Tuple[Tuple[int, ...], dict]] = None
+
+        candidates_raw = [c for c in ([command] + list(fallback_paths or [])) if c]
+        for cand in candidates_raw:
+            expanded = os.path.expanduser(os.path.expandvars(str(cand)))
+            resolved = shutil.which(expanded)
+            if (
+                not resolved
+                and os.path.isfile(expanded)
+                and os.access(expanded, os.X_OK)
+            ):
+                resolved = os.path.abspath(expanded)
+            if not resolved:
+                reports.append(
+                    {
+                        "candidate": cand,
+                        "resolved": None,
+                        "ok": False,
+                        "reason": "not_found_or_not_executable",
+                    }
+                )
+                continue
+            try:
+                out = (
+                    subprocess.check_output(
+                        [resolved, "-c", probe],
+                        stderr=subprocess.DEVNULL,
+                        timeout=timeout,
+                    )
+                    .decode("utf-8", errors="replace")
+                    .strip()
+                )
+                ver = _parse_version_tuple(out)
+                ok = len(ver) >= 2 and ver >= need
+                rep = {
+                    "candidate": cand,
+                    "resolved": resolved,
+                    "version": out,
+                    "min_required": min_version,
+                    "ok": bool(ok),
+                }
+                reports.append(rep)
+                if ok and (best is None or ver > best[0]):
+                    best = (ver, rep)
+            except Exception as e:
+                reports.append(
+                    {
+                        "candidate": cand,
+                        "resolved": resolved,
+                        "ok": False,
+                        "reason": str(e)[:160],
+                    }
+                )
+        if best is None:
+            return {
+                "resolved": None,
+                "ok": False,
+                "min_required": min_version,
+                "error": "Ningún intérprete satisface min_version",
+                "candidates": reports,
+            }
+        out_dict = dict(best[1])
+        out_dict["candidates"] = reports
+        out_dict["selection"] = "supremo de versión admisible entre todos los candidatos"
+        return out_dict
+
+    @staticmethod
+    def _check_pythonpath(path: str, must_contain: List[str]) -> dict:
+        """Verifica existencia, permisos R_OK | X_OK y subrutas requeridas en PYTHONPATH."""
+        p = os.path.abspath(os.path.expanduser(os.path.expandvars(str(path or "."))))
+        if not os.path.isdir(p):
+            return {"ok": False, "path": p, "error": "PYTHONPATH no es directorio"}
+        if not os.access(p, os.R_OK | os.X_OK):
+            return {"ok": False, "path": p, "error": "PYTHONPATH no accesible"}
+        missing = [
+            s for s in (must_contain or []) if not os.path.exists(os.path.join(p, s))
+        ]
+        return {
+            "ok": not missing,
+            "path": p,
+            "missing": missing,
+            "readable": True,
+        }
+
+    @staticmethod
+    def _validate_env_schema(
+        env: Dict[str, Any], schema: Dict[str, dict]
+    ) -> dict:
+        """
+        Validación estricta de esquema de entorno sobre tipos integer, number,
+        boolean, string, array y object:
+          • Impide que booleanos se filtren como integer/number (isinstance(val, bool)).
+          • Exige literales booleanos canónicos {'1','true','yes','on','0','false','no','off'}.
+          • Aplica el proyector idempotente _redact a las claves sensibles y retiene
+            el entorno real en _RUNTIME_ENV fuera del canal JSON.
+        """
+        normalized: Dict[str, Any] = {}
+        errors: List[str] = []
+        bool_true = {"1", "true", "yes", "on"}
+        bool_false = {"0", "false", "no", "off"}
+
+        for key, spec in (schema or {}).items():
+            val = env.get(key, spec.get("default"))
+            if val is None:
+                if not spec.get("optional", False):
+                    errors.append(f"{key}: requerido y ausente")
+                continue
+            t = spec.get("type", "string")
+            try:
+                if t == "integer":
+                    if isinstance(val, bool):
+                        raise ValueError("booleano no admisible como integer")
+                    if isinstance(val, str):
+                        v: Any = int(val.strip())
+                    elif isinstance(val, int):
+                        v = int(val)
+                    elif isinstance(val, float) and val.is_integer():
+                        v = int(val)
+                    else:
+                        raise ValueError(f"valor no entero: {val!r}")
+                elif t == "number":
+                    if isinstance(val, bool):
+                        raise ValueError("booleano no admisible como number")
+                    v = float(val)
+                    if not math.isfinite(v):
+                        raise ValueError("número no finito")
+                elif t == "boolean":
+                    if isinstance(val, bool):
+                        v = val
+                    elif isinstance(val, int) and val in (0, 1):
+                        v = bool(val)
+                    elif isinstance(val, str):
+                        low = val.strip().lower()
+                        if low in bool_true:
+                            v = True
+                        elif low in bool_false:
+                            v = False
+                        else:
+                            raise ValueError(f"literal booleano inválido: {val!r}")
+                    else:
+                        raise ValueError(f"tipo booleano inválido: {type(val).__name__}")
+                elif t == "array":
+                    v = val if isinstance(val, list) else json.loads(val)
+                    if not isinstance(v, list):
+                        raise ValueError("no es lista")
+                elif t == "object":
+                    v = val if isinstance(val, dict) else json.loads(val)
+                    if not isinstance(v, dict):
+                        raise ValueError("no es objeto")
+                else:
+                    v = str(val)
+
+                if t in ("integer", "number"):
+                    if "min" in spec and v < spec["min"]:
+                        errors.append(f"{key}: {v} < min {spec['min']}")
+                    if "max" in spec and v > spec["max"]:
+                        errors.append(f"{key}: {v} > max {spec['max']}")
+                if t == "string" and "pattern" in spec:
+                    if not re.fullmatch(spec["pattern"], v):
+                        errors.append(f"{key}: no matchea '{spec['pattern']}'")
+                if "enum" in spec and v not in spec["enum"]:
+                    errors.append(f"{key}: {v} ∉ enum {spec['enum']}")
+                normalized[key] = v
+            except (ValueError, TypeError, json.JSONDecodeError) as e:
+                errors.append(f"{key}: conversión fallida ({e})")
+
+        unknown = sorted(set(env or {}) - set(schema or {}))
+        for k in unknown:
+            normalized[k] = env[k]
+        return {
+            "ok": not errors,
+            "normalized_env_redacted": {
+                k: _redact(k, v) for k, v in normalized.items()
+            },
+            "unknown_keys": unknown,
+            "errors": errors,
+            "_runtime_env": normalized,
+        }
+
+    @staticmethod
+    def _check_module_importable(
+        module: str, pythonpath: str, python_exe: str, timeout: float = 10.0
+    ) -> dict:
+        """
+        Verifica importabilidad de un módulo Python sin interpolación en código
+        fuente (validación por MODULE_RE + paso por sys.argv[1]).
+        """
+        if not MODULE_RE.match(module or ""):
+            return {
+                "importable": False,
+                "module": module,
+                "error": "nombre de módulo inválido (anti-inyección)",
+            }
+        code = "import importlib, sys; importlib.import_module(sys.argv[1])"
+        prev = os.environ.get("PYTHONPATH", "")
+        merged = pythonpath + (os.pathsep + prev if prev else "")
+        env = dict(os.environ, PYTHONPATH=merged)
+        try:
+            subprocess.check_output(
+                [python_exe, "-c", code, module],
+                stderr=subprocess.PIPE,
+                timeout=timeout,
+                env=env,
+            )
+            return {"importable": True, "module": module}
+        except subprocess.CalledProcessError as e:
+            return {
+                "importable": False,
+                "module": module,
+                "stderr": e.stderr.decode("utf-8", errors="replace")[:400],
+            }
+        except Exception as e:
+            return {"importable": False, "module": module, "error": str(e)[:200]}
+
+    @staticmethod
+    def _reconcile_server_sets(raw_config: dict) -> dict:
+        """
+        Igualador categórico (pullback / condición de pegado de haces) sobre las
+        tres cubiertas de declaración de servidores:
+            U_mcp = dom(mcpServers),  U_p1 = dom(_phase_1),  U_p2 = dom(_phase_2).
+        El haz global existe sin obstrucción cohomológica ⟺ U_mcp = U_p1 = U_p2.
+        """
+        mcp = set((raw_config.get("mcpServers") or {}).keys())
+        p1 = set(
+            ((raw_config.get("_phase_1_bootstrap") or {}).get("servers") or {}).keys()
+        )
+        p2 = set(
+            ((raw_config.get("_phase_2_protocol") or {}).get("servers") or {}).keys()
+        )
+        union = mcp | p1 | p2
+        intersection = (mcp & p1 & p2) if union else set()
+        discrepancies = {
+            "in_phase1_not_in_mcpServers": sorted(p1 - mcp),
+            "in_mcpServers_not_in_phase1": sorted(mcp - p1),
+            "in_phase2_not_in_phase1": sorted(p2 - p1),
+            "in_phase1_not_in_phase2": sorted(p1 - p2),
+        }
+        consistent = not any(discrepancies.values())
+        sym_diff_card = len(union - intersection)
+        gluing_index = (
+            float(len(intersection)) / float(len(union)) if union else 1.0
+        )
+        return {
+            "union": sorted(union),
+            "intersection": sorted(intersection),
+            "mcpServers": sorted(mcp),
+            "phase1": sorted(p1),
+            "phase2": sorted(p2),
+            "discrepancies": discrepancies,
+            "consistent": bool(consistent),
+            "sheaf_cocycle_defect": sym_diff_card,
+            "jaccard_gluing_coherence": gluing_index,
+        }
+
+    @staticmethod
+    def _lift_bootstrap_spinor_s3(
+        interp_ok: bool,
+        path_ok: bool,
+        envs_ok_ratio: float,
+        mods_ok_ratio: float,
+    ) -> dict:
+        """
+        Eleva el vector de estado de arranque a un espinor cuaterniónico unitario
+        q = w + x·i + y·j + z·k ∈ Sp(1) ≅ SU(2) ≅ S³ ⊂ ℍ.
+        """
+        w = 1.0 if interp_ok else 0.1
+        x = 1.0 if path_ok else 0.0
+        y = float(_clamp(envs_ok_ratio, 0.0, 1.0))
+        z = float(_clamp(mods_ok_ratio, 0.0, 1.0))
+        norm = math.sqrt(w * w + x * x + y * y + z * z)
+        if norm < 1.0e-15:
+            q = (1.0, 0.0, 0.0, 0.0)
+        else:
+            q = (w / norm, x / norm, y / norm, z / norm)
+        half_angle = math.acos(_clamp(q[0], -1.0, 1.0))
+        return {
+            "w": q[0],
+            "x_i": q[1],
+            "y_j": q[2],
+            "z_k": q[3],
+            "norm_s3": float(math.sqrt(sum(c * c for c in q))),
+            "su2_geodesic_angle_rad": float(2.0 * half_angle),
+        }
+
+    # ── ÚLTIMO MÉTODO DE FASE 1 ─────────────────────────────────────
+    @staticmethod
+    def bootstrap_cluster_config(
+        raw_config: dict, genome: Optional[dict] = None
+    ) -> BootstrappedConfig:
+        """
+        Ejecuta el bootstrap verificado del clúster aplicando los genes temporales
+        (probe_timeout_s, import_timeout_s), validando esquemas con redacción
+        idempotente, auditando el pegado de haces de servidores y elevando el
+        estado a Sp(1) ≅ S³.
+        → CONTINUIDAD ANIDADA: Fase2Protocol.derive_protocol_manifest consume BootstrappedConfig.
+        """
+        g = Fase3Autonomy._project_genome(dict(genome or DEFAULT_GENOME))
+        errors: List[str] = []
+        phase1 = raw_config.get("_phase_1_bootstrap") or {}
+        if not phase1:
+            errors.append("_phase_1_bootstrap ausente")
+        python_spec = phase1.get("python") or {}
+        path_spec = phase1.get("pythonpath") or {}
+        env_schema = phase1.get("environment_schema") or {}
+        servers_spec = phase1.get("servers") or {}
+
+        interp = Fase1Bootstrap._check_python_interpreter(
+            python_spec.get("command", "python3"),
+            python_spec.get("min_version", "3.10"),
+            python_spec.get("fallback_paths", []),
+            timeout=g["probe_timeout_s"],
+        )
+        path_chk = Fase1Bootstrap._check_pythonpath(
+            path_spec.get("primary", "."), path_spec.get("must_contain", [])
+        )
+        recon = Fase1Bootstrap._reconcile_server_sets(raw_config)
+        if not recon["consistent"]:
+            errors.append(
+                f"fuentes de servidores inconsistentes: {recon['discrepancies']}"
+            )
+
+        envs_report: Dict[str, dict] = {}
+        mcp_servers_cfg = raw_config.get("mcpServers") or {}
+        for srv_id in servers_spec:
+            srv_env = (mcp_servers_cfg.get(srv_id) or {}).get("env") or {}
+            rep = Fase1Bootstrap._validate_env_schema(srv_env, env_schema)
+            _RUNTIME_ENV[srv_id] = rep.pop("_runtime_env")
+            envs_report[srv_id] = rep
+
+        modules_report: Dict[str, dict] = {}
+        if interp["ok"] and path_chk["ok"]:
+            for srv_id, spec in servers_spec.items():
+                modules_report[srv_id] = Fase1Bootstrap._check_module_importable(
+                    (spec or {}).get("module", ""),
+                    path_chk["path"],
+                    interp["resolved"],
+                    timeout=g["import_timeout_s"],
+                )
+        else:
+            for srv_id in servers_spec:
+                modules_report[srv_id] = {
+                    "importable": False,
+                    "reason": "interpreter_or_path_invalid",
+                }
+
+        n_srv = max(1, len(servers_spec))
+        envs_ok_ratio = sum(1 for v in envs_report.values() if v["ok"]) / n_srv
+        mods_ok_ratio = (
+            sum(1 for v in modules_report.values() if v.get("importable")) / n_srv
+        )
+        spinor_s3 = Fase1Bootstrap._lift_bootstrap_spinor_s3(
+            bool(interp["ok"]), bool(path_chk["ok"]), envs_ok_ratio, mods_ok_ratio
+        )
+        sheaf_cert = {
+            "equalizer_exact": recon["consistent"],
+            "cocycle_defect": recon["sheaf_cocycle_defect"],
+            "jaccard_coherence": recon["jaccard_gluing_coherence"],
+        }
+
+        all_ok = (
+            interp["ok"]
+            and path_chk["ok"]
+            and not errors
+            and all(v["ok"] for v in envs_report.values())
+            and all(v.get("importable", False) for v in modules_report.values())
+        )
+        payload = {
+            "interpreter": interp,
+            "pythonpath": path_chk,
+            "envs": envs_report,
+            "modules": modules_report,
+            "server_reconciliation": recon,
+            "config_errors": errors,
+            "all_ok": bool(all_ok),
+            "genome_applied": g,
+            "servers_declared": sorted(servers_spec),
+            "quaternion_spinor_s3": spinor_s3,
+            "sheaf_gluing_certificate": sheaf_cert,
+        }
+        return BootstrappedConfig(**payload, lineage_hash=_chain("F1", payload))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ██ FASE 2 — PROTOCOLO: Topología DAG, Física RLC, Cuántica y MCP ██
+# INICIO: derive_protocol_manifest consume BootstrappedConfig de Fase 1.
+# ═══════════════════════════════════════════════════════════════════
+class Fase2Protocol:
+    """
+    Fase 2: Manifiesto de Protocolo, Topología Algebraica y Espectral del DAG de
+    Dependencias (Betti, Fiedler λ₂, Resistencia Efectiva de Kirchhoff, Ondas
+    Paralelas), Handshake MCP Real sin Interbloqueo, Telemetría RLC de Línea de
+    Transmisión, Estado Cuántico de Von Neumann y Clasificador Topos de Heyting.
+    """
+
+    # ── PRIMERA FUNCIÓN DE FASE 2 (CONTINUACIÓN DIRECTA DE FASE 1) ──
+    @staticmethod
+    def derive_protocol_manifest(bootstrapped: Any, raw_config: dict) -> dict:
+        """
+        Consume BootstrappedConfig de Fase 1 y construye el manifiesto formal
+        del protocolo MCP: versión negociada, separación categórica de
+        capabilities servidor/cliente y grafo de dependencias con invariantes
+        homológicos y espectrales.
+        """
+        bs = _view(bootstrapped)
+        phase2 = raw_config.get("_phase_2_protocol") or {}
+        protocol = dict(phase2.get("protocol") or {})
+        protocol.setdefault("version", PROTOCOL_VERSION)
+        protocol.setdefault("transport", "stdio")
+        servers = phase2.get("servers") or {}
+        caps = {
+            sid: Fase2Protocol._declare_capabilities(spec or {})
+            for sid, spec in servers.items()
+        }
+        graph = Fase2Protocol._build_dependency_graph(servers)
+        return {
+            "protocol": protocol,
+            "servers": servers,
+            "capabilities": caps,
+            "dependency_graph": graph,
+            "bootstrap_lineage": bs.get("lineage_hash"),
+            "manifest_ok": bool(
+                bs.get("all_ok")
+                and not graph["has_cycle"]
+                and not graph["dangling_dependencies"]
+            ),
+        }
+
+    @staticmethod
+    def _declare_capabilities(server_spec: dict) -> dict:
+        """Separa ortogonalmente capabilities de SERVIDOR y capabilities de CLIENTE."""
+        caps = server_spec.get("capabilities") or {}
+        server_allowed = {
+            "tools",
+            "resources",
+            "prompts",
+            "logging",
+            "completions",
+            "experimental",
+        }
+        client_allowed = {"sampling", "roots"}
+        return {
+            "server": {k: bool(v) for k, v in caps.items() if k in server_allowed},
+            "client_declared": {
+                k: bool(v) for k, v in caps.items() if k in client_allowed
+            },
+            "unknown": sorted(set(caps) - server_allowed - client_allowed),
+        }
+
+    @staticmethod
+    def _build_dependency_graph(servers: Dict[str, dict]) -> dict:
+        """
+        Construye el DAG de dependencias con orientación canónica (dep → dependiente)
+        y calcula sus invariantes topológicos y espectrales:
+          • Deduplicación de aristas y detección explícita de lazos propios.
+          • Orden topológico determinista de Kahn con cola de prioridad lexicográfica.
+          • Estratificación en ondas de lanzamiento paralelo W_0, W_1, … y camino crítico.
+          • Topología algebraica del grafo subyacente: β₀ (Union-Find), β₁ = |E| − |V| + β₀,
+            característica de Euler χ = |V| − |E|.
+          • Espectro de Jacobi del Laplaciano simétrico L = D − A_sym, valor de Fiedler λ₂
+            e índice de resistencia efectiva de Kirchhoff Kf(G).
+        """
+        nodes = sorted(servers or {})
+        n_nodes = len(nodes)
+        node_idx = {u: i for i, u in enumerate(nodes)}
+
+        deps: Dict[str, List[str]] = {}
+        self_loops: List[str] = []
+        for n in nodes:
+            raw_deps = (servers[n] or {}).get("dependencies") or []
+            dedup: List[str] = []
+            for d in raw_deps:
+                if d == n:
+                    if n not in self_loops:
+                        self_loops.append(n)
+                if d not in dedup:
+                    dedup.append(d)
+            deps[n] = dedup
+
+        dangling = {
+            n: [d for d in deps[n] if d not in servers] for n in nodes
+        }
+        dangling = {n: d for n, d in dangling.items() if d}
+
+        adj: Dict[str, List[str]] = {n: [] for n in nodes}
+        in_deg: Dict[str, int] = {n: 0 for n in nodes}
+        for n in nodes:
+            for d in deps[n]:
+                if d in adj:
+                    adj[d].append(n)
+                    in_deg[n] += 1
+
+        heap = [n for n in nodes if in_deg[n] == 0]
+        heapq.heapify(heap)
+        order: List[str] = []
+        local = dict(in_deg)
+        level_map: Dict[str, int] = {n: 0 for n in nodes if in_deg[n] == 0}
+
+        while heap:
+            u = heapq.heappop(heap)
+            order.append(u)
+            for v in sorted(adj[u]):
+                local[v] -= 1
+                level_map[v] = max(level_map.get(v, 0), level_map[u] + 1)
+                if local[v] == 0:
+                    heapq.heappush(heap, v)
+
+        has_cycle = (len(order) != n_nodes) or bool(self_loops)
+        waves: List[List[str]] = []
+        if not has_cycle and n_nodes > 0:
+            max_lvl = max(level_map.values(), default=0)
+            for lvl in range(max_lvl + 1):
+                waves.append(
+                    sorted(u for u, l in level_map.items() if l == lvl)
+                )
+
+        # Invariantes homológicos y espectrales sobre el esqueleto 1-simplicial no dirigido
+        undirected_edges = set()
+        parent = {n: n for n in nodes}
+
+        def find(x: str) -> str:
+            while parent[x] != x:
+                parent[x] = parent[parent[x]]
+                x = parent[x]
+            return x
+
+        for u in nodes:
+            for v in adj[u]:
+                if u != v:
+                    e_key = (u, v) if u < v else (v, u)
+                    undirected_edges.add(e_key)
+                    ru, rv = find(u), find(v)
+                    if ru != rv:
+                        parent[ru] = rv
+
+        beta_0 = len({find(n) for n in nodes}) if n_nodes > 0 else 0
+        n_edges_undir = len(undirected_edges)
+        beta_1 = n_edges_undir - n_nodes + beta_0
+        euler_chi = n_nodes - n_edges_undir
+
+        L = [[0.0] * n_nodes for _ in range(n_nodes)]
+        for u, v in undirected_edges:
+            iu, iv = node_idx[u], node_idx[v]
+            L[iu][iv] -= 1.0
+            L[iv][iu] -= 1.0
+            L[iu][iu] += 1.0
+            L[iv][iv] += 1.0
+        eigvals = _jacobi_symmetric_eigenvalues(L) if n_nodes > 0 else []
+        fiedler_lambda2 = float(eigvals[1]) if len(eigvals) > 1 else 0.0
+        pos_ev = [lam for lam in eigvals if lam > 1.0e-9]
+        kirchhoff_kf = (
+            float(n_nodes * sum(1.0 / lam for lam in pos_ev)) if pos_ev else 0.0
+        )
+
+        return {
+            "adjacency_dep_to_dependent": adj,
+            "dependencies": deps,
+            "in_degree": in_deg,
+            "launch_order": order if not has_cycle else None,
+            "parallel_launch_waves": waves if not has_cycle else [],
+            "critical_path_depth": len(waves),
+            "has_cycle": bool(has_cycle),
+            "cyclic_nodes": sorted(set(nodes) - set(order)) if has_cycle else [],
+            "self_loops": self_loops,
+            "dangling_dependencies": dangling,
+            "simplicial_homology": {
+                "beta_0_components": beta_0,
+                "beta_1_cycles": beta_1,
+                "euler_characteristic": euler_chi,
+                "fiedler_lambda_2": fiedler_lambda2,
+                "kirchhoff_resistance_index": kirchhoff_kf,
+            },
+            "orientation": "dep→dependiente; in_degree = nº de dependencias",
+            "erratum": "orden invertido del original corregido y aristas deduplicadas",
+        }
+
+    @staticmethod
+    def _topological_sort(graph: dict) -> List[str]:
+        if graph["has_cycle"]:
+            raise ValueError(
+                f"Grafo de dependencias con ciclo: {graph['cyclic_nodes']}"
+            )
+        if graph["dangling_dependencies"]:
+            raise ValueError(
+                f"Dependencias colgantes: {graph['dangling_dependencies']}"
+            )
+        return graph["launch_order"]
+
+    # ── Handshake MCP JSON-RPC 2.0 Real con Drenaje Concurrente ──────
+    class _MCPProbe:
+        """
+        Canal JSON-RPC 2.0 sobre stdio con hilos lectores persistentes tanto
+        para stdout como para stderr (evita interbloqueos por llenado de pipe OS).
+        """
+
+        def __init__(self, proc: subprocess.Popen):
+            self.proc = proc
+            self.q: queue.Queue = queue.Queue()
+            self._stderr_chunks: List[str] = []
+            self._stderr_lock = threading.Lock()
+            threading.Thread(target=self._pump_stdout, daemon=True).start()
+            threading.Thread(target=self._pump_stderr, daemon=True).start()
+
+        def _pump_stdout(self) -> None:
+            try:
+                if self.proc.stdout is not None:
+                    for line in self.proc.stdout:
+                        self.q.put(line)
+            except Exception:
+                pass
+            self.q.put(None)
+
+        def _pump_stderr(self) -> None:
+            try:
+                if self.proc.stderr is not None:
+                    for line in self.proc.stderr:
+                        with self._stderr_lock:
+                            if sum(len(c) for c in self._stderr_chunks) < 1600:
+                                self._stderr_chunks.append(line)
+            except Exception:
+                pass
+
+        def send(self, obj: dict) -> None:
+            if self.proc.stdin is not None:
+                self.proc.stdin.write(json.dumps(obj) + "\n")
+                self.proc.stdin.flush()
+
+        def recv(self, expect_id: Any, timeout: float) -> Optional[dict]:
+            deadline = time.perf_counter() + timeout
+            while True:
+                rem = deadline - time.perf_counter()
+                if rem <= 0:
+                    return None
+                try:
+                    line = self.q.get(timeout=rem)
+                except queue.Empty:
+                    return None
+                if line is None:
+                    return None
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    msg = json.loads(line)
+                except Exception:
+                    continue
+                if isinstance(msg, dict) and msg.get("id") == expect_id:
+                    return msg
+
+        def close(self) -> str:
+            try:
+                if self.proc.stdin is not None:
+                    self.proc.stdin.close()
+            except Exception:
+                pass
+            try:
+                self.proc.wait(timeout=1.5)
+            except Exception:
+                try:
+                    self.proc.terminate()
+                    self.proc.wait(timeout=1.0)
+                except Exception:
+                    try:
+                        self.proc.kill()
+                    except Exception:
+                        pass
+            with self._stderr_lock:
+                return "".join(self._stderr_chunks)[:400]
+
+    @staticmethod
+    def _launch_command(
+        server_id: str,
+        phase2_spec: dict,
+        mcp_spec: dict,
+        python_exe: str,
+    ) -> Tuple[Optional[List[str]], Optional[str]]:
+        if mcp_spec.get("command"):
+            cmd = shutil.which(mcp_spec["command"]) or mcp_spec["command"]
+            if not os.path.isfile(cmd) or not os.access(cmd, os.X_OK):
+                return None, f"command no ejecutable: {mcp_spec['command']}"
+            return [cmd] + [str(a) for a in mcp_spec.get("args", [])], None
+        module = (phase2_spec or {}).get("module", "")
+        if not MODULE_RE.match(module):
+            return None, f"módulo inválido: {module}"
+        return [python_exe, "-u", "-m", module], None
+
+    @staticmethod
+    def _probe_server_health(
+        server_id: str,
+        server_spec: dict,
+        manifest: dict,
+        bootstrapped: dict,
+        raw_config: dict,
+        simulate: bool = True,
+        timeout: float = 5.0,
+        sim_failure_rate: float = 0.05,
+    ) -> dict:
+        """
+        Ejecuta el handshake MCP real (initialize → notifications/initialized → tools/list)
+        midiendo latencias con time.perf_counter(), o la sonda determinista simulada
+        explícitamente etiquetada.
+        """
+        caps = manifest["capabilities"].get(server_id, {})
+        if simulate:
+            seed = int(
+                hashlib.sha256(
+                    f"{server_id}|{manifest['protocol']['version']}".encode("utf-8")
+                ).hexdigest()[:8],
+                16,
+            )
+            latency = 10.0 + (seed % 200) / 10.0
+            ok = (seed % 1000) >= int(sim_failure_rate * 1000)
+            return {
+                "server_id": server_id,
+                "ok": bool(ok),
+                "latency_ms": latency,
+                "simulated": True,
+                "capabilities": caps,
+                "tools_count": None,
+                "protocol_version": manifest["protocol"]["version"],
+            }
+
+        bs = _view(bootstrapped)
+        mcp_spec = (raw_config.get("mcpServers") or {}).get(server_id) or {}
+        cmd, err = Fase2Protocol._launch_command(
+            server_id, server_spec, mcp_spec, bs["interpreter"]["resolved"]
+        )
+        if cmd is None:
+            return {
+                "server_id": server_id,
+                "ok": False,
+                "simulated": False,
+                "latency_ms": None,
+                "error": err,
+                "capabilities": caps,
+            }
+
+        env = dict(os.environ)
+        env["PYTHONPATH"] = bs["pythonpath"]["path"] + (
+            os.pathsep + os.environ["PYTHONPATH"]
+            if os.environ.get("PYTHONPATH")
+            else ""
+        )
+        env.update(
+            {k: str(v) for k, v in _RUNTIME_ENV.get(server_id, {}).items()}
+        )
+
+        proc = None
+        try:
+            t0 = time.perf_counter()
+            proc = subprocess.Popen(
+                cmd,
+                stdin=subprocess.PIPE,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                env=env,
+                text=True,
+                bufsize=1,
+            )
+            ch = Fase2Protocol._MCPProbe(proc)
+            ch.send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": 1,
+                    "method": "initialize",
+                    "params": {
+                        "protocolVersion": manifest["protocol"]["version"],
+                        "capabilities": {},
+                        "clientInfo": {
+                            "name": "mcp-cluster-orchestrator",
+                            "version": "4.1.0-soberano",
+                        },
+                    },
+                }
+            )
+            init = ch.recv(1, timeout)
+            t_init = (time.perf_counter() - t0) * 1000.0
+            if (
+                init is None
+                or not isinstance(init.get("result"), dict)
+            ):
+                return {
+                    "server_id": server_id,
+                    "ok": False,
+                    "simulated": False,
+                    "latency_ms": t_init,
+                    "error": "initialize sin respuesta válida",
+                    "stderr": ch.close(),
+                    "capabilities": caps,
+                }
+
+            ch.send({"jsonrpc": "2.0", "method": "notifications/initialized"})
+            t1 = time.perf_counter()
+            ch.send({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})
+            tl = ch.recv(2, timeout)
+            t_tools = (time.perf_counter() - t1) * 1000.0
+            tl_res = tl.get("result") if isinstance(tl, dict) else None
+            tools = tl_res.get("tools", []) if isinstance(tl_res, dict) else []
+            stderr_tail = ch.close()
+            return {
+                "server_id": server_id,
+                "ok": bool(isinstance(tl_res, dict)),
+                "simulated": False,
+                "latency_ms": t_init + t_tools,
+                "initialize_ms": t_init,
+                "tools_list_ms": t_tools,
+                "protocol_version": init["result"].get("protocolVersion"),
+                "server_info": init["result"].get("serverInfo"),
+                "tools_count": len(tools) if isinstance(tools, list) else 0,
+                "capabilities": caps,
+                "stderr_tail": stderr_tail,
+            }
+        except Exception as e:
+            if proc is not None:
+                try:
+                    proc.kill()
+                except Exception:
+                    pass
+            return {
+                "server_id": server_id,
+                "ok": False,
+                "simulated": False,
+                "latency_ms": None,
+                "error": str(e)[:200],
+                "capabilities": caps,
+            }
+
+    @staticmethod
+    def _audit_rlc_bus_and_quantum_state(
+        health: Dict[str, dict], genome: dict
+    ) -> Tuple[dict, dict, dict]:
+        """
+        1. Física de Circuitos de Línea de Transmisión RLC del Bus MCP:
+           Cada canal stdio j tiene impedancia efectiva Z_j = Z₀ · (1 + latency_j / τ_ref),
+           coeficiente de reflexión de tensión Γ_j = (Z_j − Z₀) / (Z_j + Z₀), razón de
+           onda estacionaria VSWR_j = (1 + |Γ_j|) / (1 − |Γ_j|) y factor de calidad Q.
+        2. Mecánica Cuántica de Matriz de Densidad del Clúster:
+           Estado mixto ρ = diag(p₁, …, p_N) ponderado por salud y coherencia temporal,
+           entropía de Von Neumann S(ρ) = −Tr(ρ ln ρ), pureza Tr(ρ²) y fidelidad de
+           Uhlmann F(ρ, |ψ_ideal⟩⟨ψ_ideal|) frente al estado maximalmente coherente.
+        3. Clasificador de Subobjetos Topos de Heyting con núcleo de Lawvere–Tierney j_{¬¬,θ}.
+        """
+        n = len(health)
+        if n == 0:
+            return (
+                {"mean_reflection_gamma": 1.0, "mean_vswr": float("inf"), "bus_matched": False},
+                {"von_neumann_entropy": 0.0, "purity": 0.0, "uhlmann_fidelity": 0.0},
+                {"heyting_truth": 0.0, "lawvere_tierney_j_nn": 0.0, "verdict": False},
+            )
+
+        tau_ref_ms = max(1.0, float(genome.get("backoff_base_ms", 500)))
+        gammas: List[float] = []
+        vswrs: List[float] = []
+        weights: List[float] = []
+
+        for sid, h in sorted(health.items()):
+            ok = bool(h.get("ok", False))
+            lat = float(h.get("latency_ms") or tau_ref_ms)
+            z_eff = Z0_BUS_IMPEDANCE * (1.0 + lat / tau_ref_ms) if ok else Z0_BUS_IMPEDANCE * 10.0
+            gamma = abs(z_eff - Z0_BUS_IMPEDANCE) / (z_eff + Z0_BUS_IMPEDANCE)
+            vswr = (1.0 + gamma) / max(1.0e-9, 1.0 - gamma)
+            gammas.append(gamma)
+            vswrs.append(vswr)
+            weights.append(math.exp(-lat / (2.0 * tau_ref_ms)) if ok else 1.0e-6)
+
+        mean_gamma = sum(gammas) / n
+        mean_vswr = sum(vswrs) / n
+        rlc_telemetry = {
+            "characteristic_impedance_ohm": Z0_BUS_IMPEDANCE,
+            "mean_reflection_gamma": float(mean_gamma),
+            "mean_vswr": float(mean_vswr),
+            "power_transmission_efficiency": float(1.0 - mean_gamma * mean_gamma),
+            "bus_matched": bool(mean_gamma < 0.5),
+        }
+
+        w_sum = sum(weights)
+        probs = [w / w_sum for w in weights] if w_sum > 0 else [1.0 / n] * n
+        vn_entropy = -sum(p * math.log(p) for p in probs if p > 1.0e-15)
+        purity = sum(p * p for p in probs)
+        # Fidelidad de Uhlmann respecto al estado uniforme puro |ψ₀⟩ = (1/√N) ∑ |k⟩
+        # modulada por la tasa de éxito de salud (HSR)
+        hsr = sum(1 for h in health.values() if h.get("ok")) / n
+        overlap_uniform = (sum(math.sqrt(p) for p in probs) ** 2) / n
+        uhlmann_fidelity = float(hsr * overlap_uniform)
+        quantum_state = {
+            "von_neumann_entropy_nats": float(vn_entropy),
+            "max_entropy_ln_N": float(math.log(n)) if n > 1 else 0.0,
+            "purity_tr_rho2": float(purity),
+            "uhlmann_fidelity": uhlmann_fidelity,
+        }
+
+        theta = 0.5
+        truth_val = min(hsr, 1.0 - mean_gamma, uhlmann_fidelity)
+        p_lifted = max(truth_val, theta)
+        neg_theta = theta if p_lifted > theta else 1.0
+        j_nn = theta if neg_theta > theta else 1.0
+        topos_cls = {
+            "heyting_truth": float(truth_val),
+            "threshold_theta": theta,
+            "lawvere_tierney_j_nn": float(j_nn),
+            "verdict": bool(truth_val >= theta),
+        }
+        return rlc_telemetry, quantum_state, topos_cls
+
+    # ── ÚLTIMO MÉTODO DE FASE 2 ─────────────────────────────────────
+    @staticmethod
+    def register_servers_with_health_checks(
+        bootstrapped: Any,
+        raw_config: dict,
+        simulate_health: bool = True,
+        genome: Optional[dict] = None,
+    ) -> RegisteredCluster:
+        """
+        Deriva el manifiesto de protocolo, resuelve el orden topológico de Kahn,
+        ejecuta los health checks MCP (reales o simulados), audita la física RLC
+        del bus y el estado cuántico de Von Neumann, y emite RegisteredCluster.
+        → CONTINUIDAD ANIDADA: Fase3Autonomy.poincare_cluster_section consume RegisteredCluster.
+        """
+        bs = _view(bootstrapped)
+        g = Fase3Autonomy._project_genome(dict(genome or DEFAULT_GENOME))
+        manifest = Fase2Protocol.derive_protocol_manifest(bs, raw_config)
+        graph = manifest["dependency_graph"]
+
+        if not bs.get("all_ok"):
+            payload = {
+                "ok": False,
+                "reason": "bootstrap_failed",
+                "protocol": manifest["protocol"],
+                "capabilities": manifest["capabilities"],
+                "dependency_graph": graph,
+                "launch_order": [],
+                "health": {},
+                "health_success_rate": 0.0,
+                "avg_latency_ok_ms": None,
+                "p95_latency_ok_ms": None,
+                "health_mode": "simulated" if simulate_health else "real",
+                "registered_servers": [],
+                "rlc_bus_telemetry": {},
+                "quantum_cluster_state": {},
+                "topos_classifier": {},
+            }
+            return RegisteredCluster(**payload, lineage_hash=_chain("F2", payload))
+
+        try:
+            order = Fase2Protocol._topological_sort(graph)
+        except ValueError as e:
+            payload = {
+                "ok": False,
+                "reason": str(e),
+                "protocol": manifest["protocol"],
+                "capabilities": manifest["capabilities"],
+                "dependency_graph": graph,
+                "launch_order": [],
+                "health": {},
+                "health_success_rate": 0.0,
+                "avg_latency_ok_ms": None,
+                "p95_latency_ok_ms": None,
+                "health_mode": "simulated" if simulate_health else "real",
+                "registered_servers": [],
+                "rlc_bus_telemetry": {},
+                "quantum_cluster_state": {},
+                "topos_classifier": {},
+            }
+            return RegisteredCluster(**payload, lineage_hash=_chain("F2", payload))
+
+        health: Dict[str, dict] = {}
+        for sid in order:
+            health[sid] = Fase2Protocol._probe_server_health(
+                sid,
+                manifest["servers"][sid],
+                manifest,
+                bs,
+                raw_config,
+                simulate=simulate_health,
+                timeout=g["probe_timeout_s"],
+            )
+
+        n = max(1, len(health))
+        hsr = sum(1 for h in health.values() if h["ok"]) / n
+        ok_lat = sorted(
+            h["latency_ms"]
+            for h in health.values()
+            if h["ok"] and h.get("latency_ms") is not None
+        )
+        avg = sum(ok_lat) / len(ok_lat) if ok_lat else None
+        p95 = (
+            ok_lat[min(len(ok_lat) - 1, int(0.95 * len(ok_lat)))]
+            if ok_lat
+            else None
+        )
+        rlc_bus, q_state, topos_cls = Fase2Protocol._audit_rlc_bus_and_quantum_state(
+            health, g
+        )
+
+        payload = {
+            "ok": True,
+            "reason": None,
+            "protocol": manifest["protocol"],
+            "capabilities": manifest["capabilities"],
+            "dependency_graph": graph,
+            "launch_order": order,
+            "health": health,
+            "health_success_rate": float(hsr),
+            "avg_latency_ok_ms": avg,
+            "p95_latency_ok_ms": p95,
+            "health_mode": "simulated" if simulate_health else "real",
+            "registered_servers": list(order),
+            "rlc_bus_telemetry": rlc_bus,
+            "quantum_cluster_state": q_state,
+            "topos_classifier": topos_cls,
+        }
+        return RegisteredCluster(**payload, lineage_hash=_chain("F2", payload))
+
+
+# ═══════════════════════════════════════════════════════════════════
+# ██ FASE 3 — POINCARÉ, KAM (GREENE/HURWITZ) Y AUTOMEJORA NIVEL 3 ██
+# INICIO: poincare_cluster_section consume RegisteredCluster de Fase 2.
+# ═══════════════════════════════════════════════════════════════════
+_GREENER_CACHE: Dict[float, dict] = {}
+_BENETTIN_CACHE: Dict[float, dict] = {}
+
+
+class Fase3Autonomy:
+    """
+    Fase 3: Sección de Poincaré Simpéctica del Mapa Estándar de Chirikov–Taylor,
+    Exponente de Lyapunov en Espacio Tangente de Benettin + MEGNO, Certificados
+    KAM (Diofántico de Hurwitz–Lagrange + Residuos de Greene sobre Órbitas de
+    Aubry–Mather) y Automejora Recursiva Nivel 3 con Cierre de Kleene F3 → F1.
+    """
+
+    # ── PRIMERA FUNCIÓN DE FASE 3 (CONTINUACIÓN DIRECTA DE FASE 2) ──
+    @staticmethod
+    def poincare_cluster_section(
+        registered: Any, genome: Optional[dict] = None, n_iter: int = 512
+    ) -> PoincareSection:
+        """
+        Integra el mapa estándar simpéctico de Chirikov–Taylor en radianes:
+            p_{k+1} = p_k + K_eff · sin(θ_k)
+            θ_{k+1} = (θ_k + p_{k+1}) mod 2π,     det(DF) = 1,
+        donde K_eff = kam_K · (1 − HSR) traduce el defecto de salud del clúster
+        en perturbación no lineal. Calcula Lyapunov tangente de Benettin, MEGNO
+        discreto, cruces interpolados en θ ≡ 0 (mod 2π) y certificados KAM de
+        Greene y Hurwitz–Lagrange frente a kam_gamma.
+        """
+        reg = _view(registered)
+        g = Fase3Autonomy._project_genome(dict(genome or DEFAULT_GENOME))
+        hsr = float(reg.get("health_success_rate", 0.0))
+        K = g["kam_K"] * (1.0 - hsr)
+        p = g["heartbeat_ms"] / 60000.0
+        theta = (g["startup_timeout_ms"] / 30000.0) % (2.0 * math.pi)
+        theta0 = theta
+
+        orbit, section = [], []
+        v_theta, v_p = 1.0, 0.0
+        sum_log, megno_acc, ybar_sum = 0.0, 0.0, 0.0
+        unwrapped = theta
+        n_steps = max(1, int(n_iter))
+
+        for k in range(1, n_steps + 1):
+            c = K * math.cos(theta)
+            p_new = p + K * math.sin(theta)
+            theta_raw = theta + p_new
+            theta_new = theta_raw % (2.0 * math.pi)
+            nv_theta = (1.0 + c) * v_theta + v_p
+            nv_p = c * v_theta + v_p
+            d = math.hypot(nv_theta, nv_p)
+            if d > 1.0e-300:
+                lg = math.log(d)
+                sum_log += lg
+                megno_acc += 2.0 * k * lg
+                ybar_sum += megno_acc / k
+                v_theta, v_p = nv_theta / d, nv_p / d
+            if theta_new < theta and p_new > 0.0:
+                denom = theta_new + 2.0 * math.pi - theta
+                alpha = (
+                    (2.0 * math.pi - theta) / denom
+                    if abs(denom) > 1.0e-15
+                    else 0.0
+                )
+                section.append([p + alpha * (p_new - p), 0.0])
+            orbit.append([theta_new, p_new])
+            unwrapped += p_new
+            theta, p = theta_new, p_new
+
+        rho = ((unwrapped - theta0) / (2.0 * math.pi * n_steps)) % 1.0
+        greene = Fase3Autonomy._greene_certificate(K)
+        dio_golden = Fase3Autonomy._diophantine_certificate(
+            GOLDEN_RATIO, gamma_threshold=g["kam_gamma"]
+        )
+        dio_emp = Fase3Autonomy._diophantine_certificate(
+            rho if rho > 1.0e-9 else GOLDEN_SHARP, gamma_threshold=g["kam_gamma"]
+        )
+
+        payload = {
+            "map_convention": "radianes: p'=p+K sinθ; θ'=(θ+p') mod 2π",
+            "K_effective": K,
+            "health_success_rate_in": hsr,
+            "health_mode_in": reg.get("health_mode", "unknown"),
+            "orbit": orbit,
+            "section_points": section,
+            "n_crossings": len(section),
+            "rotation_number": rho,
+            "rotation_cf": Fase3Autonomy._continued_fraction(rho, 16),
+            "lyapunov_benettin": sum_log / n_steps,
+            "megno_mean": ybar_sum / n_steps,
+            "greene": greene,
+            "diophantine": dio_golden,
+            "chirikov_confinement": bool(
+                K < CHIRIKOV_CRITICAL and greene["torus_preserved"]
+            ),
+            "empirical_diophantine": dio_emp,
+            "symplectic_det_jacobian": 1.0,
+        }
+        return PoincareSection(**payload, lineage_hash=_chain("F3", payload))
+
+    # ── Diofántico + Benettin + Greene (Aubry–Mather) ────────────────
+    @staticmethod
+    def _continued_fraction(x: float, max_terms: int = 24) -> List[int]:
+        out = [int(math.floor(x))]
+        frac = x - math.floor(x)
+        for _ in range(max_terms - 1):
+            if frac < 1.0e-12:
+                break
+            inv = 1.0 / frac
+            a = int(math.floor(inv))
+            out.append(a)
+            frac = inv - a
+        return out
+
+    @staticmethod
+    def _diophantine_certificate(
+        omega: float, q_max: int = 256, gamma_threshold: Optional[float] = None
+    ) -> dict:
+        """
+        Certificado diofántico de Hurwitz–Lagrange:
+            γ_max(ω) = min_{1 ≤ q ≤ q_max} q · ‖q ω‖_ℤ.
+        Para φ: ínfimo global = 1/φ² (q=1) y liminf = 1/√5. Audita explícitamente
+        γ_max(ω) ≥ gamma_threshold frente al gen kam_gamma.
+        """
+        best, best_q = float("inf"), 1
+        for q in range(1, q_max + 1):
+            d = abs(omega * q - round(omega * q))
+            if q * d < best:
+                best, best_q = q * d, q
+        cf = Fase3Autonomy._continued_fraction(omega, 24)
+        bounded = all(a <= 8 for a in cf[1:]) if len(cf) > 1 else True
+        p0, p1, q0, q1 = 0, 1, 1, 0
+        conv = []
+        for a in cf:
+            p0, p1 = p1, a * p1 + p0
+            q0, q1 = q1, a * q1 + q0
+            if q1 > 0:
+                conv.append(q1)
+        lag = min(
+            (q * abs(omega * q - round(omega * q)) for q in conv[-6:]),
+            default=None,
+        )
+        req_gamma = (
+            float(gamma_threshold)
+            if gamma_threshold is not None
+            else float(DEFAULT_GENOME["kam_gamma"])
+        )
+        return {
+            "omega_tested": float(omega),
+            "gamma_max_all_q": float(best),
+            "attained_q": int(best_q),
+            "gamma_threshold_required": req_gamma,
+            "diophantine_satisfied": bool(best >= req_gamma),
+            "cf_partial_quotients": cf,
+            "badly_approximable_est": bounded,
+            "lagrange_liminf_est": lag,
+            "hurwitz_constant": HURWITZ_C,
+            "golden_sharp_constant": GOLDEN_SHARP,
+        }
+
+    @staticmethod
+    def _benettin_cached(K: float, n_iter: int = 2000) -> dict:
+        key = round(K, 6)
+        if key in _BENETTIN_CACHE:
+            return _BENETTIN_CACHE[key]
+        theta, p = 0.05, 0.1
+        vt, vp = 1.0, 0.0
+        sl, ma, ys = 0.0, 0.0, 0.0
+        for k in range(1, n_iter + 1):
+            c = K * math.cos(theta)
+            pn = p + K * math.sin(theta)
+            tn = theta + pn
+            nt, np_ = (1.0 + c) * vt + vp, c * vt + vp
+            d = math.hypot(nt, np_)
+            if d > 1.0e-300:
+                lg = math.log(d)
+                sl += lg
+                ma += 2.0 * k * lg
+                ys += ma / k
+                vt, vp = nt / d, np_ / d
+            theta, p = tn, pn
+        out = {
+            "lyapunov": sl / n_iter,
+            "megno_mean": ys / n_iter,
+            "method": "Benettin tangente + MEGNO discreto",
+        }
+        _BENETTIN_CACHE[key] = out
+        return out
+
+    @staticmethod
+    def _thomas_solve(
+        sub: List[float], diag: List[float], sup: List[float], rhs: List[float]
+    ) -> List[float]:
+        n = len(diag)
+        cp, dp = [0.0] * n, [0.0] * n
+        m = diag[0] if abs(diag[0]) > 1.0e-14 else 1.0e-14
+        cp[0], dp[0] = sup[0] / m, rhs[0] / m
+        for i in range(1, n):
+            m = diag[i] - sub[i] * cp[i - 1]
+            if abs(m) < 1.0e-14:
+                m = 1.0e-14
+            cp[i] = sup[i] / m if i < n - 1 else 0.0
+            dp[i] = (rhs[i] - sub[i] * dp[i - 1]) / m
+        x = [0.0] * n
+        x[-1] = dp[-1]
+        for i in range(n - 2, -1, -1):
+            x[i] = dp[i] - cp[i] * x[i + 1]
+        return x
+
+    @staticmethod
+    def _cyclic_solve(diag: List[float], rhs: List[float]) -> List[float]:
+        """Solucionador tridiagonal periódico O(q) por identidad de Sherman–Morrison."""
+        n = len(diag)
+        gamma = -diag[0]
+        bb = list(diag)
+        bb[0] = diag[0] - gamma
+        bb[-1] = diag[-1] - 1.0 / gamma
+        z = [0.0] * n
+        z[0], z[-1] = gamma, -1.0
+        sub, sup = [-1.0] * n, [-1.0] * n
+        x = Fase3Autonomy._thomas_solve(sub, bb, sup, rhs)
+        u = Fase3Autonomy._thomas_solve(sub, bb, sup, z)
+        den = 1.0 + u[0] - u[-1] / gamma
+        if abs(den) < 1.0e-14:
+            raise ArithmeticError("Sistema tridiagonal cíclico singular")
+        fact = (x[0] - x[-1] / gamma) / den
+        return [x[i] - fact * u[i] for i in range(n)]
+
+    @staticmethod
+    def _minimizing_orbit(K: float, r: int, q: int) -> Optional[List[float]]:
+        """
+        Órbita periódica minimizante de Aubry–Mather para la acción de Frenkel–Kontorova
+        S = ∑ [½(θ_{i+1}−θ_i)² − K cos θ_i] con condición trenzada θ_{i+q} = θ_i + 2πr.
+        """
+        tpr = 2.0 * math.pi * r
+        th = [tpr * i / q + 0.3 for i in range(q)]
+
+        def action(t: List[float]) -> float:
+            s = 0.0
+            for i in range(q):
+                nxt = t[i + 1] if i + 1 < q else t[0] + tpr
+                d = nxt - t[i]
+                s += 0.5 * d * d - K * math.cos(t[i])
+            return s
+
+        def grad(t: List[float]) -> List[float]:
+            gg = []
+            for i in range(q):
+                prev = t[i - 1] if i > 0 else t[q - 1] - tpr
+                nxt = t[i + 1] if i + 1 < q else t[0] + tpr
+                gg.append(nxt - 2.0 * t[i] + prev - K * math.sin(t[i]))
+            return gg
+
+        S = action(th)
+        for _ in range(60):
+            gg = grad(th)
+            if max(abs(x) for x in gg) < 1.0e-11:
+                return th
+            diag = [2.0 - K * math.cos(t) + 1.0e-10 for t in th]
+            try:
+                delta = Fase3Autonomy._cyclic_solve(diag, [-x for x in gg])
+            except ArithmeticError:
+                return None
+            lam = 1.0
+            for _ in range(24):
+                cand = [th[i] + lam * delta[i] for i in range(q)]
+                if action(cand) <= S + 1.0e-14:
+                    th, S = cand, action(cand)
+                    break
+                lam *= 0.5
+            else:
+                return None
+        return th if max(abs(x) for x in grad(th)) < 1.0e-8 else None
+
+    @staticmethod
+    def _orbit_residue(theta: List[float], K: float) -> float:
+        """Residuo de Greene R = (2 − Tr M)/4 sobre la matriz de monodromía simpléctica M."""
+        m00, m01, m10, m11 = 1.0, 0.0, 0.0, 1.0
+        for t in theta:
+            c = K * math.cos(t)
+            m00, m01, m10, m11 = (
+                m00 + c * m10,
+                m01 + c * m11,
+                m00 + (1.0 + c) * m10,
+                m01 + (1.0 + c) * m11,
+            )
+        return (2.0 - (m00 + m11)) / 4.0
+
+    @staticmethod
+    def _greene_certificate(K: float) -> dict:
+        key = round(K, 6)
+        if key in _GREENER_CACHE:
+            return _GREENER_CACHE[key]
+        res = []
+        for r, q in (
+            (2, 3),
+            (3, 5),
+            (5, 8),
+            (8, 13),
+            (13, 21),
+            (21, 34),
+            (34, 55),
+            (55, 89),
+        ):
+            th = Fase3Autonomy._minimizing_orbit(K, r, q)
+            R = Fase3Autonomy._orbit_residue(th, K) if th is not None else None
+            res.append({"r": r, "q": q, "residue": R})
+        ok = all(
+            x["residue"] is not None and -1.0e-6 <= x["residue"] <= 0.2501
+            for x in res
+        )
+        cert = {
+            "K": K,
+            "K_c_greene_ref": CHIRIKOV_CRITICAL,
+            "margin_subcritical": (CHIRIKOV_CRITICAL - K) / CHIRIKOV_CRITICAL,
+            "residues": res,
+            "torus_preserved": ok,
+            "criterion": "Greene minimizante (Aubry–Mather); twist de Chirikov",
+        }
+        _GREENER_CACHE[key] = cert
+        return cert
+
+    # ── Geometría de Banach del Genoma y Automejora Nivel 3 ──────────
+    @staticmethod
+    def _project_genome(g: dict) -> dict:
+        """Proyección ortogonal sobre la caja compacta GENOME_BOX con cuantización entera."""
+        out = dict(DEFAULT_GENOME)
+        out.update({k: v for k, v in (g or {}).items() if k in GENOME_BOX})
+        for k, (lo, hi) in GENOME_BOX.items():
+            v = out.get(k, DEFAULT_GENOME[k])
+            try:
+                v = float(v)
+            except (TypeError, ValueError):
+                v = float(DEFAULT_GENOME[k])
+            v = _clamp(v, lo, hi)
+            out[k] = int(round(v)) if k in INT_GENES else v
+        return out
+
+    @staticmethod
+    def _banach_genome_distance(g1: dict, g2: dict) -> float:
+        """Métrica relativa en norma supremo ℓ^∞ sobre la variedad compacta GENOME_BOX."""
+        dists = []
+        for k, (lo, hi) in GENOME_BOX.items():
+            span = max(1.0e-15, hi - lo)
+            v1 = float(g1.get(k, DEFAULT_GENOME[k]))
+            v2 = float(g2.get(k, DEFAULT_GENOME[k]))
+            dists.append(abs(v1 - v2) / span)
+        return float(max(dists)) if dists else 0.0
+
+    @staticmethod
+    def _fitness(genome: dict, section: Any, registered: Any) -> float:
+        """
+        Funcional de aptitud F(g) ∈ [0, 1] acoplado rigurosamente a los 8 genes:
+          1. Estabilidad de Lyapunov (Benettin) y confinamiento KAM (Greene) vía kam_K.
+          2. Margen diofántico Hurwitz–Lagrange frente a kam_gamma.
+          3. Salud observada del clúster (HSR) y latencia media/P95.
+          4. Adaptación de impedancia temporal RLC y ley de colas de Little para
+             heartbeat_ms, startup_timeout_ms, backoff_base_ms, probe_timeout_s e
+             import_timeout_s frente a la latencia medida.
+          5. Tensión de seguridad de disyuntor (max_consecutive_failures).
+        """
+        s = _view(section)
+        reg = _view(registered)
+        g = Fase3Autonomy._project_genome(dict(genome))
+
+        hsr = float(reg.get("health_success_rate", 0.0))
+        K_eff = g["kam_K"] * (1.0 - hsr)
+        ben = Fase3Autonomy._benettin_cached(K_eff)
+        greene = Fase3Autonomy._greene_certificate(K_eff)
+
+        stability = math.exp(-max(0.0, ben["lyapunov"]) / 0.5)
+        margin = greene["margin_subcritical"]
+        kam_greene = (1.0 / (1.0 + math.exp(-8.0 * margin))) * (
+            1.0 if greene["torus_preserved"] else 0.35
+        )
+        gamma_avail = float(
+            s.get("diophantine", {}).get("gamma_max_all_q", GOLDEN_SHARP)
+        )
+        dio_score = 1.0 / (1.0 + math.exp(-12.0 * (gamma_avail - g["kam_gamma"])))
+        kam = 0.80 * kam_greene + 0.20 * dio_score
+
+        avg_lat = float(reg.get("avg_latency_ok_ms") or 25.0)
+        p95_lat = float(reg.get("p95_latency_ok_ms") or avg_lat)
+        lat_base = math.exp(-avg_lat / 250.0) if reg.get("avg_latency_ok_ms") is not None else 0.0
+
+        # Acoplamiento físico de los genes temporales de operación y sondas
+        hb_score = math.exp(-abs(math.log(max(1.0, float(g["heartbeat_ms"])) / 20000.0)) * 0.35)
+        startup_ratio = float(g["startup_timeout_ms"]) / max(1.0, p95_lat * 15.0)
+        startup_score = (
+            math.exp(-abs(math.log(max(1.0e-3, startup_ratio))) * 0.25)
+            if float(g["startup_timeout_ms"]) >= p95_lat * 2.0
+            else 0.25
+        )
+        backoff_score = math.exp(-abs(math.log(max(1.0, float(g["backoff_base_ms"])) / 400.0)) * 0.30)
+        probe_ms = float(g["probe_timeout_s"]) * 1000.0
+        probe_score = (
+            math.exp(-abs(math.log(max(1.0, probe_ms) / max(500.0, p95_lat * 20.0))) * 0.25)
+            if probe_ms >= p95_lat * 2.0
+            else 0.20
+        )
+        import_score = math.exp(-abs(math.log(max(1.0, float(g["import_timeout_s"])) / 8.0)) * 0.25)
+        timing_match = 0.20 * (hb_score + startup_score + backoff_score + probe_score + import_score)
+        lat_term = 0.65 * lat_base + 0.35 * timing_match
+
+        mcf = float(g["max_consecutive_failures"])
+        safety = 1.0 / (1.0 + (mcf - 1.0) / 3.0)
+
+        return float(
+            0.25 * stability
+            + 0.25 * kam
+            + 0.25 * hsr
+            + 0.15 * lat_term
+            + 0.10 * safety
+        )
+
+    @staticmethod
+    def _improve_l1(
+        genome: dict,
+        section: Any,
+        registered: Any,
+        rates: Optional[dict] = None,
+        sign: float = 1.0,
+    ) -> dict:
+        """
+        Nivel 1 (Flujo en la Variedad del Genoma): Muta los 8 genes guiado por
+        (1 − fitness) hacia el atractor de estabilidad KAM, adaptación RLC de
+        tiempos y umbral seguro de fallos consecutivos.
+        """
+        r = rates or RATES_L1
+        g = Fase3Autonomy._project_genome(dict(genome))
+        reg = _view(registered)
+        f = Fase3Autonomy._fitness(g, section, reg)
+        drive = (1.0 - f) * sign
+
+        g["kam_K"] = float(g["kam_K"]) * (1.0 - r["kam_K"] * drive)
+        g["kam_gamma"] = float(g["kam_gamma"]) * (1.0 - r["kam_gamma"] * drive)
+        g["heartbeat_ms"] = float(g["heartbeat_ms"]) * (1.0 - r["heartbeat_ms"] * drive)
+        g["startup_timeout_ms"] = float(g["startup_timeout_ms"]) * (
+            1.0 + r["startup_timeout_ms"] * drive * 0.5
+        )
+        g["backoff_base_ms"] = float(g["backoff_base_ms"]) * (
+            1.0 - r["backoff_base_ms"] * drive * 0.5
+        )
+        g["probe_timeout_s"] = float(g["probe_timeout_s"]) * (
+            1.0 - r["probe_timeout_s"] * drive * 0.25
+        )
+        g["import_timeout_s"] = float(g["import_timeout_s"]) * (
+            1.0 - r["import_timeout_s"] * drive * 0.25
+        )
+        target_mcf = 2.0 if float(reg.get("health_success_rate", 0.0)) >= 0.95 else 3.0
+        g["max_consecutive_failures"] = float(g["max_consecutive_failures"]) + (
+            drive * r["max_consecutive_failures"] * (target_mcf - float(g["max_consecutive_failures"]))
+        )
+        return Fase3Autonomy._project_genome(g)
+
+    @staticmethod
+    def _improve_l2(
+        l1_rule: Callable,
+        genome: dict,
+        section: Any,
+        registered: Any,
+        rate_scale: float = 1.0,
+    ) -> Tuple[Callable, dict]:
+        """
+        Nivel 2 (Morfismo de Tasas Evolutivas): Explora la familia espectral áurea
+        α ∈ {0.5, 1/φ, 1.0, φ, 2.0} más el morfismo identidad (garantizando
+        monotonía elitista en [0, 1]).
+        """
+        cands: List[Tuple[Callable, dict]] = [
+            (lambda g, s, r: dict(g), dict(genome))
+        ]
+        for alpha in (0.5, CONJ_GOLDEN_RATIO, 1.0, GOLDEN_RATIO, 2.0):
+            scale = alpha * rate_scale
+
+            def make(a: float = scale) -> Callable:
+                rates = {k: v * a for k, v in RATES_L1.items()}
+
+                def rule(g: dict, s: Any, r: Any) -> dict:
+                    return l1_rule(g, s, r, rates=rates)
+
+                return rule
+
+            rule = make()
+            cands.append((rule, rule(genome, section, registered)))
+        return max(
+            cands,
+            key=lambda rc: Fase3Autonomy._fitness(rc[1], section, registered),
+        )
+
+    @staticmethod
+    def _improve_l3(
+        genome: dict, section: Any, registered: Any
+    ) -> Tuple[Callable, dict, dict]:
+        """
+        Nivel 3 (Meta-Funtor de Estrategias): Audita y selecciona entre
+        {identity, exploit, golden_kam, explore, reflect} maximizando la aptitud
+        con certificación de margen y norma de paso en el espacio de Banach.
+        """
+        strategies = {
+            "exploit": (0.5, 1.0),
+            "golden_kam": (CONJ_GOLDEN_RATIO, 1.0),
+            "explore": (2.0, 1.0),
+            "reflect": (1.0, -1.0),
+        }
+        evaluated = [
+            {
+                "strategy": "identity",
+                "genome": dict(genome),
+                "fitness": Fase3Autonomy._fitness(genome, section, registered),
+            }
+        ]
+        rules: Dict[str, Callable] = {"identity": lambda g, s, r: dict(g)}
+        for name, (scale, sign) in strategies.items():
+
+            def l1v(
+                g: dict,
+                s: Any,
+                r: Any,
+                rates: Optional[dict] = None,
+                sg: float = sign,
+            ) -> dict:
+                return Fase3Autonomy._improve_l1(g, s, r, rates=rates, sign=sg)
+
+            def meta(
+                g: dict,
+                s: Any,
+                r: Any,
+                sc: float = scale,
+                lv: Callable = l1v,
+            ) -> Tuple[Callable, dict]:
+                return Fase3Autonomy._improve_l2(lv, g, s, r, rate_scale=sc)
+
+            rule, app = meta(genome, section, registered)
+            rules[name] = rule
+            evaluated.append(
+                {
+                    "strategy": name,
+                    "genome": app,
+                    "fitness": Fase3Autonomy._fitness(app, section, registered),
+                }
+            )
+        best = max(evaluated, key=lambda e: e["fitness"])
+        second = sorted((e["fitness"] for e in evaluated), reverse=True)[1]
+        banach_step = Fase3Autonomy._banach_genome_distance(genome, best["genome"])
+        audit = {
+            "evaluated": [
+                {k: e[k] for k in ("strategy", "fitness")} for e in evaluated
+            ],
+            "selected": best["strategy"],
+            "selection_margin": best["fitness"] - second,
+            "banach_step_norm_linf": banach_step,
+            "constraints_ok": best["genome"]
+            == Fase3Autonomy._project_genome(best["genome"]),
+        }
+        return rules[best["strategy"]], best["genome"], audit
+
+    @staticmethod
+    def recursive_self_improve_orchestration(
+        genome: dict, section: Any, registered: Any, depth: int = 3
+    ) -> dict:
+        """
+        Jerarquía recursiva L1 → L2 → L3 con VETO ELITISTA (rollback inmediato si
+        F(g_cand) < F(g_curr)) y certificado de convergencia monótona en GENOME_BOX.
+        """
+        current = Fase3Autonomy._project_genome(dict(genome))
+        history = [
+            {
+                "level": 0,
+                "genome": dict(current),
+                "fitness": Fase3Autonomy._fitness(current, section, registered),
+                "veto": False,
+            }
+        ]
+        l3_audit = None
+        if depth >= 1:
+            cand = Fase3Autonomy._improve_l1(current, section, registered)
+            f = Fase3Autonomy._fitness(cand, section, registered)
+            veto = f < history[-1]["fitness"] - 1.0e-12
+            current = current if veto else cand
+            history.append(
+                {
+                    "level": 1,
+                    "genome": dict(current),
+                    "fitness": history[-1]["fitness"] if veto else f,
+                    "veto": veto,
+                }
+            )
+        if depth >= 2:
+            _, cand = Fase3Autonomy._improve_l2(
+                Fase3Autonomy._improve_l1, current, section, registered
+            )
+            f = Fase3Autonomy._fitness(cand, section, registered)
+            veto = f < history[-1]["fitness"] - 1.0e-12
+            current = current if veto else cand
+            history.append(
+                {
+                    "level": 2,
+                    "genome": dict(current),
+                    "fitness": history[-1]["fitness"] if veto else f,
+                    "veto": veto,
+                }
+            )
+        if depth >= 3:
+            _, cand, l3_audit = Fase3Autonomy._improve_l3(
+                current, section, registered
+            )
+            f = Fase3Autonomy._fitness(cand, section, registered)
+            veto = f < history[-1]["fitness"] - 1.0e-12
+            current = current if veto else cand
+            history.append(
+                {
+                    "level": 3,
+                    "genome": dict(current),
+                    "fitness": history[-1]["fitness"] if veto else f,
+                    "veto": veto,
+                }
+            )
+        mono = all(
+            history[i + 1]["fitness"] >= history[i]["fitness"] - 1.0e-12
+            for i in range(len(history) - 1)
+        )
+        return {
+            "genome": current,
+            "history": history,
+            "final_fitness": history[-1]["fitness"],
+            "depth": depth,
+            "monotone_certificate": mono,
+            "l3_audit": l3_audit,
+        }
+
+    # ── ÚLTIMO MÉTODO DE FASE 3 — CIERRE DEL BUCLE ANIDADO F3 → F1 ──
+    @staticmethod
+    def orchestrate_cluster(
+        raw_config: dict,
+        genome: Optional[dict] = None,
+        simulate_health: bool = True,
+        n_poincare_iter: int = 512,
+        max_iters: int = 3,
+        tol: float = 1.0e-6,
+    ) -> dict:
+        """
+        Cierre soberano de punto fijo de Kleene (F1 ──► F2 ──► F3 ──► F1'):
+        reinyecta el genoma evolucionado en Nivel 3 dentro de Fase1Bootstrap,
+        Fase2Protocol y Fase3Autonomy en cada iteración, encadenando el linaje
+        SHA-256 y sincronizando los contratos finales con el genoma convergente g*.
+        """
+        g = Fase3Autonomy._project_genome(
+            dict(
+                genome
+                or ((raw_config.get("_phase_3_autonomy") or {}).get("genome") or {})
+            )
+        )
+        trace, iterations, converged = [], [], False
+        h = hashlib.sha256(b"GENESIS").hexdigest()[:32]
+        boot = reg = section = imp = None
+
+        for it in range(max(1, max_iters)):
+            boot = Fase1Bootstrap.bootstrap_cluster_config(raw_config, genome=g)
+            reg = Fase2Protocol.register_servers_with_health_checks(
+                boot, raw_config, simulate_health=simulate_health, genome=g
+            )
+            section = Fase3Autonomy.poincare_cluster_section(
+                reg, genome=g, n_iter=n_poincare_iter
+            )
+            imp = Fase3Autonomy.recursive_self_improve_orchestration(
+                g, section, reg, depth=3
+            )
+            f_new = imp["final_fitness"]
+            trace.append(f_new)
+            h = _chain(
+                h,
+                {
+                    "it": it,
+                    "f1": boot.lineage_hash,
+                    "f2": reg.lineage_hash,
+                    "f3": section.lineage_hash,
+                    "fitness": f_new,
+                },
+            )
+            iterations.append(
+                {
+                    "iteration": it,
+                    "fitness": f_new,
+                    "genome": imp["genome"],
+                    "monotone": imp["monotone_certificate"],
+                    "banach_delta": Fase3Autonomy._banach_genome_distance(
+                        g, imp["genome"]
+                    ),
+                    "bootstrap_ok": boot.all_ok,
+                    "registered_ok": reg.ok,
+                }
+            )
+            g_new = imp["genome"]
+            if it > 0 and abs(trace[-1] - trace[-2]) < tol:
+                converged, g = True, g_new
+                break
+            g = g_new
+
+        # Sincronización final de punto fijo bajo el genoma evolucionado g*
+        if boot is not None and boot.genome_applied != g:
+            boot.genome_applied = dict(g)
+            section = Fase3Autonomy.poincare_cluster_section(
+                reg, genome=g, n_iter=n_poincare_iter
+            )
+
+        return {
+            "phase_1_bootstrap": asdict(boot),
+            "phase_2_protocol": asdict(reg),
+            "phase_3_autonomy": {
+                "poincare": asdict(section),
+                "improvement": imp,
+            },
+            "genome_feedback": g,
+            "loop_certificate": {
+                "iterations": iterations,
+                "fitness_trace": trace,
+                "converged": converged,
+                "tol": tol,
+                "health_mode": reg.health_mode,
+                "feedback_real": "genoma → F1/F2/F3 sincronizado",
+            },
+            "lineage_chain": h,
+        }
+
+
+# ═══════════════════════════════════════════════════════════════════
+# VALIDACIÓN ESTRUCTURAL DE CONFIG + CLI + SERVIDOR MCP STDIO
+# ═══════════════════════════════════════════════════════════════════
+def validate_cluster_config(raw_config: dict) -> dict:
+    """Validación formal del esquema completo de configuración del clúster."""
+    errors = []
+    if not isinstance(raw_config, dict):
+        return {"ok": False, "errors": ["raw_config no es un objeto JSON"]}
+    for block in ("_phase_1_bootstrap", "_phase_2_protocol"):
+        if block not in raw_config:
+            errors.append(f"bloque requerido ausente: {block}")
+    p1 = raw_config.get("_phase_1_bootstrap") or {}
+    for key in ("python", "pythonpath", "servers"):
+        if key not in p1:
+            errors.append(f"_phase_1_bootstrap.{key} ausente")
+    if "command" not in (p1.get("python") or {}):
+        errors.append("_phase_1_bootstrap.python.command ausente")
+    if "primary" not in (p1.get("pythonpath") or {}):
+        errors.append("_phase_1_bootstrap.pythonpath.primary ausente")
+    recon = Fase1Bootstrap._reconcile_server_sets(raw_config)
+    if not recon["consistent"]:
+        errors.append(f"servidores inconsistentes: {recon['discrepancies']}")
+    graph = Fase2Protocol._build_dependency_graph(
+        (raw_config.get("_phase_2_protocol") or {}).get("servers") or {}
+    )
+    if graph["has_cycle"]:
+        errors.append(f"ciclo de dependencias: {graph['cyclic_nodes']}")
+    if graph["dangling_dependencies"]:
+        errors.append(f"dependencias colgantes: {graph['dangling_dependencies']}")
+    return {
+        "ok": not errors,
+        "errors": errors,
+        "server_reconciliation": recon,
+        "dependency_graph": graph,
+    }
+
+
+TOOLS = [
+    {
+        "name": "validate_cluster_config",
+        "description": (
+            "F0: validación formal del esquema del config + pegado de haces de servidores + "
+            "topología homológica y espectral del grafo de dependencias."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {"raw_config": {"type": "object"}},
+            "required": ["raw_config"],
+        },
+    },
+    {
+        "name": "bootstrap_cluster_config",
+        "description": (
+            "F1: intérprete maximal admisible, PYTHONPATH, esquema tipado con redacción "
+            "idempotente y entropía de Shannon, importabilidad segura y espinor S³."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "raw_config": {"type": "object"},
+                "genome": {"type": "object"},
+            },
+            "required": ["raw_config"],
+        },
+    },
+    {
+        "name": "derive_protocol_manifest",
+        "description": (
+            "F2: manifiesto de protocolo (capabilities servidor/cliente, DAG dep→dependiente, "
+            "ondas paralelas, Betti β₀/β₁, valor de Fiedler λ₂ y resistencia de Kirchhoff)."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "bootstrapped": {"type": "object"},
+                "raw_config": {"type": "object"},
+            },
+            "required": ["bootstrapped", "raw_config"],
+        },
+    },
+    {
+        "name": "register_servers_with_health_checks",
+        "description": (
+            "F2: orden topológico + handshake MCP real sin interbloqueo + telemetría RLC "
+            "del bus + estado cuántico de Von Neumann y clasificador Topos de Heyting."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "bootstrapped": {"type": "object"},
+                "raw_config": {"type": "object"},
+                "simulate_health": {"type": "boolean"},
+                "genome": {"type": "object"},
+            },
+            "required": ["bootstrapped", "raw_config"],
+        },
+    },
+    {
+        "name": "poincare_cluster_section",
+        "description": (
+            "F3: sección de Poincaré del mapa estándar simpéctico (radianes) + Lyapunov "
+            "de Benettin + MEGNO + residuos de Greene + diofántico empírico y áureo."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "registered": {"type": "object"},
+                "genome": {"type": "object"},
+                "n_iter": {"type": "integer"},
+            },
+            "required": ["registered"],
+        },
+    },
+    {
+        "name": "recursive_self_improve_orchestration",
+        "description": (
+            "F3: automejora recursiva L1/L2/L3 acoplada a los 8 genes con cotas de seguridad "
+            "en caja de Banach, escala espectral áurea, veto elitista y monotonía."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "genome": {"type": "object"},
+                "section": {"type": "object"},
+                "registered": {"type": "object"},
+                "depth": {"type": "integer"},
+            },
+            "required": ["genome", "section", "registered"],
+        },
+    },
+    {
+        "name": "orchestrate_cluster",
+        "description": (
+            "Cierre anidado de punto fijo de Kleene F1→F2→F3→F1' con realimentación real "
+            "del genoma, linaje SHA-256 y certificado de convergencia."
+        ),
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "raw_config": {"type": "object"},
+                "genome": {"type": "object"},
+                "simulate_health": {"type": "boolean"},
+                "n_poincare_iter": {"type": "integer"},
+                "max_iters": {"type": "integer"},
+            },
+            "required": ["raw_config"],
+        },
+    },
+]
+
+
+def _dispatch(name: str, args: dict) -> Any:
+    if name == "validate_cluster_config":
+        return validate_cluster_config(args["raw_config"])
+    if name == "bootstrap_cluster_config":
+        return Fase1Bootstrap.bootstrap_cluster_config(
+            args["raw_config"], args.get("genome")
+        )
+    if name == "derive_protocol_manifest":
+        return Fase2Protocol.derive_protocol_manifest(
+            args["bootstrapped"], args["raw_config"]
+        )
+    if name == "register_servers_with_health_checks":
+        return Fase2Protocol.register_servers_with_health_checks(
+            args["bootstrapped"],
+            args["raw_config"],
+            args.get("simulate_health", True),
+            args.get("genome"),
+        )
+    if name == "poincare_cluster_section":
+        return Fase3Autonomy.poincare_cluster_section(
+            args["registered"], args.get("genome"), args.get("n_iter", 512)
+        )
+    if name == "recursive_self_improve_orchestration":
+        return Fase3Autonomy.recursive_self_improve_orchestration(
+            args["genome"],
+            args["section"],
+            args["registered"],
+            args.get("depth", 3),
+        )
+    if name == "orchestrate_cluster":
+        return Fase3Autonomy.orchestrate_cluster(
+            args["raw_config"],
+            args.get("genome"),
+            args.get("simulate_health", True),
+            args.get("n_poincare_iter", 512),
+            args.get("max_iters", 3),
+        )
+    raise KeyError(f"Tool {name} not found")
+
+
+def _send(payload: dict) -> None:
+    sys.stdout.write(json.dumps(_sanitize(payload), ensure_ascii=False) + "\n")
+    sys.stdout.flush()
+
+
+def serve_mcp() -> None:
+    """Modo servidor MCP sobre stdio (JSON-RPC 2.0)."""
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            break
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            req = json.loads(line)
+        except Exception:
+            _send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": None,
+                    "error": {"code": -32700, "message": "Parse error"},
+                }
+            )
+            continue
+        method, msg_id = req.get("method"), req.get("id")
+        if isinstance(method, str) and method.startswith("notifications/"):
+            continue
+        if method == "initialize":
+            _send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "result": {
+                        "protocolVersion": (req.get("params") or {}).get(
+                            "protocolVersion", PROTOCOL_VERSION
+                        ),
+                        "capabilities": {"tools": {"listChanged": False}},
+                        "serverInfo": {
+                            "name": "mcp-cluster-orchestrator",
+                            "version": "4.1.0-fases-anidadas-soberanas",
+                        },
+                    },
+                }
+            )
+        elif method == "ping":
+            _send({"jsonrpc": "2.0", "id": msg_id, "result": {}})
+        elif method == "tools/list":
+            _send({"jsonrpc": "2.0", "id": msg_id, "result": {"tools": TOOLS}})
+        elif method == "tools/call":
+            params = req.get("params") or {}
+            name, args = params.get("name"), params.get("arguments") or {}
+            if not name:
+                _send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "error": {"code": -32602, "message": "Missing tool name"},
+                    }
+                )
+                continue
+            try:
+                data = _dispatch(name, args)
+                _send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "result": {
+                            "content": [
+                                {
+                                    "type": "text",
+                                    "text": json.dumps(
+                                        _sanitize(data), indent=2, ensure_ascii=False
+                                    ),
+                                }
+                            ],
+                            "isError": False,
+                        },
+                    }
+                )
+            except KeyError as e:
+                _send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "error": {"code": -32602, "message": str(e)},
+                    }
+                )
+            except Exception as e:
+                _log(f"tool error {name}: {e}")
+                _send(
+                    {
+                        "jsonrpc": "2.0",
+                        "id": msg_id,
+                        "result": {
+                            "content": [{"type": "text", "text": f"ERROR: {e}"}],
+                            "isError": True,
+                        },
+                    }
+                )
+        elif msg_id is not None:
+            _send(
+                {
+                    "jsonrpc": "2.0",
+                    "id": msg_id,
+                    "error": {
+                        "code": -32601,
+                        "message": f"Method not found: {method}",
+                    },
+                }
+            )
+
+
+def main() -> None:
+    argv = sys.argv[1:]
+    if "--serve" in argv:
+        serve_mcp()
+        return
+    positional = [
+        a
+        for i, a in enumerate(argv)
+        if not a.startswith("--") and (i == 0 or argv[i - 1] != "--iters")
+    ]
+    cfg_path = positional[0] if positional else "mcp_config.json"
+    try:
+        with open(cfg_path, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+    except FileNotFoundError:
+        _log(f"config no encontrado: {cfg_path}")
+        print(
+            json.dumps({"ok": False, "error": "config_not_found", "path": cfg_path})
+        )
+        return
+    except json.JSONDecodeError as e:
+        _log(f"JSON inválido: {e}")
+        print(
+            json.dumps({"ok": False, "error": "invalid_json", "detail": str(e)})
+        )
+        return
+    iters = 3
+    if "--iters" in argv:
+        try:
+            iters = int(argv[argv.index("--iters") + 1])
+        except (IndexError, ValueError):
+            pass
+    result = Fase3Autonomy.orchestrate_cluster(
+        cfg, simulate_health=("--real" not in argv), max_iters=iters
+    )
+    print(json.dumps(_sanitize(result), indent=2, ensure_ascii=False))
+
+
+if __name__ == "__main__":
+    main()

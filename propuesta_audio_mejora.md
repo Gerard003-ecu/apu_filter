@@ -1,6 +1,6 @@
 # Plan de Acción para la Implementación de Mejoras en la Gobernanza Ciber-Física
 
-La evolución arquitectónica de APU Filter v15.0.0-PhD consolida un puente entre la certeza de las variedades diferenciables y la toma de decisiones financieras en obras civiles. A partir del diagnóstico del artefacto de audio sobre la aduana variacional y la gobernanza inmunológica, este plan de acción define la Hoja de Ruta para integrar tres refactorizaciones en la Malla Agéntica y en los Motores Espectrales en FPU.
+La evolución arquitectónica de APU Filter v 9.0.0 consolida un puente entre la certeza de las variedades diferenciables y la toma de decisiones financieras en obras civiles. A partir del diagnóstico del artefacto de audio sobre la aduana variacional y la gobernanza inmunológica, este plan de acción define la Hoja de Ruta para integrar tres refactorizaciones en la Malla Agéntica y en los Motores Espectrales en FPU.
 
 ---
 
